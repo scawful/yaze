@@ -6,7 +6,7 @@ var searchData=
   ['handledma_3',['HandleDma',['../namespaceyaze_1_1emu.html#a7215347ac720fbffdc26780519322eae',1,'yaze::emu']]],
   ['handleecho_4',['HandleEcho',['../classyaze_1_1emu_1_1Dsp.html#a7326bb01d15f5914ef723bc39bc7c0fd',1,'yaze::emu::Dsp']]],
   ['handleentitydragging_5',['HandleEntityDragging',['../namespaceyaze_1_1editor.html#a6b13948b033b60fa0dc966717fc52a82',1,'yaze::editor']]],
-  ['handleevents_6',['HandleEvents',['../classyaze_1_1emu_1_1Emulator.html#a476e68b4c3a44ef7152278f9cceda30c',1,'yaze::emu::Emulator']]],
+  ['handleevents_6',['HandleEvents',['../classyaze_1_1emu_1_1Emulator.html#a476e68b4c3a44ef7152278f9cceda30c',1,'yaze::emu::Emulator::HandleEvents()'],['../namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51',1,'yaze::core::HandleEvents()']]],
   ['handleframestart_7',['HandleFrameStart',['../classyaze_1_1emu_1_1Ppu.html#a5428ab6c2b746c3465eb9e127658a4be',1,'yaze::emu::Ppu']]],
   ['handlegain_8',['HandleGain',['../classyaze_1_1emu_1_1Dsp.html#a0dc25296548e3dfdc1dcf9269c2c6093',1,'yaze::emu::Dsp']]],
   ['handlehexstringparams_9',['HandleHexStringParams',['../namespaceyaze_1_1util_1_1anonymous__namespace_02hex_8cc_03.html#a8df6570682bdbc23efde15272b1b1494',1,'yaze::util::anonymous_namespace{hex.cc}']]],

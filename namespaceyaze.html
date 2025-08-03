@@ -160,9 +160,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1Rom.html">Rom</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> class is used to load, save, and modify <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> data.  <a href="classyaze_1_1Rom.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1SharedRom.html">SharedRom</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A class to hold a shared pointer to a <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> object.  <a href="classyaze_1_1SharedRom.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1VersionControlManager.html">VersionControlManager</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -333,7 +330,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00058">58</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::Renderer::Get()</a>, <a class="el" href="rom_8h_source.html#l00030">kNumLinkSheets</a>, <a class="el" href="snes__tile_8h_source.html#l00018">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="rom_8h_source.html#l00187">yaze::Rom::palette_group()</a>, <a class="el" href="rom_8cc_source.html#l00539">yaze::Rom::ReadByteVector()</a>, <a class="el" href="renderer_8h_source.html#l00045">yaze::core::Renderer::RenderBitmap()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00129">yaze::gfx::SnesTo8bppSheet()</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="window_8h_source.html#l00037">yaze::Renderer::Get()</a>, <a class="el" href="rom_8h_source.html#l00030">kNumLinkSheets</a>, <a class="el" href="snes__tile_8h_source.html#l00018">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="rom_8h_source.html#l00187">yaze::Rom::palette_group()</a>, <a class="el" href="rom_8cc_source.html#l00539">yaze::Rom::ReadByteVector()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, and <a class="el" href="snes__tile_8cc_source.html#l00129">yaze::gfx::SnesTo8bppSheet()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="graphics__editor_8cc_source.html#l00380">yaze::editor::GraphicsEditor::UpdateLinkGfxView()</a>.</p>
 
@@ -417,9 +414,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="rom_8cc_source.html#l00135">135</a> of file <a class="el" href="rom_8cc_source.html">rom.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00177">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01372">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::Renderer::Get()</a>, <a class="el" href="rom_8cc_source.html#l00034">GetGraphicsAddress()</a>, <a class="el" href="rom_8h_source.html#l00029">kNumGfxSheets</a>, <a class="el" href="zelda_8h_source.html#l00034">zelda3_version_pointers::kOverworldGfxPtr1</a>, <a class="el" href="zelda_8h_source.html#l00035">zelda3_version_pointers::kOverworldGfxPtr2</a>, <a class="el" href="zelda_8h_source.html#l00036">zelda3_version_pointers::kOverworldGfxPtr3</a>, <a class="el" href="snes__tile_8h_source.html#l00018">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="rom_8h_source.html#l00186">yaze::Rom::mutable_graphics_buffer()</a>, <a class="el" href="rom_8h_source.html#l00187">yaze::Rom::palette_group()</a>, <a class="el" href="snes__tile_8cc_source.html#l00129">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="rom_8cc_source.html#l00032">Uncompressed3BPPSize</a>, and <a class="el" href="rom_8h_source.html#l00195">yaze::Rom::version_constants()</a>.</p>
+<p class="reference">References <a class="el" href="macro_8h_source.html#l00059">ASSIGN_OR_RETURN</a>, <a class="el" href="rom_8h_source.html#l00177">yaze::Rom::data()</a>, <a class="el" href="compression_8cc_source.html#l01372">yaze::gfx::lc_lz2::DecompressV2()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::Renderer::Get()</a>, <a class="el" href="rom_8cc_source.html#l00034">GetGraphicsAddress()</a>, <a class="el" href="rom_8h_source.html#l00029">kNumGfxSheets</a>, <a class="el" href="zelda_8h_source.html#l00034">zelda3_version_pointers::kOverworldGfxPtr1</a>, <a class="el" href="zelda_8h_source.html#l00035">zelda3_version_pointers::kOverworldGfxPtr2</a>, <a class="el" href="zelda_8h_source.html#l00036">zelda3_version_pointers::kOverworldGfxPtr3</a>, <a class="el" href="snes__tile_8h_source.html#l00018">yaze::gfx::kTilesheetDepth</a>, <a class="el" href="snes__tile_8h_source.html#l00017">yaze::gfx::kTilesheetHeight</a>, <a class="el" href="snes__tile_8h_source.html#l00016">yaze::gfx::kTilesheetWidth</a>, <a class="el" href="rom_8h_source.html#l00186">yaze::Rom::mutable_graphics_buffer()</a>, <a class="el" href="rom_8h_source.html#l00187">yaze::Rom::palette_group()</a>, <a class="el" href="snes__tile_8cc_source.html#l00129">yaze::gfx::SnesTo8bppSheet()</a>, <a class="el" href="rom_8cc_source.html#l00032">Uncompressed3BPPSize</a>, and <a class="el" href="rom_8h_source.html#l00195">yaze::Rom::version_constants()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00545">yaze::editor::EditorManager::LoadAssets()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00516">yaze::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00532">yaze::editor::EditorManager::LoadAssets()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00516">yaze::editor::Tile16Editor::UpdateTransferTileCanvas()</a>.</p>
 
 </div>
 </div>
@@ -446,7 +443,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="rom_8h_source.html#l00179">yaze::Rom::begin()</a>, <a class="el" href="snes__tile_8cc_source.html#l00189">yaze::gfx::Bpp8SnesToIndexed()</a>, <a class="el" href="rom_8h_source.html#l00177">yaze::Rom::data()</a>, <a class="el" href="rom_8cc_source.html#l00034">GetGraphicsAddress()</a>, <a class="el" href="compression_8cc_source.html#l00018">yaze::gfx::HyruleMagicCompress()</a>, <a class="el" href="rom_8h_source.html#l00029">kNumGfxSheets</a>, <a class="el" href="zelda_8h_source.html#l00034">zelda3_version_pointers::kOverworldGfxPtr1</a>, <a class="el" href="zelda_8h_source.html#l00035">zelda3_version_pointers::kOverworldGfxPtr2</a>, <a class="el" href="zelda_8h_source.html#l00036">zelda3_version_pointers::kOverworldGfxPtr3</a>, and <a class="el" href="rom_8h_source.html#l00195">yaze::Rom::version_constants()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00564">yaze::editor::EditorManager::SaveRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00551">yaze::editor::EditorManager::SaveRom()</a>.</p>
 
 </div>
 </div>
@@ -544,7 +541,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes_8h_source.html#l00017">PcToSnes()</a>, and <a class="el" href="snes_8h_source.html#l00008">SnesToPc()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00204">yaze::editor::ParseSingleMessage()</a>, and <a class="el" href="message__data_8cc_source.html#l00332">yaze::editor::ReadAllTextData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="message__data_8cc_source.html#l00204">yaze::editor::ParseSingleMessage()</a>, and <a class="el" href="message__data_8cc_source.html#l00336">yaze::editor::ReadAllTextData()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

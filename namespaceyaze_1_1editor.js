@@ -8,8 +8,6 @@ var namespaceyaze_1_1editor =
       [ "RenderUnusedSets", "namespaceyaze_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html#a49f56fef596e5100283beb1a405fd472", null ]
     ] ],
     [ "anonymous_namespace{editor_manager.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html", [
-      [ "BeginCentered", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a31df2babe81739c8cc81beeb0b148066", null ],
-      [ "IsEditorActive", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#aedd76ea3011012c49dbd8e07e848f046", null ],
       [ "GetEditorName", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a04a2feb18db36480026c96f4c432701d", null ]
     ] ],
     [ "anonymous_namespace{gfx_group_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html", [
@@ -139,9 +137,9 @@ var namespaceyaze_1_1editor =
     [ "kPalButtonFlags", "namespaceyaze_1_1editor.html#ad218da6f4c76c74e66b860fd7b85f851", null ],
     [ "kColorPopupFlags", "namespaceyaze_1_1editor.html#aa379af836e28c0e2ad273e9764a49e45", null ],
     [ "kRedPen", "namespaceyaze_1_1editor.html#a1a9ea88f79f3bb8c07a0f1439347bfc2", null ],
-    [ "kMessageTerminator", "namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a", null ],
     [ "kBankToken", "namespaceyaze_1_1editor.html#a03ed5e244fc1d22abedc9549954318f7", null ],
     [ "DICTIONARYTOKEN", "namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342", null ],
+    [ "kMessageTerminator", "namespaceyaze_1_1editor.html#a970a41369e67a459e17900d310274650", null ],
     [ "DICTOFF", "namespaceyaze_1_1editor.html#abb2b75ac1fb7f044b8c0305ce0abf927", null ],
     [ "kWidthArraySize", "namespaceyaze_1_1editor.html#ab8dad615541a554df4446d604e0bc187", null ],
     [ "kTextData", "namespaceyaze_1_1editor.html#a473fd190fc829bc2a054131640c2f620", null ],

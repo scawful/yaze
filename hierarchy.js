@@ -1,7 +1,6 @@
 var hierarchy =
 [
     [ "yaze::gui::zeml::Action", "structyaze_1_1gui_1_1zeml_1_1Action.html", null ],
-    [ "yaze::core::MemoryTracker::AllocationInfo", "structyaze_1_1core_1_1MemoryTracker_1_1AllocationInfo.html", null ],
     [ "yaze::editor::zsprite::AnimationGroup", "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html", null ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
@@ -38,6 +37,7 @@ var hierarchy =
     [ "yaze::emu::Emulator::Bookmark", "structyaze_1_1emu_1_1Emulator_1_1Bookmark.html", null ],
     [ "TextEditor::Breakpoint", "structTextEditor_1_1Breakpoint.html", null ],
     [ "yaze::gui::Button", "structyaze_1_1gui_1_1Button.html", null ],
+    [ "yaze::gui::Canvas", "classyaze_1_1gui_1_1Canvas.html", null ],
     [ "yaze::emu::CGADD", "structyaze_1_1emu_1_1CGADD.html", null ],
     [ "yaze::emu::CGADSUB", "structyaze_1_1emu_1_1CGADSUB.html", null ],
     [ "yaze::emu::CGDATA", "structyaze_1_1emu_1_1CGDATA.html", null ],
@@ -135,6 +135,7 @@ var hierarchy =
       [ "yaze::editor::Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", null ],
       [ "yaze::zelda3::OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", null ]
     ] ],
+    [ "yaze::editor::GfxGroupEditor", "classyaze_1_1editor_1_1GfxGroupEditor.html", null ],
     [ "yaze::gui::GfxSheetAssetBrowser", "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", null ],
     [ "TextEditor::Glyph", "structTextEditor_1_1Glyph.html", null ],
     [ "yaze::gfx::GraphicsBuffer", "classyaze_1_1gfx_1_1GraphicsBuffer.html", null ],
@@ -170,7 +171,6 @@ var hierarchy =
       [ "yaze::emu::MockMemory", "classyaze_1_1emu_1_1MockMemory.html", null ]
     ] ],
     [ "yaze::editor::MemoryEditorWithDiffChecker", "structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html", null ],
-    [ "yaze::core::MemoryTracker", "classyaze_1_1core_1_1MemoryTracker.html", null ],
     [ "yaze::gui::MenuItem", "structyaze_1_1gui_1_1MenuItem.html", null ],
     [ "yaze::editor::MessageData", "structyaze_1_1editor_1_1MessageData.html", null ],
     [ "yaze::editor::MessagePreview", "structyaze_1_1editor_1_1MessagePreview.html", null ],
@@ -207,12 +207,9 @@ var hierarchy =
     [ "yaze::gfx::PaletteGroupMap", "structyaze_1_1gfx_1_1PaletteGroupMap.html", null ],
     [ "yaze::gfx::Paletteset", "structyaze_1_1gfx_1_1Paletteset.html", null ],
     [ "yaze::editor::ParsedElement", "structyaze_1_1editor_1_1ParsedElement.html", null ],
-    [ "yaze::core::PlatformBackend< Derived >", "classyaze_1_1core_1_1PlatformBackend.html", null ],
-    [ "yaze::core::PlatformBackend< Sdl2Backend >", "classyaze_1_1core_1_1PlatformBackend.html", [
-      [ "yaze::core::Sdl2Backend", "classyaze_1_1core_1_1Sdl2Backend.html", null ]
-    ] ],
     [ "yaze::editor::PopupManager", "classyaze_1_1editor_1_1PopupManager.html", null ],
     [ "yaze::editor::PopupParams", "structyaze_1_1editor_1_1PopupParams.html", null ],
+    [ "yaze::emu::Ppu", "classyaze_1_1emu_1_1Ppu.html", null ],
     [ "yaze::emu::PpuInterface", "classyaze_1_1emu_1_1PpuInterface.html", [
       [ "yaze::test::MockPpu", "classyaze_1_1test_1_1MockPpu.html", null ]
     ] ],
@@ -257,11 +254,7 @@ var hierarchy =
     [ "yaze::core::SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", null ],
     [ "yaze::core::SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", null ],
     [ "yaze::emu::SETINI", "structyaze_1_1emu_1_1SETINI.html", null ],
-    [ "yaze::SharedRom", "classyaze_1_1SharedRom.html", [
-      [ "yaze::editor::GfxGroupEditor", "classyaze_1_1editor_1_1GfxGroupEditor.html", null ],
-      [ "yaze::editor::Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", null ],
-      [ "yaze::emu::Ppu", "classyaze_1_1emu_1_1Ppu.html", null ],
-      [ "yaze::gui::Canvas", "classyaze_1_1gui_1_1Canvas.html", null ],
+    [ "SharedRom", null, [
       [ "yaze::test::DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", null ],
       [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
       [ "yaze::test::OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", null ]
@@ -351,6 +344,7 @@ var hierarchy =
     [ "yaze::emu::WH2", "structyaze_1_1emu_1_1WH2.html", null ],
     [ "yaze::emu::WH3", "structyaze_1_1emu_1_1WH3.html", null ],
     [ "yaze::gui::zeml::WidgetAttributes", "structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html", null ],
+    [ "yaze::core::Window", "structyaze_1_1core_1_1Window.html", null ],
     [ "yaze::emu::WindowLayer", "structyaze_1_1emu_1_1WindowLayer.html", null ],
     [ "yaze::emu::WindowMaskSettings", "structyaze_1_1emu_1_1WindowMaskSettings.html", null ],
     [ "yaze::emu::WindowMaskSettings2", "structyaze_1_1emu_1_1WindowMaskSettings2.html", null ],
@@ -365,6 +359,7 @@ var hierarchy =
     [ "yaze_extension", "structyaze__extension.html", null ],
     [ "yaze_project", "structyaze__project.html", null ],
     [ "zelda3_dungeon_room", "structzelda3__dungeon__room.html", null ],
+    [ "zelda3_message", "structzelda3__message.html", null ],
     [ "zelda3_overworld", "structzelda3__overworld.html", null ],
     [ "zelda3_overworld_map", "structzelda3__overworld__map.html", null ],
     [ "zelda3_rom", "structzelda3__rom.html", null ],

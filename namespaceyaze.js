@@ -14,7 +14,6 @@ var namespaceyaze =
     [ "Renderer", "classyaze_1_1Renderer.html", "classyaze_1_1Renderer" ],
     [ "ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", "structyaze_1_1ResourceLabelManager" ],
     [ "Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
-    [ "SharedRom", "classyaze_1_1SharedRom.html", "classyaze_1_1SharedRom" ],
     [ "VersionControlManager", "classyaze_1_1VersionControlManager.html", "classyaze_1_1VersionControlManager" ],
     [ "GetGraphicsAddress", "namespaceyaze.html#acf543dde4eeff4bc273d61a4ffda5d41", null ],
     [ "Load2BppGraphics", "namespaceyaze.html#a3167c1c857f5e405cb39a492529d6557", null ],

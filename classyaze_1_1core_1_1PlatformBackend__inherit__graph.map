@@ -1,9 +1,0 @@
-<map id="yaze::core::PlatformBackend&lt; Derived &gt;" name="yaze::core::PlatformBackend&lt; Derived &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,48,190,89"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1PlatformBackend.html" title=" " alt="" coords="403,5,587,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,54,402,33,403,38,205,60"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1PlatformBackend.html" title=" " alt="" coords="403,71,587,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="206,77,214,78,402,87,402,92,214,83,205,83"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Sdl2Backend.html" title=" " alt="" coords="636,13,798,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="603,23,636,23,636,28,603,28"/>
-</map>

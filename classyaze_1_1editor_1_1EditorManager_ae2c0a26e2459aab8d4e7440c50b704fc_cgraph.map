@@ -1,12 +1,12 @@
 <map id="yaze::editor::EditorManager::OpenRomOrProject" name="yaze::editor::EditorManager::OpenRomOrProject">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,33,180,74"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html#ae010594950b0cc8a3fc477163a6934cc" title=" " alt="" coords="450,5,624,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,30,227,19,334,13,435,15,434,20,334,18,228,24,168,35"/>
-<area shape="rect" id="Node000017" href="$classyaze_1_1editor_1_1EditorManager.html#a2f7b946839734d5ad6ec6782552dd84d" title=" " alt="" coords="228,33,402,74"/>
-<area shape="poly" id="edge3_Node000001_Node000017" title=" " alt="" coords="180,51,212,51,212,56,180,56"/>
-<area shape="rect" id="Node000021" href="$classyaze_1_1SharedRom.html#a7f08a20972402f69c7c388111300db66" title=" " alt="" coords="228,98,402,124"/>
-<area shape="poly" id="edge5_Node000001_Node000021" title=" " alt="" coords="174,72,248,91,247,96,173,77"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="672,13,810,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="625,23,657,23,657,28,625,28"/>
-<area shape="poly" id="edge4_Node000017_Node000002" title=" " alt="" coords="402,40,434,36,435,41,403,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,180,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html#ae010594950b0cc8a3fc477163a6934cc" title=" " alt="" coords="450,23,624,64"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,38,228,37,402,37,434,37,434,43,402,42,228,42,180,43"/>
+<area shape="rect" id="Node000017" href="$classyaze_1_1editor_1_1EditorManager.html#a2f7b946839734d5ad6ec6782552dd84d" title=" " alt="" coords="228,51,402,92"/>
+<area shape="poly" id="edge4_Node000001_Node000017" title=" " alt="" coords="180,52,212,56,212,61,180,57"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="692,5,829,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="624,31,676,25,676,30,625,36"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze.html#acd38081a0d3a77b20abfb9375574d1b9" title="This function iterates over all graphics sheets in the Rom and loads them into memory...." alt="" coords="672,55,849,80"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="625,50,657,54,657,59,624,55"/>
+<area shape="poly" id="edge5_Node000017_Node000002" title=" " alt="" coords="402,58,434,54,435,59,403,63"/>
 </map>

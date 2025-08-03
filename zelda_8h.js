@@ -2,6 +2,7 @@ var zelda_8h =
 [
     [ "zelda3_version_pointers", "structzelda3__version__pointers.html", "structzelda3__version__pointers" ],
     [ "zelda3_rom", "structzelda3__rom.html", "structzelda3__rom" ],
+    [ "zelda3_message", "structzelda3__message.html", "structzelda3__message" ],
     [ "zelda3_overworld_map", "structzelda3__overworld__map.html", "structzelda3__overworld__map" ],
     [ "zelda3_overworld", "structzelda3__overworld.html", "structzelda3__overworld" ],
     [ "dungeon_sprite", "structdungeon__sprite.html", "structdungeon__sprite" ],
@@ -12,6 +13,7 @@ var zelda_8h =
     [ "destination", "structdestination.html", "structdestination" ],
     [ "zelda3_dungeon_room", "structzelda3__dungeon__room.html", "structzelda3__dungeon__room" ],
     [ "zelda3_rom", "zelda_8h.html#a81a5c5c618a19cfba96f863e14006cf9", null ],
+    [ "zelda3_message", "zelda_8h.html#a19f9d594bff45e7926bcaff46ed74246", null ],
     [ "zelda3_overworld_map", "zelda_8h.html#a0fb092c5014355cc0be54729e31a99c7", null ],
     [ "zelda3_overworld", "zelda_8h.html#a4fb19874710badcf3603558580fd236a", null ],
     [ "dungeon_sprite", "zelda_8h.html#a9ecfc19156f8f627881db2f6c16190ef", null ],

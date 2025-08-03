@@ -165,7 +165,7 @@ var searchData=
   ['kmessageeditorname_162',['kMessageEditorName',['../namespaceyaze_1_1editor.html#a4662e7cb347696014d9405c738e568cf',1,'yaze::editor']]],
   ['kmessageidsize_163',['kMessageIdSize',['../namespaceyaze_1_1editor.html#afb0fe3cb3d65d1bbe1466284308ad8bc',1,'yaze::editor']]],
   ['kmessagetableflags_164',['kMessageTableFlags',['../namespaceyaze_1_1editor.html#abbdf1fbff1b3b401e9a764c5da0103d1',1,'yaze::editor']]],
-  ['kmessageterminator_165',['kMessageTerminator',['../namespaceyaze_1_1editor.html#a0d4a3ab38797b034b311b39a037a293a',1,'yaze::editor']]],
+  ['kmessageterminator_165',['kMessageTerminator',['../namespaceyaze_1_1editor.html#a970a41369e67a459e17900d310274650',1,'yaze::editor']]],
   ['kmouseflags_166',['kMouseFlags',['../namespaceyaze_1_1gui.html#ac8d8a407cf4b76e12a012f326008d58a',1,'yaze::gui']]],
   ['kmusiceditorname_167',['kMusicEditorName',['../namespaceyaze_1_1editor.html#a6b79d859cd4ca38f690950e082e8f025',1,'yaze::editor']]],
   ['knintendomode1_168',['kNintendoMode1',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a40999005b0886dc2f9e698bc7ad09cb7',1,'yaze::gfx::lc_lz2']]],

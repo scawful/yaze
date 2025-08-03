@@ -1,12 +1,12 @@
 <map id="yaze::core::Controller" name="yaze::core::Controller">
-<area shape="rect" id="Node000001" title="Main controller for the application." alt="" coords="740,50,880,76"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="414,15,588,41"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="604,37,740,52,740,58,603,42"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Emulator.html" title="A class for emulating and debugging SNES games." alt="" coords="166,53,301,78"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="316,51,413,38,414,43,317,57"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,22,86,48"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="101,24,109,23,247,18,385,21,414,22,414,27,385,27,247,23,110,28,102,29"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="101,41,166,52,165,57,100,46"/>
-<area shape="rect" id="Node000097" href="$classyaze_1_1core_1_1PlatformBackend.html" title=" " alt="" coords="409,65,593,106"/>
-<area shape="poly" id="edge5_Node000001_Node000097" title=" " alt="" coords="609,83,716,76,739,73,740,79,717,82,609,88"/>
+<area shape="rect" id="Node000001" title="Main controller for the application." alt="" coords="44,271,183,297"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1core_1_1Window.html" title=" " alt="" coords="5,183,136,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,221,110,270,105,272,81,223"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="159,183,334,208"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="217,219,133,273,131,268,214,215"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Emulator.html" title="A class for emulating and debugging SNES games." alt="" coords="296,94,432,120"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="337,131,265,184,261,180,334,127"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="174,5,255,31"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="210,46,204,81,207,119,222,154,240,181,235,184,217,156,202,120,199,81,204,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="250,37,344,91,341,96,247,41"/>
 </map>

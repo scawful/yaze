@@ -25,7 +25,7 @@ var searchData=
   ['operator_5e_22',['operator^',['../namespaceyaze_1_1zelda3.html#a5f1053148284ef69ee84ef1d04d61fad',1,'yaze::zelda3']]],
   ['operator_7c_23',['operator|',['../namespaceyaze_1_1zelda3.html#a599b7198a7dd0ec9da754a83f9a7e5f9',1,'yaze::zelda3']]],
   ['operator_7e_24',['operator~',['../namespaceyaze_1_1zelda3.html#ab057669c20d13c04f18b529d882e5bd7',1,'yaze::zelda3']]],
-  ['optimizemessagefordictionary_25',['OptimizeMessageForDictionary',['../structyaze_1_1editor_1_1MessageData.html#a75d8151d7e7a991a67563bdd81bd76a7',1,'yaze::editor::MessageData']]],
+  ['optimizemessagefordictionary_25',['OptimizeMessageForDictionary',['../structyaze_1_1editor_1_1MessageData.html#ad59036932ed3c8a8b6e81d560399d05a',1,'yaze::editor::MessageData']]],
   ['options_26',['options',['../classyaze_1_1zelda3_1_1RoomObject.html#af4be44e2e6210a18098d18f78d7a5ee7',1,'yaze::zelda3::RoomObject']]],
   ['or_27',['OR',['../classyaze_1_1emu_1_1Spc700.html#ac9ff693fea7a196d461ca0e70a503c69',1,'yaze::emu::Spc700::OR()'],['../classyaze_1_1test_1_1Spc700.html#ac9ff693fea7a196d461ca0e70a503c69',1,'yaze::test::Spc700::OR()']]],
   ['or1_28',['OR1',['../classyaze_1_1emu_1_1Spc700.html#ae370c368046f4d7a6d2461782df7fc80',1,'yaze::emu::Spc700::OR1()'],['../classyaze_1_1test_1_1Spc700.html#ae370c368046f4d7a6d2461782df7fc80',1,'yaze::test::Spc700::OR1()']]],

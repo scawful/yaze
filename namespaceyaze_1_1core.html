@@ -117,8 +117,6 @@ $(function(){initNavTree('namespaceyaze_1_1core.html',''); initResizable(true); 
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html">anonymous_namespace{controller.cc}</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html">anonymous_namespace{font_loader.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -138,14 +136,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1core_1_1FontState.html">FontState</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1MemoryTracker.html">MemoryTracker</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1PlatformBackend.html">PlatformBackend</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html">Renderer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classyaze_1_1core_1_1Renderer.html" title="The Renderer class represents the renderer for the Yaze application.">Renderer</a> class represents the renderer for the Yaze application.  <a href="classyaze_1_1core_1_1Renderer.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Sdl2Backend.html">Sdl2Backend</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1core_1_1SDL__Deleter.html">SDL_Deleter</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deleter for SDL_Window and SDL_Renderer.  <a href="structyaze_1_1core_1_1SDL__Deleter.html#details">More...</a><br /></td></tr>
@@ -153,6 +145,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1core_1_1SDL__Surface__Deleter.html">SDL_Surface_Deleter</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1core_1_1SDL__Texture__Deleter.html">SDL_Texture_Deleter</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1core_1_1Window.html">Window</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
@@ -195,6 +189,12 @@ Functions</h2></td></tr>
 <tr class="separator:a171a8a94e8642f977ca04cf54245cd13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa408d383ff33494e29ea06e0e6774f4c" id="r_aa408d383ff33494e29ea06e0e6774f4c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa408d383ff33494e29ea06e0e6774f4c">LoadSystemFonts</a> ()</td></tr>
 <tr class="separator:aa408d383ff33494e29ea06e0e6774f4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14f2050902009800d7995d94a8c169fc" id="r_a14f2050902009800d7995d94a8c169fc"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a14f2050902009800d7995d94a8c169fc">CreateWindow</a> (<a class="el" href="structyaze_1_1core_1_1Window.html">Window</a> &amp;window, int flags)</td></tr>
+<tr class="separator:a14f2050902009800d7995d94a8c169fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f3dc6283ebf6a0957247ec1ca09c657" id="r_a0f3dc6283ebf6a0957247ec1ca09c657"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f3dc6283ebf6a0957247ec1ca09c657">ShutdownWindow</a> (<a class="el" href="structyaze_1_1core_1_1Window.html">Window</a> &amp;window)</td></tr>
+<tr class="separator:a0f3dc6283ebf6a0957247ec1ca09c657"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4a900088575fbf46321559795839a51" id="r_ad4a900088575fbf46321559795839a51"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad4a900088575fbf46321559795839a51">HandleEvents</a> (<a class="el" href="structyaze_1_1core_1_1Window.html">Window</a> &amp;window)</td></tr>
+<tr class="separator:ad4a900088575fbf46321559795839a51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
 <a id="abd79a1a62112b429e30153eb19ffa648" name="abd79a1a62112b429e30153eb19ffa648"></a>
@@ -424,7 +424,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="file__dialog_8h_source.html#l00035">kiOS</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kLinux</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kMacOS</a>, <a class="el" href="file__dialog_8h_source.html#l00035">kUnknown</a>, and <a class="el" href="file__dialog_8h_source.html#l00035">kWindows</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="file__dialog_8cc_source.html#l00049">LoadConfigFile()</a>, <a class="el" href="controller_8cc_source.html#l00223">yaze::core::Controller::LoadConfigFiles()</a>, and <a class="el" href="file__dialog_8cc_source.html#l00070">SaveFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="file__dialog_8cc_source.html#l00049">LoadConfigFile()</a>, and <a class="el" href="file__dialog_8cc_source.html#l00070">SaveFile()</a>.</p>
 
 </div>
 </div>
@@ -468,7 +468,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00199">yaze::core::Controller::CreateGuiContext()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="window_8cc_source.html#l00015">CreateWindow()</a>.</p>
 
 </div>
 </div>
@@ -507,6 +507,107 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a14f2050902009800d7995d94a8c169fc" name="a14f2050902009800d7995d94a8c169fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14f2050902009800d7995d94a8c169fc">&#9670;&#160;</a></span>CreateWindow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::core::CreateWindow </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structyaze_1_1core_1_1Window.html">Window</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>window</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>flags</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="window_8cc_source.html#l00015">15</a> of file <a class="el" href="window_8cc_source.html">window.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="window_8h_source.html#l00019">yaze::core::Window::audio_buffer_</a>, <a class="el" href="window_8h_source.html#l00018">yaze::core::Window::audio_device_</a>, <a class="el" href="style_8cc_source.html#l00132">yaze::gui::ColorsYaze()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="font__loader_8cc_source.html#l00098">LoadPackageFonts()</a>, <a class="el" href="macro_8h_source.html#l00051">RETURN_IF_ERROR</a>, and <a class="el" href="window_8h_source.html#l00017">yaze::core::Window::window_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00015">yaze::core::Controller::OnEntry()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1core_a14f2050902009800d7995d94a8c169fc_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_a14f2050902009800d7995d94a8c169fc_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1core_a14f2050902009800d7995d94a8c169fc_cgraph" id="anamespaceyaze_1_1core_a14f2050902009800d7995d94a8c169fc_cgraph">
+<area shape="rect" title=" " alt="" coords="5,55,174,80"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad" title=" " alt="" coords="249,5,392,31"/>
+<area shape="poly" title=" " alt="" coords="153,51,241,32,243,37,154,57"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="239,55,402,80"/>
+<area shape="poly" title=" " alt="" coords="174,65,223,65,223,70,174,70"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd" title=" " alt="" coords="222,104,419,130"/>
+<area shape="poly" title=" " alt="" coords="154,78,243,98,241,103,153,84"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="467,47,603,88"/>
+<area shape="poly" title=" " alt="" coords="402,65,451,65,451,70,402,70"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a0f3dc6283ebf6a0957247ec1ca09c657" name="a0f3dc6283ebf6a0957247ec1ca09c657"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f3dc6283ebf6a0957247ec1ca09c657">&#9670;&#160;</a></span>ShutdownWindow()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::core::ShutdownWindow </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structyaze_1_1core_1_1Window.html">Window</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>window</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="window_8cc_source.html#l00074">74</a> of file <a class="el" href="window_8cc_source.html">window.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="window_8h_source.html#l00018">yaze::core::Window::audio_device_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, and <a class="el" href="window_8h_source.html#l00017">yaze::core::Window::window_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00078">yaze::core::Controller::OnExit()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1core_a0f3dc6283ebf6a0957247ec1ca09c657_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_a0f3dc6283ebf6a0957247ec1ca09c657_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1core_a0f3dc6283ebf6a0957247ec1ca09c657_cgraph" id="anamespaceyaze_1_1core_a0f3dc6283ebf6a0957247ec1ca09c657_cgraph">
+<area shape="rect" title=" " alt="" coords="5,13,194,38"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="242,13,405,38"/>
+<area shape="poly" title=" " alt="" coords="194,23,226,23,226,28,194,28"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="453,5,589,46"/>
+<area shape="poly" title=" " alt="" coords="405,23,437,23,437,28,405,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ad4a900088575fbf46321559795839a51" name="ad4a900088575fbf46321559795839a51"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4a900088575fbf46321559795839a51">&#9670;&#160;</a></span>HandleEvents()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::core::HandleEvents </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structyaze_1_1core_1_1Window.html">Window</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>window</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="window_8cc_source.html#l00086">86</a> of file <a class="el" href="window_8cc_source.html">window.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="window_8h_source.html#l00020">yaze::core::Window::active_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00024">yaze::core::Controller::OnInput()</a>.</p>
 
 </div>
 </div>

@@ -3,7 +3,7 @@ var structyaze_1_1editor_1_1MessageData =
     [ "MessageData", "structyaze_1_1editor_1_1MessageData.html#aa779d4348714ef5ba214d8747c19432b", null ],
     [ "MessageData", "structyaze_1_1editor_1_1MessageData.html#ae25062204179c0fc1e800dbe98ef60d0", null ],
     [ "MessageData", "structyaze_1_1editor_1_1MessageData.html#a147f31301cc1ffcc8a4874d8bfd976e7", null ],
-    [ "OptimizeMessageForDictionary", "structyaze_1_1editor_1_1MessageData.html#a75d8151d7e7a991a67563bdd81bd76a7", null ],
+    [ "OptimizeMessageForDictionary", "structyaze_1_1editor_1_1MessageData.html#ad59036932ed3c8a8b6e81d560399d05a", null ],
     [ "SetMessage", "structyaze_1_1editor_1_1MessageData.html#adfcb89fbcb52ef8138a3c2a85d953b28", null ],
     [ "ID", "structyaze_1_1editor_1_1MessageData.html#a7fae1b753a46d7078aaa53b745ab1398", null ],
     [ "Address", "structyaze_1_1editor_1_1MessageData.html#a247d00ae24f16435849870e1160dc7c4", null ],

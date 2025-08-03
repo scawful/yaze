@@ -1,5 +1,0 @@
-<map id="yaze::gui::Canvas" name="yaze::gui::Canvas">
-<area shape="rect" id="Node000001" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="6,79,126,105"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,5,127,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="69,46,69,79,63,79,63,46"/>
-</map>

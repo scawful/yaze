@@ -12,5 +12,6 @@ var yaze_8cc =
     [ "yaze_load_bitmap", "yaze_8cc.html#a25bf6669809ad5e1ae299014a5f6fd0a", null ],
     [ "yaze_get_color_from_paletteset", "yaze_8cc.html#ac37ec58a0da8b441220024ac2cb73a76", null ],
     [ "yaze_load_overworld", "yaze_8cc.html#a0a526cbc274a334616e24c0779e165cd", null ],
-    [ "yaze_load_all_rooms", "yaze_8cc.html#a6b14017ad1ab9e7da860e59f6145c1d1", null ]
+    [ "yaze_load_all_rooms", "yaze_8cc.html#a6b14017ad1ab9e7da860e59f6145c1d1", null ],
+    [ "yaze_load_messages", "yaze_8cc.html#a1f5f227a1e6ebdcb2065544121164a15", null ]
 ];

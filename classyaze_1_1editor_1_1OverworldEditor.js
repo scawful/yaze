@@ -92,6 +92,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "overworld_canvas_fullscreen_", "classyaze_1_1editor_1_1OverworldEditor.html#a10d8634a0d108192e55e5a5c5cbdaf9f", null ],
     [ "middle_mouse_dragging_", "classyaze_1_1editor_1_1OverworldEditor.html#a3b18afd698c71ab9a5e24665df69f9a1", null ],
     [ "is_dragging_entity_", "classyaze_1_1editor_1_1OverworldEditor.html#a6a201790dc53e63c91e1725826b60b12", null ],
+    [ "current_map_lock_", "classyaze_1_1editor_1_1OverworldEditor.html#adf04f23829d8a274afb20f7f019f6de8", null ],
     [ "tile16_blockset_", "classyaze_1_1editor_1_1OverworldEditor.html#a2f3df4c80fdea88e0b51bf3b74c2097f", null ],
     [ "rom_", "classyaze_1_1editor_1_1OverworldEditor.html#a21ddb17c0f6062a9055507fe99553649", null ],
     [ "tile16_editor_", "classyaze_1_1editor_1_1OverworldEditor.html#a3d4bc025b428972beadd361eac00a311", null ],

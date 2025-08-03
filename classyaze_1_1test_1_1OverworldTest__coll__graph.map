@@ -1,11 +1,11 @@
 <map id="yaze::test::OverworldTest" name="yaze::test::OverworldTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="99,183,265,208"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="83,183,249,208"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,94,98,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,126,165,180,162,184,81,131"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="122,94,243,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,135,185,182,180,182,180,135"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="267,94,422,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="310,130,206,184,204,180,307,125"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="305,5,385,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="348,47,348,94,342,94,342,47"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,127,152,180,148,184,78,131"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="122,94,211,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="169,135,169,182,164,182,164,135"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="235,94,390,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="281,130,188,184,186,180,278,125"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="273,5,353,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="316,47,316,94,310,94,310,47"/>
 </map>

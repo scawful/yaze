@@ -1,8 +1,5 @@
 var namespaceyaze_1_1core =
 [
-    [ "anonymous_namespace{controller.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html", [
-      [ "DrawBasicWindow", "namespaceyaze_1_1core_1_1anonymous__namespace_02controller_8cc_03.html#ace75a2b7caeb3ce2319d95e0a6081ac5", null ]
-    ] ],
     [ "anonymous_namespace{font_loader.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html", [
       [ "SetFontPath", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1", null ],
       [ "LoadFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#aeb026c1f2d88cd2c2d4ac9a283861bbe", null ],
@@ -15,13 +12,11 @@ var namespaceyaze_1_1core =
     [ "FlagsMenu", "structyaze_1_1core_1_1FlagsMenu.html", "structyaze_1_1core_1_1FlagsMenu" ],
     [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
     [ "FontState", "structyaze_1_1core_1_1FontState.html", "structyaze_1_1core_1_1FontState" ],
-    [ "MemoryTracker", "classyaze_1_1core_1_1MemoryTracker.html", "classyaze_1_1core_1_1MemoryTracker" ],
-    [ "PlatformBackend", "classyaze_1_1core_1_1PlatformBackend.html", "classyaze_1_1core_1_1PlatformBackend" ],
     [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
-    [ "Sdl2Backend", "classyaze_1_1core_1_1Sdl2Backend.html", "classyaze_1_1core_1_1Sdl2Backend" ],
     [ "SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", "structyaze_1_1core_1_1SDL__Deleter" ],
     [ "SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1core_1_1SDL__Surface__Deleter" ],
     [ "SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1core_1_1SDL__Texture__Deleter" ],
+    [ "Window", "structyaze_1_1core_1_1Window.html", "structyaze_1_1core_1_1Window" ],
     [ "Platform", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648", [
       [ "kUnknown", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648a25c2dc47991b3df171ed5192bcf70390", null ],
       [ "kMacOS", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648ad4b84d921444ff96b6ed220a036f9a8a", null ],
@@ -40,5 +35,8 @@ var namespaceyaze_1_1core =
     [ "GetBundleResourcePath", "namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5", null ],
     [ "LoadPackageFonts", "namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd", null ],
     [ "ReloadPackageFont", "namespaceyaze_1_1core.html#a171a8a94e8642f977ca04cf54245cd13", null ],
-    [ "LoadSystemFonts", "namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c", null ]
+    [ "LoadSystemFonts", "namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c", null ],
+    [ "CreateWindow", "namespaceyaze_1_1core.html#a14f2050902009800d7995d94a8c169fc", null ],
+    [ "ShutdownWindow", "namespaceyaze_1_1core.html#a0f3dc6283ebf6a0957247ec1ca09c657", null ],
+    [ "HandleEvents", "namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51", null ]
 ];

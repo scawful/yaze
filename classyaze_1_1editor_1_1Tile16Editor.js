@@ -1,6 +1,6 @@
 var classyaze_1_1editor_1_1Tile16Editor =
 [
-    [ "Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html#a095baedad81e9015b9cbf123e5bd00da", null ],
+    [ "Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html#a072b1f0b9e0e2bf19a53fcebe349be7f", null ],
     [ "Initialize", "classyaze_1_1editor_1_1Tile16Editor.html#a73fff2fe1eaa996f8cc6d10e27eee874", null ],
     [ "Update", "classyaze_1_1editor_1_1Tile16Editor.html#af5248200d63e17797a0e46c5a887289d", null ],
     [ "DrawTile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html#ad90acd59127f0cba15b8acefd02065ba", null ],
@@ -16,6 +16,9 @@ var classyaze_1_1editor_1_1Tile16Editor =
     [ "SaveTile16ToScratchSpace", "classyaze_1_1editor_1_1Tile16Editor.html#a0560f2ab4b4f1d99de973cba0282de79", null ],
     [ "LoadTile16FromScratchSpace", "classyaze_1_1editor_1_1Tile16Editor.html#a5c0381390492a58c01ca897bc726d669", null ],
     [ "ClearScratchSpace", "classyaze_1_1editor_1_1Tile16Editor.html#ae63c61721d0513d744728bb1fea37996", null ],
+    [ "set_rom", "classyaze_1_1editor_1_1Tile16Editor.html#a68b09cff964bc0b565a592f45a1f8159", null ],
+    [ "rom", "classyaze_1_1editor_1_1Tile16Editor.html#a1102a4b314713436ce8266a93bc6c615", null ],
+    [ "rom_", "classyaze_1_1editor_1_1Tile16Editor.html#ae971d6a1a8045cf4d4555de1cac1f1c9", null ],
     [ "map_blockset_loaded_", "classyaze_1_1editor_1_1Tile16Editor.html#a2a942884ba55c4f4678ac2ef983a61d5", null ],
     [ "transfer_started_", "classyaze_1_1editor_1_1Tile16Editor.html#a02c61898f51e7670eb72c4eeb2247195", null ],
     [ "transfer_blockset_loaded_", "classyaze_1_1editor_1_1Tile16Editor.html#aaa4e9bd7b029884f0de852d4c752e95a", null ],

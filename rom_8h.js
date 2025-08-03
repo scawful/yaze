@@ -3,7 +3,6 @@ var rom_8h =
     [ "yaze::Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
     [ "yaze::Rom::SaveSettings", "structyaze_1_1Rom_1_1SaveSettings.html", "structyaze_1_1Rom_1_1SaveSettings" ],
     [ "yaze::Rom::WriteAction", "structyaze_1_1Rom_1_1WriteAction.html", "structyaze_1_1Rom_1_1WriteAction" ],
-    [ "yaze::SharedRom", "classyaze_1_1SharedRom.html", "classyaze_1_1SharedRom" ],
     [ "yaze::LoadAllGraphicsData", "namespaceyaze.html#acd38081a0d3a77b20abfb9375574d1b9", null ],
     [ "yaze::SaveAllGraphicsData", "namespaceyaze.html#aeb8ae3fba1064ff2cf19393b113fac1c", null ],
     [ "yaze::Load2BppGraphics", "namespaceyaze.html#a3167c1c857f5e405cb39a492529d6557", null ],

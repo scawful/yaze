@@ -24,13 +24,11 @@ var annotated_dup =
         [ "FlagsMenu", "structyaze_1_1core_1_1FlagsMenu.html", "structyaze_1_1core_1_1FlagsMenu" ],
         [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
         [ "FontState", "structyaze_1_1core_1_1FontState.html", "structyaze_1_1core_1_1FontState" ],
-        [ "MemoryTracker", "classyaze_1_1core_1_1MemoryTracker.html", "classyaze_1_1core_1_1MemoryTracker" ],
-        [ "PlatformBackend", "classyaze_1_1core_1_1PlatformBackend.html", "classyaze_1_1core_1_1PlatformBackend" ],
         [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
-        [ "Sdl2Backend", "classyaze_1_1core_1_1Sdl2Backend.html", "classyaze_1_1core_1_1Sdl2Backend" ],
         [ "SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", "structyaze_1_1core_1_1SDL__Deleter" ],
         [ "SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1core_1_1SDL__Surface__Deleter" ],
-        [ "SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1core_1_1SDL__Texture__Deleter" ]
+        [ "SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1core_1_1SDL__Texture__Deleter" ],
+        [ "Window", "structyaze_1_1core_1_1Window.html", "structyaze_1_1core_1_1Window" ]
       ] ],
       [ "editor", "namespaceyaze_1_1editor.html", [
         [ "palette_internal", "namespaceyaze_1_1editor_1_1palette__internal.html", [
@@ -320,7 +318,6 @@ var annotated_dup =
       [ "Renderer", "classyaze_1_1Renderer.html", "classyaze_1_1Renderer" ],
       [ "ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", "structyaze_1_1ResourceLabelManager" ],
       [ "Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
-      [ "SharedRom", "classyaze_1_1SharedRom.html", "classyaze_1_1SharedRom" ],
       [ "VersionControlManager", "classyaze_1_1VersionControlManager.html", "classyaze_1_1VersionControlManager" ]
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
@@ -345,6 +342,7 @@ var annotated_dup =
     [ "yaze_extension", "structyaze__extension.html", "structyaze__extension" ],
     [ "yaze_project", "structyaze__project.html", "structyaze__project" ],
     [ "zelda3_dungeon_room", "structzelda3__dungeon__room.html", "structzelda3__dungeon__room" ],
+    [ "zelda3_message", "structzelda3__message.html", "structzelda3__message" ],
     [ "zelda3_overworld", "structzelda3__overworld.html", "structzelda3__overworld" ],
     [ "zelda3_overworld_map", "structzelda3__overworld__map.html", "structzelda3__overworld__map" ],
     [ "zelda3_rom", "structzelda3__rom.html", "structzelda3__rom" ],

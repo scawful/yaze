@@ -4,9 +4,9 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,35,170,68,229,91,227,96,169,72,88,40"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1emu_1_1Snes.html" title=" " alt="" coords="110,5,224,31"/>
 <area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="193,40,248,92,244,96,189,44"/>
-<area shape="rect" id="Node000028" href="$structyaze_1_1emu_1_1EmulatorKeybindings.html" title=" " alt="" coords="248,5,454,31"/>
-<area shape="poly" id="edge3_Node000001_Node000028" title=" " alt="" coords="329,44,273,96,270,92,325,40"/>
-<area shape="rect" id="Node000029" href="$structyaze_1_1gui_1_1zeml_1_1Node.html" title="Node for a zeml tree." alt="" coords="478,5,618,31"/>
-<area shape="poly" id="edge4_Node000001_Node000029" title=" " alt="" coords="500,39,394,73,308,96,307,91,393,67,498,34"/>
-<area shape="poly" id="edge5_Node000029_Node000029" title=" " alt="" coords="635,10,645,18,637,26,619,29,618,23,635,21,640,18,632,15"/>
+<area shape="rect" id="Node000027" href="$structyaze_1_1emu_1_1EmulatorKeybindings.html" title=" " alt="" coords="248,5,454,31"/>
+<area shape="poly" id="edge3_Node000001_Node000027" title=" " alt="" coords="329,44,273,96,270,92,325,40"/>
+<area shape="rect" id="Node000028" href="$structyaze_1_1gui_1_1zeml_1_1Node.html" title="Node for a zeml tree." alt="" coords="478,5,618,31"/>
+<area shape="poly" id="edge4_Node000001_Node000028" title=" " alt="" coords="500,39,394,73,308,96,307,91,393,67,498,34"/>
+<area shape="poly" id="edge5_Node000028_Node000028" title=" " alt="" coords="635,10,645,18,637,26,619,29,618,23,635,21,640,18,632,15"/>
 </map>

@@ -118,7 +118,6 @@ Targets</h1>
 <li><b>yaze</b>: Desktop application for Windows/macOS/Linux</li>
 <li><b>z3ed</b>: Command Line Interface</li>
 <li><b>yaze_c</b>: C Library</li>
-<li><b>yaze_py</b>: Python Module</li>
 <li><b>yaze_test</b>: Unit test executable</li>
 <li><b>yaze_ios</b>: iOS application</li>
 </ul>
@@ -133,7 +132,6 @@ Directory Structure</h1>
 <li><b>app</b>: Contains the GUI editor <code>yaze</code></li>
 <li><b>app/emu</b>: Contains a standalone Snes emulator application <code>yaze_emu</code></li>
 <li><b>cli</b>: Contains the command line interface <code>z3ed</code></li>
-<li><b>cli/python</b>: Contains the Python module <code>yaze_py</code></li>
 <li><b>ios</b>: Contains the iOS application <code>yaze_ios</code></li>
 <li><b>lib</b>: Contains the dependencies as git submodules</li>
 <li><b>test</b>: Contains testing interface <code>yaze_test</code></li>
@@ -149,12 +147,11 @@ Dependencies</h1>
 <li><b><a class="el" href="namespaceImGui.html">ImGui</a></b>: GUI library</li>
 <li><b>Abseil</b>: C++ library</li>
 <li><b>libpng</b>: Image library</li>
-<li><b>Boost</b>: Python library</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md52"></a>
 Flow of Control</h1>
 <ul>
-<li>app/yaze.cc<ul>
+<li><a class="el" href="main_8cc.html">app/main.cc</a><ul>
 <li>Initializes <code>absl::FailureSignalHandler</code> for stack tracing.</li>
 <li>Runs the <code>core::Controller</code> loop.</li>
 </ul>
@@ -196,7 +193,6 @@ Rom</h1>
 <li><a class="el" href="rom_8h.html">app/rom.h</a></li>
 </ul>
 <p>The Rom class provides methods to manipulate and access data from a ROM.</p>
-<p>Currently implemented as a singleton with SharedRom which is not great but has helped with development velocity. Potential room for improvement is to refactor the editors to take the ROM as a parameter.</p>
 <h1><a class="anchor" id="autotoc_md54"></a>
 Bitmap</h1>
 <ul>

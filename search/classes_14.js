@@ -8,12 +8,13 @@ var searchData=
   ['wh2_5',['WH2',['../structyaze_1_1emu_1_1WH2.html',1,'yaze::emu']]],
   ['wh3_6',['WH3',['../structyaze_1_1emu_1_1WH3.html',1,'yaze::emu']]],
   ['widgetattributes_7',['WidgetAttributes',['../structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html',1,'yaze::gui::zeml']]],
-  ['windowlayer_8',['WindowLayer',['../structyaze_1_1emu_1_1WindowLayer.html',1,'yaze::emu']]],
-  ['windowmasksettings_9',['WindowMaskSettings',['../structyaze_1_1emu_1_1WindowMaskSettings.html',1,'yaze::emu']]],
-  ['windowmasksettings2_10',['WindowMaskSettings2',['../structyaze_1_1emu_1_1WindowMaskSettings2.html',1,'yaze::emu']]],
-  ['windowposition_11',['WindowPosition',['../structyaze_1_1emu_1_1WindowPosition.html',1,'yaze::emu']]],
-  ['wobjlog_12',['WOBJLOG',['../structyaze_1_1emu_1_1WOBJLOG.html',1,'yaze::emu']]],
-  ['wobjsel_13',['WOBJSEL',['../structyaze_1_1emu_1_1WOBJSEL.html',1,'yaze::emu']]],
-  ['wramaccessregisters_14',['WramAccessRegisters',['../structyaze_1_1emu_1_1WramAccessRegisters.html',1,'yaze::emu']]],
-  ['writeaction_15',['WriteAction',['../structyaze_1_1Rom_1_1WriteAction.html',1,'yaze::Rom::WriteAction'],['../structyaze_1_1test_1_1Rom_1_1WriteAction.html',1,'yaze::test::Rom::WriteAction']]]
+  ['window_8',['Window',['../structyaze_1_1core_1_1Window.html',1,'yaze::core']]],
+  ['windowlayer_9',['WindowLayer',['../structyaze_1_1emu_1_1WindowLayer.html',1,'yaze::emu']]],
+  ['windowmasksettings_10',['WindowMaskSettings',['../structyaze_1_1emu_1_1WindowMaskSettings.html',1,'yaze::emu']]],
+  ['windowmasksettings2_11',['WindowMaskSettings2',['../structyaze_1_1emu_1_1WindowMaskSettings2.html',1,'yaze::emu']]],
+  ['windowposition_12',['WindowPosition',['../structyaze_1_1emu_1_1WindowPosition.html',1,'yaze::emu']]],
+  ['wobjlog_13',['WOBJLOG',['../structyaze_1_1emu_1_1WOBJLOG.html',1,'yaze::emu']]],
+  ['wobjsel_14',['WOBJSEL',['../structyaze_1_1emu_1_1WOBJSEL.html',1,'yaze::emu']]],
+  ['wramaccessregisters_15',['WramAccessRegisters',['../structyaze_1_1emu_1_1WramAccessRegisters.html',1,'yaze::emu']]],
+  ['writeaction_16',['WriteAction',['../structyaze_1_1Rom_1_1WriteAction.html',1,'yaze::Rom::WriteAction'],['../structyaze_1_1test_1_1Rom_1_1WriteAction.html',1,'yaze::test::Rom::WriteAction']]]
 ];

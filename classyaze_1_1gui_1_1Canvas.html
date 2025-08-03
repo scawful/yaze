@@ -119,27 +119,19 @@ $(function(){initNavTree('classyaze_1_1gui_1_1Canvas.html',''); initResizable(tr
 
 <p><code>#include &lt;<a class="el" href="canvas_8h_source.html">canvas.h</a>&gt;</code></p>
 <div class="dynheader">
-Inheritance diagram for yaze::gui::Canvas:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1gui_1_1Canvas__inherit__graph.png" border="0" usemap="#ayaze_1_1gui_1_1Canvas_inherit__map" alt="Inheritance graph"/></div>
-<map name="ayaze_1_1gui_1_1Canvas_inherit__map" id="ayaze_1_1gui_1_1Canvas_inherit__map">
-<area shape="rect" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="6,79,126,105"/>
-<area shape="rect" href="classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,5,127,31"/>
-<area shape="poly" title=" " alt="" coords="69,46,69,79,63,79,63,46"/>
-</map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<div class="dynheader">
 Collaboration diagram for yaze::gui::Canvas:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1gui_1_1Canvas__coll__graph.png" border="0" usemap="#ayaze_1_1gui_1_1Canvas_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1gui_1_1Canvas_coll__map" id="ayaze_1_1gui_1_1Canvas_coll__map">
-<area shape="rect" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="27,183,148,208"/>
-<area shape="rect" href="classyaze_1_1SharedRom.html" title="A class to hold a shared pointer to a Rom object." alt="" coords="5,94,127,120"/>
-<area shape="poly" title=" " alt="" coords="75,134,87,182,82,183,70,136"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="151,94,269,120"/>
-<area shape="poly" title=" " alt="" coords="182,131,106,184,103,180,179,126"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="136,5,284,31"/>
-<area shape="poly" title=" " alt="" coords="213,47,213,94,207,94,207,47"/>
+<area shape="rect" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="99,183,219,208"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="39,94,156,120"/>
+<area shape="poly" title=" " alt="" coords="117,131,153,181,148,184,113,134"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,5,153,31"/>
+<area shape="poly" title=" " alt="" coords="87,46,98,93,92,94,82,47"/>
+<area shape="rect" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="215,94,295,120"/>
+<area shape="poly" title=" " alt="" coords="232,132,174,184,170,180,229,128"/>
+<area shape="rect" href="structyaze_1_1ResourceLabelManager.html" title=" " alt="" coords="177,5,368,31"/>
+<area shape="poly" title=" " alt="" coords="270,47,260,94,255,93,264,46"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -159,10 +151,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8a674f0b4bc418c55a1b9baee459ed70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6a76e5e986ddb0cf0aae847da13edfae" id="r_a6a76e5e986ddb0cf0aae847da13edfae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6a76e5e986ddb0cf0aae847da13edfae">UpdateColorPainter</a> (<a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;bitmap, const ImVec4 &amp;color, const std::function&lt; void()&gt; &amp;event, int tile_size, float scale=1.0f)</td></tr>
 <tr class="separator:a6a76e5e986ddb0cf0aae847da13edfae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abed72b226fc4633d0ee69b13c0d53804" id="r_abed72b226fc4633d0ee69b13c0d53804"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abed72b226fc4633d0ee69b13c0d53804">UpdateInfoGrid</a> (ImVec2 bg_size, int tile_size, float scale=1.0f, float grid_size=64.0f, int label_id=0)</td></tr>
-<tr class="separator:abed72b226fc4633d0ee69b13c0d53804"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab4152394d6f4a6537844371d1651c5f9" id="r_ab4152394d6f4a6537844371d1651c5f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab4152394d6f4a6537844371d1651c5f9">DrawBackground</a> (ImVec2 <a class="el" href="#a96755cc4cc8e256b44751c6ab4c50c36">canvas_size</a>=ImVec2(0, 0), bool drag=false)</td></tr>
-<tr class="separator:ab4152394d6f4a6537844371d1651c5f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f0afe4ee88fbd9ab6c6cbacff908763" id="r_a3f0afe4ee88fbd9ab6c6cbacff908763"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3f0afe4ee88fbd9ab6c6cbacff908763">UpdateInfoGrid</a> (ImVec2 bg_size, float grid_size=64.0f, int label_id=0)</td></tr>
+<tr class="separator:a3f0afe4ee88fbd9ab6c6cbacff908763"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad8f81f1ad4537d5b9c094ed4bb66d304" id="r_ad8f81f1ad4537d5b9c094ed4bb66d304"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad8f81f1ad4537d5b9c094ed4bb66d304">DrawBackground</a> (ImVec2 <a class="el" href="#a96755cc4cc8e256b44751c6ab4c50c36">canvas_size</a>=ImVec2(0, 0))</td></tr>
+<tr class="separator:ad8f81f1ad4537d5b9c094ed4bb66d304"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a401e3bebaabb7d192f9466835c86f3ab" id="r_a401e3bebaabb7d192f9466835c86f3ab"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a401e3bebaabb7d192f9466835c86f3ab">DrawContextMenu</a> ()</td></tr>
 <tr class="separator:a401e3bebaabb7d192f9466835c86f3ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c4c7b27651a4090ba8c40a58d6939dc" id="r_a7c4c7b27651a4090ba8c40a58d6939dc"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7c4c7b27651a4090ba8c40a58d6939dc">DrawTilePainter</a> (const <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">Bitmap</a> &amp;bitmap, int size, float scale=1.0f)</td></tr>
@@ -273,15 +265,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af3b334ec613e22d688e8a8bfb7636c0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3cea4228bbc82ef162fa28b9a88cbfb8" id="r_a3cea4228bbc82ef162fa28b9a88cbfb8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3cea4228bbc82ef162fa28b9a88cbfb8">hover_mouse_pos</a> () const</td></tr>
 <tr class="separator:a3cea4228bbc82ef162fa28b9a88cbfb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_classyaze_1_1SharedRom"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1SharedRom')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1SharedRom.html">yaze::SharedRom</a></td></tr>
-<tr class="memitem:ad109cf803983c06ad209360c5ee08101 inherit pub_methods_classyaze_1_1SharedRom" id="r_ad109cf803983c06ad209360c5ee08101"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1SharedRom.html#ad109cf803983c06ad209360c5ee08101">SharedRom</a> ()=default</td></tr>
-<tr class="separator:ad109cf803983c06ad209360c5ee08101 inherit pub_methods_classyaze_1_1SharedRom"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05ecd0d699123dea3478c1b05f6f1281 inherit pub_methods_classyaze_1_1SharedRom" id="r_a05ecd0d699123dea3478c1b05f6f1281"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1SharedRom.html#a05ecd0d699123dea3478c1b05f6f1281">~SharedRom</a> ()=default</td></tr>
-<tr class="separator:a05ecd0d699123dea3478c1b05f6f1281 inherit pub_methods_classyaze_1_1SharedRom"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad069fe05239c16d01cbda29280bc8d39 inherit pub_methods_classyaze_1_1SharedRom" id="r_ad069fe05239c16d01cbda29280bc8d39"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classyaze_1_1Rom.html">Rom</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1SharedRom.html#ad069fe05239c16d01cbda29280bc8d39">shared_rom</a> ()</td></tr>
-<tr class="separator:ad069fe05239c16d01cbda29280bc8d39 inherit pub_methods_classyaze_1_1SharedRom"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e5e36ba40d87c0c81b9056bd00beedc inherit pub_methods_classyaze_1_1SharedRom" id="r_a7e5e36ba40d87c0c81b9056bd00beedc"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a> ()</td></tr>
-<tr class="separator:a7e5e36ba40d87c0c81b9056bd00beedc inherit pub_methods_classyaze_1_1SharedRom"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18022fef3a2504512628442d3237da5e" id="r_a18022fef3a2504512628442d3237da5e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a18022fef3a2504512628442d3237da5e">set_rom</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *<a class="el" href="#a0ba39fb84005e13025eb4eb4910eea7e">rom</a>)</td></tr>
+<tr class="separator:a18022fef3a2504512628442d3237da5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ba39fb84005e13025eb4eb4910eea7e" id="r_a0ba39fb84005e13025eb4eb4910eea7e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ba39fb84005e13025eb4eb4910eea7e">rom</a> () const</td></tr>
+<tr class="separator:a0ba39fb84005e13025eb4eb4910eea7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -319,6 +306,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a7180a3b6be664e4b23841ef9f40bd1a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a888123021e435f89f3c01436fdf63ca3" id="r_a888123021e435f89f3c01436fdf63ca3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">Bitmap</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a888123021e435f89f3c01436fdf63ca3">bitmap_</a> = nullptr</td></tr>
 <tr class="separator:a888123021e435f89f3c01436fdf63ca3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a10d1e521eb838b0028ccf6d37e30e569" id="r_a10d1e521eb838b0028ccf6d37e30e569"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a10d1e521eb838b0028ccf6d37e30e569">rom_</a> = nullptr</td></tr>
+<tr class="separator:a10d1e521eb838b0028ccf6d37e30e569"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c5a3bafa1e64518bf50b5b6ab11b180" id="r_a7c5a3bafa1e64518bf50b5b6ab11b180"><td class="memItemLeft" align="right" valign="top">ImDrawList *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7c5a3bafa1e64518bf50b5b6ab11b180">draw_list_</a> = nullptr</td></tr>
 <tr class="separator:a7c5a3bafa1e64518bf50b5b6ab11b180"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01a99f1598925ceeea9d971f43160154" id="r_a01a99f1598925ceeea9d971f43160154"><td class="memItemLeft" align="right" valign="top">ImVec2&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a01a99f1598925ceeea9d971f43160154">scrolling_</a></td></tr>
@@ -347,15 +336,6 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ad812f985e60b60cc9b1da50d8733bd9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7b95c6c5a82d79926e00105dcc1cb14" id="r_af7b95c6c5a82d79926e00105dcc1cb14"><td class="memItemLeft" align="right" valign="top">std::vector&lt; ImVec2 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af7b95c6c5a82d79926e00105dcc1cb14">selected_tiles_</a></td></tr>
 <tr class="separator:af7b95c6c5a82d79926e00105dcc1cb14"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
-<tr class="inherit_header pub_static_methods_classyaze_1_1SharedRom"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_static_methods_classyaze_1_1SharedRom')"><img src="closed.png" alt="-"/>&#160;Static Public Member Functions inherited from <a class="el" href="classyaze_1_1SharedRom.html">yaze::SharedRom</a></td></tr>
-<tr class="memitem:a7f08a20972402f69c7c388111300db66 inherit pub_static_methods_classyaze_1_1SharedRom" id="r_a7f08a20972402f69c7c388111300db66"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1SharedRom.html#a7f08a20972402f69c7c388111300db66">set_rom</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *<a class="el" href="classyaze_1_1SharedRom.html#a7e5e36ba40d87c0c81b9056bd00beedc">rom</a>)</td></tr>
-<tr class="separator:a7f08a20972402f69c7c388111300db66 inherit pub_static_methods_classyaze_1_1SharedRom"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_static_attribs_classyaze_1_1SharedRom"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_static_attribs_classyaze_1_1SharedRom')"><img src="closed.png" alt="-"/>&#160;Static Public Attributes inherited from <a class="el" href="classyaze_1_1SharedRom.html">yaze::SharedRom</a></td></tr>
-<tr class="memitem:a64665d290e4c842948b006142edb482b inherit pub_static_attribs_classyaze_1_1SharedRom" id="r_a64665d290e4c842948b006142edb482b"><td class="memItemLeft" align="right" valign="top">static std::shared_ptr&lt; <a class="el" href="classyaze_1_1Rom.html">Rom</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1SharedRom.html#a64665d290e4c842948b006142edb482b">shared_rom_</a> = nullptr</td></tr>
-<tr class="separator:a64665d290e4c842948b006142edb482b inherit pub_static_attribs_classyaze_1_1SharedRom"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Represents a canvas for drawing and manipulating graphics. </p>
@@ -413,7 +393,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00040">40</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00246">canvas_id_</a>, and <a class="el" href="canvas_8h_source.html#l00247">context_id_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00250">canvas_id_</a>, and <a class="el" href="canvas_8h_source.html#l00251">context_id_</a>.</p>
 
 </div>
 </div>
@@ -446,7 +426,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00043">43</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00246">canvas_id_</a>, <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00247">context_id_</a>, and <a class="el" href="canvas_8h_source.html#l00216">custom_canvas_size_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00250">canvas_id_</a>, <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00251">context_id_</a>, and <a class="el" href="canvas_8h_source.html#l00219">custom_canvas_size_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -494,7 +474,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00047">47</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00246">canvas_id_</a>, <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00247">context_id_</a>, <a class="el" href="canvas_8h_source.html#l00216">custom_canvas_size_</a>, and <a class="el" href="canvas_8h_source.html#l00063">SetCanvasGridSize()</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00250">canvas_id_</a>, <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00251">context_id_</a>, <a class="el" href="canvas_8h_source.html#l00219">custom_canvas_size_</a>, and <a class="el" href="canvas_8h_source.html#l00063">SetCanvasGridSize()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -549,7 +529,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00053">53</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00246">canvas_id_</a>, <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00247">context_id_</a>, <a class="el" href="canvas_8h_source.html#l00216">custom_canvas_size_</a>, <a class="el" href="canvas_8h_source.html#l00171">global_scale()</a>, <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>, and <a class="el" href="canvas_8h_source.html#l00063">SetCanvasGridSize()</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00250">canvas_id_</a>, <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00251">context_id_</a>, <a class="el" href="canvas_8h_source.html#l00219">custom_canvas_size_</a>, <a class="el" href="canvas_8h_source.html#l00171">global_scale()</a>, <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>, and <a class="el" href="canvas_8h_source.html#l00063">SetCanvasGridSize()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -593,7 +573,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00063">63</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00220">custom_step_</a>, <a class="el" href="canvas_8h_source.html#l00027">yaze::gui::k16x16</a>, <a class="el" href="canvas_8h_source.html#l00027">yaze::gui::k32x32</a>, <a class="el" href="canvas_8h_source.html#l00027">yaze::gui::k64x64</a>, and <a class="el" href="canvas_8h_source.html#l00027">yaze::gui::k8x8</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00223">custom_step_</a>, <a class="el" href="canvas_8h_source.html#l00027">yaze::gui::k16x16</a>, <a class="el" href="canvas_8h_source.html#l00027">yaze::gui::k32x32</a>, <a class="el" href="canvas_8h_source.html#l00027">yaze::gui::k64x64</a>, and <a class="el" href="canvas_8h_source.html#l00027">yaze::gui::k8x8</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, and <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>.</p>
 
@@ -633,14 +613,14 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00051">51</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00048">48</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00514">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00800">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00322">DrawSolidTilePainter()</a>, and <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00500">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00789">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00312">DrawSolidTilePainter()</a>, and <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>.</p>
 
 </div>
 </div>
-<a id="abed72b226fc4633d0ee69b13c0d53804" name="abed72b226fc4633d0ee69b13c0d53804"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abed72b226fc4633d0ee69b13c0d53804">&#9670;&#160;</a></span>UpdateInfoGrid()</h2>
+<a id="a3f0afe4ee88fbd9ab6c6cbacff908763" name="a3f0afe4ee88fbd9ab6c6cbacff908763"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f0afe4ee88fbd9ab6c6cbacff908763">&#9670;&#160;</a></span>UpdateInfoGrid()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -649,16 +629,6 @@ Here is the call graph for this function:</div>
           <td class="memname">void yaze::gui::Canvas::UpdateInfoGrid </td>
           <td>(</td>
           <td class="paramtype">ImVec2</td>          <td class="paramname"><span class="paramname"><em>bg_size</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>tile_size</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">float</td>          <td class="paramname"><span class="paramname"><em>scale</em></span><span class="paramdefsep"> = </span><span class="paramdefval">1.0f</span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -673,16 +643,16 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00065">65</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00062">62</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00800">DrawOverlay()</a>, and <a class="el" href="canvas_8h_source.html#l00214">enable_custom_labels_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00789">DrawOverlay()</a>, and <a class="el" href="canvas_8h_source.html#l00217">enable_custom_labels_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1gui_1_1Canvas_abed72b226fc4633d0ee69b13c0d53804_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1Canvas_abed72b226fc4633d0ee69b13c0d53804_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1gui_1_1Canvas_abed72b226fc4633d0ee69b13c0d53804_cgraph" id="aclassyaze_1_1gui_1_1Canvas_abed72b226fc4633d0ee69b13c0d53804_cgraph">
+<div class="center"><img src="classyaze_1_1gui_1_1Canvas_a3f0afe4ee88fbd9ab6c6cbacff908763_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1Canvas_a3f0afe4ee88fbd9ab6c6cbacff908763_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gui_1_1Canvas_a3f0afe4ee88fbd9ab6c6cbacff908763_cgraph" id="aclassyaze_1_1gui_1_1Canvas_a3f0afe4ee88fbd9ab6c6cbacff908763_cgraph">
 <area shape="rect" title=" " alt="" coords="5,71,132,111"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ab4152394d6f4a6537844371d1651c5f9" title=" " alt="" coords="180,5,306,46"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#ad8f81f1ad4537d5b9c094ed4bb66d304" title=" " alt="" coords="180,5,306,46"/>
 <area shape="poly" title=" " alt="" coords="124,68,171,49,173,54,126,73"/>
 <area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#acf740fd97bf204b2d5e35ab0d3c024ef" title=" " alt="" coords="180,71,306,111"/>
 <area shape="poly" title=" " alt="" coords="132,88,164,88,164,94,132,94"/>
@@ -695,8 +665,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="ab4152394d6f4a6537844371d1651c5f9" name="ab4152394d6f4a6537844371d1651c5f9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab4152394d6f4a6537844371d1651c5f9">&#9670;&#160;</a></span>DrawBackground()</h2>
+<a id="ad8f81f1ad4537d5b9c094ed4bb66d304" name="ad8f81f1ad4537d5b9c094ed4bb66d304"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad8f81f1ad4537d5b9c094ed4bb66d304">&#9670;&#160;</a></span>DrawBackground()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -704,26 +674,22 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void yaze::gui::Canvas::DrawBackground </td>
           <td>(</td>
-          <td class="paramtype">ImVec2</td>          <td class="paramname"><span class="paramname"><em>canvas_size</em></span><span class="paramdefsep"> = </span><span class="paramdefval">ImVec2(0,&#160;0)</span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">ImVec2</td>          <td class="paramname"><span class="paramname"><em>canvas_size</em></span><span class="paramdefsep"> = </span><span class="paramdefval">ImVec2(0,&#160;0)</span></td><td>)</td>
           <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>drag</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00073">73</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00069">69</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00246">canvas_id_</a>, <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00237">canvas_p1_</a>, <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00216">custom_canvas_size_</a>, <a class="el" href="canvas_8h_source.html#l00210">draggable_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00215">enable_context_menu_</a>, <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>, <a class="el" href="canvas_8cc_source.html#l00041">yaze::gui::kMouseFlags</a>, <a class="el" href="canvas_8cc_source.html#l00037">yaze::gui::kRectangleColor</a>, <a class="el" href="canvas_8cc_source.html#l00038">yaze::gui::kWhiteColor</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00250">canvas_id_</a>, <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00241">canvas_p1_</a>, <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00219">custom_canvas_size_</a>, <a class="el" href="canvas_8h_source.html#l00213">draggable_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00218">enable_context_menu_</a>, <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>, <a class="el" href="canvas_8cc_source.html#l00038">yaze::gui::kMouseFlags</a>, <a class="el" href="canvas_8cc_source.html#l00034">yaze::gui::kRectangleColor</a>, <a class="el" href="canvas_8cc_source.html#l00035">yaze::gui::kWhiteColor</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00864">yaze::gui::BeginCanvas()</a>, <a class="el" href="canvas_8cc_source.html#l00909">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="canvas_8cc_source.html#l00878">yaze::gui::GraphicsBinCanvasPipeline()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, <a class="el" href="canvas_8cc_source.html#l00051">UpdateColorPainter()</a>, and <a class="el" href="canvas_8cc_source.html#l00065">UpdateInfoGrid()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00853">yaze::gui::BeginCanvas()</a>, <a class="el" href="canvas_8cc_source.html#l00898">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="canvas_8cc_source.html#l00867">yaze::gui::GraphicsBinCanvasPipeline()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, <a class="el" href="canvas_8cc_source.html#l00048">UpdateColorPainter()</a>, and <a class="el" href="canvas_8cc_source.html#l00062">UpdateInfoGrid()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1gui_1_1Canvas_ab4152394d6f4a6537844371d1651c5f9_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1Canvas_ab4152394d6f4a6537844371d1651c5f9_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1gui_1_1Canvas_ab4152394d6f4a6537844371d1651c5f9_cgraph" id="aclassyaze_1_1gui_1_1Canvas_ab4152394d6f4a6537844371d1651c5f9_cgraph">
+<div class="center"><img src="classyaze_1_1gui_1_1Canvas_ad8f81f1ad4537d5b9c094ed4bb66d304_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1Canvas_ad8f81f1ad4537d5b9c094ed4bb66d304_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gui_1_1Canvas_ad8f81f1ad4537d5b9c094ed4bb66d304_cgraph" id="aclassyaze_1_1gui_1_1Canvas_ad8f81f1ad4537d5b9c094ed4bb66d304_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,132,46"/>
 <area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="180,5,306,46"/>
 <area shape="poly" title=" " alt="" coords="132,23,164,23,164,28,132,28"/>
@@ -746,12 +712,29 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000026">Todo</a></b></dt><dd>Get ROM data for change palette </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00108">108</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00104">104</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00230">bitmap_</a>, <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00247">context_id_</a>, <a class="el" href="canvas_8h_source.html#l00220">custom_step_</a>, <a class="el" href="color_8cc_source.html#l00170">yaze::gui::DisplayEditablePalette()</a>, <a class="el" href="canvas_8h_source.html#l00227">edit_palette_group_name_index_</a>, <a class="el" href="canvas_8h_source.html#l00226">edit_palette_index_</a>, <a class="el" href="canvas_8h_source.html#l00228">edit_palette_sub_index_</a>, <a class="el" href="canvas_8h_source.html#l00215">enable_context_menu_</a>, <a class="el" href="canvas_8h_source.html#l00212">enable_grid_</a>, <a class="el" href="canvas_8h_source.html#l00213">enable_hex_tile_labels_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::gui::Renderer::Get()</a>, <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>, <a class="el" href="input_8cc_source.html#l00162">yaze::gui::InputHexWord()</a>, <a class="el" href="bitmap_8h_source.html#l00034">yaze::gfx::k4bpp</a>, <a class="el" href="bitmap_8h_source.html#l00035">yaze::gfx::k8bpp</a>, <a class="el" href="bitmap_8h_source.html#l00033">yaze::gfx::kIndexed</a>, <a class="el" href="snes__palette_8h_source.html#l00053">yaze::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="canvas_8h_source.html#l00218">refresh_graphics_</a>, <a class="el" href="rom_8h_source.html#l00290">yaze::SharedRom::rom()</a>, <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>, <a class="el" href="color_8cc_source.html#l00127">yaze::gui::SelectablePalettePipeline()</a>, <a class="el" href="style_8cc_source.html#l00753">yaze::gui::TextWithSeparators()</a>, and <a class="el" href="renderer_8h_source.html#l00049">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00233">bitmap_</a>, <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00251">context_id_</a>, <a class="el" href="canvas_8h_source.html#l00223">custom_step_</a>, <a class="el" href="color_8cc_source.html#l00166">yaze::gui::DisplayEditablePalette()</a>, <a class="el" href="canvas_8h_source.html#l00218">enable_context_menu_</a>, <a class="el" href="canvas_8h_source.html#l00215">enable_grid_</a>, <a class="el" href="canvas_8h_source.html#l00216">enable_hex_tile_labels_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::gui::Renderer::Get()</a>, <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>, <a class="el" href="bitmap_8h_source.html#l00034">yaze::gfx::k4bpp</a>, <a class="el" href="bitmap_8h_source.html#l00035">yaze::gfx::k8bpp</a>, <a class="el" href="bitmap_8h_source.html#l00033">yaze::gfx::kIndexed</a>, <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>, and <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00864">yaze::gui::BeginCanvas()</a>, <a class="el" href="canvas_8cc_source.html#l00909">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="canvas_8cc_source.html#l00878">yaze::gui::GraphicsBinCanvasPipeline()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, and <a class="el" href="canvas_8cc_source.html#l00051">UpdateColorPainter()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00853">yaze::gui::BeginCanvas()</a>, <a class="el" href="canvas_8cc_source.html#l00898">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="canvas_8cc_source.html#l00867">yaze::gui::GraphicsBinCanvasPipeline()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, and <a class="el" href="canvas_8cc_source.html#l00048">UpdateColorPainter()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1gui_1_1Canvas_a401e3bebaabb7d192f9466835c86f3ab_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1Canvas_a401e3bebaabb7d192f9466835c86f3ab_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gui_1_1Canvas_a401e3bebaabb7d192f9466835c86f3ab_cgraph" id="aclassyaze_1_1gui_1_1Canvas_a401e3bebaabb7d192f9466835c86f3ab_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,133,103"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#ae0d03d6cdef355d2ffa9bfa5d5e3247a" title=" " alt="" coords="181,5,345,46"/>
+<area shape="poly" title=" " alt="" coords="132,62,176,48,178,54,134,67"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="185,70,340,96"/>
+<area shape="poly" title=" " alt="" coords="133,80,170,80,170,86,133,86"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title=" " alt="" coords="195,120,331,161"/>
+<area shape="poly" title=" " alt="" coords="134,99,181,113,179,118,132,104"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14" title=" " alt="" coords="393,5,559,46"/>
+<area shape="poly" title=" " alt="" coords="346,23,378,23,378,28,346,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -779,9 +762,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00223">223</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00219">219</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00238">drawn_tile_pos_</a>, <a class="el" href="bitmap_8h_source.html#l00162">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="canvas_8h_source.html#l00211">is_hovered_</a>, <a class="el" href="canvas_8h_source.html#l00239">mouse_pos_in_canvas_</a>, <a class="el" href="canvas_8h_source.html#l00242">points_</a>, <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>, and <a class="el" href="bitmap_8h_source.html#l00158">yaze::gfx::Bitmap::texture()</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00242">drawn_tile_pos_</a>, <a class="el" href="bitmap_8h_source.html#l00162">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="canvas_8h_source.html#l00214">is_hovered_</a>, <a class="el" href="canvas_8h_source.html#l00243">mouse_pos_in_canvas_</a>, <a class="el" href="canvas_8h_source.html#l00246">points_</a>, <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>, and <a class="el" href="bitmap_8h_source.html#l00158">yaze::gfx::Bitmap::texture()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -816,11 +799,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00322">322</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00312">312</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00238">drawn_tile_pos_</a>, <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>, <a class="el" href="canvas_8h_source.html#l00211">is_hovered_</a>, <a class="el" href="canvas_8h_source.html#l00239">mouse_pos_in_canvas_</a>, <a class="el" href="canvas_8h_source.html#l00242">points_</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00242">drawn_tile_pos_</a>, <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>, <a class="el" href="canvas_8h_source.html#l00214">is_hovered_</a>, <a class="el" href="canvas_8h_source.html#l00243">mouse_pos_in_canvas_</a>, <a class="el" href="canvas_8h_source.html#l00246">points_</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00051">UpdateColorPainter()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00048">UpdateColorPainter()</a>.</p>
 
 </div>
 </div>
@@ -848,9 +831,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00376">376</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00366">366</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00238">drawn_tile_pos_</a>, <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>, <a class="el" href="bitmap_8h_source.html#l00151">yaze::gfx::Bitmap::width()</a>, and <a class="el" href="bitmap_8cc_source.html#l00392">yaze::gfx::Bitmap::WriteColor()</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00242">drawn_tile_pos_</a>, <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>, <a class="el" href="bitmap_8h_source.html#l00151">yaze::gfx::Bitmap::width()</a>, and <a class="el" href="bitmap_8cc_source.html#l00392">yaze::gfx::Bitmap::WriteColor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -887,11 +870,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00397">397</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00387">387</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00239">mouse_pos_in_canvas_</a>, <a class="el" href="canvas_8h_source.html#l00242">points_</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00243">mouse_pos_in_canvas_</a>, <a class="el" href="canvas_8h_source.html#l00246">points_</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00909">yaze::gui::BitmapCanvasPipeline()</a>, and <a class="el" href="canvas_8cc_source.html#l00878">yaze::gui::GraphicsBinCanvasPipeline()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00898">yaze::gui::BitmapCanvasPipeline()</a>, and <a class="el" href="canvas_8cc_source.html#l00867">yaze::gui::GraphicsBinCanvasPipeline()</a>.</p>
 
 </div>
 </div>
@@ -919,9 +902,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00426">426</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00414">414</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00038">yaze::gui::kWhiteColor</a>, <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>, <a class="el" href="canvas_8h_source.html#l00217">select_rect_active_</a>, <a class="el" href="canvas_8h_source.html#l00243">selected_points_</a>, <a class="el" href="canvas_8h_source.html#l00240">selected_tile_pos_</a>, and <a class="el" href="canvas_8h_source.html#l00248">selected_tiles_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00035">yaze::gui::kWhiteColor</a>, <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>, <a class="el" href="canvas_8h_source.html#l00220">select_rect_active_</a>, <a class="el" href="canvas_8h_source.html#l00247">selected_points_</a>, <a class="el" href="canvas_8h_source.html#l00244">selected_tile_pos_</a>, and <a class="el" href="canvas_8h_source.html#l00252">selected_tiles_</a>.</p>
 
 </div>
 </div>
@@ -949,11 +932,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00514">514</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00500">500</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00230">bitmap_</a>, <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00237">canvas_p1_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="bitmap_8h_source.html#l00152">yaze::gfx::Bitmap::height()</a>, <a class="el" href="bitmap_8h_source.html#l00162">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="canvas_8cc_source.html#l00038">yaze::gui::kWhiteColor</a>, <a class="el" href="bitmap_8h_source.html#l00158">yaze::gfx::Bitmap::texture()</a>, and <a class="el" href="bitmap_8h_source.html#l00151">yaze::gfx::Bitmap::width()</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00233">bitmap_</a>, <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00241">canvas_p1_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="bitmap_8h_source.html#l00152">yaze::gfx::Bitmap::height()</a>, <a class="el" href="bitmap_8h_source.html#l00162">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="canvas_8cc_source.html#l00035">yaze::gui::kWhiteColor</a>, <a class="el" href="bitmap_8h_source.html#l00158">yaze::gfx::Bitmap::texture()</a>, and <a class="el" href="bitmap_8h_source.html#l00151">yaze::gfx::Bitmap::width()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00909">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="canvas_8cc_source.html#l00597">DrawBitmapGroup()</a>, and <a class="el" href="canvas_8cc_source.html#l00051">UpdateColorPainter()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00898">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="canvas_8cc_source.html#l00583">DrawBitmapGroup()</a>, and <a class="el" href="canvas_8cc_source.html#l00048">UpdateColorPainter()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1007,9 +990,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00526">526</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00512">512</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00230">bitmap_</a>, <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="bitmap_8h_source.html#l00152">yaze::gfx::Bitmap::height()</a>, <a class="el" href="bitmap_8h_source.html#l00162">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>, <a class="el" href="bitmap_8h_source.html#l00158">yaze::gfx::Bitmap::texture()</a>, and <a class="el" href="bitmap_8h_source.html#l00151">yaze::gfx::Bitmap::width()</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00233">bitmap_</a>, <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="bitmap_8h_source.html#l00152">yaze::gfx::Bitmap::height()</a>, <a class="el" href="bitmap_8h_source.html#l00162">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>, <a class="el" href="bitmap_8h_source.html#l00158">yaze::gfx::Bitmap::texture()</a>, and <a class="el" href="bitmap_8h_source.html#l00151">yaze::gfx::Bitmap::width()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1063,9 +1046,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00542">542</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00528">528</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00230">bitmap_</a>, <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="bitmap_8h_source.html#l00152">yaze::gfx::Bitmap::height()</a>, <a class="el" href="bitmap_8h_source.html#l00162">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="bitmap_8h_source.html#l00158">yaze::gfx::Bitmap::texture()</a>, and <a class="el" href="bitmap_8h_source.html#l00151">yaze::gfx::Bitmap::width()</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00233">bitmap_</a>, <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="bitmap_8h_source.html#l00152">yaze::gfx::Bitmap::height()</a>, <a class="el" href="bitmap_8h_source.html#l00162">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="bitmap_8h_source.html#l00158">yaze::gfx::Bitmap::texture()</a>, and <a class="el" href="bitmap_8h_source.html#l00151">yaze::gfx::Bitmap::width()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1099,11 +1082,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000026">Todo</a></b></dt><dd>Add parameters for sizing and positioning </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000027">Todo</a></b></dt><dd>Add parameters for sizing and positioning </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00559">559</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00545">545</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, and <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, and <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>.</p>
 
 </div>
 </div>
@@ -1136,9 +1119,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00597">597</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00583">583</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8cc_source.html#l00514">DrawBitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00152">yaze::gfx::Bitmap::height()</a>, <a class="el" href="tilemap_8h_source.html#l00021">yaze::gfx::Tilemap::map_size</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>, <a class="el" href="canvas_8h_source.html#l00217">select_rect_active_</a>, <a class="el" href="canvas_8h_source.html#l00243">selected_points_</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, <a class="el" href="bitmap_8h_source.html#l00151">yaze::gfx::Bitmap::width()</a>, and <a class="el" href="tilemap_8h_source.html#l00012">yaze::gfx::Pair::x</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8cc_source.html#l00500">DrawBitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00152">yaze::gfx::Bitmap::height()</a>, <a class="el" href="tilemap_8h_source.html#l00021">yaze::gfx::Tilemap::map_size</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>, <a class="el" href="canvas_8h_source.html#l00220">select_rect_active_</a>, <a class="el" href="canvas_8h_source.html#l00247">selected_points_</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, <a class="el" href="bitmap_8h_source.html#l00151">yaze::gfx::Bitmap::width()</a>, and <a class="el" href="tilemap_8h_source.html#l00012">yaze::gfx::Pair::x</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1179,9 +1162,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00273">273</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00265">265</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00238">drawn_tile_pos_</a>, <a class="el" href="renderer_8h_source.html#l00026">yaze::gui::Renderer::Get()</a>, <a class="el" href="tilemap_8cc_source.html#l00193">yaze::gfx::GetTilemapData()</a>, <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>, <a class="el" href="canvas_8h_source.html#l00211">is_hovered_</a>, <a class="el" href="canvas_8h_source.html#l00239">mouse_pos_in_canvas_</a>, <a class="el" href="bitmap_8h_source.html#l00149">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="canvas_8h_source.html#l00242">points_</a>, <a class="el" href="renderer_8h_source.html#l00045">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, <a class="el" href="tilemap_8h_source.html#l00020">yaze::gfx::Tilemap::tile_size</a>, <a class="el" href="tilemap_8h_source.html#l00012">yaze::gfx::Pair::x</a>, and <a class="el" href="tilemap_8h_source.html#l00013">yaze::gfx::Pair::y</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00242">drawn_tile_pos_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::gui::Renderer::Get()</a>, <a class="el" href="tilemap_8cc_source.html#l00193">yaze::gfx::GetTilemapData()</a>, <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>, <a class="el" href="canvas_8h_source.html#l00214">is_hovered_</a>, <a class="el" href="canvas_8h_source.html#l00243">mouse_pos_in_canvas_</a>, <a class="el" href="bitmap_8h_source.html#l00149">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="canvas_8h_source.html#l00246">points_</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, <a class="el" href="tilemap_8h_source.html#l00020">yaze::gfx::Tilemap::tile_size</a>, <a class="el" href="tilemap_8h_source.html#l00012">yaze::gfx::Pair::x</a>, and <a class="el" href="tilemap_8h_source.html#l00013">yaze::gfx::Pair::y</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1230,9 +1213,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00572">572</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00558">558</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00039">yaze::gui::kOutlineRect</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00036">yaze::gui::kOutlineRect</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
 </div>
 </div>
@@ -1270,9 +1253,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00580">580</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00566">566</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
 </div>
 </div>
@@ -1310,9 +1293,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00589">589</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00575">575</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
 </div>
 </div>
@@ -1350,9 +1333,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00665">665</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00651">651</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00036">yaze::gui::kBlackColor</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00033">yaze::gui::kBlackColor</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
 </div>
 </div>
@@ -1380,9 +1363,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00678">678</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00664">664</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00036">yaze::gui::kBlackColor</a>, <a class="el" href="canvas_8cc_source.html#l00038">yaze::gui::kWhiteColor</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00033">yaze::gui::kBlackColor</a>, <a class="el" href="canvas_8cc_source.html#l00035">yaze::gui::kWhiteColor</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
 </div>
 </div>
@@ -1401,11 +1384,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00687">687</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00673">673</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00237">canvas_p1_</a>, <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00241">canvas_p1_</a>, <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, and <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, and <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>.</p>
 
 </div>
 </div>
@@ -1428,11 +1411,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00749">749</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00737">737</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00237">canvas_p1_</a>, <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00223">current_labels_</a>, <a class="el" href="canvas_8h_source.html#l00220">custom_step_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00736">DrawCustomHighlight()</a>, <a class="el" href="canvas_8cc_source.html#l00687">DrawGridLines()</a>, <a class="el" href="canvas_8h_source.html#l00214">enable_custom_labels_</a>, <a class="el" href="canvas_8h_source.html#l00212">enable_grid_</a>, <a class="el" href="canvas_8h_source.html#l00213">enable_hex_tile_labels_</a>, <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>, <a class="el" href="canvas_8cc_source.html#l00038">yaze::gui::kWhiteColor</a>, <a class="el" href="canvas_8h_source.html#l00244">labels_</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00241">canvas_p1_</a>, <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00226">current_labels_</a>, <a class="el" href="canvas_8h_source.html#l00223">custom_step_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00724">DrawCustomHighlight()</a>, <a class="el" href="canvas_8cc_source.html#l00673">DrawGridLines()</a>, <a class="el" href="canvas_8h_source.html#l00217">enable_custom_labels_</a>, <a class="el" href="canvas_8h_source.html#l00215">enable_grid_</a>, <a class="el" href="canvas_8h_source.html#l00216">enable_hex_tile_labels_</a>, <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>, <a class="el" href="canvas_8cc_source.html#l00035">yaze::gui::kWhiteColor</a>, <a class="el" href="canvas_8h_source.html#l00248">labels_</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00909">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="canvas_8cc_source.html#l00872">yaze::gui::EndCanvas()</a>, <a class="el" href="canvas_8cc_source.html#l00878">yaze::gui::GraphicsBinCanvasPipeline()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, and <a class="el" href="canvas_8cc_source.html#l00051">UpdateColorPainter()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00898">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="canvas_8cc_source.html#l00861">yaze::gui::EndCanvas()</a>, <a class="el" href="canvas_8cc_source.html#l00867">yaze::gui::GraphicsBinCanvasPipeline()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, and <a class="el" href="canvas_8cc_source.html#l00048">UpdateColorPainter()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1463,11 +1446,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00800">800</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00789">789</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00038">yaze::gui::kWhiteColor</a>, <a class="el" href="canvas_8h_source.html#l00242">points_</a>, <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>, and <a class="el" href="canvas_8h_source.html#l00243">selected_points_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00035">yaze::gui::kWhiteColor</a>, <a class="el" href="canvas_8h_source.html#l00246">points_</a>, <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>, and <a class="el" href="canvas_8h_source.html#l00247">selected_points_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00909">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="canvas_8cc_source.html#l00872">yaze::gui::EndCanvas()</a>, <a class="el" href="canvas_8cc_source.html#l00878">yaze::gui::GraphicsBinCanvasPipeline()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, <a class="el" href="canvas_8cc_source.html#l00051">UpdateColorPainter()</a>, and <a class="el" href="canvas_8cc_source.html#l00065">UpdateInfoGrid()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00898">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="canvas_8cc_source.html#l00861">yaze::gui::EndCanvas()</a>, <a class="el" href="canvas_8cc_source.html#l00867">yaze::gui::GraphicsBinCanvasPipeline()</a>, <a class="el" href="zeml_8cc_source.html#l00380">yaze::gui::zeml::Render()</a>, <a class="el" href="canvas_8cc_source.html#l00048">UpdateColorPainter()</a>, and <a class="el" href="canvas_8cc_source.html#l00062">UpdateInfoGrid()</a>.</p>
 
 </div>
 </div>
@@ -1495,11 +1478,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00702">702</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00688">688</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00237">canvas_p1_</a>, <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00220">custom_step_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00736">DrawCustomHighlight()</a>, <a class="el" href="canvas_8cc_source.html#l00687">DrawGridLines()</a>, <a class="el" href="canvas_8h_source.html#l00214">enable_custom_labels_</a>, <a class="el" href="canvas_8h_source.html#l00212">enable_grid_</a>, <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>, <a class="el" href="canvas_8cc_source.html#l00038">yaze::gui::kWhiteColor</a>, <a class="el" href="canvas_8h_source.html#l00244">labels_</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00241">canvas_p1_</a>, <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00223">custom_step_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8cc_source.html#l00724">DrawCustomHighlight()</a>, <a class="el" href="canvas_8cc_source.html#l00673">DrawGridLines()</a>, <a class="el" href="canvas_8h_source.html#l00217">enable_custom_labels_</a>, <a class="el" href="canvas_8h_source.html#l00215">enable_grid_</a>, <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>, <a class="el" href="canvas_8cc_source.html#l00035">yaze::gui::kWhiteColor</a>, <a class="el" href="canvas_8h_source.html#l00248">labels_</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00065">UpdateInfoGrid()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00062">UpdateInfoGrid()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1530,7 +1513,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00823">823</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00812">812</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="canvas_8h_source.html#l00165">draw_list()</a>.</p>
 <div class="dynheader">
@@ -1571,7 +1554,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00141">141</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00220">custom_step_</a>, <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>, and <a class="el" href="canvas_8h_source.html#l00239">mouse_pos_in_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, <a class="el" href="canvas_8h_source.html#l00223">custom_step_</a>, <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>, and <a class="el" href="canvas_8h_source.html#l00243">mouse_pos_in_canvas_</a>.</p>
 
 </div>
 </div>
@@ -1600,7 +1583,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00153">153</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>, and <a class="el" href="canvas_8h_source.html#l00216">custom_canvas_size_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>, and <a class="el" href="canvas_8h_source.html#l00219">custom_canvas_size_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1629,11 +1612,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00736">736</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8cc_source.html#l00724">724</a> of file <a class="el" href="canvas_8cc_source.html">canvas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00224">highlight_tile_id</a>, and <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>, <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>, <a class="el" href="canvas_8h_source.html#l00227">highlight_tile_id</a>, and <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, and <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, and <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>.</p>
 
 </div>
 </div>
@@ -1662,7 +1645,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00158">158</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00211">is_hovered_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00214">is_hovered_</a>.</p>
 
 </div>
 </div>
@@ -1691,7 +1674,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00159">159</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>.</p>
 
 </div>
 </div>
@@ -1720,7 +1703,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00160">160</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>.</p>
 
 </div>
 </div>
@@ -1749,7 +1732,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00162">162</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00242">points_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00246">points_</a>.</p>
 
 </div>
 </div>
@@ -1778,7 +1761,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00163">163</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00242">points_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00246">points_</a>.</p>
 
 </div>
 </div>
@@ -1807,7 +1790,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00164">164</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00242">points_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00246">points_</a>.</p>
 
 </div>
 </div>
@@ -1836,9 +1819,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00165">165</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00232">draw_list_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">draw_list_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00823">DrawLayeredElements()</a>, and <a class="el" href="canvas_8cc_source.html#l00878">yaze::gui::GraphicsBinCanvasPipeline()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00812">DrawLayeredElements()</a>, and <a class="el" href="canvas_8cc_source.html#l00867">yaze::gui::GraphicsBinCanvasPipeline()</a>.</p>
 
 </div>
 </div>
@@ -1867,9 +1850,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00166">166</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00236">canvas_p0_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">canvas_p0_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00878">yaze::gui::GraphicsBinCanvasPipeline()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00867">yaze::gui::GraphicsBinCanvasPipeline()</a>.</p>
 
 </div>
 </div>
@@ -1898,7 +1881,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00167">167</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00234">scrolling_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00238">scrolling_</a>.</p>
 
 </div>
 </div>
@@ -1927,7 +1910,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00168">168</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00238">drawn_tile_pos_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00242">drawn_tile_pos_</a>.</p>
 
 </div>
 </div>
@@ -1956,9 +1939,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00169">169</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00043">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, and <a class="el" href="canvas_8h_source.html#l00153">SetCanvasSize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00043">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, and <a class="el" href="canvas_8h_source.html#l00153">SetCanvasSize()</a>.</p>
 
 </div>
 </div>
@@ -1987,7 +1970,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00170">170</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>.</p>
 
 </div>
 </div>
@@ -2016,7 +1999,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00171">171</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00221">global_scale_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00224">global_scale_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>.</p>
 
@@ -2047,7 +2030,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00172">172</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00214">enable_custom_labels_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00217">enable_custom_labels_</a>.</p>
 
 </div>
 </div>
@@ -2076,7 +2059,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00173">173</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00220">custom_step_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00223">custom_step_</a>.</p>
 
 </div>
 </div>
@@ -2105,7 +2088,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00174">174</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>.</p>
 
 </div>
 </div>
@@ -2134,7 +2117,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00175">175</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00235">canvas_sz_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00239">canvas_sz_</a>.</p>
 
 </div>
 </div>
@@ -2163,7 +2146,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00176">176</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00210">draggable_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00213">draggable_</a>.</p>
 
 </div>
 </div>
@@ -2192,9 +2175,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00177">177</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00246">canvas_id_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00250">canvas_id_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00864">yaze::gui::BeginCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00853">yaze::gui::BeginCanvas()</a>.</p>
 
 </div>
 </div>
@@ -2223,7 +2206,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00178">178</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00244">labels_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00248">labels_</a>.</p>
 
 </div>
 </div>
@@ -2252,7 +2235,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00184">184</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00244">labels_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00248">labels_</a>.</p>
 
 </div>
 </div>
@@ -2281,7 +2264,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00196">196</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00223">current_labels_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00226">current_labels_</a>.</p>
 
 </div>
 </div>
@@ -2310,7 +2293,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00197">197</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00224">highlight_tile_id</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00227">highlight_tile_id</a>.</p>
 
 </div>
 </div>
@@ -2339,7 +2322,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00199">199</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00248">selected_tiles_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00252">selected_tiles_</a>.</p>
 
 </div>
 </div>
@@ -2368,7 +2351,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00200">200</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00248">selected_tiles_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00252">selected_tiles_</a>.</p>
 
 </div>
 </div>
@@ -2397,7 +2380,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00202">202</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">selected_tile_pos_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00244">selected_tile_pos_</a>.</p>
 
 </div>
 </div>
@@ -2426,7 +2409,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00203">203</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00240">selected_tile_pos_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00244">selected_tile_pos_</a>.</p>
 
 </div>
 </div>
@@ -2455,7 +2438,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00204">204</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00217">select_rect_active_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00220">select_rect_active_</a>.</p>
 
 </div>
 </div>
@@ -2484,7 +2467,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00205">205</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00243">selected_points_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00247">selected_points_</a>.</p>
 
 </div>
 </div>
@@ -2513,7 +2496,77 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00207">207</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8h_source.html#l00239">mouse_pos_in_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00243">mouse_pos_in_canvas_</a>.</p>
+
+</div>
+</div>
+<a id="a18022fef3a2504512628442d3237da5e" name="a18022fef3a2504512628442d3237da5e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18022fef3a2504512628442d3237da5e">&#9670;&#160;</a></span>set_rom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::gui::Canvas::set_rom </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00209">209</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00210">rom()</a>, and <a class="el" href="canvas_8h_source.html#l00234">rom_</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1gui_1_1Canvas_a18022fef3a2504512628442d3237da5e_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1Canvas_a18022fef3a2504512628442d3237da5e_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gui_1_1Canvas_a18022fef3a2504512628442d3237da5e_cgraph" id="aclassyaze_1_1gui_1_1Canvas_a18022fef3a2504512628442d3237da5e_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,132,46"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html#a0ba39fb84005e13025eb4eb4910eea7e" title=" " alt="" coords="180,13,328,38"/>
+<area shape="poly" title=" " alt="" coords="132,23,164,23,164,28,132,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a0ba39fb84005e13025eb4eb4910eea7e" name="a0ba39fb84005e13025eb4eb4910eea7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ba39fb84005e13025eb4eb4910eea7e">&#9670;&#160;</a></span>rom()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1Rom.html">Rom</a> * yaze::gui::Canvas::rom </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00210">210</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+
+<p class="reference">References <a class="el" href="canvas_8h_source.html#l00234">rom_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00209">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -2538,9 +2591,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00210">210</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00213">213</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, and <a class="el" href="canvas_8h_source.html#l00176">set_draggable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, and <a class="el" href="canvas_8h_source.html#l00176">set_draggable()</a>.</p>
 
 </div>
 </div>
@@ -2564,9 +2617,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00211">211</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00214">214</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00322">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00273">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00223">DrawTilePainter()</a>, and <a class="el" href="canvas_8h_source.html#l00158">IsMouseHovering()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00312">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00265">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00219">DrawTilePainter()</a>, and <a class="el" href="canvas_8h_source.html#l00158">IsMouseHovering()</a>.</p>
 
 </div>
 </div>
@@ -2590,9 +2643,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00212">212</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00215">215</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, and <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, and <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>.</p>
 
 </div>
 </div>
@@ -2616,9 +2669,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00213">213</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00216">216</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>, and <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>, and <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>.</p>
 
 </div>
 </div>
@@ -2642,9 +2695,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00214">214</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00217">217</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00172">custom_labels_enabled()</a>, <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>, and <a class="el" href="canvas_8cc_source.html#l00065">UpdateInfoGrid()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00172">custom_labels_enabled()</a>, <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>, and <a class="el" href="canvas_8cc_source.html#l00062">UpdateInfoGrid()</a>.</p>
 
 </div>
 </div>
@@ -2668,9 +2721,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00215">215</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00218">218</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, and <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, and <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>.</p>
 
 </div>
 </div>
@@ -2694,9 +2747,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00216">216</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00219">219</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00043">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, and <a class="el" href="canvas_8h_source.html#l00153">SetCanvasSize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00043">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, and <a class="el" href="canvas_8h_source.html#l00153">SetCanvasSize()</a>.</p>
 
 </div>
 </div>
@@ -2720,9 +2773,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00217">217</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00220">220</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00597">DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00426">DrawSelectRect()</a>, and <a class="el" href="canvas_8h_source.html#l00204">select_rect_active()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00583">DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00414">DrawSelectRect()</a>, and <a class="el" href="canvas_8h_source.html#l00204">select_rect_active()</a>.</p>
 
 </div>
 </div>
@@ -2746,9 +2799,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00218">218</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00221">221</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
 </div>
 </div>
@@ -2772,9 +2823,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00220">220</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00223">223</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00173">custom_step()</a>, <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>, <a class="el" href="canvas_8h_source.html#l00141">GetTileIdFromMousePos()</a>, and <a class="el" href="canvas_8h_source.html#l00063">SetCanvasGridSize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00173">custom_step()</a>, <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>, <a class="el" href="canvas_8h_source.html#l00141">GetTileIdFromMousePos()</a>, and <a class="el" href="canvas_8h_source.html#l00063">SetCanvasGridSize()</a>.</p>
 
 </div>
 </div>
@@ -2798,9 +2849,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00221">221</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00224">224</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00687">DrawGridLines()</a>, <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00322">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00273">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00376">DrawTileOnBitmap()</a>, <a class="el" href="canvas_8h_source.html#l00141">GetTileIdFromMousePos()</a>, <a class="el" href="canvas_8h_source.html#l00171">global_scale()</a>, <a class="el" href="canvas_8h_source.html#l00170">set_global_scale()</a>, <a class="el" href="canvas_8cc_source.html#l00051">UpdateColorPainter()</a>, <a class="el" href="canvas_8h_source.html#l00159">ZoomIn()</a>, and <a class="el" href="canvas_8h_source.html#l00160">ZoomOut()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00673">DrawGridLines()</a>, <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00312">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00265">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00366">DrawTileOnBitmap()</a>, <a class="el" href="canvas_8h_source.html#l00141">GetTileIdFromMousePos()</a>, <a class="el" href="canvas_8h_source.html#l00171">global_scale()</a>, <a class="el" href="canvas_8h_source.html#l00170">set_global_scale()</a>, <a class="el" href="canvas_8cc_source.html#l00048">UpdateColorPainter()</a>, <a class="el" href="canvas_8h_source.html#l00159">ZoomIn()</a>, and <a class="el" href="canvas_8h_source.html#l00160">ZoomOut()</a>.</p>
 
 </div>
 </div>
@@ -2824,9 +2875,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00223">223</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00226">226</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, and <a class="el" href="canvas_8h_source.html#l00196">set_current_labels()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, and <a class="el" href="canvas_8h_source.html#l00196">set_current_labels()</a>.</p>
 
 </div>
 </div>
@@ -2850,9 +2901,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00224">224</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00227">227</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00736">DrawCustomHighlight()</a>, and <a class="el" href="canvas_8h_source.html#l00197">set_highlight_tile_id()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00724">DrawCustomHighlight()</a>, and <a class="el" href="canvas_8h_source.html#l00197">set_highlight_tile_id()</a>.</p>
 
 </div>
 </div>
@@ -2876,9 +2927,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00226">226</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00229">229</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
 </div>
 </div>
@@ -2902,9 +2951,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00227">227</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00230">230</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
 </div>
 </div>
@@ -2928,9 +2975,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00228">228</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00231">231</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
 </div>
 </div>
@@ -2954,9 +2999,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00230">230</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00233">233</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00542">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00514">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00526">DrawBitmap()</a>, and <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00528">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00500">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00512">DrawBitmap()</a>, and <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>.</p>
+
+</div>
+</div>
+<a id="a10d1e521eb838b0028ccf6d37e30e569" name="a10d1e521eb838b0028ccf6d37e30e569"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a10d1e521eb838b0028ccf6d37e30e569">&#9670;&#160;</a></span>rom_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1Rom.html">Rom</a>* yaze::gui::Canvas::rom_ = nullptr</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00234">234</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00210">rom()</a>, and <a class="el" href="canvas_8h_source.html#l00209">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -2980,9 +3051,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00232">232</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00236">236</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00165">draw_list()</a>, <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00542">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00514">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00526">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00559">DrawBitmapTable()</a>, <a class="el" href="canvas_8cc_source.html#l00736">DrawCustomHighlight()</a>, <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00687">DrawGridLines()</a>, <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00572">DrawOutline()</a>, <a class="el" href="canvas_8cc_source.html#l00580">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00589">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00800">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00665">DrawRect()</a>, <a class="el" href="canvas_8cc_source.html#l00426">DrawSelectRect()</a>, <a class="el" href="canvas_8cc_source.html#l00322">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00678">DrawText()</a>, <a class="el" href="canvas_8cc_source.html#l00273">DrawTilemapPainter()</a>, and <a class="el" href="canvas_8cc_source.html#l00223">DrawTilePainter()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00165">draw_list()</a>, <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00528">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00500">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00512">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00545">DrawBitmapTable()</a>, <a class="el" href="canvas_8cc_source.html#l00724">DrawCustomHighlight()</a>, <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00673">DrawGridLines()</a>, <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00558">DrawOutline()</a>, <a class="el" href="canvas_8cc_source.html#l00566">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00575">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00789">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00651">DrawRect()</a>, <a class="el" href="canvas_8cc_source.html#l00414">DrawSelectRect()</a>, <a class="el" href="canvas_8cc_source.html#l00312">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00664">DrawText()</a>, <a class="el" href="canvas_8cc_source.html#l00265">DrawTilemapPainter()</a>, and <a class="el" href="canvas_8cc_source.html#l00219">DrawTilePainter()</a>.</p>
 
 </div>
 </div>
@@ -3006,9 +3077,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00234">234</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00238">238</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00526">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00597">DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00736">DrawCustomHighlight()</a>, <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00687">DrawGridLines()</a>, <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00572">DrawOutline()</a>, <a class="el" href="canvas_8cc_source.html#l00580">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00589">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00800">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00665">DrawRect()</a>, <a class="el" href="canvas_8cc_source.html#l00426">DrawSelectRect()</a>, <a class="el" href="canvas_8cc_source.html#l00322">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00678">DrawText()</a>, <a class="el" href="canvas_8cc_source.html#l00273">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00223">DrawTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00397">DrawTileSelector()</a>, and <a class="el" href="canvas_8h_source.html#l00167">scrolling()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00512">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00583">DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00724">DrawCustomHighlight()</a>, <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00673">DrawGridLines()</a>, <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00558">DrawOutline()</a>, <a class="el" href="canvas_8cc_source.html#l00566">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00575">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00789">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00651">DrawRect()</a>, <a class="el" href="canvas_8cc_source.html#l00414">DrawSelectRect()</a>, <a class="el" href="canvas_8cc_source.html#l00312">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00664">DrawText()</a>, <a class="el" href="canvas_8cc_source.html#l00265">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00219">DrawTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00387">DrawTileSelector()</a>, and <a class="el" href="canvas_8h_source.html#l00167">scrolling()</a>.</p>
 
 </div>
 </div>
@@ -3032,9 +3103,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00235">235</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00239">239</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00043">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00687">DrawGridLines()</a>, <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00322">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8h_source.html#l00141">GetTileIdFromMousePos()</a>, <a class="el" href="canvas_8h_source.html#l00175">height()</a>, <a class="el" href="canvas_8h_source.html#l00153">SetCanvasSize()</a>, and <a class="el" href="canvas_8h_source.html#l00174">width()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00043">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00169">canvas_size()</a>, <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00673">DrawGridLines()</a>, <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00312">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8h_source.html#l00141">GetTileIdFromMousePos()</a>, <a class="el" href="canvas_8h_source.html#l00175">height()</a>, <a class="el" href="canvas_8h_source.html#l00153">SetCanvasSize()</a>, and <a class="el" href="canvas_8h_source.html#l00174">width()</a>.</p>
 
 </div>
 </div>
@@ -3058,9 +3129,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00236">236</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00240">240</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00542">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00514">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00526">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00597">DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00559">DrawBitmapTable()</a>, <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00736">DrawCustomHighlight()</a>, <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00687">DrawGridLines()</a>, <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00572">DrawOutline()</a>, <a class="el" href="canvas_8cc_source.html#l00580">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00589">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00800">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00665">DrawRect()</a>, <a class="el" href="canvas_8cc_source.html#l00426">DrawSelectRect()</a>, <a class="el" href="canvas_8cc_source.html#l00322">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00678">DrawText()</a>, <a class="el" href="canvas_8cc_source.html#l00273">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00223">DrawTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00397">DrawTileSelector()</a>, and <a class="el" href="canvas_8h_source.html#l00166">zero_point()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00528">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00500">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00512">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00583">DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00545">DrawBitmapTable()</a>, <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l00724">DrawCustomHighlight()</a>, <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00673">DrawGridLines()</a>, <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00558">DrawOutline()</a>, <a class="el" href="canvas_8cc_source.html#l00566">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00575">DrawOutlineWithColor()</a>, <a class="el" href="canvas_8cc_source.html#l00789">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00651">DrawRect()</a>, <a class="el" href="canvas_8cc_source.html#l00414">DrawSelectRect()</a>, <a class="el" href="canvas_8cc_source.html#l00312">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00664">DrawText()</a>, <a class="el" href="canvas_8cc_source.html#l00265">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00219">DrawTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00387">DrawTileSelector()</a>, and <a class="el" href="canvas_8h_source.html#l00166">zero_point()</a>.</p>
 
 </div>
 </div>
@@ -3084,9 +3155,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00237">237</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00241">241</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00514">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00687">DrawGridLines()</a>, and <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00500">DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00673">DrawGridLines()</a>, and <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>.</p>
 
 </div>
 </div>
@@ -3110,9 +3181,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00238">238</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00242">242</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00168">drawn_tile_position()</a>, <a class="el" href="canvas_8cc_source.html#l00322">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00273">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00376">DrawTileOnBitmap()</a>, and <a class="el" href="canvas_8cc_source.html#l00223">DrawTilePainter()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00168">drawn_tile_position()</a>, <a class="el" href="canvas_8cc_source.html#l00312">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00265">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00366">DrawTileOnBitmap()</a>, and <a class="el" href="canvas_8cc_source.html#l00219">DrawTilePainter()</a>.</p>
 
 </div>
 </div>
@@ -3136,9 +3207,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00239">239</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00243">243</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00322">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00273">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00223">DrawTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00397">DrawTileSelector()</a>, <a class="el" href="canvas_8h_source.html#l00141">GetTileIdFromMousePos()</a>, and <a class="el" href="canvas_8h_source.html#l00207">hover_mouse_pos()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00312">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00265">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00219">DrawTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00387">DrawTileSelector()</a>, <a class="el" href="canvas_8h_source.html#l00141">GetTileIdFromMousePos()</a>, and <a class="el" href="canvas_8h_source.html#l00207">hover_mouse_pos()</a>.</p>
 
 </div>
 </div>
@@ -3162,9 +3233,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00240">240</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00244">244</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00426">DrawSelectRect()</a>, <a class="el" href="canvas_8h_source.html#l00202">selected_tile_pos()</a>, and <a class="el" href="canvas_8h_source.html#l00203">set_selected_tile_pos()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00414">DrawSelectRect()</a>, <a class="el" href="canvas_8h_source.html#l00202">selected_tile_pos()</a>, and <a class="el" href="canvas_8h_source.html#l00203">set_selected_tile_pos()</a>.</p>
 
 </div>
 </div>
@@ -3188,9 +3259,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00242">242</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00246">246</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00800">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00322">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00273">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00223">DrawTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00397">DrawTileSelector()</a>, <a class="el" href="canvas_8h_source.html#l00163">mutable_points()</a>, <a class="el" href="canvas_8h_source.html#l00162">points()</a>, and <a class="el" href="canvas_8h_source.html#l00164">push_back()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00789">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00312">DrawSolidTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00265">DrawTilemapPainter()</a>, <a class="el" href="canvas_8cc_source.html#l00219">DrawTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00387">DrawTileSelector()</a>, <a class="el" href="canvas_8h_source.html#l00163">mutable_points()</a>, <a class="el" href="canvas_8h_source.html#l00162">points()</a>, and <a class="el" href="canvas_8h_source.html#l00164">push_back()</a>.</p>
 
 </div>
 </div>
@@ -3214,9 +3285,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00243">243</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00247">247</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00597">DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00800">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00426">DrawSelectRect()</a>, and <a class="el" href="canvas_8h_source.html#l00205">selected_points()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00583">DrawBitmapGroup()</a>, <a class="el" href="canvas_8cc_source.html#l00789">DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00414">DrawSelectRect()</a>, and <a class="el" href="canvas_8h_source.html#l00205">selected_points()</a>.</p>
 
 </div>
 </div>
@@ -3240,9 +3311,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00244">244</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00248">248</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00749">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00702">DrawInfoGrid()</a>, <a class="el" href="canvas_8h_source.html#l00178">labels()</a>, and <a class="el" href="canvas_8h_source.html#l00184">mutable_labels()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00737">DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l00688">DrawInfoGrid()</a>, <a class="el" href="canvas_8h_source.html#l00178">labels()</a>, and <a class="el" href="canvas_8h_source.html#l00184">mutable_labels()</a>.</p>
 
 </div>
 </div>
@@ -3266,9 +3337,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00246">246</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00250">250</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00040">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00043">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00177">canvas_id()</a>, and <a class="el" href="canvas_8cc_source.html#l00073">DrawBackground()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00040">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00043">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00177">canvas_id()</a>, and <a class="el" href="canvas_8cc_source.html#l00069">DrawBackground()</a>.</p>
 
 </div>
 </div>
@@ -3292,9 +3363,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00247">247</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00251">251</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00040">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00043">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, and <a class="el" href="canvas_8cc_source.html#l00108">DrawContextMenu()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8h_source.html#l00040">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00043">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00047">Canvas()</a>, <a class="el" href="canvas_8h_source.html#l00053">Canvas()</a>, and <a class="el" href="canvas_8cc_source.html#l00104">DrawContextMenu()</a>.</p>
 
 </div>
 </div>
@@ -3318,9 +3389,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00248">248</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="canvas_8h_source.html#l00252">252</a> of file <a class="el" href="canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00426">DrawSelectRect()</a>, <a class="el" href="canvas_8h_source.html#l00200">mutable_selected_tiles()</a>, and <a class="el" href="canvas_8h_source.html#l00199">selected_tiles()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas_8cc_source.html#l00414">DrawSelectRect()</a>, <a class="el" href="canvas_8h_source.html#l00200">mutable_selected_tiles()</a>, and <a class="el" href="canvas_8h_source.html#l00199">selected_tiles()</a>.</p>
 
 </div>
 </div>
