@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
-#include "app/core/platform/renderer.h"
+#include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/rom.h"
 #include "app/snes.h"

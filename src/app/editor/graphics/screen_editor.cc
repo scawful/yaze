@@ -7,7 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "app/core/platform/file_dialog.h"
-#include "app/core/platform/renderer.h"
+#include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"

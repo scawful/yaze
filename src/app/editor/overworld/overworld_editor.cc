@@ -9,7 +9,7 @@
 #include "absl/strings/str_format.h"
 #include "app/core/features.h"
 #include "app/core/platform/clipboard.h"
-#include "app/core/platform/renderer.h"
+#include "app/core/window.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/overworld/entity.h"
 #include "app/gfx/arena.h"
