@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "absl/status/status.h"
-#include "app/core/platform/backend.h"
+#include "app/core/window.h"
 #include "app/editor/editor_manager.h"
 
 int main(int argc, char **argv);
@@ -30,12 +30,7 @@ class Controller {
   void DoRender() const;
   void OnExit();
 
-  absl::Status CreateWindow();
-  absl::Status CreateRenderer();
-  absl::Status CreateGuiContext();
-  absl::Status LoadConfigFiles();
-
-  auto window() -> SDL_Window * { return window_.get(); }
+  auto window() -> SDL_Window * { return window_.window_.get(); }
   void set_active(bool active) { active_ = active; }
   auto active() const { return active_; }
 
@@ -43,9 +38,8 @@ class Controller {
   friend int ::main(int argc, char **argv);
 
   bool active_ = false;
+  core::Window window_;
   editor::EditorManager editor_manager_;
-  std::shared_ptr<SDL_Window> window_;
-  core::PlatformBackend<Sdl2Backend> backend_;
 };
 
 }  // namespace core

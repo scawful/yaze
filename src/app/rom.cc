@@ -17,7 +17,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "app/core/features.h"
-#include "app/core/platform/renderer.h"
+#include "app/core/window.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_color.h"
 #include "app/gfx/snes_palette.h"

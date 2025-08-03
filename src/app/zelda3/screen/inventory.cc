@@ -1,6 +1,6 @@
 #include "inventory.h"
 
-#include "app/core/platform/renderer.h"
+#include "app/core/window.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"

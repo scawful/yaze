@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_PLATFORM_RENDERER_H
-#define YAZE_APP_CORE_PLATFORM_RENDERER_H
+#ifndef YAZE_CORE_WINDOW_H_
+#define YAZE_CORE_WINDOW_H_
 
 #include <SDL.h>
 
@@ -12,6 +12,16 @@
 
 namespace yaze {
 namespace core {
+
+struct Window {
+  std::shared_ptr<SDL_Window> window_;
+  SDL_AudioDeviceID audio_device_;
+  std::shared_ptr<int16_t> audio_buffer_;
+};
+
+absl::Status CreateWindow(Window &window, int flags);
+
+absl::Status ShutdownWindow(Window &window);
 
 /**
  * @class Renderer
@@ -76,5 +86,4 @@ class Renderer {
 
 }  // namespace core
 }  // namespace yaze
-
-#endif
+#endif  // YAZE_CORE_WINDOW_H_

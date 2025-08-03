@@ -3,6 +3,7 @@ set(
   app/core/controller.cc
   app/emu/emulator.cc
   app/core/project.cc
+  app/core/window.cc
 )
 
 if (WIN32 OR MINGW OR UNIX AND NOT APPLE)

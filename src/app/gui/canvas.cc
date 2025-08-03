@@ -3,7 +3,7 @@
 #include <cmath>
 #include <string>
 
-#include "app/core/platform/renderer.h"
+#include "app/core/window.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/color.h"
 #include "app/gui/input.h"

@@ -7,7 +7,7 @@
 #include "absl/strings/str_cat.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/platform/file_dialog.h"
-#include "app/core/platform/renderer.h"
+#include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/compression.h"
