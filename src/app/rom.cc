@@ -649,6 +649,4 @@ absl::Status Rom::WriteColor(uint32_t address, const gfx::SnesColor &color) {
   return WriteShort(address, bgr);
 }
 
-std::shared_ptr<Rom> SharedRom::shared_rom_ = nullptr;
-
 }  // namespace yaze

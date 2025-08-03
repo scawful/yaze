@@ -86,7 +86,7 @@ const static zelda3_version_pointers zelda3_jp_pointers = {
 
 typedef struct zelda3_rom {
   const char* filename;
-  const uint8_t* data;
+  uint8_t* data;
   size_t size;
   void* impl;  // yaze::Rom*
 } zelda3_rom;
@@ -94,6 +94,19 @@ typedef struct zelda3_rom {
 zelda3_rom* yaze_load_rom(const char* filename);
 void yaze_unload_rom(zelda3_rom* rom);
 void yaze_save_rom(zelda3_rom* rom, const char* filename);
+
+/**
+ * @brief Primitive of a message.
+ * 
+ */
+typedef struct zelda3_message {
+  uint8_t id;
+  uint8_t address;
+  uint8_t *raw_string;
+  uint8_t *contents_parsed;
+  uint8_t *data;
+  uint8_t *data_parsed;
+} zelda3_message;
 
 /**
  * @brief Primitive of an overworld map.

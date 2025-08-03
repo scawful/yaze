@@ -272,40 +272,6 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
 
 absl::StatusOr<gfx::Bitmap> LoadFontGraphics(const Rom& rom);
 
-/**
- * @brief A class to hold a shared pointer to a Rom object.
- */
-class SharedRom {
- public:
-  SharedRom() = default;
-  virtual ~SharedRom() = default;
-
-  std::shared_ptr<Rom> shared_rom() {
-    if (!shared_rom_) {
-      shared_rom_ = std::make_shared<Rom>();
-    }
-    return shared_rom_;
-  }
-
-  auto rom() {
-    if (!shared_rom_) {
-      shared_rom_ = std::make_shared<Rom>();
-    }
-    Rom* rom = shared_rom_.get();
-    return rom;
-  }
-
-  static void set_rom(Rom* rom) {
-    if (!shared_rom_) {
-      shared_rom_ = std::make_shared<Rom>();
-    }
-    shared_rom_ = std::shared_ptr<Rom>(rom);
-  }
-
-  // private:
-  static std::shared_ptr<Rom> shared_rom_;
-};
-
 }  // namespace yaze
 
 #endif

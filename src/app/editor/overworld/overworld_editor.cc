@@ -586,7 +586,9 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
   }
   const int current_highlighted_map = current_map_;
 
-  current_parent_ = overworld_.overworld_map(current_map_)->parent();
+  if (!current_map_lock_) {
+    current_parent_ = overworld_.overworld_map(current_map_)->parent();
+  }
 
   if (overworld_.overworld_map(current_map_)->is_large_map() ||
       overworld_.overworld_map(current_map_)->large_index() != 0) {
@@ -611,6 +613,11 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
     RETURN_IF_ERROR(RefreshTile16Blockset());
     Renderer::Get().UpdateBitmap(&maps_bmp_[current_map_]);
     maps_bmp_[current_map_].set_modified(false);
+  }
+
+  // If double clicked, toggle the current map
+  if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Right)) {
+    current_map_lock_ = !current_map_lock_;
   }
 
   return absl::OkStatus();

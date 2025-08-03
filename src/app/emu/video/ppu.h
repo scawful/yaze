@@ -250,7 +250,7 @@ struct BackgroundLayer {
   bool enabled;                     // Whether the background layer is enabled
 };
 
-class Ppu : public SharedRom {
+class Ppu {
  public:
   // Initializes the PPU with the necessary resources and dependencies
   Ppu(Memory& memory) : memory_(memory) {}

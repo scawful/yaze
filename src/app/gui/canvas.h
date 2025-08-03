@@ -34,28 +34,28 @@ enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
  * on a canvas. It supports features such as bitmap drawing, context menu
  * handling, tile painting, custom grid, and more.
  */
-class Canvas : public SharedRom {
+class Canvas {
  public:
   Canvas() = default;
   explicit Canvas(const std::string &id) : canvas_id_(id) {
     context_id_ = id + "Context";
   }
   explicit Canvas(const std::string &id, ImVec2 canvas_size)
-      : canvas_id_(id), custom_canvas_size_(true), canvas_sz_(canvas_size) {
+      : custom_canvas_size_(true), canvas_sz_(canvas_size), canvas_id_(id) {
     context_id_ = id + "Context";
   }
   explicit Canvas(const std::string &id, ImVec2 canvas_size,
                   CanvasGridSize grid_size)
-      : canvas_id_(id), custom_canvas_size_(true), canvas_sz_(canvas_size) {
+      : custom_canvas_size_(true), canvas_sz_(canvas_size), canvas_id_(id) {
     context_id_ = id + "Context";
     SetCanvasGridSize(grid_size);
   }
   explicit Canvas(const std::string &id, ImVec2 canvas_size,
                   CanvasGridSize grid_size, float global_scale)
-      : canvas_id_(id),
-        custom_canvas_size_(true),
+      : custom_canvas_size_(true),
+        global_scale_(global_scale),
         canvas_sz_(canvas_size),
-        global_scale_(global_scale) {
+        canvas_id_(id) {
     context_id_ = id + "Context";
     SetCanvasGridSize(grid_size);
   }
@@ -81,12 +81,12 @@ class Canvas : public SharedRom {
                           const std::function<void()> &event, int tile_size,
                           float scale = 1.0f);
 
-  void UpdateInfoGrid(ImVec2 bg_size, int tile_size, float scale = 1.0f,
-                      float grid_size = 64.0f, int label_id = 0);
+  void UpdateInfoGrid(ImVec2 bg_size, float grid_size = 64.0f,
+                      int label_id = 0);
 
   // Background for the Canvas represents region without any content drawn to
   // it, but can be controlled by the user.
-  void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0), bool drag = false);
+  void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
 
   // Context Menu refers to what happens when the right mouse button is pressed
   // This routine also handles the scrolling for the canvas.
@@ -111,8 +111,8 @@ class Canvas : public SharedRom {
 
   // Draws the contents of the Bitmap image to the Canvas
   void DrawBitmap(Bitmap &bitmap, int border_offset, float scale);
-  void DrawBitmap(Bitmap &bitmap, int x_offset, int y_offset, float scale = 1.0f,
-                  int alpha = 255);
+  void DrawBitmap(Bitmap &bitmap, int x_offset, int y_offset,
+                  float scale = 1.0f, int alpha = 255);
   void DrawBitmap(Bitmap &bitmap, ImVec2 dest_pos, ImVec2 dest_size,
                   ImVec2 src_pos, ImVec2 src_size);
   void DrawBitmapTable(const BitmapTable &gfx_bin);
@@ -206,6 +206,9 @@ class Canvas : public SharedRom {
 
   auto hover_mouse_pos() const { return mouse_pos_in_canvas_; }
 
+  void set_rom(Rom *rom) { rom_ = rom; }
+  Rom *rom() const { return rom_; }
+
  private:
   bool draggable_ = false;
   bool is_hovered_ = false;
@@ -228,6 +231,7 @@ class Canvas : public SharedRom {
   uint64_t edit_palette_sub_index_ = 0;
 
   Bitmap *bitmap_ = nullptr;
+  Rom *rom_ = nullptr;
 
   ImDrawList *draw_list_ = nullptr;
 

@@ -13,7 +13,7 @@ namespace editor {
  * @class GfxGroupEditor
  * @brief Manage graphics group configurations in a Rom.
  */
-class GfxGroupEditor : public SharedRom {
+class GfxGroupEditor {
  public:
   absl::Status Update();
 
@@ -27,6 +27,8 @@ class GfxGroupEditor : public SharedRom {
   void SetSelectedSpriteset(uint8_t spriteset) {
     selected_spriteset_ = spriteset;
   }
+  void set_rom(Rom* rom) { rom_ = rom; }
+  Rom* rom() const { return rom_; }
 
  private:
   uint8_t selected_blockset_ = 0;
@@ -39,6 +41,7 @@ class GfxGroupEditor : public SharedRom {
   gui::Canvas spriteset_canvas_;
 
   gfx::SnesPalette palette_;
+  Rom* rom_ = nullptr;
 };
 
 }  // namespace editor

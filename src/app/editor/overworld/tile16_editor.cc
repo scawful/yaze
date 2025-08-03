@@ -245,7 +245,7 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
 }
 
 absl::Status Tile16Editor::UpdateTile16Edit() {
-  auto ow_main_pal_group = rom()->palette_group().overworld_main;
+  static const auto ow_main_pal_group = rom()->palette_group().overworld_main;
 
   // Create a more organized layout with tabs
   if (BeginTabBar("Tile16EditorTabs")) {

@@ -206,15 +206,16 @@
 }
 
 - (void)openFileAction:(id)sender {
-  if (!yaze::SharedRom::shared_rom_
-           ->LoadFromFile(yaze::core::FileDialogWrapper::ShowOpenFileDialog())
-           .ok()) {
-    NSAlert *alert = [[NSAlert alloc] init];
-    [alert setMessageText:@"Error"];
-    [alert setInformativeText:@"Failed to load file."];
-    [alert addButtonWithTitle:@"OK"];
-    [alert runModal];
-  }
+  // TODO: Re-implmenent this without the SharedRom singleton 
+  // if (!yaze::SharedRom::shared_rom_
+  //          ->LoadFromFile(yaze::core::FileDialogWrapper::ShowOpenFileDialog())
+  //          .ok()) {
+  //   NSAlert *alert = [[NSAlert alloc] init];
+  //   [alert setMessageText:@"Error"];
+  //   [alert setInformativeText:@"Failed to load file."];
+  //   [alert addButtonWithTitle:@"OK"];
+  //   [alert runModal];
+  // }
 }
 
 - (void)cutAction:(id)sender {
@@ -238,12 +239,12 @@ extern "C" void yaze_initialize_cococa() {
 
 extern "C" int yaze_run_cocoa_app_delegate(const char *filename) {
   yaze_initialize_cococa();
-  yaze::core::Controller controller;
-  EXIT_IF_ERROR(controller.OnEntry(filename));
-  while (controller.IsActive()) {
+  auto controller = std::make_unique<yaze::core::Controller>();
+  EXIT_IF_ERROR(controller->OnEntry(filename));
+  while (controller->IsActive()) {
     @autoreleasepool {
-      controller.OnInput();
-      if (auto status = controller.OnLoad(); !status.ok()) {
+      controller->OnInput();
+      if (auto status = controller->OnLoad(); !status.ok()) {
         NSAlert *alert = [[NSAlert alloc] init];
         [alert setMessageText:@"Error"];
         [alert setInformativeText:[NSString stringWithUTF8String:status.message().data()]];
@@ -251,10 +252,10 @@ extern "C" int yaze_run_cocoa_app_delegate(const char *filename) {
         [alert runModal];
         break;
       }
-      controller.DoRender();
+      controller->DoRender();
     }
   }
-  controller.OnExit();
+  controller->OnExit();
   return EXIT_SUCCESS;
 }
 
