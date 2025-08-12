@@ -51,10 +51,8 @@ constexpr const char *kDungeonEditorName = ICON_MD_CASTLE " Dungeon Editor";
 constexpr const char *kMusicEditorName = ICON_MD_MUSIC_NOTE " Music Editor";
 
 void EditorManager::Initialize(const std::string &filename) {
-  // Create a blank editor set
-  auto blank_editor_set = std::make_unique<EditorSet>();
-  editor_sets_[nullptr] = std::move(blank_editor_set);
-  current_editor_set_ = editor_sets_[nullptr].get();
+  // Point to a blank editor set when no ROM is loaded
+  current_editor_set_ = &blank_editor_set_;
 
   if (!filename.empty()) {
     PRINT_IF_ERROR(OpenRomOrProject(filename));
@@ -378,9 +376,10 @@ absl::Status EditorManager::DrawRomSelector() {
   if (current_rom_ && current_rom_->is_loaded()) {
     SetNextItemWidth(GetWindowWidth() / 6);
     if (BeginCombo("##ROMSelector", current_rom_->short_name().c_str())) {
-      for (const auto &rom : roms_) {
+      for (const auto &session : sessions_) {
+        const Rom* rom = &session.rom;
         if (MenuItem(rom->short_name().c_str())) {
-          RETURN_IF_ERROR(SetCurrentRom(rom.get()));
+          RETURN_IF_ERROR(SetCurrentRom(const_cast<Rom*>(rom)));
         }
       }
       EndCombo();
@@ -506,19 +505,17 @@ void EditorManager::DrawMenuBar() {
 
 absl::Status EditorManager::LoadRom() {
   auto file_name = FileDialogWrapper::ShowOpenFileDialog();
-  auto new_rom = std::make_unique<Rom>();
-  RETURN_IF_ERROR(new_rom->LoadFromFile(file_name));
+  Rom temp_rom;
+  RETURN_IF_ERROR(temp_rom.LoadFromFile(file_name));
 
-  current_rom_ = new_rom.get();
-  roms_.push_back(std::move(new_rom));
-
-  // Create new editor set for this ROM
-  auto editor_set = std::make_unique<EditorSet>(current_rom_);
-  for (auto *editor : editor_set->active_editors_) {
+  sessions_.emplace_back(std::move(temp_rom));
+  RomSession &session = sessions_.back();
+  // Wire editor contexts
+  for (auto *editor : session.editors.active_editors_) {
     editor->set_context(&context_);
   }
-  current_editor_set_ = editor_set.get();
-  editor_sets_[current_rom_] = std::move(editor_set);
+  current_rom_ = &session.rom;
+  current_editor_set_ = &session.editors;
 
   static RecentFilesManager manager("recent_files.txt");
   manager.Load();
@@ -575,42 +572,37 @@ absl::Status EditorManager::OpenRomOrProject(const std::string &filename) {
     RETURN_IF_ERROR(current_project_.Open(filename));
     RETURN_IF_ERROR(OpenProject());
   } else {
-    auto new_rom = std::make_unique<Rom>();
-    RETURN_IF_ERROR(new_rom->LoadFromFile(filename));
-    current_rom_ = new_rom.get();
-    roms_.push_back(std::move(new_rom));
-
-    // Create new editor set for this ROM
-    auto editor_set = std::make_unique<EditorSet>(current_rom_);
-    for (auto *editor : editor_set->active_editors_) {
+    Rom temp_rom;
+    RETURN_IF_ERROR(temp_rom.LoadFromFile(filename));
+    sessions_.emplace_back(std::move(temp_rom));
+    RomSession &session = sessions_.back();
+    for (auto *editor : session.editors.active_editors_) {
       editor->set_context(&context_);
     }
-    current_editor_set_ = editor_set.get();
-    editor_sets_[current_rom_] = std::move(editor_set);
+    current_rom_ = &session.rom;
+    current_editor_set_ = &session.editors;
     RETURN_IF_ERROR(LoadAssets());
   }
   return absl::OkStatus();
 }
 
 absl::Status EditorManager::OpenProject() {
-  auto new_rom = std::make_unique<Rom>();
-  RETURN_IF_ERROR(new_rom->LoadFromFile(current_project_.rom_filename_));
-  current_rom_ = new_rom.get();
-  roms_.push_back(std::move(new_rom));
+  Rom temp_rom;
+  RETURN_IF_ERROR(temp_rom.LoadFromFile(current_project_.rom_filename_));
 
-  if (!current_rom_->resource_label()->LoadLabels(
+  if (!temp_rom.resource_label()->LoadLabels(
           current_project_.labels_filename_)) {
     return absl::InternalError(
         "Could not load labels file, update your project file.");
   }
 
-  // Create new editor set for this ROM
-  auto editor_set = std::make_unique<EditorSet>(current_rom_);
-  for (auto *editor : editor_set->active_editors_) {
+  sessions_.emplace_back(std::move(temp_rom));
+  RomSession &session = sessions_.back();
+  for (auto *editor : session.editors.active_editors_) {
     editor->set_context(&context_);
   }
-  current_editor_set_ = editor_set.get();
-  editor_sets_[current_rom_] = std::move(editor_set);
+  current_rom_ = &session.rom;
+  current_editor_set_ = &session.editors;
 
   static RecentFilesManager manager("recent_files.txt");
   manager.Load();
@@ -640,24 +632,16 @@ absl::Status EditorManager::SetCurrentRom(Rom *rom) {
     return absl::InvalidArgumentError("Invalid ROM pointer");
   }
 
-  auto it = editor_sets_.find(rom);
-  if (it == editor_sets_.end()) {
-    // Create new editor set if it doesn't exist
-    auto editor_set = std::make_unique<EditorSet>(rom);
-    for (auto *editor : editor_set->active_editors_) {
-      editor->set_context(&context_);
+  for (auto &session : sessions_) {
+    if (&session.rom == rom) {
+      current_rom_ = &session.rom;
+      current_editor_set_ = &session.editors;
+      return absl::OkStatus();
     }
-    current_editor_set_ = editor_set.get();
-
-    editor_sets_[rom] = std::move(editor_set);
-    current_rom_ = rom;
-    RETURN_IF_ERROR(LoadAssets());
-  } else {
-    current_editor_set_ = it->second.get();
-    current_rom_ = rom;
   }
-
-  return absl::OkStatus();
+  // If ROM wasn't found in existing sessions, treat as new session.
+  // Copying an external ROM object is avoided; instead, fail.
+  return absl::NotFoundError("ROM not found in existing sessions");
 }
 
 }  // namespace editor
