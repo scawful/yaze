@@ -3,7 +3,8 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
-#include <unordered_map>
+#include <deque>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/core/project.h"
@@ -26,8 +27,44 @@
 namespace yaze {
 namespace editor {
 
-// Forward declaration
-class EditorSet;
+/**
+ * @class EditorSet
+ * @brief Contains a complete set of editors for a single ROM instance
+ */
+class EditorSet {
+ public:
+  explicit EditorSet(Rom* rom = nullptr)
+      : assembly_editor_(rom),
+        dungeon_editor_(rom),
+        graphics_editor_(rom),
+        music_editor_(rom),
+        overworld_editor_(rom),
+        palette_editor_(rom),
+        screen_editor_(rom),
+        sprite_editor_(rom),
+        settings_editor_(rom),
+        message_editor_(rom),
+        memory_editor_(rom) {
+    active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
+                       &palette_editor_,   &sprite_editor_,  &message_editor_,
+                       &music_editor_,     &screen_editor_,  &settings_editor_,
+                       &assembly_editor_};
+  }
+
+  AssemblyEditor assembly_editor_;
+  DungeonEditor dungeon_editor_;
+  GraphicsEditor graphics_editor_;
+  MusicEditor music_editor_;
+  OverworldEditor overworld_editor_;
+  PaletteEditor palette_editor_;
+  ScreenEditor screen_editor_;
+  SpriteEditor sprite_editor_;
+  SettingsEditor settings_editor_;
+  MessageEditor message_editor_;
+  MemoryEditorWithDiffChecker memory_editor_;
+
+  std::vector<Editor*> active_editors_;
+};
 
 /**
  * @class EditorManager
@@ -91,54 +128,25 @@ class EditorManager {
 
   absl::Status status_;
   emu::Emulator emulator_;
-  std::vector<std::shared_ptr<Rom>> roms_;
-  std::unordered_map<Rom*, std::unique_ptr<EditorSet>> editor_sets_;
+
+  struct RomSession {
+    Rom rom;
+    EditorSet editors;
+
+    RomSession() = default;
+    explicit RomSession(Rom&& r)
+        : rom(std::move(r)), editors(&rom) {}
+  };
+
+  std::deque<RomSession> sessions_;
   Rom* current_rom_ = nullptr;
   EditorSet* current_editor_set_ = nullptr;
   Editor* current_editor_ = nullptr;
+  EditorSet blank_editor_set_{};
 
   Project current_project_;
   EditorContext context_;
   std::unique_ptr<PopupManager> popup_manager_;
-};
-
-/**
- * @class EditorSet
- * @brief Contains a complete set of editors for a single ROM instance
- */
-class EditorSet {
- public:
-  explicit EditorSet(Rom* rom = nullptr)
-      : assembly_editor_(rom),
-        dungeon_editor_(rom),
-        graphics_editor_(rom),
-        music_editor_(rom),
-        overworld_editor_(rom),
-        palette_editor_(rom),
-        screen_editor_(rom),
-        sprite_editor_(rom),
-        settings_editor_(rom),
-        message_editor_(rom),
-        memory_editor_(rom) {
-    active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
-                       &palette_editor_,   &sprite_editor_,  &message_editor_,
-                       &music_editor_,     &screen_editor_,  &settings_editor_,
-                       &assembly_editor_};
-  }
-
-  AssemblyEditor assembly_editor_;
-  DungeonEditor dungeon_editor_;
-  GraphicsEditor graphics_editor_;
-  MusicEditor music_editor_;
-  OverworldEditor overworld_editor_;
-  PaletteEditor palette_editor_;
-  ScreenEditor screen_editor_;
-  SpriteEditor sprite_editor_;
-  SettingsEditor settings_editor_;
-  MessageEditor message_editor_;
-  MemoryEditorWithDiffChecker memory_editor_;
-
-  std::vector<Editor*> active_editors_;
 };
 
 }  // namespace editor
