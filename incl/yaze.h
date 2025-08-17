@@ -11,11 +11,8 @@ extern "C" {
 
 #include "zelda.h"
 
-typedef struct yaze_project yaze_project;
-
 typedef struct yaze_editor_context {
   zelda3_rom* rom;
-  yaze_project* project;
   const char* error_message;
 } yaze_editor_context;
 
@@ -28,16 +25,8 @@ typedef enum yaze_status {
 int yaze_app_main(int argc, char** argv);
 void yaze_check_version(const char* version);
 
-yaze_status yaze_init(yaze_editor_context*);
+yaze_status yaze_init(yaze_editor_context*, char* rom_filename);
 yaze_status yaze_shutdown(yaze_editor_context*);
-
-struct yaze_project {
-  const char* name;
-  const char* filepath;
-  const char* rom_filename;
-};
-
-yaze_project yaze_load_project(const char* filename);
 
 typedef struct yaze_bitmap {
   int width;
