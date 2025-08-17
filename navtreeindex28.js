@@ -66,7 +66,7 @@ var NAVTREEINDEX28 =
 "editor__manager_8cc.html":[13,0,2,0,1,9],
 "editor__manager_8cc_source.html":[13,0,2,0,1,9],
 "editor__manager_8h.html":[13,0,2,0,1,10],
-"editor__manager_8h.html#adf4d73301961430d50d7edd96f92ce38":[13,0,2,0,1,10,2],
+"editor__manager_8h.html#adf4d73301961430d50d7edd96f92ce38":[13,0,2,0,1,10,3],
 "editor__manager_8h_source.html":[13,0,2,0,1,10],
 "emu_2snes_8h.html":[13,0,2,0,2,8],
 "emu_2snes_8h_source.html":[13,0,2,0,2,8],

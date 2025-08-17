@@ -1,5 +1,16 @@
 var NAVTREEINDEX49 =
 {
+"structyaze_1_1emu_1_1DmaChannel.html#a543e3949df21b16db2a2fd4df9e71aab":[11,0,1,3,25,11],
+"structyaze_1_1emu_1_1DmaChannel.html#a543e3949df21b16db2a2fd4df9e71aab":[12,0,0,3,23,11],
+"structyaze_1_1emu_1_1DmaChannel.html#a66a23a67d2809197c30e92da9ad859f9":[11,0,1,3,25,17],
+"structyaze_1_1emu_1_1DmaChannel.html#a66a23a67d2809197c30e92da9ad859f9":[12,0,0,3,23,17],
+"structyaze_1_1emu_1_1DmaChannel.html#a76548bb732564721f2d52dcc73186fc5":[11,0,1,3,25,4],
+"structyaze_1_1emu_1_1DmaChannel.html#a76548bb732564721f2d52dcc73186fc5":[12,0,0,3,23,4],
+"structyaze_1_1emu_1_1DmaChannel.html#a8306fced626b08f80604203ea8b2202c":[11,0,1,3,25,15],
+"structyaze_1_1emu_1_1DmaChannel.html#a8306fced626b08f80604203ea8b2202c":[12,0,0,3,23,15],
+"structyaze_1_1emu_1_1DmaChannel.html#a852d965089ca37a0a231a0ac10154dc3":[11,0,1,3,25,12],
+"structyaze_1_1emu_1_1DmaChannel.html#a852d965089ca37a0a231a0ac10154dc3":[12,0,0,3,23,12],
+"structyaze_1_1emu_1_1DmaChannel.html#a8989f9f9b306c96721b99927906fcf90":[11,0,1,3,25,9],
 "structyaze_1_1emu_1_1DmaChannel.html#a8989f9f9b306c96721b99927906fcf90":[12,0,0,3,23,9],
 "structyaze_1_1emu_1_1DmaChannel.html#a8a76b9efdfaa925dbd532680f139e7a6":[11,0,1,3,25,3],
 "structyaze_1_1emu_1_1DmaChannel.html#a8a76b9efdfaa925dbd532680f139e7a6":[12,0,0,3,23,3],
@@ -238,16 +249,5 @@ var NAVTREEINDEX49 =
 "structyaze_1_1emu_1_1MaskLogicSettings.html#a8b53ea986283dff85cedcd773ae492e7":[11,0,1,3,44,3],
 "structyaze_1_1emu_1_1MaskLogicSettings.html#a8b53ea986283dff85cedcd773ae492e7":[12,0,0,3,42,3],
 "structyaze_1_1emu_1_1MnemonicMode.html":[11,0,1,3,47],
-"structyaze_1_1emu_1_1MnemonicMode.html":[12,0,0,3,45],
-"structyaze_1_1emu_1_1MnemonicMode.html#a05cb65b83f837a5120436302deb877a6":[11,0,1,3,47,1],
-"structyaze_1_1emu_1_1MnemonicMode.html#a05cb65b83f837a5120436302deb877a6":[12,0,0,3,45,1],
-"structyaze_1_1emu_1_1MnemonicMode.html#a4697de524abf7738b33b80dae58c1c55":[11,0,1,3,47,0],
-"structyaze_1_1emu_1_1MnemonicMode.html#a4697de524abf7738b33b80dae58c1c55":[12,0,0,3,45,0],
-"structyaze_1_1emu_1_1MnemonicMode.html#a82c9ddd2aa671316c6c06b6610fa7ab8":[11,0,1,3,47,2],
-"structyaze_1_1emu_1_1MnemonicMode.html#a82c9ddd2aa671316c6c06b6610fa7ab8":[12,0,0,3,45,2],
-"structyaze_1_1emu_1_1MnemonicModeHash.html":[11,0,1,3,48],
-"structyaze_1_1emu_1_1MnemonicModeHash.html":[12,0,0,3,46],
-"structyaze_1_1emu_1_1MnemonicModeHash.html#a68c1dc0d57f64e1c3047940134111c9d":[11,0,1,3,48,0],
-"structyaze_1_1emu_1_1MnemonicModeHash.html#a68c1dc0d57f64e1c3047940134111c9d":[12,0,0,3,46,0],
-"structyaze_1_1emu_1_1Mosaic.html":[11,0,1,3,50]
+"structyaze_1_1emu_1_1MnemonicMode.html":[12,0,0,3,45]
 };

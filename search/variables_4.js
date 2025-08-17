@@ -19,7 +19,7 @@ var searchData=
   ['editinst_16',['editinst',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a067bebc95f001cc77e7d289411a36a04',1,'yaze::zelda3::music::SampleEdit']]],
   ['editor_17',['editor',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#af7231d238564bed64778df83045c5bfe',1,'yaze::editor::zsprite::ZSprite::editor'],['../structyaze_1_1zelda3_1_1music_1_1SongRange.html#a7dcbcc7cc38d2e435e8f95bf341eb70f',1,'yaze::zelda3::music::SongRange::editor']]],
   ['editor_5fmanager_5f_18',['editor_manager_',['../classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96',1,'yaze::core::Controller::editor_manager_'],['../classyaze_1_1editor_1_1PopupManager.html#a715dd04b044514b20ed7412f900ad4cf',1,'yaze::editor::PopupManager::editor_manager_']]],
-  ['editor_5fsets_5f_19',['editor_sets_',['../classyaze_1_1editor_1_1EditorManager.html#a3ba22ab15b07b505cf9b7cfd1d6c3fc1',1,'yaze::editor::EditorManager']]],
+  ['editors_19',['editors',['../structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#afbefe6506f1b6a6970dec7e8e5d9595f',1,'yaze::editor::EditorManager::RomSession']]],
   ['editsamp_20',['editsamp',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a6a7bedcecc09d36ffc8f562d75566b73',1,'yaze::zelda3::music::SampleEdit']]],
   ['effect_5f_21',['effect_',['../classyaze_1_1zelda3_1_1Room.html#a0c6ed1c911130c2e3b0fffd717eb3366',1,'yaze::zelda3::Room']]],
   ['elements_22',['elements',['../structyaze_1_1gui_1_1Layout.html#aadf97e3b9ad1501564d26ac005b9bf65',1,'yaze::gui::Layout']]],

@@ -1,5 +1,16 @@
 var NAVTREEINDEX53 =
 {
+"structyaze_1_1gui_1_1Text.html#afbf714aa3020f436c423c9eec9b3eb94":[11,0,1,5,18,0],
+"structyaze_1_1gui_1_1Text.html#afbf714aa3020f436c423c9eec9b3eb94":[12,0,0,5,16,0],
+"structyaze_1_1gui_1_1TextBox.html":[11,0,1,5,19],
+"structyaze_1_1gui_1_1TextBox.html":[12,0,0,5,17],
+"structyaze_1_1gui_1_1TextBox.html#a0537d837c7c3ad578c551e705a99bd17":[11,0,1,5,19,11],
+"structyaze_1_1gui_1_1TextBox.html#a0537d837c7c3ad578c551e705a99bd17":[12,0,0,5,17,11],
+"structyaze_1_1gui_1_1TextBox.html#a08f80fecb428982a5450e4a140aedd46":[11,0,1,5,19,0],
+"structyaze_1_1gui_1_1TextBox.html#a08f80fecb428982a5450e4a140aedd46":[12,0,0,5,17,0],
+"structyaze_1_1gui_1_1TextBox.html#a2eeaa5cdf94491c57f5f106b37c51781":[11,0,1,5,19,2],
+"structyaze_1_1gui_1_1TextBox.html#a2eeaa5cdf94491c57f5f106b37c51781":[12,0,0,5,17,2],
+"structyaze_1_1gui_1_1TextBox.html#a46f89a160f081966959cf39476024f80":[11,0,1,5,19,5],
 "structyaze_1_1gui_1_1TextBox.html#a46f89a160f081966959cf39476024f80":[12,0,0,5,17,5],
 "structyaze_1_1gui_1_1TextBox.html#a49f78cd5e3f5fb83ebee35b7503b7402":[11,0,1,5,19,6],
 "structyaze_1_1gui_1_1TextBox.html#a49f78cd5e3f5fb83ebee35b7503b7402":[12,0,0,5,17,6],
@@ -238,16 +249,5 @@ var NAVTREEINDEX53 =
 "structyaze_1_1test_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24":[11,0,1,6,26,0],
 "structyaze_1_1test_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24":[12,0,0,6,24,0],
 "structyaze_1_1util_1_1HexStringParams.html":[11,0,1,7,5],
-"structyaze_1_1util_1_1HexStringParams.html":[12,0,0,7,3],
-"structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157":[11,0,1,7,5,2],
-"structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157":[12,0,0,7,3,2],
-"structyaze_1_1util_1_1HexStringParams.html#a3a2cdc8be447566a12b848f9c9f57004":[11,0,1,7,5,1],
-"structyaze_1_1util_1_1HexStringParams.html#a3a2cdc8be447566a12b848f9c9f57004":[12,0,0,7,3,1],
-"structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589d":[11,0,1,7,5,0],
-"structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589d":[12,0,0,7,3,0],
-"structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589da35c3ace1970663a16e5c65baa5941b13":[11,0,1,7,5,0,0],
-"structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589da35c3ace1970663a16e5c65baa5941b13":[12,0,0,7,3,0,0],
-"structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589da54cea239898fec36fe728dcb8de71694":[11,0,1,7,5,0,3],
-"structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589da54cea239898fec36fe728dcb8de71694":[12,0,0,7,3,0,3],
-"structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589dac7efb9758c0be3fbe9d033ee75e54d5d":[11,0,1,7,5,0,1]
+"structyaze_1_1util_1_1HexStringParams.html":[12,0,0,7,3]
 };

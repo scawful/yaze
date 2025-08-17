@@ -113,7 +113,8 @@ $(function(){initNavTree('editor__manager_8h.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">editor_manager.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;unordered_map&gt;</code><br />
+<div class="textblock"><code>#include &lt;deque&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="project_8h_source.html">app/core/project.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="assembly__editor_8h_source.html">app/editor/code/assembly_editor.h</a>&quot;</code><br />
@@ -153,11 +154,13 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1EditorSet.html">yaze::editor::EditorSet</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains a complete set of editors for a single ROM instance.  <a href="classyaze_1_1editor_1_1EditorSet.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1EditorManager.html">yaze::editor::EditorManager</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes.">EditorManager</a> controls the main editor window and manages the various editor classes.  <a href="classyaze_1_1editor_1_1EditorManager.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1EditorSet.html">yaze::editor::EditorSet</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains a complete set of editors for a single ROM instance.  <a href="classyaze_1_1editor_1_1EditorSet.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1EditorManager_1_1RomSession.html">yaze::editor::EditorManager::RomSession</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>

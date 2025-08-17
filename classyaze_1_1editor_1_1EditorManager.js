@@ -1,5 +1,6 @@
 var classyaze_1_1editor_1_1EditorManager =
 [
+    [ "RomSession", "structyaze_1_1editor_1_1EditorManager_1_1RomSession.html", "structyaze_1_1editor_1_1EditorManager_1_1RomSession" ],
     [ "EditorManager", "classyaze_1_1editor_1_1EditorManager.html#a5e1bc7f274b01593c207c0cd72cc17c3", null ],
     [ "Initialize", "classyaze_1_1editor_1_1EditorManager.html#ac8ac2fe31fc9760ffe56b79f48dc39a0", null ],
     [ "Update", "classyaze_1_1editor_1_1EditorManager.html#ab1925444bb0903c0375991ee96692c21", null ],
@@ -34,11 +35,11 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "version_", "classyaze_1_1editor_1_1EditorManager.html#affe73c6625559f736677e476796f02a1", null ],
     [ "status_", "classyaze_1_1editor_1_1EditorManager.html#a6dc2ae273f19652bf1f85f7b3da695c8", null ],
     [ "emulator_", "classyaze_1_1editor_1_1EditorManager.html#ad03b5939f208d855ebffc5aeed05c26d", null ],
-    [ "roms_", "classyaze_1_1editor_1_1EditorManager.html#ae8bda4de68c7b2cdac92b3732036e828", null ],
-    [ "editor_sets_", "classyaze_1_1editor_1_1EditorManager.html#a3ba22ab15b07b505cf9b7cfd1d6c3fc1", null ],
+    [ "sessions_", "classyaze_1_1editor_1_1EditorManager.html#a0184dbff24aa21917fdbdfd27f6ee9eb", null ],
     [ "current_rom_", "classyaze_1_1editor_1_1EditorManager.html#a264fafc6a2aa6ef71c7a33dfc808deec", null ],
     [ "current_editor_set_", "classyaze_1_1editor_1_1EditorManager.html#a41c67d80fbcde1510986cafb22ad8c44", null ],
     [ "current_editor_", "classyaze_1_1editor_1_1EditorManager.html#ac0340e25707cca3bfff0b8384d55ead9", null ],
+    [ "blank_editor_set_", "classyaze_1_1editor_1_1EditorManager.html#a5bc74a415527ea995f24c956d1252612", null ],
     [ "current_project_", "classyaze_1_1editor_1_1EditorManager.html#aeea730dec9b04f7a0dbbbba1e262136a", null ],
     [ "context_", "classyaze_1_1editor_1_1EditorManager.html#ab37cb559d1924b153f1f758b98ff424f", null ],
     [ "popup_manager_", "classyaze_1_1editor_1_1EditorManager.html#ae9a431666f10d2734518acc911e504b7", null ]

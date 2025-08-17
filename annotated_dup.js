@@ -340,7 +340,6 @@ var annotated_dup =
     [ "yaze_bitmap", "structyaze__bitmap.html", "structyaze__bitmap" ],
     [ "yaze_editor_context", "structyaze__editor__context.html", "structyaze__editor__context" ],
     [ "yaze_extension", "structyaze__extension.html", "structyaze__extension" ],
-    [ "yaze_project", "structyaze__project.html", "structyaze__project" ],
     [ "zelda3_dungeon_room", "structzelda3__dungeon__room.html", "structzelda3__dungeon__room" ],
     [ "zelda3_message", "structzelda3__message.html", "structzelda3__message" ],
     [ "zelda3_overworld", "structzelda3__overworld.html", "structzelda3__overworld" ],

@@ -232,6 +232,7 @@ var hierarchy =
     [ "yaze::test::Rom", "classyaze_1_1test_1_1Rom.html", [
       [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ]
     ] ],
+    [ "yaze::editor::EditorManager::RomSession", "structyaze_1_1editor_1_1EditorManager_1_1RomSession.html", null ],
     [ "yaze::zelda3::Room", "classyaze_1_1zelda3_1_1Room.html", null ],
     [ "yaze::zelda3::RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", null ],
     [ "yaze::zelda3::RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", [
@@ -357,7 +358,6 @@ var hierarchy =
     [ "yaze_bitmap", "structyaze__bitmap.html", null ],
     [ "yaze_editor_context", "structyaze__editor__context.html", null ],
     [ "yaze_extension", "structyaze__extension.html", null ],
-    [ "yaze_project", "structyaze__project.html", null ],
     [ "zelda3_dungeon_room", "structzelda3__dungeon__room.html", null ],
     [ "zelda3_message", "structzelda3__message.html", null ],
     [ "zelda3_overworld", "structzelda3__overworld.html", null ],

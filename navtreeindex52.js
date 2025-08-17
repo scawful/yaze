@@ -1,5 +1,16 @@
 var NAVTREEINDEX52 =
 {
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a56a283bf84caa1aecec1eab825e9ebec":[11,0,1,4,13,18],
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a56a283bf84caa1aecec1eab825e9ebec":[12,0,0,4,11,18],
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a61002642fce38e9b9ce7fe94a338626a":[11,0,1,4,13,12],
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a61002642fce38e9b9ce7fe94a338626a":[12,0,0,4,11,12],
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a635ac3738f0d152113bd1cd994314b7a":[11,0,1,4,13,10],
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a635ac3738f0d152113bd1cd994314b7a":[12,0,0,4,11,10],
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a6993cce1459482d3f8e1ad8239879841":[11,0,1,4,13,0],
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a6993cce1459482d3f8e1ad8239879841":[12,0,0,4,11,0],
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a8004af2ad9eb5abd6e3fb56f04417253":[11,0,1,4,13,16],
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a8004af2ad9eb5abd6e3fb56f04417253":[12,0,0,4,11,16],
+"structyaze_1_1gfx_1_1PaletteGroupMap.html#a83d9f679033a24873a65da44a5ff62a0":[11,0,1,4,13,17],
 "structyaze_1_1gfx_1_1PaletteGroupMap.html#a83d9f679033a24873a65da44a5ff62a0":[12,0,0,4,11,17],
 "structyaze_1_1gfx_1_1PaletteGroupMap.html#a8eb5593646931cb59a5aa32f4061e6e1":[11,0,1,4,13,13],
 "structyaze_1_1gfx_1_1PaletteGroupMap.html#a8eb5593646931cb59a5aa32f4061e6e1":[12,0,0,4,11,13],
@@ -238,16 +249,5 @@ var NAVTREEINDEX52 =
 "structyaze_1_1gui_1_1Table.html#ae597667984aa2c235c5aecf1811cdae8":[11,0,1,5,17,2],
 "structyaze_1_1gui_1_1Table.html#ae597667984aa2c235c5aecf1811cdae8":[12,0,0,5,15,2],
 "structyaze_1_1gui_1_1Text.html":[11,0,1,5,18],
-"structyaze_1_1gui_1_1Text.html":[12,0,0,5,16],
-"structyaze_1_1gui_1_1Text.html#afbf714aa3020f436c423c9eec9b3eb94":[11,0,1,5,18,0],
-"structyaze_1_1gui_1_1Text.html#afbf714aa3020f436c423c9eec9b3eb94":[12,0,0,5,16,0],
-"structyaze_1_1gui_1_1TextBox.html":[11,0,1,5,19],
-"structyaze_1_1gui_1_1TextBox.html":[12,0,0,5,17],
-"structyaze_1_1gui_1_1TextBox.html#a0537d837c7c3ad578c551e705a99bd17":[11,0,1,5,19,11],
-"structyaze_1_1gui_1_1TextBox.html#a0537d837c7c3ad578c551e705a99bd17":[12,0,0,5,17,11],
-"structyaze_1_1gui_1_1TextBox.html#a08f80fecb428982a5450e4a140aedd46":[11,0,1,5,19,0],
-"structyaze_1_1gui_1_1TextBox.html#a08f80fecb428982a5450e4a140aedd46":[12,0,0,5,17,0],
-"structyaze_1_1gui_1_1TextBox.html#a2eeaa5cdf94491c57f5f106b37c51781":[11,0,1,5,19,2],
-"structyaze_1_1gui_1_1TextBox.html#a2eeaa5cdf94491c57f5f106b37c51781":[12,0,0,5,17,2],
-"structyaze_1_1gui_1_1TextBox.html#a46f89a160f081966959cf39476024f80":[11,0,1,5,19,5]
+"structyaze_1_1gui_1_1Text.html":[12,0,0,5,16]
 };

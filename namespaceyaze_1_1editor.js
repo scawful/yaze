@@ -95,6 +95,7 @@ var namespaceyaze_1_1editor =
     [ "ParseSingleMessage", "namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990", null ],
     [ "ParseMessageData", "namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377", null ],
     [ "ReadAllTextData", "namespaceyaze_1_1editor.html#a023f96d1797f02dbaad61f338fb0ccd0", null ],
+    [ "LoadExpandedMessages", "namespaceyaze_1_1editor.html#a21e1869b2d34d14502246beaca8f4f4e", null ],
     [ "IsMouseHoveringOverEntity", "namespaceyaze_1_1editor.html#a71d65cf584d77dc9d9ccb1446d7870f6", null ],
     [ "MoveEntityOnGrid", "namespaceyaze_1_1editor.html#a06ac44536e73112b10156d6ea830d66c", null ],
     [ "HandleEntityDragging", "namespaceyaze_1_1editor.html#a6b13948b033b60fa0dc966717fc52a82", null ],
