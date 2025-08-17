@@ -87,7 +87,7 @@ const static zelda3_version_pointers zelda3_jp_pointers = {
 typedef struct zelda3_rom {
   const char* filename;
   uint8_t* data;
-  size_t size;
+  uint64_t size;
   void* impl;  // yaze::Rom*
 } zelda3_rom;
 
