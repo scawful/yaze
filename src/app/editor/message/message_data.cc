@@ -420,5 +420,23 @@ std::vector<MessageData> ReadAllTextData(uint8_t *rom, int pos) {
   return list_of_texts;
 }
 
+absl::Status LoadExpandedMessages(std::string &expanded_message_path,
+                                  std::vector<std::string> &parsed_messages,
+                                  std::vector<MessageData> &expanded_messages,
+                                  std::vector<DictionaryEntry> &dictionary) {
+  static Rom expanded_message_rom;
+  if (!expanded_message_rom.LoadFromFile(expanded_message_path, false).ok()) {
+    return absl::InternalError("Failed to load expanded message ROM");
+  }
+  expanded_messages = ReadAllTextData(expanded_message_rom.mutable_data(), 0);
+  auto parsed_expanded_messages =
+      ParseMessageData(expanded_messages, dictionary);
+  // Insert into parsed_messages
+  for (const auto &expanded_message : expanded_messages) {
+    parsed_messages.push_back(parsed_expanded_messages[expanded_message.ID]);
+  }
+  return absl::OkStatus();
+}
+
 }  // namespace editor
 }  // namespace yaze

@@ -6,6 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/core/window.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -240,20 +241,11 @@ void MessageEditor::DrawExpandedMessageSettings() {
   if (ImGui::Button("Load Expanded Message")) {
     expanded_message_path = core::FileDialogWrapper::ShowOpenFileDialog();
     if (!expanded_message_path.empty()) {
-      // Load the expanded message from the path.
-      static Rom expanded_message_rom;
-      if (!expanded_message_rom.LoadFromFile(expanded_message_path, false)
+      if (!LoadExpandedMessages(expanded_message_path, parsed_messages_,
+                                expanded_messages_,
+                                message_preview_.all_dictionaries_)
                .ok()) {
         context_->popup_manager->Show("Error");
-      }
-      expanded_messages_ =
-          ReadAllTextData(expanded_message_rom.mutable_data(), 0);
-      auto parsed_expanded_messages = ParseMessageData(
-          expanded_messages_, message_preview_.all_dictionaries_);
-      // Insert into parsed_messages
-      for (const auto& expanded_message : expanded_messages_) {
-        parsed_messages_.push_back(
-            parsed_expanded_messages[expanded_message.ID]);
       }
     }
   }
