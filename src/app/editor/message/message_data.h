@@ -309,6 +309,12 @@ constexpr int kTextData2End = 0x773FF;
 // Reads all text data from the ROM and returns a vector of MessageData objects.
 std::vector<MessageData> ReadAllTextData(uint8_t *rom, int pos = kTextData);
 
+// Calls the file dialog and loads expanded messages from a BIN file.
+absl::Status LoadExpandedMessages(std::string &expanded_message_path,
+                                  std::vector<std::string> &parsed_messages,
+                                  std::vector<MessageData> &expanded_messages,
+                                  std::vector<DictionaryEntry> &dictionary);
+
 }  // namespace editor
 }  // namespace yaze
 
