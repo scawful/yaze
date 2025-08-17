@@ -4,6 +4,7 @@
 #include <future>
 #include <unordered_map>
 #include <vector>
+#include <set>
 
 #include "absl/status/status.h"
 #include "app/core/features.h"

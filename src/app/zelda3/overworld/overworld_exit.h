@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include "app/zelda3/common.h"
-#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {
