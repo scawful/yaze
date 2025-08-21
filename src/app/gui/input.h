@@ -88,7 +88,7 @@ void DrawMenu(Menu &params);
 
 static Menu kMainMenu;
 
-constexpr std::string kSeparator = "-";
+const std::string kSeparator = "-";
 
 IMGUI_API bool OpenUrl(const std::string &url);
 

@@ -1,6 +1,8 @@
 #ifndef YAZE_UTIL_MACRO_H
 #define YAZE_UTIL_MACRO_H
 
+using uint = unsigned int;
+
 #define TAB_ITEM(w) if (ImGui::BeginTabItem(w)) {
 #define END_TAB_ITEM() \
   ImGui::EndTabItem(); \
