@@ -10,7 +10,7 @@
 namespace yaze {
 namespace test {
 
-class OverworldTest : public ::testing::Test, public SharedRom {
+class OverworldTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Skip tests on Linux for automated github builds
@@ -20,7 +20,8 @@ class OverworldTest : public ::testing::Test, public SharedRom {
   }
   void TearDown() override {}
 
-  zelda3::Overworld overworld_{rom()};
+  Rom rom_;
+  zelda3::Overworld overworld_{&rom_};
 };
 
 TEST_F(OverworldTest, OverworldLoadNoRomDataError) {

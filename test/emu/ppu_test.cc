@@ -7,7 +7,6 @@
 namespace yaze {
 namespace test {
 
-using yaze::emu::MockClock;
 using yaze::emu::MockMemory;
 using yaze::emu::BackgroundMode;
 using yaze::emu::PpuInterface;
@@ -35,7 +34,6 @@ class MockPpu : public PpuInterface {
 class PpuTest : public ::testing::Test {
  protected:
   MockMemory mock_memory;
-  MockClock mock_clock;
   MockPpu mock_ppu;
 
   PpuTest() {}
