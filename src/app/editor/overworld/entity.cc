@@ -393,8 +393,8 @@ void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
   if (ImGui::BeginTable("##sprites", 2,
                         ImGuiTableFlags_Sortable | ImGuiTableFlags_Resizable)) {
     ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_DefaultSort, 0.0f,
-                            MyItemColumnID_ID);
-    ImGui::TableSetupColumn("Name", 0, 0.0f, MyItemColumnID_Name);
+                            SpriteItemColumnID_ID);
+    ImGui::TableSetupColumn("Name", 0, 0.0f, SpriteItemColumnID_Name);
     ImGui::TableHeadersRow();
 
     // Handle sorting
@@ -437,6 +437,12 @@ void DrawSpriteInserterPopup() {
     if (Button(ICON_MD_DONE)) {
       // Add the new item to the overworld
       new_sprite_id = 0;
+      ImGui::CloseCurrentPopup();
+    }
+    SameLine();
+
+    if (Button(ICON_MD_DELETE)) {
+      new_sprite_id = -1;
       ImGui::CloseCurrentPopup();
     }
     SameLine();

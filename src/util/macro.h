@@ -20,7 +20,7 @@
   }
 
 #define HOVER_HINT(string) \
-  if (ImGui::IsItemHovered()) ImGui::SetTooltip(string);
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip(string)
 
 #define PRINT_IF_ERROR(expression)                \
   {                                               \
