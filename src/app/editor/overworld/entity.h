@@ -1,13 +1,12 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 
-#include "imgui/imgui.h"
-
 #include "app/zelda3/common.h"
+#include "app/zelda3/overworld/overworld_entrance.h"
 #include "app/zelda3/overworld/overworld_exit.h"
 #include "app/zelda3/overworld/overworld_item.h"
-#include "app/zelda3/overworld/overworld_entrance.h"
 #include "app/zelda3/sprite/sprite.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
@@ -34,12 +33,14 @@ void DrawItemInsertPopup();
 
 bool DrawItemEditorPopup(zelda3::OverworldItem &item);
 
-enum MyItemColumnID {
-  MyItemColumnID_ID,
-  MyItemColumnID_Name,
-  MyItemColumnID_Action,
-  MyItemColumnID_Quantity,
-  MyItemColumnID_Description
+/**
+ * @brief Column IDs for the sprite table.
+ * 
+ */
+enum SpriteItemColumnID {
+  SpriteItemColumnID_ID,
+  SpriteItemColumnID_Name,
+  SpriteItemColumnID_Description
 };
 
 struct SpriteItem {
@@ -62,10 +63,10 @@ struct SpriteItem {
           &s_current_sort_specs->Specs[n];
       int delta = 0;
       switch (sort_spec->ColumnUserID) {
-        case MyItemColumnID_ID:
+        case SpriteItemColumnID_ID:
           delta = (a.id - b.id);
           break;
-        case MyItemColumnID_Name:
+        case SpriteItemColumnID_Name:
           delta = strcmp(a.name + 2, b.name + 2);
           break;
       }
