@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <stdexcept>
 
 namespace yaze {
 namespace util {
