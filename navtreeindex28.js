@@ -1,5 +1,9 @@
 var NAVTREEINDEX28 =
 {
+"cpu_8cc.html":[13,0,2,0,2,1,1],
+"cpu_8cc_source.html":[13,0,2,0,2,1,1],
+"cpu_8h.html":[13,0,2,0,2,1,2],
+"cpu_8h_source.html":[13,0,2,0,2,1,2],
 "cpu__test_8cc.html":[13,0,3,0,0],
 "cpu__test_8cc_source.html":[13,0,3,0,0],
 "deprecated.html":[9],
@@ -245,9 +249,5 @@ var NAVTREEINDEX28 =
 "hex__test_8cc.html":[13,0,3,4],
 "hex__test_8cc_source.html":[13,0,3,4],
 "hierarchy.html":[12,2],
-"history__manager_8h.html":[13,0,2,0,1,7,4],
-"history__manager_8h_source.html":[13,0,2,0,1,7,4],
-"hyrule__magic_8cc.html":[13,0,2,0,5,6],
-"hyrule__magic_8cc_source.html":[13,0,2,0,5,6],
-"hyrule__magic_8h.html":[13,0,2,0,5,7]
+"history__manager_8h.html":[13,0,2,0,1,7,4]
 };

@@ -1,7 +1,5 @@
 <map id="yaze::test::OverworldTest" name="yaze::test::OverworldTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="26,79,192,105"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,98,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,41,101,77,97,80,68,45"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="122,5,211,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,45,121,80,116,77,145,41"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,172,105"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="42,5,135,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,46,91,79,86,79,86,46"/>
 </map>

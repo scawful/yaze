@@ -73,12 +73,10 @@ var namespaceyaze_1_1editor =
       [ "kMessage", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa9b74dc5b6954a9e2ba62b24c1f8c01e0", null ],
       [ "kSettings", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aac935a934100d15241aefe3f7081e7767", null ]
     ] ],
-    [ "MyItemColumnID", "namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756", [
-      [ "MyItemColumnID_ID", "namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756a5f806b7c1daec29717f38dbb45ae922e", null ],
-      [ "MyItemColumnID_Name", "namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756ac6f646bd2702f08c00735ecd7ba95293", null ],
-      [ "MyItemColumnID_Action", "namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756ab8a11efab3c61888cbc5ca21f7402c32", null ],
-      [ "MyItemColumnID_Quantity", "namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756abba025e8b1647f3e5b4c3e78429e3e3f", null ],
-      [ "MyItemColumnID_Description", "namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756a65853caa51a38e7a70378dd42bce4ad5", null ]
+    [ "SpriteItemColumnID", "namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80", [
+      [ "SpriteItemColumnID_ID", "namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80a32f763883fe7206d704ccbe3d0b9718d", null ],
+      [ "SpriteItemColumnID_Name", "namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80a65ffedea0f77a0ca7032eb572f389b49", null ],
+      [ "SpriteItemColumnID_Description", "namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80ad6a1c4ed087e70685a1bfa1cab63b96e", null ]
     ] ],
     [ "PaletteCategory", "namespaceyaze_1_1editor.html#a82a8956476ffc04750bcfc4120c8b8db", null ],
     [ "DisplayPalette", "namespaceyaze_1_1editor.html#a8657cfd46f4a80e164e0b2331c98ad98", null ],

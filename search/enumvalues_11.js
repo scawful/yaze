@@ -23,12 +23,15 @@ var searchData=
   ['size_5f64x64_20',['SIZE_64x64',['../structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822a32397e7b452045b821e5c7be9d5df1e1',1,'yaze::emu::BackgroundLayer']]],
   ['slider_21',['Slider',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a2d9b9a764fb0be4be10e1b2fce63f561',1,'yaze::gui::zeml']]],
   ['sortstairs_22',['SortStairs',['../namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747a3b3d4dde7f8529d93bbc8e3d7bf17073',1,'yaze::zelda3']]],
-  ['sprites_23',['SPRITES',['../classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea05a245c75cdf9b6a708bad83456be7be',1,'yaze::editor::OverworldEditor']]],
-  ['stairs_24',['Stairs',['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a0b01cc688e1e0b5f6b70f858a1b389ae',1,'yaze::zelda3']]],
-  ['string_25',['String',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a27118326006d3829667a400ad23d5d98',1,'TextEditor::String'],['../namespaceyaze_1_1gui_1_1zeml.html#ab789223ff6fb457facc22ec1800678f1a27118326006d3829667a400ad23d5d98',1,'yaze::gui::zeml::String']]],
-  ['sw_5fkill_5fenemy_5ffor_5fchest_26',['SW_Kill_Enemy_for_Chest',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7e8d9bcb571b69f4f2cf9842e2e29f96',1,'yaze::zelda3']]],
-  ['sw_5fkill_5fenemy_5fto_5fopen_27',['SW_Kill_Enemy_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0',1,'yaze::zelda3']]],
-  ['sw_5fpush_5fblock_5fto_5fopen_28',['SW_Push_Block_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab3bd809672191b35e4a2ecd5d213648e',1,'yaze::zelda3']]],
-  ['switch_5fopen_5fdoor_5fhold_29',['Switch_Open_Door_Hold',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ae643a5479d4acd17194a33018b20fae2',1,'yaze::zelda3']]],
-  ['switch_5fopen_5fdoor_5ftoggle_30',['Switch_Open_Door_Toggle',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac2ecf68c998deaabf707f5a0d906bc80',1,'yaze::zelda3']]]
+  ['spriteitemcolumnid_5fdescription_23',['SpriteItemColumnID_Description',['../namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80ad6a1c4ed087e70685a1bfa1cab63b96e',1,'yaze::editor']]],
+  ['spriteitemcolumnid_5fid_24',['SpriteItemColumnID_ID',['../namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80a32f763883fe7206d704ccbe3d0b9718d',1,'yaze::editor']]],
+  ['spriteitemcolumnid_5fname_25',['SpriteItemColumnID_Name',['../namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80a65ffedea0f77a0ca7032eb572f389b49',1,'yaze::editor']]],
+  ['sprites_26',['SPRITES',['../classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea05a245c75cdf9b6a708bad83456be7be',1,'yaze::editor::OverworldEditor']]],
+  ['stairs_27',['Stairs',['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a0b01cc688e1e0b5f6b70f858a1b389ae',1,'yaze::zelda3']]],
+  ['string_28',['String',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a27118326006d3829667a400ad23d5d98',1,'TextEditor::String'],['../namespaceyaze_1_1gui_1_1zeml.html#ab789223ff6fb457facc22ec1800678f1a27118326006d3829667a400ad23d5d98',1,'yaze::gui::zeml::String']]],
+  ['sw_5fkill_5fenemy_5ffor_5fchest_29',['SW_Kill_Enemy_for_Chest',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7e8d9bcb571b69f4f2cf9842e2e29f96',1,'yaze::zelda3']]],
+  ['sw_5fkill_5fenemy_5fto_5fopen_30',['SW_Kill_Enemy_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0',1,'yaze::zelda3']]],
+  ['sw_5fpush_5fblock_5fto_5fopen_31',['SW_Push_Block_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab3bd809672191b35e4a2ecd5d213648e',1,'yaze::zelda3']]],
+  ['switch_5fopen_5fdoor_5fhold_32',['Switch_Open_Door_Hold',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ae643a5479d4acd17194a33018b20fae2',1,'yaze::zelda3']]],
+  ['switch_5fopen_5fdoor_5ftoggle_33',['Switch_Open_Door_Toggle',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac2ecf68c998deaabf707f5a0d906bc80',1,'yaze::zelda3']]]
 ];

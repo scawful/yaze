@@ -1,5 +1,9 @@
 var NAVTREEINDEX27 =
 {
+"classyaze_1_1zelda3_1_1TitleScreen.html":[11,0,1,8,31],
+"classyaze_1_1zelda3_1_1TitleScreen.html":[12,0,0,8,27],
+"classyaze_1_1zelda3_1_1TitleScreen.html#a00c11a329ff43505331079b74a68caf0":[11,0,1,8,31,22],
+"classyaze_1_1zelda3_1_1TitleScreen.html#a00c11a329ff43505331079b74a68caf0":[12,0,0,8,27,22],
 "classyaze_1_1zelda3_1_1TitleScreen.html#a0d11c479bec0870f75175245de9e4692":[11,0,1,8,31,6],
 "classyaze_1_1zelda3_1_1TitleScreen.html#a0d11c479bec0870f75175245de9e4692":[12,0,0,8,27,6],
 "classyaze_1_1zelda3_1_1TitleScreen.html#a1613c80e13dd8c0e0bf0cda71e6a1820":[11,0,1,8,31,31],
@@ -245,9 +249,5 @@ var NAVTREEINDEX27 =
 "cpu_2internal_2opcodes_8h.html":[13,0,2,0,2,1,0,2],
 "cpu_2internal_2opcodes_8h.html#a2897f080989f16f7558398964f9934dd":[13,0,2,0,2,1,0,2,0],
 "cpu_2internal_2opcodes_8h.html#a67a067e14e127267cfa234e6413a5791":[13,0,2,0,2,1,0,2,1],
-"cpu_2internal_2opcodes_8h_source.html":[13,0,2,0,2,1,0,2],
-"cpu_8cc.html":[13,0,2,0,2,1,1],
-"cpu_8cc_source.html":[13,0,2,0,2,1,1],
-"cpu_8h.html":[13,0,2,0,2,1,2],
-"cpu_8h_source.html":[13,0,2,0,2,1,2]
+"cpu_2internal_2opcodes_8h_source.html":[13,0,2,0,2,1,0,2]
 };

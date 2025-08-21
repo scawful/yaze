@@ -1,5 +1,6 @@
 var NAVTREEINDEX49 =
 {
+"structyaze_1_1emu_1_1DmaChannel.html#a512d78862c904374842ccf71f53e6589":[12,0,0,3,23,14],
 "structyaze_1_1emu_1_1DmaChannel.html#a543e3949df21b16db2a2fd4df9e71aab":[11,0,1,3,25,11],
 "structyaze_1_1emu_1_1DmaChannel.html#a543e3949df21b16db2a2fd4df9e71aab":[12,0,0,3,23,11],
 "structyaze_1_1emu_1_1DmaChannel.html#a66a23a67d2809197c30e92da9ad859f9":[11,0,1,3,25,17],
@@ -248,6 +249,5 @@ var NAVTREEINDEX49 =
 "structyaze_1_1emu_1_1MaskLogicSettings.html#a72f9c1d54a9c27b4b51f89ff32b32e86":[12,0,0,3,42,2],
 "structyaze_1_1emu_1_1MaskLogicSettings.html#a8b53ea986283dff85cedcd773ae492e7":[11,0,1,3,44,3],
 "structyaze_1_1emu_1_1MaskLogicSettings.html#a8b53ea986283dff85cedcd773ae492e7":[12,0,0,3,42,3],
-"structyaze_1_1emu_1_1MnemonicMode.html":[11,0,1,3,47],
-"structyaze_1_1emu_1_1MnemonicMode.html":[12,0,0,3,45]
+"structyaze_1_1emu_1_1MnemonicMode.html":[11,0,1,3,47]
 };

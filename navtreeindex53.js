@@ -1,5 +1,6 @@
 var NAVTREEINDEX53 =
 {
+"structyaze_1_1gui_1_1Text.html":[12,0,0,5,16],
 "structyaze_1_1gui_1_1Text.html#afbf714aa3020f436c423c9eec9b3eb94":[11,0,1,5,18,0],
 "structyaze_1_1gui_1_1Text.html#afbf714aa3020f436c423c9eec9b3eb94":[12,0,0,5,16,0],
 "structyaze_1_1gui_1_1TextBox.html":[11,0,1,5,19],
@@ -248,6 +249,5 @@ var NAVTREEINDEX53 =
 "structyaze_1_1test_1_1Tilemap.html":[12,0,0,6,24],
 "structyaze_1_1test_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24":[11,0,1,6,26,0],
 "structyaze_1_1test_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24":[12,0,0,6,24,0],
-"structyaze_1_1util_1_1HexStringParams.html":[11,0,1,7,5],
-"structyaze_1_1util_1_1HexStringParams.html":[12,0,0,7,3]
+"structyaze_1_1util_1_1HexStringParams.html":[11,0,1,7,5]
 };

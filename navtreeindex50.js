@@ -1,5 +1,6 @@
 var NAVTREEINDEX50 =
 {
+"structyaze_1_1emu_1_1MnemonicMode.html":[12,0,0,3,45],
 "structyaze_1_1emu_1_1MnemonicMode.html#a05cb65b83f837a5120436302deb877a6":[11,0,1,3,47,1],
 "structyaze_1_1emu_1_1MnemonicMode.html#a05cb65b83f837a5120436302deb877a6":[12,0,0,3,45,1],
 "structyaze_1_1emu_1_1MnemonicMode.html#a4697de524abf7738b33b80dae58c1c55":[11,0,1,3,47,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX50 =
 "structyaze_1_1emu_1_1Timer.html":[12,0,0,3,77],
 "structyaze_1_1emu_1_1Timer.html#a3a754161256b4fc03ec9b3aaf6774280":[11,0,1,3,79,4],
 "structyaze_1_1emu_1_1Timer.html#a3a754161256b4fc03ec9b3aaf6774280":[12,0,0,3,77,4],
-"structyaze_1_1emu_1_1Timer.html#a3ccd05259a5c54b8c025ec759479f9d7":[11,0,1,3,79,3],
-"structyaze_1_1emu_1_1Timer.html#a3ccd05259a5c54b8c025ec759479f9d7":[12,0,0,3,77,3]
+"structyaze_1_1emu_1_1Timer.html#a3ccd05259a5c54b8c025ec759479f9d7":[11,0,1,3,79,3]
 };

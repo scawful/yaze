@@ -116,7 +116,7 @@ var searchData=
   ['and_113',['AND',['../classyaze_1_1emu_1_1Spc700.html#aea262b676a2f72f0b14f0ec0b2c857b5',1,'yaze::emu::Spc700::AND()'],['../classyaze_1_1emu_1_1Cpu.html#aa551140ac9ad214aef6313c32e95e1e3',1,'yaze::emu::Cpu::AND()'],['../classyaze_1_1test_1_1Cpu.html#aa551140ac9ad214aef6313c32e95e1e3',1,'yaze::test::Cpu::AND()'],['../classyaze_1_1test_1_1Spc700.html#aea262b676a2f72f0b14f0ec0b2c857b5',1,'yaze::test::Spc700::AND()']]],
   ['and_114',['And',['../classyaze_1_1emu_1_1Cpu.html#a56fdfed546707d17ea1abc309cd8478f',1,'yaze::emu::Cpu::And()'],['../classyaze_1_1test_1_1Cpu.html#a56fdfed546707d17ea1abc309cd8478f',1,'yaze::test::Cpu::And()']]],
   ['and_20branching_115',['Loops and Branching',['../md_docs_2asm-style-guide.html#autotoc_md7',1,'']]],
-  ['and_20installation_116',['Building and installation',['../md_README.html#autotoc_md67',1,'']]],
+  ['and_20installation_116',['Building and installation',['../md_README.html#autotoc_md66',1,'']]],
   ['and_20symbols_117',['Labels and Symbols',['../md_docs_2asm-style-guide.html#autotoc_md3',1,'']]],
   ['and1_118',['AND1',['../classyaze_1_1emu_1_1Spc700.html#a26093966e63ce5afa48c0f369d3ebdfe',1,'yaze::emu::Spc700::AND1()'],['../classyaze_1_1test_1_1Spc700.html#a26093966e63ce5afa48c0f369d3ebdfe',1,'yaze::test::Spc700::AND1()']]],
   ['andabsolutelong_119',['ANDAbsoluteLong',['../classyaze_1_1emu_1_1Cpu.html#ac86865e509992c77195e34581eb14a4f',1,'yaze::emu::Cpu::ANDAbsoluteLong()'],['../classyaze_1_1test_1_1Cpu.html#ac86865e509992c77195e34581eb14a4f',1,'yaze::test::Cpu::ANDAbsoluteLong()']]],

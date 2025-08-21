@@ -1,5 +1,6 @@
 var NAVTREEINDEX45 =
 {
+"namespaceyaze_1_1zelda3_1_1music.html#a90368fd97edefb8fda83523d58cf87dd":[11,0,1,8,3,11],
 "namespaceyaze_1_1zelda3_1_1music.html#aebf12437e767920e3173dbe2ea46ddf1":[11,0,1,8,3,10],
 "namespaceyaze_1_1zelda3_1_1music.html#af7107d5454a88b6094544b9ef0a3606c":[11,0,1,8,3,16],
 "namespaceyaze_1_1zelda3_1_1palette__internal.html":[11,0,1,8,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX45 =
 "structyaze_1_1Project.html#a4ffe8ee5e317c5a16c8e9d30a8765f1f":[12,0,0,9,9],
 "structyaze_1_1Project.html#a51b2784cba8c2e77ea445af799fe3880":[11,0,1,9,3],
 "structyaze_1_1Project.html#a51b2784cba8c2e77ea445af799fe3880":[12,0,0,9,3],
-"structyaze_1_1Project.html#a7b27a95cbe3dcb5cae552cc2bc2fb755":[11,0,1,9,1],
-"structyaze_1_1Project.html#a7b27a95cbe3dcb5cae552cc2bc2fb755":[12,0,0,9,1]
+"structyaze_1_1Project.html#a7b27a95cbe3dcb5cae552cc2bc2fb755":[11,0,1,9,1]
 };

@@ -1,7 +1,5 @@
 <map id="yaze::test::DungeonRoomTest" name="yaze::test::DungeonRoomTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="13,79,205,105"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,98,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,41,101,77,97,80,68,45"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="122,5,211,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,45,121,80,116,77,145,41"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,198,105"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="55,5,148,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,46,104,79,99,79,99,46"/>
 </map>

@@ -255,11 +255,6 @@ var hierarchy =
     [ "yaze::core::SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", null ],
     [ "yaze::core::SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", null ],
     [ "yaze::emu::SETINI", "structyaze_1_1emu_1_1SETINI.html", null ],
-    [ "SharedRom", null, [
-      [ "yaze::test::DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", null ],
-      [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
-      [ "yaze::test::OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", null ]
-    ] ],
     [ "yaze::editor::Shortcut", "structyaze_1_1editor_1_1Shortcut.html", null ],
     [ "yaze::editor::ShortcutManager", "classyaze_1_1editor_1_1ShortcutManager.html", null ],
     [ "yaze::emu::SLHV", "structyaze_1_1emu_1_1SLHV.html", null ],

@@ -47,7 +47,7 @@ var searchData=
   ['objsel_44',['OBJSEL',['../structyaze_1_1emu_1_1OBJSEL.html',1,'yaze::emu::OBJSEL'],['../namespaceyaze_1_1emu.html#aba117e7a9e91c7ac66256b429fb135ec',1,'yaze::emu::OBJSEL']]],
   ['of_20contents_45',['Table of Contents',['../md_docs_2asm-style-guide.html#autotoc_md1',1,'']]],
   ['of_20contribution_46',['Key Areas of Contribution',['../md_docs_2contributing.html#autotoc_md36',1,'']]],
-  ['of_20control_47',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md52',1,'']]],
+  ['of_20control_47',['Flow of Control',['../md_docs_2infrastructure.html#autotoc_md51',1,'']]],
   ['off_48',['Off',['../zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58ad8a892b94d3a94ea861543c085ae782b',1,'zelda.h']]],
   ['offset_49',['Offset',['../structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo']]],
   ['offset_50',['offset',['../structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister']]],

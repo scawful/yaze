@@ -1,11 +1,12 @@
 <map id="yaze::test::OverworldTest" name="yaze::test::OverworldTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="83,183,249,208"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,98,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,127,152,180,148,184,78,131"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="122,94,211,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="169,135,169,182,164,182,164,135"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="235,94,390,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="281,130,188,184,186,180,278,125"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="273,5,353,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="316,47,316,94,310,94,310,47"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="63,271,229,297"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,183,98,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,217,135,269,131,273,74,221"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="127,94,208,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,136,161,183,150,271,145,271,156,182,161,135"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="202,183,357,208"/>
+<area shape="poly" id="edge5_Node000007_Node000003" title=" " alt="" coords="196,127,265,180,262,184,193,131"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1ResourceLabelManager.html" title=" " alt="" coords="72,5,263,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="170,47,170,94,165,94,165,47"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="250,219,166,273,164,268,247,215"/>
 </map>

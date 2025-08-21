@@ -1,5 +1,19 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,127,31"/>
-<area shape="rect" id="Node000001" href="$classyaze_1_1gfx_1_1BitmapError.html" title=" " alt="" coords="175,5,319,31"/>
-<area shape="poly" id="edge13_Node000000_Node000001" title=" " alt="" coords="142,16,174,16,174,21,142,21"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,179,98,204"/>
+<area shape="rect" id="Node000001" href="$classyaze_1_1test_1_1CpuTest.html" title=" " alt="" coords="177,5,307,31"/>
+<area shape="poly" id="edge3_Node000000_Node000001" title=" " alt="" coords="60,163,91,101,115,68,144,40,175,25,177,30,147,44,119,71,95,104,65,165"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1DungeonRoomTest.html" title=" " alt="" coords="146,55,338,80"/>
+<area shape="poly" id="edge4_Node000000_Node000002" title=" " alt="" coords="68,164,100,125,121,106,144,89,168,78,170,83,147,94,124,110,104,129,72,168"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1MessageTest.html" title=" " alt="" coords="162,104,322,130"/>
+<area shape="poly" id="edge5_Node000000_Node000003" title=" " alt="" coords="85,168,145,138,177,128,179,133,147,143,88,173"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1OverworldTest.html" title=" " alt="" coords="159,153,325,179"/>
+<area shape="poly" id="edge6_Node000000_Node000004" title=" " alt="" coords="113,181,158,175,158,180,114,186"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1test_1_1PpuTest.html" title=" " alt="" coords="177,203,307,228"/>
+<area shape="poly" id="edge7_Node000000_Node000005" title=" " alt="" coords="113,197,177,205,176,210,113,202"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1test_1_1RomTest.html" title=" " alt="" coords="175,252,309,278"/>
+<area shape="poly" id="edge8_Node000000_Node000006" title=" " alt="" coords="89,210,147,238,179,249,178,254,145,243,86,215"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1test_1_1Spc700Test.html" title=" " alt="" coords="166,301,318,327"/>
+<area shape="poly" id="edge9_Node000000_Node000007" title=" " alt="" coords="72,215,104,253,125,272,147,288,170,298,168,303,144,292,121,276,101,257,68,219"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1test_1_1SpriteBuilderTest.html" title=" " alt="" coords="151,351,332,376"/>
+<area shape="poly" id="edge10_Node000000_Node000008" title=" " alt="" coords="65,218,96,279,119,311,147,337,166,348,163,352,144,342,115,314,91,282,60,220"/>
 </map>

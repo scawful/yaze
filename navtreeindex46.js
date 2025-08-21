@@ -1,5 +1,6 @@
 var NAVTREEINDEX46 =
 {
+"structyaze_1_1Project.html#a7b27a95cbe3dcb5cae552cc2bc2fb755":[12,0,0,9,1],
 "structyaze_1_1Project.html#a8ce6393afeb49a1872eb988042e034c7":[11,0,1,9,11],
 "structyaze_1_1Project.html#a8ce6393afeb49a1872eb988042e034c7":[12,0,0,9,11],
 "structyaze_1_1Project.html#a98244b71739f152077b2cffc7a864b25":[11,0,1,9,8],
@@ -248,6 +249,5 @@ var NAVTREEINDEX46 =
 "structyaze_1_1editor_1_1ExampleTreeNode.html#afc5d9f4ffc55716206e8b7ffb6c1bbbf":[12,0,0,2,12,2],
 "structyaze_1_1editor_1_1ExampleTreeNode.html#afde76997b8c21556057cf35421321167":[11,0,1,2,19,5],
 "structyaze_1_1editor_1_1ExampleTreeNode.html#afde76997b8c21556057cf35421321167":[12,0,0,2,12,5],
-"structyaze_1_1editor_1_1FolderItem.html":[11,0,1,2,22],
-"structyaze_1_1editor_1_1FolderItem.html":[12,0,0,2,15]
+"structyaze_1_1editor_1_1FolderItem.html":[11,0,1,2,22]
 };

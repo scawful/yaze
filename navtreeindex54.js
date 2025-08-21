@@ -1,5 +1,6 @@
 var NAVTREEINDEX54 =
 {
+"structyaze_1_1util_1_1HexStringParams.html":[12,0,0,7,3],
 "structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157":[11,0,1,7,5,2],
 "structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157":[12,0,0,7,3,2],
 "structyaze_1_1util_1_1HexStringParams.html#a3a2cdc8be447566a12b848f9c9f57004":[11,0,1,7,5,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX54 =
 "structyaze__editor__context.html":[12,0,19],
 "structyaze__editor__context.html#a50323bf40f414a711612e3dbf2c2ff88":[12,0,19,0],
 "structyaze__editor__context.html#a5864fdc76ce969933913a75f2ff4c0c1":[12,0,19,1],
-"structyaze__extension.html":[12,0,20],
-"structyaze__extension.html#a62d89167cd6b0ad7d91811e145290be5":[12,0,20,2]
+"structyaze__extension.html":[12,0,20]
 };

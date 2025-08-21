@@ -19,10 +19,5 @@ var searchData=
   ['moving_5fwater_16',['Moving_Water',['../namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3aa71256a38ca8d558e47fbb7463fef422',1,'yaze::zelda3']]],
   ['moving_5fwater_5fcollision_17',['Moving_Water_Collision',['../namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496a58a15dcd8225b3b354d3696f1f713a77',1,'yaze::zelda3']]],
   ['multilinecomment_18',['MultiLineComment',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9afb5201b0af9f09b8f695d8af9a5227b5',1,'TextEditor']]],
-  ['music_19',['MUSIC',['../classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ead74c735013cdd2b883e25ccca502a2e9',1,'yaze::editor::OverworldEditor']]],
-  ['myitemcolumnid_5faction_20',['MyItemColumnID_Action',['../namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756ab8a11efab3c61888cbc5ca21f7402c32',1,'yaze::editor']]],
-  ['myitemcolumnid_5fdescription_21',['MyItemColumnID_Description',['../namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756a65853caa51a38e7a70378dd42bce4ad5',1,'yaze::editor']]],
-  ['myitemcolumnid_5fid_22',['MyItemColumnID_ID',['../namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756a5f806b7c1daec29717f38dbb45ae922e',1,'yaze::editor']]],
-  ['myitemcolumnid_5fname_23',['MyItemColumnID_Name',['../namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756ac6f646bd2702f08c00735ecd7ba95293',1,'yaze::editor']]],
-  ['myitemcolumnid_5fquantity_24',['MyItemColumnID_Quantity',['../namespaceyaze_1_1editor.html#ae140ba674954cd458242f15e846c1756abba025e8b1647f3e5b4c3e78429e3e3f',1,'yaze::editor']]]
+  ['music_19',['MUSIC',['../classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ead74c735013cdd2b883e25ccca502a2e9',1,'yaze::editor::OverworldEditor']]]
 ];

@@ -1,23 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="7,55,96,80"/>
-<area shape="rect" id="Node000001" href="$classyaze_1_1test_1_1DungeonRoomTest.html" title=" " alt="" coords="146,5,338,31"/>
-<area shape="poly" id="edge2_Node000000_Node000001" title=" " alt="" coords="111,49,145,40,186,29,187,34,146,45,112,54"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1MessageTest.html" title=" " alt="" coords="162,55,322,80"/>
-<area shape="poly" id="edge3_Node000000_Node000004" title=" " alt="" coords="112,65,161,65,161,70,112,70"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1test_1_1OverworldTest.html" title=" " alt="" coords="159,104,325,130"/>
-<area shape="poly" id="edge4_Node000000_Node000005" title=" " alt="" coords="112,81,146,90,187,101,186,106,145,95,111,86"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,177,98,203"/>
-<area shape="poly" id="edge6_Node000002_Node000001" title=" " alt="" coords="60,161,91,100,115,67,144,40,163,29,166,34,147,44,119,71,96,103,65,164"/>
-<area shape="poly" id="edge7_Node000002_Node000004" title=" " alt="" coords="68,163,101,125,121,105,144,89,168,78,170,83,147,94,125,110,104,128,72,166"/>
-<area shape="poly" id="edge8_Node000002_Node000005" title=" " alt="" coords="86,167,145,138,178,128,179,133,147,143,89,172"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1CpuTest.html" title=" " alt="" coords="177,351,307,376"/>
-<area shape="poly" id="edge5_Node000002_Node000003" title=" " alt="" coords="65,216,95,278,119,310,147,337,177,352,175,357,144,342,115,314,91,281,60,219"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1test_1_1PpuTest.html" title=" " alt="" coords="177,153,307,179"/>
-<area shape="poly" id="edge9_Node000002_Node000006" title=" " alt="" coords="113,180,176,172,177,177,113,185"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1test_1_1RomTest.html" title=" " alt="" coords="175,203,309,228"/>
-<area shape="poly" id="edge10_Node000002_Node000007" title=" " alt="" coords="114,196,175,204,174,209,113,201"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1test_1_1Spc700Test.html" title=" " alt="" coords="166,252,318,278"/>
-<area shape="poly" id="edge11_Node000002_Node000008" title=" " alt="" coords="88,209,147,238,179,249,177,254,145,243,85,214"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1test_1_1SpriteBuilderTest.html" title=" " alt="" coords="151,301,332,327"/>
-<area shape="poly" id="edge12_Node000002_Node000009" title=" " alt="" coords="72,214,104,253,124,272,147,288,170,298,168,303,144,292,121,276,100,256,68,217"/>
+<area shape="rect" id="Node000000" href="$structsnes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="5,5,90,31"/>
 </map>
