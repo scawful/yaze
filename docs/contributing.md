@@ -26,27 +26,14 @@ New modules should define unit tests in the `src/test` directory and integration
 
 ## Key Areas of Contribution
 
-### 1. Extensions System
-
-Yaze *(stylized as yaze)* emphasizes extensibility. The `yaze_ext` library allows developers to build and integrate extensions using C, C++, or Python. This system is central to yaze's modular design, enabling new features, custom editors, or tools to be added without modifying the core codebase.
-
-- C/C++ Extensions: Utilize the `yaze_extension` interface to integrate custom functionality into the editor. You can add new tabs, manipulate ROM data, or extend the editor’s capabilities with custom tools.
-- Python Extensions: Currently unimplemented, Python extensions will allow developers to write scripts that interact with the editor, modify ROM data, or automate repetitive tasks.
-
-Examples of Extensions:
-
-- UI enhancements like additional menus, panels, or status displays.
-- Rom manipulation tools for editing data structures, such as the overworld maps or dungeon objects.
-- Custom editors for specific tasks, like file format conversion, data visualization, or event scripting.
-
-### 2. Sprite Builder System
+### 1. Sprite Builder System
 
 The sprite builder system in yaze is based on the [ZSpriteMaker](https://github.com/Zarby89/ZSpriteMaker/) project and allows users to create custom sprites for use in ROM hacks. The goal is to support ZSM files and provide an intuitive interface for editing sprites without the need for writing assembly code. Contributions to the sprite builder system might include:
 
 - Implementing new features for sprite editing, such as palette management, animation preview, or tileset manipulation.
 - Extending the sprite builder interface by writing assembly code for sprite behavior.
 
-### 3. Emulator Subsystem
+### 2. Emulator Subsystem
 
 yaze includes an emulator subsystem that allows developers to test their modifications directly within the editor. The emulator can currently run certain test ROMs but lacks the ability to play any complex games with audio because of timing issues with the APU and Spc700. Contributions to the emulator subsystem might include:
 

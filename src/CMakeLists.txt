@@ -52,15 +52,17 @@ endif()
 if (YAZE_BUILD_Z3ED)
   include(cli/z3ed.cmake)
 endif()
-if (YAZE_BUILD_PYTHON)
-  include(cli/python/yaze_py.cmake)
-endif()
 
 if(MACOS)
   set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_SOURCE_DIR}/win32/yaze.ico)
+  set(MACOSX_BUNDLE_BUNDLE_NAME "yaze")
+  set(MACOSX_BUNDLE_EXECUTABLE_NAME "yaze")
+  set(MACOSX_BUNDLE_GUI_IDENTIFIER "yaze")
+  set(MACOSX_BUNDLE_INFO_STRING "yaze")
   set_target_properties(yaze
     PROPERTIES
     BUNDLE True
+    OUTPUT_NAME "yaze"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
@@ -135,7 +137,6 @@ if (YAZE_BUILD_LIB)
       FILES
         incl/yaze.h
         incl/zelda.h
-        incl/snes.h
       DESTINATION
         include
     )
