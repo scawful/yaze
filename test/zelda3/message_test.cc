@@ -7,17 +7,18 @@
 namespace yaze {
 namespace test {
 
-class MessageTest : public ::testing::Test, public SharedRom {
+class MessageTest : public ::testing::Test {
  protected:
   void SetUp() override {
 #if defined(__linux__)
     GTEST_SKIP();
 #endif
-    EXPECT_OK(rom()->LoadFromFile("zelda3.sfc"));
-    dictionary_ = editor::BuildDictionaryEntries(rom());
+    EXPECT_OK(rom_.LoadFromFile("zelda3.sfc"));
+    dictionary_ = editor::BuildDictionaryEntries(&rom_);
   }
   void TearDown() override {}
 
+  Rom rom_;
   editor::MessageEditor message_editor_;
   std::vector<editor::DictionaryEntry> dictionary_;
 };
@@ -193,7 +194,7 @@ TEST_F(MessageTest, FindMatchingElement_InvalidCommand) {
 }
 
 TEST_F(MessageTest, BuildDictionaryEntries_CorrectSize) {
-  auto result = editor::BuildDictionaryEntries(rom());
+  auto result = editor::BuildDictionaryEntries(&rom_);
   EXPECT_EQ(result.size(), editor::kNumDictionaryEntries);
   EXPECT_FALSE(result.empty());
 }

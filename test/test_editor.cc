@@ -3,7 +3,7 @@
 #include <SDL.h>
 
 #include "app/core/controller.h"
-#include "app/core/platform/renderer.h"
+#include "app/core/window.h"
 #include "app/gui/style.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
@@ -42,14 +42,11 @@ void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
   };
 }
 
+// TODO: Fix the window/controller management
 int RunIntegrationTest() {
   yaze::core::Controller controller;
-  if (!controller.CreateWindow().ok()) {
-    return EXIT_FAILURE;
-  }
-  if (!controller.CreateRenderer().ok()) {
-    return EXIT_FAILURE;
-  }
+  yaze::core::Window window;
+  yaze::core::CreateWindow(&window);
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
