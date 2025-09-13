@@ -297,7 +297,7 @@ var searchData=
   ['kscreeneditorname_294',['kScreenEditorName',['../namespaceyaze_1_1editor.html#a5882374f18fbf019a8a09a97d4f92d85',1,'yaze::editor']]],
   ['kscrollvertical_295',['kScrollVertical',['../namespaceyaze_1_1editor.html#a189336bde381ff1453e2be128c0e213b',1,'yaze::editor']]],
   ['ksecretitemnames_296',['kSecretItemNames',['../namespaceyaze_1_1zelda3.html#a5dc8588fe49be6ba766225ccc0ca4a90',1,'yaze::zelda3']]],
-  ['kseparator_297',['kSeparator',['../namespaceyaze_1_1gui.html#a01a69c8df4f748999159587dd7124dec',1,'yaze::gui']]],
+  ['kseparator_297',['kSeparator',['../namespaceyaze_1_1gui.html#a3b98f0b2012856166c36b814bc70184c',1,'yaze::gui']]],
   ['ksettingseditorname_298',['kSettingsEditorName',['../namespaceyaze_1_1editor.html#a5f2488d1dfa7ebd9aed0439c58ec5f96',1,'yaze::editor']]],
   ['kshieldpalettes_299',['kShieldPalettes',['../namespaceyaze_1_1gfx.html#a5d11714a4d5c1db3bb84fc46f34ffcad',1,'yaze::gfx']]],
   ['ksnesbytemax_300',['kSnesByteMax',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a3917ad6c050f1d29d7dfc1f95751742d',1,'yaze::gfx::lc_lz2']]],

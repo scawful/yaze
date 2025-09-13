@@ -73,6 +73,9 @@ var searchData=
   ['audioram_70',['audioRAM',['../classyaze_1_1test_1_1Spc700Test.html#ad0e603960ff448d89a2a331719c4368d',1,'yaze::test::Spc700Test']]],
   ['auto_5fjoy_5fread_5f_71',['auto_joy_read_',['../classyaze_1_1emu_1_1Snes.html#aa83090e72f5a579aeff5f2654137264c',1,'yaze::emu::Snes']]],
   ['auto_5fjoy_5ftimer_5f_72',['auto_joy_timer_',['../classyaze_1_1emu_1_1Snes.html#aeb05e0df6d3b942d8ea412fb08501f30',1,'yaze::emu::Snes']]],
-  ['aux1_73',['aux1',['../structyaze_1_1gfx_1_1Paletteset.html#a72aadefb5901777ae333bbd37451f92e',1,'yaze::gfx::Paletteset']]],
-  ['aux2_74',['aux2',['../structyaze_1_1gfx_1_1Paletteset.html#a931ee06cebd5114a00b9128c994a2f8c',1,'yaze::gfx::Paletteset']]]
+  ['autosave_5fenabled_5f_73',['autosave_enabled_',['../classyaze_1_1editor_1_1EditorManager.html#add8e2562070a56d02b1ba20711a30d41',1,'yaze::editor::EditorManager']]],
+  ['autosave_5finterval_5fsecs_5f_74',['autosave_interval_secs_',['../classyaze_1_1editor_1_1EditorManager.html#a5e505c03d894fb42fe96880d66861690',1,'yaze::editor::EditorManager']]],
+  ['autosave_5ftimer_5f_75',['autosave_timer_',['../classyaze_1_1editor_1_1EditorManager.html#abd4179501dd9aa38d93df580249db9f1',1,'yaze::editor::EditorManager']]],
+  ['aux1_76',['aux1',['../structyaze_1_1gfx_1_1Paletteset.html#a72aadefb5901777ae333bbd37451f92e',1,'yaze::gfx::Paletteset']]],
+  ['aux2_77',['aux2',['../structyaze_1_1gfx_1_1Paletteset.html#a931ee06cebd5114a00b9128c994a2f8c',1,'yaze::gfx::Paletteset']]]
 ];

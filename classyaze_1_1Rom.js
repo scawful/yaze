@@ -30,6 +30,8 @@ var classyaze_1_1Rom =
     [ "ReadHelper", "classyaze_1_1Rom.html#ab6617305507a315cc4655e41a019b752", null ],
     [ "operator[]", "classyaze_1_1Rom.html#acdcd28c581c25d7be40dc0c3816ae46d", null ],
     [ "is_loaded", "classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d", null ],
+    [ "dirty", "classyaze_1_1Rom.html#a9e9a54976ee16d9f2690fad05d78d0c9", null ],
+    [ "ClearDirty", "classyaze_1_1Rom.html#a20d18e8fc71a698ea6c56cbbb43d43e5", null ],
     [ "title", "classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418", null ],
     [ "size", "classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777", null ],
     [ "data", "classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d", null ],
@@ -60,5 +62,6 @@ var classyaze_1_1Rom =
     [ "graphics_buffer_", "classyaze_1_1Rom.html#a973094927e5a266698d40d834fc26f5c", null ],
     [ "resource_label_manager_", "classyaze_1_1Rom.html#a98dabc039713c62b9dedbd471b4f3064", null ],
     [ "palette_groups_", "classyaze_1_1Rom.html#a2a4ba7137dfced685cd4b6432c5fe047", null ],
-    [ "version_", "classyaze_1_1Rom.html#a089a86f09767d8d7fb1f253806a33b23", null ]
+    [ "version_", "classyaze_1_1Rom.html#a089a86f09767d8d7fb1f253806a33b23", null ],
+    [ "dirty_", "classyaze_1_1Rom.html#aa01aefe8299ee4a8e45117b5c5930efa", null ]
 ];

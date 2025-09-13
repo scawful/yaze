@@ -31,5 +31,5 @@ var input_8h =
     [ "yaze::gui::MemoryEditorPopup", "namespaceyaze_1_1gui.html#a5d17b111857a66c28a91fc117027a574", null ],
     [ "yaze::gui::kDefaultModalSize", "namespaceyaze_1_1gui.html#ab655498d16f5ecf417dddcc70faed138", null ],
     [ "yaze::gui::kZeroPos", "namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e", null ],
-    [ "yaze::gui::kSeparator", "namespaceyaze_1_1gui.html#a01a69c8df4f748999159587dd7124dec", null ]
+    [ "yaze::gui::kSeparator", "namespaceyaze_1_1gui.html#a3b98f0b2012856166c36b814bc70184c", null ]
 ];

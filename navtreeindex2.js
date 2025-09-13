@@ -1,5 +1,11 @@
 var NAVTREEINDEX2 =
 {
+"classyaze_1_1core_1_1FeatureFlags.html":[11,0,1,1,2],
+"classyaze_1_1core_1_1FeatureFlags.html":[12,0,0,1,1],
+"classyaze_1_1core_1_1FeatureFlags.html#a80ac17435bc19d8cc8826e5cd7f6711a":[11,0,1,1,2,1],
+"classyaze_1_1core_1_1FeatureFlags.html#a80ac17435bc19d8cc8826e5cd7f6711a":[12,0,0,1,1,1],
+"classyaze_1_1core_1_1FileDialogWrapper.html":[11,0,1,1,3],
+"classyaze_1_1core_1_1FileDialogWrapper.html":[12,0,0,1,2],
 "classyaze_1_1core_1_1Renderer.html":[11,0,1,1,7],
 "classyaze_1_1core_1_1Renderer.html":[12,0,0,1,6],
 "classyaze_1_1core_1_1Renderer.html#a0d5a59f3505536cfb25b54a54c1d855d":[11,0,1,1,7,6],
@@ -243,11 +249,5 @@ var NAVTREEINDEX2 =
 "classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57a4d2126a18a3799a1e4f076912d964706":[11,0,1,2,12,0,4],
 "classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57a4d2126a18a3799a1e4f076912d964706":[12,0,0,2,5,0,4],
 "classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57a6fd7a731f10558162f666bc8d0b86c0e":[11,0,1,2,12,0,1],
-"classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57a6fd7a731f10558162f666bc8d0b86c0e":[12,0,0,2,5,0,1],
-"classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57a997ca5141d8eec44b9803e04138978c4":[11,0,1,2,12,0,3],
-"classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57a997ca5141d8eec44b9803e04138978c4":[12,0,0,2,5,0,3],
-"classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57ac55ffa35760784e478a24fdbd15a4ea1":[11,0,1,2,12,0,0],
-"classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57ac55ffa35760784e478a24fdbd15a4ea1":[12,0,0,2,5,0,0],
-"classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57ae1f745cd5dbe430c5101335cde9f2405":[11,0,1,2,12,0,2],
-"classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57ae1f745cd5dbe430c5101335cde9f2405":[12,0,0,2,5,0,2]
+"classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57a6fd7a731f10558162f666bc8d0b86c0e":[12,0,0,2,5,0,1]
 };

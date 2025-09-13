@@ -1,6 +1,7 @@
 var editor_8h =
 [
     [ "yaze::editor::EditorContext", "structyaze_1_1editor_1_1EditorContext.html", "structyaze_1_1editor_1_1EditorContext" ],
+    [ "yaze::editor::EditorContext::SharedClipboard", "structyaze_1_1editor_1_1EditorContext_1_1SharedClipboard.html", "structyaze_1_1editor_1_1EditorContext_1_1SharedClipboard" ],
     [ "yaze::editor::Editor", "classyaze_1_1editor_1_1Editor.html", "classyaze_1_1editor_1_1Editor" ],
     [ "yaze::editor::EditorType", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622a", [
       [ "yaze::editor::EditorType::kAssembly", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab686a008a9fc3fe70222034bef987ced", null ],

@@ -61,6 +61,8 @@ var namespaceyaze_1_1editor =
     [ "SpriteItem", "structyaze_1_1editor_1_1SpriteItem.html", "structyaze_1_1editor_1_1SpriteItem" ],
     [ "TextElement", "structyaze_1_1editor_1_1TextElement.html", "structyaze_1_1editor_1_1TextElement" ],
     [ "Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", "classyaze_1_1editor_1_1Tile16Editor" ],
+    [ "Toast", "structyaze_1_1editor_1_1Toast.html", "structyaze_1_1editor_1_1Toast" ],
+    [ "ToastManager", "classyaze_1_1editor_1_1ToastManager.html", "classyaze_1_1editor_1_1ToastManager" ],
     [ "EditorType", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622a", [
       [ "kAssembly", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab686a008a9fc3fe70222034bef987ced", null ],
       [ "kDungeon", "namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa773324726da2f589c757da4c39336156", null ],
@@ -77,6 +79,12 @@ var namespaceyaze_1_1editor =
       [ "SpriteItemColumnID_ID", "namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80a32f763883fe7206d704ccbe3d0b9718d", null ],
       [ "SpriteItemColumnID_Name", "namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80a65ffedea0f77a0ca7032eb572f389b49", null ],
       [ "SpriteItemColumnID_Description", "namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80ad6a1c4ed087e70685a1bfa1cab63b96e", null ]
+    ] ],
+    [ "ToastType", "namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7", [
+      [ "kInfo", "namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf", null ],
+      [ "kSuccess", "namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782", null ],
+      [ "kWarning", "namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7aec0da41f4e48b52c362303eb27ed5dee", null ],
+      [ "kError", "namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7ae3587c730cc1aa530fa4ddc9c4204e97", null ]
     ] ],
     [ "PaletteCategory", "namespaceyaze_1_1editor.html#a82a8956476ffc04750bcfc4120c8b8db", null ],
     [ "DisplayPalette", "namespaceyaze_1_1editor.html#a8657cfd46f4a80e164e0b2331c98ad98", null ],

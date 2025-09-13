@@ -10,5 +10,6 @@ var dir_6786299e5fb540707e8551af9d97f855 =
     [ "settings_editor.cc", "settings__editor_8cc.html", null ],
     [ "settings_editor.h", "settings__editor_8h.html", "settings__editor_8h" ],
     [ "shortcut_manager.cc", "shortcut__manager_8cc.html", "shortcut__manager_8cc" ],
-    [ "shortcut_manager.h", "shortcut__manager_8h.html", "shortcut__manager_8h" ]
+    [ "shortcut_manager.h", "shortcut__manager_8h.html", "shortcut__manager_8h" ],
+    [ "toast_manager.h", "toast__manager_8h.html", "toast__manager_8h" ]
 ];

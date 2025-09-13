@@ -20,8 +20,10 @@ var searchData=
   ['titlescreen_17',['TitleScreen',['../classyaze_1_1zelda3_1_1TitleScreen.html',1,'yaze::zelda3']]],
   ['tm_18',['TM',['../structyaze_1_1emu_1_1TM.html',1,'yaze::emu']]],
   ['tmw_19',['TMW',['../structyaze_1_1emu_1_1TMW.html',1,'yaze::emu']]],
-  ['token_20',['Token',['../structyaze_1_1gui_1_1zeml_1_1Token.html',1,'yaze::gui::zeml']]],
-  ['tracker_21',['Tracker',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::zelda3::music']]],
-  ['ts_22',['TS',['../structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
-  ['tsw_23',['TSW',['../structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]]
+  ['toast_20',['Toast',['../structyaze_1_1editor_1_1Toast.html',1,'yaze::editor']]],
+  ['toastmanager_21',['ToastManager',['../classyaze_1_1editor_1_1ToastManager.html',1,'yaze::editor']]],
+  ['token_22',['Token',['../structyaze_1_1gui_1_1zeml_1_1Token.html',1,'yaze::gui::zeml']]],
+  ['tracker_23',['Tracker',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::zelda3::music']]],
+  ['ts_24',['TS',['../structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
+  ['tsw_25',['TSW',['../structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]]
 ];

@@ -78,7 +78,9 @@ var annotated_dup =
         [ "SpriteEditor", "classyaze_1_1editor_1_1SpriteEditor.html", "classyaze_1_1editor_1_1SpriteEditor" ],
         [ "SpriteItem", "structyaze_1_1editor_1_1SpriteItem.html", "structyaze_1_1editor_1_1SpriteItem" ],
         [ "TextElement", "structyaze_1_1editor_1_1TextElement.html", "structyaze_1_1editor_1_1TextElement" ],
-        [ "Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", "classyaze_1_1editor_1_1Tile16Editor" ]
+        [ "Tile16Editor", "classyaze_1_1editor_1_1Tile16Editor.html", "classyaze_1_1editor_1_1Tile16Editor" ],
+        [ "Toast", "structyaze_1_1editor_1_1Toast.html", "structyaze_1_1editor_1_1Toast" ],
+        [ "ToastManager", "classyaze_1_1editor_1_1ToastManager.html", "classyaze_1_1editor_1_1ToastManager" ]
       ] ],
       [ "emu", "namespaceyaze_1_1emu.html", [
         [ "Apu", "classyaze_1_1emu_1_1Apu.html", "classyaze_1_1emu_1_1Apu" ],
