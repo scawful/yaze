@@ -39,6 +39,72 @@ std::string GetEditorName(EditorType type) {
 
 }  // namespace
 
+// Settings + preset helpers
+void EditorManager::LoadUserSettings() {
+  try {
+    auto data = core::LoadConfigFile(settings_filename_);
+    if (!data.empty()) {
+      std::istringstream ss(data);
+      std::string line;
+      while (std::getline(ss, line)) {
+        auto eq = line.find('=');
+        if (eq == std::string::npos) continue;
+        auto key = line.substr(0, eq);
+        auto val = line.substr(eq + 1);
+        if (key == "font_global_scale") font_global_scale_ = std::stof(val);
+        if (key == "autosave_enabled") autosave_enabled_ = (val == "1");
+        if (key == "autosave_interval_secs") autosave_interval_secs_ = std::stof(val);
+      }
+      ImGui::GetIO().FontGlobalScale = font_global_scale_;
+    }
+  } catch (...) {
+  }
+}
+
+void EditorManager::SaveUserSettings() {
+  std::ostringstream ss;
+  ss << "font_global_scale=" << font_global_scale_ << "\n";
+  ss << "autosave_enabled=" << (autosave_enabled_ ? 1 : 0) << "\n";
+  ss << "autosave_interval_secs=" << autosave_interval_secs_ << "\n";
+  core::SaveFile(settings_filename_, ss.str());
+}
+
+void EditorManager::RefreshWorkspacePresets() {
+  workspace_presets_.clear();
+  // Try to read a simple index file of presets
+  try {
+    auto data = core::LoadConfigFile("workspace_presets.txt");
+    std::istringstream ss(data);
+    std::string name;
+    while (std::getline(ss, name)) {
+      if (!name.empty()) workspace_presets_.push_back(name);
+    }
+  } catch (...) {
+  }
+}
+
+void EditorManager::SaveWorkspacePreset(const std::string &name) {
+  if (name.empty()) return;
+  std::string ini_name = absl::StrCat("yaze_workspace_", name, ".ini");
+  ImGui::SaveIniSettingsToDisk(ini_name.c_str());
+  // Update index
+  RefreshWorkspacePresets();
+  if (std::find(workspace_presets_.begin(), workspace_presets_.end(), name) == workspace_presets_.end()) {
+    workspace_presets_.push_back(name);
+    std::ostringstream ss;
+    for (auto &n : workspace_presets_) ss << n << "\n";
+    core::SaveFile("workspace_presets.txt", ss.str());
+  }
+  last_workspace_preset_ = name;
+}
+
+void EditorManager::LoadWorkspacePreset(const std::string &name) {
+  if (name.empty()) return;
+  std::string ini_name = absl::StrCat("yaze_workspace_", name, ".ini");
+  ImGui::LoadIniSettingsFromDisk(ini_name.c_str());
+  last_workspace_preset_ = name;
+}
+
 constexpr const char *kOverworldEditorName = ICON_MD_LAYERS " Overworld Editor";
 constexpr const char *kGraphicsEditorName = ICON_MD_PHOTO " Graphics Editor";
 constexpr const char *kPaletteEditorName = ICON_MD_PALETTE " Palette Editor";
@@ -65,6 +131,10 @@ void EditorManager::Initialize(const std::string &filename) {
   // Set the popup manager in the context
   context_.popup_manager = popup_manager_.get();
 
+  // Load user settings and workspace presets
+  LoadUserSettings();
+  RefreshWorkspacePresets();
+
   context_.shortcut_manager.RegisterShortcut(
       "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [this]() { status_ = LoadRom(); });
   context_.shortcut_manager.RegisterShortcut(
@@ -78,22 +148,30 @@ void EditorManager::Initialize(const std::string &filename) {
 
   context_.shortcut_manager.RegisterShortcut(
       "Undo", {ImGuiKey_Z, ImGuiMod_Ctrl},
-      [this]() { status_ = current_editor_->Undo(); });
+      [this]() { if (current_editor_) status_ = current_editor_->Undo(); });
   context_.shortcut_manager.RegisterShortcut(
       "Redo", {ImGuiKey_Y, ImGuiMod_Ctrl},
-      [this]() { status_ = current_editor_->Redo(); });
+      [this]() { if (current_editor_) status_ = current_editor_->Redo(); });
   context_.shortcut_manager.RegisterShortcut(
       "Cut", {ImGuiKey_X, ImGuiMod_Ctrl},
-      [this]() { status_ = current_editor_->Cut(); });
+      [this]() { if (current_editor_) status_ = current_editor_->Cut(); });
   context_.shortcut_manager.RegisterShortcut(
       "Copy", {ImGuiKey_C, ImGuiMod_Ctrl},
-      [this]() { status_ = current_editor_->Copy(); });
+      [this]() { if (current_editor_) status_ = current_editor_->Copy(); });
   context_.shortcut_manager.RegisterShortcut(
       "Paste", {ImGuiKey_V, ImGuiMod_Ctrl},
-      [this]() { status_ = current_editor_->Paste(); });
+      [this]() { if (current_editor_) status_ = current_editor_->Paste(); });
   context_.shortcut_manager.RegisterShortcut(
       "Find", {ImGuiKey_F, ImGuiMod_Ctrl},
-      [this]() { status_ = current_editor_->Find(); });
+      [this]() { if (current_editor_) status_ = current_editor_->Find(); });
+
+  // Command Palette and Global Search
+  context_.shortcut_manager.RegisterShortcut(
+      "Command Palette", {ImGuiKey_P, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      [this]() { show_command_palette_ = true; });
+  context_.shortcut_manager.RegisterShortcut(
+      "Global Search", {ImGuiKey_K, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      [this]() { show_global_search_ = true; });
 
   context_.shortcut_manager.RegisterShortcut(
       "Load Last ROM", {ImGuiKey_R, ImGuiMod_Ctrl}, [this]() {
@@ -124,11 +202,26 @@ void EditorManager::Initialize(const std::string &filename) {
 
   std::vector<gui::MenuItem> options_subitems;
   options_subitems.emplace_back(
-      "Backup ROM", "", [this]() { backup_rom_ |= backup_rom_; },
+      "Backup ROM", "", [this]() { backup_rom_ = !backup_rom_; },
       [this]() { return backup_rom_; });
   options_subitems.emplace_back(
-      "Save New Auto", "", [this]() { save_new_auto_ |= save_new_auto_; },
+      "Save New Auto", "", [this]() { save_new_auto_ = !save_new_auto_; },
       [this]() { return save_new_auto_; });
+  options_subitems.emplace_back(
+      "Autosave", "", [this]() {
+        autosave_enabled_ = !autosave_enabled_;
+        toast_manager_.Show(autosave_enabled_ ? "Autosave enabled"
+                                             : "Autosave disabled",
+                            editor::ToastType::kInfo);
+      },
+      [this]() { return autosave_enabled_; });
+  options_subitems.emplace_back(
+      "Autosave Interval", "", [this]() {}, []() { return true; },
+      std::vector<gui::MenuItem>{
+          {"1 min", "", [this]() { autosave_interval_secs_ = 60.0f; SaveUserSettings(); }},
+          {"2 min", "", [this]() { autosave_interval_secs_ = 120.0f; SaveUserSettings(); }},
+          {"5 min", "", [this]() { autosave_interval_secs_ = 300.0f; SaveUserSettings(); }},
+      });
 
   std::vector<gui::MenuItem> project_menu_subitems;
   project_menu_subitems.emplace_back(
@@ -138,6 +231,23 @@ void EditorManager::Initialize(const std::string &filename) {
   project_menu_subitems.emplace_back(
       "Save Project", "", [this]() { status_ = SaveProject(); },
       [this]() { return current_project_.project_opened_; });
+  project_menu_subitems.emplace_back(
+      "Save Workspace Layout", "", [this]() {
+        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+        ImGui::SaveIniSettingsToDisk("yaze_workspace.ini");
+        toast_manager_.Show("Workspace layout saved", editor::ToastType::kSuccess);
+      });
+  project_menu_subitems.emplace_back(
+      "Load Workspace Layout", "", [this]() {
+        ImGui::LoadIniSettingsFromDisk("yaze_workspace.ini");
+        toast_manager_.Show("Workspace layout loaded", editor::ToastType::kSuccess);
+      });
+  project_menu_subitems.emplace_back(
+      "Workspace Presets", "", []() {}, []() { return true; },
+      std::vector<gui::MenuItem>{
+          {"Save Preset", "", [this]() { show_save_workspace_preset_ = true; }},
+          {"Load Preset", "", [this]() { show_load_workspace_preset_ = true; }},
+      });
 
   gui::kMainMenu = {
       {"File",
@@ -148,7 +258,7 @@ void EditorManager::Initialize(const std::string &filename) {
            {absl::StrCat(ICON_MD_FILE_OPEN, " Open"),
             context_.shortcut_manager.GetKeys("Open"),
             context_.shortcut_manager.GetCallback("Open")},
-           {"Open Recent", "", []() {},
+           {absl::StrCat(ICON_MD_HISTORY, " Open Recent"), "", []() {},
             []() { return !manager.GetRecentFiles().empty(); }, recent_files},
            {absl::StrCat(ICON_MD_FILE_DOWNLOAD, " Save"),
             context_.shortcut_manager.GetKeys("Save"),
@@ -269,6 +379,26 @@ void EditorManager::Initialize(const std::string &filename) {
 absl::Status EditorManager::Update() {
   popup_manager_->DrawPopups();
   ExecuteShortcuts(context_.shortcut_manager);
+  toast_manager_.Draw();
+
+  // Autosave timer
+  if (autosave_enabled_ && current_rom_ && current_rom_->dirty()) {
+    autosave_timer_ += ImGui::GetIO().DeltaTime;
+    if (autosave_timer_ >= autosave_interval_secs_) {
+      autosave_timer_ = 0.0f;
+      Rom::SaveSettings s;
+      s.backup = true;
+      s.save_new = false;
+      auto st = current_rom_->SaveToFile(s);
+      if (st.ok()) {
+        toast_manager_.Show("Autosave completed", editor::ToastType::kSuccess);
+      } else {
+        toast_manager_.Show(std::string(st.message()), editor::ToastType::kError, 5.0f);
+      }
+    }
+  } else {
+    autosave_timer_ = 0.0f;
+  }
 
   if (show_homepage_) {
     ImGui::Begin("Home", &show_homepage_);
@@ -376,14 +506,21 @@ absl::Status EditorManager::DrawRomSelector() {
   if (current_rom_ && current_rom_->is_loaded()) {
     SetNextItemWidth(GetWindowWidth() / 6);
     if (BeginCombo("##ROMSelector", current_rom_->short_name().c_str())) {
-      for (const auto &session : sessions_) {
-        const Rom* rom = &session.rom;
-        if (MenuItem(rom->short_name().c_str())) {
-          RETURN_IF_ERROR(SetCurrentRom(const_cast<Rom*>(rom)));
+      int idx = 0;
+      for (auto it = sessions_.begin(); it != sessions_.end(); ++it, ++idx) {
+        Rom* rom = &it->rom;
+        PushID(idx);
+        bool selected = (rom == current_rom_);
+        if (Selectable(rom->short_name().c_str(), selected)) {
+          RETURN_IF_ERROR(SetCurrentRom(rom));
         }
+        PopID();
       }
       EndCombo();
     }
+    // Inline status next to ROM selector
+    SameLine();
+    Text("Size: %.1f MB", current_rom_->size() / 1048576.0f);
   } else {
     Text("No ROM loaded");
   }
@@ -406,6 +543,13 @@ void EditorManager::DrawMenuBar() {
       show_display_settings = !show_display_settings;
     }
     PopStyleColor();
+    // Status bar area (right-aligned)
+    if (current_rom_ && current_rom_->dirty()) {
+      SameLine();
+      TextColored(ImVec4(1.f, 0.8f, 0.1f, 1.f), "• Unsaved");
+      if (IsItemHovered()) SetTooltip("There are unsaved changes.");
+    }
+    SameLine();
     Text("yaze v%s", version_.c_str());
     EndMenuBar();
   }
@@ -413,6 +557,15 @@ void EditorManager::DrawMenuBar() {
   if (show_display_settings) {
     Begin("Display Settings", &show_display_settings, ImGuiWindowFlags_None);
     gui::DrawDisplaySettings();
+    gui::TextWithSeparators("Font Manager");
+    gui::DrawFontManager();
+    ImGuiIO &io = ImGui::GetIO();
+    Separator();
+    Text("Global Scale");
+    if (SliderFloat("##global_scale", &font_global_scale_, 0.5f, 1.8f, "%.2f")) {
+      io.FontGlobalScale = font_global_scale_;
+      SaveUserSettings();
+    }
     End();
   }
 
@@ -428,6 +581,64 @@ void EditorManager::DrawMenuBar() {
   if (show_emulator_) {
     Begin("Emulator", &show_emulator_, ImGuiWindowFlags_MenuBar);
     emulator_.Run();
+    End();
+  }
+
+  // Command Palette UI
+  if (show_command_palette_) {
+    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_Once);
+    if (Begin("Command Palette", &show_command_palette_, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) {
+      static char query[256] = {};
+      InputTextWithHint("##cmd_query", "Type a command or search...", query, IM_ARRAYSIZE(query));
+      Separator();
+      // List registered shortcuts as commands
+      for (const auto &entry : context_.shortcut_manager.GetShortcuts()) {
+        const auto &name = entry.first;
+        const auto &shortcut = entry.second;
+        if (query[0] != '\0' && name.find(query) == std::string::npos) continue;
+        if (Selectable(name.c_str())) {
+          if (shortcut.callback) shortcut.callback();
+          show_command_palette_ = false;
+        }
+      }
+    }
+    End();
+  }
+
+  // Global Search UI (labels and recent files for now)
+  if (show_global_search_) {
+    ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_Once);
+    if (Begin("Global Search", &show_global_search_, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) {
+      static char query[256] = {};
+      InputTextWithHint("##global_query", ICON_MD_SEARCH " Search labels, files...", query, IM_ARRAYSIZE(query));
+      Separator();
+      if (current_rom_ && current_rom_->resource_label()) {
+        Text(ICON_MD_LABEL " Labels");
+        Indent();
+        auto &labels = current_rom_->resource_label()->labels_;
+        for (const auto &type_pair : labels) {
+          for (const auto &kv : type_pair.second) {
+            if (query[0] != '\0' && kv.first.find(query) == std::string::npos && kv.second.find(query) == std::string::npos) continue;
+            if (Selectable((type_pair.first + ": " + kv.first + " -> " + kv.second).c_str())) {
+              // Future: navigate to related editor/location
+            }
+          }
+        }
+        Unindent();
+      }
+      Text(ICON_MD_HISTORY " Recent Files");
+      Indent();
+      static RecentFilesManager manager("recent_files.txt");
+      manager.Load();
+      for (const auto &file : manager.GetRecentFiles()) {
+        if (query[0] != '\0' && file.find(query) == std::string::npos) continue;
+        if (Selectable(file.c_str())) {
+          status_ = OpenRomOrProject(file);
+          show_global_search_ = false;
+        }
+      }
+      Unindent();
+    }
     End();
   }
 
@@ -501,10 +712,41 @@ void EditorManager::DrawMenuBar() {
     }
     End();
   }
+
+  // Workspace preset dialogs
+  if (show_save_workspace_preset_) {
+    Begin("Save Workspace Preset", &show_save_workspace_preset_, ImGuiWindowFlags_AlwaysAutoResize);
+    static std::string preset_name = "";
+    InputText("Name", &preset_name);
+    if (Button("Save", gui::kDefaultModalSize)) {
+      SaveWorkspacePreset(preset_name);
+      toast_manager_.Show("Preset saved", editor::ToastType::kSuccess);
+      show_save_workspace_preset_ = false;
+    }
+    SameLine();
+    if (Button("Cancel", gui::kDefaultModalSize)) { show_save_workspace_preset_ = false; }
+    End();
+  }
+
+  if (show_load_workspace_preset_) {
+    Begin("Load Workspace Preset", &show_load_workspace_preset_, ImGuiWindowFlags_AlwaysAutoResize);
+    for (const auto &name : workspace_presets_) {
+      if (Selectable(name.c_str())) {
+        LoadWorkspacePreset(name);
+        toast_manager_.Show("Preset loaded", editor::ToastType::kSuccess);
+        show_load_workspace_preset_ = false;
+      }
+    }
+    if (workspace_presets_.empty()) Text("No presets found");
+    End();
+  }
 }
 
 absl::Status EditorManager::LoadRom() {
   auto file_name = FileDialogWrapper::ShowOpenFileDialog();
+  if (file_name.empty()) {
+    return absl::OkStatus();
+  }
   Rom temp_rom;
   RETURN_IF_ERROR(temp_rom.LoadFromFile(file_name));
 
@@ -568,6 +810,9 @@ absl::Status EditorManager::SaveRom() {
 }
 
 absl::Status EditorManager::OpenRomOrProject(const std::string &filename) {
+  if (filename.empty()) {
+    return absl::OkStatus();
+  }
   if (absl::StrContains(filename, ".yaze")) {
     RETURN_IF_ERROR(current_project_.Open(filename));
     RETURN_IF_ERROR(OpenProject());
