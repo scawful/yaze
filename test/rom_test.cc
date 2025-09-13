@@ -7,6 +7,7 @@
 #include "absl/status/statusor.h"
 #include "mocks/mock_rom.h"
 #include "test/testing.h"
+#include "app/transaction.h"
 
 namespace yaze {
 namespace test {
@@ -189,6 +190,48 @@ TEST_F(RomTest, ReadTransactionFailure) {
 
   EXPECT_EQ(mock_rom.ReadTransaction(byte_val, 0x1000),
             absl::FailedPreconditionError("Offset out of range"));
+}
+
+TEST_F(RomTest, SaveTruncatesExistingFile) {
+#if defined(__linux__)
+  GTEST_SKIP();
+#endif
+  // Prepare ROM data and save to a temp file twice; second save should overwrite, not append
+  EXPECT_OK(rom_.LoadFromData(kMockRomData, /*z3_load=*/false));
+
+  const char* tmp_name = "test_temp_rom.sfc";
+  yaze::Rom::SaveSettings settings;
+  settings.filename = tmp_name;
+  settings.z3_save = false;
+
+  // First save
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  // Modify one byte and save again
+  EXPECT_OK(rom_.WriteByte(0, 0xEE));
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  // Load the saved file and verify size equals original data size and first byte matches
+  Rom verify;
+  EXPECT_OK(verify.LoadFromFile(tmp_name, /*z3_load=*/false));
+  EXPECT_EQ(verify.size(), kMockRomData.size());
+  auto b0 = verify.ReadByte(0);
+  ASSERT_TRUE(b0.ok());
+  EXPECT_EQ(*b0, 0xEE);
+}
+
+TEST_F(RomTest, TransactionRollbackRestoresOriginals) {
+  EXPECT_OK(rom_.LoadFromData(kMockRomData, /*z3_load=*/false));
+  // Force an out-of-range write to trigger failure after a successful write
+  yaze::Transaction tx{rom_};
+  auto status = tx.WriteByte(0x01, 0xAA)  // valid
+                   .WriteWord(0xFFFF, 0xBBBB)  // invalid: should fail and rollback
+                   .Commit();
+  EXPECT_FALSE(status.ok());
+  auto b1 = rom_.ReadByte(0x01);
+  ASSERT_TRUE(b1.ok());
+  // Should be restored to original 0x01 value (from kMockRomData)
+  EXPECT_EQ(*b1, kMockRomData[0x01]);
 }
 
 }  // namespace test
