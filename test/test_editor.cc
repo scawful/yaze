@@ -46,7 +46,7 @@ void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
 int RunIntegrationTest() {
   yaze::core::Controller controller;
   yaze::core::Window window;
-  yaze::core::CreateWindow(&window);
+  yaze::core::CreateWindow(window, SDL_WINDOW_RESIZABLE);
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
