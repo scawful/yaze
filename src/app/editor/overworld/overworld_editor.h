@@ -85,8 +85,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
-  absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
-  absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
+  absl::Status Copy() override;
+  absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
   absl::Status Clear() override;
