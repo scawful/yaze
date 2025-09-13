@@ -171,6 +171,8 @@ class Rom {
   }
 
   bool is_loaded() const { return !rom_data_.empty(); }
+  bool dirty() const { return dirty_; }
+  void ClearDirty() { dirty_ = false; }
   auto title() const { return title_; }
   auto size() const { return size_; }
   auto data() const { return rom_data_.data(); }
@@ -227,6 +229,9 @@ class Rom {
 
   // Version of the game
   zelda3_version version_ = zelda3_version::US;
+
+  // True if there are unsaved changes
+  bool dirty_ = false;
 };
 
 /**

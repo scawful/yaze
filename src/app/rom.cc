@@ -222,7 +222,6 @@ absl::Status SaveAllGraphicsData(
           rom.version_constants().kOverworldGfxPtr2,
           rom.version_constants().kOverworldGfxPtr3);
       std::copy(final_data.begin(), final_data.end(), rom.begin() + offset);
-      std::ranges::copy(final_data, rom.begin() + offset);
     }
   }
   return absl::OkStatus();
@@ -451,15 +450,11 @@ absl::Status Rom::SaveToFile(const SaveSettings &settings) {
     std::cout << filename << std::endl;
   }
 
-  // Open the file that we know exists for writing
-  std::ofstream file(filename.data(), std::ios::binary | std::ios::app);
+  // Open the file for writing and truncate existing content
+  std::ofstream file(filename.data(), std::ios::binary | std::ios::trunc);
   if (!file) {
-    // Create the file if it does not exist
-    file.open(filename.data(), std::ios::binary);
-    if (!file) {
-      return absl::InternalError(
-          absl::StrCat("Could not open or create ROM file: ", filename));
-    }
+    return absl::InternalError(
+        absl::StrCat("Could not open ROM file for writing: ", filename));
   }
 
   // Save the data to the file
@@ -478,11 +473,8 @@ absl::Status Rom::SaveToFile(const SaveSettings &settings) {
         absl::StrCat("Error while writing to ROM file: ", filename));
   }
 
-  if (!non_firing_status.ok()) {
-    return non_firing_status;
-  }
-
-  return absl::OkStatus();
+  if (non_firing_status.ok()) dirty_ = false;
+  return non_firing_status.ok() ? absl::OkStatus() : non_firing_status;
 }
 
 absl::Status Rom::SavePalette(int index, const std::string &group_name,
@@ -587,6 +579,7 @@ absl::Status Rom::WriteByte(int addr, uint8_t value) {
   }
   rom_data_[addr] = value;
   util::logf("WriteByte: %#06X: %s", addr, util::HexByte(value).data());
+  dirty_ = true;
   return absl::OkStatus();
 }
 
@@ -599,6 +592,7 @@ absl::Status Rom::WriteWord(int addr, uint16_t value) {
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
   util::logf("WriteWord: %#06X: %s", addr, util::HexWord(value).data());
+  dirty_ = true;
   return absl::OkStatus();
 }
 
@@ -611,6 +605,7 @@ absl::Status Rom::WriteShort(int addr, uint16_t value) {
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
   util::logf("WriteShort: %#06X: %s", addr, util::HexWord(value).data());
+  dirty_ = true;
   return absl::OkStatus();
 }
 
@@ -624,6 +619,7 @@ absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
   rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
   util::logf("WriteLong: %#06X: %s", addr, util::HexLong(value).data());
+  dirty_ = true;
   return absl::OkStatus();
 }
 
@@ -637,6 +633,7 @@ absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
     rom_data_[addr + i] = data[i];
   }
   util::logf("WriteVector: %#06X: %s", addr, util::HexByte(data[0]).data());
+  dirty_ = true;
   return absl::OkStatus();
 }
 
@@ -646,7 +643,9 @@ absl::Status Rom::WriteColor(uint32_t address, const gfx::SnesColor &color) {
 
   // Write the 16-bit color value to the ROM at the specified address
   util::logf("WriteColor: %#06X: %s", address, util::HexWord(bgr).data());
-  return WriteShort(address, bgr);
+  auto st = WriteShort(address, bgr);
+  if (st.ok()) dirty_ = true;
+  return st;
 }
 
 }  // namespace yaze
