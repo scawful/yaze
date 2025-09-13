@@ -2,6 +2,7 @@
 #define YAZE_APP_CORE_EDITOR_H
 
 #include <array>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/system/command_manager.h"
@@ -24,6 +25,21 @@ struct EditorContext {
   HistoryManager history_manager;
   PopupManager* popup_manager = nullptr;
   ShortcutManager shortcut_manager;
+  // Cross-session shared clipboard for editor data transfers
+  struct SharedClipboard {
+    // Overworld tile16 selection payload
+    bool has_overworld_tile16 = false;
+    std::vector<int> overworld_tile16_ids;
+    int overworld_width = 0;   // in tile16 units
+    int overworld_height = 0;  // in tile16 units
+
+    void Clear() {
+      has_overworld_tile16 = false;
+      overworld_tile16_ids.clear();
+      overworld_width = 0;
+      overworld_height = 0;
+    }
+  } shared_clipboard;
 };
 
 enum class EditorType {

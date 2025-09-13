@@ -567,6 +567,96 @@ void OverworldEditor::CheckForSelectRectangle() {
   ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_blockset_, 0x10);
 }
 
+absl::Status OverworldEditor::Copy() {
+  if (!context_) return absl::FailedPreconditionError("No editor context");
+  // If a rectangle selection exists, copy its tile16 IDs into shared clipboard
+  if (ow_map_canvas_.select_rect_active() &&
+      !ow_map_canvas_.selected_tiles().empty()) {
+    std::vector<int> ids;
+    ids.reserve(ow_map_canvas_.selected_tiles().size());
+    for (const auto &pos : ow_map_canvas_.selected_tiles()) {
+      ids.push_back(overworld_.GetTileFromPosition(pos));
+    }
+    // Determine width/height in tile16 based on selection bounds
+    const auto start = ow_map_canvas_.selected_points()[0];
+    const auto end = ow_map_canvas_.selected_points()[1];
+    const int start_x = static_cast<int>(std::floor(std::min(start.x, end.x) / 16.0f));
+    const int end_x = static_cast<int>(std::floor(std::max(start.x, end.x) / 16.0f));
+    const int start_y = static_cast<int>(std::floor(std::min(start.y, end.y) / 16.0f));
+    const int end_y = static_cast<int>(std::floor(std::max(start.y, end.y) / 16.0f));
+    const int width = end_x - start_x + 1;
+    const int height = end_y - start_y + 1;
+
+    context_->shared_clipboard.overworld_tile16_ids = std::move(ids);
+    context_->shared_clipboard.overworld_width = width;
+    context_->shared_clipboard.overworld_height = height;
+    context_->shared_clipboard.has_overworld_tile16 = true;
+    return absl::OkStatus();
+  }
+  // Single tile copy fallback
+  if (current_tile16_ >= 0) {
+    context_->shared_clipboard.overworld_tile16_ids = {current_tile16_};
+    context_->shared_clipboard.overworld_width = 1;
+    context_->shared_clipboard.overworld_height = 1;
+    context_->shared_clipboard.has_overworld_tile16 = true;
+    return absl::OkStatus();
+  }
+  return absl::FailedPreconditionError("Nothing selected to copy");
+}
+
+absl::Status OverworldEditor::Paste() {
+  if (!context_) return absl::FailedPreconditionError("No editor context");
+  if (!context_->shared_clipboard.has_overworld_tile16) {
+    return absl::FailedPreconditionError("Clipboard empty");
+  }
+  if (ow_map_canvas_.points().empty() &&
+      ow_map_canvas_.selected_tile_pos().x == -1) {
+    return absl::FailedPreconditionError("No paste target");
+  }
+
+  // Determine paste anchor position (use current mouse drawn tile position)
+  const ImVec2 anchor = ow_map_canvas_.drawn_tile_position();
+
+  // Compute anchor in tile16 grid within the current map
+  const int tile16_x = (static_cast<int>(anchor.x) % kOverworldMapSize) / kTile16Size;
+  const int tile16_y = (static_cast<int>(anchor.y) % kOverworldMapSize) / kTile16Size;
+
+  auto &selected_world =
+      (current_world_ == 0)   ? overworld_.mutable_map_tiles()->light_world
+      : (current_world_ == 1) ? overworld_.mutable_map_tiles()->dark_world
+                              : overworld_.mutable_map_tiles()->special_world;
+
+  const int superY = current_map_ / 8;
+  const int superX = current_map_ % 8;
+  const int tiles_per_local_map = 512 / kTile16Size;
+
+  const int width = context_->shared_clipboard.overworld_width;
+  const int height = context_->shared_clipboard.overworld_height;
+  const auto &ids = context_->shared_clipboard.overworld_tile16_ids;
+
+  // Guard
+  if (width * height != static_cast<int>(ids.size())) {
+    return absl::InternalError("Clipboard dimensions mismatch");
+  }
+
+  for (int dy = 0; dy < height; ++dy) {
+    for (int dx = 0; dx < width; ++dx) {
+      const int id = ids[dy * width + dx];
+      const int gx = tile16_x + dx;
+      const int gy = tile16_y + dy;
+
+      const int global_x = superX * 32 + gx;
+      const int global_y = superY * 32 + gy;
+      if (global_x < 0 || global_x >= 256 || global_y < 0 || global_y >= 256)
+        continue;
+      selected_world[global_x][global_y] = id;
+    }
+  }
+
+  RefreshOverworldMap();
+  return absl::OkStatus();
+}
+
 absl::Status OverworldEditor::CheckForCurrentMap() {
   // 4096x4096, 512x512 maps and some are larges maps 1024x1024
   const auto mouse_position = ImGui::GetIO().MousePos;
