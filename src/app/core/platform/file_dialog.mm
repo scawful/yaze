@@ -71,6 +71,7 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFileDialog() {
   [openPanel setCanChooseFiles:YES];
   [openPanel setCanChooseDirectories:NO];
   [openPanel setAllowsMultipleSelection:NO];
+  [openPanel setAllowedFileTypes:@[ @"sfc", @"smc", @"yaze" ]];
 
   if ([openPanel runModal] == NSModalResponseOK) {
     NSURL* url = [[openPanel URLs] objectAtIndex:0];

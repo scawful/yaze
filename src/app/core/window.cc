@@ -49,9 +49,6 @@ absl::Status CreateWindow(Window& window, int flags) {
 
   gui::ColorsYaze();
 
-  ImGui_ImplSDLRenderer2_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
-
   const int audio_frequency = 48000;
   SDL_AudioSpec want, have;
   SDL_memset(&want, 0, sizeof(want));
