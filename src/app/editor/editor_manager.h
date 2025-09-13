@@ -19,6 +19,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/popup_manager.h"
+#include "app/editor/system/toast_manager.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/emu/emulator.h"
 #include "app/rom.h"
@@ -112,6 +113,9 @@ class EditorManager {
   bool quit_ = false;
   bool backup_rom_ = false;
   bool save_new_auto_ = true;
+  bool autosave_enabled_ = false;
+  float autosave_interval_secs_ = 120.0f;
+  float autosave_timer_ = 0.0f;
   bool new_project_menu = false;
 
   bool show_emulator_ = false;
@@ -122,9 +126,18 @@ class EditorManager {
   bool show_palette_editor_ = false;
   bool show_resource_label_manager = false;
   bool show_workspace_layout = false;
+  bool show_save_workspace_preset_ = false;
+  bool show_load_workspace_preset_ = false;
   bool show_homepage_ = true;
+  bool show_command_palette_ = false;
+  bool show_global_search_ = false;
 
   std::string version_ = "";
+  std::string settings_filename_ = "settings.ini";
+  float font_global_scale_ = 1.0f;
+  std::vector<std::string> workspace_presets_;
+  std::string last_workspace_preset_ = "";
+  std::string status_message_ = "";
 
   absl::Status status_;
   emu::Emulator emulator_;
@@ -147,6 +160,14 @@ class EditorManager {
   Project current_project_;
   EditorContext context_;
   std::unique_ptr<PopupManager> popup_manager_;
+  ToastManager toast_manager_;
+
+  // Settings helpers
+  void LoadUserSettings();
+  void SaveUserSettings();
+  void RefreshWorkspacePresets();
+  void SaveWorkspacePreset(const std::string& name);
+  void LoadWorkspacePreset(const std::string& name);
 };
 
 }  // namespace editor
