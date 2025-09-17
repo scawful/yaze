@@ -24,6 +24,7 @@ var searchData=
   ['toastmanager_21',['ToastManager',['../classyaze_1_1editor_1_1ToastManager.html',1,'yaze::editor']]],
   ['token_22',['Token',['../structyaze_1_1gui_1_1zeml_1_1Token.html',1,'yaze::gui::zeml']]],
   ['tracker_23',['Tracker',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::zelda3::music']]],
-  ['ts_24',['TS',['../structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
-  ['tsw_25',['TSW',['../structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]]
+  ['transaction_24',['Transaction',['../classyaze_1_1Transaction.html',1,'yaze']]],
+  ['ts_25',['TS',['../structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
+  ['tsw_26',['TSW',['../structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]]
 ];

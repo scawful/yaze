@@ -467,5 +467,10 @@ var searchData=
   ['kworldcolors_464',['kWorldColors',['../namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba763760ff92c842ba0fba2b7916605884',1,'yaze::gfx']]],
   ['kworldlist_465',['kWorldList',['../namespaceyaze_1_1editor.html#a509c76430fe7bd64995ca4c2a0004443',1,'yaze::editor']]],
   ['kworldmap_466',['kWorldMap',['../namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dbac4ed7facba5bc499470417f80fccfd30',1,'yaze::gfx']]],
-  ['kzeropos_467',['kZeroPos',['../namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e',1,'yaze::gui']]]
+  ['kwritebyte_467',['kWriteByte',['../classyaze_1_1Transaction.html#ab3014197a44fc2397913b7ad9e61d7b5a853742cea7acdcce1fc354141a95eb40',1,'yaze::Transaction']]],
+  ['kwritecolor_468',['kWriteColor',['../classyaze_1_1Transaction.html#ab3014197a44fc2397913b7ad9e61d7b5a3a543e453ac7cd8dba8460ebaf676c70',1,'yaze::Transaction']]],
+  ['kwritelong_469',['kWriteLong',['../classyaze_1_1Transaction.html#ab3014197a44fc2397913b7ad9e61d7b5a750e9fafe664d105bb4d32edb87cd602',1,'yaze::Transaction']]],
+  ['kwritevector_470',['kWriteVector',['../classyaze_1_1Transaction.html#ab3014197a44fc2397913b7ad9e61d7b5a2c0590c4cf3dd8f7663b44e3c3a81195',1,'yaze::Transaction']]],
+  ['kwriteword_471',['kWriteWord',['../classyaze_1_1Transaction.html#ab3014197a44fc2397913b7ad9e61d7b5a19dcecbad6b87122755d70139fdfa39d',1,'yaze::Transaction']]],
+  ['kzeropos_472',['kZeroPos',['../namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e',1,'yaze::gui']]]
 ];

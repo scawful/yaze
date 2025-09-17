@@ -426,6 +426,8 @@ var namespaceyaze_1_1test =
     [ "TEST_F", "namespaceyaze_1_1test.html#a6214fd496ebfa0358a3346ff7d4c4557", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#aec2bf6e34867a811d1808f5a92ab4e91", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a133541ce48bc235998bf42f760a71f11", null ],
+    [ "TEST_F", "namespaceyaze_1_1test.html#a8264dbff44bc450c046929320f5b8202", null ],
+    [ "TEST_F", "namespaceyaze_1_1test.html#ac3f60be4ff85d3f4f6e317490ee071c3", null ],
     [ "RunIntegrationTest", "namespaceyaze_1_1test.html#a1641768a13910eb529e97ac3a66b7162", null ],
     [ "MATCHER_P", "namespaceyaze_1_1test.html#a966536ba60abd09d24a03d6824214d30", null ],
     [ "IsOkAndHolds", "namespaceyaze_1_1test.html#ace6494b75531bde42a021a993af2b3e1", null ],

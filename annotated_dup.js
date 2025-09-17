@@ -320,6 +320,7 @@ var annotated_dup =
       [ "Renderer", "classyaze_1_1Renderer.html", "classyaze_1_1Renderer" ],
       [ "ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", "structyaze_1_1ResourceLabelManager" ],
       [ "Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
+      [ "Transaction", "classyaze_1_1Transaction.html", "classyaze_1_1Transaction" ],
       [ "VersionControlManager", "classyaze_1_1VersionControlManager.html", "classyaze_1_1VersionControlManager" ]
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],

@@ -9,5 +9,6 @@ var dir_5194e5fea318fda12687127c23f8aba1 =
     [ "main.cc", "main_8cc.html", "main_8cc" ],
     [ "rom.cc", "rom_8cc.html", "rom_8cc" ],
     [ "rom.h", "rom_8h.html", "rom_8h" ],
-    [ "snes.h", "snes_8h.html", "snes_8h" ]
+    [ "snes.h", "snes_8h.html", "snes_8h" ],
+    [ "transaction.h", "transaction_8h.html", "transaction_8h" ]
 ];

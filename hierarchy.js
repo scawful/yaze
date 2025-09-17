@@ -194,6 +194,7 @@ var hierarchy =
     [ "yaze::gfx::OamTile", "classyaze_1_1gfx_1_1OamTile.html", null ],
     [ "object_door", "structobject__door.html", null ],
     [ "yaze::emu::OBJSEL", "structyaze_1_1emu_1_1OBJSEL.html", null ],
+    [ "yaze::Transaction::Operation", "structyaze_1_1Transaction_1_1Operation.html", null ],
     [ "yaze::emu::OPHCT", "structyaze_1_1emu_1_1OPHCT.html", null ],
     [ "yaze::emu::OPVCT", "structyaze_1_1emu_1_1OPVCT.html", null ],
     [ "yaze::core::FeatureFlags::Flags::Overworld", "structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html", null ],
@@ -320,6 +321,7 @@ var hierarchy =
     [ "yaze::editor::ToastManager", "classyaze_1_1editor_1_1ToastManager.html", null ],
     [ "yaze::gui::zeml::Token", "structyaze_1_1gui_1_1zeml_1_1Token.html", null ],
     [ "yaze::zelda3::music::Tracker", "classyaze_1_1zelda3_1_1music_1_1Tracker.html", null ],
+    [ "yaze::Transaction", "classyaze_1_1Transaction.html", null ],
     [ "yaze::emu::TS", "structyaze_1_1emu_1_1TS.html", null ],
     [ "Ts...", null, [
       [ "overloaded< Ts >", "structoverloaded.html", null ]

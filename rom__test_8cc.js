@@ -18,5 +18,7 @@ var rom__test_8cc =
     [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#ade9156e8abbe35235cee5787775638e4", null ],
     [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a6214fd496ebfa0358a3346ff7d4c4557", null ],
     [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#aec2bf6e34867a811d1808f5a92ab4e91", null ],
-    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a133541ce48bc235998bf42f760a71f11", null ]
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a133541ce48bc235998bf42f760a71f11", null ],
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#a8264dbff44bc450c046929320f5b8202", null ],
+    [ "yaze::test::TEST_F", "namespaceyaze_1_1test.html#ac3f60be4ff85d3f4f6e317490ee071c3", null ]
 ];

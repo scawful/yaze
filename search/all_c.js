@@ -224,7 +224,7 @@ var searchData=
   ['commandsizearray_221',['CommandSizeArray',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#ae46fc2024538918c373a89ad89c948c2',1,'yaze::gfx::lc_lz2']]],
   ['comment_222',['Comment',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a0be8406951cdfda82f00f79328cf4efc',1,'TextEditor']]],
   ['comments_223',['Comments',['../md_docs_2asm-style-guide.html#autotoc_md4',1,'']]],
-  ['commit_224',['Commit',['../classyaze_1_1VersionControlManager.html#aca954992192a88cb687f9c695a81d50c',1,'yaze::VersionControlManager']]],
+  ['commit_224',['Commit',['../classyaze_1_1VersionControlManager.html#aca954992192a88cb687f9c695a81d50c',1,'yaze::VersionControlManager::Commit()'],['../classyaze_1_1Transaction.html#a8b6d1af7e88fd8425b34c8d9f4c3cba9',1,'yaze::Transaction::Commit()']]],
   ['commit_225',['commit',['../classyaze_1_1util_1_1NotifyValue.html#a5df895f128eeeb3a1ad6ca944dd9e948',1,'yaze::util::NotifyValue']]],
   ['common_2eh_226',['common.h',['../common_8h.html',1,'']]],
   ['comp_5faccumulator_227',['comp_accumulator',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#afd1da16d17deec3d4fb2876490c1dadf',1,'yaze::gfx::lc_lz2::CompressionContext::comp_accumulator'],['../structyaze_1_1test_1_1CompressionContext.html#afd1da16d17deec3d4fb2876490c1dadf',1,'yaze::test::CompressionContext::comp_accumulator']]],

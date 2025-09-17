@@ -15,6 +15,7 @@ var searchData=
   ['toast_5fmanager_2eh_12',['toast_manager.h',['../toast__manager_8h.html',1,'']]],
   ['tracker_2ecc_13',['tracker.cc',['../tracker_8cc.html',1,'']]],
   ['tracker_2eh_14',['tracker.h',['../tracker_8h.html',1,'']]],
-  ['tui_2ecc_15',['tui.cc',['../tui_8cc.html',1,'']]],
-  ['tui_2eh_16',['tui.h',['../tui_8h.html',1,'']]]
+  ['transaction_2eh_15',['transaction.h',['../transaction_8h.html',1,'']]],
+  ['tui_2ecc_16',['tui.cc',['../tui_8cc.html',1,'']]],
+  ['tui_2eh_17',['tui.h',['../tui_8h.html',1,'']]]
 ];
