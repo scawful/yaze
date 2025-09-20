@@ -137,6 +137,41 @@ systemctl_user() {
   systemctl --user "$@"
 }
 
+is_systemd_available() {
+  # True if systemd is PID 1 and systemctl exists and a user bus likely available
+  if [[ ! -d /run/systemd/system ]]; then
+    return 1
+  fi
+  if ! command -v systemctl >/dev/null 2>&1; then
+    return 1
+  fi
+  return 0
+}
+
+start_userland_agent() {
+  local build_type="${1}"
+  local build_dir="${2}"
+  local agent_home="$HOME/.local/share/yaze-agent"
+  mkdir -p "${agent_home}"
+  local log_file="${agent_home}/agent.log"
+  nohup env BUILD_TYPE="${build_type}" BUILD_DIR="${build_dir}" "${SCRIPT_DIR}/agent.sh" watch >>"${log_file}" 2>&1 & echo $! > "${agent_home}/agent.pid"
+  echo "Userland agent started (PID $(cat "${agent_home}/agent.pid")) - logs: ${log_file}"
+}
+
+stop_userland_agent() {
+  local agent_home="$HOME/.local/share/yaze-agent"
+  local pid_file="${agent_home}/agent.pid"
+  if [[ -f "${pid_file}" ]]; then
+    local pid
+    pid="$(cat "${pid_file}")"
+    if kill -0 "${pid}" >/dev/null 2>&1; then
+      kill "${pid}" || true
+    fi
+    rm -f "${pid_file}"
+    echo "Stopped userland agent"
+  fi
+}
+
 install_macos() {
   local build_type="${1}"
   local build_dir="${2}"
@@ -196,6 +231,12 @@ install_linux() {
   local path_name="yaze-watchtest.path"
 
   mkdir -p "${systemd_dir}" "${build_dir}"
+
+  if ! is_systemd_available; then
+    echo "[agent] systemd not available; installing userland background agent"
+    start_userland_agent "${build_type}" "${build_dir}"
+    return
+  }
 
   if [[ "${use_inotify}" == "1" ]]; then
     cat >"${systemd_dir}/yaze-watchtest-inotify.service" <<UNIT
@@ -294,6 +335,7 @@ sub_uninstall() {
       ;;
     Linux)
       local systemd_dir="$HOME/.config/systemd/user"
+      if is_systemd_available; then
       systemctl_user stop yaze-watchtest.path 2>/dev/null || true
       systemctl_user disable yaze-watchtest.path 2>/dev/null || true
       systemctl_user stop yaze-watchtest.service 2>/dev/null || true
@@ -302,6 +344,8 @@ sub_uninstall() {
       rm -f "${systemd_dir}/yaze-watchtest.service" "${systemd_dir}/yaze-watchtest.path" "${systemd_dir}/yaze-watchtest-inotify.service"
       systemctl_user daemon-reload || true
       echo "Removed systemd user units"
+      fi
+      stop_userland_agent
       ;;
     *) echo "Unsupported platform" >&2; exit 1 ;;
   esac
