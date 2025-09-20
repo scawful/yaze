@@ -8,7 +8,7 @@
 #include "absl/strings/string_view.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/object_renderer.h"
+#include "app/zelda3/dungeon/object_parser.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -74,6 +74,13 @@ class RoomObject {
   void set_rom(Rom* rom) { rom_ = rom; }
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
+
+  // Ensures tiles_ is populated with a basic set based on ROM tables so we can
+  // preview/draw objects without needing full emulator execution.
+  void EnsureTilesLoaded();
+  
+  // Load tiles using the new ObjectParser
+  absl::Status LoadTilesWithParser();
 
   void AddTiles(int nbr, int pos) {
     for (int i = 0; i < nbr; i++) {

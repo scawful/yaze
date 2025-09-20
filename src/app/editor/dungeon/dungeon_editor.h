@@ -11,6 +11,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/improved_object_renderer.h"
 
 namespace yaze {
 namespace editor {
@@ -40,7 +41,7 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
  */
 class DungeonEditor : public Editor {
  public:
-  explicit DungeonEditor(Rom* rom = nullptr) : rom_(rom) {
+  explicit DungeonEditor(Rom* rom = nullptr) : rom_(rom), object_renderer_(rom) {
     type_ = EditorType::kDungeon;
   }
 
@@ -123,7 +124,7 @@ class DungeonEditor : public Editor {
 
   std::array<zelda3::Room, 0x128> rooms_ = {};
   std::array<zelda3::RoomEntrance, 0x8C> entrances_ = {};
-  // zelda3::DungeonObjectRenderer object_renderer_;
+  zelda3::ImprovedObjectRenderer object_renderer_;
 
   absl::flat_hash_map<uint16_t, int> spriteset_usage_;
   absl::flat_hash_map<uint16_t, int> blockset_usage_;

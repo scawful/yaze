@@ -24,6 +24,10 @@ add_executable(
   zelda3/message_test.cc
   zelda3/overworld_test.cc
   zelda3/sprite_builder_test.cc
+  unit/object_parser_test.cc
+  unit/improved_object_renderer_test.cc
+  integration/dungeon_editor_test.cc
+  integration/dungeon_object_rendering_integration_test.cc
   ${ASAR_STATIC_SRC}
   ${IMGUI_SRC}
   ${IMGUI_TEST_ENGINE_SOURCES}

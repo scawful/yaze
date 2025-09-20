@@ -543,14 +543,25 @@ void DungeonEditor::DrawObjectRenderer() {
     TableNextColumn();
     BeginChild("DungeonObjectButtons", ImVec2(250, 0), true);
 
-    int selected_object = 0;
+    static int selected_object = 0;
     int i = 0;
     for (const auto object_name : zelda3::Type1RoomObjectNames) {
       if (ImGui::Selectable(object_name.data(), selected_object == i)) {
         selected_object = i;
-        // object_renderer_.LoadObject(i,
-        //                             rooms_[current_room_id_].mutable_blocks());
-        // object_loaded_ = true;
+        
+        // Create a test object and render it
+        auto test_object = zelda3::RoomObject(i, 0, 0, 0x12, 0);
+        test_object.set_rom(rom_);
+        test_object.EnsureTilesLoaded();
+        
+        // Get current palette
+        auto palette = rom()->palette_group().dungeon_main[current_palette_group_id_];
+        
+        // Render object preview
+        auto result = object_renderer_.GetObjectPreview(test_object, palette);
+        if (result.ok()) {
+          object_loaded_ = true;
+        }
       }
       i += 1;
     }
@@ -572,10 +583,8 @@ void DungeonEditor::DrawObjectRenderer() {
   }
 
   if (object_loaded_) {
-    ImGui::Begin("Memory Viewer", &object_loaded_, 0);
-    static MemoryEditor mem_edit;
-    // mem_edit.DrawContents(object_renderer_.mutable_memory()->data(),
-    // object_renderer_.mutable_memory()->size());
+    ImGui::Begin("Object Preview", &object_loaded_, 0);
+    ImGui::Text("Object rendered successfully using improved renderer!");
     ImGui::End();
   }
 }
