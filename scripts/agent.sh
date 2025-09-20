@@ -120,6 +120,23 @@ enable_linger_linux() {
   fi
 }
 
+# Wrapper to run systemctl --user with a session bus in headless shells
+systemctl_user() {
+  # Only apply on Linux
+  if [[ "$(uname -s)" != "Linux" ]]; then
+    systemctl "$@"
+    return
+  fi
+  local uid
+  uid="$(id -u)"
+  export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/${uid}}"
+  export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=${XDG_RUNTIME_DIR}/bus}"
+  if [[ ! -S "${XDG_RUNTIME_DIR}/bus" ]]; then
+    echo "[agent] Warning: user bus not found at ${XDG_RUNTIME_DIR}/bus. If this fails, run: sudo loginctl enable-linger $USER" >&2
+  fi
+  systemctl --user "$@"
+}
+
 install_macos() {
   local build_type="${1}"
   local build_dir="${2}"
@@ -198,8 +215,8 @@ RestartSec=2
 WantedBy=default.target
 UNIT
 
-    systemctl --user daemon-reload
-    systemctl --user enable --now yaze-watchtest-inotify.service
+    systemctl_user daemon-reload
+    systemctl_user enable --now yaze-watchtest-inotify.service
     echo "systemd user service enabled: yaze-watchtest-inotify.service"
     return
   fi
@@ -231,10 +248,10 @@ Unit=${service_name}
 WantedBy=default.target
 UNIT
 
-  systemctl --user daemon-reload
-  systemctl --user enable --now "$path_name"
+  systemctl_user daemon-reload
+  systemctl_user enable --now "$path_name"
   echo "systemd user path unit enabled: ${path_name}"
-  systemctl --user start "$service_name" || true
+  systemctl_user start "$service_name" || true
 }
 
 sub_install() {
@@ -277,13 +294,13 @@ sub_uninstall() {
       ;;
     Linux)
       local systemd_dir="$HOME/.config/systemd/user"
-      systemctl --user stop yaze-watchtest.path 2>/dev/null || true
-      systemctl --user disable yaze-watchtest.path 2>/dev/null || true
-      systemctl --user stop yaze-watchtest.service 2>/dev/null || true
-      systemctl --user stop yaze-watchtest-inotify.service 2>/dev/null || true
-      systemctl --user disable yaze-watchtest-inotify.service 2>/dev/null || true
+      systemctl_user stop yaze-watchtest.path 2>/dev/null || true
+      systemctl_user disable yaze-watchtest.path 2>/dev/null || true
+      systemctl_user stop yaze-watchtest.service 2>/dev/null || true
+      systemctl_user stop yaze-watchtest-inotify.service 2>/dev/null || true
+      systemctl_user disable yaze-watchtest-inotify.service 2>/dev/null || true
       rm -f "${systemd_dir}/yaze-watchtest.service" "${systemd_dir}/yaze-watchtest.path" "${systemd_dir}/yaze-watchtest-inotify.service"
-      systemctl --user daemon-reload || true
+      systemctl_user daemon-reload || true
       echo "Removed systemd user units"
       ;;
     *) echo "Unsupported platform" >&2; exit 1 ;;
