@@ -4,6 +4,7 @@
 #include "app/zelda3/dungeon/room_object.h"
 
 #include <vector>
+#include <chrono>
 
 #include "gtest/gtest.h"
 

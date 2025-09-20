@@ -97,6 +97,10 @@ struct ObjectRoutineInfo {
   int tile_count;
   bool is_repeatable;
   bool is_orientation_dependent;
+  
+  ObjectRoutineInfo() 
+    : routine_ptr(0), tile_ptr(0), tile_count(0), 
+      is_repeatable(false), is_orientation_dependent(false) {}
 };
 
 /**
@@ -107,6 +111,9 @@ struct ObjectSubtypeInfo {
   uint32_t subtype_ptr;
   uint32_t routine_ptr;
   int max_tile_count;
+  
+  ObjectSubtypeInfo() 
+    : subtype(0), subtype_ptr(0), routine_ptr(0), max_tile_count(0) {}
 };
 
 /**
@@ -118,6 +125,10 @@ struct ObjectSizeInfo {
   bool is_horizontal;
   bool is_repeatable;
   int repeat_count;
+  
+  ObjectSizeInfo() 
+    : width_tiles(0), height_tiles(0), is_horizontal(true), 
+      is_repeatable(false), repeat_count(1) {}
 };
 
 }  // namespace zelda3
