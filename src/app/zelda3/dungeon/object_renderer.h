@@ -1,77 +1,97 @@
+#ifndef YAZE_APP_ZELDA3_DUNGEON_OBJECT_RENDERER_H
+#define YAZE_APP_ZELDA3_DUNGEON_OBJECT_RENDERER_H
+
 #include <cstdint>
 #include <vector>
 
-#include "app/emu/snes.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/rom.h"
+#include "app/zelda3/dungeon/object_parser.h"
+#include "app/zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace zelda3 {
 
 /**
- * @struct PseudoVram
- * @brief Simulates the SNES VRAM for object rendering
- *
- * This structure holds the sheet IDs and palettes needed for rendering
- * dungeon objects in Link to the Past.
+ * @brief Dungeon object renderer using direct ROM parsing
+ * 
+ * This class provides high-performance object rendering using direct ROM parsing,
+ * providing better performance, reliability, and maintainability.
  */
-struct PseudoVram {
-  std::array<uint8_t, 16> sheets = {0};
-  std::vector<gfx::SnesPalette> palettes;
-};
-
-/**
- * @class DungeonObjectRenderer
- * @brief Renders dungeon objects from Link to the Past
- *
- * This class uses the emulator subsystem to simulate the SNES CPU
- * drawing routines for dungeon objects. It captures the tile data
- * written to memory and renders it to a bitmap.
- */
-class DungeonObjectRenderer {
+class ObjectRenderer {
  public:
-  DungeonObjectRenderer() = default;
+  explicit ObjectRenderer(Rom* rom) : rom_(rom), parser_(rom) {}
 
   /**
-   * @brief Loads and renders a dungeon object
-   *
-   * @param routine_ptr Pointer to the drawing routine in ROM
-   * @param sheet_ids Array of graphics sheet IDs used by the object
+   * @brief Render a single object to a bitmap
+   * 
+   * @param object The room object to render
+   * @param palette The palette to use for rendering
+   * @return StatusOr containing the rendered bitmap
    */
-  void LoadObject(uint32_t routine_ptr, std::array<uint8_t, 16>& sheet_ids);
+  absl::StatusOr<gfx::Bitmap> RenderObject(const RoomObject& object, 
+                                          const gfx::SnesPalette& palette);
 
   /**
-   * @brief Configures the CPU state for object rendering
+   * @brief Render multiple objects to a single bitmap
+   * 
+   * @param objects Vector of room objects to render
+   * @param palette The palette to use for rendering
+   * @param width Width of the output bitmap
+   * @param height Height of the output bitmap
+   * @return StatusOr containing the rendered bitmap
    */
-  void ConfigureObject();
+  absl::StatusOr<gfx::Bitmap> RenderObjects(const std::vector<RoomObject>& objects,
+                                           const gfx::SnesPalette& palette,
+                                           int width = 256, int height = 256);
 
   /**
-   * @brief Executes the object drawing routine
-   *
-   * @param routine_ptr Pointer to the drawing routine in ROM
+   * @brief Render object with size and orientation
+   * 
+   * @param object The room object to render
+   * @param palette The palette to use for rendering
+   * @param size_info Size and orientation information
+   * @return StatusOr containing the rendered bitmap
    */
-  void RenderObject(uint32_t routine_ptr);
+  absl::StatusOr<gfx::Bitmap> RenderObjectWithSize(const RoomObject& object,
+                                                  const gfx::SnesPalette& palette,
+                                                  const ObjectSizeInfo& size_info);
 
   /**
-   * @brief Updates the bitmap with the rendered object
+   * @brief Get object preview (smaller version for UI)
+   * 
+   * @param object The room object to preview
+   * @param palette The palette to use
+   * @return StatusOr containing the preview bitmap
    */
-  void UpdateObjectBitmap();
-
-  auto mutable_memory() { return &tilemap_; }
-  auto rom() { return rom_; }
-  auto mutable_rom() { return &rom_; }
+  absl::StatusOr<gfx::Bitmap> GetObjectPreview(const RoomObject& object,
+                                              const gfx::SnesPalette& palette);
 
  private:
-  std::vector<uint8_t> tilemap_;
-  std::vector<uint8_t> rom_data_;
+  /**
+   * @brief Render a single tile to the bitmap
+   */
+  absl::Status RenderTile(const gfx::Tile16& tile, gfx::Bitmap& bitmap,
+                         int x, int y, const gfx::SnesPalette& palette);
 
-  PseudoVram vram_;
+  /**
+   * @brief Apply object size and orientation
+   */
+  absl::Status ApplyObjectSize(gfx::Bitmap& bitmap, const ObjectSizeInfo& size_info);
+
+  /**
+   * @brief Create a bitmap with the specified dimensions
+   */
+  gfx::Bitmap CreateBitmap(int width, int height);
 
   Rom* rom_;
-  emu::Snes snes_;
-  gfx::Bitmap bitmap_;
+  ObjectParser parser_;
 };
 
 }  // namespace zelda3
 }  // namespace yaze
+
+#endif  // YAZE_APP_ZELDA3_DUNGEON_OBJECT_RENDERER_H

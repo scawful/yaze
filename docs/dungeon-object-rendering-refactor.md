@@ -26,7 +26,7 @@ The original dungeon object rendering system had several issues:
   - Provides object size and orientation information
   - Handles object routine information
 
-#### 2. ImprovedObjectRenderer (`src/app/zelda3/dungeon/improved_object_renderer.h/cc`)
+#### 2. ObjectRenderer (`src/app/zelda3/dungeon/object_renderer.h/cc`)
 - **Purpose**: High-performance object rendering using parsed data
 - **Features**:
   - Renders single objects or multiple objects
@@ -41,11 +41,11 @@ The original dungeon object rendering system had several issues:
   - Fallback to legacy method for compatibility
   - Better error handling and validation
 
-#### 4. Integration Test Framework (`test/integration/`)
+#### 4. Simplified Test Framework (`test/test_dungeon_objects.h/cc`)
 - **Purpose**: Comprehensive testing without real ROM files
 - **Features**:
-  - MockRom class for testing
-  - Integration tests for complete pipeline
+  - Extended MockRom class for testing
+  - Simplified test structure using test folder prefix
   - Performance benchmarks
   - Modular component testing
 
@@ -108,7 +108,7 @@ The new system includes comprehensive testing:
 // zelda3::DungeonObjectRenderer object_renderer_;
 
 // New
-zelda3::ImprovedObjectRenderer object_renderer_;
+zelda3::ObjectRenderer object_renderer_;
 ```
 
 ### RoomObject
@@ -129,13 +129,13 @@ make yaze_test
 
 # Run specific test suites
 ./yaze_test --gtest_filter="*ObjectParser*"
-./yaze_test --gtest_filter="*ImprovedObjectRenderer*"
-./yaze_test --gtest_filter="*DungeonObjectRenderingIntegration*"
+./yaze_test --gtest_filter="*ObjectRenderer*"
+./yaze_test --gtest_filter="*TestDungeonObjects*"
 ```
 
 ### Test Coverage
 - **ObjectParser**: 100% method coverage
-- **ImprovedObjectRenderer**: 100% method coverage
+- **ObjectRenderer**: 100% method coverage
 - **Integration Tests**: Complete pipeline coverage
 - **Mock Data**: Realistic test scenarios
 
@@ -143,7 +143,7 @@ make yaze_test
 
 ### For Developers
 
-1. **Replace Old Renderer**: Use `ImprovedObjectRenderer` instead of `DungeonObjectRenderer`
+1. **Replace Old Renderer**: Use `ObjectRenderer` instead of `DungeonObjectRenderer`
 2. **Update Object Loading**: Use `EnsureTilesLoaded()` for automatic tile loading
 3. **Add Error Handling**: Check return values from new methods
 4. **Update Tests**: Use new mock framework for testing
