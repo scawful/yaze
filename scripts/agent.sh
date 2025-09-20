@@ -236,7 +236,7 @@ install_linux() {
     echo "[agent] systemd not available; installing userland background agent"
     start_userland_agent "${build_type}" "${build_dir}"
     return
-  }
+  fi
 
   if [[ "${use_inotify}" == "1" ]]; then
     cat >"${systemd_dir}/yaze-watchtest-inotify.service" <<UNIT
