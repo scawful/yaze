@@ -450,5 +450,60 @@ std::vector<uint8_t> Bitmap::GetPngData() {
 }
 #endif
 
+void Bitmap::SetPixel(int x, int y, const SnesColor& color) {
+  if (x < 0 || x >= width_ || y < 0 || y >= height_) {
+    return; // Bounds check
+  }
+  
+  int position = y * width_ + x;
+  if (position >= 0 && position < (int)data_.size()) {
+    // Convert SnesColor to palette index
+    uint8_t color_index = 0;
+    for (size_t i = 0; i < palette_.size(); i++) {
+      if (palette_[i] == color) {
+        color_index = static_cast<uint8_t>(i);
+        break;
+      }
+    }
+    data_[position] = color_index;
+    modified_ = true;
+  }
+}
+
+void Bitmap::Resize(int new_width, int new_height) {
+  if (new_width <= 0 || new_height <= 0) {
+    return; // Invalid dimensions
+  }
+  
+  std::vector<uint8_t> new_data(new_width * new_height, 0);
+  
+  // Copy existing data, handling size changes
+  for (int y = 0; y < std::min(height_, new_height); y++) {
+    for (int x = 0; x < std::min(width_, new_width); x++) {
+      int old_pos = y * width_ + x;
+      int new_pos = y * new_width + x;
+      if (old_pos < (int)data_.size() && new_pos < (int)new_data.size()) {
+        new_data[new_pos] = data_[old_pos];
+      }
+    }
+  }
+  
+  width_ = new_width;
+  height_ = new_height;
+  data_ = std::move(new_data);
+  pixel_data_ = data_.data();
+  
+  // Recreate surface with new dimensions
+  if (surface_) {
+    surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
+                                           GetSnesPixelFormat(BitmapFormat::kIndexed));
+    if (surface_) {
+      surface_->pixels = pixel_data_;
+    }
+  }
+  
+  modified_ = true;
+}
+
 }  // namespace gfx
 }  // namespace yaze

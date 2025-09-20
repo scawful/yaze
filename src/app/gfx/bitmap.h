@@ -135,6 +135,16 @@ class Bitmap {
   void WriteColor(int position, const ImVec4 &color);
 
   /**
+   * @brief Set a pixel at the given x,y coordinates
+   */
+  void SetPixel(int x, int y, const SnesColor& color);
+
+  /**
+   * @brief Resize the bitmap to new dimensions
+   */
+  void Resize(int new_width, int new_height);
+
+  /**
    * @brief Extract an 8x8 tile from the bitmap
    */
   void Get8x8Tile(int tile_index, int x, int y, std::vector<uint8_t> &tile_data,
