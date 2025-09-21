@@ -78,6 +78,22 @@ class DungeonEditor : public Editor {
   void DrawRoomGraphics();
   void DrawTileSelector();
   void DrawObjectRenderer();
+  
+  // Object rendering methods
+  void RenderObjectInCanvas(const zelda3::RoomObject& object, const gfx::SnesPalette& palette);
+  void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x, int canvas_y);
+  
+  // Object rendering cache to avoid re-rendering the same objects
+  struct ObjectRenderCache {
+    int object_id;
+    int object_x, object_y, object_size;
+    uint64_t palette_hash;
+    gfx::Bitmap rendered_bitmap;
+    bool is_valid;
+  };
+  
+  std::vector<ObjectRenderCache> object_render_cache_;
+  uint64_t last_palette_hash_ = 0;
 
   void CalculateUsageStats();
   void DrawUsageStats();

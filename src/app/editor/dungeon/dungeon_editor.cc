@@ -1,6 +1,7 @@
 #include "dungeon_editor.h"
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/strings/str_format.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
@@ -464,7 +465,20 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   }
 
   static bool show_objects = false;
-  ImGui::Checkbox("Show Objects", &show_objects);
+  ImGui::Checkbox("Show Object Outlines", &show_objects);
+  
+  static bool render_objects = true;
+  ImGui::Checkbox("Render Objects", &render_objects);
+  
+  static bool show_object_info = false;
+  ImGui::Checkbox("Show Object Info", &show_object_info);
+  
+  if (ImGui::Button("Clear Object Cache")) {
+    object_render_cache_.clear();
+  }
+  
+  ImGui::SameLine();
+  ImGui::Text("Cache: %zu objects", object_render_cache_.size());
 
   ImGui::EndGroup();
 
@@ -474,15 +488,131 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
     canvas_.DrawBitmap(gfx::Arena::Get().bg1().bitmap(), 0, true);
     canvas_.DrawBitmap(gfx::Arena::Get().bg2().bitmap(), 0, true);
 
-    if (show_objects) {
+    if (show_objects || render_objects) {
+      // Get the current room's palette for object rendering
+      auto current_palette = rom()->palette_group().dungeon_main[current_palette_group_id_];
+      
+      // Clear cache if palette changed
+      uint64_t current_palette_hash = 0;
+      for (size_t i = 0; i < current_palette.size() && i < 16; ++i) {
+        current_palette_hash ^= std::hash<uint16_t>{}(current_palette[i].snes()) + 0x9e3779b9 + (current_palette_hash << 6) + (current_palette_hash >> 2);
+      }
+      
+      if (current_palette_hash != last_palette_hash_) {
+        object_render_cache_.clear();
+        last_palette_hash_ = current_palette_hash;
+      }
+      
       for (const auto &object : rooms_[room_id].tile_objects_) {
-        canvas_.DrawOutline(object.x_, object.y_, object.width_ * 16,
-                            object.height_ * 16);
+        // Convert room coordinates to canvas coordinates
+        int canvas_x = object.x_ * 16;
+        int canvas_y = object.y_ * 16;
+        
+        if (show_objects) {
+          // Draw object outline
+          canvas_.DrawOutline(object.x_, object.y_, object.width_ * 16,
+                              object.height_ * 16);
+        }
+        
+        if (render_objects) {
+          // Render the actual object using ObjectRenderer
+          RenderObjectInCanvas(object, current_palette);
+        }
+        
+        if (show_object_info) {
+          // Display object information
+          DisplayObjectInfo(object, canvas_x, canvas_y);
+        }
       }
     }
   }
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
+}
+
+void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject& object, const gfx::SnesPalette& palette) {
+  // Ensure the object has tiles loaded
+  if (object.tiles().empty()) {
+    return; // Skip objects without tiles
+  }
+  
+  // Calculate palette hash for caching
+  uint64_t palette_hash = 0;
+  for (size_t i = 0; i < palette.size() && i < 16; ++i) {
+    palette_hash ^= std::hash<uint16_t>{}(palette[i].snes()) + 0x9e3779b9 + (palette_hash << 6) + (palette_hash >> 2);
+  }
+  
+  // Check cache first
+  for (const auto& cached : object_render_cache_) {
+    if (cached.object_id == object.id_ && 
+        cached.object_x == object.x_ && 
+        cached.object_y == object.y_ && 
+        cached.object_size == object.size_ &&
+        cached.palette_hash == palette_hash &&
+        cached.is_valid) {
+      // Use cached bitmap
+      int canvas_x = object.x_ * 16;
+      int canvas_y = object.y_ * 16;
+      canvas_.DrawBitmap(cached.rendered_bitmap, canvas_x, canvas_y, 1.0f, 255);
+      return;
+    }
+  }
+  
+  // Create a mutable copy of the object to ensure tiles are loaded
+  auto mutable_object = object;
+  mutable_object.set_rom(rom_);
+  mutable_object.EnsureTilesLoaded();
+  
+  if (mutable_object.tiles().empty()) {
+    return; // Still no tiles after loading attempt
+  }
+  
+  // Render the object to a bitmap
+  auto render_result = object_renderer_.RenderObject(mutable_object, palette);
+  if (!render_result.ok()) {
+    return; // Skip if rendering failed
+  }
+  
+  auto object_bitmap = std::move(render_result.value());
+  
+  // Set the palette for the bitmap
+  object_bitmap.SetPalette(palette);
+  
+  // Render the bitmap to a texture so it can be drawn
+  core::Renderer::Get().RenderBitmap(&object_bitmap);
+  
+  // Cache the rendered bitmap
+  ObjectRenderCache cache_entry;
+  cache_entry.object_id = object.id_;
+  cache_entry.object_x = object.x_;
+  cache_entry.object_y = object.y_;
+  cache_entry.object_size = object.size_;
+  cache_entry.palette_hash = palette_hash;
+  cache_entry.rendered_bitmap = std::move(object_bitmap);
+  cache_entry.is_valid = true;
+  
+  // Add to cache (limit cache size)
+  if (object_render_cache_.size() >= 100) {
+    object_render_cache_.erase(object_render_cache_.begin());
+  }
+  object_render_cache_.push_back(std::move(cache_entry));
+  
+  // Convert room coordinates to canvas coordinates
+  // Room coordinates are in 16x16 tile units, canvas coordinates are in pixels
+  int canvas_x = object.x_ * 16;
+  int canvas_y = object.y_ * 16;
+  
+  // Draw the object bitmap to the canvas
+  canvas_.DrawBitmap(object_render_cache_.back().rendered_bitmap, canvas_x, canvas_y, 1.0f, 255);
+}
+
+void DungeonEditor::DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x, int canvas_y) {
+  // Display object information as text overlay
+  std::string info_text = absl::StrFormat("ID:%d X:%d Y:%d S:%d", 
+                                         object.id_, object.x_, object.y_, object.size_);
+  
+  // Draw text at the object position
+  canvas_.DrawText(info_text, canvas_x, canvas_y - 12);
 }
 
 void DungeonEditor::DrawRoomGraphics() {
