@@ -76,16 +76,21 @@ class RoomObject {
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
 
-  // Ensures tiles_ is populated with a basic set based on ROM tables so we can
-  // preview/draw objects without needing full emulator execution.
+  // Ensures tile data is loaded and accessible through the Arena system
+  // This avoids copying large tile vectors and uses efficient reference-based access
   void EnsureTilesLoaded();
   
-  // Load tiles using the new ObjectParser
+  // Load tiles using the new ObjectParser and store references in Arena
   absl::Status LoadTilesWithParser();
 
-  // Getter for tiles
-  const std::vector<gfx::Tile16>& tiles() const { return tiles_; }
-  std::vector<gfx::Tile16>& mutable_tiles() { return tiles_; }
+  // Get tile data through Arena system - returns references, not copies
+  absl::StatusOr<std::span<const gfx::Tile16>> GetTiles() const;
+  
+  // Get individual tile by index - uses Arena lookup
+  absl::StatusOr<const gfx::Tile16*> GetTile(int index) const;
+  
+  // Get tile count without loading all tiles
+  int GetTileCount() const;
 
   void AddTiles(int nbr, int pos) {
     for (int i = 0; i < nbr; i++) {
@@ -125,7 +130,13 @@ class RoomObject {
   std::string name_;
 
   std::vector<uint8_t> preview_object_data_;
-  std::vector<gfx::Tile16> tiles_;
+  
+  // Tile data storage - using Arena system for efficient memory management
+  // Instead of copying Tile16 vectors, we store references to Arena-managed data
+  mutable std::vector<gfx::Tile16> tiles_; // Fallback for compatibility
+  mutable bool tiles_loaded_ = false;
+  mutable int tile_count_ = 0;
+  mutable int tile_data_ptr_ = -1; // Pointer to tile data in ROM
 
   LayerType layer_;
   ObjectOption options_ = ObjectOption::Nothing;

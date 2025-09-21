@@ -518,39 +518,20 @@ void Room::LoadChests() {
 }
 
 void Room::LoadRoomLayout() {
-  auto rom_data = rom()->vector();
-  
-  // Load room layout from room_object_layout_pointer
-  int layout_pointer = (rom_data[room_object_layout_pointer + 2] << 16) +
-                       (rom_data[room_object_layout_pointer + 1] << 8) +
-                       (rom_data[room_object_layout_pointer]);
-  layout_pointer = SnesToPc(layout_pointer);
-  
-  // Get the layout address for this room
-  int layout_address = layout_pointer + (room_id_ * 3);
-  int layout_location = SnesToPc(layout_address);
-  
-  if (layout_location >= 0 && layout_location + 2 < (int)rom()->size()) {
-    // Read the layout data (3 bytes: bank, high, low)
-    uint8_t bank = rom_data[layout_location + 2];
-    uint8_t high = rom_data[layout_location + 1];
-    uint8_t low = rom_data[layout_location];
-    
-    // Construct the layout address
-    int layout_data_address = SnesToPc((bank << 16) | (high << 8) | low);
-    
-    if (layout_data_address >= 0 && layout_data_address < (int)rom()->size()) {
-      // Load layout data - this contains wall/floor tile information
-      // For now, we'll store the address for later use
-      layout = static_cast<uint8_t>(layout_data_address & 0xFF);
-      
-      // TODO: Parse the actual layout data to extract wall positions
-      // This would involve reading tile data and creating wall objects
-    }
+  // Use the new RoomLayout system to load walls, floors, and structural elements
+  auto status = layout_.LoadLayout(room_id_);
+  if (!status.ok()) {
+    // Log error but don't fail - some rooms might not have layout data
+    util::logf("Failed to load room layout for room %d: %s", 
+               room_id_, status.message().c_str());
+    return;
   }
   
-  // Load room objects from room_object_pointer (this is already done in LoadObjects)
-  // but we can add additional layout-specific object loading here
+  // Store the layout ID for compatibility with existing code
+  layout = static_cast<uint8_t>(room_id_ & 0xFF);
+  
+  util::logf("Loaded room layout for room %d with %zu objects", 
+             room_id_, layout_.GetObjects().size());
 }
 
 void Room::LoadDoors() {

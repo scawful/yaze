@@ -473,12 +473,83 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   static bool show_object_info = false;
   ImGui::Checkbox("Show Object Info", &show_object_info);
   
+  static bool show_layout_objects = false;
+  ImGui::Checkbox("Show Layout Objects", &show_layout_objects);
+  
+  static bool show_debug_info = false;
+  ImGui::Checkbox("Show Debug Info", &show_debug_info);
+  
   if (ImGui::Button("Clear Object Cache")) {
     object_render_cache_.clear();
   }
   
   ImGui::SameLine();
   ImGui::Text("Cache: %zu objects", object_render_cache_.size());
+  
+  // Object statistics and metadata
+  if (show_debug_info) {
+    ImGui::Separator();
+    ImGui::Text("Room Statistics:");
+    ImGui::Text("Objects: %zu", rooms_[room_id].tile_objects_.size());
+    ImGui::Text("Layout Objects: %zu", rooms_[room_id].GetLayout().GetObjects().size());
+    ImGui::Text("Sprites: %zu", rooms_[room_id].sprites_.size());
+    ImGui::Text("Chests: %zu", rooms_[room_id].chests_in_room_.size());
+    
+    // Palette information
+    ImGui::Text("Current Palette Group: %d", current_palette_group_id_);
+    ImGui::Text("Palette Hash: %#016llx", last_palette_hash_);
+    
+    // Object type breakdown
+    ImGui::Separator();
+    ImGui::Text("Object Type Breakdown:");
+    std::map<int, int> object_type_counts;
+    for (const auto& obj : rooms_[room_id].tile_objects_) {
+      object_type_counts[obj.id_]++;
+    }
+    for (const auto& [type, count] : object_type_counts) {
+      ImGui::Text("Type 0x%02X: %d objects", type, count);
+    }
+    
+    // Layout object type breakdown
+    ImGui::Separator();
+    ImGui::Text("Layout Object Types:");
+    auto walls = rooms_[room_id].GetLayout().GetObjectsByType(zelda3::RoomLayoutObject::Type::kWall);
+    auto floors = rooms_[room_id].GetLayout().GetObjectsByType(zelda3::RoomLayoutObject::Type::kFloor);
+    auto doors = rooms_[room_id].GetLayout().GetObjectsByType(zelda3::RoomLayoutObject::Type::kDoor);
+    ImGui::Text("Walls: %zu", walls.size());
+    ImGui::Text("Floors: %zu", floors.size());
+    ImGui::Text("Doors: %zu", doors.size());
+  }
+  
+  // Object selection and editing
+  static int selected_object_id = -1;
+  if (ImGui::Button("Select Object")) {
+    // This would open an object selection dialog
+    // For now, just cycle through objects
+    if (!rooms_[room_id].tile_objects_.empty()) {
+      selected_object_id = (selected_object_id + 1) % rooms_[room_id].tile_objects_.size();
+    }
+  }
+  
+  if (selected_object_id >= 0 && selected_object_id < (int)rooms_[room_id].tile_objects_.size()) {
+    const auto& selected_obj = rooms_[room_id].tile_objects_[selected_object_id];
+    ImGui::Separator();
+    ImGui::Text("Selected Object:");
+    ImGui::Text("ID: 0x%02X", selected_obj.id_);
+    ImGui::Text("Position: (%d, %d)", selected_obj.x_, selected_obj.y_);
+    ImGui::Text("Size: 0x%02X", selected_obj.size_);
+    ImGui::Text("Layer: %d", static_cast<int>(selected_obj.layer_));
+    ImGui::Text("Tile Count: %d", selected_obj.GetTileCount());
+    
+    // Object editing controls
+    if (ImGui::Button("Edit Object")) {
+      // This would open an object editing dialog
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Delete Object")) {
+      // This would remove the object from the room
+    }
+  }
 
   ImGui::EndGroup();
 
@@ -503,6 +574,12 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
         last_palette_hash_ = current_palette_hash;
       }
       
+      // Render layout objects (walls, floors, etc.) first
+      if (show_layout_objects) {
+        RenderLayoutObjects(rooms_[room_id].GetLayout(), current_palette);
+      }
+      
+      // Render regular room objects
       for (const auto &object : rooms_[room_id].tile_objects_) {
         // Convert room coordinates to canvas coordinates
         int canvas_x = object.x_ * 16;
@@ -548,8 +625,9 @@ void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject& object, const
   mutable_object.set_rom(rom_);
   mutable_object.EnsureTilesLoaded();
   
-  // Check if tiles were loaded successfully
-  if (mutable_object.tiles().empty()) {
+  // Check if tiles were loaded successfully using the new method
+  auto tiles_result = mutable_object.GetTiles();
+  if (!tiles_result.ok() || tiles_result->empty()) {
     return; // Skip objects without tiles
   }
   
@@ -622,6 +700,49 @@ void DungeonEditor::DisplayObjectInfo(const zelda3::RoomObject& object, int canv
   
   // Draw text at the object position
   canvas_.DrawText(info_text, canvas_x, canvas_y - 12);
+}
+
+void DungeonEditor::RenderLayoutObjects(const zelda3::RoomLayout& layout, const gfx::SnesPalette& palette) {
+  // Render layout objects (walls, floors, etc.) as simple colored rectangles
+  // This provides a visual representation of the room's structure
+  
+  for (const auto& layout_obj : layout.GetObjects()) {
+    int canvas_x = layout_obj.x() * 16;
+    int canvas_y = layout_obj.y() * 16;
+    
+    // Choose color based on object type
+    gfx::SnesColor color;
+    switch (layout_obj.type()) {
+      case zelda3::RoomLayoutObject::Type::kWall:
+        color = gfx::SnesColor(0x7FFF); // Gray
+        break;
+      case zelda3::RoomLayoutObject::Type::kFloor:
+        color = gfx::SnesColor(0x4210); // Dark brown
+        break;
+      case zelda3::RoomLayoutObject::Type::kCeiling:
+        color = gfx::SnesColor(0x739C); // Light gray
+        break;
+      case zelda3::RoomLayoutObject::Type::kPit:
+        color = gfx::SnesColor(0x0000); // Black
+        break;
+      case zelda3::RoomLayoutObject::Type::kWater:
+        color = gfx::SnesColor(0x001F); // Blue
+        break;
+      case zelda3::RoomLayoutObject::Type::kStairs:
+        color = gfx::SnesColor(0x7E0F); // Yellow
+        break;
+      case zelda3::RoomLayoutObject::Type::kDoor:
+        color = gfx::SnesColor(0xF800); // Red
+        break;
+      default:
+        color = gfx::SnesColor(0x7C1F); // Magenta for unknown
+        break;
+    }
+    
+    // Draw a simple rectangle for the layout object
+    // This is a placeholder - in a real implementation, you'd render the actual tile
+    canvas_.DrawRect(canvas_x, canvas_y, 16, 16, color);
+  }
 }
 
 void DungeonEditor::DrawRoomGraphics() {

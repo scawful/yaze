@@ -148,9 +148,8 @@ absl::Status ObjectRenderer::RenderTile(const gfx::Tile16& tile,
     return absl::FailedPreconditionError("Bitmap is not properly initialized");
   }
   
-  // Get the graphics sheet for this tile
-  // For now, we'll use a placeholder approach
-  // In a real implementation, this would look up the actual graphics sheet
+  // Get the graphics sheet from Arena - this contains the actual pixel data
+  auto& arena = gfx::Arena::Get();
   
   // Render the 4 sub-tiles of the Tile16
   std::array<gfx::TileInfo, 4> sub_tiles = {
@@ -158,19 +157,59 @@ absl::Status ObjectRenderer::RenderTile(const gfx::Tile16& tile,
   };
 
   for (int i = 0; i < 4; ++i) {
+    const auto& tile_info = sub_tiles[i];
     int sub_x = x + (i % 2) * 8;
     int sub_y = y + (i / 2) * 8;
     
-    // Render 8x8 tile
-    // This is a simplified implementation - in reality, you'd need to
-    // look up the actual pixel data from the graphics sheets
+    // Get the graphics sheet that contains this tile
+    // Tile IDs are typically organized in sheets of 256 tiles each
+    int sheet_index = tile_info.id_ / 256;
+    if (sheet_index >= 223) { // Arena has 223 graphics sheets
+      sheet_index = 0; // Fallback to first sheet
+    }
+    
+    auto& graphics_sheet = arena.gfx_sheet(sheet_index);
+    if (!graphics_sheet.is_active()) {
+      // If graphics sheet is not loaded, create a simple pattern
+      RenderTilePattern(bitmap, sub_x, sub_y, tile_info, palette);
+      continue;
+    }
+    
+    // Calculate tile position within the graphics sheet
+    int tile_x = (tile_info.id_ % 16) * 8; // 16 tiles per row, 8 pixels per tile
+    int tile_y = ((tile_info.id_ % 256) / 16) * 8; // 16 rows per sheet
+    
+    // Render the 8x8 tile from the graphics sheet
     for (int py = 0; py < 8; ++py) {
       for (int px = 0; px < 8; ++px) {
         if (sub_x + px < bitmap.width() && sub_y + py < bitmap.height()) {
-          // Get color from palette - use a simple pattern for now
-          int color_index = (i * 16) + (py * 2) + (px / 4); // Simplified color calculation
-          if (color_index < palette.size()) {
-            bitmap.SetPixel(sub_x + px, sub_y + py, palette[color_index % 16]);
+          // Get pixel from graphics sheet
+          int src_x = tile_x + px;
+          int src_y = tile_y + py;
+          
+          if (src_x < graphics_sheet.width() && src_y < graphics_sheet.height()) {
+            int pixel_index = src_y * graphics_sheet.width() + src_x;
+            if (pixel_index < (int)graphics_sheet.size()) {
+              uint8_t color_index = graphics_sheet.at(pixel_index);
+              
+              // Apply palette
+              if (color_index < palette.size()) {
+                // Apply mirroring if needed
+                int final_x = sub_x + px;
+                int final_y = sub_y + py;
+                
+                if (tile_info.horizontal_mirror_) {
+                  final_x = sub_x + (7 - px);
+                }
+                if (tile_info.vertical_mirror_) {
+                  final_y = sub_y + (7 - py);
+                }
+                
+                if (final_x < bitmap.width() && final_y < bitmap.height()) {
+                  bitmap.SetPixel(final_x, final_y, palette[color_index]);
+                }
+              }
+            }
           }
         }
       }
@@ -192,6 +231,28 @@ gfx::Bitmap ObjectRenderer::CreateBitmap(int width, int height) {
   std::vector<uint8_t> data(width * height, 0); // Initialize with zeros
   gfx::Bitmap bitmap(width, height, 8, data); // 8-bit depth
   return bitmap;
+}
+
+void ObjectRenderer::RenderTilePattern(gfx::Bitmap& bitmap, int x, int y, 
+                                      const gfx::TileInfo& tile_info, 
+                                      const gfx::SnesPalette& palette) {
+  // Create a simple pattern based on tile ID and palette
+  // This is used when the graphics sheet is not available
+  
+  for (int py = 0; py < 8; ++py) {
+    for (int px = 0; px < 8; ++px) {
+      if (x + px < bitmap.width() && y + py < bitmap.height()) {
+        // Create a simple pattern based on tile ID
+        int pattern_value = (tile_info.id_ + px + py) % 16;
+        
+        // Use different colors based on the pattern
+        int color_index = pattern_value % palette.size();
+        if (color_index > 0) { // Skip transparent color (index 0)
+          bitmap.SetPixel(x + px, y + py, palette[color_index]);
+        }
+      }
+    }
+  }
 }
 
 }  // namespace zelda3

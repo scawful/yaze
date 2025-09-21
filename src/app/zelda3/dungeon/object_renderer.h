@@ -86,6 +86,13 @@ class ObjectRenderer {
    * @brief Create a bitmap with the specified dimensions
    */
   gfx::Bitmap CreateBitmap(int width, int height);
+  
+  /**
+   * @brief Render a simple pattern when graphics sheet is not available
+   */
+  void RenderTilePattern(gfx::Bitmap& bitmap, int x, int y, 
+                        const gfx::TileInfo& tile_info, 
+                        const gfx::SnesPalette& palette);
 
   Rom* rom_;
   ObjectParser parser_;

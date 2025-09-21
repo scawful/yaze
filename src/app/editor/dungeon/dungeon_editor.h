@@ -80,8 +80,9 @@ class DungeonEditor : public Editor {
   void DrawObjectRenderer();
   
   // Object rendering methods
-  void RenderObjectInCanvas(const zelda3::RoomObject& object, const gfx::SnesPalette& palette);
-  void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x, int canvas_y);
+        void RenderObjectInCanvas(const zelda3::RoomObject& object, const gfx::SnesPalette& palette);
+        void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x, int canvas_y);
+        void RenderLayoutObjects(const zelda3::RoomLayout& layout, const gfx::SnesPalette& palette);
   
   // Object rendering cache to avoid re-rendering the same objects
   struct ObjectRenderCache {

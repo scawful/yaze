@@ -153,15 +153,16 @@ void RoomObject::DrawTile(gfx::Tile16 t, int xx, int yy,
 }
 
 void RoomObject::EnsureTilesLoaded() {
-  if (!tiles_.empty()) return;
+  if (tiles_loaded_) return;
   if (rom_ == nullptr) return;
 
-  // Try the new parser first
+  // Try the new parser first - this is more efficient and accurate
   if (LoadTilesWithParser().ok()) {
+    tiles_loaded_ = true;
     return;
   }
 
-  // Fallback to old method
+  // Fallback to old method for compatibility
   auto rom_data = rom_->data();
 
   // Determine which subtype table to use and compute the tile data offset.
@@ -172,6 +173,7 @@ void RoomObject::EnsureTilesLoaded() {
 
   int tile_rel = (int16_t)((rom_data[tile_ptr + 1] << 8) + rom_data[tile_ptr]);
   int pos = kRoomObjectTileAddress + tile_rel;
+  tile_data_ptr_ = pos;
 
   // Read one 16x16 (4 words) worth of tile info as a preview.
   if (pos < 0 || pos + 7 >= (int)rom_->size()) return;
@@ -180,8 +182,11 @@ void RoomObject::EnsureTilesLoaded() {
   uint16_t w2 = (uint16_t)(rom_data[pos + 4] | (rom_data[pos + 5] << 8));
   uint16_t w3 = (uint16_t)(rom_data[pos + 6] | (rom_data[pos + 7] << 8));
 
+  tiles_.clear();
   tiles_.push_back(gfx::Tile16(gfx::WordToTileInfo(w0), gfx::WordToTileInfo(w1),
                                gfx::WordToTileInfo(w2), gfx::WordToTileInfo(w3)));
+  tile_count_ = 1;
+  tiles_loaded_ = true;
 }
 
 absl::Status RoomObject::LoadTilesWithParser() {
@@ -196,7 +201,41 @@ absl::Status RoomObject::LoadTilesWithParser() {
   }
 
   tiles_ = std::move(result.value());
+  tile_count_ = tiles_.size();
   return absl::OkStatus();
+}
+
+absl::StatusOr<std::span<const gfx::Tile16>> RoomObject::GetTiles() const {
+  if (!tiles_loaded_) {
+    const_cast<RoomObject*>(this)->EnsureTilesLoaded();
+  }
+  
+  if (tiles_.empty()) {
+    return absl::FailedPreconditionError("No tiles loaded for object");
+  }
+  
+  return std::span<const gfx::Tile16>(tiles_.data(), tiles_.size());
+}
+
+absl::StatusOr<const gfx::Tile16*> RoomObject::GetTile(int index) const {
+  if (!tiles_loaded_) {
+    const_cast<RoomObject*>(this)->EnsureTilesLoaded();
+  }
+  
+  if (index < 0 || index >= static_cast<int>(tiles_.size())) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Tile index %d out of range (0-%d)", index, tiles_.size() - 1));
+  }
+  
+  return &tiles_[index];
+}
+
+int RoomObject::GetTileCount() const {
+  if (!tiles_loaded_) {
+    const_cast<RoomObject*>(this)->EnsureTilesLoaded();
+  }
+  
+  return tile_count_;
 }
 
 }  // namespace zelda3

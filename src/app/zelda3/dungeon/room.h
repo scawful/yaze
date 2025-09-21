@@ -9,6 +9,7 @@
 
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room_object.h"
+#include "app/zelda3/dungeon/room_layout.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -200,7 +201,7 @@ enum TagKey {
 class Room {
  public:
   Room() = default;
-  Room(int room_id, Rom *rom) : room_id_(room_id), rom_(rom) {}
+  Room(int room_id, Rom *rom) : room_id_(room_id), rom_(rom), layout_(rom) {}
 
   void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
@@ -214,6 +215,10 @@ class Room {
   void LoadTorches();
   void LoadBlocks();
   void LoadPits();
+  
+  // Room layout accessors
+  const RoomLayout& GetLayout() const { return layout_; }
+  RoomLayout& GetMutableLayout() { return layout_; }
 
   auto blocks() const { return blocks_; }
   auto &mutable_blocks() { return blocks_; }
@@ -259,6 +264,9 @@ class Room {
   std::vector<zelda3::Sprite> sprites_;
   std::vector<staircase> z3_staircases_;
   std::vector<chest_data> chests_in_room_;
+  
+  // Room layout system for walls, floors, and structural elements
+  RoomLayout layout_;
 
   LayerMergeType layer_merging_;
   CollisionKey collision_;
