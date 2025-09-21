@@ -72,6 +72,31 @@ class Bitmap {
          const SnesPalette &palette);
 
   /**
+   * @brief Copy constructor - creates a deep copy
+   */
+  Bitmap(const Bitmap& other);
+
+  /**
+   * @brief Copy assignment operator
+   */
+  Bitmap& operator=(const Bitmap& other);
+
+  /**
+   * @brief Move constructor
+   */
+  Bitmap(Bitmap&& other) noexcept;
+
+  /**
+   * @brief Move assignment operator
+   */
+  Bitmap& operator=(Bitmap&& other) noexcept;
+
+  /**
+   * @brief Destructor
+   */
+  ~Bitmap() = default;
+
+  /**
    * @brief Create a bitmap with the given dimensions and data
    */
   void Create(int width, int height, int depth, std::span<uint8_t> data);

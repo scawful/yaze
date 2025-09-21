@@ -590,14 +590,22 @@ void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject& object, const
   // Render the bitmap to a texture so it can be drawn
   core::Renderer::Get().RenderBitmap(&object_bitmap);
   
-  // Cache the rendered bitmap
+  // Convert room coordinates to canvas coordinates
+  // Room coordinates are in 16x16 tile units, canvas coordinates are in pixels
+  int canvas_x = object.x_ * 16;
+  int canvas_y = object.y_ * 16;
+  
+  // Draw the object bitmap to the canvas immediately
+  canvas_.DrawBitmap(object_bitmap, canvas_x, canvas_y, 1.0f, 255);
+  
+  // Cache the rendered bitmap (create a copy for caching)
   ObjectRenderCache cache_entry;
   cache_entry.object_id = object.id_;
   cache_entry.object_x = object.x_;
   cache_entry.object_y = object.y_;
   cache_entry.object_size = object.size_;
   cache_entry.palette_hash = palette_hash;
-  cache_entry.rendered_bitmap = std::move(object_bitmap);
+  cache_entry.rendered_bitmap = object_bitmap; // Copy instead of move
   cache_entry.is_valid = true;
   
   // Add to cache (limit cache size)
@@ -605,14 +613,6 @@ void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject& object, const
     object_render_cache_.erase(object_render_cache_.begin());
   }
   object_render_cache_.push_back(std::move(cache_entry));
-  
-  // Convert room coordinates to canvas coordinates
-  // Room coordinates are in 16x16 tile units, canvas coordinates are in pixels
-  int canvas_x = object.x_ * 16;
-  int canvas_y = object.y_ * 16;
-  
-  // Draw the object bitmap to the canvas
-  canvas_.DrawBitmap(object_render_cache_.back().rendered_bitmap, canvas_x, canvas_y, 1.0f, 255);
 }
 
 void DungeonEditor::DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x, int canvas_y) {

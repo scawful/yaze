@@ -143,6 +143,11 @@ absl::Status ObjectRenderer::RenderTile(const gfx::Tile16& tile,
                                                int x, int y, 
                                                const gfx::SnesPalette& palette) {
   
+  // Check if bitmap is valid
+  if (!bitmap.is_active() || bitmap.surface() == nullptr) {
+    return absl::FailedPreconditionError("Bitmap is not properly initialized");
+  }
+  
   // Get the graphics sheet for this tile
   // For now, we'll use a placeholder approach
   // In a real implementation, this would look up the actual graphics sheet
@@ -162,8 +167,8 @@ absl::Status ObjectRenderer::RenderTile(const gfx::Tile16& tile,
     for (int py = 0; py < 8; ++py) {
       for (int px = 0; px < 8; ++px) {
         if (sub_x + px < bitmap.width() && sub_y + py < bitmap.height()) {
-          // Get color from palette
-          int color_index = (i * 64) + (py * 8) + px; // Simplified color calculation
+          // Get color from palette - use a simple pattern for now
+          int color_index = (i * 16) + (py * 2) + (px / 4); // Simplified color calculation
           if (color_index < palette.size()) {
             bitmap.SetPixel(sub_x + px, sub_y + py, palette[color_index % 16]);
           }
@@ -183,8 +188,9 @@ absl::Status ObjectRenderer::ApplyObjectSize(gfx::Bitmap& bitmap,
 }
 
 gfx::Bitmap ObjectRenderer::CreateBitmap(int width, int height) {
-  gfx::Bitmap bitmap;
-  bitmap.Resize(width, height);
+  // Create a bitmap with proper initialization
+  std::vector<uint8_t> data(width * height, 0); // Initialize with zeros
+  gfx::Bitmap bitmap(width, height, 8, data); // 8-bit depth
   return bitmap;
 }
 
