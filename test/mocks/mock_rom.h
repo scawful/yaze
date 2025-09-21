@@ -11,25 +11,13 @@ namespace test {
 
 class MockRom : public Rom {
  public:
+  // Override the only virtual method in Rom
   MOCK_METHOD(absl::Status, WriteHelper, (const WriteAction&), (override));
 
-  MOCK_METHOD2(ReadHelper, absl::Status(uint8_t&, int));
-  MOCK_METHOD2(ReadHelper, absl::Status(uint16_t&, int));
-  MOCK_METHOD2(ReadHelper, absl::Status(std::vector<uint8_t>&, int));
-
-  MOCK_METHOD(absl::StatusOr<uint8_t>, ReadByte, (int));
-  MOCK_METHOD(absl::StatusOr<uint16_t>, ReadWord, (int));
-  MOCK_METHOD(absl::StatusOr<uint32_t>, ReadLong, (int));
-
-  // Additional methods for dungeon object testing
-  MOCK_METHOD(absl::Status, LoadFromFile, (const std::string&), (override));
-  MOCK_METHOD(absl::Status, LoadZelda3, (), (override));
-  
-  // Test data management
+  // Test data management methods
   void SetTestData(const std::vector<uint8_t>& data) {
-    test_data_ = data;
-    data_ = test_data_.data();
-    size_ = test_data_.size();
+    // Access protected/private members through public interface
+    LoadFromData(data, false);
   }
   
   void SetObjectData(int object_id, const std::vector<uint8_t>& data) {
@@ -48,8 +36,12 @@ class MockRom : public Rom {
     return room_data_.find(room_id) != room_data_.end();
   }
 
+  // Helper method to check if ROM is valid for testing
+  bool IsValid() const {
+    return is_loaded() && size() > 0;
+  }
+
  private:
-  std::vector<uint8_t> test_data_;
   std::map<int, std::vector<uint8_t>> object_data_;
   std::map<int, std::vector<uint8_t>> room_data_;
 };

@@ -13,7 +13,7 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObject(
     const RoomObject& object, const gfx::SnesPalette& palette) {
   
   // Ensure object has tiles loaded
-  if (object.tiles_.empty()) {
+  if (object.tiles().empty()) {
     return absl::FailedPreconditionError("Object has no tiles loaded");
   }
 
@@ -21,11 +21,11 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObject(
   gfx::Bitmap bitmap = CreateBitmap(32, 32); // Default 32x32 pixels
 
   // Render each tile
-  for (size_t i = 0; i < object.tiles_.size(); ++i) {
+  for (size_t i = 0; i < object.tiles().size(); ++i) {
     int tile_x = (i % 2) * 16; // 2 tiles per row
     int tile_y = (i / 2) * 16;
     
-    auto status = RenderTile(object.tiles_[i], bitmap, tile_x, tile_y, palette);
+    auto status = RenderTile(object.tiles()[i], bitmap, tile_x, tile_y, palette);
     if (!status.ok()) {
       return status;
     }
@@ -41,7 +41,7 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjects(
   gfx::Bitmap bitmap = CreateBitmap(width, height);
 
   for (const auto& object : objects) {
-    if (object.tiles_.empty()) {
+    if (object.tiles().empty()) {
       continue; // Skip objects without tiles
     }
 
@@ -50,13 +50,13 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjects(
     int obj_y = object.y_ * 16;
 
     // Render each tile of the object
-    for (size_t i = 0; i < object.tiles_.size(); ++i) {
+    for (size_t i = 0; i < object.tiles().size(); ++i) {
       int tile_x = obj_x + (i % 2) * 16;
       int tile_y = obj_y + (i / 2) * 16;
       
       // Check bounds
       if (tile_x >= 0 && tile_x < width && tile_y >= 0 && tile_y < height) {
-        auto status = RenderTile(object.tiles_[i], bitmap, tile_x, tile_y, palette);
+        auto status = RenderTile(object.tiles()[i], bitmap, tile_x, tile_y, palette);
         if (!status.ok()) {
           return status;
         }
@@ -71,7 +71,7 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjectWithSize(
     const RoomObject& object, const gfx::SnesPalette& palette,
     const ObjectSizeInfo& size_info) {
   
-  if (object.tiles_.empty()) {
+  if (object.tiles().empty()) {
     return absl::FailedPreconditionError("Object has no tiles loaded");
   }
 
@@ -122,7 +122,7 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjectWithSize(
 absl::StatusOr<gfx::Bitmap> ObjectRenderer::GetObjectPreview(
     const RoomObject& object, const gfx::SnesPalette& palette) {
   
-  if (object.tiles_.empty()) {
+  if (object.tiles().empty()) {
     return absl::FailedPreconditionError("Object has no tiles loaded");
   }
 

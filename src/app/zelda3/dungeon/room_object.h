@@ -82,6 +82,10 @@ class RoomObject {
   // Load tiles using the new ObjectParser
   absl::Status LoadTilesWithParser();
 
+  // Getter for tiles
+  const std::vector<gfx::Tile16>& tiles() const { return tiles_; }
+  std::vector<gfx::Tile16>& mutable_tiles() { return tiles_; }
+
   void AddTiles(int nbr, int pos) {
     for (int i = 0; i < nbr; i++) {
       ASSIGN_OR_LOG_ERROR(auto tile, rom()->ReadTile16(pos + (i * 2)));

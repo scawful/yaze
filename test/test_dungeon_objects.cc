@@ -3,8 +3,12 @@
 #include "app/zelda3/dungeon/object_parser.h"
 #include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room_object.h"
+#include "app/gfx/snes_color.h"
+#include "app/gfx/snes_palette.h"
+#include "test/testing.h"
 
 #include <vector>
+#include <cstring>
 
 #include "gtest/gtest.h"
 
@@ -44,7 +48,7 @@ absl::Status TestDungeonObjects::CreateTestRom() {
   auto tile_data = CreateTileData(0x1B52, 0x400);
   std::copy(tile_data.begin(), tile_data.end(), rom_data.begin() + 0x1B52);
   
-  static_cast<MockRom*>(test_rom_.get())->SetTestData(rom_data);
+  test_rom_->SetTestData(rom_data);
   
   return absl::OkStatus();
 }
@@ -52,11 +56,11 @@ absl::Status TestDungeonObjects::CreateTestRom() {
 absl::Status TestDungeonObjects::SetupObjectData() {
   // Set up test object data
   std::vector<uint8_t> object_data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
-  static_cast<MockRom*>(test_rom_.get())->SetObjectData(kTestObjectId, object_data);
+  test_rom_->SetObjectData(kTestObjectId, object_data);
   
   // Set up test room data
   auto room_header = CreateRoomHeader(kTestRoomId);
-  static_cast<MockRom*>(test_rom_.get())->SetRoomData(kTestRoomId, room_header);
+  test_rom_->SetRoomData(kTestRoomId, room_header);
   
   return absl::OkStatus();
 }
@@ -139,7 +143,7 @@ TEST_F(TestDungeonObjects, RoomObjectTileLoadingTest) {
   
   // Test tile loading
   room_object.EnsureTilesLoaded();
-  EXPECT_FALSE(room_object.tiles_.empty());
+  EXPECT_FALSE(room_object.tiles().empty());
 }
 
 TEST_F(TestDungeonObjects, MockRomDataTest) {
