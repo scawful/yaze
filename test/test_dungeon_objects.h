@@ -4,10 +4,10 @@
 #include <memory>
 #include <vector>
 
-#include "absl/status/status.h"
 #include "app/rom.h"
 #include "gtest/gtest.h"
 #include "mocks/mock_rom.h"
+#include "test/testing.h"
 
 namespace yaze {
 namespace test {

@@ -85,12 +85,12 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjectWithSize(
   if (size_info.is_horizontal) {
     // Horizontal rendering
     for (int repeat = 0; repeat < size_info.repeat_count; ++repeat) {
-      for (size_t i = 0; i < object.tiles_.size(); ++i) {
+      for (size_t i = 0; i < object.tiles().size(); ++i) {
         int tile_x = (repeat * 2) + (i % 2);
         int tile_y = i / 2;
         
         if (tile_x < size_info.width_tiles && tile_y < size_info.height_tiles) {
-          auto status = RenderTile(object.tiles_[i], bitmap, 
+          auto status = RenderTile(object.tiles()[i], bitmap, 
                                  tile_x * 16, tile_y * 16, palette);
           if (!status.ok()) {
             return status;
@@ -101,12 +101,12 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjectWithSize(
   } else {
     // Vertical rendering
     for (int repeat = 0; repeat < size_info.repeat_count; ++repeat) {
-      for (size_t i = 0; i < object.tiles_.size(); ++i) {
+      for (size_t i = 0; i < object.tiles().size(); ++i) {
         int tile_x = i % 2;
         int tile_y = (repeat * 2) + (i / 2);
         
         if (tile_x < size_info.width_tiles && tile_y < size_info.height_tiles) {
-          auto status = RenderTile(object.tiles_[i], bitmap, 
+          auto status = RenderTile(object.tiles()[i], bitmap, 
                                  tile_x * 16, tile_y * 16, palette);
           if (!status.ok()) {
             return status;
@@ -130,7 +130,7 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::GetObjectPreview(
   gfx::Bitmap bitmap = CreateBitmap(16, 16);
 
   // Render only the first tile as a preview
-  auto status = RenderTile(object.tiles_[0], bitmap, 0, 0, palette);
+  auto status = RenderTile(object.tiles()[0], bitmap, 0, 0, palette);
   if (!status.ok()) {
     return status;
   }

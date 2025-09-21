@@ -48,9 +48,7 @@ absl::Status TestDungeonObjects::CreateTestRom() {
   auto tile_data = CreateTileData(0x1B52, 0x400);
   std::copy(tile_data.begin(), tile_data.end(), rom_data.begin() + 0x1B52);
   
-  test_rom_->SetTestData(rom_data);
-  
-  return absl::OkStatus();
+  return test_rom_->SetTestData(rom_data);
 }
 
 absl::Status TestDungeonObjects::SetupObjectData() {
@@ -110,7 +108,7 @@ std::vector<uint8_t> TestDungeonObjects::CreateRoomHeader(int room_id) {
 
 // Test cases
 TEST_F(TestDungeonObjects, ObjectParserBasicTest) {
-  ObjectParser parser(test_rom_.get());
+  zelda3::ObjectParser parser(test_rom_.get());
   
   auto result = parser.ParseObject(kTestObjectId);
   ASSERT_TRUE(result.ok());
@@ -118,10 +116,10 @@ TEST_F(TestDungeonObjects, ObjectParserBasicTest) {
 }
 
 TEST_F(TestDungeonObjects, ObjectRendererBasicTest) {
-  ObjectRenderer renderer(test_rom_.get());
+  zelda3::ObjectRenderer renderer(test_rom_.get());
   
   // Create test object
-  auto room_object = RoomObject(kTestObjectId, 0, 0, 0x12, 0);
+  auto room_object = zelda3::RoomObject(kTestObjectId, 0, 0, 0x12, 0);
   room_object.set_rom(test_rom_.get());
   room_object.EnsureTilesLoaded();
   
@@ -138,7 +136,7 @@ TEST_F(TestDungeonObjects, ObjectRendererBasicTest) {
 }
 
 TEST_F(TestDungeonObjects, RoomObjectTileLoadingTest) {
-  auto room_object = RoomObject(kTestObjectId, 5, 5, 0x12, 0);
+  auto room_object = zelda3::RoomObject(kTestObjectId, 5, 5, 0x12, 0);
   room_object.set_rom(test_rom_.get());
   
   // Test tile loading
