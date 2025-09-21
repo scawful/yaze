@@ -187,6 +187,15 @@ Room LoadRoomFromRom(Rom *rom, int room_id) {
   int spr_ptr = 0x040000 | rooms_sprite_pointer;
   int sprite_address = SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id * 2));
 
+  // Load room layout
+  room.LoadRoomLayout();
+  
+  // Load additional room features
+  room.LoadDoors();
+  room.LoadTorches();
+  room.LoadBlocks();
+  room.LoadPits();
+
   return room;
 }
 
@@ -389,6 +398,7 @@ void Room::LoadObjects() {
       }
 
       RoomObject r(oid, posX, posY, sizeXY, static_cast<uint8_t>(layer));
+      r.set_rom(rom_);
       tile_objects_.push_back(r);
 
       for (short stair : stairsObjects) {
@@ -505,6 +515,83 @@ void Room::LoadChests() {
           chest_data(rom_data[cpos + (i * 3) + 2], big));
     }
   }
+}
+
+void Room::LoadRoomLayout() {
+  auto rom_data = rom()->vector();
+  
+  // Load room layout from room_object_layout_pointer
+  int layout_pointer = (rom_data[room_object_layout_pointer + 2] << 16) +
+                       (rom_data[room_object_layout_pointer + 1] << 8) +
+                       (rom_data[room_object_layout_pointer]);
+  layout_pointer = SnesToPc(layout_pointer);
+  
+  // Get the layout address for this room
+  int layout_address = layout_pointer + (room_id_ * 3);
+  int layout_location = SnesToPc(layout_address);
+  
+  if (layout_location >= 0 && layout_location + 2 < (int)rom()->size()) {
+    // Read the layout data (3 bytes: bank, high, low)
+    uint8_t bank = rom_data[layout_location + 2];
+    uint8_t high = rom_data[layout_location + 1];
+    uint8_t low = rom_data[layout_location];
+    
+    // Construct the layout address
+    int layout_data_address = SnesToPc((bank << 16) | (high << 8) | low);
+    
+    if (layout_data_address >= 0 && layout_data_address < (int)rom()->size()) {
+      // Load layout data - this contains wall/floor tile information
+      // For now, we'll store the address for later use
+      layout = static_cast<uint8_t>(layout_data_address & 0xFF);
+      
+      // TODO: Parse the actual layout data to extract wall positions
+      // This would involve reading tile data and creating wall objects
+    }
+  }
+  
+  // Load room objects from room_object_pointer (this is already done in LoadObjects)
+  // but we can add additional layout-specific object loading here
+}
+
+void Room::LoadDoors() {
+  auto rom_data = rom()->vector();
+  
+  // Load door graphics and positions
+  // Door graphics are stored at door_gfx_* addresses
+  // Door positions are stored at door_pos_* addresses
+  
+  // For now, create placeholder door objects
+  // TODO: Implement full door loading from ROM data
+}
+
+void Room::LoadTorches() {
+  auto rom_data = rom()->vector();
+  
+  // Load torch data from torch_data address
+  int torch_count = rom_data[torches_length_pointer + 1] << 8 | rom_data[torches_length_pointer];
+  
+  // For now, create placeholder torch objects
+  // TODO: Implement full torch loading from ROM data
+}
+
+void Room::LoadBlocks() {
+  auto rom_data = rom()->vector();
+  
+  // Load block data from blocks_* addresses
+  int block_count = rom_data[blocks_length + 1] << 8 | rom_data[blocks_length];
+  
+  // For now, create placeholder block objects
+  // TODO: Implement full block loading from ROM data
+}
+
+void Room::LoadPits() {
+  auto rom_data = rom()->vector();
+  
+  // Load pit data from pit_pointer
+  int pit_count = rom_data[pit_count + 1] << 8 | rom_data[pit_count];
+  
+  // For now, create placeholder pit objects
+  // TODO: Implement full pit loading from ROM data
 }
 
 }  // namespace zelda3

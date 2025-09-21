@@ -209,6 +209,11 @@ class Room {
   void LoadObjects();
   void LoadSprites();
   void LoadChests();
+  void LoadRoomLayout();
+  void LoadDoors();
+  void LoadTorches();
+  void LoadBlocks();
+  void LoadPits();
 
   auto blocks() const { return blocks_; }
   auto &mutable_blocks() { return blocks_; }

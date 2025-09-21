@@ -69,7 +69,8 @@ class RoomObject {
         ox_(x),
         oy_(y),
         width_(16),
-        height_(16) {}
+        height_(16),
+        rom_(nullptr) {}
 
   void set_rom(Rom* rom) { rom_ = rom; }
   auto rom() { return rom_; }

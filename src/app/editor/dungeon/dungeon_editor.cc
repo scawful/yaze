@@ -509,9 +509,21 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
         int canvas_y = object.y_ * 16;
         
         if (show_objects) {
-          // Draw object outline
-          canvas_.DrawOutline(object.x_, object.y_, object.width_ * 16,
-                              object.height_ * 16);
+          // Draw object outline - use size_ to determine dimensions
+          int outline_width = 16;  // Default 16x16
+          int outline_height = 16;
+          
+          // Calculate dimensions based on object size
+          if (object.size_ > 0) {
+            // Size encoding: bits 0-1 = width, bits 2-3 = height
+            int width_bits = object.size_ & 0x03;
+            int height_bits = (object.size_ >> 2) & 0x03;
+            
+            outline_width = (width_bits + 1) * 16;
+            outline_height = (height_bits + 1) * 16;
+          }
+          
+          canvas_.DrawOutline(object.x_, object.y_, outline_width, outline_height);
         }
         
         if (render_objects) {
@@ -531,8 +543,13 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 }
 
 void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject& object, const gfx::SnesPalette& palette) {
-  // Ensure the object has tiles loaded
-  if (object.tiles().empty()) {
+  // Create a mutable copy of the object to ensure tiles are loaded
+  auto mutable_object = object;
+  mutable_object.set_rom(rom_);
+  mutable_object.EnsureTilesLoaded();
+  
+  // Check if tiles were loaded successfully
+  if (mutable_object.tiles().empty()) {
     return; // Skip objects without tiles
   }
   
@@ -558,14 +575,6 @@ void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject& object, const
     }
   }
   
-  // Create a mutable copy of the object to ensure tiles are loaded
-  auto mutable_object = object;
-  mutable_object.set_rom(rom_);
-  mutable_object.EnsureTilesLoaded();
-  
-  if (mutable_object.tiles().empty()) {
-    return; // Still no tiles after loading attempt
-  }
   
   // Render the object to a bitmap
   auto render_result = object_renderer_.RenderObject(mutable_object, palette);
