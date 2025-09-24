@@ -64,6 +64,7 @@ class ScreenEditor : public Editor {
                                     bool bin_mode = false);
   absl::Status SaveDungeonMapTile16();
 
+  void DrawDungeonMapScreen(int i);
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
   void DrawDungeonMapsRoomGfx();
@@ -86,7 +87,6 @@ class ScreenEditor : public Editor {
   bool copy_button_pressed = false;
   bool paste_button_pressed = false;
 
-  std::unordered_map<int, gfx::Bitmap> tile16_individual_;
   std::vector<gfx::Bitmap> tile8_individual_;
   zelda3::DungeonMapLabels dungeon_map_labels_;
 

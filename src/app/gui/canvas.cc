@@ -111,7 +111,7 @@ void Canvas::DrawContextMenu() {
 
   static bool show_bitmap_data = false;
   if (show_bitmap_data && bitmap_ != nullptr) {
-    MemoryEditor mem_edit;
+    static MemoryEditor mem_edit;
     mem_edit.DrawWindow("Bitmap Data", (void *)bitmap_->data(), bitmap_->size(),
                         0);
   }
