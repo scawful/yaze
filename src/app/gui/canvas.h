@@ -91,37 +91,39 @@ class Canvas {
   // Context Menu refers to what happens when the right mouse button is pressed
   // This routine also handles the scrolling for the canvas.
   void DrawContextMenu();
+  
+  // Context menu system for consumers to add their own menu elements
+  struct ContextMenuItem {
+    std::string label;
+    std::string shortcut;
+    std::function<void()> callback;
+    std::function<bool()> enabled_condition = []() { return true; };
+    std::vector<ContextMenuItem> subitems;
+  };
+  
+  void AddContextMenuItem(const ContextMenuItem& item);
+  void ClearContextMenuItems();
+  void SetContextMenuEnabled(bool enabled) { context_menu_enabled_ = enabled; }
+  
+ private:
+  void DrawContextMenuItem(const ContextMenuItem& item);
 
   // Tile painter shows a preview of the currently selected tile
   // and allows the user to left click to paint the tile or right
   // click to select a new tile to paint with.
-  bool DrawTilePainter(const Bitmap &bitmap, int size, float scale = 1.0f);
-  bool DrawSolidTilePainter(const ImVec4 &color, int size);
+  // (Moved to public section)
 
   // Draws a tile on the canvas at the specified position
+  // (Moved to public section)
+
+  // These methods are now public - see public section above
+
+ public:
+  // Tile painter methods
+  bool DrawTilePainter(const Bitmap &bitmap, int size, float scale = 1.0f);
+  bool DrawSolidTilePainter(const ImVec4 &color, int size);
   void DrawTileOnBitmap(int tile_size, gfx::Bitmap *bitmap, ImVec4 color);
-
-  // Dictates which tile is currently selected based on what the user clicks
-  // in the canvas window. Represented and split apart into a grid of tiles.
-  bool DrawTileSelector(int size, int size_y = 0);
-
-  // Draws the selection rectangle when the user is selecting multiple tiles
-  void DrawSelectRect(int current_map, int tile_size = 0x10,
-                      float scale = 1.0f);
-
-  // Draws the contents of the Bitmap image to the Canvas
-  void DrawBitmap(Bitmap &bitmap, int border_offset, float scale);
-  void DrawBitmap(Bitmap &bitmap, int x_offset, int y_offset,
-                  float scale = 1.0f, int alpha = 255);
-  void DrawBitmap(Bitmap &bitmap, ImVec2 dest_pos, ImVec2 dest_size,
-                  ImVec2 src_pos, ImVec2 src_size);
-  void DrawBitmapTable(const BitmapTable &gfx_bin);
-
-  void DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
-                       int tile_size, float scale = 1.0f);
-
-  bool DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile);
-
+  
   void DrawOutline(int x, int y, int w, int h);
   void DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color);
   void DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color);
@@ -130,8 +132,6 @@ class Canvas {
 
   void DrawText(std::string text, int x, int y);
   void DrawGridLines(float grid_step);
-  void DrawGrid(float grid_step = 64.0f, int tile_id_offset = 8);
-  void DrawOverlay();  // last
 
   void DrawInfoGrid(float grid_step = 64.0f, int tile_id_offset = 8,
                     int label_id = 0);
@@ -150,10 +150,6 @@ class Canvas {
     }
     return tile_id;
   }
-  void SetCanvasSize(ImVec2 canvas_size) {
-    canvas_sz_ = canvas_size;
-    custom_canvas_size_ = true;
-  }
   void DrawCustomHighlight(float grid_step);
   bool IsMouseHovering() const { return is_hovered_; }
   void ZoomIn() { global_scale_ += 0.25f; }
@@ -169,13 +165,36 @@ class Canvas {
   auto drawn_tile_position() const { return drawn_tile_pos_; }
   auto canvas_size() const { return canvas_sz_; }
   void set_global_scale(float scale) { global_scale_ = scale; }
+  void set_draggable(bool draggable) { draggable_ = draggable; }
+  
+  // Public accessors for commonly used private members
+  auto select_rect_active() const { return select_rect_active_; }
+  auto selected_tiles() const { return selected_tiles_; }
+  auto selected_tile_pos() const { return selected_tile_pos_; }
+  void set_selected_tile_pos(ImVec2 pos) { selected_tile_pos_ = pos; }
+  
+  // Public methods for commonly used private methods
+  void SetCanvasSize(ImVec2 canvas_size) { canvas_sz_ = canvas_size; custom_canvas_size_ = true; }
   auto global_scale() const { return global_scale_; }
   auto custom_labels_enabled() { return &enable_custom_labels_; }
   auto custom_step() const { return custom_step_; }
   auto width() const { return canvas_sz_.x; }
   auto height() const { return canvas_sz_.y; }
-  auto set_draggable(bool value) { draggable_ = value; }
+  
+  // Public accessors for methods that need to be accessed externally
   auto canvas_id() const { return canvas_id_; }
+  
+  // Public methods for drawing operations
+  void DrawBitmap(Bitmap &bitmap, int border_offset, float scale);
+  void DrawBitmap(Bitmap &bitmap, int x_offset, int y_offset, float scale = 1.0f, int alpha = 255);
+  void DrawBitmap(Bitmap &bitmap, ImVec2 dest_pos, ImVec2 dest_size, ImVec2 src_pos, ImVec2 src_size);
+  void DrawBitmapTable(const BitmapTable &gfx_bin);
+  void DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap, int tile_size, float scale = 1.0f);
+  bool DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile);
+  void DrawSelectRect(int current_map, int tile_size = 0x10, float scale = 1.0f);
+  bool DrawTileSelector(int size, int size_y = 0);
+  void DrawGrid(float grid_step = 64.0f, int tile_id_offset = 8);
+  void DrawOverlay();
   auto labels(int i) {
     if (i >= labels_.size()) {
       labels_.push_back(ImVector<std::string>());
@@ -197,12 +216,7 @@ class Canvas {
   auto set_current_labels(int i) { current_labels_ = i; }
   auto set_highlight_tile_id(int i) { highlight_tile_id = i; }
 
-  auto selected_tiles() const { return selected_tiles_; }
   auto mutable_selected_tiles() { return &selected_tiles_; }
-
-  auto selected_tile_pos() const { return selected_tile_pos_; }
-  auto set_selected_tile_pos(ImVec2 pos) { selected_tile_pos_ = pos; }
-  bool select_rect_active() const { return select_rect_active_; }
   auto selected_points() const { return selected_points_; }
 
   auto hover_mouse_pos() const { return mouse_pos_in_canvas_; }
@@ -220,6 +234,10 @@ class Canvas {
   bool custom_canvas_size_ = false;
   bool select_rect_active_ = false;
   bool refresh_graphics_ = false;
+
+  // Context menu system
+  std::vector<ContextMenuItem> context_menu_items_;
+  bool context_menu_enabled_ = true;
 
   float custom_step_ = 0.0f;
   float global_scale_ = 1.0f;

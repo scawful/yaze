@@ -162,6 +162,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawOverlayEditor();
   void DrawMapLockControls();
   void DrawOverworldContextMenu();
+  void DrawSimplifiedMapSettings();
+  void DrawMapPropertiesPanel();
+  void HandleMapInteraction();
+  void SetupOverworldCanvasContextMenu();
 
   absl::Status UpdateUsageStats();
   void DrawUsageGrid();
@@ -222,6 +226,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool show_custom_bg_color_editor_ = false;
   bool show_overlay_editor_ = false;
   bool use_area_specific_bg_color_ = false;
+  bool show_map_properties_panel_ = false;
 
   gfx::Tilemap tile16_blockset_;
 
