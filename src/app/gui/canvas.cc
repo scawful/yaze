@@ -123,6 +123,17 @@ void Canvas::DrawContextMenu() {
 
   // Contents of the Context Menu
   if (ImGui::BeginPopup(context_id_.c_str())) {
+    // Draw custom context menu items first
+    for (const auto& item : context_menu_items_) {
+      DrawContextMenuItem(item);
+    }
+    
+    // Add separator if there are custom items
+    if (!context_menu_items_.empty()) {
+      ImGui::Separator();
+    }
+    
+    // Default canvas menu items
     if (MenuItem("Reset Position", nullptr, false)) {
       scrolling_.x = 0;
       scrolling_.y = 0;
@@ -214,6 +225,39 @@ void Canvas::DrawContextMenu() {
 
     ImGui::EndPopup();
   }
+}
+
+void Canvas::DrawContextMenuItem(const ContextMenuItem& item) {
+  if (!item.enabled_condition()) {
+    ImGui::BeginDisabled();
+  }
+  
+  if (item.subitems.empty()) {
+    // Simple menu item
+    if (ImGui::MenuItem(item.label.c_str(), item.shortcut.empty() ? nullptr : item.shortcut.c_str())) {
+      item.callback();
+    }
+  } else {
+    // Menu with subitems
+    if (ImGui::BeginMenu(item.label.c_str())) {
+      for (const auto& subitem : item.subitems) {
+        DrawContextMenuItem(subitem);
+      }
+      ImGui::EndMenu();
+    }
+  }
+  
+  if (!item.enabled_condition()) {
+    ImGui::EndDisabled();
+  }
+}
+
+void Canvas::AddContextMenuItem(const ContextMenuItem& item) {
+  context_menu_items_.push_back(item);
+}
+
+void Canvas::ClearContextMenuItems() {
+  context_menu_items_.clear();
 }
 
 bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
