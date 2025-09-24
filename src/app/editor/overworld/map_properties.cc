@@ -29,17 +29,17 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(int& current_world, int& cur
                                                    bool& show_custom_bg_color_editor, bool& show_overlay_editor) {
   // Enhanced settings table with popup buttons for quick access
   if (BeginTable("SimplifiedMapSettings", 8, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit, ImVec2(0, 0), -1)) {
-    ImGui::TableSetupColumn("World", ImGuiTableColumnFlags_WidthFixed, 80);
+    ImGui::TableSetupColumn("World", ImGuiTableColumnFlags_WidthFixed, 100);
     ImGui::TableSetupColumn("Map", ImGuiTableColumnFlags_WidthFixed, 60);
     ImGui::TableSetupColumn("Area Size", ImGuiTableColumnFlags_WidthFixed, 100);
     ImGui::TableSetupColumn("Lock", ImGuiTableColumnFlags_WidthFixed, 60);
-    ImGui::TableSetupColumn("Graphics", ImGuiTableColumnFlags_WidthFixed, 70);
-    ImGui::TableSetupColumn("Palettes", ImGuiTableColumnFlags_WidthFixed, 70);
-    ImGui::TableSetupColumn("Overlays", ImGuiTableColumnFlags_WidthFixed, 70);
-    ImGui::TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthFixed, 80);
+    ImGui::TableSetupColumn("Graphics", ImGuiTableColumnFlags_WidthFixed, 90);
+    ImGui::TableSetupColumn("Palettes", ImGuiTableColumnFlags_WidthFixed, 90);
+    ImGui::TableSetupColumn("Overlays", ImGuiTableColumnFlags_WidthFixed, 90);
+    ImGui::TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthFixed, 100);
 
     TableNextColumn();
-    ImGui::SetNextItemWidth(70.f);
+    ImGui::SetNextItemWidth(90.f);
     if (ImGui::Combo("##world", &current_world, kWorldList, 3)) {
       // World changed, update current map if needed
       if (current_map >= 0x40 && current_world == 0) {
@@ -77,28 +77,28 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(int& current_world, int& cur
     HOVER_HINT(current_map_lock ? "Unlock Map" : "Lock Map");
 
     TableNextColumn();
-    if (ImGui::Button("Graphics", ImVec2(60, 0))) {
+    if (ImGui::Button("Graphics", ImVec2(80, 0))) {
       ImGui::OpenPopup("GraphicsPopup");
     }
     HOVER_HINT("Graphics Settings");
     DrawGraphicsPopup(current_map);
 
     TableNextColumn();
-    if (ImGui::Button("Palettes", ImVec2(60, 0))) {
+    if (ImGui::Button("Palettes", ImVec2(80, 0))) {
       ImGui::OpenPopup("PalettesPopup");
     }
     HOVER_HINT("Palette Settings");
     DrawPalettesPopup(current_map, show_custom_bg_color_editor);
 
     TableNextColumn();
-    if (ImGui::Button("Overlays", ImVec2(60, 0))) {
+    if (ImGui::Button("Overlays", ImVec2(80, 0))) {
       ImGui::OpenPopup("OverlaysPopup");
     }
     HOVER_HINT("Overlay Settings");
     DrawOverlaysPopup(current_map, show_overlay_editor);
 
     TableNextColumn();
-    if (ImGui::Button("Properties", ImVec2(70, 0))) {
+    if (ImGui::Button("Properties", ImVec2(90, 0))) {
       ImGui::OpenPopup("PropertiesPopup");
     }
     HOVER_HINT("Map Properties");
