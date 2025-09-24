@@ -826,6 +826,16 @@ absl::Status OverworldMap::LoadPalette() {
 
 void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
                                          int size, uint8_t *all_gfx) {
+  // Ensure we don't go out of bounds
+  int max_offset = static_graphics_offset * size + size;
+  if (max_offset > rom_->graphics_buffer().size()) {
+    // Fill with zeros if out of bounds
+    for (int i = 0; i < size; i++) {
+      current_gfx_[(index * size) + i] = 0x00;
+    }
+    return;
+  }
+  
   for (int i = 0; i < size; i++) {
     auto byte = all_gfx[i + (static_graphics_offset * size)];
     switch (index) {
@@ -842,10 +852,29 @@ void OverworldMap::ProcessGraphicsBuffer(int index, int static_graphics_offset,
 
 absl::Status OverworldMap::BuildTileset() {
   if (current_gfx_.size() == 0) current_gfx_.resize(0x10000, 0x00);
-  for (int i = 0; i < 0x10; i++) {
-    ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000,
+  
+  // Process the 8 main graphics sheets (slots 0-7)
+  for (int i = 0; i < 8; i++) {
+    if (static_graphics_[i] != 0) {
+      ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000,
+                            rom_->graphics_buffer().data());
+    }
+  }
+  
+  // Process sprite graphics (slots 8-15)
+  for (int i = 8; i < 16; i++) {
+    if (static_graphics_[i] != 0) {
+      ProcessGraphicsBuffer(i, static_graphics_[i], 0x1000,
+                            rom_->graphics_buffer().data());
+    }
+  }
+  
+  // Process animated graphics if available (slot 16)
+  if (static_graphics_[16] != 0) {
+    ProcessGraphicsBuffer(7, static_graphics_[16], 0x1000,
                           rom_->graphics_buffer().data());
   }
+  
   return absl::OkStatus();
 }
 

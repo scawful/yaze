@@ -158,6 +158,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status LoadSpriteGraphics();
 
   void DrawOverworldProperties();
+  void DrawCustomBackgroundColorEditor();
+  void DrawOverlayEditor();
+  void DrawMapLockControls();
+  void DrawOverworldContextMenu();
 
   absl::Status UpdateUsageStats();
   void DrawUsageGrid();
@@ -215,6 +219,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;
   bool current_map_lock_ = false;
+  bool show_custom_bg_color_editor_ = false;
+  bool show_overlay_editor_ = false;
+  bool use_area_specific_bg_color_ = false;
 
   gfx::Tilemap tile16_blockset_;
 
@@ -258,7 +265,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
 
-  gui::Table toolset_table_{"##ToolsetTable0", 22, kToolsetTableFlags};
+  gui::Table toolset_table_{"##ToolsetTable0", 25, kToolsetTableFlags};
   gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags,
                                  ImVec2(0, 0)};
 

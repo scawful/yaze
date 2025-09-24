@@ -141,7 +141,7 @@ void OverworldEditor::Initialize() {
     HOVER_HINT("Gfx Group Editor");
   });
   gui::AddTableColumn(toolset_table_, "##sep3", ICON_MD_MORE_VERT);
-  gui::AddTableColumn(toolset_table_, "##Properties", [&]() {
+  gui::AddTableColumn(toolset_table_, "##CopyMap", [&]() {
     if (Button(ICON_MD_CONTENT_COPY)) {
       std::vector<uint8_t> png_data;
       png_data = maps_bmp_[current_map_].GetPngData();
@@ -160,6 +160,24 @@ void OverworldEditor::Initialize() {
   gui::AddTableColumn(toolset_table_, "##Sep4", ICON_MD_MORE_VERT);
   gui::AddTableColumn(toolset_table_, "##Properties", [&]() {
     Checkbox("Properties", &show_properties_editor_);
+  });
+  gui::AddTableColumn(toolset_table_, "##MapLock", [&]() {
+    if (Button(current_map_lock_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN)) {
+      current_map_lock_ = !current_map_lock_;
+    }
+    HOVER_HINT(current_map_lock_ ? "Unlock Map" : "Lock Map");
+  });
+  gui::AddTableColumn(toolset_table_, "##CustomBG", [&]() {
+    if (Button(ICON_MD_PALETTE)) {
+      show_custom_bg_color_editor_ = !show_custom_bg_color_editor_;
+    }
+    HOVER_HINT("Custom Background Colors");
+  });
+  gui::AddTableColumn(toolset_table_, "##Overlay", [&]() {
+    if (Button(ICON_MD_LAYERS)) {
+      show_overlay_editor_ = !show_overlay_editor_;
+    }
+    HOVER_HINT("Overlay Editor");
   });
 }
 
@@ -217,6 +235,18 @@ void OverworldEditor::DrawToolset() {
   if (show_properties_editor_) {
     ImGui::Begin("Properties", &show_properties_editor_);
     DrawOverworldProperties();
+    ImGui::End();
+  }
+
+  if (show_custom_bg_color_editor_) {
+    ImGui::Begin("Custom Background Colors", &show_custom_bg_color_editor_);
+    DrawCustomBackgroundColorEditor();
+    ImGui::End();
+  }
+
+  if (show_overlay_editor_) {
+    ImGui::Begin("Overlay Editor", &show_overlay_editor_);
+    DrawOverlayEditor();
     ImGui::End();
   }
 
@@ -421,6 +451,40 @@ void OverworldEditor::DrawCustomOverworldMapSettings() {
         }
 
         ImGui::EndTable();
+      }
+    }
+    
+    // Add additional v3 features
+    if (asm_version >= 3 && asm_version != 0xFF) {
+      Separator();
+      Text("ZSCustomOverworld v3 Features:");
+      
+      // Main Palette
+      if (gui::InputHexByte("Main Palette",
+                            overworld_.mutable_overworld_map(current_map_)
+                                ->mutable_main_palette(),
+                            kInputFieldSize)) {
+        RefreshMapProperties();
+        status_ = RefreshMapPalette();
+        RefreshOverworldMap();
+      }
+      
+      // Animated GFX
+      if (gui::InputHexByte("Animated GFX",
+                            overworld_.mutable_overworld_map(current_map_)
+                                ->mutable_animated_gfx(),
+                            kInputFieldSize)) {
+        RefreshMapProperties();
+        RefreshOverworldMap();
+      }
+      
+      // Subscreen Overlay
+      if (gui::InputHexWord("Subscreen Overlay",
+                            overworld_.mutable_overworld_map(current_map_)
+                                ->mutable_subscreen_overlay(),
+                            kInputFieldSize + 20)) {
+        RefreshMapProperties();
+        RefreshOverworldMap();
       }
     }
 
@@ -783,6 +847,8 @@ void OverworldEditor::DrawOverworldCanvas() {
     ow_map_canvas_.DrawContextMenu();
   } else {
     ow_map_canvas_.set_draggable(false);
+    // Always show our custom overworld context menu
+    DrawOverworldContextMenu();
   }
 
   if (overworld_.is_loaded()) {
@@ -1338,6 +1404,227 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
   gfx::UpdateTilemap(tile16_blockset_, tile16_data);
   tile16_blockset_.atlas.SetPalette(palette_);
   return absl::OkStatus();
+}
+
+void OverworldEditor::DrawCustomBackgroundColorEditor() {
+  static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  
+  if (asm_version < 2 || asm_version == 0xFF) {
+    Text("Custom background colors are only available in ZSCustomOverworld v2+");
+    return;
+  }
+  
+  // Check if area-specific background colors are enabled
+  bool bg_enabled = (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] != 0x00;
+  if (Checkbox("Enable Area-Specific Background Colors", &bg_enabled)) {
+    (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] = bg_enabled ? 0x01 : 0x00;
+  }
+  
+  if (!bg_enabled) {
+    Text("Area-specific background colors are disabled.");
+    return;
+  }
+  
+  Separator();
+  
+  // Display current map's background color
+  Text("Current Map: %d (0x%02X)", current_map_, current_map_);
+  
+  // Get current background color
+  uint16_t current_bg_color = (*rom_)[zelda3::OverworldCustomAreaSpecificBGPalette + (current_map_ * 2)] |
+                              ((*rom_)[zelda3::OverworldCustomAreaSpecificBGPalette + (current_map_ * 2) + 1] << 8);
+  
+  // Convert SNES color to ImVec4
+  ImVec4 current_color = ImVec4(
+    ((current_bg_color & 0x1F) * 8) / 255.0f,
+    (((current_bg_color >> 5) & 0x1F) * 8) / 255.0f,
+    (((current_bg_color >> 10) & 0x1F) * 8) / 255.0f,
+    1.0f
+  );
+  
+  // Color picker
+  if (ColorPicker4("Background Color", (float*)&current_color, 
+                   ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB)) {
+    // Convert ImVec4 back to SNES color
+    uint16_t new_color = 
+      (static_cast<uint16_t>(current_color.x * 31) & 0x1F) |
+      ((static_cast<uint16_t>(current_color.y * 31) & 0x1F) << 5) |
+      ((static_cast<uint16_t>(current_color.z * 31) & 0x1F) << 10);
+    
+    // Write to ROM
+    (*rom_)[zelda3::OverworldCustomAreaSpecificBGPalette + (current_map_ * 2)] = new_color & 0xFF;
+    (*rom_)[zelda3::OverworldCustomAreaSpecificBGPalette + (current_map_ * 2) + 1] = (new_color >> 8) & 0xFF;
+    
+    // Update the overworld map
+    overworld_.mutable_overworld_map(current_map_)->set_area_specific_bg_color(new_color);
+    
+    // Refresh the map
+    RefreshOverworldMap();
+  }
+  
+  Separator();
+  
+  // Show color preview
+  Text("Color Preview:");
+  ImGui::ColorButton("##bg_preview", current_color, ImGuiColorEditFlags_NoTooltip, ImVec2(100, 50));
+  
+  SameLine();
+  Text("SNES Color: 0x%04X", current_bg_color);
+}
+
+void OverworldEditor::DrawOverlayEditor() {
+  static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  
+  if (asm_version < 1 || asm_version == 0xFF) {
+    Text("Overlay editor is only available in ZSCustomOverworld v1+");
+    return;
+  }
+  
+  // Check if subscreen overlays are enabled
+  bool overlay_enabled = (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] != 0x00;
+  if (Checkbox("Enable Subscreen Overlays", &overlay_enabled)) {
+    (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] = overlay_enabled ? 0x01 : 0x00;
+  }
+  
+  if (!overlay_enabled) {
+    Text("Subscreen overlays are disabled.");
+    return;
+  }
+  
+  Separator();
+  
+  // Display current map's overlay
+  Text("Current Map: %d (0x%02X)", current_map_, current_map_);
+  
+  // Get current overlay ID
+  uint16_t current_overlay = (*rom_)[zelda3::OverworldCustomSubscreenOverlayArray + (current_map_ * 2)] |
+                             ((*rom_)[zelda3::OverworldCustomSubscreenOverlayArray + (current_map_ * 2) + 1] << 8);
+  
+  // Overlay ID input
+  if (gui::InputHexWord("Overlay ID", &current_overlay, 100)) {
+    // Write to ROM
+    (*rom_)[zelda3::OverworldCustomSubscreenOverlayArray + (current_map_ * 2)] = current_overlay & 0xFF;
+    (*rom_)[zelda3::OverworldCustomSubscreenOverlayArray + (current_map_ * 2) + 1] = (current_overlay >> 8) & 0xFF;
+    
+    // Update the overworld map
+    overworld_.mutable_overworld_map(current_map_)->set_subscreen_overlay(current_overlay);
+    
+    // Refresh the map
+    RefreshOverworldMap();
+  }
+  
+  Separator();
+  
+  // Show overlay information
+  Text("Overlay Information:");
+  Text("ID: 0x%04X", current_overlay);
+  
+  if (current_overlay == 0x00FF) {
+    Text("No overlay");
+  } else if (current_overlay == 0x009D) {
+    Text("Fog 2 (Lost Woods/Skull Woods)");
+  } else if (current_overlay == 0x0095) {
+    Text("Sky Background (Death Mountain)");
+  } else if (current_overlay == 0x009C) {
+    Text("Lava (Dark World Death Mountain)");
+  } else if (current_overlay == 0x0096) {
+    Text("Pyramid Background");
+  } else if (current_overlay == 0x0097) {
+    Text("Fog 1 (Master Sword Area)");
+  } else if (current_overlay == 0x0093) {
+    Text("Triforce Room Curtains");
+  } else {
+    Text("Custom overlay");
+  }
+}
+
+void OverworldEditor::DrawMapLockControls() {
+  if (current_map_lock_) {
+    PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
+    Text("Map Locked: %d (0x%02X)", current_map_, current_map_);
+    PopStyleColor();
+    
+    if (Button("Unlock Map")) {
+      current_map_lock_ = false;
+    }
+  } else {
+    Text("Map: %d (0x%02X) - Click to lock", current_map_, current_map_);
+    if (Button("Lock Map")) {
+      current_map_lock_ = true;
+    }
+  }
+}
+
+void OverworldEditor::DrawOverworldContextMenu() {
+  // Get the current map from mouse position
+  auto mouse_position = ow_map_canvas_.drawn_tile_position();
+  int map_x = mouse_position.x / kOverworldMapSize;
+  int map_y = mouse_position.y / kOverworldMapSize;
+  int hovered_map = map_x + map_y * 8;
+  if (current_world_ == 1) {
+    hovered_map += 0x40;
+  } else if (current_world_ == 2) {
+    hovered_map += 0x80;
+  }
+  
+  // Only show context menu if we're hovering over a valid map
+  if (hovered_map >= 0 && hovered_map < 0xA0) {
+    if (ImGui::BeginPopupContextWindow("OverworldMapContext")) {
+      Text("Map %d (0x%02X)", hovered_map, hovered_map);
+      Separator();
+      
+      // Map lock controls
+      if (current_map_lock_ && current_map_ == hovered_map) {
+        PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
+        Text("Currently Locked");
+        PopStyleColor();
+        if (MenuItem("Unlock Map")) {
+          current_map_lock_ = false;
+        }
+      } else {
+        if (MenuItem("Lock to This Map")) {
+          current_map_lock_ = true;
+          current_map_ = hovered_map;
+        }
+      }
+      
+      Separator();
+      
+      // Quick access to map settings
+      if (MenuItem("Map Properties")) {
+        show_properties_editor_ = true;
+        current_map_ = hovered_map;
+      }
+      
+      // Custom overworld features (only show if v3+)
+      static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+      if (asm_version >= 3 && asm_version != 0xFF) {
+        if (MenuItem("Custom Background Color")) {
+          show_custom_bg_color_editor_ = true;
+          current_map_ = hovered_map;
+        }
+        
+        if (MenuItem("Overlay Settings")) {
+          show_overlay_editor_ = true;
+          current_map_ = hovered_map;
+        }
+      }
+      
+      Separator();
+      
+      // Canvas controls
+      if (MenuItem("Reset Canvas Position")) {
+        ow_map_canvas_.set_scrolling(ImVec2(0, 0));
+      }
+      
+      if (MenuItem("Zoom to Fit")) {
+        ow_map_canvas_.set_global_scale(1.0f);
+        ow_map_canvas_.set_scrolling(ImVec2(0, 0));
+      }
+      
+      ImGui::EndPopup();
+    }
+  }
 }
 
 void OverworldEditor::DrawOverworldProperties() {
