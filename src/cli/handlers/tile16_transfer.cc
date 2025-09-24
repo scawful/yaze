@@ -50,8 +50,8 @@ absl::Status Tile16Transfer::Run(const std::vector<std::string>& arg_vec) {
     // Compare the tile16 data between source and destination ROMs.
     // auto source_tile16_data = rom_.ReadTile16(tile16_id_int);
     // auto dest_tile16_data = dest_rom.ReadTile16(tile16_id_int);
-    ASSIGN_OR_RETURN(auto source_tile16_data, rom_.ReadTile16(tile16_id_int))
-    ASSIGN_OR_RETURN(auto dest_tile16_data, dest_rom.ReadTile16(tile16_id_int))
+    ASSIGN_OR_RETURN(auto source_tile16_data, rom_.ReadTile16(tile16_id_int));
+    ASSIGN_OR_RETURN(auto dest_tile16_data, dest_rom.ReadTile16(tile16_id_int));
     if (source_tile16_data != dest_tile16_data) {
       // Notify user of difference
       std::cout << "Difference detected in tile16 ID " << tile16_id_int
