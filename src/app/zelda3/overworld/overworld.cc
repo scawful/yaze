@@ -527,6 +527,7 @@ absl::Status Overworld::Save(Rom *rom) {
   RETURN_IF_ERROR(SaveOverworldMaps())
   RETURN_IF_ERROR(SaveEntrances())
   RETURN_IF_ERROR(SaveExits())
+  RETURN_IF_ERROR(SaveAreaSizes())
   return absl::OkStatus();
 }
 
@@ -1591,6 +1592,30 @@ absl::Status Overworld::SaveMapProperties() {
         overworld_maps_[i].sprite_palette(1)));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpritePaletteIds + 192 + i,
                                      overworld_maps_[i].sprite_palette(2)));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::SaveAreaSizes() {
+  util::logf("Saving V3 Area Sizes");
+  
+  // Check if this is a v3 ROM
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  if (asm_version < 3 || asm_version == 0xFF) {
+    return absl::OkStatus();  // Not a v3 ROM, nothing to do
+  }
+
+  // Save area sizes to the expanded table
+  for (int i = 0; i < kNumOverworldMaps; i++) {
+    uint8_t area_size_byte = static_cast<uint8_t>(overworld_maps_[i].area_size());
+    RETURN_IF_ERROR(rom()->WriteByte(kOverworldScreenSize + i, area_size_byte));
+  }
+
+  // Save message IDs to expanded table
+  for (int i = 0; i < kNumOverworldMaps; i++) {
+    uint16_t message_id = overworld_maps_[i].message_id();
+    RETURN_IF_ERROR(rom()->WriteShort(kOverworldMessagesExpanded + (i * 2), message_id));
   }
 
   return absl::OkStatus();

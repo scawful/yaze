@@ -6,10 +6,10 @@
 #include <vector>
 
 #include "app/core/features.h"
+#include "app/gfx/snes_color.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
-#include "util/log.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -64,102 +64,81 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
 }
 
 void OverworldMap::LoadAreaInfo() {
-  if (index_ != kSpecialWorldMapIdStart) {
-    if (index_ <= 128)
-      large_map_ = ((*rom_)[kOverworldMapSize + (index_ & 0x3F)] != 0);
-    else {
-      large_map_ =
-          index_ == 129 || index_ == 130 || index_ == 137 || index_ == 138;
+  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+
+  // Load message ID and area size based on ASM version
+  if (asm_version < 3 || asm_version == 0xFF) {
+    // v2 and vanilla: use original message table
+    message_id_ = (*rom_)[kOverworldMessageIds + (parent_ * 2)] |
+                  ((*rom_)[kOverworldMessageIds + (parent_ * 2) + 1] << 8);
+
+    // Load area size for v2/vanilla
+    if (index_ < 0x80) {
+      // For LW and DW, check the screen size byte
+      uint8_t size_byte = (*rom_)[kOverworldScreenSize + (index_ & 0x3F)];
+      switch (size_byte) {
+        case 0:
+          area_size_ = AreaSizeEnum::LargeArea;
+          break;
+        case 1:
+        default:
+          area_size_ = AreaSizeEnum::SmallArea;
+          break;
+        case 2:
+          area_size_ = AreaSizeEnum::WideArea;
+          break;
+        case 3:
+          area_size_ = AreaSizeEnum::TallArea;
+          break;
+      }
+    } else {
+      // For SW, use hardcoded values for v2 compatibility
+      area_size_ =
+          (index_ == 0x81 || index_ == 0x82 || index_ == 0x89 || index_ == 0x8A)
+              ? AreaSizeEnum::LargeArea
+              : AreaSizeEnum::SmallArea;
     }
-  }
-
-  auto message_id = rom_->ReadWord(kOverworldMessageIds + (parent_ * 2));
-  if (message_id.ok()) {
-    message_id_ = message_id.value();
   } else {
-    message_id_ = 0;
-    util::logf("Error reading message id for map %d", parent_);
+    // v3: use expanded message table and area size table
+    message_id_ =
+        (*rom_)[kOverworldMessagesExpanded + (parent_ * 2)] |
+        ((*rom_)[kOverworldMessagesExpanded + (parent_ * 2) + 1] << 8);
+    area_size_ =
+        static_cast<AreaSizeEnum>((*rom_)[kOverworldScreenSize + index_]);
   }
 
+  // Update large_map_ based on area size
+  large_map_ = (area_size_ == AreaSizeEnum::LargeArea);
+
+  // Load area-specific data based on index range
   if (index_ < kDarkWorldMapIdStart) {
-    area_graphics_ = (*rom_)[kAreaGfxIdPtr + parent_];
-    area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
-
-    area_music_[0] = (*rom_)[kOverworldMusicBeginning + parent_];
-    area_music_[1] = (*rom_)[kOverworldMusicZelda + parent_];
-    area_music_[2] = (*rom_)[kOverworldMusicMasterSword + parent_];
-    area_music_[3] = (*rom_)[kOverworldMusicAgahnim + parent_];
-
+    // Light World (LW) areas
     sprite_graphics_[0] = (*rom_)[kOverworldSpriteset + parent_];
     sprite_graphics_[1] =
         (*rom_)[kOverworldSpriteset + parent_ + kDarkWorldMapIdStart];
     sprite_graphics_[2] =
         (*rom_)[kOverworldSpriteset + parent_ + kSpecialWorldMapIdStart];
 
+    area_graphics_ = (*rom_)[kAreaGfxIdPtr + parent_];
+    area_palette_ = (*rom_)[kOverworldPalettesScreenToSetNew + parent_];
+
     sprite_palette_[0] = (*rom_)[kOverworldSpritePaletteIds + parent_];
     sprite_palette_[1] =
         (*rom_)[kOverworldSpritePaletteIds + parent_ + kDarkWorldMapIdStart];
     sprite_palette_[2] =
         (*rom_)[kOverworldSpritePaletteIds + parent_ + kSpecialWorldMapIdStart];
-  } else if (index_ < kSpecialWorldMapIdStart) {
-    area_graphics_ = (*rom_)[kAreaGfxIdPtr + parent_];
-    area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
-    area_music_[0] = (*rom_)[kOverworldMusicDarkWorld + (parent_ - 64)];
 
-    sprite_graphics_[0] =
-        (*rom_)[kOverworldSpriteset + parent_ + kSpecialWorldMapIdStart];
-    sprite_graphics_[1] =
-        (*rom_)[kOverworldSpriteset + parent_ + kSpecialWorldMapIdStart];
-    sprite_graphics_[2] =
-        (*rom_)[kOverworldSpriteset + parent_ + kSpecialWorldMapIdStart];
+    area_music_[0] = (*rom_)[kOverworldMusicBeginning + parent_];
+    area_music_[1] = (*rom_)[kOverworldMusicZelda + parent_];
+    area_music_[2] = (*rom_)[kOverworldMusicMasterSword + parent_];
+    area_music_[3] = (*rom_)[kOverworldMusicAgahnim + parent_];
 
-    sprite_palette_[0] =
-        (*rom_)[kOverworldSpritePaletteIds + parent_ + kSpecialWorldMapIdStart];
-    sprite_palette_[1] =
-        (*rom_)[kOverworldSpritePaletteIds + parent_ + kSpecialWorldMapIdStart];
-    sprite_palette_[2] =
-        (*rom_)[kOverworldSpritePaletteIds + parent_ + kSpecialWorldMapIdStart];
-  } else {
-    if (index_ == 0x94) {
-      parent_ = 0x80;
-    } else if (index_ == 0x95) {
-      parent_ = 0x03;
-    } else if (index_ == 0x96) {
-      parent_ = 0x5B;  // pyramid bg use 0x5B map
-    } else if (index_ == 0x97) {
-      parent_ = 0x00;  // pyramid bg use 0x5B map
-    } else if (index_ == 0x9C) {
-      parent_ = 0x43;
-    } else if (index_ == 0x9D) {
-      parent_ = 0x00;
-    } else if (index_ == 0x9E) {
-      parent_ = 0x00;
-    } else if (index_ == 0x9F) {
-      parent_ = 0x2C;
-    } else if (index_ == 0x88) {
-      parent_ = 0x88;
-    } else if (index_ == 129 || index_ == 130 || index_ == 137 ||
-               index_ == 138) {
-      parent_ = 129;
-    }
-
-    area_palette_ =
-        (*rom_)[kOverworldSpecialPalGroup + parent_ - kSpecialWorldMapIdStart];
-    if ((index_ >= kSpecialWorldMapIdStart && index_ <= 0x8A &&
-         index_ != 0x88) ||
-        index_ == 0x94) {
-      area_graphics_ = (*rom_)[kOverworldSpecialGfxGroup +
-                               (parent_ - kSpecialWorldMapIdStart)];
-      area_palette_ = (*rom_)[kOverworldSpecialPalGroup + 1];
-    } else if (index_ == 0x88) {
-      area_graphics_ = 0x51;
-      area_palette_ = 0x00;
-    } else {
-      // pyramid bg use 0x5B map
-      area_graphics_ = (*rom_)[kAreaGfxIdPtr + parent_];
+    // For v2/vanilla, use original palette table
+    if (asm_version < 3 || asm_version == 0xFF) {
       area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
     }
-
+  } else if (index_ < kSpecialWorldMapIdStart) {
+    // Dark World (DW) areas
     sprite_graphics_[0] =
         (*rom_)[kOverworldSpriteset + parent_ + kSpecialWorldMapIdStart];
     sprite_graphics_[1] =
@@ -167,47 +146,169 @@ void OverworldMap::LoadAreaInfo() {
     sprite_graphics_[2] =
         (*rom_)[kOverworldSpriteset + parent_ + kSpecialWorldMapIdStart];
 
+    area_graphics_ = (*rom_)[kAreaGfxIdPtr + parent_];
+    area_palette_ = (*rom_)[kOverworldPalettesScreenToSetNew + parent_];
+
     sprite_palette_[0] =
         (*rom_)[kOverworldSpritePaletteIds + parent_ + kSpecialWorldMapIdStart];
     sprite_palette_[1] =
         (*rom_)[kOverworldSpritePaletteIds + parent_ + kSpecialWorldMapIdStart];
     sprite_palette_[2] =
         (*rom_)[kOverworldSpritePaletteIds + parent_ + kSpecialWorldMapIdStart];
+
+    area_music_[0] =
+        (*rom_)[kOverworldMusicDarkWorld + (parent_ - kDarkWorldMapIdStart)];
+
+    // For v2/vanilla, use original palette table
+    if (asm_version < 3 || asm_version == 0xFF) {
+      area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
+    }
+  } else {
+    // Special World (SW) areas
+    // Message ID already loaded above based on ASM version
+
+    // For v3, use expanded sprite tables
+    if (asm_version >= 3 && asm_version != 0xFF) {
+      sprite_graphics_[0] =
+          (*rom_)[kOverworldSpecialSpriteGfxGroupExpandedTemp + parent_ -
+                  kSpecialWorldMapIdStart];
+      sprite_graphics_[1] =
+          (*rom_)[kOverworldSpecialSpriteGfxGroupExpandedTemp + parent_ -
+                  kSpecialWorldMapIdStart];
+      sprite_graphics_[2] =
+          (*rom_)[kOverworldSpecialSpriteGfxGroupExpandedTemp + parent_ -
+                  kSpecialWorldMapIdStart];
+
+      sprite_palette_[0] = (*rom_)[kOverworldSpecialSpritePaletteExpandedTemp +
+                                   parent_ - kSpecialWorldMapIdStart];
+      sprite_palette_[1] = (*rom_)[kOverworldSpecialSpritePaletteExpandedTemp +
+                                   parent_ - kSpecialWorldMapIdStart];
+      sprite_palette_[2] = (*rom_)[kOverworldSpecialSpritePaletteExpandedTemp +
+                                   parent_ - kSpecialWorldMapIdStart];
+    } else {
+      // For v2/vanilla, use original sprite tables
+      sprite_graphics_[0] = (*rom_)[kOverworldSpecialGfxGroup + parent_ -
+                                    kSpecialWorldMapIdStart];
+      sprite_graphics_[1] = (*rom_)[kOverworldSpecialGfxGroup + parent_ -
+                                    kSpecialWorldMapIdStart];
+      sprite_graphics_[2] = (*rom_)[kOverworldSpecialGfxGroup + parent_ -
+                                    kSpecialWorldMapIdStart];
+
+      sprite_palette_[0] = (*rom_)[kOverworldSpecialPalGroup + parent_ -
+                                   kSpecialWorldMapIdStart];
+      sprite_palette_[1] = (*rom_)[kOverworldSpecialPalGroup + parent_ -
+                                   kSpecialWorldMapIdStart];
+      sprite_palette_[2] = (*rom_)[kOverworldSpecialPalGroup + parent_ -
+                                   kSpecialWorldMapIdStart];
+    }
+
+    area_graphics_ = (*rom_)[kAreaGfxIdPtr + parent_];
+    area_palette_ = (*rom_)[kOverworldPalettesScreenToSetNew + parent_];
+
+    // For v2/vanilla, use original palette table and handle special cases
+    if (asm_version < 3 || asm_version == 0xFF) {
+      area_palette_ = (*rom_)[kOverworldMapPaletteIds + parent_];
+
+      // Handle special world area cases
+      if (index_ == 0x88 || index_ == 0x93) {
+        area_graphics_ = 0x51;
+        area_palette_ = 0x00;
+      } else if (index_ == 0x80) {
+        area_graphics_ = (*rom_)[kOverworldSpecialGfxGroup +
+                                 (parent_ - kSpecialWorldMapIdStart)];
+        area_palette_ = (*rom_)[kOverworldSpecialPalGroup + 1];
+      } else if (index_ == 0x81 || index_ == 0x82 || index_ == 0x89 ||
+                 index_ == 0x8A) {
+        // Zora's Domain areas - use special sprite graphics
+        sprite_graphics_[0] = 0x0E;
+        sprite_graphics_[1] = 0x0E;
+        sprite_graphics_[2] = 0x0E;
+
+        area_graphics_ = (*rom_)[kOverworldSpecialGfxGroup +
+                                 (parent_ - kSpecialWorldMapIdStart)];
+        area_palette_ = (*rom_)[kOverworldSpecialPalGroup + 1];
+      } else if (index_ == 0x94) {
+        // Make this the same GFX as the true master sword area
+        area_graphics_ = (*rom_)[kOverworldSpecialGfxGroup +
+                                 (0x80 - kSpecialWorldMapIdStart)];
+        area_palette_ = (*rom_)[kOverworldSpecialPalGroup + 1];
+      } else if (index_ == 0x95) {
+        // Make this the same GFX as the LW death mountain areas
+        area_graphics_ = (*rom_)[kAreaGfxIdPtr + 0x03];
+        area_palette_ = (*rom_)[kOverworldMapPaletteIds + 0x03];
+      } else if (index_ == 0x96) {
+        // Make this the same GFX as the pyramid areas
+        area_graphics_ = (*rom_)[kAreaGfxIdPtr + 0x5B];
+        area_palette_ = (*rom_)[kOverworldMapPaletteIds + 0x5B];
+      } else if (index_ == 0x9C) {
+        // Make this the same GFX as the DW death mountain areas
+        area_graphics_ = (*rom_)[kAreaGfxIdPtr + 0x43];
+        area_palette_ = (*rom_)[kOverworldMapPaletteIds + 0x43];
+      } else {
+        // Default case
+        area_graphics_ = (*rom_)[kAreaGfxIdPtr + 0x00];
+        area_palette_ = (*rom_)[kOverworldMapPaletteIds + 0x00];
+      }
+    }
   }
 }
 
 void OverworldMap::LoadCustomOverworldData() {
-  // Set the main palette values.
-  if (index_ < kDarkWorldMapIdStart) {
-    area_palette_ = 0;
-  } else if (index_ >= kDarkWorldMapIdStart &&
-             index_ < kSpecialWorldMapIdStart) {
-    area_palette_ = 1;
-  } else if (index_ >= kSpecialWorldMapIdStart && index_ < 0xA0) {
-    area_palette_ = 0;
+  // Set the main palette values based on ZScream logic
+  if (index_ < 0x40 || index_ == 0x95) {  // LW
+    main_palette_ = 0;
+  } else if ((index_ >= 0x40 && index_ < 0x80) || index_ == 0x96) {  // DW
+    main_palette_ = 1;
+  } else if (index_ >= 0x80 && index_ < 0xA0) {  // SW
+    main_palette_ = 0;
   }
 
-  if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07) {
-    area_palette_ = 2;
-  } else if (index_ == 0x43 || index_ == 0x45 || index_ == 0x47) {
-    area_palette_ = 3;
-  } else if (index_ == 0x88) {
-    area_palette_ = 4;
+  if (index_ == 0x03 || index_ == 0x05 ||
+      index_ == 0x07) {  // LW Death Mountain
+    main_palette_ = 2;
+  } else if (index_ == 0x43 || index_ == 0x45 ||
+             index_ == 0x47) {  // DW Death Mountain
+    main_palette_ = 3;
+  } else if (index_ == 0x88 || index_ == 0x93) {  // Triforce room
+    main_palette_ = 4;
   }
 
-  // Set the mosaic values.
-  mosaic_ = index_ == 0x00 || index_ == kDarkWorldMapIdStart ||
-            index_ == kSpecialWorldMapIdStart || index_ == 0x81 ||
-            index_ == 0x88;
+  // Set the mosaic values based on ZScream logic
+  switch (index_) {
+    case 0x00:  // Leaving Skull Woods / Lost Woods
+    case 0x40:
+      mosaic_expanded_ = {false, true, false, true};
+      break;
+    case 0x02:  // Going into Skull woods / Lost Woods west
+    case 0x0A:
+    case 0x42:
+    case 0x4A:
+      mosaic_expanded_ = {false, false, true, false};
+      break;
+    case 0x0F:  // Going into Zora's Domain North
+    case 0x10:  // Going into Skull Woods / Lost Woods North
+    case 0x11:
+    case 0x50:
+    case 0x51:
+      mosaic_expanded_ = {true, false, false, false};
+      break;
+    case 0x80:  // Leaving Zora's Domain, the Master Sword area, and the
+                // Triforce area
+    case 0x81:
+    case 0x88:
+      mosaic_expanded_ = {false, true, false, false};
+      break;
+    default:
+      mosaic_expanded_ = {false, false, false, false};
+      break;
+  }
 
+  // Set up world index for GFX groups
   int index_world = 0x20;
-
   if (parent_ >= kDarkWorldMapIdStart &&
-      parent_ < kSpecialWorldMapIdStart)  // DW
-  {
+      parent_ < kSpecialWorldMapIdStart) {  // DW
     index_world = 0x21;
-  } else if (parent_ == 0x88)  // Triforce room
-  {
+  } else if (parent_ == 0x88 || parent_ == 0x93) {  // Triforce room
     index_world = 0x24;
   }
 
@@ -222,7 +323,8 @@ void OverworldMap::LoadCustomOverworldData() {
 
   const auto overworldgfxGroups =
       rom_->version_constants().kOverworldGfxGroups1;
-  // Replace the variable tiles with the variable ones.
+
+  // Replace the variable tiles with the variable ones
   uint8_t temp = (*rom_)[overworldgfxGroups + (area_graphics_ * 4)];
   if (temp != 0) {
     custom_gfx_ids_[3] = temp;
@@ -251,121 +353,74 @@ void OverworldMap::LoadCustomOverworldData() {
     custom_gfx_ids_[6] = 0xFF;
   }
 
-  // Set the animated GFX values.
+  // Set the animated GFX values
   if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07 || index_ == 0x43 ||
-      index_ == 0x45 || index_ == 0x47) {
+      index_ == 0x45 || index_ == 0x47 || index_ == 0x95) {
     animated_gfx_ = 0x59;
   } else {
     animated_gfx_ = 0x5B;
   }
 
-  // Set the subscreen overlay values.
+  // Set the subscreen overlay values
   subscreen_overlay_ = 0x00FF;
 
-  if (index_ == 0x00 ||
-      index_ ==
-          kDarkWorldMapIdStart)  // Add fog 2 to the lost woods and skull woods.
-  {
+  if (index_ == 0x00 || index_ == 0x01 || index_ == 0x08 || index_ == 0x09 ||
+      index_ == 0x40 || index_ == 0x41 || index_ == 0x48 ||
+      index_ == 0x49) {  // Add fog 2 to the lost woods and skull woods
     subscreen_overlay_ = 0x009D;
-  } else if (index_ == 0x03 || index_ == 0x05 ||
-             index_ == 0x07)  // Add the sky BG to LW death mountain.
-  {
+  } else if (index_ == 0x03 || index_ == 0x04 || index_ == 0x0B ||
+             index_ == 0x0C || index_ == 0x05 || index_ == 0x06 ||
+             index_ == 0x0D || index_ == 0x0E ||
+             index_ == 0x07) {  // Add the sky BG to LW death mountain
     subscreen_overlay_ = 0x0095;
-  } else if (index_ == 0x43 || index_ == 0x45 ||
-             index_ == 0x47)  // Add the lava to DW death mountain.
-  {
+  } else if (index_ == 0x43 || index_ == 0x44 || index_ == 0x4B ||
+             index_ == 0x4C || index_ == 0x45 || index_ == 0x46 ||
+             index_ == 0x4D || index_ == 0x4E ||
+             index_ == 0x47) {  // Add the lava to DW death mountain
     subscreen_overlay_ = 0x009C;
-  } else if (index_ == 0x5B)  // TODO: Might need this one too "index == 0x1B"
-                              // but for now I don't think so.
-  {
+  } else if (index_ == 0x5B || index_ == 0x5C || index_ == 0x63 ||
+             index_ == 0x64) {  // TODO: Might need this one too "index == 0x1B"
+                                // but for now I don't think so
     subscreen_overlay_ = 0x0096;
-  } else if (index_ == 0x80)  // Add fog 1 to the master sword area.
-  {
+  } else if (index_ == 0x80) {  // Add fog 1 to the master sword area
     subscreen_overlay_ = 0x0097;
   } else if (index_ ==
-             0x88)  // Add the triforce room curtains to the triforce room.
-  {
+             0x88) {  // Add the triforce room curtains to the triforce room
     subscreen_overlay_ = 0x0093;
-  }
-
-  // Set the main palette values.
-  if (index_ < 0x40)  // LW
-  {
-    area_palette_ = 0;
-  } else if (index_ >= 0x40 && index_ < 0x80)  // DW
-  {
-    area_palette_ = 1;
-  } else if (index_ >= 0x80 && index_ < 0xA0)  // SW
-  {
-    area_palette_ = 0;
-  }
-
-  if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07)  // LW Death Mountain
-  {
-    area_palette_ = 2;
-  } else if (index_ == 0x43 || index_ == 0x45 ||
-             index_ == 0x47)  // DW Death Mountain
-  {
-    area_palette_ = 3;
-  } else if (index_ == 0x88)  // Triforce room
-  {
-    area_palette_ = 4;
-  }
-
-  // Set the mosaic values.
-  switch (index_) {
-    case 0x00:  // Leaving Skull Woods / Lost Woods
-    case 0x40:
-      mosaic_expanded_ = {false, true, false, true};
-      break;
-    case 0x02:  // Going into Skull woods / Lost Woods west
-    case 0x0A:
-    case 0x42:
-    case 0x4A:
-      mosaic_expanded_ = {false, false, true, false};
-      break;
-    case 0x0F:  // Going into Zora's Domain North
-    case 0x10:  // Going into Skull Woods / Lost Woods North
-    case 0x11:
-    case 0x50:
-    case 0x51:
-      mosaic_expanded_ = {true, false, false, false};
-      break;
-    case 0x80:  // Leaving Zora's Domain, the Master Sword area, and the
-                // Triforce area
-    case 0x81:
-    case 0x88:
-      mosaic_expanded_ = {false, true, false, false};
-      break;
   }
 }
 
 void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
-  area_palette_ = (*rom_)[OverworldCustomMainPaletteArray + index_];
+  // Load custom palette and mosaic settings
+  main_palette_ = (*rom_)[OverworldCustomMainPaletteArray + index_];
   mosaic_ = (*rom_)[OverworldCustomMosaicArray + index_] != 0x00;
 
   uint8_t mosaicByte = (*rom_)[OverworldCustomMosaicArray + index_];
   mosaic_expanded_ = {(mosaicByte & 0x08) != 0x00, (mosaicByte & 0x04) != 0x00,
                       (mosaicByte & 0x02) != 0x00, (mosaicByte & 0x01) != 0x00};
 
-  // This is just to load the GFX groups for ROMs that have an older version
-  // of the Overworld ASM already applied.
+  // Load area size for v3
+  if (asm_version >= 3 && asm_version != 0xFF) {
+    uint8_t size_byte = (*rom_)[kOverworldScreenSize + index_];
+    area_size_ = static_cast<AreaSizeEnum>(size_byte);
+    large_map_ = (area_size_ == AreaSizeEnum::LargeArea);
+  }
+
+  // Load custom GFX groups based on ASM version
   if (asm_version >= 0x01 && asm_version != 0xFF) {
+    // Load from custom GFX group array
     for (int i = 0; i < 8; i++) {
       custom_gfx_ids_[i] =
           (*rom_)[OverworldCustomTileGFXGroupArray + (index_ * 8) + i];
     }
-
     animated_gfx_ = (*rom_)[OverworldCustomAnimatedGFXArray + index_];
   } else {
+    // Fallback to vanilla logic for ROMs without custom ASM
     int index_world = 0x20;
-
     if (parent_ >= kDarkWorldMapIdStart &&
-        parent_ < kSpecialWorldMapIdStart)  // DW
-    {
+        parent_ < kSpecialWorldMapIdStart) {  // DW
       index_world = 0x21;
-    } else if (parent_ == 0x88)  // Triforce room
-    {
+    } else if (parent_ == 0x88 || parent_ == 0x93) {  // Triforce room
       index_world = 0x24;
     }
 
@@ -379,9 +434,9 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
     const auto overworldgfxGroups =
         rom_->version_constants().kOverworldGfxGroups1;
 
-    // Replace the variable tiles with the variable ones.
+    // Replace the variable tiles with the variable ones
     // If the variable is 00 set it to 0xFF which is the new "don't load
-    // anything" value.
+    // anything" value
     uint8_t temp = (*rom_)[overworldgfxGroups + (area_graphics_ * 4)];
     if (temp != 0x00) {
       custom_gfx_ids_[3] = temp;
@@ -410,7 +465,7 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
       custom_gfx_ids_[6] = 0xFF;
     }
 
-    // Set the animated GFX values.
+    // Set the animated GFX values
     if (index_ == 0x03 || index_ == 0x05 || index_ == 0x07 || index_ == 0x43 ||
         index_ == 0x45 || index_ == 0x47) {
       animated_gfx_ = 0x59;
@@ -419,6 +474,7 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
     }
   }
 
+  // Load subscreen overlay
   subscreen_overlay_ =
       (*rom_)[OverworldCustomSubscreenOverlayArray + (index_ * 2)];
 }
@@ -642,10 +698,22 @@ absl::StatusOr<gfx::SnesPalette> OverworldMap::GetPalette(
 }
 
 absl::Status OverworldMap::LoadPalette() {
-  int previous_pal_id =
-      index_ > 0 ? (*rom_)[kOverworldMapPaletteIds + parent_ - 1] : 0;
-  int previous_spr_pal_id =
-      index_ > 0 ? (*rom_)[kOverworldSpritePaletteIds + parent_ - 1] : 0;
+  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  
+  int previous_pal_id = 0;
+  int previous_spr_pal_id = 0;
+  
+  if (index_ > 0) {
+    // Load previous palette ID based on ASM version
+    if (asm_version < 3 || asm_version == 0xFF) {
+      previous_pal_id = (*rom_)[kOverworldMapPaletteIds + parent_ - 1];
+    } else {
+      // v3 uses expanded palette table
+      previous_pal_id = (*rom_)[kOverworldPalettesScreenToSetNew + parent_ - 1];
+    }
+    
+    previous_spr_pal_id = (*rom_)[kOverworldSpritePaletteIds + parent_ - 1];
+  }
 
   area_palette_ = std::min((int)area_palette_, 0xA3);
 
@@ -664,33 +732,50 @@ absl::Status OverworldMap::LoadPalette() {
   auto grass_pal_group = rom_->palette_group().grass;
   auto bgr = grass_pal_group[0][0];
 
+  // Handle 0xFF palette references (use previous palette)
+  if (pal1 == 0xFF) {
+    pal1 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
+                   (previous_pal_id * 4)];
+  }
+  
+  if (pal2 == 0xFF) {
+    pal2 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
+                   (previous_pal_id * 4) + 1];
+  }
+  
+  if (pal3 == 0xFF) {
+    pal3 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
+                   (previous_pal_id * 4) + 2];
+  }
+
   auto ow_aux_pal_group = rom_->palette_group().overworld_aux;
   ASSIGN_OR_RETURN(gfx::SnesPalette aux1,
                    GetPalette(ow_aux_pal_group, pal1, previous_pal_id, 20));
   ASSIGN_OR_RETURN(gfx::SnesPalette aux2,
                    GetPalette(ow_aux_pal_group, pal2, previous_pal_id, 20));
 
-  // Additional handling of `pal3` and `parent_`
-  if (pal3 == 255) {
-    pal3 = (*rom_)[rom_->version_constants().kOverworldMapPaletteGroup +
-                   (previous_pal_id * 4) + 2];
+  // Set background color based on world type and area-specific settings
+  bool use_area_specific_bg = (*rom_)[OverworldCustomAreaSpecificBGEnabled] != 0x00;
+  if (use_area_specific_bg) {
+    // Use area-specific background color from custom array
+    area_specific_bg_color_ = (*rom_)[OverworldCustomAreaSpecificBGPalette + (parent_ * 2)] |
+                              ((*rom_)[OverworldCustomAreaSpecificBGPalette + (parent_ * 2) + 1] << 8);
+    // Convert 15-bit SNES color to palette color
+    bgr = gfx::SnesColor(area_specific_bg_color_);
+  } else {
+    // Use default world-based background colors
+    if (parent_ < kDarkWorldMapIdStart) {
+      bgr = grass_pal_group[0][0];  // LW
+    } else if (parent_ >= kDarkWorldMapIdStart &&
+               parent_ < kSpecialWorldMapIdStart) {
+      bgr = grass_pal_group[0][1];  // DW
+    } else if (parent_ >= 128 && parent_ < kNumOverworldMaps) {
+      bgr = grass_pal_group[0][2];  // SW
+    }
   }
 
-  if (parent_ < kDarkWorldMapIdStart) {
-    pal0 = parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 ? 2 : 0;
-    bgr = grass_pal_group[0][0];
-  } else if (parent_ >= kDarkWorldMapIdStart &&
-             parent_ < kSpecialWorldMapIdStart) {
-    pal0 = parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47 ? 3 : 1;
-    bgr = grass_pal_group[0][1];
-  } else if (parent_ >= 128 && parent_ < kNumOverworldMaps) {
-    pal0 = 0;
-    bgr = grass_pal_group[0][2];
-  }
-
-  if (parent_ == 0x88) {
-    pal0 = 4;
-  }
+  // Use main palette from the overworld map data (matches ZScream logic)
+  pal0 = main_palette_;
 
   auto ow_main_pal_group = rom_->palette_group().overworld_main;
   ASSIGN_OR_RETURN(gfx::SnesPalette main,
@@ -702,6 +787,23 @@ absl::Status OverworldMap::LoadPalette() {
 
   auto hud_pal_group = rom_->palette_group().hud;
   gfx::SnesPalette hud = hud_pal_group[0];
+
+  // Handle 0xFF sprite palette references (use previous sprite palette)
+  if (pal4 == 0xFF) {
+    pal4 = (*rom_)[kOverworldSpritePaletteGroup + (previous_spr_pal_id * 2)];
+  }
+  
+  if (pal4 == 0xFF) {
+    pal4 = 0;  // Fallback to 0 if still 0xFF
+  }
+  
+  if (pal5 == 0xFF) {
+    pal5 = (*rom_)[kOverworldSpritePaletteGroup + (previous_spr_pal_id * 2) + 1];
+  }
+  
+  if (pal5 == 0xFF) {
+    pal5 = 0;  // Fallback to 0 if still 0xFF
+  }
 
   ASSIGN_OR_RETURN(gfx::SnesPalette spr,
                    GetPalette(rom_->palette_group().sprites_aux3, pal4,

@@ -243,9 +243,9 @@ void OverworldEditor::DrawToolset() {
   }
 }
 
-constexpr std::array<const char *, 8> kMapSettingsColumnNames = {
-    "##WorldId", "##GfxId",  "##PalId",  "##SprGfxId",
-    "##5thCol",  "##6thCol", "##7thCol", "##8thCol"};
+constexpr std::array<const char *, 9> kMapSettingsColumnNames = {
+    "##WorldId", "##GfxId",  "##PalId",  "##SprGfxId", "##5thCol",
+    "##6thCol",  "##7thCol", "##8thCol", "##AreaSize"};
 
 void OverworldEditor::DrawOverworldMapSettings() {
   if (BeginTable(kOWMapTable.data(), 8, kOWMapFlags, ImVec2(0, 0), -1)) {
@@ -318,7 +318,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
 }
 
 void OverworldEditor::DrawCustomOverworldMapSettings() {
-  if (BeginTable(kOWMapTable.data(), 8, kOWMapFlags, ImVec2(0, 0), -1)) {
+  if (BeginTable(kOWMapTable.data(), 9, kOWMapFlags, ImVec2(0, 0), -1)) {
     for (const auto &name : kMapSettingsColumnNames)
       ImGui::TableSetupColumn(name);
 
@@ -394,6 +394,35 @@ void OverworldEditor::DrawCustomOverworldMapSettings() {
         "##mosaic",
         overworld_.mutable_overworld_map(current_map_)->mutable_mosaic());
     HOVER_HINT("Enable Mosaic effect for the current map");
+
+    TableNextColumn();
+    // Add area size selection for v3 support
+    static uint8_t asm_version =
+        (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+    if (asm_version != 0xFF) {
+      if (BeginTable("AreaSizeTable", 2, kOWMapFlags, ImVec2(0, 0), -1)) {
+        ImGui::TableSetupColumn("Area Size");
+        ImGui::TableSetupColumn("Value");
+
+        TableNextColumn();
+        Text("Area Size");
+
+        TableNextColumn();
+        static const char *area_size_names[] = {"Small (1x1)", "Large (2x2)",
+                                                "Wide (2x1)", "Tall (1x2)"};
+        int current_area_size = static_cast<int>(
+            overworld_.overworld_map(current_map_)->area_size());
+        if (ImGui::Combo("##AreaSize", &current_area_size, area_size_names,
+                         4)) {
+          overworld_.mutable_overworld_map(current_map_)
+              ->SetAreaSize(
+                  static_cast<zelda3::AreaSizeEnum>(current_area_size));
+          RefreshOverworldMap();
+        }
+
+        ImGui::EndTable();
+      }
+    }
 
     ImGui::EndTable();
   }
@@ -580,10 +609,14 @@ absl::Status OverworldEditor::Copy() {
     // Determine width/height in tile16 based on selection bounds
     const auto start = ow_map_canvas_.selected_points()[0];
     const auto end = ow_map_canvas_.selected_points()[1];
-    const int start_x = static_cast<int>(std::floor(std::min(start.x, end.x) / 16.0f));
-    const int end_x = static_cast<int>(std::floor(std::max(start.x, end.x) / 16.0f));
-    const int start_y = static_cast<int>(std::floor(std::min(start.y, end.y) / 16.0f));
-    const int end_y = static_cast<int>(std::floor(std::max(start.y, end.y) / 16.0f));
+    const int start_x =
+        static_cast<int>(std::floor(std::min(start.x, end.x) / 16.0f));
+    const int end_x =
+        static_cast<int>(std::floor(std::max(start.x, end.x) / 16.0f));
+    const int start_y =
+        static_cast<int>(std::floor(std::min(start.y, end.y) / 16.0f));
+    const int end_y =
+        static_cast<int>(std::floor(std::max(start.y, end.y) / 16.0f));
     const int width = end_x - start_x + 1;
     const int height = end_y - start_y + 1;
 
@@ -618,8 +651,10 @@ absl::Status OverworldEditor::Paste() {
   const ImVec2 anchor = ow_map_canvas_.drawn_tile_position();
 
   // Compute anchor in tile16 grid within the current map
-  const int tile16_x = (static_cast<int>(anchor.x) % kOverworldMapSize) / kTile16Size;
-  const int tile16_y = (static_cast<int>(anchor.y) % kOverworldMapSize) / kTile16Size;
+  const int tile16_x =
+      (static_cast<int>(anchor.x) % kOverworldMapSize) / kTile16Size;
+  const int tile16_y =
+      (static_cast<int>(anchor.y) % kOverworldMapSize) / kTile16Size;
 
   auto &selected_world =
       (current_world_ == 0)   ? overworld_.mutable_map_tiles()->light_world

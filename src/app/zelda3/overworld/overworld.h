@@ -138,6 +138,7 @@ class Overworld {
   absl::Status SaveMap32Tiles();
 
   absl::Status SaveMapProperties();
+  absl::Status SaveAreaSizes();
 
   auto rom() const { return rom_; }
   auto mutable_rom() { return rom_; }
