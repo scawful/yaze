@@ -31,9 +31,11 @@ class InstructionEntry {
 
 class Cpu {
  public:
-  explicit Cpu(Memory& mem, CpuCallbacks& callbacks)
-      : memory(mem), callbacks_(callbacks) {}
+  explicit Cpu(Memory& mem) : memory(mem) {}
   void Reset(bool hard = false);
+
+  auto& callbacks() { return callbacks_; }
+  const auto& callbacks() const { return callbacks_; }
 
   void RunOpcode();
 
@@ -781,8 +783,8 @@ class Cpu {
   bool int_wanted_ = false;
   bool int_delay_ = false;
 
-  CpuCallbacks callbacks_;
   Memory& memory;
+  CpuCallbacks callbacks_;
 };
 
 }  // namespace emu
