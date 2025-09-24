@@ -103,8 +103,6 @@
 		E318D95C2C59C08300091322 /* snes_palette.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C02C59C08300091322 /* snes_palette.cc */; };
 		E318D95D2C59C08300091322 /* snes_tile.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C22C59C08300091322 /* snes_tile.cc */; };
 		E318D95E2C59C08300091322 /* snes_tile.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C22C59C08300091322 /* snes_tile.cc */; };
-		E318D95F2C59C08300091322 /* tilesheet.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C42C59C08300091322 /* tilesheet.cc */; };
-		E318D9602C59C08300091322 /* tilesheet.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C42C59C08300091322 /* tilesheet.cc */; };
 		E318D9632C59C08300091322 /* canvas.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C92C59C08300091322 /* canvas.cc */; };
 		E318D9642C59C08300091322 /* canvas.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8C92C59C08300091322 /* canvas.cc */; };
 		E318D9652C59C08300091322 /* color.cc in Sources */ = {isa = PBXBuildFile; fileRef = E318D8CB2C59C08300091322 /* color.cc */; };
@@ -720,6 +718,8 @@
 		E318E87B2C605D5700091322 /* SDL2.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E318E8572C5D74B700091322 /* SDL2.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E318E87F2C609B3500091322 /* PencilKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E318E87E2C609B3500091322 /* PencilKit.framework */; };
 		E32BC4CB2CA4D7D9001F57A8 /* command_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E32BC4CA2CA4D7BC001F57A8 /* command_manager.cc */; };
+		E346FD782E82E3D60044283C /* tile16_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E346FD772E82E3D60044283C /* tile16_editor.cc */; };
+		E346FD792E82E3D60044283C /* tile16_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E346FD772E82E3D60044283C /* tile16_editor.cc */; };
 		E34C789C2C5882A100A6C275 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5079822D257677DB0038A28D /* imgui_tables.cpp */; };
 		E36971DA2CE189EA00DEF2F6 /* project.cc in Sources */ = {isa = PBXBuildFile; fileRef = E36971D92CE189EA00DEF2F6 /* project.cc */; };
 		E36971DB2CE189EA00DEF2F6 /* project.cc in Sources */ = {isa = PBXBuildFile; fileRef = E36971D92CE189EA00DEF2F6 /* project.cc */; };
@@ -738,7 +738,6 @@
 		E38A97F72C6C4CE3005FB662 /* extension_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E38A97F22C6C4CE3005FB662 /* extension_manager.cc */; };
 		E38A97F82C6C4CE3005FB662 /* settings_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E38A97F42C6C4CE3005FB662 /* settings_editor.cc */; };
 		E3A5CEE52CF61F1200259DE8 /* main.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3A5CEE32CF61F1200259DE8 /* main.cc */; };
-		E3A5CEE72CF61F2300259DE8 /* editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3A5CEE62CF61F2300259DE8 /* editor.cc */; };
 		E3B864952C8214B500122951 /* asset_browser.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3B864902C82144A00122951 /* asset_browser.cc */; };
 		E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958B2C68379B008DD1E7 /* editor_manager.cc */; };
 		E3BE95902C6837C8008DD1E7 /* overworld_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */; };
@@ -928,9 +927,6 @@
 		E318D89E2C59C08300091322 /* clock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = clock.h; sourceTree = "<group>"; };
 		E318D89F2C59C08300091322 /* cpu.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = cpu.cc; sourceTree = "<group>"; };
 		E318D8A02C59C08300091322 /* cpu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cpu.h; sourceTree = "<group>"; };
-		E318D8A22C59C08300091322 /* asm_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asm_parser.h; sourceTree = "<group>"; };
-		E318D8A32C59C08300091322 /* debugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debugger.h; sourceTree = "<group>"; };
-		E318D8A52C59C08300091322 /* log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = log.h; sourceTree = "<group>"; };
 		E318D8A72C59C08300091322 /* dma_channel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dma_channel.h; sourceTree = "<group>"; };
 		E318D8A82C59C08300091322 /* dma.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dma.cc; sourceTree = "<group>"; };
 		E318D8A92C59C08300091322 /* dma.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dma.h; sourceTree = "<group>"; };
@@ -956,8 +952,6 @@
 		E318D8C12C59C08300091322 /* snes_palette.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = snes_palette.h; sourceTree = "<group>"; };
 		E318D8C22C59C08300091322 /* snes_tile.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = snes_tile.cc; sourceTree = "<group>"; };
 		E318D8C32C59C08300091322 /* snes_tile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = snes_tile.h; sourceTree = "<group>"; };
-		E318D8C42C59C08300091322 /* tilesheet.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tilesheet.cc; sourceTree = "<group>"; };
-		E318D8C52C59C08300091322 /* tilesheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tilesheet.h; sourceTree = "<group>"; };
 		E318D8C92C59C08300091322 /* canvas.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = canvas.cc; sourceTree = "<group>"; };
 		E318D8CA2C59C08300091322 /* canvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = canvas.h; sourceTree = "<group>"; };
 		E318D8CB2C59C08300091322 /* color.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = color.cc; sourceTree = "<group>"; };
@@ -2381,6 +2375,8 @@
 		E318E8782C5D958400091322 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		E318E87E2C609B3500091322 /* PencilKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PencilKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.5.sdk/System/Library/Frameworks/PencilKit.framework; sourceTree = DEVELOPER_DIR; };
 		E32BC4CA2CA4D7BC001F57A8 /* command_manager.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = command_manager.cc; sourceTree = "<group>"; };
+		E346FD762E82E3D60044283C /* tile16_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tile16_editor.h; sourceTree = "<group>"; };
+		E346FD772E82E3D60044283C /* tile16_editor.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tile16_editor.cc; sourceTree = "<group>"; };
 		E36971D92CE189EA00DEF2F6 /* project.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = project.cc; sourceTree = "<group>"; };
 		E37323B42D6A0BC800059101 /* text_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = text_editor.h; sourceTree = "<group>"; };
 		E37323B52D6A0BC800059101 /* text_editor.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = text_editor.cc; sourceTree = "<group>"; };
@@ -2397,7 +2393,6 @@
 		E37323CA2D6A0C4800059101 /* hyrule_magic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hyrule_magic.h; sourceTree = "<group>"; };
 		E37323CB2D6A0C4800059101 /* hyrule_magic.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = hyrule_magic.cc; sourceTree = "<group>"; };
 		E384E2D52C76C6C800147029 /* message_data.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = message_data.cc; sourceTree = "<group>"; };
-		E38985002C67082800D4CF13 /* renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = renderer.h; sourceTree = "<group>"; };
 		E38985012C67CDDB00D4CF13 /* view_controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = view_controller.h; sourceTree = "<group>"; };
 		E38A97F12C6C4CE3005FB662 /* command_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = command_manager.h; sourceTree = "<group>"; };
 		E38A97F22C6C4CE3005FB662 /* extension_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = extension_manager.cc; sourceTree = "<group>"; };
@@ -2405,7 +2400,6 @@
 		E38A97F42C6C4CE3005FB662 /* settings_editor.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = settings_editor.cc; sourceTree = "<group>"; };
 		E38A97F52C6C4CE3005FB662 /* settings_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = settings_editor.h; sourceTree = "<group>"; };
 		E3A5CEE32CF61F1200259DE8 /* main.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cc; sourceTree = "<group>"; };
-		E3A5CEE62CF61F2300259DE8 /* editor.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = editor.cc; sourceTree = "<group>"; };
 		E3A5CEE82CF61F3100259DE8 /* editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = editor.h; sourceTree = "<group>"; };
 		E3B8648F2C82144A00122951 /* asset_browser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asset_browser.h; sourceTree = "<group>"; };
 		E3B864902C82144A00122951 /* asset_browser.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = asset_browser.cc; sourceTree = "<group>"; };
@@ -2542,7 +2536,6 @@
 			children = (
 				E37323B72D6A0BE800059101 /* file_dialog.cc */,
 				E38985012C67CDDB00D4CF13 /* view_controller.h */,
-				E38985002C67082800D4CF13 /* renderer.h */,
 				E318D8472C59C08300091322 /* app_delegate.h */,
 				E318D8482C59C08300091322 /* app_delegate.mm */,
 				E318D8492C59C08300091322 /* clipboard.cc */,
@@ -2628,6 +2621,8 @@
 		E318D8792C59C08300091322 /* overworld */ = {
 			isa = PBXGroup;
 			children = (
+				E346FD762E82E3D60044283C /* tile16_editor.h */,
+				E346FD772E82E3D60044283C /* tile16_editor.cc */,
 				E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */,
 				E3BE958E2C6837C8008DD1E7 /* overworld_editor.h */,
 				E318D8762C59C08300091322 /* entity.cc */,
@@ -2659,7 +2654,6 @@
 				E38A97F62C6C4CE3005FB662 /* system */,
 				E3BE958B2C68379B008DD1E7 /* editor_manager.cc */,
 				E3BE958C2C68379B008DD1E7 /* editor_manager.h */,
-				E3A5CEE62CF61F2300259DE8 /* editor.cc */,
 				E3A5CEE82CF61F3100259DE8 /* editor.h */,
 			);
 			path = editor;
@@ -2711,16 +2705,6 @@
 			path = cpu;
 			sourceTree = "<group>";
 		};
-		E318D8A62C59C08300091322 /* debug */ = {
-			isa = PBXGroup;
-			children = (
-				E318D8A22C59C08300091322 /* asm_parser.h */,
-				E318D8A32C59C08300091322 /* debugger.h */,
-				E318D8A52C59C08300091322 /* log.h */,
-			);
-			path = debug;
-			sourceTree = "<group>";
-		};
 		E318D8AD2C59C08300091322 /* memory */ = {
 			isa = PBXGroup;
 			children = (
@@ -2749,7 +2733,6 @@
 			children = (
 				E318D8982C59C08300091322 /* audio */,
 				E318D8A12C59C08300091322 /* cpu */,
-				E318D8A62C59C08300091322 /* debug */,
 				E318D8AD2C59C08300091322 /* memory */,
 				E318D8B12C59C08300091322 /* video */,
 				E318D8B32C59C08300091322 /* emulator.cc */,
@@ -2775,8 +2758,6 @@
 				E318D8C12C59C08300091322 /* snes_palette.h */,
 				E318D8C22C59C08300091322 /* snes_tile.cc */,
 				E318D8C32C59C08300091322 /* snes_tile.h */,
-				E318D8C42C59C08300091322 /* tilesheet.cc */,
-				E318D8C52C59C08300091322 /* tilesheet.h */,
 			);
 			path = gfx;
 			sourceTree = "<group>";
@@ -5091,7 +5072,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 2600;
 				ORGANIZATIONNAME = "Warren Moore";
 				TargetAttributes = {
 					8307E7C320E9F9C900473790 = {
@@ -5279,7 +5260,6 @@
 				E318D93D2C59C08300091322 /* addressing.cc in Sources */,
 				E318E0312C5A4FBF00091322 /* flag.cc in Sources */,
 				E318DF6B2C5A4FBE00091322 /* throw_delegate.cc in Sources */,
-				E318D95F2C59C08300091322 /* tilesheet.cc in Sources */,
 				E318D9652C59C08300091322 /* color.cc in Sources */,
 				E318E0F32C5A4FC000091322 /* seed_material.cc in Sources */,
 				E318D9992C59D0C400091322 /* imgui_impl_sdlrenderer2.cpp in Sources */,
@@ -5469,6 +5449,7 @@
 				E318E0392C5A4FBF00091322 /* program_name.cc in Sources */,
 				E318E0572C5A4FBF00091322 /* marshalling.cc in Sources */,
 				E318E7D72C5A55C300091322 /* arm_init.c in Sources */,
+				E346FD782E82E3D60044283C /* tile16_editor.cc in Sources */,
 				E318E21D2C5A4FC200091322 /* mutex.cc in Sources */,
 				E318E7B72C5A548C00091322 /* pngread.c in Sources */,
 				E318D91D2C59C08300091322 /* message_editor.cc in Sources */,
@@ -5489,7 +5470,6 @@
 				E318D9672C59C08300091322 /* input.cc in Sources */,
 				8309BDA5253CCC070045E2A1 /* main.mm in Sources */,
 				E318E6F32C5A4FC900091322 /* get_current_time_posix.inc in Sources */,
-				E3A5CEE72CF61F2300259DE8 /* editor.cc in Sources */,
 				E318E71B2C5A4FC900091322 /* time.cc in Sources */,
 				E318D9172C59C08300091322 /* screen_editor.cc in Sources */,
 				E318E0652C5A4FBF00091322 /* usage.cc in Sources */,
@@ -5684,6 +5664,7 @@
 				E318E2242C5A4FC200091322 /* cctz_benchmark.cc in Sources */,
 				E318E0362C5A4FBF00091322 /* private_handle_accessor.cc in Sources */,
 				E318D9202C59C08300091322 /* music_editor.cc in Sources */,
+				E346FD792E82E3D60044283C /* tile16_editor.cc in Sources */,
 				E318D97A2C59C08300091322 /* overworld.cc in Sources */,
 				E318E1F62C5A4FC200091322 /* strip_test.cc in Sources */,
 				E318E0A82C5A4FC000091322 /* int128.cc in Sources */,
@@ -5867,7 +5848,6 @@
 				E318E20E2C5A4FC200091322 /* blocking_counter_benchmark.cc in Sources */,
 				E318E7282C5A4FC900091322 /* bad_variant_access.cc in Sources */,
 				E318D9042C59C08300091322 /* font_loader.cc in Sources */,
-				E318D9602C59C08300091322 /* tilesheet.cc in Sources */,
 				E318E12A2C5A4FC100091322 /* zipf_distribution_test.cc in Sources */,
 				E318E1D02C5A4FC200091322 /* match.cc in Sources */,
 				E318E1602C5A4FC100091322 /* cord_data_edge_test.cc in Sources */,
@@ -6003,6 +5983,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = SN8Z922TT6;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -6022,6 +6003,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 			};
 			name = Debug;
 		};
@@ -6061,6 +6043,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = SN8Z922TT6;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -6073,6 +6056,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 			};
 			name = Release;
 		};
@@ -6085,7 +6069,6 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = SN8Z922TT6;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = c17;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -6143,7 +6126,6 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = SN8Z922TT6;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = c17;
 				HEADER_SEARCH_PATHS = "\"/Users/scawful/Code/yaze/build\"";
@@ -6191,13 +6173,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = SN8Z922TT6;
 				INFOPLIST_FILE = "$(SRCROOT)/macOS/Info-macOS.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.halext.yaze-macos";
 				PRODUCT_NAME = yaze;
 				SDKROOT = macosx;
@@ -6213,13 +6194,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = SN8Z922TT6;
 				INFOPLIST_FILE = "$(SRCROOT)/macOS/Info-macOS.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.halext.yaze-macos";
 				PRODUCT_NAME = yaze;
 				SDKROOT = macosx;
