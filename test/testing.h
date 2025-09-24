@@ -42,6 +42,50 @@ template <typename T>
 
 MATCHER_P(IsOkAndHolds, value, "") { return IsOkAndHolds(arg, value); }
 
+// Helper to test if a StatusOr contains an error with a specific message
+MATCHER_P(StatusIsWithMessage, message, "") {
+  return !arg.ok() && arg.status().message() == message;
+}
+
+// Helper to test if a StatusOr contains an error with a specific code
+MATCHER_P(StatusIsWithCode, code, "") {
+  return !arg.ok() && arg.status().code() == code;
+}
+
+// Helper to test if a StatusOr is OK and contains a value that matches a
+// matcher
+template <typename T, typename Matcher>
+::testing::AssertionResult IsOkAndMatches(const absl::StatusOr<T>& status_or,
+                                          const Matcher& matcher) {
+  if (!status_or.ok()) {
+    return ::testing::AssertionFailure()
+           << "Expected status to be OK, but got: " << status_or.status();
+  }
+  if (!::testing::Matches(matcher)(status_or.value())) {
+    return ::testing::AssertionFailure()
+           << "Value does not match expected matcher";
+  }
+  return ::testing::AssertionSuccess();
+}
+
+// Helper to test if two StatusOr values are equal
+template <typename T>
+::testing::AssertionResult StatusOrEqual(const absl::StatusOr<T>& a,
+                                         const absl::StatusOr<T>& b) {
+  if (a.ok() != b.ok()) {
+    return ::testing::AssertionFailure()
+           << "One status is OK while the other is not";
+  }
+  if (!a.ok()) {
+    return ::testing::AssertionSuccess();
+  }
+  if (a.value() != b.value()) {
+    return ::testing::AssertionFailure()
+           << "Values are not equal: " << a.value() << " vs " << b.value();
+  }
+  return ::testing::AssertionSuccess();
+}
+
 }  // namespace test
 }  // namespace yaze
 
