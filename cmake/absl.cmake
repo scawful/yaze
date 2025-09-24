@@ -1,7 +1,12 @@
-if (MINGW)
-  add_subdirectory(src/lib/abseil-cpp)
-else()
-  find_package(absl)
+# Try to find Abseil as a system package first
+find_package(absl QUIET)
+if(NOT absl_FOUND)
+  # If not found, try to use bundled Abseil
+  if(EXISTS "${CMAKE_SOURCE_DIR}/src/lib/abseil-cpp/CMakeLists.txt")
+    add_subdirectory(src/lib/abseil-cpp)
+  else()
+    message(FATAL_ERROR "Abseil not found and no bundled Abseil available. Please install libabsl-dev")
+  endif()
 endif()
 set(ABSL_PROPAGATE_CXX_STD ON)
 set(ABSL_CXX_STANDARD 17)

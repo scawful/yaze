@@ -33,6 +33,7 @@ add_executable(
   zelda3/object_parser_test.cc
   zelda3/object_parser_structs_test.cc
   zelda3/test_dungeon_objects.cc
+  asar/asar_integration_test.cc
   ${ASAR_STATIC_SRC}
   ${IMGUI_SRC}
   ${IMGUI_TEST_ENGINE_SOURCES}
@@ -56,6 +57,7 @@ target_link_libraries(
   yaze_test
   SDL2::SDL2
   asar-static
+  yaze_asar_integration
   ${ABSL_TARGETS}
   ${PNG_LIBRARIES}
   ${OPENGL_LIBRARIES}

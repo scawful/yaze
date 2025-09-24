@@ -1,16 +1,20 @@
 # Asar Assembler for 65816 SNES Assembly
-add_subdirectory(src/lib/asar/src)
-
+# Configure Asar build options
 set(ASAR_GEN_EXE OFF)
 set(ASAR_GEN_DLL ON)
 set(ASAR_GEN_LIB ON)
 set(ASAR_GEN_EXE_TEST OFF)
 set(ASAR_GEN_DLL_TEST OFF)
-set(ASAR_STATIC_SRC_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar")
 
-get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
-list(APPEND ASAR_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src")
-target_include_directories(asar-static PRIVATE ${ASAR_INCLUDE_DIR})
+# Add Asar subdirectory
+add_subdirectory(src/lib/asar/src)
+
+# Set up Asar include directories
+set(ASAR_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar")
+set(ASAR_DLL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c")
+
+# Define Asar static source files for cross-platform compatibility
+set(ASAR_STATIC_SRC_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar")
 
 set(ASAR_STATIC_SRC
   "${ASAR_STATIC_SRC_DIR}/interface-lib.cpp"
@@ -32,8 +36,30 @@ set(ASAR_STATIC_SRC
   "${ASAR_STATIC_SRC_DIR}/platform/file-helpers.cpp"
 )
 
+# Add platform-specific source files
 if(WIN32 OR MINGW)
   list(APPEND ASAR_STATIC_SRC "${ASAR_STATIC_SRC_DIR}/platform/windows/file-helpers-win32.cpp")
-else()
+elseif(UNIX)
   list(APPEND ASAR_STATIC_SRC "${ASAR_STATIC_SRC_DIR}/platform/linux/file-helpers-linux.cpp")
+else()
+  # macOS and other platforms
+  list(APPEND ASAR_STATIC_SRC "${ASAR_STATIC_SRC_DIR}/platform/generic/file-helpers-generic.cpp")
+endif()
+
+# Set up Asar targets and properties
+if(TARGET asar-static)
+  target_include_directories(asar-static PUBLIC 
+    ${ASAR_INCLUDE_DIR}
+    ${ASAR_DLL_INCLUDE_DIR}
+  )
+  
+  # Set compile definitions for cross-platform compatibility
+  if(WIN32)
+    target_compile_definitions(asar-static PRIVATE "windows")
+  elseif(UNIX)
+    target_compile_definitions(asar-static PRIVATE "linux")
+  endif()
+  
+  # Set C++ standard
+  target_compile_features(asar-static PRIVATE cxx_std_11)
 endif()

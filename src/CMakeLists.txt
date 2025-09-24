@@ -45,6 +45,7 @@ add_subdirectory(lib/nativefiledialog-extended)
 
 if (YAZE_BUILD_APP)
   include(app/app.cmake)
+  include(app/asar/asar.cmake)
 endif()
 if (YAZE_BUILD_EMU)
   include(app/emu/emu.cmake)

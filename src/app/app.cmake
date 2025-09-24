@@ -58,6 +58,7 @@ target_link_libraries(
 target_link_libraries(
   yaze PUBLIC
   asar-static
+  yaze_asar_integration
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
