@@ -11,5 +11,8 @@ set(
   app/zelda3/music/tracker.cc
   app/zelda3/dungeon/room.cc
   app/zelda3/dungeon/room_object.cc
+  app/zelda3/dungeon/object_parser.cc
   app/zelda3/dungeon/object_renderer.cc
+  app/zelda3/dungeon/object_parser.cc
+  app/zelda3/dungeon/room_layout.cc
 )
