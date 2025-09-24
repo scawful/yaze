@@ -7,6 +7,7 @@
 
 #include "absl/strings/str_cat.h"
 #include "util/bps.h"
+#include "app/core/platform/file_dialog.h"
 
 namespace yaze {
 namespace cli {
