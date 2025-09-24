@@ -1,6 +1,7 @@
 #include "dungeon_editor.h"
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/strings/str_format.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
@@ -464,25 +465,302 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   }
 
   static bool show_objects = false;
-  ImGui::Checkbox("Show Objects", &show_objects);
+  ImGui::Checkbox("Show Object Outlines", &show_objects);
+
+  static bool render_objects = true;
+  ImGui::Checkbox("Render Objects", &render_objects);
+
+  static bool show_object_info = false;
+  ImGui::Checkbox("Show Object Info", &show_object_info);
+
+  static bool show_layout_objects = false;
+  ImGui::Checkbox("Show Layout Objects", &show_layout_objects);
+
+  static bool show_debug_info = false;
+  ImGui::Checkbox("Show Debug Info", &show_debug_info);
+
+  if (ImGui::Button("Clear Object Cache")) {
+    object_render_cache_.clear();
+  }
+
+  ImGui::SameLine();
+  ImGui::Text("Cache: %zu objects", object_render_cache_.size());
+
+  // Object statistics and metadata
+  if (show_debug_info) {
+    ImGui::Separator();
+    ImGui::Text("Room Statistics:");
+    ImGui::Text("Objects: %zu", rooms_[room_id].tile_objects_.size());
+    ImGui::Text("Layout Objects: %zu",
+                rooms_[room_id].GetLayout().GetObjects().size());
+    ImGui::Text("Sprites: %zu", rooms_[room_id].sprites_.size());
+    ImGui::Text("Chests: %zu", rooms_[room_id].chests_in_room_.size());
+
+    // Palette information
+    ImGui::Text("Current Palette Group: %d", current_palette_group_id_);
+    ImGui::Text("Palette Hash: %#016llx", last_palette_hash_);
+
+    // Object type breakdown
+    ImGui::Separator();
+    ImGui::Text("Object Type Breakdown:");
+    std::map<int, int> object_type_counts;
+    for (const auto &obj : rooms_[room_id].tile_objects_) {
+      object_type_counts[obj.id_]++;
+    }
+    for (const auto &[type, count] : object_type_counts) {
+      ImGui::Text("Type 0x%02X: %d objects", type, count);
+    }
+
+    // Layout object type breakdown
+    ImGui::Separator();
+    ImGui::Text("Layout Object Types:");
+    auto walls = rooms_[room_id].GetLayout().GetObjectsByType(
+        zelda3::RoomLayoutObject::Type::kWall);
+    auto floors = rooms_[room_id].GetLayout().GetObjectsByType(
+        zelda3::RoomLayoutObject::Type::kFloor);
+    auto doors = rooms_[room_id].GetLayout().GetObjectsByType(
+        zelda3::RoomLayoutObject::Type::kDoor);
+    ImGui::Text("Walls: %zu", walls.size());
+    ImGui::Text("Floors: %zu", floors.size());
+    ImGui::Text("Doors: %zu", doors.size());
+  }
+
+  // Object selection and editing
+  static int selected_object_id = -1;
+  if (ImGui::Button("Select Object")) {
+    // This would open an object selection dialog
+    // For now, just cycle through objects
+    if (!rooms_[room_id].tile_objects_.empty()) {
+      selected_object_id =
+          (selected_object_id + 1) % rooms_[room_id].tile_objects_.size();
+    }
+  }
+
+  if (selected_object_id >= 0 &&
+      selected_object_id < (int)rooms_[room_id].tile_objects_.size()) {
+    const auto &selected_obj =
+        rooms_[room_id].tile_objects_[selected_object_id];
+    ImGui::Separator();
+    ImGui::Text("Selected Object:");
+    ImGui::Text("ID: 0x%02X", selected_obj.id_);
+    ImGui::Text("Position: (%d, %d)", selected_obj.x_, selected_obj.y_);
+    ImGui::Text("Size: 0x%02X", selected_obj.size_);
+    ImGui::Text("Layer: %d", static_cast<int>(selected_obj.layer_));
+    ImGui::Text("Tile Count: %d", selected_obj.GetTileCount());
+
+    // Object editing controls
+    if (ImGui::Button("Edit Object")) {
+      // This would open an object editing dialog
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Delete Object")) {
+      // This would remove the object from the room
+    }
+  }
 
   ImGui::EndGroup();
 
   canvas_.DrawBackground();
   canvas_.DrawContextMenu();
   if (is_loaded_) {
-    canvas_.DrawBitmap(gfx::Arena::Get().bg1().bitmap(), 0, true);
-    canvas_.DrawBitmap(gfx::Arena::Get().bg2().bitmap(), 0, true);
+    canvas_.DrawBitmap(gfx::Arena::Get().bg1().bitmap(), 1.0f, 1.0f);
+    canvas_.DrawBitmap(gfx::Arena::Get().bg2().bitmap(), 1.0f, 1.0f);
 
-    if (show_objects) {
+    if (show_objects || render_objects) {
+      // Get the current room's palette for object rendering
+      auto current_palette =
+          rom()->palette_group().dungeon_main[current_palette_group_id_];
+
+      // Clear cache if palette changed
+      uint64_t current_palette_hash = 0;
+      for (size_t i = 0; i < current_palette.size() && i < 16; ++i) {
+        current_palette_hash ^=
+            std::hash<uint16_t>{}(current_palette[i].snes()) + 0x9e3779b9 +
+            (current_palette_hash << 6) + (current_palette_hash >> 2);
+      }
+
+      if (current_palette_hash != last_palette_hash_) {
+        object_render_cache_.clear();
+        last_palette_hash_ = current_palette_hash;
+      }
+
+      // Render layout objects (walls, floors, etc.) first
+      if (show_layout_objects) {
+        RenderLayoutObjects(rooms_[room_id].GetLayout(), current_palette);
+      }
+
+      if (rooms_[room_id].tile_objects_.empty()) {
+        // Load the objects for the room
+        rooms_[room_id].LoadObjects();
+      }
+
+      // Render regular room objects
       for (const auto &object : rooms_[room_id].tile_objects_) {
-        canvas_.DrawOutline(object.x_, object.y_, object.width_ * 16,
-                            object.height_ * 16);
+        // Convert room coordinates to canvas coordinates
+        int canvas_x = object.x_ * 16;
+        int canvas_y = object.y_ * 16;
+
+        if (show_objects) {
+          // Draw object outline - use size_ to determine dimensions
+          int outline_width = 16;  // Default 16x16
+          int outline_height = 16;
+
+          // Calculate dimensions based on object size
+          if (object.size_ > 0) {
+            // Size encoding: bits 0-1 = width, bits 2-3 = height
+            int width_bits = object.size_ & 0x03;
+            int height_bits = (object.size_ >> 2) & 0x03;
+
+            outline_width = (width_bits + 1) * 16;
+            outline_height = (height_bits + 1) * 16;
+          }
+
+          canvas_.DrawOutline(object.x_, object.y_, outline_width,
+                              outline_height);
+        }
+
+        if (render_objects) {
+          // Render the actual object using ObjectRenderer
+          RenderObjectInCanvas(object, current_palette);
+        }
+
+        if (show_object_info) {
+          // Display object information
+          DisplayObjectInfo(object, canvas_x, canvas_y);
+        }
       }
     }
   }
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
+}
+
+void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject &object,
+                                         const gfx::SnesPalette &palette) {
+  // Create a mutable copy of the object to ensure tiles are loaded
+  auto mutable_object = object;
+  mutable_object.set_rom(rom_);
+  mutable_object.EnsureTilesLoaded();
+
+  // Check if tiles were loaded successfully using the new method
+  auto tiles_result = mutable_object.GetTiles();
+  if (!tiles_result.ok() || tiles_result->empty()) {
+    return;  // Skip objects without tiles
+  }
+
+  // Calculate palette hash for caching
+  uint64_t palette_hash = 0;
+  for (size_t i = 0; i < palette.size() && i < 16; ++i) {
+    palette_hash ^= std::hash<uint16_t>{}(palette[i].snes()) + 0x9e3779b9 +
+                    (palette_hash << 6) + (palette_hash >> 2);
+  }
+
+  // Check cache first
+  for (auto &cached : object_render_cache_) {
+    if (cached.object_id == object.id_ && cached.object_x == object.x_ &&
+        cached.object_y == object.y_ && cached.object_size == object.size_ &&
+        cached.palette_hash == palette_hash && cached.is_valid) {
+      // Use cached bitmap
+      int canvas_x = object.x_ * 16;
+      int canvas_y = object.y_ * 16;
+      canvas_.DrawBitmap(cached.rendered_bitmap, canvas_x, canvas_y, 1.0f, 255);
+      return;
+    }
+  }
+
+  // Render the object to a bitmap
+  auto render_result = object_renderer_.RenderObject(mutable_object, palette);
+  if (!render_result.ok()) {
+    return;  // Skip if rendering failed
+  }
+
+  auto object_bitmap = std::move(render_result.value());
+
+  // Set the palette for the bitmap
+  object_bitmap.SetPalette(palette);
+
+  // Render the bitmap to a texture so it can be drawn
+  core::Renderer::Get().RenderBitmap(&object_bitmap);
+
+  // Convert room coordinates to canvas coordinates
+  // Room coordinates are in 16x16 tile units, canvas coordinates are in pixels
+  int canvas_x = object.x_ * 16;
+  int canvas_y = object.y_ * 16;
+
+  // Draw the object bitmap to the canvas immediately
+  canvas_.DrawBitmap(object_bitmap, canvas_x, canvas_y, 1.0f, 255);
+
+  // Cache the rendered bitmap (create a copy for caching)
+  ObjectRenderCache cache_entry;
+  cache_entry.object_id = object.id_;
+  cache_entry.object_x = object.x_;
+  cache_entry.object_y = object.y_;
+  cache_entry.object_size = object.size_;
+  cache_entry.palette_hash = palette_hash;
+  cache_entry.rendered_bitmap = object_bitmap;  // Copy instead of move
+  cache_entry.is_valid = true;
+
+  // Add to cache (limit cache size)
+  if (object_render_cache_.size() >= 100) {
+    object_render_cache_.erase(object_render_cache_.begin());
+  }
+  object_render_cache_.push_back(std::move(cache_entry));
+}
+
+void DungeonEditor::DisplayObjectInfo(const zelda3::RoomObject &object,
+                                      int canvas_x, int canvas_y) {
+  // Display object information as text overlay
+  std::string info_text = absl::StrFormat("ID:%d X:%d Y:%d S:%d", object.id_,
+                                          object.x_, object.y_, object.size_);
+
+  // Draw text at the object position
+  canvas_.DrawText(info_text, canvas_x, canvas_y - 12);
+}
+
+void DungeonEditor::RenderLayoutObjects(const zelda3::RoomLayout &layout,
+                                        const gfx::SnesPalette &palette) {
+  // Render layout objects (walls, floors, etc.) as simple colored rectangles
+  // This provides a visual representation of the room's structure
+
+  for (const auto &layout_obj : layout.GetObjects()) {
+    int canvas_x = layout_obj.x() * 16;
+    int canvas_y = layout_obj.y() * 16;
+
+    // Choose color based on object type
+    gfx::SnesColor color;
+    switch (layout_obj.type()) {
+      case zelda3::RoomLayoutObject::Type::kWall:
+        color = gfx::SnesColor(0x7FFF);  // Gray
+        break;
+      case zelda3::RoomLayoutObject::Type::kFloor:
+        color = gfx::SnesColor(0x4210);  // Dark brown
+        break;
+      case zelda3::RoomLayoutObject::Type::kCeiling:
+        color = gfx::SnesColor(0x739C);  // Light gray
+        break;
+      case zelda3::RoomLayoutObject::Type::kPit:
+        color = gfx::SnesColor(0x0000);  // Black
+        break;
+      case zelda3::RoomLayoutObject::Type::kWater:
+        color = gfx::SnesColor(0x001F);  // Blue
+        break;
+      case zelda3::RoomLayoutObject::Type::kStairs:
+        color = gfx::SnesColor(0x7E0F);  // Yellow
+        break;
+      case zelda3::RoomLayoutObject::Type::kDoor:
+        color = gfx::SnesColor(0xF800);  // Red
+        break;
+      default:
+        color = gfx::SnesColor(0x7C1F);  // Magenta for unknown
+        break;
+    }
+
+    // Draw a simple rectangle for the layout object
+    // This is a placeholder - in a real implementation, you'd render the actual
+    // tile
+    canvas_.DrawRect(canvas_x, canvas_y, 16, 16,
+                     gui::ConvertSnesColorToImVec4(color));
+  }
 }
 
 void DungeonEditor::DrawRoomGraphics() {
@@ -543,14 +821,26 @@ void DungeonEditor::DrawObjectRenderer() {
     TableNextColumn();
     BeginChild("DungeonObjectButtons", ImVec2(250, 0), true);
 
-    int selected_object = 0;
+    static int selected_object = 0;
     int i = 0;
     for (const auto object_name : zelda3::Type1RoomObjectNames) {
       if (ImGui::Selectable(object_name.data(), selected_object == i)) {
         selected_object = i;
-        // object_renderer_.LoadObject(i,
-        //                             rooms_[current_room_id_].mutable_blocks());
-        // object_loaded_ = true;
+
+        // Create a test object and render it
+        auto test_object = zelda3::RoomObject(i, 0, 0, 0x12, 0);
+        test_object.set_rom(rom_);
+        test_object.EnsureTilesLoaded();
+
+        // Get current palette
+        auto palette =
+            rom()->palette_group().dungeon_main[current_palette_group_id_];
+
+        // Render object preview
+        auto result = object_renderer_.GetObjectPreview(test_object, palette);
+        if (result.ok()) {
+          object_loaded_ = true;
+        }
       }
       i += 1;
     }
@@ -572,10 +862,8 @@ void DungeonEditor::DrawObjectRenderer() {
   }
 
   if (object_loaded_) {
-    ImGui::Begin("Memory Viewer", &object_loaded_, 0);
-    static MemoryEditor mem_edit;
-    // mem_edit.DrawContents(object_renderer_.mutable_memory()->data(),
-    // object_renderer_.mutable_memory()->size());
+    ImGui::Begin("Object Preview", &object_loaded_, 0);
+    ImGui::Text("Object rendered successfully using improved renderer!");
     ImGui::End();
   }
 }

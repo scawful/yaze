@@ -1,143 +1,257 @@
-#include "app/zelda3/dungeon/object_renderer.h"
+#include "object_renderer.h"
 
+#include <algorithm>
+#include <cstring>
+
+#include "absl/strings/str_format.h"
 #include "app/gfx/arena.h"
 
 namespace yaze {
 namespace zelda3 {
 
-void DungeonObjectRenderer::LoadObject(uint32_t routine_ptr,
-                                       std::array<uint8_t, 16>& sheet_ids) {
-  vram_.sheets = sheet_ids;
+absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObject(
+    const RoomObject& object, const gfx::SnesPalette& palette) {
+  
+  // Ensure object has tiles loaded
+  if (object.tiles().empty()) {
+    return absl::FailedPreconditionError("Object has no tiles loaded");
+  }
 
-  rom_data_ = rom()->vector();
-  snes_.memory().Initialize(rom_data_);
+  // Create bitmap for the object
+  gfx::Bitmap bitmap = CreateBitmap(32, 32); // Default 32x32 pixels
 
-  // Configure the object based on the fetched information
-  ConfigureObject();
+  // Render each tile
+  for (size_t i = 0; i < object.tiles().size(); ++i) {
+    int tile_x = (i % 2) * 16; // 2 tiles per row
+    int tile_y = (i / 2) * 16;
+    
+    auto status = RenderTile(object.tiles()[i], bitmap, tile_x, tile_y, palette);
+    if (!status.ok()) {
+      return status;
+    }
+  }
 
-  // Run the CPU emulation for the object's draw routines
-  RenderObject(routine_ptr);
+  return bitmap;
 }
 
-void DungeonObjectRenderer::ConfigureObject() {
-  snes_.cpu().A = 0x03D8;
-  snes_.cpu().X = 0x03D8;
-  snes_.cpu().DB = 0x7E;
-  // VRAM target destinations
-  snes_.cpu().WriteLong(0xBF, 0x7E2000);
-  snes_.cpu().WriteLong(0xCB, 0x7E2080);
-  snes_.cpu().WriteLong(0xC2, 0x7E2002);
-  snes_.cpu().WriteLong(0xCE, 0x7E2082);
-  snes_.cpu().SetAccumulatorSize(false);
-  snes_.cpu().SetIndexSize(false);
-}
+absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjects(
+    const std::vector<RoomObject>& objects, const gfx::SnesPalette& palette,
+    int width, int height) {
+  
+  gfx::Bitmap bitmap = CreateBitmap(width, height);
 
-/**
- * Example:
- * the STA $BF, $CD, $C2, $CE are the location of the object in the room
- * $B2 is used for size loop
- * so if object size is setted on 07 that draw code will be repeated 7 times
- * and since Y is increasing by 4 it makes the object draw from left to right
-
-  RoomDraw_Rightwards2x2_1to15or32:
-    #_018B89: JSR RoomDraw_GetSize_1to15or32
-    .next
-    #_018B8C: JSR RoomDraw_Rightwards2x2
-    #_018B8F: DEC.b $B2
-    #_018B91: BNE .next
-    #_018B93: RTS
-
-  RoomDraw_Rightwards2x2:
-    #_019895: LDA.w RoomDrawObjectData+0,X
-    #_019898: STA.b [$BF],Y
-    #_01989A: LDA.w RoomDrawObjectData+2,X
-    #_01989D: STA.b [$CB],Y
-    #_01989F: LDA.w RoomDrawObjectData+4,X
-    #_0198A2: STA.b [$C2],Y
-    #_0198A4: LDA.w RoomDrawObjectData+6,X
-    #_0198A7: STA.b [$CE],Y
-    #_0198A9: INY #4
-    #_0198AD: RTS
-*/
-void DungeonObjectRenderer::RenderObject(uint32_t routine_ptr) {
-  snes_.cpu().PB = 0x01;
-  snes_.cpu().PC = routine_ptr;
-
-  // Set up initial state for object drawing
-  snes_.cpu().Y = 0;     // Start at the beginning of the tilemap
-  snes_.cpu().D = 0x7E;  // Direct page register for memory access
-
-  // Push return address to stack
-  snes_.cpu().PushLong(0x01 << 16 | 0xFFFF);  // Push a dummy return address
-
-  // Set up a maximum instruction count to prevent infinite loops
-  const int MAX_INSTRUCTIONS = 10000;
-  int instruction_count = 0;
-
-  // Execute instructions until we hit a return instruction or max count
-  while (instruction_count < MAX_INSTRUCTIONS) {
-    uint8_t opcode =
-        snes_.cpu().ReadByte(snes_.cpu().PB << 16 | snes_.cpu().PC);
-
-    // Check for RTS (Return from Subroutine) instruction
-    if (opcode == 0x60) {
-      // Execute the RTS instruction
-      snes_.cpu().ExecuteInstruction(opcode);
-      break;  // Exit the loop after RTS
+  for (const auto& object : objects) {
+    if (object.tiles().empty()) {
+      continue; // Skip objects without tiles
     }
 
-    // Execute the instruction
-    snes_.cpu().ExecuteInstruction(opcode);
-    instruction_count++;
+    // Calculate object position in the bitmap
+    int obj_x = object.x_ * 16; // Convert room coordinates to pixel coordinates
+    int obj_y = object.y_ * 16;
+
+    // Render each tile of the object
+    for (size_t i = 0; i < object.tiles().size(); ++i) {
+      int tile_x = obj_x + (i % 2) * 16;
+      int tile_y = obj_y + (i / 2) * 16;
+      
+      // Check bounds
+      if (tile_x >= 0 && tile_x < width && tile_y >= 0 && tile_y < height) {
+        auto status = RenderTile(object.tiles()[i], bitmap, tile_x, tile_y, palette);
+        if (!status.ok()) {
+          return status;
+        }
+      }
+    }
   }
 
-  // If we hit the max instruction count, log a warning
-  if (instruction_count >= MAX_INSTRUCTIONS) {
-    std::cerr << "Warning: Object rendering hit maximum instruction count"
-              << std::endl;
-  }
-
-  UpdateObjectBitmap();
+  return bitmap;
 }
 
-// In the underworld, this holds a copy of the entire BG tilemap for
-// Layer 1 (BG2) in TILEMAPA
-// Layer 2 (BG1) in TILEMAPB
-void DungeonObjectRenderer::UpdateObjectBitmap() {
-  // Initialize the tilemap with zeros
-  tilemap_.resize(0x2000, 0);
+absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjectWithSize(
+    const RoomObject& object, const gfx::SnesPalette& palette,
+    const ObjectSizeInfo& size_info) {
+  
+  if (object.tiles().empty()) {
+    return absl::FailedPreconditionError("Object has no tiles loaded");
+  }
 
-  // Iterate over tilemap in memory to read tile IDs
-  for (int tile_index = 0; tile_index < 512; tile_index++) {
-    // Read the tile ID from memory
-    uint16_t tile_id = snes_.memory().ReadWord(0x7E2000 + tile_index * 2);
+  // Calculate bitmap size based on object size
+  int bitmap_width = size_info.width_tiles * 16;
+  int bitmap_height = size_info.height_tiles * 16;
+  
+  gfx::Bitmap bitmap = CreateBitmap(bitmap_width, bitmap_height);
 
-    // Skip empty tiles (0x0000)
-    if (tile_id == 0) continue;
+  // Render tiles based on orientation
+  if (size_info.is_horizontal) {
+    // Horizontal rendering
+    for (int repeat = 0; repeat < size_info.repeat_count; ++repeat) {
+      for (size_t i = 0; i < object.tiles().size(); ++i) {
+        int tile_x = (repeat * 2) + (i % 2);
+        int tile_y = i / 2;
+        
+        if (tile_x < size_info.width_tiles && tile_y < size_info.height_tiles) {
+          auto status = RenderTile(object.tiles()[i], bitmap, 
+                                 tile_x * 16, tile_y * 16, palette);
+          if (!status.ok()) {
+            return status;
+          }
+        }
+      }
+    }
+  } else {
+    // Vertical rendering
+    for (int repeat = 0; repeat < size_info.repeat_count; ++repeat) {
+      for (size_t i = 0; i < object.tiles().size(); ++i) {
+        int tile_x = i % 2;
+        int tile_y = (repeat * 2) + (i / 2);
+        
+        if (tile_x < size_info.width_tiles && tile_y < size_info.height_tiles) {
+          auto status = RenderTile(object.tiles()[i], bitmap, 
+                                 tile_x * 16, tile_y * 16, palette);
+          if (!status.ok()) {
+            return status;
+          }
+        }
+      }
+    }
+  }
 
-    // Calculate sheet number (each sheet contains 32 tiles)
-    int sheet_number = tile_id / 32;
+  return bitmap;
+}
 
-    // Ensure sheet number is valid
-    if (sheet_number >= vram_.sheets.size()) {
-      std::cerr << "Warning: Invalid sheet number " << sheet_number
-                << std::endl;
+absl::StatusOr<gfx::Bitmap> ObjectRenderer::GetObjectPreview(
+    const RoomObject& object, const gfx::SnesPalette& palette) {
+  
+  if (object.tiles().empty()) {
+    return absl::FailedPreconditionError("Object has no tiles loaded");
+  }
+
+  // Create a smaller preview bitmap (16x16 pixels)
+  gfx::Bitmap bitmap = CreateBitmap(16, 16);
+
+  // Render only the first tile as a preview
+  auto status = RenderTile(object.tiles()[0], bitmap, 0, 0, palette);
+  if (!status.ok()) {
+    return status;
+  }
+
+  return bitmap;
+}
+
+absl::Status ObjectRenderer::RenderTile(const gfx::Tile16& tile, 
+                                               gfx::Bitmap& bitmap,
+                                               int x, int y, 
+                                               const gfx::SnesPalette& palette) {
+  
+  // Check if bitmap is valid
+  if (!bitmap.is_active() || bitmap.surface() == nullptr) {
+    return absl::FailedPreconditionError("Bitmap is not properly initialized");
+  }
+  
+  // Get the graphics sheet from Arena - this contains the actual pixel data
+  auto& arena = gfx::Arena::Get();
+  
+  // Render the 4 sub-tiles of the Tile16
+  std::array<gfx::TileInfo, 4> sub_tiles = {
+    tile.tile0_, tile.tile1_, tile.tile2_, tile.tile3_
+  };
+
+  for (int i = 0; i < 4; ++i) {
+    const auto& tile_info = sub_tiles[i];
+    int sub_x = x + (i % 2) * 8;
+    int sub_y = y + (i / 2) * 8;
+    
+    // Get the graphics sheet that contains this tile
+    // Tile IDs are typically organized in sheets of 256 tiles each
+    int sheet_index = tile_info.id_ / 256;
+    if (sheet_index >= 223) { // Arena has 223 graphics sheets
+      sheet_index = 0; // Fallback to first sheet
+    }
+    
+    auto graphics_sheet = arena.gfx_sheet(sheet_index);
+    if (!graphics_sheet.is_active()) {
+      // If graphics sheet is not loaded, create a simple pattern
+      RenderTilePattern(bitmap, sub_x, sub_y, tile_info, palette);
       continue;
     }
+    
+    // Calculate tile position within the graphics sheet
+    int tile_x = (tile_info.id_ % 16) * 8; // 16 tiles per row, 8 pixels per tile
+    int tile_y = ((tile_info.id_ % 256) / 16) * 8; // 16 rows per sheet
+    
+    // Render the 8x8 tile from the graphics sheet
+    for (int py = 0; py < 8; ++py) {
+      for (int px = 0; px < 8; ++px) {
+        if (sub_x + px < bitmap.width() && sub_y + py < bitmap.height()) {
+          // Get pixel from graphics sheet
+          int src_x = tile_x + px;
+          int src_y = tile_y + py;
+          
+          if (src_x < graphics_sheet.width() && src_y < graphics_sheet.height()) {
+            int pixel_index = src_y * graphics_sheet.width() + src_x;
+            if (pixel_index < (int)graphics_sheet.size()) {
+              uint8_t color_index = graphics_sheet.at(pixel_index);
+              
+              // Apply palette
+              if (color_index < palette.size()) {
+                // Apply mirroring if needed
+                int final_x = sub_x + px;
+                int final_y = sub_y + py;
+                
+                if (tile_info.horizontal_mirror_) {
+                  final_x = sub_x + (7 - px);
+                }
+                if (tile_info.vertical_mirror_) {
+                  final_y = sub_y + (7 - py);
+                }
+                
+                if (final_x < bitmap.width() && final_y < bitmap.height()) {
+                  bitmap.SetPixel(final_x, final_y, palette[color_index]);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
-    // Calculate position in the tilemap
-    int tile_x = (tile_index % 32) * 8;
-    int tile_y = (tile_index / 32) * 8;
+  return absl::OkStatus();
+}
 
-    // Get the graphics sheet
-    auto& sheet =
-        gfx::Arena::Get().mutable_gfx_sheets()->at(vram_.sheets[sheet_number]);
+absl::Status ObjectRenderer::ApplyObjectSize(gfx::Bitmap& bitmap, 
+                                                   const ObjectSizeInfo& size_info) {
+  // This method would apply size and orientation transformations
+  // For now, it's a placeholder
+  return absl::OkStatus();
+}
 
-    // Calculate the offset in the tilemap
-    int tilemap_offset = tile_y * 256 + tile_x;
+gfx::Bitmap ObjectRenderer::CreateBitmap(int width, int height) {
+  // Create a bitmap with proper initialization
+  std::vector<uint8_t> data(width * height, 0); // Initialize with zeros
+  gfx::Bitmap bitmap(width, height, 8, data); // 8-bit depth
+  return bitmap;
+}
 
-    // Copy the tile from the graphics sheet to the tilemap
-    sheet.Get8x8Tile(tile_id % 32, 0, 0, tilemap_, tilemap_offset);
+void ObjectRenderer::RenderTilePattern(gfx::Bitmap& bitmap, int x, int y, 
+                                      const gfx::TileInfo& tile_info, 
+                                      const gfx::SnesPalette& palette) {
+  // Create a simple pattern based on tile ID and palette
+  // This is used when the graphics sheet is not available
+  
+  for (int py = 0; py < 8; ++py) {
+    for (int px = 0; px < 8; ++px) {
+      if (x + px < bitmap.width() && y + py < bitmap.height()) {
+        // Create a simple pattern based on tile ID
+        int pattern_value = (tile_info.id_ + px + py) % 16;
+        
+        // Use different colors based on the pattern
+        int color_index = pattern_value % palette.size();
+        if (color_index > 0) { // Skip transparent color (index 0)
+          bitmap.SetPixel(x + px, y + py, palette[color_index]);
+        }
+      }
+    }
   }
 }
 
