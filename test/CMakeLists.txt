@@ -23,7 +23,11 @@ add_executable(
   gfx/snes_palette_test.cc
   zelda3/message_test.cc
   zelda3/overworld_test.cc
+  zelda3/overworld_integration_test.cc
+  zelda3/comprehensive_integration_test.cc
+  zelda3/dungeon_integration_test.cc
   zelda3/sprite_builder_test.cc
+  zelda3/sprite_position_test.cc
   emu/cpu_test.cc
   emu/ppu_test.cc
   emu/spc700_test.cc
@@ -37,6 +41,37 @@ add_executable(
   ${IMGUI_SRC}
   ${IMGUI_TEST_ENGINE_SOURCES}
   ${YAZE_SRC_FILES}
+)
+
+# Add vanilla value extraction utility
+add_executable(
+  extract_vanilla_values
+  zelda3/extract_vanilla_values.cc
+  ${YAZE_SRC_FILES}
+)
+
+target_include_directories(
+  extract_vanilla_values PUBLIC
+  app/
+  lib/
+  ${CMAKE_SOURCE_DIR}/incl/
+  ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+  ${ASAR_INCLUDE_DIR}
+  ${SDL2_INCLUDE_DIR}
+  ${PNG_INCLUDE_DIRS}
+  ${PROJECT_BINARY_DIR}
+)
+
+target_link_libraries(
+  extract_vanilla_values
+  SDL2::SDL2
+  asar-static
+  ${ABSL_TARGETS}
+  ${PNG_LIBRARIES}
+  ${OPENGL_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  yaze_c
 )
 
 target_include_directories(
