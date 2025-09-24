@@ -21,11 +21,12 @@ var searchData=
   ['compressioncontext_18',['CompressionContext',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html',1,'yaze::gfx::lc_lz2::CompressionContext'],['../structyaze_1_1test_1_1CompressionContext.html',1,'yaze::test::CompressionContext']]],
   ['compressionpiece_19',['CompressionPiece',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html',1,'yaze::gfx::lc_lz2::CompressionPiece'],['../structyaze_1_1test_1_1CompressionPiece.html',1,'yaze::test::CompressionPiece']]],
   ['context_20',['Context',['../structyaze_1_1cli_1_1Context.html',1,'yaze::cli']]],
-  ['controller_21',['Controller',['../classyaze_1_1core_1_1Controller.html',1,'yaze::core']]],
-  ['coordinates_22',['Coordinates',['../structTextEditor_1_1Coordinates.html',1,'TextEditor']]],
-  ['counterirqnmiregisters_23',['CounterIrqNmiRegisters',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html',1,'yaze::emu']]],
-  ['cpu_24',['Cpu',['../classyaze_1_1emu_1_1Cpu.html',1,'yaze::emu::Cpu'],['../classyaze_1_1test_1_1Cpu.html',1,'yaze::test::Cpu']]],
-  ['cpucallbacks_25',['CpuCallbacks',['../structyaze_1_1emu_1_1CpuCallbacks.html',1,'yaze::emu::CpuCallbacks'],['../structyaze_1_1test_1_1CpuCallbacks.html',1,'yaze::test::CpuCallbacks']]],
-  ['cputest_26',['CpuTest',['../classyaze_1_1test_1_1CpuTest.html',1,'yaze::test']]],
-  ['createpatch_27',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
+  ['contextmenuitem_21',['ContextMenuItem',['../structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html',1,'yaze::gui::Canvas']]],
+  ['controller_22',['Controller',['../classyaze_1_1core_1_1Controller.html',1,'yaze::core']]],
+  ['coordinates_23',['Coordinates',['../structTextEditor_1_1Coordinates.html',1,'TextEditor']]],
+  ['counterirqnmiregisters_24',['CounterIrqNmiRegisters',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html',1,'yaze::emu']]],
+  ['cpu_25',['Cpu',['../classyaze_1_1emu_1_1Cpu.html',1,'yaze::emu::Cpu'],['../classyaze_1_1test_1_1Cpu.html',1,'yaze::test::Cpu']]],
+  ['cpucallbacks_26',['CpuCallbacks',['../structyaze_1_1emu_1_1CpuCallbacks.html',1,'yaze::emu::CpuCallbacks'],['../structyaze_1_1test_1_1CpuCallbacks.html',1,'yaze::test::CpuCallbacks']]],
+  ['cputest_27',['CpuTest',['../classyaze_1_1test_1_1CpuTest.html',1,'yaze::test']]],
+  ['createpatch_28',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
 ];

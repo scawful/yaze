@@ -74,6 +74,7 @@ var hierarchy =
     [ "yaze::gfx::lc_lz2::CompressionPiece", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", null ],
     [ "yaze::test::CompressionPiece", "structyaze_1_1test_1_1CompressionPiece.html", null ],
     [ "yaze::cli::Context", "structyaze_1_1cli_1_1Context.html", null ],
+    [ "yaze::gui::Canvas::ContextMenuItem", "structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html", null ],
     [ "yaze::core::Controller", "classyaze_1_1core_1_1Controller.html", null ],
     [ "TextEditor::Coordinates", "structTextEditor_1_1Coordinates.html", null ],
     [ "yaze::emu::CounterIrqNmiRegisters", "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html", null ],
@@ -103,6 +104,7 @@ var hierarchy =
       [ "yaze::test::TestEditor", "classyaze_1_1test_1_1TestEditor.html", null ]
     ] ],
     [ "yaze::editor::EditorContext", "structyaze_1_1editor_1_1EditorContext.html", null ],
+    [ "yaze::test::EditorIntegrationTest", "classyaze_1_1test_1_1EditorIntegrationTest.html", null ],
     [ "yaze::editor::EditorManager", "classyaze_1_1editor_1_1EditorManager.html", null ],
     [ "yaze::editor::EditorSet", "classyaze_1_1editor_1_1EditorSet.html", null ],
     [ "TextEditor::EditorState", "structTextEditor_1_1EditorState.html", null ],
@@ -165,6 +167,7 @@ var hierarchy =
     [ "yaze::emu::M7X", "structyaze_1_1emu_1_1M7X.html", null ],
     [ "yaze::emu::M7Y", "structyaze_1_1emu_1_1M7Y.html", null ],
     [ "yaze::emu::MainSubScreenDesignation", "structyaze_1_1emu_1_1MainSubScreenDesignation.html", null ],
+    [ "yaze::editor::MapPropertiesSystem", "classyaze_1_1editor_1_1MapPropertiesSystem.html", null ],
     [ "yaze::emu::MaskLogicSettings", "structyaze_1_1emu_1_1MaskLogicSettings.html", null ],
     [ "yaze::emu::Memory", "classyaze_1_1emu_1_1Memory.html", [
       [ "yaze::emu::MemoryImpl", "classyaze_1_1emu_1_1MemoryImpl.html", null ],

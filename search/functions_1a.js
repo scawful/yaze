@@ -8,12 +8,13 @@ var searchData=
   ['_7ecommandhandler_5',['~CommandHandler',['../classyaze_1_1cli_1_1CommandHandler.html#a99057b6c5780d96e56c6be9c9e109eb0',1,'yaze::cli::CommandHandler']]],
   ['_7ecommandmanager_6',['~CommandManager',['../classyaze_1_1editor_1_1CommandManager.html#a1bd784d67295a0381bd9ee6a59c93537',1,'yaze::editor::CommandManager']]],
   ['_7eeditor_7',['~Editor',['../classyaze_1_1editor_1_1Editor.html#a78070dc194ac0104406bc2ff4dd07b1f',1,'yaze::editor::Editor']]],
-  ['_7ehistorymanager_8',['~HistoryManager',['../classyaze_1_1editor_1_1HistoryManager.html#a58f042bd6d242ee85256832a7782e345',1,'yaze::editor::HistoryManager']]],
-  ['_7eiflag_9',['~IFlag',['../classyaze_1_1util_1_1IFlag.html#ab00dfde7383cbda8dcbc07bb0d7fde85',1,'yaze::util::IFlag']]],
-  ['_7ememory_10',['~Memory',['../classyaze_1_1emu_1_1Memory.html#a486b96a3917775bda2f96a0d38b23c76',1,'yaze::emu::Memory']]],
-  ['_7eppuinterface_11',['~PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html#ad72156d555df5ac5842cd83193dce464',1,'yaze::emu::PpuInterface::~PpuInterface()'],['../classyaze_1_1test_1_1PpuInterface.html#ad72156d555df5ac5842cd83193dce464',1,'yaze::test::PpuInterface::~PpuInterface()']]],
-  ['_7esnes_12',['~Snes',['../classyaze_1_1emu_1_1Snes.html#a447f7314e8df8a75cc4c39a90b4a0284',1,'yaze::emu::Snes']]],
-  ['_7etesteditor_13',['~TestEditor',['../classyaze_1_1test_1_1TestEditor.html#a4235b48ee094a0ef8cced6778c7a12d7',1,'yaze::test::TestEditor']]],
-  ['_7etexteditor_14',['~TextEditor',['../classTextEditor.html#a67cc14c174c7b66738c40f844d4dd7d7',1,'TextEditor']]],
-  ['_7eundorecord_15',['~UndoRecord',['../classTextEditor_1_1UndoRecord.html#a981455d44f29b51ee6aeb5065afa12ff',1,'TextEditor::UndoRecord']]]
+  ['_7eeditorintegrationtest_8',['~EditorIntegrationTest',['../classyaze_1_1test_1_1EditorIntegrationTest.html#ad8030e52daf3fad656b0f0b989a91abe',1,'yaze::test::EditorIntegrationTest']]],
+  ['_7ehistorymanager_9',['~HistoryManager',['../classyaze_1_1editor_1_1HistoryManager.html#a58f042bd6d242ee85256832a7782e345',1,'yaze::editor::HistoryManager']]],
+  ['_7eiflag_10',['~IFlag',['../classyaze_1_1util_1_1IFlag.html#ab00dfde7383cbda8dcbc07bb0d7fde85',1,'yaze::util::IFlag']]],
+  ['_7ememory_11',['~Memory',['../classyaze_1_1emu_1_1Memory.html#a486b96a3917775bda2f96a0d38b23c76',1,'yaze::emu::Memory']]],
+  ['_7eppuinterface_12',['~PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html#ad72156d555df5ac5842cd83193dce464',1,'yaze::emu::PpuInterface::~PpuInterface()'],['../classyaze_1_1test_1_1PpuInterface.html#ad72156d555df5ac5842cd83193dce464',1,'yaze::test::PpuInterface::~PpuInterface()']]],
+  ['_7esnes_13',['~Snes',['../classyaze_1_1emu_1_1Snes.html#a447f7314e8df8a75cc4c39a90b4a0284',1,'yaze::emu::Snes']]],
+  ['_7etesteditor_14',['~TestEditor',['../classyaze_1_1test_1_1TestEditor.html#a4235b48ee094a0ef8cced6778c7a12d7',1,'yaze::test::TestEditor']]],
+  ['_7etexteditor_15',['~TextEditor',['../classTextEditor.html#a67cc14c174c7b66738c40f844d4dd7d7',1,'TextEditor']]],
+  ['_7eundorecord_16',['~UndoRecord',['../classTextEditor_1_1UndoRecord.html#a981455d44f29b51ee6aeb5065afa12ff',1,'TextEditor::UndoRecord']]]
 ];

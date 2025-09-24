@@ -1,6 +1,7 @@
 var canvas_8h =
 [
     [ "yaze::gui::Canvas", "classyaze_1_1gui_1_1Canvas.html", "classyaze_1_1gui_1_1Canvas" ],
+    [ "yaze::gui::Canvas::ContextMenuItem", "structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html", "structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem" ],
     [ "yaze::gui::Bitmap", "classyaze_1_1gui_1_1Bitmap.html", "classyaze_1_1gui_1_1Bitmap" ],
     [ "IMGUI_DEFINE_MATH_OPERATORS", "canvas_8h.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "yaze::gui::BitmapTable", "namespaceyaze_1_1gui.html#ac70b35914f079891436c2442779b9113", null ],

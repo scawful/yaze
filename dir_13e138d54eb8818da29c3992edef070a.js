@@ -1,5 +1,6 @@
 var dir_13e138d54eb8818da29c3992edef070a =
 [
+    [ "editor", "dir_0e579cc64755cf26f576fedee3b2b4c1.html", "dir_0e579cc64755cf26f576fedee3b2b4c1" ],
     [ "emu", "dir_52f51a7af620887c859e1cd9a999e761.html", "dir_52f51a7af620887c859e1cd9a999e761" ],
     [ "gfx", "dir_47c4e98413e453c7bbaeb742d0253c57.html", "dir_47c4e98413e453c7bbaeb742d0253c57" ],
     [ "integration", "dir_bbf9f1b56ba6c621651be8934a24eced.html", "dir_bbf9f1b56ba6c621651be8934a24eced" ],

@@ -24,6 +24,7 @@ var namespaceyaze_1_1test =
     [ "CpuTest", "classyaze_1_1test_1_1CpuTest.html", "classyaze_1_1test_1_1CpuTest" ],
     [ "DungeonEditorIntegrationTest", "classyaze_1_1test_1_1DungeonEditorIntegrationTest.html", "classyaze_1_1test_1_1DungeonEditorIntegrationTest" ],
     [ "DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", "classyaze_1_1test_1_1DungeonRoomTest" ],
+    [ "EditorIntegrationTest", "classyaze_1_1test_1_1EditorIntegrationTest.html", "classyaze_1_1test_1_1EditorIntegrationTest" ],
     [ "IplHandshakeTest", "classyaze_1_1test_1_1IplHandshakeTest.html", "classyaze_1_1test_1_1IplHandshakeTest" ],
     [ "MemoryImpl", "classyaze_1_1test_1_1MemoryImpl.html", "classyaze_1_1test_1_1MemoryImpl" ],
     [ "MessageTest", "classyaze_1_1test_1_1MessageTest.html", "classyaze_1_1test_1_1MessageTest" ],

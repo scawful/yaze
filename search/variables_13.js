@@ -21,7 +21,7 @@ var searchData=
   ['terminated_18',['terminated',['../structyaze_1_1emu_1_1DmaChannel.html#a66a23a67d2809197c30e92da9ad859f9',1,'yaze::emu::DmaChannel']]],
   ['test_5f_19',['test_',['../classyaze_1_1zelda3_1_1Inventory.html#a73f2e4d4f78052ad853866b488264af8',1,'yaze::zelda3::Inventory']]],
   ['test_5fdata_5floaded_5f_20',['test_data_loaded_',['../classyaze_1_1test_1_1MockRom.html#a25d2fc1232977befeec5a215384749e6',1,'yaze::test::MockRom']]],
-  ['test_5from_5f_21',['test_rom_',['../classyaze_1_1test_1_1TestDungeonObjects.html#affe372e3c2d228acbb083b67b7f4e37f',1,'yaze::test::TestDungeonObjects']]],
+  ['test_5from_5f_21',['test_rom_',['../classyaze_1_1test_1_1EditorIntegrationTest.html#a15a8712526274665bc3666a1f12c2066',1,'yaze::test::EditorIntegrationTest::test_rom_'],['../classyaze_1_1test_1_1TestDungeonObjects.html#affe372e3c2d228acbb083b67b7f4e37f',1,'yaze::test::TestDungeonObjects::test_rom_']]],
   ['text_22',['Text',['../structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html#aadaef58d955500314603a1dc3d212c8c',1,'yaze::editor::zsprite::SpriteProperty']]],
   ['text_23',['text',['../structyaze_1_1gui_1_1TextBox.html#a5477180d77fadee60d4132a06e4e0fcd',1,'yaze::gui::TextBox::text'],['../structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#a461fc6a118ab001b241e20b2ec167819',1,'yaze::gui::zeml::WidgetAttributes::text']]],
   ['text_5feditor_5f_24',['text_editor_',['../classyaze_1_1editor_1_1AssemblyEditor.html#a7b6a8e37c0dca591000ac1d11384b40c',1,'yaze::editor::AssemblyEditor']]],

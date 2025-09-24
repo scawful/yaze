@@ -110,6 +110,7 @@ $(function(){initNavTree('overworld__map_8h.html',''); initResizable(true); });
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">overworld_map.h File Reference</div></div>
 </div><!--header-->
@@ -127,16 +128,16 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="overworld__map_8h__dep__incl.png" border="0" usemap="#asrc_2app_2zelda3_2overworld_2overworld__map_8hdep" alt=""/></div>
 <map name="asrc_2app_2zelda3_2overworld_2overworld__map_8hdep" id="asrc_2app_2zelda3_2overworld_2overworld__map_8hdep">
-<area shape="rect" title=" " alt="" coords="274,5,439,46"/>
-<area shape="rect" href="overworld_8h.html" title=" " alt="" coords="214,94,379,135"/>
-<area shape="poly" title=" " alt="" coords="337,60,312,95,308,92,332,57"/>
-<area shape="rect" href="overworld__map_8cc.html" title=" " alt="" coords="367,183,533,223"/>
-<area shape="poly" title=" " alt="" coords="376,58,442,181,437,183,372,61"/>
-<area shape="rect" href="graphics__editor_8h.html" title=" " alt="" coords="5,183,159,223"/>
-<area shape="poly" title=" " alt="" coords="235,143,132,185,130,180,233,138"/>
-<area shape="rect" href="overworld__editor_8cc.html" title=" " alt="" coords="183,183,344,223"/>
-<area shape="poly" title=" " alt="" coords="286,150,273,183,268,181,281,148"/>
-<area shape="poly" title=" " alt="" coords="346,140,417,180,414,185,343,145"/>
+<area shape="rect" title=" " alt="" coords="190,5,355,46"/>
+<area shape="rect" href="map__properties_8cc.html" title=" " alt="" coords="5,94,166,135"/>
+<area shape="poly" title=" " alt="" coords="217,55,129,96,127,91,215,50"/>
+<area shape="rect" href="overworld_8h.html" title=" " alt="" coords="190,94,355,135"/>
+<area shape="poly" title=" " alt="" coords="275,62,275,94,270,94,270,62"/>
+<area shape="rect" href="overworld__map_8cc.html" title=" " alt="" coords="310,183,475,223"/>
+<area shape="poly" title=" " alt="" coords="327,52,350,70,369,92,381,115,388,139,394,182,389,183,383,140,376,117,365,96,346,74,323,57"/>
+<area shape="rect" href="graphics__editor_8h.html" title=" " alt="" coords="132,183,285,223"/>
+<area shape="poly" title=" " alt="" coords="251,149,225,184,220,181,247,146"/>
+<area shape="poly" title=" " alt="" coords="313,142,367,180,363,184,310,146"/>
 </map>
 </div>
 </div>
@@ -169,6 +170,15 @@ Typedefs</h2></td></tr>
 <tr class="memdesc:a96678ef2cc89582d5d8a7f2b74c5f69b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world.">Overworld</a> map tile32 data.  <br /></td></tr>
 <tr class="separator:a96678ef2cc89582d5d8a7f2b74c5f69b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a607408467c46951f2ab11ba3c694ca3d" id="r_a607408467c46951f2ab11ba3c694ca3d"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3d">yaze::zelda3::AreaSizeEnum</a> { <a class="el" href="namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3da97b8dbee9db318b1a93ec42cc8461178">yaze::zelda3::SmallArea</a> = 0
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3da92676a91b88790d2bd6f6647442d42ff">yaze::zelda3::LargeArea</a> = 1
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3da581c8e536ea81bac8a38feeaf8fd5360">yaze::zelda3::WideArea</a> = 2
+, <a class="el" href="namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3dabd47c8dc6ac7236c198f4d982dcb5ac8">yaze::zelda3::TallArea</a> = 3
+ }</td></tr>
+<tr class="separator:a607408467c46951f2ab11ba3c694ca3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
 <tr class="memitem:a859fd8285a275e2b12b420134989df83" id="r_a859fd8285a275e2b12b420134989df83"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">yaze::zelda3::OverworldCustomASMHasBeenApplied</a> = 0x140145</td></tr>
@@ -177,26 +187,56 @@ Variables</h2></td></tr>
 <tr class="separator:ade708d08b08c9e5c8ab3b7b90ec5fb1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07a36ed6cd6a56b566efbd2f7e2bb32a" id="r_a07a36ed6cd6a56b566efbd2f7e2bb32a"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a07a36ed6cd6a56b566efbd2f7e2bb32a">yaze::zelda3::OverworldCustomAreaSpecificBGEnabled</a> = 0x140140</td></tr>
 <tr class="separator:a07a36ed6cd6a56b566efbd2f7e2bb32a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a498ef6ecbadf2254f0aa60cb5cdbb607" id="r_a498ef6ecbadf2254f0aa60cb5cdbb607"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a498ef6ecbadf2254f0aa60cb5cdbb607">yaze::zelda3::OverworldCustomMainPaletteArray</a> = 0x140160</td></tr>
-<tr class="separator:a498ef6ecbadf2254f0aa60cb5cdbb607"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a448dfd07e83c376a58e4b5a407872ff8" id="r_a448dfd07e83c376a58e4b5a407872ff8"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a448dfd07e83c376a58e4b5a407872ff8">yaze::zelda3::OverworldCustomMainPaletteEnabled</a> = 0x140141</td></tr>
-<tr class="separator:a448dfd07e83c376a58e4b5a407872ff8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a3f4340783c04d5e1e3fbda2e0f3d68" id="r_a3a3f4340783c04d5e1e3fbda2e0f3d68"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a3a3f4340783c04d5e1e3fbda2e0f3d68">yaze::zelda3::OverworldCustomMosaicArray</a> = 0x140200</td></tr>
-<tr class="separator:a3a3f4340783c04d5e1e3fbda2e0f3d68"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac04d90d39cb3a2bfa0af2d6d487b1295" id="r_ac04d90d39cb3a2bfa0af2d6d487b1295"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ac04d90d39cb3a2bfa0af2d6d487b1295">yaze::zelda3::OverworldCustomMosaicEnabled</a> = 0x140142</td></tr>
-<tr class="separator:ac04d90d39cb3a2bfa0af2d6d487b1295"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab8abd76b840f4adcc0f9e30a17d6833f" id="r_ab8abd76b840f4adcc0f9e30a17d6833f"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ab8abd76b840f4adcc0f9e30a17d6833f">yaze::zelda3::OverworldCustomAnimatedGFXArray</a> = 0x1402A0</td></tr>
-<tr class="separator:ab8abd76b840f4adcc0f9e30a17d6833f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a438bec149fb275a3d1edc0fa64921c8b" id="r_a438bec149fb275a3d1edc0fa64921c8b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a438bec149fb275a3d1edc0fa64921c8b">yaze::zelda3::OverworldCustomAnimatedGFXEnabled</a> = 0x140143</td></tr>
-<tr class="separator:a438bec149fb275a3d1edc0fa64921c8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd372e976fa18637ea5e8572119541d4" id="r_afd372e976fa18637ea5e8572119541d4"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#afd372e976fa18637ea5e8572119541d4">yaze::zelda3::OverworldCustomSubscreenOverlayArray</a> = 0x140340</td></tr>
 <tr class="separator:afd372e976fa18637ea5e8572119541d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc513472e47065de3e94600aceb86b69" id="r_adc513472e47065de3e94600aceb86b69"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#adc513472e47065de3e94600aceb86b69">yaze::zelda3::OverworldCustomSubscreenOverlayEnabled</a> = 0x140144</td></tr>
 <tr class="separator:adc513472e47065de3e94600aceb86b69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8abd76b840f4adcc0f9e30a17d6833f" id="r_ab8abd76b840f4adcc0f9e30a17d6833f"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ab8abd76b840f4adcc0f9e30a17d6833f">yaze::zelda3::OverworldCustomAnimatedGFXArray</a> = 0x1402A0</td></tr>
+<tr class="separator:ab8abd76b840f4adcc0f9e30a17d6833f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a438bec149fb275a3d1edc0fa64921c8b" id="r_a438bec149fb275a3d1edc0fa64921c8b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a438bec149fb275a3d1edc0fa64921c8b">yaze::zelda3::OverworldCustomAnimatedGFXEnabled</a> = 0x140143</td></tr>
+<tr class="separator:a438bec149fb275a3d1edc0fa64921c8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad0e606b79448b8024de15621dedb6db2" id="r_ad0e606b79448b8024de15621dedb6db2"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ad0e606b79448b8024de15621dedb6db2">yaze::zelda3::OverworldCustomTileGFXGroupArray</a> = 0x140480</td></tr>
 <tr class="separator:ad0e606b79448b8024de15621dedb6db2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05b7dc8cfd72fe3c1ca32e0081462b7b" id="r_a05b7dc8cfd72fe3c1ca32e0081462b7b"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a05b7dc8cfd72fe3c1ca32e0081462b7b">yaze::zelda3::OverworldCustomTileGFXGroupEnabled</a> = 0x140148</td></tr>
 <tr class="separator:a05b7dc8cfd72fe3c1ca32e0081462b7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a3f4340783c04d5e1e3fbda2e0f3d68" id="r_a3a3f4340783c04d5e1e3fbda2e0f3d68"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a3a3f4340783c04d5e1e3fbda2e0f3d68">yaze::zelda3::OverworldCustomMosaicArray</a> = 0x140200</td></tr>
+<tr class="separator:a3a3f4340783c04d5e1e3fbda2e0f3d68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac04d90d39cb3a2bfa0af2d6d487b1295" id="r_ac04d90d39cb3a2bfa0af2d6d487b1295"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ac04d90d39cb3a2bfa0af2d6d487b1295">yaze::zelda3::OverworldCustomMosaicEnabled</a> = 0x140142</td></tr>
+<tr class="separator:ac04d90d39cb3a2bfa0af2d6d487b1295"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a498ef6ecbadf2254f0aa60cb5cdbb607" id="r_a498ef6ecbadf2254f0aa60cb5cdbb607"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a498ef6ecbadf2254f0aa60cb5cdbb607">yaze::zelda3::OverworldCustomMainPaletteArray</a> = 0x140160</td></tr>
+<tr class="separator:a498ef6ecbadf2254f0aa60cb5cdbb607"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a448dfd07e83c376a58e4b5a407872ff8" id="r_a448dfd07e83c376a58e4b5a407872ff8"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a448dfd07e83c376a58e4b5a407872ff8">yaze::zelda3::OverworldCustomMainPaletteEnabled</a> = 0x140141</td></tr>
+<tr class="separator:a448dfd07e83c376a58e4b5a407872ff8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9fb5dc6aaa5c169a148111a9507543f" id="r_aa9fb5dc6aaa5c169a148111a9507543f"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#aa9fb5dc6aaa5c169a148111a9507543f">yaze::zelda3::kOverworldMessagesExpanded</a> = 0x1417F8</td></tr>
+<tr class="separator:aa9fb5dc6aaa5c169a148111a9507543f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a512b428775bcc714fdd3c7f1fad1e9d5" id="r_a512b428775bcc714fdd3c7f1fad1e9d5"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a512b428775bcc714fdd3c7f1fad1e9d5">yaze::zelda3::kOverworldMapParentIdExpanded</a> = 0x140998</td></tr>
+<tr class="separator:a512b428775bcc714fdd3c7f1fad1e9d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ce5ba0b42694eb226bbc66b5bf4d8de" id="r_a4ce5ba0b42694eb226bbc66b5bf4d8de"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a4ce5ba0b42694eb226bbc66b5bf4d8de">yaze::zelda3::kOverworldTransitionPositionYExpanded</a> = 0x140F38</td></tr>
+<tr class="separator:a4ce5ba0b42694eb226bbc66b5bf4d8de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3cc4e063bf7a468384f69adf82c843ab" id="r_a3cc4e063bf7a468384f69adf82c843ab"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a3cc4e063bf7a468384f69adf82c843ab">yaze::zelda3::kOverworldTransitionPositionXExpanded</a> = 0x141078</td></tr>
+<tr class="separator:a3cc4e063bf7a468384f69adf82c843ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0380e004c50a73392a9d424dc8c68c8" id="r_ad0380e004c50a73392a9d424dc8c68c8"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ad0380e004c50a73392a9d424dc8c68c8">yaze::zelda3::kOverworldScreenTileMapChangeByScreen1Expanded</a> = 0x140A38</td></tr>
+<tr class="separator:ad0380e004c50a73392a9d424dc8c68c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ab478895d102c6ad72f60ebd3fe0a41" id="r_a1ab478895d102c6ad72f60ebd3fe0a41"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a1ab478895d102c6ad72f60ebd3fe0a41">yaze::zelda3::kOverworldScreenTileMapChangeByScreen2Expanded</a> = 0x140B78</td></tr>
+<tr class="separator:a1ab478895d102c6ad72f60ebd3fe0a41"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadcd3b43be9f68654fff223d71cd417d" id="r_aadcd3b43be9f68654fff223d71cd417d"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#aadcd3b43be9f68654fff223d71cd417d">yaze::zelda3::kOverworldScreenTileMapChangeByScreen3Expanded</a> = 0x140CB8</td></tr>
+<tr class="separator:aadcd3b43be9f68654fff223d71cd417d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac63474ace456822b355d4a5a577ad1a5" id="r_ac63474ace456822b355d4a5a577ad1a5"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ac63474ace456822b355d4a5a577ad1a5">yaze::zelda3::kOverworldScreenTileMapChangeByScreen4Expanded</a> = 0x140DF8</td></tr>
+<tr class="separator:ac63474ace456822b355d4a5a577ad1a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:accf290a6933195fe6e3d681d5f5d3f05" id="r_accf290a6933195fe6e3d681d5f5d3f05"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#accf290a6933195fe6e3d681d5f5d3f05">yaze::zelda3::kOverworldSpecialSpriteGFXGroup</a> = 0x016811</td></tr>
+<tr class="separator:accf290a6933195fe6e3d681d5f5d3f05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5e428ab7a25bd7026cc338f5bb0d5d4" id="r_af5e428ab7a25bd7026cc338f5bb0d5d4"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#af5e428ab7a25bd7026cc338f5bb0d5d4">yaze::zelda3::kOverworldSpecialGFXGroup</a> = 0x016821</td></tr>
+<tr class="separator:af5e428ab7a25bd7026cc338f5bb0d5d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d8abcf0a97b106bb9c436d9fc584070" id="r_a8d8abcf0a97b106bb9c436d9fc584070"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a8d8abcf0a97b106bb9c436d9fc584070">yaze::zelda3::kOverworldSpecialPALGroup</a> = 0x016831</td></tr>
+<tr class="separator:a8d8abcf0a97b106bb9c436d9fc584070"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8686033171940dd39f6dd114d7c4247" id="r_ab8686033171940dd39f6dd114d7c4247"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ab8686033171940dd39f6dd114d7c4247">yaze::zelda3::kOverworldSpecialSpritePalette</a> = 0x016841</td></tr>
+<tr class="separator:ab8686033171940dd39f6dd114d7c4247"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4da74674da6fc43477ef7092d6ae9a2" id="r_aa4da74674da6fc43477ef7092d6ae9a2"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#aa4da74674da6fc43477ef7092d6ae9a2">yaze::zelda3::kOverworldPalettesScreenToSetNew</a> = 0x4C635</td></tr>
+<tr class="separator:aa4da74674da6fc43477ef7092d6ae9a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58bc97b8a19819801c1713ab73c2c4b9" id="r_a58bc97b8a19819801c1713ab73c2c4b9"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a58bc97b8a19819801c1713ab73c2c4b9">yaze::zelda3::kOverworldSpecialSpriteGfxGroupExpandedTemp</a> = 0x0166E1</td></tr>
+<tr class="separator:a58bc97b8a19819801c1713ab73c2c4b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e3b4926a1a22c76bb514372671ea8ad" id="r_a4e3b4926a1a22c76bb514372671ea8ad"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a4e3b4926a1a22c76bb514372671ea8ad">yaze::zelda3::kOverworldSpecialSpritePaletteExpandedTemp</a> = 0x016701</td></tr>
+<tr class="separator:a4e3b4926a1a22c76bb514372671ea8ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab8d30c5b41fed3b580fde3311f584a31" id="r_ab8d30c5b41fed3b580fde3311f584a31"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ab8d30c5b41fed3b580fde3311f584a31">yaze::zelda3::kDarkWorldMapIdStart</a> = 0x40</td></tr>
 <tr class="separator:ab8d30c5b41fed3b580fde3311f584a31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a367cb50c76df42b3ac6350e00800e31c" id="r_a367cb50c76df42b3ac6350e00800e31c"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a367cb50c76df42b3ac6350e00800e31c">yaze::zelda3::kSpecialWorldMapIdStart</a> = 0x80</td></tr>

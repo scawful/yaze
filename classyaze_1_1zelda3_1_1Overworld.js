@@ -28,6 +28,7 @@ var classyaze_1_1zelda3_1_1Overworld =
     [ "SaveMap32Expanded", "classyaze_1_1zelda3_1_1Overworld.html#a0127a588dee15ac5e53078e68002cd0f", null ],
     [ "SaveMap32Tiles", "classyaze_1_1zelda3_1_1Overworld.html#a2b9f46af6c0d90ede33bf96886238fde", null ],
     [ "SaveMapProperties", "classyaze_1_1zelda3_1_1Overworld.html#a215dce21aed4510d4a293df8cf865a27", null ],
+    [ "SaveAreaSizes", "classyaze_1_1zelda3_1_1Overworld.html#a39c12da24da3a1916c4f21036250c24a", null ],
     [ "rom", "classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4", null ],
     [ "mutable_rom", "classyaze_1_1zelda3_1_1Overworld.html#a089526955541efe772303a9dd5f1494a", null ],
     [ "Destroy", "classyaze_1_1zelda3_1_1Overworld.html#ac44618ad4337c4f46cc41b88b330d87c", null ],

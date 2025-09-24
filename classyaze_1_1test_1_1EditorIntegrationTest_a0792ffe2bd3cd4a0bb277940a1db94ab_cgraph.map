@@ -1,0 +1,13 @@
+<map id="yaze::test::EditorIntegrationTest::Initialize" name="yaze::test::EditorIntegrationTest::Initialize">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,181,88"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad" title=" " alt="" coords="462,5,605,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,44,180,27,228,14,285,7,342,4,447,7,447,12,342,9,285,12,229,19,182,32,138,49"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1core.html#a14f2050902009800d7995d94a8c169fc" title=" " alt="" coords="232,29,400,55"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,55,216,51,217,56,181,60"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="452,55,615,80"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="181,65,436,65,436,70,181,70"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1test_1_1EditorIntegrationTest.html#a48abfaf840b4827f44c63623c8afd876" title=" " alt="" coords="229,130,404,170"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="151,86,246,121,244,126,149,91"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="400,30,447,25,447,30,401,36"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="401,49,437,54,436,59,400,55"/>
+</map>
