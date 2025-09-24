@@ -1400,10 +1400,21 @@ void OverworldEditor::DrawOverworldItems() {
 void OverworldEditor::DrawOverworldSprites() {
   int i = 0;
   for (auto &sprite : *overworld_.mutable_sprites(game_state_)) {
-    if (!sprite.deleted()) {
-      int map_x = sprite.map_x();
-      int map_y = sprite.map_y();
-      ow_map_canvas_.DrawRect(map_x, map_y, kTile16Size, kTile16Size,
+    // Filter sprites by current world - only show sprites for the current world
+    if (!sprite.deleted() && 
+        sprite.map_id() < 0x40 + (current_world_ * 0x40) &&
+        sprite.map_id() >= (current_world_ * 0x40)) {
+      
+      // Sprites are already stored with global coordinates (realX, realY from ROM loading)
+      // So we can use sprite.x_ and sprite.y_ directly
+      int sprite_x = sprite.x_;
+      int sprite_y = sprite.y_;
+      
+      // Temporarily update sprite coordinates for entity interaction
+      int original_x = sprite.x_;
+      int original_y = sprite.y_;
+      
+      ow_map_canvas_.DrawRect(sprite_x, sprite_y, kTile16Size, kTile16Size,
                               /*magenta=*/ImVec4(255, 0, 255, 150));
       if (current_mode == EditingMode::SPRITES) {
         HandleEntityDragging(&sprite, ow_map_canvas_.zero_point(),
@@ -1418,13 +1429,17 @@ void OverworldEditor::DrawOverworldSprites() {
       }
       if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
         if (sprite_previews_[sprite.id()].is_active()) {
-          ow_map_canvas_.DrawBitmap(sprite_previews_[sprite.id()], map_x, map_y,
+          ow_map_canvas_.DrawBitmap(sprite_previews_[sprite.id()], sprite_x, sprite_y,
                                     2.0f);
         }
       }
 
-      ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.name()), map_x,
-                              map_y);
+      ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.name()), sprite_x,
+                              sprite_y);
+      
+      // Restore original coordinates
+      sprite.x_ = original_x;
+      sprite.y_ = original_y;
     }
     i++;
   }

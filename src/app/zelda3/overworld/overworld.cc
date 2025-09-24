@@ -32,6 +32,11 @@ absl::Status Overworld::Load(Rom *rom) {
   for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
     overworld_maps_.emplace_back(map_index, rom_);
 
+  // Populate map_parent_ array with parent information from each map
+  for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index) {
+    map_parent_[map_index] = overworld_maps_[map_index].parent();
+  }
+
   FetchLargeMaps();
   RETURN_IF_ERROR(LoadEntrances());
   RETURN_IF_ERROR(LoadHoles());
@@ -509,7 +514,7 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
       all_sprites_[game_state].emplace_back(
           *overworld_maps_[i].mutable_current_graphics(), (uint8_t)i, b3,
           (uint8_t)(b2 & 0x3F), (uint8_t)(b1 & 0x3F), realX, realY);
-      all_sprites_[game_state][i].Draw();
+      all_sprites_[game_state].back().Draw();
 
       sprite_address += 3;
     }

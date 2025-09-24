@@ -205,8 +205,17 @@ class OverworldMap : public gfx::GfxContext {
     message_id_ = 0;
     area_graphics_ = 0;
     area_palette_ = 0;
+    main_palette_ = 0;
     animated_gfx_ = 0;
     subscreen_overlay_ = 0;
+    area_specific_bg_color_ = 0;
+    custom_gfx_ids_.fill(0);
+    sprite_graphics_.fill(0);
+    sprite_palette_.fill(0);
+    area_music_.fill(0);
+    static_graphics_.fill(0);
+    mosaic_expanded_.fill(false);
+    area_size_ = AreaSizeEnum::SmallArea;
   }
 
  private:
