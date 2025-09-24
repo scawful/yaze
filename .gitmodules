@@ -19,3 +19,6 @@
 [submodule "src/lib/nativefiledialog-extended"]
 	path = src/lib/nativefiledialog-extended
 	url = https://github.com/btzy/nativefiledialog-extended.git
+[submodule "assets/asm/usdasm"]
+	path = assets/asm/usdasm
+	url = https://github.com/spannerisms/usdasm.git
