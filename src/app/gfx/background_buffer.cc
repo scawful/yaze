@@ -17,16 +17,18 @@ BackgroundBuffer::BackgroundBuffer(int width, int height)
 }
 
 void BackgroundBuffer::SetTileAt(int x, int y, uint16_t value) {
-  if (x >= 0 && x < width_ / 8 && y >= 0 && y < height_ / 8) {
-    buffer_[y * (width_ / 8) + x] = value;
-  }
+  if (x < 0 || y < 0) return;
+  int tiles_w = width_ / 8;
+  int tiles_h = height_ / 8;
+  if (x >= tiles_w || y >= tiles_h) return;
+  buffer_[y * tiles_w + x] = value;
 }
 
 uint16_t BackgroundBuffer::GetTileAt(int x, int y) const {
-  if (x >= 0 && x < width_ / 8 && y >= 0 && y < height_ / 8) {
-    return buffer_[y * (width_ / 8) + x];
-  }
-  return 0;
+  int tiles_w = width_ / 8;
+  int tiles_h = height_ / 8;
+  if (x < 0 || y < 0 || x >= tiles_w || y >= tiles_h) return 0;
+  return buffer_[y * tiles_w + x];
 }
 
 void BackgroundBuffer::ClearBuffer() { std::ranges::fill(buffer_, 0); }
@@ -55,18 +57,21 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
 void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
   // Initialize bitmap
   bitmap_.Create(width_, height_, 8, std::vector<uint8_t>(width_ * height_, 0));
-  if (buffer_.size() < width_ * height_) {
-    buffer_.resize(width_ * height_);
+  int tiles_w = width_ / 8;
+  int tiles_h = height_ / 8;
+  if ((int)buffer_.size() < tiles_w * tiles_h) {
+    buffer_.resize(tiles_w * tiles_h);
   }
 
   // For each tile on the tile buffer
-  for (int yy = 0; yy < (height_ / 8) * (width_ / 8); yy += (width_ / 8)) {
-    for (int xx = 0; xx < width_ / 8; xx++) {
+  for (int yy = 0; yy < tiles_h; yy++) {
+    for (int xx = 0; xx < tiles_w; xx++) {
+      uint16_t word = buffer_[xx + yy * tiles_w];
       // Prevent draw if tile == 0xFFFF since it's 0 indexed
-      if (buffer_[xx + yy] != 0xFFFF) {
-        auto tile = gfx::GetTilesInfo(buffer_[xx + yy]);
-        DrawTile(tile, bitmap_.mutable_data().data(), gfx16_data.data(), 0);
-      }
+      if (word == 0xFFFF) continue;
+      auto tile = gfx::WordToTileInfo(word);
+      DrawTile(tile, bitmap_.mutable_data().data(), gfx16_data.data(),
+               (yy * 512) + (xx * 8));
     }
   }
 }
