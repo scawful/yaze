@@ -38,6 +38,7 @@ absl::Status ScreenEditor::Load() {
   sheets_.try_emplace(1, gfx::Arena::Get().gfx_sheets()[213]);
   sheets_.try_emplace(2, gfx::Arena::Get().gfx_sheets()[214]);
   sheets_.try_emplace(3, gfx::Arena::Get().gfx_sheets()[215]);
+  /**
   int current_tile8 = 0;
   int tile_data_offset = 0;
   for (int i = 0; i < 4; ++i) {
@@ -53,6 +54,7 @@ absl::Status ScreenEditor::Load() {
     }
     tile_data_offset = 0;
   }
+  */
   return absl::OkStatus();
 }
 
@@ -157,6 +159,47 @@ void ScreenEditor::DrawInventoryToolset() {
   }
 }
 
+void ScreenEditor::DrawDungeonMapScreen(int i) {
+  auto &current_dungeon = dungeon_maps_[selected_dungeon];
+
+  floor_number = i;
+  screen_canvas_.DrawBackground(ImVec2(325, 325));
+  screen_canvas_.DrawTileSelector(64.f);
+
+  auto boss_room = current_dungeon.boss_room;
+  for (int j = 0; j < zelda3::kNumRooms; j++) {
+    if (current_dungeon.floor_rooms[floor_number][j] != 0x0F) {
+      int tile16_id = current_dungeon.floor_gfx[floor_number][j];
+      int posX = ((j % 5) * 32);
+      int posY = ((j / 5) * 32);
+
+      gfx::RenderTile16(tile16_blockset_, tile16_id);
+      screen_canvas_.DrawBitmap(tile16_blockset_.tile_bitmaps[tile16_id],
+                                (posX * 2), (posY * 2), 4.0f);
+
+      if (current_dungeon.floor_rooms[floor_number][j] == boss_room) {
+        screen_canvas_.DrawOutlineWithColor((posX * 2), (posY * 2), 64, 64,
+                                            kRedPen);
+      }
+
+      std::string label =
+          dungeon_map_labels_[selected_dungeon][floor_number][j];
+      screen_canvas_.DrawText(label, (posX * 2), (posY * 2));
+      std::string gfx_id = util::HexByte(tile16_id);
+      screen_canvas_.DrawText(gfx_id, (posX * 2), (posY * 2) + 16);
+    }
+  }
+
+  screen_canvas_.DrawGrid(64.f, 5);
+  screen_canvas_.DrawOverlay();
+
+  if (!screen_canvas_.points().empty()) {
+    int x = screen_canvas_.points().front().x / 64;
+    int y = screen_canvas_.points().front().y / 64;
+    selected_room = x + (y * 5);
+  }
+}
+
 void ScreenEditor::DrawDungeonMapsTabs() {
   auto &current_dungeon = dungeon_maps_[selected_dungeon];
   if (ImGui::BeginTabBar("##DungeonMapTabs")) {
@@ -169,44 +212,8 @@ void ScreenEditor::DrawDungeonMapsTabs() {
         tab_name = absl::StrFormat("Floor %d",
                                    i - current_dungeon.nbr_of_basement + 1);
       }
-
-      if (ImGui::BeginTabItem(tab_name.c_str())) {
-        floor_number = i;
-        screen_canvas_.DrawBackground(ImVec2(325, 325));
-        screen_canvas_.DrawTileSelector(64.f);
-
-        auto boss_room = current_dungeon.boss_room;
-        for (int j = 0; j < zelda3::kNumRooms; j++) {
-          if (current_dungeon.floor_rooms[floor_number][j] != 0x0F) {
-            int tile16_id = current_dungeon.floor_gfx[floor_number][j];
-            int posX = ((j % 5) * 32);
-            int posY = ((j / 5) * 32);
-
-            gfx::RenderTile16(tile16_blockset_, tile16_id);
-            screen_canvas_.DrawBitmap(tile16_blockset_.tile_bitmaps[tile16_id],
-                                      (posX * 2), (posY * 2), 4.0f);
-
-            if (current_dungeon.floor_rooms[floor_number][j] == boss_room) {
-              screen_canvas_.DrawOutlineWithColor((posX * 2), (posY * 2), 64,
-                                                  64, kRedPen);
-            }
-
-            std::string label =
-                dungeon_map_labels_[selected_dungeon][floor_number][j];
-            screen_canvas_.DrawText(label, (posX * 2), (posY * 2));
-            std::string gfx_id = util::HexByte(tile16_id);
-            screen_canvas_.DrawText(gfx_id, (posX * 2), (posY * 2) + 16);
-          }
-        }
-
-        screen_canvas_.DrawGrid(64.f, 5);
-        screen_canvas_.DrawOverlay();
-
-        if (!screen_canvas_.points().empty()) {
-          int x = screen_canvas_.points().front().x / 64;
-          int y = screen_canvas_.points().front().y / 64;
-          selected_room = x + (y * 5);
-        }
+      if (ImGui::BeginTabItem(tab_name.data())) {
+        DrawDungeonMapScreen(i);
         ImGui::EndTabItem();
       }
     }
@@ -219,9 +226,8 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
   gui::InputHexWord("Boss Room", &current_dungeon.boss_room);
 
-  const ImVec2 button_size = ImVec2(130, 0);
+  const auto button_size = ImVec2(130, 0);
 
-  // Add Floor Button
   if (ImGui::Button("Add Floor", button_size) &&
       current_dungeon.nbr_of_floor < 8) {
     current_dungeon.nbr_of_floor++;
@@ -234,7 +240,6 @@ void ScreenEditor::DrawDungeonMapsTabs() {
     dungeon_map_labels_[selected_dungeon].pop_back();
   }
 
-  // Add Basement Button
   if (ImGui::Button("Add Basement", button_size) &&
       current_dungeon.nbr_of_basement < 8) {
     current_dungeon.nbr_of_basement++;
@@ -264,30 +269,32 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
       selected_tile16_ = tilesheet_canvas_.points().front().x / 32 +
                          (tilesheet_canvas_.points().front().y / 32) * 16;
       gfx::RenderTile16(tile16_blockset_, selected_tile16_);
-      std::copy(tile16_blockset_.tile_info[selected_tile16_].begin(),
-                tile16_blockset_.tile_info[selected_tile16_].end(),
-                current_tile16_info.begin());
+      std::ranges::copy(tile16_blockset_.tile_info[selected_tile16_],
+                        current_tile16_info.begin());
     }
     tilesheet_canvas_.DrawBitmap(tile16_blockset_.atlas, 1, 1, 2.0f);
     tilesheet_canvas_.DrawGrid(32.f);
     tilesheet_canvas_.DrawOverlay();
 
-    if (!tilesheet_canvas_.points().empty()) {
-      if (!screen_canvas_.points().empty()) {
-        dungeon_maps_[selected_dungeon].floor_gfx[floor_number][selected_room] =
-            selected_tile16_;
-        tilesheet_canvas_.mutable_points()->clear();
-      }
+    if (!tilesheet_canvas_.points().empty() &&
+        !screen_canvas_.points().empty()) {
+      dungeon_maps_[selected_dungeon].floor_gfx[floor_number][selected_room] =
+          selected_tile16_;
+      tilesheet_canvas_.mutable_points()->clear();
     }
 
     ImGui::Separator();
     current_tile_canvas_.DrawBackground();  // ImVec2(64 * 2 + 2, 64 * 2 + 4));
     current_tile_canvas_.DrawContextMenu();
-    // if
-    // (current_tile_canvas_.DrawTilePainter(tile8_individual_[selected_tile8_],
-    //  16)) {
-    // Modify the tile16 based on the selected tile and current_tile16_info
-    // }
+    if (current_tile_canvas_.DrawTilePainter(tile8_individual_[selected_tile8_],
+                                             16)) {
+      // Modify the tile16 based on the selected tile and current_tile16_info
+      gfx::ModifyTile16(tile16_blockset_, rom()->graphics_buffer(),
+                        current_tile16_info[0], current_tile16_info[1],
+                        current_tile16_info[2], current_tile16_info[3], 212,
+                        selected_tile16_);
+      gfx::UpdateTile16(tile16_blockset_, selected_tile16_);
+    }
     current_tile_canvas_.DrawBitmap(
         tile16_blockset_.tile_bitmaps[selected_tile16_], 2, 4.0f);
     current_tile_canvas_.DrawGrid(16.f);
@@ -385,8 +392,8 @@ void ScreenEditor::LoadBinaryGfx() {
       // Read the gfx data into a buffer
       std::vector<uint8_t> bin_data((std::istreambuf_iterator<char>(file)),
                                     std::istreambuf_iterator<char>());
-      auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
-      if (zelda3::LoadDungeonMapTile16(tile16_blockset_, *rom(), converted_bin,
+      if (auto converted_bin = gfx::SnesTo8bppSheet(bin_data, 4, 4);
+          zelda3::LoadDungeonMapTile16(tile16_blockset_, *rom(), converted_bin,
                                        true)
               .ok()) {
         sheets_.clear();
