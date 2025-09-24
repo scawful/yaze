@@ -187,6 +187,15 @@ Room LoadRoomFromRom(Rom *rom, int room_id) {
   int spr_ptr = 0x040000 | rooms_sprite_pointer;
   int sprite_address = SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id * 2));
 
+  // Load room layout
+  room.LoadRoomLayout();
+  
+  // Load additional room features
+  room.LoadDoors();
+  room.LoadTorches();
+  room.LoadBlocks();
+  room.LoadPits();
+
   return room;
 }
 
@@ -389,6 +398,7 @@ void Room::LoadObjects() {
       }
 
       RoomObject r(oid, posX, posY, sizeXY, static_cast<uint8_t>(layer));
+      r.set_rom(rom_);
       tile_objects_.push_back(r);
 
       for (short stair : stairsObjects) {
@@ -505,6 +515,64 @@ void Room::LoadChests() {
           chest_data(rom_data[cpos + (i * 3) + 2], big));
     }
   }
+}
+
+void Room::LoadRoomLayout() {
+  // Use the new RoomLayout system to load walls, floors, and structural elements
+  auto status = layout_.LoadLayout(room_id_);
+  if (!status.ok()) {
+    // Log error but don't fail - some rooms might not have layout data
+    util::logf("Failed to load room layout for room %d: %s", 
+               room_id_, status.message().data());
+    return;
+  }
+  
+  // Store the layout ID for compatibility with existing code
+  layout = static_cast<uint8_t>(room_id_ & 0xFF);
+  
+  util::logf("Loaded room layout for room %d with %zu objects", 
+             room_id_, layout_.GetObjects().size());
+}
+
+void Room::LoadDoors() {
+  auto rom_data = rom()->vector();
+  
+  // Load door graphics and positions
+  // Door graphics are stored at door_gfx_* addresses
+  // Door positions are stored at door_pos_* addresses
+  
+  // For now, create placeholder door objects
+  // TODO: Implement full door loading from ROM data
+}
+
+void Room::LoadTorches() {
+  auto rom_data = rom()->vector();
+  
+  // Load torch data from torch_data address
+  int torch_count = rom_data[torches_length_pointer + 1] << 8 | rom_data[torches_length_pointer];
+  
+  // For now, create placeholder torch objects
+  // TODO: Implement full torch loading from ROM data
+}
+
+void Room::LoadBlocks() {
+  auto rom_data = rom()->vector();
+  
+  // Load block data from blocks_* addresses
+  int block_count = rom_data[blocks_length + 1] << 8 | rom_data[blocks_length];
+  
+  // For now, create placeholder block objects
+  // TODO: Implement full block loading from ROM data
+}
+
+void Room::LoadPits() {
+  auto rom_data = rom()->vector();
+  
+  // Load pit data from pit_pointer
+  int pit_count = rom_data[pit_count + 1] << 8 | rom_data[pit_count];
+  
+  // For now, create placeholder pit objects
+  // TODO: Implement full pit loading from ROM data
 }
 
 }  // namespace zelda3

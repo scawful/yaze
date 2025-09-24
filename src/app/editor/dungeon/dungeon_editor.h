@@ -8,6 +8,7 @@
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/object_renderer.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
@@ -40,7 +41,8 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
  */
 class DungeonEditor : public Editor {
  public:
-  explicit DungeonEditor(Rom* rom = nullptr) : rom_(rom) {
+  explicit DungeonEditor(Rom* rom = nullptr)
+      : rom_(rom), object_renderer_(rom) {
     type_ = EditorType::kDungeon;
   }
 
@@ -77,6 +79,26 @@ class DungeonEditor : public Editor {
   void DrawRoomGraphics();
   void DrawTileSelector();
   void DrawObjectRenderer();
+
+  // Object rendering methods
+  void RenderObjectInCanvas(const zelda3::RoomObject& object,
+                            const gfx::SnesPalette& palette);
+  void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x,
+                         int canvas_y);
+  void RenderLayoutObjects(const zelda3::RoomLayout& layout,
+                           const gfx::SnesPalette& palette);
+
+  // Object rendering cache to avoid re-rendering the same objects
+  struct ObjectRenderCache {
+    int object_id;
+    int object_x, object_y, object_size;
+    uint64_t palette_hash;
+    gfx::Bitmap rendered_bitmap;
+    bool is_valid;
+  };
+
+  std::vector<ObjectRenderCache> object_render_cache_;
+  uint64_t last_palette_hash_ = 0;
 
   void CalculateUsageStats();
   void DrawUsageStats();
@@ -123,7 +145,7 @@ class DungeonEditor : public Editor {
 
   std::array<zelda3::Room, 0x128> rooms_ = {};
   std::array<zelda3::RoomEntrance, 0x8C> entrances_ = {};
-  // zelda3::DungeonObjectRenderer object_renderer_;
+  zelda3::ObjectRenderer object_renderer_;
 
   absl::flat_hash_map<uint16_t, int> spriteset_usage_;
   absl::flat_hash_map<uint16_t, int> blockset_usage_;

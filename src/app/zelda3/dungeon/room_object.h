@@ -8,7 +8,7 @@
 #include "absl/strings/string_view.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/object_renderer.h"
+#include "app/zelda3/dungeon/object_parser.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -69,15 +69,45 @@ class RoomObject {
         ox_(x),
         oy_(y),
         width_(16),
-        height_(16) {}
+        height_(16),
+        rom_(nullptr) {}
 
   void set_rom(Rom* rom) { rom_ = rom; }
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
 
+  // Ensures tiles_ is populated with a basic set based on ROM tables so we can
+  // preview/draw objects without needing full emulator execution.
+  void EnsureTilesLoaded();
+  
+  // Load tiles using the new ObjectParser
+  absl::Status LoadTilesWithParser();
+
+  // Getter for tiles
+  const std::vector<gfx::Tile16>& tiles() const { return tiles_; }
+  std::vector<gfx::Tile16>& mutable_tiles() { return tiles_; }
+
+  // Get tile data through Arena system - returns references, not copies
+  absl::StatusOr<std::span<const gfx::Tile16>> GetTiles() const;
+  
+  // Get individual tile by index - uses Arena lookup
+  absl::StatusOr<const gfx::Tile16*> GetTile(int index) const;
+  
+  // Get tile count without loading all tiles
+  int GetTileCount() const;
+
   void AddTiles(int nbr, int pos) {
+    // Reads nbr Tile16 entries from ROM object data starting at pos (8 bytes per Tile16)
     for (int i = 0; i < nbr; i++) {
-      ASSIGN_OR_LOG_ERROR(auto tile, rom()->ReadTile16(pos + (i * 2)));
+      int tpos = pos + (i * 8);
+      auto rom_data = rom()->data();
+      if (tpos + 7 >= (int)rom()->size()) break;
+      uint16_t w0 = (uint16_t)(rom_data[tpos] | (rom_data[tpos + 1] << 8));
+      uint16_t w1 = (uint16_t)(rom_data[tpos + 2] | (rom_data[tpos + 3] << 8));
+      uint16_t w2 = (uint16_t)(rom_data[tpos + 4] | (rom_data[tpos + 5] << 8));
+      uint16_t w3 = (uint16_t)(rom_data[tpos + 6] | (rom_data[tpos + 7] << 8));
+      gfx::Tile16 tile(gfx::WordToTileInfo(w0), gfx::WordToTileInfo(w1),
+                       gfx::WordToTileInfo(w2), gfx::WordToTileInfo(w3));
       tiles_.push_back(tile);
     }
   }
@@ -104,6 +134,10 @@ class RoomObject {
   uint8_t oy_;
   uint8_t z_ = 0;
   uint8_t previous_size_ = 0;
+  // Size nibble bits captured from object encoding (0..3 each) for heuristic
+  // orientation and sizing decisions.
+  uint8_t size_x_bits_ = 0;
+  uint8_t size_y_bits_ = 0;
 
   int width_;
   int height_;
@@ -113,7 +147,13 @@ class RoomObject {
   std::string name_;
 
   std::vector<uint8_t> preview_object_data_;
-  std::vector<gfx::Tile16> tiles_;
+  
+  // Tile data storage - using Arena system for efficient memory management
+  // Instead of copying Tile16 vectors, we store references to Arena-managed data
+  mutable std::vector<gfx::Tile16> tiles_; // Fallback for compatibility
+  mutable bool tiles_loaded_ = false;
+  mutable int tile_count_ = 0;
+  mutable int tile_data_ptr_ = -1; // Pointer to tile data in ROM
 
   LayerType layer_;
   ObjectOption options_ = ObjectOption::Nothing;
