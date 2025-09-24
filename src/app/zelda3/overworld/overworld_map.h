@@ -17,6 +17,7 @@ namespace zelda3 {
 static constexpr int kTileOffsets[] = {0, 8, 4096, 4104};
 
 // 1 byte, not 0 if enabled
+// vanilla, v2, v3
 constexpr int OverworldCustomASMHasBeenApplied = 0x140145;
 
 // 2 bytes for each overworld area (0x140)
@@ -54,6 +55,24 @@ constexpr int OverworldCustomTileGFXGroupArray = 0x140480;
 // 1 byte, not 0 if enabled
 constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;
 
+// v3 expanded constants
+constexpr int kOverworldMessagesExpanded = 0x1417F8;
+constexpr int kOverworldMapParentIdExpanded = 0x140998;
+constexpr int kOverworldTransitionPositionYExpanded = 0x140F38;
+constexpr int kOverworldTransitionPositionXExpanded = 0x141078;
+constexpr int kOverworldScreenTileMapChangeByScreen1Expanded = 0x140A38;
+constexpr int kOverworldScreenTileMapChangeByScreen2Expanded = 0x140B78;
+constexpr int kOverworldScreenTileMapChangeByScreen3Expanded = 0x140CB8;
+constexpr int kOverworldScreenTileMapChangeByScreen4Expanded = 0x140DF8;
+
+constexpr int kOverworldSpecialSpriteGFXGroup = 0x016811;
+constexpr int kOverworldSpecialGFXGroup = 0x016821;
+constexpr int kOverworldSpecialPALGroup = 0x016831;
+constexpr int kOverworldSpecialSpritePalette = 0x016841;
+constexpr int kOverworldPalettesScreenToSetNew = 0x4C635;
+constexpr int kOverworldSpecialSpriteGfxGroupExpandedTemp = 0x0166E1;
+constexpr int kOverworldSpecialSpritePaletteExpandedTemp = 0x016701;
+
 constexpr int kDarkWorldMapIdStart = 0x40;
 constexpr int kSpecialWorldMapIdStart = 0x80;
 
@@ -70,6 +89,13 @@ typedef struct OverworldMapTiles {
   OverworldBlockset dark_world;     // 64 maps
   OverworldBlockset special_world;  // 32 maps
 } OverworldMapTiles;
+
+enum class AreaSizeEnum {
+  SmallArea = 0,
+  LargeArea = 1,
+  WideArea = 2,
+  TallArea = 3,
+};
 
 /**
  * @brief Represents a single Overworld map screen.
@@ -109,6 +135,15 @@ class OverworldMap : public gfx::GfxContext {
   auto area_music(int i) const { return area_music_[i]; }
   auto static_graphics(int i) const { return static_graphics_[i]; }
   auto large_index() const { return large_index_; }
+  auto area_size() const { return area_size_; }
+
+  auto main_palette() const { return main_palette_; }
+  void set_main_palette(uint8_t palette) { main_palette_ = palette; }
+
+  auto area_specific_bg_color() const { return area_specific_bg_color_; }
+  void set_area_specific_bg_color(uint16_t color) {
+    area_specific_bg_color_ = color;
+  }
 
   auto mutable_current_graphics() { return &current_gfx_; }
   auto mutable_area_graphics() { return &area_graphics_; }
@@ -133,6 +168,7 @@ class OverworldMap : public gfx::GfxContext {
     parent_ = parent_index;
     large_index_ = quadrant;
     large_map_ = true;
+    area_size_ = AreaSizeEnum::LargeArea;
   }
 
   void SetAsSmallMap(int index = -1) {
@@ -142,6 +178,12 @@ class OverworldMap : public gfx::GfxContext {
       parent_ = index_;
     large_index_ = 0;
     large_map_ = false;
+    area_size_ = AreaSizeEnum::SmallArea;
+  }
+
+  void SetAreaSize(AreaSizeEnum size) {
+    area_size_ = size;
+    large_map_ = (size == AreaSizeEnum::LargeArea);
   }
 
   void Destroy() {
@@ -185,25 +227,29 @@ class OverworldMap : public gfx::GfxContext {
                                               int index, int previous_index,
                                               int limit);
 
-  Rom *rom_;
+  Rom* rom_;
 
   bool built_ = false;
   bool large_map_ = false;
   bool initialized_ = false;
   bool mosaic_ = false;
 
-  int index_ = 0;        // Map index
-  int parent_ = 0;       // Parent map index
-  int large_index_ = 0;  // Quadrant ID [0-3]
-  int world_ = 0;        // World ID [0-2]
-  int game_state_ = 0;   // Game state [0-2]
-  int main_gfx_id_ = 0;  // Main Gfx ID
+  int index_ = 0;                                     // Map index
+  int parent_ = 0;                                    // Parent map index
+  int large_index_ = 0;                               // Quadrant ID [0-3]
+  int world_ = 0;                                     // World ID [0-2]
+  int game_state_ = 0;                                // Game state [0-2]
+  int main_gfx_id_ = 0;                               // Main Gfx ID
+  AreaSizeEnum area_size_ = AreaSizeEnum::SmallArea;  // Area size for v3
 
   uint16_t message_id_ = 0;
   uint8_t area_graphics_ = 0;
   uint8_t area_palette_ = 0;
+  uint8_t main_palette_ = 0;        // Custom Overworld Main Palette ID
   uint8_t animated_gfx_ = 0;        // Custom Overworld Animated ID
   uint16_t subscreen_overlay_ = 0;  // Custom Overworld Subscreen Overlay ID
+  uint16_t area_specific_bg_color_ =
+      0;  // Custom Overworld Area-Specific Background Color
 
   std::array<uint8_t, 8> custom_gfx_ids_;
   std::array<uint8_t, 3> sprite_graphics_;
