@@ -26,34 +26,21 @@ constexpr int OverworldCustomAreaSpecificBGPalette = 0x140000;
 // 1 byte, not 0 if enabled
 constexpr int OverworldCustomAreaSpecificBGEnabled = 0x140140;
 
+// Additional v3 constants
+constexpr int OverworldCustomSubscreenOverlayArray = 0x140340;  // 2 bytes for each overworld area (0x140)
+constexpr int OverworldCustomSubscreenOverlayEnabled = 0x140144;  // 1 byte, not 0 if enabled
+constexpr int OverworldCustomAnimatedGFXArray = 0x1402A0;  // 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomAnimatedGFXEnabled = 0x140143;  // 1 byte, not 0 if enabled
+constexpr int OverworldCustomTileGFXGroupArray = 0x140480;  // 8 bytes for each overworld area (0x500)
+constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;  // 1 byte, not 0 if enabled
+constexpr int OverworldCustomMosaicArray = 0x140200;  // 1 byte for each overworld area (0xA0)
+constexpr int OverworldCustomMosaicEnabled = 0x140142;  // 1 byte, not 0 if enabled
+
 // 1 byte for each overworld area (0xA0)
 constexpr int OverworldCustomMainPaletteArray = 0x140160;
 // 1 byte, not 0 if enabled
 constexpr int OverworldCustomMainPaletteEnabled = 0x140141;
 
-// 1 byte for each overworld area (0xA0)
-constexpr int OverworldCustomMosaicArray = 0x140200;
-
-// 1 byte, not 0 if enabled
-constexpr int OverworldCustomMosaicEnabled = 0x140142;
-
-// 1 byte for each overworld area (0xA0)
-constexpr int OverworldCustomAnimatedGFXArray = 0x1402A0;
-
-// 1 byte, not 0 if enabled
-constexpr int OverworldCustomAnimatedGFXEnabled = 0x140143;
-
-// 2 bytes for each overworld area (0x140)
-constexpr int OverworldCustomSubscreenOverlayArray = 0x140340;
-
-// 1 byte, not 0 if enabled
-constexpr int OverworldCustomSubscreenOverlayEnabled = 0x140144;
-
-// 8 bytes for each overworld area (0x500)
-constexpr int OverworldCustomTileGFXGroupArray = 0x140480;
-
-// 1 byte, not 0 if enabled
-constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;
 
 // v3 expanded constants
 constexpr int kOverworldMessagesExpanded = 0x1417F8;
@@ -145,12 +132,24 @@ class OverworldMap : public gfx::GfxContext {
     area_specific_bg_color_ = color;
   }
 
+  auto subscreen_overlay() const { return subscreen_overlay_; }
+  void set_subscreen_overlay(uint16_t overlay) { subscreen_overlay_ = overlay; }
+
+  auto animated_gfx() const { return animated_gfx_; }
+  void set_animated_gfx(uint8_t gfx) { animated_gfx_ = gfx; }
+
+  auto custom_tileset(int index) const { return custom_gfx_ids_[index]; }
+  void set_custom_tileset(int index, uint8_t value) { custom_gfx_ids_[index] = value; }
+
   auto mutable_current_graphics() { return &current_gfx_; }
   auto mutable_area_graphics() { return &area_graphics_; }
   auto mutable_area_palette() { return &area_palette_; }
   auto mutable_sprite_graphics(int i) { return &sprite_graphics_[i]; }
   auto mutable_sprite_palette(int i) { return &sprite_palette_[i]; }
   auto mutable_message_id() { return &message_id_; }
+  auto mutable_main_palette() { return &main_palette_; }
+  auto mutable_animated_gfx() { return &animated_gfx_; }
+  auto mutable_subscreen_overlay() { return &subscreen_overlay_; }
   auto mutable_area_music(int i) { return &area_music_[i]; }
   auto mutable_static_graphics(int i) { return &static_graphics_[i]; }
 

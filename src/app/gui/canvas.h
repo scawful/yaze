@@ -165,6 +165,7 @@ class Canvas {
   auto draw_list() const { return draw_list_; }
   auto zero_point() const { return canvas_p0_; }
   auto scrolling() const { return scrolling_; }
+  void set_scrolling(ImVec2 scroll) { scrolling_ = scroll; }
   auto drawn_tile_position() const { return drawn_tile_pos_; }
   auto canvas_size() const { return canvas_sz_; }
   void set_global_scale(float scale) { global_scale_ = scale; }
