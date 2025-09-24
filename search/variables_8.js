@@ -14,7 +14,7 @@ var searchData=
   ['import_5fdata_5f_11',['import_data_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a874cbb0d276ac4f2a9f28766a18925da',1,'yaze::editor::GraphicsEditor']]],
   ['in_5firq_5f_12',['in_irq_',['../classyaze_1_1emu_1_1Snes.html#a80ea225e584de754ed1341b01bddb74c',1,'yaze::emu::Snes']]],
   ['in_5fnmi_5f_13',['in_nmi_',['../classyaze_1_1emu_1_1Snes.html#a6d494f891896856f22cf5390879f390b',1,'yaze::emu::Snes']]],
-  ['in_5fports_5f_14',['in_ports_',['../classyaze_1_1emu_1_1Apu.html#af8763b9841bce80621638b58fdbcac27',1,'yaze::emu::Apu']]],
+  ['in_5fports_5f_14',['in_ports_',['../classyaze_1_1emu_1_1Apu.html#af8763b9841bce80621638b58fdbcac27',1,'yaze::emu::Apu::in_ports_'],['../classyaze_1_1test_1_1Apu.html#af8763b9841bce80621638b58fdbcac27',1,'yaze::test::Apu::in_ports_']]],
   ['in_5fuse_15',['in_use',['../structyaze_1_1zelda3_1_1music_1_1Song.html#aa9955a44a5054b8f44fb50572d19f7a8',1,'yaze::zelda3::music::Song']]],
   ['in_5fvblank_5f_16',['in_vblank_',['../classyaze_1_1emu_1_1Snes.html#ab97c6abec253b714f5fa1710477a38c7',1,'yaze::emu::Snes']]],
   ['increment_5fmode_17',['increment_mode',['../structyaze_1_1emu_1_1VideoPortControl.html#ab703ab48a910ae17a451e0331abb5d49',1,'yaze::emu::VideoPortControl']]],

@@ -1,0 +1,8 @@
+<map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,135,38"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1ObjectParser.html#af7be6d73b4620312b5731976b5c6baa1" title="Determine object subtype from ID." alt="" coords="403,5,575,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,20,183,19,355,19,387,20,387,25,355,24,183,24,135,26"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1ObjectParser.html#a02d01e32f46dffcc009ed5f1a7118f0c" title="Get object subtype information." alt="" coords="183,33,355,74"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,32,168,37,167,42,135,37"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="355,40,387,36,388,41,356,45"/>
+</map>

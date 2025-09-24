@@ -1,0 +1,13 @@
+<map id="yaze::emu::Snes::Snes" name="yaze::emu::Snes::Snes">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,156,80"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Snes.html#a65cdf334d1b7337ef9cf3bddfe69eec9" title=" " alt="" coords="208,5,372,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,51,217,33,218,38,139,57"/>
+<area shape="rect" id="Node000033" href="$classyaze_1_1emu_1_1Snes.html#a2f0d6370c2861976fcc309ed59148a06" title=" " alt="" coords="204,55,377,80"/>
+<area shape="poly" id="edge3_Node000001_Node000033" title=" " alt="" coords="156,65,188,65,188,70,156,70"/>
+<area shape="rect" id="Node000034" href="$classyaze_1_1emu_1_1Snes.html#a6866919db87735bbf59c21c1afa09429" title=" " alt="" coords="204,104,377,130"/>
+<area shape="poly" id="edge5_Node000001_Node000034" title=" " alt="" coords="139,78,218,97,217,102,138,84"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1emu.html#a7215347ac720fbffdc26780519322eae" title=" " alt="" coords="425,55,577,80"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="349,29,429,48,427,53,348,34"/>
+<area shape="poly" id="edge4_Node000033_Node000003" title=" " alt="" coords="378,65,409,65,409,70,378,70"/>
+<area shape="poly" id="edge6_Node000034_Node000003" title=" " alt="" coords="348,101,427,82,429,87,349,106"/>
+</map>

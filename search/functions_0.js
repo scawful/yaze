@@ -78,7 +78,7 @@ var searchData=
   ['applyobjectsize_75',['ApplyObjectSize',['../classyaze_1_1zelda3_1_1ObjectRenderer.html#a899fc82b7d6254f217ece5d7a922899c',1,'yaze::zelda3::ObjectRenderer']]],
   ['applyspeedtowardsplayer_76',['ApplySpeedTowardsPlayer',['../classyaze_1_1zelda3_1_1SpriteInstruction.html#a79208c1f345b4590a1d9dcde382ce722',1,'yaze::zelda3::SpriteInstruction']]],
   ['applytheme_77',['ApplyTheme',['../namespaceyaze_1_1gui.html#ae9a47f0d85166d6363717c61056b83a3',1,'yaze::gui']]],
-  ['apu_78',['Apu',['../classyaze_1_1emu_1_1Apu.html#ae8628974cd4e63169d4d5a7d81b34de6',1,'yaze::emu::Apu']]],
+  ['apu_78',['Apu',['../classyaze_1_1emu_1_1Apu.html#ae8628974cd4e63169d4d5a7d81b34de6',1,'yaze::emu::Apu::Apu()'],['../classyaze_1_1test_1_1Apu.html#ae8628974cd4e63169d4d5a7d81b34de6',1,'yaze::test::Apu::Apu()']]],
   ['apu_79',['apu',['../classyaze_1_1emu_1_1Snes.html#a5f4b8b830b46e8b590319bd24dec91fd',1,'yaze::emu::Snes']]],
   ['area_5fgraphics_80',['area_graphics',['../classyaze_1_1zelda3_1_1OverworldMap.html#a4896812c223749b7ea5d56337afb43de',1,'yaze::zelda3::OverworldMap']]],
   ['area_5fmusic_81',['area_music',['../classyaze_1_1zelda3_1_1OverworldMap.html#a8c5a9543369c94aa0279abba1432c061',1,'yaze::zelda3::OverworldMap']]],
@@ -92,6 +92,6 @@ var searchData=
   ['assertcompressionquality_89',['AssertCompressionQuality',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#adf116b63a46b6698d5d5fe40373a9089',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['assetobject_90',['AssetObject',['../structyaze_1_1gui_1_1AssetObject.html#a87ca7304e6ddd870b881396817f56340',1,'yaze::gui::AssetObject']]],
   ['assignworldtiles_91',['AssignWorldTiles',['../classyaze_1_1zelda3_1_1Overworld.html#a5392afd12413f3b9de1738df802b976e',1,'yaze::zelda3::Overworld']]],
-  ['at_92',['at',['../classyaze_1_1emu_1_1Memory.html#ae6a7fe05ca17fbed99579cfb9a79ba2c',1,'yaze::emu::Memory::at()'],['../classyaze_1_1emu_1_1MemoryImpl.html#a09fc0829ad63d6bff53d0c93d3111ec7',1,'yaze::emu::MemoryImpl::at()'],['../classyaze_1_1gfx_1_1Bitmap.html#a7d8b59a9a52cc536524370f07363f418',1,'yaze::gfx::Bitmap::at()'],['../classyaze_1_1gui_1_1Bitmap.html#a7d8b59a9a52cc536524370f07363f418',1,'yaze::gui::Bitmap::at()']]],
+  ['at_92',['at',['../classyaze_1_1emu_1_1Memory.html#ae6a7fe05ca17fbed99579cfb9a79ba2c',1,'yaze::emu::Memory::at()'],['../classyaze_1_1emu_1_1MemoryImpl.html#a09fc0829ad63d6bff53d0c93d3111ec7',1,'yaze::emu::MemoryImpl::at()'],['../classyaze_1_1gfx_1_1Bitmap.html#a7d8b59a9a52cc536524370f07363f418',1,'yaze::gfx::Bitmap::at()'],['../classyaze_1_1gui_1_1Bitmap.html#a7d8b59a9a52cc536524370f07363f418',1,'yaze::gui::Bitmap::at()'],['../classyaze_1_1test_1_1MemoryImpl.html#a09fc0829ad63d6bff53d0c93d3111ec7',1,'yaze::test::MemoryImpl::at()']]],
   ['audioramimpl_93',['AudioRamImpl',['../classyaze_1_1emu_1_1AudioRamImpl.html#a4e7b0e828af431c36e986a7a89fcc4fc',1,'yaze::emu::AudioRamImpl']]]
 ];

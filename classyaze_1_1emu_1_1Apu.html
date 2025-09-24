@@ -163,6 +163,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a2764ac75dec1c12445109690f73ec509"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3737f0d7d2285d5c8760cbe57ce3618b" id="r_a3737f0d7d2285d5c8760cbe57ce3618b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3737f0d7d2285d5c8760cbe57ce3618b">spc700</a> () -&gt; <a class="el" href="classyaze_1_1emu_1_1Spc700.html">Spc700</a> &amp;</td></tr>
 <tr class="separator:a3737f0d7d2285d5c8760cbe57ce3618b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af051918f247bef86f7983ae778ecab6e" id="r_af051918f247bef86f7983ae778ecab6e"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af051918f247bef86f7983ae778ecab6e">GetCycles</a> () const</td></tr>
+<tr class="separator:af051918f247bef86f7983ae778ecab6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af25ab90ed641fcf1a7e36b83b110c2a3" id="r_af25ab90ed641fcf1a7e36b83b110c2a3"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af25ab90ed641fcf1a7e36b83b110c2a3">GetStatus</a> () const</td></tr>
+<tr class="separator:af25ab90ed641fcf1a7e36b83b110c2a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab58f0674d9a09744b0b7c6dcceeef07f" id="r_ab58f0674d9a09744b0b7c6dcceeef07f"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab58f0674d9a09744b0b7c6dcceeef07f">GetControl</a> () const</td></tr>
+<tr class="separator:ab58f0674d9a09744b0b7c6dcceeef07f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee91ec31f7cadca4b23a136264a6a58d" id="r_aee91ec31f7cadca4b23a136264a6a58d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aee91ec31f7cadca4b23a136264a6a58d">GetSamples</a> (int16_t *buffer, int count, bool loop=false)</td></tr>
+<tr class="separator:aee91ec31f7cadca4b23a136264a6a58d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa923ca3c6fd405e4acf331f2f06bd620" id="r_aa923ca3c6fd405e4acf331f2f06bd620"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa923ca3c6fd405e4acf331f2f06bd620">WriteDma</a> (uint16_t address, const uint8_t *data, int count)</td></tr>
+<tr class="separator:aa923ca3c6fd405e4acf331f2f06bd620"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -226,7 +236,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00050">50</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
-<p class="reference">References <a class="el" href="apu_8h_source.html#l00079">memory_</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00091">memory_</a>.</p>
 
 </div>
 </div>
@@ -248,7 +258,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00026">26</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="apu_8h_source.html#l00071">ram</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00083">ram</a>.</p>
 
 </div>
 </div>
@@ -269,7 +279,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00037">37</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="apu_8h_source.html#l00077">cycles_</a>, <a class="el" href="apu_8h_source.html#l00087">dsp_</a>, <a class="el" href="apu_8h_source.html#l00076">dsp_adr_</a>, <a class="el" href="apu_8h_source.html#l00069">in_ports_</a>, <a class="el" href="apu_8h_source.html#l00070">out_ports_</a>, <a class="el" href="apu_8h_source.html#l00071">ram</a>, <a class="el" href="apu_8h_source.html#l00074">rom_readable_</a>, <a class="el" href="apu_8h_source.html#l00088">spc700_</a>, and <a class="el" href="apu_8h_source.html#l00080">timer_</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00089">cycles_</a>, <a class="el" href="apu_8h_source.html#l00099">dsp_</a>, <a class="el" href="apu_8h_source.html#l00088">dsp_adr_</a>, <a class="el" href="apu_8h_source.html#l00081">in_ports_</a>, <a class="el" href="apu_8h_source.html#l00082">out_ports_</a>, <a class="el" href="apu_8h_source.html#l00083">ram</a>, <a class="el" href="apu_8h_source.html#l00086">rom_readable_</a>, <a class="el" href="apu_8h_source.html#l00100">spc700_</a>, and <a class="el" href="apu_8h_source.html#l00092">timer_</a>.</p>
 
 </div>
 </div>
@@ -290,7 +300,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00061">61</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="apu_8h_source.html#l00077">cycles_</a>, <a class="el" href="apu_8h_source.html#l00079">memory_</a>, and <a class="el" href="apu_8h_source.html#l00088">spc700_</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00089">cycles_</a>, <a class="el" href="apu_8h_source.html#l00091">memory_</a>, and <a class="el" href="apu_8h_source.html#l00100">spc700_</a>.</p>
 
 </div>
 </div>
@@ -412,7 +422,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00071">71</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="apu_8h_source.html#l00077">cycles_</a>, <a class="el" href="apu_8h_source.html#l00087">dsp_</a>, and <a class="el" href="apu_8h_source.html#l00080">timer_</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00089">cycles_</a>, <a class="el" href="apu_8h_source.html#l00099">dsp_</a>, and <a class="el" href="apu_8h_source.html#l00092">timer_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00197">SpcIdle()</a>, <a class="el" href="apu_8cc_source.html#l00187">SpcRead()</a>, and <a class="el" href="apu_8cc_source.html#l00192">SpcWrite()</a>.</p>
 
@@ -435,7 +445,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00096">96</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="apu_8h_source.html#l00087">dsp_</a>, <a class="el" href="apu_8h_source.html#l00076">dsp_adr_</a>, <a class="el" href="apu_8h_source.html#l00069">in_ports_</a>, <a class="el" href="apu_8h_source.html#l00071">ram</a>, <a class="el" href="apu_8h_source.html#l00074">rom_readable_</a>, and <a class="el" href="apu_8h_source.html#l00080">timer_</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00099">dsp_</a>, <a class="el" href="apu_8h_source.html#l00088">dsp_adr_</a>, <a class="el" href="apu_8h_source.html#l00081">in_ports_</a>, <a class="el" href="apu_8h_source.html#l00083">ram</a>, <a class="el" href="apu_8h_source.html#l00086">rom_readable_</a>, and <a class="el" href="apu_8h_source.html#l00092">timer_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00187">SpcRead()</a>.</p>
 
@@ -462,7 +472,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="apu_8cc_source.html#l00133">133</a> of file <a class="el" href="apu_8cc_source.html">apu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="apu_8h_source.html#l00087">dsp_</a>, <a class="el" href="apu_8h_source.html#l00076">dsp_adr_</a>, <a class="el" href="apu_8h_source.html#l00069">in_ports_</a>, <a class="el" href="apu_8h_source.html#l00070">out_ports_</a>, <a class="el" href="apu_8h_source.html#l00071">ram</a>, <a class="el" href="apu_8h_source.html#l00074">rom_readable_</a>, and <a class="el" href="apu_8h_source.html#l00080">timer_</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00099">dsp_</a>, <a class="el" href="apu_8h_source.html#l00088">dsp_adr_</a>, <a class="el" href="apu_8h_source.html#l00081">in_ports_</a>, <a class="el" href="apu_8h_source.html#l00082">out_ports_</a>, <a class="el" href="apu_8h_source.html#l00083">ram</a>, <a class="el" href="apu_8h_source.html#l00086">rom_readable_</a>, and <a class="el" href="apu_8h_source.html#l00092">timer_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00192">SpcWrite()</a>.</p>
 
@@ -493,7 +503,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00065">65</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
-<p class="reference">References <a class="el" href="apu_8h_source.html#l00087">dsp_</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00099">dsp_</a>.</p>
 
 </div>
 </div>
@@ -522,7 +532,170 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00066">66</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
-<p class="reference">References <a class="el" href="apu_8h_source.html#l00088">spc700_</a>.</p>
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00100">spc700_</a>.</p>
+
+</div>
+</div>
+<a id="af051918f247bef86f7983ae778ecab6e" name="af051918f247bef86f7983ae778ecab6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af051918f247bef86f7983ae778ecab6e">&#9670;&#160;</a></span>GetCycles()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t yaze::emu::Apu::GetCycles </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00068">68</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00089">cycles_</a>.</p>
+
+</div>
+</div>
+<a id="af25ab90ed641fcf1a7e36b83b110c2a3" name="af25ab90ed641fcf1a7e36b83b110c2a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af25ab90ed641fcf1a7e36b83b110c2a3">&#9670;&#160;</a></span>GetStatus()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::emu::Apu::GetStatus </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00069">69</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00083">ram</a>.</p>
+
+</div>
+</div>
+<a id="ab58f0674d9a09744b0b7c6dcceeef07f" name="ab58f0674d9a09744b0b7c6dcceeef07f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab58f0674d9a09744b0b7c6dcceeef07f">&#9670;&#160;</a></span>GetControl()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t yaze::emu::Apu::GetControl </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00070">70</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00083">ram</a>.</p>
+
+</div>
+</div>
+<a id="aee91ec31f7cadca4b23a136264a6a58d" name="aee91ec31f7cadca4b23a136264a6a58d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee91ec31f7cadca4b23a136264a6a58d">&#9670;&#160;</a></span>GetSamples()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::Apu::GetSamples </td>
+          <td>(</td>
+          <td class="paramtype">int16_t *</td>          <td class="paramname"><span class="paramname"><em>buffer</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>count</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>loop</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00071">71</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00099">dsp_</a>.</p>
+
+</div>
+</div>
+<a id="aa923ca3c6fd405e4acf331f2f06bd620" name="aa923ca3c6fd405e4acf331f2f06bd620"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa923ca3c6fd405e4acf331f2f06bd620">&#9670;&#160;</a></span>WriteDma()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::Apu::WriteDma </td>
+          <td>(</td>
+          <td class="paramtype">uint16_t</td>          <td class="paramname"><span class="paramname"><em>address</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *</td>          <td class="paramname"><span class="paramname"><em>data</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>count</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00074">74</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+
+<p class="reference">References <a class="el" href="apu_8h_source.html#l00083">ram</a>.</p>
 
 </div>
 </div>
@@ -539,7 +712,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00069">69</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00081">81</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00096">Read()</a>, <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00133">Write()</a>.</p>
 
@@ -557,7 +730,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00070">70</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00082">82</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00133">Write()</a>.</p>
 
@@ -575,9 +748,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00071">71</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00083">83</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00026">Init()</a>, <a class="el" href="apu_8cc_source.html#l00096">Read()</a>, <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00133">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="apu_8h_source.html#l00070">GetControl()</a>, <a class="el" href="apu_8h_source.html#l00069">GetStatus()</a>, <a class="el" href="apu_8cc_source.html#l00026">Init()</a>, <a class="el" href="apu_8cc_source.html#l00096">Read()</a>, <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, <a class="el" href="apu_8cc_source.html#l00133">Write()</a>, and <a class="el" href="apu_8h_source.html#l00074">WriteDma()</a>.</p>
 
 </div>
 </div>
@@ -601,7 +774,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00074">74</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00086">86</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00096">Read()</a>, <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00133">Write()</a>.</p>
 
@@ -627,7 +800,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00076">76</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00088">88</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00096">Read()</a>, <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00133">Write()</a>.</p>
 
@@ -653,9 +826,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00077">77</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00089">89</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00071">Cycle()</a>, <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00061">RunCycles()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00071">Cycle()</a>, <a class="el" href="apu_8h_source.html#l00068">GetCycles()</a>, <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00061">RunCycles()</a>.</p>
 
 </div>
 </div>
@@ -679,7 +852,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00079">79</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00091">91</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="apu_8h_source.html#l00050">Apu()</a>, and <a class="el" href="apu_8cc_source.html#l00061">RunCycles()</a>.</p>
 
@@ -705,7 +878,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00080">80</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00092">92</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00071">Cycle()</a>, <a class="el" href="apu_8cc_source.html#l00096">Read()</a>, <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00133">Write()</a>.</p>
 
@@ -739,7 +912,7 @@ Here is the call graph for this function:</div>
 <div class="ttc" id="aclassyaze_1_1emu_1_1Apu_html_a2e49cd87bea3e48f9135647bd23f9310"><div class="ttname"><a href="#a2e49cd87bea3e48f9135647bd23f9310">yaze::emu::Apu::SpcIdle</a></div><div class="ttdeci">void SpcIdle(bool waiting)</div><div class="ttdef"><b>Definition</b> <a href="apu_8cc_source.html#l00197">apu.cc:197</a></div></div>
 <div class="ttc" id="aclassyaze_1_1emu_1_1Apu_html_aa14f6c1f8c09e9c3418b37ce3df5882d"><div class="ttname"><a href="#aa14f6c1f8c09e9c3418b37ce3df5882d">yaze::emu::Apu::SpcWrite</a></div><div class="ttdeci">void SpcWrite(uint16_t address, uint8_t data)</div><div class="ttdef"><b>Definition</b> <a href="apu_8cc_source.html#l00192">apu.cc:192</a></div></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00082">82</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00094">94</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
 </div>
 </div>
@@ -763,9 +936,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00087">87</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00099">99</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00071">Cycle()</a>, <a class="el" href="apu_8h_source.html#l00065">dsp()</a>, <a class="el" href="apu_8cc_source.html#l00096">Read()</a>, <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00133">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00071">Cycle()</a>, <a class="el" href="apu_8h_source.html#l00065">dsp()</a>, <a class="el" href="apu_8h_source.html#l00071">GetSamples()</a>, <a class="el" href="apu_8cc_source.html#l00096">Read()</a>, <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, and <a class="el" href="apu_8cc_source.html#l00133">Write()</a>.</p>
 
 </div>
 </div>
@@ -789,7 +962,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00088">88</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="apu_8h_source.html#l00100">100</a> of file <a class="el" href="apu_8h_source.html">apu.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="apu_8cc_source.html#l00037">Reset()</a>, <a class="el" href="apu_8cc_source.html#l00061">RunCycles()</a>, and <a class="el" href="apu_8h_source.html#l00066">spc700()</a>.</p>
 

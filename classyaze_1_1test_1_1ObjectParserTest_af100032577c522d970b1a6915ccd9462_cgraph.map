@@ -1,0 +1,11 @@
+<map id="yaze::test::ObjectParserTest::SetUp" name="yaze::test::ObjectParserTest::SetUp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,163,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1ObjectParserTest.html#a8a20a0daf80f3fcade518124e50fd85a" title=" " alt="" coords="211,71,368,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,88,195,88,195,94,163,94"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1MockRom.html#a2dd724ce06862a92147d29e8df40bdfa" title="Load test data into the ROM." alt="" coords="429,5,569,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="356,68,416,49,418,54,358,73"/>
+<area shape="rect" id="Node000032" href="$classyaze_1_1test_1_1ObjectParserTest.html#a08414427e710d4002f25e36272787eb6" title=" " alt="" coords="416,71,582,111"/>
+<area shape="poly" id="edge3_Node000002_Node000032" title=" " alt="" coords="368,88,400,88,400,94,368,94"/>
+<area shape="rect" id="Node000033" href="$classyaze_1_1test_1_1ObjectParserTest.html#a7eac72bdd3f6c912cb20fc09badc6954" title=" " alt="" coords="420,136,578,177"/>
+<area shape="poly" id="edge4_Node000002_Node000033" title=" " alt="" coords="358,109,418,128,416,133,356,114"/>
+</map>

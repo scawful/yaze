@@ -9,6 +9,8 @@ var NAVTREEINDEX0 =
 "apu_8cc_source.html":[13,0,2,0,2,0,1],
 "apu_8h.html":[13,0,2,0,2,0,2],
 "apu_8h_source.html":[13,0,2,0,2,0,2],
+"apu__test_8cc.html":[13,0,3,0,0,0],
+"apu__test_8cc_source.html":[13,0,3,0,0,0],
 "arena_8cc.html":[13,0,2,0,3,0],
 "arena_8cc_source.html":[13,0,2,0,3,0],
 "arena_8h.html":[13,0,2,0,3,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX0 =
 "classyaze_1_1RecentFilesManager.html#a85659384620411ead3859962d2390f41":[11,0,1,10,4],
 "classyaze_1_1RecentFilesManager.html#a85659384620411ead3859962d2390f41":[12,0,0,10,4],
 "classyaze_1_1RecentFilesManager.html#ac65ad1734fba8871faf2279510da4666":[11,0,1,10,1],
-"classyaze_1_1RecentFilesManager.html#ac65ad1734fba8871faf2279510da4666":[12,0,0,10,1],
-"classyaze_1_1RecentFilesManager.html#ad4a42035ddf2684f6c8dfa18fb72a997":[11,0,1,10,5],
-"classyaze_1_1RecentFilesManager.html#ad4a42035ddf2684f6c8dfa18fb72a997":[12,0,0,10,5]
+"classyaze_1_1RecentFilesManager.html#ac65ad1734fba8871faf2279510da4666":[12,0,0,10,1]
 };

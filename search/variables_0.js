@@ -46,7 +46,7 @@ var searchData=
   ['animated_5fframe_5f_43',['animated_frame_',['../classyaze_1_1zelda3_1_1Room.html#a7d828328ca3869327b646cf402540e37',1,'yaze::zelda3::Room']]],
   ['animated_5fgfx_5f_44',['animated_gfx_',['../classyaze_1_1zelda3_1_1OverworldMap.html#a0bc642d1cf4332e8768d33dd39b679bf',1,'yaze::zelda3::OverworldMap']]],
   ['animations_45',['animations',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#ac8145742c90eb85db39776669e99664a',1,'yaze::editor::zsprite::ZSprite']]],
-  ['apu_5f_46',['apu_',['../classyaze_1_1emu_1_1Snes.html#ab53673caf48dd8b875592f956500f887',1,'yaze::emu::Snes']]],
+  ['apu_5f_46',['apu_',['../classyaze_1_1emu_1_1Snes.html#ab53673caf48dd8b875592f956500f887',1,'yaze::emu::Snes::apu_'],['../classyaze_1_1test_1_1ApuTest.html#a0e2ef70250c441f29991ff5edb790a0c',1,'yaze::test::ApuTest::apu_'],['../classyaze_1_1test_1_1IplHandshakeTest.html#a41eaed3945d54726c8b2f3b6ed245a62',1,'yaze::test::IplHandshakeTest::apu_']]],
   ['apu_5fcatchup_5fcycles_5f_47',['apu_catchup_cycles_',['../classyaze_1_1emu_1_1Snes.html#afd49c5dc2866651cf48b8b164c9a4d8f',1,'yaze::emu::Snes']]],
   ['aram_5f_48',['aram_',['../classyaze_1_1emu_1_1Dsp.html#a415a067bc45a0e1ddc7ebc094f9d93a0',1,'yaze::emu::Dsp']]],
   ['aram_5fsize_49',['ARAM_SIZE',['../classyaze_1_1emu_1_1AudioRamImpl.html#ae91f2166f7d789106c8ec69d50f488da',1,'yaze::emu::AudioRamImpl']]],

@@ -1,5 +1,7 @@
 var NAVTREEINDEX1 =
 {
+"classyaze_1_1RecentFilesManager.html#ad4a42035ddf2684f6c8dfa18fb72a997":[11,0,1,10,5],
+"classyaze_1_1RecentFilesManager.html#ad4a42035ddf2684f6c8dfa18fb72a997":[12,0,0,10,5],
 "classyaze_1_1RecentFilesManager.html#ad71782bc7bd83561d89c38c86ea1ee50":[11,0,1,10,0],
 "classyaze_1_1RecentFilesManager.html#ad71782bc7bd83561d89c38c86ea1ee50":[12,0,0,10,0],
 "classyaze_1_1RecentFilesManager.html#adbd4f1df10af5115874360106a030a1a":[11,0,1,10,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX1 =
 "classyaze_1_1cli_1_1PcToSnesCommand.html#aea1605095ca923e5052a2596726424a7":[11,0,1,0,11,0],
 "classyaze_1_1cli_1_1PcToSnesCommand.html#aea1605095ca923e5052a2596726424a7":[12,0,0,0,10,0],
 "classyaze_1_1cli_1_1ReadFromRom.html":[11,0,1,0,12],
-"classyaze_1_1cli_1_1ReadFromRom.html":[12,0,0,0,11],
-"classyaze_1_1cli_1_1ReadFromRom.html#aebfeb82694b26459add5558fbfc397fc":[11,0,1,0,12,0],
-"classyaze_1_1cli_1_1ReadFromRom.html#aebfeb82694b26459add5558fbfc397fc":[12,0,0,0,11,0]
+"classyaze_1_1cli_1_1ReadFromRom.html":[12,0,0,0,11]
 };

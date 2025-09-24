@@ -1,0 +1,11 @@
+<map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,135,72"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="202,5,350,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,46,186,37,187,43,135,51"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1ObjectRenderer.html#ae3dc95b4eb2a9717978a6d42eaef0493" title="Render a single object to a bitmap." alt="" coords="183,71,369,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,66,168,71,167,77,135,72"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1ObjectRenderer.html#a36a96e34c65f6cab10fa38745e068a40" title="Create a bitmap with the specified dimensions." alt="" coords="417,37,603,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="369,75,401,70,402,76,370,80"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1ObjectRenderer.html#af4b1343639d59561785d52ad72fb03b9" title="Render a single tile to the bitmap." alt="" coords="417,103,603,143"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="370,101,402,106,401,111,369,106"/>
+</map>

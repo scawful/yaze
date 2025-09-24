@@ -1,5 +1,7 @@
 var NAVTREEINDEX2 =
 {
+"classyaze_1_1cli_1_1ReadFromRom.html#aebfeb82694b26459add5558fbfc397fc":[11,0,1,0,12,0],
+"classyaze_1_1cli_1_1ReadFromRom.html#aebfeb82694b26459add5558fbfc397fc":[12,0,0,0,11,0],
 "classyaze_1_1cli_1_1SnesToPcCommand.html":[11,0,1,0,13],
 "classyaze_1_1cli_1_1SnesToPcCommand.html":[12,0,0,0,12],
 "classyaze_1_1cli_1_1SnesToPcCommand.html#a1829823afb92b629ad854249ef61388e":[11,0,1,0,13,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX2 =
 "classyaze_1_1editor_1_1DungeonEditor.html#a8ed56293f396248b6a62ca128a130a6c":[11,0,1,2,12,4],
 "classyaze_1_1editor_1_1DungeonEditor.html#a8ed56293f396248b6a62ca128a130a6c":[12,0,0,2,5,4],
 "classyaze_1_1editor_1_1DungeonEditor.html#a8fe5e3e6ba0089832a0bc7c013e9ca89":[11,0,1,2,12,54],
-"classyaze_1_1editor_1_1DungeonEditor.html#a8fe5e3e6ba0089832a0bc7c013e9ca89":[12,0,0,2,5,54],
-"classyaze_1_1editor_1_1DungeonEditor.html#a907880f50dd6850282e7f2e41d6a40ec":[11,0,1,2,12,36],
-"classyaze_1_1editor_1_1DungeonEditor.html#a907880f50dd6850282e7f2e41d6a40ec":[12,0,0,2,5,36]
+"classyaze_1_1editor_1_1DungeonEditor.html#a8fe5e3e6ba0089832a0bc7c013e9ca89":[12,0,0,2,5,54]
 };

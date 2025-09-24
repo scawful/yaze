@@ -1,0 +1,11 @@
+<map id="yaze::test::DungeonEditorIntegrationTest::TestRoomGraphics" name="yaze::test::DungeonEditorIntegrationTest::TestRoomGraphics">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,232,96"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9" title=" " alt="" coords="280,63,496,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,73,264,73,264,78,232,78"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="554,5,665,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="440,59,541,33,543,38,441,65"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Room.html#a5402d6db43d831803d969e7562655979" title=" " alt="" coords="544,55,674,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="497,73,529,73,529,78,497,78"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1zelda3_1_1Room.html#a5e4be6dff5369be8773c5168382fac77" title=" " alt="" coords="544,120,674,161"/>
+<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="435,86,530,115,528,120,433,91"/>
+</map>

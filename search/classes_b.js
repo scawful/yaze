@@ -11,7 +11,7 @@ var searchData=
   ['masklogicsettings_8',['MaskLogicSettings',['../structyaze_1_1emu_1_1MaskLogicSettings.html',1,'yaze::emu']]],
   ['memory_9',['Memory',['../classyaze_1_1emu_1_1Memory.html',1,'yaze::emu']]],
   ['memoryeditorwithdiffchecker_10',['MemoryEditorWithDiffChecker',['../structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html',1,'yaze::editor']]],
-  ['memoryimpl_11',['MemoryImpl',['../classyaze_1_1emu_1_1MemoryImpl.html',1,'yaze::emu']]],
+  ['memoryimpl_11',['MemoryImpl',['../classyaze_1_1emu_1_1MemoryImpl.html',1,'yaze::emu::MemoryImpl'],['../classyaze_1_1test_1_1MemoryImpl.html',1,'yaze::test::MemoryImpl']]],
   ['menuitem_12',['MenuItem',['../structyaze_1_1gui_1_1MenuItem.html',1,'yaze::gui']]],
   ['messagedata_13',['MessageData',['../structyaze_1_1editor_1_1MessageData.html',1,'yaze::editor']]],
   ['messageeditor_14',['MessageEditor',['../classyaze_1_1editor_1_1MessageEditor.html',1,'yaze::editor']]],

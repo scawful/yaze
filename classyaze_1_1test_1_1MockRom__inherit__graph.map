@@ -1,5 +1,6 @@
 <map id="yaze::test::MockRom" name="yaze::test::MockRom">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,146,105"/>
+<area shape="rect" id="Node000001" title="Mock ROM class for testing without real ROM files." alt="" coords="5,79,146,105"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="35,5,116,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,46,78,79,73,79,73,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="69,46,71,78,66,79,64,46"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="87,46,85,79,80,78,82,46"/>
 </map>

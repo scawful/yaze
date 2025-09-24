@@ -5,6 +5,7 @@ var hierarchy =
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
     [ "yaze::emu::Apu", "classyaze_1_1emu_1_1Apu.html", null ],
+    [ "yaze::test::Apu", "classyaze_1_1test_1_1Apu.html", null ],
     [ "yaze::emu::ApuCallbacks", "structyaze_1_1emu_1_1ApuCallbacks.html", null ],
     [ "yaze::test::ApuCallbacks", "structyaze_1_1test_1_1ApuCallbacks.html", null ],
     [ "yaze::gfx::Arena", "classyaze_1_1gfx_1_1Arena.html", null ],
@@ -232,9 +233,11 @@ var hierarchy =
     [ "yaze::ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", null ],
     [ "yaze::ResourceLabelManager::ResourceType", "structyaze_1_1ResourceLabelManager_1_1ResourceType.html", null ],
     [ "yaze::Rom", "classyaze_1_1Rom.html", [
+      [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ],
       [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ]
     ] ],
     [ "yaze::test::Rom", "classyaze_1_1test_1_1Rom.html", [
+      [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ],
       [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ]
     ] ],
     [ "yaze::editor::EditorManager::RomSession", "structyaze_1_1editor_1_1EditorManager_1_1RomSession.html", null ],
@@ -297,14 +300,20 @@ var hierarchy =
     [ "yaze::zelda3::anonymous_namespace{room_object.cc}::SubtypeTableInfo", "structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html", null ],
     [ "yaze::gui::Table", "structyaze_1_1gui_1_1Table.html", null ],
     [ "testing::Test", null, [
+      [ "yaze::test::ApuTest", "classyaze_1_1test_1_1ApuTest.html", null ],
       [ "yaze::test::CpuTest", "classyaze_1_1test_1_1CpuTest.html", null ],
+      [ "yaze::test::DungeonEditorIntegrationTest", "classyaze_1_1test_1_1DungeonEditorIntegrationTest.html", null ],
       [ "yaze::test::DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", null ],
+      [ "yaze::test::IplHandshakeTest", "classyaze_1_1test_1_1IplHandshakeTest.html", null ],
       [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
+      [ "yaze::test::ObjectParserStructsTest", "classyaze_1_1test_1_1ObjectParserStructsTest.html", null ],
+      [ "yaze::test::ObjectParserTest", "classyaze_1_1test_1_1ObjectParserTest.html", null ],
       [ "yaze::test::OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", null ],
       [ "yaze::test::PpuTest", "classyaze_1_1test_1_1PpuTest.html", null ],
       [ "yaze::test::RomTest", "classyaze_1_1test_1_1RomTest.html", null ],
       [ "yaze::test::Spc700Test", "classyaze_1_1test_1_1Spc700Test.html", null ],
-      [ "yaze::test::SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", null ]
+      [ "yaze::test::SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", null ],
+      [ "yaze::test::TestDungeonObjects", "classyaze_1_1test_1_1TestDungeonObjects.html", null ]
     ] ],
     [ "yaze::gui::Text", "structyaze_1_1gui_1_1Text.html", null ],
     [ "yaze::gui::TextBox", "structyaze_1_1gui_1_1TextBox.html", null ],

@@ -1,0 +1,10 @@
+<map id="yaze::test::MockRom::SetTestData" name="yaze::test::MockRom::SetTestData">
+<area shape="rect" id="Node000001" title="Load test data into the ROM." alt="" coords="5,22,146,62"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="436,5,547,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,35,420,20,420,25,146,41"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db" title=" " alt="" coords="194,55,366,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="147,48,178,52,178,58,146,54"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="338,51,420,32,421,37,339,57"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="414,55,568,80"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="367,65,398,65,398,70,367,70"/>
+</map>
