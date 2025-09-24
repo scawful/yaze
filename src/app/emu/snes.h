@@ -2,6 +2,8 @@
 #define YAZE_APP_EMU_SNES_H
 
 #include <cstdint>
+#include <functional>
+#include <memory>
 
 #include "app/emu/audio/apu.h"
 #include "app/emu/cpu/cpu.h"
@@ -21,7 +23,11 @@ struct Input {
 
 class Snes {
  public:
-  Snes() = default;
+  Snes() {
+    cpu_.callbacks().read_byte = [this](uint32_t adr) { return CpuRead(adr); };
+    cpu_.callbacks().write_byte = [this](uint32_t adr, uint8_t val) { CpuWrite(adr, val); };
+    cpu_.callbacks().idle = [this](bool waiting) { CpuIdle(waiting); };
+  }
   ~Snes() = default;
 
   void Init(std::vector<uint8_t>& rom_data);
@@ -61,14 +67,11 @@ class Snes {
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
 
+  bool fast_mem_ = false;
+
  private:
   MemoryImpl memory_;
-  CpuCallbacks cpu_callbacks_ = {
-      [&](uint32_t adr) { return CpuRead(adr); },
-      [&](uint32_t adr, uint8_t val) { CpuWrite(adr, val); },
-      [&](bool waiting) { CpuIdle(waiting); },
-  };
-  Cpu cpu_{memory_, cpu_callbacks_};
+  Cpu cpu_{memory_};
   Ppu ppu_{memory_};
   Apu apu_{memory_};
 
@@ -111,12 +114,9 @@ class Snes {
   bool auto_joy_read_ = false;
   uint16_t auto_joy_timer_ = 0;
   bool ppu_latch_;
-
-  bool fast_mem_ = false;
 };
 
 }  // namespace emu
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_SNES_H

@@ -24,6 +24,11 @@ add_executable(
   zelda3/message_test.cc
   zelda3/overworld_test.cc
   zelda3/sprite_builder_test.cc
+  emu/cpu_test.cc
+  emu/ppu_test.cc
+  emu/spc700_test.cc
+  emu/audio/apu_test.cc
+  emu/audio/ipl_handshake_test.cc
   integration/dungeon_editor_test.cc
   zelda3/object_parser_test.cc
   zelda3/object_parser_structs_test.cc

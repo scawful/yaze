@@ -13,7 +13,6 @@ namespace test {
 using yaze::emu::AsmParser;
 using yaze::emu::Cpu;
 using yaze::emu::CpuCallbacks;
-using yaze::emu::MockClock;
 using yaze::emu::MockMemory;
 
 /**
@@ -29,9 +28,8 @@ class CpuTest : public ::testing::Test {
 
   AsmParser asm_parser;
   MockMemory mock_memory;
-  MockClock mock_clock;
   CpuCallbacks cpu_callbacks;
-  Cpu cpu{mock_memory, mock_clock, cpu_callbacks};
+  Cpu cpu{mock_memory};
 };
 
 using ::testing::_;
@@ -42,7 +40,6 @@ using ::testing::Return;
 // ============================================================================
 
 TEST_F(CpuTest, AsmParserTokenizerOk) {
-  AsmParser asm_parser;
   std::string instruction = R"(
     ADC.b #$01
     LDA.b #$FF
@@ -58,7 +55,6 @@ TEST_F(CpuTest, AsmParserTokenizerOk) {
 }
 
 TEST_F(CpuTest, AsmParserSingleInstructionOk) {
-  AsmParser asm_parser;
   std::string instruction = "ADC.b #$01";
   std::vector<std::string> tokens = asm_parser.Tokenize(instruction);
 
