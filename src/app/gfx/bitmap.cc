@@ -215,6 +215,100 @@ Bitmap::Bitmap(int width, int height, int depth,
   SetPalette(palette);
 }
 
+Bitmap::Bitmap(const Bitmap& other)
+    : width_(other.width_),
+      height_(other.height_),
+      depth_(other.depth_),
+      active_(other.active_),
+      modified_(other.modified_),
+      palette_(other.palette_),
+      data_(other.data_) {
+  // Copy the data and recreate surface/texture
+  pixel_data_ = data_.data();
+  if (active_ && !data_.empty()) {
+    surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
+                                           GetSnesPixelFormat(BitmapFormat::kIndexed));
+    if (surface_) {
+      surface_->pixels = pixel_data_;
+    }
+  }
+}
+
+Bitmap& Bitmap::operator=(const Bitmap& other) {
+  if (this != &other) {
+    width_ = other.width_;
+    height_ = other.height_;
+    depth_ = other.depth_;
+    active_ = other.active_;
+    modified_ = other.modified_;
+    palette_ = other.palette_;
+    data_ = other.data_;
+    
+    // Copy the data and recreate surface/texture
+    pixel_data_ = data_.data();
+    if (active_ && !data_.empty()) {
+      surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
+                                             GetSnesPixelFormat(BitmapFormat::kIndexed));
+      if (surface_) {
+        surface_->pixels = pixel_data_;
+      }
+    }
+  }
+  return *this;
+}
+
+Bitmap::Bitmap(Bitmap&& other) noexcept
+    : width_(other.width_),
+      height_(other.height_),
+      depth_(other.depth_),
+      active_(other.active_),
+      modified_(other.modified_),
+      texture_pixels(other.texture_pixels),
+      pixel_data_(other.pixel_data_),
+      palette_(std::move(other.palette_)),
+      data_(std::move(other.data_)),
+      surface_(other.surface_),
+      texture_(other.texture_) {
+  // Reset the moved-from object
+  other.width_ = 0;
+  other.height_ = 0;
+  other.depth_ = 0;
+  other.active_ = false;
+  other.modified_ = false;
+  other.texture_pixels = nullptr;
+  other.pixel_data_ = nullptr;
+  other.surface_ = nullptr;
+  other.texture_ = nullptr;
+}
+
+Bitmap& Bitmap::operator=(Bitmap&& other) noexcept {
+  if (this != &other) {
+    width_ = other.width_;
+    height_ = other.height_;
+    depth_ = other.depth_;
+    active_ = other.active_;
+    modified_ = other.modified_;
+    texture_pixels = other.texture_pixels;
+    pixel_data_ = other.pixel_data_;
+    palette_ = std::move(other.palette_);
+    data_ = std::move(other.data_);
+    surface_ = other.surface_;
+    texture_ = other.texture_;
+    
+    // Reset the moved-from object
+    other.width_ = 0;
+    other.height_ = 0;
+    other.depth_ = 0;
+    other.active_ = false;
+    other.modified_ = false;
+    other.texture_pixels = nullptr;
+    other.pixel_data_ = nullptr;
+    other.surface_ = nullptr;
+    other.texture_ = nullptr;
+  }
+  return *this;
+}
+
 void Bitmap::Create(int width, int height, int depth, std::span<uint8_t> data) {
   data_ = std::vector<uint8_t>(data.begin(), data.end());
   Create(width, height, depth, data_);
@@ -449,6 +543,66 @@ std::vector<uint8_t> Bitmap::GetPngData() {
   return png_data;
 }
 #endif
+
+void Bitmap::SetPixel(int x, int y, const SnesColor& color) {
+  if (x < 0 || x >= width_ || y < 0 || y >= height_) {
+    return; // Bounds check
+  }
+  
+  int position = y * width_ + x;
+  if (position >= 0 && position < (int)data_.size()) {
+    // Convert SnesColor to palette index
+    uint8_t color_index = 0;
+    for (size_t i = 0; i < palette_.size(); i++) {
+      if (palette_[i].rgb().x == color.rgb().x &&
+          palette_[i].rgb().y == color.rgb().y &&
+          palette_[i].rgb().z == color.rgb().z) {
+        color_index = static_cast<uint8_t>(i);
+        break;
+      }
+    }
+    data_[position] = color_index;
+    modified_ = true;
+  }
+}
+
+void Bitmap::Resize(int new_width, int new_height) {
+  if (new_width <= 0 || new_height <= 0) {
+    return; // Invalid dimensions
+  }
+  
+  std::vector<uint8_t> new_data(new_width * new_height, 0);
+  
+  // Copy existing data, handling size changes
+  if (!data_.empty()) {
+    for (int y = 0; y < std::min(height_, new_height); y++) {
+      for (int x = 0; x < std::min(width_, new_width); x++) {
+        int old_pos = y * width_ + x;
+        int new_pos = y * new_width + x;
+        if (old_pos < (int)data_.size() && new_pos < (int)new_data.size()) {
+          new_data[new_pos] = data_[old_pos];
+        }
+      }
+    }
+  }
+  
+  width_ = new_width;
+  height_ = new_height;
+  data_ = std::move(new_data);
+  pixel_data_ = data_.data();
+  
+  // Recreate surface with new dimensions
+  surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
+                                         GetSnesPixelFormat(BitmapFormat::kIndexed));
+  if (surface_) {
+    surface_->pixels = pixel_data_;
+    active_ = true;
+  } else {
+    active_ = false;
+  }
+  
+  modified_ = true;
+}
 
 }  // namespace gfx
 }  // namespace yaze

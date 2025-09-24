@@ -72,6 +72,31 @@ class Bitmap {
          const SnesPalette &palette);
 
   /**
+   * @brief Copy constructor - creates a deep copy
+   */
+  Bitmap(const Bitmap& other);
+
+  /**
+   * @brief Copy assignment operator
+   */
+  Bitmap& operator=(const Bitmap& other);
+
+  /**
+   * @brief Move constructor
+   */
+  Bitmap(Bitmap&& other) noexcept;
+
+  /**
+   * @brief Move assignment operator
+   */
+  Bitmap& operator=(Bitmap&& other) noexcept;
+
+  /**
+   * @brief Destructor
+   */
+  ~Bitmap() = default;
+
+  /**
    * @brief Create a bitmap with the given dimensions and data
    */
   void Create(int width, int height, int depth, std::span<uint8_t> data);
@@ -133,6 +158,16 @@ class Bitmap {
    * @brief Write a color to a pixel at the given position
    */
   void WriteColor(int position, const ImVec4 &color);
+
+  /**
+   * @brief Set a pixel at the given x,y coordinates
+   */
+  void SetPixel(int x, int y, const SnesColor& color);
+
+  /**
+   * @brief Resize the bitmap to new dimensions
+   */
+  void Resize(int new_width, int new_height);
 
   /**
    * @brief Extract an 8x8 tile from the bitmap
