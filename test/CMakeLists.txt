@@ -43,6 +43,7 @@ add_executable(
 target_include_directories(
   yaze_test PUBLIC
   app/
+  util/
   lib/
   ${CMAKE_SOURCE_DIR}/incl/
   ${CMAKE_SOURCE_DIR}

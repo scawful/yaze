@@ -16,7 +16,7 @@
   } while (0)
 
 namespace yaze {
-namespace app {
+namespace util {
 namespace asar {
 
 // Symbol information extracted from Asar
@@ -107,5 +107,5 @@ class AsarIntegration {
 };
 
 }  // namespace asar
-}  // namespace app
+}  // namespace util
 }  // namespace yaze

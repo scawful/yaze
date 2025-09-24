@@ -1,10 +1,10 @@
 # Asar Integration Library
 set(ASAR_INTEGRATION_SRC
-  ${CMAKE_CURRENT_SOURCE_DIR}/app/asar/asar_integration.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/util/asar/asar_integration.cc
 )
 
 set(ASAR_INTEGRATION_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/app/asar/asar_integration.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/util/asar/asar_integration.h
 )
 
 # Create the Asar integration library

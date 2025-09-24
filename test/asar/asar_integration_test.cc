@@ -1,15 +1,17 @@
 #include <gtest/gtest.h>
-#include "app/asar/asar_integration.h"
+#include "util/asar/asar_integration.h"
 #include <fstream>
 #include <sstream>
 
 namespace yaze {
+namespace util {
+namespace asar {
 namespace test {
 
 class AsarIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    asar_integration_ = std::make_unique<app::asar::AsarIntegration>();
+    asar_integration_ = std::make_unique<AsarIntegration>();
     auto status = asar_integration_->Initialize();
     ASSERT_TRUE(status.ok()) << "Failed to initialize Asar: " << status.message();
   }
@@ -55,7 +57,7 @@ data:
     return std::vector<uint8_t>(1024 * 1024, 0);
   }
 
-  std::unique_ptr<app::asar::AsarIntegration> asar_integration_;
+  std::unique_ptr<AsarIntegration> asar_integration_;
 };
 
 TEST_F(AsarIntegrationTest, Initialization) {
@@ -278,4 +280,6 @@ TEST_F(AsarIntegrationTest, CrossPlatformCompatibility) {
 }
 
 }  // namespace test
+}  // namespace asar
+}  // namespace util
 }  // namespace yaze

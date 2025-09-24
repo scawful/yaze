@@ -1,11 +1,11 @@
-#include "app/asar/asar_integration.h"
+#include "util/asar/asar_integration.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include <fstream>
 #include <sstream>
 
 namespace yaze {
-namespace app {
+namespace util {
 namespace asar {
 
 AsarIntegration::AsarIntegration() : initialized_(false) {
@@ -537,5 +537,5 @@ std::vector<std::string> AsarIntegration::GetWarningMessages() {
 }
 
 }  // namespace asar
-}  // namespace app
+}  // namespace util
 }  // namespace yaze
