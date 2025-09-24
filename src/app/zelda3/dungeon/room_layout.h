@@ -106,6 +106,9 @@ class RoomLayout {
   // Parse layout data from ROM
   absl::Status ParseLayoutData(const std::vector<uint8_t>& data);
   
+  // Load layout data from ROM address
+  absl::Status LoadLayoutData(int layout_data_address);
+  
   // Create layout object from tile data
   RoomLayoutObject CreateLayoutObject(int16_t tile_id, uint8_t x, uint8_t y, uint8_t layer);
 };

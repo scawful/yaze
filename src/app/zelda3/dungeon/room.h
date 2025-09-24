@@ -216,7 +216,13 @@ class Room {
   void LoadTorches();
   void LoadBlocks();
   void LoadPits();
+
   const RoomLayout& GetLayout() const { return layout_; }
+
+ private:
+  // Enhanced object parsing methods
+  void ParseObjectsFromLocation(int objects_location);
+  void HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY, int& nbr_of_staircase);
 
   auto blocks() const { return blocks_; }
   auto &mutable_blocks() { return blocks_; }
