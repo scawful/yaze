@@ -88,7 +88,6 @@ var hierarchy =
     [ "yaze::emu::DspChannel", "structyaze_1_1emu_1_1DspChannel.html", null ],
     [ "dungeon_sprite", "structdungeon__sprite.html", null ],
     [ "yaze::zelda3::DungeonMap", "structyaze_1_1zelda3_1_1DungeonMap.html", null ],
-    [ "yaze::zelda3::DungeonObjectRenderer", "classyaze_1_1zelda3_1_1DungeonObjectRenderer.html", null ],
     [ "yaze::editor::Editor", "classyaze_1_1editor_1_1Editor.html", [
       [ "yaze::editor::AssemblyEditor", "classyaze_1_1editor_1_1AssemblyEditor.html", null ],
       [ "yaze::editor::DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html", null ],
@@ -193,6 +192,12 @@ var hierarchy =
     [ "yaze::editor::zsprite::OamTile", "structyaze_1_1editor_1_1zsprite_1_1OamTile.html", null ],
     [ "yaze::gfx::OamTile", "classyaze_1_1gfx_1_1OamTile.html", null ],
     [ "object_door", "structobject__door.html", null ],
+    [ "yaze::zelda3::ObjectParser", "classyaze_1_1zelda3_1_1ObjectParser.html", null ],
+    [ "yaze::editor::DungeonEditor::ObjectRenderCache", "structyaze_1_1editor_1_1DungeonEditor_1_1ObjectRenderCache.html", null ],
+    [ "yaze::zelda3::ObjectRenderer", "classyaze_1_1zelda3_1_1ObjectRenderer.html", null ],
+    [ "yaze::zelda3::ObjectRoutineInfo", "structyaze_1_1zelda3_1_1ObjectRoutineInfo.html", null ],
+    [ "yaze::zelda3::ObjectSizeInfo", "structyaze_1_1zelda3_1_1ObjectSizeInfo.html", null ],
+    [ "yaze::zelda3::ObjectSubtypeInfo", "structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html", null ],
     [ "yaze::emu::OBJSEL", "structyaze_1_1emu_1_1OBJSEL.html", null ],
     [ "yaze::Transaction::Operation", "structyaze_1_1Transaction_1_1Operation.html", null ],
     [ "yaze::emu::OPHCT", "structyaze_1_1emu_1_1OPHCT.html", null ],
@@ -218,7 +223,6 @@ var hierarchy =
       [ "yaze::test::MockPpu", "classyaze_1_1test_1_1MockPpu.html", null ]
     ] ],
     [ "yaze::Project", "structyaze_1_1Project.html", null ],
-    [ "yaze::zelda3::PseudoVram", "structyaze_1_1zelda3_1_1PseudoVram.html", null ],
     [ "yaze::RecentFilesManager", "classyaze_1_1RecentFilesManager.html", null ],
     [ "yaze::core::Renderer", "classyaze_1_1core_1_1Renderer.html", null ],
     [ "yaze::editor::Renderer", "classyaze_1_1editor_1_1Renderer.html", null ],
@@ -236,6 +240,8 @@ var hierarchy =
     [ "yaze::editor::EditorManager::RomSession", "structyaze_1_1editor_1_1EditorManager_1_1RomSession.html", null ],
     [ "yaze::zelda3::Room", "classyaze_1_1zelda3_1_1Room.html", null ],
     [ "yaze::zelda3::RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", null ],
+    [ "yaze::zelda3::RoomLayout", "classyaze_1_1zelda3_1_1RoomLayout.html", null ],
+    [ "yaze::zelda3::RoomLayoutObject", "classyaze_1_1zelda3_1_1RoomLayoutObject.html", null ],
     [ "yaze::zelda3::RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", [
       [ "yaze::zelda3::Subtype1", "classyaze_1_1zelda3_1_1Subtype1.html", null ],
       [ "yaze::zelda3::Subtype2", "classyaze_1_1zelda3_1_1Subtype2.html", null ],
@@ -288,6 +294,7 @@ var hierarchy =
     [ "yaze::emu::STAT78", "structyaze_1_1emu_1_1STAT78.html", null ],
     [ "yaze::editor::zsprite::SubEditor", "structyaze_1_1editor_1_1zsprite_1_1SubEditor.html", null ],
     [ "yaze::zelda3::SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", null ],
+    [ "yaze::zelda3::anonymous_namespace{room_object.cc}::SubtypeTableInfo", "structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html", null ],
     [ "yaze::gui::Table", "structyaze_1_1gui_1_1Table.html", null ],
     [ "testing::Test", null, [
       [ "yaze::test::CpuTest", "classyaze_1_1test_1_1CpuTest.html", null ],

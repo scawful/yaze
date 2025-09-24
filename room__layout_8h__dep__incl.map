@@ -1,0 +1,13 @@
+<map id="src/app/zelda3/dungeon/room_layout.h" name="src/app/zelda3/dungeon/room_layout.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="150,5,308,46"/>
+<area shape="rect" id="Node000002" href="$room_8h.html" title=" " alt="" coords="92,94,250,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,60,187,95,182,92,205,57"/>
+<area shape="rect" id="Node000016" href="$room__layout_8cc.html" title=" " alt="" coords="240,183,398,223"/>
+<area shape="poly" id="edge6_Node000001_Node000016" title=" " alt="" coords="248,59,312,181,307,183,243,61"/>
+<area shape="rect" id="Node000003" href="$dungeon__editor_8cc.html" title=" " alt="" coords="5,271,159,312"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,144,72,161,52,184,46,205,49,228,58,250,70,270,65,272,54,253,44,230,41,205,48,181,68,157,94,140"/>
+<area shape="rect" id="Node000004" href="$dungeon__editor_8h.html" title=" " alt="" coords="63,183,216,223"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="161,150,149,183,144,181,156,149"/>
+<area shape="poly" id="edge5_Node000002_Node000016" title=" " alt="" coords="219,141,287,180,285,185,217,145"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="120,238,97,272,93,269,116,235"/>
+</map>

@@ -8,6 +8,8 @@ var searchData=
   ['room_2ecc_5',['room.cc',['../room_8cc.html',1,'']]],
   ['room_2eh_6',['room.h',['../room_8h.html',1,'']]],
   ['room_5fentrance_2eh_7',['room_entrance.h',['../room__entrance_8h.html',1,'']]],
-  ['room_5fobject_2ecc_8',['room_object.cc',['../room__object_8cc.html',1,'']]],
-  ['room_5fobject_2eh_9',['room_object.h',['../room__object_8h.html',1,'']]]
+  ['room_5flayout_2ecc_8',['room_layout.cc',['../room__layout_8cc.html',1,'']]],
+  ['room_5flayout_2eh_9',['room_layout.h',['../room__layout_8h.html',1,'']]],
+  ['room_5fobject_2ecc_10',['room_object.cc',['../room__object_8cc.html',1,'']]],
+  ['room_5fobject_2eh_11',['room_object.h',['../room__object_8h.html',1,'']]]
 ];

@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::ObjectParser::ParseObjectRoutine" name="yaze::zelda3::ObjectParser::ParseObjectRoutine">
+<area shape="rect" id="Node000001" title="Parse object routine data." alt="" coords="5,5,178,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1ObjectParser.html#a02d01e32f46dffcc009ed5f1a7118f0c" title="Get object subtype information." alt="" coords="226,5,398,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,23,210,23,210,28,178,28"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1ObjectParser.html#af7be6d73b4620312b5731976b5c6baa1" title="Determine object subtype from ID." alt="" coords="446,5,618,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="399,23,431,23,431,28,399,28"/>
+</map>

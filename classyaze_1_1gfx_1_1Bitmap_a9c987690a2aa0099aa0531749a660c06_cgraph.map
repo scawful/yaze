@@ -1,5 +1,9 @@
 <map id="yaze::gfx::Bitmap::SetPalette" name="yaze::gfx::Bitmap::SetPalette">
 <area shape="rect" id="Node000001" title="Set the palette using SDL colors." alt="" coords="5,5,129,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8" title=" " alt="" coords="177,5,300,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,23,161,23,161,28,129,28"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8" title=" " alt="" coords="348,5,471,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,12,176,7,238,4,300,7,333,10,332,16,300,12,238,9,177,12,129,18"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a8b0be39d195a5d6d7002d2ecd70f2a3c" title="Set the palette for the bitmap." alt="" coords="177,45,300,86"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="130,38,162,45,161,50,129,43"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="300,49,332,41,334,46,301,54"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="205,45,204,35,209,27,221,21,238,19,257,21,268,27,266,32,256,26,238,24,222,26,213,30,209,36,211,44"/>
 </map>

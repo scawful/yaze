@@ -1,5 +1,6 @@
 <map id="yaze::gfx::Bitmap::SetPaletteWithTransparent" name="yaze::gfx::Bitmap::SetPaletteWithTransparent">
-<area shape="rect" id="Node000001" title="Set the palette with a transparent color." alt="" coords="5,5,183,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8" title=" " alt="" coords="231,5,354,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,23,215,23,215,28,183,28"/>
+<area shape="rect" id="Node000001" title="Set the palette with a transparent color." alt="" coords="5,29,183,70"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="56,29,54,19,61,10,74,5,94,3,116,5,128,11,126,16,114,10,94,8,75,10,64,15,60,20,61,28"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8" title=" " alt="" coords="231,29,354,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,47,215,47,215,52,183,52"/>
 </map>

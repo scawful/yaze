@@ -14,6 +14,5 @@ var searchData=
   ['ppu_11',['Ppu',['../classyaze_1_1emu_1_1Ppu.html',1,'yaze::emu']]],
   ['ppuinterface_12',['PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html',1,'yaze::emu::PpuInterface'],['../classyaze_1_1test_1_1PpuInterface.html',1,'yaze::test::PpuInterface']]],
   ['pputest_13',['PpuTest',['../classyaze_1_1test_1_1PpuTest.html',1,'yaze::test']]],
-  ['project_14',['Project',['../structyaze_1_1Project.html',1,'yaze']]],
-  ['pseudovram_15',['PseudoVram',['../structyaze_1_1zelda3_1_1PseudoVram.html',1,'yaze::zelda3']]]
+  ['project_14',['Project',['../structyaze_1_1Project.html',1,'yaze']]]
 ];

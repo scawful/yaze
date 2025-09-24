@@ -1,9 +1,8 @@
 <map id="yaze::gfx::Bitmap::UpdateTextureData" name="yaze::gfx::Bitmap::UpdateTextureData">
-<area shape="rect" id="Node000001" title="Updates the texture data from the surface." alt="" coords="5,27,139,68"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="197,5,334,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,35,181,28,182,34,140,40"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Arena.html#ad0e525fd3b3316abb9a6f8ce00ad9b38" title=" " alt="" coords="187,55,345,96"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="140,54,171,59,171,64,139,60"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca" title=" " alt="" coords="393,5,543,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="335,16,377,16,377,21,335,21"/>
+<area shape="rect" id="Node000001" title="Updates the texture data from the surface." alt="" coords="5,29,139,70"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="37,29,35,19,41,10,53,5,72,3,92,5,104,11,101,16,90,10,72,8,55,10,44,14,40,20,42,28"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="187,37,324,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,47,171,47,171,52,139,52"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca" title=" " alt="" coords="372,37,522,62"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="324,47,356,47,356,52,324,52"/>
 </map>

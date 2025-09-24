@@ -1,5 +1,6 @@
 <map id="yaze::gfx::Bitmap::SetPalette" name="yaze::gfx::Bitmap::SetPalette">
-<area shape="rect" id="Node000001" title="Set the palette for the bitmap." alt="" coords="5,5,129,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8" title=" " alt="" coords="177,5,300,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,23,161,23,161,28,129,28"/>
+<area shape="rect" id="Node000001" title="Set the palette for the bitmap." alt="" coords="5,29,129,70"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="34,29,32,19,38,11,49,5,67,3,86,5,97,11,94,16,84,10,67,8,51,10,41,14,38,20,39,28"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8" title=" " alt="" coords="177,29,300,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,47,161,47,161,52,129,52"/>
 </map>

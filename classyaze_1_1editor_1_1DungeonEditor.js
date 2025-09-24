@@ -1,5 +1,6 @@
 var classyaze_1_1editor_1_1DungeonEditor =
 [
+    [ "ObjectRenderCache", "structyaze_1_1editor_1_1DungeonEditor_1_1ObjectRenderCache.html", "structyaze_1_1editor_1_1DungeonEditor_1_1ObjectRenderCache" ],
     [ "BackgroundType", "classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57", [
       [ "kNoBackground", "classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57ac55ffa35760784e478a24fdbd15a4ea1", null ],
       [ "kBackground1", "classyaze_1_1editor_1_1DungeonEditor.html#ac3eb49d80644f15f171e273eaaed0b57a6fd7a731f10558162f666bc8d0b86c0e", null ],
@@ -39,10 +40,15 @@ var classyaze_1_1editor_1_1DungeonEditor =
     [ "DrawRoomGraphics", "classyaze_1_1editor_1_1DungeonEditor.html#aea73fa7247253d45ff02f8edbbb7a13d", null ],
     [ "DrawTileSelector", "classyaze_1_1editor_1_1DungeonEditor.html#a7fce0ec7fa188ae3512f1d68c0eb291f", null ],
     [ "DrawObjectRenderer", "classyaze_1_1editor_1_1DungeonEditor.html#ac937ae0b3f5ad1d4f70cd1d36f4af94a", null ],
+    [ "RenderObjectInCanvas", "classyaze_1_1editor_1_1DungeonEditor.html#a798499b601ecedbfaf46023910bfa865", null ],
+    [ "DisplayObjectInfo", "classyaze_1_1editor_1_1DungeonEditor.html#a37ca4e2f72dc6e76a10c233285508392", null ],
+    [ "RenderLayoutObjects", "classyaze_1_1editor_1_1DungeonEditor.html#a57aff85d9faec93ff4f5f289a7c8d593", null ],
     [ "CalculateUsageStats", "classyaze_1_1editor_1_1DungeonEditor.html#aa267137dd569421127c1e7139f9e3848", null ],
     [ "DrawUsageStats", "classyaze_1_1editor_1_1DungeonEditor.html#a5a67d120402047ade571dd5ed301d04b", null ],
     [ "DrawUsageGrid", "classyaze_1_1editor_1_1DungeonEditor.html#a4bd3393c470fa52c4c2a53b82fcf05c2", null ],
     [ "RenderSetUsage", "classyaze_1_1editor_1_1DungeonEditor.html#a50117d0d1dd52b24e07f881737ec1ff5", null ],
+    [ "object_render_cache_", "classyaze_1_1editor_1_1DungeonEditor.html#a443355fb24ac6cca96eed01a9989a6cd", null ],
+    [ "last_palette_hash_", "classyaze_1_1editor_1_1DungeonEditor.html#a907880f50dd6850282e7f2e41d6a40ec", null ],
     [ "background_type_", "classyaze_1_1editor_1_1DungeonEditor.html#a0adf311fdd723eae5fd9cd17238fa4e8", null ],
     [ "placement_type_", "classyaze_1_1editor_1_1DungeonEditor.html#a9e2a3a3374ac406d9e16e083140f557e", null ],
     [ "is_loaded_", "classyaze_1_1editor_1_1DungeonEditor.html#a7928da2113db72cf65d741a7a6a1fb5a", null ],
@@ -65,6 +71,7 @@ var classyaze_1_1editor_1_1DungeonEditor =
     [ "graphics_bin_", "classyaze_1_1editor_1_1DungeonEditor.html#ac3b5233f2e7563ef9c06eb1290861f93", null ],
     [ "rooms_", "classyaze_1_1editor_1_1DungeonEditor.html#af53073ad938acb3e395526e0847ac820", null ],
     [ "entrances_", "classyaze_1_1editor_1_1DungeonEditor.html#a9fdd2c4cd412485af298dbeeb3d6d533", null ],
+    [ "object_renderer_", "classyaze_1_1editor_1_1DungeonEditor.html#adfc49cfa6eee1ec0f84dda64c625b52c", null ],
     [ "spriteset_usage_", "classyaze_1_1editor_1_1DungeonEditor.html#a028ea31c2b31e8c250b14a6841b8f973", null ],
     [ "blockset_usage_", "classyaze_1_1editor_1_1DungeonEditor.html#a2f1941a4f5345315dfcc85cee2073117", null ],
     [ "palette_usage_", "classyaze_1_1editor_1_1DungeonEditor.html#a385661ba23b06b8613891ed9fd5b834a", null ],

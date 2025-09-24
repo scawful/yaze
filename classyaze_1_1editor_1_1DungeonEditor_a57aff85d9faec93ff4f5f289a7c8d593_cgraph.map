@@ -1,0 +1,9 @@
+<map id="yaze::editor::DungeonEditor::RenderLayoutObjects" name="yaze::editor::DungeonEditor::RenderLayoutObjects">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,181,79"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d" title=" " alt="" coords="229,5,410,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,43,213,39,213,44,181,49"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1RoomLayout.html#a95c3d2cfd70c9e30ba3323e51755b6ad" title=" " alt="" coords="235,71,404,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,69,220,74,219,80,180,74"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title=" " alt="" coords="458,13,618,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="410,23,442,23,442,28,410,28"/>
+</map>

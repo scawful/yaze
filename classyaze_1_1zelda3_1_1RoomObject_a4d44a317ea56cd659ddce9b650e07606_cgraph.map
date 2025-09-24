@@ -1,5 +1,7 @@
 <map id="yaze::zelda3::RoomObject::AddTiles" name="yaze::zelda3::RoomObject::AddTiles">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,174,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1RoomObject.html#ac2ab1e6584bc8afd79183b10ee1c6b7f" title=" " alt="" coords="222,13,418,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,23,206,23,206,28,174,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,174,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1RoomObject.html#ac2ab1e6584bc8afd79183b10ee1c6b7f" title=" " alt="" coords="222,5,418,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,32,206,28,206,33,175,37"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317" title=" " alt="" coords="238,55,402,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,50,223,55,222,60,174,55"/>
 </map>

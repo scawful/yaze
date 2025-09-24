@@ -2,7 +2,7 @@ var searchData=
 [
   ['i_0',['i',['../classyaze_1_1emu_1_1Spc700.html#ac74a6c8e2686f884b9d5ee6979d58e1b',1,'yaze::emu::Spc700::i()'],['../classyaze_1_1test_1_1Spc700.html#ac74a6c8e2686f884b9d5ee6979d58e1b',1,'yaze::test::Spc700::i()']]],
   ['i_5fpostinc_1',['i_postinc',['../classyaze_1_1emu_1_1Spc700.html#a43e597ab7178468c0cfc202460508124',1,'yaze::emu::Spc700::i_postinc()'],['../classyaze_1_1test_1_1Spc700.html#a43e597ab7178468c0cfc202460508124',1,'yaze::test::Spc700::i_postinc()']]],
-  ['id_2',['id',['../classyaze_1_1zelda3_1_1Sprite.html#a12825a0f19deeee6cfd7fbb9622759d4',1,'yaze::zelda3::Sprite']]],
+  ['id_2',['id',['../classyaze_1_1zelda3_1_1RoomLayoutObject.html#a27faa6ffe7d59c163a28621e1f6cf882',1,'yaze::zelda3::RoomLayoutObject::id()'],['../classyaze_1_1zelda3_1_1Sprite.html#a12825a0f19deeee6cfd7fbb9622759d4',1,'yaze::zelda3::Sprite::id()']]],
   ['idx_3',['idx',['../classyaze_1_1emu_1_1Spc700.html#adfb18385d560e082912e2a458918ecfd',1,'yaze::emu::Spc700::idx()'],['../classyaze_1_1test_1_1Spc700.html#adfb18385d560e082912e2a458918ecfd',1,'yaze::test::Spc700::idx()']]],
   ['idy_4',['idy',['../classyaze_1_1emu_1_1Spc700.html#a1549581dd0b2bf3786c5323907bd1011',1,'yaze::emu::Spc700::idy()'],['../classyaze_1_1test_1_1Spc700.html#a1549581dd0b2bf3786c5323907bd1011',1,'yaze::test::Spc700::idy()']]],
   ['imm_5',['imm',['../classyaze_1_1emu_1_1Spc700.html#a2b7f61cc4fb2f1529256ac923a961c18',1,'yaze::emu::Spc700::imm()'],['../classyaze_1_1test_1_1Spc700.html#a2b7f61cc4fb2f1529256ac923a961c18',1,'yaze::test::Spc700::imm()']]],

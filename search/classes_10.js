@@ -49,5 +49,6 @@ var searchData=
   ['subtype1_46',['Subtype1',['../classyaze_1_1zelda3_1_1Subtype1.html',1,'yaze::zelda3']]],
   ['subtype2_47',['Subtype2',['../classyaze_1_1zelda3_1_1Subtype2.html',1,'yaze::zelda3']]],
   ['subtype3_48',['Subtype3',['../classyaze_1_1zelda3_1_1Subtype3.html',1,'yaze::zelda3']]],
-  ['subtypeinfo_49',['SubtypeInfo',['../structyaze_1_1zelda3_1_1SubtypeInfo.html',1,'yaze::zelda3']]]
+  ['subtypeinfo_49',['SubtypeInfo',['../structyaze_1_1zelda3_1_1SubtypeInfo.html',1,'yaze::zelda3']]],
+  ['subtypetableinfo_50',['SubtypeTableInfo',['../structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html',1,'yaze::zelda3::anonymous_namespace{room_object.cc}']]]
 ];

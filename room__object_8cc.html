@@ -107,31 +107,42 @@ $(function(){initNavTree('room__object_8cc.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">room_object.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="room__object_8h_source.html">room_object.h</a>&quot;</code><br />
+<code>#include &quot;absl/status/status.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="object__parser_8h_source.html">app/zelda3/dungeon/object_parser.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for room_object.cc:</div>
 <div class="dyncontent">
 <div class="center"><img src="room__object_8cc__incl.png" border="0" usemap="#asrc_2app_2zelda3_2dungeon_2room__object_8cc" alt=""/></div>
 <map name="asrc_2app_2zelda3_2dungeon_2room__object_8cc" id="asrc_2app_2zelda3_2dungeon_2room__object_8cc">
-<area shape="rect" title=" " alt="" coords="38,5,196,46"/>
-<area shape="rect" href="room__object_8h.html" title=" " alt="" coords="66,94,168,120"/>
-<area shape="poly" title=" " alt="" coords="120,46,120,78,114,78,114,46"/>
-<area shape="rect" title=" " alt="" coords="5,168,66,193"/>
-<area shape="poly" title=" " alt="" coords="105,122,62,159,59,155,101,118"/>
-<area shape="rect" title=" " alt="" coords="90,168,144,193"/>
-<area shape="poly" title=" " alt="" coords="120,120,120,152,114,152,114,120"/>
-<area shape="rect" title=" " alt="" coords="168,168,226,193"/>
-<area shape="poly" title=" " alt="" coords="132,118,174,155,171,159,129,122"/>
+<area shape="rect" title=" " alt="" coords="65,5,224,46"/>
+<area shape="rect" href="room__object_8h.html" title=" " alt="" coords="5,94,108,120"/>
+<area shape="poly" title=" " alt="" coords="125,48,83,85,80,81,121,44"/>
+<area shape="rect" href="object__parser_8h.html" title=" " alt="" coords="48,168,185,208"/>
+<area shape="poly" title=" " alt="" coords="144,47,125,153,120,152,138,46"/>
+<area shape="rect" title=" " alt="" coords="132,256,267,282"/>
+<area shape="poly" title=" " alt="" coords="156,45,179,99,199,167,203,206,203,241,198,241,198,206,194,168,174,101,152,47"/>
+<area shape="rect" title=" " alt="" coords="25,256,85,282"/>
+<area shape="poly" title=" " alt="" coords="54,121,39,168,37,188,39,208,48,241,42,242,34,209,32,188,34,167,49,119"/>
+<area shape="poly" title=" " alt="" coords="68,118,95,154,91,157,63,122"/>
+<area shape="poly" title=" " alt="" coords="103,210,76,245,72,242,99,207"/>
+<area shape="poly" title=" " alt="" coords="139,207,177,243,173,247,135,211"/>
 </map>
 </div>
 </div>
 <p><a href="room__object_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html">yaze::zelda3::anonymous_namespace{room_object.cc}::SubtypeTableInfo</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze.html">yaze</a></td></tr>
@@ -140,9 +151,13 @@ Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html">yaze::zelda3</a></td></tr>
 <tr class="memdesc:namespaceyaze_1_1zelda3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Zelda 3 specific classes and functions. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03.html">yaze::zelda3::anonymous_namespace{room_object.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a6b678cf58a1360bb89b57b8d79e14680" id="r_a6b678cf58a1360bb89b57b8d79e14680"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html">SubtypeTableInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03.html#a6b678cf58a1360bb89b57b8d79e14680">yaze::zelda3::anonymous_namespace{room_object.cc}::GetSubtypeTable</a> (int object_id)</td></tr>
+<tr class="separator:a6b678cf58a1360bb89b57b8d79e14680"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a599b7198a7dd0ec9da754a83f9a7e5f9" id="r_a599b7198a7dd0ec9da754a83f9a7e5f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#a599b7198a7dd0ec9da754a83f9a7e5f9">yaze::zelda3::operator|</a> (<a class="el" href="namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a> lhs, <a class="el" href="namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a> rhs)</td></tr>
 <tr class="separator:a599b7198a7dd0ec9da754a83f9a7e5f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac507bdbc1fe4503baebb7c8d6fcc0d55" id="r_ac507bdbc1fe4503baebb7c8d6fcc0d55"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1zelda3.html#ac507bdbc1fe4503baebb7c8d6fcc0d55">yaze::zelda3::operator&amp;</a> (<a class="el" href="namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a> lhs, <a class="el" href="namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a> rhs)</td></tr>

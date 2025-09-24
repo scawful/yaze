@@ -1,0 +1,6 @@
+<map id="yaze::gfx::Bitmap::SetPixel" name="yaze::gfx::Bitmap::SetPixel">
+<area shape="rect" id="Node000001" title="Set a pixel at the given x,y coordinates." alt="" coords="5,29,129,70"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="31,29,29,19,35,10,48,5,67,3,88,5,100,11,98,16,86,10,67,8,49,10,38,15,34,20,36,28"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title=" " alt="" coords="177,37,337,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,47,161,47,161,52,129,52"/>
+</map>

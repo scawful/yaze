@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['x_0',['x',['../classyaze_1_1zelda3_1_1Sprite.html#ae640a5c086d36e3611788acd66cb75f4',1,'yaze::zelda3::Sprite']]],
+  ['x_0',['x',['../classyaze_1_1zelda3_1_1RoomLayoutObject.html#a6b1fbe76841a2b3c9d12021f664b2dde',1,'yaze::zelda3::RoomLayoutObject::x()'],['../classyaze_1_1zelda3_1_1Sprite.html#ae640a5c086d36e3611788acd66cb75f4',1,'yaze::zelda3::Sprite::x()']]],
   ['xba_1',['XBA',['../classyaze_1_1emu_1_1Cpu.html#a04225ab4c15f1d00f18c4230c53789d4',1,'yaze::emu::Cpu::XBA()'],['../classyaze_1_1test_1_1Cpu.html#a04225ab4c15f1d00f18c4230c53789d4',1,'yaze::test::Cpu::XBA()']]],
   ['xce_2',['XCE',['../classyaze_1_1emu_1_1Cpu.html#a878ffdf6ad172a0316f2f9ea8090cb2e',1,'yaze::emu::Cpu::XCE()'],['../classyaze_1_1test_1_1Cpu.html#a878ffdf6ad172a0316f2f9ea8090cb2e',1,'yaze::test::Cpu::XCE()']]],
   ['xcn_3',['XCN',['../classyaze_1_1emu_1_1Spc700.html#a8ce963728f11495f3ce4f874d26ab584',1,'yaze::emu::Spc700::XCN()'],['../classyaze_1_1test_1_1Spc700.html#a8ce963728f11495f3ce4f874d26ab584',1,'yaze::test::Spc700::XCN()']]],

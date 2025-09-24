@@ -35,7 +35,8 @@ var searchData=
   ['yaze_3a_3azelda3_32',['zelda3',['../namespaceyaze_1_1zelda3.html',1,'yaze']]],
   ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7bhyrule_5fmagic_2ecc_7d_33',['anonymous_namespace{hyrule_magic.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html',1,'yaze::zelda3']]],
   ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7boverworld_2ecc_7d_34',['anonymous_namespace{overworld.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7btracker_2ecc_7d_35',['anonymous_namespace{tracker.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3amusic_36',['music',['../namespaceyaze_1_1zelda3_1_1music.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3apalette_5finternal_37',['palette_internal',['../namespaceyaze_1_1zelda3_1_1palette__internal.html',1,'yaze::zelda3']]]
+  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7broom_5fobject_2ecc_7d_35',['anonymous_namespace{room_object.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7btracker_2ecc_7d_36',['anonymous_namespace{tracker.cc}',['../namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3amusic_37',['music',['../namespaceyaze_1_1zelda3_1_1music.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3apalette_5finternal_38',['palette_internal',['../namespaceyaze_1_1zelda3_1_1palette__internal.html',1,'yaze::zelda3']]]
 ];

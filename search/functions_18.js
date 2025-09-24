@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['y_0',['y',['../classyaze_1_1zelda3_1_1Sprite.html#ae019782d3eb9d0552f39307dfacdb5e6',1,'yaze::zelda3::Sprite']]],
+  ['y_0',['y',['../classyaze_1_1zelda3_1_1RoomLayoutObject.html#ad1f980a79a8b25336f7ba4636b8ad79c',1,'yaze::zelda3::RoomLayoutObject::y()'],['../classyaze_1_1zelda3_1_1Sprite.html#ae019782d3eb9d0552f39307dfacdb5e6',1,'yaze::zelda3::Sprite::y()']]],
   ['yaze_5fapp_5fmain_1',['yaze_app_main',['../yaze_8h.html#a440a6545b01877e0afee7ba8a54ad27e',1,'yaze_app_main(int argc, char **argv):&#160;yaze.cc'],['../yaze_8cc.html#a440a6545b01877e0afee7ba8a54ad27e',1,'yaze_app_main(int argc, char **argv):&#160;yaze.cc']]],
   ['yaze_5fcheck_5fversion_2',['yaze_check_version',['../yaze_8h.html#a9fff64bba6ed578ae091960204b84648',1,'yaze_check_version(const char *version):&#160;yaze.cc'],['../yaze_8cc.html#a9fff64bba6ed578ae091960204b84648',1,'yaze_check_version(const char *version):&#160;yaze.cc']]],
   ['yaze_5fget_5fcolor_5ffrom_5fpaletteset_3',['yaze_get_color_from_paletteset',['../yaze_8h.html#ac37ec58a0da8b441220024ac2cb73a76',1,'yaze_get_color_from_paletteset(const zelda3_rom *rom, int palette_set, int palette, int color):&#160;yaze.cc'],['../yaze_8cc.html#ac37ec58a0da8b441220024ac2cb73a76',1,'yaze_get_color_from_paletteset(const zelda3_rom *rom, int palette_set, int palette, int color):&#160;yaze.cc']]],

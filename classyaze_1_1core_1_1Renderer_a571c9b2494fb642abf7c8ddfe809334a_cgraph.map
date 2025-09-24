@@ -1,12 +1,12 @@
 <map id="yaze::core::Renderer::UpdateBitmap" name="yaze::core::Renderer::UpdateBitmap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,142,103"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="190,63,313,103"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,80,175,80,175,86,142,86"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="378,5,502,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="313,62,363,46,365,51,314,67"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="567,42,705,68"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="313,76,551,58,552,64,314,81"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1gfx_1_1Arena.html#ad0e525fd3b3316abb9a6f8ce00ad9b38" title=" " alt="" coords="361,120,519,161"/>
-<area shape="poly" id="edge5_Node000002_Node000008" title=" " alt="" coords="314,99,357,112,356,118,313,104"/>
-<area shape="poly" id="edge3_Node000003_Node000005" title=" " alt="" coords="502,32,552,40,551,45,502,38"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,142,99"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="190,59,313,99"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,76,175,76,175,82,142,82"/>
+<area shape="poly" id="edge6_Node000002_Node000002" title=" " alt="" coords="218,58,217,49,222,40,234,34,251,32,270,34,281,41,279,45,269,40,251,37,235,39,226,44,222,50,224,58"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="361,29,484,70"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="313,66,345,60,346,65,314,71"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="532,66,670,92"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="313,78,361,79,484,79,517,78,517,84,484,84,361,84,313,83"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="390,29,388,19,393,11,405,5,423,3,442,5,453,11,450,16,440,10,423,8,407,10,397,14,393,20,395,28"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="485,57,518,63,517,68,485,62"/>
 </map>
