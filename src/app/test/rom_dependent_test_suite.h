@@ -2,12 +2,10 @@
 #define YAZE_APP_TEST_ROM_DEPENDENT_TEST_SUITE_H
 
 #include <chrono>
-#include <memory>
 #include <vector>
 
 #include "absl/strings/str_format.h"
 #include "app/test/test_manager.h"
-#include "app/gfx/arena.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "app/editor/overworld/tile16_editor.h"
@@ -28,18 +26,33 @@ class RomDependentTestSuite : public TestSuite {
   absl::Status RunTests(TestResults& results) override {
     Rom* current_rom = TestManager::Get().GetCurrentRom();
     
+    // Add detailed ROM availability check
+    TestResult rom_check_result;
+    rom_check_result.name = "ROM_Available_Check";
+    rom_check_result.suite_name = GetName();
+    rom_check_result.category = GetCategory();
+    rom_check_result.timestamp = std::chrono::steady_clock::now();
+    
+    if (!current_rom) {
+      rom_check_result.status = TestStatus::kSkipped;
+      rom_check_result.error_message = "ROM pointer is null";
+    } else if (!current_rom->is_loaded()) {
+      rom_check_result.status = TestStatus::kSkipped;
+      rom_check_result.error_message = absl::StrFormat(
+          "ROM not loaded (ptr: %p, title: '%s', size: %zu)", 
+          (void*)current_rom, current_rom->title().c_str(), current_rom->size());
+    } else {
+      rom_check_result.status = TestStatus::kPassed;
+      rom_check_result.error_message = absl::StrFormat(
+          "ROM loaded successfully (title: '%s', size: %.2f MB)", 
+          current_rom->title().c_str(), current_rom->size() / 1048576.0f);
+    }
+    
+    rom_check_result.duration = std::chrono::milliseconds{0};
+    results.AddResult(rom_check_result);
+    
+    // If no ROM is available, skip other tests
     if (!current_rom || !current_rom->is_loaded()) {
-      // Add a skipped test indicating no ROM is loaded
-      TestResult result;
-      result.name = "ROM_Available_Check";
-      result.suite_name = GetName();
-      result.category = GetCategory();
-      result.status = TestStatus::kSkipped;
-      result.error_message = "No ROM currently loaded in editor";
-      result.duration = std::chrono::milliseconds{0};
-      result.timestamp = std::chrono::steady_clock::now();
-      results.AddResult(result);
-      
       return absl::OkStatus();
     }
     
@@ -340,25 +353,48 @@ class RomDependentTestSuite : public TestSuite {
     result.timestamp = start_time;
     
     try {
-      // Test Tile16 editor functionality
-      editor::Tile16Editor tile16_editor(rom, nullptr);
-      
-      // Create test bitmaps with minimal data
-      std::vector<uint8_t> test_data(256, 0); // 16x16 = 256 pixels
-      gfx::Bitmap test_blockset_bmp, test_gfx_bmp;
-      test_blockset_bmp.Create(256, 8192, 8, test_data);
-      test_gfx_bmp.Create(256, 256, 8, test_data);
-      
-      std::array<uint8_t, 0x200> tile_types{};
-      
-      // Test initialization
-      auto init_status = tile16_editor.Initialize(test_blockset_bmp, test_gfx_bmp, tile_types);
-      if (!init_status.ok()) {
-        result.status = TestStatus::kFailed;
-        result.error_message = "Tile16Editor initialization failed: " + init_status.ToString();
+      // Verify ROM and palette data
+      if (rom->palette_group().overworld_main.size() > 0) {
+        // Test Tile16 editor functionality with real ROM data
+        editor::Tile16Editor tile16_editor(rom, nullptr);
+        
+        // Create test bitmaps with realistic data
+        std::vector<uint8_t> test_blockset_data(256 * 8192, 1); // Tile16 blockset size
+        std::vector<uint8_t> test_gfx_data(256 * 256, 1);       // Area graphics size
+        
+        gfx::Bitmap test_blockset_bmp, test_gfx_bmp;
+        test_blockset_bmp.Create(256, 8192, 8, test_blockset_data);
+        test_gfx_bmp.Create(256, 256, 8, test_gfx_data);
+        
+        // Set realistic palettes
+        if (rom->palette_group().overworld_main.size() > 0) {
+          test_blockset_bmp.SetPalette(rom->palette_group().overworld_main[0]);
+          test_gfx_bmp.SetPalette(rom->palette_group().overworld_main[0]);
+        }
+        
+        std::array<uint8_t, 0x200> tile_types{};
+        
+        // Test initialization
+        auto init_status = tile16_editor.Initialize(test_blockset_bmp, test_gfx_bmp, tile_types);
+        if (!init_status.ok()) {
+          result.status = TestStatus::kFailed;
+          result.error_message = "Tile16Editor initialization failed: " + init_status.ToString();
+        } else {
+          // Test setting a tile
+          auto set_tile_status = tile16_editor.SetCurrentTile(0);
+          if (!set_tile_status.ok()) {
+            result.status = TestStatus::kFailed;
+            result.error_message = "SetCurrentTile failed: " + set_tile_status.ToString();
+          } else {
+            result.status = TestStatus::kPassed;
+            result.error_message = absl::StrFormat(
+                "Tile16Editor working correctly (ROM: %s, Palette groups: %zu)",
+                rom->title().c_str(), rom->palette_group().overworld_main.size());
+          }
+        }
       } else {
-        result.status = TestStatus::kPassed;
-        result.error_message = "Tile16Editor initialized successfully";
+        result.status = TestStatus::kSkipped;
+        result.error_message = "ROM palette data not available";
       }
     } catch (const std::exception& e) {
       result.status = TestStatus::kFailed;

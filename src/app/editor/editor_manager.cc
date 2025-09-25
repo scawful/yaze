@@ -764,16 +764,23 @@ void EditorManager::DrawMenuBar() {
       SameLine();
     }
     
-    // Settings and version (far right)
-    SeparatorEx(ImGuiSeparatorFlags_Vertical);
+    // Settings and version (properly aligned to right)
+    std::string version_text = absl::StrFormat("v%s", version_.c_str());
+    float version_width = CalcTextSize(version_text.c_str()).x;
+    float settings_width = CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x + 16;
+    
+    SameLine(GetWindowWidth() - version_width - settings_width - 15);
+    ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     SameLine();
+    
     PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     if (Button(ICON_MD_DISPLAY_SETTINGS)) {
       show_display_settings = !show_display_settings;
     }
     PopStyleColor();
+    
     SameLine();
-    Text("v%s", version_.c_str());
+    Text("%s", version_text.c_str());
     EndMenuBar();
   }
 

@@ -274,16 +274,85 @@ void TestManager::TrimResourceHistory() {
 void TestManager::DrawTestDashboard() {
   show_dashboard_ = true; // Enable dashboard visibility
   
+  // Set a larger default window size
+  ImGui::SetNextWindowSize(ImVec2(900, 700), ImGuiCond_FirstUseEver);
+  
   ImGui::Begin("Test Dashboard", &show_dashboard_, ImGuiWindowFlags_MenuBar);
   
-  // ROM status indicator
+  // ROM status indicator with detailed information
   bool has_rom = current_rom_ && current_rom_->is_loaded();
-  if (has_rom) {
-    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), 
-                      "%s ROM Loaded: %s", ICON_MD_CHECK_CIRCLE, current_rom_->title().c_str());
-  } else {
-    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), 
-                      "%s No ROM loaded - ROM-dependent tests will be skipped", ICON_MD_WARNING);
+  
+  if (ImGui::BeginTable("ROM_Status_Table", 2, ImGuiTableFlags_BordersInner)) {
+    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 120);
+    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+    
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::Text("ROM Status:");
+    ImGui::TableNextColumn();
+    if (has_rom) {
+      ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), 
+                        "%s Loaded", ICON_MD_CHECK_CIRCLE);
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("ROM Title:");
+      ImGui::TableNextColumn();
+      ImGui::Text("%s", current_rom_->title().c_str());
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("File Name:");
+      ImGui::TableNextColumn();
+      ImGui::Text("%s", current_rom_->filename().c_str());
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Size:");
+      ImGui::TableNextColumn();
+      ImGui::Text("%.2f MB (%zu bytes)", current_rom_->size() / 1048576.0f, current_rom_->size());
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Modified:");
+      ImGui::TableNextColumn();
+      if (current_rom_->dirty()) {
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Yes", ICON_MD_EDIT);
+      } else {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s No", ICON_MD_CHECK);
+      }
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("ROM Pointer:");
+      ImGui::TableNextColumn();
+      ImGui::Text("%p", (void*)current_rom_);
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Actions:");
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Refresh ROM Reference")) {
+        // Force refresh ROM pointer from editor manager
+        // This is a debug feature to help identify ROM loading issues
+      }
+      
+    } else {
+      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), 
+                        "%s Not Loaded", ICON_MD_WARNING);
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("ROM Pointer:");
+      ImGui::TableNextColumn();
+      ImGui::Text("%p", (void*)current_rom_);
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Status:");
+      ImGui::TableNextColumn();
+      ImGui::Text("ROM-dependent tests will be skipped");
+    }
+    
+    ImGui::EndTable();
   }
   ImGui::Separator();
   
