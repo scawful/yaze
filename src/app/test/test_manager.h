@@ -11,6 +11,13 @@
 #include "app/rom.h"
 #include "imgui/imgui.h"
 
+// Forward declarations
+namespace yaze {
+namespace editor {
+class EditorManager;
+}
+}
+
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_engine.h"
 #else
@@ -160,6 +167,17 @@ class TestManager {
   // ROM-dependent testing
   void SetCurrentRom(Rom* rom) { current_rom_ = rom; }
   Rom* GetCurrentRom() const { return current_rom_; }
+  void RefreshCurrentRom(); // Refresh ROM pointer from editor manager
+  // Remove EditorManager dependency to avoid circular includes
+  
+  // Enhanced ROM testing
+  absl::Status LoadRomForTesting(const std::string& filename);
+  void ShowRomComparisonResults(const Rom& before, const Rom& after);
+  
+ public:
+  // ROM testing methods
+  absl::Status TestRomSaveLoad(Rom* rom);
+  absl::Status TestRomDataIntegrity(Rom* rom);
 
  private:
   TestManager();
@@ -203,6 +221,12 @@ class TestManager {
 
   // ROM-dependent testing
   Rom* current_rom_ = nullptr;
+  // Removed editor_manager_ to avoid circular dependency
+  
+  // UI state
+  bool show_google_tests_ = false;
+  bool show_rom_test_results_ = false;
+  bool show_rom_file_dialog_ = false;
 };
 
 // Utility functions for test result formatting
