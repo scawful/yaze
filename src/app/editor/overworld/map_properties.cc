@@ -5,6 +5,8 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/zelda3/overworld/overworld_map.h"
+#include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/ui_constants.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -16,28 +18,28 @@ using ImGui::Separator;
 using ImGui::TableNextColumn;
 using ImGui::Text;
 
-// Static constants
-constexpr const char* kWorldList[] = {"Light World", "Dark World", "Special World"};
-constexpr const char* kGamePartComboString[] = {"Light World", "Dark World", "Special World"};
+// Using centralized UI constants
 
 void MapPropertiesSystem::DrawSimplifiedMapSettings(int& current_world, int& current_map, 
                                                    bool& current_map_lock, bool& show_map_properties_panel,
                                                    bool& show_custom_bg_color_editor, bool& show_overlay_editor,
-                                                   bool& show_overlay_preview, int& game_state) {
-  // Enhanced settings table with popup buttons for quick access
-  if (BeginTable("SimplifiedMapSettings", 8, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit, ImVec2(0, 0), -1)) {
+                                                   bool& show_overlay_preview, int& game_state, int& current_mode) {
+  // Enhanced settings table with popup buttons for quick access and integrated toolset
+  if (BeginTable("SimplifiedMapSettings", 10, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit, ImVec2(0, 0), -1)) {
     ImGui::TableSetupColumn("World", ImGuiTableColumnFlags_WidthFixed, 100);
     ImGui::TableSetupColumn("Map", ImGuiTableColumnFlags_WidthFixed, 60);
     ImGui::TableSetupColumn("Area Size", ImGuiTableColumnFlags_WidthFixed, 100);
     ImGui::TableSetupColumn("Lock", ImGuiTableColumnFlags_WidthFixed, 60);
     ImGui::TableSetupColumn("Graphics", ImGuiTableColumnFlags_WidthFixed, 90);
     ImGui::TableSetupColumn("Palettes", ImGuiTableColumnFlags_WidthFixed, 90);
-    ImGui::TableSetupColumn("Overlays", ImGuiTableColumnFlags_WidthFixed, 90);
     ImGui::TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthFixed, 100);
+    ImGui::TableSetupColumn("Tools", ImGuiTableColumnFlags_WidthFixed, 120);
+    ImGui::TableSetupColumn("View", ImGuiTableColumnFlags_WidthFixed, 120);
+    ImGui::TableSetupColumn("Quick", ImGuiTableColumnFlags_WidthFixed, 100);
 
     TableNextColumn();
     ImGui::SetNextItemWidth(90.f);
-    if (ImGui::Combo("##world", &current_world, kWorldList, 3)) {
+    if (ImGui::Combo("##world", &current_world, kWorldNames, 3)) {
       // World changed, update current map if needed
       if (current_map >= 0x40 && current_world == 0) {
         current_map -= 0x40;
@@ -56,10 +58,9 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(int& current_world, int& cur
     TableNextColumn();
     static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version != 0xFF) {
-      static const char *area_size_names[] = {"Small (1x1)", "Large (2x2)", "Wide (2x1)", "Tall (1x2)"};
       int current_area_size = static_cast<int>(overworld_->overworld_map(current_map)->area_size());
       ImGui::SetNextItemWidth(90.f);
-      if (ImGui::Combo("##AreaSize", &current_area_size, area_size_names, 4)) {
+      if (ImGui::Combo("##AreaSize", &current_area_size, kAreaSizeNames, 4)) {
         overworld_->mutable_overworld_map(current_map)->SetAreaSize(static_cast<zelda3::AreaSizeEnum>(current_area_size));
         RefreshOverworldMap();
       }
@@ -74,27 +75,49 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(int& current_world, int& cur
     HOVER_HINT(current_map_lock ? "Unlock Map" : "Lock Map");
 
     TableNextColumn();
-    if (ImGui::Button("Graphics", ImVec2(80, 0))) {
+    if (ImGui::Button("Graphics", ImVec2(kSmallButtonWidth, 0))) {
       ImGui::OpenPopup("GraphicsPopup");
     }
     HOVER_HINT("Graphics Settings");
-    DrawGraphicsPopup(current_map);
+    DrawGraphicsPopup(current_map, game_state);
 
     TableNextColumn();
-    if (ImGui::Button("Palettes", ImVec2(80, 0))) {
+    if (ImGui::Button("Palettes", ImVec2(kSmallButtonWidth, 0))) {
       ImGui::OpenPopup("PalettesPopup");
     }
     HOVER_HINT("Palette Settings");
-    DrawPalettesPopup(current_map, show_custom_bg_color_editor);
-
-    // Overlays are now integrated into Properties popup
+    DrawPalettesPopup(current_map, game_state, show_custom_bg_color_editor);
 
     TableNextColumn();
-    if (ImGui::Button("Properties", ImVec2(90, 0))) {
+    if (ImGui::Button("Properties", ImVec2(kMediumButtonWidth, 0))) {
       ImGui::OpenPopup("PropertiesPopup");
     }
-    HOVER_HINT("Map Properties");
+    HOVER_HINT("Map Properties & Overlays");
     DrawPropertiesPopup(current_map, show_map_properties_panel, show_overlay_preview, game_state);
+
+    TableNextColumn();
+    // Editing Tools
+    if (ImGui::Button("Tools", ImVec2(kSmallButtonWidth, 0))) {
+      ImGui::OpenPopup("ToolsPopup");
+    }
+    HOVER_HINT("Editing Tools");
+    DrawToolsPopup(current_mode);
+
+    TableNextColumn();
+    // View Controls
+    if (ImGui::Button("View", ImVec2(kSmallButtonWidth, 0))) {
+      ImGui::OpenPopup("ViewPopup");
+    }
+    HOVER_HINT("View Controls");
+    DrawViewPopup();
+
+    TableNextColumn();
+    // Quick Access Tools
+    if (ImGui::Button("Quick", ImVec2(kSmallButtonWidth, 0))) {
+      ImGui::OpenPopup("QuickPopup");
+    }
+    HOVER_HINT("Quick Access Tools");
+    DrawQuickAccessPopup();
 
     ImGui::EndTable();
   }
@@ -291,8 +314,11 @@ void MapPropertiesSystem::SetupCanvasContextMenu(gui::Canvas& canvas, int curren
 }
 
 // Private method implementations
-void MapPropertiesSystem::DrawGraphicsPopup(int current_map) {
+void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
   if (ImGui::BeginPopup("GraphicsPopup")) {
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    
     ImGui::Text("Graphics Settings");
     ImGui::Separator();
     
@@ -303,15 +329,8 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map) {
       RefreshOverworldMap();
     }
     
-    if (gui::InputHexByte("Sprite GFX 1", 
-                          overworld_->mutable_overworld_map(current_map)->mutable_sprite_graphics(1),
-                          kInputFieldSize)) {
-      RefreshMapProperties();
-      RefreshOverworldMap();
-    }
-    
-    if (gui::InputHexByte("Sprite GFX 2", 
-                          overworld_->mutable_overworld_map(current_map)->mutable_sprite_graphics(2),
+    if (gui::InputHexByte(absl::StrFormat("Sprite GFX (%s)", kGameStateNames[game_state]).c_str(), 
+                          overworld_->mutable_overworld_map(current_map)->mutable_sprite_graphics(game_state),
                           kInputFieldSize)) {
       RefreshMapProperties();
       RefreshOverworldMap();
@@ -345,8 +364,11 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map) {
   }
 }
 
-void MapPropertiesSystem::DrawPalettesPopup(int current_map, bool& show_custom_bg_color_editor) {
+void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state, bool& show_custom_bg_color_editor) {
   if (ImGui::BeginPopup("PalettesPopup")) {
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    
     ImGui::Text("Palette Settings");
     ImGui::Separator();
     
@@ -369,15 +391,8 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, bool& show_custom_b
       }
     }
     
-    if (gui::InputHexByte("Sprite Palette 1", 
-                          overworld_->mutable_overworld_map(current_map)->mutable_sprite_palette(1),
-                          kInputFieldSize)) {
-      RefreshMapProperties();
-      RefreshOverworldMap();
-    }
-    
-    if (gui::InputHexByte("Sprite Palette 2", 
-                          overworld_->mutable_overworld_map(current_map)->mutable_sprite_palette(2),
+    if (gui::InputHexByte(absl::StrFormat("Sprite Palette (%s)", kGameStateNames[game_state]).c_str(), 
+                          overworld_->mutable_overworld_map(current_map)->mutable_sprite_palette(game_state),
                           kInputFieldSize)) {
       RefreshMapProperties();
       RefreshOverworldMap();
@@ -417,7 +432,7 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map, bool& show_map_pr
     DrawOverlayControls(current_map, show_overlay_preview);
 
     ImGui::SetNextItemWidth(100.f);
-    if (ImGui::Combo("Game State", &game_state, kGamePartComboString, 3)) {
+    if (ImGui::Combo("Game State", &game_state, kGameStateNames, 3)) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
@@ -501,7 +516,7 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
     TableNextColumn();
     static int game_state = 0;
     ImGui::SetNextItemWidth(100.f);
-    if (ImGui::Combo("##GameState", &game_state, kGamePartComboString, 3)) {
+    if (ImGui::Combo("##GameState", &game_state, kGameStateNames, 3)) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
@@ -680,51 +695,77 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map, bool& show_overla
   // Determine if this is a special overworld map (0x80-0x9F)
   bool is_special_overworld_map = (current_map >= 0x80 && current_map < 0xA0);
   
-  if (asm_version == 0xFF) {
-    // Vanilla ROM - read-only overlay info
-    auto *current_map_ptr = overworld_->overworld_map(current_map);
-    if (current_map_ptr->has_vanilla_overlay()) {
-      ImGui::Text("Vanilla Overlay: 0x%04X", current_map_ptr->vanilla_overlay_id());
-      
-      // Show overlay description
-      uint16_t overlay_id = current_map_ptr->vanilla_overlay_id();
-      std::string overlay_desc = GetOverlayDescription(overlay_id);
-      ImGui::Text("Description: %s", overlay_desc.c_str());
-      
-      // Preview checkbox for vanilla
-      if (ImGui::Checkbox("Preview Overlay on Map", &show_overlay_preview)) {
-        // Toggle overlay preview
-      }
-    } else {
-      ImGui::Text("No vanilla overlay for this map");
-    }
-  } else if (is_special_overworld_map && asm_version < 3) {
-    // Special overworld maps (0x80-0x9F) require ZSCustomOverworld v3+
-    ImGui::Text("Special overworld maps require ZSCustomOverworld v3+");
-    ImGui::Text("Current version: v%d", asm_version);
+  if (is_special_overworld_map) {
+    // Special overworld maps (0x80-0x9F) do not support subscreen overlays
+    ImGui::Text("Special overworld maps (0x80-0x9F) do not support");
+    ImGui::Text("subscreen overlays (visual effects).");
     ImGui::Text("Map 0x%02X is a special overworld map", current_map);
   } else {
-    // Light World (0x00-0x3F) and Dark World (0x40-0x7F) maps always support overlays
-    // Special overworld maps (0x80-0x9F) support overlays with v3+
+    // Light World (0x00-0x3F) and Dark World (0x40-0x7F) maps support subscreen overlays for all versions
+    
+    // Subscreen Overlay Section
+    ImGui::Text("Subscreen Overlay (Visual Effects)");
+    ImGui::SameLine();
+    if (ImGui::Button("?")) {
+      ImGui::OpenPopup("SubscreenOverlayHelp");
+    }
+    if (ImGui::BeginPopup("SubscreenOverlayHelp")) {
+      ImGui::Text("Subscreen overlays are visual effects like fog, rain, canopy,");
+      ImGui::Text("and backgrounds that are displayed using tile16 graphics.");
+      ImGui::Text("They reference special area maps (0x80-0x9F) for their tile data.");
+      ImGui::EndPopup();
+    }
+    
     uint16_t current_overlay = overworld_->mutable_overworld_map(current_map)->subscreen_overlay();
-    if (gui::InputHexWord("Subscreen Overlay", &current_overlay, kInputFieldSize + 20)) {
+    if (gui::InputHexWord("Subscreen Overlay ID", &current_overlay, kInputFieldSize + 20)) {
       overworld_->mutable_overworld_map(current_map)->set_subscreen_overlay(current_overlay);
       RefreshMapProperties();
       RefreshOverworldMap();
     }
+    HOVER_HINT("Subscreen overlay ID - visual effects like fog, rain, backgrounds");
     
-    // Show overlay description
+    // Show subscreen overlay description
     std::string overlay_desc = GetOverlayDescription(current_overlay);
     ImGui::Text("Description: %s", overlay_desc.c_str());
     
     // Preview checkbox
-    if (ImGui::Checkbox("Preview Overlay on Map", &show_overlay_preview)) {
-      // Toggle overlay preview
+    if (ImGui::Checkbox("Preview Subscreen Overlay on Map", &show_overlay_preview)) {
+      // Toggle subscreen overlay preview
+    }
+    HOVER_HINT("Show semi-transparent preview of subscreen overlay on the map");
+    
+    ImGui::Separator();
+    
+    // Interactive Overlay Section (for vanilla ROMs)
+    if (asm_version == 0xFF) {
+      ImGui::Text("Interactive Overlay (Holes/Changes)");
+      ImGui::SameLine();
+      if (ImGui::Button("?")) {
+        ImGui::OpenPopup("InteractiveOverlayHelp");
+      }
+      if (ImGui::BeginPopup("InteractiveOverlayHelp")) {
+        ImGui::Text("Interactive overlays reveal holes or change elements on top");
+        ImGui::Text("of the map. They use tile16 graphics and are present in");
+        ImGui::Text("vanilla ROMs. ZSCustomOverworld expands this functionality.");
+        ImGui::EndPopup();
+      }
+      
+      auto *current_map_ptr = overworld_->overworld_map(current_map);
+      if (current_map_ptr->has_overlay()) {
+        ImGui::Text("Interactive Overlay ID: 0x%04X", current_map_ptr->overlay_id());
+        ImGui::Text("Overlay Data Size: %d bytes", static_cast<int>(current_map_ptr->overlay_data().size()));
+      } else {
+        ImGui::Text("No interactive overlay data for this map");
+      }
+      HOVER_HINT("Interactive overlay for revealing holes/changing elements (read-only in vanilla)");
     }
     
-    // Show version info for special maps
-    if (is_special_overworld_map) {
-      ImGui::Text("Special overworld map (v%d)", asm_version);
+    // Show version info
+    if (asm_version == 0xFF) {
+      ImGui::Text("Vanilla ROM - subscreen overlays reference special area maps");
+      ImGui::Text("(0x80-0x9F) for visual effects like fog, rain, backgrounds.");
+    } else {
+      ImGui::Text("ZSCustomOverworld v%d", asm_version);
     }
   }
 }
@@ -758,33 +799,25 @@ std::string MapPropertiesSystem::GetOverlayDescription(uint16_t overlay_id) {
 void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map, int current_world, bool show_overlay_preview) {
   if (!show_overlay_preview || !maps_bmp_ || !canvas_) return;
   
-  // Get overlay information based on ROM version and map type
+  // Get subscreen overlay information based on ROM version and map type
   uint16_t overlay_id = 0x00FF;
-  bool has_overlay = false;
+  bool has_subscreen_overlay = false;
   
   static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   bool is_special_overworld_map = (current_map >= 0x80 && current_map < 0xA0);
   
-  if (asm_version == 0xFF) {
-    // Vanilla ROM - use vanilla overlay
-    auto *current_map_ptr = overworld_->overworld_map(current_map);
-    if (current_map_ptr->has_vanilla_overlay()) {
-      overlay_id = current_map_ptr->vanilla_overlay_id();
-      has_overlay = true;
-    }
-  } else if (is_special_overworld_map && asm_version < 3) {
-    // Special overworld maps require v3+ - no overlay support
+  if (is_special_overworld_map) {
+    // Special overworld maps (0x80-0x9F) do not support subscreen overlays
     return;
-  } else {
-    // Light World (0x00-0x3F) and Dark World (0x40-0x7F) maps always support overlays
-    // Special overworld maps (0x80-0x9F) support overlays with v3+
-    overlay_id = overworld_->overworld_map(current_map)->subscreen_overlay();
-    has_overlay = (overlay_id != 0x00FF);
   }
   
-  if (!has_overlay) return;
+  // Light World (0x00-0x3F) and Dark World (0x40-0x7F) maps support subscreen overlays for all versions
+  overlay_id = overworld_->overworld_map(current_map)->subscreen_overlay();
+  has_subscreen_overlay = (overlay_id != 0x00FF);
   
-  // Map overlay ID to special area map for bitmap
+  if (!has_subscreen_overlay) return;
+  
+  // Map subscreen overlay ID to special area map for bitmap
   int overlay_map_index = -1;
   if (overlay_id >= 0x80 && overlay_id < 0xA0) {
     overlay_map_index = overlay_id;
@@ -792,11 +825,11 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map, int current_w
   
   if (overlay_map_index < 0 || overlay_map_index >= zelda3::kNumOverworldMaps) return;
   
-  // Get the overlay map's bitmap
+  // Get the subscreen overlay map's bitmap
   const auto &overlay_bitmap = (*maps_bmp_)[overlay_map_index];
   if (!overlay_bitmap.is_active()) return;
   
-  // Calculate position for overlay preview on the current map
+  // Calculate position for subscreen overlay preview on the current map
   int current_map_x = current_map % 8;
   int current_map_y = current_map / 8;
   if (current_world == 1) {
@@ -811,15 +844,15 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map, int current_w
   int map_x = current_map_x * kOverworldMapSize * scale;
   int map_y = current_map_y * kOverworldMapSize * scale;
   
-  // Determine if this is a background or foreground overlay
+  // Determine if this is a background or foreground subscreen overlay
   bool is_background_overlay = (overlay_id == 0x0095 || overlay_id == 0x0096 || overlay_id == 0x009C);
   
   // Set alpha for semi-transparent preview
   ImU32 overlay_color = is_background_overlay ? 
-    IM_COL32(255, 255, 255, 128) :  // Background overlays - lighter
-    IM_COL32(255, 255, 255, 180);   // Foreground overlays - more opaque
+    IM_COL32(255, 255, 255, 128) :  // Background subscreen overlays - lighter
+    IM_COL32(255, 255, 255, 180);   // Foreground subscreen overlays - more opaque
   
-  // Draw the overlay bitmap with semi-transparency
+  // Draw the subscreen overlay bitmap with semi-transparency
   canvas_->draw_list()->AddImage(
       (ImTextureID)(intptr_t)overlay_bitmap.texture(),
       ImVec2(map_x, map_y),
@@ -827,6 +860,121 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map, int current_w
       ImVec2(0, 0),
       ImVec2(1, 1),
       overlay_color);
+}
+
+void MapPropertiesSystem::DrawToolsPopup(int& current_mode) {
+  if (ImGui::BeginPopup("ToolsPopup")) {
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    
+    ImGui::Text("Editing Tools");
+    ImGui::Separator();
+    
+    // Row 1: Navigation and Drawing
+    if (ImGui::Button(ICON_MD_PAN_TOOL_ALT " Pan", ImVec2(kCompactButtonWidth, 0))) {
+      current_mode = 7;
+    }
+    HOVER_HINT("Pan tool (1)");
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_DRAW " Draw", ImVec2(kCompactButtonWidth, 0))) {
+      current_mode = 0;
+    }
+    HOVER_HINT("Draw tile tool (2)");
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_DOOR_FRONT " Ent", ImVec2(kCompactButtonWidth, 0))) {
+      current_mode = 1;
+    }
+    HOVER_HINT("Edit entrances (3)");
+    
+    // Row 2: Entities
+    if (ImGui::Button(ICON_MD_DOOR_BACK " Exit", ImVec2(kCompactButtonWidth, 0))) {
+      current_mode = 2;
+    }
+    HOVER_HINT("Edit exits (4)");
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_GRASS " Item", ImVec2(kCompactButtonWidth, 0))) {
+      current_mode = 3;
+    }
+    HOVER_HINT("Edit items (5)");
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_PEST_CONTROL_RODENT " Spr", ImVec2(kCompactButtonWidth, 0))) {
+      current_mode = 4;
+    }
+    HOVER_HINT("Edit sprites (6)");
+    
+    // Row 3: Advanced
+    if (ImGui::Button(ICON_MD_ADD_LOCATION " Trans", ImVec2(kCompactButtonWidth, 0))) {
+      current_mode = 5;
+    }
+    HOVER_HINT("Edit transports (7)");
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_MUSIC_NOTE " Music", ImVec2(kCompactButtonWidth, 0))) {
+      current_mode = 6;
+    }
+    HOVER_HINT("Edit music (8)");
+    
+    ImGui::PopStyleVar(2);
+    ImGui::EndPopup();
+  }
+}
+
+void MapPropertiesSystem::DrawViewPopup() {
+  if (ImGui::BeginPopup("ViewPopup")) {
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    
+    ImGui::Text("View Controls");
+    ImGui::Separator();
+    
+    // Horizontal layout for view controls
+    if (ImGui::Button(ICON_MD_ZOOM_OUT, ImVec2(kIconButtonWidth, 0))) {
+      // This would need to be connected to the canvas zoom function
+      // For now, just show the option
+    }
+    HOVER_HINT("Zoom out on the canvas");
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_ZOOM_IN, ImVec2(kIconButtonWidth, 0))) {
+      // This would need to be connected to the canvas zoom function
+      // For now, just show the option
+    }
+    HOVER_HINT("Zoom in on the canvas");
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_OPEN_IN_FULL, ImVec2(kIconButtonWidth, 0))) {
+      // This would need to be connected to the fullscreen toggle
+      // For now, just show the option
+    }
+    HOVER_HINT("Toggle fullscreen canvas (F11)");
+    
+    ImGui::PopStyleVar(2);
+    ImGui::EndPopup();
+  }
+}
+
+void MapPropertiesSystem::DrawQuickAccessPopup() {
+  if (ImGui::BeginPopup("QuickPopup")) {
+    ImGui::Text("Quick Access");
+    ImGui::Separator();
+    
+    if (ImGui::Button(ICON_MD_GRID_VIEW " Tile16 Editor")) {
+      // This would need to be connected to the Tile16 editor toggle
+      // For now, just show the option
+    }
+    HOVER_HINT("Open Tile16 Editor (Ctrl+T)");
+    
+    if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy Map")) {
+      // This would need to be connected to the copy map function
+      // For now, just show the option
+    }
+    HOVER_HINT("Copy current map to clipboard");
+    
+    if (ImGui::Button(ICON_MD_LOCK " Lock Map (Ctrl+L)")) {
+      // This would need to be connected to the map lock toggle
+      // For now, just show the option
+    }
+    HOVER_HINT("Lock/unlock current map");
+    
+    ImGui::EndPopup();
+  }
 }
 
 }  // namespace editor

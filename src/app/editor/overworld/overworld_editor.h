@@ -278,7 +278,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
 
-  gui::Table toolset_table_{"##ToolsetTable0", 25, kToolsetTableFlags};
+  gui::Table toolset_table_{"##ToolsetTable0", 12, kToolsetTableFlags};
   gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags,
                                  ImVec2(0, 0)};
 

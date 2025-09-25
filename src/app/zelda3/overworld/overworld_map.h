@@ -105,7 +105,8 @@ class OverworldMap : public gfx::GfxContext {
 
   void LoadAreaGraphics();
   absl::Status LoadPalette();
-  absl::Status LoadVanillaOverlay();
+  absl::Status LoadOverlay();
+  absl::Status LoadVanillaOverlayData();
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16, int count);
   absl::Status BuildBitmap(OverworldBlockset& world_blockset);
@@ -148,10 +149,10 @@ class OverworldMap : public gfx::GfxContext {
 
   auto custom_tileset(int index) const { return custom_gfx_ids_[index]; }
   
-  // Vanilla overlay accessors
-  auto vanilla_overlay_id() const { return vanilla_overlay_id_; }
-  auto has_vanilla_overlay() const { return has_vanilla_overlay_; }
-  const auto& vanilla_overlay_data() const { return vanilla_overlay_data_; }
+  // Overlay accessors (interactive overlays)
+  auto overlay_id() const { return overlay_id_; }
+  auto has_overlay() const { return has_overlay_; }
+  const auto& overlay_data() const { return overlay_data_; }
 
   // Mosaic expanded accessors
   const std::array<bool, 4>& mosaic_expanded() const { return mosaic_expanded_; }
@@ -233,9 +234,9 @@ class OverworldMap : public gfx::GfxContext {
     static_graphics_.fill(0);
     mosaic_expanded_.fill(false);
     area_size_ = AreaSizeEnum::SmallArea;
-    vanilla_overlay_id_ = 0;
-    has_vanilla_overlay_ = false;
-    vanilla_overlay_data_.clear();
+    overlay_id_ = 0;
+    has_overlay_ = false;
+    overlay_data_.clear();
   }
 
  private:
@@ -287,10 +288,10 @@ class OverworldMap : public gfx::GfxContext {
 
   std::array<bool, 4> mosaic_expanded_;
 
-  // Vanilla overlay support
-  uint16_t vanilla_overlay_id_ = 0;
-  bool has_vanilla_overlay_ = false;
-  std::vector<uint8_t> vanilla_overlay_data_;
+  // Overlay support (interactive overlays that reveal holes/change elements)
+  uint16_t overlay_id_ = 0;
+  bool has_overlay_ = false;
+  std::vector<uint8_t> overlay_data_;
 
   std::vector<uint8_t> current_blockset_;
   std::vector<uint8_t> current_gfx_;

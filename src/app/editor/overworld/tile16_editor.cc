@@ -72,44 +72,34 @@ absl::Status Tile16Editor::Update() {
     }
 
     if (BeginMenu("Edit")) {
-      if (MenuItem("Copy Current Tile16")) {
+      if (MenuItem("Copy Current Tile16", "Ctrl+C")) {
         RETURN_IF_ERROR(CopyTile16ToClipboard(current_tile16_));
       }
-      if (MenuItem("Paste to Current Tile16")) {
+      if (MenuItem("Paste to Current Tile16", "Ctrl+V")) {
         RETURN_IF_ERROR(PasteTile16FromClipboard());
-      }
-      Separator();
-      if (MenuItem("Save to Scratch Space 1")) {
-        RETURN_IF_ERROR(SaveTile16ToScratchSpace(0));
-      }
-      if (MenuItem("Save to Scratch Space 2")) {
-        RETURN_IF_ERROR(SaveTile16ToScratchSpace(1));
-      }
-      if (MenuItem("Save to Scratch Space 3")) {
-        RETURN_IF_ERROR(SaveTile16ToScratchSpace(2));
-      }
-      if (MenuItem("Save to Scratch Space 4")) {
-        RETURN_IF_ERROR(SaveTile16ToScratchSpace(3));
-      }
-      Separator();
-      if (MenuItem("Load from Scratch Space 1")) {
-        RETURN_IF_ERROR(LoadTile16FromScratchSpace(0));
-      }
-      if (MenuItem("Load from Scratch Space 2")) {
-        RETURN_IF_ERROR(LoadTile16FromScratchSpace(1));
-      }
-      if (MenuItem("Load from Scratch Space 3")) {
-        RETURN_IF_ERROR(LoadTile16FromScratchSpace(2));
-      }
-      if (MenuItem("Load from Scratch Space 4")) {
-        RETURN_IF_ERROR(LoadTile16FromScratchSpace(3));
       }
       EndMenu();
     }
 
-    if (BeginMenu("Help")) {
-      if (MenuItem("About Tile16 Editor")) {
-        OpenPopup("About Tile16 Editor");
+    if (BeginMenu("Scratch Space")) {
+      for (int i = 0; i < 4; i++) {
+        std::string slot_name = "Slot " + std::to_string(i + 1);
+        if (scratch_space_used_[i]) {
+          if (MenuItem((slot_name + " (Load)").c_str())) {
+            RETURN_IF_ERROR(LoadTile16FromScratchSpace(i));
+          }
+          if (MenuItem((slot_name + " (Save)").c_str())) {
+            RETURN_IF_ERROR(SaveTile16ToScratchSpace(i));
+          }
+          if (MenuItem((slot_name + " (Clear)").c_str())) {
+            RETURN_IF_ERROR(ClearScratchSpace(i));
+          }
+        } else {
+          if (MenuItem((slot_name + " (Save)").c_str())) {
+            RETURN_IF_ERROR(SaveTile16ToScratchSpace(i));
+          }
+        }
+        if (i < 3) Separator();
       }
       EndMenu();
     }
@@ -350,38 +340,43 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
         // Actions column
         TableNextColumn();
-        Text("Actions:");
+        Text("Quick Actions:");
 
-        // Clipboard actions
-        if (Button("Copy Current Tile16")) {
-          RETURN_IF_ERROR(CopyTile16ToClipboard(current_tile16_));
-        }
-        SameLine();
-        if (Button("Paste to Current Tile16")) {
-          RETURN_IF_ERROR(PasteTile16FromClipboard());
+        // Clipboard actions in a more compact layout
+        if (BeginTable("##ClipboardActions", 2, ImGuiTableFlags_SizingFixedFit)) {
+          TableNextColumn();
+          if (Button("Copy", ImVec2(60, 0))) {
+            RETURN_IF_ERROR(CopyTile16ToClipboard(current_tile16_));
+          }
+          TableNextColumn();
+          if (Button("Paste", ImVec2(60, 0))) {
+            RETURN_IF_ERROR(PasteTile16FromClipboard());
+          }
+          EndTable();
         }
 
-        // Scratch space actions
-        Separator();
+        // Scratch space in a compact 2x2 grid
         Text("Scratch Space:");
-
-        // Create a grid of 4 buttons for scratch space
-        for (int i = 0; i < 4; i++) {
-          if (i > 0) SameLine();
-
-          if (scratch_space_used_[i]) {
-            if (Button(("Slot " + std::to_string(i)).c_str())) {
-              RETURN_IF_ERROR(LoadTile16FromScratchSpace(i));
-            }
-            SameLine();
-            if (Button(("Clear##" + std::to_string(i)).c_str())) {
-              RETURN_IF_ERROR(ClearScratchSpace(i));
-            }
-          } else {
-            if (Button(("Empty##" + std::to_string(i)).c_str())) {
-              RETURN_IF_ERROR(SaveTile16ToScratchSpace(i));
+        if (BeginTable("##ScratchSpace", 2, ImGuiTableFlags_SizingFixedFit)) {
+          for (int i = 0; i < 4; i++) {
+            TableNextColumn();
+            std::string slot_name = "Slot " + std::to_string(i + 1);
+            
+            if (scratch_space_used_[i]) {
+              if (Button((slot_name + " (Load)").c_str(), ImVec2(80, 0))) {
+                RETURN_IF_ERROR(LoadTile16FromScratchSpace(i));
+              }
+              SameLine();
+              if (Button("Clear", ImVec2(40, 0))) {
+                RETURN_IF_ERROR(ClearScratchSpace(i));
+              }
+            } else {
+              if (Button((slot_name + " (Empty)").c_str(), ImVec2(120, 0))) {
+                RETURN_IF_ERROR(SaveTile16ToScratchSpace(i));
+              }
             }
           }
+          EndTable();
         }
 
         EndTable();
