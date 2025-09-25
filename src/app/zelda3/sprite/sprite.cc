@@ -873,9 +873,24 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
     return;
   }
 
+  // Validate input parameters
+  if (sizex <= 0 || sizey <= 0) {
+    return;
+  }
+  
+  if (srcx < 0 || srcy < 0 || pal < 0) {
+    return;
+  }
+
   x += 16;
   y += 16;
   int drawid_ = (srcx + (srcy * 16)) + 512;
+  
+  // Validate drawid_ is within reasonable bounds
+  if (drawid_ < 0 || drawid_ > 4096) {
+    return;
+  }
+  
   for (auto yl = 0; yl < sizey * 8; yl++) {
     for (auto xl = 0; xl < (sizex * 8) / 2; xl++) {
       int mx = xl;
@@ -893,12 +908,21 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
 
       int tx = ((drawid_ / 0x10) * 0x400) +
                ((drawid_ - ((drawid_ / 0x10) * 0x10)) * 8);
-      auto pixel = current_gfx_[tx + (yl * 0x80) + xl];
+      
+      // Validate graphics buffer access
+      int gfx_index = tx + (yl * 0x80) + xl;
+      if (gfx_index < 0 || gfx_index >= static_cast<int>(current_gfx_.size())) {
+        continue; // Skip this pixel if out of bounds
+      }
+      
+      auto pixel = current_gfx_[gfx_index];
       // nx,ny = object position, xx,yy = tile position, xl,yl = pixel
       // position
       int index = (x) + (y * 64) + (mx + (my * 0x80));
 
-      if (index >= 0 && index <= 4096) {
+      // Validate preview buffer access
+      if (index >= 0 && index < static_cast<int>(preview_gfx_.size()) && 
+          index <= 4096) {
         preview_gfx_[index] = (uint8_t)((pixel & 0x0F) + 112 + (pal * 8));
       }
     }

@@ -233,20 +233,47 @@ constexpr int kGfxBufferRoomSpriteStride = 2048;
 constexpr int kGfxBufferRoomSpriteLastLineOffset = 0x88;
 
 void Room::CopyRoomGraphicsToBuffer() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return;
+  }
+  
   auto gfx_buffer_data = rom()->mutable_graphics_buffer();
+  if (!gfx_buffer_data || gfx_buffer_data->empty()) {
+    return;
+  }
 
   // Copy room graphics to buffer
   int sheet_pos = 0;
   for (int i = 0; i < 16; i++) {
+    // Validate block index
+    if (blocks_[i] < 0 || blocks_[i] > 255) {
+      sheet_pos += kGfxBufferRoomOffset;
+      continue;
+    }
+    
     int data = 0;
     int block_offset = blocks_[i] * kGfxBufferRoomOffset;
+    
+    // Validate block_offset bounds
+    if (block_offset < 0 || block_offset >= static_cast<int>(gfx_buffer_data->size())) {
+      sheet_pos += kGfxBufferRoomOffset;
+      continue;
+    }
+    
     while (data < kGfxBufferRoomOffset) {
-      uint8_t map_byte = (*gfx_buffer_data)[data + block_offset];
-      if (i < 4) {
-        map_byte += kGfxBufferRoomSpriteLastLineOffset;
-      }
+      int buffer_index = data + block_offset;
+      if (buffer_index >= 0 && buffer_index < static_cast<int>(gfx_buffer_data->size())) {
+        uint8_t map_byte = (*gfx_buffer_data)[buffer_index];
+        if (i < 4) {
+          map_byte += kGfxBufferRoomSpriteLastLineOffset;
+        }
 
-      current_gfx16_[data + sheet_pos] = map_byte;
+        // Validate current_gfx16_ access
+        int gfx_index = data + sheet_pos;
+        if (gfx_index >= 0 && gfx_index < static_cast<int>(sizeof(current_gfx16_))) {
+          current_gfx16_[gfx_index] = map_byte;
+        }
+      }
       data++;
     }
 
@@ -285,21 +312,62 @@ void Room::RenderRoomGraphics() {
 }
 
 void Room::LoadAnimatedGraphics() {
-  int gfx_ptr = SnesToPc(rom()->version_constants().kGfxAnimatedPointer);
-
+  if (!rom_ || !rom_->is_loaded()) {
+    return;
+  }
+  
   auto gfx_buffer_data = rom()->mutable_graphics_buffer();
+  if (!gfx_buffer_data || gfx_buffer_data->empty()) {
+    return;
+  }
+  
   auto rom_data = rom()->vector();
+  if (rom_data.empty()) {
+    return;
+  }
+  
+  // Validate animated_frame_ bounds
+  if (animated_frame_ < 0 || animated_frame_ > 10) {
+    return;
+  }
+  
+  // Validate background_tileset_ bounds
+  if (background_tileset_ < 0 || background_tileset_ > 255) {
+    return;
+  }
+  
+  int gfx_ptr = SnesToPc(rom()->version_constants().kGfxAnimatedPointer);
+  if (gfx_ptr < 0 || gfx_ptr >= static_cast<int>(rom_data.size())) {
+    return;
+  }
+  
   int data = 0;
   while (data < 512) {
-    uint8_t map_byte =
-        (*gfx_buffer_data)[data + (92 * 2048) + (512 * animated_frame_)];
-    current_gfx16_[data + (7 * 2048)] = map_byte;
-
-    map_byte =
-        (*gfx_buffer_data)[data +
-                           (rom_data[gfx_ptr + background_tileset_] * 2048) +
-                           (512 * animated_frame_)];
-    current_gfx16_[data + (7 * 2048) - 512] = map_byte;
+    // Validate buffer access for first operation
+    int first_offset = data + (92 * 2048) + (512 * animated_frame_);
+    if (first_offset >= 0 && first_offset < static_cast<int>(gfx_buffer_data->size())) {
+      uint8_t map_byte = (*gfx_buffer_data)[first_offset];
+      
+      // Validate current_gfx16_ access
+      int gfx_offset = data + (7 * 2048);
+      if (gfx_offset >= 0 && gfx_offset < static_cast<int>(sizeof(current_gfx16_))) {
+        current_gfx16_[gfx_offset] = map_byte;
+      }
+    }
+    
+    // Validate buffer access for second operation
+    int tileset_index = rom_data[gfx_ptr + background_tileset_];
+    int second_offset = data + (tileset_index * 2048) + (512 * animated_frame_);
+    if (second_offset >= 0 && second_offset < static_cast<int>(gfx_buffer_data->size())) {
+      uint8_t map_byte = (*gfx_buffer_data)[second_offset];
+      
+      // Validate current_gfx16_ access
+      int gfx_offset = data + (7 * 2048) - 512;
+      if (gfx_offset >= 0 && gfx_offset < static_cast<int>(sizeof(current_gfx16_))) {
+        current_gfx16_[gfx_offset] = map_byte;
+      }
+    }
+    
     data++;
   }
 }
