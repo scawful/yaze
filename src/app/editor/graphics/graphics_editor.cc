@@ -134,6 +134,7 @@ void GraphicsEditor::DrawGfxEditToolset() {
 
     TableNextColumn();
     if (Button(ICON_MD_CONTENT_PASTE)) {
+#if YAZE_LIB_PNG == 1
       std::vector<uint8_t> png_data;
       int width, height;
       core::GetImageFromClipboard(png_data, width, height);
@@ -145,6 +146,10 @@ void GraphicsEditor::DrawGfxEditToolset() {
         Renderer::Get().UpdateBitmap(
             &gfx::Arena::Get().mutable_gfx_sheets()->at(current_sheet_));
       }
+#else
+      // PNG support disabled - show message or alternative action
+      status_ = absl::UnimplementedError("PNG import not available in this build");
+#endif
     }
     HOVER_HINT("Paste from Clipboard");
 
