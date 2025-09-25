@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['refactoring_0',['Canvas Interface Refactoring',['../md_docs_2canvas-refactor-summary.html',1,'']]],
-  ['roadmap_1',['Roadmap',['../md_docs_2roadmap.html',1,'']]]
+  ['started_0',['Getting Started',['../md_docs_2getting-started.html',1,'']]],
+  ['strategy_20efficient_20workflows_1',['CI/CD Testing Strategy - Efficient Workflows',['../md_docs_2ci-testing-guide.html',1,'']]],
+  ['strategy_20for_20yaze_20v0_203_200_2',['Testing Strategy for Yaze v0.3.0',['../md_docs_2testing-strategy.html',1,'']]],
+  ['style_20guide_3',['Asm Style Guide',['../md_docs_2asm-style-guide.html',1,'']]]
 ];

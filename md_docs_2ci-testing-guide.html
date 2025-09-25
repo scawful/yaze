@@ -109,13 +109,13 @@ $(function(){initNavTree('md_docs_2ci-testing-guide.html',''); initResizable(tru
   <div class="headertitle"><div class="title">CI/CD Testing Strategy - Efficient Workflows</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md128"></a></p>
-<h1><a class="anchor" id="autotoc_md129"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md70"></a></p>
+<h1><a class="anchor" id="autotoc_md71"></a>
 Overview</h1>
 <p>Yaze v0.3.0 implements a sophisticated testing strategy designed for efficient CI/CD pipelines while maintaining comprehensive quality assurance.</p>
-<h1><a class="anchor" id="autotoc_md130"></a>
+<h1><a class="anchor" id="autotoc_md72"></a>
 Test Categories &amp; Execution Strategy</h1>
-<h2><a class="anchor" id="autotoc_md131"></a>
+<h2><a class="anchor" id="autotoc_md73"></a>
 🟢 STABLE Tests (CI Required)</h2>
 <p><b>These tests MUST pass for releases</b></p>
 <ul>
@@ -128,7 +128,7 @@ Test Categories &amp; Execution Strategy</h1>
 </ul>
 <p><b>Execution Time</b>: &lt; 30 seconds total <br  />
  <b>CI Strategy</b>: Run on every commit, block merge if failing</p>
-<h2><a class="anchor" id="autotoc_md132"></a>
+<h2><a class="anchor" id="autotoc_md74"></a>
 🟡 EXPERIMENTAL Tests (CI Informational)</h2>
 <p><b>These tests can fail without blocking releases</b></p>
 <ul>
@@ -141,7 +141,7 @@ Test Categories &amp; Execution Strategy</h1>
 </ul>
 <p><b>Execution Time</b>: 5-10 minutes <br  />
  <b>CI Strategy</b>: Run separately with <code>continue-on-error: true</code></p>
-<h2><a class="anchor" id="autotoc_md133"></a>
+<h2><a class="anchor" id="autotoc_md75"></a>
 🔴 ROM_DEPENDENT Tests (Development Only)</h2>
 <p><b>These tests require actual ROM files</b></p>
 <ul>
@@ -150,9 +150,9 @@ Test Categories &amp; Execution Strategy</h1>
 </ul>
 <p><b>Execution</b>: Only in development environment <br  />
  <b>CI Strategy</b>: Automatically skipped in CI (<code>--label-exclude ROM_DEPENDENT</code>)</p>
-<h1><a class="anchor" id="autotoc_md134"></a>
+<h1><a class="anchor" id="autotoc_md76"></a>
 Dependency Management</h1>
-<h2><a class="anchor" id="autotoc_md135"></a>
+<h2><a class="anchor" id="autotoc_md77"></a>
 NFD (Native File Dialog) - Optional</h2>
 <div class="fragment"><div class="line"># Conditional inclusion for CI efficiency</div>
 <div class="line">option(YAZE_MINIMAL_BUILD &quot;Minimal build for CI&quot; OFF)</div>
@@ -162,16 +162,16 @@ NFD (Native File Dialog) - Optional</h2>
 <div class="line">else()</div>
 <div class="line">    # Skip NFD to avoid GTK dependency in CI</div>
 <div class="line">endif()</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md136"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md78"></a>
 Linux Dependencies for Full Build</h2>
 <div class="fragment"><div class="line"># Required for NFD on Linux</div>
 <div class="line">sudo apt-get install libgtk-3-dev libdbus-1-dev</div>
 <div class="line"> </div>
 <div class="line"># Core dependencies (always required)  </div>
 <div class="line">sudo apt-get install libglew-dev libxext-dev libwavpack-dev libpng-dev</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md137"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md79"></a>
 CI Configuration Examples</h1>
-<h2><a class="anchor" id="autotoc_md138"></a>
+<h2><a class="anchor" id="autotoc_md80"></a>
 Fast CI Pipeline (&lt; 5 minutes)</h2>
 <div class="fragment"><div class="line">- name: Configure (Minimal)</div>
 <div class="line">  run: cmake -B build -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF</div>
@@ -181,7 +181,7 @@ Fast CI Pipeline (&lt; 5 minutes)</h2>
 <div class="line"> </div>
 <div class="line">- name: Test (Stable Only)  </div>
 <div class="line">  run: ctest --test-dir build --label-regex &quot;STABLE&quot; --parallel</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md139"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md81"></a>
 Development Pipeline (Complete)</h2>
 <div class="fragment"><div class="line">- name: Configure (Full)</div>
 <div class="line">  run: cmake -B build -DYAZE_ENABLE_ROM_TESTS=ON -DYAZE_ENABLE_EXPERIMENTAL_TESTS=ON</div>
@@ -191,9 +191,9 @@ Development Pipeline (Complete)</h2>
 <div class="line"> </div>
 <div class="line">- name: Test (All)</div>
 <div class="line">  run: ctest --test-dir build --output-on-failure</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md140"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md82"></a>
 Local Development Workflows</h1>
-<h2><a class="anchor" id="autotoc_md141"></a>
+<h2><a class="anchor" id="autotoc_md83"></a>
 Quick Development Testing</h2>
 <div class="fragment"><div class="line"># Test only Asar functionality (&lt; 30 seconds)</div>
 <div class="line">ctest --test-dir build -R &quot;*AsarWrapper*&quot; --parallel</div>
@@ -205,7 +205,7 @@ Quick Development Testing</h2>
 <div class="line">cmake --preset dev</div>
 <div class="line">cmake --build --preset dev  </div>
 <div class="line">ctest --preset dev</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md142"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md84"></a>
 Release Validation</h2>
 <div class="fragment"><div class="line"># Release candidate testing (stable tests only)</div>
 <div class="line">cmake --preset release</div>
@@ -214,9 +214,9 @@ Release Validation</h2>
 <div class="line"> </div>
 <div class="line"># Performance validation  </div>
 <div class="line">ctest --test-dir build --label-regex &quot;STABLE&quot; --repeat until-pass:3</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md143"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md85"></a>
 Test Maintenance Strategy</h1>
-<h2><a class="anchor" id="autotoc_md144"></a>
+<h2><a class="anchor" id="autotoc_md86"></a>
 Weekly Review Process</h2>
 <ol type="1">
 <li><b>Check experimental test results</b> - identify tests ready for promotion</li>
@@ -224,7 +224,7 @@ Weekly Review Process</h2>
 <li><b>Performance monitoring</b> - track test execution times</li>
 <li><b>Failure analysis</b> - investigate patterns in experimental test failures</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md145"></a>
+<h2><a class="anchor" id="autotoc_md87"></a>
 Promotion Criteria (Experimental → Stable)</h2>
 <ul>
 <li><b>Consistent passing</b> for 2+ weeks</li>
@@ -232,9 +232,9 @@ Promotion Criteria (Experimental → Stable)</h2>
 <li><b>No external dependencies</b> (ROM files, GUI, complex setup)</li>
 <li><b>Deterministic results</b> across platforms</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md146"></a>
+<h2><a class="anchor" id="autotoc_md88"></a>
 Test Categories by Stability</h2>
-<h3><a class="anchor" id="autotoc_md147"></a>
+<h3><a class="anchor" id="autotoc_md89"></a>
 Currently Stable (22/24 tests passing)</h3>
 <ul>
 <li>AsarWrapperTest.InitializationAndShutdown ✅</li>
@@ -243,12 +243,12 @@ Currently Stable (22/24 tests passing)</h3>
 <li>AsarWrapperTest.PatchFromString ✅</li>
 <li>AsarWrapperTest.ResetFunctionality ✅</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md148"></a>
+<h3><a class="anchor" id="autotoc_md90"></a>
 Needs Attention (2/24 tests failing)</h3>
 <ul>
 <li>AsarWrapperTest.AssemblyValidation ⚠️ (Error message format mismatch)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md149"></a>
+<h3><a class="anchor" id="autotoc_md91"></a>
 Experimental (Many failing but expected)</h3>
 <ul>
 <li>CpuTest.* (400+ tests) - Complex 65816 emulation <br  />
@@ -256,9 +256,9 @@ Experimental (Many failing but expected)</h3>
 <li>MessageTest.* - Text parsing edge cases</li>
 <li>Complex integration tests - Multi-component scenarios</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md150"></a>
+<h1><a class="anchor" id="autotoc_md92"></a>
 Efficiency Metrics</h1>
-<h2><a class="anchor" id="autotoc_md151"></a>
+<h2><a class="anchor" id="autotoc_md93"></a>
 Target CI Times</h2>
 <ul>
 <li><b>Stable Test Suite</b>: &lt; 30 seconds</li>
@@ -266,7 +266,7 @@ Target CI Times</h2>
 </li>
 <li><b>Total CI Pipeline</b>: &lt; 10 minutes per platform</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md152"></a>
+<h2><a class="anchor" id="autotoc_md94"></a>
 Resource Optimization</h2>
 <ul>
 <li><b>Parallel Testing</b>: Use all available CPU cores</li>
@@ -274,16 +274,16 @@ Resource Optimization</h2>
 <li><b>Test Categorization</b>: Run only relevant tests for changes</li>
 <li><b>Artifact Caching</b>: Cache build dependencies between runs</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md153"></a>
+<h1><a class="anchor" id="autotoc_md95"></a>
 Error Handling Strategy</h1>
-<h2><a class="anchor" id="autotoc_md154"></a>
+<h2><a class="anchor" id="autotoc_md96"></a>
 Build Failures</h2>
 <ul>
 <li><b>NFD/GTK Issues</b>: Use YAZE_MINIMAL_BUILD=ON to skip</li>
 <li><b>Dependency Problems</b>: Clear dependency installation in CI</li>
 <li><b>Platform-Specific</b>: Use matrix builds with proper toolchains</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md155"></a>
+<h2><a class="anchor" id="autotoc_md97"></a>
 Test Failures</h2>
 <ul>
 <li><b>Stable Tests</b>: Must be fixed before merge</li>
@@ -291,9 +291,9 @@ Test Failures</h2>
 <li><b>ROM Tests</b>: Skip gracefully when ROM unavailable</li>
 <li><b>GUI Tests</b>: May need headless display configuration</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md156"></a>
+<h1><a class="anchor" id="autotoc_md98"></a>
 Monitoring &amp; Metrics</h1>
-<h2><a class="anchor" id="autotoc_md157"></a>
+<h2><a class="anchor" id="autotoc_md99"></a>
 Success Metrics</h2>
 <ul>
 <li><b>Stable Test Pass Rate</b>: 95%+ required</li>
@@ -301,7 +301,7 @@ Success Metrics</h2>
 <li><b>Build Success Rate</b>: 98%+ across all platforms</li>
 <li><b>Release Cadence</b>: Monthly releases with high confidence</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md158"></a>
+<h2><a class="anchor" id="autotoc_md100"></a>
 Quality Gates</h2>
 <ol type="1">
 <li>All stable tests pass</li>

@@ -1,9 +1,11 @@
 <map id="src/util/notify.h" name="src/util/notify.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="125,5,230,31"/>
-<area shape="rect" id="Node000002" href="$tile16__editor_8h.html" title=" " alt="" coords="97,79,258,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,46,180,79,175,79,175,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="217,5,322,31"/>
+<area shape="rect" id="Node000002" href="$tile16__editor_8h.html" title=" " alt="" coords="189,79,350,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="272,46,272,79,267,79,267,46"/>
 <area shape="rect" id="Node000003" href="$overworld__editor_8h.html" title=" " alt="" coords="5,168,166,208"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="148,132,108,169,104,165,144,128"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="215,129,128,170,126,165,213,124"/>
 <area shape="rect" id="Node000018" href="$tile16__editor_8cc.html" title=" " alt="" coords="189,168,350,208"/>
-<area shape="poly" id="edge3_Node000002_Node000018" title=" " alt="" coords="211,128,251,165,247,169,207,132"/>
+<area shape="poly" id="edge3_Node000002_Node000018" title=" " alt="" coords="272,135,272,167,267,167,267,135"/>
+<area shape="rect" id="Node000019" href="$rom__dependent__test__suite_8h.html" title=" " alt="" coords="374,168,557,208"/>
+<area shape="poly" id="edge4_Node000002_Node000019" title=" " alt="" coords="329,124,422,165,420,170,327,129"/>
 </map>

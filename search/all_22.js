@@ -14,7 +14,7 @@ var searchData=
   ['yaze_11',['yaze',['../namespaceyaze.html',1,'']]],
   ['yaze_20documentation_12',['Yaze Documentation',['../md_docs_2index.html',1,'']]],
   ['yaze_20editor_13',['Integration with Yaze Editor',['../md_docs_2asar-integration.html#autotoc_md23',1,'']]],
-  ['yaze_20implementation_14',['Yaze Implementation',['../md_docs_2overworld__loading__guide.html#autotoc_md408',1,'']]],
+  ['yaze_20implementation_14',['Yaze Implementation',['../md_docs_2overworld__loading__guide.html#autotoc_md350',1,'']]],
   ['yaze_20v0_203_200_15',['Testing Strategy for Yaze v0.3.0',['../md_docs_2testing-strategy.html',1,'']]],
   ['yaze_2ecc_16',['yaze.cc',['../yaze_8cc.html',1,'']]],
   ['yaze_2eh_17',['yaze.h',['../yaze_8h.html',1,'']]],
@@ -131,6 +131,6 @@ var searchData=
   ['yaze_5fversion_5fpatch_128',['YAZE_VERSION_PATCH',['../group__version.html#ga1ef0890c21d5e052a03ace9b1f3d0e3c',1,'yaze.h']]],
   ['yaze_5fversion_5fstring_129',['YAZE_VERSION_STRING',['../group__version.html#gabc3b93252a656c28dee5ac55e492cc96',1,'yaze.h']]],
   ['yet_20another_20zelda3_20editor_130',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
-  ['your_20changes_131',['Contributing your Changes',['../md_docs_2contributing.html#autotoc_md167',1,'']]],
+  ['your_20changes_131',['Contributing your Changes',['../md_docs_2contributing.html#autotoc_md109',1,'']]],
   ['your_20patches_132',['Testing Your Patches',['../md_docs_2asar-integration.html#autotoc_md29',1,'']]]
 ];

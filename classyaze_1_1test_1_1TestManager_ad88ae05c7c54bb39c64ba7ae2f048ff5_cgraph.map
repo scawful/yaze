@@ -1,0 +1,11 @@
+<map id="yaze::test::TestManager::TestRomSaveLoad" name="yaze::test::TestManager::TestRomSaveLoad">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,72,163,113"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="222,5,364,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,70,210,40,228,34,230,39,212,45,135,74"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6" title=" " alt="" coords="211,55,375,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,81,195,77,195,82,164,86"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="239,104,346,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="164,99,224,106,224,112,163,105"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="232,153,354,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="137,111,212,140,230,146,228,151,210,145,135,116"/>
+</map>

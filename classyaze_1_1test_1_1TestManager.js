@@ -25,6 +25,11 @@ var classyaze_1_1test_1_1TestManager =
     [ "DrawTestDashboard", "classyaze_1_1test_1_1TestManager.html#afc2bbd8bae02320e588a482cd636ce16", null ],
     [ "SetCurrentRom", "classyaze_1_1test_1_1TestManager.html#a993d8b173579ab54ac01b3f31b4f4c56", null ],
     [ "GetCurrentRom", "classyaze_1_1test_1_1TestManager.html#a1d2eba0221278bb461dc19a580adadb3", null ],
+    [ "RefreshCurrentRom", "classyaze_1_1test_1_1TestManager.html#a2efc0d5a0e68afb06d6c5fb82e183263", null ],
+    [ "LoadRomForTesting", "classyaze_1_1test_1_1TestManager.html#afbc4989df8eef173a3dfaaf94e57dc73", null ],
+    [ "ShowRomComparisonResults", "classyaze_1_1test_1_1TestManager.html#aea1fd8ef3a4ab247670d862ef50a4fa3", null ],
+    [ "TestRomSaveLoad", "classyaze_1_1test_1_1TestManager.html#ad88ae05c7c54bb39c64ba7ae2f048ff5", null ],
+    [ "TestRomDataIntegrity", "classyaze_1_1test_1_1TestManager.html#aa4c9c5e2d45402a09e93f4f4830085dd", null ],
     [ "ExecuteTestSuite", "classyaze_1_1test_1_1TestManager.html#a7db45a242780d055d1d12cbc23df3d62", null ],
     [ "UpdateProgress", "classyaze_1_1test_1_1TestManager.html#ae7cbaf88ee1e98b4e2fa8c598fc21442", null ],
     [ "CollectResourceStats", "classyaze_1_1test_1_1TestManager.html#accb083bc4e5f9205954fa5c0059e4ba5", null ],
@@ -42,5 +47,8 @@ var classyaze_1_1test_1_1TestManager =
     [ "show_resource_monitor_", "classyaze_1_1test_1_1TestManager.html#a05c347034978959de9d007a250f2d5ee", null ],
     [ "test_filter_", "classyaze_1_1test_1_1TestManager.html#a82e07bdc20bb244feff3c6cfe3b0b3c7", null ],
     [ "category_filter_", "classyaze_1_1test_1_1TestManager.html#a2cafce8c64ca0935b8a121f2d06c72dd", null ],
-    [ "current_rom_", "classyaze_1_1test_1_1TestManager.html#a03de7389e6b12f25c0dc8eb098eac0a4", null ]
+    [ "current_rom_", "classyaze_1_1test_1_1TestManager.html#a03de7389e6b12f25c0dc8eb098eac0a4", null ],
+    [ "show_google_tests_", "classyaze_1_1test_1_1TestManager.html#aea6f794c6a6ec46cc7717785214948dc", null ],
+    [ "show_rom_test_results_", "classyaze_1_1test_1_1TestManager.html#a803ddfe759abe3deaab0b30e65d81054", null ],
+    [ "show_rom_file_dialog_", "classyaze_1_1test_1_1TestManager.html#a9c0ad9161418753a77edfb0a5085c0e0", null ]
 ];

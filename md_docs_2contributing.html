@@ -109,10 +109,10 @@ $(function(){initNavTree('md_docs_2contributing.html',''); initResizable(true); 
   <div class="headertitle"><div class="title">Contributing</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md159"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md101"></a></p>
 <p>This project is looking for contributors to help improve the software and enhance the user experience. If you are interested in contributing, please read the following guidelines and suggestions for areas where you can make a difference.</p>
 <p>Discussion on the editor and its development can be found on the <a href="https://discord.gg/MBFkMTPEmk">Oracle of Secrets Discord</a> server.</p>
-<h1><a class="anchor" id="autotoc_md160"></a>
+<h1><a class="anchor" id="autotoc_md102"></a>
 Style Guide</h1>
 <p>When contributing to the project, please follow these guidelines to ensure consistency and readability across the codebase:</p>
 <p>C++ Code should follow the <a href="https://google.github.io/styleguide/cppguide.html">Google C++ Style Guide</a> with the following exceptions:</p>
@@ -122,20 +122,20 @@ Style Guide</h1>
 <p>Objective-C Code should follow the <a href="https://google.github.io/styleguide/objcguide.html">Google Objective-C Style Guide</a>.</p>
 <p>Python Code should follow the <a href="https://pep8.org/">PEP 8 Style Guide</a>.</p>
 <p>Assembly code should follow the <a class="el" href="md_docs_2asm-style-guide.html">65816 Style Guide</a>.</p>
-<h1><a class="anchor" id="autotoc_md161"></a>
+<h1><a class="anchor" id="autotoc_md103"></a>
 Testing Facilities</h1>
 <p>The project includes the <code>yaze_test</code> target which defines unit tests and an integration test window. The unit tests make use of GoogleTest and GoogleMock. The integration test window is an <a class="el" href="namespaceImGui.html">ImGui</a> window build out of the <a class="el" href="classyaze_1_1core_1_1Controller.html" title="Main controller for the application.">yaze::core::Controller</a> and yaze::test::integration::TestEditor. The integration test window can be accessed by passing the argument <code>integration</code> to the target.</p>
 <p>New modules should define unit tests in the <code>src/test</code> directory and integration tests in the <code>src/test/integration</code> directory. The <code>yaze_test</code> target will automatically include all tests in these directories.</p>
-<h1><a class="anchor" id="autotoc_md162"></a>
+<h1><a class="anchor" id="autotoc_md104"></a>
 Key Areas of Contribution</h1>
-<h2><a class="anchor" id="autotoc_md163"></a>
+<h2><a class="anchor" id="autotoc_md105"></a>
 1. Sprite Builder System</h2>
 <p>The sprite builder system in yaze is based on the <a href="https://github.com/Zarby89/ZSpriteMaker/">ZSpriteMaker</a> project and allows users to create custom sprites for use in ROM hacks. The goal is to support ZSM files and provide an intuitive interface for editing sprites without the need for writing assembly code. Contributions to the sprite builder system might include:</p>
 <ul>
 <li>Implementing new features for sprite editing, such as palette management, animation preview, or tileset manipulation.</li>
 <li>Extending the sprite builder interface by writing assembly code for sprite behavior.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md164"></a>
+<h2><a class="anchor" id="autotoc_md106"></a>
 2. Emulator Subsystem</h2>
 <p>yaze includes an emulator subsystem that allows developers to test their modifications directly within the editor. The emulator can currently run certain test ROMs but lacks the ability to play any complex games with audio because of timing issues with the APU and Spc700. Contributions to the emulator subsystem might include:</p>
 <ul>
@@ -143,10 +143,10 @@ Key Areas of Contribution</h1>
 <li>Implementing new debugging tools, such as memory viewers, breakpoints, or trace logs.</li>
 <li>Extending the emulator to support additional features, such as save states, cheat codes, or multiplayer modes.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md165"></a>
+<h1><a class="anchor" id="autotoc_md107"></a>
 Building the Project</h1>
 <p>For detailed instructions on building YAZE, including its dependencies and supported platforms, refer to <a class="el" href="md_docs_2build-instructions.html">build-instructions.md</a>.</p>
-<h1><a class="anchor" id="autotoc_md166"></a>
+<h1><a class="anchor" id="autotoc_md108"></a>
 Getting Started</h1>
 <ol type="1">
 <li>Clone the Repository:</li>
@@ -165,7 +165,7 @@ Getting Started</h1>
 <li>Run the Application:</li>
 </ol>
 <p>After building, you can run the application on your chosen platform and start exploring the existing features.</p>
-<h1><a class="anchor" id="autotoc_md167"></a>
+<h1><a class="anchor" id="autotoc_md109"></a>
 Contributing your Changes</h1>
 <ol type="1">
 <li>Fork the Repository:</li>
