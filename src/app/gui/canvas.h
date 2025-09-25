@@ -105,6 +105,12 @@ class Canvas {
   void ClearContextMenuItems();
   void SetContextMenuEnabled(bool enabled) { context_menu_enabled_ = enabled; }
   
+  // Enhanced view and edit operations
+  void ShowBitmapProperties(const gfx::Bitmap& bitmap);
+  void ShowPaletteEditor(gfx::SnesPalette& palette);
+  void SetZoomToFit(const gfx::Bitmap& bitmap);
+  void ResetView();
+  
  private:
   void DrawContextMenuItem(const ContextMenuItem& item);
 
