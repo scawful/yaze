@@ -7,5 +7,5 @@
     "libpng",
     "sdl2[core]"
   ],
-  "builtin-baseline": "2024.12.16"
+  "builtin-baseline": "c8696863d371ab7f46e213d8f5ca923c4aef2a00"
 }
