@@ -402,24 +402,22 @@ void DrawMenu(Menu& menu) {
         if (!each_item.subitems.empty()) {
           if (ImGui::BeginMenu(each_item.name.c_str())) {
             for (const auto& each_subitem : each_item.subitems) {
-              if (ImGui::MenuItem(each_subitem.name.c_str(),
-                                  each_subitem.shortcut.c_str())) {
-                if (each_subitem.callback) each_subitem.callback();
-              } else if (each_subitem.name == kSeparator) {
+              if (each_subitem.name == kSeparator) {
                 ImGui::Separator();
+              } else if (ImGui::MenuItem(each_subitem.name.c_str(),
+                                         each_subitem.shortcut.c_str())) {
+                if (each_subitem.callback) each_subitem.callback();
               }
             }
             ImGui::EndMenu();
           }
-        } else if (each_item.name == kSeparator) {
-          ImGui::Separator();
         } else {
-          if (ImGui::MenuItem(each_item.name.c_str(),
+          if (each_item.name == kSeparator) {
+            ImGui::Separator();
+          } else if (ImGui::MenuItem(each_item.name.c_str(),
                               each_item.shortcut.c_str(),
                               each_item.enabled_condition())) {
             if (each_item.callback) each_item.callback();
-          } else if (each_item.name == kSeparator) {
-            ImGui::Separator();
           }
         }
       }
@@ -463,46 +461,46 @@ void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory) {
 // Custom hex input functions that properly respect width
 bool InputHexByteCustom(const char* label, uint8_t* data, float input_width) {
   ImGui::PushID(label);
-  
+
   // Create a simple hex input that respects width
   char buf[8];
   snprintf(buf, sizeof(buf), "%02X", *data);
-  
+
   ImGui::SetNextItemWidth(input_width);
-  bool changed = ImGui::InputText(label, buf, sizeof(buf), 
-                                  ImGuiInputTextFlags_CharsHexadecimal | 
-                                  ImGuiInputTextFlags_AutoSelectAll);
-  
+  bool changed = ImGui::InputText(
+      label, buf, sizeof(buf),
+      ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_AutoSelectAll);
+
   if (changed) {
     unsigned int temp;
     if (sscanf(buf, "%X", &temp) == 1) {
       *data = static_cast<uint8_t>(temp & 0xFF);
     }
   }
-  
+
   ImGui::PopID();
   return changed;
 }
 
 bool InputHexWordCustom(const char* label, uint16_t* data, float input_width) {
   ImGui::PushID(label);
-  
+
   // Create a simple hex input that respects width
   char buf[8];
   snprintf(buf, sizeof(buf), "%04X", *data);
-  
+
   ImGui::SetNextItemWidth(input_width);
-  bool changed = ImGui::InputText(label, buf, sizeof(buf), 
-                                  ImGuiInputTextFlags_CharsHexadecimal | 
-                                  ImGuiInputTextFlags_AutoSelectAll);
-  
+  bool changed = ImGui::InputText(
+      label, buf, sizeof(buf),
+      ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_AutoSelectAll);
+
   if (changed) {
     unsigned int temp;
     if (sscanf(buf, "%X", &temp) == 1) {
       *data = static_cast<uint16_t>(temp & 0xFFFF);
     }
   }
-  
+
   ImGui::PopID();
   return changed;
 }

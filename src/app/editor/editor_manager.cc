@@ -1,5 +1,7 @@
 #include "editor_manager.h"
 
+#include <chrono>
+
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
@@ -1190,6 +1192,9 @@ absl::Status EditorManager::LoadAssets() {
   if (!current_rom_ || !current_editor_set_) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
+  
+  auto start_time = std::chrono::steady_clock::now();
+  
   current_editor_set_->overworld_editor_.Initialize();
   current_editor_set_->message_editor_.Initialize();
   ASSIGN_OR_RETURN(*gfx::Arena::Get().mutable_gfx_sheets(),
@@ -1202,6 +1207,11 @@ absl::Status EditorManager::LoadAssets() {
   RETURN_IF_ERROR(current_editor_set_->message_editor_.Load());
   RETURN_IF_ERROR(current_editor_set_->music_editor_.Load());
   RETURN_IF_ERROR(current_editor_set_->palette_editor_.Load());
+  
+  auto end_time = std::chrono::steady_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+  util::logf("ROM assets loaded in %lld ms", duration.count());
+  
   return absl::OkStatus();
 }
 
@@ -1714,6 +1724,11 @@ void EditorManager::DrawLayoutPresets() {
     
     ImGui::Separator();
     ImGui::Text("%s Custom Presets", ICON_MD_BOOKMARK);
+    
+    // Lazy load workspace presets when UI is accessed
+    if (!workspace_presets_loaded_) {
+      RefreshWorkspacePresets();
+    }
     
     for (const auto& preset : workspace_presets_) {
       if (ImGui::Button(absl::StrFormat("%s %s", ICON_MD_BOOKMARK, preset.c_str()).c_str(), ImVec2(-1, 0))) {
