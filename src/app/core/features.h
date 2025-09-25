@@ -60,6 +60,9 @@ class FeatureFlags {
 
       // Load custom overworld data from the ROM and enable UI.
       bool kLoadCustomOverworld = false;
+      
+      // Apply ZSCustomOverworld ASM patches when upgrading ROM versions.
+      bool kApplyZSCustomOverworldASM = false;
     } overworld;
   };
 
@@ -93,6 +96,10 @@ class FeatureFlags {
               std::to_string(get().overworld.kSaveOverworldItems) + "\n";
     result += "kSaveOverworldProperties: " +
               std::to_string(get().overworld.kSaveOverworldProperties) + "\n";
+    result += "kLoadCustomOverworld: " +
+              std::to_string(get().overworld.kLoadCustomOverworld) + "\n";
+    result += "kApplyZSCustomOverworldASM: " +
+              std::to_string(get().overworld.kApplyZSCustomOverworldASM) + "\n";
     return result;
   }
 };
@@ -120,6 +127,8 @@ struct FlagsMenu {
              &FeatureFlags::get().overworld.kSaveOverworldProperties);
     Checkbox("Load Custom Overworld",
              &FeatureFlags::get().overworld.kLoadCustomOverworld);
+    Checkbox("Apply ZSCustomOverworld ASM",
+             &FeatureFlags::get().overworld.kApplyZSCustomOverworldASM);
   }
 
   void DrawDungeonFlags() {

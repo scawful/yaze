@@ -92,6 +92,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
   absl::Status Clear() override;
+  
+  /**
+   * @brief Apply ZSCustomOverworld ASM patch to upgrade ROM version
+   */
+  absl::Status ApplyZSCustomOverworldASM(int target_version);
 
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
