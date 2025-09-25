@@ -48,6 +48,7 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}/incl/
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+  ${CMAKE_SOURCE_DIR}/src/lib/nativefiledialog-extended/src/include
   ${ASAR_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
   ${PNG_INCLUDE_DIRS}
@@ -59,6 +60,7 @@ target_link_libraries(
   SDL2::SDL2
   asar-static
   yaze_asar_integration
+  nfd
   ${ABSL_TARGETS}
   ${PNG_LIBRARIES}
   ${OPENGL_LIBRARIES}

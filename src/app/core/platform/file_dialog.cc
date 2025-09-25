@@ -7,10 +7,12 @@
 #else  // Linux and MacOS
 #include <dirent.h>
 #include <sys/stat.h>
+#include <nfd.hpp>
 #endif
 
 #include <fstream>
 #include <sstream>
+#include <cstring>
 
 namespace yaze {
 namespace core {
@@ -216,19 +218,17 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
 
 #elif defined(__linux__)
 
-#include <nfd.h>
-
 std::string FileDialogWrapper::ShowOpenFileDialog() {
   NFD_Init();
   nfdu8char_t *out_path = NULL;
-  nfdu8filter_item_t filters[1] = {{"Rom File", "sfc,smc"}};
+  nfdu8filteritem_t filters[1] = {{"Rom File", "sfc,smc"}};
   nfdopendialogu8args_t args = {0};
   args.filterList = filters;
   args.filterCount = 1;
   nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
   if (result == NFD_OKAY) {
     std::string file_path_linux(out_path);
-    NFD_Free(out_path);
+    NFD_FreePathU8(out_path);
     NFD_Quit();
     return file_path_linux;
   } else if (result == NFD_CANCEL) {
@@ -242,10 +242,10 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
   NFD_Init();
   nfdu8char_t *out_path = NULL;
-  nfdresult_t result = NFD_PickFolderU8(&out_path);
+  nfdresult_t result = NFD_PickFolderU8(&out_path, nullptr);
   if (result == NFD_OKAY) {
     std::string folder_path_linux(out_path);
-    NFD_Free(out_path);
+    NFD_FreePathU8(out_path);
     NFD_Quit();
     return folder_path_linux;
   } else if (result == NFD_CANCEL) {
@@ -264,7 +264,7 @@ std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(
   if ((dir = opendir(folder_path.c_str())) != NULL) {
     while ((ent = readdir(dir)) != NULL) {
       if (ent->d_type == DT_DIR) {
-        if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
+        if (std::strcmp(ent->d_name, ".") != 0 && std::strcmp(ent->d_name, "..") != 0) {
           subdirectories.push_back(ent->d_name);
         }
       }

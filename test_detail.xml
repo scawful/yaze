@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="1" disabled="0" errors="0" time="0.017" timestamp="2025-09-25T00:02:49.952" name="AllTests">
+  <testsuite name="AsarIntegrationTest" tests="1" failures="1" disabled="0" skipped="0" errors="0" time="0.016" timestamp="2025-09-25T00:02:49.952">
+    <testcase name="PatchRomWithValidAssembly" file="/workspace/test/asar/asar_integration_test.cc" line="89" status="run" result="completed" time="0.016" timestamp="2025-09-25T00:02:49.952" classname="AsarIntegrationTest">
+      <failure message="/workspace/test/asar/asar_integration_test.cc:106&#x0A;Value of: patch_result.success&#x0A;  Actual: false&#x0A;Expected: true&#x0A;Patch should succeed" type=""><![CDATA[/workspace/test/asar/asar_integration_test.cc:106
+Value of: patch_result.success
+  Actual: false
+Expected: true
+Patch should succeed]]></failure>
+      <failure message="/workspace/test/asar/asar_integration_test.cc:107&#x0A;Value of: patch_result.errors.empty()&#x0A;  Actual: false&#x0A;Expected: true&#x0A;Should have no errors" type=""><![CDATA[/workspace/test/asar/asar_integration_test.cc:107
+Value of: patch_result.errors.empty()
+  Actual: false
+Expected: true
+Should have no errors]]></failure>
+      <failure message="/workspace/test/asar/asar_integration_test.cc:110&#x0A;Value of: patch_result.symbols.empty()&#x0A;  Actual: true&#x0A;Expected: false&#x0A;Should have extracted symbols" type=""><![CDATA[/workspace/test/asar/asar_integration_test.cc:110
+Value of: patch_result.symbols.empty()
+  Actual: true
+Expected: false
+Should have extracted symbols]]></failure>
+      <failure message="/workspace/test/asar/asar_integration_test.cc:123&#x0A;Value of: found_main&#x0A;  Actual: false&#x0A;Expected: true&#x0A;main label not found" type=""><![CDATA[/workspace/test/asar/asar_integration_test.cc:123
+Value of: found_main
+  Actual: false
+Expected: true
+main label not found]]></failure>
+      <failure message="/workspace/test/asar/asar_integration_test.cc:124&#x0A;Value of: found_subroutine&#x0A;  Actual: false&#x0A;Expected: true&#x0A;subroutine label not found" type=""><![CDATA[/workspace/test/asar/asar_integration_test.cc:124
+Value of: found_subroutine
+  Actual: false
+Expected: true
+subroutine label not found]]></failure>
+      <failure message="/workspace/test/asar/asar_integration_test.cc:125&#x0A;Value of: found_test_constant&#x0A;  Actual: false&#x0A;Expected: true&#x0A;test_constant define not found" type=""><![CDATA[/workspace/test/asar/asar_integration_test.cc:125
+Value of: found_test_constant
+  Actual: false
+Expected: true
+test_constant define not found]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

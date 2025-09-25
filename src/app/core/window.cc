@@ -39,7 +39,7 @@ absl::Status CreateWindow(Window& window, int flags) {
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable; // Disabled for now
 
   ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(),
                                     Renderer::Get().renderer());

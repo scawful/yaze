@@ -4,6 +4,7 @@
 #include <zlib.h>
 
 #include <cstdint>
+#include <cstring>
 #include <vector>
 #include <stdexcept>
 
@@ -129,9 +130,9 @@ void CreateBpsPatch(const std::vector<uint8_t> &source,
   uint32_t target_checksum = crc32(target);
   uint32_t patch_checksum = crc32(patch);
 
-  memcpy(patch.data() + patch.size() - 12, &source_checksum, sizeof(uint32_t));
-  memcpy(patch.data() + patch.size() - 8, &target_checksum, sizeof(uint32_t));
-  memcpy(patch.data() + patch.size() - 4, &patch_checksum, sizeof(uint32_t));
+  std::memcpy(patch.data() + patch.size() - 12, &source_checksum, sizeof(uint32_t));
+  std::memcpy(patch.data() + patch.size() - 8, &target_checksum, sizeof(uint32_t));
+  std::memcpy(patch.data() + patch.size() - 4, &patch_checksum, sizeof(uint32_t));
 }
 
 void ApplyBpsPatch(const std::vector<uint8_t> &source,
@@ -193,9 +194,9 @@ void ApplyBpsPatch(const std::vector<uint8_t> &source,
   uint32_t source_checksum;
   uint32_t target_checksum;
   uint32_t patch_checksum;
-  memcpy(&source_checksum, patch.data() + patch.size() - 12, sizeof(uint32_t));
-  memcpy(&target_checksum, patch.data() + patch.size() - 8, sizeof(uint32_t));
-  memcpy(&patch_checksum, patch.data() + patch.size() - 4, sizeof(uint32_t));
+  std::memcpy(&source_checksum, patch.data() + patch.size() - 12, sizeof(uint32_t));
+  std::memcpy(&target_checksum, patch.data() + patch.size() - 8, sizeof(uint32_t));
+  std::memcpy(&patch_checksum, patch.data() + patch.size() - 4, sizeof(uint32_t));
 
   if (source_checksum != crc32(source) || target_checksum != crc32(target) ||
       patch_checksum !=

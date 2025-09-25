@@ -116,6 +116,7 @@ if (YAZE_BUILD_LIB)
     app/
     ${CMAKE_SOURCE_DIR}/incl/
     ${CMAKE_SOURCE_DIR}/src/
+    ${CMAKE_SOURCE_DIR}/src/lib/nativefiledialog-extended/src/include
     ${PNG_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIR}
     ${PROJECT_BINARY_DIR}
@@ -127,6 +128,7 @@ if (YAZE_BUILD_LIB)
     ${SDL_TARGETS}
     ${PNG_LIBRARIES}
     ${CMAKE_DL_LIBS}
+    nfd
     ImGuiTestEngine
     ImGui
   )

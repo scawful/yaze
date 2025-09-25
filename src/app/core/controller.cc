@@ -36,13 +36,8 @@ absl::Status Controller::OnLoad() {
   ImGui_ImplSDL2_NewFrame();
   ImGui::NewFrame();
 
-  const ImGuiViewport *viewport = ImGui::GetMainViewport();
-  ImGui::SetNextWindowPos(viewport->WorkPos);
-  ImGui::SetNextWindowSize(viewport->WorkSize);
-  ImGui::SetNextWindowViewport(viewport->ID);
-
-  ImGuiWindowFlags window_flags =
-      ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+  // Simple window setup without docking for now
+  ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar;
   window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
   window_flags |=
@@ -51,13 +46,8 @@ absl::Status Controller::OnLoad() {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-  ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
+  ImGui::Begin("MainWindow", nullptr, window_flags);
   ImGui::PopStyleVar(3);
-
-  // Create DockSpace
-  ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-  ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f),
-                   ImGuiDockNodeFlags_PassthruCentralNode);
 
   editor_manager_.DrawMenuBar();  // Draw the fixed menu bar at the top
 
