@@ -5,7 +5,7 @@
 
 #include <vector>
 
-#include "test/mocks/mock_rom.h"
+#include "mocks/mock_rom.h"
 
 namespace yaze {
 namespace test {

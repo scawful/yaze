@@ -10,7 +10,7 @@
 
 #include "app/rom.h"
 #include "app/gfx/snes_palette.h"
-#include "test/testing.h"
+#include "testing.h"
 
 namespace yaze {
 namespace test {

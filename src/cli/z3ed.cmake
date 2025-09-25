@@ -13,13 +13,14 @@ endif()
 
 add_executable(
   z3ed
-  cli/z3ed.cc
+  cli/cli_main.cc
   cli/tui.cc
   cli/handlers/compress.cc
   cli/handlers/patch.cc
   cli/handlers/tile16_transfer.cc
   app/rom.cc
   app/core/project.cc
+  app/core/asar_wrapper.cc
   app/core/platform/file_dialog.mm
   app/core/platform/file_dialog.cc
   ${YAZE_APP_EMU_SRC}
@@ -28,14 +29,13 @@ add_executable(
   ${YAZE_UTIL_SRC}
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
-  ${ASAR_STATIC_SRC}
 )
 
 target_include_directories(
   z3ed PUBLIC
   lib/
   app/
-  ${ASAR_INCLUDE_DIR}
+  ${ASAR_INCLUDE_DIRS}
   ${CMAKE_SOURCE_DIR}/incl/
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
@@ -50,6 +50,8 @@ target_link_libraries(
   ftxui::component
   ftxui::screen
   ftxui::dom
+  absl::flags
+  absl::flags_parse
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}

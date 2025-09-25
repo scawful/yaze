@@ -1,0 +1,335 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <memory>
+
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+#include "absl/flags/usage.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
+
+#include "cli/z3ed.h"
+#include "cli/tui.h"
+#include "app/core/asar_wrapper.h"
+
+// Global flags
+ABSL_FLAG(bool, tui, false, "Launch the Text User Interface");
+ABSL_FLAG(bool, version, false, "Show version information");
+ABSL_FLAG(bool, verbose, false, "Enable verbose output");
+ABSL_FLAG(std::string, rom, "", "Path to the ROM file");
+
+// Command-specific flags
+ABSL_FLAG(std::string, output, "", "Output file path");
+ABSL_FLAG(bool, dry_run, false, "Perform a dry run without making changes");
+ABSL_FLAG(bool, backup, true, "Create a backup before modifying files");
+
+namespace yaze {
+namespace cli {
+
+struct CommandInfo {
+  std::string name;
+  std::string description;
+  std::string usage;
+  std::function<absl::Status(const std::vector<std::string>&)> handler;
+};
+
+class ModernCLI {
+ public:
+  ModernCLI() {
+    SetupCommands();
+  }
+
+  void SetupCommands() {
+    commands_["asar"] = {
+      .name = "asar",
+      .description = "Apply Asar 65816 assembly patch to ROM",
+      .usage = "z3ed asar <patch.asm> [--rom=<rom_file>] [--output=<output_file>]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleAsarCommand(args);
+      }
+    };
+
+    commands_["patch"] = {
+      .name = "patch", 
+      .description = "Apply BPS patch to ROM",
+      .usage = "z3ed patch <patch.bps> [--rom=<rom_file>] [--output=<output_file>]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandlePatchCommand(args);
+      }
+    };
+
+    commands_["extract"] = {
+      .name = "extract",
+      .description = "Extract symbols from assembly file",
+      .usage = "z3ed extract <patch.asm>",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleExtractCommand(args);
+      }
+    };
+
+    commands_["validate"] = {
+      .name = "validate",
+      .description = "Validate assembly file syntax",
+      .usage = "z3ed validate <patch.asm>",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleValidateCommand(args);
+      }
+    };
+
+    commands_["info"] = {
+      .name = "info",
+      .description = "Show ROM information",
+      .usage = "z3ed info [--rom=<rom_file>]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleInfoCommand(args);
+      }
+    };
+
+    commands_["convert"] = {
+      .name = "convert",
+      .description = "Convert between SNES and PC addresses",
+      .usage = "z3ed convert <address> [--to-pc|--to-snes]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleConvertCommand(args);
+      }
+    };
+
+    commands_["help"] = {
+      .name = "help",
+      .description = "Show help information",
+      .usage = "z3ed help [command]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleHelpCommand(args);
+      }
+    };
+  }
+
+  void ShowVersion() {
+    std::cout << "z3ed v0.3.0 - Yet Another Zelda3 Editor CLI" << std::endl;
+    std::cout << "Built with Asar integration" << std::endl;
+    std::cout << "Copyright (c) 2025 scawful" << std::endl;
+  }
+
+  void ShowHelp(const std::string& command = "") {
+    if (!command.empty()) {
+      auto it = commands_.find(command);
+      if (it != commands_.end()) {
+        std::cout << "Command: " << it->second.name << std::endl;
+        std::cout << "Description: " << it->second.description << std::endl;
+        std::cout << "Usage: " << it->second.usage << std::endl;
+        return;
+      } else {
+        std::cout << "Unknown command: " << command << std::endl;
+        std::cout << std::endl;
+      }
+    }
+
+    std::cout << "z3ed - Yet Another Zelda3 Editor CLI Tool" << std::endl;
+    std::cout << std::endl;
+    std::cout << "USAGE:" << std::endl;
+    std::cout << "  z3ed [--tui] [command] [arguments]" << std::endl;
+    std::cout << std::endl;
+    std::cout << "GLOBAL FLAGS:" << std::endl;
+    std::cout << "  --tui              Launch Text User Interface" << std::endl;
+    std::cout << "  --version          Show version information" << std::endl;
+    std::cout << "  --verbose          Enable verbose output" << std::endl;
+    std::cout << "  --rom=<file>       Specify ROM file to use" << std::endl;
+    std::cout << "  --output=<file>    Specify output file path" << std::endl;
+    std::cout << "  --dry-run          Perform operations without making changes" << std::endl;
+    std::cout << "  --backup=<bool>    Create backup before modifying (default: true)" << std::endl;
+    std::cout << std::endl;
+    std::cout << "COMMANDS:" << std::endl;
+    
+    for (const auto& [name, info] : commands_) {
+      std::cout << absl::StrFormat("  %-12s %s", name, info.description) << std::endl;
+    }
+    
+    std::cout << std::endl;
+    std::cout << "EXAMPLES:" << std::endl;
+    std::cout << "  z3ed --tui                                    # Launch TUI" << std::endl;
+    std::cout << "  z3ed asar patch.asm --rom=zelda3.sfc         # Apply Asar patch" << std::endl;
+    std::cout << "  z3ed patch changes.bps --rom=zelda3.sfc      # Apply BPS patch" << std::endl;
+    std::cout << "  z3ed extract patch.asm                       # Extract symbols" << std::endl;
+    std::cout << "  z3ed validate patch.asm                      # Validate assembly" << std::endl;
+    std::cout << "  z3ed info --rom=zelda3.sfc                   # Show ROM info" << std::endl;
+    std::cout << "  z3ed convert 0x008000 --to-pc                # Convert address" << std::endl;
+    std::cout << std::endl;
+    std::cout << "For more information on a specific command:" << std::endl;
+    std::cout << "  z3ed help <command>" << std::endl;
+  }
+
+  absl::Status RunCommand(const std::string& command, const std::vector<std::string>& args) {
+    auto it = commands_.find(command);
+    if (it == commands_.end()) {
+      return absl::NotFoundError(absl::StrFormat("Unknown command: %s", command));
+    }
+    
+    return it->second.handler(args);
+  }
+
+ private:
+  std::map<std::string, CommandInfo> commands_;
+
+  absl::Status HandleAsarCommand(const std::vector<std::string>& args) {
+    if (args.empty()) {
+      return absl::InvalidArgumentError("Asar command requires a patch file");
+    }
+
+    AsarPatch handler;
+    std::vector<std::string> handler_args = args;
+    
+    // Add ROM file from flag if not provided as argument
+    std::string rom_file = absl::GetFlag(FLAGS_rom);
+    if (args.size() == 1 && !rom_file.empty()) {
+      handler_args.push_back(rom_file);
+    }
+    
+    return handler.Run(handler_args);
+  }
+
+  absl::Status HandlePatchCommand(const std::vector<std::string>& args) {
+    if (args.empty()) {
+      return absl::InvalidArgumentError("Patch command requires a BPS file");
+    }
+
+    ApplyPatch handler;
+    std::vector<std::string> handler_args = args;
+    
+    std::string rom_file = absl::GetFlag(FLAGS_rom);
+    if (args.size() == 1 && !rom_file.empty()) {
+      handler_args.push_back(rom_file);
+    }
+    
+    return handler.Run(handler_args);
+  }
+
+  absl::Status HandleExtractCommand(const std::vector<std::string>& args) {
+    if (args.empty()) {
+      return absl::InvalidArgumentError("Extract command requires an assembly file");
+    }
+
+    // Use the AsarWrapper to extract symbols
+    yaze::app::core::AsarWrapper wrapper;
+    RETURN_IF_ERROR(wrapper.Initialize());
+    
+    auto symbols_result = wrapper.ExtractSymbols(args[0]);
+    if (!symbols_result.ok()) {
+      return symbols_result.status();
+    }
+
+    const auto& symbols = symbols_result.value();
+    std::cout << "🏷️  Extracted " << symbols.size() << " symbols from " << args[0] << ":" << std::endl;
+    std::cout << std::endl;
+    
+    for (const auto& symbol : symbols) {
+      std::cout << absl::StrFormat("  %-20s @ $%06X", symbol.name, symbol.address) << std::endl;
+    }
+    
+    return absl::OkStatus();
+  }
+
+  absl::Status HandleValidateCommand(const std::vector<std::string>& args) {
+    if (args.empty()) {
+      return absl::InvalidArgumentError("Validate command requires an assembly file");
+    }
+
+    yaze::app::core::AsarWrapper wrapper;
+    RETURN_IF_ERROR(wrapper.Initialize());
+    
+    auto status = wrapper.ValidateAssembly(args[0]);
+    if (status.ok()) {
+      std::cout << "✅ Assembly file is valid: " << args[0] << std::endl;
+    } else {
+      std::cout << "❌ Assembly validation failed:" << std::endl;
+      std::cout << "   " << status.message() << std::endl;
+    }
+    
+    return status;
+  }
+
+  absl::Status HandleInfoCommand(const std::vector<std::string>& args) {
+    std::string rom_file = absl::GetFlag(FLAGS_rom);
+    if (!args.empty()) {
+      rom_file = args[0];
+    }
+    
+    if (rom_file.empty()) {
+      return absl::InvalidArgumentError("ROM file required (use --rom=<file> or provide as argument)");
+    }
+
+    Open handler;
+    return handler.Run({rom_file});
+  }
+
+  absl::Status HandleConvertCommand(const std::vector<std::string>& args) {
+    if (args.empty()) {
+      return absl::InvalidArgumentError("Convert command requires an address");
+    }
+
+    // TODO: Implement address conversion
+    std::cout << "Address conversion not yet implemented" << std::endl;
+    return absl::UnimplementedError("Address conversion functionality");
+  }
+
+  absl::Status HandleHelpCommand(const std::vector<std::string>& args) {
+    std::string command = args.empty() ? "" : args[0];
+    ShowHelp(command);
+    return absl::OkStatus();
+  }
+};
+
+}  // namespace cli
+}  // namespace yaze
+
+int main(int argc, char* argv[]) {
+  absl::SetProgramUsageMessage(
+    "z3ed - Yet Another Zelda3 Editor CLI Tool\n"
+    "\n"
+    "A command-line tool for editing The Legend of Zelda: A Link to the Past ROMs.\n"
+    "Supports Asar 65816 assembly patching, BPS patches, and ROM analysis.\n"
+    "\n"
+    "Use --tui to launch the interactive text interface, or run commands directly.\n"
+  );
+
+  auto args = absl::ParseCommandLine(argc, argv);
+  
+  yaze::cli::ModernCLI cli;
+
+  // Handle version flag
+  if (absl::GetFlag(FLAGS_version)) {
+    cli.ShowVersion();
+    return 0;
+  }
+
+  // Handle TUI flag
+  if (absl::GetFlag(FLAGS_tui)) {
+    yaze::cli::ShowMain();
+    return 0;
+  }
+
+  // Handle command line arguments
+  if (args.size() < 2) {
+    cli.ShowHelp();
+    return 0;
+  }
+
+  std::string command = args[1];
+  std::vector<std::string> command_args(args.begin() + 2, args.end());
+
+  auto status = cli.RunCommand(command, command_args);
+  if (!status.ok()) {
+    std::cerr << "Error: " << status.message() << std::endl;
+    
+    if (status.code() == absl::StatusCode::kNotFound) {
+      std::cerr << std::endl;
+      std::cerr << "Available commands:" << std::endl;
+      cli.ShowHelp();
+    }
+    
+    return 1;
+  }
+
+  return 0;
+}

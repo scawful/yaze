@@ -4,7 +4,7 @@
 
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
-#include "test/test_editor.h"
+#include "test_editor.h"
 
 int main(int argc, char* argv[]) {
   absl::InitializeSymbolizer(argv[0]);

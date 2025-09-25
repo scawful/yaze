@@ -3,7 +3,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "test/testing.h"
+#include "testing.h"
 #include "yaze.h"
 
 namespace yaze {

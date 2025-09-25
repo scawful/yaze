@@ -5,7 +5,7 @@
 
 #include "app/emu/memory/asm_parser.h"
 #include "app/emu/memory/memory.h"
-#include "test/mocks/mock_memory.h"
+#include "mocks/mock_memory.h"
 
 namespace yaze {
 namespace test {

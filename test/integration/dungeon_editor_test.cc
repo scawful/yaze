@@ -1,4 +1,4 @@
-#include "test/integration/dungeon_editor_test.h"
+#include "integration/dungeon_editor_test.h"
 
 #include <cstring>
 #include <vector>

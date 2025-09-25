@@ -1,12 +1,12 @@
 #include "test_dungeon_objects.h"
-#include "test/mocks/mock_rom.h"
+#include "mocks/mock_rom.h"
 #include "app/zelda3/dungeon/object_parser.h"
 #include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/dungeon/room_layout.h"
 #include "app/gfx/snes_color.h"
 #include "app/gfx/snes_palette.h"
-#include "test/testing.h"
+#include "testing.h"
 
 #include <vector>
 #include <cstring>

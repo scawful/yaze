@@ -1,4 +1,4 @@
-#include "test/test_editor.h"
+#include "test_editor.h"
 
 #include <SDL.h>
 

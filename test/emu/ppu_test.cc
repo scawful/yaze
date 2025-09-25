@@ -2,7 +2,7 @@
 
 #include <gmock/gmock.h>
 
-#include "test/mocks/mock_memory.h"
+#include "mocks/mock_memory.h"
 
 namespace yaze {
 namespace test {

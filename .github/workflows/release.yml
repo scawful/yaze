@@ -1,0 +1,274 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag'
+        required: true
+        default: 'v0.3.0'
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      release_id: ${{ steps.create_release.outputs.id }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        # Generate changelog from commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -z "$LAST_TAG" ]; then
+          CHANGES=$(git log --pretty=format:"- %s" HEAD)
+        else
+          CHANGES=$(git log --pretty=format:"- %s" ${LAST_TAG}..HEAD)
+        fi
+        
+        cat > release_notes.md << EOF
+        # Yaze v0.3.0 Release Notes
+        
+        ## New Features
+        - **Asar 65816 Assembler Integration**: Full cross-platform support for ROM patching with assembly code
+        - **Symbol Extraction**: Extract symbol names and opcodes from assembly files
+        - **ZSCustomOverworld v3 Support**: Enhanced overworld editing capabilities
+        - **Message Editing**: Improved text editing interface
+        - **GUI Docking**: Enhanced docking system for better workflow
+        - **Modern CMake Build System**: Updated to CMake 3.16+ with improved cross-platform support
+        
+        ## Improvements
+        - Enhanced cross-platform compatibility (Windows, macOS, Linux)
+        - Modernized CI/CD pipeline with comprehensive testing
+        - Improved error handling and logging
+        - Better memory management and performance optimizations
+        
+        ## Bug Fixes
+        - Fixed Asar integration issues across different platforms
+        - Resolved build system inconsistencies
+        - Improved stability and reliability
+        
+        ## Technical Changes
+        $CHANGES
+        
+        ## Download Instructions
+        
+        ### Windows
+        - Download \`yaze-windows-x64.zip\` for 64-bit Windows
+        - Download \`yaze-windows-x86.zip\` for 32-bit Windows
+        - Extract and run \`yaze.exe\`
+        
+        ### macOS
+        - Download \`yaze-macos.dmg\` 
+        - Mount the DMG and drag Yaze to Applications
+        - You may need to allow the app in System Preferences > Security & Privacy
+        
+        ### Linux
+        - Download \`yaze-linux-x64.tar.gz\`
+        - Extract: \`tar -xzf yaze-linux-x64.tar.gz\`
+        - Run: \`./yaze\`
+        
+        ## System Requirements
+        - **Windows**: Windows 10 or later (64-bit recommended)
+        - **macOS**: macOS 10.15 (Catalina) or later
+        - **Linux**: Ubuntu 20.04 or equivalent, with X11 or Wayland
+        
+        ## Support
+        For issues and questions, please visit our [GitHub Issues](https://github.com/scawful/yaze/issues) page.
+        EOF
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name || github.event.inputs.tag }}
+        release_name: Yaze ${{ github.ref_name || github.event.inputs.tag }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: ${{ contains(github.ref_name || github.event.inputs.tag, 'beta') || contains(github.ref_name || github.event.inputs.tag, 'alpha') || contains(github.ref_name || github.event.inputs.tag, 'rc') }}
+
+  build-release:
+    name: Build Release
+    needs: create-release
+    strategy:
+      matrix:
+        include:
+          - name: "Windows x64"
+            os: windows-2022
+            vcpkg_triplet: x64-windows
+            cmake_generator: "Visual Studio 17 2022"
+            cmake_generator_platform: x64
+            artifact_name: "yaze-windows-x64"
+            artifact_path: "build/bin/Release/"
+            package_cmd: |
+              mkdir package
+              cp -r build/bin/Release/* package/
+              cp assets/yaze.png package/
+              cp LICENSE package/
+              cp README.md package/
+              cd package && 7z a ../yaze-windows-x64.zip *
+            
+          - name: "Windows x86"
+            os: windows-2022
+            vcpkg_triplet: x86-windows
+            cmake_generator: "Visual Studio 17 2022"
+            cmake_generator_platform: Win32
+            artifact_name: "yaze-windows-x86"
+            artifact_path: "build/bin/Release/"
+            package_cmd: |
+              mkdir package
+              cp -r build/bin/Release/* package/
+              cp assets/yaze.png package/
+              cp LICENSE package/
+              cp README.md package/
+              cd package && 7z a ../yaze-windows-x86.zip *
+            
+          - name: "macOS Universal"
+            os: macos-14
+            vcpkg_triplet: arm64-osx
+            artifact_name: "yaze-macos"
+            artifact_path: "build/bin/"
+            package_cmd: |
+              # Create macOS app bundle and DMG
+              mkdir -p "Yaze.app/Contents/MacOS"
+              mkdir -p "Yaze.app/Contents/Resources"
+              cp build/bin/yaze "Yaze.app/Contents/MacOS/"
+              cp assets/yaze.png "Yaze.app/Contents/Resources/"
+              cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
+              
+              # Create DMG
+              mkdir dmg_staging
+              cp -r Yaze.app dmg_staging/
+              cp LICENSE dmg_staging/
+              cp README.md dmg_staging/
+              hdiutil create -srcfolder dmg_staging -format UDZO -volname "Yaze v0.3.0" yaze-macos.dmg
+            
+          - name: "Linux x64"
+            os: ubuntu-22.04
+            artifact_name: "yaze-linux-x64"
+            artifact_path: "build/bin/"
+            package_cmd: |
+              mkdir package
+              cp build/bin/yaze package/
+              cp -r assets package/
+              cp LICENSE package/
+              cp README.md package/
+              tar -czf yaze-linux-x64.tar.gz -C package .
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    # Platform-specific dependency installation
+    - name: Install Linux dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          ninja-build \
+          pkg-config \
+          libglew-dev \
+          libxext-dev \
+          libwavpack-dev \
+          libabsl-dev \
+          libboost-all-dev \
+          libpng-dev \
+          python3-dev \
+          libpython3-dev \
+          libasound2-dev \
+          libpulse-dev \
+          libx11-dev \
+          libxrandr-dev \
+          libxcursor-dev \
+          libxinerama-dev \
+          libxi-dev
+
+    - name: Set up vcpkg (Windows)
+      if: runner.os == 'Windows'
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
+
+    # Configure CMake
+    - name: Configure CMake (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DYAZE_BUILD_TESTS=OFF \
+          -GNinja
+
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        cmake -B build ^
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
+          -DYAZE_BUILD_TESTS=OFF ^
+          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake ^
+          -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} ^
+          -G "${{ matrix.cmake_generator }}" ^
+          -A ${{ matrix.cmake_generator_platform }}
+
+    # Build
+    - name: Build
+      run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+    # Package
+    - name: Package
+      shell: bash
+      run: ${{ matrix.package_cmd }}
+
+    # Upload to release
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./${{ matrix.artifact_name }}.*
+        asset_name: ${{ matrix.artifact_name }}.${{ runner.os == 'Windows' && 'zip' || (runner.os == 'macOS' && 'dmg' || 'tar.gz') }}
+        asset_content_type: application/octet-stream
+
+  publish-packages:
+    name: Publish Packages
+    needs: [create-release, build-release]
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: Update release status
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.repos.updateRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: ${{ needs.create-release.outputs.release_id }},
+            draft: false
+          });
+
+    - name: Announce release
+      run: |
+        echo "🎉 Yaze ${{ github.ref_name || github.event.inputs.tag }} has been released!"
+        echo "📦 Packages are now available for download"
+        echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name || github.event.inputs.tag }}"
