@@ -1,7 +1,9 @@
 #include "app/test/test_manager.h"
 
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_cat.h"
 #include "app/gfx/arena.h"
+#include "app/gui/icons.h"
 #include "imgui/imgui.h"
 
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
@@ -274,6 +276,17 @@ void TestManager::DrawTestDashboard() {
   
   ImGui::Begin("Test Dashboard", &show_dashboard_, ImGuiWindowFlags_MenuBar);
   
+  // ROM status indicator
+  bool has_rom = current_rom_ && current_rom_->is_loaded();
+  if (has_rom) {
+    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), 
+                      "%s ROM Loaded: %s", ICON_MD_CHECK_CIRCLE, current_rom_->title().c_str());
+  } else {
+    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), 
+                      "%s No ROM loaded - ROM-dependent tests will be skipped", ICON_MD_WARNING);
+  }
+  ImGui::Separator();
+  
   // Menu bar
   if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu("Run")) {
@@ -321,25 +334,46 @@ void TestManager::DrawTestDashboard() {
   // Enhanced test execution status
   if (is_running_) {
     ImGui::PushStyleColor(ImGuiCol_Text, GetTestStatusColor(TestStatus::kRunning));
-    ImGui::Text("⚡ Running: %s", current_test_name_.c_str());
+    ImGui::Text("%s Running: %s", ICON_MD_PLAY_CIRCLE_FILLED, current_test_name_.c_str());
     ImGui::PopStyleColor();
     ImGui::ProgressBar(progress_, ImVec2(-1, 0), 
                       absl::StrFormat("%.0f%%", progress_ * 100.0f).c_str());
   } else {
     // Enhanced control buttons
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
-    if (ImGui::Button("🚀 Run All Tests", ImVec2(140, 0))) {
+    if (ImGui::Button(absl::StrCat(ICON_MD_PLAY_ARROW, " Run All Tests").c_str(), ImVec2(140, 0))) {
       [[maybe_unused]] auto status = RunAllTests();
     }
     ImGui::PopStyleColor();
     
     ImGui::SameLine();
-    if (ImGui::Button("🧪 Quick Test", ImVec2(100, 0))) {
+    if (ImGui::Button(absl::StrCat(ICON_MD_SPEED, " Quick Test").c_str(), ImVec2(100, 0))) {
       [[maybe_unused]] auto status = RunTestsByCategory(TestCategory::kMemory);
     }
     
     ImGui::SameLine();
-    if (ImGui::Button("🗑️ Clear", ImVec2(80, 0))) {
+    bool has_rom = current_rom_ && current_rom_->is_loaded();
+    if (has_rom) {
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
+    }
+    if (ImGui::Button(absl::StrCat(ICON_MD_STORAGE, " ROM Tests").c_str(), ImVec2(100, 0))) {
+      if (has_rom) {
+        [[maybe_unused]] auto status = RunTestsByCategory(TestCategory::kIntegration);
+      }
+    }
+    if (has_rom) {
+      ImGui::PopStyleColor();
+    }
+    if (ImGui::IsItemHovered()) {
+      if (has_rom) {
+        ImGui::SetTooltip("Run tests on current ROM: %s", current_rom_->title().c_str());
+      } else {
+        ImGui::SetTooltip("Load a ROM to enable ROM-dependent tests");
+      }
+    }
+    
+    ImGui::SameLine();
+    if (ImGui::Button(absl::StrCat(ICON_MD_CLEAR, " Clear").c_str(), ImVec2(80, 0))) {
       ClearResults();
     }
   }
@@ -349,7 +383,7 @@ void TestManager::DrawTestDashboard() {
   // Enhanced test results summary with better visuals
   if (last_results_.total_tests > 0) {
     // Test summary header
-    ImGui::Text("📊 Test Results Summary");
+    ImGui::Text("%s Test Results Summary", ICON_MD_ASSESSMENT);
     
     // Progress bar showing pass rate
     float pass_rate = last_results_.GetPassRate();
@@ -363,18 +397,18 @@ void TestManager::DrawTestDashboard() {
     ImGui::PopStyleColor();
     
     // Test counts with icons
-    ImGui::Text("📈 Total: %zu", last_results_.total_tests);
+    ImGui::Text("%s Total: %zu", ICON_MD_ANALYTICS, last_results_.total_tests);
     ImGui::SameLine();
     ImGui::TextColored(GetTestStatusColor(TestStatus::kPassed), 
-                      "✅ %zu", last_results_.passed_tests);
+                      "%s %zu", ICON_MD_CHECK_CIRCLE, last_results_.passed_tests);
     ImGui::SameLine();
     ImGui::TextColored(GetTestStatusColor(TestStatus::kFailed), 
-                      "❌ %zu", last_results_.failed_tests);
+                      "%s %zu", ICON_MD_ERROR, last_results_.failed_tests);
     ImGui::SameLine();
     ImGui::TextColored(GetTestStatusColor(TestStatus::kSkipped), 
-                      "⏭️ %zu", last_results_.skipped_tests);
+                      "%s %zu", ICON_MD_SKIP_NEXT, last_results_.skipped_tests);
     
-    ImGui::Text("⏱️ Duration: %lld ms", last_results_.total_duration.count());
+    ImGui::Text("%s Duration: %lld ms", ICON_MD_TIMER, last_results_.total_duration.count());
     
     // Test suite breakdown
     if (ImGui::CollapsingHeader("Test Suite Breakdown")) {
@@ -399,7 +433,7 @@ void TestManager::DrawTestDashboard() {
   ImGui::Separator();
   
   // Enhanced test filter with category selection
-  ImGui::Text("🔍 Filter & View Options");
+  ImGui::Text("%s Filter & View Options", ICON_MD_FILTER_LIST);
   
   // Category filter
   const char* categories[] = {"All", "Unit", "Integration", "UI", "Performance", "Memory"};
@@ -449,12 +483,12 @@ void TestManager::DrawTestDashboard() {
         ImGui::PushID(&result);
         
         // Status icon and test name
-        const char* status_icon = "❓";
+        const char* status_icon = ICON_MD_HELP;
         switch (result.status) {
-          case TestStatus::kPassed: status_icon = "✅"; break;
-          case TestStatus::kFailed: status_icon = "❌"; break;
-          case TestStatus::kSkipped: status_icon = "⏭️"; break;
-          case TestStatus::kRunning: status_icon = "⚡"; break;
+          case TestStatus::kPassed: status_icon = ICON_MD_CHECK_CIRCLE; break;
+          case TestStatus::kFailed: status_icon = ICON_MD_ERROR; break;
+          case TestStatus::kSkipped: status_icon = ICON_MD_SKIP_NEXT; break;
+          case TestStatus::kRunning: status_icon = ICON_MD_PLAY_CIRCLE_FILLED; break;
           default: break;
         }
         
@@ -475,7 +509,7 @@ void TestManager::DrawTestDashboard() {
         if (result.status == TestStatus::kFailed && !result.error_message.empty()) {
           ImGui::Indent();
           ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.8f, 1.0f));
-          ImGui::TextWrapped("💥 %s", result.error_message.c_str());
+          ImGui::TextWrapped("%s %s", ICON_MD_ERROR_OUTLINE, result.error_message.c_str());
           ImGui::PopStyleColor();
           ImGui::Unindent();
         }
@@ -484,7 +518,7 @@ void TestManager::DrawTestDashboard() {
         if (result.status == TestStatus::kPassed && !result.error_message.empty()) {
           ImGui::Indent();
           ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 1.0f, 0.8f, 1.0f));
-          ImGui::TextWrapped("ℹ️ %s", result.error_message.c_str());
+          ImGui::TextWrapped("%s %s", ICON_MD_INFO, result.error_message.c_str());
           ImGui::PopStyleColor();
           ImGui::Unindent();
         }
@@ -499,14 +533,14 @@ void TestManager::DrawTestDashboard() {
   
   // Resource monitor window
   if (show_resource_monitor_) {
-    ImGui::Begin("Resource Monitor", &show_resource_monitor_);
+    ImGui::Begin(absl::StrCat(ICON_MD_MONITOR, " Resource Monitor").c_str(), &show_resource_monitor_);
     
     if (!resource_history_.empty()) {
       const auto& latest = resource_history_.back();
-      ImGui::Text("Textures: %zu", latest.texture_count);
-      ImGui::Text("Surfaces: %zu", latest.surface_count);
-      ImGui::Text("Memory: %zu MB", latest.memory_usage_mb);
-      ImGui::Text("FPS: %.1f", latest.frame_rate);
+      ImGui::Text("%s Textures: %zu", ICON_MD_TEXTURE, latest.texture_count);
+      ImGui::Text("%s Surfaces: %zu", ICON_MD_LAYERS, latest.surface_count);
+      ImGui::Text("%s Memory: %zu MB", ICON_MD_MEMORY, latest.memory_usage_mb);
+      ImGui::Text("%s FPS: %.1f", ICON_MD_SPEED, latest.frame_rate);
       
       // Simple plot of resource usage over time
       if (resource_history_.size() > 1) {

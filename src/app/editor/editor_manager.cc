@@ -22,6 +22,7 @@
 #include "app/rom.h"
 #include "app/test/test_manager.h"
 #include "app/test/integrated_test_suite.h"
+#include "app/test/rom_dependent_test_suite.h"
 #ifdef YAZE_ENABLE_GTEST
 #include "app/test/unit_test_suite.h"
 #endif
@@ -118,6 +119,7 @@ void EditorManager::InitializeTestSuites() {
   test_manager.RegisterTestSuite(std::make_unique<test::PerformanceTestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::UITestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::ArenaTestSuite>());
+  test_manager.RegisterTestSuite(std::make_unique<test::RomDependentTestSuite>());
   
   // Register Google Test suite if available
 #ifdef YAZE_ENABLE_GTEST
@@ -833,6 +835,9 @@ absl::Status EditorManager::LoadRom() {
   }
   current_rom_ = &session.rom;
   current_editor_set_ = &session.editors;
+  
+  // Update test manager with current ROM for ROM-dependent tests
+  test::TestManager::Get().SetCurrentRom(current_rom_);
 
   static RecentFilesManager manager("recent_files.txt");
   manager.Load();
@@ -956,6 +961,10 @@ absl::Status EditorManager::SetCurrentRom(Rom *rom) {
     if (&session.rom == rom) {
       current_rom_ = &session.rom;
       current_editor_set_ = &session.editors;
+      
+      // Update test manager with current ROM for ROM-dependent tests
+      test::TestManager::Get().SetCurrentRom(current_rom_);
+      
       return absl::OkStatus();
     }
   }

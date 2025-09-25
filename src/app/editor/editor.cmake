@@ -26,5 +26,6 @@ set(
   app/editor/system/popup_manager.cc
   app/test/test_manager.cc
   app/test/integrated_test_suite.h
+  app/test/rom_dependent_test_suite.h
   app/test/unit_test_suite.h
 )
