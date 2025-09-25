@@ -58,6 +58,7 @@ absl::Status OverworldMap::BuildMap(int count, int game_state, int world,
   RETURN_IF_ERROR(BuildTileset())
   RETURN_IF_ERROR(BuildTiles16Gfx(tiles16, count))
   RETURN_IF_ERROR(LoadPalette());
+  RETURN_IF_ERROR(LoadVanillaOverlay());
   RETURN_IF_ERROR(BuildBitmap(world_blockset))
   built_ = true;
   return absl::OkStatus();
@@ -821,6 +822,138 @@ absl::Status OverworldMap::LoadPalette() {
         main, animated, aux1, aux2, bgr, hud, spr, spr2, current_palette_};
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status OverworldMap::LoadVanillaOverlay() {
+  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  
+  // Only load vanilla overlays if this is a vanilla ROM (asm_version == 0xFF)
+  if (asm_version != 0xFF) {
+    has_vanilla_overlay_ = false;
+    vanilla_overlay_id_ = 0;
+    vanilla_overlay_data_.clear();
+    return absl::OkStatus();
+  }
+  
+  // Load vanilla overlay for this map
+  int address = (kOverlayPointersBank << 16) +
+                ((*rom_)[kOverlayPointers + (index_ * 2) + 1] << 8) +
+                (*rom_)[kOverlayPointers + (index_ * 2)];
+  
+  // Convert SNES address to PC address
+  address = ((address & 0x7F0000) >> 1) | (address & 0x7FFF);
+  
+  // Check if custom overlay code is present
+  if ((*rom_)[kOverlayData1] == 0x6B) {
+    // Use custom overlay data pointer
+    address = ((*rom_)[kOverlayData2 + 2 + (index_ * 3)] << 16) +
+              ((*rom_)[kOverlayData2 + 1 + (index_ * 3)] << 8) +
+              (*rom_)[kOverlayData2 + (index_ * 3)];
+    address = ((address & 0x7F0000) >> 1) | (address & 0x7FFF);
+  }
+  
+  // Validate address
+  if (address >= rom_->size()) {
+    has_vanilla_overlay_ = false;
+    vanilla_overlay_id_ = 0;
+    vanilla_overlay_data_.clear();
+    return absl::OkStatus();
+  }
+  
+  // Parse overlay data
+  vanilla_overlay_data_.clear();
+  uint8_t b = (*rom_)[address];
+  
+  // Parse overlay commands until we hit END (0x60)
+  while (b != 0x60 && address < rom_->size()) {
+    vanilla_overlay_data_.push_back(b);
+    
+    // Handle different overlay commands
+    switch (b) {
+      case 0xA9:  // LDA #$
+        if (address + 2 < rom_->size()) {
+          vanilla_overlay_data_.push_back((*rom_)[address + 1]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 2]);
+          address += 3;
+        } else {
+          address++;
+        }
+        break;
+      case 0xA2:  // LDX #$
+        if (address + 2 < rom_->size()) {
+          vanilla_overlay_data_.push_back((*rom_)[address + 1]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 2]);
+          address += 3;
+        } else {
+          address++;
+        }
+        break;
+      case 0x8D:  // STA $xxxx
+        if (address + 3 < rom_->size()) {
+          vanilla_overlay_data_.push_back((*rom_)[address + 1]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 2]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 3]);
+          address += 4;
+        } else {
+          address++;
+        }
+        break;
+      case 0x9D:  // STA $xxxx,x
+        if (address + 3 < rom_->size()) {
+          vanilla_overlay_data_.push_back((*rom_)[address + 1]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 2]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 3]);
+          address += 4;
+        } else {
+          address++;
+        }
+        break;
+      case 0x8F:  // STA $xxxxxx
+        if (address + 4 < rom_->size()) {
+          vanilla_overlay_data_.push_back((*rom_)[address + 1]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 2]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 3]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 4]);
+          address += 5;
+        } else {
+          address++;
+        }
+        break;
+      case 0x1A:  // INC A
+        address++;
+        break;
+      case 0x4C:  // JMP
+        if (address + 3 < rom_->size()) {
+          vanilla_overlay_data_.push_back((*rom_)[address + 1]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 2]);
+          vanilla_overlay_data_.push_back((*rom_)[address + 3]);
+          address += 4;
+        } else {
+          address++;
+        }
+        break;
+      default:
+        address++;
+        break;
+    }
+    
+    if (address < rom_->size()) {
+      b = (*rom_)[address];
+    } else {
+      break;
+    }
+  }
+  
+  // Add the END command if we found it
+  if (b == 0x60) {
+    vanilla_overlay_data_.push_back(0x60);
+  }
+  
+  // Set overlay ID based on map index (simplified)
+  vanilla_overlay_id_ = index_;
+  has_vanilla_overlay_ = !vanilla_overlay_data_.empty();
+  
   return absl::OkStatus();
 }
 

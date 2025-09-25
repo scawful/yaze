@@ -36,6 +36,13 @@ constexpr int OverworldCustomTileGFXGroupEnabled = 0x140148;  // 1 byte, not 0 i
 constexpr int OverworldCustomMosaicArray = 0x140200;  // 1 byte for each overworld area (0xA0)
 constexpr int OverworldCustomMosaicEnabled = 0x140142;  // 1 byte, not 0 if enabled
 
+// Vanilla overlay constants
+constexpr int kOverlayPointers = 0x77664;  // 2 bytes for each overworld area (0x100)
+constexpr int kOverlayPointersBank = 0x0E;  // Bank for overlay pointers
+constexpr int kOverlayData1 = 0x77676;  // Check for custom overlay code
+constexpr int kOverlayData2 = 0x77677;  // Custom overlay data pointer
+constexpr int kOverlayCodeStart = 0x77657;  // Start of overlay code
+
 // 1 byte for each overworld area (0xA0)
 constexpr int OverworldCustomMainPaletteArray = 0x140160;
 // 1 byte, not 0 if enabled
@@ -98,6 +105,7 @@ class OverworldMap : public gfx::GfxContext {
 
   void LoadAreaGraphics();
   absl::Status LoadPalette();
+  absl::Status LoadVanillaOverlay();
   absl::Status BuildTileset();
   absl::Status BuildTiles16Gfx(std::vector<gfx::Tile16>& tiles16, int count);
   absl::Status BuildBitmap(OverworldBlockset& world_blockset);
@@ -139,6 +147,15 @@ class OverworldMap : public gfx::GfxContext {
   void set_animated_gfx(uint8_t gfx) { animated_gfx_ = gfx; }
 
   auto custom_tileset(int index) const { return custom_gfx_ids_[index]; }
+  
+  // Vanilla overlay accessors
+  auto vanilla_overlay_id() const { return vanilla_overlay_id_; }
+  auto has_vanilla_overlay() const { return has_vanilla_overlay_; }
+  const auto& vanilla_overlay_data() const { return vanilla_overlay_data_; }
+
+  // Mosaic expanded accessors
+  const std::array<bool, 4>& mosaic_expanded() const { return mosaic_expanded_; }
+  void set_mosaic_expanded(int index, bool value) { mosaic_expanded_[index] = value; }
   void set_custom_tileset(int index, uint8_t value) { custom_gfx_ids_[index] = value; }
 
   auto mutable_current_graphics() { return &current_gfx_; }
@@ -216,6 +233,9 @@ class OverworldMap : public gfx::GfxContext {
     static_graphics_.fill(0);
     mosaic_expanded_.fill(false);
     area_size_ = AreaSizeEnum::SmallArea;
+    vanilla_overlay_id_ = 0;
+    has_vanilla_overlay_ = false;
+    vanilla_overlay_data_.clear();
   }
 
  private:
@@ -266,6 +286,11 @@ class OverworldMap : public gfx::GfxContext {
   std::array<uint8_t, 16> static_graphics_;
 
   std::array<bool, 4> mosaic_expanded_;
+
+  // Vanilla overlay support
+  uint16_t vanilla_overlay_id_ = 0;
+  bool has_vanilla_overlay_ = false;
+  std::vector<uint8_t> vanilla_overlay_data_;
 
   std::vector<uint8_t> current_blockset_;
   std::vector<uint8_t> current_gfx_;

@@ -6,6 +6,7 @@
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/overworld/tile16_editor.h"
+#include "app/editor/overworld/map_properties.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tilemap.h"
@@ -77,6 +78,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   explicit OverworldEditor(Rom* rom) : rom_(rom) {
     type_ = EditorType::kOverworld;
     gfx_group_editor_.set_rom(rom);
+    // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are ready
   }
 
   void Initialize() override;
@@ -161,6 +163,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawCustomBackgroundColorEditor();
   void DrawOverlayEditor();
   void DrawMapLockControls();
+  void DrawOverlayPreview();
+  void DrawOverlayPreviewOnMap();
   void DrawOverworldContextMenu();
   void DrawSimplifiedMapSettings();
   void DrawMapPropertiesPanel();
@@ -227,6 +231,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool show_overlay_editor_ = false;
   bool use_area_specific_bg_color_ = false;
   bool show_map_properties_panel_ = false;
+  bool show_overlay_preview_ = false;
+
+  // Map properties system for UI organization
+  std::unique_ptr<MapPropertiesSystem> map_properties_system_;
 
   gfx::Tilemap tile16_blockset_;
 
