@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <string>
-#include <string_view>
 
 namespace yaze {
 
@@ -45,7 +44,7 @@ class GameEntity {
   virtual void UpdateMapProperties(uint16_t map_id) = 0;
 };
 
-constexpr std::string_view kEntranceNames[] = {
+constexpr const char* kEntranceNames[] = {
     "Link's House Intro",
     "Link's House Post-intro",
     "Sanctuary",

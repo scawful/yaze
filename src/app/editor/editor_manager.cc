@@ -892,7 +892,7 @@ void EditorManager::DrawMenuBar() {
         SetTooltip("Sessions: %zu active\nClick to switch between sessions", sessions_.size());
       }
       SameLine();
-      ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+      ImGui::Separator();
       SameLine();
     }
     
@@ -927,7 +927,7 @@ void EditorManager::DrawMenuBar() {
     
     // Settings and version (using pre-calculated positioning)
     SameLine(GetWindowWidth() - total_right_width);
-    ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+    ImGui::Separator();
     SameLine();
     
     PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));

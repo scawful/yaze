@@ -1,34 +1,25 @@
 #include "dungeon_object_selector.h"
 
-#include "absl/strings/str_format.h"
+#include <iterator>
+
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
-#include "app/gui/color.h"
-#include "app/gui/icons.h"
-#include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/dungeon_editor_system.h"
 #include "app/zelda3/dungeon/dungeon_object_editor.h"
 #include "imgui/imgui.h"
-#include "util/hex.h"
 
 namespace yaze::editor {
 
-using core::Renderer;
-
 using ImGui::BeginChild;
-using ImGui::BeginTabBar;
-using ImGui::BeginTabItem;
-using ImGui::Button;
 using ImGui::EndChild;
 using ImGui::EndTabBar;
 using ImGui::EndTabItem;
 using ImGui::Separator;
-using ImGui::Text;
 
 void DungeonObjectSelector::DrawTileSelector() {
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
@@ -51,55 +42,31 @@ void DungeonObjectSelector::DrawTileSelector() {
 }
 
 void DungeonObjectSelector::DrawObjectRenderer() {
+  // Create a comprehensive object browser with previews
   if (ImGui::BeginTable("DungeonObjectEditorTable", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV, ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("Dungeon Objects", ImGuiTableColumnFlags_WidthStretch, ImGui::GetContentRegionAvail().x);
-    ImGui::TableSetupColumn("Canvas");
+    ImGui::TableSetupColumn("Object Browser", ImGuiTableColumnFlags_WidthFixed, 280);
+    ImGui::TableSetupColumn("Preview Canvas", ImGuiTableColumnFlags_WidthStretch);
 
+    // Left column: Object browser with previews
     ImGui::TableNextColumn();
-    BeginChild("DungeonObjectButtons", ImVec2(250, 0), true);
-
-    static int selected_object = 0;
-    int i = 0;
-    for (const auto object_name : zelda3::Type1RoomObjectNames) {
-      if (ImGui::Selectable(object_name.data(), selected_object == i)) {
-        selected_object = i;
-
-        // Create a test object and render it
-        auto test_object = zelda3::RoomObject(i, 8, 8, 0x12, 0);  // Center in canvas
-        test_object.set_rom(rom_);
-        test_object.EnsureTilesLoaded();
-
-        // Get current palette
-        if (rom_ && rom_->is_loaded()) {
-          auto palette = rom_->palette_group().dungeon_main[current_palette_group_id_];
-
-          // Render object preview
-          auto result = object_renderer_.GetObjectPreview(test_object, palette);
-          if (result.ok()) {
-            object_loaded_ = true;
-            preview_object_ = test_object;  // Store for rendering
-            preview_palette_ = palette;
-          }
-        }
-      }
-      i += 1;
-    }
-
+    BeginChild("ObjectBrowser", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    
+    DrawObjectBrowser();
+    
     EndChild();
 
-    // Right side of the table - Canvas
+    // Right column: Large preview canvas
     ImGui::TableNextColumn();
-    BeginChild("DungeonObjectCanvas", ImVec2(276, 0x10 * 0x40 + 1), true);
+    BeginChild("PreviewCanvas", ImVec2(0, 0), true);
 
     object_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
     object_canvas_.DrawContextMenu();
     object_canvas_.DrawTileSelector(32);
     object_canvas_.DrawGrid(32.0f);
 
-    // Render object preview if available
+    // Render selected object preview
     if (object_loaded_ && preview_object_.id_ >= 0) {
-      // Render preview object at center of canvas (object_canvas_ is 256x256)
-      int preview_x = 128 - 16;  // Center horizontally (256/2 - 16 for 32x32 object)
+      int preview_x = 128 - 16;  // Center horizontally
       int preview_y = 128 - 16;  // Center vertically
 
       auto preview_result = object_renderer_.RenderObject(preview_object_, preview_palette_);
@@ -112,18 +79,175 @@ void DungeonObjectSelector::DrawObjectRenderer() {
     }
 
     object_canvas_.DrawOverlay();
-
     EndChild();
     ImGui::EndTable();
   }
 
+  // Object details window
   if (object_loaded_) {
-    ImGui::Begin("Object Preview", &object_loaded_, 0);
+    ImGui::Begin("Object Details", &object_loaded_, 0);
     ImGui::Text("Object ID: 0x%02X", preview_object_.id_);
     ImGui::Text("Position: (%d, %d)", preview_object_.x_, preview_object_.y_);
     ImGui::Text("Size: 0x%02X", preview_object_.size_);
     ImGui::Text("Layer: %d", static_cast<int>(preview_object_.layer_));
+    
+    // Add object placement controls
+    ImGui::Separator();
+    ImGui::Text("Placement Controls:");
+    static int place_x = 0, place_y = 0;
+    ImGui::InputInt("X Position", &place_x);
+    ImGui::InputInt("Y Position", &place_y);
+    
+    if (ImGui::Button("Place Object")) {
+      // TODO: Implement object placement in the main canvas
+      ImGui::Text("Object placed at (%d, %d)", place_x, place_y);
+    }
+    
     ImGui::End();
+  }
+}
+
+void DungeonObjectSelector::DrawObjectBrowser() {
+  static int selected_object_type = 0;
+  static int selected_object_id = 0;
+  
+  // Object type selector
+  const char* object_types[] = {"Type 1 (0x00-0xFF)", "Type 2 (0x100-0x1FF)", "Type 3 (0x200+)"};
+  if (ImGui::Combo("Object Type", &selected_object_type, object_types, 3)) {
+    selected_object_id = 0; // Reset selection when changing type
+  }
+  
+  ImGui::Separator();
+  
+  // Object list with previews
+  const int preview_size = 32; // 32x32 pixel preview
+  const int items_per_row = 4; // 4 items per row
+  
+  if (rom_ && rom_->is_loaded()) {
+    auto palette = rom_->palette_group().dungeon_main[current_palette_group_id_];
+    
+    // Determine object range based on type
+    int start_id, end_id;
+    switch (selected_object_type) {
+      case 0: start_id = 0x00; end_id = 0xFF; break;
+      case 1: start_id = 0x100; end_id = 0x1FF; break;
+      case 2: start_id = 0x200; end_id = 0x2FF; break;
+      default: start_id = 0x00; end_id = 0xFF; break;
+    }
+    
+    // Create a grid layout for object previews
+    int current_row = 0;
+    int current_col = 0;
+    
+    for (int obj_id = start_id; obj_id <= end_id && obj_id <= start_id + 63; ++obj_id) { // Limit to 64 objects for performance
+      // Create object for preview
+      auto test_object = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
+      test_object.set_rom(rom_);
+      test_object.EnsureTilesLoaded();
+      
+      // Calculate position in grid
+      float item_width = (ImGui::GetContentRegionAvail().x - (items_per_row - 1) * ImGui::GetStyle().ItemSpacing.x) / items_per_row;
+      float item_height = preview_size + 40; // Preview + text
+      
+      ImGui::PushID(obj_id);
+      
+      // Create a selectable button with preview
+      bool is_selected = (selected_object_id == obj_id);
+      if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_None, ImVec2(item_width, item_height))) {
+        selected_object_id = obj_id;
+        
+        // Update preview object
+        preview_object_ = test_object;
+        preview_palette_ = palette;
+        object_loaded_ = true;
+      }
+      
+      // Draw preview image
+      ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+      ImVec2 preview_pos = ImVec2(cursor_pos.x + (item_width - preview_size) / 2, 
+                                  cursor_pos.y - item_height + 5);
+      
+      // Try to render object preview
+      auto preview_result = object_renderer_.GetObjectPreview(test_object, palette);
+      if (preview_result.ok()) {
+        auto preview_bitmap = std::move(preview_result.value());
+        preview_bitmap.SetPalette(palette);
+        core::Renderer::Get().RenderBitmap(&preview_bitmap);
+        
+        // Draw preview using ImGui image
+        ImGui::SetCursorScreenPos(preview_pos);
+        ImGui::Image((ImTextureID)(intptr_t)preview_bitmap.texture(), 
+                     ImVec2(preview_size, preview_size));
+      } else {
+        // Draw placeholder if preview fails
+        ImGui::SetCursorScreenPos(preview_pos);
+        ImGui::GetWindowDrawList()->AddRectFilled(
+          preview_pos, 
+          ImVec2(preview_pos.x + preview_size, preview_pos.y + preview_size),
+          IM_COL32(64, 64, 64, 255));
+        ImGui::GetWindowDrawList()->AddText(
+          ImVec2(preview_pos.x + 8, preview_pos.y + 12),
+          IM_COL32(255, 255, 255, 255),
+          "?");
+      }
+      
+      // Draw object ID and name
+      ImGui::SetCursorScreenPos(ImVec2(cursor_pos.x + 2, cursor_pos.y - 25));
+      ImGui::Text("0x%03X", obj_id);
+      
+      // Try to get object name
+      std::string object_name = "Unknown";
+      if (obj_id < 0x100) { // Type1RoomObjectNames has 248 elements (0-247, 0x00-0xF7)
+        if (obj_id < std::size(zelda3::Type1RoomObjectNames)) {
+          const char* name_ptr = zelda3::Type1RoomObjectNames[obj_id];
+          if (name_ptr != nullptr) {
+            object_name = std::string(name_ptr);
+          }
+        }
+      } else if (obj_id < 0x140) { // Type2RoomObjectNames has 64 elements (0x100-0x13F)
+        int type2_index = obj_id - 0x100;
+        if (type2_index >= 0 && type2_index < std::size(zelda3::Type2RoomObjectNames)) {
+          const char* name_ptr = zelda3::Type2RoomObjectNames[type2_index];
+          if (name_ptr != nullptr) {
+            object_name = std::string(name_ptr);
+          }
+        }
+      } else if (obj_id < 0x1C0) { // Type3RoomObjectNames has 128 elements (0x140-0x1BF)
+        int type3_index = obj_id - 0x140;
+        if (type3_index >= 0 && type3_index < std::size(zelda3::Type3RoomObjectNames)) {
+          const char* name_ptr = zelda3::Type3RoomObjectNames[type3_index];
+          if (name_ptr != nullptr) {
+            object_name = std::string(name_ptr);
+          }
+        }
+      }
+      
+      ImGui::SetCursorScreenPos(ImVec2(cursor_pos.x + 2, cursor_pos.y - 10));
+      ImGui::Text("%s", object_name.c_str());
+      
+      ImGui::PopID();
+      
+      // Move to next position
+      current_col++;
+      if (current_col >= items_per_row) {
+        current_col = 0;
+        current_row++;
+        ImGui::NewLine();
+      } else {
+        ImGui::SameLine();
+      }
+    }
+  } else {
+    ImGui::Text("ROM not loaded");
+  }
+  
+  ImGui::Separator();
+  
+  // Selected object info
+  if (object_loaded_) {
+    ImGui::Text("Selected: 0x%03X", selected_object_id);
+    ImGui::Text("Layer: %d", static_cast<int>(preview_object_.layer_));
+    ImGui::Text("Size: 0x%02X", preview_object_.size_);
   }
 }
 
@@ -312,11 +436,11 @@ void DungeonObjectSelector::DrawCompactObjectEditor() {
   // Undo/Redo buttons
   Separator();
   if (ImGui::Button("Undo") && editor.CanUndo()) {
-    editor.Undo();
+    (void)editor.Undo();
   }
   ImGui::SameLine();
   if (ImGui::Button("Redo") && editor.CanRedo()) {
-    editor.Redo();
+    (void)editor.Redo();
   }
 }
 

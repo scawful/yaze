@@ -85,15 +85,24 @@ class DungeonEditor : public Editor {
   absl::Status UpdateDungeonRoomView();
 
   void DrawToolset();
-  void DrawRoomSelector();
-  void DrawEntranceSelector();
 
   void DrawDungeonTabView();
   void DrawDungeonCanvas(int room_id);
+  
+  // Room selection management
+  void OnRoomSelected(int room_id);
 
   void DrawRoomGraphics();
   void DrawTileSelector();
   void DrawObjectRenderer();
+  
+  // Object rendering methods
+  void RenderObjectInCanvas(const zelda3::RoomObject& object,
+                            const gfx::SnesPalette& palette);
+  void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x,
+                         int canvas_y);
+  void RenderLayoutObjects(const zelda3::RoomLayout& layout,
+                           const gfx::SnesPalette& palette);
   
   // New editing mode interfaces
   void DrawObjectEditor();
@@ -104,28 +113,18 @@ class DungeonEditor : public Editor {
   void DrawChestEditor();
   void DrawPropertiesEditor();
   
-  // Integrated editing panels
-  void DrawIntegratedEditingPanels();
-  void DrawCompactObjectEditor();
-  void DrawCompactSpriteEditor();
-  void DrawCompactItemEditor();
-  void DrawCompactEntranceEditor();
-  void DrawCompactDoorEditor();
-  void DrawCompactChestEditor();
-  void DrawCompactPropertiesEditor();
-
-  // Object rendering methods
-  void RenderObjectInCanvas(const zelda3::RoomObject& object,
-                            const gfx::SnesPalette& palette);
-  void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x,
-                         int canvas_y);
-  void RenderLayoutObjects(const zelda3::RoomLayout& layout,
-                           const gfx::SnesPalette& palette);
-  
   // Coordinate conversion helpers
   std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;
   std::pair<int, int> CanvasToRoomCoordinates(int canvas_x, int canvas_y) const;
   bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
+  
+  // Drag and select box functionality
+  void HandleCanvasMouseInput();
+  void DrawSelectBox();
+  void DrawDragPreview();
+  void UpdateSelectedObjects();
+  bool IsObjectInSelectBox(const zelda3::RoomObject& object) const;
+  void PlaceObjectAtPosition(int room_x, int room_y);
   
   // Room graphics management
   absl::Status LoadAndRenderRoomGraphics(int room_id);
@@ -182,6 +181,16 @@ class DungeonEditor : public Editor {
   bool object_loaded_ = false;
   bool palette_showing_ = false;
   bool refresh_graphics_ = false;
+  
+  // Drag and select box infrastructure
+  bool is_dragging_ = false;
+  bool is_selecting_ = false;
+  ImVec2 drag_start_pos_;
+  ImVec2 drag_current_pos_;
+  ImVec2 select_start_pos_;
+  ImVec2 select_current_pos_;
+  std::vector<int> selected_objects_;
+  int current_layer_ = 0; // 0 = BG1, 1 = BG2, 2 = Both
   
   // New editor system integration
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
