@@ -2,6 +2,7 @@
 #define YAZE_APP_TEST_TEST_MANAGER_H
 
 #include <chrono>
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -10,6 +11,7 @@
 #include "absl/status/status.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
 
 // Forward declarations
 namespace yaze {
@@ -165,7 +167,13 @@ class TestManager {
   void DrawTestDashboard();
 
   // ROM-dependent testing
-  void SetCurrentRom(Rom* rom) { current_rom_ = rom; }
+  void SetCurrentRom(Rom* rom) { 
+    util::logf("TestManager::SetCurrentRom called with ROM: %p", (void*)rom);
+    if (rom) {
+      util::logf("ROM title: '%s', loaded: %s", rom->title().c_str(), rom->is_loaded() ? "true" : "false");
+    }
+    current_rom_ = rom; 
+  }
   Rom* GetCurrentRom() const { return current_rom_; }
   void RefreshCurrentRom(); // Refresh ROM pointer from editor manager
   // Remove EditorManager dependency to avoid circular includes
@@ -174,10 +182,16 @@ class TestManager {
   absl::Status LoadRomForTesting(const std::string& filename);
   void ShowRomComparisonResults(const Rom& before, const Rom& after);
   
+  // Test ROM management
+  absl::Status CreateTestRomCopy(Rom* source_rom, std::unique_ptr<Rom>& test_rom);
+  std::string GenerateTestRomFilename(const std::string& base_name);
+  void OfferTestSessionCreation(const std::string& test_rom_path);
+  
  public:
-  // ROM testing methods
+  // ROM testing methods (work on copies, not originals)
   absl::Status TestRomSaveLoad(Rom* rom);
   absl::Status TestRomDataIntegrity(Rom* rom);
+  absl::Status TestRomWithCopy(Rom* source_rom, std::function<absl::Status(Rom*)> test_function);
 
  private:
   TestManager();
@@ -227,6 +241,8 @@ class TestManager {
   bool show_google_tests_ = false;
   bool show_rom_test_results_ = false;
   bool show_rom_file_dialog_ = false;
+  bool show_test_session_dialog_ = false;
+  std::string test_rom_path_for_session_;
 };
 
 // Utility functions for test result formatting

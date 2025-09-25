@@ -405,6 +405,8 @@ void DrawMenu(Menu& menu) {
               if (ImGui::MenuItem(each_subitem.name.c_str(),
                                   each_subitem.shortcut.c_str())) {
                 if (each_subitem.callback) each_subitem.callback();
+              } else if (each_subitem.name == kSeparator) {
+                ImGui::Separator();
               }
             }
             ImGui::EndMenu();
@@ -416,6 +418,8 @@ void DrawMenu(Menu& menu) {
                               each_item.shortcut.c_str(),
                               each_item.enabled_condition())) {
             if (each_item.callback) each_item.callback();
+          } else if (each_item.name == kSeparator) {
+            ImGui::Separator();
           }
         }
       }

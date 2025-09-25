@@ -30,6 +30,7 @@
 #include "editor/editor.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/log.h"
 #include "util/macro.h"
 
 namespace yaze {
@@ -668,6 +669,15 @@ absl::Status EditorManager::Update() {
   popup_manager_->DrawPopups();
   ExecuteShortcuts(context_.shortcut_manager);
   toast_manager_.Draw();
+  
+  // Ensure TestManager always has the current ROM
+  static Rom* last_test_rom = nullptr;
+  if (last_test_rom != current_rom_) {
+    util::logf("EditorManager::Update - ROM changed, updating TestManager: %p -> %p", 
+               (void*)last_test_rom, (void*)current_rom_);
+    test::TestManager::Get().SetCurrentRom(current_rom_);
+    last_test_rom = current_rom_;
+  }
 
   // Autosave timer
   if (autosave_enabled_ && current_rom_ && current_rom_->dirty()) {
@@ -1112,6 +1122,13 @@ absl::Status EditorManager::LoadRom() {
   current_editor_set_ = &session.editors;
   
   // Update test manager with current ROM for ROM-dependent tests
+  util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
+             (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
+  test::TestManager::Get().SetCurrentRom(current_rom_);
+  
+  // Update test manager with current ROM for ROM-dependent tests
+  util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
+             (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
   test::TestManager::Get().SetCurrentRom(current_rom_);
 
   static RecentFilesManager manager("recent_files.txt");
@@ -1203,6 +1220,11 @@ absl::Status EditorManager::OpenProject() {
   }
   current_rom_ = &session.rom;
   current_editor_set_ = &session.editors;
+  
+  // Update test manager with current ROM for ROM-dependent tests
+  util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
+             (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
+  test::TestManager::Get().SetCurrentRom(current_rom_);
 
   static RecentFilesManager manager("recent_files.txt");
   manager.Load();
@@ -1326,6 +1348,11 @@ void EditorManager::SwitchToSession(size_t index) {
   auto& session = sessions_[index];
   current_rom_ = &session.rom;
   current_editor_set_ = &session.editors;
+  
+  // Update test manager with current ROM for ROM-dependent tests
+  util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
+             (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
+  test::TestManager::Get().SetCurrentRom(current_rom_);
   test::TestManager::Get().SetCurrentRom(current_rom_);
   
   std::string session_name = current_rom_->title().empty() ? 

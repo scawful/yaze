@@ -418,36 +418,56 @@ class RomDependentTestSuite : public TestSuite {
     result.timestamp = start_time;
     
     try {
-      // Test comprehensive save functionality
-      // 1. Create backup of original ROM data  
-      auto original_data = rom->vector();
+      // Test comprehensive save functionality using ROM copy
+      auto& test_manager = TestManager::Get();
       
-      // 2. Test overworld modifications
-      zelda3::Overworld overworld(rom);
-      auto load_status = overworld.Load(rom);
-      if (!load_status.ok()) {
-        result.status = TestStatus::kFailed;
-        result.error_message = "Failed to load overworld: " + load_status.ToString();
-      } else {
-        // 3. Make a small, safe modification
+      auto test_status = test_manager.TestRomWithCopy(rom, [&](Rom* test_rom) -> absl::Status {
+        // Test overworld modifications on the copy
+        zelda3::Overworld overworld(test_rom);
+        auto load_status = overworld.Load(test_rom);
+        if (!load_status.ok()) {
+          return load_status;
+        }
+        
+        // Make modifications to the copy
         auto* test_map = overworld.mutable_overworld_map(0);
         uint8_t original_gfx = test_map->area_graphics();
         test_map->set_area_graphics(0x01); // Change to a different graphics set
         
-        // 4. Test save operations
+        // Test save operations
         auto save_maps_status = overworld.SaveOverworldMaps();
         auto save_props_status = overworld.SaveMapProperties();
         
-        // 5. Restore original value immediately
-        test_map->set_area_graphics(original_gfx);
-        
-        if (save_maps_status.ok() && save_props_status.ok()) {
-          result.status = TestStatus::kPassed;
-          result.error_message = "Save operations completed successfully";
-        } else {
-          result.status = TestStatus::kFailed;
-          result.error_message = "Save operations failed";
+        if (!save_maps_status.ok()) {
+          return save_maps_status;
         }
+        if (!save_props_status.ok()) {
+          return save_props_status;
+        }
+        
+        // Save the test ROM with timestamp
+        Rom::SaveSettings settings;
+        settings.backup = false;
+        settings.save_new = true;
+        settings.filename = test_manager.GenerateTestRomFilename(test_rom->title());
+        
+        auto save_file_status = test_rom->SaveToFile(settings);
+        if (!save_file_status.ok()) {
+          return save_file_status;
+        }
+        
+        // Offer to open test ROM in new session
+        test_manager.OfferTestSessionCreation(settings.filename);
+        
+        return absl::OkStatus();
+      });
+      
+      if (test_status.ok()) {
+        result.status = TestStatus::kPassed;
+        result.error_message = "Comprehensive save test completed successfully using ROM copy";
+      } else {
+        result.status = TestStatus::kFailed;
+        result.error_message = "Save test failed: " + test_status.ToString();
       }
       
     } catch (const std::exception& e) {
