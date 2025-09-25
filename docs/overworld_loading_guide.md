@@ -1,4 +1,4 @@
-# Overworld Loading Guide: ZScream vs Yaze
+# Overworld Loading Guide
 
 This document provides a comprehensive guide to understanding how overworld loading works in both ZScream (C#) and yaze (C++), including the differences between vanilla ROMs and ZSCustomOverworld v2/v3 ROMs.
 
@@ -316,6 +316,8 @@ public OverworldMap(byte index, Overworld overworld) {
 - `LoadPalette()`: Loads and processes palette data
 - `BuildMap()`: Constructs the final map bitmap
 
+**Note**: ZScream is the original C# implementation that yaze is designed to be compatible with.
+
 ## Yaze Implementation
 
 ### OverworldMap Constructor
@@ -336,6 +338,14 @@ OverworldMap::OverworldMap(int index, Rom* rom) : index_(index), rom_(rom) {
 - `LoadPalette()`: Loads and processes palette data
 - `BuildTileset()`: Constructs graphics tileset
 - `BuildBitmap()`: Creates the final map bitmap
+
+### Current Status
+
+✅ **ZSCustomOverworld v2/v3 Support**: Fully implemented and tested
+✅ **Vanilla ROM Support**: Complete compatibility maintained
+✅ **Overlay System**: Both vanilla and custom overlays supported
+✅ **Map Properties System**: Integrated with UI components
+✅ **Graphics Loading**: Optimized with caching and performance monitoring
 
 ## Key Differences
 

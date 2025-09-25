@@ -39,8 +39,18 @@ Dependencies are included as submodules and will be built automatically. For tho
 
 ## Documentation
 
-- For users, please refer to [getting_started.md](docs/getting-started.md) for instructions on how to use yaze.
-- For developers, please refer to the [documentation](https://scawful.github.io/yaze/index.html) for information on the project's infrastructure.
+- **[Getting Started](docs/getting-started.md)** - Basic setup and usage guide
+- **[Build Instructions](docs/build-instructions.md)** - Detailed build and installation guide
+- **[Documentation Index](docs/index.md)** - Complete documentation overview
+- **[Contributing](docs/contributing.md)** - How to contribute to the project
+
+### Key Documentation
+- **[Dungeon Editor Guide](docs/dungeon-editor-comprehensive-guide.md)** - Complete dungeon editing guide
+- **[Overworld Loading Guide](docs/overworld_loading_guide.md)** - ZSCustomOverworld implementation
+- **[Canvas Interface](docs/canvas-refactor-summary.md)** - Graphics system architecture
+- **[Integration Tests](docs/integration_test_guide.md)** - Testing framework
+
+For developers, see the [documentation index](docs/index.md) for a complete overview of all available documentation.
 
 License
 --------

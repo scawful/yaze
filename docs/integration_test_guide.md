@@ -1,4 +1,4 @@
-# Integration Test Suite Guide
+# Integration Test Guide
 
 This guide explains how to use yaze's integration test suite to validate ROM loading, overworld functionality, and ensure compatibility between vanilla and ZSCustomOverworld ROMs.
 
@@ -29,32 +29,23 @@ The integration test suite validates that yaze correctly loads and processes ROM
 
 ```
 test/zelda3/
-├── overworld_test.cc              # Unit tests for OverworldMap class
-├── overworld_integration_test.cc  # Integration tests with real ROMs
-├── sprite_position_test.cc        # Sprite coordinate system tests
-├── comprehensive_integration_test.cc  # Full ROM validation
-└── extract_vanilla_values.cc      # Utility to extract test values
+├── overworld_integration_test.cc     # Integration tests with real ROMs
+├── comprehensive_integration_test.cc # Full ROM validation
+├── dungeon_integration_test.cc       # Dungeon system integration tests
+├── dungeon_editor_system_integration_test.cc # Dungeon editor system tests
+└── extract_vanilla_values.cc         # Utility to extract test values
+
+test/integration/
+├── editor_integration_test.h/cc      # Base editor integration test framework
+├── dungeon_editor_test.h             # Dungeon editor integration tests
+└── test_editor.h/cc                  # Test editor framework
 ```
 
 ### Test Categories
 
-#### 1. Unit Tests (`overworld_test.cc`)
+#### 1. Integration Tests (`overworld_integration_test.cc`)
 
-Test individual components in isolation:
-
-```cpp
-TEST_F(OverworldTest, OverworldMapInitialization) {
-  OverworldMap map(0, rom_.get());
-  
-  EXPECT_EQ(map.area_graphics(), 0);
-  EXPECT_EQ(map.area_palette(), 0);
-  EXPECT_EQ(map.area_size(), AreaSizeEnum::SmallArea);
-}
-```
-
-#### 2. Integration Tests (`overworld_integration_test.cc`)
-
-Test with real ROM files:
+Test with real ROM files and validate overworld functionality:
 
 ```cpp
 TEST_F(OverworldIntegrationTest, VanillaROMLoading) {
@@ -69,21 +60,43 @@ TEST_F(OverworldIntegrationTest, VanillaROMLoading) {
 }
 ```
 
-#### 3. Sprite Tests (`sprite_position_test.cc`)
+#### 2. Comprehensive Integration Tests (`comprehensive_integration_test.cc`)
 
-Validate sprite coordinate systems:
+Full ROM validation with multiple ROM types:
 
 ```cpp
-TEST_F(SpritePositionTest, SpriteCoordinateSystem) {
-  // Load ROM and test sprite positioning
-  auto rom = LoadTestROM();
-  Overworld overworld(rom.get());
+TEST_F(ComprehensiveIntegrationTest, VanillaVsV3Comparison) {
+  // Compare vanilla and v3 ROM features
+  EXPECT_NE(vanilla_overworld_, nullptr);
+  EXPECT_NE(v3_overworld_, nullptr);
   
-  // Verify sprites are positioned correctly for each world
-  for (int game_state = 0; game_state < 3; game_state++) {
-    auto& sprites = *overworld.mutable_sprites(game_state);
-    // Test sprite coordinates and world filtering
+  // Test feature differences
+  TestFeatureDifferences();
+}
+```
+
+#### 3. Dungeon Integration Tests (`dungeon_integration_test.cc`)
+
+Test dungeon system functionality:
+
+```cpp
+TEST_F(DungeonIntegrationTest, DungeonRoomLoading) {
+  // Test loading dungeon rooms
+  for (int i = 0; i < kNumTestRooms; i++) {
+    // Test room loading and properties
   }
+}
+```
+
+#### 4. Dungeon Editor System Tests (`dungeon_editor_system_integration_test.cc`)
+
+Test the complete dungeon editor system:
+
+```cpp
+TEST_F(DungeonEditorSystemIntegrationTest, BasicInitialization) {
+  EXPECT_NE(dungeon_editor_system_, nullptr);
+  EXPECT_EQ(dungeon_editor_system_->GetROM(), rom_.get());
+  EXPECT_FALSE(dungeon_editor_system_->IsDirty());
 }
 ```
 
