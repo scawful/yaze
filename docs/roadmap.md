@@ -1,15 +1,22 @@
 # Roadmap
 
-## 0.2.X (Current)
-- Overworld Editing Features
-- Palette Editing Features
-- Hex Editing
+## 0.3.0 (Current - Released January 2025)
+- **Asar 65816 Assembler Integration**: Complete cross-platform ROM patching with assembly code
+- **ZSCustomOverworld v3**: Complete integration with enhanced overworld editing capabilities
+- **Advanced Message Editing**: Enhanced text editing interface with improved parsing
+- **GUI Docking System**: Improved docking and workspace management for better workflow
+- **Symbol Extraction**: Extract and analyze assembly symbols with addresses
+- **Enhanced CLI Tools**: Modern z3ed command-line interface with improved UX
+- **Modernized Build System**: CMake 3.16+ with professional packaging and CI/CD
+- **Testing Infrastructure**: Comprehensive test suite with ROM-dependent test separation
 
-## 0.3.X
-- Overworld Sprites: Complete sprite editing, add/remove functionality.
-- Tile16 Editing: Implement the core editor to create, modify, and store tile16 data.
-- Palette Editing: Finalize palette editor UI and saving of palette groups.
-- Dungeon Maps: Introduce map layouts and tile-based editing for dungeons.
+## 0.4.X (Next Major Release)
+- **Overworld Sprites**: Complete sprite editing, add/remove functionality
+- **Enhanced Dungeon Editing**: Advanced room object draw and edit functionality
+- **Tile16 Editing**: Enhanced editor for creating and modifying tile16 data
+- **Plugin Architecture**: Framework for community extensions and custom tools
+- **Graphics Sheets**: Complete editing, saving, and re-importing of sheets
+- **Project Refactoring**: Clean up resource loading and memory usage
 
 ## 0.4.X
 - Dungeon: Implement room object draw and edit functionality.
