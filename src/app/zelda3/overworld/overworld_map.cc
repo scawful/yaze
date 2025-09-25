@@ -486,8 +486,14 @@ void OverworldMap::LoadMainBlocksetId() {
   } else if (parent_ >= kDarkWorldMapIdStart &&
              parent_ < kSpecialWorldMapIdStart) {
     main_gfx_id_ = 0x21;
-  } else if (parent_ == 0x88) {
-    main_gfx_id_ = 0x24;
+  } else if (parent_ >= kSpecialWorldMapIdStart) {
+    // Special world maps - use appropriate graphics ID based on the specific map
+    if (parent_ == 0x88) {
+      main_gfx_id_ = 0x24;
+    } else {
+      // Default special world graphics ID
+      main_gfx_id_ = 0x20;
+    }
   }
 }
 
