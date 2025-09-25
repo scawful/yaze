@@ -118,7 +118,7 @@ void EditorManager::InitializeTestSuites() {
   test_manager.RegisterTestSuite(std::make_unique<test::IntegratedTestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::PerformanceTestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::UITestSuite>());
-  test_manager.RegisterTestSuite(std::make_unique<test::ArenaTestSuite>());
+  // test_manager.RegisterTestSuite(std::make_unique<test::ArenaTestSuite>()); // TODO: Implement ArenaTestSuite
   test_manager.RegisterTestSuite(std::make_unique<test::RomDependentTestSuite>());
   
   // Register Google Test suite if available
@@ -731,7 +731,7 @@ void EditorManager::DrawMenuBar() {
         SetTooltip("Sessions: %zu active\nClick to switch between sessions", sessions_.size());
       }
       SameLine();
-      SeparatorEx(ImGuiSeparatorFlags_Vertical);
+      ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
       SameLine();
     }
     
