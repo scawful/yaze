@@ -1,7 +1,5 @@
 var NAVTREEINDEX68 =
 {
-"structyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest_1_1PerformanceMetrics.html#ae4ab784f72245ec5c23e82045708f8a1":[23,0,0,9,12,0,0],
-"structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html":[22,0,2,9,4,0],
 "structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html":[23,0,0,9,1,0],
 "structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#a30c6224d4aad74849551834dd1e9350d":[22,0,2,9,4,0,0],
 "structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#a30c6224d4aad74849551834dd1e9350d":[23,0,0,9,1,0,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX68 =
 "structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html#afcd09d5ed9913b2e6f235003bf40a0f3":[23,0,0,9,0,0,1],
 "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html":[22,0,2,9,6,0],
 "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html":[23,0,0,9,3,0],
-"structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a067bebc95f001cc77e7d289411a36a04":[22,0,2,9,6,0,12]
+"structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a067bebc95f001cc77e7d289411a36a04":[22,0,2,9,6,0,12],
+"structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a067bebc95f001cc77e7d289411a36a04":[23,0,0,9,3,0,12],
+"structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a13fe63cbc1773ada9e5c4384afc4bc72":[22,0,2,9,6,0,11]
 };

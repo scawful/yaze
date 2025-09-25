@@ -1,7 +1,5 @@
 var NAVTREEINDEX59 =
 {
-"structyaze_1_1core_1_1FontConfig.html#ad913c3d8ec20cba8e275788f187d8366":[23,0,0,2,4,0],
-"structyaze_1_1core_1_1FontState.html":[22,0,2,2,6],
 "structyaze_1_1core_1_1FontState.html":[23,0,0,2,5],
 "structyaze_1_1core_1_1FontState.html#af17219adf12d5520031963b966cf8c5e":[22,0,2,2,6,0],
 "structyaze_1_1core_1_1FontState.html#af17219adf12d5520031963b966cf8c5e":[23,0,0,2,5,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX59 =
 "structyaze_1_1editor_1_1MessagePreview.html#aa7ace4ab40d90ad67b31271e1ae9fe3d":[23,0,0,3,26,2],
 "structyaze_1_1editor_1_1MessagePreview.html#abcd3265e6a359497a6564a70e956f6a7":[22,0,2,3,33,9],
 "structyaze_1_1editor_1_1MessagePreview.html#abcd3265e6a359497a6564a70e956f6a7":[23,0,0,3,26,9],
-"structyaze_1_1editor_1_1MessagePreview.html#abf6cc53c1b88d9e202cdf45b8219647f":[22,0,2,3,33,14]
+"structyaze_1_1editor_1_1MessagePreview.html#abf6cc53c1b88d9e202cdf45b8219647f":[22,0,2,3,33,14],
+"structyaze_1_1editor_1_1MessagePreview.html#abf6cc53c1b88d9e202cdf45b8219647f":[23,0,0,3,26,14],
+"structyaze_1_1editor_1_1MessagePreview.html#ae06e0ef26513c6ae401d444943c622c5":[22,0,2,3,33,1]
 };

@@ -1,7 +1,5 @@
 var NAVTREEINDEX58 =
 {
-"structTextEditor_1_1LanguageDefinition.html":[23,0,18,5],
-"structTextEditor_1_1LanguageDefinition.html#a2854052aa0b3b789c128895538e0bbe2":[23,0,18,5,4],
 "structTextEditor_1_1LanguageDefinition.html#a392b1db196a2fffbb3debc127238e8b0":[23,0,18,5,14],
 "structTextEditor_1_1LanguageDefinition.html#a42439c9419dc8c07138db9d86ea89fb1":[23,0,18,5,10],
 "structTextEditor_1_1LanguageDefinition.html#a56144eb2c6152d4321fd16f6c8bb7f19":[23,0,18,5,8],
@@ -249,5 +247,7 @@ var NAVTREEINDEX58 =
 "structyaze_1_1core_1_1FontConfig.html#a465df9ee52ec656957f2fcdd7e73dcd2":[23,0,0,2,4,1],
 "structyaze_1_1core_1_1FontConfig.html#a6e6fb82265e1a9aec0d341a64de11d72":[22,0,2,2,5,2],
 "structyaze_1_1core_1_1FontConfig.html#a6e6fb82265e1a9aec0d341a64de11d72":[23,0,0,2,4,2],
-"structyaze_1_1core_1_1FontConfig.html#ad913c3d8ec20cba8e275788f187d8366":[22,0,2,2,5,0]
+"structyaze_1_1core_1_1FontConfig.html#ad913c3d8ec20cba8e275788f187d8366":[22,0,2,2,5,0],
+"structyaze_1_1core_1_1FontConfig.html#ad913c3d8ec20cba8e275788f187d8366":[23,0,0,2,4,0],
+"structyaze_1_1core_1_1FontState.html":[22,0,2,2,6]
 };

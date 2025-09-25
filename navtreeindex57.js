@@ -1,7 +1,5 @@
 var NAVTREEINDEX57 =
 {
-"namespaceyaze_1_1zelda3.html#afadca5ab4c613870ade817abe2b4970d":[22,0,2,9,305],
-"namespaceyaze_1_1zelda3.html#afb146342cacf46d40b28803479fbf122":[22,0,2,9,183],
 "namespaceyaze_1_1zelda3.html#afb3914a46a860f9e4443527da4635be6":[22,0,2,9,133],
 "namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496":[22,0,2,9,61],
 "namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496a2a4319d5ee5621ed86d66df859d32370":[22,0,2,9,61,1],
@@ -249,5 +247,7 @@ var NAVTREEINDEX57 =
 "structTextEditor_1_1Glyph.html#ac73459bb7dd69fa94409b5bd7009f5fc":[23,0,18,3,4],
 "structTextEditor_1_1Identifier.html":[23,0,18,4],
 "structTextEditor_1_1Identifier.html#ae3be0995cbd2d21feeb354e722861b4a":[23,0,18,4,1],
-"structTextEditor_1_1Identifier.html#afbad4ba28dc97b44cd3347b9ca87d59b":[23,0,18,4,0]
+"structTextEditor_1_1Identifier.html#afbad4ba28dc97b44cd3347b9ca87d59b":[23,0,18,4,0],
+"structTextEditor_1_1LanguageDefinition.html":[23,0,18,5],
+"structTextEditor_1_1LanguageDefinition.html#a2854052aa0b3b789c128895538e0bbe2":[23,0,18,5,4]
 };

@@ -1,7 +1,5 @@
 var NAVTREEINDEX64 =
 {
-"structyaze_1_1emu_1_1W12SEL.html#af81fdbd4d7efcc855dd2752fee88dbca":[23,0,0,4,89,7],
-"structyaze_1_1emu_1_1W34SEL.html":[22,0,2,4,92],
 "structyaze_1_1emu_1_1W34SEL.html":[23,0,0,4,90],
 "structyaze_1_1emu_1_1W34SEL.html#a0ed0884fb3f4a82a7fa243cfd870ae1f":[22,0,2,4,92,0],
 "structyaze_1_1emu_1_1W34SEL.html#a0ed0884fb3f4a82a7fa243cfd870ae1f":[23,0,0,4,90,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX64 =
 "structyaze_1_1gfx_1_1Tilemap.html#a405a4d2abe5d7e2618e2d2dcf715913c":[23,0,0,5,18,1],
 "structyaze_1_1gfx_1_1Tilemap.html#a96c1a0624b30cf8883b2f4718609fb62":[22,0,2,5,20,4],
 "structyaze_1_1gfx_1_1Tilemap.html#a96c1a0624b30cf8883b2f4718609fb62":[23,0,0,5,18,4],
-"structyaze_1_1gfx_1_1Tilemap.html#ad1dcf60d4ca3d385ee232da8af4281ea":[22,0,2,5,20,0]
+"structyaze_1_1gfx_1_1Tilemap.html#ad1dcf60d4ca3d385ee232da8af4281ea":[22,0,2,5,20,0],
+"structyaze_1_1gfx_1_1Tilemap.html#ad1dcf60d4ca3d385ee232da8af4281ea":[23,0,0,5,18,0],
+"structyaze_1_1gfx_1_1Tilemap.html#aed69c7cdbc0fd42afbf89edc2e40beee":[22,0,2,5,20,2]
 };

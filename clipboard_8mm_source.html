@@ -117,46 +117,46 @@ $(function(){initNavTree('clipboard_8mm_source.html',''); initResizable(true); }
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#ifdef TARGET_OS_MAC</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#import &lt;Cocoa/Cocoa.h&gt;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac">yaze::core::CopyImageToClipboard</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; pngData) {</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>  NSData* data = [NSData dataWithBytes:pngData.data() length:pngData.size()];</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  NSImage* image = [[NSImage alloc] initWithData:data];</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  [pasteboard clearContents];</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  [pasteboard writeObjects:@[ image ]];</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>}</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550">yaze::core::GetImageFromClipboard</a>(std::vector&lt;uint8_t&gt;&amp; pixel_data, <span class="keywordtype">int</span>&amp; width, <span class="keywordtype">int</span>&amp; height) {</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  NSArray* classArray = [NSArray arrayWithObject:[NSImage <span class="keyword">class</span>]];</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  NSDictionary* options = [NSDictionary dictionary];</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  NSImage* image = [pasteboard readObjectsForClasses:classArray options:options].firstObject;</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keywordflow">if</span> (!image) {</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    width = height = 0;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  }</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="comment">// Assuming the image is in an RGBA format</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  CGImageRef cgImage = [image CGImageForProposedRect:nil context:nil hints:nil];</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  width = (int)CGImageGetWidth(cgImage);</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  height = (int)CGImageGetHeight(cgImage);</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="keywordtype">size_t</span> bytesPerRow = 4 * width;</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keywordtype">size_t</span> totalBytes = bytesPerRow * height;</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  pixel_data.resize(totalBytes);</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  CGContextRef context = CGBitmapContextCreate(</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>      pixel_data.data(), width, height, 8, bytesPerRow, CGColorSpaceCreateDeviceRGB(),</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>      kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  CGContextDrawImage(context, CGRectMake(0, 0, width, height), cgImage);</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  CGContextRelease(context);</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>}</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#if YAZE_LIB_PNG == 1</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keywordtype">void</span> yaze::core::CopyImageToClipboard(<span class="keyword">const</span> std::vector&lt;uint8_t&gt;&amp; pngData) {</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  NSData* data = [NSData dataWithBytes:pngData.data() length:pngData.size()];</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  NSImage* image = [[NSImage alloc] initWithData:data];</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  [pasteboard clearContents];</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  [pasteboard writeObjects:@[ image ]];</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>}</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keywordtype">void</span> yaze::core::GetImageFromClipboard(std::vector&lt;uint8_t&gt;&amp; pixel_data, <span class="keywordtype">int</span>&amp; width, <span class="keywordtype">int</span>&amp; height) {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  NSPasteboard* pasteboard = [NSPasteboard generalPasteboard];</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  NSArray* classArray = [NSArray arrayWithObject:[NSImage <span class="keyword">class</span>]];</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  NSDictionary* options = [NSDictionary dictionary];</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  NSImage* image = [pasteboard readObjectsForClasses:classArray options:options].firstObject;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keywordflow">if</span> (!image) {</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    width = height = 0;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  }</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="comment">// Assuming the image is in an RGBA format</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  CGImageRef cgImage = [image CGImageForProposedRect:nil context:nil hints:nil];</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  width = (int)CGImageGetWidth(cgImage);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  height = (int)CGImageGetHeight(cgImage);</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keywordtype">size_t</span> bytesPerRow = 4 * width;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <span class="keywordtype">size_t</span> totalBytes = bytesPerRow * height;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  pixel_data.resize(totalBytes);</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  CGContextRef context = CGBitmapContextCreate(</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>      pixel_data.data(), width, height, 8, bytesPerRow, CGColorSpaceCreateDeviceRGB(),</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  CGContextDrawImage(context, CGRectMake(0, 0, width, height), cgImage);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  CGContextRelease(context);</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>}</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_LIB_PNG</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="preprocessor">#endif  </span><span class="comment">// TARGET_OS_MAC</span></div>
 <div class="ttc" id="aclipboard_8h_html"><div class="ttname"><a href="clipboard_8h.html">clipboard.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1core_html_a224033814dd0a65e514ab48d90bcc550"><div class="ttname"><a href="namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550">yaze::core::GetImageFromClipboard</a></div><div class="ttdeci">void GetImageFromClipboard(std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height)</div><div class="ttdef"><b>Definition</b> <a href="clipboard_8cc_source.html#l00010">clipboard.cc:10</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1core_html_a421cc759aa63272bf0079eddf0d32eac"><div class="ttname"><a href="namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac">yaze::core::CopyImageToClipboard</a></div><div class="ttdeci">void CopyImageToClipboard(const std::vector&lt; uint8_t &gt; &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="clipboard_8cc_source.html#l00009">clipboard.cc:9</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

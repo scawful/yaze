@@ -24,8 +24,6 @@ var namespaceyaze_1_1core =
       [ "kWindows", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648aad547616982f990862d4e1213452c089", null ],
       [ "kLinux", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648ae3f917d82e495f1c002357925ca3047e", null ]
     ] ],
-    [ "CopyImageToClipboard", "namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac", null ],
-    [ "GetImageFromClipboard", "namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550", null ],
     [ "GetFileExtension", "namespaceyaze_1_1core.html#abc62834eb5824227302b2f2e7f5b375d", null ],
     [ "GetFileName", "namespaceyaze_1_1core.html#a91b15ab541fc413b5208c32d750b87c8", null ],
     [ "LoadFile", "namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c", null ],

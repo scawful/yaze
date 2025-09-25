@@ -1,7 +1,5 @@
 var NAVTREEINDEX70 =
 {
-"testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7":[24,0,4,12,1],
-"testing_8h_source.html":[24,0,4,12],
 "text__editor_8cc.html":[24,0,3,0,4,0,2],
 "text__editor_8cc.html#adf4d73301961430d50d7edd96f92ce38":[24,0,3,0,4,0,2,0],
 "text__editor_8cc.html#aeac7f529776b9f402e3ee7c09eb4d6ed":[24,0,3,0,4,0,2,1],

@@ -118,16 +118,16 @@ $(function(){initNavTree('clipboard_8h_source.html',''); initResizable(true); })
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1core.html">core</a> {</div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac">CopyImageToClipboard</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;data);</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550">GetImageFromClipboard</a>(std::vector&lt;uint8_t&gt; &amp;data, <span class="keywordtype">int</span> &amp;width, <span class="keywordtype">int</span> &amp;height);</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>}  <span class="comment">// namespace core</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_CORE_PLATFORM_CLIPBOARD_H</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#if YAZE_LIB_PNG == 1</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keywordtype">void</span> CopyImageToClipboard(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;data);</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keywordtype">void</span> GetImageFromClipboard(std::vector&lt;uint8_t&gt; &amp;data, <span class="keywordtype">int</span> &amp;width, <span class="keywordtype">int</span> &amp;height);</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>}  <span class="comment">// namespace core</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_CORE_PLATFORM_CLIPBOARD_H</span></div>
 <div class="ttc" id="anamespaceyaze_1_1core_html"><div class="ttname"><a href="namespaceyaze_1_1core.html">yaze::core</a></div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00013">controller.cc:13</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1core_html_a224033814dd0a65e514ab48d90bcc550"><div class="ttname"><a href="namespaceyaze_1_1core.html#a224033814dd0a65e514ab48d90bcc550">yaze::core::GetImageFromClipboard</a></div><div class="ttdeci">void GetImageFromClipboard(std::vector&lt; uint8_t &gt; &amp;data, int &amp;width, int &amp;height)</div><div class="ttdef"><b>Definition</b> <a href="clipboard_8cc_source.html#l00010">clipboard.cc:10</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1core_html_a421cc759aa63272bf0079eddf0d32eac"><div class="ttname"><a href="namespaceyaze_1_1core.html#a421cc759aa63272bf0079eddf0d32eac">yaze::core::CopyImageToClipboard</a></div><div class="ttdeci">void CopyImageToClipboard(const std::vector&lt; uint8_t &gt; &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="clipboard_8cc_source.html#l00009">clipboard.cc:9</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00013">asar_wrapper.cc:13</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

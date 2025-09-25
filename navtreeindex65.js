@@ -1,7 +1,5 @@
 var NAVTREEINDEX65 =
 {
-"structyaze_1_1gfx_1_1Tilemap.html#ad1dcf60d4ca3d385ee232da8af4281ea":[23,0,0,5,18,0],
-"structyaze_1_1gfx_1_1Tilemap.html#aed69c7cdbc0fd42afbf89edc2e40beee":[22,0,2,5,20,2],
 "structyaze_1_1gfx_1_1Tilemap.html#aed69c7cdbc0fd42afbf89edc2e40beee":[23,0,0,5,18,2],
 "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html":[22,0,2,5,1,0],
 "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html":[23,0,0,5,0,0],
@@ -249,5 +247,7 @@ var NAVTREEINDEX65 =
 "structyaze_1_1gui_1_1Theme.html#a0efbbbc0d5af06341968b2c4854020ea":[23,0,0,6,18,2],
 "structyaze_1_1gui_1_1Theme.html#a0fe1cc105c7783470209cabba17e8151":[22,0,2,6,20,3],
 "structyaze_1_1gui_1_1Theme.html#a0fe1cc105c7783470209cabba17e8151":[23,0,0,6,18,3],
-"structyaze_1_1gui_1_1Theme.html#a10bb7d31bf9ccad213ec7fb0fd7e54cd":[22,0,2,6,20,1]
+"structyaze_1_1gui_1_1Theme.html#a10bb7d31bf9ccad213ec7fb0fd7e54cd":[22,0,2,6,20,1],
+"structyaze_1_1gui_1_1Theme.html#a10bb7d31bf9ccad213ec7fb0fd7e54cd":[23,0,0,6,18,1],
+"structyaze_1_1gui_1_1Theme.html#a19d8db966816f81777888981843eec6c":[22,0,2,6,20,0]
 };
