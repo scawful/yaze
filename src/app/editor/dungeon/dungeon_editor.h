@@ -45,7 +45,8 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
 class DungeonEditor : public Editor {
  public:
   explicit DungeonEditor(Rom* rom = nullptr)
-      : rom_(rom), object_renderer_(rom), preview_object_(0, 0, 0, 0, 0) {
+      : rom_(rom), object_renderer_(rom), preview_object_(0, 0, 0, 0, 0),
+        room_selector_(rom), canvas_viewer_(rom), object_selector_(rom) {
     type_ = EditorType::kDungeon;
     // Initialize the new dungeon editor system
     if (rom) {
@@ -67,7 +68,13 @@ class DungeonEditor : public Editor {
 
   void add_room(int i) { active_rooms_.push_back(i); }
 
-  void set_rom(Rom* rom) { rom_ = rom; }
+  void set_rom(Rom* rom) { 
+    rom_ = rom; 
+    // Update the new UI components with the new ROM
+    room_selector_.set_rom(rom_);
+    canvas_viewer_.SetRom(rom_);
+    object_selector_.SetRom(rom_);
+  }
   Rom* rom() const { return rom_; }
 
  private:
@@ -211,6 +218,11 @@ class DungeonEditor : public Editor {
   std::array<zelda3::Room, 0x128> rooms_ = {};
   std::array<zelda3::RoomEntrance, 0x8C> entrances_ = {};
   zelda3::ObjectRenderer object_renderer_;
+
+  // New UI components
+  DungeonRoomSelector room_selector_;
+  DungeonCanvasViewer canvas_viewer_;
+  DungeonObjectSelector object_selector_;
 
   absl::flat_hash_map<uint16_t, int> spriteset_usage_;
   absl::flat_hash_map<uint16_t, int> blockset_usage_;
