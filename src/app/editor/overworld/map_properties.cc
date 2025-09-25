@@ -351,6 +351,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
       }
     }
     
+    ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::EndPopup();
   }
 }
@@ -394,6 +395,7 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state, boo
       show_custom_bg_color_editor = !show_custom_bg_color_editor;
     }
     
+    ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::EndPopup();
   }
 }
@@ -472,7 +474,7 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map, bool& show_map_pr
     }
     HOVER_HINT("Open comprehensive properties editor");
 
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::EndPopup();
   }
 }
@@ -905,7 +907,7 @@ void MapPropertiesSystem::DrawViewPopup() {
     }
     HOVER_HINT("Toggle fullscreen canvas (F11)");
     
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::EndPopup();
   }
 }
@@ -939,7 +941,7 @@ void MapPropertiesSystem::DrawQuickAccessPopup() {
     }
     HOVER_HINT("Lock/unlock current map (Ctrl+L)");
     
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::EndPopup();
   }
 }
