@@ -241,7 +241,7 @@ var searchData=
   ['stretchspacing_238',['StretchSpacing',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a5155af2c0c1393af51be84ce99d46fff',1,'yaze::gui::GfxSheetAssetBrowser']]],
   ['strictpattern_239',['StrictPattern',['../structyaze_1_1editor_1_1TextElement.html#a7f7d33254435881f3cb341b8b0a865dc',1,'yaze::editor::TextElement']]],
   ['sub_5fcolor_5fwindow_240',['sub_color_window',['../structyaze_1_1emu_1_1CGWSEL.html#a7bba753237dc8918638100bf8e80c456',1,'yaze::emu::CGWSEL']]],
-  ['subcommands_241',['subcommands',['../structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html#a19db5aa9d2ba2f6e049c95eeb81cd5f1',1,'yaze::editor::CommandManager::CommandInfoOrPrefix']]],
+  ['subcommands_241',['subcommands',['../structyaze_1_1editor_1_1CommandManager_1_1CommandGroup.html#ad322d149bde4124e3babae25b0894019',1,'yaze::editor::CommandManager::CommandGroup']]],
   ['subfolders_242',['subfolders',['../structyaze_1_1editor_1_1FolderItem.html#aa6f3f7f16f1f4a3494fb4df7f147c990',1,'yaze::editor::FolderItem']]],
   ['subitems_243',['subitems',['../structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html#a7a1639633efed9a4947ab8e26c823b45',1,'yaze::gui::Canvas::ContextMenuItem::subitems'],['../structyaze_1_1gui_1_1MenuItem.html#a80ecd231e66eab7dc8816de6b0d2295e',1,'yaze::gui::MenuItem::subitems']]],
   ['subscreen_5foverlay_5f_244',['subscreen_overlay_',['../classyaze_1_1zelda3_1_1OverworldMap.html#aa50f9583b7396d68bc83f13cc4ee6207',1,'yaze::zelda3::OverworldMap']]],
