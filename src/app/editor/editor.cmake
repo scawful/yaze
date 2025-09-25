@@ -5,6 +5,11 @@ set(
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
   app/editor/dungeon/dungeon_object_selector.cc
+  app/editor/dungeon/dungeon_toolset.cc
+  app/editor/dungeon/dungeon_object_interaction.cc
+  app/editor/dungeon/dungeon_renderer.cc
+  app/editor/dungeon/dungeon_room_loader.cc
+  app/editor/dungeon/dungeon_usage_tracker.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/music/music_editor.cc

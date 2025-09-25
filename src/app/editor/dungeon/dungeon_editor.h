@@ -17,6 +17,11 @@
 #include "dungeon_room_selector.h"
 #include "dungeon_canvas_viewer.h"
 #include "dungeon_object_selector.h"
+#include "dungeon_toolset.h"
+#include "dungeon_object_interaction.h"
+#include "dungeon_renderer.h"
+#include "dungeon_room_loader.h"
+#include "dungeon_usage_tracker.h"
 
 namespace yaze {
 namespace editor {
@@ -46,7 +51,8 @@ class DungeonEditor : public Editor {
  public:
   explicit DungeonEditor(Rom* rom = nullptr)
       : rom_(rom), object_renderer_(rom), preview_object_(0, 0, 0, 0, 0),
-        room_selector_(rom), canvas_viewer_(rom), object_selector_(rom) {
+        room_selector_(rom), canvas_viewer_(rom), object_selector_(rom),
+        object_interaction_(&canvas_), renderer_(&canvas_, rom), room_loader_(rom) {
     type_ = EditorType::kDungeon;
     // Initialize the new dungeon editor system
     if (rom) {
@@ -84,8 +90,6 @@ class DungeonEditor : public Editor {
 
   absl::Status UpdateDungeonRoomView();
 
-  void DrawToolset();
-
   void DrawDungeonTabView();
   void DrawDungeonCanvas(int room_id);
   
@@ -100,112 +104,19 @@ class DungeonEditor : public Editor {
   void DrawTileSelector();
   void DrawObjectRenderer();
   
-  // Object rendering methods
-  void RenderObjectInCanvas(const zelda3::RoomObject& object,
-                            const gfx::SnesPalette& palette);
-  void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x,
-                         int canvas_y);
-  void RenderLayoutObjects(const zelda3::RoomLayout& layout,
-                           const gfx::SnesPalette& palette);
-  
-  // New editing mode interfaces
-  void DrawObjectEditor();
-  void DrawSpriteEditor();
-  void DrawItemEditor();
-  void DrawEntranceEditor();
-  void DrawDoorEditor();
-  void DrawChestEditor();
-  void DrawPropertiesEditor();
-  
-  // Coordinate conversion helpers
-  std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;
-  std::pair<int, int> CanvasToRoomCoordinates(int canvas_x, int canvas_y) const;
-  bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
-  
-  // Drag and select box functionality
-  void HandleCanvasMouseInput();
-  void DrawSelectBox();
-  void DrawDragPreview();
-  void UpdateSelectedObjects();
-  bool IsObjectInSelectBox(const zelda3::RoomObject& object) const;
-  void PlaceObjectAtPosition(int room_x, int room_y);
-  
-  // Object selection rectangle (like OverworldEditor)
-  void CheckForObjectSelection();
-  void DrawObjectSelectRect();
-  void SelectObjectsInRect();
-  
-  // Room graphics management
+  // Legacy methods (delegated to components)
   absl::Status LoadAndRenderRoomGraphics(int room_id);
   absl::Status ReloadAllRoomGraphics();
   absl::Status UpdateRoomBackgroundLayers(int room_id);
-  void RenderRoomBackgroundLayers(int room_id);
 
-  // Object rendering cache to avoid re-rendering the same objects
-  struct ObjectRenderCache {
-    int object_id;
-    int object_x, object_y, object_size;
-    uint64_t palette_hash;
-    gfx::Bitmap rendered_bitmap;
-    bool is_valid;
-  };
-
-  std::vector<ObjectRenderCache> object_render_cache_;
-  uint64_t last_palette_hash_ = 0;
-  
   // Object preview system
   zelda3::RoomObject preview_object_;
   gfx::SnesPalette preview_palette_;
-
-  void CalculateUsageStats();
-  void DrawUsageStats();
-  void DrawUsageGrid();
-  void RenderSetUsage(const absl::flat_hash_map<uint16_t, int>& usage_map,
-                      uint16_t& selected_set, int spriteset_offset = 0x00);
-
-  enum BackgroundType {
-    kNoBackground,
-    kBackground1,
-    kBackground2,
-    kBackground3,
-    kBackgroundAny,
-  };
-  
-  // Updated placement types to match new editor system
-  enum PlacementType { 
-    kNoType, 
-    kObject,    // Object editing mode
-    kSprite,    // Sprite editing mode
-    kItem,      // Item placement mode
-    kEntrance,  // Entrance/exit editing mode
-    kDoor,      // Door configuration mode
-    kChest,     // Chest management mode
-    kBlock      // Legacy block mode
-  };
-
-  int background_type_ = kNoBackground;
-  int placement_type_ = kNoType;
 
   bool is_loaded_ = false;
   bool object_loaded_ = false;
   bool palette_showing_ = false;
   bool refresh_graphics_ = false;
-  
-  // Drag and select box infrastructure
-  bool is_dragging_ = false;
-  bool is_selecting_ = false;
-  ImVec2 drag_start_pos_;
-  ImVec2 drag_current_pos_;
-  ImVec2 select_start_pos_;
-  ImVec2 select_current_pos_;
-  std::vector<int> selected_objects_;
-  int current_layer_ = 0; // 0 = BG1, 1 = BG2, 2 = Both
-  
-  // Object selection rectangle (like OverworldEditor)
-  bool object_select_active_ = false;
-  ImVec2 object_select_start_;
-  ImVec2 object_select_end_;
-  std::vector<size_t> selected_object_indices_;
   
   // New editor system integration
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
@@ -243,26 +154,17 @@ class DungeonEditor : public Editor {
   std::array<zelda3::RoomEntrance, 0x8C> entrances_ = {};
   zelda3::ObjectRenderer object_renderer_;
 
-  // New UI components
+  // UI components
   DungeonRoomSelector room_selector_;
   DungeonCanvasViewer canvas_viewer_;
   DungeonObjectSelector object_selector_;
-
-  absl::flat_hash_map<uint16_t, int> spriteset_usage_;
-  absl::flat_hash_map<uint16_t, int> blockset_usage_;
-  absl::flat_hash_map<uint16_t, int> palette_usage_;
-
-  std::vector<int64_t> room_size_pointers_;
-  std::vector<int64_t> room_sizes_;
-
-  uint16_t selected_blockset_ = 0xFFFF;  // 0xFFFF indicates no selection
-  uint16_t selected_spriteset_ = 0xFFFF;
-  uint16_t selected_palette_ = 0xFFFF;
-
-  uint64_t total_room_size_ = 0;
-
-  std::unordered_map<int, int> room_size_addresses_;
-  std::unordered_map<int, ImVec4> room_palette_;
+  
+  // Refactored components
+  DungeonToolset toolset_;
+  DungeonObjectInteraction object_interaction_;
+  DungeonRenderer renderer_;
+  DungeonRoomLoader room_loader_;
+  DungeonUsageTracker usage_tracker_;
 
   absl::Status status_;
 
