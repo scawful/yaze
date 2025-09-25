@@ -14,6 +14,9 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
+#include "dungeon_room_selector.h"
+#include "dungeon_canvas_viewer.h"
+#include "dungeon_object_selector.h"
 
 namespace yaze {
 namespace editor {
@@ -190,6 +193,7 @@ class DungeonEditor : public Editor {
   uint64_t current_palette_group_id_ = 0;
 
   ImVector<int> active_rooms_;
+  int current_active_room_tab_ = 0; // Track which room tab is currently active
 
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;

@@ -2,6 +2,9 @@ set(
   YAZE_APP_EDITOR_SRC
   app/editor/editor_manager.cc
   app/editor/dungeon/dungeon_editor.cc
+  app/editor/dungeon/dungeon_room_selector.cc
+  app/editor/dungeon/dungeon_canvas_viewer.cc
+  app/editor/dungeon/dungeon_object_selector.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/music/music_editor.cc
