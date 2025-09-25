@@ -62,7 +62,7 @@ var searchData=
   ['updatetransfertilecanvas_59',['UpdateTransferTileCanvas',['../classyaze_1_1editor_1_1Tile16Editor.html#a277c8c075ae907886686d6d17e8f3028',1,'yaze::editor::Tile16Editor']]],
   ['updateusagestats_60',['UpdateUsageStats',['../classyaze_1_1editor_1_1OverworldEditor.html#a14ae026e75243f19defc01df2f7523f2',1,'yaze::editor::OverworldEditor']]],
   ['uppercase_61',['uppercase',['../structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157',1,'yaze::util::HexStringParams']]],
-  ['us_62',['US',['../zelda_8h.html#a9b154d4f0904082e537a24b5ae25575da56de89a713ba25cddd89edd52fdf2eaa',1,'zelda.h']]],
+  ['us_62',['US',['../group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da56de89a713ba25cddd89edd52fdf2eaa',1,'zelda.h']]],
   ['usage_63',['Usage',['../md_docs_2asar-integration.html#autotoc_md4',1,'C++ API Usage'],['../md_docs_2testing-strategy.html#autotoc_md452',1,'CMake Preset Usage'],['../md_docs_2asar-integration.html#autotoc_md3',1,'Command Line Usage'],['../md_docs_2testing-strategy.html#autotoc_md451',1,'Command Line Usage']]],
   ['usage_64',['usage',['../structyaze_1_1cli_1_1CommandInfo.html#ae5b87522f7e23309fb1579ffd8c4eff4',1,'yaze::cli::CommandInfo']]],
   ['usage_20examples_65',['Usage Examples',['../md_docs_2canvas-refactor-summary.html#autotoc_md91',1,'5. &lt;tt&gt;canvas_example.cc&lt;/tt&gt; - Usage Examples'],['../md_docs_2dungeon-editor-comprehensive-guide.html#autotoc_md197',1,'Usage Examples']]],

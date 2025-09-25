@@ -124,7 +124,7 @@ Collaboration diagram for yaze::gfx::SnesColor:</div>
 <div class="center"><img src="classyaze_1_1gfx_1_1SnesColor__coll__graph.png" border="0" usemap="#ayaze_1_1gfx_1_1SnesColor_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1gfx_1_1SnesColor_coll__map" id="ayaze_1_1gfx_1_1SnesColor_coll__map">
 <area shape="rect" title="SNES Color container." alt="" coords="5,94,142,120"/>
-<area shape="rect" href="structsnes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="31,5,116,31"/>
+<area shape="rect" href="structsnes__color.html" title="SNES color in 15&#45;bit RGB format (BGR555)" alt="" coords="31,5,116,31"/>
 <area shape="poly" title=" " alt="" coords="76,47,76,94,71,94,71,47"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
@@ -177,7 +177,7 @@ Private Attributes</h2></td></tr>
 <div class="textblock"><p>SNES Color container. </p>
 <p>Used for displaying the color to the screen and writing the color to the <a class="el" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> file in the correct format.</p>
 <p>SNES colors may be represented in one of three formats:</p><ul>
-<li>Color data from the rom in a <a class="el" href="structsnes__color.html" title="Primitive of 16-bit RGB SNES color.">snes_color</a> struct</li>
+<li>Color data from the rom in a <a class="el" href="structsnes__color.html" title="SNES color in 15-bit RGB format (BGR555)">snes_color</a> struct</li>
 <li>Color data for displaying to the UI via ImVec4 </li>
 </ul>
 
@@ -237,7 +237,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="snes__color_8h_source.html#l00043">43</a> of file <a class="el" href="snes__color_8h_source.html">snes_color.h</a>.</p>
 
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00045">snes_color::blue</a>, <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="yaze_8h_source.html#l00046">snes_color::green</a>, <a class="el" href="snes__color_8h_source.html#l00025">yaze::gfx::kColorByteMax</a>, <a class="el" href="yaze_8h_source.html#l00044">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00083">rgb_</a>, and <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
+<p class="reference">References <a class="el" href="yaze_8h_source.html#l00218">snes_color::blue</a>, <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="yaze_8h_source.html#l00217">snes_color::green</a>, <a class="el" href="snes__color_8h_source.html#l00025">yaze::gfx::kColorByteMax</a>, <a class="el" href="yaze_8h_source.html#l00216">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00083">rgb_</a>, and <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -276,7 +276,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__color_8h_source.html#l00051">51</a> of file <a class="el" href="snes__color_8h_source.html">snes_color.h</a>.</p>
 
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00045">snes_color::blue</a>, <a class="el" href="snes__color_8cc_source.html#l00019">yaze::gfx::ConvertSnesToRgb()</a>, <a class="el" href="yaze_8h_source.html#l00046">snes_color::green</a>, <a class="el" href="yaze_8h_source.html#l00044">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00083">rgb_</a>, and <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
+<p class="reference">References <a class="el" href="yaze_8h_source.html#l00218">snes_color::blue</a>, <a class="el" href="snes__color_8cc_source.html#l00019">yaze::gfx::ConvertSnesToRgb()</a>, <a class="el" href="yaze_8h_source.html#l00217">snes_color::green</a>, <a class="el" href="yaze_8h_source.html#l00216">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00083">rgb_</a>, and <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -363,7 +363,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__color_8h_source.html#l00061">61</a> of file <a class="el" href="snes__color_8h_source.html">snes_color.h</a>.</p>
 
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00045">snes_color::blue</a>, <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="yaze_8h_source.html#l00046">snes_color::green</a>, <a class="el" href="snes__color_8h_source.html#l00026">yaze::gfx::kColorByteMaxF</a>, <a class="el" href="yaze_8h_source.html#l00044">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00083">rgb_</a>, <a class="el" href="snes__color_8h_source.html#l00085">rom_color_</a>, and <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
+<p class="reference">References <a class="el" href="yaze_8h_source.html#l00218">snes_color::blue</a>, <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="yaze_8h_source.html#l00217">snes_color::green</a>, <a class="el" href="snes__color_8h_source.html#l00026">yaze::gfx::kColorByteMaxF</a>, <a class="el" href="yaze_8h_source.html#l00216">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00083">rgb_</a>, <a class="el" href="snes__color_8h_source.html#l00085">rom_color_</a>, and <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -395,9 +395,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__color_8cc_source.html#l00101">101</a> of file <a class="el" href="snes__color_8cc_source.html">snes_color.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00045">snes_color::blue</a>, <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="yaze_8h_source.html#l00046">snes_color::green</a>, <a class="el" href="snes__color_8h_source.html#l00025">yaze::gfx::kColorByteMax</a>, <a class="el" href="snes__color_8h_source.html#l00086">modified</a>, <a class="el" href="yaze_8h_source.html#l00044">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00083">rgb_</a>, <a class="el" href="snes__color_8h_source.html#l00085">rom_color_</a>, and <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
+<p class="reference">References <a class="el" href="yaze_8h_source.html#l00218">snes_color::blue</a>, <a class="el" href="snes__color_8cc_source.html#l00033">yaze::gfx::ConvertRgbToSnes()</a>, <a class="el" href="yaze_8h_source.html#l00217">snes_color::green</a>, <a class="el" href="snes__color_8h_source.html#l00025">yaze::gfx::kColorByteMax</a>, <a class="el" href="snes__color_8h_source.html#l00086">modified</a>, <a class="el" href="yaze_8h_source.html#l00216">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00083">rgb_</a>, <a class="el" href="snes__color_8h_source.html#l00085">rom_color_</a>, and <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="snes__color_8cc_source.html#l00079">yaze::gfx::GetCgxColor()</a>, <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>, <a class="el" href="snes__palette_8cc_source.html#l00019">yaze::gfx::SnesPalette::SnesPalette()</a>, and <a class="el" href="snes__palette_8cc_source.html#l00031">yaze::gfx::SnesPalette::SnesPalette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="snes__color_8cc_source.html#l00079">yaze::gfx::GetCgxColor()</a>, <a class="el" href="color_8cc_source.html#l00040">yaze::gui::SnesColorEdit4()</a>, <a class="el" href="snes__palette_8cc_source.html#l00019">yaze::gfx::SnesPalette::SnesPalette()</a>, and <a class="el" href="snes__palette_8cc_source.html#l00031">yaze::gfx::SnesPalette::SnesPalette()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -428,9 +428,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="snes__color_8cc_source.html#l00114">114</a> of file <a class="el" href="snes__color_8cc_source.html">snes_color.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00045">snes_color::blue</a>, <a class="el" href="snes__color_8cc_source.html#l00019">yaze::gfx::ConvertSnesToRgb()</a>, <a class="el" href="yaze_8h_source.html#l00046">snes_color::green</a>, <a class="el" href="snes__color_8h_source.html#l00026">yaze::gfx::kColorByteMaxF</a>, <a class="el" href="snes__color_8h_source.html#l00086">modified</a>, <a class="el" href="yaze_8h_source.html#l00044">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00083">rgb_</a>, and <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
+<p class="reference">References <a class="el" href="yaze_8h_source.html#l00218">snes_color::blue</a>, <a class="el" href="snes__color_8cc_source.html#l00019">yaze::gfx::ConvertSnesToRgb()</a>, <a class="el" href="yaze_8h_source.html#l00217">snes_color::green</a>, <a class="el" href="snes__color_8h_source.html#l00026">yaze::gfx::kColorByteMaxF</a>, <a class="el" href="snes__color_8h_source.html#l00086">modified</a>, <a class="el" href="yaze_8h_source.html#l00216">snes_color::red</a>, <a class="el" href="snes__color_8h_source.html#l00083">rgb_</a>, and <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="color_8cc_source.html#l00036">yaze::gui::SnesColorEdit4()</a>, <a class="el" href="snes__palette_8cc_source.html#l00019">yaze::gfx::SnesPalette::SnesPalette()</a>, and <a class="el" href="snes__palette_8cc_source.html#l00031">yaze::gfx::SnesPalette::SnesPalette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="color_8cc_source.html#l00040">yaze::gui::SnesColorEdit4()</a>, <a class="el" href="snes__palette_8cc_source.html#l00019">yaze::gfx::SnesPalette::SnesPalette()</a>, and <a class="el" href="snes__palette_8cc_source.html#l00031">yaze::gfx::SnesPalette::SnesPalette()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -531,7 +531,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="snes__color_8h_source.html#l00084">snes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="map__properties_8cc_source.html#l00162">yaze::editor::MapPropertiesSystem::DrawCustomBackgroundColorEditor()</a>, <a class="el" href="color_8cc_source.html#l00019">yaze::gui::SnesColorButton()</a>, <a class="el" href="snes__palette_8cc_source.html#l00019">yaze::gfx::SnesPalette::SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00031">yaze::gfx::SnesPalette::SnesPalette()</a>, <a class="el" href="snes__palette__test_8cc_source.html#l00027">yaze::test::TEST()</a>, <a class="el" href="snes__palette__test_8cc_source.html#l00045">yaze::test::TEST()</a>, and <a class="el" href="rom_8cc_source.html#l00640">yaze::Rom::WriteColor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="map__properties_8cc_source.html#l00162">yaze::editor::MapPropertiesSystem::DrawCustomBackgroundColorEditor()</a>, <a class="el" href="color_8cc_source.html#l00023">yaze::gui::SnesColorButton()</a>, <a class="el" href="snes__palette_8cc_source.html#l00019">yaze::gfx::SnesPalette::SnesPalette()</a>, <a class="el" href="snes__palette_8cc_source.html#l00031">yaze::gfx::SnesPalette::SnesPalette()</a>, <a class="el" href="snes__palette__test_8cc_source.html#l00027">yaze::test::TEST()</a>, <a class="el" href="snes__palette__test_8cc_source.html#l00045">yaze::test::TEST()</a>, and <a class="el" href="rom_8cc_source.html#l00640">yaze::Rom::WriteColor()</a>.</p>
 
 </div>
 </div>

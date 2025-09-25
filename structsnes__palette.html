@@ -109,11 +109,11 @@ $(function(){initNavTree('structsnes__palette.html',''); initResizable(true); })
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="structsnes__palette-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">snes_palette Struct Reference</div></div>
+  <div class="headertitle"><div class="title">snes_palette Struct Reference<div class="ingroups"><a class="el" href="group__graphics.html">Graphics and Bitmap Functions</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Primitive of a SNES color palette.  
+<p>SNES color palette.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="yaze_8h_source.html">yaze.h</a>&gt;</code></p>
@@ -122,57 +122,58 @@ Collaboration diagram for snes_palette:</div>
 <div class="dyncontent">
 <div class="center"><img src="structsnes__palette__coll__graph.png" border="0" usemap="#asnes__palette_coll__map" alt="Collaboration graph"/></div>
 <map name="asnes__palette_coll__map" id="asnes__palette_coll__map">
-<area shape="rect" title="Primitive of a SNES color palette." alt="" coords="5,94,101,120"/>
-<area shape="rect" href="structsnes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="11,5,95,31"/>
+<area shape="rect" title="SNES color palette." alt="" coords="5,94,101,120"/>
+<area shape="rect" href="structsnes__color.html" title="SNES color in 15&#45;bit RGB format (BGR555)" alt="" coords="11,5,95,31"/>
 <area shape="poly" title=" " alt="" coords="56,47,56,94,50,94,50,47"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:aa3f32ff0f52e7ada19fb5afdd477258f" id="r_aa3f32ff0f52e7ada19fb5afdd477258f"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa3f32ff0f52e7ada19fb5afdd477258f">id</a></td></tr>
-<tr class="separator:aa3f32ff0f52e7ada19fb5afdd477258f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af78e1764df4b15340c56da97b8e2c965" id="r_af78e1764df4b15340c56da97b8e2c965"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af78e1764df4b15340c56da97b8e2c965">size</a></td></tr>
-<tr class="separator:af78e1764df4b15340c56da97b8e2c965"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d2abb2c4e2c85cf76da9b02b8646a8a" id="r_a4d2abb2c4e2c85cf76da9b02b8646a8a"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4d2abb2c4e2c85cf76da9b02b8646a8a">id</a></td></tr>
+<tr class="separator:a4d2abb2c4e2c85cf76da9b02b8646a8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3e26012129a3fb96f250157d58e2928" id="r_ad3e26012129a3fb96f250157d58e2928"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad3e26012129a3fb96f250157d58e2928">size</a></td></tr>
+<tr class="separator:ad3e26012129a3fb96f250157d58e2928"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4057af514d8aab3c6a429b693bb9ac6" id="r_ad4057af514d8aab3c6a429b693bb9ac6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad4057af514d8aab3c6a429b693bb9ac6">colors</a></td></tr>
 <tr class="separator:ad4057af514d8aab3c6a429b693bb9ac6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Primitive of a SNES color palette. </p>
+<div class="textblock"><p>SNES color palette. </p>
+<p>Represents a color palette used by the SNES. Each palette contains up to 256 colors, though most modes use fewer colors per palette. </p>
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00052">52</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00247">247</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
-<a id="aa3f32ff0f52e7ada19fb5afdd477258f" name="aa3f32ff0f52e7ada19fb5afdd477258f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3f32ff0f52e7ada19fb5afdd477258f">&#9670;&#160;</a></span>id</h2>
+<a id="a4d2abb2c4e2c85cf76da9b02b8646a8a" name="a4d2abb2c4e2c85cf76da9b02b8646a8a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d2abb2c4e2c85cf76da9b02b8646a8a">&#9670;&#160;</a></span>id</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned int snes_palette::id</td>
+          <td class="memname">uint16_t snes_palette::id</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>ID of the palette. </p>
+<p>Palette ID (0-255) </p>
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00053">53</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00248">248</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>
-<a id="af78e1764df4b15340c56da97b8e2c965" name="af78e1764df4b15340c56da97b8e2c965"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af78e1764df4b15340c56da97b8e2c965">&#9670;&#160;</a></span>size</h2>
+<a id="ad3e26012129a3fb96f250157d58e2928" name="ad3e26012129a3fb96f250157d58e2928"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3e26012129a3fb96f250157d58e2928">&#9670;&#160;</a></span>size</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned int snes_palette::size</td>
+          <td class="memname">uint16_t snes_palette::size</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Size of the palette. </p>
+<p>Number of colors in palette (1-256) </p>
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00054">54</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00249">249</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>
@@ -187,9 +188,9 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Pointer to the colors in the palette. </p>
+<p>Array of colors (caller owns memory) </p>
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00055">55</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00250">250</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>

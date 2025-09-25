@@ -1,6 +1,6 @@
 <map id="incl/zelda.h" name="incl/zelda.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="97,5,182,31"/>
-<area shape="rect" id="Node000002" href="$yaze_8h.html" title=" " alt="" coords="42,79,123,105"/>
+<area shape="rect" id="Node000001" title="The Legend of Zelda: A Link to the Past &#45; Data Structures and Constants." alt="" coords="97,5,182,31"/>
+<area shape="rect" id="Node000002" href="$yaze_8h.html" title="Yet Another Zelda3 Editor (YAZE) &#45; Public C API." alt="" coords="42,79,123,105"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,45,94,80,90,77,119,41"/>
 <area shape="rect" id="Node000090" href="$rom_8h.html" title=" " alt="" coords="147,79,247,105"/>
 <area shape="poly" id="edge5_Node000001_Node000090" title=" " alt="" coords="161,41,190,77,185,80,157,45"/>

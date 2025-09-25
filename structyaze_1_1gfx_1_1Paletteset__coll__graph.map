@@ -4,6 +4,6 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,134,97,194,120,263,135,286,131,289,115,265,92,196,80,135"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesColor.html" title="SNES Color container." alt="" coords="176,94,312,120"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="239,136,216,197,180,265,159,289,155,285,175,262,211,195,234,134"/>
-<area shape="rect" id="Node000004" href="$structsnes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="202,5,286,31"/>
+<area shape="rect" id="Node000004" href="$structsnes__color.html" title="SNES color in 15&#45;bit RGB format (BGR555)" alt="" coords="202,5,286,31"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="247,47,247,94,242,94,242,47"/>
 </map>

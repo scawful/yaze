@@ -1,5 +1,5 @@
 <map id="yaze::gfx::SnesColor" name="yaze::gfx::SnesColor">
 <area shape="rect" id="Node000001" title="SNES Color container." alt="" coords="5,94,142,120"/>
-<area shape="rect" id="Node000002" href="$structsnes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="31,5,116,31"/>
+<area shape="rect" id="Node000002" href="$structsnes__color.html" title="SNES color in 15&#45;bit RGB format (BGR555)" alt="" coords="31,5,116,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="76,47,76,94,71,94,71,47"/>
 </map>

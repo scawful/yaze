@@ -108,12 +108,16 @@ $(function(){initNavTree('zelda_8h.html',''); initResizable(true); });
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">zelda.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>The Legend of Zelda: A Link to the Past - Data Structures and Constants.  
+<a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stdbool.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -121,7 +125,7 @@ Include dependency graph for zelda.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="zelda_8h__incl.png" border="0" usemap="#aincl_2zelda_8h" alt=""/></div>
 <map name="aincl_2zelda_8h" id="aincl_2zelda_8h">
-<area shape="rect" title=" " alt="" coords="45,5,130,31"/>
+<area shape="rect" title="The Legend of Zelda: A Link to the Past &#45; Data Structures and Constants." alt="" coords="45,5,130,31"/>
 <area shape="rect" title=" " alt="" coords="5,79,79,105"/>
 <area shape="poly" title=" " alt="" coords="82,33,60,67,55,64,78,30"/>
 <area shape="rect" title=" " alt="" coords="102,79,166,105"/>
@@ -133,8 +137,8 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="zelda_8h__dep__incl.png" border="0" usemap="#aincl_2zelda_8hdep" alt=""/></div>
 <map name="aincl_2zelda_8hdep" id="aincl_2zelda_8hdep">
-<area shape="rect" title=" " alt="" coords="97,5,182,31"/>
-<area shape="rect" href="yaze_8h.html" title=" " alt="" coords="42,79,123,105"/>
+<area shape="rect" title="The Legend of Zelda: A Link to the Past &#45; Data Structures and Constants." alt="" coords="97,5,182,31"/>
+<area shape="rect" href="yaze_8h.html" title="Yet Another Zelda3 Editor (YAZE) &#45; Public C API." alt="" coords="42,79,123,105"/>
 <area shape="poly" title=" " alt="" coords="123,45,94,80,90,77,119,41"/>
 <area shape="rect" href="rom_8h.html" title=" " alt="" coords="147,79,247,105"/>
 <area shape="poly" title=" " alt="" coords="161,41,190,77,185,80,157,45"/>
@@ -151,259 +155,178 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structzelda3__version__pointers.html">zelda3_version_pointers</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pointers for each version of the game.  <a href="structzelda3__version__pointers.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">ROM data pointers for different game versions.  <a href="structzelda3__version__pointers.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structzelda3__rom.html">zelda3_rom</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">ROM data structure.  <a href="structzelda3__rom.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structzelda3__message.html">zelda3_message</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a message.  <a href="structzelda3__message.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">In-game text message data.  <a href="structzelda3__message.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structzelda3__overworld__map.html">zelda3_overworld_map</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of an overworld map.  <a href="structzelda3__overworld__map.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Overworld map data.  <a href="structzelda3__overworld__map.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structzelda3__overworld.html">zelda3_overworld</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of the overworld.  <a href="structzelda3__overworld.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Complete overworld data.  <a href="structzelda3__overworld.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdungeon__sprite.html">dungeon_sprite</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dungeon sprite definition.  <a href="structdungeon__sprite.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structobject__door.html">object_door</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dungeon door object.  <a href="structobject__door.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structstaircase.html">staircase</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Staircase connection.  <a href="structstaircase.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structchest.html">chest</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Treasure chest.  <a href="structchest.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structchest__data.html">chest_data</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Legacy chest data structure.  <a href="structchest__data.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdestination.html">destination</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Room transition destination.  <a href="structdestination.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structzelda3__dungeon__room.html">zelda3_dungeon_room</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Complete dungeon room data.  <a href="structzelda3__dungeon__room.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:gadcf43c7a0c40bed25771dcd055a2e565" id="r_gadcf43c7a0c40bed25771dcd055a2e565"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#gadcf43c7a0c40bed25771dcd055a2e565">Off</a>&#160;&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339acf8409d09b628e7a204b2b5391c95f17">ZELDA3_BG2_OFF</a></td></tr>
+<tr class="separator:gadcf43c7a0c40bed25771dcd055a2e565"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9d215a17e3380414fb66ab2542cdd289" id="r_ga9d215a17e3380414fb66ab2542cdd289"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga9d215a17e3380414fb66ab2542cdd289">Parallax</a>&#160;&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a096e7c8bc34f9d2042e8865205e18e32">ZELDA3_BG2_PARALLAX</a></td></tr>
+<tr class="separator:ga9d215a17e3380414fb66ab2542cdd289"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga682a0d73604baa8cbcf33e5a30638ebd" id="r_ga682a0d73604baa8cbcf33e5a30638ebd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga682a0d73604baa8cbcf33e5a30638ebd">Dark</a>&#160;&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a0f2b113530c0ebb93e878df8a81c13b4">ZELDA3_BG2_DARK</a></td></tr>
+<tr class="separator:ga682a0d73604baa8cbcf33e5a30638ebd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5e8937277f05e29293070d1cd76cb728" id="r_ga5e8937277f05e29293070d1cd76cb728"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga5e8937277f05e29293070d1cd76cb728">OnTop</a>&#160;&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a241a3b63324c0afdb4e4017f40caba4f">ZELDA3_BG2_ON_TOP</a></td></tr>
+<tr class="separator:ga5e8937277f05e29293070d1cd76cb728"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafa54b841fc34399619de1b19fd28eb7b" id="r_gafa54b841fc34399619de1b19fd28eb7b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#gafa54b841fc34399619de1b19fd28eb7b">Translucent</a>&#160;&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a3c3e8f6bba7d6e0843ef1bda683fa8df">ZELDA3_BG2_TRANSLUCENT</a></td></tr>
+<tr class="separator:gafa54b841fc34399619de1b19fd28eb7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5244f869702daf5c1972d1c45f5abd67" id="r_ga5244f869702daf5c1972d1c45f5abd67"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga5244f869702daf5c1972d1c45f5abd67">Addition</a>&#160;&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a5962e692a939ecf5c4b0fd12f18452e8">ZELDA3_BG2_ADDITION</a></td></tr>
+<tr class="separator:ga5244f869702daf5c1972d1c45f5abd67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8c2eff9b35be9eef5edc30f33cc1411b" id="r_ga8c2eff9b35be9eef5edc30f33cc1411b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga8c2eff9b35be9eef5edc30f33cc1411b">Normal</a>&#160;&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339aa0a72847c4ea374a8ac999b4e487bc9e">ZELDA3_BG2_NORMAL</a></td></tr>
+<tr class="separator:ga8c2eff9b35be9eef5edc30f33cc1411b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab0998d47cb416e3349d6d14f5d7cbdbb" id="r_gab0998d47cb416e3349d6d14f5d7cbdbb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#gab0998d47cb416e3349d6d14f5d7cbdbb">Transparent</a>&#160;&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a0941b527f3e57ecb2bff4d1267bc0064">ZELDA3_BG2_TRANSPARENT</a></td></tr>
+<tr class="separator:gab0998d47cb416e3349d6d14f5d7cbdbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga047938bab24b47ec766a01cc592a339e" id="r_ga047938bab24b47ec766a01cc592a339e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga047938bab24b47ec766a01cc592a339e">DarkRoom</a>&#160;&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a8a5f91de89459c376c5235df56447fb1">ZELDA3_BG2_DARK_ROOM</a></td></tr>
+<tr class="separator:ga047938bab24b47ec766a01cc592a339e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:a81a5c5c618a19cfba96f863e14006cf9" id="r_a81a5c5c618a19cfba96f863e14006cf9"><td class="memItemLeft" align="right" valign="top">typedef struct zelda3_rom&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a81a5c5c618a19cfba96f863e14006cf9">zelda3_rom</a></td></tr>
-<tr class="separator:a81a5c5c618a19cfba96f863e14006cf9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a19f9d594bff45e7926bcaff46ed74246" id="r_a19f9d594bff45e7926bcaff46ed74246"><td class="memItemLeft" align="right" valign="top">typedef struct zelda3_message&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a19f9d594bff45e7926bcaff46ed74246">zelda3_message</a></td></tr>
-<tr class="memdesc:a19f9d594bff45e7926bcaff46ed74246"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a message.  <br /></td></tr>
-<tr class="separator:a19f9d594bff45e7926bcaff46ed74246"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0fb092c5014355cc0be54729e31a99c7" id="r_a0fb092c5014355cc0be54729e31a99c7"><td class="memItemLeft" align="right" valign="top">typedef struct zelda3_overworld_map&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0fb092c5014355cc0be54729e31a99c7">zelda3_overworld_map</a></td></tr>
-<tr class="memdesc:a0fb092c5014355cc0be54729e31a99c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of an overworld map.  <br /></td></tr>
-<tr class="separator:a0fb092c5014355cc0be54729e31a99c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4fb19874710badcf3603558580fd236a" id="r_a4fb19874710badcf3603558580fd236a"><td class="memItemLeft" align="right" valign="top">typedef struct zelda3_overworld&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4fb19874710badcf3603558580fd236a">zelda3_overworld</a></td></tr>
-<tr class="memdesc:a4fb19874710badcf3603558580fd236a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of the overworld.  <br /></td></tr>
-<tr class="separator:a4fb19874710badcf3603558580fd236a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ecfc19156f8f627881db2f6c16190ef" id="r_a9ecfc19156f8f627881db2f6c16190ef"><td class="memItemLeft" align="right" valign="top">typedef struct dungeon_sprite&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9ecfc19156f8f627881db2f6c16190ef">dungeon_sprite</a></td></tr>
-<tr class="separator:a9ecfc19156f8f627881db2f6c16190ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a19113e3ce2572a1ca22bd4a335788119" id="r_a19113e3ce2572a1ca22bd4a335788119"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="#af206bedc320e56e6defeba3fa38d2c58">background2</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a19113e3ce2572a1ca22bd4a335788119">background2</a></td></tr>
-<tr class="separator:a19113e3ce2572a1ca22bd4a335788119"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a13622589acc34cfc8bb4e8ad1bb4a772" id="r_a13622589acc34cfc8bb4e8ad1bb4a772"><td class="memItemLeft" align="right" valign="top">typedef struct object_door&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a13622589acc34cfc8bb4e8ad1bb4a772">object_door</a></td></tr>
-<tr class="separator:a13622589acc34cfc8bb4e8ad1bb4a772"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a81857e6a46245f2407f10aa8b2159d0b" id="r_a81857e6a46245f2407f10aa8b2159d0b"><td class="memItemLeft" align="right" valign="top">typedef struct staircase&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a81857e6a46245f2407f10aa8b2159d0b">staircase</a></td></tr>
-<tr class="separator:a81857e6a46245f2407f10aa8b2159d0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a09b73d0adf4a21a8bc14d72393f0a2b1" id="r_a09b73d0adf4a21a8bc14d72393f0a2b1"><td class="memItemLeft" align="right" valign="top">typedef struct chest&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a09b73d0adf4a21a8bc14d72393f0a2b1">chest</a></td></tr>
-<tr class="separator:a09b73d0adf4a21a8bc14d72393f0a2b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a70c378b5b911fdbc1e978d9354ea9fc0" id="r_a70c378b5b911fdbc1e978d9354ea9fc0"><td class="memItemLeft" align="right" valign="top">typedef struct chest_data&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a70c378b5b911fdbc1e978d9354ea9fc0">chest_data</a></td></tr>
-<tr class="separator:a70c378b5b911fdbc1e978d9354ea9fc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8d82042373c5edcc165e7e3ba2bd7e2e" id="r_a8d82042373c5edcc165e7e3ba2bd7e2e"><td class="memItemLeft" align="right" valign="top">typedef struct destination&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8d82042373c5edcc165e7e3ba2bd7e2e">destination</a></td></tr>
-<tr class="separator:a8d82042373c5edcc165e7e3ba2bd7e2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2ffde648b19bdf6d0a369e48ada98ce6" id="r_ga2ffde648b19bdf6d0a369e48ada98ce6"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__types.html#ga2ffde648b19bdf6d0a369e48ada98ce6">zelda3_version</a></td></tr>
+<tr class="memdesc:ga2ffde648b19bdf6d0a369e48ada98ce6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Different versions of the game supported by YAZE.  <br /></td></tr>
+<tr class="separator:ga2ffde648b19bdf6d0a369e48ada98ce6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga80d4b5acfdbaa2e0e0e2e9c68a8896ee" id="r_ga80d4b5acfdbaa2e0e0e2e9c68a8896ee"><td class="memItemLeft" align="right" valign="top">typedef struct zelda3_version_pointers&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__types.html#ga80d4b5acfdbaa2e0e0e2e9c68a8896ee">zelda3_version_pointers</a></td></tr>
+<tr class="memdesc:ga80d4b5acfdbaa2e0e0e2e9c68a8896ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">ROM data pointers for different game versions.  <br /></td></tr>
+<tr class="separator:ga80d4b5acfdbaa2e0e0e2e9c68a8896ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga81a5c5c618a19cfba96f863e14006cf9" id="r_ga81a5c5c618a19cfba96f863e14006cf9"><td class="memItemLeft" align="right" valign="top">typedef struct zelda3_rom&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__types.html#ga81a5c5c618a19cfba96f863e14006cf9">zelda3_rom</a></td></tr>
+<tr class="memdesc:ga81a5c5c618a19cfba96f863e14006cf9"><td class="mdescLeft">&#160;</td><td class="mdescRight">ROM data structure.  <br /></td></tr>
+<tr class="separator:ga81a5c5c618a19cfba96f863e14006cf9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga19f9d594bff45e7926bcaff46ed74246" id="r_ga19f9d594bff45e7926bcaff46ed74246"><td class="memItemLeft" align="right" valign="top">typedef struct zelda3_message&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#ga19f9d594bff45e7926bcaff46ed74246">zelda3_message</a></td></tr>
+<tr class="memdesc:ga19f9d594bff45e7926bcaff46ed74246"><td class="mdescLeft">&#160;</td><td class="mdescRight">In-game text message data.  <br /></td></tr>
+<tr class="separator:ga19f9d594bff45e7926bcaff46ed74246"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0fb092c5014355cc0be54729e31a99c7" id="r_ga0fb092c5014355cc0be54729e31a99c7"><td class="memItemLeft" align="right" valign="top">typedef struct zelda3_overworld_map&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__overworld.html#ga0fb092c5014355cc0be54729e31a99c7">zelda3_overworld_map</a></td></tr>
+<tr class="memdesc:ga0fb092c5014355cc0be54729e31a99c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Overworld map data.  <br /></td></tr>
+<tr class="separator:ga0fb092c5014355cc0be54729e31a99c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4fb19874710badcf3603558580fd236a" id="r_ga4fb19874710badcf3603558580fd236a"><td class="memItemLeft" align="right" valign="top">typedef struct zelda3_overworld&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__overworld.html#ga4fb19874710badcf3603558580fd236a">zelda3_overworld</a></td></tr>
+<tr class="memdesc:ga4fb19874710badcf3603558580fd236a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Complete overworld data.  <br /></td></tr>
+<tr class="separator:ga4fb19874710badcf3603558580fd236a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9ecfc19156f8f627881db2f6c16190ef" id="r_ga9ecfc19156f8f627881db2f6c16190ef"><td class="memItemLeft" align="right" valign="top">typedef struct dungeon_sprite&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga9ecfc19156f8f627881db2f6c16190ef">dungeon_sprite</a></td></tr>
+<tr class="memdesc:ga9ecfc19156f8f627881db2f6c16190ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dungeon sprite definition.  <br /></td></tr>
+<tr class="separator:ga9ecfc19156f8f627881db2f6c16190ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga72a70b04654c98659c5fe065b93b9e50" id="r_ga72a70b04654c98659c5fe065b93b9e50"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="group__dungeon.html#gaae3c30030730adfb9b8f6b941ac36339">zelda3_bg2_effect</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga72a70b04654c98659c5fe065b93b9e50">zelda3_bg2_effect</a></td></tr>
+<tr class="memdesc:ga72a70b04654c98659c5fe065b93b9e50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Background layer 2 effects.  <br /></td></tr>
+<tr class="separator:ga72a70b04654c98659c5fe065b93b9e50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1e9332a9ef79d8325519c967c0565e1c" id="r_ga1e9332a9ef79d8325519c967c0565e1c"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__dungeon.html#gaae3c30030730adfb9b8f6b941ac36339">zelda3_bg2_effect</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga1e9332a9ef79d8325519c967c0565e1c">background2</a></td></tr>
+<tr class="separator:ga1e9332a9ef79d8325519c967c0565e1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga13622589acc34cfc8bb4e8ad1bb4a772" id="r_ga13622589acc34cfc8bb4e8ad1bb4a772"><td class="memItemLeft" align="right" valign="top">typedef struct object_door&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga13622589acc34cfc8bb4e8ad1bb4a772">object_door</a></td></tr>
+<tr class="memdesc:ga13622589acc34cfc8bb4e8ad1bb4a772"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dungeon door object.  <br /></td></tr>
+<tr class="separator:ga13622589acc34cfc8bb4e8ad1bb4a772"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga81857e6a46245f2407f10aa8b2159d0b" id="r_ga81857e6a46245f2407f10aa8b2159d0b"><td class="memItemLeft" align="right" valign="top">typedef struct staircase&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga81857e6a46245f2407f10aa8b2159d0b">staircase</a></td></tr>
+<tr class="memdesc:ga81857e6a46245f2407f10aa8b2159d0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Staircase connection.  <br /></td></tr>
+<tr class="separator:ga81857e6a46245f2407f10aa8b2159d0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga09b73d0adf4a21a8bc14d72393f0a2b1" id="r_ga09b73d0adf4a21a8bc14d72393f0a2b1"><td class="memItemLeft" align="right" valign="top">typedef struct chest&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga09b73d0adf4a21a8bc14d72393f0a2b1">chest</a></td></tr>
+<tr class="memdesc:ga09b73d0adf4a21a8bc14d72393f0a2b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Treasure chest.  <br /></td></tr>
+<tr class="separator:ga09b73d0adf4a21a8bc14d72393f0a2b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga70c378b5b911fdbc1e978d9354ea9fc0" id="r_ga70c378b5b911fdbc1e978d9354ea9fc0"><td class="memItemLeft" align="right" valign="top">typedef struct chest_data&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga70c378b5b911fdbc1e978d9354ea9fc0">chest_data</a></td></tr>
+<tr class="memdesc:ga70c378b5b911fdbc1e978d9354ea9fc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Legacy chest data structure.  <br /></td></tr>
+<tr class="separator:ga70c378b5b911fdbc1e978d9354ea9fc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8d82042373c5edcc165e7e3ba2bd7e2e" id="r_ga8d82042373c5edcc165e7e3ba2bd7e2e"><td class="memItemLeft" align="right" valign="top">typedef struct destination&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga8d82042373c5edcc165e7e3ba2bd7e2e">destination</a></td></tr>
+<tr class="memdesc:ga8d82042373c5edcc165e7e3ba2bd7e2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Room transition destination.  <br /></td></tr>
+<tr class="separator:ga8d82042373c5edcc165e7e3ba2bd7e2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af25424b13374b13fd0cdb07f2f32a42a" id="r_af25424b13374b13fd0cdb07f2f32a42a"><td class="memItemLeft" align="right" valign="top">typedef struct zelda3_dungeon_room&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af25424b13374b13fd0cdb07f2f32a42a">zelda3_dungeon_room</a></td></tr>
+<tr class="memdesc:af25424b13374b13fd0cdb07f2f32a42a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Complete dungeon room data.  <br /></td></tr>
 <tr class="separator:af25424b13374b13fd0cdb07f2f32a42a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a9b154d4f0904082e537a24b5ae25575d" id="r_a9b154d4f0904082e537a24b5ae25575d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9b154d4f0904082e537a24b5ae25575d">zelda3_version</a> { <a class="el" href="#a9b154d4f0904082e537a24b5ae25575da56de89a713ba25cddd89edd52fdf2eaa">US</a> = 1
-, <a class="el" href="#a9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561">JP</a> = 2
-, <a class="el" href="#a9b154d4f0904082e537a24b5ae25575da8268cafd51299d814aba050e5f54f1ac">SD</a> = 3
-, <a class="el" href="#a9b154d4f0904082e537a24b5ae25575daad9bcb06fffaf3416d2484ce5dc97500">RANDO</a> = 4
- }</td></tr>
-<tr class="memdesc:a9b154d4f0904082e537a24b5ae25575d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Different versions of the game supported by yaze.  <a href="#a9b154d4f0904082e537a24b5ae25575d">More...</a><br /></td></tr>
-<tr class="separator:a9b154d4f0904082e537a24b5ae25575d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af206bedc320e56e6defeba3fa38d2c58" id="r_af206bedc320e56e6defeba3fa38d2c58"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af206bedc320e56e6defeba3fa38d2c58">background2</a> { <br />
-&#160;&#160;<a class="el" href="#af206bedc320e56e6defeba3fa38d2c58ad8a892b94d3a94ea861543c085ae782b">Off</a>
-, <a class="el" href="#af206bedc320e56e6defeba3fa38d2c58a2326dd539f0d41c8e4b71a3aae3edb96">Parallax</a>
-, <a class="el" href="#af206bedc320e56e6defeba3fa38d2c58ab881c2fca9941a632de2b4af173a7906">Dark</a>
-, <a class="el" href="#af206bedc320e56e6defeba3fa38d2c58a952e05817c3b0ddebcf28d1a7423e659">OnTop</a>
+<tr class="memitem:ga9b154d4f0904082e537a24b5ae25575d" id="r_ga9b154d4f0904082e537a24b5ae25575d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a> { <br />
+&#160;&#160;<a class="el" href="group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575dabc527f6cbb32739b65a293d12630647e">ZELDA3_VERSION_UNKNOWN</a> = 0
+, <a class="el" href="group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da92b836748459feaa481e0f105c74fd73">ZELDA3_VERSION_US</a> = 1
+, <a class="el" href="group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da27a57373ac8e5341843f728b6518c25c">ZELDA3_VERSION_JP</a> = 2
+, <a class="el" href="group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da39fc207d55edf33cf5df4c7a657f98d0">ZELDA3_VERSION_EU</a> = 3
 , <br />
-&#160;&#160;<a class="el" href="#af206bedc320e56e6defeba3fa38d2c58a4d6895bfddbaad6a1de54402e2edde1a">Translucent</a>
-, <a class="el" href="#af206bedc320e56e6defeba3fa38d2c58a8c3920d5d545844176ad55189fc9d8dc">Addition</a>
-, <a class="el" href="#af206bedc320e56e6defeba3fa38d2c58a5ecbcf0afce98b042f35ec71ba03fa4b">Normal</a>
-, <a class="el" href="#af206bedc320e56e6defeba3fa38d2c58ac719d3f34968bcf992d4c0c48841cf63">Transparent</a>
+&#160;&#160;<a class="el" href="group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da36b64bd670faca8068e92797b36e03f1">ZELDA3_VERSION_PROTO</a> = 4
+, <a class="el" href="group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da9fca2b62b1a38047a490a2bdd1bc924b">ZELDA3_VERSION_RANDOMIZER</a> = 5
+, <a class="el" href="group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da56de89a713ba25cddd89edd52fdf2eaa">US</a> = ZELDA3_VERSION_US
+, <a class="el" href="group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561">JP</a> = ZELDA3_VERSION_JP
 , <br />
-&#160;&#160;<a class="el" href="#af206bedc320e56e6defeba3fa38d2c58abd4ed2edf2b1c880c6568252e7cc7275">DarkRoom</a>
+&#160;&#160;<a class="el" href="group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da8268cafd51299d814aba050e5f54f1ac">SD</a> = ZELDA3_VERSION_PROTO
+, <a class="el" href="group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575daad9bcb06fffaf3416d2484ce5dc97500">RANDO</a> = ZELDA3_VERSION_RANDOMIZER
 <br />
  }</td></tr>
-<tr class="separator:af206bedc320e56e6defeba3fa38d2c58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memdesc:ga9b154d4f0904082e537a24b5ae25575d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Different versions of the game supported by YAZE.  <a href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">More...</a><br /></td></tr>
+<tr class="separator:ga9b154d4f0904082e537a24b5ae25575d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaae3c30030730adfb9b8f6b941ac36339" id="r_gaae3c30030730adfb9b8f6b941ac36339"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#gaae3c30030730adfb9b8f6b941ac36339">zelda3_bg2_effect</a> { <br />
+&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339acf8409d09b628e7a204b2b5391c95f17">ZELDA3_BG2_OFF</a> = 0
+, <a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a096e7c8bc34f9d2042e8865205e18e32">ZELDA3_BG2_PARALLAX</a> = 1
+, <a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a0f2b113530c0ebb93e878df8a81c13b4">ZELDA3_BG2_DARK</a> = 2
+, <a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a241a3b63324c0afdb4e4017f40caba4f">ZELDA3_BG2_ON_TOP</a> = 3
+, <br />
+&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a3c3e8f6bba7d6e0843ef1bda683fa8df">ZELDA3_BG2_TRANSLUCENT</a> = 4
+, <a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a5962e692a939ecf5c4b0fd12f18452e8">ZELDA3_BG2_ADDITION</a> = 5
+, <a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339aa0a72847c4ea374a8ac999b4e487bc9e">ZELDA3_BG2_NORMAL</a> = 6
+, <a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a0941b527f3e57ecb2bff4d1267bc0064">ZELDA3_BG2_TRANSPARENT</a> = 7
+, <br />
+&#160;&#160;<a class="el" href="group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a8a5f91de89459c376c5235df56447fb1">ZELDA3_BG2_DARK_ROOM</a> = 8
+<br />
+ }</td></tr>
+<tr class="memdesc:gaae3c30030730adfb9b8f6b941ac36339"><td class="mdescLeft">&#160;</td><td class="mdescRight">Background layer 2 effects.  <a href="group__dungeon.html#gaae3c30030730adfb9b8f6b941ac36339">More...</a><br /></td></tr>
+<tr class="separator:gaae3c30030730adfb9b8f6b941ac36339"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ac870fb2b7713b670247082c171053148" id="r_ac870fb2b7713b670247082c171053148"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structzelda3__rom.html">zelda3_rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac870fb2b7713b670247082c171053148">yaze_load_rom</a> (const char *filename)</td></tr>
-<tr class="separator:ac870fb2b7713b670247082c171053148"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c0dfb85f1e87702458d4dbaae0beef3" id="r_a0c0dfb85f1e87702458d4dbaae0beef3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0c0dfb85f1e87702458d4dbaae0beef3">yaze_unload_rom</a> (<a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom)</td></tr>
-<tr class="separator:a0c0dfb85f1e87702458d4dbaae0beef3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad5d32e01226c1d7167fa6c34c59bb95e" id="r_ad5d32e01226c1d7167fa6c34c59bb95e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad5d32e01226c1d7167fa6c34c59bb95e">yaze_save_rom</a> (<a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, const char *filename)</td></tr>
-<tr class="separator:ad5d32e01226c1d7167fa6c34c59bb95e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf5b2c3a3e9423689a6b85f9d7cda121e" id="r_gaf5b2c3a3e9423689a6b85f9d7cda121e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__types.html#gaf5b2c3a3e9423689a6b85f9d7cda121e">zelda3_detect_version</a> (const uint8_t *rom_data, size_t size)</td></tr>
+<tr class="memdesc:gaf5b2c3a3e9423689a6b85f9d7cda121e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detect ROM version from header data.  <br /></td></tr>
+<tr class="separator:gaf5b2c3a3e9423689a6b85f9d7cda121e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1e9a4f764c84c9391ee087797f8ea1c5" id="r_ga1e9a4f764c84c9391ee087797f8ea1c5"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__types.html#ga1e9a4f764c84c9391ee087797f8ea1c5">zelda3_version_to_string</a> (<a class="el" href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a> version)</td></tr>
+<tr class="memdesc:ga1e9a4f764c84c9391ee087797f8ea1c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get version name as string.  <br /></td></tr>
+<tr class="separator:ga1e9a4f764c84c9391ee087797f8ea1c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf2a830623580e2f70ad81d0f53b3339e" id="r_gaf2a830623580e2f70ad81d0f53b3339e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structzelda3__version__pointers.html">zelda3_version_pointers</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__types.html#gaf2a830623580e2f70ad81d0f53b3339e">zelda3_get_version_pointers</a> (<a class="el" href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a> version)</td></tr>
+<tr class="memdesc:gaf2a830623580e2f70ad81d0f53b3339e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get version-specific pointers.  <br /></td></tr>
+<tr class="separator:gaf2a830623580e2f70ad81d0f53b3339e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac870fb2b7713b670247082c171053148" id="r_gac870fb2b7713b670247082c171053148"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structzelda3__rom.html">zelda3_rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__functions.html#gac870fb2b7713b670247082c171053148">yaze_load_rom</a> (const char *filename)</td></tr>
+<tr class="memdesc:gac870fb2b7713b670247082c171053148"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a ROM file.  <br /></td></tr>
+<tr class="separator:gac870fb2b7713b670247082c171053148"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0c0dfb85f1e87702458d4dbaae0beef3" id="r_ga0c0dfb85f1e87702458d4dbaae0beef3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__functions.html#ga0c0dfb85f1e87702458d4dbaae0beef3">yaze_unload_rom</a> (<a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom)</td></tr>
+<tr class="memdesc:ga0c0dfb85f1e87702458d4dbaae0beef3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unload and free ROM data.  <br /></td></tr>
+<tr class="separator:ga0c0dfb85f1e87702458d4dbaae0beef3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafa82266eb6f9e734bb7aa406a687e1d4" id="r_gafa82266eb6f9e734bb7aa406a687e1d4"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__functions.html#gafa82266eb6f9e734bb7aa406a687e1d4">yaze_save_rom</a> (<a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, const char *filename)</td></tr>
+<tr class="memdesc:gafa82266eb6f9e734bb7aa406a687e1d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Save ROM to file.  <br /></td></tr>
+<tr class="separator:gafa82266eb6f9e734bb7aa406a687e1d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac2cf80ae0ce8fd624b4098ec9d48316b" id="r_gac2cf80ae0ce8fd624b4098ec9d48316b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structzelda3__rom.html">zelda3_rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom__functions.html#gac2cf80ae0ce8fd624b4098ec9d48316b">yaze_copy_rom</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom)</td></tr>
+<tr class="memdesc:gac2cf80ae0ce8fd624b4098ec9d48316b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a copy of ROM data.  <br /></td></tr>
+<tr class="separator:gac2cf80ae0ce8fd624b4098ec9d48316b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a id="a81a5c5c618a19cfba96f863e14006cf9" name="a81a5c5c618a19cfba96f863e14006cf9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a81a5c5c618a19cfba96f863e14006cf9">&#9670;&#160;</a></span>zelda3_rom</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The Legend of Zelda: A Link to the Past - Data Structures and Constants. </p>
+<p>This header defines data structures and constants specific to The Legend of Zelda: A Link to the Past ROM format and game data.</p>
+<dl class="section version"><dt>Version</dt><dd>0.3.0 </dd></dl>
+<dl class="section author"><dt>Author</dt><dd>YAZE Team </dd></dl>
 
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct zelda3_rom zelda3_rom</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a19f9d594bff45e7926bcaff46ed74246" name="a19f9d594bff45e7926bcaff46ed74246"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a19f9d594bff45e7926bcaff46ed74246">&#9670;&#160;</a></span>zelda3_message</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct zelda3_message zelda3_message</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Primitive of a message. </p>
-
-</div>
-</div>
-<a id="a0fb092c5014355cc0be54729e31a99c7" name="a0fb092c5014355cc0be54729e31a99c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0fb092c5014355cc0be54729e31a99c7">&#9670;&#160;</a></span>zelda3_overworld_map</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct zelda3_overworld_map zelda3_overworld_map</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Primitive of an overworld map. </p>
-
-</div>
-</div>
-<a id="a4fb19874710badcf3603558580fd236a" name="a4fb19874710badcf3603558580fd236a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4fb19874710badcf3603558580fd236a">&#9670;&#160;</a></span>zelda3_overworld</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct zelda3_overworld zelda3_overworld</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Primitive of the overworld. </p>
-
-</div>
-</div>
-<a id="a9ecfc19156f8f627881db2f6c16190ef" name="a9ecfc19156f8f627881db2f6c16190ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9ecfc19156f8f627881db2f6c16190ef">&#9670;&#160;</a></span>dungeon_sprite</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct dungeon_sprite dungeon_sprite</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a19113e3ce2572a1ca22bd4a335788119" name="a19113e3ce2572a1ca22bd4a335788119"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a19113e3ce2572a1ca22bd4a335788119">&#9670;&#160;</a></span>background2</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef enum <a class="el" href="#af206bedc320e56e6defeba3fa38d2c58">background2</a> <a class="el" href="#af206bedc320e56e6defeba3fa38d2c58">background2</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a13622589acc34cfc8bb4e8ad1bb4a772" name="a13622589acc34cfc8bb4e8ad1bb4a772"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a13622589acc34cfc8bb4e8ad1bb4a772">&#9670;&#160;</a></span>object_door</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct object_door object_door</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a81857e6a46245f2407f10aa8b2159d0b" name="a81857e6a46245f2407f10aa8b2159d0b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a81857e6a46245f2407f10aa8b2159d0b">&#9670;&#160;</a></span>staircase</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct staircase staircase</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a09b73d0adf4a21a8bc14d72393f0a2b1" name="a09b73d0adf4a21a8bc14d72393f0a2b1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a09b73d0adf4a21a8bc14d72393f0a2b1">&#9670;&#160;</a></span>chest</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct chest chest</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a70c378b5b911fdbc1e978d9354ea9fc0" name="a70c378b5b911fdbc1e978d9354ea9fc0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a70c378b5b911fdbc1e978d9354ea9fc0">&#9670;&#160;</a></span>chest_data</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct chest_data chest_data</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a8d82042373c5edcc165e7e3ba2bd7e2e" name="a8d82042373c5edcc165e7e3ba2bd7e2e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8d82042373c5edcc165e7e3ba2bd7e2e">&#9670;&#160;</a></span>destination</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct destination destination</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
+<p class="definition">Definition in file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+</div><h2 class="groupheader">Typedef Documentation</h2>
 <a id="af25424b13374b13fd0cdb07f2f32a42a" name="af25424b13374b13fd0cdb07f2f32a42a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af25424b13374b13fd0cdb07f2f32a42a">&#9670;&#160;</a></span>zelda3_dungeon_room</h2>
 
@@ -416,161 +339,8 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-</div>
-</div>
-<h2 class="groupheader">Enumeration Type Documentation</h2>
-<a id="a9b154d4f0904082e537a24b5ae25575d" name="a9b154d4f0904082e537a24b5ae25575d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9b154d4f0904082e537a24b5ae25575d">&#9670;&#160;</a></span>zelda3_version</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="#a9b154d4f0904082e537a24b5ae25575d">zelda3_version</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Different versions of the game supported by yaze. </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a9b154d4f0904082e537a24b5ae25575da56de89a713ba25cddd89edd52fdf2eaa" name="a9b154d4f0904082e537a24b5ae25575da56de89a713ba25cddd89edd52fdf2eaa"></a>US&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561" name="a9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561"></a>JP&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a9b154d4f0904082e537a24b5ae25575da8268cafd51299d814aba050e5f54f1ac" name="a9b154d4f0904082e537a24b5ae25575da8268cafd51299d814aba050e5f54f1ac"></a>SD&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a9b154d4f0904082e537a24b5ae25575daad9bcb06fffaf3416d2484ce5dc97500" name="a9b154d4f0904082e537a24b5ae25575daad9bcb06fffaf3416d2484ce5dc97500"></a>RANDO&#160;</td><td class="fielddoc"></td></tr>
-</table>
-
-<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00014">14</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
-
-</div>
-</div>
-<a id="af206bedc320e56e6defeba3fa38d2c58" name="af206bedc320e56e6defeba3fa38d2c58"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af206bedc320e56e6defeba3fa38d2c58">&#9670;&#160;</a></span>background2</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="#af206bedc320e56e6defeba3fa38d2c58">background2</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="af206bedc320e56e6defeba3fa38d2c58ad8a892b94d3a94ea861543c085ae782b" name="af206bedc320e56e6defeba3fa38d2c58ad8a892b94d3a94ea861543c085ae782b"></a>Off&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af206bedc320e56e6defeba3fa38d2c58a2326dd539f0d41c8e4b71a3aae3edb96" name="af206bedc320e56e6defeba3fa38d2c58a2326dd539f0d41c8e4b71a3aae3edb96"></a>Parallax&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af206bedc320e56e6defeba3fa38d2c58ab881c2fca9941a632de2b4af173a7906" name="af206bedc320e56e6defeba3fa38d2c58ab881c2fca9941a632de2b4af173a7906"></a>Dark&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af206bedc320e56e6defeba3fa38d2c58a952e05817c3b0ddebcf28d1a7423e659" name="af206bedc320e56e6defeba3fa38d2c58a952e05817c3b0ddebcf28d1a7423e659"></a>OnTop&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af206bedc320e56e6defeba3fa38d2c58a4d6895bfddbaad6a1de54402e2edde1a" name="af206bedc320e56e6defeba3fa38d2c58a4d6895bfddbaad6a1de54402e2edde1a"></a>Translucent&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af206bedc320e56e6defeba3fa38d2c58a8c3920d5d545844176ad55189fc9d8dc" name="af206bedc320e56e6defeba3fa38d2c58a8c3920d5d545844176ad55189fc9d8dc"></a>Addition&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af206bedc320e56e6defeba3fa38d2c58a5ecbcf0afce98b042f35ec71ba03fa4b" name="af206bedc320e56e6defeba3fa38d2c58a5ecbcf0afce98b042f35ec71ba03fa4b"></a>Normal&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af206bedc320e56e6defeba3fa38d2c58ac719d3f34968bcf992d4c0c48841cf63" name="af206bedc320e56e6defeba3fa38d2c58ac719d3f34968bcf992d4c0c48841cf63"></a>Transparent&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="af206bedc320e56e6defeba3fa38d2c58abd4ed2edf2b1c880c6568252e7cc7275" name="af206bedc320e56e6defeba3fa38d2c58abd4ed2edf2b1c880c6568252e7cc7275"></a>DarkRoom&#160;</td><td class="fielddoc"></td></tr>
-</table>
-
-<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00143">143</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
-
-</div>
-</div>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="ac870fb2b7713b670247082c171053148" name="ac870fb2b7713b670247082c171053148"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac870fb2b7713b670247082c171053148">&#9670;&#160;</a></span>yaze_load_rom()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structzelda3__rom.html">zelda3_rom</a> * yaze_load_rom </td>
-          <td>(</td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>filename</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00076">76</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00178">yaze::Rom::data()</a>, <a class="el" href="zelda_8h_source.html#l00089">zelda3_rom::data</a>, <a class="el" href="zelda_8h_source.html#l00088">zelda3_rom::filename</a>, <a class="el" href="zelda_8h_source.html#l00091">zelda3_rom::impl</a>, <a class="el" href="rom_8cc_source.html#l00230">yaze::Rom::LoadFromFile()</a>, <a class="el" href="rom_8h_source.html#l00177">yaze::Rom::size()</a>, and <a class="el" href="zelda_8h_source.html#l00090">zelda3_rom::size</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00059">yaze_init()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="zelda_8h_ac870fb2b7713b670247082c171053148_cgraph.png" border="0" usemap="#azelda_8h_ac870fb2b7713b670247082c171053148_cgraph" alt=""/></div>
-<map name="azelda_8h_ac870fb2b7713b670247082c171053148_cgraph" id="azelda_8h_ac870fb2b7713b670247082c171053148_cgraph">
-<area shape="rect" title=" " alt="" coords="5,55,113,80"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="188,5,300,31"/>
-<area shape="poly" title=" " alt="" coords="109,51,178,33,179,38,111,57"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="161,55,327,80"/>
-<area shape="poly" title=" " alt="" coords="113,65,145,65,145,70,113,70"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="189,104,298,130"/>
-<area shape="poly" title=" " alt="" coords="111,78,179,97,178,102,109,84"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="375,55,509,80"/>
-<area shape="poly" title=" " alt="" coords="328,65,359,65,359,70,328,70"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a0c0dfb85f1e87702458d4dbaae0beef3" name="a0c0dfb85f1e87702458d4dbaae0beef3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0c0dfb85f1e87702458d4dbaae0beef3">&#9670;&#160;</a></span>yaze_unload_rom()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze_unload_rom </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structzelda3__rom.html">zelda3_rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00092">92</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="zelda_8h_source.html#l00091">zelda3_rom::impl</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00069">yaze_shutdown()</a>.</p>
-
-</div>
-</div>
-<a id="ad5d32e01226c1d7167fa6c34c59bb95e" name="ad5d32e01226c1d7167fa6c34c59bb95e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad5d32e01226c1d7167fa6c34c59bb95e">&#9670;&#160;</a></span>yaze_save_rom()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze_save_rom </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structzelda3__rom.html">zelda3_rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>filename</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00102">102</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="zelda_8h_source.html#l00091">zelda3_rom::impl</a>, and <a class="el" href="rom_8cc_source.html#l00385">yaze::Rom::SaveToFile()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="zelda_8h_ad5d32e01226c1d7167fa6c34c59bb95e_cgraph.png" border="0" usemap="#azelda_8h_ad5d32e01226c1d7167fa6c34c59bb95e_cgraph" alt=""/></div>
-<map name="azelda_8h_ad5d32e01226c1d7167fa6c34c59bb95e_cgraph" id="azelda_8h_ad5d32e01226c1d7167fa6c34c59bb95e_cgraph">
-<area shape="rect" title=" " alt="" coords="5,55,117,80"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a85481fc21993edbc298608a66cb70ba9" title=" " alt="" coords="165,55,317,80"/>
-<area shape="poly" title=" " alt="" coords="117,65,149,65,149,70,117,70"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="390,5,524,31"/>
-<area shape="poly" title=" " alt="" coords="300,51,382,32,383,38,301,57"/>
-<area shape="rect" href="classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="365,55,549,80"/>
-<area shape="poly" title=" " alt="" coords="317,65,349,65,349,70,317,70"/>
-<area shape="rect" href="classyaze_1_1Rom.html#afde2c40d5cb9eaf14b64dae1da43afd7" title=" " alt="" coords="368,104,547,130"/>
-<area shape="poly" title=" " alt="" coords="301,78,383,97,382,103,300,84"/>
-</map>
-</div>
+<p>Complete dungeon room data. </p>
+<p>Contains all objects, sprites, and properties for a single dungeon room. </p>
 
 </div>
 </div>

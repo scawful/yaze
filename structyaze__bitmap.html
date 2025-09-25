@@ -109,9 +109,12 @@ $(function(){initNavTree('structyaze__bitmap.html',''); initResizable(true); });
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="structyaze__bitmap-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">yaze_bitmap Struct Reference</div></div>
+  <div class="headertitle"><div class="title">yaze_bitmap Struct Reference<div class="ingroups"><a class="el" href="group__graphics.html">Graphics and Bitmap Functions</a></div></div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Bitmap data structure.  
+ <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="yaze_8h_source.html">yaze.h</a>&gt;</code></p>
 <table class="memberdecls">
@@ -127,8 +130,10 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a28738a795224b50cdc2d721125850760"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock">
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00031">31</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<div class="textblock"><p>Bitmap data structure. </p>
+<p>Represents a bitmap image with pixel data and metadata. </p>
+
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00168">168</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="adeb02ea72387c99bf2ba441aaece1760" name="adeb02ea72387c99bf2ba441aaece1760"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adeb02ea72387c99bf2ba441aaece1760">&#9670;&#160;</a></span>width</h2>
@@ -141,10 +146,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Width in pixels </p>
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00032">32</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00169">169</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00113">yaze_load_bitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00322">yaze_create_bitmap()</a>, <a class="el" href="yaze_8cc_source.html#l00312">yaze_free_bitmap()</a>, and <a class="el" href="yaze_8cc_source.html#l00207">yaze_load_bitmap()</a>.</p>
 
 </div>
 </div>
@@ -159,10 +165,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Height in pixels </p>
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00033">33</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00170">170</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00113">yaze_load_bitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00322">yaze_create_bitmap()</a>, <a class="el" href="yaze_8cc_source.html#l00312">yaze_free_bitmap()</a>, and <a class="el" href="yaze_8cc_source.html#l00207">yaze_load_bitmap()</a>.</p>
 
 </div>
 </div>
@@ -177,10 +184,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Bits per pixel (1, 2, 4, 8) </p>
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00034">34</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00171">171</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00113">yaze_load_bitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00322">yaze_create_bitmap()</a>, <a class="el" href="yaze_8cc_source.html#l00312">yaze_free_bitmap()</a>, and <a class="el" href="yaze_8cc_source.html#l00207">yaze_load_bitmap()</a>.</p>
 
 </div>
 </div>
@@ -195,10 +203,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Pixel data (caller owns memory) </p>
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00035">35</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00172">172</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00113">yaze_load_bitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00322">yaze_create_bitmap()</a>, <a class="el" href="yaze_8cc_source.html#l00312">yaze_free_bitmap()</a>, and <a class="el" href="yaze_8cc_source.html#l00207">yaze_load_bitmap()</a>.</p>
 
 </div>
 </div>

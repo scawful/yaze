@@ -109,9 +109,12 @@ $(function(){initNavTree('structzelda3__rom.html',''); initResizable(true); });
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="structzelda3__rom-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">zelda3_rom Struct Reference</div></div>
+  <div class="headertitle"><div class="title">zelda3_rom Struct Reference<div class="ingroups"><a class="el" href="group__rom__types.html">ROM Types and Versions</a></div></div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>ROM data structure.  
+ <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="zelda_8h_source.html">zelda.h</a>&gt;</code></p>
 <table class="memberdecls">
@@ -123,12 +126,18 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a034aa2d0098c24847746297ac60c4395"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d66de2c0deec90f291997a135d5804e" id="r_a5d66de2c0deec90f291997a135d5804e"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5d66de2c0deec90f291997a135d5804e">size</a></td></tr>
 <tr class="separator:a5d66de2c0deec90f291997a135d5804e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef354f6ad353071ac1cce434c4a2e9ab" id="r_aef354f6ad353071ac1cce434c4a2e9ab"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aef354f6ad353071ac1cce434c4a2e9ab">version</a></td></tr>
+<tr class="separator:aef354f6ad353071ac1cce434c4a2e9ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19b64a9592ca711583a239f5ee6d9f3a" id="r_a19b64a9592ca711583a239f5ee6d9f3a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a19b64a9592ca711583a239f5ee6d9f3a">is_modified</a></td></tr>
+<tr class="separator:a19b64a9592ca711583a239f5ee6d9f3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78a59d2ed3173a16310acadb0790a1a6" id="r_a78a59d2ed3173a16310acadb0790a1a6"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a78a59d2ed3173a16310acadb0790a1a6">impl</a></td></tr>
 <tr class="separator:a78a59d2ed3173a16310acadb0790a1a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock">
-<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00087">87</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+<div class="textblock"><p>ROM data structure. </p>
+<p>Represents a loaded Zelda 3 ROM with its data and metadata. </p>
+
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00210">210</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a2ddaab859d793ff64d168369f5a3bd45" name="a2ddaab859d793ff64d168369f5a3bd45"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2ddaab859d793ff64d168369f5a3bd45">&#9670;&#160;</a></span>filename</h2>
@@ -141,10 +150,9 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Original filename (can be NULL) </p>
 
-<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00088">88</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00076">yaze_load_rom()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00211">211</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
 
 </div>
 </div>
@@ -159,10 +167,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>ROM data (read-only for external users) </p>
 
-<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00089">89</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00212">212</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00175">yaze_load_messages()</a>, and <a class="el" href="yaze_8cc_source.html#l00076">yaze_load_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00269">yaze_load_messages()</a>.</p>
 
 </div>
 </div>
@@ -177,10 +186,45 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Size of ROM data in bytes </p>
 
-<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00090">90</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00213">213</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00076">yaze_load_rom()</a>.</p>
+</div>
+</div>
+<a id="aef354f6ad353071ac1cce434c4a2e9ab" name="aef354f6ad353071ac1cce434c4a2e9ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef354f6ad353071ac1cce434c4a2e9ab">&#9670;&#160;</a></span>version</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a> zelda3_rom::version</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Detected ROM version </p>
+
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00214">214</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+
+</div>
+</div>
+<a id="a19b64a9592ca711583a239f5ee6d9f3a" name="a19b64a9592ca711583a239f5ee6d9f3a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19b64a9592ca711583a239f5ee6d9f3a">&#9670;&#160;</a></span>is_modified</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool zelda3_rom::is_modified</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>True if ROM has been modified </p>
+
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00215">215</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00183">yaze_save_rom()</a>.</p>
 
 </div>
 </div>
@@ -195,10 +239,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Internal implementation pointer </p>
 
-<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00091">91</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00216">216</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00122">yaze_get_color_from_paletteset()</a>, <a class="el" href="yaze_8cc_source.html#l00166">yaze_load_all_rooms()</a>, <a class="el" href="yaze_8cc_source.html#l00175">yaze_load_messages()</a>, <a class="el" href="yaze_8cc_source.html#l00144">yaze_load_overworld()</a>, <a class="el" href="yaze_8cc_source.html#l00076">yaze_load_rom()</a>, <a class="el" href="yaze_8cc_source.html#l00102">yaze_save_rom()</a>, and <a class="el" href="yaze_8cc_source.html#l00092">yaze_unload_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00216">yaze_get_color_from_paletteset()</a>, <a class="el" href="yaze_8cc_source.html#l00260">yaze_load_all_rooms()</a>, <a class="el" href="yaze_8cc_source.html#l00269">yaze_load_messages()</a>, <a class="el" href="yaze_8cc_source.html#l00238">yaze_load_overworld()</a>, <a class="el" href="yaze_8cc_source.html#l00183">yaze_save_rom()</a>, and <a class="el" href="yaze_8cc_source.html#l00170">yaze_unload_rom()</a>.</p>
 
 </div>
 </div>

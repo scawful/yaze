@@ -20,7 +20,7 @@ var searchData=
   ['vanilla_5from_5f_17',['vanilla_rom_',['../classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html#af68e366a9f7ad3025f0377447f8b2e30',1,'yaze::zelda3::ComprehensiveIntegrationTest']]],
   ['vanilla_5from_5fpath_5f_18',['vanilla_rom_path_',['../classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html#a98100097e136cf44ede952f86f5d8348',1,'yaze::zelda3::ComprehensiveIntegrationTest']]],
   ['verbose_5f_19',['verbose_',['../classyaze_1_1emu_1_1MemoryImpl.html#a8023d2ee521d60c70d786c3bf0b0b701',1,'yaze::emu::MemoryImpl::verbose_'],['../classyaze_1_1test_1_1MemoryImpl.html#a8023d2ee521d60c70d786c3bf0b0b701',1,'yaze::test::MemoryImpl::verbose_']]],
-  ['version_20',['version',['../structyaze__extension.html#a78827a2290a2eea969ded6fec5fcc4e9',1,'yaze_extension']]],
+  ['version_20',['version',['../structyaze__extension.html#a78827a2290a2eea969ded6fec5fcc4e9',1,'yaze_extension::version'],['../structzelda3__rom.html#aef354f6ad353071ac1cce434c4a2e9ab',1,'zelda3_rom::version']]],
   ['version_5f_21',['version_',['../classyaze_1_1editor_1_1EditorManager.html#affe73c6625559f736677e476796f02a1',1,'yaze::editor::EditorManager::version_'],['../classyaze_1_1Rom.html#a089a86f09767d8d7fb1f253806a33b23',1,'yaze::Rom::version_'],['../classyaze_1_1test_1_1Rom.html#a089a86f09767d8d7fb1f253806a33b23',1,'yaze::test::Rom::version_']]],
   ['version_5fnumber_22',['version_number',['../structyaze_1_1gfx_1_1CgxHeader.html#af7f39d215fb5283bbd1b7ff126c9823f',1,'yaze::gfx::CgxHeader']]],
   ['vertical_5fcounter_5foutput_23',['vertical_counter_output',['../structyaze_1_1emu_1_1OPVCT.html#ac5e39c129d017a3beff6eace51e9e323',1,'yaze::emu::OPVCT']]],

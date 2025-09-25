@@ -51,7 +51,7 @@ var searchData=
   ['none_20expected_48',['None Expected',['../md_docs_2canvas-migration.html#autotoc_md73',1,'']]],
   ['nonscalable_49',['NonScalable',['../namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747ae9536c38b4bb6b601bab83bfc2bed29b',1,'yaze::zelda3']]],
   ['nop_50',['NOP',['../classyaze_1_1emu_1_1Spc700.html#a76a74b4095ac1f6d651593d90fa740da',1,'yaze::emu::Spc700::NOP()'],['../classyaze_1_1emu_1_1Cpu.html#a1eac3c2018da93be574296583e94dcfa',1,'yaze::emu::Cpu::NOP()'],['../classyaze_1_1test_1_1Cpu.html#a1eac3c2018da93be574296583e94dcfa',1,'yaze::test::Cpu::NOP()'],['../classyaze_1_1test_1_1Spc700.html#a76a74b4095ac1f6d651593d90fa740da',1,'yaze::test::Spc700::NOP()']]],
-  ['normal_51',['Normal',['../classTextEditor.html#aed0b92add3785d71e009dbf66b78490da960b44c579bc2f6818d2daaf9e4c16f0',1,'TextEditor::Normal'],['../zelda_8h.html#af206bedc320e56e6defeba3fa38d2c58a5ecbcf0afce98b042f35ec71ba03fa4b',1,'Normal:&#160;zelda.h']]],
+  ['normal_51',['Normal',['../classTextEditor.html#aed0b92add3785d71e009dbf66b78490da960b44c579bc2f6818d2daaf9e4c16f0',1,'TextEditor::Normal'],['../group__dungeon.html#ga8c2eff9b35be9eef5edc30f33cc1411b',1,'Normal:&#160;zelda.h']]],
   ['not_20loading_52',['3. Graphics Not Loading',['../md_docs_2overworld__loading__guide.html#autotoc_md420',1,'']]],
   ['not1_53',['NOT1',['../classyaze_1_1emu_1_1Spc700.html#a16b76a437f9574f5981f4c46d907ee96',1,'yaze::emu::Spc700::NOT1()'],['../classyaze_1_1test_1_1Spc700.html#a16b76a437f9574f5981f4c46d907ee96',1,'yaze::test::Spc700::NOT1()']]],
   ['notc_54',['NOTC',['../classyaze_1_1emu_1_1Spc700.html#a920808e5ffd0598476d16861729fd4bd',1,'yaze::emu::Spc700::NOTC()'],['../classyaze_1_1test_1_1Spc700.html#a920808e5ffd0598476d16861729fd4bd',1,'yaze::test::Spc700::NOTC()']]],

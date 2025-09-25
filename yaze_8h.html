@@ -108,12 +108,16 @@ $(function(){initNavTree('yaze_8h.html',''); initResizable(true); });
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">yaze.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Yet Another Zelda3 Editor (YAZE) - Public C API.  
+<a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stdbool.h&gt;</code><br />
 <code>#include &lt;stddef.h&gt;</code><br />
 <code>#include &lt;stdint.h&gt;</code><br />
@@ -123,14 +127,14 @@ Include dependency graph for yaze.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="yaze_8h__incl.png" border="0" usemap="#aincl_2yaze_8h" alt=""/></div>
 <map name="aincl_2yaze_8h" id="aincl_2yaze_8h">
-<area shape="rect" title=" " alt="" coords="83,5,164,31"/>
+<area shape="rect" title="Yet Another Zelda3 Editor (YAZE) &#45; Public C API." alt="" coords="83,5,164,31"/>
 <area shape="rect" title=" " alt="" coords="5,153,79,178"/>
 <area shape="poly" title=" " alt="" coords="93,34,61,53,47,65,36,80,32,94,30,109,35,138,30,138,25,109,26,93,32,78,43,62,58,48,90,29"/>
 <area shape="rect" title=" " alt="" coords="46,79,113,105"/>
 <area shape="poly" title=" " alt="" coords="118,33,97,67,93,64,114,30"/>
 <area shape="rect" title=" " alt="" coords="169,153,232,178"/>
 <area shape="poly" title=" " alt="" coords="156,29,187,48,201,62,212,78,218,93,219,109,214,139,208,138,213,109,212,94,208,80,197,65,184,53,153,34"/>
-<area shape="rect" href="zelda_8h.html" title=" " alt="" coords="137,79,198,105"/>
+<area shape="rect" href="zelda_8h.html" title="The Legend of Zelda: A Link to the Past &#45; Data Structures and Constants." alt="" coords="137,79,198,105"/>
 <area shape="poly" title=" " alt="" coords="133,30,154,64,150,67,128,33"/>
 <area shape="poly" title=" " alt="" coords="147,108,78,147,75,142,145,103"/>
 <area shape="poly" title=" " alt="" coords="175,104,191,137,186,140,170,106"/>
@@ -144,14 +148,16 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__editor__context.html">yaze_editor_context</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__bitmap.html">yaze_bitmap</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bitmap data structure.  <a href="structyaze__bitmap.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__color.html">snes_color</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of 16-bit RGB SNES color.  <a href="structsnes__color.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">SNES color in 15-bit RGB format (BGR555)  <a href="structsnes__color.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__palette.html">snes_palette</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a SNES color palette.  <a href="structsnes__palette.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">SNES color palette.  <a href="structsnes__palette.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__tile8.html">snes_tile8</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">8x8 SNES tile data  <a href="structsnes__tile8.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__tile__info.html">snes_tile_info</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -160,74 +166,199 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsnes__tile32.html">snes_tile32</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze__extension.html">yaze_extension</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension interface for Yaze.  <a href="structyaze__extension.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension interface for YAZE.  <a href="structyaze__extension.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:gafb0f5ee09c33996ce91014dffd2ecafb" id="r_gafb0f5ee09c33996ce91014dffd2ecafb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__version.html#gafb0f5ee09c33996ce91014dffd2ecafb">YAZE_VERSION_MAJOR</a>&#160;&#160;&#160;0</td></tr>
+<tr class="separator:gafb0f5ee09c33996ce91014dffd2ecafb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf433190cb0bec679b01401edd6b0bc5b" id="r_gaf433190cb0bec679b01401edd6b0bc5b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__version.html#gaf433190cb0bec679b01401edd6b0bc5b">YAZE_VERSION_MINOR</a>&#160;&#160;&#160;3</td></tr>
+<tr class="separator:gaf433190cb0bec679b01401edd6b0bc5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1ef0890c21d5e052a03ace9b1f3d0e3c" id="r_ga1ef0890c21d5e052a03ace9b1f3d0e3c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__version.html#ga1ef0890c21d5e052a03ace9b1f3d0e3c">YAZE_VERSION_PATCH</a>&#160;&#160;&#160;0</td></tr>
+<tr class="separator:ga1ef0890c21d5e052a03ace9b1f3d0e3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabc3b93252a656c28dee5ac55e492cc96" id="r_gabc3b93252a656c28dee5ac55e492cc96"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__version.html#gabc3b93252a656c28dee5ac55e492cc96">YAZE_VERSION_STRING</a>&#160;&#160;&#160;&quot;0.3.0&quot;</td></tr>
+<tr class="separator:gabc3b93252a656c28dee5ac55e492cc96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0fc282e05f78f4ead8edd3880ada5a02" id="r_ga0fc282e05f78f4ead8edd3880ada5a02"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__version.html#ga0fc282e05f78f4ead8edd3880ada5a02">YAZE_VERSION_NUMBER</a>&#160;&#160;&#160;300</td></tr>
+<tr class="separator:ga0fc282e05f78f4ead8edd3880ada5a02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga02063ce5ca87539b6c40ae16ce255816" id="r_ga02063ce5ca87539b6c40ae16ce255816"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__extensions.html#ga02063ce5ca87539b6c40ae16ce255816">YAZE_EXT_CAP_ROM_EDITING</a>&#160;&#160;&#160;(1 &lt;&lt; 0)</td></tr>
+<tr class="separator:ga02063ce5ca87539b6c40ae16ce255816"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaec438a1a432ccb1e7445743d8beef76f" id="r_gaec438a1a432ccb1e7445743d8beef76f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__extensions.html#gaec438a1a432ccb1e7445743d8beef76f">YAZE_EXT_CAP_GRAPHICS</a>&#160;&#160;&#160;(1 &lt;&lt; 1)</td></tr>
+<tr class="separator:gaec438a1a432ccb1e7445743d8beef76f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4f46756389389513ff56661bb567ce70" id="r_ga4f46756389389513ff56661bb567ce70"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__extensions.html#ga4f46756389389513ff56661bb567ce70">YAZE_EXT_CAP_AUDIO</a>&#160;&#160;&#160;(1 &lt;&lt; 2)</td></tr>
+<tr class="separator:ga4f46756389389513ff56661bb567ce70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga661cc677d0f38130d473673c4f193698" id="r_ga661cc677d0f38130d473673c4f193698"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__extensions.html#ga661cc677d0f38130d473673c4f193698">YAZE_EXT_CAP_SCRIPTING</a>&#160;&#160;&#160;(1 &lt;&lt; 3)</td></tr>
+<tr class="separator:ga661cc677d0f38130d473673c4f193698"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga404f51be1a738d915bea437bc506c340" id="r_ga404f51be1a738d915bea437bc506c340"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__extensions.html#ga404f51be1a738d915bea437bc506c340">YAZE_EXT_CAP_IMPORT_EXPORT</a>&#160;&#160;&#160;(1 &lt;&lt; 4)</td></tr>
+<tr class="separator:ga404f51be1a738d915bea437bc506c340"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:aa5f9c0aba87080afdbdfe7cb6792d89e" id="r_aa5f9c0aba87080afdbdfe7cb6792d89e"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_editor_context&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa5f9c0aba87080afdbdfe7cb6792d89e">yaze_editor_context</a></td></tr>
 <tr class="separator:aa5f9c0aba87080afdbdfe7cb6792d89e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afa3b4d947347ed413689dcd80458ec0f" id="r_afa3b4d947347ed413689dcd80458ec0f"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afa3b4d947347ed413689dcd80458ec0f">yaze_status</a></td></tr>
-<tr class="separator:afa3b4d947347ed413689dcd80458ec0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ba242cd4dc0870e4e4d6f943a1ad7a7" id="r_a5ba242cd4dc0870e4e4d6f943a1ad7a7"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_bitmap&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5ba242cd4dc0870e4e4d6f943a1ad7a7">yaze_bitmap</a></td></tr>
-<tr class="separator:a5ba242cd4dc0870e4e4d6f943a1ad7a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7010d1b3caf12995e0ecb41a1c446b94" id="r_a7010d1b3caf12995e0ecb41a1c446b94"><td class="memItemLeft" align="right" valign="top">typedef struct snes_color&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7010d1b3caf12995e0ecb41a1c446b94">snes_color</a></td></tr>
-<tr class="memdesc:a7010d1b3caf12995e0ecb41a1c446b94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of 16-bit RGB SNES color.  <br /></td></tr>
-<tr class="separator:a7010d1b3caf12995e0ecb41a1c446b94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a100f9af9f8e1bb9d2ad73476ab774655" id="r_a100f9af9f8e1bb9d2ad73476ab774655"><td class="memItemLeft" align="right" valign="top">typedef struct snes_palette&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a100f9af9f8e1bb9d2ad73476ab774655">snes_palette</a></td></tr>
-<tr class="memdesc:a100f9af9f8e1bb9d2ad73476ab774655"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primitive of a SNES color palette.  <br /></td></tr>
-<tr class="separator:a100f9af9f8e1bb9d2ad73476ab774655"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa57d3ad47df22165528207d494c563b2" id="r_aa57d3ad47df22165528207d494c563b2"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile8&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa57d3ad47df22165528207d494c563b2">snes_tile8</a></td></tr>
-<tr class="separator:aa57d3ad47df22165528207d494c563b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a38e287988459276888c8616ac482a814" id="r_a38e287988459276888c8616ac482a814"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile_info&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a38e287988459276888c8616ac482a814">snes_tile_info</a></td></tr>
-<tr class="separator:a38e287988459276888c8616ac482a814"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa2e0547a0d9563272f35e2c01ad12d84" id="r_aa2e0547a0d9563272f35e2c01ad12d84"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile16&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa2e0547a0d9563272f35e2c01ad12d84">snes_tile16</a></td></tr>
-<tr class="separator:aa2e0547a0d9563272f35e2c01ad12d84"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a484dd55f0e7ececd8310a787de4ecb9f" id="r_a484dd55f0e7ececd8310a787de4ecb9f"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a484dd55f0e7ececd8310a787de4ecb9f">snes_tile32</a></td></tr>
-<tr class="separator:a484dd55f0e7ececd8310a787de4ecb9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafa3b4d947347ed413689dcd80458ec0f" id="r_gafa3b4d947347ed413689dcd80458ec0f"><td class="memItemLeft" align="right" valign="top">typedef enum <a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#gafa3b4d947347ed413689dcd80458ec0f">yaze_status</a></td></tr>
+<tr class="memdesc:gafa3b4d947347ed413689dcd80458ec0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Status codes returned by YAZE functions.  <br /></td></tr>
+<tr class="separator:gafa3b4d947347ed413689dcd80458ec0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5ba242cd4dc0870e4e4d6f943a1ad7a7" id="r_ga5ba242cd4dc0870e4e4d6f943a1ad7a7"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_bitmap&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga5ba242cd4dc0870e4e4d6f943a1ad7a7">yaze_bitmap</a></td></tr>
+<tr class="memdesc:ga5ba242cd4dc0870e4e4d6f943a1ad7a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bitmap data structure.  <br /></td></tr>
+<tr class="separator:ga5ba242cd4dc0870e4e4d6f943a1ad7a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7010d1b3caf12995e0ecb41a1c446b94" id="r_ga7010d1b3caf12995e0ecb41a1c446b94"><td class="memItemLeft" align="right" valign="top">typedef struct snes_color&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga7010d1b3caf12995e0ecb41a1c446b94">snes_color</a></td></tr>
+<tr class="memdesc:ga7010d1b3caf12995e0ecb41a1c446b94"><td class="mdescLeft">&#160;</td><td class="mdescRight">SNES color in 15-bit RGB format (BGR555)  <br /></td></tr>
+<tr class="separator:ga7010d1b3caf12995e0ecb41a1c446b94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga100f9af9f8e1bb9d2ad73476ab774655" id="r_ga100f9af9f8e1bb9d2ad73476ab774655"><td class="memItemLeft" align="right" valign="top">typedef struct snes_palette&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga100f9af9f8e1bb9d2ad73476ab774655">snes_palette</a></td></tr>
+<tr class="memdesc:ga100f9af9f8e1bb9d2ad73476ab774655"><td class="mdescLeft">&#160;</td><td class="mdescRight">SNES color palette.  <br /></td></tr>
+<tr class="separator:ga100f9af9f8e1bb9d2ad73476ab774655"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa57d3ad47df22165528207d494c563b2" id="r_gaa57d3ad47df22165528207d494c563b2"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile8&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#gaa57d3ad47df22165528207d494c563b2">snes_tile8</a></td></tr>
+<tr class="memdesc:gaa57d3ad47df22165528207d494c563b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">8x8 SNES tile data  <br /></td></tr>
+<tr class="separator:gaa57d3ad47df22165528207d494c563b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga38e287988459276888c8616ac482a814" id="r_ga38e287988459276888c8616ac482a814"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile_info&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga38e287988459276888c8616ac482a814">snes_tile_info</a></td></tr>
+<tr class="separator:ga38e287988459276888c8616ac482a814"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa2e0547a0d9563272f35e2c01ad12d84" id="r_gaa2e0547a0d9563272f35e2c01ad12d84"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile16&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#gaa2e0547a0d9563272f35e2c01ad12d84">snes_tile16</a></td></tr>
+<tr class="separator:gaa2e0547a0d9563272f35e2c01ad12d84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga484dd55f0e7ececd8310a787de4ecb9f" id="r_ga484dd55f0e7ececd8310a787de4ecb9f"><td class="memItemLeft" align="right" valign="top">typedef struct snes_tile32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga484dd55f0e7ececd8310a787de4ecb9f">snes_tile32</a></td></tr>
+<tr class="separator:ga484dd55f0e7ececd8310a787de4ecb9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab5ab0deeeaa063d2e5564c5f12900421" id="r_ab5ab0deeeaa063d2e5564c5f12900421"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab5ab0deeeaa063d2e5564c5f12900421">yaze_initialize_func</a>) (<a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *context)</td></tr>
 <tr class="memdesc:ab5ab0deeeaa063d2e5564c5f12900421"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function pointer to initialize the extension.  <br /></td></tr>
 <tr class="separator:ab5ab0deeeaa063d2e5564c5f12900421"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75ef22f3a15fb60314f902a5bf7d0b7e" id="r_a75ef22f3a15fb60314f902a5bf7d0b7e"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a75ef22f3a15fb60314f902a5bf7d0b7e">yaze_cleanup_func</a>) (void)</td></tr>
 <tr class="separator:a75ef22f3a15fb60314f902a5bf7d0b7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a84339e67846d381495b6fa1bd47dcf6d" id="r_a84339e67846d381495b6fa1bd47dcf6d"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_extension&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a84339e67846d381495b6fa1bd47dcf6d">yaze_extension</a></td></tr>
-<tr class="memdesc:a84339e67846d381495b6fa1bd47dcf6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension interface for Yaze.  <br /></td></tr>
-<tr class="separator:a84339e67846d381495b6fa1bd47dcf6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga84339e67846d381495b6fa1bd47dcf6d" id="r_ga84339e67846d381495b6fa1bd47dcf6d"><td class="memItemLeft" align="right" valign="top">typedef struct yaze_extension&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__extensions.html#ga84339e67846d381495b6fa1bd47dcf6d">yaze_extension</a></td></tr>
+<tr class="memdesc:ga84339e67846d381495b6fa1bd47dcf6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension interface for YAZE.  <br /></td></tr>
+<tr class="separator:ga84339e67846d381495b6fa1bd47dcf6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a8b8638fa48e18e420ef66414847265c0" id="r_a8b8638fa48e18e420ef66414847265c0"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a> { <a class="el" href="#a8b8638fa48e18e420ef66414847265c0afc583bbb0069da7a40765619168bfa9c">YAZE_UNKNOWN</a> = -1
-, <a class="el" href="#a8b8638fa48e18e420ef66414847265c0a07a60c9eac361f06ec1a03be228225ed">YAZE_OK</a> = 0
-, <a class="el" href="#a8b8638fa48e18e420ef66414847265c0a964c4214332f0b8843014ab0ce8dc171">YAZE_ERROR</a> = 1
+<tr class="memitem:ga8b8638fa48e18e420ef66414847265c0" id="r_ga8b8638fa48e18e420ef66414847265c0"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a> { <br />
+&#160;&#160;<a class="el" href="group__core.html#gga8b8638fa48e18e420ef66414847265c0a07a60c9eac361f06ec1a03be228225ed">YAZE_OK</a> = 0
+, <a class="el" href="group__core.html#gga8b8638fa48e18e420ef66414847265c0af82920677ab3ffbe060b219da27359c1">YAZE_ERROR_UNKNOWN</a> = -1
+, <a class="el" href="group__core.html#gga8b8638fa48e18e420ef66414847265c0a8ef2fee5b623ed94287d443e9835e88f">YAZE_ERROR_INVALID_ARG</a> = 1
+, <a class="el" href="group__core.html#gga8b8638fa48e18e420ef66414847265c0a7e431fc9d3586467cd8df8cb5ef93761">YAZE_ERROR_FILE_NOT_FOUND</a> = 2
+, <br />
+&#160;&#160;<a class="el" href="group__core.html#gga8b8638fa48e18e420ef66414847265c0aa417c4bc0c4411826af3a501f608fca4">YAZE_ERROR_MEMORY</a> = 3
+, <a class="el" href="group__core.html#gga8b8638fa48e18e420ef66414847265c0a7236ccb06720e1c0f7794601f17a3af2">YAZE_ERROR_IO</a> = 4
+, <a class="el" href="group__core.html#gga8b8638fa48e18e420ef66414847265c0a12943b18436620116b0a70a3de85cb8d">YAZE_ERROR_CORRUPTION</a> = 5
+, <a class="el" href="group__core.html#gga8b8638fa48e18e420ef66414847265c0ac2d0ae3485a71218d2746a810879fe55">YAZE_ERROR_NOT_INITIALIZED</a> = 6
+<br />
  }</td></tr>
-<tr class="separator:a8b8638fa48e18e420ef66414847265c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memdesc:ga8b8638fa48e18e420ef66414847265c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Status codes returned by YAZE functions.  <a href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">More...</a><br /></td></tr>
+<tr class="separator:ga8b8638fa48e18e420ef66414847265c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a440a6545b01877e0afee7ba8a54ad27e" id="r_a440a6545b01877e0afee7ba8a54ad27e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a440a6545b01877e0afee7ba8a54ad27e">yaze_app_main</a> (int argc, char **argv)</td></tr>
-<tr class="separator:a440a6545b01877e0afee7ba8a54ad27e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9fff64bba6ed578ae091960204b84648" id="r_a9fff64bba6ed578ae091960204b84648"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9fff64bba6ed578ae091960204b84648">yaze_check_version</a> (const char *version)</td></tr>
-<tr class="separator:a9fff64bba6ed578ae091960204b84648"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7ca61e2a742a8a99768d05d3755f5d9" id="r_ab7ca61e2a742a8a99768d05d3755f5d9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab7ca61e2a742a8a99768d05d3755f5d9">yaze_init</a> (<a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *, char *rom_filename)</td></tr>
-<tr class="separator:ab7ca61e2a742a8a99768d05d3755f5d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a4d65cefe219b2b0de35ddcab2cd374" id="r_a3a4d65cefe219b2b0de35ddcab2cd374"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3a4d65cefe219b2b0de35ddcab2cd374">yaze_shutdown</a> (<a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *)</td></tr>
-<tr class="separator:a3a4d65cefe219b2b0de35ddcab2cd374"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25bf6669809ad5e1ae299014a5f6fd0a" id="r_a25bf6669809ad5e1ae299014a5f6fd0a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__bitmap.html">yaze_bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a25bf6669809ad5e1ae299014a5f6fd0a">yaze_load_bitmap</a> (const char *filename)</td></tr>
-<tr class="separator:a25bf6669809ad5e1ae299014a5f6fd0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac37ec58a0da8b441220024ac2cb73a76" id="r_ac37ec58a0da8b441220024ac2cb73a76"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac37ec58a0da8b441220024ac2cb73a76">yaze_get_color_from_paletteset</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, int palette_set, int palette, int color)</td></tr>
-<tr class="memdesc:ac37ec58a0da8b441220024ac2cb73a76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a color from a palette set.  <br /></td></tr>
-<tr class="separator:ac37ec58a0da8b441220024ac2cb73a76"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a526cbc274a334616e24c0779e165cd" id="r_a0a526cbc274a334616e24c0779e165cd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structzelda3__overworld.html">zelda3_overworld</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a526cbc274a334616e24c0779e165cd">yaze_load_overworld</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom)</td></tr>
-<tr class="memdesc:a0a526cbc274a334616e24c0779e165cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load the overworld from the ROM.  <br /></td></tr>
-<tr class="separator:a0a526cbc274a334616e24c0779e165cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b14017ad1ab9e7da860e59f6145c1d1" id="r_a6b14017ad1ab9e7da860e59f6145c1d1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structzelda3__dungeon__room.html">zelda3_dungeon_room</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6b14017ad1ab9e7da860e59f6145c1d1">yaze_load_all_rooms</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom)</td></tr>
-<tr class="memdesc:a6b14017ad1ab9e7da860e59f6145c1d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load all rooms from the ROM.  <br /></td></tr>
-<tr class="separator:a6b14017ad1ab9e7da860e59f6145c1d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1f5f227a1e6ebdcb2065544121164a15" id="r_a1f5f227a1e6ebdcb2065544121164a15"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1f5f227a1e6ebdcb2065544121164a15">yaze_load_messages</a> (<a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, <a class="el" href="structzelda3__message.html">zelda3_message</a> **messages)</td></tr>
-<tr class="memdesc:a1f5f227a1e6ebdcb2065544121164a15"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load all messages from the ROM.  <br /></td></tr>
-<tr class="separator:a1f5f227a1e6ebdcb2065544121164a15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf4d341e1ae32594ade9fc4a3e3e8ba16" id="r_gaf4d341e1ae32594ade9fc4a3e3e8ba16"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#gaf4d341e1ae32594ade9fc4a3e3e8ba16">yaze_status_to_string</a> (<a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a> status)</td></tr>
+<tr class="memdesc:gaf4d341e1ae32594ade9fc4a3e3e8ba16"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a status code to a human-readable string.  <br /></td></tr>
+<tr class="separator:gaf4d341e1ae32594ade9fc4a3e3e8ba16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3a3a4e60f272ceed1dea6ccaefd39e65" id="r_ga3a3a4e60f272ceed1dea6ccaefd39e65"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#ga3a3a4e60f272ceed1dea6ccaefd39e65">yaze_library_init</a> (void)</td></tr>
+<tr class="memdesc:ga3a3a4e60f272ceed1dea6ccaefd39e65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the YAZE library.  <br /></td></tr>
+<tr class="separator:ga3a3a4e60f272ceed1dea6ccaefd39e65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf7a72f08554c06a14ffa7114aac200f9" id="r_gaf7a72f08554c06a14ffa7114aac200f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#gaf7a72f08554c06a14ffa7114aac200f9">yaze_library_shutdown</a> (void)</td></tr>
+<tr class="memdesc:gaf7a72f08554c06a14ffa7114aac200f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shutdown the YAZE library.  <br /></td></tr>
+<tr class="separator:gaf7a72f08554c06a14ffa7114aac200f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga440a6545b01877e0afee7ba8a54ad27e" id="r_ga440a6545b01877e0afee7ba8a54ad27e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#ga440a6545b01877e0afee7ba8a54ad27e">yaze_app_main</a> (int argc, char **argv)</td></tr>
+<tr class="memdesc:ga440a6545b01877e0afee7ba8a54ad27e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main entry point for the YAZE application.  <br /></td></tr>
+<tr class="separator:ga440a6545b01877e0afee7ba8a54ad27e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9cdce623ea2e4d9abdb3acf73a4e3f65" id="r_ga9cdce623ea2e4d9abdb3acf73a4e3f65"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#ga9cdce623ea2e4d9abdb3acf73a4e3f65">yaze_check_version_compatibility</a> (const char *expected_version)</td></tr>
+<tr class="memdesc:ga9cdce623ea2e4d9abdb3acf73a4e3f65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if the current YAZE version is compatible with the expected version.  <br /></td></tr>
+<tr class="separator:ga9cdce623ea2e4d9abdb3acf73a4e3f65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga877a1f9eb894ff217e401e6a9674a4b9" id="r_ga877a1f9eb894ff217e401e6a9674a4b9"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#ga877a1f9eb894ff217e401e6a9674a4b9">yaze_get_version_string</a> (void)</td></tr>
+<tr class="memdesc:ga877a1f9eb894ff217e401e6a9674a4b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current YAZE version string.  <br /></td></tr>
+<tr class="separator:ga877a1f9eb894ff217e401e6a9674a4b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga45073e64fe9b6259bd92afa59bf7c819" id="r_ga45073e64fe9b6259bd92afa59bf7c819"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#ga45073e64fe9b6259bd92afa59bf7c819">yaze_get_version_number</a> (void)</td></tr>
+<tr class="memdesc:ga45073e64fe9b6259bd92afa59bf7c819"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current YAZE version number.  <br /></td></tr>
+<tr class="separator:ga45073e64fe9b6259bd92afa59bf7c819"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaae9a63b11562fbd97486ff550df84fe5" id="r_gaae9a63b11562fbd97486ff550df84fe5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#gaae9a63b11562fbd97486ff550df84fe5">yaze_init</a> (<a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *context, const char *rom_filename)</td></tr>
+<tr class="memdesc:gaae9a63b11562fbd97486ff550df84fe5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize a YAZE editor context.  <br /></td></tr>
+<tr class="separator:gaae9a63b11562fbd97486ff550df84fe5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa46ba7ffb64df6d5168dc78b9372657e" id="r_gaa46ba7ffb64df6d5168dc78b9372657e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__core.html#gaa46ba7ffb64df6d5168dc78b9372657e">yaze_shutdown</a> (<a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *context)</td></tr>
+<tr class="memdesc:gaa46ba7ffb64df6d5168dc78b9372657e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shutdown and clean up a YAZE editor context.  <br /></td></tr>
+<tr class="separator:gaa46ba7ffb64df6d5168dc78b9372657e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga25bf6669809ad5e1ae299014a5f6fd0a" id="r_ga25bf6669809ad5e1ae299014a5f6fd0a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__bitmap.html">yaze_bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga25bf6669809ad5e1ae299014a5f6fd0a">yaze_load_bitmap</a> (const char *filename)</td></tr>
+<tr class="memdesc:ga25bf6669809ad5e1ae299014a5f6fd0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a bitmap from file.  <br /></td></tr>
+<tr class="separator:ga25bf6669809ad5e1ae299014a5f6fd0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadfaad04e2385a7ca083a13db38dfaddd" id="r_gadfaad04e2385a7ca083a13db38dfaddd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#gadfaad04e2385a7ca083a13db38dfaddd">yaze_free_bitmap</a> (<a class="el" href="structyaze__bitmap.html">yaze_bitmap</a> *bitmap)</td></tr>
+<tr class="memdesc:gadfaad04e2385a7ca083a13db38dfaddd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free bitmap data.  <br /></td></tr>
+<tr class="separator:gadfaad04e2385a7ca083a13db38dfaddd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9acc873527ec0c4e7873f101a47a5df2" id="r_ga9acc873527ec0c4e7873f101a47a5df2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze__bitmap.html">yaze_bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga9acc873527ec0c4e7873f101a47a5df2">yaze_create_bitmap</a> (int width, int height, uint8_t bpp)</td></tr>
+<tr class="memdesc:ga9acc873527ec0c4e7873f101a47a5df2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an empty bitmap.  <br /></td></tr>
+<tr class="separator:ga9acc873527ec0c4e7873f101a47a5df2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga08621044e51f101bd18ea388c85f5eb9" id="r_ga08621044e51f101bd18ea388c85f5eb9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga08621044e51f101bd18ea388c85f5eb9">yaze_rgb_to_snes_color</a> (uint8_t r, uint8_t g, uint8_t b)</td></tr>
+<tr class="memdesc:ga08621044e51f101bd18ea388c85f5eb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert RGB888 color to SNES color.  <br /></td></tr>
+<tr class="separator:ga08621044e51f101bd18ea388c85f5eb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaefa71f38cc28578cb8876442d0a7ffa7" id="r_gaefa71f38cc28578cb8876442d0a7ffa7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#gaefa71f38cc28578cb8876442d0a7ffa7">yaze_snes_color_to_rgb</a> (<a class="el" href="structsnes__color.html">snes_color</a> color, uint8_t *r, uint8_t *g, uint8_t *b)</td></tr>
+<tr class="memdesc:gaefa71f38cc28578cb8876442d0a7ffa7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert SNES color to RGB888.  <br /></td></tr>
+<tr class="separator:gaefa71f38cc28578cb8876442d0a7ffa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga627b7e870106c8cc04cd669eaf994754" id="r_ga627b7e870106c8cc04cd669eaf994754"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__palette.html">snes_palette</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga627b7e870106c8cc04cd669eaf994754">yaze_create_palette</a> (uint16_t id, uint16_t size)</td></tr>
+<tr class="memdesc:ga627b7e870106c8cc04cd669eaf994754"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an empty palette.  <br /></td></tr>
+<tr class="separator:ga627b7e870106c8cc04cd669eaf994754"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae0ba0ca438a5fdfa39721a579c861808" id="r_gae0ba0ca438a5fdfa39721a579c861808"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#gae0ba0ca438a5fdfa39721a579c861808">yaze_free_palette</a> (<a class="el" href="structsnes__palette.html">snes_palette</a> *palette)</td></tr>
+<tr class="memdesc:gae0ba0ca438a5fdfa39721a579c861808"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free palette memory.  <br /></td></tr>
+<tr class="separator:gae0ba0ca438a5fdfa39721a579c861808"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0e8cfa6120978dde072ceaceb42b0acf" id="r_ga0e8cfa6120978dde072ceaceb42b0acf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__palette.html">snes_palette</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga0e8cfa6120978dde072ceaceb42b0acf">yaze_load_palette_from_rom</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, uint16_t palette_id)</td></tr>
+<tr class="memdesc:ga0e8cfa6120978dde072ceaceb42b0acf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load palette from ROM.  <br /></td></tr>
+<tr class="separator:ga0e8cfa6120978dde072ceaceb42b0acf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga32276b957d686000f042e8d0f7172ae3" id="r_ga32276b957d686000f042e8d0f7172ae3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__tile8.html">snes_tile8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga32276b957d686000f042e8d0f7172ae3">yaze_load_tile_from_rom</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, uint32_t tile_id, uint8_t bpp)</td></tr>
+<tr class="memdesc:ga32276b957d686000f042e8d0f7172ae3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load tile data from ROM.  <br /></td></tr>
+<tr class="separator:ga32276b957d686000f042e8d0f7172ae3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7d96bf3b47eac12b1d44b5ccf2190a81" id="r_ga7d96bf3b47eac12b1d44b5ccf2190a81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__tile8.html">snes_tile8</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__graphics.html#ga7d96bf3b47eac12b1d44b5ccf2190a81">yaze_convert_tile_bpp</a> (const <a class="el" href="structsnes__tile8.html">snes_tile8</a> *tile, uint8_t from_bpp, uint8_t to_bpp)</td></tr>
+<tr class="memdesc:ga7d96bf3b47eac12b1d44b5ccf2190a81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert tile data between different bit depths.  <br /></td></tr>
+<tr class="separator:ga7d96bf3b47eac12b1d44b5ccf2190a81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaaf21778dedba484978d3509c8dbf8047" id="r_gaaf21778dedba484978d3509c8dbf8047"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structzelda3__rom.html">zelda3_rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom.html#gaaf21778dedba484978d3509c8dbf8047">yaze_load_rom_file</a> (const char *filename)</td></tr>
+<tr class="memdesc:gaaf21778dedba484978d3509c8dbf8047"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a ROM file.  <br /></td></tr>
+<tr class="separator:gaaf21778dedba484978d3509c8dbf8047"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga07306409f1150c26c378b99c407e635b" id="r_ga07306409f1150c26c378b99c407e635b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom.html#ga07306409f1150c26c378b99c407e635b">yaze_validate_rom</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom)</td></tr>
+<tr class="memdesc:ga07306409f1150c26c378b99c407e635b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validate ROM integrity.  <br /></td></tr>
+<tr class="separator:ga07306409f1150c26c378b99c407e635b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac0988c3b76d517d5cb78dbc61a02e517" id="r_gac0988c3b76d517d5cb78dbc61a02e517"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom.html#gac0988c3b76d517d5cb78dbc61a02e517">yaze_get_rom_info</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, <a class="el" href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a> *version, uint64_t *size)</td></tr>
+<tr class="memdesc:gac0988c3b76d517d5cb78dbc61a02e517"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get ROM information.  <br /></td></tr>
+<tr class="separator:gac0988c3b76d517d5cb78dbc61a02e517"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac37ec58a0da8b441220024ac2cb73a76" id="r_gac37ec58a0da8b441220024ac2cb73a76"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structsnes__color.html">snes_color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__rom.html#gac37ec58a0da8b441220024ac2cb73a76">yaze_get_color_from_paletteset</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, int palette_set, int palette, int color)</td></tr>
+<tr class="memdesc:gac37ec58a0da8b441220024ac2cb73a76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a color from a palette set.  <br /></td></tr>
+<tr class="separator:gac37ec58a0da8b441220024ac2cb73a76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0a526cbc274a334616e24c0779e165cd" id="r_ga0a526cbc274a334616e24c0779e165cd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structzelda3__overworld.html">zelda3_overworld</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__overworld.html#ga0a526cbc274a334616e24c0779e165cd">yaze_load_overworld</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom)</td></tr>
+<tr class="memdesc:ga0a526cbc274a334616e24c0779e165cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load the overworld from ROM.  <br /></td></tr>
+<tr class="separator:ga0a526cbc274a334616e24c0779e165cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab51faf9f16249c90790b998246f64fa1" id="r_gab51faf9f16249c90790b998246f64fa1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__overworld.html#gab51faf9f16249c90790b998246f64fa1">yaze_free_overworld</a> (<a class="el" href="structzelda3__overworld.html">zelda3_overworld</a> *overworld)</td></tr>
+<tr class="memdesc:gab51faf9f16249c90790b998246f64fa1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free overworld data.  <br /></td></tr>
+<tr class="separator:gab51faf9f16249c90790b998246f64fa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacf4581286918ed77e6d19167db9e3c3f" id="r_gacf4581286918ed77e6d19167db9e3c3f"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structzelda3__overworld__map.html">zelda3_overworld_map</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__overworld.html#gacf4581286918ed77e6d19167db9e3c3f">yaze_get_overworld_map</a> (const <a class="el" href="structzelda3__overworld.html">zelda3_overworld</a> *overworld, int map_index)</td></tr>
+<tr class="memdesc:gacf4581286918ed77e6d19167db9e3c3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get overworld map by index.  <br /></td></tr>
+<tr class="separator:gacf4581286918ed77e6d19167db9e3c3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga89d96324a962936d34080a4999c6049f" id="r_ga89d96324a962936d34080a4999c6049f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__overworld.html#ga89d96324a962936d34080a4999c6049f">yaze_get_overworld_map_count</a> (const <a class="el" href="structzelda3__overworld.html">zelda3_overworld</a> *overworld)</td></tr>
+<tr class="memdesc:ga89d96324a962936d34080a4999c6049f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get total number of overworld maps.  <br /></td></tr>
+<tr class="separator:ga89d96324a962936d34080a4999c6049f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaab208e99d598e73eb6dcbb4c62250bea" id="r_gaab208e99d598e73eb6dcbb4c62250bea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structzelda3__dungeon__room.html">zelda3_dungeon_room</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#gaab208e99d598e73eb6dcbb4c62250bea">yaze_load_all_rooms</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, int *room_count)</td></tr>
+<tr class="memdesc:gaab208e99d598e73eb6dcbb4c62250bea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load all dungeon rooms from ROM.  <br /></td></tr>
+<tr class="separator:gaab208e99d598e73eb6dcbb4c62250bea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga341fe037646155f700d07d4ade8786c4" id="r_ga341fe037646155f700d07d4ade8786c4"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structzelda3__dungeon__room.html">zelda3_dungeon_room</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga341fe037646155f700d07d4ade8786c4">yaze_load_room</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, int room_id)</td></tr>
+<tr class="memdesc:ga341fe037646155f700d07d4ade8786c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load a specific dungeon room.  <br /></td></tr>
+<tr class="separator:ga341fe037646155f700d07d4ade8786c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga167793d8d6d693acd3cf1e997e414eff" id="r_ga167793d8d6d693acd3cf1e997e414eff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__dungeon.html#ga167793d8d6d693acd3cf1e997e414eff">yaze_free_rooms</a> (<a class="el" href="structzelda3__dungeon__room.html">zelda3_dungeon_room</a> *rooms, int room_count)</td></tr>
+<tr class="memdesc:ga167793d8d6d693acd3cf1e997e414eff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free dungeon room data.  <br /></td></tr>
+<tr class="separator:ga167793d8d6d693acd3cf1e997e414eff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae9cee5b729c44372ec848a10c6e6d836" id="r_gae9cee5b729c44372ec848a10c6e6d836"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#gae9cee5b729c44372ec848a10c6e6d836">yaze_load_messages</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, <a class="el" href="structzelda3__message.html">zelda3_message</a> **messages, int *message_count)</td></tr>
+<tr class="memdesc:gae9cee5b729c44372ec848a10c6e6d836"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load all text messages from ROM.  <br /></td></tr>
+<tr class="separator:gae9cee5b729c44372ec848a10c6e6d836"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaeef987918fb23ce2afdc81653d0e1a1a" id="r_gaeef987918fb23ce2afdc81653d0e1a1a"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structzelda3__message.html">zelda3_message</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#gaeef987918fb23ce2afdc81653d0e1a1a">yaze_get_message</a> (const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *rom, int message_id)</td></tr>
+<tr class="memdesc:gaeef987918fb23ce2afdc81653d0e1a1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a specific message by ID.  <br /></td></tr>
+<tr class="separator:gaeef987918fb23ce2afdc81653d0e1a1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab45b2cf4801eb95b080573ad9d61377e" id="r_gab45b2cf4801eb95b080573ad9d61377e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__messages.html#gab45b2cf4801eb95b080573ad9d61377e">yaze_free_messages</a> (<a class="el" href="structzelda3__message.html">zelda3_message</a> *messages, int message_count)</td></tr>
+<tr class="memdesc:gab45b2cf4801eb95b080573ad9d61377e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Free message data.  <br /></td></tr>
+<tr class="separator:gab45b2cf4801eb95b080573ad9d61377e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac6a6e5150401d18712958dad45567030" id="r_gac6a6e5150401d18712958dad45567030"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__extensions.html#gac6a6e5150401d18712958dad45567030">yaze_register_extension</a> (const <a class="el" href="structyaze__extension.html">yaze_extension</a> *extension)</td></tr>
+<tr class="memdesc:gac6a6e5150401d18712958dad45567030"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register an extension with YAZE.  <br /></td></tr>
+<tr class="separator:gac6a6e5150401d18712958dad45567030"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga03bcfb09433e0da52353af136addb31d" id="r_ga03bcfb09433e0da52353af136addb31d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__extensions.html#ga03bcfb09433e0da52353af136addb31d">yaze_unregister_extension</a> (const char *name)</td></tr>
+<tr class="memdesc:ga03bcfb09433e0da52353af136addb31d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unregister an extension.  <br /></td></tr>
+<tr class="separator:ga03bcfb09433e0da52353af136addb31d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Yet Another Zelda3 Editor (YAZE) - Public C API. </p>
+<p>This header provides the main C API for YAZE, a modern ROM editor for The Legend of Zelda: A Link to the Past. This API allows external applications to interact with YAZE's functionality.</p>
+<dl class="section version"><dt>Version</dt><dd>0.3.0 </dd></dl>
+<dl class="section author"><dt>Author</dt><dd>YAZE Team </dd></dl>
+
+<p class="definition">Definition in file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+</div><h2 class="groupheader">Typedef Documentation</h2>
 <a id="aa5f9c0aba87080afdbdfe7cb6792d89e" name="aa5f9c0aba87080afdbdfe7cb6792d89e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa5f9c0aba87080afdbdfe7cb6792d89e">&#9670;&#160;</a></span>yaze_editor_context</h2>
 
@@ -236,122 +367,6 @@ Functions</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">typedef struct yaze_editor_context yaze_editor_context</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="afa3b4d947347ed413689dcd80458ec0f" name="afa3b4d947347ed413689dcd80458ec0f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afa3b4d947347ed413689dcd80458ec0f">&#9670;&#160;</a></span>yaze_status</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef enum <a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a> <a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5ba242cd4dc0870e4e4d6f943a1ad7a7" name="a5ba242cd4dc0870e4e4d6f943a1ad7a7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5ba242cd4dc0870e4e4d6f943a1ad7a7">&#9670;&#160;</a></span>yaze_bitmap</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct yaze_bitmap yaze_bitmap</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7010d1b3caf12995e0ecb41a1c446b94" name="a7010d1b3caf12995e0ecb41a1c446b94"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7010d1b3caf12995e0ecb41a1c446b94">&#9670;&#160;</a></span>snes_color</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct snes_color snes_color</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Primitive of 16-bit RGB SNES color. </p>
-
-</div>
-</div>
-<a id="a100f9af9f8e1bb9d2ad73476ab774655" name="a100f9af9f8e1bb9d2ad73476ab774655"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a100f9af9f8e1bb9d2ad73476ab774655">&#9670;&#160;</a></span>snes_palette</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct snes_palette snes_palette</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Primitive of a SNES color palette. </p>
-
-</div>
-</div>
-<a id="aa57d3ad47df22165528207d494c563b2" name="aa57d3ad47df22165528207d494c563b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa57d3ad47df22165528207d494c563b2">&#9670;&#160;</a></span>snes_tile8</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct snes_tile8 snes_tile8</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a38e287988459276888c8616ac482a814" name="a38e287988459276888c8616ac482a814"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a38e287988459276888c8616ac482a814">&#9670;&#160;</a></span>snes_tile_info</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct snes_tile_info snes_tile_info</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa2e0547a0d9563272f35e2c01ad12d84" name="aa2e0547a0d9563272f35e2c01ad12d84"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa2e0547a0d9563272f35e2c01ad12d84">&#9670;&#160;</a></span>snes_tile16</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct snes_tile16 snes_tile16</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a484dd55f0e7ececd8310a787de4ecb9f" name="a484dd55f0e7ececd8310a787de4ecb9f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a484dd55f0e7ececd8310a787de4ecb9f">&#9670;&#160;</a></span>snes_tile32</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct snes_tile32 snes_tile32</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -378,7 +393,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00138">138</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00509">509</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>
@@ -394,368 +409,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00139">139</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
-
-</div>
-</div>
-<a id="a84339e67846d381495b6fa1bd47dcf6d" name="a84339e67846d381495b6fa1bd47dcf6d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a84339e67846d381495b6fa1bd47dcf6d">&#9670;&#160;</a></span>yaze_extension</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef struct yaze_extension yaze_extension</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Extension interface for Yaze. </p>
-<p>Yaze extensions can be written in C or Python. </p>
-
-</div>
-</div>
-<h2 class="groupheader">Enumeration Type Documentation</h2>
-<a id="a8b8638fa48e18e420ef66414847265c0" name="a8b8638fa48e18e420ef66414847265c0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8b8638fa48e18e420ef66414847265c0">&#9670;&#160;</a></span>yaze_status</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a8b8638fa48e18e420ef66414847265c0afc583bbb0069da7a40765619168bfa9c" name="a8b8638fa48e18e420ef66414847265c0afc583bbb0069da7a40765619168bfa9c"></a>YAZE_UNKNOWN&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a8b8638fa48e18e420ef66414847265c0a07a60c9eac361f06ec1a03be228225ed" name="a8b8638fa48e18e420ef66414847265c0a07a60c9eac361f06ec1a03be228225ed"></a>YAZE_OK&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a8b8638fa48e18e420ef66414847265c0a964c4214332f0b8843014ab0ce8dc171" name="a8b8638fa48e18e420ef66414847265c0a964c4214332f0b8843014ab0ce8dc171"></a>YAZE_ERROR&#160;</td><td class="fielddoc"></td></tr>
-</table>
-
-<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00019">19</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
-
-</div>
-</div>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="a440a6545b01877e0afee7ba8a54ad27e" name="a440a6545b01877e0afee7ba8a54ad27e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a440a6545b01877e0afee7ba8a54ad27e">&#9670;&#160;</a></span>yaze_app_main()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int yaze_app_main </td>
-          <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>argc</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char **</td>          <td class="paramname"><span class="paramname"><em>argv</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00019">19</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="macro_8h_source.html#l00035">EXIT_IF_ERROR</a>, <a class="el" href="flag_8h_source.html#l00099">yaze::util::global_flag_registry()</a>, <a class="el" href="flag_8h_source.html#l00119">yaze::util::FlagParser::Parse()</a>, and <a class="el" href="macro_8h_source.html#l00103">RETURN_IF_EXCEPTION</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="yaze_8h_a440a6545b01877e0afee7ba8a54ad27e_cgraph.png" border="0" usemap="#ayaze_8h_a440a6545b01877e0afee7ba8a54ad27e_cgraph" alt=""/></div>
-<map name="ayaze_8h_a440a6545b01877e0afee7ba8a54ad27e_cgraph" id="ayaze_8h_a440a6545b01877e0afee7ba8a54ad27e_cgraph">
-<area shape="rect" title=" " alt="" coords="5,58,116,84"/>
-<area shape="rect" href="namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577" title=" " alt="" coords="178,5,288,46"/>
-<area shape="poly" title=" " alt="" coords="112,55,162,41,164,47,113,60"/>
-<area shape="rect" href="classyaze_1_1util_1_1FlagParser.html#aa5d5b0f51665afbb0d6bf9e41859b051" title=" " alt="" coords="164,95,303,135"/>
-<area shape="poly" title=" " alt="" coords="114,82,150,91,148,96,113,87"/>
-<area shape="poly" title=" " alt="" coords="200,94,198,85,204,76,216,70,233,68,252,70,264,77,261,81,251,76,233,73,217,75,207,80,204,86,205,94"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a9fff64bba6ed578ae091960204b84648" name="a9fff64bba6ed578ae091960204b84648"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9fff64bba6ed578ae091960204b84648">&#9670;&#160;</a></span>yaze_check_version()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze_check_version </td>
-          <td>(</td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>version</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00045">45</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-</div>
-</div>
-<a id="ab7ca61e2a742a8a99768d05d3755f5d9" name="ab7ca61e2a742a8a99768d05d3755f5d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7ca61e2a742a8a99768d05d3755f5d9">&#9670;&#160;</a></span>yaze_init()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a> yaze_init </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *</td>          <td class="paramname"><span class="paramname"><em>yaze_ctx</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char *</td>          <td class="paramname"><span class="paramname"><em>rom_filename</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00059">59</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00016">yaze_editor_context::error_message</a>, <a class="el" href="yaze_8h_source.html#l00015">yaze_editor_context::rom</a>, and <a class="el" href="yaze_8cc_source.html#l00076">yaze_load_rom()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="yaze_8h_ab7ca61e2a742a8a99768d05d3755f5d9_cgraph.png" border="0" usemap="#ayaze_8h_ab7ca61e2a742a8a99768d05d3755f5d9_cgraph" alt=""/></div>
-<map name="ayaze_8h_ab7ca61e2a742a8a99768d05d3755f5d9_cgraph" id="ayaze_8h_ab7ca61e2a742a8a99768d05d3755f5d9_cgraph">
-<area shape="rect" title=" " alt="" coords="5,55,77,80"/>
-<area shape="rect" href="yaze_8cc.html#ac870fb2b7713b670247082c171053148" title=" " alt="" coords="125,55,232,80"/>
-<area shape="poly" title=" " alt="" coords="77,65,109,65,109,70,77,70"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="308,5,419,31"/>
-<area shape="poly" title=" " alt="" coords="229,51,297,33,298,38,230,57"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="280,55,446,80"/>
-<area shape="poly" title=" " alt="" coords="232,65,264,65,264,70,232,70"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="308,104,418,130"/>
-<area shape="poly" title=" " alt="" coords="230,78,298,97,297,102,229,84"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a3a4d65cefe219b2b0de35ddcab2cd374" name="a3a4d65cefe219b2b0de35ddcab2cd374"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a4d65cefe219b2b0de35ddcab2cd374">&#9670;&#160;</a></span>yaze_shutdown()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a> yaze_shutdown </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structyaze__editor__context.html">yaze_editor_context</a> *</td>          <td class="paramname"><span class="paramname"><em>yaze_ctx</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00069">69</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00015">yaze_editor_context::rom</a>, and <a class="el" href="yaze_8cc_source.html#l00092">yaze_unload_rom()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="yaze_8h_a3a4d65cefe219b2b0de35ddcab2cd374_cgraph.png" border="0" usemap="#ayaze_8h_a3a4d65cefe219b2b0de35ddcab2cd374_cgraph" alt=""/></div>
-<map name="ayaze_8h_a3a4d65cefe219b2b0de35ddcab2cd374_cgraph" id="ayaze_8h_a3a4d65cefe219b2b0de35ddcab2cd374_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,116,31"/>
-<area shape="rect" href="yaze_8cc.html#a0c0dfb85f1e87702458d4dbaae0beef3" title=" " alt="" coords="164,5,285,31"/>
-<area shape="poly" title=" " alt="" coords="116,16,148,16,148,21,116,21"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a25bf6669809ad5e1ae299014a5f6fd0a" name="a25bf6669809ad5e1ae299014a5f6fd0a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25bf6669809ad5e1ae299014a5f6fd0a">&#9670;&#160;</a></span>yaze_load_bitmap()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structyaze__bitmap.html">yaze_bitmap</a> yaze_load_bitmap </td>
-          <td>(</td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>filename</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00113">113</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00034">yaze_bitmap::bpp</a>, <a class="el" href="yaze_8h_source.html#l00035">yaze_bitmap::data</a>, <a class="el" href="yaze_8h_source.html#l00033">yaze_bitmap::height</a>, and <a class="el" href="yaze_8h_source.html#l00032">yaze_bitmap::width</a>.</p>
-
-</div>
-</div>
-<a id="ac37ec58a0da8b441220024ac2cb73a76" name="ac37ec58a0da8b441220024ac2cb73a76"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac37ec58a0da8b441220024ac2cb73a76">&#9670;&#160;</a></span>yaze_get_color_from_paletteset()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structsnes__color.html">snes_color</a> yaze_get_color_from_paletteset </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>palette_set</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>palette</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>color</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get a color from a palette set. </p>
-<p>This function gets a color from a palette set and returns it as a <a class="el" href="structsnes__color.html" title="Primitive of 16-bit RGB SNES color.">snes_color</a> object.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">rom</td><td>The ROM to get the color from. </td></tr>
-    <tr><td class="paramname">palette_set</td><td>The palette set to get the color from. </td></tr>
-    <tr><td class="paramname">palette</td><td>The palette to get the color from. </td></tr>
-    <tr><td class="paramname">color</td><td>The color to get from the palette. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The color from the palette set. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00122">122</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="yaze_8h_source.html#l00045">snes_color::blue</a>, <a class="el" href="yaze_8h_source.html#l00046">snes_color::green</a>, <a class="el" href="zelda_8h_source.html#l00091">zelda3_rom::impl</a>, <a class="el" href="snes__palette_8h_source.html#l00053">yaze::gfx::kPaletteGroupAddressesKeys</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, and <a class="el" href="yaze_8h_source.html#l00044">snes_color::red</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="yaze_8h_ac37ec58a0da8b441220024ac2cb73a76_cgraph.png" border="0" usemap="#ayaze_8h_ac37ec58a0da8b441220024ac2cb73a76_cgraph" alt=""/></div>
-<map name="ayaze_8h_ac37ec58a0da8b441220024ac2cb73a76_cgraph" id="ayaze_8h_ac37ec58a0da8b441220024ac2cb73a76_cgraph">
-<area shape="rect" title="Get a color from a palette set." alt="" coords="5,5,146,46"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="194,5,319,46"/>
-<area shape="poly" title=" " alt="" coords="146,23,178,23,178,28,146,28"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="a0a526cbc274a334616e24c0779e165cd" name="a0a526cbc274a334616e24c0779e165cd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0a526cbc274a334616e24c0779e165cd">&#9670;&#160;</a></span>yaze_load_overworld()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structzelda3__overworld.html">zelda3_overworld</a> * yaze_load_overworld </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Load the overworld from the ROM. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">rom</td><td>The ROM to load the overworld from. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The status of the operation. If the operation is successful, the overworld object will be populated with the overworld from the ROM. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00144">144</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="zelda_8h_source.html#l00115">zelda3_overworld_map::id</a>, <a class="el" href="zelda_8h_source.html#l00133">zelda3_overworld::impl</a>, <a class="el" href="zelda_8h_source.html#l00091">zelda3_rom::impl</a>, and <a class="el" href="zelda_8h_source.html#l00134">zelda3_overworld::maps</a>.</p>
-
-</div>
-</div>
-<a id="a6b14017ad1ab9e7da860e59f6145c1d1" name="a6b14017ad1ab9e7da860e59f6145c1d1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b14017ad1ab9e7da860e59f6145c1d1">&#9670;&#160;</a></span>yaze_load_all_rooms()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structzelda3__dungeon__room.html">zelda3_dungeon_room</a> * yaze_load_all_rooms </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structzelda3__rom.html">zelda3_rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Load all rooms from the ROM. </p>
-<p>This function loads all rooms from the ROM and returns them as an array of rooms.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">rom</td><td>The ROM to load rooms from. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The status of the operation. If the operation is successful, the rooms array will be populated with the rooms from the ROM. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00166">166</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="zelda_8h_source.html#l00091">zelda3_rom::impl</a>.</p>
-
-</div>
-</div>
-<a id="a1f5f227a1e6ebdcb2065544121164a15" name="a1f5f227a1e6ebdcb2065544121164a15"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1f5f227a1e6ebdcb2065544121164a15">&#9670;&#160;</a></span>yaze_load_messages()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="#a8b8638fa48e18e420ef66414847265c0">yaze_status</a> yaze_load_messages </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structzelda3__rom.html">zelda3_rom</a> *</td>          <td class="paramname"><span class="paramname"><em>rom</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structzelda3__message.html">zelda3_message</a> **</td>          <td class="paramname"><span class="paramname"><em>messages</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Load all messages from the ROM. </p>
-<p>This function loads all messages from the ROM and returns them as an array of messages.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">rom</td><td>The ROM to load messages from. </td></tr>
-    <tr><td class="paramname">messages</td><td>Pointer to an array of messages. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The status of the operation. If the operation is successful, the messages array will be populated with the messages from the ROM. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="yaze_8cc_source.html#l00175">175</a> of file <a class="el" href="yaze_8cc_source.html">yaze.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="zelda_8h_source.html#l00104">zelda3_message::address</a>, <a class="el" href="zelda_8h_source.html#l00106">zelda3_message::contents_parsed</a>, <a class="el" href="zelda_8h_source.html#l00107">zelda3_message::data</a>, <a class="el" href="zelda_8h_source.html#l00089">zelda3_rom::data</a>, <a class="el" href="zelda_8h_source.html#l00108">zelda3_message::data_parsed</a>, <a class="el" href="zelda_8h_source.html#l00103">zelda3_message::id</a>, <a class="el" href="zelda_8h_source.html#l00091">zelda3_rom::impl</a>, <a class="el" href="zelda_8h_source.html#l00105">zelda3_message::raw_string</a>, and <a class="el" href="message__data_8cc_source.html#l00336">yaze::editor::ReadAllTextData()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="yaze_8h_a1f5f227a1e6ebdcb2065544121164a15_cgraph.png" border="0" usemap="#ayaze_8h_a1f5f227a1e6ebdcb2065544121164a15_cgraph" alt=""/></div>
-<map name="ayaze_8h_a1f5f227a1e6ebdcb2065544121164a15_cgraph" id="ayaze_8h_a1f5f227a1e6ebdcb2065544121164a15_cgraph">
-<area shape="rect" title="Load all messages from the ROM." alt="" coords="5,78,151,104"/>
-<area shape="rect" href="namespaceyaze_1_1editor.html#a023f96d1797f02dbaad61f338fb0ccd0" title=" " alt="" coords="199,78,387,104"/>
-<area shape="poly" title=" " alt="" coords="151,88,183,88,183,94,151,94"/>
-<area shape="rect" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d" title=" " alt="" coords="435,5,608,46"/>
-<area shape="poly" title=" " alt="" coords="340,75,432,48,434,53,341,80"/>
-<area shape="rect" href="namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe" title=" " alt="" coords="437,71,606,111"/>
-<area shape="poly" title=" " alt="" coords="387,88,421,88,421,94,387,94"/>
-<area shape="rect" href="namespaceyaze_1_1editor.html#a95bb92d26041cf1e3a0b332290bdea54" title=" " alt="" coords="437,136,606,177"/>
-<area shape="poly" title=" " alt="" coords="341,102,434,129,432,134,340,107"/>
-</map>
-</div>
+<p class="definition">Definition at line <a class="el" href="yaze_8h_source.html#l00510">510</a> of file <a class="el" href="yaze_8h_source.html">yaze.h</a>.</p>
 
 </div>
 </div>

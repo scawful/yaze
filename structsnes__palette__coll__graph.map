@@ -1,5 +1,5 @@
 <map id="snes_palette" name="snes_palette">
-<area shape="rect" id="Node000001" title="Primitive of a SNES color palette." alt="" coords="5,94,101,120"/>
-<area shape="rect" id="Node000002" href="$structsnes__color.html" title="Primitive of 16&#45;bit RGB SNES color." alt="" coords="11,5,95,31"/>
+<area shape="rect" id="Node000001" title="SNES color palette." alt="" coords="5,94,101,120"/>
+<area shape="rect" id="Node000002" href="$structsnes__color.html" title="SNES color in 15&#45;bit RGB format (BGR555)" alt="" coords="11,5,95,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="56,47,56,94,50,94,50,47"/>
 </map>

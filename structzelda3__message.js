@@ -1,9 +1,10 @@
 var structzelda3__message =
 [
-    [ "id", "structzelda3__message.html#a30dd01a85c09e9b3e529770facc857b2", null ],
-    [ "address", "structzelda3__message.html#a1b76e412efd5b96e0c92513e483dff88", null ],
-    [ "raw_string", "structzelda3__message.html#af9f4ac3c2e4c9d7f46079dc6244de12d", null ],
-    [ "contents_parsed", "structzelda3__message.html#ac5ef6ca824fb0da5d3079e8cadaa7832", null ],
-    [ "data", "structzelda3__message.html#add8671bcf83b841dfb465a1d92e16f57", null ],
-    [ "data_parsed", "structzelda3__message.html#a3bbe300d3101065d6652def7a91e47d1", null ]
+    [ "id", "structzelda3__message.html#a8e6473e55f809b8813e0b32e919ecbd5", null ],
+    [ "rom_address", "structzelda3__message.html#a08d9529b9d6499c9e07b33bde869ef53", null ],
+    [ "length", "structzelda3__message.html#af5bf5fe89e44f0cdc289dd77dda0fef4", null ],
+    [ "raw_data", "structzelda3__message.html#a0b082605a170c9a06e0604d1ac316be3", null ],
+    [ "parsed_text", "structzelda3__message.html#adf739cca315eb1c3507bb3b70b2b4865", null ],
+    [ "is_compressed", "structzelda3__message.html#ab165c3cd0c512a2457fd0a5dd2f49acf", null ],
+    [ "encoding_type", "structzelda3__message.html#a10ba5902a30138ea1839c4f02b0a8215", null ]
 ];

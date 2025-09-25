@@ -179,7 +179,7 @@ var searchData=
   ['key_20metrics_176',['Key Metrics',['../md_docs_2integration__test__guide.html#autotoc_md380',1,'']]],
   ['key_5fdrop_5f_177',['key_drop_',['../classyaze_1_1zelda3_1_1Sprite.html#a705628d0c24a7ea4fc2ad863daa33cc9',1,'yaze::zelda3::Sprite']]],
   ['key_5fname_178',['key_name',['../structyaze_1_1ResourceLabelManager_1_1ResourceType.html#a4f413863d830fa0ac05739c083138adc',1,'yaze::ResourceLabelManager::ResourceType']]],
-  ['key_5ftype_179',['key_type',['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#acb62be8cc66f01138d93ac037aded49f',1,'yaze::zelda3::DungeonEditorSystem::DoorData::key_type'],['../structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#a5d11442cb6b60d06346e9cc2e37d0951',1,'yaze::zelda3::EntranceTypes::EntranceInfo::key_type']]],
+  ['key_5ftype_179',['key_type',['../structobject__door.html#a5d0c35f875d496e8cf97adb83d9913d6',1,'object_door::key_type'],['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#acb62be8cc66f01138d93ac037aded49f',1,'yaze::zelda3::DungeonEditorSystem::DoorData::key_type'],['../structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#a5d11442cb6b60d06346e9cc2e37d0951',1,'yaze::zelda3::EntranceTypes::EntranceInfo::key_type']]],
   ['keybindings_5f_180',['keybindings_',['../classyaze_1_1emu_1_1Emulator.html#a4559b9d5fd7974f6244c16717a10c392',1,'yaze::emu::Emulator']]],
   ['keybindings_5ffile_181',['keybindings_file',['../structyaze_1_1Project.html#a8ce6393afeb49a1872eb988042e034c7',1,'yaze::Project']]],
   ['keyoff_182',['keyOff',['../structyaze_1_1emu_1_1DspChannel.html#ad802a0848ec48cd3ec7642484e5ec16c',1,'yaze::emu::DspChannel']]],

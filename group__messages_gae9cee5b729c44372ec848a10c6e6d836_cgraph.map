@@ -1,0 +1,11 @@
+<map id="yaze_load_messages" name="yaze_load_messages">
+<area shape="rect" id="Node000001" title="Load all text messages from ROM." alt="" coords="5,78,151,104"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1editor.html#a023f96d1797f02dbaad61f338fb0ccd0" title=" " alt="" coords="199,78,387,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,88,183,88,183,94,151,94"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d" title=" " alt="" coords="435,5,608,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="340,75,432,48,434,53,341,80"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe" title=" " alt="" coords="437,71,606,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="387,88,421,88,421,94,387,94"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1editor.html#a95bb92d26041cf1e3a0b332290bdea54" title=" " alt="" coords="437,136,606,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="341,102,434,129,432,134,340,107"/>
+</map>

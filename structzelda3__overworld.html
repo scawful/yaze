@@ -109,11 +109,11 @@ $(function(){initNavTree('structzelda3__overworld.html',''); initResizable(true)
   <div class="summary">
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="structzelda3__overworld-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">zelda3_overworld Struct Reference</div></div>
+  <div class="headertitle"><div class="title">zelda3_overworld Struct Reference<div class="ingroups"><a class="el" href="group__overworld.html">Overworld Functions</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Primitive of the overworld.  
+<p>Complete overworld data.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="zelda_8h_source.html">zelda.h</a>&gt;</code></p>
@@ -122,8 +122,8 @@ Collaboration diagram for zelda3_overworld:</div>
 <div class="dyncontent">
 <div class="center"><img src="structzelda3__overworld__coll__graph.png" border="0" usemap="#azelda3__overworld_coll__map" alt="Collaboration graph"/></div>
 <map name="azelda3__overworld_coll__map" id="azelda3__overworld_coll__map">
-<area shape="rect" title="Primitive of the overworld." alt="" coords="21,94,143,120"/>
-<area shape="rect" href="structzelda3__overworld__map.html" title="Primitive of an overworld map." alt="" coords="5,5,159,31"/>
+<area shape="rect" title="Complete overworld data." alt="" coords="21,94,143,120"/>
+<area shape="rect" href="structzelda3__overworld__map.html" title="Overworld map data." alt="" coords="5,5,159,31"/>
 <area shape="poly" title=" " alt="" coords="85,47,85,94,79,94,79,47"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
@@ -134,11 +134,18 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a0321cc61753220f93beb1ced453d356c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adea43a2d4d987e4e9c742b68f1df487b" id="r_adea43a2d4d987e4e9c742b68f1df487b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structzelda3__overworld__map.html">zelda3_overworld_map</a> **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adea43a2d4d987e4e9c742b68f1df487b">maps</a></td></tr>
 <tr class="separator:adea43a2d4d987e4e9c742b68f1df487b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5aef2e3e877efe5d0efbcdf618269fda" id="r_a5aef2e3e877efe5d0efbcdf618269fda"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5aef2e3e877efe5d0efbcdf618269fda">map_count</a></td></tr>
+<tr class="separator:a5aef2e3e877efe5d0efbcdf618269fda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac42571b5a8703b39deeb00f6d9f043c2" id="r_ac42571b5a8703b39deeb00f6d9f043c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac42571b5a8703b39deeb00f6d9f043c2">rom_version</a></td></tr>
+<tr class="separator:ac42571b5a8703b39deeb00f6d9f043c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96cc5344e88c494d89697ed12142f400" id="r_a96cc5344e88c494d89697ed12142f400"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a96cc5344e88c494d89697ed12142f400">has_zsco_features</a></td></tr>
+<tr class="separator:a96cc5344e88c494d89697ed12142f400"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Primitive of the overworld. </p>
+<div class="textblock"><p>Complete overworld data. </p>
+<p>Contains all overworld maps and related data for the entire game world. </p>
 
-<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00132">132</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00332">332</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a0321cc61753220f93beb1ced453d356c" name="a0321cc61753220f93beb1ced453d356c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0321cc61753220f93beb1ced453d356c">&#9670;&#160;</a></span>impl</h2>
@@ -151,10 +158,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Internal implementation pointer </p>
 
-<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00133">133</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00333">333</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00144">yaze_load_overworld()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00238">yaze_load_overworld()</a>.</p>
 
 </div>
 </div>
@@ -169,11 +177,62 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Pointer to the overworld maps. </p>
+<p>Array of overworld maps </p>
 
-<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00134">134</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00334">334</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00144">yaze_load_overworld()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="yaze_8cc_source.html#l00238">yaze_load_overworld()</a>.</p>
+
+</div>
+</div>
+<a id="a5aef2e3e877efe5d0efbcdf618269fda" name="a5aef2e3e877efe5d0efbcdf618269fda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5aef2e3e877efe5d0efbcdf618269fda">&#9670;&#160;</a></span>map_count</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int zelda3_overworld::map_count</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Number of maps in array </p>
+
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00335">335</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+
+</div>
+</div>
+<a id="ac42571b5a8703b39deeb00f6d9f043c2" name="ac42571b5a8703b39deeb00f6d9f043c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac42571b5a8703b39deeb00f6d9f043c2">&#9670;&#160;</a></span>rom_version</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a> zelda3_overworld::rom_version</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>ROM version this data came from </p>
+
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00336">336</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
+
+</div>
+</div>
+<a id="a96cc5344e88c494d89697ed12142f400" name="a96cc5344e88c494d89697ed12142f400"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96cc5344e88c494d89697ed12142f400">&#9670;&#160;</a></span>has_zsco_features</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool zelda3_overworld::has_zsco_features</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>True if ZSCustomOverworld features detected </p>
+
+<p class="definition">Definition at line <a class="el" href="zelda_8h_source.html#l00337">337</a> of file <a class="el" href="zelda_8h_source.html">zelda.h</a>.</p>
 
 </div>
 </div>
