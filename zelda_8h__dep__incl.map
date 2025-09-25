@@ -2,8 +2,8 @@
 <area shape="rect" id="Node000001" title="The Legend of Zelda: A Link to the Past &#45; Data Structures and Constants." alt="" coords="97,5,182,31"/>
 <area shape="rect" id="Node000002" href="$yaze_8h.html" title="Yet Another Zelda3 Editor (YAZE) &#45; Public C API." alt="" coords="42,79,123,105"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,45,94,80,90,77,119,41"/>
-<area shape="rect" id="Node000090" href="$rom_8h.html" title=" " alt="" coords="147,79,247,105"/>
-<area shape="poly" id="edge5_Node000001_Node000090" title=" " alt="" coords="161,41,190,77,185,80,157,45"/>
+<area shape="rect" id="Node000095" href="$rom_8h.html" title=" " alt="" coords="147,79,247,105"/>
+<area shape="poly" id="edge5_Node000001_Node000095" title=" " alt="" coords="161,41,190,77,185,80,157,45"/>
 <area shape="rect" id="Node000003" href="$extension__manager_8cc.html" title=" " alt="" coords="5,241,160,282"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="69,119,56,153,53,173,56,193,64,218,74,240,69,242,59,220,51,194,48,173,51,152,64,117"/>
 <area shape="rect" id="Node000004" href="$extension__manager_8h.html" title=" " alt="" coords="65,153,212,193"/>

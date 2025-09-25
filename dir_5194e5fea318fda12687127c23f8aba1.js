@@ -5,6 +5,7 @@ var dir_5194e5fea318fda12687127c23f8aba1 =
     [ "emu", "dir_1f6e893081ea55766fadff5a66800644.html", "dir_1f6e893081ea55766fadff5a66800644" ],
     [ "gfx", "dir_0b974e391fb3f3024b1f06092da5c188.html", "dir_0b974e391fb3f3024b1f06092da5c188" ],
     [ "gui", "dir_8fca90320bcc7393a52982c8dc104a2a.html", "dir_8fca90320bcc7393a52982c8dc104a2a" ],
+    [ "test", "dir_23c9a8ad65a08f6642b059bd67762538.html", "dir_23c9a8ad65a08f6642b059bd67762538" ],
     [ "zelda3", "dir_3692ec13241b192189de912e0a54f355.html", "dir_3692ec13241b192189de912e0a54f355" ],
     [ "main.cc", "main_8cc.html", "main_8cc" ],
     [ "rom.cc", "rom_8cc.html", "rom_8cc" ],

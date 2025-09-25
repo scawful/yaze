@@ -12,10 +12,11 @@ var searchData=
   ['performancemetrics_9',['PerformanceMetrics',['../structyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest_1_1PerformanceMetrics.html',1,'yaze::zelda3::DungeonObjectRendererIntegrationTest']]],
   ['performancemonitor_10',['PerformanceMonitor',['../classyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceMonitor.html',1,'yaze::zelda3::ObjectRenderer']]],
   ['performancestats_11',['PerformanceStats',['../structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html',1,'yaze::zelda3::ObjectRenderer']]],
-  ['popupmanager_12',['PopupManager',['../classyaze_1_1editor_1_1PopupManager.html',1,'yaze::editor']]],
-  ['popupparams_13',['PopupParams',['../structyaze_1_1editor_1_1PopupParams.html',1,'yaze::editor']]],
-  ['ppu_14',['Ppu',['../classyaze_1_1emu_1_1Ppu.html',1,'yaze::emu']]],
-  ['ppuinterface_15',['PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html',1,'yaze::emu::PpuInterface'],['../classyaze_1_1test_1_1PpuInterface.html',1,'yaze::test::PpuInterface']]],
-  ['pputest_16',['PpuTest',['../classyaze_1_1test_1_1PpuTest.html',1,'yaze::test']]],
-  ['project_17',['Project',['../structyaze_1_1Project.html',1,'yaze']]]
+  ['performancetestsuite_12',['PerformanceTestSuite',['../classyaze_1_1test_1_1PerformanceTestSuite.html',1,'yaze::test']]],
+  ['popupmanager_13',['PopupManager',['../classyaze_1_1editor_1_1PopupManager.html',1,'yaze::editor']]],
+  ['popupparams_14',['PopupParams',['../structyaze_1_1editor_1_1PopupParams.html',1,'yaze::editor']]],
+  ['ppu_15',['Ppu',['../classyaze_1_1emu_1_1Ppu.html',1,'yaze::emu']]],
+  ['ppuinterface_16',['PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html',1,'yaze::emu::PpuInterface'],['../classyaze_1_1test_1_1PpuInterface.html',1,'yaze::test::PpuInterface']]],
+  ['pputest_17',['PpuTest',['../classyaze_1_1test_1_1PpuTest.html',1,'yaze::test']]],
+  ['project_18',['Project',['../structyaze_1_1Project.html',1,'yaze']]]
 ];

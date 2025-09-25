@@ -1,0 +1,11 @@
+<map id="yaze::test::RomDependentTestSuite::RunRomOverworldLoadingTest" name="yaze::test::RomDependentTestSuite::RunRomOverworldLoadingTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,270,145"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1test_1_1TestResults.html#abe5ca04144ec78a21183b44d5f87a597" title=" " alt="" coords="327,5,478,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,101,331,49,333,54,195,106"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1RomDependentTestSuite.html#aedf9fae3ba0e4fcc5d81737dab5ceddc" title=" " alt="" coords="318,71,488,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="270,105,302,101,303,106,271,110"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1RomDependentTestSuite.html#ae804e338255837a4f3e4c0ab3596d797" title=" " alt="" coords="318,136,488,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="270,138,303,142,302,147,270,143"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1Overworld.html#a0ea7c62cb7b2f6a9338e778f0243be4e" title=" " alt="" coords="325,201,480,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="196,143,332,193,330,198,194,148"/>
+</map>

@@ -11,6 +11,7 @@ var classyaze_1_1cli_1_1ModernCLI =
     [ "HandleValidateCommand", "classyaze_1_1cli_1_1ModernCLI.html#a801e2efcfec1c7849539e886f472fbfe", null ],
     [ "HandleInfoCommand", "classyaze_1_1cli_1_1ModernCLI.html#a0dc23055c58aecb7c82b2f5610c35dc6", null ],
     [ "HandleConvertCommand", "classyaze_1_1cli_1_1ModernCLI.html#a58347189909aa35e0fcb87ea080e9407", null ],
+    [ "HandleTestCommand", "classyaze_1_1cli_1_1ModernCLI.html#ab0d3059fb7adaa0b57fd7cf1962a96bb", null ],
     [ "HandleHelpCommand", "classyaze_1_1cli_1_1ModernCLI.html#a6a50a4f6cc0bbbbdd9e4176b88529020", null ],
     [ "commands_", "classyaze_1_1cli_1_1ModernCLI.html#af4ca9e6038548fc54f17cb2fa1750fb9", null ]
 ];

@@ -112,5 +112,6 @@ var searchData=
   ['dungeonsmainpalettesmax_109',['DungeonsMainPalettesMax',['../namespaceyaze_1_1gfx.html#a44cac3c485021d5a492502a536ab8999',1,'yaze::gfx']]],
   ['dungmap_5fselected_5f_110',['dungmap_selected_',['../classyaze_1_1zelda3_1_1TitleScreen.html#aae369120f12d23313831f8c292f42c4e',1,'yaze::zelda3::TitleScreen']]],
   ['dungmap_5fselected_5ftile_5f_111',['dungmap_selected_tile_',['../classyaze_1_1zelda3_1_1TitleScreen.html#a43ba5656538f3c930b2b8159c5665e23',1,'yaze::zelda3::TitleScreen']]],
-  ['dwmapdata_112',['dwmapdata',['../classyaze_1_1zelda3_1_1TitleScreen.html#a1f0f8241d3a6ed0d3702556dd308ca37',1,'yaze::zelda3::TitleScreen']]]
+  ['duration_112',['duration',['../structyaze_1_1test_1_1TestResult.html#a9dd90885181f2ff45f83ea9708baf22b',1,'yaze::test::TestResult']]],
+  ['dwmapdata_113',['dwmapdata',['../classyaze_1_1zelda3_1_1TitleScreen.html#a1f0f8241d3a6ed0d3702556dd308ca37',1,'yaze::zelda3::TitleScreen']]]
 ];

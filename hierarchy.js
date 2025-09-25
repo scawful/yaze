@@ -268,6 +268,7 @@ var hierarchy =
     [ "yaze::Renderer", "classyaze_1_1Renderer.html", null ],
     [ "yaze::zelda3::Renderer", "classyaze_1_1zelda3_1_1Renderer.html", null ],
     [ "yaze::ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", null ],
+    [ "yaze::test::ResourceStats", "structyaze_1_1test_1_1ResourceStats.html", null ],
     [ "yaze::ResourceLabelManager::ResourceType", "structyaze_1_1ResourceLabelManager_1_1ResourceType.html", null ],
     [ "yaze::Rom", "classyaze_1_1Rom.html", [
       [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ],
@@ -374,7 +375,18 @@ var hierarchy =
       [ "yaze::zelda3::OverworldV3IntegrationTest", "classyaze_1_1zelda3_1_1OverworldV3IntegrationTest.html", null ],
       [ "yaze::zelda3::SpritePositionTest", "classyaze_1_1zelda3_1_1SpritePositionTest.html", null ]
     ] ],
+    [ "yaze::test::TestManager", "classyaze_1_1test_1_1TestManager.html", null ],
+    [ "yaze::test::TestResult", "structyaze_1_1test_1_1TestResult.html", null ],
+    [ "yaze::test::TestResults", "structyaze_1_1test_1_1TestResults.html", null ],
     [ "yaze::test::TestRomManager", "classyaze_1_1test_1_1TestRomManager.html", null ],
+    [ "yaze::test::TestSuite", "classyaze_1_1test_1_1TestSuite.html", [
+      [ "yaze::test::ArenaTestSuite", "classyaze_1_1test_1_1ArenaTestSuite.html", null ],
+      [ "yaze::test::IntegratedTestSuite", "classyaze_1_1test_1_1IntegratedTestSuite.html", null ],
+      [ "yaze::test::PerformanceTestSuite", "classyaze_1_1test_1_1PerformanceTestSuite.html", null ],
+      [ "yaze::test::RomDependentTestSuite", "classyaze_1_1test_1_1RomDependentTestSuite.html", null ],
+      [ "yaze::test::UITestSuite", "classyaze_1_1test_1_1UITestSuite.html", null ],
+      [ "yaze::test::UnitTestSuite", "classyaze_1_1test_1_1UnitTestSuite.html", null ]
+    ] ],
     [ "yaze::gui::Text", "structyaze_1_1gui_1_1Text.html", null ],
     [ "yaze::gui::TextBox", "structyaze_1_1gui_1_1TextBox.html", null ],
     [ "TextEditor", "classTextEditor.html", null ],

@@ -1,0 +1,22 @@
+var classyaze_1_1test_1_1RomDependentTestSuite =
+[
+    [ "RomDependentTestSuite", "classyaze_1_1test_1_1RomDependentTestSuite.html#aa4de34407432fad0b96fc0c8e9788388", null ],
+    [ "~RomDependentTestSuite", "classyaze_1_1test_1_1RomDependentTestSuite.html#aa1227cbe4a9995ec93bd36485afd942d", null ],
+    [ "GetName", "classyaze_1_1test_1_1RomDependentTestSuite.html#ae804e338255837a4f3e4c0ab3596d797", null ],
+    [ "GetCategory", "classyaze_1_1test_1_1RomDependentTestSuite.html#aedf9fae3ba0e4fcc5d81737dab5ceddc", null ],
+    [ "RunTests", "classyaze_1_1test_1_1RomDependentTestSuite.html#aea0889ee248d99cc5e8aecd0339d42eb", null ],
+    [ "DrawConfiguration", "classyaze_1_1test_1_1RomDependentTestSuite.html#a3325314ff8dfd69549541517f51bd1e8", null ],
+    [ "RunRomHeaderValidationTest", "classyaze_1_1test_1_1RomDependentTestSuite.html#a9f0cc68767ba403b88d0ab92dd1ccda1", null ],
+    [ "RunRomDataAccessTest", "classyaze_1_1test_1_1RomDependentTestSuite.html#ab7187e46ff849b7bfe41a5922d67d3c5", null ],
+    [ "RunRomGraphicsExtractionTest", "classyaze_1_1test_1_1RomDependentTestSuite.html#a7e9eee992eea4f270116dcdbf82ef9b0", null ],
+    [ "RunRomOverworldLoadingTest", "classyaze_1_1test_1_1RomDependentTestSuite.html#a4bb7062125933e2a8ad556a42731c284", null ],
+    [ "RunRomSpriteDataTest", "classyaze_1_1test_1_1RomDependentTestSuite.html#ab22bc89dabbb536e4291178e7617ced7", null ],
+    [ "RunRomMusicDataTest", "classyaze_1_1test_1_1RomDependentTestSuite.html#a41420773972e2ec9fdf337944643e191", null ],
+    [ "test_header_validation_", "classyaze_1_1test_1_1RomDependentTestSuite.html#a0730fda8233abe79c492725edd7f682a", null ],
+    [ "test_data_access_", "classyaze_1_1test_1_1RomDependentTestSuite.html#a0d4e9d9fba233b732e14c0b346378391", null ],
+    [ "test_graphics_extraction_", "classyaze_1_1test_1_1RomDependentTestSuite.html#aefa1e0393674f907961bdded2beb88b8", null ],
+    [ "test_overworld_loading_", "classyaze_1_1test_1_1RomDependentTestSuite.html#a4be3f725e0b0964b6f077a4ba303ca2b", null ],
+    [ "test_advanced_features_", "classyaze_1_1test_1_1RomDependentTestSuite.html#a26aac97f2f5425f2e0951ec538e89939", null ],
+    [ "test_sprite_data_", "classyaze_1_1test_1_1RomDependentTestSuite.html#ac863d2d9cb379769a899931ff8c0d83c", null ],
+    [ "test_music_data_", "classyaze_1_1test_1_1RomDependentTestSuite.html#a9c8c7e2c8c72b0cc085ab35c72f6ccc7", null ]
+];

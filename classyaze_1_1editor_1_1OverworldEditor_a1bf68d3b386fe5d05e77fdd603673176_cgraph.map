@@ -1,0 +1,12 @@
+<map id="yaze::editor::OverworldEditor::ApplyZSCustomOverworldASM" name="yaze::editor::OverworldEditor::ApplyZSCustomOverworldASM">
+<area shape="rect" id="Node000001" title="Apply ZSCustomOverworld ASM patch to upgrade ROM version." alt="" coords="5,63,215,103"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="64,63,62,53,69,44,85,38,110,36,136,38,152,45,150,50,135,44,110,41,86,43,72,48,67,54,69,61"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1app_1_1core_1_1AsarWrapper.html#ab2583f55b85ce00f473fbff231e94c4b" title="Apply an assembly patch to a ROM." alt="" coords="263,5,449,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,59,250,48,251,53,201,65"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="264,70,448,96"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="215,80,248,80,248,86,215,86"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1app_1_1core_1_1AsarWrapper.html#a2a62a0b6a9aeb2116b20bb7a2a716fdb" title="Initialize the Asar library." alt="" coords="263,120,449,161"/>
+<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="201,101,251,113,250,118,200,107"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1app_1_1core_1_1AsarWrapper.html#ae627cf8b68c21f8042f1d92139b3902b" title="Extract symbols from the last Asar operation." alt="" coords="497,5,726,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="450,23,481,23,481,28,450,28"/>
+</map>

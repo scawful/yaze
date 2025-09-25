@@ -1,0 +1,7 @@
+<map id="yaze::test::TestManager::CollectResourceStats" name="yaze::test::TestManager::CollectResourceStats">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,163,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="211,13,348,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,23,195,23,195,28,163,28"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca" title=" " alt="" coords="396,13,546,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="348,23,380,23,380,28,348,28"/>
+</map>

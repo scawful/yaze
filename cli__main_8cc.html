@@ -118,14 +118,19 @@ $(function(){initNavTree('cli__main_8cc.html',''); initResizable(true); });
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &lt;map&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
+<code>#include &lt;SDL.h&gt;</code><br />
 <code>#include &quot;absl/flags/flag.h&quot;</code><br />
 <code>#include &quot;absl/flags/parse.h&quot;</code><br />
 <code>#include &quot;absl/flags/usage.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_join.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="z3ed_8h_source.html">cli/z3ed.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="tui_8h_source.html">cli/tui.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="asar__wrapper_8h_source.html">app/core/asar_wrapper.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="arena_8h_source.html">app/gfx/arena.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="rom_8h_source.html">app/rom.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="overworld_8h_source.html">app/zelda3/overworld/overworld.h</a>&quot;</code><br />
 </div>
 <p><a href="cli__main_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -401,9 +406,9 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="cli__main_8cc_source.html#l00286">286</a> of file <a class="el" href="cli__main_8cc_source.html">cli_main.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="cli__main_8cc_source.html#l00437">437</a> of file <a class="el" href="cli__main_8cc_source.html">cli_main.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="cli__main_8cc_source.html#l00163">yaze::cli::ModernCLI::RunCommand()</a>, <a class="el" href="cli__main_8cc_source.html#l00115">yaze::cli::ModernCLI::ShowHelp()</a>, <a class="el" href="tui_8cc_source.html#l00929">yaze::cli::ShowMain()</a>, and <a class="el" href="cli__main_8cc_source.html#l00109">yaze::cli::ModernCLI::ShowVersion()</a>.</p>
+<p class="reference">References <a class="el" href="cli__main_8cc_source.html#l00178">yaze::cli::ModernCLI::RunCommand()</a>, <a class="el" href="cli__main_8cc_source.html#l00130">yaze::cli::ModernCLI::ShowHelp()</a>, <a class="el" href="tui_8cc_source.html#l00929">yaze::cli::ShowMain()</a>, and <a class="el" href="cli__main_8cc_source.html#l00124">yaze::cli::ModernCLI::ShowVersion()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

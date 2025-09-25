@@ -1,0 +1,11 @@
+<map id="yaze::editor::EditorManager::DrawLayoutPresets" name="yaze::editor::EditorManager::DrawLayoutPresets">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,180,145"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1EditorManager.html#a8f323cab2ea0379847fe62f9f8f4b7b8" title=" " alt="" coords="228,5,402,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,101,227,57,243,50,245,55,229,61,136,106"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1EditorManager.html#ac1ea7d0c0928b34e372c2f5b0ad9fd2c" title=" " alt="" coords="228,71,402,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,109,212,104,213,109,180,114"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1EditorManager.html#a91aef16ed7f70f57c14655f401c238fe" title=" " alt="" coords="228,136,402,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,134,213,139,212,144,180,140"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1EditorManager.html#a4216a3dd6f2caa98fd7c1a1391ca7f84" title=" " alt="" coords="228,201,402,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="136,143,229,186,245,193,243,198,227,191,134,147"/>
+</map>

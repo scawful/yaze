@@ -127,270 +127,266 @@ $(function(){initNavTree('color_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
 <div class="foldopen" id="foldopen00015" data-start="{" data-end="}">
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14">   15</a></span><a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14">ConvertImVec4ToSnesColor</a>(<span class="keyword">const</span> ImVec4&amp; color) {</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <span class="comment">// Convert from float (0.0-1.0) to uint8_t (0-255)</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  uint8_t r = <span class="keyword">static_cast&lt;</span>uint8_t<span class="keyword">&gt;</span>(color.x * 255.0f);</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  uint8_t g = <span class="keyword">static_cast&lt;</span>uint8_t<span class="keyword">&gt;</span>(color.y * 255.0f);</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  uint8_t b = <span class="keyword">static_cast&lt;</span>uint8_t<span class="keyword">&gt;</span>(color.z * 255.0f);</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordflow">return</span> <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a>(r, g, b);</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>}</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <span class="keywordflow">return</span> <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a>(color);</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>}</div>
 </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="foldopen" id="foldopen00023" data-start="{" data-end="}">
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">   23</a></span>IMGUI_API <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">SnesColorButton</a>(absl::string_view <span class="keywordtype">id</span>, <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a>&amp; color,</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>                               ImGuiColorEditFlags flags,</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>                               <span class="keyword">const</span> ImVec2&amp; size_arg) {</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="comment">// Convert the SNES color values to ImGui color values</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  ImVec4 displayColor = <a class="code hl_function" href="namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d">ConvertSnesColorToImVec4</a>(color);</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="comment">// Call the original ImGui::ColorButton with the converted color</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordtype">bool</span> pressed = ImGui::ColorButton(<span class="keywordtype">id</span>.data(), displayColor, flags, size_arg);</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  <span class="comment">// Add the SNES color representation to the tooltip</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keywordflow">if</span> (ImGui::IsItemHovered()) {</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    ImGui::BeginTooltip();</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    ImGui::Text(<span class="stringliteral">&quot;SNES: $%04X&quot;</span>, color.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesColor.html#ade9df7154cb3707cffe5e644c995f090">snes</a>());</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    ImGui::EndTooltip();</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  }</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keywordflow">return</span> pressed;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>}</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="foldopen" id="foldopen00019" data-start="{" data-end="}">
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">   19</a></span>IMGUI_API <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">SnesColorButton</a>(absl::string_view <span class="keywordtype">id</span>, <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a>&amp; color,</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>                               ImGuiColorEditFlags flags,</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>                               <span class="keyword">const</span> ImVec2&amp; size_arg) {</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="comment">// Convert the SNES color values to ImGui color values</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  ImVec4 displayColor = <a class="code hl_function" href="namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d">ConvertSnesColorToImVec4</a>(color);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="comment">// Call the original ImGui::ColorButton with the converted color</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="keywordtype">bool</span> pressed = ImGui::ColorButton(<span class="keywordtype">id</span>.data(), displayColor, flags, size_arg);</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="comment">// Add the SNES color representation to the tooltip</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keywordflow">if</span> (ImGui::IsItemHovered()) {</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    ImGui::BeginTooltip();</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    ImGui::Text(<span class="stringliteral">&quot;SNES: $%04X&quot;</span>, color.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesColor.html#ade9df7154cb3707cffe5e644c995f090">snes</a>());</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    ImGui::EndTooltip();</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  }</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="keywordflow">return</span> pressed;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>}</div>
 </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
+<div class="foldopen" id="foldopen00036" data-start="{" data-end="}">
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#aa32511a1a3eadf62366b193da8b5f3da">   36</a></span>IMGUI_API <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceyaze_1_1gui.html#aa32511a1a3eadf62366b193da8b5f3da">SnesColorEdit4</a>(absl::string_view label, <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a>* color,</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>                              ImGuiColorEditFlags flags) {</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  ImVec4 displayColor = <a class="code hl_function" href="namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d">ConvertSnesColorToImVec4</a>(*color);</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="foldopen" id="foldopen00040" data-start="{" data-end="}">
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#aa32511a1a3eadf62366b193da8b5f3da">   40</a></span>IMGUI_API <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceyaze_1_1gui.html#aa32511a1a3eadf62366b193da8b5f3da">SnesColorEdit4</a>(absl::string_view label, <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a>* color,</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>                              ImGuiColorEditFlags flags) {</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  ImVec4 displayColor = <a class="code hl_function" href="namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d">ConvertSnesColorToImVec4</a>(*color);</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="comment">// Call the original ImGui::ColorEdit4 with the converted color</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keywordtype">bool</span> pressed =</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      ImGui::ColorEdit4(label.data(), (<span class="keywordtype">float</span>*)&amp;displayColor.x, flags);</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="comment">// Call the original ImGui::ColorEdit4 with the converted color</span></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keywordtype">bool</span> pressed =</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      ImGui::ColorEdit4(label.data(), (<span class="keywordtype">float</span>*)&amp;displayColor.x, flags);</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  color-&gt;<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesColor.html#aea6308f5abbe766e900fb8baeb71b257">set_rgb</a>(displayColor);</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  color-&gt;<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesColor.html#ada2b834470189df9226b2b0f5052538f">set_snes</a>(<a class="code hl_function" href="namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d">gfx::ConvertRgbToSnes</a>(displayColor));</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="keywordflow">return</span> pressed;</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>}</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  color-&gt;<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesColor.html#aea6308f5abbe766e900fb8baeb71b257">set_rgb</a>(displayColor);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  color-&gt;<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesColor.html#ada2b834470189df9226b2b0f5052538f">set_snes</a>(<a class="code hl_function" href="namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d">gfx::ConvertRgbToSnes</a>(displayColor));</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordflow">return</span> pressed;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>}</div>
 </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
-<div class="foldopen" id="foldopen00054" data-start="{" data-end="}">
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#ab4191a76f6cec5d60a28a6c49d7065d9">   54</a></span>IMGUI_API <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceyaze_1_1gui.html#ab4191a76f6cec5d60a28a6c49d7065d9">DisplayPalette</a>(<a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&amp; palette, <span class="keywordtype">bool</span> loaded) {</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  <span class="keyword">static</span> ImVec4 color = ImVec4(0, 0, 0, 255.f);</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>                                   ImGuiColorEditFlags_NoDragDrop |</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>                                   ImGuiColorEditFlags_NoOptions;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  <span class="comment">// Generate a default palette. The palette will persist and can be edited.</span></div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="keyword">static</span> <span class="keywordtype">bool</span> init = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  <span class="keyword">static</span> ImVec4 saved_palette[32] = {};</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  <span class="keywordflow">if</span> (loaded &amp;&amp; !init) {</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = 0; n &lt; palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda">size</a>(); n++) {</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      <span class="keyword">auto</span> color = palette[n];</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      saved_palette[n].x = color.rgb().x / 255;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>      saved_palette[n].y = color.rgb().y / 255;</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      saved_palette[n].z = color.rgb().z / 255;</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>      saved_palette[n].w = 255;  <span class="comment">// Alpha</span></div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    }</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    init = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  }</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  <span class="keyword">static</span> ImVec4 backup_color;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  ImGui::Text(<span class="stringliteral">&quot;Current ==&gt;&quot;</span>);</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  ImGui::SameLine();</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  ImGui::Text(<span class="stringliteral">&quot;Previous&quot;</span>);</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  ImGui::ColorButton(</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>      <span class="stringliteral">&quot;##current&quot;</span>, color,</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      ImVec2(60, 40));</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  ImGui::SameLine();</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  <span class="keywordflow">if</span> (ImGui::ColorButton(</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>          <span class="stringliteral">&quot;##previous&quot;</span>, backup_color,</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>          ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>          ImVec2(60, 40)))</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    color = backup_color;</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  ImGui::Separator();</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  ImGui::BeginGroup();  <span class="comment">// Lock X position</span></div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  ImGui::Text(<span class="stringliteral">&quot;Palette&quot;</span>);</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = 0; n &lt; IM_ARRAYSIZE(saved_palette); n++) {</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    ImGui::PushID(n);</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <span class="keywordflow">if</span> ((n % 4) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    ImGuiColorEditFlags palette_button_flags = ImGuiColorEditFlags_NoAlpha |</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>                                               ImGuiColorEditFlags_NoPicker |</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>                                               ImGuiColorEditFlags_NoTooltip;</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    <span class="keywordflow">if</span> (ImGui::ColorButton(<span class="stringliteral">&quot;##palette&quot;</span>, saved_palette[n], palette_button_flags,</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                           ImVec2(20, 20)))</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>      color = ImVec4(saved_palette[n].x, saved_palette[n].y, saved_palette[n].z,</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>                     color.w);  <span class="comment">// Preserve alpha!</span></div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="keywordflow">if</span> (ImGui::BeginDragDropTarget()) {</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>      <span class="keywordflow">if</span> (<span class="keyword">const</span> ImGuiPayload* payload =</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>              ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        memcpy((<span class="keywordtype">float</span>*)&amp;saved_palette[n], payload-&gt;Data, <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>) * 3);</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>      <span class="keywordflow">if</span> (<span class="keyword">const</span> ImGuiPayload* payload =</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>              ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        memcpy((<span class="keywordtype">float</span>*)&amp;saved_palette[n], payload-&gt;Data, <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>) * 4);</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>      ImGui::EndDragDropTarget();</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    }</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span> </div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    ImGui::PopID();</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  }</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  ImGui::EndGroup();</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>  ImGui::SameLine();</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  ImGui::ColorPicker4(<span class="stringliteral">&quot;##picker&quot;</span>, (<span class="keywordtype">float</span>*)&amp;color,</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>                      misc_flags | ImGuiColorEditFlags_NoSidePreview |</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>                          ImGuiColorEditFlags_NoSmallPreview);</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>}</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
+<div class="foldopen" id="foldopen00050" data-start="{" data-end="}">
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#ab4191a76f6cec5d60a28a6c49d7065d9">   50</a></span>IMGUI_API <span class="keywordtype">bool</span> <a class="code hl_function" href="namespaceyaze_1_1gui.html#ab4191a76f6cec5d60a28a6c49d7065d9">DisplayPalette</a>(<a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&amp; palette, <span class="keywordtype">bool</span> loaded) {</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="keyword">static</span> ImVec4 color = ImVec4(0, 0, 0, 255.f);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                                   ImGuiColorEditFlags_NoDragDrop |</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>                                   ImGuiColorEditFlags_NoOptions;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <span class="comment">// Generate a default palette. The palette will persist and can be edited.</span></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  <span class="keyword">static</span> <span class="keywordtype">bool</span> init = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  <span class="keyword">static</span> ImVec4 saved_palette[32] = {};</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  <span class="keywordflow">if</span> (loaded &amp;&amp; !init) {</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = 0; n &lt; palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda">size</a>(); n++) {</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>      <span class="keyword">auto</span> color = palette[n];</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>      saved_palette[n].x = color.rgb().x / 255;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      saved_palette[n].y = color.rgb().y / 255;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      saved_palette[n].z = color.rgb().z / 255;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      saved_palette[n].w = 255;  <span class="comment">// Alpha</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    }</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    init = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  }</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  <span class="keyword">static</span> ImVec4 backup_color;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  ImGui::Text(<span class="stringliteral">&quot;Current ==&gt;&quot;</span>);</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  ImGui::SameLine();</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  ImGui::Text(<span class="stringliteral">&quot;Previous&quot;</span>);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  ImGui::ColorButton(</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      <span class="stringliteral">&quot;##current&quot;</span>, color,</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      ImVec2(60, 40));</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  ImGui::SameLine();</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  <span class="keywordflow">if</span> (ImGui::ColorButton(</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>          <span class="stringliteral">&quot;##previous&quot;</span>, backup_color,</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>          ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf,</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>          ImVec2(60, 40)))</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    color = backup_color;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  ImGui::Separator();</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  ImGui::BeginGroup();  <span class="comment">// Lock X position</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  ImGui::Text(<span class="stringliteral">&quot;Palette&quot;</span>);</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = 0; n &lt; IM_ARRAYSIZE(saved_palette); n++) {</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    ImGui::PushID(n);</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keywordflow">if</span> ((n % 4) != 0) ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    ImGuiColorEditFlags palette_button_flags = ImGuiColorEditFlags_NoAlpha |</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>                                               ImGuiColorEditFlags_NoPicker |</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>                                               ImGuiColorEditFlags_NoTooltip;</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keywordflow">if</span> (ImGui::ColorButton(<span class="stringliteral">&quot;##palette&quot;</span>, saved_palette[n], palette_button_flags,</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>                           ImVec2(20, 20)))</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>      color = ImVec4(saved_palette[n].x, saved_palette[n].y, saved_palette[n].z,</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>                     color.w);  <span class="comment">// Preserve alpha!</span></div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    <span class="keywordflow">if</span> (ImGui::BeginDragDropTarget()) {</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>      <span class="keywordflow">if</span> (<span class="keyword">const</span> ImGuiPayload* payload =</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>              ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>        memcpy((<span class="keywordtype">float</span>*)&amp;saved_palette[n], payload-&gt;Data, <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>) * 3);</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>      <span class="keywordflow">if</span> (<span class="keyword">const</span> ImGuiPayload* payload =</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>              ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        memcpy((<span class="keywordtype">float</span>*)&amp;saved_palette[n], payload-&gt;Data, <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>) * 4);</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>      ImGui::EndDragDropTarget();</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    }</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    ImGui::PopID();</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>  }</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>  ImGui::EndGroup();</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  ImGui::SameLine();</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  ImGui::ColorPicker4(<span class="stringliteral">&quot;##picker&quot;</span>, (<span class="keywordtype">float</span>*)&amp;color,</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>                      misc_flags | ImGuiColorEditFlags_NoSidePreview |</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>                          ImGuiColorEditFlags_NoSmallPreview);</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>}</div>
 </div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
-<div class="foldopen" id="foldopen00127" data-start="{" data-end="}">
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d">  127</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d">SelectablePalettePipeline</a>(uint64_t&amp; palette_id, <span class="keywordtype">bool</span>&amp; refresh_graphics,</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>                               <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&amp; palette) {</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  <span class="keyword">const</span> <span class="keyword">auto</span> palette_row_size = 7;</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  <span class="keywordflow">if</span> (ImGuiID child_id = ImGui::GetID((<span class="keywordtype">void</span>*)(intptr_t)100);</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), <span class="keyword">true</span>,</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    ImGui::BeginGroup();  <span class="comment">// Lock X position</span></div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    ImGui::Text(<span class="stringliteral">&quot;Palette&quot;</span>);</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = 0; n &lt; palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda">size</a>(); n++) {</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>      ImGui::PushID(n);</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>      <span class="keywordflow">if</span> ((n % palette_row_size) != 0)</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span> </div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>      <span class="comment">// Check if the current row is selected</span></div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>      <span class="keywordtype">bool</span> is_selected = (palette_id == n / palette_row_size);</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> </div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>      <span class="comment">// Add outline rectangle to the selected row</span></div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>      <span class="keywordflow">if</span> (is_selected) {</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>      }</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span> </div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>      <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">gui::SnesColorButton</a>(<span class="stringliteral">&quot;##palette&quot;</span>, palette[n],</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>                               ImGuiColorEditFlags_NoAlpha |</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>                                   ImGuiColorEditFlags_NoPicker |</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>                                   ImGuiColorEditFlags_NoTooltip,</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>                               ImVec2(20, 20))) {</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>        palette_id = n / palette_row_size;</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>        refresh_graphics = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>      }</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>      <span class="keywordflow">if</span> (is_selected) {</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>        ImGui::PopStyleColor();</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>        ImGui::PopStyleVar();</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>      }</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>      ImGui::PopID();</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    }</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    ImGui::EndGroup();</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>  }</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  ImGui::EndChild();</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>}</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span> </div>
+<div class="foldopen" id="foldopen00123" data-start="{" data-end="}">
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d">  123</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d">SelectablePalettePipeline</a>(uint64_t&amp; palette_id, <span class="keywordtype">bool</span>&amp; refresh_graphics,</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>                               <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&amp; palette) {</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  <span class="keyword">const</span> <span class="keyword">auto</span> palette_row_size = 7;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>  <span class="keywordflow">if</span> (ImGuiID child_id = ImGui::GetID((<span class="keywordtype">void</span>*)(intptr_t)100);</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), <span class="keyword">true</span>,</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    ImGui::BeginGroup();  <span class="comment">// Lock X position</span></div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    ImGui::Text(<span class="stringliteral">&quot;Palette&quot;</span>);</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = 0; n &lt; palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda">size</a>(); n++) {</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>      ImGui::PushID(n);</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>      <span class="keywordflow">if</span> ((n % palette_row_size) != 0)</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>        ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>      <span class="comment">// Check if the current row is selected</span></div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>      <span class="keywordtype">bool</span> is_selected = (palette_id == n / palette_row_size);</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>      <span class="comment">// Add outline rectangle to the selected row</span></div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>      <span class="keywordflow">if</span> (is_selected) {</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>      }</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>      <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">gui::SnesColorButton</a>(<span class="stringliteral">&quot;##palette&quot;</span>, palette[n],</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>                               ImGuiColorEditFlags_NoAlpha |</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>                                   ImGuiColorEditFlags_NoPicker |</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>                                   ImGuiColorEditFlags_NoTooltip,</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>                               ImVec2(20, 20))) {</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>        palette_id = n / palette_row_size;</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>        refresh_graphics = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>      }</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span> </div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>      <span class="keywordflow">if</span> (is_selected) {</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>        ImGui::PopStyleColor();</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>        ImGui::PopStyleVar();</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>      }</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span> </div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>      ImGui::PopID();</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    }</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    ImGui::EndGroup();</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  }</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  ImGui::EndChild();</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>}</div>
 </div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span> </div>
-<div class="foldopen" id="foldopen00170" data-start="{" data-end="}">
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#ae0d03d6cdef355d2ffa9bfa5d5e3247a">  170</a></span>absl::Status <a class="code hl_function" href="namespaceyaze_1_1gui.html#ae0d03d6cdef355d2ffa9bfa5d5e3247a">DisplayEditablePalette</a>(<a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&amp; palette,</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>                                    <span class="keyword">const</span> std::string&amp; title,</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>                                    <span class="keywordtype">bool</span> show_color_picker, <span class="keywordtype">int</span> colors_per_row,</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>                                    ImGuiColorEditFlags flags) {</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  <span class="comment">// Default flags if none provided</span></div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  <span class="keywordflow">if</span> (flags == 0) {</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker |</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>            ImGuiColorEditFlags_NoTooltip;</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  }</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  <span class="comment">// Display title if provided</span></div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>  <span class="keywordflow">if</span> (!title.empty()) {</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    ImGui::Text(<span class="stringliteral">&quot;%s&quot;</span>, title.c_str());</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>  }</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  <span class="keyword">static</span> <span class="keywordtype">int</span> selected_color = 0;</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span> </div>
+<div class="foldopen" id="foldopen00166" data-start="{" data-end="}">
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1gui.html#ae0d03d6cdef355d2ffa9bfa5d5e3247a">  166</a></span>absl::Status <a class="code hl_function" href="namespaceyaze_1_1gui.html#ae0d03d6cdef355d2ffa9bfa5d5e3247a">DisplayEditablePalette</a>(<a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a>&amp; palette,</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>                                    <span class="keyword">const</span> std::string&amp; title,</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>                                    <span class="keywordtype">bool</span> show_color_picker, <span class="keywordtype">int</span> colors_per_row,</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>                                    ImGuiColorEditFlags flags) {</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  <span class="comment">// Default flags if none provided</span></div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  <span class="keywordflow">if</span> (flags == 0) {</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    flags = ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker |</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>            ImGuiColorEditFlags_NoTooltip;</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  }</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span> </div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  <span class="comment">// Display title if provided</span></div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  <span class="keywordflow">if</span> (!title.empty()) {</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    ImGui::Text(<span class="stringliteral">&quot;%s&quot;</span>, title.c_str());</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  }</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  <span class="keyword">static</span> <span class="keywordtype">int</span> selected_color = 0;</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span> </div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  <span class="keywordflow">if</span> (show_color_picker) {</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    ImGui::Separator();</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    <span class="keyword">static</span> ImVec4 current_color = ImVec4(0, 0, 0, 1.0f);</div>
 <div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span> </div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  <span class="keywordflow">if</span> (show_color_picker) {</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>    ImGui::Separator();</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keyword">static</span> ImVec4 current_color = ImVec4(0, 0, 0, 1.0f);</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span> </div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <span class="keywordflow">if</span> (ImGui::ColorPicker4(<span class="stringliteral">&quot;Color Picker&quot;</span>, (<span class="keywordtype">float</span>*)&amp;current_color,</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>                            ImGuiColorEditFlags_NoSidePreview |</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>                                ImGuiColorEditFlags_NoSmallPreview)) {</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>      <span class="comment">// Convert the selected color to SNES format and add it to the palette</span></div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>      <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> <a class="code hl_typedef" href="group__graphics.html#ga7010d1b3caf12995e0ecb41a1c446b94">snes_color</a>(current_color);</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>      palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#aee465810f89bc92689da01913646bef2">UpdateColor</a>(selected_color, <a class="code hl_struct" href="structsnes__color.html">snes_color</a>);</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    }</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>  }</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span> </div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>  <span class="comment">// Display the palette colors in a grid</span></div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>  ImGui::BeginGroup();  <span class="comment">// Lock X position</span></div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = 0; n &lt; palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda">size</a>(); n++) {</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    ImGui::PushID(n);</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    <span class="keywordflow">if</span> ((n % colors_per_row) != 0) {</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>      ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    }</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span> </div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    <span class="comment">// Create a unique ID for this color button</span></div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    std::string button_id = <span class="stringliteral">&quot;##palette_&quot;</span> + std::to_string(n);</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    <span class="comment">// Display the color button</span></div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">SnesColorButton</a>(button_id, palette[n], flags, ImVec2(20, 20))) {</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>      <span class="comment">// Color was clicked, could be used to select this color</span></div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>      selected_color = n;</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    }</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span> </div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    <span class="keywordflow">if</span> (ImGui::BeginPopupContextItem()) {</div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>      <span class="keywordflow">if</span> (ImGui::MenuItem(<span class="stringliteral">&quot;Edit Color&quot;</span>)) {</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>        <span class="comment">// Open color picker for this color</span></div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>        ImGui::OpenPopup((<span class="stringliteral">&quot;Edit Color##&quot;</span> + std::to_string(n)).c_str());</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>      }</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span> </div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>      <span class="keywordflow">if</span> (ImGui::MenuItem(<span class="stringliteral">&quot;Copy as SNES Value&quot;</span>)) {</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>        std::string clipboard = absl::StrFormat(<span class="stringliteral">&quot;$%04X&quot;</span>, palette[n].snes());</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>        ImGui::SetClipboardText(clipboard.c_str());</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>      }</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span> </div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>      <span class="keywordflow">if</span> (ImGui::MenuItem(<span class="stringliteral">&quot;Copy as RGB&quot;</span>)) {</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>        <span class="keyword">auto</span> rgb = palette[n].rgb();</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>        std::string clipboard =</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>            absl::StrFormat(<span class="stringliteral">&quot;(%d,%d,%d)&quot;</span>, (<span class="keywordtype">int</span>)(rgb.x * 255),</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>                            (<span class="keywordtype">int</span>)(rgb.y * 255), (<span class="keywordtype">int</span>)(rgb.z * 255));</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>        ImGui::SetClipboardText(clipboard.c_str());</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>      }</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span> </div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>      <span class="keywordflow">if</span> (ImGui::MenuItem(<span class="stringliteral">&quot;Copy as Hex&quot;</span>)) {</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        <span class="keyword">auto</span> rgb = palette[n].rgb();</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        std::string clipboard =</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>            absl::StrFormat(<span class="stringliteral">&quot;#%02X%02X%02X&quot;</span>, (<span class="keywordtype">int</span>)(rgb.x * 255),</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>                            (<span class="keywordtype">int</span>)(rgb.y * 255), (<span class="keywordtype">int</span>)(rgb.z * 255));</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>        ImGui::SetClipboardText(clipboard.c_str());</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>      }</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span> </div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>      ImGui::EndPopup();</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    }</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span> </div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    <span class="comment">// Color picker popup</span></div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    <span class="keywordflow">if</span> (ImGui::BeginPopup((<span class="stringliteral">&quot;Edit Color##&quot;</span> + std::to_string(n)).c_str())) {</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>      ImGuiColorEditFlags picker_flags = ImGuiColorEditFlags_NoSidePreview |</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>                                         ImGuiColorEditFlags_NoSmallPreview;</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span> </div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>      ImVec4 color = <a class="code hl_function" href="namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d">ConvertSnesColorToImVec4</a>(palette[n]);</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>      <span class="keywordflow">if</span> (ImGui::ColorPicker4(<span class="stringliteral">&quot;##picker&quot;</span>, (<span class="keywordtype">float</span>*)&amp;color, picker_flags)) {</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>        <span class="comment">// Update the SNES color when the picker changes</span></div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>        palette[n] = <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14">ConvertImVec4ToSnesColor</a>(color);</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>      }</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span> </div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>      ImGui::EndPopup();</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>    }</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    <span class="keywordflow">if</span> (ImGui::ColorPicker4(<span class="stringliteral">&quot;Color Picker&quot;</span>, (<span class="keywordtype">float</span>*)&amp;current_color,</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>                            ImGuiColorEditFlags_NoSidePreview |</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>                                ImGuiColorEditFlags_NoSmallPreview)) {</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>      <span class="comment">// Convert the selected color to SNES format and add it to the palette</span></div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>      <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">gfx::SnesColor</a> <a class="code hl_typedef" href="group__graphics.html#ga7010d1b3caf12995e0ecb41a1c446b94">snes_color</a>(current_color);</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>      palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#aee465810f89bc92689da01913646bef2">UpdateColor</a>(selected_color, <a class="code hl_struct" href="structsnes__color.html">snes_color</a>);</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    }</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  }</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>  <span class="comment">// Display the palette colors in a grid</span></div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>  ImGui::BeginGroup();  <span class="comment">// Lock X position</span></div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> n = 0; n &lt; palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda">size</a>(); n++) {</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    ImGui::PushID(n);</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    <span class="keywordflow">if</span> ((n % colors_per_row) != 0) {</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>      ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    }</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span> </div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    <span class="comment">// Create a unique ID for this color button</span></div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    std::string button_id = <span class="stringliteral">&quot;##palette_&quot;</span> + std::to_string(n);</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span> </div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    <span class="comment">// Display the color button</span></div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">SnesColorButton</a>(button_id, palette[n], flags, ImVec2(20, 20))) {</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>      <span class="comment">// Color was clicked, could be used to select this color</span></div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>      selected_color = n;</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    }</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span> </div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    <span class="keywordflow">if</span> (ImGui::BeginPopupContextItem()) {</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>      <span class="keywordflow">if</span> (ImGui::MenuItem(<span class="stringliteral">&quot;Edit Color&quot;</span>)) {</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>        <span class="comment">// Open color picker for this color</span></div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>        ImGui::OpenPopup((<span class="stringliteral">&quot;Edit Color##&quot;</span> + std::to_string(n)).c_str());</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>      }</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>      <span class="keywordflow">if</span> (ImGui::MenuItem(<span class="stringliteral">&quot;Copy as SNES Value&quot;</span>)) {</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>        std::string clipboard = absl::StrFormat(<span class="stringliteral">&quot;$%04X&quot;</span>, palette[n].snes());</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>        ImGui::SetClipboardText(clipboard.c_str());</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>      }</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span> </div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>      <span class="keywordflow">if</span> (ImGui::MenuItem(<span class="stringliteral">&quot;Copy as RGB&quot;</span>)) {</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>        <span class="keyword">auto</span> rgb = palette[n].rgb();</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>        std::string clipboard =</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>            absl::StrFormat(<span class="stringliteral">&quot;(%d,%d,%d)&quot;</span>, (<span class="keywordtype">int</span>)(rgb.x * 255),</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>                            (<span class="keywordtype">int</span>)(rgb.y * 255), (<span class="keywordtype">int</span>)(rgb.z * 255));</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>        ImGui::SetClipboardText(clipboard.c_str());</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>      }</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span> </div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>      <span class="keywordflow">if</span> (ImGui::MenuItem(<span class="stringliteral">&quot;Copy as Hex&quot;</span>)) {</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>        <span class="keyword">auto</span> rgb = palette[n].rgb();</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>        std::string clipboard =</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>            absl::StrFormat(<span class="stringliteral">&quot;#%02X%02X%02X&quot;</span>, (<span class="keywordtype">int</span>)(rgb.x * 255),</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>                            (<span class="keywordtype">int</span>)(rgb.y * 255), (<span class="keywordtype">int</span>)(rgb.z * 255));</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        ImGui::SetClipboardText(clipboard.c_str());</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>      }</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span> </div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>      ImGui::EndPopup();</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    }</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span> </div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>    <span class="comment">// Color picker popup</span></div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>    <span class="keywordflow">if</span> (ImGui::BeginPopup((<span class="stringliteral">&quot;Edit Color##&quot;</span> + std::to_string(n)).c_str())) {</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>      ImGuiColorEditFlags picker_flags = ImGuiColorEditFlags_NoSidePreview |</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>                                         ImGuiColorEditFlags_NoSmallPreview;</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span> </div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>      ImVec4 color = <a class="code hl_function" href="namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d">ConvertSnesColorToImVec4</a>(palette[n]);</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>      <span class="keywordflow">if</span> (ImGui::ColorPicker4(<span class="stringliteral">&quot;##picker&quot;</span>, (<span class="keywordtype">float</span>*)&amp;color, picker_flags)) {</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>        <span class="comment">// Update the SNES color when the picker changes</span></div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>        palette[n] = <a class="code hl_function" href="namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14">ConvertImVec4ToSnesColor</a>(color);</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>      }</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span> </div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>      ImGui::EndPopup();</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    }</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span> </div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    ImGui::PopID();</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  }</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  ImGui::EndGroup();</div>
 <div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span> </div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    ImGui::PopID();</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>  }</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>  ImGui::EndGroup();</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span> </div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>}</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>}</div>
 </div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span> </div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>}  <span class="comment">// namespace gui</span></div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span> </div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>}  <span class="comment">// namespace gui</span></div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1SnesColor_html"><div class="ttname"><a href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a></div><div class="ttdoc">SNES Color container.</div><div class="ttdef"><b>Definition</b> <a href="snes__color_8h_source.html#l00038">snes_color.h:38</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1SnesColor_html_a0a6bc657e8a8778b7672d2e6102771e2"><div class="ttname"><a href="classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2">yaze::gfx::SnesColor::rgb</a></div><div class="ttdeci">constexpr ImVec4 rgb() const</div><div class="ttdef"><b>Definition</b> <a href="snes__color_8h_source.html#l00074">snes_color.h:74</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1SnesColor_html_ada2b834470189df9226b2b0f5052538f"><div class="ttname"><a href="classyaze_1_1gfx_1_1SnesColor.html#ada2b834470189df9226b2b0f5052538f">yaze::gfx::SnesColor::set_snes</a></div><div class="ttdeci">void set_snes(uint16_t val)</div><div class="ttdef"><b>Definition</b> <a href="snes__color_8cc_source.html#l00114">snes_color.cc:114</a></div></div>
@@ -403,13 +399,13 @@ $(function(){initNavTree('color_8cc_source.html',''); initResizable(true); });
 <div class="ttc" id="agroup__graphics_html_ga7010d1b3caf12995e0ecb41a1c446b94"><div class="ttname"><a href="group__graphics.html#ga7010d1b3caf12995e0ecb41a1c446b94">snes_color</a></div><div class="ttdeci">struct snes_color snes_color</div><div class="ttdoc">SNES color in 15-bit RGB format (BGR555)</div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a4e83a052d42017612243c3f81b538b7d"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d">yaze::gfx::ConvertRgbToSnes</a></div><div class="ttdeci">uint16_t ConvertRgbToSnes(const snes_color &amp;color)</div><div class="ttdef"><b>Definition</b> <a href="snes__color_8cc_source.html#l00033">snes_color.cc:33</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html"><div class="ttname"><a href="namespaceyaze_1_1gui.html">yaze::gui</a></div><div class="ttdoc">Graphical User Interface (GUI) components for the application.</div><div class="ttdef"><b>Definition</b> <a href="canvas_8cc_source.html#l00013">canvas.cc:13</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1gui_html_a1136a9ab95fd67e2ab97a00f59818ddb"><div class="ttname"><a href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">yaze::gui::SnesColorButton</a></div><div class="ttdeci">IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor &amp;color, ImGuiColorEditFlags flags, const ImVec2 &amp;size_arg)</div><div class="ttdef"><b>Definition</b> <a href="#l00023">color.cc:23</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1gui_html_a1136a9ab95fd67e2ab97a00f59818ddb"><div class="ttname"><a href="namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb">yaze::gui::SnesColorButton</a></div><div class="ttdeci">IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor &amp;color, ImGuiColorEditFlags flags, const ImVec2 &amp;size_arg)</div><div class="ttdef"><b>Definition</b> <a href="#l00019">color.cc:19</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_a7133468eeb96ba6d81b2c91bc7118d1d"><div class="ttname"><a href="namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d">yaze::gui::ConvertSnesColorToImVec4</a></div><div class="ttdeci">ImVec4 ConvertSnesColorToImVec4(const gfx::SnesColor &amp;color)</div><div class="ttdef"><b>Definition</b> <a href="#l00010">color.cc:10</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1gui_html_a9f7caa95981f846c2eac84bff36b952d"><div class="ttname"><a href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d">yaze::gui::SelectablePalettePipeline</a></div><div class="ttdeci">void SelectablePalettePipeline(uint64_t &amp;palette_id, bool &amp;refresh_graphics, gfx::SnesPalette &amp;palette)</div><div class="ttdef"><b>Definition</b> <a href="#l00127">color.cc:127</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1gui_html_aa32511a1a3eadf62366b193da8b5f3da"><div class="ttname"><a href="namespaceyaze_1_1gui.html#aa32511a1a3eadf62366b193da8b5f3da">yaze::gui::SnesColorEdit4</a></div><div class="ttdeci">IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor *color, ImGuiColorEditFlags flags)</div><div class="ttdef"><b>Definition</b> <a href="#l00040">color.cc:40</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1gui_html_ab4191a76f6cec5d60a28a6c49d7065d9"><div class="ttname"><a href="namespaceyaze_1_1gui.html#ab4191a76f6cec5d60a28a6c49d7065d9">yaze::gui::DisplayPalette</a></div><div class="ttdeci">IMGUI_API bool DisplayPalette(gfx::SnesPalette &amp;palette, bool loaded)</div><div class="ttdef"><b>Definition</b> <a href="#l00054">color.cc:54</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1gui_html_a9f7caa95981f846c2eac84bff36b952d"><div class="ttname"><a href="namespaceyaze_1_1gui.html#a9f7caa95981f846c2eac84bff36b952d">yaze::gui::SelectablePalettePipeline</a></div><div class="ttdeci">void SelectablePalettePipeline(uint64_t &amp;palette_id, bool &amp;refresh_graphics, gfx::SnesPalette &amp;palette)</div><div class="ttdef"><b>Definition</b> <a href="#l00123">color.cc:123</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1gui_html_aa32511a1a3eadf62366b193da8b5f3da"><div class="ttname"><a href="namespaceyaze_1_1gui.html#aa32511a1a3eadf62366b193da8b5f3da">yaze::gui::SnesColorEdit4</a></div><div class="ttdeci">IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor *color, ImGuiColorEditFlags flags)</div><div class="ttdef"><b>Definition</b> <a href="#l00036">color.cc:36</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1gui_html_ab4191a76f6cec5d60a28a6c49d7065d9"><div class="ttname"><a href="namespaceyaze_1_1gui.html#ab4191a76f6cec5d60a28a6c49d7065d9">yaze::gui::DisplayPalette</a></div><div class="ttdeci">IMGUI_API bool DisplayPalette(gfx::SnesPalette &amp;palette, bool loaded)</div><div class="ttdef"><b>Definition</b> <a href="#l00050">color.cc:50</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_ad6ba4f05b40456918b1e49bfbb876c14"><div class="ttname"><a href="namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14">yaze::gui::ConvertImVec4ToSnesColor</a></div><div class="ttdeci">gfx::SnesColor ConvertImVec4ToSnesColor(const ImVec4 &amp;color)</div><div class="ttdef"><b>Definition</b> <a href="#l00015">color.cc:15</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1gui_html_ae0d03d6cdef355d2ffa9bfa5d5e3247a"><div class="ttname"><a href="namespaceyaze_1_1gui.html#ae0d03d6cdef355d2ffa9bfa5d5e3247a">yaze::gui::DisplayEditablePalette</a></div><div class="ttdeci">absl::Status DisplayEditablePalette(gfx::SnesPalette &amp;palette, const std::string &amp;title, bool show_color_picker, int colors_per_row, ImGuiColorEditFlags flags)</div><div class="ttdef"><b>Definition</b> <a href="#l00170">color.cc:170</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1gui_html_ae0d03d6cdef355d2ffa9bfa5d5e3247a"><div class="ttname"><a href="namespaceyaze_1_1gui.html#ae0d03d6cdef355d2ffa9bfa5d5e3247a">yaze::gui::DisplayEditablePalette</a></div><div class="ttdeci">absl::Status DisplayEditablePalette(gfx::SnesPalette &amp;palette, const std::string &amp;title, bool show_color_picker, int colors_per_row, ImGuiColorEditFlags flags)</div><div class="ttdef"><b>Definition</b> <a href="#l00166">color.cc:166</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00013">asar_wrapper.cc:13</a></div></div>
 <div class="ttc" id="asnes__color_8h_html"><div class="ttname"><a href="snes__color_8h.html">snes_color.h</a></div></div>
 <div class="ttc" id="asnes__palette_8h_html"><div class="ttname"><a href="snes__palette_8h.html">snes_palette.h</a></div></div>

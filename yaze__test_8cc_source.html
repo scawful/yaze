@@ -112,30 +112,49 @@ $(function(){initNavTree('yaze__test_8cc_source.html',''); initResizable(true); 
 <a href="yaze__test_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno"><a class="line" href="yaze__test_8cc.html#a51f528deaaeb973f417b46a2ec36f850">    1</a></span><span class="preprocessor">#define SDL_MAIN_HANDLED</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;gtest/gtest.h&gt;</span></div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;absl/debugging/failure_signal_handler.h&quot;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;absl/debugging/symbolize.h&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="test__editor_8h.html">test_editor.h</a>&quot;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="foldopen" id="foldopen00009" data-start="{" data-end="}">
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno"><a class="line" href="yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">    9</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="extract__vanilla__values_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[]) {</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>  absl::InitializeSymbolizer(argv[0]);</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  absl::FailureSignalHandlerOptions options;</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  absl::InstallFailureSignalHandler(options);</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  <span class="keywordflow">if</span> (argc &gt; 1 &amp;&amp; std::string(argv[1]) == <span class="stringliteral">&quot;integration&quot;</span>) {</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceyaze_1_1test.html#a1641768a13910eb529e97ac3a66b7162">yaze::test::RunIntegrationTest</a>();</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (argc &gt; 1 &amp;&amp; std::string(argv[1]) == <span class="stringliteral">&quot;room_object&quot;</span>) {</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    ::testing::InitGoogleTest(&amp;argc, argv);</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keywordflow">if</span> (!RUN_ALL_TESTS()) {</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>      <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceyaze_1_1test.html#a1641768a13910eb529e97ac3a66b7162">yaze::test::RunIntegrationTest</a>();</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    }</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  }</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  ::testing::InitGoogleTest(&amp;argc, argv);</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keywordflow">return</span> RUN_ALL_TESTS();</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>}</div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;SDL.h&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;absl/debugging/failure_signal_handler.h&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;absl/debugging/symbolize.h&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="test__editor_8h.html">test_editor.h</a>&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="foldopen" id="foldopen00010" data-start="{" data-end="}">
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno"><a class="line" href="yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">   10</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="extract__vanilla__values_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[]) {</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  absl::InitializeSymbolizer(argv[0]);</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  <span class="comment">// Configure failure signal handler to be less aggressive for testing</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  <span class="comment">// This prevents false positives during SDL/graphics cleanup in tests</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  absl::FailureSignalHandlerOptions options;</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  options.symbolize_stacktrace = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  options.use_alternate_stack = <span class="keyword">false</span>;  <span class="comment">// Avoid conflicts with normal stack during cleanup</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  options.alarm_on_failure_secs = <span class="keyword">false</span>; <span class="comment">// Don&#39;t set alarms that can trigger on natural leaks</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  options.call_previous_handler = <span class="keyword">true</span>;  <span class="comment">// Allow system handlers to also run</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  options.writerfn = <span class="keyword">nullptr</span>;  <span class="comment">// Use default writer to avoid custom handling issues</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  absl::InstallFailureSignalHandler(options);</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  <span class="comment">// Initialize SDL to prevent crashes in graphics components</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keywordflow">if</span> (SDL_Init(SDL_INIT_VIDEO) != 0) {</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    SDL_Log(<span class="stringliteral">&quot;Failed to initialize SDL: %s&quot;</span>, SDL_GetError());</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="comment">// Continue anyway for tests that don&#39;t need graphics</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  }</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keywordflow">if</span> (argc &gt; 1 &amp;&amp; std::string(argv[1]) == <span class="stringliteral">&quot;integration&quot;</span>) {</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceyaze_1_1test.html#a1641768a13910eb529e97ac3a66b7162">yaze::test::RunIntegrationTest</a>();</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (argc &gt; 1 &amp;&amp; std::string(argv[1]) == <span class="stringliteral">&quot;room_object&quot;</span>) {</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    ::testing::InitGoogleTest(&amp;argc, argv);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keywordflow">if</span> (!RUN_ALL_TESTS()) {</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>      <span class="keywordflow">return</span> <a class="code hl_function" href="namespaceyaze_1_1test.html#a1641768a13910eb529e97ac3a66b7162">yaze::test::RunIntegrationTest</a>();</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    }</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  }</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  ::testing::InitGoogleTest(&amp;argc, argv);</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  <span class="keywordtype">int</span> result = RUN_ALL_TESTS();</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="comment">// Cleanup SDL</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  SDL_Quit();</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>}</div>
 </div>
 <div class="ttc" id="aextract__vanilla__values_8cc_html_ae66f6b31b5ad750f1fe042a706a4e3d4"><div class="ttname"><a href="extract__vanilla__values_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a></div><div class="ttdeci">int main()</div><div class="ttdef"><b>Definition</b> <a href="extract__vanilla__values_8cc_source.html#l00013">extract_vanilla_values.cc:13</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_a1641768a13910eb529e97ac3a66b7162"><div class="ttname"><a href="namespaceyaze_1_1test.html#a1641768a13910eb529e97ac3a66b7162">yaze::test::RunIntegrationTest</a></div><div class="ttdeci">int RunIntegrationTest()</div><div class="ttdef"><b>Definition</b> <a href="test__editor_8cc_source.html#l00046">test_editor.cc:46</a></div></div>

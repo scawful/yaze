@@ -1,0 +1,13 @@
+<map id="yaze::test::PerformanceTestSuite::RunTests" name="yaze::test::PerformanceTestSuite::RunTests">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,187,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1PerformanceTestSuite.html#a1d1aed938643da9edc0b3c0e52fd4762" title=" " alt="" coords="239,5,420,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,68,239,48,240,53,172,73"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1test_1_1PerformanceTestSuite.html#a4778b3de239d74eed5bac15c504e36d5" title=" " alt="" coords="235,71,425,111"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="187,88,219,88,219,94,187,94"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1test_1_1PerformanceTestSuite.html#a68721564fbef8a93f50396c9966b1f73" title=" " alt="" coords="235,136,425,177"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="172,109,240,129,239,134,170,114"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1test_1_1TestResults.html#abe5ca04144ec78a21183b44d5f87a597" title=" " alt="" coords="473,71,624,111"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="401,44,464,63,463,68,399,49"/>
+<area shape="poly" id="edge4_Node000006_Node000003" title=" " alt="" coords="425,88,458,88,458,94,425,94"/>
+<area shape="poly" id="edge6_Node000009_Node000003" title=" " alt="" coords="399,133,463,114,464,119,401,138"/>
+</map>
