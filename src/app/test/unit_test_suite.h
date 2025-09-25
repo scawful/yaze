@@ -71,6 +71,9 @@ class TestResultCapture : public ::testing::TestEventListener {
   void OnEnvironmentsSetUpEnd(const ::testing::UnitTest&) override {}
   void OnTestCaseStart(const ::testing::TestCase&) override {}
   void OnTestCaseEnd(const ::testing::TestCase&) override {}
+  void OnTestPartResult(const ::testing::TestPartResult& test_part_result) override {
+    // Handle individual test part results (can be empty for our use case)
+  }
   void OnEnvironmentsTearDownStart(const ::testing::UnitTest&) override {}
   void OnEnvironmentsTearDownEnd(const ::testing::UnitTest&) override {}
   void OnTestIterationEnd(const ::testing::UnitTest&, int) override {}

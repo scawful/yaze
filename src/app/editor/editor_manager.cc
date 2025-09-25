@@ -20,8 +20,11 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
-#include "test/test_manager.h"
-#include "test/unit_test_suite.h"
+#include "app/test/test_manager.h"
+#include "app/test/integrated_test_suite.h"
+#ifdef YAZE_ENABLE_GTEST
+#include "app/test/unit_test_suite.h"
+#endif
 #include "editor/editor.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
@@ -110,9 +113,16 @@ void EditorManager::LoadWorkspacePreset(const std::string &name) {
 void EditorManager::InitializeTestSuites() {
   auto& test_manager = test::TestManager::Get();
   
-  // Register unit test suites
-  test_manager.RegisterTestSuite(std::make_unique<test::UnitTestSuite>());
+  // Register comprehensive test suites
+  test_manager.RegisterTestSuite(std::make_unique<test::IntegratedTestSuite>());
+  test_manager.RegisterTestSuite(std::make_unique<test::PerformanceTestSuite>());
+  test_manager.RegisterTestSuite(std::make_unique<test::UITestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::ArenaTestSuite>());
+  
+  // Register Google Test suite if available
+#ifdef YAZE_ENABLE_GTEST
+  test_manager.RegisterTestSuite(std::make_unique<test::UnitTestSuite>());
+#endif
   
   // Update resource monitoring to track Arena state
   test_manager.UpdateResourceStats();
@@ -201,6 +211,11 @@ void EditorManager::Initialize(const std::string &filename) {
 
   context_.shortcut_manager.RegisterShortcut(
       "F1", ImGuiKey_F1, [this]() { popup_manager_->Show("About"); });
+  
+  // Testing shortcuts
+  context_.shortcut_manager.RegisterShortcut(
+      "Test Dashboard", {ImGuiKey_T, ImGuiMod_Ctrl}, 
+      [this]() { show_test_dashboard_ = true; });
 
   // Initialize menu items
   std::vector<gui::MenuItem> recent_files;
@@ -381,7 +396,7 @@ void EditorManager::Initialize(const std::string &filename) {
        {},
        {},
        {
-           {absl::StrCat(ICON_MD_SCIENCE, " Test Dashboard"), "",
+           {absl::StrCat(ICON_MD_SCIENCE, " Test Dashboard"), "Ctrl+T",
             [&]() { show_test_dashboard_ = true; }},
            {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_PLAY_ARROW, " Run All Tests"), "",
