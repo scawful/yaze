@@ -1,4 +1,4 @@
-<map id="yaze::test::TestManager::TestRomDataIntegrity" name="yaze::test::TestManager::TestRomDataIntegrity">
+<map id="yaze::test::TestManager::SetCurrentRom" name="yaze::test::TestManager::SetCurrentRom">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,23,163,64"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="211,5,352,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,31,195,27,196,32,163,36"/>

@@ -1,6 +1,9 @@
 <map id="yaze::editor::OverworldEditor::ApplyZSCustomOverworldASM" name="yaze::editor::OverworldEditor::ApplyZSCustomOverworldASM">
-<area shape="rect" id="Node000001" title="Apply ZSCustomOverworld ASM patch to upgrade ROM version." alt="" coords="5,29,215,70"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="64,29,62,19,69,10,85,5,110,3,136,5,152,11,150,16,135,10,110,8,87,10,72,15,67,21,69,28"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="263,37,447,62"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="215,47,247,47,247,52,215,52"/>
+<area shape="rect" id="Node000001" title="Apply ZSCustomOverworld ASM patch to upgrade ROM version." alt="" coords="5,39,215,80"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="64,39,61,29,69,20,85,15,110,13,137,15,153,21,151,26,135,20,110,18,86,20,72,25,66,30,69,38"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="266,5,450,31"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="215,39,261,32,262,37,216,45"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#a5958f041f070af4bd280eef1c669d8ab" title="Update ROM version markers and feature flags after ASM patching." alt="" coords="263,79,453,120"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="216,74,248,79,247,84,215,79"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="311,79,309,69,317,60,333,55,358,53,385,55,400,61,398,66,383,60,358,58,334,60,320,65,314,70,316,78"/>
 </map>

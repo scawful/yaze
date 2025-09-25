@@ -6,6 +6,7 @@ var classyaze_1_1test_1_1RomDependentTestSuite =
     [ "GetCategory", "classyaze_1_1test_1_1RomDependentTestSuite.html#aedf9fae3ba0e4fcc5d81737dab5ceddc", null ],
     [ "RunTests", "classyaze_1_1test_1_1RomDependentTestSuite.html#aea0889ee248d99cc5e8aecd0339d42eb", null ],
     [ "DrawConfiguration", "classyaze_1_1test_1_1RomDependentTestSuite.html#a3325314ff8dfd69549541517f51bd1e8", null ],
+    [ "AddSkippedTest", "classyaze_1_1test_1_1RomDependentTestSuite.html#aa63dadc69c4d3ec155a6265171dc754f", null ],
     [ "RunRomHeaderValidationTest", "classyaze_1_1test_1_1RomDependentTestSuite.html#a9f0cc68767ba403b88d0ab92dd1ccda1", null ],
     [ "RunRomDataAccessTest", "classyaze_1_1test_1_1RomDependentTestSuite.html#ab7187e46ff849b7bfe41a5922d67d3c5", null ],
     [ "RunRomGraphicsExtractionTest", "classyaze_1_1test_1_1RomDependentTestSuite.html#a7e9eee992eea4f270116dcdbf82ef9b0", null ],

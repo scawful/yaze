@@ -136,6 +136,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a95f78a95520642e93dd30532046092bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a08cbde3270f9f93591c5d53e9f6f834e" id="r_a08cbde3270f9f93591c5d53e9f6f834e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a08cbde3270f9f93591c5d53e9f6f834e">RomSession</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;&amp;r)</td></tr>
 <tr class="separator:a08cbde3270f9f93591c5d53e9f6f834e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a737bea7f9a528b54d56f84c34334bd25" id="r_a737bea7f9a528b54d56f84c34334bd25"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a737bea7f9a528b54d56f84c34334bd25">GetDisplayName</a> () const</td></tr>
+<tr class="separator:a737bea7f9a528b54d56f84c34334bd25"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -143,10 +145,14 @@ Public Attributes</h2></td></tr>
 <tr class="separator:ac716205907941fe6170fcaf7592b0200"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbefe6506f1b6a6970dec7e8e5d9595f" id="r_afbefe6506f1b6a6970dec7e8e5d9595f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1editor_1_1EditorSet.html">EditorSet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afbefe6506f1b6a6970dec7e8e5d9595f">editors</a></td></tr>
 <tr class="separator:afbefe6506f1b6a6970dec7e8e5d9595f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a80bf45ce713399815fe1bf62c9e14d" id="r_a4a80bf45ce713399815fe1bf62c9e14d"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4a80bf45ce713399815fe1bf62c9e14d">custom_name</a></td></tr>
+<tr class="separator:a4a80bf45ce713399815fe1bf62c9e14d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca537ddb7438162c656137957402a679" id="r_aca537ddb7438162c656137957402a679"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aca537ddb7438162c656137957402a679">filepath</a></td></tr>
+<tr class="separator:aca537ddb7438162c656137957402a679"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00154">154</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00158">158</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a95f78a95520642e93dd30532046092bb" name="a95f78a95520642e93dd30532046092bb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a95f78a95520642e93dd30532046092bb">&#9670;&#160;</a></span>RomSession() <span class="overload">[1/2]</span></h2>
@@ -196,9 +202,39 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00159">159</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00165">165</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00156">editors</a>, and <a class="el" href="editor__manager_8h_source.html#l00155">rom</a>.</p>
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00160">editors</a>, <a class="el" href="editor__manager_8h_source.html#l00162">filepath</a>, and <a class="el" href="editor__manager_8h_source.html#l00159">rom</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a737bea7f9a528b54d56f84c34334bd25" name="a737bea7f9a528b54d56f84c34334bd25"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a737bea7f9a528b54d56f84c34334bd25">&#9670;&#160;</a></span>GetDisplayName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::editor::EditorManager::RomSession::GetDisplayName </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00171">171</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="editor__manager_8h_source.html#l00161">custom_name</a>, and <a class="el" href="editor__manager_8h_source.html#l00159">rom</a>.</p>
 
 </div>
 </div>
@@ -215,9 +251,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00155">155</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00159">159</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l01097">yaze::editor::EditorManager::LoadRom()</a>, <a class="el" href="editor__manager_8cc_source.html#l01189">yaze::editor::EditorManager::OpenProject()</a>, <a class="el" href="editor__manager_8cc_source.html#l01167">yaze::editor::EditorManager::OpenRomOrProject()</a>, and <a class="el" href="editor__manager_8h_source.html#l00159">RomSession()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00171">GetDisplayName()</a>, <a class="el" href="editor__manager_8cc_source.html#l01151">yaze::editor::EditorManager::LoadRom()</a>, <a class="el" href="editor__manager_8cc_source.html#l01262">yaze::editor::EditorManager::OpenProject()</a>, <a class="el" href="editor__manager_8cc_source.html#l01240">yaze::editor::EditorManager::OpenRomOrProject()</a>, and <a class="el" href="editor__manager_8h_source.html#l00165">RomSession()</a>.</p>
 
 </div>
 </div>
@@ -233,9 +269,45 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00156">156</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00160">160</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l01252">yaze::editor::EditorManager::CreateNewSession()</a>, <a class="el" href="editor__manager_8cc_source.html#l01279">yaze::editor::EditorManager::DuplicateCurrentSession()</a>, <a class="el" href="editor__manager_8cc_source.html#l01097">yaze::editor::EditorManager::LoadRom()</a>, <a class="el" href="editor__manager_8cc_source.html#l01189">yaze::editor::EditorManager::OpenProject()</a>, <a class="el" href="editor__manager_8cc_source.html#l01167">yaze::editor::EditorManager::OpenRomOrProject()</a>, and <a class="el" href="editor__manager_8h_source.html#l00159">RomSession()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l01330">yaze::editor::EditorManager::CreateNewSession()</a>, <a class="el" href="editor__manager_8cc_source.html#l01357">yaze::editor::EditorManager::DuplicateCurrentSession()</a>, <a class="el" href="editor__manager_8cc_source.html#l01151">yaze::editor::EditorManager::LoadRom()</a>, <a class="el" href="editor__manager_8cc_source.html#l01262">yaze::editor::EditorManager::OpenProject()</a>, <a class="el" href="editor__manager_8cc_source.html#l01240">yaze::editor::EditorManager::OpenRomOrProject()</a>, and <a class="el" href="editor__manager_8h_source.html#l00165">RomSession()</a>.</p>
+
+</div>
+</div>
+<a id="a4a80bf45ce713399815fe1bf62c9e14d" name="a4a80bf45ce713399815fe1bf62c9e14d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a80bf45ce713399815fe1bf62c9e14d">&#9670;&#160;</a></span>custom_name</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::editor::EditorManager::RomSession::custom_name</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00161">161</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="editor__manager_8h_source.html#l00171">GetDisplayName()</a>.</p>
+
+</div>
+</div>
+<a id="aca537ddb7438162c656137957402a679" name="aca537ddb7438162c656137957402a679"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca537ddb7438162c656137957402a679">&#9670;&#160;</a></span>filepath</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::editor::EditorManager::RomSession::filepath</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="editor__manager_8h_source.html#l00162">162</a> of file <a class="el" href="editor__manager_8h_source.html">editor_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l01151">yaze::editor::EditorManager::LoadRom()</a>, and <a class="el" href="editor__manager_8h_source.html#l00165">RomSession()</a>.</p>
 
 </div>
 </div>

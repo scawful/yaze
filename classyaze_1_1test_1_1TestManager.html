@@ -177,8 +177,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aed6ba1e96b9ba4395229ea1e17324d9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae9141a3a13db1c9e84478db41ca106c" id="r_aae9141a3a13db1c9e84478db41ca106c"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aae9141a3a13db1c9e84478db41ca106c">GetProgress</a> () const</td></tr>
 <tr class="separator:aae9141a3a13db1c9e84478db41ca106c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc2bbd8bae02320e588a482cd636ce16" id="r_afc2bbd8bae02320e588a482cd636ce16"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afc2bbd8bae02320e588a482cd636ce16">DrawTestDashboard</a> ()</td></tr>
-<tr class="separator:afc2bbd8bae02320e588a482cd636ce16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf111c1c6d69869fefd7c079ec5ea98d" id="r_aaf111c1c6d69869fefd7c079ec5ea98d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaf111c1c6d69869fefd7c079ec5ea98d">DrawTestDashboard</a> (bool *show_dashboard=nullptr)</td></tr>
+<tr class="separator:aaf111c1c6d69869fefd7c079ec5ea98d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a993d8b173579ab54ac01b3f31b4f4c56" id="r_a993d8b173579ab54ac01b3f31b4f4c56"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a993d8b173579ab54ac01b3f31b4f4c56">SetCurrentRom</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
 <tr class="separator:a993d8b173579ab54ac01b3f31b4f4c56"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d2eba0221278bb461dc19a580adadb3" id="r_a1d2eba0221278bb461dc19a580adadb3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1d2eba0221278bb461dc19a580adadb3">GetCurrentRom</a> () const</td></tr>
@@ -189,10 +189,24 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:afbc4989df8eef173a3dfaaf94e57dc73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea1fd8ef3a4ab247670d862ef50a4fa3" id="r_aea1fd8ef3a4ab247670d862ef50a4fa3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aea1fd8ef3a4ab247670d862ef50a4fa3">ShowRomComparisonResults</a> (const <a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;before, const <a class="el" href="classyaze_1_1Rom.html">Rom</a> &amp;after)</td></tr>
 <tr class="separator:aea1fd8ef3a4ab247670d862ef50a4fa3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6031ed78e3c22d0040029c3279ab74c8" id="r_a6031ed78e3c22d0040029c3279ab74c8"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6031ed78e3c22d0040029c3279ab74c8">CreateTestRomCopy</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *source_rom, std::unique_ptr&lt; <a class="el" href="classyaze_1_1Rom.html">Rom</a> &gt; &amp;test_rom)</td></tr>
+<tr class="separator:a6031ed78e3c22d0040029c3279ab74c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1138e7920a64fbfe2962c95c1cfa9d5d" id="r_a1138e7920a64fbfe2962c95c1cfa9d5d"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1138e7920a64fbfe2962c95c1cfa9d5d">GenerateTestRomFilename</a> (const std::string &amp;base_name)</td></tr>
+<tr class="separator:a1138e7920a64fbfe2962c95c1cfa9d5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0e33eba8ade56271b4c15d82fad122f" id="r_ac0e33eba8ade56271b4c15d82fad122f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac0e33eba8ade56271b4c15d82fad122f">OfferTestSessionCreation</a> (const std::string &amp;test_rom_path)</td></tr>
+<tr class="separator:ac0e33eba8ade56271b4c15d82fad122f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad88ae05c7c54bb39c64ba7ae2f048ff5" id="r_ad88ae05c7c54bb39c64ba7ae2f048ff5"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad88ae05c7c54bb39c64ba7ae2f048ff5">TestRomSaveLoad</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
 <tr class="separator:ad88ae05c7c54bb39c64ba7ae2f048ff5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4c9c5e2d45402a09e93f4f4830085dd" id="r_aa4c9c5e2d45402a09e93f4f4830085dd"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa4c9c5e2d45402a09e93f4f4830085dd">TestRomDataIntegrity</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
 <tr class="separator:aa4c9c5e2d45402a09e93f4f4830085dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50991a2a766b79b0f1280e918edc4581" id="r_a50991a2a766b79b0f1280e918edc4581"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a50991a2a766b79b0f1280e918edc4581">TestRomWithCopy</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *source_rom, std::function&lt; absl::Status(<a class="el" href="classyaze_1_1Rom.html">Rom</a> *)&gt; test_function)</td></tr>
+<tr class="separator:a50991a2a766b79b0f1280e918edc4581"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdefeaf65383cc782c7fa8f8cee95348" id="r_acdefeaf65383cc782c7fa8f8cee95348"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acdefeaf65383cc782c7fa8f8cee95348">DisableTest</a> (const std::string &amp;test_name)</td></tr>
+<tr class="separator:acdefeaf65383cc782c7fa8f8cee95348"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac660d2fbeaed222a359443b13417492b" id="r_ac660d2fbeaed222a359443b13417492b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac660d2fbeaed222a359443b13417492b">EnableTest</a> (const std::string &amp;test_name)</td></tr>
+<tr class="separator:ac660d2fbeaed222a359443b13417492b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a695c24b9d5606fd4dee4d65162014c30" id="r_a695c24b9d5606fd4dee4d65162014c30"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a695c24b9d5606fd4dee4d65162014c30">IsTestEnabled</a> (const std::string &amp;test_name) const</td></tr>
+<tr class="separator:a695c24b9d5606fd4dee4d65162014c30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -250,6 +264,14 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a803ddfe759abe3deaab0b30e65d81054"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c0ad9161418753a77edfb0a5085c0e0" id="r_a9c0ad9161418753a77edfb0a5085c0e0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9c0ad9161418753a77edfb0a5085c0e0">show_rom_file_dialog_</a> = false</td></tr>
 <tr class="separator:a9c0ad9161418753a77edfb0a5085c0e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a282ab3a3ff19d56c65140c596f2ab817" id="r_a282ab3a3ff19d56c65140c596f2ab817"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a282ab3a3ff19d56c65140c596f2ab817">show_test_session_dialog_</a> = false</td></tr>
+<tr class="separator:a282ab3a3ff19d56c65140c596f2ab817"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a2f23afc297f032320873c3d0a1d224" id="r_a1a2f23afc297f032320873c3d0a1d224"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1a2f23afc297f032320873c3d0a1d224">show_test_configuration_</a> = false</td></tr>
+<tr class="separator:a1a2f23afc297f032320873c3d0a1d224"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99f8623a9031c8314d18562296591d17" id="r_a99f8623a9031c8314d18562296591d17"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a99f8623a9031c8314d18562296591d17">test_rom_path_for_session_</a></td></tr>
+<tr class="separator:a99f8623a9031c8314d18562296591d17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec4c5b1c8acd5e051d270eb08f02ea67" id="r_aec4c5b1c8acd5e051d270eb08f02ea67"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::string, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aec4c5b1c8acd5e051d270eb08f02ea67">disabled_tests_</a></td></tr>
+<tr class="separator:aec4c5b1c8acd5e051d270eb08f02ea67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-attribs" name="pri-static-attribs"></a>
 Static Private Attributes</h2></td></tr>
@@ -258,7 +280,7 @@ Static Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00113">113</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00115">115</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a2c642eb77f5ecd3a3867997f6c78f5e1" name="a2c642eb77f5ecd3a3867997f6c78f5e1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2c642eb77f5ecd3a3867997f6c78f5e1">&#9670;&#160;</a></span>TestManager()</h2>
@@ -283,11 +305,11 @@ Static Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00064">64</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00066">66</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00153">InitializeUITesting()</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00155">InitializeUITesting()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00059">Get()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00061">Get()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -324,9 +346,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00069">69</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00071">71</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00156">ShutdownUITesting()</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00158">ShutdownUITesting()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -364,11 +386,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00059">59</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00061">61</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8cc_source.html#l00064">TestManager()</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8cc_source.html#l00066">TestManager()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l01299">yaze::editor::EditorManager::CloseCurrentSession()</a>, <a class="el" href="rom__dependent__test__suite_8h_source.html#l00075">yaze::test::RomDependentTestSuite::DrawConfiguration()</a>, <a class="el" href="editor__manager_8cc_source.html#l00820">yaze::editor::EditorManager::DrawMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00145">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="editor__manager_8cc_source.html#l00115">yaze::editor::EditorManager::InitializeTestSuites()</a>, <a class="el" href="editor__manager_8cc_source.html#l01097">yaze::editor::EditorManager::LoadRom()</a>, <a class="el" href="integrated__test__suite_8h_source.html#l00140">yaze::test::IntegratedTestSuite::RunRomBasicTest()</a>, <a class="el" href="rom__dependent__test__suite_8h_source.html#l00026">yaze::test::RomDependentTestSuite::RunTests()</a>, <a class="el" href="editor__manager_8cc_source.html#l01230">yaze::editor::EditorManager::SetCurrentRom()</a>, <a class="el" href="window_8cc_source.html#l00073">yaze::core::ShutdownWindow()</a>, and <a class="el" href="editor__manager_8cc_source.html#l01320">yaze::editor::EditorManager::SwitchToSession()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l01377">yaze::editor::EditorManager::CloseCurrentSession()</a>, <a class="el" href="rom__dependent__test__suite_8h_source.html#l00106">yaze::test::RomDependentTestSuite::DrawConfiguration()</a>, <a class="el" href="editor__manager_8cc_source.html#l00867">yaze::editor::EditorManager::DrawMenuBar()</a>, <a class="el" href="editor__manager_8cc_source.html#l00180">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="editor__manager_8cc_source.html#l00150">yaze::editor::EditorManager::InitializeTestSuites()</a>, <a class="el" href="editor__manager_8cc_source.html#l01151">yaze::editor::EditorManager::LoadRom()</a>, <a class="el" href="editor__manager_8cc_source.html#l01262">yaze::editor::EditorManager::OpenProject()</a>, <a class="el" href="rom__dependent__test__suite_8h_source.html#l00455">yaze::test::RomDependentTestSuite::RunComprehensiveSaveTest()</a>, <a class="el" href="integrated__test__suite_8h_source.html#l00140">yaze::test::IntegratedTestSuite::RunRomBasicTest()</a>, <a class="el" href="rom__dependent__test__suite_8h_source.html#l00026">yaze::test::RomDependentTestSuite::RunTests()</a>, <a class="el" href="editor__manager_8cc_source.html#l01308">yaze::editor::EditorManager::SetCurrentRom()</a>, <a class="el" href="window_8cc_source.html#l00073">yaze::core::ShutdownWindow()</a>, <a class="el" href="editor__manager_8cc_source.html#l01398">yaze::editor::EditorManager::SwitchToSession()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00704">yaze::editor::EditorManager::Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -399,11 +421,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00109">109</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00111">111</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00200">current_test_name_</a>, <a class="el" href="test__manager_8cc_source.html#l00223">ExecuteTestSuite()</a>, <a class="el" href="test__manager_8h_source.html#l00199">is_running_</a>, <a class="el" href="test__manager_8h_source.html#l00198">last_results_</a>, <a class="el" href="test__manager_8h_source.html#l00201">progress_</a>, <a class="el" href="test__manager_8h_source.html#l00195">test_suites_</a>, and <a class="el" href="test__manager_8cc_source.html#l00240">UpdateProgress()</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00223">current_test_name_</a>, <a class="el" href="test__manager_8cc_source.html#l00225">ExecuteTestSuite()</a>, <a class="el" href="test__manager_8h_source.html#l00222">is_running_</a>, <a class="el" href="test__manager_8h_source.html#l00221">last_results_</a>, <a class="el" href="test__manager_8h_source.html#l00224">progress_</a>, <a class="el" href="test__manager_8h_source.html#l00218">test_suites_</a>, and <a class="el" href="test__manager_8cc_source.html#l00242">UpdateProgress()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00145">yaze::editor::EditorManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00180">yaze::editor::EditorManager::Initialize()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -438,11 +460,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00138">138</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00140">140</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00200">current_test_name_</a>, <a class="el" href="test__manager_8cc_source.html#l00223">ExecuteTestSuite()</a>, <a class="el" href="test__manager_8h_source.html#l00199">is_running_</a>, <a class="el" href="test__manager_8h_source.html#l00198">last_results_</a>, <a class="el" href="test__manager_8h_source.html#l00201">progress_</a>, <a class="el" href="test__manager_8h_source.html#l00195">test_suites_</a>, and <a class="el" href="test__manager_8cc_source.html#l00240">UpdateProgress()</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00223">current_test_name_</a>, <a class="el" href="test__manager_8cc_source.html#l00225">ExecuteTestSuite()</a>, <a class="el" href="test__manager_8h_source.html#l00222">is_running_</a>, <a class="el" href="test__manager_8h_source.html#l00221">last_results_</a>, <a class="el" href="test__manager_8h_source.html#l00224">progress_</a>, <a class="el" href="test__manager_8h_source.html#l00218">test_suites_</a>, and <a class="el" href="test__manager_8cc_source.html#l00242">UpdateProgress()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00145">yaze::editor::EditorManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00180">yaze::editor::EditorManager::Initialize()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -477,9 +499,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00172">172</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00174">174</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00200">current_test_name_</a>, <a class="el" href="test__manager_8cc_source.html#l00223">ExecuteTestSuite()</a>, <a class="el" href="test__manager_8h_source.html#l00199">is_running_</a>, <a class="el" href="test__manager_8h_source.html#l00198">last_results_</a>, <a class="el" href="test__manager_8h_source.html#l00201">progress_</a>, and <a class="el" href="test__manager_8h_source.html#l00196">suite_lookup_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00223">current_test_name_</a>, <a class="el" href="test__manager_8cc_source.html#l00225">ExecuteTestSuite()</a>, <a class="el" href="test__manager_8h_source.html#l00222">is_running_</a>, <a class="el" href="test__manager_8h_source.html#l00221">last_results_</a>, <a class="el" href="test__manager_8h_source.html#l00224">progress_</a>, and <a class="el" href="test__manager_8h_source.html#l00219">suite_lookup_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -512,9 +534,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00196">196</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00198">198</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00196">suite_lookup_</a>, and <a class="el" href="test__manager_8h_source.html#l00195">test_suites_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00219">suite_lookup_</a>, and <a class="el" href="test__manager_8h_source.html#l00218">test_suites_</a>.</p>
 
 </div>
 </div>
@@ -533,9 +555,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00204">204</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00206">206</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00195">test_suites_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00218">test_suites_</a>.</p>
 
 </div>
 </div>
@@ -554,9 +576,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00213">213</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00215">215</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00196">suite_lookup_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00219">suite_lookup_</a>.</p>
 
 </div>
 </div>
@@ -583,9 +605,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00128">128</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00130">130</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00198">last_results_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00221">last_results_</a>.</p>
 
 </div>
 </div>
@@ -612,11 +634,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00129">129</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00131">131</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00198">last_results_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00221">last_results_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00145">yaze::editor::EditorManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00180">yaze::editor::EditorManager::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -643,9 +665,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00132">132</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00134">134</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00204">max_concurrent_tests_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00227">max_concurrent_tests_</a>.</p>
 
 </div>
 </div>
@@ -672,9 +694,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00135">135</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00137">137</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00205">test_timeout_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00228">test_timeout_</a>.</p>
 
 </div>
 </div>
@@ -693,9 +715,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00218">218</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00220">220</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8cc_source.html#l00256">CollectResourceStats()</a>, and <a class="el" href="test__manager_8cc_source.html#l00274">TrimResourceHistory()</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8cc_source.html#l00258">CollectResourceStats()</a>, and <a class="el" href="test__manager_8cc_source.html#l00276">TrimResourceHistory()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -736,9 +758,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00139">139</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00141">141</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00208">resource_history_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00231">resource_history_</a>.</p>
 
 </div>
 </div>
@@ -765,7 +787,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00152">152</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00154">154</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
 </div>
 </div>
@@ -792,9 +814,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00153">153</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00155">155</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00064">TestManager()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00066">TestManager()</a>.</p>
 
 </div>
 </div>
@@ -821,7 +843,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00154">154</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00156">156</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="window_8cc_source.html#l00073">yaze::core::ShutdownWindow()</a>.</p>
 
@@ -850,7 +872,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00155">155</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00157">157</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="window_8cc_source.html#l00073">yaze::core::ShutdownWindow()</a>.</p>
 
@@ -879,9 +901,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00156">156</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00158">158</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00069">~TestManager()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00071">~TestManager()</a>.</p>
 
 </div>
 </div>
@@ -908,9 +930,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00160">160</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00162">162</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00199">is_running_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00222">is_running_</a>.</p>
 
 </div>
 </div>
@@ -937,9 +959,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00161">161</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00163">163</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00200">current_test_name_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00223">current_test_name_</a>.</p>
 
 </div>
 </div>
@@ -966,14 +988,14 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00162">162</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00164">164</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00201">progress_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00224">progress_</a>.</p>
 
 </div>
 </div>
-<a id="afc2bbd8bae02320e588a482cd636ce16" name="afc2bbd8bae02320e588a482cd636ce16"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc2bbd8bae02320e588a482cd636ce16">&#9670;&#160;</a></span>DrawTestDashboard()</h2>
+<a id="aaf111c1c6d69869fefd7c079ec5ea98d" name="aaf111c1c6d69869fefd7c079ec5ea98d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaf111c1c6d69869fefd7c079ec5ea98d">&#9670;&#160;</a></span>DrawTestDashboard()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -981,17 +1003,18 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="memname">void yaze::test::TestManager::DrawTestDashboard </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">bool *</td>          <td class="paramname"><span class="paramname"><em>show_dashboard</em></span><span class="paramdefsep"> = </span><span class="paramdefval">nullptr</span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000031">Todo</a></b></dt><dd>Implement result export </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000032">Todo</a></b></dt><dd>Implement file dialog to load ROM specifically for testing </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000030">Todo</a></b></dt><dd>Implement result export </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000031">Todo</a></b></dt><dd>Implement file dialog to load ROM specifically for testing </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000032">Todo</a></b></dt><dd>This would need access to EditorManager to create a new session </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00282">282</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00284">284</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00220">category_filter_</a>, <a class="el" href="test__manager_8h_source.html#l00129">ClearResults()</a>, <a class="el" href="test__manager_8h_source.html#l00223">current_rom_</a>, <a class="el" href="test__manager_8h_source.html#l00200">current_test_name_</a>, <a class="el" href="test__manager_8cc_source.html#l00047">yaze::test::GetTestStatusColor()</a>, <a class="el" href="icons_8h_source.html#l00152">ICON_MD_ANALYTICS</a>, <a class="el" href="icons_8h_source.html#l00191">ICON_MD_ASSESSMENT</a>, <a class="el" href="icons_8h_source.html#l00395">ICON_MD_CHECK</a>, <a class="el" href="icons_8h_source.html#l00398">ICON_MD_CHECK_CIRCLE</a>, <a class="el" href="icons_8h_source.html#l00414">ICON_MD_CLEAR</a>, <a class="el" href="icons_8h_source.html#l00643">ICON_MD_EDIT</a>, <a class="el" href="icons_8h_source.html#l00684">ICON_MD_ERROR</a>, <a class="el" href="icons_8h_source.html#l00685">ICON_MD_ERROR_OUTLINE</a>, <a class="el" href="icons_8h_source.html#l00766">ICON_MD_FILTER_LIST</a>, <a class="el" href="icons_8h_source.html#l00811">ICON_MD_FOLDER_OPEN</a>, <a class="el" href="icons_8h_source.html#l00931">ICON_MD_HELP</a>, <a class="el" href="icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="icons_8h_source.html#l01193">ICON_MD_MEMORY</a>, <a class="el" href="icons_8h_source.html#l01231">ICON_MD_MONITOR</a>, <a class="el" href="icons_8h_source.html#l01477">ICON_MD_PLAY_ARROW</a>, <a class="el" href="icons_8h_source.html#l01480">ICON_MD_PLAY_CIRCLE_FILLED</a>, <a class="el" href="icons_8h_source.html#l01654">ICON_MD_SCIENCE</a>, <a class="el" href="icons_8h_source.html#l01768">ICON_MD_SKIP_NEXT</a>, <a class="el" href="icons_8h_source.html#l01812">ICON_MD_SPEED</a>, <a class="el" href="icons_8h_source.html#l01860">ICON_MD_STORAGE</a>, <a class="el" href="icons_8h_source.html#l01960">ICON_MD_TEXTURE</a>, <a class="el" href="icons_8h_source.html#l01977">ICON_MD_TIMER</a>, <a class="el" href="icons_8h_source.html#l02118">ICON_MD_WARNING</a>, <a class="el" href="test__manager_8h_source.html#l00199">is_running_</a>, <a class="el" href="test__manager_8h_source.html#l00032">yaze::test::kFailed</a>, <a class="el" href="test__manager_8h_source.html#l00035">yaze::test::kIntegration</a>, <a class="el" href="test__manager_8h_source.html#l00035">yaze::test::kMemory</a>, <a class="el" href="test__manager_8h_source.html#l00032">yaze::test::kPassed</a>, <a class="el" href="test__manager_8h_source.html#l00035">yaze::test::kPerformance</a>, <a class="el" href="test__manager_8h_source.html#l00032">yaze::test::kRunning</a>, <a class="el" href="test__manager_8h_source.html#l00032">yaze::test::kSkipped</a>, <a class="el" href="test__manager_8h_source.html#l00035">yaze::test::kUI</a>, <a class="el" href="test__manager_8h_source.html#l00035">yaze::test::kUnit</a>, <a class="el" href="test__manager_8h_source.html#l00198">last_results_</a>, <a class="el" href="test__manager_8h_source.html#l00201">progress_</a>, <a class="el" href="test__manager_8cc_source.html#l00794">RefreshCurrentRom()</a>, <a class="el" href="test__manager_8h_source.html#l00208">resource_history_</a>, <a class="el" href="test__manager_8cc_source.html#l00109">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00138">RunTestsByCategory()</a>, <a class="el" href="test__manager_8h_source.html#l00217">show_dashboard_</a>, <a class="el" href="test__manager_8h_source.html#l00227">show_google_tests_</a>, <a class="el" href="test__manager_8h_source.html#l00218">show_resource_monitor_</a>, <a class="el" href="test__manager_8h_source.html#l00229">show_rom_file_dialog_</a>, <a class="el" href="test__manager_8h_source.html#l00228">show_rom_test_results_</a>, <a class="el" href="test__manager_8h_source.html#l00219">test_filter_</a>, <a class="el" href="test__manager_8cc_source.html#l00866">TestRomDataIntegrity()</a>, and <a class="el" href="test__manager_8cc_source.html#l00847">TestRomSaveLoad()</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00243">category_filter_</a>, <a class="el" href="test__manager_8h_source.html#l00131">ClearResults()</a>, <a class="el" href="test__manager_8h_source.html#l00246">current_rom_</a>, <a class="el" href="test__manager_8h_source.html#l00223">current_test_name_</a>, <a class="el" href="test__manager_8h_source.html#l00197">DisableTest()</a>, <a class="el" href="test__manager_8h_source.html#l00198">EnableTest()</a>, <a class="el" href="features_8h_source.html#l00072">yaze::core::FeatureFlags::get()</a>, <a class="el" href="test__manager_8cc_source.html#l00049">yaze::test::GetTestStatusColor()</a>, <a class="el" href="icons_8h_source.html#l00152">ICON_MD_ANALYTICS</a>, <a class="el" href="icons_8h_source.html#l00191">ICON_MD_ASSESSMENT</a>, <a class="el" href="icons_8h_source.html#l00267">ICON_MD_BLOCK</a>, <a class="el" href="icons_8h_source.html#l00395">ICON_MD_CHECK</a>, <a class="el" href="icons_8h_source.html#l00398">ICON_MD_CHECK_CIRCLE</a>, <a class="el" href="icons_8h_source.html#l00400">ICON_MD_CHECKLIST</a>, <a class="el" href="icons_8h_source.html#l00414">ICON_MD_CLEAR</a>, <a class="el" href="icons_8h_source.html#l00416">ICON_MD_CLOSE</a>, <a class="el" href="icons_8h_source.html#l00643">ICON_MD_EDIT</a>, <a class="el" href="icons_8h_source.html#l00684">ICON_MD_ERROR</a>, <a class="el" href="icons_8h_source.html#l00685">ICON_MD_ERROR_OUTLINE</a>, <a class="el" href="icons_8h_source.html#l00766">ICON_MD_FILTER_LIST</a>, <a class="el" href="icons_8h_source.html#l00811">ICON_MD_FOLDER_OPEN</a>, <a class="el" href="icons_8h_source.html#l00931">ICON_MD_HELP</a>, <a class="el" href="icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="icons_8h_source.html#l01193">ICON_MD_MEMORY</a>, <a class="el" href="icons_8h_source.html#l01231">ICON_MD_MONITOR</a>, <a class="el" href="icons_8h_source.html#l01477">ICON_MD_PLAY_ARROW</a>, <a class="el" href="icons_8h_source.html#l01480">ICON_MD_PLAY_CIRCLE_FILLED</a>, <a class="el" href="icons_8h_source.html#l01654">ICON_MD_SCIENCE</a>, <a class="el" href="icons_8h_source.html#l01697">ICON_MD_SETTINGS</a>, <a class="el" href="icons_8h_source.html#l01768">ICON_MD_SKIP_NEXT</a>, <a class="el" href="icons_8h_source.html#l01812">ICON_MD_SPEED</a>, <a class="el" href="icons_8h_source.html#l01860">ICON_MD_STORAGE</a>, <a class="el" href="icons_8h_source.html#l01925">ICON_MD_TAB</a>, <a class="el" href="icons_8h_source.html#l01960">ICON_MD_TEXTURE</a>, <a class="el" href="icons_8h_source.html#l01977">ICON_MD_TIMER</a>, <a class="el" href="icons_8h_source.html#l02118">ICON_MD_WARNING</a>, <a class="el" href="test__manager_8h_source.html#l00222">is_running_</a>, <a class="el" href="test__manager_8h_source.html#l00199">IsTestEnabled()</a>, <a class="el" href="test__manager_8h_source.html#l00034">yaze::test::kFailed</a>, <a class="el" href="test__manager_8h_source.html#l00037">yaze::test::kIntegration</a>, <a class="el" href="test__manager_8h_source.html#l00037">yaze::test::kMemory</a>, <a class="el" href="test__manager_8h_source.html#l00034">yaze::test::kPassed</a>, <a class="el" href="test__manager_8h_source.html#l00037">yaze::test::kPerformance</a>, <a class="el" href="test__manager_8h_source.html#l00034">yaze::test::kRunning</a>, <a class="el" href="test__manager_8h_source.html#l00034">yaze::test::kSkipped</a>, <a class="el" href="test__manager_8h_source.html#l00037">yaze::test::kUI</a>, <a class="el" href="test__manager_8h_source.html#l00037">yaze::test::kUnit</a>, <a class="el" href="features_8h_source.html#l00042">yaze::core::FeatureFlags::Flags::kUseNativeFileDialog</a>, <a class="el" href="test__manager_8h_source.html#l00221">last_results_</a>, <a class="el" href="test__manager_8h_source.html#l00224">progress_</a>, <a class="el" href="test__manager_8cc_source.html#l01089">RefreshCurrentRom()</a>, <a class="el" href="test__manager_8h_source.html#l00231">resource_history_</a>, <a class="el" href="test__manager_8cc_source.html#l00111">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00140">RunTestsByCategory()</a>, <a class="el" href="test__manager_8h_source.html#l00240">show_dashboard_</a>, <a class="el" href="test__manager_8h_source.html#l00250">show_google_tests_</a>, <a class="el" href="test__manager_8h_source.html#l00241">show_resource_monitor_</a>, <a class="el" href="test__manager_8h_source.html#l00252">show_rom_file_dialog_</a>, <a class="el" href="test__manager_8h_source.html#l00251">show_rom_test_results_</a>, <a class="el" href="test__manager_8h_source.html#l00254">show_test_configuration_</a>, <a class="el" href="test__manager_8h_source.html#l00253">show_test_session_dialog_</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#abaf2c47376efed258b1b4f9c0b38ed72">yaze::core::FileDialogWrapper::ShowOpenFileDialogBespoke()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#ac0c1fed7d3124cb09b6d54e9a388d0f3">yaze::core::FileDialogWrapper::ShowOpenFileDialogNFD()</a>, <a class="el" href="test__manager_8h_source.html#l00242">test_filter_</a>, <a class="el" href="test__manager_8h_source.html#l00255">test_rom_path_for_session_</a>, <a class="el" href="test__manager_8cc_source.html#l01247">TestRomDataIntegrity()</a>, and <a class="el" href="test__manager_8cc_source.html#l01217">TestRomSaveLoad()</a>.</p>
 
 </div>
 </div>
@@ -1018,11 +1041,23 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00168">168</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00170">170</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00223">current_rom_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00246">current_rom_</a>, <a class="el" href="rom_8h_source.html#l00173">yaze::Rom::is_loaded()</a>, and <a class="el" href="rom_8h_source.html#l00176">yaze::Rom::title()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l01299">yaze::editor::EditorManager::CloseCurrentSession()</a>, <a class="el" href="editor__manager_8cc_source.html#l01097">yaze::editor::EditorManager::LoadRom()</a>, <a class="el" href="editor__manager_8cc_source.html#l01230">yaze::editor::EditorManager::SetCurrentRom()</a>, and <a class="el" href="editor__manager_8cc_source.html#l01320">yaze::editor::EditorManager::SwitchToSession()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l01377">yaze::editor::EditorManager::CloseCurrentSession()</a>, <a class="el" href="editor__manager_8cc_source.html#l01151">yaze::editor::EditorManager::LoadRom()</a>, <a class="el" href="editor__manager_8cc_source.html#l01262">yaze::editor::EditorManager::OpenProject()</a>, <a class="el" href="editor__manager_8cc_source.html#l01308">yaze::editor::EditorManager::SetCurrentRom()</a>, <a class="el" href="editor__manager_8cc_source.html#l01398">yaze::editor::EditorManager::SwitchToSession()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00704">yaze::editor::EditorManager::Update()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1test_1_1TestManager_a993d8b173579ab54ac01b3f31b4f4c56_cgraph.png" border="0" usemap="#aclassyaze_1_1test_1_1TestManager_a993d8b173579ab54ac01b3f31b4f4c56_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1test_1_1TestManager_a993d8b173579ab54ac01b3f31b4f4c56_cgraph" id="aclassyaze_1_1test_1_1TestManager_a993d8b173579ab54ac01b3f31b4f4c56_cgraph">
+<area shape="rect" title=" " alt="" coords="5,23,163,64"/>
+<area shape="rect" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="211,5,352,31"/>
+<area shape="poly" title=" " alt="" coords="162,31,195,27,196,32,163,36"/>
+<area shape="rect" href="classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="228,55,335,80"/>
+<area shape="poly" title=" " alt="" coords="163,50,213,57,212,62,163,56"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1049,11 +1084,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00169">169</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00177">177</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00223">current_rom_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00246">current_rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="rom__dependent__test__suite_8h_source.html#l00075">yaze::test::RomDependentTestSuite::DrawConfiguration()</a>, <a class="el" href="integrated__test__suite_8h_source.html#l00140">yaze::test::IntegratedTestSuite::RunRomBasicTest()</a>, and <a class="el" href="rom__dependent__test__suite_8h_source.html#l00026">yaze::test::RomDependentTestSuite::RunTests()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="rom__dependent__test__suite_8h_source.html#l00106">yaze::test::RomDependentTestSuite::DrawConfiguration()</a>, <a class="el" href="integrated__test__suite_8h_source.html#l00140">yaze::test::IntegratedTestSuite::RunRomBasicTest()</a>, and <a class="el" href="rom__dependent__test__suite_8h_source.html#l00026">yaze::test::RomDependentTestSuite::RunTests()</a>.</p>
 
 </div>
 </div>
@@ -1072,11 +1107,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00794">794</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l01089">1089</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00223">current_rom_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00246">current_rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
 
 </div>
 </div>
@@ -1095,7 +1130,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00813">813</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l01183">1183</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
 </div>
 </div>
@@ -1118,7 +1153,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00820">820</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l01190">1190</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="rom_8h_source.html#l00174">yaze::Rom::dirty()</a>, <a class="el" href="icons_8h_source.html#l00445">ICON_MD_COMPARE</a>, and <a class="el" href="rom_8h_source.html#l00177">yaze::Rom::size()</a>.</p>
 <div class="dynheader">
@@ -1133,6 +1168,91 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="206,53,239,57,238,62,206,58"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="a6031ed78e3c22d0040029c3279ab74c8" name="a6031ed78e3c22d0040029c3279ab74c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6031ed78e3c22d0040029c3279ab74c8">&#9670;&#160;</a></span>CreateTestRomCopy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::test::TestManager::CreateTestRomCopy </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *</td>          <td class="paramname"><span class="paramname"><em>source_rom</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::unique_ptr&lt; <a class="el" href="classyaze_1_1Rom.html">Rom</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>test_rom</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l01108">1108</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00173">yaze::Rom::is_loaded()</a>, <a class="el" href="rom_8h_source.html#l00176">yaze::Rom::title()</a>, and <a class="el" href="rom_8h_source.html#l00182">yaze::Rom::vector()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l01164">TestRomWithCopy()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1test_1_1TestManager_a6031ed78e3c22d0040029c3279ab74c8_cgraph.png" border="0" usemap="#aclassyaze_1_1test_1_1TestManager_a6031ed78e3c22d0040029c3279ab74c8_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1test_1_1TestManager_a6031ed78e3c22d0040029c3279ab74c8_cgraph" id="aclassyaze_1_1test_1_1TestManager_a6031ed78e3c22d0040029c3279ab74c8_cgraph">
+<area shape="rect" title=" " alt="" coords="5,47,163,88"/>
+<area shape="rect" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="211,5,352,31"/>
+<area shape="poly" title=" " alt="" coords="162,45,212,33,214,38,163,50"/>
+<area shape="rect" href="classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="228,55,335,80"/>
+<area shape="poly" title=" " alt="" coords="163,65,212,65,212,70,163,70"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="220,104,342,130"/>
+<area shape="poly" title=" " alt="" coords="163,85,214,97,212,102,162,90"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a1138e7920a64fbfe2962c95c1cfa9d5d" name="a1138e7920a64fbfe2962c95c1cfa9d5d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1138e7920a64fbfe2962c95c1cfa9d5d">&#9670;&#160;</a></span>GenerateTestRomFilename()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::test::TestManager::GenerateTestRomFilename </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>base_name</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l01130">1130</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l01217">TestRomSaveLoad()</a>.</p>
+
+</div>
+</div>
+<a id="ac0e33eba8ade56271b4c15d82fad122f" name="ac0e33eba8ade56271b4c15d82fad122f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0e33eba8ade56271b4c15d82fad122f">&#9670;&#160;</a></span>OfferTestSessionCreation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::test::TestManager::OfferTestSessionCreation </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>test_rom_path</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l01158">1158</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00253">show_test_session_dialog_</a>, and <a class="el" href="test__manager_8h_source.html#l00255">test_rom_path_for_session_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l01217">TestRomSaveLoad()</a>.</p>
 
 </div>
 </div>
@@ -1151,27 +1271,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00847">847</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l01217">1217</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00173">yaze::Rom::is_loaded()</a>, <a class="el" href="rom_8h_source.html#l00179">yaze::Rom::mutable_data()</a>, <a class="el" href="rom_8h_source.html#l00176">yaze::Rom::title()</a>, and <a class="el" href="rom_8h_source.html#l00182">yaze::Rom::vector()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00060">yaze::test::Rom::SaveSettings::backup</a>, <a class="el" href="rom_8h_source.html#l00063">yaze::test::Rom::SaveSettings::filename</a>, <a class="el" href="test__manager_8cc_source.html#l01130">GenerateTestRomFilename()</a>, <a class="el" href="rom_8h_source.html#l00173">yaze::Rom::is_loaded()</a>, <a class="el" href="test__manager_8cc_source.html#l01158">OfferTestSessionCreation()</a>, <a class="el" href="rom_8h_source.html#l00061">yaze::test::Rom::SaveSettings::save_new</a>, <a class="el" href="rom_8cc_source.html#l00385">yaze::Rom::SaveToFile()</a>, <a class="el" href="test__manager_8cc_source.html#l01164">TestRomWithCopy()</a>, and <a class="el" href="rom_8h_source.html#l00176">yaze::Rom::title()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00145">yaze::editor::EditorManager::Initialize()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="classyaze_1_1test_1_1TestManager_ad88ae05c7c54bb39c64ba7ae2f048ff5_cgraph.png" border="0" usemap="#aclassyaze_1_1test_1_1TestManager_ad88ae05c7c54bb39c64ba7ae2f048ff5_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1test_1_1TestManager_ad88ae05c7c54bb39c64ba7ae2f048ff5_cgraph" id="aclassyaze_1_1test_1_1TestManager_ad88ae05c7c54bb39c64ba7ae2f048ff5_cgraph">
-<area shape="rect" title=" " alt="" coords="5,72,163,113"/>
-<area shape="rect" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="222,5,364,31"/>
-<area shape="poly" title=" " alt="" coords="133,70,210,40,228,34,230,39,212,45,135,74"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6" title=" " alt="" coords="211,55,375,80"/>
-<area shape="poly" title=" " alt="" coords="163,81,195,77,195,82,164,86"/>
-<area shape="rect" href="classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="239,104,346,130"/>
-<area shape="poly" title=" " alt="" coords="164,99,224,106,224,112,163,105"/>
-<area shape="rect" href="classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="232,153,354,179"/>
-<area shape="poly" title=" " alt="" coords="137,111,212,140,230,146,228,151,210,145,135,116"/>
-</map>
-</div>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00180">yaze::editor::EditorManager::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -1190,23 +1294,148 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00866">866</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l01247">1247</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="rom_8h_source.html#l00173">yaze::Rom::is_loaded()</a>, and <a class="el" href="rom_8h_source.html#l00176">yaze::Rom::title()</a>.</p>
+<p class="reference">References <a class="el" href="rom_8h_source.html#l00173">yaze::Rom::is_loaded()</a>, <a class="el" href="rom_8cc_source.html#l00531">yaze::Rom::ReadByteVector()</a>, <a class="el" href="rom_8h_source.html#l00177">yaze::Rom::size()</a>, <a class="el" href="test__manager_8cc_source.html#l01164">TestRomWithCopy()</a>, and <a class="el" href="rom_8h_source.html#l00176">yaze::Rom::title()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00145">yaze::editor::EditorManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00180">yaze::editor::EditorManager::Initialize()</a>.</p>
+
+</div>
+</div>
+<a id="a50991a2a766b79b0f1280e918edc4581" name="a50991a2a766b79b0f1280e918edc4581"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50991a2a766b79b0f1280e918edc4581">&#9670;&#160;</a></span>TestRomWithCopy()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::test::TestManager::TestRomWithCopy </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *</td>          <td class="paramname"><span class="paramname"><em>source_rom</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; absl::Status(<a class="el" href="classyaze_1_1Rom.html">Rom</a> *)&gt;</td>          <td class="paramname"><span class="paramname"><em>test_function</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l01164">1164</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="test__manager_8cc_source.html#l01108">CreateTestRomCopy()</a>, <a class="el" href="rom_8h_source.html#l00173">yaze::Rom::is_loaded()</a>, and <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l01247">TestRomDataIntegrity()</a>, and <a class="el" href="test__manager_8cc_source.html#l01217">TestRomSaveLoad()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="classyaze_1_1test_1_1TestManager_aa4c9c5e2d45402a09e93f4f4830085dd_cgraph.png" border="0" usemap="#aclassyaze_1_1test_1_1TestManager_aa4c9c5e2d45402a09e93f4f4830085dd_cgraph" alt=""/></div>
-<map name="aclassyaze_1_1test_1_1TestManager_aa4c9c5e2d45402a09e93f4f4830085dd_cgraph" id="aclassyaze_1_1test_1_1TestManager_aa4c9c5e2d45402a09e93f4f4830085dd_cgraph">
+<div class="center"><img src="classyaze_1_1test_1_1TestManager_a50991a2a766b79b0f1280e918edc4581_cgraph.png" border="0" usemap="#aclassyaze_1_1test_1_1TestManager_a50991a2a766b79b0f1280e918edc4581_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1test_1_1TestManager_a50991a2a766b79b0f1280e918edc4581_cgraph" id="aclassyaze_1_1test_1_1TestManager_a50991a2a766b79b0f1280e918edc4581_cgraph">
 <area shape="rect" title=" " alt="" coords="5,23,163,64"/>
-<area shape="rect" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="211,5,352,31"/>
-<area shape="poly" title=" " alt="" coords="162,31,195,27,196,32,163,36"/>
-<area shape="rect" href="classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="228,55,335,80"/>
-<area shape="poly" title=" " alt="" coords="163,50,213,57,212,62,163,56"/>
+<area shape="rect" href="classyaze_1_1test_1_1TestManager.html#a6031ed78e3c22d0040029c3279ab74c8" title=" " alt="" coords="211,51,368,92"/>
+<area shape="poly" title=" " alt="" coords="163,52,195,56,195,61,163,57"/>
+<area shape="rect" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="416,5,557,31"/>
+<area shape="poly" title=" " alt="" coords="163,36,401,21,401,26,163,41"/>
+<area shape="poly" title=" " alt="" coords="366,48,421,33,422,38,368,53"/>
+<area shape="rect" href="classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="433,56,540,82"/>
+<area shape="poly" title=" " alt="" coords="368,68,418,67,418,72,368,73"/>
+<area shape="rect" href="classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="426,105,548,131"/>
+<area shape="poly" title=" " alt="" coords="369,87,415,99,414,104,368,93"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="acdefeaf65383cc782c7fa8f8cee95348" name="acdefeaf65383cc782c7fa8f8cee95348"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acdefeaf65383cc782c7fa8f8cee95348">&#9670;&#160;</a></span>DisableTest()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::test::TestManager::DisableTest </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>test_name</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00197">197</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00258">disabled_tests_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
+
+</div>
+</div>
+<a id="ac660d2fbeaed222a359443b13417492b" name="ac660d2fbeaed222a359443b13417492b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac660d2fbeaed222a359443b13417492b">&#9670;&#160;</a></span>EnableTest()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::test::TestManager::EnableTest </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>test_name</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00198">198</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00258">disabled_tests_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
+
+</div>
+</div>
+<a id="a695c24b9d5606fd4dee4d65162014c30" name="a695c24b9d5606fd4dee4d65162014c30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a695c24b9d5606fd4dee4d65162014c30">&#9670;&#160;</a></span>IsTestEnabled()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::test::TestManager::IsTestEnabled </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>test_name</em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00199">199</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00258">disabled_tests_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
 
 </div>
 </div>
@@ -1233,11 +1462,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00223">223</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00225">225</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8cc_source.html#l00256">CollectResourceStats()</a>, <a class="el" href="test__manager_8h_source.html#l00198">last_results_</a>, and <a class="el" href="classyaze_1_1test_1_1TestSuite.html#afbd8679b5a0b0cf9dce5399e5d90a4be">yaze::test::TestSuite::RunTests()</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8cc_source.html#l00258">CollectResourceStats()</a>, <a class="el" href="test__manager_8h_source.html#l00221">last_results_</a>, and <a class="el" href="classyaze_1_1test_1_1TestSuite.html#afbd8679b5a0b0cf9dce5399e5d90a4be">yaze::test::TestSuite::RunTests()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00109">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00138">RunTestsByCategory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00172">RunTestSuite()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00111">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00140">RunTestsByCategory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00174">RunTestSuite()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1278,11 +1507,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00240">240</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00242">242</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00201">progress_</a>, and <a class="el" href="test__manager_8h_source.html#l00195">test_suites_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00224">progress_</a>, and <a class="el" href="test__manager_8h_source.html#l00218">test_suites_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00109">RunAllTests()</a>, and <a class="el" href="test__manager_8cc_source.html#l00138">RunTestsByCategory()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00111">RunAllTests()</a>, and <a class="el" href="test__manager_8cc_source.html#l00140">RunTestsByCategory()</a>.</p>
 
 </div>
 </div>
@@ -1309,11 +1538,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00256">256</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00258">258</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00108">yaze::test::ResourceStats::frame_rate</a>, <a class="el" href="arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="test__manager_8h_source.html#l00107">yaze::test::ResourceStats::memory_usage_mb</a>, <a class="el" href="test__manager_8h_source.html#l00208">resource_history_</a>, <a class="el" href="test__manager_8h_source.html#l00106">yaze::test::ResourceStats::surface_count</a>, <a class="el" href="test__manager_8h_source.html#l00105">yaze::test::ResourceStats::texture_count</a>, and <a class="el" href="test__manager_8h_source.html#l00109">yaze::test::ResourceStats::timestamp</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00110">yaze::test::ResourceStats::frame_rate</a>, <a class="el" href="arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="test__manager_8h_source.html#l00109">yaze::test::ResourceStats::memory_usage_mb</a>, <a class="el" href="test__manager_8h_source.html#l00231">resource_history_</a>, <a class="el" href="test__manager_8h_source.html#l00108">yaze::test::ResourceStats::surface_count</a>, <a class="el" href="test__manager_8h_source.html#l00107">yaze::test::ResourceStats::texture_count</a>, and <a class="el" href="test__manager_8h_source.html#l00111">yaze::test::ResourceStats::timestamp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00223">ExecuteTestSuite()</a>, and <a class="el" href="test__manager_8cc_source.html#l00218">UpdateResourceStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00225">ExecuteTestSuite()</a>, and <a class="el" href="test__manager_8cc_source.html#l00220">UpdateResourceStats()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1352,11 +1581,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00274">274</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8cc_source.html#l00276">276</a> of file <a class="el" href="test__manager_8cc_source.html">test_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00209">kMaxResourceHistorySize</a>, and <a class="el" href="test__manager_8h_source.html#l00208">resource_history_</a>.</p>
+<p class="reference">References <a class="el" href="test__manager_8h_source.html#l00232">kMaxResourceHistorySize</a>, and <a class="el" href="test__manager_8h_source.html#l00231">resource_history_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00218">UpdateResourceStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00220">UpdateResourceStats()</a>.</p>
 
 </div>
 </div>
@@ -1381,9 +1610,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00195">195</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00218">218</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00204">GetTestSuiteNames()</a>, <a class="el" href="test__manager_8cc_source.html#l00196">RegisterTestSuite()</a>, <a class="el" href="test__manager_8cc_source.html#l00109">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00138">RunTestsByCategory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00240">UpdateProgress()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00206">GetTestSuiteNames()</a>, <a class="el" href="test__manager_8cc_source.html#l00198">RegisterTestSuite()</a>, <a class="el" href="test__manager_8cc_source.html#l00111">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00140">RunTestsByCategory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00242">UpdateProgress()</a>.</p>
 
 </div>
 </div>
@@ -1407,9 +1636,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00196">196</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00219">219</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00213">GetTestSuite()</a>, <a class="el" href="test__manager_8cc_source.html#l00196">RegisterTestSuite()</a>, and <a class="el" href="test__manager_8cc_source.html#l00172">RunTestSuite()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00215">GetTestSuite()</a>, <a class="el" href="test__manager_8cc_source.html#l00198">RegisterTestSuite()</a>, and <a class="el" href="test__manager_8cc_source.html#l00174">RunTestSuite()</a>.</p>
 
 </div>
 </div>
@@ -1433,9 +1662,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00198">198</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00221">221</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8h_source.html#l00129">ClearResults()</a>, <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, <a class="el" href="test__manager_8cc_source.html#l00223">ExecuteTestSuite()</a>, <a class="el" href="test__manager_8h_source.html#l00128">GetLastResults()</a>, <a class="el" href="test__manager_8cc_source.html#l00109">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00138">RunTestsByCategory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00172">RunTestSuite()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8h_source.html#l00131">ClearResults()</a>, <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, <a class="el" href="test__manager_8cc_source.html#l00225">ExecuteTestSuite()</a>, <a class="el" href="test__manager_8h_source.html#l00130">GetLastResults()</a>, <a class="el" href="test__manager_8cc_source.html#l00111">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00140">RunTestsByCategory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00174">RunTestSuite()</a>.</p>
 
 </div>
 </div>
@@ -1459,9 +1688,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00199">199</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00222">222</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, <a class="el" href="test__manager_8h_source.html#l00160">IsTestRunning()</a>, <a class="el" href="test__manager_8cc_source.html#l00109">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00138">RunTestsByCategory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00172">RunTestSuite()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, <a class="el" href="test__manager_8h_source.html#l00162">IsTestRunning()</a>, <a class="el" href="test__manager_8cc_source.html#l00111">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00140">RunTestsByCategory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00174">RunTestSuite()</a>.</p>
 
 </div>
 </div>
@@ -1485,9 +1714,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00200">200</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00223">223</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, <a class="el" href="test__manager_8h_source.html#l00161">GetCurrentTestName()</a>, <a class="el" href="test__manager_8cc_source.html#l00109">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00138">RunTestsByCategory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00172">RunTestSuite()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, <a class="el" href="test__manager_8h_source.html#l00163">GetCurrentTestName()</a>, <a class="el" href="test__manager_8cc_source.html#l00111">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00140">RunTestsByCategory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00174">RunTestSuite()</a>.</p>
 
 </div>
 </div>
@@ -1511,9 +1740,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00201">201</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00224">224</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, <a class="el" href="test__manager_8h_source.html#l00162">GetProgress()</a>, <a class="el" href="test__manager_8cc_source.html#l00109">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00138">RunTestsByCategory()</a>, <a class="el" href="test__manager_8cc_source.html#l00172">RunTestSuite()</a>, and <a class="el" href="test__manager_8cc_source.html#l00240">UpdateProgress()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, <a class="el" href="test__manager_8h_source.html#l00164">GetProgress()</a>, <a class="el" href="test__manager_8cc_source.html#l00111">RunAllTests()</a>, <a class="el" href="test__manager_8cc_source.html#l00140">RunTestsByCategory()</a>, <a class="el" href="test__manager_8cc_source.html#l00174">RunTestSuite()</a>, and <a class="el" href="test__manager_8cc_source.html#l00242">UpdateProgress()</a>.</p>
 
 </div>
 </div>
@@ -1537,9 +1766,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00204">204</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00227">227</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8h_source.html#l00132">SetMaxConcurrentTests()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8h_source.html#l00134">SetMaxConcurrentTests()</a>.</p>
 
 </div>
 </div>
@@ -1563,9 +1792,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00205">205</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00228">228</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8h_source.html#l00135">SetTestTimeout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8h_source.html#l00137">SetTestTimeout()</a>.</p>
 
 </div>
 </div>
@@ -1589,9 +1818,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00208">208</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00231">231</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00256">CollectResourceStats()</a>, <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, <a class="el" href="test__manager_8h_source.html#l00139">GetResourceHistory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00274">TrimResourceHistory()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00258">CollectResourceStats()</a>, <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, <a class="el" href="test__manager_8h_source.html#l00141">GetResourceHistory()</a>, and <a class="el" href="test__manager_8cc_source.html#l00276">TrimResourceHistory()</a>.</p>
 
 </div>
 </div>
@@ -1615,9 +1844,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00209">209</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00232">232</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00274">TrimResourceHistory()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00276">TrimResourceHistory()</a>.</p>
 
 </div>
 </div>
@@ -1641,9 +1870,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00217">217</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00240">240</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
 
 </div>
 </div>
@@ -1667,9 +1896,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00218">218</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00241">241</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
 
 </div>
 </div>
@@ -1693,9 +1922,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00219">219</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00242">242</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
 
 </div>
 </div>
@@ -1719,9 +1948,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00220">220</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00243">243</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
 
 </div>
 </div>
@@ -1745,9 +1974,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00223">223</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00246">246</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>, <a class="el" href="test__manager_8h_source.html#l00169">GetCurrentRom()</a>, <a class="el" href="test__manager_8cc_source.html#l00794">RefreshCurrentRom()</a>, and <a class="el" href="test__manager_8h_source.html#l00168">SetCurrentRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, <a class="el" href="test__manager_8h_source.html#l00177">GetCurrentRom()</a>, <a class="el" href="test__manager_8cc_source.html#l01089">RefreshCurrentRom()</a>, and <a class="el" href="test__manager_8h_source.html#l00170">SetCurrentRom()</a>.</p>
 
 </div>
 </div>
@@ -1771,9 +2000,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00227">227</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00250">250</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
 
 </div>
 </div>
@@ -1797,9 +2026,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00228">228</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00251">251</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
 
 </div>
 </div>
@@ -1823,9 +2052,113 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00229">229</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00252">252</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00282">DrawTestDashboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
+
+</div>
+</div>
+<a id="a282ab3a3ff19d56c65140c596f2ab817" name="a282ab3a3ff19d56c65140c596f2ab817"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a282ab3a3ff19d56c65140c596f2ab817">&#9670;&#160;</a></span>show_test_session_dialog_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::test::TestManager::show_test_session_dialog_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00253">253</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, and <a class="el" href="test__manager_8cc_source.html#l01158">OfferTestSessionCreation()</a>.</p>
+
+</div>
+</div>
+<a id="a1a2f23afc297f032320873c3d0a1d224" name="a1a2f23afc297f032320873c3d0a1d224"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a2f23afc297f032320873c3d0a1d224">&#9670;&#160;</a></span>show_test_configuration_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::test::TestManager::show_test_configuration_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00254">254</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>.</p>
+
+</div>
+</div>
+<a id="a99f8623a9031c8314d18562296591d17" name="a99f8623a9031c8314d18562296591d17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99f8623a9031c8314d18562296591d17">&#9670;&#160;</a></span>test_rom_path_for_session_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::test::TestManager::test_rom_path_for_session_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00255">255</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8cc_source.html#l00284">DrawTestDashboard()</a>, and <a class="el" href="test__manager_8cc_source.html#l01158">OfferTestSessionCreation()</a>.</p>
+
+</div>
+</div>
+<a id="aec4c5b1c8acd5e051d270eb08f02ea67" name="aec4c5b1c8acd5e051d270eb08f02ea67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec4c5b1c8acd5e051d270eb08f02ea67">&#9670;&#160;</a></span>disabled_tests_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unordered_map&lt;std::string, bool&gt; yaze::test::TestManager::disabled_tests_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="test__manager_8h_source.html#l00258">258</a> of file <a class="el" href="test__manager_8h_source.html">test_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="test__manager_8h_source.html#l00197">DisableTest()</a>, <a class="el" href="test__manager_8h_source.html#l00198">EnableTest()</a>, and <a class="el" href="test__manager_8h_source.html#l00199">IsTestEnabled()</a>.</p>
 
 </div>
 </div>

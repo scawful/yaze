@@ -414,12 +414,13 @@ var searchData=
   ['ktriforcepalette_411',['kTriforcePalette',['../namespaceyaze_1_1gfx.html#abbdecdb226bc283e1b0ccc32c9d27b0a',1,'yaze::gfx']]],
   ['ktriforcevertices_412',['kTriforceVertices',['../namespaceyaze_1_1zelda3.html#a9fd10e4e09b174fba3491653a67fec9f',1,'yaze::zelda3']]],
   ['kuncompressedsheetsize_413',['kUncompressedSheetSize',['../namespaceyaze.html#a30653b94f9a3bf78bee51a203e141dd4',1,'yaze']]],
-  ['kv2mapsettingscolumnnames_414',['kV2MapSettingsColumnNames',['../namespaceyaze_1_1editor.html#ab3dc731144d58a27d60eb68afb0c5ab1',1,'yaze::editor']]],
-  ['kv3mapsettingscolumnnames_415',['kV3MapSettingsColumnNames',['../namespaceyaze_1_1editor.html#af16fc5d44426ebb74573f687b8683be8',1,'yaze::editor']]],
-  ['kvanillamapsettingscolumnnames_416',['kVanillaMapSettingsColumnNames',['../namespaceyaze_1_1editor.html#a441a2226539b4afbe4a591f5eada8da3',1,'yaze::editor']]],
-  ['kwhitecolor_417',['kWhiteColor',['../namespaceyaze_1_1gui.html#a052158d35957768a382590f5af89e34e',1,'yaze::gui']]],
-  ['kwidtharraysize_418',['kWidthArraySize',['../namespaceyaze_1_1editor.html#ab8dad615541a554df4446d604e0bc187',1,'yaze::editor']]],
-  ['kworldlist_419',['kWorldList',['../namespaceyaze_1_1editor.html#a509c76430fe7bd64995ca4c2a0004443',1,'yaze::editor']]],
-  ['kworldnames_420',['kWorldNames',['../namespaceyaze_1_1editor.html#a6af7fe91707f8dcdb2a4d47a5a87b73f',1,'yaze::editor']]],
-  ['kzeropos_421',['kZeroPos',['../namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e',1,'yaze::gui']]]
+  ['kusenativefiledialog_414',['kUseNativeFileDialog',['../structyaze_1_1core_1_1FeatureFlags_1_1Flags.html#a428254d821cede4fbe7a7ec0e2fbb21c',1,'yaze::core::FeatureFlags::Flags']]],
+  ['kv2mapsettingscolumnnames_415',['kV2MapSettingsColumnNames',['../namespaceyaze_1_1editor.html#ab3dc731144d58a27d60eb68afb0c5ab1',1,'yaze::editor']]],
+  ['kv3mapsettingscolumnnames_416',['kV3MapSettingsColumnNames',['../namespaceyaze_1_1editor.html#af16fc5d44426ebb74573f687b8683be8',1,'yaze::editor']]],
+  ['kvanillamapsettingscolumnnames_417',['kVanillaMapSettingsColumnNames',['../namespaceyaze_1_1editor.html#a441a2226539b4afbe4a591f5eada8da3',1,'yaze::editor']]],
+  ['kwhitecolor_418',['kWhiteColor',['../namespaceyaze_1_1gui.html#a052158d35957768a382590f5af89e34e',1,'yaze::gui']]],
+  ['kwidtharraysize_419',['kWidthArraySize',['../namespaceyaze_1_1editor.html#ab8dad615541a554df4446d604e0bc187',1,'yaze::editor']]],
+  ['kworldlist_420',['kWorldList',['../namespaceyaze_1_1editor.html#a509c76430fe7bd64995ca4c2a0004443',1,'yaze::editor']]],
+  ['kworldnames_421',['kWorldNames',['../namespaceyaze_1_1editor.html#a6af7fe91707f8dcdb2a4d47a5a87b73f',1,'yaze::editor']]],
+  ['kzeropos_422',['kZeroPos',['../namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e',1,'yaze::gui']]]
 ];
