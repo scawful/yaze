@@ -22,29 +22,55 @@ TEST(SnesTileTest, UnpackBppTile) {
   EXPECT_EQ(tile1bpp.data[63], 1);  // Last pixel
 
   // Test 2bpp tile unpacking
-  std::vector<uint8_t> data2bpp = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04,
-                                   0x02, 0x01, 0x01, 0x02, 0x04, 0x08,
-                                   0x10, 0x20, 0x40, 0x80};
+  // Create test data where we know the expected results
+  // For 2bpp: 16 bytes total (8 rows × 2 bytes per row)
+  // Each row has 2 bytes: plane 0 byte, plane 1 byte
+  // First pixel should be 3 (both bits set): plane0 bit7=1, plane1 bit7=1
+  // Last pixel of first row should be 1: plane0 bit0=1, plane1 bit0=0
+  std::vector<uint8_t> data2bpp = {
+      0x81, 0x80,  // Row 0: plane0=10000001, plane1=10000000 
+      0x00, 0x00,  // Row 1: plane0=00000000, plane1=00000000
+      0x00, 0x00,  // Row 2: plane0=00000000, plane1=00000000
+      0x00, 0x00,  // Row 3: plane0=00000000, plane1=00000000
+      0x00, 0x00,  // Row 4: plane0=00000000, plane1=00000000
+      0x00, 0x00,  // Row 5: plane0=00000000, plane1=00000000
+      0x00, 0x00,  // Row 6: plane0=00000000, plane1=00000000
+      0x01, 0x81   // Row 7: plane0=00000001, plane1=10000001
+  };
   auto tile2bpp = gfx::UnpackBppTile(data2bpp, 0, 2);
-  EXPECT_EQ(tile2bpp.data[0], 3);  // First pixel (both bits set)
-  EXPECT_EQ(tile2bpp.data[7],
-            1);  // Last pixel of first row (only first bit set)
-  EXPECT_EQ(tile2bpp.data[56],
-            2);  // First pixel of last row (only second bit set)
-  EXPECT_EQ(tile2bpp.data[63], 3);  // Last pixel (both bits set)
+  EXPECT_EQ(tile2bpp.data[0], 3);  // First pixel: 1|1<<1 = 3
+  EXPECT_EQ(tile2bpp.data[7], 1);  // Last pixel of first row: 1|0<<1 = 1
+  EXPECT_EQ(tile2bpp.data[56], 2); // First pixel of last row: 0|1<<1 = 2
+  EXPECT_EQ(tile2bpp.data[63], 3); // Last pixel: 1|1<<1 = 3
 
-  // Test 4bpp tile unpacking
+  // Test 4bpp tile unpacking  
+  // According to SnesLab: First planes 1&2 intertwined, then planes 3&4 intertwined
+  // 32 bytes total: 16 bytes for planes 1&2, then 16 bytes for planes 3&4
   std::vector<uint8_t> data4bpp = {
-      0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01, 0x01, 0x02, 0x04,
-      0x08, 0x10, 0x20, 0x40, 0x80, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04,
-      0x02, 0x01, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+      // Planes 1&2 intertwined (rows 0-7)
+      0x81, 0x80,  // Row 0: bp1=10000001, bp2=10000000
+      0x00, 0x00,  // Row 1: bp1=00000000, bp2=00000000  
+      0x00, 0x00,  // Row 2: bp1=00000000, bp2=00000000
+      0x00, 0x00,  // Row 3: bp1=00000000, bp2=00000000
+      0x00, 0x00,  // Row 4: bp1=00000000, bp2=00000000
+      0x00, 0x00,  // Row 5: bp1=00000000, bp2=00000000
+      0x00, 0x00,  // Row 6: bp1=00000000, bp2=00000000
+      0x01, 0x81,  // Row 7: bp1=00000001, bp2=10000001
+      // Planes 3&4 intertwined (rows 0-7)  
+      0x81, 0x80,  // Row 0: bp3=10000001, bp4=10000000
+      0x00, 0x00,  // Row 1: bp3=00000000, bp4=00000000
+      0x00, 0x00,  // Row 2: bp3=00000000, bp4=00000000
+      0x00, 0x00,  // Row 3: bp3=00000000, bp4=00000000
+      0x00, 0x00,  // Row 4: bp3=00000000, bp4=00000000
+      0x00, 0x00,  // Row 5: bp3=00000000, bp4=00000000
+      0x00, 0x00,  // Row 6: bp3=00000000, bp4=00000000
+      0x01, 0x81   // Row 7: bp3=00000001, bp4=10000001
+  };
   auto tile4bpp = gfx::UnpackBppTile(data4bpp, 0, 4);
-  EXPECT_EQ(tile4bpp.data[0], 0xF);  // First pixel (all bits set)
-  EXPECT_EQ(tile4bpp.data[7],
-            0x5);  // Last pixel of first row (bits 0 and 2 set)
-  EXPECT_EQ(tile4bpp.data[56],
-            0xA);  // First pixel of last row (bits 1 and 3 set)
-  EXPECT_EQ(tile4bpp.data[63], 0xF);  // Last pixel (all bits set)
+  EXPECT_EQ(tile4bpp.data[0], 0xF);  // First pixel: 1|1<<1|1<<2|1<<3 = 15
+  EXPECT_EQ(tile4bpp.data[7], 0x5);  // Last pixel of first row: 1|0<<1|1<<2|0<<3 = 5
+  EXPECT_EQ(tile4bpp.data[56], 0xA); // First pixel of last row: 0|1<<1|0<<2|1<<3 = 10
+  EXPECT_EQ(tile4bpp.data[63], 0xF); // Last pixel: 1|1<<1|1<<2|1<<3 = 15
 }
 
 TEST(SnesTileTest, PackBppTile) {
