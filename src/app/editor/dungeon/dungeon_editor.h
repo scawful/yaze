@@ -42,7 +42,7 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
 class DungeonEditor : public Editor {
  public:
   explicit DungeonEditor(Rom* rom = nullptr)
-      : rom_(rom), object_renderer_(rom) {
+      : rom_(rom), object_renderer_(rom), preview_object_(0, 0, 0, 0, 0) {
     type_ = EditorType::kDungeon;
     // Initialize the new dungeon editor system
     if (rom) {
@@ -111,6 +111,11 @@ class DungeonEditor : public Editor {
                          int canvas_y);
   void RenderLayoutObjects(const zelda3::RoomLayout& layout,
                            const gfx::SnesPalette& palette);
+  
+  // Coordinate conversion helpers
+  std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;
+  std::pair<int, int> CanvasToRoomCoordinates(int canvas_x, int canvas_y) const;
+  bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
 
   // Object rendering cache to avoid re-rendering the same objects
   struct ObjectRenderCache {
@@ -123,6 +128,10 @@ class DungeonEditor : public Editor {
 
   std::vector<ObjectRenderCache> object_render_cache_;
   uint64_t last_palette_hash_ = 0;
+  
+  // Object preview system
+  zelda3::RoomObject preview_object_;
+  gfx::SnesPalette preview_palette_;
 
   void CalculateUsageStats();
   void DrawUsageStats();
