@@ -79,6 +79,9 @@ class RoomLayout {
   // Load layout data from ROM for a specific room
   absl::Status LoadLayout(int room_id);
   
+  // Load layout data from a specific address
+  absl::Status LoadLayoutData(int layout_data_address);
+  
   // Get all layout objects of a specific type
   std::vector<RoomLayoutObject> GetObjectsByType(RoomLayoutObject::Type type) const;
   

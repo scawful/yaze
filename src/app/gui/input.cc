@@ -456,5 +456,52 @@ void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory) {
   }
 }
 
+// Custom hex input functions that properly respect width
+bool InputHexByteCustom(const char* label, uint8_t* data, float input_width) {
+  ImGui::PushID(label);
+  
+  // Create a simple hex input that respects width
+  char buf[8];
+  snprintf(buf, sizeof(buf), "%02X", *data);
+  
+  ImGui::SetNextItemWidth(input_width);
+  bool changed = ImGui::InputText(label, buf, sizeof(buf), 
+                                  ImGuiInputTextFlags_CharsHexadecimal | 
+                                  ImGuiInputTextFlags_AutoSelectAll);
+  
+  if (changed) {
+    unsigned int temp;
+    if (sscanf(buf, "%X", &temp) == 1) {
+      *data = static_cast<uint8_t>(temp & 0xFF);
+    }
+  }
+  
+  ImGui::PopID();
+  return changed;
+}
+
+bool InputHexWordCustom(const char* label, uint16_t* data, float input_width) {
+  ImGui::PushID(label);
+  
+  // Create a simple hex input that respects width
+  char buf[8];
+  snprintf(buf, sizeof(buf), "%04X", *data);
+  
+  ImGui::SetNextItemWidth(input_width);
+  bool changed = ImGui::InputText(label, buf, sizeof(buf), 
+                                  ImGuiInputTextFlags_CharsHexadecimal | 
+                                  ImGuiInputTextFlags_AutoSelectAll);
+  
+  if (changed) {
+    unsigned int temp;
+    if (sscanf(buf, "%X", &temp) == 1) {
+      *data = static_cast<uint16_t>(temp & 0xFFFF);
+    }
+  }
+  
+  ImGui::PopID();
+  return changed;
+}
+
 }  // namespace gui
 }  // namespace yaze

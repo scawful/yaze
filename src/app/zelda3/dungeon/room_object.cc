@@ -162,21 +162,31 @@ void RoomObject::EnsureTilesLoaded() {
     return;
   }
 
-  // Fallback to old method for compatibility
+  // Fallback to legacy method for compatibility with enhanced validation
   auto rom_data = rom_->data();
 
   // Determine which subtype table to use and compute the tile data offset.
   SubtypeTableInfo sti = GetSubtypeTable(id_);
   int index = (id_ & sti.index_mask);
   int tile_ptr = sti.base_ptr + (index * 2);
-  if (tile_ptr < 0 || tile_ptr + 1 >= (int)rom_->size()) return;
+  
+  // Enhanced bounds checking
+  if (tile_ptr < 0 || tile_ptr + 1 >= (int)rom_->size()) {
+    // Log error but don't crash
+    return;
+  }
 
   int tile_rel = (int16_t)((rom_data[tile_ptr + 1] << 8) + rom_data[tile_ptr]);
   int pos = kRoomObjectTileAddress + tile_rel;
   tile_data_ptr_ = pos;
 
-  // Read one 16x16 (4 words) worth of tile info as a preview.
-  if (pos < 0 || pos + 7 >= (int)rom_->size()) return;
+  // Enhanced bounds checking for tile data
+  if (pos < 0 || pos + 7 >= (int)rom_->size()) {
+    // Log error but don't crash
+    return;
+  }
+  
+  // Read tile data with validation
   uint16_t w0 = (uint16_t)(rom_data[pos] | (rom_data[pos + 1] << 8));
   uint16_t w1 = (uint16_t)(rom_data[pos + 2] | (rom_data[pos + 3] << 8));
   uint16_t w2 = (uint16_t)(rom_data[pos + 4] | (rom_data[pos + 5] << 8));

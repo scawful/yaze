@@ -36,6 +36,12 @@ IMGUI_API bool InputHexByte(const char *label, uint8_t *data,
 IMGUI_API bool InputHexByte(const char *label, uint8_t *data, uint8_t max_value,
                             float input_width = 50.f, bool no_step = false);
 
+// Custom hex input functions that properly respect width
+IMGUI_API bool InputHexByteCustom(const char *label, uint8_t *data,
+                                  float input_width = 50.f);
+IMGUI_API bool InputHexWordCustom(const char *label, uint16_t *data,
+                                  float input_width = 70.f);
+
 IMGUI_API void Paragraph(const std::string &text);
 
 IMGUI_API bool ClickableText(const std::string &text);

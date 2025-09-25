@@ -75,6 +75,14 @@ class RoomObject {
   void set_rom(Rom* rom) { rom_ = rom; }
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
+  
+  // Position setters and getters
+  void set_x(uint8_t x) { x_ = x; }
+  void set_y(uint8_t y) { y_ = y; }
+  void set_size(uint8_t size) { size_ = size; }
+  uint8_t x() const { return x_; }
+  uint8_t y() const { return y_; }
+  uint8_t size() const { return size_; }
 
   // Ensures tiles_ is populated with a basic set based on ROM tables so we can
   // preview/draw objects without needing full emulator execution.
