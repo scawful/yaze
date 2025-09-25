@@ -22,7 +22,9 @@ int main(int argc, char **argv) {
 
   absl::FailureSignalHandlerOptions options;
   options.symbolize_stacktrace = true;
-  options.alarm_on_failure_secs = true;
+  options.use_alternate_stack = false;  // Disable alternate stack to avoid shutdown conflicts
+  options.alarm_on_failure_secs = false; // Disable alarm to avoid false positives during SDL cleanup
+  options.call_previous_handler = true;
   absl::InstallFailureSignalHandler(options);
 
   SDL_SetMainReady();

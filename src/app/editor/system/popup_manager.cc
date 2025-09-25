@@ -23,6 +23,15 @@ void PopupManager::Initialize() {
   popups_["Supported Features"] = {"Supported Features", false, [this]() { DrawSupportedFeaturesPopup(); }};
   popups_["Open a ROM"] = {"Open a ROM", false, [this]() { DrawOpenRomHelpPopup(); }};
   popups_["Manage Project"] = {"Manage Project", false, [this]() { DrawManageProjectPopup(); }};
+  
+  // v0.3 Help Documentation popups
+  popups_["Getting Started"] = {"Getting Started", false, [this]() { DrawGettingStartedPopup(); }};
+  popups_["Asar Integration"] = {"Asar Integration", false, [this]() { DrawAsarIntegrationPopup(); }};
+  popups_["Build Instructions"] = {"Build Instructions", false, [this]() { DrawBuildInstructionsPopup(); }};
+  popups_["CLI Usage"] = {"CLI Usage", false, [this]() { DrawCLIUsagePopup(); }};
+  popups_["Troubleshooting"] = {"Troubleshooting", false, [this]() { DrawTroubleshootingPopup(); }};
+  popups_["Contributing"] = {"Contributing", false, [this]() { DrawContributingPopup(); }};
+  popups_["Whats New v03"] = {"What's New in v0.3", false, [this]() { DrawWhatsNewPopup(); }};
 }
 
 void PopupManager::DrawPopups() {
@@ -236,6 +245,113 @@ void PopupManager::DrawManageProjectPopup() {
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Manage Project");
+  }
+}
+
+void PopupManager::DrawGettingStartedPopup() {
+  TextWrapped("Welcome to YAZE v0.3!");
+  TextWrapped("This software allows you to modify 'The Legend of Zelda: A Link to the Past' (US or JP) ROMs.");
+  Spacing();
+  TextWrapped("General Tips:");
+  BulletText("Experiment flags determine whether certain features are enabled");
+  BulletText("Backup files are enabled by default for safety");
+  BulletText("Use File > Options to configure settings");
+  
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide("Getting Started");
+  }
+}
+
+void PopupManager::DrawAsarIntegrationPopup() {
+  TextWrapped("Asar 65816 Assembly Integration");
+  TextWrapped("YAZE v0.3 includes full Asar assembler support for ROM patching.");
+  Spacing();
+  TextWrapped("Features:");
+  BulletText("Cross-platform ROM patching with assembly code");
+  BulletText("Symbol extraction with addresses and opcodes");
+  BulletText("Assembly validation with error reporting");
+  BulletText("Memory-safe operations with automatic ROM size management");
+  
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide("Asar Integration");
+  }
+}
+
+void PopupManager::DrawBuildInstructionsPopup() {
+  TextWrapped("Build Instructions");
+  TextWrapped("YAZE uses modern CMake for cross-platform builds.");
+  Spacing();
+  TextWrapped("Quick Start:");
+  BulletText("cmake -B build");
+  BulletText("cmake --build build --target yaze");
+  Spacing();
+  TextWrapped("Development:");
+  BulletText("cmake --preset dev");
+  BulletText("cmake --build --preset dev");
+  
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide("Build Instructions");
+  }
+}
+
+void PopupManager::DrawCLIUsagePopup() {
+  TextWrapped("Command Line Interface (z3ed)");
+  TextWrapped("Enhanced CLI tool with Asar integration.");
+  Spacing();
+  TextWrapped("Commands:");
+  BulletText("z3ed asar patch.asm --rom=file.sfc");
+  BulletText("z3ed extract symbols.asm");
+  BulletText("z3ed validate assembly.asm");
+  BulletText("z3ed patch file.bps --rom=file.sfc");
+  
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide("CLI Usage");
+  }
+}
+
+void PopupManager::DrawTroubleshootingPopup() {
+  TextWrapped("Troubleshooting");
+  TextWrapped("Common issues and solutions:");
+  Spacing();
+  BulletText("ROM won't load: Check file format (SFC/SMC supported)");
+  BulletText("Graphics issues: Try disabling experimental features");
+  BulletText("Performance: Enable hardware acceleration in display settings");
+  BulletText("Crashes: Check ROM file integrity and available memory");
+  
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide("Troubleshooting");
+  }
+}
+
+void PopupManager::DrawContributingPopup() {
+  TextWrapped("Contributing to YAZE");
+  TextWrapped("YAZE is open source and welcomes contributions!");
+  Spacing();
+  TextWrapped("How to contribute:");
+  BulletText("Fork the repository on GitHub");
+  BulletText("Create feature branches for new work");
+  BulletText("Follow C++ coding standards");
+  BulletText("Include tests for new features");
+  BulletText("Submit pull requests for review");
+  
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide("Contributing");
+  }
+}
+
+void PopupManager::DrawWhatsNewPopup() {
+  TextWrapped("What's New in YAZE v0.3");
+  Spacing();
+  TextWrapped("New Features:");
+  BulletText("Asar 65816 assembler integration");
+  BulletText("Enhanced CLI tools with TUI interface");
+  BulletText("Modernized build system with CMake presets");
+  BulletText("Optimized CI/CD pipeline");
+  BulletText("Integrated testing framework");
+  BulletText("Professional packaging for all platforms");
+  
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide("Whats New v03");
   }
 }
 

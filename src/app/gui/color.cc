@@ -13,11 +13,7 @@ ImVec4 ConvertSnesColorToImVec4(const gfx::SnesColor& color) {
 }
 
 gfx::SnesColor ConvertImVec4ToSnesColor(const ImVec4& color) {
-  // Convert from float (0.0-1.0) to uint8_t (0-255)
-  uint8_t r = static_cast<uint8_t>(color.x * 255.0f);
-  uint8_t g = static_cast<uint8_t>(color.y * 255.0f);
-  uint8_t b = static_cast<uint8_t>(color.z * 255.0f);
-  return gfx::SnesColor(r, g, b);
+  return gfx::SnesColor(color);
 }
 
 IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor& color,

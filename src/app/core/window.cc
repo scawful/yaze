@@ -4,7 +4,9 @@
 #include "absl/strings/str_format.h"
 #include "app/core/platform/font_loader.h"
 #include "app/core/platform/sdl_deleter.h"
+#include "app/gfx/arena.h"
 #include "app/gui/style.h"
+#include "app/test/test_manager.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -71,18 +73,32 @@ absl::Status CreateWindow(Window& window, int flags) {
 absl::Status ShutdownWindow(Window& window) {
   SDL_PauseAudioDevice(window.audio_device_, 1);
   SDL_CloseAudioDevice(window.audio_device_);
+  
+  // Stop test engine WHILE ImGui context is still valid
+  test::TestManager::Get().StopUITesting();
+  
+  // Shutdown ImGui implementations
   ImGui_ImplSDL2_Shutdown();
   ImGui_ImplSDLRenderer2_Shutdown();
+  
+  // Destroy ImGui context
   ImGui::DestroyContext();
+  
+  // NOW destroy test engine context (after ImGui context is destroyed)
+  test::TestManager::Get().DestroyUITestingContext();
+  
+  // Shutdown graphics arena BEFORE destroying SDL contexts
+  gfx::Arena::Get().Shutdown();
+  
   SDL_DestroyRenderer(Renderer::Get().renderer());
   SDL_DestroyWindow(window.window_.get());
   SDL_Quit();
   return absl::OkStatus();
 }
 
-absl::Status HandleEvents(Window &window) {
+absl::Status HandleEvents(Window& window) {
   SDL_Event event;
-  ImGuiIO &io = ImGui::GetIO();
+  ImGuiIO& io = ImGui::GetIO();
   SDL_WaitEvent(&event);
   ImGui_ImplSDL2_ProcessEvent(&event);
   switch (event.type) {

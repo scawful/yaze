@@ -4,15 +4,21 @@
 #include <map>
 #include <memory>
 
+#include <SDL.h>
+
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/flags/usage.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/strings/str_cat.h"
 
 #include "cli/z3ed.h"
 #include "cli/tui.h"
 #include "app/core/asar_wrapper.h"
+#include "app/gfx/arena.h"
+#include "app/rom.h"
+#include "app/zelda3/overworld/overworld.h"
 
 // Global flags
 ABSL_FLAG(bool, tui, false, "Launch the Text User Interface");
@@ -93,6 +99,15 @@ class ModernCLI {
       .usage = "z3ed convert <address> [--to-pc|--to-snes]",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleConvertCommand(args);
+      }
+    };
+
+    commands_["test"] = {
+      .name = "test",
+      .description = "Run comprehensive asset loading tests on ROM",
+      .usage = "z3ed test [--rom=<rom_file>] [--graphics] [--overworld] [--dungeons]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleTestCommand(args);
       }
     };
 
@@ -271,6 +286,142 @@ class ModernCLI {
     // TODO: Implement address conversion
     std::cout << "Address conversion not yet implemented" << std::endl;
     return absl::UnimplementedError("Address conversion functionality");
+  }
+
+  absl::Status HandleTestCommand(const std::vector<std::string>& args) {
+    std::string rom_file = absl::GetFlag(FLAGS_rom);
+    if (args.size() > 0 && args[0].find("--rom=") == 0) {
+      rom_file = args[0].substr(6);
+    }
+    
+    if (rom_file.empty()) {
+      rom_file = "zelda3.sfc";  // Default ROM file
+    }
+    
+    std::cout << "🧪 YAZE Asset Loading Test Suite" << std::endl;
+    std::cout << "ROM: " << rom_file << std::endl;
+    std::cout << "=================================" << std::endl;
+    
+    // Initialize SDL for graphics tests
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+      return absl::InternalError(absl::StrCat("Failed to initialize SDL: ", SDL_GetError()));
+    }
+    
+    int tests_passed = 0;
+    int tests_total = 0;
+    
+    // Test 1: ROM Loading
+    std::cout << "📁 Testing ROM loading..." << std::flush;
+    tests_total++;
+    Rom test_rom;
+    auto status = test_rom.LoadFromFile(rom_file);
+    if (status.ok()) {
+      std::cout << " ✅ PASSED" << std::endl;
+      tests_passed++;
+      std::cout << "   Title: " << test_rom.title() << std::endl;
+      std::cout << "   Size: " << test_rom.size() << " bytes" << std::endl;
+    } else {
+      std::cout << " ❌ FAILED: " << status.message() << std::endl;
+      SDL_Quit();
+      return status;
+    }
+    
+    // Test 2: Graphics Arena Resource Tracking
+    std::cout << "🎨 Testing graphics arena..." << std::flush;
+    tests_total++;
+    try {
+      auto& arena = gfx::Arena::Get();
+      size_t initial_textures = arena.GetTextureCount();
+      size_t initial_surfaces = arena.GetSurfaceCount();
+      
+      std::cout << " ✅ PASSED" << std::endl;
+      std::cout << "   Initial textures: " << initial_textures << std::endl;
+      std::cout << "   Initial surfaces: " << initial_surfaces << std::endl;
+      tests_passed++;
+    } catch (const std::exception& e) {
+      std::cout << " ❌ FAILED: " << e.what() << std::endl;
+    }
+    
+    // Test 3: Graphics Data Loading
+    bool test_graphics = true;
+    for (const auto& arg : args) {
+      if (arg == "--no-graphics") test_graphics = false;
+    }
+    
+    if (test_graphics) {
+      std::cout << "🖼️  Testing graphics data loading..." << std::flush;
+      tests_total++;
+      try {
+        auto graphics_result = LoadAllGraphicsData(test_rom);
+        if (graphics_result.ok()) {
+          std::cout << " ✅ PASSED" << std::endl;
+          std::cout << "   Loaded " << graphics_result.value().size() << " graphics sheets" << std::endl;
+          tests_passed++;
+        } else {
+          std::cout << " ❌ FAILED: " << graphics_result.status().message() << std::endl;
+        }
+      } catch (const std::exception& e) {
+        std::cout << " ❌ FAILED: " << e.what() << std::endl;
+      }
+    }
+    
+    // Test 4: Overworld Loading
+    bool test_overworld = true;
+    for (const auto& arg : args) {
+      if (arg == "--no-overworld") test_overworld = false;
+    }
+    
+    if (test_overworld) {
+      std::cout << "🗺️  Testing overworld loading..." << std::flush;
+      tests_total++;
+      try {
+        zelda3::Overworld overworld(&test_rom);
+        auto ow_status = overworld.Load(&test_rom);
+        if (ow_status.ok()) {
+          std::cout << " ✅ PASSED" << std::endl;
+          std::cout << "   Loaded overworld data successfully" << std::endl;
+          tests_passed++;
+        } else {
+          std::cout << " ❌ FAILED: " << ow_status.message() << std::endl;
+        }
+      } catch (const std::exception& e) {
+        std::cout << " ❌ FAILED: " << e.what() << std::endl;
+      }
+    }
+    
+    // Test 5: Arena Shutdown Test
+    std::cout << "🔄 Testing arena shutdown..." << std::flush;
+    tests_total++;
+    try {
+      auto& arena = gfx::Arena::Get();
+      size_t final_textures = arena.GetTextureCount();
+      size_t final_surfaces = arena.GetSurfaceCount();
+      
+      // Test the shutdown method (this should not crash)
+      arena.Shutdown();
+      
+      std::cout << " ✅ PASSED" << std::endl;
+      std::cout << "   Final textures: " << final_textures << std::endl;
+      std::cout << "   Final surfaces: " << final_surfaces << std::endl;
+      tests_passed++;
+    } catch (const std::exception& e) {
+      std::cout << " ❌ FAILED: " << e.what() << std::endl;
+    }
+    
+    // Cleanup
+    SDL_Quit();
+    
+    // Summary
+    std::cout << "=================================" << std::endl;
+    std::cout << "📊 Test Results: " << tests_passed << "/" << tests_total << " passed" << std::endl;
+    
+    if (tests_passed == tests_total) {
+      std::cout << "🎉 All tests passed!" << std::endl;
+      return absl::OkStatus();
+    } else {
+      std::cout << "❌ Some tests failed." << std::endl;
+      return absl::InternalError("Test failures detected");
+    }
   }
 
   absl::Status HandleHelpCommand(const std::vector<std::string>& args) {

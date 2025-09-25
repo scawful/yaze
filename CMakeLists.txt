@@ -25,7 +25,13 @@ set(YAZE_INSTALL_LIB OFF)
 # Testing and CI Configuration
 option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" OFF)
 option(YAZE_ENABLE_EXPERIMENTAL_TESTS "Enable experimental/unstable tests" ON)
+option(YAZE_ENABLE_UI_TESTS "Enable ImGui Test Engine UI testing" ON)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
+
+# Disable UI tests in minimal builds
+if(YAZE_MINIMAL_BUILD)
+  set(YAZE_ENABLE_UI_TESTS OFF CACHE BOOL "Disabled for minimal build" FORCE)
+endif()
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
 
 # libpng features in bitmap.cc - conditional for minimal builds

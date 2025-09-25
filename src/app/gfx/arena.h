@@ -19,12 +19,20 @@ class Arena {
 
   ~Arena();
 
+  // Resource management
   SDL_Texture* AllocateTexture(SDL_Renderer* renderer, int width, int height);
   void FreeTexture(SDL_Texture* texture);
   void UpdateTexture(SDL_Texture* texture, SDL_Surface* surface);
 
   SDL_Surface* AllocateSurface(int width, int height, int depth, int format);
   void FreeSurface(SDL_Surface* surface);
+  
+  // Explicit cleanup method for controlled shutdown
+  void Shutdown();
+  
+  // Resource tracking for debugging
+  size_t GetTextureCount() const { return textures_.size(); }
+  size_t GetSurfaceCount() const { return surfaces_.size(); }
 
   std::array<gfx::Bitmap, 223>& gfx_sheets() { return gfx_sheets_; }
   auto gfx_sheet(int i) { return gfx_sheets_[i]; }
