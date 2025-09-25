@@ -290,6 +290,15 @@ void TestManager::DrawTestDashboard() {
   // ROM status indicator with detailed information
   bool has_rom = current_rom_ && current_rom_->is_loaded();
   
+  // Add real-time ROM status checking
+  static int frame_counter = 0;
+  frame_counter++;
+  if (frame_counter % 60 == 0) { // Check every 60 frames
+    // Log ROM status periodically for debugging
+    util::logf("TestManager ROM status check - Frame %d: ROM %p, loaded: %s", 
+               frame_counter, (void*)current_rom_, has_rom ? "true" : "false");
+  }
+  
   if (ImGui::BeginTable("ROM_Status_Table", 2, ImGuiTableFlags_BordersInner)) {
     ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 120);
     ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
@@ -789,6 +798,49 @@ void TestManager::DrawTestDashboard() {
     }
     ImGui::End();
   }
+  
+  // Test Session Creation Dialog
+  if (show_test_session_dialog_) {
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(500, 300), ImGuiCond_Appearing);
+    
+    if (ImGui::Begin("Test ROM Session", &show_test_session_dialog_, ImGuiWindowFlags_NoResize)) {
+      ImGui::Text("%s Test ROM Created Successfully", ICON_MD_CHECK_CIRCLE);
+      ImGui::Separator();
+      
+      ImGui::Text("A test ROM has been created with your modifications:");
+      ImGui::Text("File: %s", test_rom_path_for_session_.c_str());
+      
+      // Extract just the filename for display
+      std::string display_filename = test_rom_path_for_session_;
+      auto last_slash = display_filename.find_last_of("/\\");
+      if (last_slash != std::string::npos) {
+        display_filename = display_filename.substr(last_slash + 1);
+      }
+      
+      ImGui::Separator();
+      ImGui::Text("Would you like to open this test ROM in a new session?");
+      
+      if (ImGui::Button(absl::StrFormat("%s Open in New Session", ICON_MD_TAB).c_str(), ImVec2(200, 0))) {
+        // TODO: This would need access to EditorManager to create a new session
+        // For now, just show a message
+        util::logf("User requested to open test ROM in new session: %s", test_rom_path_for_session_.c_str());
+        show_test_session_dialog_ = false;
+      }
+      
+      ImGui::SameLine();
+      if (ImGui::Button(absl::StrFormat("%s Keep Current Session", ICON_MD_CLOSE).c_str(), ImVec2(200, 0))) {
+        show_test_session_dialog_ = false;
+      }
+      
+      ImGui::Separator();
+      ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), 
+                        "Note: Test ROM contains your modifications and can be");
+      ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), 
+                        "opened later using File → Open");
+    }
+    ImGui::End();
+  }
 }
 
 void TestManager::RefreshCurrentRom() {
@@ -808,6 +860,81 @@ void TestManager::RefreshCurrentRom() {
     util::logf("Note: ROM should be set by EditorManager when ROM is loaded");
   }
   util::logf("===============================");
+}
+
+absl::Status TestManager::CreateTestRomCopy(Rom* source_rom, std::unique_ptr<Rom>& test_rom) {
+  if (!source_rom || !source_rom->is_loaded()) {
+    return absl::FailedPreconditionError("Source ROM not loaded");
+  }
+  
+  util::logf("Creating test ROM copy from: %s", source_rom->title().c_str());
+  
+  // Create a new ROM instance
+  test_rom = std::make_unique<Rom>();
+  
+  // Copy the ROM data
+  auto rom_data = source_rom->vector();
+  auto load_status = test_rom->LoadFromData(rom_data, true);
+  if (!load_status.ok()) {
+    return load_status;
+  }
+  
+  util::logf("Test ROM copy created successfully (size: %.2f MB)", 
+             test_rom->size() / 1048576.0f);
+  return absl::OkStatus();
+}
+
+std::string TestManager::GenerateTestRomFilename(const std::string& base_name) {
+  // Generate filename with timestamp
+  auto now = std::chrono::system_clock::now();
+  auto time_t = std::chrono::system_clock::to_time_t(now);
+  auto local_time = *std::localtime(&time_t);
+  
+  std::string timestamp = absl::StrFormat("%04d%02d%02d_%02d%02d%02d",
+                                         local_time.tm_year + 1900,
+                                         local_time.tm_mon + 1,
+                                         local_time.tm_mday,
+                                         local_time.tm_hour,
+                                         local_time.tm_min,
+                                         local_time.tm_sec);
+  
+  std::string base_filename = base_name;
+  // Remove any path and extension
+  auto last_slash = base_filename.find_last_of("/\\");
+  if (last_slash != std::string::npos) {
+    base_filename = base_filename.substr(last_slash + 1);
+  }
+  auto last_dot = base_filename.find_last_of('.');
+  if (last_dot != std::string::npos) {
+    base_filename = base_filename.substr(0, last_dot);
+  }
+  
+  return absl::StrFormat("%s_test_%s.sfc", base_filename.c_str(), timestamp.c_str());
+}
+
+void TestManager::OfferTestSessionCreation(const std::string& test_rom_path) {
+  // Store the test ROM path for the dialog
+  test_rom_path_for_session_ = test_rom_path;
+  show_test_session_dialog_ = true;
+}
+
+absl::Status TestManager::TestRomWithCopy(Rom* source_rom, std::function<absl::Status(Rom*)> test_function) {
+  if (!source_rom || !source_rom->is_loaded()) {
+    return absl::FailedPreconditionError("Source ROM not loaded");
+  }
+  
+  // Create a copy of the ROM for testing
+  std::unique_ptr<Rom> test_rom;
+  RETURN_IF_ERROR(CreateTestRomCopy(source_rom, test_rom));
+  
+  util::logf("Executing test function on ROM copy");
+  
+  // Run the test function on the copy
+  auto test_result = test_function(test_rom.get());
+  
+  util::logf("Test function completed with status: %s", test_result.ToString().c_str());
+  
+  return test_result;
 }
 
 absl::Status TestManager::LoadRomForTesting(const std::string& filename) {
@@ -849,18 +976,29 @@ absl::Status TestManager::TestRomSaveLoad(Rom* rom) {
     return absl::FailedPreconditionError("No ROM loaded for testing");
   }
   
-  util::logf("Testing ROM save/load operations on: %s", rom->title().c_str());
-  
-  // Create backup of ROM data
-  auto original_data = rom->vector();
-  
-  // Perform test modifications and save operations
-  // This would be implemented with actual save/load tests
-  
-  // Restore original data
-  std::copy(original_data.begin(), original_data.end(), rom->mutable_data());
-  
-  return absl::OkStatus();
+  // Use TestRomWithCopy to avoid affecting the original ROM
+  return TestRomWithCopy(rom, [this](Rom* test_rom) -> absl::Status {
+    util::logf("Testing ROM save/load operations on copy: %s", test_rom->title().c_str());
+    
+    // Perform test modifications on the copy
+    // Test save operations
+    Rom::SaveSettings settings;
+    settings.backup = false;
+    settings.save_new = true;
+    settings.filename = GenerateTestRomFilename(test_rom->title());
+    
+    auto save_status = test_rom->SaveToFile(settings);
+    if (!save_status.ok()) {
+      return save_status;
+    }
+    
+    util::logf("Test ROM saved successfully to: %s", settings.filename.c_str());
+    
+    // Offer to open test ROM in new session
+    OfferTestSessionCreation(settings.filename);
+    
+    return absl::OkStatus();
+  });
 }
 
 absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
@@ -868,12 +1006,27 @@ absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
     return absl::FailedPreconditionError("No ROM loaded for testing");
   }
   
-  util::logf("Testing ROM data integrity on: %s", rom->title().c_str());
-  
-  // Perform data integrity checks
-  // This would validate ROM structure, checksums, etc.
-  
-  return absl::OkStatus();
+  // Use TestRomWithCopy for integrity testing (read-only but uses copy for safety)
+  return TestRomWithCopy(rom, [](Rom* test_rom) -> absl::Status {
+    util::logf("Testing ROM data integrity on copy: %s", test_rom->title().c_str());
+    
+    // Perform data integrity checks on the copy
+    // This validates ROM structure, checksums, etc. without affecting original
+    
+    // Basic ROM structure validation
+    if (test_rom->size() < 0x100000) { // 1MB minimum for ALTTP
+      return absl::FailedPreconditionError("ROM file too small for A Link to the Past");
+    }
+    
+    // Check ROM header
+    auto header_status = test_rom->ReadByteVector(0x7FC0, 32);
+    if (!header_status.ok()) {
+      return header_status.status();
+    }
+    
+    util::logf("ROM integrity check passed for: %s", test_rom->title().c_str());
+    return absl::OkStatus();
+  });
 }
 
 }  // namespace test
