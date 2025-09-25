@@ -11,6 +11,9 @@
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room.h"
+#include "app/zelda3/dungeon/dungeon_editor_system.h"
+#include "app/zelda3/dungeon/dungeon_object_editor.h"
+#include "app/zelda3/dungeon/object_renderer.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 #include "util/hex.h"
@@ -40,7 +43,12 @@ constexpr ImGuiTableFlags kDungeonObjectTableFlags =
     ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
     ImGuiTableFlags_BordersV;
 
-void DungeonEditor::Initialize() {}
+void DungeonEditor::Initialize() {
+  if (rom_ && !dungeon_editor_system_) {
+    dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
+    object_editor_ = std::make_shared<zelda3::DungeonObjectEditor>(rom_);
+  }
+}
 
 absl::Status DungeonEditor::Load() {
   auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
@@ -83,6 +91,15 @@ absl::Status DungeonEditor::Load() {
                    gfx::CreatePaletteGroupFromLargePalette(full_palette_));
 
   CalculateUsageStats();
+  
+  // Initialize the new editor system
+  if (dungeon_editor_system_) {
+    auto status = dungeon_editor_system_->Initialize();
+    if (!status.ok()) {
+      return status;
+    }
+  }
+  
   is_loaded_ = true;
   return absl::OkStatus();
 }
@@ -98,6 +115,7 @@ absl::Status DungeonEditor::Update() {
       status_ = UpdateDungeonRoomView();
       ImGui::EndTabItem();
     }
+    
     if (ImGui::BeginTabItem("Usage Statistics")) {
       if (is_loaded_) {
         DrawUsageStats();
@@ -108,6 +126,27 @@ absl::Status DungeonEditor::Update() {
   }
 
   return absl::OkStatus();
+}
+
+absl::Status DungeonEditor::Undo() {
+  if (dungeon_editor_system_) {
+    return dungeon_editor_system_->Undo();
+  }
+  return absl::UnimplementedError("Undo not available");
+}
+
+absl::Status DungeonEditor::Redo() {
+  if (dungeon_editor_system_) {
+    return dungeon_editor_system_->Redo();
+  }
+  return absl::UnimplementedError("Redo not available");
+}
+
+absl::Status DungeonEditor::Save() {
+  if (dungeon_editor_system_) {
+    return dungeon_editor_system_->SaveDungeon();
+  }
+  return absl::UnimplementedError("Save not available");
 }
 
 absl::Status DungeonEditor::RefreshGraphics() {
@@ -182,10 +221,11 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
     ImGui::End();
   }
 
-  if (BeginTable("#DungeonEditTable", 3, kDungeonTableFlags, ImVec2(0, 0))) {
+  if (BeginTable("#DungeonEditTable", 4, kDungeonTableFlags, ImVec2(0, 0))) {
     TableSetupColumn("Room Selector");
     TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch,
                      ImGui::GetContentRegionAvail().x);
+    TableSetupColumn("Editing Panels");
     TableSetupColumn("Object Selector");
     TableHeadersRow();
     TableNextRow();
@@ -205,6 +245,9 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
     DrawDungeonTabView();
 
     TableNextColumn();
+    DrawIntegratedEditingPanels();
+
+    TableNextColumn();
     DrawTileSelector();
     ImGui::EndTable();
   }
@@ -212,11 +255,11 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
 }
 
 void DungeonEditor::DrawToolset() {
-  if (BeginTable("DWToolset", 14, ImGuiTableFlags_SizingFixedFit,
+  if (BeginTable("DWToolset", 16, ImGuiTableFlags_SizingFixedFit,
                  ImVec2(0, 0))) {
-    static std::array<const char *, 14> tool_names = {
+    static std::array<const char *, 16> tool_names = {
         "Undo",      "Redo",   "Separator", "Any",  "BG1",   "BG2",    "BG3",
-        "Separator", "Sprite", "Item",      "Door", "Block", "Palette"};
+        "Separator", "Object", "Sprite",    "Item", "Entrance", "Door", "Chest", "Block", "Palette"};
     std::ranges::for_each(tool_names,
                           [](const char *name) { TableSetupColumn(name); });
 
@@ -257,6 +300,14 @@ void DungeonEditor::DrawToolset() {
     Text(ICON_MD_MORE_VERT);
 
     TableNextColumn();
+    if (RadioButton(ICON_MD_SQUARE, placement_type_ == kObject)) {
+      placement_type_ = kObject;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Objects");
+    }
+
+    TableNextColumn();
     if (RadioButton(ICON_MD_PEST_CONTROL, placement_type_ == kSprite)) {
       placement_type_ = kSprite;
     }
@@ -273,6 +324,14 @@ void DungeonEditor::DrawToolset() {
     }
 
     TableNextColumn();
+    if (RadioButton(ICON_MD_NAVIGATION, placement_type_ == kEntrance)) {
+      placement_type_ = kEntrance;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Entrances");
+    }
+
+    TableNextColumn();
     if (RadioButton(ICON_MD_SENSOR_DOOR, placement_type_ == kDoor)) {
       placement_type_ = kDoor;
     }
@@ -281,7 +340,15 @@ void DungeonEditor::DrawToolset() {
     }
 
     TableNextColumn();
-    if (RadioButton(ICON_MD_SQUARE, placement_type_ == kBlock)) {
+    if (RadioButton(ICON_MD_INVENTORY, placement_type_ == kChest)) {
+      placement_type_ = kChest;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Chests");
+    }
+
+    TableNextColumn();
+    if (RadioButton(ICON_MD_VIEW_MODULE, placement_type_ == kBlock)) {
       placement_type_ = kBlock;
     }
     if (ImGui::IsItemHovered()) {
@@ -490,11 +557,11 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   if (show_debug_info) {
     ImGui::Separator();
     ImGui::Text("Room Statistics:");
-    ImGui::Text("Objects: %zu", rooms_[room_id].tile_objects_.size());
+    ImGui::Text("Objects: %zu", rooms_[room_id].GetTileObjects().size());
     ImGui::Text("Layout Objects: %zu",
                 rooms_[room_id].GetLayout().GetObjects().size());
-    ImGui::Text("Sprites: %zu", rooms_[room_id].sprites_.size());
-    ImGui::Text("Chests: %zu", rooms_[room_id].chests_in_room_.size());
+    ImGui::Text("Sprites: %zu", rooms_[room_id].GetSprites().size());
+    ImGui::Text("Chests: %zu", rooms_[room_id].GetChests().size());
 
     // Palette information
     ImGui::Text("Current Palette Group: %d", current_palette_group_id_);
@@ -504,7 +571,7 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
     ImGui::Separator();
     ImGui::Text("Object Type Breakdown:");
     std::map<int, int> object_type_counts;
-    for (const auto &obj : rooms_[room_id].tile_objects_) {
+    for (const auto &obj : rooms_[room_id].GetTileObjects()) {
       object_type_counts[obj.id_]++;
     }
     for (const auto &[type, count] : object_type_counts) {
@@ -530,16 +597,16 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   if (ImGui::Button("Select Object")) {
     // This would open an object selection dialog
     // For now, just cycle through objects
-    if (!rooms_[room_id].tile_objects_.empty()) {
+    if (!rooms_[room_id].GetTileObjects().empty()) {
       selected_object_id =
-          (selected_object_id + 1) % rooms_[room_id].tile_objects_.size();
+          (selected_object_id + 1) % rooms_[room_id].GetTileObjects().size();
     }
   }
 
   if (selected_object_id >= 0 &&
-      selected_object_id < (int)rooms_[room_id].tile_objects_.size()) {
+      selected_object_id < (int)rooms_[room_id].GetTileObjects().size()) {
     const auto &selected_obj =
-        rooms_[room_id].tile_objects_[selected_object_id];
+        rooms_[room_id].GetTileObjects()[selected_object_id];
     ImGui::Separator();
     ImGui::Text("Selected Object:");
     ImGui::Text("ID: 0x%02X", selected_obj.id_);
@@ -589,13 +656,13 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
         RenderLayoutObjects(rooms_[room_id].GetLayout(), current_palette);
       }
 
-      if (rooms_[room_id].tile_objects_.empty()) {
+      if (rooms_[room_id].GetTileObjects().empty()) {
         // Load the objects for the room
         rooms_[room_id].LoadObjects();
       }
 
       // Render regular room objects
-      for (const auto &object : rooms_[room_id].tile_objects_) {
+      for (const auto &object : rooms_[room_id].GetTileObjects()) {
         // Convert room coordinates to canvas coordinates
         int canvas_x = object.x_ * 16;
         int canvas_y = object.y_ * 16;
@@ -1107,6 +1174,804 @@ void DungeonEditor::DrawUsageGrid() {
       // Keep squares in the same line
       SameLine();
     }
+  }
+}
+
+// New editor method implementations
+void DungeonEditor::DrawObjectEditor() {
+  if (!object_editor_) {
+    ImGui::Text("Object editor not initialized");
+    return;
+  }
+
+  ImGui::Text("Object Editor");
+  ImGui::Separator();
+
+  // Display current editing mode
+  auto mode = object_editor_->GetMode();
+  const char* mode_names[] = {
+    "Select", "Insert", "Delete", "Edit", "Layer", "Preview"
+  };
+  ImGui::Text("Mode: %s", mode_names[static_cast<int>(mode)]);
+
+  // Mode selection
+  if (ImGui::Button("Select Mode")) {
+    object_editor_->SetMode(zelda3::DungeonObjectEditor::Mode::kSelect);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Insert Mode")) {
+    object_editor_->SetMode(zelda3::DungeonObjectEditor::Mode::kInsert);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Edit Mode")) {
+    object_editor_->SetMode(zelda3::DungeonObjectEditor::Mode::kEdit);
+  }
+
+  // Layer selection
+  int current_layer = object_editor_->GetCurrentLayer();
+  if (ImGui::SliderInt("Layer", &current_layer, 0, 2)) {
+    object_editor_->SetCurrentLayer(current_layer);
+  }
+
+  // Object type selection
+  int current_object_type = object_editor_->GetCurrentObjectType();
+  if (ImGui::InputInt("Object Type", &current_object_type, 1, 16)) {
+    if (current_object_type >= 0 && current_object_type <= 0x3FF) {
+      object_editor_->SetCurrentObjectType(current_object_type);
+    }
+  }
+
+  // Editor configuration
+  auto config = object_editor_->GetConfig();
+  if (ImGui::Checkbox("Snap to Grid", &config.snap_to_grid)) {
+    object_editor_->SetConfig(config);
+  }
+  if (ImGui::Checkbox("Show Grid", &config.show_grid)) {
+    object_editor_->SetConfig(config);
+  }
+  if (ImGui::Checkbox("Show Preview", &config.show_preview)) {
+    object_editor_->SetConfig(config);
+  }
+
+  // Object count and selection info
+  ImGui::Separator();
+  ImGui::Text("Objects: %zu", object_editor_->GetObjectCount());
+  
+  auto selection = object_editor_->GetSelection();
+  if (!selection.selected_objects.empty()) {
+    ImGui::Text("Selected: %zu objects", selection.selected_objects.size());
+  }
+
+  // Undo/Redo status
+  ImGui::Separator();
+  ImGui::Text("Undo: %s", object_editor_->CanUndo() ? "Available" : "Not Available");
+  ImGui::Text("Redo: %s", object_editor_->CanRedo() ? "Available" : "Not Available");
+}
+
+void DungeonEditor::DrawSpriteEditor() {
+  if (!dungeon_editor_system_) {
+    ImGui::Text("Dungeon editor system not initialized");
+    return;
+  }
+
+  ImGui::Text("Sprite Editor");
+  ImGui::Separator();
+
+  // Display current room sprites
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto sprites_result = dungeon_editor_system_->GetSpritesByRoom(current_room);
+  
+  if (sprites_result.ok()) {
+    auto sprites = sprites_result.value();
+    ImGui::Text("Sprites in room %d: %zu", current_room, sprites.size());
+    
+    for (const auto& sprite : sprites) {
+      ImGui::Text("ID: %d, Type: %d, Position: (%d, %d)", 
+                  sprite.sprite_id, static_cast<int>(sprite.type), 
+                  sprite.x, sprite.y);
+    }
+  } else {
+    ImGui::Text("Error loading sprites: %s", sprites_result.status().message().data());
+  }
+
+  // Sprite placement controls
+  static int new_sprite_id = 0;
+  static int new_sprite_x = 0;
+  static int new_sprite_y = 0;
+  static int new_sprite_layer = 0;
+
+  ImGui::Separator();
+  ImGui::Text("Add New Sprite");
+  ImGui::InputInt("Sprite ID", &new_sprite_id);
+  ImGui::InputInt("X Position", &new_sprite_x);
+  ImGui::InputInt("Y Position", &new_sprite_y);
+  ImGui::SliderInt("Layer", &new_sprite_layer, 0, 2);
+
+  if (ImGui::Button("Add Sprite")) {
+    zelda3::DungeonEditorSystem::SpriteData sprite_data;
+    sprite_data.sprite_id = new_sprite_id;
+    sprite_data.type = zelda3::DungeonEditorSystem::SpriteType::kEnemy;
+    sprite_data.x = new_sprite_x;
+    sprite_data.y = new_sprite_y;
+    sprite_data.layer = new_sprite_layer;
+    
+    auto status = dungeon_editor_system_->AddSprite(sprite_data);
+    if (!status.ok()) {
+      ImGui::Text("Error adding sprite: %s", status.message().data());
+    }
+  }
+}
+
+void DungeonEditor::DrawItemEditor() {
+  if (!dungeon_editor_system_) {
+    ImGui::Text("Dungeon editor system not initialized");
+    return;
+  }
+
+  ImGui::Text("Item Editor");
+  ImGui::Separator();
+
+  // Display current room items
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto items_result = dungeon_editor_system_->GetItemsByRoom(current_room);
+  
+  if (items_result.ok()) {
+    auto items = items_result.value();
+    ImGui::Text("Items in room %d: %zu", current_room, items.size());
+    
+    for (const auto& item : items) {
+      ImGui::Text("ID: %d, Type: %d, Position: (%d, %d), Hidden: %s", 
+                  item.item_id, static_cast<int>(item.type), 
+                  item.x, item.y, item.is_hidden ? "Yes" : "No");
+    }
+  } else {
+    ImGui::Text("Error loading items: %s", items_result.status().message().data());
+  }
+
+  // Item placement controls
+  static int new_item_id = 0;
+  static int new_item_x = 0;
+  static int new_item_y = 0;
+  static bool new_item_hidden = false;
+
+  ImGui::Separator();
+  ImGui::Text("Add New Item");
+  ImGui::InputInt("Item ID", &new_item_id);
+  ImGui::InputInt("X Position", &new_item_x);
+  ImGui::InputInt("Y Position", &new_item_y);
+  ImGui::Checkbox("Hidden", &new_item_hidden);
+
+  if (ImGui::Button("Add Item")) {
+    zelda3::DungeonEditorSystem::ItemData item_data;
+    item_data.item_id = new_item_id;
+    item_data.type = zelda3::DungeonEditorSystem::ItemType::kKey;
+    item_data.x = new_item_x;
+    item_data.y = new_item_y;
+    item_data.room_id = current_room;
+    item_data.is_hidden = new_item_hidden;
+    
+    auto status = dungeon_editor_system_->AddItem(item_data);
+    if (!status.ok()) {
+      ImGui::Text("Error adding item: %s", status.message().data());
+    }
+  }
+}
+
+void DungeonEditor::DrawEntranceEditor() {
+  if (!dungeon_editor_system_) {
+    ImGui::Text("Dungeon editor system not initialized");
+    return;
+  }
+
+  ImGui::Text("Entrance Editor");
+  ImGui::Separator();
+
+  // Display current room entrances
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto entrances_result = dungeon_editor_system_->GetEntrancesByRoom(current_room);
+  
+  if (entrances_result.ok()) {
+    auto entrances = entrances_result.value();
+    ImGui::Text("Entrances in room %d: %zu", current_room, entrances.size());
+    
+    for (const auto& entrance : entrances) {
+      ImGui::Text("ID: %d, Type: %d, Target Room: %d, Target Position: (%d, %d)", 
+                  entrance.entrance_id, static_cast<int>(entrance.type),
+                  entrance.target_room_id, entrance.target_x, entrance.target_y);
+    }
+  } else {
+    ImGui::Text("Error loading entrances: %s", entrances_result.status().message().data());
+  }
+
+  // Entrance creation controls
+  static int target_room_id = 0;
+  static int target_x = 0;
+  static int target_y = 0;
+  static int source_x = 0;
+  static int source_y = 0;
+
+  ImGui::Separator();
+  ImGui::Text("Create New Entrance");
+  ImGui::InputInt("Target Room ID", &target_room_id);
+  ImGui::InputInt("Source X", &source_x);
+  ImGui::InputInt("Source Y", &source_y);
+  ImGui::InputInt("Target X", &target_x);
+  ImGui::InputInt("Target Y", &target_y);
+
+  if (ImGui::Button("Connect Rooms")) {
+    auto status = dungeon_editor_system_->ConnectRooms(current_room, target_room_id, 
+                                                       source_x, source_y, 
+                                                       target_x, target_y);
+    if (!status.ok()) {
+      ImGui::Text("Error connecting rooms: %s", status.message().data());
+    }
+  }
+}
+
+void DungeonEditor::DrawDoorEditor() {
+  if (!dungeon_editor_system_) {
+    ImGui::Text("Dungeon editor system not initialized");
+    return;
+  }
+
+  ImGui::Text("Door Editor");
+  ImGui::Separator();
+
+  // Display current room doors
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto doors_result = dungeon_editor_system_->GetDoorsByRoom(current_room);
+  
+  if (doors_result.ok()) {
+    auto doors = doors_result.value();
+    ImGui::Text("Doors in room %d: %zu", current_room, doors.size());
+    
+    for (const auto& door : doors) {
+      ImGui::Text("ID: %d, Position: (%d, %d), Direction: %d, Target Room: %d", 
+                  door.door_id, door.x, door.y, door.direction, door.target_room_id);
+    }
+  } else {
+    ImGui::Text("Error loading doors: %s", doors_result.status().message().data());
+  }
+
+  // Door creation controls
+  static int door_x = 0;
+  static int door_y = 0;
+  static int door_direction = 0;
+  static int door_target_room = 0;
+  static int door_target_x = 0;
+  static int door_target_y = 0;
+  static bool door_locked = false;
+  static bool door_requires_key = false;
+  static int door_key_type = 0;
+
+  ImGui::Separator();
+  ImGui::Text("Create New Door");
+  ImGui::InputInt("Door X", &door_x);
+  ImGui::InputInt("Door Y", &door_y);
+  ImGui::SliderInt("Direction", &door_direction, 0, 3);
+  ImGui::InputInt("Target Room", &door_target_room);
+  ImGui::InputInt("Target X", &door_target_x);
+  ImGui::InputInt("Target Y", &door_target_y);
+  ImGui::Checkbox("Locked", &door_locked);
+  ImGui::Checkbox("Requires Key", &door_requires_key);
+  ImGui::InputInt("Key Type", &door_key_type);
+
+  if (ImGui::Button("Add Door")) {
+    zelda3::DungeonEditorSystem::DoorData door_data;
+    door_data.room_id = current_room;
+    door_data.x = door_x;
+    door_data.y = door_y;
+    door_data.direction = door_direction;
+    door_data.target_room_id = door_target_room;
+    door_data.target_x = door_target_x;
+    door_data.target_y = door_target_y;
+    door_data.is_locked = door_locked;
+    door_data.requires_key = door_requires_key;
+    door_data.key_type = door_key_type;
+    
+    auto status = dungeon_editor_system_->AddDoor(door_data);
+    if (!status.ok()) {
+      ImGui::Text("Error adding door: %s", status.message().data());
+    }
+  }
+}
+
+void DungeonEditor::DrawChestEditor() {
+  if (!dungeon_editor_system_) {
+    ImGui::Text("Dungeon editor system not initialized");
+    return;
+  }
+
+  ImGui::Text("Chest Editor");
+  ImGui::Separator();
+
+  // Display current room chests
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto chests_result = dungeon_editor_system_->GetChestsByRoom(current_room);
+  
+  if (chests_result.ok()) {
+    auto chests = chests_result.value();
+    ImGui::Text("Chests in room %d: %zu", current_room, chests.size());
+    
+    for (const auto& chest : chests) {
+      ImGui::Text("ID: %d, Position: (%d, %d), Big: %s, Item: %d, Quantity: %d", 
+                  chest.chest_id, chest.x, chest.y, 
+                  chest.is_big_chest ? "Yes" : "No",
+                  chest.item_id, chest.item_quantity);
+    }
+  } else {
+    ImGui::Text("Error loading chests: %s", chests_result.status().message().data());
+  }
+
+  // Chest creation controls
+  static int chest_x = 0;
+  static int chest_y = 0;
+  static bool chest_big = false;
+  static int chest_item_id = 0;
+  static int chest_item_quantity = 1;
+
+  ImGui::Separator();
+  ImGui::Text("Create New Chest");
+  ImGui::InputInt("Chest X", &chest_x);
+  ImGui::InputInt("Chest Y", &chest_y);
+  ImGui::Checkbox("Big Chest", &chest_big);
+  ImGui::InputInt("Item ID", &chest_item_id);
+  ImGui::InputInt("Item Quantity", &chest_item_quantity);
+
+  if (ImGui::Button("Add Chest")) {
+    zelda3::DungeonEditorSystem::ChestData chest_data;
+    chest_data.room_id = current_room;
+    chest_data.x = chest_x;
+    chest_data.y = chest_y;
+    chest_data.is_big_chest = chest_big;
+    chest_data.item_id = chest_item_id;
+    chest_data.item_quantity = chest_item_quantity;
+    
+    auto status = dungeon_editor_system_->AddChest(chest_data);
+    if (!status.ok()) {
+      ImGui::Text("Error adding chest: %s", status.message().data());
+    }
+  }
+}
+
+void DungeonEditor::DrawIntegratedEditingPanels() {
+  if (!dungeon_editor_system_ || !object_editor_) {
+    ImGui::Text("Editor systems not initialized");
+    return;
+  }
+
+  // Create a tabbed interface for different editing modes
+  if (ImGui::BeginTabBar("##EditingPanels")) {
+    
+    // Object Editor Tab
+    if (ImGui::BeginTabItem("Objects")) {
+      DrawCompactObjectEditor();
+      ImGui::EndTabItem();
+    }
+    
+    // Sprite Editor Tab
+    if (ImGui::BeginTabItem("Sprites")) {
+      DrawCompactSpriteEditor();
+      ImGui::EndTabItem();
+    }
+    
+    // Item Editor Tab
+    if (ImGui::BeginTabItem("Items")) {
+      DrawCompactItemEditor();
+      ImGui::EndTabItem();
+    }
+    
+    // Entrance Editor Tab
+    if (ImGui::BeginTabItem("Entrances")) {
+      DrawCompactEntranceEditor();
+      ImGui::EndTabItem();
+    }
+    
+    // Door Editor Tab
+    if (ImGui::BeginTabItem("Doors")) {
+      DrawCompactDoorEditor();
+      ImGui::EndTabItem();
+    }
+    
+    // Chest Editor Tab
+    if (ImGui::BeginTabItem("Chests")) {
+      DrawCompactChestEditor();
+      ImGui::EndTabItem();
+    }
+    
+    // Properties Tab
+    if (ImGui::BeginTabItem("Properties")) {
+      DrawCompactPropertiesEditor();
+      ImGui::EndTabItem();
+    }
+    
+    ImGui::EndTabBar();
+  }
+}
+
+void DungeonEditor::DrawCompactObjectEditor() {
+  ImGui::Text("Object Editor");
+  ImGui::Separator();
+
+  // Display current editing mode
+  auto mode = object_editor_->GetMode();
+  const char* mode_names[] = {
+    "Select", "Insert", "Delete", "Edit", "Layer", "Preview"
+  };
+  ImGui::Text("Mode: %s", mode_names[static_cast<int>(mode)]);
+
+  // Compact mode selection
+  if (ImGui::Button("Select")) object_editor_->SetMode(zelda3::DungeonObjectEditor::Mode::kSelect);
+  ImGui::SameLine();
+  if (ImGui::Button("Insert")) object_editor_->SetMode(zelda3::DungeonObjectEditor::Mode::kInsert);
+  ImGui::SameLine();
+  if (ImGui::Button("Edit")) object_editor_->SetMode(zelda3::DungeonObjectEditor::Mode::kEdit);
+
+  // Layer and object type selection
+  int current_layer = object_editor_->GetCurrentLayer();
+  if (ImGui::SliderInt("Layer", &current_layer, 0, 2)) {
+    object_editor_->SetCurrentLayer(current_layer);
+  }
+
+  int current_object_type = object_editor_->GetCurrentObjectType();
+  if (ImGui::InputInt("Object Type", &current_object_type, 1, 16)) {
+    if (current_object_type >= 0 && current_object_type <= 0x3FF) {
+      object_editor_->SetCurrentObjectType(current_object_type);
+    }
+  }
+
+  // Quick configuration checkboxes
+  auto config = object_editor_->GetConfig();
+  if (ImGui::Checkbox("Snap to Grid", &config.snap_to_grid)) {
+    object_editor_->SetConfig(config);
+  }
+  ImGui::SameLine();
+  if (ImGui::Checkbox("Show Grid", &config.show_grid)) {
+    object_editor_->SetConfig(config);
+  }
+
+  // Object count and selection info
+  ImGui::Separator();
+  ImGui::Text("Objects: %zu", object_editor_->GetObjectCount());
+  
+  auto selection = object_editor_->GetSelection();
+  if (!selection.selected_objects.empty()) {
+    ImGui::Text("Selected: %zu", selection.selected_objects.size());
+  }
+
+  // Undo/Redo buttons
+  ImGui::Separator();
+  if (ImGui::Button("Undo") && object_editor_->CanUndo()) {
+    object_editor_->Undo();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Redo") && object_editor_->CanRedo()) {
+    object_editor_->Redo();
+  }
+}
+
+void DungeonEditor::DrawCompactSpriteEditor() {
+  ImGui::Text("Sprite Editor");
+  ImGui::Separator();
+
+  // Display current room sprites
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto sprites_result = dungeon_editor_system_->GetSpritesByRoom(current_room);
+  
+  if (sprites_result.ok()) {
+    auto sprites = sprites_result.value();
+    ImGui::Text("Sprites in room %d: %zu", current_room, sprites.size());
+    
+    // Show first few sprites in compact format
+    int display_count = std::min(3, static_cast<int>(sprites.size()));
+    for (int i = 0; i < display_count; ++i) {
+      const auto& sprite = sprites[i];
+      ImGui::Text("ID:%d Type:%d (%d,%d)", 
+                  sprite.sprite_id, static_cast<int>(sprite.type), 
+                  sprite.x, sprite.y);
+    }
+    if (sprites.size() > 3) {
+      ImGui::Text("... and %zu more", sprites.size() - 3);
+    }
+  } else {
+    ImGui::Text("Error loading sprites");
+  }
+
+  // Quick sprite placement
+  ImGui::Separator();
+  ImGui::Text("Quick Add Sprite");
+  
+  static int new_sprite_id = 0;
+  static int new_sprite_x = 0;
+  static int new_sprite_y = 0;
+  
+  ImGui::InputInt("ID", &new_sprite_id);
+  ImGui::InputInt("X", &new_sprite_x);
+  ImGui::InputInt("Y", &new_sprite_y);
+  
+  if (ImGui::Button("Add Sprite")) {
+    zelda3::DungeonEditorSystem::SpriteData sprite_data;
+    sprite_data.sprite_id = new_sprite_id;
+    sprite_data.type = zelda3::DungeonEditorSystem::SpriteType::kEnemy;
+    sprite_data.x = new_sprite_x;
+    sprite_data.y = new_sprite_y;
+    sprite_data.layer = 0;
+    
+    auto status = dungeon_editor_system_->AddSprite(sprite_data);
+    if (!status.ok()) {
+      ImGui::Text("Error adding sprite");
+    }
+  }
+}
+
+void DungeonEditor::DrawCompactItemEditor() {
+  ImGui::Text("Item Editor");
+  ImGui::Separator();
+
+  // Display current room items
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto items_result = dungeon_editor_system_->GetItemsByRoom(current_room);
+  
+  if (items_result.ok()) {
+    auto items = items_result.value();
+    ImGui::Text("Items in room %d: %zu", current_room, items.size());
+    
+    // Show first few items in compact format
+    int display_count = std::min(3, static_cast<int>(items.size()));
+    for (int i = 0; i < display_count; ++i) {
+      const auto& item = items[i];
+      ImGui::Text("ID:%d Type:%d (%d,%d)", 
+                  item.item_id, static_cast<int>(item.type), 
+                  item.x, item.y);
+    }
+    if (items.size() > 3) {
+      ImGui::Text("... and %zu more", items.size() - 3);
+    }
+  } else {
+    ImGui::Text("Error loading items");
+  }
+
+  // Quick item placement
+  ImGui::Separator();
+  ImGui::Text("Quick Add Item");
+  
+  static int new_item_id = 0;
+  static int new_item_x = 0;
+  static int new_item_y = 0;
+  
+  ImGui::InputInt("ID", &new_item_id);
+  ImGui::InputInt("X", &new_item_x);
+  ImGui::InputInt("Y", &new_item_y);
+  
+  if (ImGui::Button("Add Item")) {
+    zelda3::DungeonEditorSystem::ItemData item_data;
+    item_data.item_id = new_item_id;
+    item_data.type = zelda3::DungeonEditorSystem::ItemType::kKey;
+    item_data.x = new_item_x;
+    item_data.y = new_item_y;
+    item_data.room_id = current_room;
+    item_data.is_hidden = false;
+    
+    auto status = dungeon_editor_system_->AddItem(item_data);
+    if (!status.ok()) {
+      ImGui::Text("Error adding item");
+    }
+  }
+}
+
+void DungeonEditor::DrawCompactEntranceEditor() {
+  ImGui::Text("Entrance Editor");
+  ImGui::Separator();
+
+  // Display current room entrances
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto entrances_result = dungeon_editor_system_->GetEntrancesByRoom(current_room);
+  
+  if (entrances_result.ok()) {
+    auto entrances = entrances_result.value();
+    ImGui::Text("Entrances: %zu", entrances.size());
+    
+    for (const auto& entrance : entrances) {
+      ImGui::Text("ID:%d -> Room:%d (%d,%d)", 
+                  entrance.entrance_id, entrance.target_room_id,
+                  entrance.target_x, entrance.target_y);
+    }
+  } else {
+    ImGui::Text("Error loading entrances");
+  }
+
+  // Quick room connection
+  ImGui::Separator();
+  ImGui::Text("Connect Rooms");
+  
+  static int target_room_id = 0;
+  static int source_x = 0;
+  static int source_y = 0;
+  static int target_x = 0;
+  static int target_y = 0;
+  
+  ImGui::InputInt("Target Room", &target_room_id);
+  ImGui::InputInt("Source X", &source_x);
+  ImGui::InputInt("Source Y", &source_y);
+  ImGui::InputInt("Target X", &target_x);
+  ImGui::InputInt("Target Y", &target_y);
+  
+  if (ImGui::Button("Connect")) {
+    auto status = dungeon_editor_system_->ConnectRooms(current_room, target_room_id, 
+                                                       source_x, source_y, 
+                                                       target_x, target_y);
+    if (!status.ok()) {
+      ImGui::Text("Error connecting rooms");
+    }
+  }
+}
+
+void DungeonEditor::DrawCompactDoorEditor() {
+  ImGui::Text("Door Editor");
+  ImGui::Separator();
+
+  // Display current room doors
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto doors_result = dungeon_editor_system_->GetDoorsByRoom(current_room);
+  
+  if (doors_result.ok()) {
+    auto doors = doors_result.value();
+    ImGui::Text("Doors: %zu", doors.size());
+    
+    for (const auto& door : doors) {
+      ImGui::Text("ID:%d (%d,%d) -> Room:%d", 
+                  door.door_id, door.x, door.y, door.target_room_id);
+    }
+  } else {
+    ImGui::Text("Error loading doors");
+  }
+
+  // Quick door creation
+  ImGui::Separator();
+  ImGui::Text("Add Door");
+  
+  static int door_x = 0;
+  static int door_y = 0;
+  static int door_direction = 0;
+  static int door_target_room = 0;
+  
+  ImGui::InputInt("X", &door_x);
+  ImGui::InputInt("Y", &door_y);
+  ImGui::SliderInt("Dir", &door_direction, 0, 3);
+  ImGui::InputInt("Target", &door_target_room);
+  
+  if (ImGui::Button("Add Door")) {
+    zelda3::DungeonEditorSystem::DoorData door_data;
+    door_data.room_id = current_room;
+    door_data.x = door_x;
+    door_data.y = door_y;
+    door_data.direction = door_direction;
+    door_data.target_room_id = door_target_room;
+    door_data.target_x = door_x;
+    door_data.target_y = door_y;
+    door_data.is_locked = false;
+    door_data.requires_key = false;
+    door_data.key_type = 0;
+    
+    auto status = dungeon_editor_system_->AddDoor(door_data);
+    if (!status.ok()) {
+      ImGui::Text("Error adding door");
+    }
+  }
+}
+
+void DungeonEditor::DrawCompactChestEditor() {
+  ImGui::Text("Chest Editor");
+  ImGui::Separator();
+
+  // Display current room chests
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto chests_result = dungeon_editor_system_->GetChestsByRoom(current_room);
+  
+  if (chests_result.ok()) {
+    auto chests = chests_result.value();
+    ImGui::Text("Chests: %zu", chests.size());
+    
+    for (const auto& chest : chests) {
+      ImGui::Text("ID:%d (%d,%d) Item:%d", 
+                  chest.chest_id, chest.x, chest.y, chest.item_id);
+    }
+  } else {
+    ImGui::Text("Error loading chests");
+  }
+
+  // Quick chest creation
+  ImGui::Separator();
+  ImGui::Text("Add Chest");
+  
+  static int chest_x = 0;
+  static int chest_y = 0;
+  static int chest_item_id = 0;
+  static bool chest_big = false;
+  
+  ImGui::InputInt("X", &chest_x);
+  ImGui::InputInt("Y", &chest_y);
+  ImGui::InputInt("Item ID", &chest_item_id);
+  ImGui::Checkbox("Big", &chest_big);
+  
+  if (ImGui::Button("Add Chest")) {
+    zelda3::DungeonEditorSystem::ChestData chest_data;
+    chest_data.room_id = current_room;
+    chest_data.x = chest_x;
+    chest_data.y = chest_y;
+    chest_data.is_big_chest = chest_big;
+    chest_data.item_id = chest_item_id;
+    chest_data.item_quantity = 1;
+    
+    auto status = dungeon_editor_system_->AddChest(chest_data);
+    if (!status.ok()) {
+      ImGui::Text("Error adding chest");
+    }
+  }
+}
+
+void DungeonEditor::DrawCompactPropertiesEditor() {
+  ImGui::Text("Room Properties");
+  ImGui::Separator();
+
+  auto current_room = dungeon_editor_system_->GetCurrentRoom();
+  auto properties_result = dungeon_editor_system_->GetRoomProperties(current_room);
+  
+  if (properties_result.ok()) {
+    auto properties = properties_result.value();
+    
+    static char room_name[128] = {0};
+    static int dungeon_id = 0;
+    static int floor_level = 0;
+    static bool is_boss_room = false;
+    static bool is_save_room = false;
+    static int music_id = 0;
+
+    // Copy current values
+    strncpy(room_name, properties.name.c_str(), sizeof(room_name) - 1);
+    dungeon_id = properties.dungeon_id;
+    floor_level = properties.floor_level;
+    is_boss_room = properties.is_boss_room;
+    is_save_room = properties.is_save_room;
+    music_id = properties.music_id;
+
+    ImGui::InputText("Name", room_name, sizeof(room_name));
+    ImGui::InputInt("Dungeon ID", &dungeon_id);
+    ImGui::InputInt("Floor", &floor_level);
+    ImGui::InputInt("Music", &music_id);
+    ImGui::Checkbox("Boss Room", &is_boss_room);
+    ImGui::Checkbox("Save Room", &is_save_room);
+
+    if (ImGui::Button("Save Properties")) {
+      zelda3::DungeonEditorSystem::RoomProperties new_properties;
+      new_properties.room_id = current_room;
+      new_properties.name = room_name;
+      new_properties.dungeon_id = dungeon_id;
+      new_properties.floor_level = floor_level;
+      new_properties.is_boss_room = is_boss_room;
+      new_properties.is_save_room = is_save_room;
+      new_properties.music_id = music_id;
+      
+      auto status = dungeon_editor_system_->SetRoomProperties(current_room, new_properties);
+      if (!status.ok()) {
+        ImGui::Text("Error saving properties");
+      }
+    }
+  } else {
+    ImGui::Text("Error loading properties");
+  }
+
+  // Dungeon settings summary
+  ImGui::Separator();
+  ImGui::Text("Dungeon Settings");
+  
+  auto dungeon_settings_result = dungeon_editor_system_->GetDungeonSettings();
+  if (dungeon_settings_result.ok()) {
+    auto settings = dungeon_settings_result.value();
+    ImGui::Text("Dungeon: %s", settings.name.c_str());
+    ImGui::Text("Rooms: %d", settings.total_rooms);
+    ImGui::Text("Start: %d", settings.starting_room_id);
+    ImGui::Text("Boss: %d", settings.boss_room_id);
   }
 }
 

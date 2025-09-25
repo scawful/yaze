@@ -26,6 +26,9 @@ add_executable(
   zelda3/overworld_integration_test.cc
   zelda3/comprehensive_integration_test.cc
   zelda3/dungeon_integration_test.cc
+  zelda3/dungeon_object_renderer_integration_test.cc
+  zelda3/dungeon_object_renderer_mock_test.cc
+  zelda3/dungeon_editor_system_integration_test.cc
   zelda3/sprite_builder_test.cc
   zelda3/sprite_position_test.cc
   emu/cpu_test.cc

@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "app/rom.h"
-#include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/dungeon/room_layout.h"
+#include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -201,7 +201,7 @@ enum TagKey {
 class Room {
  public:
   Room() = default;
-  Room(int room_id, Rom *rom) : room_id_(room_id), rom_(rom), layout_(rom) {}
+  Room(int room_id, Rom* rom) : room_id_(room_id), rom_(rom), layout_(rom) {}
 
   void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
@@ -216,14 +216,95 @@ class Room {
   void LoadTorches();
   void LoadBlocks();
   void LoadPits();
+
   const RoomLayout& GetLayout() const { return layout_; }
+  RoomLayout& GetLayout() { return layout_; }
 
-  auto blocks() const { return blocks_; }
-  auto &mutable_blocks() { return blocks_; }
-  auto rom() { return rom_; }
-  auto mutable_rom() { return rom_; }
+  // Public getters and manipulators for sprites
+  const std::vector<zelda3::Sprite>& GetSprites() const { return sprites_; }
+  std::vector<zelda3::Sprite>& GetSprites() { return sprites_; }
 
-  Rom *rom_;
+  // Public getters and manipulators for chests
+  const std::vector<chest_data>& GetChests() const { return chests_in_room_; }
+  std::vector<chest_data>& GetChests() { return chests_in_room_; }
+
+  // Public getters and manipulators for stairs
+  const std::vector<staircase>& GetStairs() const { return z3_staircases_; }
+  std::vector<staircase>& GetStairs() { return z3_staircases_; }
+
+
+  // Public getters and manipulators for tile objects
+  const std::vector<RoomObject>& GetTileObjects() const {
+    return tile_objects_;
+  }
+  std::vector<RoomObject>& GetTileObjects() { return tile_objects_; }
+
+  // Methods for modifying tile objects
+  void ClearTileObjects() { tile_objects_.clear(); }
+  void AddTileObject(const RoomObject& object) {
+    tile_objects_.push_back(object);
+  }
+  void RemoveTileObject(size_t index) {
+    if (index < tile_objects_.size()) {
+      tile_objects_.erase(tile_objects_.begin() + index);
+    }
+  }
+  size_t GetTileObjectCount() const { return tile_objects_.size(); }
+  RoomObject& GetTileObject(size_t index) { return tile_objects_[index]; }
+  const RoomObject& GetTileObject(size_t index) const {
+    return tile_objects_[index];
+  }
+
+  // For undo/redo functionality
+  void SetTileObjects(const std::vector<RoomObject>& objects) {
+    tile_objects_ = objects;
+  }
+
+  // Public setters for LoadRoomFromRom function
+  void SetBg2(background2 bg2) { bg2_ = bg2; }
+  void SetCollision(CollisionKey collision) { collision_ = collision; }
+  void SetIsLight(bool is_light) { is_light_ = is_light; }
+  void SetPalette(uint8_t palette) { this->palette = palette; }
+  void SetBlockset(uint8_t blockset) { this->blockset = blockset; }
+  void SetSpriteset(uint8_t spriteset) { this->spriteset = spriteset; }
+  void SetEffect(EffectKey effect) { effect_ = effect; }
+  void SetTag1(TagKey tag1) { tag1_ = tag1; }
+  void SetTag2(TagKey tag2) { tag2_ = tag2; }
+  void SetStaircasePlane(int index, uint8_t plane) {
+    if (index >= 0 && index < 4) staircase_plane_[index] = plane;
+  }
+  void SetHolewarp(uint8_t holewarp) { this->holewarp = holewarp; }
+  void SetStaircaseRoom(int index, uint8_t room) {
+    if (index >= 0 && index < 4) staircase_rooms_[index] = room;
+  }
+  void SetFloor1(uint8_t floor1) { this->floor1 = floor1; }
+  void SetFloor2(uint8_t floor2) { this->floor2 = floor2; }
+  void SetMessageId(uint16_t message_id) { message_id_ = message_id; }
+
+  // Getters for LoadRoomFromRom function
+  bool IsLight() const { return is_light_; }
+
+  // Additional setters for LoadRoomFromRom function
+  void SetMessageIdDirect(uint16_t message_id) { message_id_ = message_id; }
+  void SetLayer2Mode(uint8_t mode) { layer2_mode_ = mode; }
+  void SetLayerMerging(LayerMergeType merging) { layer_merging_ = merging; }
+  void SetIsDark(bool is_dark) { is_dark_ = is_dark; }
+  void SetPaletteDirect(uint8_t palette) { palette_ = palette; }
+  void SetBackgroundTileset(uint8_t tileset) { background_tileset_ = tileset; }
+  void SetSpriteTileset(uint8_t tileset) { sprite_tileset_ = tileset; }
+  void SetLayer2Behavior(uint8_t behavior) { layer2_behavior_ = behavior; }
+  void SetTag1Direct(TagKey tag1) { tag1_ = tag1; }
+  void SetTag2Direct(TagKey tag2) { tag2_ = tag2; }
+  void SetPitsTargetLayer(uint8_t layer) { pits_.target_layer = layer; }
+  void SetStair1TargetLayer(uint8_t layer) { stair1_.target_layer = layer; }
+  void SetStair2TargetLayer(uint8_t layer) { stair2_.target_layer = layer; }
+  void SetStair3TargetLayer(uint8_t layer) { stair3_.target_layer = layer; }
+  void SetStair4TargetLayer(uint8_t layer) { stair4_.target_layer = layer; }
+  void SetPitsTarget(uint8_t target) { pits_.target = target; }
+  void SetStair1Target(uint8_t target) { stair1_.target = target; }
+  void SetStair2Target(uint8_t target) { stair2_.target = target; }
+  void SetStair3Target(uint8_t target) { stair3_.target = target; }
+  void SetStair4Target(uint8_t target) { stair4_.target = target; }
 
   uint8_t blockset = 0;
   uint8_t spriteset = 0;
@@ -233,6 +314,18 @@ class Room {
   uint8_t floor1 = 0;
   uint8_t floor2 = 0;
   uint16_t message_id_ = 0;
+  // Enhanced object parsing methods
+  void ParseObjectsFromLocation(int objects_location);
+  void HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY,
+                            int& nbr_of_staircase);
+
+  auto blocks() const { return blocks_; }
+  auto& mutable_blocks() { return blocks_; }
+  auto rom() { return rom_; }
+  auto mutable_rom() { return rom_; }
+
+ private:
+  Rom* rom_;
 
   std::array<uint8_t, 0x4000> current_gfx16_;
 
@@ -263,7 +356,7 @@ class Room {
   std::vector<zelda3::Sprite> sprites_;
   std::vector<staircase> z3_staircases_;
   std::vector<chest_data> chests_in_room_;
-  
+
   // Room layout system for walls, floors, and structural elements
   RoomLayout layout_;
 
@@ -282,7 +375,7 @@ class Room {
 };
 
 // Loads a room from the ROM.
-Room LoadRoomFromRom(Rom *rom, int room_id);
+Room LoadRoomFromRom(Rom* rom, int room_id);
 
 struct RoomSize {
   int64_t room_size_pointer;
@@ -290,7 +383,7 @@ struct RoomSize {
 };
 
 // Calculates the size of a room in the ROM.
-RoomSize CalculateRoomSize(Rom *rom, int room_id);
+RoomSize CalculateRoomSize(Rom* rom, int room_id);
 
 static const std::string RoomEffect[] = {"Nothing",
                                          "Nothing",

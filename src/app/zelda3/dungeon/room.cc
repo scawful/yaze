@@ -91,31 +91,31 @@ Room LoadRoomFromRom(Rom *rom, int room_id) {
 
   auto header_location = SnesToPc(address);
 
-  room.bg2_ = (background2)((rom->data()[header_location] >> 5) & 0x07);
-  room.collision_ = (CollisionKey)((rom->data()[header_location] >> 2) & 0x07);
-  room.is_light_ = ((rom->data()[header_location]) & 0x01) == 1;
+  room.SetBg2((background2)((rom->data()[header_location] >> 5) & 0x07));
+  room.SetCollision((CollisionKey)((rom->data()[header_location] >> 2) & 0x07));
+  room.SetIsLight(((rom->data()[header_location]) & 0x01) == 1);
 
-  if (room.is_light_) {
-    room.bg2_ = background2::DarkRoom;
+  if (room.IsLight()) {
+    room.SetBg2(background2::DarkRoom);
   }
 
-  room.palette = ((rom->data()[header_location + 1] & 0x3F));
-  room.blockset = (rom->data()[header_location + 2]);
-  room.spriteset = (rom->data()[header_location + 3]);
-  room.effect_ = (EffectKey)((rom->data()[header_location + 4]));
-  room.tag1_ = (TagKey)((rom->data()[header_location + 5]));
-  room.tag2_ = (TagKey)((rom->data()[header_location + 6]));
+  room.SetPalette(((rom->data()[header_location + 1] & 0x3F)));
+  room.SetBlockset((rom->data()[header_location + 2]));
+  room.SetSpriteset((rom->data()[header_location + 3]));
+  room.SetEffect((EffectKey)((rom->data()[header_location + 4])));
+  room.SetTag1((TagKey)((rom->data()[header_location + 5])));
+  room.SetTag2((TagKey)((rom->data()[header_location + 6])));
 
-  room.staircase_plane_[0] = ((rom->data()[header_location + 7] >> 2) & 0x03);
-  room.staircase_plane_[1] = ((rom->data()[header_location + 7] >> 4) & 0x03);
-  room.staircase_plane_[2] = ((rom->data()[header_location + 7] >> 6) & 0x03);
-  room.staircase_plane_[3] = ((rom->data()[header_location + 8]) & 0x03);
+  room.SetStaircasePlane(0, ((rom->data()[header_location + 7] >> 2) & 0x03));
+  room.SetStaircasePlane(1, ((rom->data()[header_location + 7] >> 4) & 0x03));
+  room.SetStaircasePlane(2, ((rom->data()[header_location + 7] >> 6) & 0x03));
+  room.SetStaircasePlane(3, ((rom->data()[header_location + 8]) & 0x03));
 
-  room.holewarp = (rom->data()[header_location + 9]);
-  room.staircase_rooms_[0] = (rom->data()[header_location + 10]);
-  room.staircase_rooms_[1] = (rom->data()[header_location + 11]);
-  room.staircase_rooms_[2] = (rom->data()[header_location + 12]);
-  room.staircase_rooms_[3] = (rom->data()[header_location + 13]);
+  room.SetHolewarp((rom->data()[header_location + 9]));
+  room.SetStaircaseRoom(0, (rom->data()[header_location + 10]));
+  room.SetStaircaseRoom(1, (rom->data()[header_location + 11]));
+  room.SetStaircaseRoom(2, (rom->data()[header_location + 12]));
+  room.SetStaircaseRoom(3, (rom->data()[header_location + 13]));
 
   // =====
 
@@ -128,54 +128,54 @@ Room LoadRoomFromRom(Rom *rom, int room_id) {
                   (rom->data()[(header_pointer_2 + 1) + (room_id * 2)] << 8) +
                   rom->data()[(header_pointer_2) + (room_id * 2)];
 
-  room.message_id_ = messages_id_dungeon + (room_id * 2);
+  room.SetMessageIdDirect(messages_id_dungeon + (room_id * 2));
 
   auto hpos = SnesToPc(address_2);
   hpos++;
   uint8_t b = rom->data()[hpos];
 
-  room.layer2_mode_ = (b >> 5);
-  room.layer_merging_ = kLayerMergeTypeList[(b & 0x0C) >> 2];
+  room.SetLayer2Mode((b >> 5));
+  room.SetLayerMerging(kLayerMergeTypeList[(b & 0x0C) >> 2]);
 
-  room.is_dark_ = (b & 0x01) == 0x01;
+  room.SetIsDark((b & 0x01) == 0x01);
   hpos++;
-  room.palette_ = rom->data()[hpos];
-  hpos++;
-
-  room.background_tileset_ = rom->data()[hpos];
+  room.SetPaletteDirect(rom->data()[hpos]);
   hpos++;
 
-  room.sprite_tileset_ = rom->data()[hpos];
+  room.SetBackgroundTileset(rom->data()[hpos]);
   hpos++;
 
-  room.layer2_behavior_ = rom->data()[hpos];
+  room.SetSpriteTileset(rom->data()[hpos]);
   hpos++;
 
-  room.tag1_ = (TagKey)rom->data()[hpos];
+  room.SetLayer2Behavior(rom->data()[hpos]);
   hpos++;
 
-  room.tag2_ = (TagKey)rom->data()[hpos];
+  room.SetTag1Direct((TagKey)rom->data()[hpos]);
+  hpos++;
+
+  room.SetTag2Direct((TagKey)rom->data()[hpos]);
   hpos++;
 
   b = rom->data()[hpos];
 
-  room.pits_.target_layer = (uint8_t)(b & 0x03);
-  room.stair1_.target_layer = (uint8_t)((b >> 2) & 0x03);
-  room.stair2_.target_layer = (uint8_t)((b >> 4) & 0x03);
-  room.stair3_.target_layer = (uint8_t)((b >> 6) & 0x03);
+  room.SetPitsTargetLayer((uint8_t)(b & 0x03));
+  room.SetStair1TargetLayer((uint8_t)((b >> 2) & 0x03));
+  room.SetStair2TargetLayer((uint8_t)((b >> 4) & 0x03));
+  room.SetStair3TargetLayer((uint8_t)((b >> 6) & 0x03));
   hpos++;
-  room.stair4_.target_layer = (uint8_t)(rom->data()[hpos] & 0x03);
+  room.SetStair4TargetLayer((uint8_t)(rom->data()[hpos] & 0x03));
   hpos++;
 
-  room.pits_.target = rom->data()[hpos];
+  room.SetPitsTarget(rom->data()[hpos]);
   hpos++;
-  room.stair1_.target = rom->data()[hpos];
+  room.SetStair1Target(rom->data()[hpos]);
   hpos++;
-  room.stair2_.target = rom->data()[hpos];
+  room.SetStair2Target(rom->data()[hpos]);
   hpos++;
-  room.stair3_.target = rom->data()[hpos];
+  room.SetStair3Target(rom->data()[hpos]);
   hpos++;
-  room.stair4_.target = rom->data()[hpos];
+  room.SetStair4Target(rom->data()[hpos]);
   hpos++;
 
   // Load room objects
@@ -306,35 +306,61 @@ void Room::LoadAnimatedGraphics() {
 
 void Room::LoadObjects() {
   auto rom_data = rom()->vector();
+  
+  // Enhanced object loading with comprehensive validation
   int object_pointer = (rom_data[room_object_pointer + 2] << 16) +
                        (rom_data[room_object_pointer + 1] << 8) +
                        (rom_data[room_object_pointer]);
   object_pointer = SnesToPc(object_pointer);
+  
+  // Enhanced bounds checking for object pointer
+  if (object_pointer < 0 || object_pointer >= (int)rom_->size()) {
+    util::logf("Object pointer out of range for room %d: %#06x", room_id_, object_pointer);
+    return;
+  }
+  
   int room_address = object_pointer + (room_id_ * 3);
+  
+  // Enhanced bounds checking for room address
+  if (room_address < 0 || room_address + 2 >= (int)rom_->size()) {
+    util::logf("Room address out of range for room %d: %#06x", room_id_, room_address);
+    return;
+  }
 
   int tile_address = (rom_data[room_address + 2] << 16) +
                      (rom_data[room_address + 1] << 8) + rom_data[room_address];
 
   int objects_location = SnesToPc(tile_address);
-
-  if (objects_location == 0x52CA2) {
-    std::cout << "Room ID : " << room_id_ << std::endl;
+  
+  // Enhanced bounds checking for objects location
+  if (objects_location < 0 || objects_location >= (int)rom_->size()) {
+    util::logf("Objects location out of range for room %d: %#06x", room_id_, objects_location);
+    return;
   }
 
-  if (is_floor_) {
-    floor1_graphics_ = static_cast<uint8_t>(rom_data[objects_location] & 0x0F);
-    floor2_graphics_ =
-        static_cast<uint8_t>((rom_data[objects_location] >> 4) & 0x0F);
-  }
+  // Parse floor graphics and layout with validation
+  if (objects_location + 1 < (int)rom_->size()) {
+    if (is_floor_) {
+      floor1_graphics_ = static_cast<uint8_t>(rom_data[objects_location] & 0x0F);
+      floor2_graphics_ = static_cast<uint8_t>((rom_data[objects_location] >> 4) & 0x0F);
+    }
 
-  layout = static_cast<uint8_t>((rom_data[objects_location + 1] >> 2) & 0x07);
+    layout = static_cast<uint8_t>((rom_data[objects_location + 1] >> 2) & 0x07);
+  }
 
   LoadChests();
 
+  // Parse objects with enhanced error handling
+  ParseObjectsFromLocation(objects_location + 2);
+}
+
+void Room::ParseObjectsFromLocation(int objects_location) {
+  auto rom_data = rom()->vector();
+  
   z3_staircases_.clear();
   int nbr_of_staircase = 0;
 
-  int pos = objects_location + 2;
+  int pos = objects_location;
   uint8_t b1 = 0;
   uint8_t b2 = 0;
   uint8_t b3 = 0;
@@ -347,12 +373,19 @@ void Room::LoadObjects() {
   int layer = 0;
   bool door = false;
   bool end_read = false;
-  while (!end_read) {
+  
+  // Enhanced parsing loop with bounds checking
+  while (!end_read && pos < (int)rom_->size()) {
+    // Check if we have enough bytes to read
+    if (pos + 1 >= (int)rom_->size()) {
+      break;
+    }
+    
     b1 = rom_data[pos];
     b2 = rom_data[pos + 1];
 
     if (b1 == 0xFF && b2 == 0xFF) {
-      pos += 2;  // We jump to layer2
+      pos += 2;  // Jump to next layer
       layer++;
       door = false;
       if (layer == 3) {
@@ -362,11 +395,16 @@ void Room::LoadObjects() {
     }
 
     if (b1 == 0xF0 && b2 == 0xFF) {
-      pos += 2;  // We jump to layer2
+      pos += 2;  // Jump to door section
       door = true;
       continue;
     }
 
+    // Check if we have enough bytes for object data
+    if (pos + 2 >= (int)rom_->size()) {
+      break;
+    }
+    
     b3 = rom_data[pos + 2];
     if (door) {
       pos += 2;
@@ -375,6 +413,7 @@ void Room::LoadObjects() {
     }
 
     if (!door) {
+      // Parse object with enhanced validation
       if (b3 >= 0xF8) {
         oid = static_cast<short>((b3 << 4) |
                                  0x80 + (((b2 & 0x03) << 2) + ((b1 & 0x03))));
@@ -397,51 +436,56 @@ void Room::LoadObjects() {
         sizeXY = 0;
       }
 
-      RoomObject r(oid, posX, posY, sizeXY, static_cast<uint8_t>(layer));
-      r.set_rom(rom_);
-      tile_objects_.push_back(r);
+      // Validate object ID before creating object
+      if (oid >= 0 && oid <= 0x3FF) {
+        RoomObject r(oid, posX, posY, sizeXY, static_cast<uint8_t>(layer));
+        r.set_rom(rom_);
+        tile_objects_.push_back(r);
 
-      for (short stair : stairsObjects) {
-        if (stair == oid) {
-          if (nbr_of_staircase < 4) {
-            tile_objects_.back().set_options(ObjectOption::Stairs |
-                                             tile_objects_.back().options());
-            z3_staircases_.push_back(staircase(
-                posX, posY,
-                absl::StrCat("To ", staircase_rooms_[nbr_of_staircase])
-                    .data()));
-            nbr_of_staircase++;
-          } else {
-            tile_objects_.back().set_options(ObjectOption::Stairs |
-                                             tile_objects_.back().options());
-            z3_staircases_.push_back(staircase(posX, posY, "To ???"));
-          }
-        }
-      }
-
-      if (oid == 0xF99) {
-        if (chests_in_room_.size() > 0) {
-          tile_objects_.back().set_options(ObjectOption::Chest |
-                                           tile_objects_.back().options());
-          // chest_list_.push_back(
-          // z3_chest(posX, posY, chests_in_room_.front().itemIn, false));
-          chests_in_room_.erase(chests_in_room_.begin());
-        }
-      } else if (oid == 0xFB1) {
-        if (chests_in_room_.size() > 0) {
-          tile_objects_.back().set_options(ObjectOption::Chest |
-                                           tile_objects_.back().options());
-          // chest_list_.push_back(
-          //     z3_chest(posX + 1, posY, chests_in_room_.front().item_in,
-          //     true));
-          chests_in_room_.erase(chests_in_room_.begin());
-        }
+        // Handle special object types
+        HandleSpecialObjects(oid, posX, posY, nbr_of_staircase);
       }
     } else {
-      // tile_objects_.push_back(z3_object_door(static_cast<short>((b2 << 8) +
-      // b1),
-      //                                        0, 0, 0,
-      //                                        static_cast<uint8_t>(layer)));
+      // Handle door objects (placeholder for future implementation)
+      // tile_objects_.push_back(z3_object_door(static_cast<short>((b2 << 8) + b1),
+      //                                        0, 0, 0, static_cast<uint8_t>(layer)));
+    }
+  }
+}
+
+void Room::HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY, int& nbr_of_staircase) {
+  // Handle staircase objects
+  for (short stair : stairsObjects) {
+    if (stair == oid) {
+      if (nbr_of_staircase < 4) {
+        tile_objects_.back().set_options(ObjectOption::Stairs |
+                                         tile_objects_.back().options());
+        z3_staircases_.push_back(staircase(
+            posX, posY,
+            absl::StrCat("To ", staircase_rooms_[nbr_of_staircase])
+                .data()));
+        nbr_of_staircase++;
+      } else {
+        tile_objects_.back().set_options(ObjectOption::Stairs |
+                                         tile_objects_.back().options());
+        z3_staircases_.push_back(staircase(posX, posY, "To ???"));
+      }
+      break;
+    }
+  }
+
+  // Handle chest objects
+  if (oid == 0xF99) {
+    if (chests_in_room_.size() > 0) {
+      tile_objects_.back().set_options(ObjectOption::Chest |
+                                       tile_objects_.back().options());
+      chests_in_room_.erase(chests_in_room_.begin());
+    }
+  } else if (oid == 0xFB1) {
+    if (chests_in_room_.size() > 0) {
+      tile_objects_.back().set_options(ObjectOption::Chest |
+                                       tile_objects_.back().options());
+      chests_in_room_.erase(chests_in_room_.begin());
     }
   }
 }

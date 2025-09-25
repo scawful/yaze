@@ -49,6 +49,12 @@ absl::Status RoomLayout::LoadLayout(int room_id) {
     return absl::InvalidArgumentError("ROM is null");
   }
 
+  // Validate room ID based on Link to the Past ROM structure
+  if (room_id < 0 || room_id >= NumberOfRooms) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid room ID: %d (must be 0-%d)", room_id, NumberOfRooms - 1));
+  }
+
   auto rom_data = rom_->vector();
 
   // Load room layout from room_object_layout_pointer
@@ -58,21 +64,27 @@ absl::Status RoomLayout::LoadLayout(int room_id) {
                        (rom_data[room_object_layout_pointer]);
   layout_pointer = SnesToPc(layout_pointer);
 
+  // Enhanced bounds checking for layout pointer
+  if (layout_pointer < 0 || layout_pointer >= (int)rom_->size()) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Layout pointer out of range: %#06x", layout_pointer));
+  }
+
   // Get the layout address for this room
   int layout_address = layout_pointer + (room_id * 3);
-  int layout_location = SnesToPc(layout_address);
-
-  if (layout_location < 0 || layout_location + 2 >= (int)rom_->size()) {
+  
+  // Enhanced bounds checking for layout address
+  if (layout_address < 0 || layout_address + 2 >= (int)rom_->size()) {
     return absl::OutOfRangeError(
-        absl::StrFormat("Layout address out of range: %#06x", layout_location));
+        absl::StrFormat("Layout address out of range: %#06x", layout_address));
   }
 
   // Read the layout data (3 bytes: bank, high, low)
-  uint8_t bank = rom_data[layout_location + 2];
-  uint8_t high = rom_data[layout_location + 1];
-  uint8_t low = rom_data[layout_location];
+  uint8_t bank = rom_data[layout_address + 2];
+  uint8_t high = rom_data[layout_address + 1];
+  uint8_t low = rom_data[layout_address];
 
-  // Construct the layout data address
+  // Construct the layout data address with validation
   int layout_data_address = SnesToPc((bank << 16) | (high << 8) | low);
 
   if (layout_data_address < 0 || layout_data_address >= (int)rom_->size()) {
@@ -80,17 +92,24 @@ absl::Status RoomLayout::LoadLayout(int room_id) {
         "Layout data address out of range: %#06x", layout_data_address));
   }
 
+  // Read layout data with enhanced error handling
+  return LoadLayoutData(layout_data_address);
+}
+
+absl::Status RoomLayout::LoadLayoutData(int layout_data_address) {
+  auto rom_data = rom_->vector();
+  
   // Read layout data - this contains the room's wall/floor structure
-  // The format varies by room type, but typically contains tile IDs for each
-  // position
+  // The format varies by room type, but typically contains tile IDs for each position
   std::vector<uint8_t> layout_data;
   layout_data.reserve(width_ * height_);
 
-  // Read the layout data (assuming 1 byte per tile position)
+  // Read the layout data with comprehensive bounds checking
   for (int i = 0; i < width_ * height_; ++i) {
     if (layout_data_address + i < (int)rom_->size()) {
       layout_data.push_back(rom_data[layout_data_address + i]);
     } else {
+      // Log warning but continue with default value
       layout_data.push_back(0);  // Default to empty space
     }
   }

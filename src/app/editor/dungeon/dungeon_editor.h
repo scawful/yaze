@@ -9,6 +9,8 @@
 #include "app/rom.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/object_renderer.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
@@ -32,30 +34,33 @@ constexpr ImGuiTableFlags kDungeonTableFlags =
 /**
  * @brief DungeonEditor class for editing dungeons.
  *
- * This class is currently a work in progress and is used for editing dungeons.
- * It provides various functions for updating, cutting, copying, pasting,
- * undoing, and redoing. It also includes methods for drawing the toolset, room
- * selector, entrance selector, dungeon tab view, dungeon canvas, room graphics,
- * tile selector, and object renderer. Additionally, it handles loading room
- * entrances, calculating usage statistics, and rendering set usage.
+ * This class provides a comprehensive dungeon editing interface that integrates
+ * with the new unified dungeon editing system. It includes object editing with
+ * scroll wheel support, sprite management, item placement, entrance/exit editing,
+ * and advanced dungeon features.
  */
 class DungeonEditor : public Editor {
  public:
   explicit DungeonEditor(Rom* rom = nullptr)
       : rom_(rom), object_renderer_(rom) {
     type_ = EditorType::kDungeon;
+    // Initialize the new dungeon editor system
+    if (rom) {
+      dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom);
+      object_editor_ = std::make_shared<zelda3::DungeonObjectEditor>(rom);
+    }
   }
 
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;
-  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
+  absl::Status Undo() override;
+  absl::Status Redo() override;
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
-  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  absl::Status Save() override;
 
   void add_room(int i) { active_rooms_.push_back(i); }
 
@@ -79,6 +84,25 @@ class DungeonEditor : public Editor {
   void DrawRoomGraphics();
   void DrawTileSelector();
   void DrawObjectRenderer();
+  
+  // New editing mode interfaces
+  void DrawObjectEditor();
+  void DrawSpriteEditor();
+  void DrawItemEditor();
+  void DrawEntranceEditor();
+  void DrawDoorEditor();
+  void DrawChestEditor();
+  void DrawPropertiesEditor();
+  
+  // Integrated editing panels
+  void DrawIntegratedEditingPanels();
+  void DrawCompactObjectEditor();
+  void DrawCompactSpriteEditor();
+  void DrawCompactItemEditor();
+  void DrawCompactEntranceEditor();
+  void DrawCompactDoorEditor();
+  void DrawCompactChestEditor();
+  void DrawCompactPropertiesEditor();
 
   // Object rendering methods
   void RenderObjectInCanvas(const zelda3::RoomObject& object,
@@ -113,7 +137,18 @@ class DungeonEditor : public Editor {
     kBackground3,
     kBackgroundAny,
   };
-  enum PlacementType { kNoType, kSprite, kItem, kDoor, kBlock };
+  
+  // Updated placement types to match new editor system
+  enum PlacementType { 
+    kNoType, 
+    kObject,    // Object editing mode
+    kSprite,    // Sprite editing mode
+    kItem,      // Item placement mode
+    kEntrance,  // Entrance/exit editing mode
+    kDoor,      // Door configuration mode
+    kChest,     // Chest management mode
+    kBlock      // Legacy block mode
+  };
 
   int background_type_ = kNoBackground;
   int placement_type_ = kNoType;
@@ -122,6 +157,17 @@ class DungeonEditor : public Editor {
   bool object_loaded_ = false;
   bool palette_showing_ = false;
   bool refresh_graphics_ = false;
+  
+  // New editor system integration
+  std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
+  std::shared_ptr<zelda3::DungeonObjectEditor> object_editor_;
+  bool show_object_editor_ = false;
+  bool show_sprite_editor_ = false;
+  bool show_item_editor_ = false;
+  bool show_entrance_editor_ = false;
+  bool show_door_editor_ = false;
+  bool show_chest_editor_ = false;
+  bool show_properties_editor_ = false;
 
   uint16_t current_entrance_id_ = 0;
   uint16_t current_room_id_ = 0;
