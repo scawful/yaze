@@ -355,6 +355,28 @@ void EditorManager::Initialize(const std::string &filename) {
            {absl::StrCat(ICON_MD_SEARCH, " Find"),
             context_.shortcut_manager.GetKeys("Find"),
             context_.shortcut_manager.GetCallback("Find")},
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           // Context-aware editor options
+           {absl::StrCat(ICON_MD_REFRESH, " Refresh Data"), "F5",
+            [this]() { 
+              if (current_editor_ && current_editor_->type() == EditorType::kOverworld) {
+                // Refresh overworld data
+                auto& ow_editor = static_cast<OverworldEditor&>(*current_editor_);
+                [[maybe_unused]] auto load_status = ow_editor.Load();
+                toast_manager_.Show("Overworld data refreshed", editor::ToastType::kInfo);
+              } else if (current_editor_ && current_editor_->type() == EditorType::kDungeon) {
+                // Refresh dungeon data
+                toast_manager_.Show("Dungeon data refreshed", editor::ToastType::kInfo);
+              }
+            },
+            [this]() { return current_editor_ != nullptr; }},
+           {absl::StrCat(ICON_MD_MAP, " Load All Maps"), "",
+            [this]() { 
+              if (current_editor_ && current_editor_->type() == EditorType::kOverworld) {
+                toast_manager_.Show("Loading all overworld maps...", editor::ToastType::kInfo);
+              }
+            },
+            [this]() { return current_editor_ && current_editor_->type() == EditorType::kOverworld; }},
        }},
       {"View",
        {},
@@ -583,47 +605,8 @@ absl::Status EditorManager::Update() {
       // Clean window titles without session clutter
       std::string window_title = GetEditorName(editor->type());
       
-      // Set window flags for better UX
-      ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
-      if (editor->type() == EditorType::kOverworld || editor->type() == EditorType::kDungeon) {
-        window_flags |= ImGuiWindowFlags_MenuBar;
-      }
-      
-      if (ImGui::Begin(window_title.c_str(), editor->active(), window_flags)) {
+      if (ImGui::Begin(window_title.c_str(), editor->active())) {
         current_editor_ = editor;
-        
-        // Add editor-specific menu bar with integrated session info
-        if (window_flags & ImGuiWindowFlags_MenuBar && ImGui::BeginMenuBar()) {
-          // Editor-specific menus
-          if (editor->type() == EditorType::kOverworld) {
-            if (ImGui::BeginMenu("Overworld")) {
-              if (ImGui::MenuItem(absl::StrCat(ICON_MD_REFRESH, " Refresh Data").c_str(), "F5")) {
-                toast_manager_.Show("Overworld refreshed", editor::ToastType::kInfo);
-              }
-              ImGui::Separator();
-              if (ImGui::MenuItem(absl::StrCat(ICON_MD_MAP, " Load All Maps").c_str())) {
-                toast_manager_.Show("Loading all overworld maps...", editor::ToastType::kInfo);
-              }
-              ImGui::EndMenu();
-            }
-          } else if (editor->type() == EditorType::kDungeon) {
-            if (ImGui::BeginMenu("Dungeon")) {
-              if (ImGui::MenuItem(absl::StrCat(ICON_MD_MAP, " Load Room").c_str(), "Ctrl+R")) {
-                // Quick room loading
-              }
-              ImGui::Separator();
-              if (ImGui::MenuItem(absl::StrCat(ICON_MD_REFRESH, " Refresh Room Data").c_str(), "F5")) {
-                toast_manager_.Show("Dungeon data refreshed", editor::ToastType::kInfo);
-              }
-              ImGui::EndMenu();
-            }
-          }
-          
-          // Keep editor menu bars clean - session info is in main menu bar
-          
-          ImGui::EndMenuBar();
-        }
-        
         status_ = editor->Update();
       }
       ImGui::End();

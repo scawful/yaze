@@ -134,12 +134,21 @@ void Canvas::DrawContextMenu() {
     }
     
     // Default canvas menu items
-    if (MenuItem("Reset Position", nullptr, false)) {
-      scrolling_.x = 0;
-      scrolling_.y = 0;
+    if (MenuItem("Reset View", nullptr, false)) {
+      ResetView();
     }
+    if (MenuItem("Zoom to Fit", nullptr, false) && bitmap_) {
+      SetZoomToFit(*bitmap_);
+    }
+    ImGui::Separator();
     MenuItem("Show Grid", nullptr, &enable_grid_);
     Selectable("Show Position Labels", &enable_hex_tile_labels_);
+    if (MenuItem("Bitmap Properties", nullptr, false) && bitmap_) {
+      ImGui::OpenPopup("Bitmap Properties");
+    }
+    if (MenuItem("Edit Palette", nullptr, false) && bitmap_) {
+      ImGui::OpenPopup("Palette Editor");
+    }
     if (BeginMenu("Canvas Properties")) {
       Text("Canvas Size: %.0f x %.0f", canvas_sz_.x, canvas_sz_.y);
       Text("Global Scale: %.1f", global_scale_);
@@ -225,6 +234,12 @@ void Canvas::DrawContextMenu() {
 
     ImGui::EndPopup();
   }
+  
+  // Draw enhanced property dialogs
+  if (bitmap_) {
+    ShowBitmapProperties(*bitmap_);
+    ShowPaletteEditor(*bitmap_->mutable_palette());
+  }
 }
 
 void Canvas::DrawContextMenuItem(const ContextMenuItem& item) {
@@ -258,6 +273,87 @@ void Canvas::AddContextMenuItem(const ContextMenuItem& item) {
 
 void Canvas::ClearContextMenuItems() {
   context_menu_items_.clear();
+}
+
+void Canvas::ShowBitmapProperties(const gfx::Bitmap& bitmap) {
+  if (ImGui::BeginPopupModal("Bitmap Properties", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Bitmap Information");
+    ImGui::Separator();
+    
+    ImGui::Text("Size: %d x %d", bitmap.width(), bitmap.height());
+    ImGui::Text("Depth: %d bits", bitmap.depth());
+    ImGui::Text("Data Size: %zu bytes", bitmap.size());
+    ImGui::Text("Active: %s", bitmap.is_active() ? "Yes" : "No");
+    ImGui::Text("Modified: %s", bitmap.modified() ? "Yes" : "No");
+    
+    if (bitmap.surface()) {
+      ImGui::Separator();
+      ImGui::Text("SDL Surface");
+      ImGui::Text("Pitch: %d", bitmap.surface()->pitch);
+      ImGui::Text("Bits Per Pixel: %d", bitmap.surface()->format->BitsPerPixel);
+      ImGui::Text("Bytes Per Pixel: %d", bitmap.surface()->format->BytesPerPixel);
+    }
+    
+    if (ImGui::Button("Close")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+}
+
+void Canvas::ShowPaletteEditor(gfx::SnesPalette& palette) {
+  if (ImGui::BeginPopupModal("Palette Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Palette Editor");
+    ImGui::Separator();
+    
+    // Display palette colors in a grid
+    int cols = 8;
+    for (int i = 0; i < palette.size(); i++) {
+      if (i % cols != 0) ImGui::SameLine();
+      
+      auto color = palette[i];
+      ImVec4 display_color = color.rgb();
+      
+      ImGui::PushID(i);
+      if (ImGui::ColorButton("##color", display_color, ImGuiColorEditFlags_NoTooltip, ImVec2(30, 30))) {
+        // Color selected - could open detailed editor
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Color %d: 0x%04X\nR:%d G:%d B:%d", 
+                         i, color.snes(), 
+                         (int)(display_color.x * 255),
+                         (int)(display_color.y * 255), 
+                         (int)(display_color.z * 255));
+      }
+      ImGui::PopID();
+    }
+    
+    ImGui::Separator();
+    if (ImGui::Button("Close")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+}
+
+void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
+  if (!bitmap.is_active()) return;
+  
+  ImVec2 available = ImGui::GetContentRegionAvail();
+  float scale_x = available.x / bitmap.width();
+  float scale_y = available.y / bitmap.height();
+  global_scale_ = std::min(scale_x, scale_y);
+  
+  // Ensure minimum readable scale
+  if (global_scale_ < 0.25f) global_scale_ = 0.25f;
+  
+  // Center the view
+  scrolling_ = ImVec2(0, 0);
+}
+
+void Canvas::ResetView() {
+  global_scale_ = 1.0f;
+  scrolling_ = ImVec2(0, 0);
 }
 
 bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
@@ -693,10 +789,16 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
 }
 
 void Canvas::DrawRect(int x, int y, int w, int h, ImVec4 color) {
-  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
-                canvas_p0_.y + scrolling_.y + y);
-  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
-              canvas_p0_.y + scrolling_.y + y + h);
+  // Apply global scale to position and size
+  float scaled_x = x * global_scale_;
+  float scaled_y = y * global_scale_;
+  float scaled_w = w * global_scale_;
+  float scaled_h = h * global_scale_;
+  
+  ImVec2 origin(canvas_p0_.x + scrolling_.x + scaled_x,
+                canvas_p0_.y + scrolling_.y + scaled_y);
+  ImVec2 size(canvas_p0_.x + scrolling_.x + scaled_x + scaled_w,
+              canvas_p0_.y + scrolling_.y + scaled_y + scaled_h);
   draw_list_->AddRectFilled(origin, size,
                             IM_COL32(color.x, color.y, color.z, color.w));
   // Add a black outline
@@ -706,11 +808,15 @@ void Canvas::DrawRect(int x, int y, int w, int h, ImVec4 color) {
 }
 
 void Canvas::DrawText(std::string text, int x, int y) {
-  draw_list_->AddText(ImVec2(canvas_p0_.x + scrolling_.x + x + 1,
-                             canvas_p0_.y + scrolling_.y + y + 1),
+  // Apply global scale to text position
+  float scaled_x = x * global_scale_;
+  float scaled_y = y * global_scale_;
+  
+  draw_list_->AddText(ImVec2(canvas_p0_.x + scrolling_.x + scaled_x + 1,
+                             canvas_p0_.y + scrolling_.y + scaled_y + 1),
                       kBlackColor, text.data());
   draw_list_->AddText(
-      ImVec2(canvas_p0_.x + scrolling_.x + x, canvas_p0_.y + scrolling_.y + y),
+      ImVec2(canvas_p0_.x + scrolling_.x + scaled_x, canvas_p0_.y + scrolling_.y + scaled_y),
       kWhiteColor, text.data());
 }
 

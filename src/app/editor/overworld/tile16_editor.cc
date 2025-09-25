@@ -161,7 +161,7 @@ absl::Status Tile16Editor::UpdateBlockset() {
   gui::EndPadding();
   blockset_canvas_.DrawContextMenu();
   blockset_canvas_.DrawTileSelector(32);
-  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, map_blockset_loaded_);
+  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, 2.0f);
   blockset_canvas_.DrawGrid();
   blockset_canvas_.DrawOverlay();
   EndChild();
@@ -391,7 +391,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         // Display the current Tile16 at a larger size
         auto texture = current_tile16_bmp_.texture();
         if (texture) {
-          ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2(128, 128));
+          // Scale the 16x16 tile to 256x256 for better visibility
+          ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2(256, 256));
         }
 
         // Display information about the current Tile16

@@ -85,7 +85,7 @@ class Tile16Editor : public gfx::GfxContext {
 
   // Tile16 blockset for selecting the tile to edit
   gui::Canvas blockset_canvas_{"blocksetCanvas", ImVec2(0x100, 0x4000),
-                               gui::CanvasGridSize::k32x32};
+                               gui::CanvasGridSize::k32x32,};
   gfx::Bitmap tile16_blockset_bmp_;
 
   // Canvas for editing the selected tile
