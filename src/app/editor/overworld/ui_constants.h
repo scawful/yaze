@@ -28,11 +28,38 @@ inline constexpr const char* kAreaSizeNames[] = {
 
 // UI Styling Constants
 inline constexpr float kInputFieldSize = 30.f;
+inline constexpr float kHexByteInputWidth = 50.f;
+inline constexpr float kHexWordInputWidth = 70.f;
 inline constexpr float kCompactButtonWidth = 60.f;
 inline constexpr float kIconButtonWidth = 30.f;
 inline constexpr float kSmallButtonWidth = 80.f;
 inline constexpr float kMediumButtonWidth = 90.f;
 inline constexpr float kLargeButtonWidth = 100.f;
+
+// Table Column Width Constants
+inline constexpr float kTableColumnWorld = 120.f;
+inline constexpr float kTableColumnMap = 80.f;
+inline constexpr float kTableColumnAreaSize = 120.f;
+inline constexpr float kTableColumnLock = 50.f;
+inline constexpr float kTableColumnGraphics = 80.f;
+inline constexpr float kTableColumnPalettes = 80.f;
+inline constexpr float kTableColumnProperties = 100.f;
+inline constexpr float kTableColumnTools = 80.f;
+inline constexpr float kTableColumnView = 80.f;
+inline constexpr float kTableColumnQuick = 80.f;
+
+// Combo Box Width Constants
+inline constexpr float kComboWorldWidth = 115.f;
+inline constexpr float kComboAreaSizeWidth = 115.f;
+inline constexpr float kComboGameStateWidth = 100.f;
+
+// Button Width Constants for Table
+inline constexpr float kTableButtonGraphics = 75.f;
+inline constexpr float kTableButtonPalettes = 75.f;
+inline constexpr float kTableButtonProperties = 95.f;
+inline constexpr float kTableButtonTools = 75.f;
+inline constexpr float kTableButtonView = 75.f;
+inline constexpr float kTableButtonQuick = 75.f;
 
 // Spacing and Padding
 inline constexpr float kCompactItemSpacing = 4.f;

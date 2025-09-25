@@ -25,20 +25,19 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(int& current_world, int& cur
                                                    bool& show_custom_bg_color_editor, bool& show_overlay_editor,
                                                    bool& show_overlay_preview, int& game_state, int& current_mode) {
   // Enhanced settings table with popup buttons for quick access and integrated toolset
-  if (BeginTable("SimplifiedMapSettings", 10, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit, ImVec2(0, 0), -1)) {
-    ImGui::TableSetupColumn("World", ImGuiTableColumnFlags_WidthFixed, 100);
-    ImGui::TableSetupColumn("Map", ImGuiTableColumnFlags_WidthFixed, 60);
-    ImGui::TableSetupColumn("Area Size", ImGuiTableColumnFlags_WidthFixed, 100);
-    ImGui::TableSetupColumn("Lock", ImGuiTableColumnFlags_WidthFixed, 60);
-    ImGui::TableSetupColumn("Graphics", ImGuiTableColumnFlags_WidthFixed, 90);
-    ImGui::TableSetupColumn("Palettes", ImGuiTableColumnFlags_WidthFixed, 90);
-    ImGui::TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthFixed, 100);
-    ImGui::TableSetupColumn("Tools", ImGuiTableColumnFlags_WidthFixed, 120);
-    ImGui::TableSetupColumn("View", ImGuiTableColumnFlags_WidthFixed, 120);
-    ImGui::TableSetupColumn("Quick", ImGuiTableColumnFlags_WidthFixed, 100);
+  if (BeginTable("SimplifiedMapSettings", 9, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit, ImVec2(0, 0), -1)) {
+    ImGui::TableSetupColumn("World", ImGuiTableColumnFlags_WidthFixed, kTableColumnWorld);
+    ImGui::TableSetupColumn("Map", ImGuiTableColumnFlags_WidthFixed, kTableColumnMap);
+    ImGui::TableSetupColumn("Area Size", ImGuiTableColumnFlags_WidthFixed, kTableColumnAreaSize);
+    ImGui::TableSetupColumn("Lock", ImGuiTableColumnFlags_WidthFixed, kTableColumnLock);
+    ImGui::TableSetupColumn("Graphics", ImGuiTableColumnFlags_WidthFixed, kTableColumnGraphics);
+    ImGui::TableSetupColumn("Palettes", ImGuiTableColumnFlags_WidthFixed, kTableColumnPalettes);
+    ImGui::TableSetupColumn("Properties", ImGuiTableColumnFlags_WidthFixed, kTableColumnProperties);
+    ImGui::TableSetupColumn("View", ImGuiTableColumnFlags_WidthFixed, kTableColumnView);
+    ImGui::TableSetupColumn("Quick", ImGuiTableColumnFlags_WidthFixed, kTableColumnQuick);
 
     TableNextColumn();
-    ImGui::SetNextItemWidth(90.f);
+    ImGui::SetNextItemWidth(kComboWorldWidth);
     if (ImGui::Combo("##world", &current_world, kWorldNames, 3)) {
       // World changed, update current map if needed
       if (current_map >= 0x40 && current_world == 0) {
@@ -59,7 +58,7 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(int& current_world, int& cur
     static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version != 0xFF) {
       int current_area_size = static_cast<int>(overworld_->overworld_map(current_map)->area_size());
-      ImGui::SetNextItemWidth(90.f);
+      ImGui::SetNextItemWidth(kComboAreaSizeWidth);
       if (ImGui::Combo("##AreaSize", &current_area_size, kAreaSizeNames, 4)) {
         overworld_->mutable_overworld_map(current_map)->SetAreaSize(static_cast<zelda3::AreaSizeEnum>(current_area_size));
         RefreshOverworldMap();
@@ -75,37 +74,29 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(int& current_world, int& cur
     HOVER_HINT(current_map_lock ? "Unlock Map" : "Lock Map");
 
     TableNextColumn();
-    if (ImGui::Button("Graphics", ImVec2(kSmallButtonWidth, 0))) {
+    if (ImGui::Button("Graphics", ImVec2(kTableButtonGraphics, 0))) {
       ImGui::OpenPopup("GraphicsPopup");
     }
     HOVER_HINT("Graphics Settings");
     DrawGraphicsPopup(current_map, game_state);
 
     TableNextColumn();
-    if (ImGui::Button("Palettes", ImVec2(kSmallButtonWidth, 0))) {
+    if (ImGui::Button("Palettes", ImVec2(kTableButtonPalettes, 0))) {
       ImGui::OpenPopup("PalettesPopup");
     }
     HOVER_HINT("Palette Settings");
     DrawPalettesPopup(current_map, game_state, show_custom_bg_color_editor);
 
     TableNextColumn();
-    if (ImGui::Button("Properties", ImVec2(kMediumButtonWidth, 0))) {
+    if (ImGui::Button("Properties", ImVec2(kTableButtonProperties, 0))) {
       ImGui::OpenPopup("PropertiesPopup");
     }
     HOVER_HINT("Map Properties & Overlays");
     DrawPropertiesPopup(current_map, show_map_properties_panel, show_overlay_preview, game_state);
 
     TableNextColumn();
-    // Editing Tools
-    if (ImGui::Button("Tools", ImVec2(kSmallButtonWidth, 0))) {
-      ImGui::OpenPopup("ToolsPopup");
-    }
-    HOVER_HINT("Editing Tools");
-    DrawToolsPopup(current_mode);
-
-    TableNextColumn();
     // View Controls
-    if (ImGui::Button("View", ImVec2(kSmallButtonWidth, 0))) {
+    if (ImGui::Button("View", ImVec2(kTableButtonView, 0))) {
       ImGui::OpenPopup("ViewPopup");
     }
     HOVER_HINT("View Controls");
@@ -113,7 +104,7 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(int& current_world, int& cur
 
     TableNextColumn();
     // Quick Access Tools
-    if (ImGui::Button("Quick", ImVec2(kSmallButtonWidth, 0))) {
+    if (ImGui::Button("Quick", ImVec2(kTableButtonQuick, 0))) {
       ImGui::OpenPopup("QuickPopup");
     }
     HOVER_HINT("Quick Access Tools");
@@ -322,16 +313,16 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
     ImGui::Text("Graphics Settings");
     ImGui::Separator();
     
-    if (gui::InputHexByte("Area Graphics", 
-                          overworld_->mutable_overworld_map(current_map)->mutable_area_graphics(),
-                          kInputFieldSize)) {
+    if (gui::InputHexByteCustom("Area Graphics", 
+                                overworld_->mutable_overworld_map(current_map)->mutable_area_graphics(),
+                                kHexByteInputWidth)) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
     
-    if (gui::InputHexByte(absl::StrFormat("Sprite GFX (%s)", kGameStateNames[game_state]).c_str(), 
-                          overworld_->mutable_overworld_map(current_map)->mutable_sprite_graphics(game_state),
-                          kInputFieldSize)) {
+    if (gui::InputHexByteCustom(absl::StrFormat("Sprite GFX (%s)", kGameStateNames[game_state]).c_str(), 
+                                overworld_->mutable_overworld_map(current_map)->mutable_sprite_graphics(game_state),
+                                kHexByteInputWidth)) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
@@ -372,9 +363,9 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state, boo
     ImGui::Text("Palette Settings");
     ImGui::Separator();
     
-    if (gui::InputHexByte("Area Palette", 
-                          overworld_->mutable_overworld_map(current_map)->mutable_area_palette(),
-                          kInputFieldSize)) {
+    if (gui::InputHexByteCustom("Area Palette", 
+                                overworld_->mutable_overworld_map(current_map)->mutable_area_palette(),
+                                kHexByteInputWidth)) {
       RefreshMapProperties();
       auto status = RefreshMapPalette();
       RefreshOverworldMap();
@@ -382,18 +373,18 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state, boo
     
     static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version >= 2) {
-      if (gui::InputHexByte("Main Palette", 
-                            overworld_->mutable_overworld_map(current_map)->mutable_main_palette(),
-                            kInputFieldSize)) {
+      if (gui::InputHexByteCustom("Main Palette", 
+                                  overworld_->mutable_overworld_map(current_map)->mutable_main_palette(),
+                                  kHexByteInputWidth)) {
         RefreshMapProperties();
         auto status = RefreshMapPalette();
         RefreshOverworldMap();
       }
     }
     
-    if (gui::InputHexByte(absl::StrFormat("Sprite Palette (%s)", kGameStateNames[game_state]).c_str(), 
-                          overworld_->mutable_overworld_map(current_map)->mutable_sprite_palette(game_state),
-                          kInputFieldSize)) {
+    if (gui::InputHexByteCustom(absl::StrFormat("Sprite Palette (%s)", kGameStateNames[game_state]).c_str(), 
+                                overworld_->mutable_overworld_map(current_map)->mutable_sprite_palette(game_state),
+                                kHexByteInputWidth)) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
@@ -411,52 +402,77 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state, boo
 void MapPropertiesSystem::DrawPropertiesPopup(int current_map, bool& show_map_properties_panel, 
                                              bool& show_overlay_preview, int& game_state) {
   if (ImGui::BeginPopup("PropertiesPopup")) {
-    ImGui::Text("Map Properties & Overlays");
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    
+    ImGui::Text("Map Properties");
     ImGui::Separator();
 
-    // Basic properties
-    if (gui::InputHexWord("Message ID",
-                          overworld_->mutable_overworld_map(current_map)
-                              ->mutable_message_id(),
-                          kInputFieldSize + 20)) {
+    // Basic Map Properties Section
+    ImGui::Text("Basic Properties");
+    ImGui::Separator();
+    
+    if (gui::InputHexWordCustom("Message ID",
+                                overworld_->mutable_overworld_map(current_map)->mutable_message_id(),
+                                kHexWordInputWidth)) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
 
-    // Mosaic controls with directional support for v2+
-    DrawMosaicControls(current_map);
-
-    // Overlay controls - always accessible, behavior changes by version
-    ImGui::Separator();
-    ImGui::Text("Overlay Settings:");
-    DrawOverlayControls(current_map, show_overlay_preview);
-
-    ImGui::SetNextItemWidth(100.f);
+    ImGui::SetNextItemWidth(kComboGameStateWidth);
     if (ImGui::Combo("Game State", &game_state, kGameStateNames, 3)) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
 
+    // Area Configuration Section
+    ImGui::Separator();
+    ImGui::Text("Area Configuration");
+    ImGui::Separator();
+    
     static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version != 0xFF) {
-      static const char *area_size_names[] = {"Small (1x1)", "Large (2x2)",
-                                              "Wide (2x1)", "Tall (1x2)"};
-      int current_area_size = static_cast<int>(
-          overworld_->overworld_map(current_map)->area_size());
-      ImGui::SetNextItemWidth(120.f);
-      if (ImGui::Combo("Area Size", &current_area_size, area_size_names, 4)) {
-        overworld_->mutable_overworld_map(current_map)
-            ->SetAreaSize(
-                static_cast<zelda3::AreaSizeEnum>(current_area_size));
+      int current_area_size = static_cast<int>(overworld_->overworld_map(current_map)->area_size());
+      ImGui::SetNextItemWidth(kComboAreaSizeWidth);
+      if (ImGui::Combo("Area Size", &current_area_size, kAreaSizeNames, 4)) {
+        overworld_->mutable_overworld_map(current_map)->SetAreaSize(static_cast<zelda3::AreaSizeEnum>(current_area_size));
+        RefreshOverworldMap();
+      }
+    } else {
+      // Vanilla ROM - show small/large map controls
+      auto* map = overworld_->mutable_overworld_map(current_map);
+      bool is_small = !map->is_large_map();
+      if (ImGui::Checkbox("Small Map", &is_small)) {
+        if (is_small) {
+          map->SetAsSmallMap();
+        } else {
+          // For vanilla, use default parent and quadrant values
+          map->SetAsLargeMap(0, 0);
+        }
         RefreshOverworldMap();
       }
     }
 
+    // Visual Effects Section
     ImGui::Separator();
-    if (ImGui::Button("Full Properties Panel")) {
-      show_map_properties_panel = true;
-    }
+    ImGui::Text("Visual Effects");
+    ImGui::Separator();
+    
+    DrawMosaicControls(current_map);
+    DrawOverlayControls(current_map, show_overlay_preview);
 
+    // Advanced Options Section
+    ImGui::Separator();
+    ImGui::Text("Advanced Options");
+    ImGui::Separator();
+    
+    if (ImGui::Button("Full Properties Panel", ImVec2(kLargeButtonWidth + 50, 0))) {
+      show_map_properties_panel = true;
+      ImGui::CloseCurrentPopup();
+    }
+    HOVER_HINT("Open comprehensive properties editor");
+
+    ImGui::PopStyleVar(2);
     ImGui::EndPopup();
   }
 }
@@ -862,62 +878,6 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map, int current_w
       overlay_color);
 }
 
-void MapPropertiesSystem::DrawToolsPopup(int& current_mode) {
-  if (ImGui::BeginPopup("ToolsPopup")) {
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(kCompactItemSpacing, kCompactFramePadding));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(kCompactItemSpacing, kCompactFramePadding));
-    
-    ImGui::Text("Editing Tools");
-    ImGui::Separator();
-    
-    // Row 1: Navigation and Drawing
-    if (ImGui::Button(ICON_MD_PAN_TOOL_ALT " Pan", ImVec2(kCompactButtonWidth, 0))) {
-      current_mode = 7;
-    }
-    HOVER_HINT("Pan tool (1)");
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_DRAW " Draw", ImVec2(kCompactButtonWidth, 0))) {
-      current_mode = 0;
-    }
-    HOVER_HINT("Draw tile tool (2)");
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_DOOR_FRONT " Ent", ImVec2(kCompactButtonWidth, 0))) {
-      current_mode = 1;
-    }
-    HOVER_HINT("Edit entrances (3)");
-    
-    // Row 2: Entities
-    if (ImGui::Button(ICON_MD_DOOR_BACK " Exit", ImVec2(kCompactButtonWidth, 0))) {
-      current_mode = 2;
-    }
-    HOVER_HINT("Edit exits (4)");
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_GRASS " Item", ImVec2(kCompactButtonWidth, 0))) {
-      current_mode = 3;
-    }
-    HOVER_HINT("Edit items (5)");
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_PEST_CONTROL_RODENT " Spr", ImVec2(kCompactButtonWidth, 0))) {
-      current_mode = 4;
-    }
-    HOVER_HINT("Edit sprites (6)");
-    
-    // Row 3: Advanced
-    if (ImGui::Button(ICON_MD_ADD_LOCATION " Trans", ImVec2(kCompactButtonWidth, 0))) {
-      current_mode = 5;
-    }
-    HOVER_HINT("Edit transports (7)");
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_MUSIC_NOTE " Music", ImVec2(kCompactButtonWidth, 0))) {
-      current_mode = 6;
-    }
-    HOVER_HINT("Edit music (8)");
-    
-    ImGui::PopStyleVar(2);
-    ImGui::EndPopup();
-  }
-}
-
 void MapPropertiesSystem::DrawViewPopup() {
   if (ImGui::BeginPopup("ViewPopup")) {
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(kCompactItemSpacing, kCompactFramePadding));
@@ -952,27 +912,34 @@ void MapPropertiesSystem::DrawViewPopup() {
 
 void MapPropertiesSystem::DrawQuickAccessPopup() {
   if (ImGui::BeginPopup("QuickPopup")) {
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(kCompactItemSpacing, kCompactFramePadding));
+    
     ImGui::Text("Quick Access");
     ImGui::Separator();
     
-    if (ImGui::Button(ICON_MD_GRID_VIEW " Tile16 Editor")) {
+    // Horizontal layout for quick access buttons
+    if (ImGui::Button(ICON_MD_GRID_VIEW, ImVec2(kIconButtonWidth, 0))) {
       // This would need to be connected to the Tile16 editor toggle
       // For now, just show the option
     }
     HOVER_HINT("Open Tile16 Editor (Ctrl+T)");
+    ImGui::SameLine();
     
-    if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy Map")) {
+    if (ImGui::Button(ICON_MD_CONTENT_COPY, ImVec2(kIconButtonWidth, 0))) {
       // This would need to be connected to the copy map function
       // For now, just show the option
     }
     HOVER_HINT("Copy current map to clipboard");
+    ImGui::SameLine();
     
-    if (ImGui::Button(ICON_MD_LOCK " Lock Map (Ctrl+L)")) {
+    if (ImGui::Button(ICON_MD_LOCK, ImVec2(kIconButtonWidth, 0))) {
       // This would need to be connected to the map lock toggle
       // For now, just show the option
     }
-    HOVER_HINT("Lock/unlock current map");
+    HOVER_HINT("Lock/unlock current map (Ctrl+L)");
     
+    ImGui::PopStyleVar(2);
     ImGui::EndPopup();
   }
 }
