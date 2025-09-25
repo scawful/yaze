@@ -1,6 +1,14 @@
 # Yet Another Zelda3 Editor
 # by scawful
 cmake_minimum_required(VERSION 3.16)
+
+# Set policy for older submodules
+if(POLICY CMP0077)
+    cmake_policy(SET CMP0077 NEW)
+endif()
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
 project(yaze VERSION 0.3.0
              DESCRIPTION "Yet Another Zelda3 Editor"
              LANGUAGES CXX C)
