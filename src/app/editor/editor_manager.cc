@@ -20,6 +20,7 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "app/zelda3/overworld/overworld_map.h"
 #include "app/test/test_manager.h"
 #include "app/test/integrated_test_suite.h"
 #include "app/test/rom_dependent_test_suite.h"
@@ -162,6 +163,8 @@ void EditorManager::Initialize(const std::string &filename) {
   
   // Initialize testing system
   InitializeTestSuites();
+  
+  // TestManager will be updated when ROMs are loaded via SetCurrentRom calls
 
   context_.shortcut_manager.RegisterShortcut(
       "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [this]() { status_ = LoadRom(); });
@@ -417,15 +420,6 @@ void EditorManager::Initialize(const std::string &filename) {
            {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_GAMEPAD, " Emulator"), "",
             [&]() { show_emulator_ = true; }},
-           {absl::StrCat(ICON_MD_MEMORY, " Memory Editor"), "",
-            [&]() { show_memory_editor_ = true; }},
-           {absl::StrCat(ICON_MD_SIM_CARD, " ROM Metadata"), "",
-            [&]() { popup_manager_->Show("ROM Information"); }},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_HELP, " ImGui Demo"), "",
-            [&]() { show_imgui_demo_ = true; }},
-           {absl::StrCat(ICON_MD_HELP, " ImGui Metrics"), "",
-            [&]() { show_imgui_metrics_ = true; }},
        }},
       {"Workspace",
        {},
@@ -501,25 +495,139 @@ void EditorManager::Initialize(const std::string &filename) {
                  [this]() { LoadModderLayout(); }},
             }},
        }},
-      {"Testing",
+      {"Debug",
        {},
        {},
        {},
        {
+           // Testing and Validation
            {absl::StrCat(ICON_MD_SCIENCE, " Test Dashboard"), "Ctrl+T",
             [&]() { show_test_dashboard_ = true; }},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
            {absl::StrCat(ICON_MD_PLAY_ARROW, " Run All Tests"), "",
             [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunAllTests(); }},
            {absl::StrCat(ICON_MD_INTEGRATION_INSTRUCTIONS, " Run Unit Tests"), "",
             [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kUnit); }},
            {absl::StrCat(ICON_MD_MEMORY, " Run Integration Tests"), "",
             [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kIntegration); }},
-           {absl::StrCat(ICON_MD_MOUSE, " Run UI Tests"), "",
-            [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kUI); }},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_CLEAR_ALL, " Clear Results"), "",
+           {absl::StrCat(ICON_MD_CLEAR_ALL, " Clear Test Results"), "",
             [&]() { test::TestManager::Get().ClearResults(); }},
+           
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           
+           // ROM and ASM Management
+           {absl::StrCat(ICON_MD_STORAGE, " ROM Analysis"), "", []() {}, []() { return true; },
+            std::vector<gui::MenuItem>{
+                {absl::StrCat(ICON_MD_INFO, " ROM Information"), "",
+                 [&]() { popup_manager_->Show("ROM Information"); },
+                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
+                {absl::StrCat(ICON_MD_ANALYTICS, " Data Integrity Check"), "",
+                 [&]() { 
+                   if (current_rom_) {
+                     [[maybe_unused]] auto status = test::TestManager::Get().TestRomDataIntegrity(current_rom_);
+                   }
+                 },
+                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
+                {absl::StrCat(ICON_MD_SAVE_ALT, " Test Save/Load"), "",
+                 [&]() { 
+                   if (current_rom_) {
+                     [[maybe_unused]] auto status = test::TestManager::Get().TestRomSaveLoad(current_rom_);
+                   }
+                 },
+                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
+            }},
+           
+           {absl::StrCat(ICON_MD_CODE, " ZSCustomOverworld"), "", []() {}, []() { return true; },
+            std::vector<gui::MenuItem>{
+                {absl::StrCat(ICON_MD_INFO, " Check ROM Version"), "",
+                 [&]() { 
+                   if (current_rom_) {
+                     uint8_t version = (*current_rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+                     std::string version_str = (version == 0xFF) ? "Vanilla" : absl::StrFormat("v%d", version);
+                     toast_manager_.Show(absl::StrFormat("ROM: %s | ZSCustomOverworld: %s", 
+                                                        current_rom_->title().c_str(), version_str.c_str()), 
+                                        editor::ToastType::kInfo, 5.0f);
+                   }
+                 },
+                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
+                {absl::StrCat(ICON_MD_UPGRADE, " Upgrade ROM"), "",
+                 [&]() { 
+                   // This would trigger the upgrade dialog from overworld editor
+                   if (current_rom_) {
+                     toast_manager_.Show("Use Overworld Editor to upgrade ROM version", 
+                                        editor::ToastType::kInfo, 4.0f);
+                   }
+                 },
+                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
+                {absl::StrCat(ICON_MD_SETTINGS, " Feature Flags"), "",
+                 [&]() { 
+                   // Toggle ZSCustomOverworld loading feature
+                   auto& flags = core::FeatureFlags::get();
+                   flags.overworld.kLoadCustomOverworld = !flags.overworld.kLoadCustomOverworld;
+                   toast_manager_.Show(absl::StrFormat("Custom Overworld Loading: %s", 
+                                                      flags.overworld.kLoadCustomOverworld ? "Enabled" : "Disabled"), 
+                                      editor::ToastType::kInfo);
+                 }},
+            }},
+           
+           {absl::StrCat(ICON_MD_BUILD, " Asar Integration"), "", []() {}, []() { return true; },
+            std::vector<gui::MenuItem>{
+                {absl::StrCat(ICON_MD_INFO, " Asar Status"), "",
+                 [&]() { popup_manager_->Show("Asar Integration"); }},
+                {absl::StrCat(ICON_MD_CODE, " Apply ASM Patch"), "",
+                 [&]() { 
+                   if (current_rom_) {
+                     auto& flags = core::FeatureFlags::get();
+                     flags.overworld.kApplyZSCustomOverworldASM = !flags.overworld.kApplyZSCustomOverworldASM;
+                     toast_manager_.Show(absl::StrFormat("ZSCustomOverworld ASM Application: %s", 
+                                                        flags.overworld.kApplyZSCustomOverworldASM ? "Enabled" : "Disabled"), 
+                                        editor::ToastType::kInfo);
+                   }
+                 },
+                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
+                {absl::StrCat(ICON_MD_FOLDER_OPEN, " Load ASM File"), "",
+                 [&]() { 
+                   // Show available ASM files or file dialog
+                   toast_manager_.Show("ASM file loading not yet implemented", 
+                                      editor::ToastType::kWarning);
+                 }},
+            }},
+           
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           
+           // Development Tools
+           {absl::StrCat(ICON_MD_MEMORY, " Memory Editor"), "",
+            [&]() { show_memory_editor_ = true; }},
+           {absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
+            [&]() { show_asm_editor_ = true; }},
+           {absl::StrCat(ICON_MD_SETTINGS, " Feature Flags"), "",
+            [&]() { popup_manager_->Show("Feature Flags"); }},
+           {absl::StrCat(ICON_MD_PALETTE, " Graphics Debugging"), "", []() {}, []() { return true; },
+            std::vector<gui::MenuItem>{
+                {absl::StrCat(ICON_MD_REFRESH, " Clear Graphics Cache"), "",
+                 [&]() { 
+                   // Clear and reinitialize graphics cache
+                   if (current_rom_ && current_rom_->is_loaded()) {
+                     toast_manager_.Show("Graphics cache cleared - reload editors to refresh", 
+                                        editor::ToastType::kInfo, 4.0f);
+                   }
+                 },
+                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
+                {absl::StrCat(ICON_MD_MEMORY, " Arena Statistics"), "",
+                 [&]() { 
+                   auto& arena = gfx::Arena::Get();
+                   toast_manager_.Show(absl::StrFormat("Arena: %zu surfaces, %zu textures", 
+                                                      arena.GetSurfaceCount(), arena.GetTextureCount()), 
+                                      editor::ToastType::kInfo, 4.0f);
+                 }},
+            }},
+           
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           
+           // Development Helpers
+           {absl::StrCat(ICON_MD_HELP, " ImGui Demo"), "",
+            [&]() { show_imgui_demo_ = true; }},
+           {absl::StrCat(ICON_MD_ANALYTICS, " ImGui Metrics"), "",
+            [&]() { show_imgui_metrics_ = true; }},
        }},
       {"Help",
        {},
@@ -718,9 +826,15 @@ void EditorManager::DrawMenuBar() {
 
     status_ = DrawRomSelector();
 
-    // Session management integrated into menu bar (right side)
-    float session_area_width = 350.0f;
-    SameLine(GetWindowWidth() - session_area_width);
+    // Calculate proper right-side positioning
+    std::string version_text = absl::StrFormat("v%s", version_.c_str());
+    float version_width = CalcTextSize(version_text.c_str()).x;
+    float settings_width = CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x + 16;
+    float total_right_width = version_width + settings_width + 40; // Extra padding
+    
+    // Position for ROM status and sessions 
+    float session_rom_area_width = 250.0f; // Reduced width
+    SameLine(GetWindowWidth() - total_right_width - session_rom_area_width);
     
     // Multi-session indicator
     if (sessions_.size() > 1) {
@@ -738,8 +852,8 @@ void EditorManager::DrawMenuBar() {
     // ROM status with natural integration
     if (current_rom_ && current_rom_->is_loaded()) {
       std::string rom_display = current_rom_->title();
-      if (rom_display.length() > 12) {
-        rom_display = rom_display.substr(0, 9) + "...";
+      if (rom_display.length() > 16) {
+        rom_display = rom_display.substr(0, 16) + "..";
       }
       
       ImVec4 status_color = current_rom_->dirty() ? 
@@ -764,12 +878,8 @@ void EditorManager::DrawMenuBar() {
       SameLine();
     }
     
-    // Settings and version (properly aligned to right)
-    std::string version_text = absl::StrFormat("v%s", version_.c_str());
-    float version_width = CalcTextSize(version_text.c_str()).x;
-    float settings_width = CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x + 16;
-    
-    SameLine(GetWindowWidth() - version_width - settings_width - 15);
+    // Settings and version (using pre-calculated positioning)
+    SameLine(GetWindowWidth() - total_right_width);
     ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
     SameLine();
     

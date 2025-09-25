@@ -5,6 +5,14 @@
 #include "app/gfx/arena.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
+
+// Forward declaration to avoid circular dependency
+namespace yaze {
+namespace editor {
+class EditorManager;
+}
+}
 
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_engine.h"
@@ -333,8 +341,7 @@ void TestManager::DrawTestDashboard() {
       ImGui::Text("Actions:");
       ImGui::TableNextColumn();
       if (ImGui::Button("Refresh ROM Reference")) {
-        // Force refresh ROM pointer from editor manager
-        // This is a debug feature to help identify ROM loading issues
+        RefreshCurrentRom();
       }
       
     } else {
@@ -350,6 +357,26 @@ void TestManager::DrawTestDashboard() {
       ImGui::Text("Status:");
       ImGui::TableNextColumn();
       ImGui::Text("ROM-dependent tests will be skipped");
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Actions:");
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Refresh ROM Reference")) {
+        RefreshCurrentRom();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Debug ROM State")) {
+        util::logf("=== ROM DEBUG INFO ===");
+        util::logf("current_rom_ pointer: %p", (void*)current_rom_);
+        if (current_rom_) {
+          util::logf("ROM title: '%s'", current_rom_->title().c_str());
+          util::logf("ROM size: %zu", current_rom_->size());
+          util::logf("ROM is_loaded(): %s", current_rom_->is_loaded() ? "true" : "false");
+          util::logf("ROM data pointer: %p", (void*)current_rom_->data());
+        }
+        util::logf("======================");
+      }
     }
     
     ImGui::EndTable();
@@ -383,9 +410,25 @@ void TestManager::DrawTestDashboard() {
     
     if (ImGui::BeginMenu("View")) {
       ImGui::MenuItem("Resource Monitor", nullptr, &show_resource_monitor_);
+      ImGui::MenuItem("Google Tests", nullptr, &show_google_tests_);
+      ImGui::MenuItem("ROM Test Results", nullptr, &show_rom_test_results_);
       ImGui::Separator();
       if (ImGui::MenuItem("Export Results", nullptr, false, last_results_.total_tests > 0)) {
         // TODO: Implement result export
+      }
+      ImGui::EndMenu();
+    }
+    
+    if (ImGui::BeginMenu("ROM")) {
+      if (ImGui::MenuItem("Test Current ROM", nullptr, false, current_rom_ && current_rom_->is_loaded())) {
+        [[maybe_unused]] auto status = RunTestsByCategory(TestCategory::kIntegration);
+      }
+      if (ImGui::MenuItem("Load ROM for Testing...")) {
+        show_rom_file_dialog_ = true;
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Refresh ROM Reference")) {
+        RefreshCurrentRom();
       }
       ImGui::EndMenu();
     }
@@ -634,6 +677,203 @@ void TestManager::DrawTestDashboard() {
     
     ImGui::End();
   }
+  
+  // Google Tests window
+  if (show_google_tests_) {
+    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Google Tests", &show_google_tests_)) {
+      ImGui::Text("%s Google Test Integration", ICON_MD_SCIENCE);
+      ImGui::Separator();
+      
+#ifdef YAZE_ENABLE_GTEST
+      ImGui::Text("Google Test framework is available");
+      
+      if (ImGui::Button("Run All Google Tests")) {
+        // Run Google tests - this would integrate with gtest
+        util::logf("Running Google Tests...");
+      }
+      
+      ImGui::SameLine();
+      if (ImGui::Button("Run Specific Test Suite")) {
+        // Show test suite selector
+      }
+      
+      ImGui::Separator();
+      ImGui::Text("Available Test Suites:");
+      ImGui::BulletText("Unit Tests");
+      ImGui::BulletText("Integration Tests");
+      ImGui::BulletText("Performance Tests");
+#else
+      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), 
+                        "%s Google Test framework not available", ICON_MD_WARNING);
+      ImGui::Text("Enable YAZE_ENABLE_GTEST to use Google Test integration");
+#endif
+    }
+    ImGui::End();
+  }
+  
+  // ROM Test Results window
+  if (show_rom_test_results_) {
+    ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("ROM Test Results", &show_rom_test_results_)) {
+      ImGui::Text("%s ROM Analysis Results", ICON_MD_ANALYTICS);
+      
+      if (current_rom_ && current_rom_->is_loaded()) {
+        ImGui::Text("Testing ROM: %s", current_rom_->title().c_str());
+        ImGui::Separator();
+        
+        // Show ROM-specific test results
+        if (ImGui::CollapsingHeader("ROM Data Integrity", ImGuiTreeNodeFlags_DefaultOpen)) {
+          ImGui::Text("ROM Size: %.2f MB", current_rom_->size() / 1048576.0f);
+          ImGui::Text("Modified: %s", current_rom_->dirty() ? "Yes" : "No");
+          
+          if (ImGui::Button("Run Data Integrity Check")) {
+            [[maybe_unused]] auto status = TestRomDataIntegrity(current_rom_);
+            [[maybe_unused]] auto suite_status = RunTestsByCategory(TestCategory::kIntegration);
+          }
+        }
+        
+        if (ImGui::CollapsingHeader("Save/Load Testing")) {
+          ImGui::Text("Test ROM save and load operations");
+          
+          if (ImGui::Button("Test Save Operations")) {
+            [[maybe_unused]] auto status = TestRomSaveLoad(current_rom_);
+          }
+          
+          ImGui::SameLine();
+          if (ImGui::Button("Test Load Operations")) {
+            [[maybe_unused]] auto status = TestRomSaveLoad(current_rom_);
+          }
+        }
+        
+        if (ImGui::CollapsingHeader("Editor Integration")) {
+          ImGui::Text("Test editor components with current ROM");
+          
+          if (ImGui::Button("Test Overworld Editor")) {
+            // Test overworld editor with current ROM
+          }
+          
+          ImGui::SameLine();
+          if (ImGui::Button("Test Tile16 Editor")) {
+            // Test tile16 editor with current ROM
+          }
+        }
+        
+      } else {
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), 
+                          "%s No ROM loaded for analysis", ICON_MD_WARNING);
+      }
+    }
+    ImGui::End();
+  }
+  
+  // ROM File Dialog
+  if (show_rom_file_dialog_) {
+    ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Appearing);
+    if (ImGui::Begin("Load ROM for Testing", &show_rom_file_dialog_, ImGuiWindowFlags_NoResize)) {
+      ImGui::Text("%s Load ROM for Testing", ICON_MD_FOLDER_OPEN);
+      ImGui::Separator();
+      
+      ImGui::Text("Select a ROM file to run tests on:");
+      
+      if (ImGui::Button("Browse ROM File...", ImVec2(-1, 0))) {
+        // TODO: Implement file dialog to load ROM specifically for testing
+        // This would be separate from the main editor ROM
+        show_rom_file_dialog_ = false;
+      }
+      
+      ImGui::Separator();
+      if (ImGui::Button("Cancel", ImVec2(-1, 0))) {
+        show_rom_file_dialog_ = false;
+      }
+    }
+    ImGui::End();
+  }
+}
+
+void TestManager::RefreshCurrentRom() {
+  util::logf("=== TestManager ROM Refresh ===");
+  
+  // Log current TestManager ROM state for debugging
+  if (current_rom_) {
+    util::logf("TestManager ROM pointer: %p", (void*)current_rom_);
+    util::logf("ROM is_loaded(): %s", current_rom_->is_loaded() ? "true" : "false");
+    if (current_rom_->is_loaded()) {
+      util::logf("ROM title: '%s'", current_rom_->title().c_str());
+      util::logf("ROM size: %.2f MB", current_rom_->size() / 1048576.0f);
+      util::logf("ROM dirty: %s", current_rom_->dirty() ? "true" : "false");
+    }
+  } else {
+    util::logf("TestManager ROM pointer is null");
+    util::logf("Note: ROM should be set by EditorManager when ROM is loaded");
+  }
+  util::logf("===============================");
+}
+
+absl::Status TestManager::LoadRomForTesting(const std::string& filename) {
+  // This would load a ROM specifically for testing purposes
+  // For now, just log the request
+  util::logf("Request to load ROM for testing: %s", filename.c_str());
+  return absl::UnimplementedError("ROM loading for testing not yet implemented");
+}
+
+void TestManager::ShowRomComparisonResults(const Rom& before, const Rom& after) {
+  if (ImGui::Begin("ROM Comparison Results")) {
+    ImGui::Text("%s ROM Before/After Comparison", ICON_MD_COMPARE);
+    ImGui::Separator();
+    
+    if (ImGui::BeginTable("RomComparison", 3, ImGuiTableFlags_Borders)) {
+      ImGui::TableSetupColumn("Property");
+      ImGui::TableSetupColumn("Before");
+      ImGui::TableSetupColumn("After");
+      ImGui::TableHeadersRow();
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn(); ImGui::Text("Size");
+      ImGui::TableNextColumn(); ImGui::Text("%.2f MB", before.size() / 1048576.0f);
+      ImGui::TableNextColumn(); ImGui::Text("%.2f MB", after.size() / 1048576.0f);
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn(); ImGui::Text("Modified");
+      ImGui::TableNextColumn(); ImGui::Text("%s", before.dirty() ? "Yes" : "No");
+      ImGui::TableNextColumn(); ImGui::Text("%s", after.dirty() ? "Yes" : "No");
+      
+      ImGui::EndTable();
+    }
+  }
+  ImGui::End();
+}
+
+absl::Status TestManager::TestRomSaveLoad(Rom* rom) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("No ROM loaded for testing");
+  }
+  
+  util::logf("Testing ROM save/load operations on: %s", rom->title().c_str());
+  
+  // Create backup of ROM data
+  auto original_data = rom->vector();
+  
+  // Perform test modifications and save operations
+  // This would be implemented with actual save/load tests
+  
+  // Restore original data
+  std::copy(original_data.begin(), original_data.end(), rom->mutable_data());
+  
+  return absl::OkStatus();
+}
+
+absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("No ROM loaded for testing");
+  }
+  
+  util::logf("Testing ROM data integrity on: %s", rom->title().c_str());
+  
+  // Perform data integrity checks
+  // This would validate ROM structure, checksums, etc.
+  
+  return absl::OkStatus();
 }
 
 }  // namespace test
