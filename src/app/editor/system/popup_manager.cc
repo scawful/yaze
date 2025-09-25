@@ -32,6 +32,11 @@ void PopupManager::Initialize() {
   popups_["Troubleshooting"] = {"Troubleshooting", false, [this]() { DrawTroubleshootingPopup(); }};
   popups_["Contributing"] = {"Contributing", false, [this]() { DrawContributingPopup(); }};
   popups_["Whats New v03"] = {"What's New in v0.3", false, [this]() { DrawWhatsNewPopup(); }};
+  
+  // Workspace-related popups
+  popups_["Workspace Help"] = {"Workspace Help", false, [this]() { DrawWorkspaceHelpPopup(); }};
+  popups_["Session Limit Warning"] = {"Session Limit Warning", false, [this]() { DrawSessionLimitWarningPopup(); }};
+  popups_["Layout Reset Confirm"] = {"Reset Layout Confirmation", false, [this]() { DrawLayoutResetConfirmPopup(); }};
 }
 
 void PopupManager::DrawPopups() {
@@ -352,6 +357,69 @@ void PopupManager::DrawWhatsNewPopup() {
   
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Whats New v03");
+  }
+}
+
+void PopupManager::DrawWorkspaceHelpPopup() {
+  TextWrapped("Workspace Management");
+  TextWrapped("YAZE supports multiple ROM sessions and flexible workspace layouts.");
+  Spacing();
+  
+  TextWrapped("Session Management:");
+  BulletText("Ctrl+Shift+N: Create new session");
+  BulletText("Ctrl+Shift+W: Close current session");
+  BulletText("Ctrl+Tab: Quick session switcher");
+  BulletText("Each session maintains its own ROM and editor state");
+  
+  Spacing();
+  TextWrapped("Layout Management:");
+  BulletText("Drag window tabs to dock/undock");
+  BulletText("Ctrl+Shift+S: Save current layout");
+  BulletText("Ctrl+Shift+O: Load saved layout");
+  BulletText("F11: Maximize current window");
+  
+  Spacing();
+  TextWrapped("Preset Layouts:");
+  BulletText("Developer: Code, memory, testing tools");
+  BulletText("Designer: Graphics, palettes, sprites");
+  BulletText("Modder: All gameplay editing tools");
+  
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide("Workspace Help");
+  }
+}
+
+void PopupManager::DrawSessionLimitWarningPopup() {
+  TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Warning", ICON_MD_WARNING);
+  TextWrapped("You have reached the recommended session limit.");
+  TextWrapped("Having too many sessions open may impact performance.");
+  Spacing();
+  TextWrapped("Consider closing unused sessions or saving your work.");
+  
+  if (Button("Understood", gui::kDefaultModalSize)) {
+    Hide("Session Limit Warning");
+  }
+  SameLine();
+  if (Button("Open Session Manager", gui::kDefaultModalSize)) {
+    Hide("Session Limit Warning");
+    // This would trigger the session manager to open
+  }
+}
+
+void PopupManager::DrawLayoutResetConfirmPopup() {
+  TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Confirm Reset", ICON_MD_WARNING);
+  TextWrapped("This will reset your current workspace layout to default.");
+  TextWrapped("Any custom window arrangements will be lost.");
+  Spacing();
+  TextWrapped("Do you want to continue?");
+  
+  if (Button("Reset Layout", gui::kDefaultModalSize)) {
+    Hide("Layout Reset Confirm");
+    // This would trigger the actual reset
+  }
+  SameLine();
+  if (Button("Cancel", gui::kDefaultModalSize)) {
+    Hide("Layout Reset Confirm");
   }
 }
 

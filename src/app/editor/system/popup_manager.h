@@ -81,6 +81,11 @@ class PopupManager {
   void DrawTroubleshootingPopup();
   void DrawContributingPopup();
   void DrawWhatsNewPopup();
+  
+  // Workspace-related popups
+  void DrawWorkspaceHelpPopup();
+  void DrawSessionLimitWarningPopup();
+  void DrawLayoutResetConfirmPopup();
 
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;

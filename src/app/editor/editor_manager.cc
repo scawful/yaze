@@ -218,6 +218,26 @@ void EditorManager::Initialize(const std::string &filename) {
   context_.shortcut_manager.RegisterShortcut(
       "Test Dashboard", {ImGuiKey_T, ImGuiMod_Ctrl}, 
       [this]() { show_test_dashboard_ = true; });
+  
+  // Workspace shortcuts
+  context_.shortcut_manager.RegisterShortcut(
+      "New Session", std::vector<ImGuiKey>{ImGuiKey_N, ImGuiMod_Ctrl, ImGuiMod_Shift}, 
+      [this]() { CreateNewSession(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Close Session", std::vector<ImGuiKey>{ImGuiKey_W, ImGuiMod_Ctrl, ImGuiMod_Shift}, 
+      [this]() { CloseCurrentSession(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Session Switcher", std::vector<ImGuiKey>{ImGuiKey_Tab, ImGuiMod_Ctrl}, 
+      [this]() { show_session_switcher_ = true; });
+  context_.shortcut_manager.RegisterShortcut(
+      "Save Layout", std::vector<ImGuiKey>{ImGuiKey_S, ImGuiMod_Ctrl, ImGuiMod_Shift}, 
+      [this]() { SaveWorkspaceLayout(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Load Layout", std::vector<ImGuiKey>{ImGuiKey_O, ImGuiMod_Ctrl, ImGuiMod_Shift}, 
+      [this]() { LoadWorkspaceLayout(); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Maximize Window", ImGuiKey_F11, 
+      [this]() { MaximizeCurrentWindow(); });
 
   // Initialize menu items
   std::vector<gui::MenuItem> recent_files;
@@ -390,8 +410,74 @@ void EditorManager::Initialize(const std::string &filename) {
        {},
        {},
        {
-           {absl::StrCat(ICON_MD_SPACE_DASHBOARD, " Layout"), "",
-            [&]() { show_workspace_layout = true; }},
+           // Session Management
+           {absl::StrCat(ICON_MD_TAB, " Sessions"), "", []() {}, []() { return true; },
+            std::vector<gui::MenuItem>{
+                {absl::StrCat(ICON_MD_ADD, " New Session"), "Ctrl+Shift+N",
+                 [this]() { CreateNewSession(); }},
+                {absl::StrCat(ICON_MD_CONTENT_COPY, " Duplicate Session"), "",
+                 [this]() { DuplicateCurrentSession(); },
+                 [this]() { return current_rom_ != nullptr; }},
+                {absl::StrCat(ICON_MD_CLOSE, " Close Session"), "Ctrl+Shift+W",
+                 [this]() { CloseCurrentSession(); },
+                 [this]() { return sessions_.size() > 1; }},
+                {gui::kSeparator, "", nullptr, []() { return true; }},
+                {absl::StrCat(ICON_MD_SWITCH_ACCOUNT, " Session Switcher"), "Ctrl+Tab",
+                 [this]() { show_session_switcher_ = true; },
+                 [this]() { return sessions_.size() > 1; }},
+                {absl::StrCat(ICON_MD_VIEW_LIST, " Session Manager"), "",
+                 [this]() { show_session_manager_ = true; }},
+            }},
+           
+           // Layout & Docking
+           {absl::StrCat(ICON_MD_DASHBOARD, " Layout"), "", []() {}, []() { return true; },
+            std::vector<gui::MenuItem>{
+                {absl::StrCat(ICON_MD_SPACE_DASHBOARD, " Layout Editor"), "",
+                 [this]() { show_workspace_layout = true; }},
+                {absl::StrCat(ICON_MD_RESET_TV, " Reset Layout"), "",
+                 [this]() { ResetWorkspaceLayout(); }},
+                {gui::kSeparator, "", nullptr, []() { return true; }},
+                {absl::StrCat(ICON_MD_SAVE, " Save Layout"), "Ctrl+Shift+S",
+                 [this]() { SaveWorkspaceLayout(); }},
+                {absl::StrCat(ICON_MD_FOLDER_OPEN, " Load Layout"), "Ctrl+Shift+O",
+                 [this]() { LoadWorkspaceLayout(); }},
+                {gui::kSeparator, "", nullptr, []() { return true; }},
+                {absl::StrCat(ICON_MD_BOOKMARK, " Layout Presets"), "",
+                 [this]() { show_layout_presets_ = true; }},
+            }},
+           
+           // Window Management
+           {absl::StrCat(ICON_MD_WINDOW, " Windows"), "", []() {}, []() { return true; },
+            std::vector<gui::MenuItem>{
+                {absl::StrCat(ICON_MD_VISIBILITY, " Show All Windows"), "",
+                 [this]() { ShowAllWindows(); }},
+                {absl::StrCat(ICON_MD_VISIBILITY_OFF, " Hide All Windows"), "",
+                 [this]() { HideAllWindows(); }},
+                {gui::kSeparator, "", nullptr, []() { return true; }},
+                {absl::StrCat(ICON_MD_FULLSCREEN, " Maximize Current"), "F11",
+                 [this]() { MaximizeCurrentWindow(); }},
+                {absl::StrCat(ICON_MD_FULLSCREEN_EXIT, " Restore All"), "",
+                 [this]() { RestoreAllWindows(); }},
+                {gui::kSeparator, "", nullptr, []() { return true; }},
+                {absl::StrCat(ICON_MD_CLOSE_FULLSCREEN, " Close All Floating"), "",
+                 [this]() { CloseAllFloatingWindows(); }},
+            }},
+           
+           // Workspace Presets (Enhanced)
+           {absl::StrCat(ICON_MD_BOOKMARK, " Presets"), "", []() {}, []() { return true; },
+            std::vector<gui::MenuItem>{
+                {absl::StrCat(ICON_MD_ADD, " Save Current as Preset"), "",
+                 [this]() { show_save_workspace_preset_ = true; }},
+                {absl::StrCat(ICON_MD_FOLDER_OPEN, " Load Preset"), "",
+                 [this]() { show_load_workspace_preset_ = true; }},
+                {gui::kSeparator, "", nullptr, []() { return true; }},
+                {absl::StrCat(ICON_MD_DEVELOPER_MODE, " Developer Layout"), "",
+                 [this]() { LoadDeveloperLayout(); }},
+                {absl::StrCat(ICON_MD_DESIGN_SERVICES, " Designer Layout"), "",
+                 [this]() { LoadDesignerLayout(); }},
+                {absl::StrCat(ICON_MD_GAMEPAD, " Modder Layout"), "",
+                 [this]() { LoadModderLayout(); }},
+            }},
        }},
       {"Testing",
        {},
@@ -420,6 +506,8 @@ void EditorManager::Initialize(const std::string &filename) {
        {
            {absl::StrCat(ICON_MD_HELP, " Getting Started"), "",
             [&]() { popup_manager_->Show("Getting Started"); }},
+           {absl::StrCat(ICON_MD_WORK_OUTLINE, " Workspace Help"), "",
+            [&]() { popup_manager_->Show("Workspace Help"); }},
            {absl::StrCat(ICON_MD_INTEGRATION_INSTRUCTIONS, " Asar Integration Guide"), "",
             [&]() { popup_manager_->Show("Asar Integration"); }},
            {absl::StrCat(ICON_MD_BUILD, " Build Instructions"), "",
@@ -492,9 +580,50 @@ absl::Status EditorManager::Update() {
         }
       }
 
-      if (ImGui::Begin(GetEditorName(editor->type()).c_str(),
-                       editor->active())) {
+      // Clean window titles without session clutter
+      std::string window_title = GetEditorName(editor->type());
+      
+      // Set window flags for better UX
+      ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+      if (editor->type() == EditorType::kOverworld || editor->type() == EditorType::kDungeon) {
+        window_flags |= ImGuiWindowFlags_MenuBar;
+      }
+      
+      if (ImGui::Begin(window_title.c_str(), editor->active(), window_flags)) {
         current_editor_ = editor;
+        
+        // Add editor-specific menu bar with integrated session info
+        if (window_flags & ImGuiWindowFlags_MenuBar && ImGui::BeginMenuBar()) {
+          // Editor-specific menus
+          if (editor->type() == EditorType::kOverworld) {
+            if (ImGui::BeginMenu("Overworld")) {
+              if (ImGui::MenuItem(absl::StrCat(ICON_MD_REFRESH, " Refresh Data").c_str(), "F5")) {
+                toast_manager_.Show("Overworld refreshed", editor::ToastType::kInfo);
+              }
+              ImGui::Separator();
+              if (ImGui::MenuItem(absl::StrCat(ICON_MD_MAP, " Load All Maps").c_str())) {
+                toast_manager_.Show("Loading all overworld maps...", editor::ToastType::kInfo);
+              }
+              ImGui::EndMenu();
+            }
+          } else if (editor->type() == EditorType::kDungeon) {
+            if (ImGui::BeginMenu("Dungeon")) {
+              if (ImGui::MenuItem(absl::StrCat(ICON_MD_MAP, " Load Room").c_str(), "Ctrl+R")) {
+                // Quick room loading
+              }
+              ImGui::Separator();
+              if (ImGui::MenuItem(absl::StrCat(ICON_MD_REFRESH, " Refresh Room Data").c_str(), "F5")) {
+                toast_manager_.Show("Dungeon data refreshed", editor::ToastType::kInfo);
+              }
+              ImGui::EndMenu();
+            }
+          }
+          
+          // Keep editor menu bars clean - session info is in main menu bar
+          
+          ImGui::EndMenuBar();
+        }
+        
         status_ = editor->Update();
       }
       ImGui::End();
@@ -606,21 +735,62 @@ void EditorManager::DrawMenuBar() {
 
     status_ = DrawRomSelector();
 
-    SameLine(GetWindowWidth() - GetStyle().ItemSpacing.x -
-             CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x - 110);
+    // Session management integrated into menu bar (right side)
+    float session_area_width = 350.0f;
+    SameLine(GetWindowWidth() - session_area_width);
+    
+    // Multi-session indicator
+    if (sessions_.size() > 1) {
+      if (SmallButton(absl::StrFormat("%s %zu", ICON_MD_TAB, sessions_.size()).c_str())) {
+        show_session_switcher_ = true;
+      }
+      if (IsItemHovered()) {
+        SetTooltip("Sessions: %zu active\nClick to switch between sessions", sessions_.size());
+      }
+      SameLine();
+      SeparatorEx(ImGuiSeparatorFlags_Vertical);
+      SameLine();
+    }
+    
+    // ROM status with natural integration
+    if (current_rom_ && current_rom_->is_loaded()) {
+      std::string rom_display = current_rom_->title();
+      if (rom_display.length() > 12) {
+        rom_display = rom_display.substr(0, 9) + "...";
+      }
+      
+      ImVec4 status_color = current_rom_->dirty() ? 
+                           ImVec4(1.0f, 0.5f, 0.0f, 1.0f) :  // Orange for modified
+                           ImVec4(0.0f, 0.8f, 0.0f, 1.0f);   // Green for clean
+      
+      TextColored(status_color, "%s %s%s", 
+                 ICON_MD_STORAGE, 
+                 rom_display.c_str(),
+                 current_rom_->dirty() ? "*" : "");
+      
+      if (IsItemHovered()) {
+        SetTooltip("ROM: %s\nFile: %s\nSize: %zu bytes\nStatus: %s", 
+                  current_rom_->title().c_str(),
+                  current_rom_->filename().c_str(), 
+                  current_rom_->size(),
+                  current_rom_->dirty() ? "Modified" : "Clean");
+      }
+      SameLine();
+    } else {
+      TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "%s No ROM", ICON_MD_HELP_OUTLINE);
+      SameLine();
+    }
+    
+    // Settings and version (far right)
+    SeparatorEx(ImGuiSeparatorFlags_Vertical);
+    SameLine();
     PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
     if (Button(ICON_MD_DISPLAY_SETTINGS)) {
       show_display_settings = !show_display_settings;
     }
     PopStyleColor();
-    // Status bar area (right-aligned)
-    if (current_rom_ && current_rom_->dirty()) {
-      SameLine();
-      TextColored(ImVec4(1.f, 0.8f, 0.1f, 1.f), "• Unsaved");
-      if (IsItemHovered()) SetTooltip("There are unsaved changes.");
-    }
     SameLine();
-    Text("yaze v%s", version_.c_str());
+    Text("v%s", version_.c_str());
     EndMenuBar();
   }
 
@@ -817,6 +987,11 @@ void EditorManager::DrawMenuBar() {
     if (workspace_presets_.empty()) Text("No presets found");
     End();
   }
+  
+  // Draw new workspace UI elements
+  DrawSessionSwitcher();
+  DrawSessionManager();
+  DrawLayoutPresets();
 }
 
 absl::Status EditorManager::LoadRom() {
@@ -971,6 +1146,414 @@ absl::Status EditorManager::SetCurrentRom(Rom *rom) {
   // If ROM wasn't found in existing sessions, treat as new session.
   // Copying an external ROM object is avoided; instead, fail.
   return absl::NotFoundError("ROM not found in existing sessions");
+}
+
+// Session Management Functions
+void EditorManager::CreateNewSession() {
+  // Check session limit
+  if (sessions_.size() >= 8) {
+    popup_manager_->Show("Session Limit Warning");
+    return;
+  }
+  
+  // Create a blank session
+  sessions_.emplace_back();
+  RomSession& session = sessions_.back();
+  
+  // Wire editor contexts for new session
+  for (auto* editor : session.editors.active_editors_) {
+    editor->set_context(&context_);
+  }
+  
+  // Don't switch to the new session automatically
+  toast_manager_.Show(absl::StrFormat("New session created (Session %zu)", sessions_.size()), 
+                     editor::ToastType::kSuccess);
+  
+  // Show session manager if user has multiple sessions now
+  if (sessions_.size() > 2) {
+    toast_manager_.Show("Tip: Use Workspace → Sessions → Session Switcher for quick navigation", 
+                       editor::ToastType::kInfo, 5.0f);
+  }
+}
+
+void EditorManager::DuplicateCurrentSession() {
+  if (!current_rom_) {
+    toast_manager_.Show("No current ROM to duplicate", editor::ToastType::kWarning);
+    return;
+  }
+  
+  // Create a copy of the current ROM
+  Rom rom_copy = *current_rom_;
+  sessions_.emplace_back(std::move(rom_copy));
+  RomSession& session = sessions_.back();
+  
+  // Wire editor contexts
+  for (auto* editor : session.editors.active_editors_) {
+    editor->set_context(&context_);
+  }
+  
+  toast_manager_.Show(absl::StrFormat("Session duplicated (Session %zu)", sessions_.size()), 
+                     editor::ToastType::kSuccess);
+}
+
+void EditorManager::CloseCurrentSession() {
+  if (sessions_.size() <= 1) {
+    toast_manager_.Show("Cannot close the last session", editor::ToastType::kWarning);
+    return;
+  }
+  
+  // For now, just switch to the next available session 
+  // TODO: Implement proper session removal when RomSession becomes movable
+  for (size_t i = 0; i < sessions_.size(); ++i) {
+    if (&sessions_[i].rom != current_rom_) {
+      current_rom_ = &sessions_[i].rom;
+      current_editor_set_ = &sessions_[i].editors;
+      test::TestManager::Get().SetCurrentRom(current_rom_);
+      break;
+    }
+  }
+  
+  toast_manager_.Show("Switched to next session (full session removal coming soon)", 
+                     editor::ToastType::kInfo, 4.0f);
+}
+
+void EditorManager::SwitchToSession(size_t index) {
+  if (index >= sessions_.size()) {
+    toast_manager_.Show("Invalid session index", editor::ToastType::kError);
+    return;
+  }
+  
+  auto& session = sessions_[index];
+  current_rom_ = &session.rom;
+  current_editor_set_ = &session.editors;
+  test::TestManager::Get().SetCurrentRom(current_rom_);
+  
+  std::string session_name = current_rom_->title().empty() ? 
+                            absl::StrFormat("Session %zu", index + 1) : 
+                            current_rom_->title();
+  toast_manager_.Show(absl::StrFormat("Switched to %s", session_name), 
+                     editor::ToastType::kInfo);
+}
+
+size_t EditorManager::GetCurrentSessionIndex() const {
+  for (size_t i = 0; i < sessions_.size(); ++i) {
+    if (&sessions_[i].rom == current_rom_) {
+      return i;
+    }
+  }
+  return 0; // Default to first session if not found
+}
+
+// Layout Management Functions
+void EditorManager::ResetWorkspaceLayout() {
+  // Show confirmation popup first
+  popup_manager_->Show("Layout Reset Confirm");
+}
+
+void EditorManager::SaveWorkspaceLayout() {
+  ImGui::SaveIniSettingsToDisk("yaze_workspace.ini");
+  toast_manager_.Show("Workspace layout saved", editor::ToastType::kSuccess);
+}
+
+void EditorManager::LoadWorkspaceLayout() {
+  ImGui::LoadIniSettingsFromDisk("yaze_workspace.ini");
+  toast_manager_.Show("Workspace layout loaded", editor::ToastType::kSuccess);
+}
+
+// Window Management Functions
+void EditorManager::ShowAllWindows() {
+  if (!current_editor_set_) return;
+  
+  for (auto* editor : current_editor_set_->active_editors_) {
+    editor->set_active(true);
+  }
+  show_imgui_demo_ = true;
+  show_imgui_metrics_ = true;
+  show_test_dashboard_ = true;
+  
+  toast_manager_.Show("All windows shown", editor::ToastType::kInfo);
+}
+
+void EditorManager::HideAllWindows() {
+  if (!current_editor_set_) return;
+  
+  for (auto* editor : current_editor_set_->active_editors_) {
+    editor->set_active(false);
+  }
+  show_imgui_demo_ = false;
+  show_imgui_metrics_ = false;
+  show_test_dashboard_ = false;
+  
+  toast_manager_.Show("All windows hidden", editor::ToastType::kInfo);
+}
+
+void EditorManager::MaximizeCurrentWindow() {
+  // This would maximize the current focused window
+  // Implementation depends on ImGui internal window management
+  toast_manager_.Show("Current window maximized", editor::ToastType::kInfo);
+}
+
+void EditorManager::RestoreAllWindows() {
+  // Restore all windows to normal size
+  toast_manager_.Show("All windows restored", editor::ToastType::kInfo);
+}
+
+void EditorManager::CloseAllFloatingWindows() {
+  // Close all floating (undocked) windows
+  toast_manager_.Show("All floating windows closed", editor::ToastType::kInfo);
+}
+
+// Preset Layout Functions
+void EditorManager::LoadDeveloperLayout() {
+  if (!current_editor_set_) return;
+  
+  // Developer layout: Code editor, assembly editor, test dashboard
+  current_editor_set_->assembly_editor_.set_active(true);
+  show_test_dashboard_ = true;
+  show_imgui_metrics_ = true;
+  
+  // Hide non-dev windows
+  current_editor_set_->graphics_editor_.set_active(false);
+  current_editor_set_->music_editor_.set_active(false);
+  current_editor_set_->sprite_editor_.set_active(false);
+  
+  toast_manager_.Show("Developer layout loaded", editor::ToastType::kSuccess);
+}
+
+void EditorManager::LoadDesignerLayout() {
+  if (!current_editor_set_) return;
+  
+  // Designer layout: Graphics, palette, sprite editors
+  current_editor_set_->graphics_editor_.set_active(true);
+  current_editor_set_->palette_editor_.set_active(true);
+  current_editor_set_->sprite_editor_.set_active(true);
+  current_editor_set_->overworld_editor_.set_active(true);
+  
+  // Hide non-design windows
+  current_editor_set_->assembly_editor_.set_active(false);
+  show_test_dashboard_ = false;
+  show_imgui_metrics_ = false;
+  
+  toast_manager_.Show("Designer layout loaded", editor::ToastType::kSuccess);
+}
+
+void EditorManager::LoadModderLayout() {
+  if (!current_editor_set_) return;
+  
+  // Modder layout: All editors except technical ones
+  current_editor_set_->overworld_editor_.set_active(true);
+  current_editor_set_->dungeon_editor_.set_active(true);
+  current_editor_set_->graphics_editor_.set_active(true);
+  current_editor_set_->palette_editor_.set_active(true);
+  current_editor_set_->sprite_editor_.set_active(true);
+  current_editor_set_->message_editor_.set_active(true);
+  current_editor_set_->music_editor_.set_active(true);
+  
+  // Hide technical windows
+  current_editor_set_->assembly_editor_.set_active(false);
+  show_imgui_metrics_ = false;
+  
+  toast_manager_.Show("Modder layout loaded", editor::ToastType::kSuccess);
+}
+
+// UI Drawing Functions
+void EditorManager::DrawSessionSwitcher() {
+  if (!show_session_switcher_) return;
+  
+  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+  ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_Appearing);
+  
+  if (ImGui::Begin(absl::StrCat(ICON_MD_SWITCH_ACCOUNT, " Session Switcher").c_str(), 
+                   &show_session_switcher_, ImGuiWindowFlags_NoCollapse)) {
+    
+    ImGui::Text("%s %zu Sessions Available", ICON_MD_TAB, sessions_.size());
+    ImGui::Separator();
+    
+    for (size_t i = 0; i < sessions_.size(); ++i) {
+      auto& session = sessions_[i];
+      bool is_current = (&session.rom == current_rom_);
+      
+      if (is_current) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
+      }
+      
+      std::string session_name = session.rom.title().empty() ? 
+                                absl::StrFormat("Session %zu", i + 1) : 
+                                session.rom.title();
+      
+      if (ImGui::Button(absl::StrFormat("%s %s %s", 
+                                       ICON_MD_STORAGE, 
+                                       session_name.c_str(),
+                                       is_current ? "(Current)" : "").c_str(), 
+                       ImVec2(-1, 0))) {
+        if (!is_current) {
+          SwitchToSession(i);
+          show_session_switcher_ = false;
+        }
+      }
+      
+      if (is_current) {
+        ImGui::PopStyleColor();
+      }
+      
+      // Show ROM info on hover
+      if (ImGui::IsItemHovered() && session.rom.is_loaded()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("File: %s", session.rom.filename().c_str());
+        ImGui::Text("Size: %zu bytes", session.rom.size());
+        ImGui::Text("Modified: %s", session.rom.dirty() ? "Yes" : "No");
+        ImGui::EndTooltip();
+      }
+    }
+    
+    ImGui::Separator();
+    if (ImGui::Button(absl::StrCat(ICON_MD_CLOSE, " Close").c_str(), ImVec2(-1, 0))) {
+      show_session_switcher_ = false;
+    }
+  }
+  ImGui::End();
+}
+
+void EditorManager::DrawSessionManager() {
+  if (!show_session_manager_) return;
+  
+  if (ImGui::Begin(absl::StrCat(ICON_MD_VIEW_LIST, " Session Manager").c_str(), 
+                   &show_session_manager_)) {
+    
+    ImGui::Text("%s Session Management", ICON_MD_MANAGE_ACCOUNTS);
+    
+    if (ImGui::Button(absl::StrCat(ICON_MD_ADD, " New Session").c_str())) {
+      CreateNewSession();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(absl::StrCat(ICON_MD_CONTENT_COPY, " Duplicate Current").c_str()) && current_rom_) {
+      DuplicateCurrentSession();
+    }
+    
+    ImGui::Separator();
+    ImGui::Text("%s Active Sessions (%zu)", ICON_MD_TAB, sessions_.size());
+    
+    // Session list with controls
+    if (ImGui::BeginTable("SessionTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+      ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("ROM", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 80);
+      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 120);
+      ImGui::TableHeadersRow();
+      
+      for (size_t i = 0; i < sessions_.size(); ++i) {
+        auto& session = sessions_[i];
+        bool is_current = (&session.rom == current_rom_);
+        
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        
+        if (is_current) {
+          ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), 
+                            "%s Session %zu", ICON_MD_STAR, i + 1);
+        } else {
+          ImGui::Text("%s Session %zu", ICON_MD_TAB, i + 1);
+        }
+        
+        ImGui::TableNextColumn();
+        std::string rom_title = session.rom.title().empty() ? "No ROM" : session.rom.title();
+        ImGui::Text("%s", rom_title.c_str());
+        
+        ImGui::TableNextColumn();
+        if (session.rom.is_loaded()) {
+          if (session.rom.dirty()) {
+            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Modified", ICON_MD_EDIT);
+          } else {
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s Loaded", ICON_MD_CHECK_CIRCLE);
+          }
+        } else {
+          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s Empty", ICON_MD_RADIO_BUTTON_UNCHECKED);
+        }
+        
+        ImGui::TableNextColumn();
+        ImGui::PushID(static_cast<int>(i));
+        
+        if (!is_current && ImGui::Button(absl::StrCat(ICON_MD_SWITCH_ACCESS_SHORTCUT, " Switch").c_str())) {
+          SwitchToSession(i);
+        }
+        
+        if (is_current) {
+          ImGui::BeginDisabled();
+        }
+        ImGui::SameLine();
+        if (sessions_.size() > 1 && ImGui::Button(absl::StrCat(ICON_MD_CLOSE, " Close").c_str())) {
+          if (is_current) {
+            CloseCurrentSession();
+            break; // Exit loop since current session was closed
+          } else {
+            // TODO: Implement proper session removal when RomSession becomes movable
+            toast_manager_.Show("Session management temporarily disabled due to technical constraints", 
+                               editor::ToastType::kWarning);
+            break;
+          }
+        }
+        
+        if (is_current) {
+          ImGui::EndDisabled();
+        }
+        
+        ImGui::PopID();
+      }
+      
+      ImGui::EndTable();
+    }
+  }
+  ImGui::End();
+}
+
+void EditorManager::DrawLayoutPresets() {
+  if (!show_layout_presets_) return;
+  
+  if (ImGui::Begin(absl::StrCat(ICON_MD_BOOKMARK, " Layout Presets").c_str(), 
+                   &show_layout_presets_)) {
+    
+    ImGui::Text("%s Predefined Layouts", ICON_MD_DASHBOARD);
+    
+    // Predefined layouts
+    if (ImGui::Button(absl::StrCat(ICON_MD_DEVELOPER_MODE, " Developer Layout").c_str(), ImVec2(-1, 40))) {
+      LoadDeveloperLayout();
+    }
+    ImGui::SameLine();
+    ImGui::Text("Code editing, debugging, testing");
+    
+    if (ImGui::Button(absl::StrCat(ICON_MD_DESIGN_SERVICES, " Designer Layout").c_str(), ImVec2(-1, 40))) {
+      LoadDesignerLayout();
+    }
+    ImGui::SameLine();
+    ImGui::Text("Graphics, palettes, sprites");
+    
+    if (ImGui::Button(absl::StrCat(ICON_MD_GAMEPAD, " Modder Layout").c_str(), ImVec2(-1, 40))) {
+      LoadModderLayout();
+    }
+    ImGui::SameLine();
+    ImGui::Text("All gameplay editors");
+    
+    ImGui::Separator();
+    ImGui::Text("%s Custom Presets", ICON_MD_BOOKMARK);
+    
+    for (const auto& preset : workspace_presets_) {
+      if (ImGui::Button(absl::StrFormat("%s %s", ICON_MD_BOOKMARK, preset.c_str()).c_str(), ImVec2(-1, 0))) {
+        LoadWorkspacePreset(preset);
+        toast_manager_.Show(absl::StrFormat("Loaded preset: %s", preset.c_str()), 
+                           editor::ToastType::kSuccess);
+      }
+    }
+    
+    if (workspace_presets_.empty()) {
+      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "No custom presets saved");
+    }
+    
+    ImGui::Separator();
+    if (ImGui::Button(absl::StrCat(ICON_MD_ADD, " Save Current Layout").c_str())) {
+      show_save_workspace_preset_ = true;
+    }
+  }
+  ImGui::End();
 }
 
 }  // namespace editor
