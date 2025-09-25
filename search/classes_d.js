@@ -14,7 +14,7 @@ var searchData=
   ['objectparser_11',['ObjectParser',['../classyaze_1_1zelda3_1_1ObjectParser.html',1,'yaze::zelda3::ObjectParser'],['../classyaze_1_1zelda3_1_1ObjectRenderer_1_1ObjectParser.html',1,'yaze::zelda3::ObjectRenderer::ObjectParser']]],
   ['objectparserstructstest_12',['ObjectParserStructsTest',['../classyaze_1_1test_1_1ObjectParserStructsTest.html',1,'yaze::test']]],
   ['objectparsertest_13',['ObjectParserTest',['../classyaze_1_1test_1_1ObjectParserTest.html',1,'yaze::test']]],
-  ['objectrendercache_14',['ObjectRenderCache',['../structyaze_1_1editor_1_1DungeonEditor_1_1ObjectRenderCache.html',1,'yaze::editor::DungeonEditor']]],
+  ['objectrendercache_14',['ObjectRenderCache',['../structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectRenderCache.html',1,'yaze::editor::DungeonCanvasViewer::ObjectRenderCache'],['../structyaze_1_1editor_1_1DungeonEditor_1_1ObjectRenderCache.html',1,'yaze::editor::DungeonEditor::ObjectRenderCache']]],
   ['objectrenderer_15',['ObjectRenderer',['../classyaze_1_1zelda3_1_1ObjectRenderer.html',1,'yaze::zelda3']]],
   ['objectroutineinfo_16',['ObjectRoutineInfo',['../structyaze_1_1zelda3_1_1ObjectRoutineInfo.html',1,'yaze::zelda3']]],
   ['objectsizeinfo_17',['ObjectSizeInfo',['../structyaze_1_1zelda3_1_1ObjectSizeInfo.html',1,'yaze::zelda3']]],

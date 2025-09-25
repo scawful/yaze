@@ -1,0 +1,11 @@
+<map id="yaze::editor::DungeonCanvasViewer::RenderRoomBackgroundLayers" name="yaze::editor::DungeonCanvasViewer::RenderRoomBackgroundLayers">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,256,88"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ad0f203b2f2a24eb23c980f4572670582" title=" " alt="" coords="304,5,441,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,44,290,32,291,37,234,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#ab4b9ad9acd7039bf316e83e2131c21e7" title=" " alt="" coords="304,55,441,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="256,65,288,65,288,70,256,70"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="304,104,441,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="234,86,291,98,290,103,233,91"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca" title=" " alt="" coords="489,104,639,130"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="441,114,473,114,473,120,441,120"/>
+</map>

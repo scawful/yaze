@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.13.2"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: Integration Test Suite Guide</title>
+<title>yaze: Integration Test Guide</title>
 <link rel="icon" href="yaze.ico" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
@@ -106,12 +106,12 @@ $(function(){initNavTree('md_docs_2integration__test__guide.html',''); initResiz
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">Integration Test Suite Guide</div></div>
+  <div class="headertitle"><div class="title">Integration Test Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md96"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md263"></a></p>
 <p>This guide explains how to use yaze's integration test suite to validate ROM loading, overworld functionality, and ensure compatibility between vanilla and ZSCustomOverworld ROMs.</p>
-<h1><a class="anchor" id="autotoc_md97"></a>
+<h1><a class="anchor" id="autotoc_md264"></a>
 Table of Contents</h1>
 <ol type="1">
 <li>Overview</li>
@@ -122,10 +122,10 @@ Table of Contents</h1>
 <li>Debugging Failed Tests</li>
 <li>Best Practices</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md98"></a>
+<h1><a class="anchor" id="autotoc_md265"></a>
 Overview</h1>
 <p>The integration test suite validates that yaze correctly loads and processes ROM data by comparing against known values from vanilla ROMs and ensuring that ZSCustomOverworld features work as expected.</p>
-<h2><a class="anchor" id="autotoc_md99"></a>
+<h2><a class="anchor" id="autotoc_md266"></a>
 Key Components</h2>
 <ul>
 <li><b>Vanilla ROM Tests</b>: Validate loading of original Zelda 3 ROMs</li>
@@ -133,31 +133,26 @@ Key Components</h2>
 <li><b>Sprite Position Tests</b>: Verify sprite coordinate systems</li>
 <li><b>Overworld Map Tests</b>: Test map loading and property access</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md100"></a>
+<h1><a class="anchor" id="autotoc_md267"></a>
 Test Structure</h1>
-<h2><a class="anchor" id="autotoc_md101"></a>
+<h2><a class="anchor" id="autotoc_md268"></a>
 Test Files</h2>
 <div class="fragment"><div class="line">test/zelda3/</div>
-<div class="line">├── overworld_test.cc              # Unit tests for OverworldMap class</div>
-<div class="line">├── overworld_integration_test.cc  # Integration tests with real ROMs</div>
-<div class="line">├── sprite_position_test.cc        # Sprite coordinate system tests</div>
-<div class="line">├── comprehensive_integration_test.cc  # Full ROM validation</div>
-<div class="line">└── extract_vanilla_values.cc      # Utility to extract test values</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md102"></a>
+<div class="line">├── overworld_integration_test.cc     # Integration tests with real ROMs</div>
+<div class="line">├── comprehensive_integration_test.cc # Full ROM validation</div>
+<div class="line">├── dungeon_integration_test.cc       # Dungeon system integration tests</div>
+<div class="line">├── dungeon_editor_system_integration_test.cc # Dungeon editor system tests</div>
+<div class="line">└── extract_vanilla_values.cc         # Utility to extract test values</div>
+<div class="line"> </div>
+<div class="line">test/integration/</div>
+<div class="line">├── editor_integration_test.h/cc      # Base editor integration test framework</div>
+<div class="line">├── dungeon_editor_test.h             # Dungeon editor integration tests</div>
+<div class="line">└── test_editor.h/cc                  # Test editor framework</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md269"></a>
 Test Categories</h2>
-<h3><a class="anchor" id="autotoc_md103"></a>
-1. Unit Tests (<code>overworld_test.cc</code>)</h3>
-<p>Test individual components in isolation:</p>
-<div class="fragment"><div class="line">TEST_F(OverworldTest, OverworldMapInitialization) {</div>
-<div class="line">  OverworldMap map(0, rom_.get());</div>
-<div class="line">  </div>
-<div class="line">  EXPECT_EQ(map.area_graphics(), 0);</div>
-<div class="line">  EXPECT_EQ(map.area_palette(), 0);</div>
-<div class="line">  EXPECT_EQ(map.area_size(), AreaSizeEnum::SmallArea);</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md104"></a>
-2. Integration Tests (<code>overworld_integration_test.cc</code>)</h3>
-<p>Test with real ROM files:</p>
+<h3><a class="anchor" id="autotoc_md270"></a>
+1. Integration Tests (<code>overworld_integration_test.cc</code>)</h3>
+<p>Test with real ROM files and validate overworld functionality:</p>
 <div class="fragment"><div class="line">TEST_F(OverworldIntegrationTest, VanillaROMLoading) {</div>
 <div class="line">  <span class="comment">// Load vanilla ROM</span></div>
 <div class="line">  <span class="keyword">auto</span> rom = LoadVanillaROM();</div>
@@ -168,30 +163,44 @@ Test Categories</h2>
 <div class="line">  EXPECT_EQ(map-&gt;area_graphics(), expected_graphics);</div>
 <div class="line">  EXPECT_EQ(map-&gt;area_palette(), expected_palette);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md105"></a>
-3. Sprite Tests (<code>sprite_position_test.cc</code>)</h3>
-<p>Validate sprite coordinate systems:</p>
-<div class="fragment"><div class="line">TEST_F(SpritePositionTest, SpriteCoordinateSystem) {</div>
-<div class="line">  <span class="comment">// Load ROM and test sprite positioning</span></div>
-<div class="line">  <span class="keyword">auto</span> rom = LoadTestROM();</div>
-<div class="line">  Overworld overworld(rom.get());</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md271"></a>
+2. Comprehensive Integration Tests (<code>comprehensive_integration_test.cc</code>)</h3>
+<p>Full ROM validation with multiple ROM types:</p>
+<div class="fragment"><div class="line">TEST_F(ComprehensiveIntegrationTest, VanillaVsV3Comparison) {</div>
+<div class="line">  <span class="comment">// Compare vanilla and v3 ROM features</span></div>
+<div class="line">  EXPECT_NE(vanilla_overworld_, <span class="keyword">nullptr</span>);</div>
+<div class="line">  EXPECT_NE(v3_overworld_, <span class="keyword">nullptr</span>);</div>
 <div class="line">  </div>
-<div class="line">  <span class="comment">// Verify sprites are positioned correctly for each world</span></div>
-<div class="line">  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> game_state = 0; game_state &lt; 3; game_state++) {</div>
-<div class="line">    <span class="keyword">auto</span>&amp; sprites = *overworld.mutable_sprites(game_state);</div>
-<div class="line">    <span class="comment">// Test sprite coordinates and world filtering</span></div>
+<div class="line">  <span class="comment">// Test feature differences</span></div>
+<div class="line">  TestFeatureDifferences();</div>
+<div class="line">}</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md272"></a>
+3. Dungeon Integration Tests (<code>dungeon_integration_test.cc</code>)</h3>
+<p>Test dungeon system functionality:</p>
+<div class="fragment"><div class="line">TEST_F(DungeonIntegrationTest, DungeonRoomLoading) {</div>
+<div class="line">  <span class="comment">// Test loading dungeon rooms</span></div>
+<div class="line">  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; kNumTestRooms; i++) {</div>
+<div class="line">    <span class="comment">// Test room loading and properties</span></div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md106"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md273"></a>
+4. Dungeon Editor System Tests (<code>dungeon_editor_system_integration_test.cc</code>)</h3>
+<p>Test the complete dungeon editor system:</p>
+<div class="fragment"><div class="line">TEST_F(DungeonEditorSystemIntegrationTest, BasicInitialization) {</div>
+<div class="line">  EXPECT_NE(dungeon_editor_system_, <span class="keyword">nullptr</span>);</div>
+<div class="line">  EXPECT_EQ(dungeon_editor_system_-&gt;GetROM(), rom_.get());</div>
+<div class="line">  EXPECT_FALSE(dungeon_editor_system_-&gt;IsDirty());</div>
+<div class="line">}</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md274"></a>
 Running Tests</h1>
-<h2><a class="anchor" id="autotoc_md107"></a>
+<h2><a class="anchor" id="autotoc_md275"></a>
 Prerequisites</h2>
 <ol type="1">
 <li><b>Build yaze</b>: Ensure yaze is built with test support</li>
 <li><b>ROM Files</b>: Have test ROM files available</li>
 <li><b>Test Data</b>: Generated test values from vanilla ROMs</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md108"></a>
+<h2><a class="anchor" id="autotoc_md276"></a>
 Basic Test Execution</h2>
 <div class="fragment"><div class="line"># Run all tests</div>
 <div class="line">cd /Users/scawful/Code/yaze/build</div>
@@ -205,7 +214,7 @@ Basic Test Execution</h2>
 <div class="line"> </div>
 <div class="line"># Run with verbose output</div>
 <div class="line">./bin/yaze_test --gtest_filter=&quot;OverworldIntegrationTest.*&quot; --gtest_output=xml:test_results.xml</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md109"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md277"></a>
 Test Filtering</h2>
 <p>Use Google Test filters to run specific tests:</p>
 <div class="fragment"><div class="line"># Run only overworld tests</div>
@@ -219,16 +228,16 @@ Test Filtering</h2>
 <div class="line"> </div>
 <div class="line"># Exclude specific tests</div>
 <div class="line">./bin/yaze_test --gtest_filter=&quot;OverworldTest.*:-OverworldTest.OverworldMapDestroy&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md110"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md278"></a>
 Parallel Execution</h2>
 <div class="fragment"><div class="line"># Run tests in parallel (faster)</div>
 <div class="line">./bin/yaze_test --gtest_parallel=4</div>
 <div class="line"> </div>
 <div class="line"># Run with specific number of workers</div>
 <div class="line">./bin/yaze_test --gtest_workers=8</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md111"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md279"></a>
 Understanding Results</h1>
-<h2><a class="anchor" id="autotoc_md112"></a>
+<h2><a class="anchor" id="autotoc_md280"></a>
 Test Output Format</h2>
 <div class="fragment"><div class="line">[==========] Running 3 tests from 1 test suite.</div>
 <div class="line">[----------] Global test environment set-up.</div>
@@ -243,21 +252,21 @@ Test Output Format</h2>
 <div class="line">[----------] Global test environment tear-down.</div>
 <div class="line">[==========] 3 tests from 1 test suite ran. (4 ms total)</div>
 <div class="line">[  PASSED  ] 3 tests.</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md113"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md281"></a>
 Success Indicators</h2>
 <ul>
 <li><code>[ OK ]</code>: Test passed</li>
 <li><code>[ PASSED ]</code>: All tests in suite passed</li>
 <li>No error messages or stack traces</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md114"></a>
+<h2><a class="anchor" id="autotoc_md282"></a>
 Failure Indicators</h2>
 <ul>
 <li><code>[ FAILED ]</code>: Test failed</li>
 <li>Error messages with expected vs actual values</li>
 <li>Stack traces showing failure location</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md115"></a>
+<h2><a class="anchor" id="autotoc_md283"></a>
 Example Failure Output</h2>
 <div class="fragment"><div class="line">[ RUN      ] OverworldTest.OverworldMapInitialization</div>
 <div class="line">test/zelda3/overworld_test.cc:45: Failure</div>
@@ -266,9 +275,9 @@ Example Failure Output</h2>
 <div class="line">    Which is: 5</div>
 <div class="line">  0</div>
 <div class="line">[  FAILED  ] OverworldTest.OverworldMapInitialization (2 ms)</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md116"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md284"></a>
 Adding New Tests</h1>
-<h2><a class="anchor" id="autotoc_md117"></a>
+<h2><a class="anchor" id="autotoc_md285"></a>
 1. Unit Test Example</h2>
 <div class="fragment"><div class="line"><span class="comment">// Add to overworld_test.cc</span></div>
 <div class="line">TEST_F(OverworldTest, VanillaOverlayLoading) {</div>
@@ -282,7 +291,7 @@ Adding New Tests</h1>
 <div class="line">  EXPECT_GT(map.vanilla_overlay_data().size(), 0);</div>
 <div class="line">}</div>
 <div class="ttc" id="amacro_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="macro_8h_source.html#l00053">macro.h:53</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md118"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md286"></a>
 2. Integration Test Example</h2>
 <div class="fragment"><div class="line"><span class="comment">// Add to overworld_integration_test.cc</span></div>
 <div class="line">TEST_F(OverworldIntegrationTest, ZSCustomOverworldV3Features) {</div>
@@ -300,7 +309,7 @@ Adding New Tests</h1>
 <div class="line">    EXPECT_GE(map-&gt;custom_tileset(i), 0);</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md119"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md287"></a>
 3. Performance Test Example</h2>
 <div class="fragment"><div class="line">TEST_F(OverworldPerformanceTest, LargeMapLoading) {</div>
 <div class="line">  <span class="keyword">auto</span> start = std::chrono::high_resolution_clock::now();</div>
@@ -316,9 +325,9 @@ Adding New Tests</h1>
 <div class="line">  <span class="comment">// Ensure loading is reasonably fast</span></div>
 <div class="line">  EXPECT_LT(duration.count(), 1000); <span class="comment">// Less than 1 second</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md120"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md288"></a>
 Debugging Failed Tests</h1>
-<h2><a class="anchor" id="autotoc_md121"></a>
+<h2><a class="anchor" id="autotoc_md289"></a>
 1. Enable Debug Output</h2>
 <div class="fragment"><div class="line"><span class="comment">// Add debug output to tests</span></div>
 <div class="line">TEST_F(OverworldTest, DebugTest) {</div>
@@ -331,7 +340,7 @@ Debugging Failed Tests</h1>
 <div class="line">  </div>
 <div class="line">  <span class="comment">// Your assertions here</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md122"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md290"></a>
 2. Use GDB for Debugging</h2>
 <div class="fragment"><div class="line"># Run test with GDB</div>
 <div class="line">gdb --args ./bin/yaze_test --gtest_filter=&quot;OverworldTest.DebugTest&quot;</div>
@@ -343,7 +352,7 @@ Debugging Failed Tests</h1>
 <div class="line"># Inspect variables</div>
 <div class="line">(gdb) print map.area_graphics()</div>
 <div class="line">(gdb) print map.area_palette()</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md123"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md291"></a>
 3. Memory Debugging</h2>
 <div class="fragment"><div class="line"># Run with Valgrind (Linux)</div>
 <div class="line">valgrind --leak-check=full ./bin/yaze_test --gtest_filter=&quot;OverworldTest.*&quot;</div>
@@ -351,9 +360,9 @@ Debugging Failed Tests</h1>
 <div class="line"># Run with AddressSanitizer</div>
 <div class="line">export ASAN_OPTIONS=detect_leaks=1</div>
 <div class="line">./bin/yaze_test --gtest_filter=&quot;OverworldTest.*&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md124"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md292"></a>
 4. Common Debugging Scenarios</h2>
-<h3><a class="anchor" id="autotoc_md125"></a>
+<h3><a class="anchor" id="autotoc_md293"></a>
 ROM Loading Issues</h3>
 <div class="fragment"><div class="line"><span class="comment">// Check ROM version detection</span></div>
 <div class="line">uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];</div>
@@ -361,7 +370,7 @@ ROM Loading Issues</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Verify ROM size</span></div>
 <div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;ROM Size: &quot;</span> &lt;&lt; rom_-&gt;size() &lt;&lt; <span class="stringliteral">&quot; bytes&quot;</span> &lt;&lt; std::endl;</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md126"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md294"></a>
 Map Property Issues</h3>
 <div class="fragment"><div class="line"><span class="comment">// Check map loading</span></div>
 <div class="line"><span class="keyword">auto</span>* map = overworld.overworld_map(current_map_);</div>
@@ -369,7 +378,7 @@ Map Property Issues</h3>
 <div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;  Area Graphics: 0x&quot;</span> &lt;&lt; std::hex &lt;&lt; static_cast&lt;int&gt;(map-&gt;area_graphics()) &lt;&lt; std::endl;</div>
 <div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;  Area Palette: 0x&quot;</span> &lt;&lt; std::hex &lt;&lt; static_cast&lt;int&gt;(map-&gt;area_palette()) &lt;&lt; std::endl;</div>
 <div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;  Main Palette: 0x&quot;</span> &lt;&lt; std::hex &lt;&lt; static_cast&lt;int&gt;(map-&gt;main_palette()) &lt;&lt; std::endl;</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md127"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md295"></a>
 Sprite Issues</h3>
 <div class="fragment"><div class="line"><span class="comment">// Check sprite loading</span></div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> game_state = 0; game_state &lt; 3; game_state++) {</div>
@@ -382,9 +391,9 @@ Sprite Issues</h3>
 <div class="line">              &lt;&lt; <span class="stringliteral">&quot;, X=&quot;</span> &lt;&lt; sprite.x_ &lt;&lt; <span class="stringliteral">&quot;, Y=&quot;</span> &lt;&lt; sprite.y_ &lt;&lt; std::endl;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md128"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md296"></a>
 Best Practices</h1>
-<h2><a class="anchor" id="autotoc_md129"></a>
+<h2><a class="anchor" id="autotoc_md297"></a>
 1. Test Organization</h2>
 <ul>
 <li><b>Group related tests</b>: Use descriptive test suite names</li>
@@ -400,7 +409,7 @@ Best Practices</h1>
 <div class="line">TEST_F(OverworldTest, Test1) {</div>
 <div class="line">  <span class="comment">// Unclear what this tests</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md130"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md298"></a>
 2. Test Data Management</h2>
 <div class="fragment"><div class="line"><span class="keyword">class </span>OverworldTest : <span class="keyword">public</span> ::testing::Test {</div>
 <div class="line"><span class="keyword">protected</span>:</div>
@@ -417,7 +426,7 @@ Best Practices</h1>
 <div class="line">  </div>
 <div class="line">  std::unique_ptr&lt;Rom&gt; rom_;</div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md131"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md299"></a>
 3. Error Handling in Tests</h2>
 <div class="fragment"><div class="line">TEST_F(OverworldTest, ErrorHandling) {</div>
 <div class="line">  <span class="comment">// Test error conditions</span></div>
@@ -426,7 +435,7 @@ Best Practices</h1>
 <div class="line">  <span class="comment">// Verify error handling</span></div>
 <div class="line">  EXPECT_FALSE(map.is_initialized());</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md132"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md300"></a>
 4. Performance Considerations</h2>
 <div class="fragment"><div class="line"><span class="comment">// Use fixtures for expensive setup</span></div>
 <div class="line"><span class="keyword">class </span>ExpensiveTest : <span class="keyword">public</span> ::testing::Test {</div>
@@ -443,7 +452,7 @@ Best Practices</h1>
 <div class="line">  <span class="comment">// Test that requires expensive setup</span></div>
 <div class="line">}</div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_a7c8a03b1e43883e1b442460e5180fec3"><div class="ttname"><a href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">yaze::test::TEST_F</a></div><div class="ttdeci">TEST_F(ApuTest, IplRomHandshakeTiming)</div><div class="ttdef"><b>Definition</b> <a href="apu__test_8cc_source.html#l00029">apu_test.cc:29</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md133"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md301"></a>
 5. Continuous Integration</h2>
 <p>Add tests to CI pipeline:</p>
 <div class="fragment"><div class="line"># .github/workflows/tests.yml</div>
@@ -464,9 +473,9 @@ Best Practices</h1>
 <div class="line">        with:</div>
 <div class="line">          name: test-results</div>
 <div class="line">          path: build/test_results.xml</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md134"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md302"></a>
 Test Results Interpretation</h1>
-<h2><a class="anchor" id="autotoc_md135"></a>
+<h2><a class="anchor" id="autotoc_md303"></a>
 Viewing Results</h2>
 <p>Test results are typically displayed in the terminal, but you can also generate XML reports:</p>
 <div class="fragment"><div class="line"># Generate XML report</div>
@@ -474,7 +483,7 @@ Viewing Results</h2>
 <div class="line"> </div>
 <div class="line"># View in browser (if you have a test result viewer)</div>
 <div class="line">open test_results.xml</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md136"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md304"></a>
 Key Metrics</h2>
 <ul>
 <li><b>Test Count</b>: Number of tests run</li>
@@ -482,7 +491,7 @@ Key Metrics</h2>
 <li><b>Execution Time</b>: How long tests took to run</li>
 <li><b>Memory Usage</b>: Peak memory consumption during tests</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md137"></a>
+<h2><a class="anchor" id="autotoc_md305"></a>
 Performance Benchmarks</h2>
 <p>Track performance over time:</p>
 <div class="fragment"><div class="line"># Run with timing</div>
@@ -490,7 +499,7 @@ Performance Benchmarks</h2>
 <div class="line"> </div>
 <div class="line"># Profile with gprof</div>
 <div class="line">gprof ./bin/yaze_test gmon.out &gt; profile.txt</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md138"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md306"></a>
 Conclusion</h1>
 <p>The integration test suite is essential for maintaining yaze's reliability and ensuring compatibility with different ROM types. By following this guide, you can effectively run tests, debug issues, and add new test cases to improve the overall quality of the codebase.</p>
 <p>Remember to:</p><ul>

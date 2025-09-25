@@ -1,7 +1,12 @@
 <map id="yaze::editor::DungeonEditor::ReloadAllRoomGraphics" name="yaze::editor::DungeonEditor::ReloadAllRoomGraphics">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,181,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonEditor.html#a417d0697720518c4526ede7295049153" title=" " alt="" coords="229,5,435,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,23,213,23,213,28,181,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1DungeonEditor.html#af7dc618eedc2dbc4763d5239d2447dcb" title=" " alt="" coords="483,5,694,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="435,23,467,23,467,28,435,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,181,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonEditor.html#a417d0697720518c4526ede7295049153" title=" " alt="" coords="229,71,435,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx.html#aeccc5ded5a311afcdf70cb43e466c220" title="Take a SNESPalette, divide it into palettes of 8 colors." alt="" coords="483,5,643,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="405,68,473,48,475,53,407,73"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="500,71,626,111"/>
+<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="435,88,485,88,485,94,435,94"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="490,160,636,185"/>
+<area shape="poly" id="edge4_Node000002_Node000008" title=" " alt="" coords="393,109,511,151,509,156,391,114"/>
+<area shape="poly" id="edge5_Node000008_Node000008" title=" " alt="" coords="525,161,517,151,522,141,537,135,563,133,591,136,606,142,604,147,590,141,563,138,539,140,525,145,523,150,529,157"/>
 </map>

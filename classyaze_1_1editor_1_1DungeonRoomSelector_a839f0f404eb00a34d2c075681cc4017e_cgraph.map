@@ -1,0 +1,9 @@
+<map id="yaze::editor::DungeonRoomSelector::DrawRoomSelector" name="yaze::editor::DungeonRoomSelector::DrawRoomSelector">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,193,64"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd" title=" " alt="" coords="257,5,382,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,30,242,24,242,30,193,35"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="241,55,399,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,51,226,55,225,60,193,56"/>
+<area shape="rect" id="Node000004" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="447,55,598,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="399,65,431,65,431,70,399,70"/>
+</map>

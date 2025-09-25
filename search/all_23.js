@@ -27,11 +27,10 @@ var searchData=
   ['zoomin_24',['ZoomIn',['../classyaze_1_1gui_1_1Canvas.html#ab3f87f3c953dbbe9a8afc68a3723faf2',1,'yaze::gui::Canvas']]],
   ['zoomout_25',['ZoomOut',['../classyaze_1_1gui_1_1Canvas.html#a20b494ea3673042cdb4b7100c2515b83',1,'yaze::gui::Canvas']]],
   ['zoomwheelaccum_26',['ZoomWheelAccum',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#ad94388a6feb4f480ecd4ff5948a137a7',1,'yaze::gui::GfxSheetAssetBrowser']]],
-  ['zscream_27',['Integration with ZScream',['../md_docs_2dungeon-editor-comprehensive-guide.html#autotoc_md63',1,'']]],
-  ['zscream_20implementation_28',['ZScream Implementation',['../md_docs_2overworld__loading__guide.html#autotoc_md161',1,'']]],
-  ['zscream_20vs_20yaze_29',['Overworld Loading Guide: ZScream vs Yaze',['../md_docs_2overworld__loading__guide.html',1,'']]],
-  ['zscustomoverworld_20v2_20v3_30',['ZSCustomOverworld v2/v3',['../md_docs_2overworld__loading__guide.html#autotoc_md159',1,'']]],
-  ['zsprite_31',['ZSprite',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html',1,'yaze::editor::zsprite']]],
-  ['zsprite_2eh_32',['zsprite.h',['../zsprite_8h.html',1,'']]],
-  ['zw_33',['zw',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#aafa703e41d0955c7e8a4f835d6f53c4f',1,'yaze::zelda3::music::SampleEdit']]]
+  ['zscream_27',['Integration with ZScream',['../md_docs_2dungeon-editor-comprehensive-guide.html#autotoc_md121',1,'']]],
+  ['zscream_20implementation_28',['ZScream Implementation',['../md_docs_2overworld__loading__guide.html#autotoc_md329',1,'']]],
+  ['zscustomoverworld_20v2_20v3_29',['ZSCustomOverworld v2/v3',['../md_docs_2overworld__loading__guide.html#autotoc_md327',1,'']]],
+  ['zsprite_30',['ZSprite',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html',1,'yaze::editor::zsprite']]],
+  ['zsprite_2eh_31',['zsprite.h',['../zsprite_8h.html',1,'']]],
+  ['zw_32',['zw',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#aafa703e41d0955c7e8a4f835d6f53c4f',1,'yaze::zelda3::music::SampleEdit']]]
 ];

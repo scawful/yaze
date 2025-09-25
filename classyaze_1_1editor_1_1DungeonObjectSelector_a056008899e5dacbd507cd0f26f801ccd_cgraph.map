@@ -1,0 +1,12 @@
+<map id="yaze::editor::DungeonObjectSelector::DrawObjectRenderer" name="yaze::editor::DungeonObjectSelector::DrawObjectRenderer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,51,201,91"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="249,21,412,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,52,233,47,234,52,201,58"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="262,79,398,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="201,80,247,86,246,91,201,86"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="460,5,596,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="412,28,444,26,444,32,412,33"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="466,95,590,135"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="399,102,451,106,451,111,399,107"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="491,95,489,85,495,76,508,70,528,68,550,70,563,77,560,81,548,76,528,73,509,75,498,80,494,86,496,93"/>
+</map>

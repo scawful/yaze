@@ -25,7 +25,7 @@ var searchData=
   ['load3dobjectpalettes_22',['Load3DObjectPalettes',['../namespaceyaze_1_1gfx_1_1palette__group__internal.html#adb13428aead7660315ed02fb42433b84',1,'yaze::gfx::palette_group_internal']]],
   ['loadallgraphicsdata_23',['LoadAllGraphicsData',['../namespaceyaze.html#acd38081a0d3a77b20abfb9375574d1b9',1,'yaze']]],
   ['loadallpalettes_24',['LoadAllPalettes',['../namespaceyaze_1_1gfx.html#acb08518117f632fe321cc8191defe210',1,'yaze::gfx']]],
-  ['loadandrenderroomgraphics_25',['LoadAndRenderRoomGraphics',['../classyaze_1_1editor_1_1DungeonEditor.html#a417d0697720518c4526ede7295049153',1,'yaze::editor::DungeonEditor']]],
+  ['loadandrenderroomgraphics_25',['LoadAndRenderRoomGraphics',['../classyaze_1_1editor_1_1DungeonCanvasViewer.html#a2d99509c086bcf9917810835283ebbf2',1,'yaze::editor::DungeonCanvasViewer::LoadAndRenderRoomGraphics()'],['../classyaze_1_1editor_1_1DungeonEditor.html#a417d0697720518c4526ede7295049153',1,'yaze::editor::DungeonEditor::LoadAndRenderRoomGraphics()']]],
   ['loadanimatedgraphics_26',['LoadAnimatedGraphics',['../classyaze_1_1zelda3_1_1Room.html#ad5b4db9991d91d05149f1f042b584200',1,'yaze::zelda3::Room']]],
   ['loadareagraphics_27',['LoadAreaGraphics',['../classyaze_1_1zelda3_1_1OverworldMap.html#a42b3dfddf368bb31ea68607d28509dbf',1,'yaze::zelda3::OverworldMap']]],
   ['loadareagraphicsblocksets_28',['LoadAreaGraphicsBlocksets',['../classyaze_1_1zelda3_1_1OverworldMap.html#a76b6a69b68a92f0cc2ff69ee3567b1a9',1,'yaze::zelda3::OverworldMap']]],

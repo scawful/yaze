@@ -1,0 +1,11 @@
+<map id="yaze::editor::DungeonObjectSelector::Draw" name="yaze::editor::DungeonObjectSelector::Draw">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,73,186,114"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#a2a4e487bb8a91d89c8373a035865e899" title=" " alt="" coords="234,30,436,86"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,77,218,73,219,78,187,83"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#ad40f587d64e1b68993a4bf33388f5625" title=" " alt="" coords="239,109,430,150"/>
+<area shape="poly" id="edge4_Node000001_Node000010" title=" " alt="" coords="187,105,224,110,223,116,186,110"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#acb6b79b7cb90923e00c8ec57a29aa2b5" title=" " alt="" coords="484,5,708,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="436,43,468,39,469,44,437,48"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#a89648f4a11839d96dfb4abaf11502bd0" title=" " alt="" coords="488,71,705,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="437,68,473,73,472,78,436,73"/>
+</map>

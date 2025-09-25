@@ -1,0 +1,11 @@
+<map id="yaze::editor::DungeonCanvasViewer::LoadAndRenderRoomGraphics" name="yaze::editor::DungeonCanvasViewer::LoadAndRenderRoomGraphics">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,252,111"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#aeccc5ded5a311afcdf70cb43e466c220" title="Take a SNESPalette, divide it into palettes of 8 colors." alt="" coords="345,37,506,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,75,329,66,330,71,252,80"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1editor_1_1DungeonCanvasViewer.html#abf50b69077f9d34347c1ff8ec094b576" title=" " alt="" coords="300,103,551,143"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="252,102,284,105,284,110,252,107"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="602,5,749,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="506,45,586,34,586,40,506,50"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb" title=" " alt="" coords="599,71,751,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="506,66,584,76,583,81,506,71"/>
+</map>

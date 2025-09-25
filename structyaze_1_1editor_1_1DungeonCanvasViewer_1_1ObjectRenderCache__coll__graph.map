@@ -1,0 +1,7 @@
+<map id="yaze::editor::DungeonCanvasViewer::ObjectRenderCache" name="yaze::editor::DungeonCanvasViewer::ObjectRenderCache">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,183,192,223"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="40,94,157,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,135,101,182,96,182,96,135"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="25,5,172,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,47,101,94,96,94,96,47"/>
+</map>

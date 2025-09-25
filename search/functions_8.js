@@ -88,6 +88,6 @@ var searchData=
   ['isvalidobjectid_85',['IsValidObjectID',['../namespaceyaze_1_1zelda3_1_1ObjectRenderingUtils.html#a95f40577f3d7fc860e7ad9b3254d1a0f',1,'yaze::zelda3::ObjectRenderingUtils']]],
   ['isvalidsize_86',['IsValidSize',['../classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a5ff20488e193c4bcb98c71b15ba29259',1,'yaze::zelda3::DungeonObjectEditor']]],
   ['isvisible_87',['IsVisible',['../classyaze_1_1editor_1_1PopupManager.html#a2c8b8645e8a7dc57e9947649a27bedb9',1,'yaze::editor::PopupManager']]],
-  ['iswithincanvasbounds_88',['IsWithinCanvasBounds',['../classyaze_1_1editor_1_1DungeonEditor.html#ace6074719b1f89b00a48da476e3bb783',1,'yaze::editor::DungeonEditor']]],
+  ['iswithincanvasbounds_88',['IsWithinCanvasBounds',['../classyaze_1_1editor_1_1DungeonCanvasViewer.html#acee2e7d7b4e75a7009c33e6d4c0775b7',1,'yaze::editor::DungeonCanvasViewer::IsWithinCanvasBounds()'],['../classyaze_1_1editor_1_1DungeonEditor.html#ace6074719b1f89b00a48da476e3bb783',1,'yaze::editor::DungeonEditor::IsWithinCanvasBounds()']]],
   ['itemlabel_89',['ItemLabel',['../namespaceyaze_1_1gui.html#a201299f3c61d29a272f11301c7f03265',1,'yaze::gui']]]
 ];

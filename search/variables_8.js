@@ -94,7 +94,7 @@ var searchData=
   ['is_5fsave_5froom_91',['is_save_room',['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#ab831003b8b957afb67e2cc018990888e',1,'yaze::zelda3::DungeonEditorSystem::RoomProperties']]],
   ['is_5fshop_5froom_92',['is_shop_room',['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#adb2317ab9c6eae338098bc207cf2aafe',1,'yaze::zelda3::DungeonEditorSystem::RoomProperties']]],
   ['is_5fstackable_93',['is_stackable',['../structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html#ad50506bb548085365cc29ad6c72b818b',1,'yaze::zelda3::ItemTypes::ItemInfo']]],
-  ['is_5fvalid_94',['is_valid',['../structyaze_1_1editor_1_1DungeonEditor_1_1ObjectRenderCache.html#a32ecf2eff164842bdc5dcee544645429',1,'yaze::editor::DungeonEditor::ObjectRenderCache']]],
+  ['is_5fvalid_94',['is_valid',['../structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectRenderCache.html#afbd32a1bb3c9a09c4a3723094c24424f',1,'yaze::editor::DungeonCanvasViewer::ObjectRenderCache::is_valid'],['../structyaze_1_1editor_1_1DungeonEditor_1_1ObjectRenderCache.html#a32ecf2eff164842bdc5dcee544645429',1,'yaze::editor::DungeonEditor::ObjectRenderCache::is_valid']]],
   ['is_5fvisible_95',['is_visible',['../structyaze_1_1editor_1_1PopupParams.html#a9edd60dd88e8c23fb07dfd5a9ad01b93',1,'yaze::editor::PopupParams']]],
   ['ischecked_96',['IsChecked',['../structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html#ac6b2e42c6ba7607e93924cc74e9a665b',1,'yaze::editor::zsprite::SpriteProperty']]],
   ['item_97',['item',['../structchest.html#a6201d296eb8c2027c68dc63781b6bb84',1,'chest']]],

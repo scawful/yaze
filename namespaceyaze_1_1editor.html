@@ -150,8 +150,17 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1DungeonCanvasViewer.html">DungeonCanvasViewer</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handles the main dungeon canvas rendering and interaction.  <a href="classyaze_1_1editor_1_1DungeonCanvasViewer.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1DungeonEditor.html">DungeonEditor</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classyaze_1_1editor_1_1DungeonEditor.html" title="DungeonEditor class for editing dungeons.">DungeonEditor</a> class for editing dungeons.  <a href="classyaze_1_1editor_1_1DungeonEditor.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1DungeonObjectSelector.html">DungeonObjectSelector</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handles object selection, preview, and editing UI.  <a href="classyaze_1_1editor_1_1DungeonObjectSelector.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1DungeonRoomSelector.html">DungeonRoomSelector</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handles room and entrance selection UI.  <a href="classyaze_1_1editor_1_1DungeonRoomSelector.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html">Editor</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interface for editor classes.  <a href="classyaze_1_1editor_1_1Editor.html#details">More...</a><br /></td></tr>
@@ -1781,7 +1790,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="dungeon__editor_8cc_source.html#l00040">40</a> of file <a class="el" href="dungeon__editor_8cc_source.html">dungeon_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00904">yaze::editor::DungeonEditor::DrawObjectRenderer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00919">yaze::editor::DungeonEditor::DrawObjectRenderer()</a>.</p>
 
 </div>
 </div>
@@ -1807,9 +1816,9 @@ Here is the call graph for this function:</div>
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">    ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="dungeon__editor_8h_source.html#l00021">21</a> of file <a class="el" href="dungeon__editor_8h_source.html">dungeon_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__editor_8h_source.html#l00024">24</a> of file <a class="el" href="dungeon__editor_8h_source.html">dungeon_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00468">yaze::editor::DungeonEditor::DrawDungeonTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00480">yaze::editor::DungeonEditor::DrawDungeonTabView()</a>.</p>
 
 </div>
 </div>
@@ -1837,9 +1846,9 @@ Here is the call graph for this function:</div>
 <div class="line">    ImGuiTabBarFlags_FittingPolicyResizeDown |</div>
 <div class="line">    ImGuiTabBarFlags_TabListPopupButton</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="dungeon__editor_8h_source.html#l00024">24</a> of file <a class="el" href="dungeon__editor_8h_source.html">dungeon_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__editor_8h_source.html#l00027">27</a> of file <a class="el" href="dungeon__editor_8h_source.html">dungeon_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00468">yaze::editor::DungeonEditor::DrawDungeonTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l00480">yaze::editor::DungeonEditor::DrawDungeonTabView()</a>.</p>
 
 </div>
 </div>
@@ -1867,9 +1876,9 @@ Here is the call graph for this function:</div>
 <div class="line">    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |</div>
 <div class="line">    ImGuiTableFlags_BordersV</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="dungeon__editor_8h_source.html#l00029">29</a> of file <a class="el" href="dungeon__editor_8h_source.html">dungeon_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__editor_8h_source.html#l00032">32</a> of file <a class="el" href="dungeon__editor_8h_source.html">dungeon_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l01055">yaze::editor::DungeonEditor::DrawUsageStats()</a>, and <a class="el" href="dungeon__editor_8cc_source.html#l00212">yaze::editor::DungeonEditor::UpdateDungeonRoomView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__editor_8cc_source.html#l01070">yaze::editor::DungeonEditor::DrawUsageStats()</a>, and <a class="el" href="dungeon__editor_8cc_source.html#l00227">yaze::editor::DungeonEditor::UpdateDungeonRoomView()</a>.</p>
 
 </div>
 </div>

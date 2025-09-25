@@ -991,41 +991,65 @@ $(function(){initNavTree('sprite_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00873" name="l00873"></a><span class="lineno">  873</span>    <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>  }</div>
 <div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span> </div>
-<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>  <a class="code hl_function" href="classyaze_1_1zelda3_1_1Sprite.html#ae640a5c086d36e3611788acd66cb75f4">x</a> += 16;</div>
-<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>  <a class="code hl_function" href="classyaze_1_1zelda3_1_1Sprite.html#ae019782d3eb9d0552f39307dfacdb5e6">y</a> += 16;</div>
-<div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>  <span class="keywordtype">int</span> drawid_ = (srcx + (srcy * 16)) + 512;</div>
-<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>  <span class="keywordflow">for</span> (<span class="keyword">auto</span> yl = 0; yl &lt; sizey * 8; yl++) {</div>
-<div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> xl = 0; xl &lt; (sizex * 8) / 2; xl++) {</div>
-<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>      <span class="keywordtype">int</span> mx = xl;</div>
-<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>      <span class="keywordtype">int</span> my = yl;</div>
-<div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span> </div>
-<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>      <span class="keywordflow">if</span> (mirror_x) {</div>
-<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>        mx = (((sizex * 8) / 2) - 1) - xl;</div>
-<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>      }</div>
-<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>      <span class="keywordflow">if</span> (mirror_y) {</div>
-<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>        my = ((sizey * 8) - 1) - yl;</div>
-<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>      }</div>
-<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span> </div>
-<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>      <span class="comment">// Formula information to get tile index position in the array</span></div>
-<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span>      <span class="comment">//((ID / nbrofXtiles) * (imgwidth/2) + (ID - ((ID/16)*16) ))</span></div>
-<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span> </div>
-<div class="line"><a id="l00894" name="l00894"></a><span class="lineno">  894</span>      <span class="keywordtype">int</span> tx = ((drawid_ / 0x10) * 0x400) +</div>
-<div class="line"><a id="l00895" name="l00895"></a><span class="lineno">  895</span>               ((drawid_ - ((drawid_ / 0x10) * 0x10)) * 8);</div>
-<div class="line"><a id="l00896" name="l00896"></a><span class="lineno">  896</span>      <span class="keyword">auto</span> pixel = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Sprite.html#a59ca0c566965f0a3b556f858ae8b14e7">current_gfx_</a>[tx + (yl * 0x80) + xl];</div>
-<div class="line"><a id="l00897" name="l00897"></a><span class="lineno">  897</span>      <span class="comment">// nx,ny = object position, xx,yy = tile position, xl,yl = pixel</span></div>
-<div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span>      <span class="comment">// position</span></div>
-<div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span>      <span class="keywordtype">int</span> index = (<a class="code hl_function" href="classyaze_1_1zelda3_1_1Sprite.html#ae640a5c086d36e3611788acd66cb75f4">x</a>) + (<a class="code hl_function" href="classyaze_1_1zelda3_1_1Sprite.html#ae019782d3eb9d0552f39307dfacdb5e6">y</a> * 64) + (mx + (my * 0x80));</div>
-<div class="line"><a id="l00900" name="l00900"></a><span class="lineno">  900</span> </div>
-<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>      <span class="keywordflow">if</span> (index &gt;= 0 &amp;&amp; index &lt;= 4096) {</div>
-<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>        <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Sprite.html#a0ba913a4ff6dbdc3f7700aa997a58451">preview_gfx_</a>[index] = (uint8_t)((pixel &amp; 0x0F) + 112 + (pal * 8));</div>
-<div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span>      }</div>
-<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>    }</div>
-<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>  }</div>
-<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>}</div>
+<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>  <span class="comment">// Validate input parameters</span></div>
+<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>  <span class="keywordflow">if</span> (sizex &lt;= 0 || sizey &lt;= 0) {</div>
+<div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>  }</div>
+<div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span>  </div>
+<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>  <span class="keywordflow">if</span> (srcx &lt; 0 || srcy &lt; 0 || pal &lt; 0) {</div>
+<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span>  }</div>
+<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span> </div>
+<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>  <a class="code hl_function" href="classyaze_1_1zelda3_1_1Sprite.html#ae640a5c086d36e3611788acd66cb75f4">x</a> += 16;</div>
+<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>  <a class="code hl_function" href="classyaze_1_1zelda3_1_1Sprite.html#ae019782d3eb9d0552f39307dfacdb5e6">y</a> += 16;</div>
+<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>  <span class="keywordtype">int</span> drawid_ = (srcx + (srcy * 16)) + 512;</div>
+<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>  </div>
+<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>  <span class="comment">// Validate drawid_ is within reasonable bounds</span></div>
+<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span>  <span class="keywordflow">if</span> (drawid_ &lt; 0 || drawid_ &gt; 4096) {</div>
+<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span>  }</div>
+<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span>  </div>
+<div class="line"><a id="l00894" name="l00894"></a><span class="lineno">  894</span>  <span class="keywordflow">for</span> (<span class="keyword">auto</span> yl = 0; yl &lt; sizey * 8; yl++) {</div>
+<div class="line"><a id="l00895" name="l00895"></a><span class="lineno">  895</span>    <span class="keywordflow">for</span> (<span class="keyword">auto</span> xl = 0; xl &lt; (sizex * 8) / 2; xl++) {</div>
+<div class="line"><a id="l00896" name="l00896"></a><span class="lineno">  896</span>      <span class="keywordtype">int</span> mx = xl;</div>
+<div class="line"><a id="l00897" name="l00897"></a><span class="lineno">  897</span>      <span class="keywordtype">int</span> my = yl;</div>
+<div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span> </div>
+<div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span>      <span class="keywordflow">if</span> (mirror_x) {</div>
+<div class="line"><a id="l00900" name="l00900"></a><span class="lineno">  900</span>        mx = (((sizex * 8) / 2) - 1) - xl;</div>
+<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>      }</div>
+<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>      <span class="keywordflow">if</span> (mirror_y) {</div>
+<div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span>        my = ((sizey * 8) - 1) - yl;</div>
+<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>      }</div>
+<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span> </div>
+<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>      <span class="comment">// Formula information to get tile index position in the array</span></div>
+<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>      <span class="comment">//((ID / nbrofXtiles) * (imgwidth/2) + (ID - ((ID/16)*16) ))</span></div>
+<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span> </div>
+<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>      <span class="keywordtype">int</span> tx = ((drawid_ / 0x10) * 0x400) +</div>
+<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>               ((drawid_ - ((drawid_ / 0x10) * 0x10)) * 8);</div>
+<div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span>      </div>
+<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span>      <span class="comment">// Validate graphics buffer access</span></div>
+<div class="line"><a id="l00913" name="l00913"></a><span class="lineno">  913</span>      <span class="keywordtype">int</span> gfx_index = tx + (yl * 0x80) + xl;</div>
+<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>      <span class="keywordflow">if</span> (gfx_index &lt; 0 || gfx_index &gt;= <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Sprite.html#a59ca0c566965f0a3b556f858ae8b14e7">current_gfx_</a>.size())) {</div>
+<div class="line"><a id="l00915" name="l00915"></a><span class="lineno">  915</span>        <span class="keywordflow">continue</span>; <span class="comment">// Skip this pixel if out of bounds</span></div>
+<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span>      }</div>
+<div class="line"><a id="l00917" name="l00917"></a><span class="lineno">  917</span>      </div>
+<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span>      <span class="keyword">auto</span> pixel = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Sprite.html#a59ca0c566965f0a3b556f858ae8b14e7">current_gfx_</a>[gfx_index];</div>
+<div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span>      <span class="comment">// nx,ny = object position, xx,yy = tile position, xl,yl = pixel</span></div>
+<div class="line"><a id="l00920" name="l00920"></a><span class="lineno">  920</span>      <span class="comment">// position</span></div>
+<div class="line"><a id="l00921" name="l00921"></a><span class="lineno">  921</span>      <span class="keywordtype">int</span> index = (<a class="code hl_function" href="classyaze_1_1zelda3_1_1Sprite.html#ae640a5c086d36e3611788acd66cb75f4">x</a>) + (<a class="code hl_function" href="classyaze_1_1zelda3_1_1Sprite.html#ae019782d3eb9d0552f39307dfacdb5e6">y</a> * 64) + (mx + (my * 0x80));</div>
+<div class="line"><a id="l00922" name="l00922"></a><span class="lineno">  922</span> </div>
+<div class="line"><a id="l00923" name="l00923"></a><span class="lineno">  923</span>      <span class="comment">// Validate preview buffer access</span></div>
+<div class="line"><a id="l00924" name="l00924"></a><span class="lineno">  924</span>      <span class="keywordflow">if</span> (index &gt;= 0 &amp;&amp; index &lt; <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Sprite.html#a0ba913a4ff6dbdc3f7700aa997a58451">preview_gfx_</a>.size()) &amp;&amp; </div>
+<div class="line"><a id="l00925" name="l00925"></a><span class="lineno">  925</span>          index &lt;= 4096) {</div>
+<div class="line"><a id="l00926" name="l00926"></a><span class="lineno">  926</span>        <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Sprite.html#a0ba913a4ff6dbdc3f7700aa997a58451">preview_gfx_</a>[index] = (uint8_t)((pixel &amp; 0x0F) + 112 + (pal * 8));</div>
+<div class="line"><a id="l00927" name="l00927"></a><span class="lineno">  927</span>      }</div>
+<div class="line"><a id="l00928" name="l00928"></a><span class="lineno">  928</span>    }</div>
+<div class="line"><a id="l00929" name="l00929"></a><span class="lineno">  929</span>  }</div>
+<div class="line"><a id="l00930" name="l00930"></a><span class="lineno">  930</span>}</div>
 </div>
-<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span> </div>
-<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>}  <span class="comment">// namespace zelda3</span></div>
-<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00931" name="l00931"></a><span class="lineno">  931</span> </div>
+<div class="line"><a id="l00932" name="l00932"></a><span class="lineno">  932</span>}  <span class="comment">// namespace zelda3</span></div>
+<div class="line"><a id="l00933" name="l00933"></a><span class="lineno">  933</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1GameEntity_html_a75f17688bce682ee17bb4b199aff7422"><div class="ttname"><a href="classyaze_1_1zelda3_1_1GameEntity.html#a75f17688bce682ee17bb4b199aff7422">yaze::zelda3::GameEntity::x_</a></div><div class="ttdeci">int x_</div><div class="ttdef"><b>Definition</b> <a href="common_8h_source.html#l00033">common.h:33</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1GameEntity_html_a8770a45600b8cc828efc47c805e364a1"><div class="ttname"><a href="classyaze_1_1zelda3_1_1GameEntity.html#a8770a45600b8cc828efc47c805e364a1">yaze::zelda3::GameEntity::y_</a></div><div class="ttdeci">int y_</div><div class="ttdef"><b>Definition</b> <a href="common_8h_source.html#l00034">common.h:34</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1Sprite_html_a0ba913a4ff6dbdc3f7700aa997a58451"><div class="ttname"><a href="classyaze_1_1zelda3_1_1Sprite.html#a0ba913a4ff6dbdc3f7700aa997a58451">yaze::zelda3::Sprite::preview_gfx_</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; preview_gfx_</div><div class="ttdef"><b>Definition</b> <a href="sprite_8h_source.html#l00383">sprite.h:383</a></div></div>
