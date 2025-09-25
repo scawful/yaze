@@ -1,12 +1,15 @@
 #include "overworld_editor.h"
 
+#include <algorithm>
 #include <cmath>
+#include <filesystem>
 #include <future>
 #include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/core/asar_wrapper.h"
 #include "app/core/features.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/window.h"
@@ -273,22 +276,120 @@ void OverworldEditor::DrawToolset() {
   }
 }
 
-constexpr std::array<const char *, 9> kMapSettingsColumnNames = {
-    "##WorldId", "##GfxId",  "##PalId",  "##SprGfxId", "##5thCol",
-    "##6thCol",  "##7thCol", "##8thCol", "##AreaSize"};
+// Column names for different ROM versions
+constexpr std::array<const char *, 6> kVanillaMapSettingsColumnNames = {
+    "##WorldId", "##GfxId", "##PalId", "##SprGfxId", "##SprPalId", "##MsgId"};
+
+constexpr std::array<const char *, 7> kV2MapSettingsColumnNames = {
+    "##WorldId", "##GfxId", "##PalId", "##MainPalId", "##SprGfxId", "##SprPalId", "##MsgId"};
+
+constexpr std::array<const char *, 9> kV3MapSettingsColumnNames = {
+    "##WorldId", "##GfxId", "##PalId", "##MainPalId", "##SprGfxId", "##SprPalId", 
+    "##MsgId", "##AnimGfx", "##AreaSize"};
 
 void OverworldEditor::DrawOverworldMapSettings() {
-  if (BeginTable(kOWMapTable.data(), 8, kOWMapFlags, ImVec2(0, 0), -1)) {
-    for (const auto &name : kMapSettingsColumnNames)
-      ImGui::TableSetupColumn(name);
+  static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  
+  // Determine column count and names based on ROM version
+  int column_count = 6;  // Vanilla
+  if (asm_version >= 2 && asm_version != 0xFF) column_count = 7;  // v2
+  if (asm_version >= 3 && asm_version != 0xFF) column_count = 9;  // v3
+  
+  if (BeginTable(kOWMapTable.data(), column_count, kOWMapFlags, ImVec2(0, 0), -1)) {
+    // Setup columns based on version
+    if (asm_version == 0xFF) {
+      // Vanilla ROM
+      for (const auto &name : kVanillaMapSettingsColumnNames)
+        ImGui::TableSetupColumn(name);
+    } else if (asm_version >= 3) {
+      // v3+ ROM
+      for (const auto &name : kV3MapSettingsColumnNames)
+        ImGui::TableSetupColumn(name);
+    } else if (asm_version >= 2) {
+      // v2 ROM
+      for (const auto &name : kV2MapSettingsColumnNames)
+        ImGui::TableSetupColumn(name);
+    }
 
+    // Header with ROM version indicator and upgrade option
+    if (asm_version == 0xFF) {
+      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Vanilla ROM");
+      if (ImGui::Button(ICON_MD_UPGRADE " Upgrade to v3")) {
+        // Show upgrade dialog
+        ImGui::OpenPopup("UpgradeROMVersion");
+      }
+      HOVER_HINT("Upgrade ROM to support ZSCustomOverworld features");
+    } else {
+      ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "ZSCustomOverworld v%d", asm_version);
+      if (asm_version < 3 && ImGui::Button(ICON_MD_UPGRADE " Upgrade to v3")) {
+        ImGui::OpenPopup("UpgradeROMVersion");
+      }
+    }
+    
+    // ROM Upgrade Dialog
+    if (ImGui::BeginPopupModal("UpgradeROMVersion", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("Upgrade ROM to ZSCustomOverworld v3");
+      ImGui::Separator();
+      ImGui::Text("This will enable advanced features like:");
+      ImGui::BulletText("Custom area sizes (1x1, 2x2, 2x1, 1x2)");
+      ImGui::BulletText("Enhanced palette controls");
+      ImGui::BulletText("Animated graphics support");
+      ImGui::BulletText("Custom background colors");
+      ImGui::BulletText("Advanced overlay system");
+      ImGui::Separator();
+      
+      // Show ASM application option if feature flag is enabled
+      if (core::FeatureFlags::get().overworld.kApplyZSCustomOverworldASM) {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), ICON_MD_CODE " ASM Patch Application Enabled");
+        ImGui::Text("ZSCustomOverworld ASM will be automatically applied to ROM");
+        ImGui::Separator();
+      } else {
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), ICON_MD_INFO " ASM Patch Application Disabled");
+        ImGui::Text("Only version marker will be set. Enable in Feature Flags");
+        ImGui::Text("for full ASM functionality.");
+        ImGui::Separator();
+      }
+      
+      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Warning: This will modify your ROM!");
+      
+      if (ImGui::Button(ICON_MD_CHECK " Upgrade", ImVec2(120, 0))) {
+        // Apply ASM if feature flag is enabled
+        if (core::FeatureFlags::get().overworld.kApplyZSCustomOverworldASM) {
+          auto asm_status = ApplyZSCustomOverworldASM(3);
+          if (!asm_status.ok()) {
+            // Show error but still set version marker
+            util::logf("Failed to apply ZSCustomOverworld ASM: %s", asm_status.ToString().c_str());
+          }
+        }
+        
+        // Set the ROM version marker
+        (*rom_)[zelda3::OverworldCustomASMHasBeenApplied] = 3;
+        asm_version = 3;
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_MD_CANCEL " Cancel", ImVec2(120, 0))) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
+    ImGui::TableHeadersRow();
+    ImGui::TableNextRow();
+
+    // World selector (always present)
     TableNextColumn();
     ImGui::SetNextItemWidth(120.f);
-    ImGui::Combo("##world", &current_world_, kWorldList.data(), 3);
+    if (ImGui::Combo("##world", &current_world_, kWorldList.data(), 3)) {
+      // Update current map when world changes
+      RefreshOverworldMap();
+    }
 
+    // Area Graphics (always present)
     TableNextColumn();
     ImGui::BeginGroup();
-    if (gui::InputHexByte("Gfx",
+    ImGui::Text(ICON_MD_IMAGE " Graphics");
+    if (gui::InputHexByte("##Gfx",
                           overworld_.mutable_overworld_map(current_map_)
                               ->mutable_area_graphics(),
                           kInputFieldSize)) {
@@ -297,9 +398,11 @@ void OverworldEditor::DrawOverworldMapSettings() {
     }
     ImGui::EndGroup();
 
+    // Area Palette (always present)
     TableNextColumn();
     ImGui::BeginGroup();
-    if (gui::InputHexByte("Palette",
+    ImGui::Text(ICON_MD_PALETTE " Palette");
+    if (gui::InputHexByte("##Palette",
                           overworld_.mutable_overworld_map(current_map_)
                               ->mutable_area_palette(),
                           kInputFieldSize)) {
@@ -309,38 +412,106 @@ void OverworldEditor::DrawOverworldMapSettings() {
     }
     ImGui::EndGroup();
 
+    // Main Palette (v2+ only)
+    if (asm_version >= 2 && asm_version != 0xFF) {
+      TableNextColumn();
+      ImGui::BeginGroup();
+      ImGui::Text(ICON_MD_COLOR_LENS " Main Pal");
+      if (gui::InputHexByte("##MainPal",
+                            overworld_.mutable_overworld_map(current_map_)
+                                ->mutable_main_palette(),
+                            kInputFieldSize)) {
+        RefreshMapProperties();
+        status_ = RefreshMapPalette();
+        RefreshOverworldMap();
+      }
+      ImGui::EndGroup();
+    }
+
+    // Sprite Graphics (always present)
     TableNextColumn();
     ImGui::BeginGroup();
-    gui::InputHexByte("Spr Gfx",
-                      overworld_.mutable_overworld_map(current_map_)
-                          ->mutable_sprite_graphics(game_state_),
-                      kInputFieldSize);
+    ImGui::Text(ICON_MD_PETS " Spr Gfx");
+    if (gui::InputHexByte("##SprGfx",
+                          overworld_.mutable_overworld_map(current_map_)
+                              ->mutable_sprite_graphics(game_state_),
+                          kInputFieldSize)) {
+      RefreshMapProperties();
+      RefreshOverworldMap();
+    }
     ImGui::EndGroup();
 
+    // Sprite Palette (always present)
     TableNextColumn();
     ImGui::BeginGroup();
-    gui::InputHexByte("Spr Palette",
-                      overworld_.mutable_overworld_map(current_map_)
-                          ->mutable_sprite_palette(game_state_),
-                      kInputFieldSize);
+    ImGui::Text(ICON_MD_COLORIZE " Spr Pal");
+    if (gui::InputHexByte("##SprPalette",
+                          overworld_.mutable_overworld_map(current_map_)
+                              ->mutable_sprite_palette(game_state_),
+                          kInputFieldSize)) {
+      RefreshMapProperties();
+      RefreshOverworldMap();
+    }
     ImGui::EndGroup();
 
+    // Message ID (always present)
     TableNextColumn();
     ImGui::BeginGroup();
-    gui::InputHexWord(
-        "Msg Id",
-        overworld_.mutable_overworld_map(current_map_)->mutable_message_id(),
-        kInputFieldSize + 20);
+    ImGui::Text(ICON_MD_MESSAGE " Msg ID");
+    if (gui::InputHexWord("##MsgId",
+                          overworld_.mutable_overworld_map(current_map_)->mutable_message_id(),
+                          kInputFieldSize + 20)) {
+      RefreshMapProperties();
+      RefreshOverworldMap();
+    }
     ImGui::EndGroup();
 
+    // Animated GFX (v3+ only)
+    if (asm_version >= 3 && asm_version != 0xFF) {
+      TableNextColumn();
+      ImGui::BeginGroup();
+      ImGui::Text(ICON_MD_ANIMATION " Anim GFX");
+      if (gui::InputHexByte("##AnimGfx",
+                            overworld_.mutable_overworld_map(current_map_)
+                                ->mutable_animated_gfx(),
+                            kInputFieldSize)) {
+        RefreshMapProperties();
+        RefreshOverworldMap();
+      }
+      ImGui::EndGroup();
+      
+      // Area Size (v3+ only)
+      TableNextColumn();
+      ImGui::BeginGroup();
+      ImGui::Text(ICON_MD_ASPECT_RATIO " Size");
+      static const char *area_size_names[] = {"Small", "Large", "Wide", "Tall"};
+      int current_area_size = static_cast<int>(
+          overworld_.overworld_map(current_map_)->area_size());
+      ImGui::SetNextItemWidth(80.f);
+      if (ImGui::Combo("##AreaSize", &current_area_size, area_size_names, 4)) {
+        overworld_.mutable_overworld_map(current_map_)
+            ->SetAreaSize(static_cast<zelda3::AreaSizeEnum>(current_area_size));
+        RefreshOverworldMap();
+      }
+      ImGui::EndGroup();
+    }
+
+    // Additional controls row
+    ImGui::TableNextRow();
     TableNextColumn();
     ImGui::SetNextItemWidth(100.f);
-    ImGui::Combo("##World", &game_state_, kGamePartComboString.data(), 3);
+    if (ImGui::Combo("##GameState", &game_state_, kGamePartComboString.data(), 3)) {
+      RefreshMapProperties();
+      RefreshOverworldMap();
+    }
+    HOVER_HINT("Game progression state for sprite graphics/palettes");
 
     TableNextColumn();
-    ImGui::Checkbox(
-        "##mosaic",
-        overworld_.mutable_overworld_map(current_map_)->mutable_mosaic());
+    if (ImGui::Checkbox(ICON_MD_BLUR_ON " Mosaic",
+                        overworld_.mutable_overworld_map(current_map_)->mutable_mosaic())) {
+      RefreshMapProperties();
+      RefreshOverworldMap();
+    }
     HOVER_HINT("Enable Mosaic effect for the current map");
 
     ImGui::EndTable();
@@ -349,7 +520,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
 
 void OverworldEditor::DrawCustomOverworldMapSettings() {
   if (BeginTable(kOWMapTable.data(), 9, kOWMapFlags, ImVec2(0, 0), -1)) {
-    for (const auto &name : kMapSettingsColumnNames)
+    for (const auto &name : kV3MapSettingsColumnNames)
       ImGui::TableSetupColumn(name);
 
     TableNextColumn();
@@ -1010,7 +1181,8 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
       if (each.is_hole_) {
         color = ImVec4(255, 255, 255, 200);
       }
-      ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16, color);
+      float scale = ow_map_canvas_.global_scale();
+      ow_map_canvas_.DrawRect(each.x_ * scale, each.y_ * scale, 16 * scale, 16 * scale, color);
       std::string str = util::HexByte(each.entrance_id_);
 
       if (current_mode == EditingMode::ENTRANCES) {
@@ -1029,7 +1201,7 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
         }
       }
 
-      ow_map_canvas_.DrawText(str, each.x_, each.y_);
+      ow_map_canvas_.DrawText(str, each.x_ * scale, each.y_ * scale);
     }
     i++;
   }
@@ -1071,7 +1243,8 @@ void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
   for (auto &each : *overworld_.mutable_exits()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40) && !each.deleted_) {
-      ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
+      float scale = ow_map_canvas_.global_scale();
+      ow_map_canvas_.DrawRect(each.x_ * scale, each.y_ * scale, 16 * scale, 16 * scale,
                               ImVec4(255, 255, 255, 150));
       if (current_mode == EditingMode::EXITS) {
         each.entity_id_ = i;
@@ -1095,7 +1268,7 @@ void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
       }
 
       std::string str = util::HexByte(i);
-      ow_map_canvas_.DrawText(str, each.x_, each.y_);
+      ow_map_canvas_.DrawText(str, each.x_ * scale, each.y_ * scale);
     }
     i++;
   }
@@ -1123,7 +1296,8 @@ void OverworldEditor::DrawOverworldItems() {
     // Get the item's bitmap and real X and Y positions
     if (item.room_map_id_ < 0x40 + (current_world_ * 0x40) &&
         item.room_map_id_ >= (current_world_ * 0x40) && !item.deleted) {
-      ow_map_canvas_.DrawRect(item.x_, item.y_, 16, 16, ImVec4(255, 0, 0, 150));
+      float scale = ow_map_canvas_.global_scale();
+      ow_map_canvas_.DrawRect(item.x_ * scale, item.y_ * scale, 16 * scale, 16 * scale, ImVec4(255, 0, 0, 150));
 
       if (current_mode == EditingMode::ITEMS) {
         // Check if this item is being clicked and dragged
@@ -1145,7 +1319,7 @@ void OverworldEditor::DrawOverworldItems() {
       } else {
         item_name = absl::StrFormat("0x%02X", item.id_);
       }
-      ow_map_canvas_.DrawText(item_name, item.x_, item.y_);
+      ow_map_canvas_.DrawText(item_name, item.x_ * scale, item.y_ * scale);
     }
     i++;
   }
@@ -1182,7 +1356,8 @@ void OverworldEditor::DrawOverworldSprites() {
       int original_x = sprite.x_;
       int original_y = sprite.y_;
 
-      ow_map_canvas_.DrawRect(sprite_x, sprite_y, kTile16Size, kTile16Size,
+      float scale = ow_map_canvas_.global_scale();
+      ow_map_canvas_.DrawRect(sprite_x * scale, sprite_y * scale, kTile16Size * scale, kTile16Size * scale,
                               /*magenta=*/ImVec4(255, 0, 255, 150));
       if (current_mode == EditingMode::SPRITES) {
         HandleEntityDragging(&sprite, ow_map_canvas_.zero_point(),
@@ -1197,13 +1372,13 @@ void OverworldEditor::DrawOverworldSprites() {
       }
       if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
         if (sprite_previews_[sprite.id()].is_active()) {
-          ow_map_canvas_.DrawBitmap(sprite_previews_[sprite.id()], sprite_x,
-                                    sprite_y, 2.0f);
+          ow_map_canvas_.DrawBitmap(sprite_previews_[sprite.id()], sprite_x * scale,
+                                    sprite_y * scale, 2.0f * scale);
         }
       }
 
-      ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.name()), sprite_x,
-                              sprite_y);
+      ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.name()), sprite_x * scale,
+                              sprite_y * scale);
 
       // Restore original coordinates
       sprite.x_ = original_x;
@@ -2436,6 +2611,76 @@ absl::Status OverworldEditor::Clear() {
   current_graphics_set_.clear();
   all_gfx_loaded_ = false;
   map_blockset_loaded_ = false;
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
+  if (!core::FeatureFlags::get().overworld.kApplyZSCustomOverworldASM) {
+    return absl::FailedPreconditionError(
+        "ZSCustomOverworld ASM application is disabled in feature flags");
+  }
+
+  // Initialize Asar wrapper
+  app::core::AsarWrapper asar;
+  RETURN_IF_ERROR(asar.Initialize());
+
+  // Determine which ASM file to use based on target version
+  std::string asm_file_path;
+  if (target_version >= 3) {
+    asm_file_path = "assets/asm/ZSCustomOverworld_v3.asm";
+  } else {
+    asm_file_path = "assets/asm/ZSCustomOverworld.asm";
+  }
+
+  // Check if ASM file exists
+  if (!std::filesystem::exists(asm_file_path)) {
+    return absl::NotFoundError(
+        absl::StrFormat("ASM file not found: %s", asm_file_path));
+  }
+
+  util::logf("Applying ZSCustomOverworld ASM v%d to ROM...", target_version);
+
+  // Apply the ASM patch
+  auto rom_data = rom_->vector();
+  auto patch_result = asar.ApplyPatch(asm_file_path, rom_data);
+  if (!patch_result.ok()) {
+    return absl::InternalError(
+        absl::StrFormat("Failed to apply ZSCustomOverworld ASM: %s", 
+                       patch_result.status().ToString()));
+  }
+
+  if (!patch_result->success) {
+    std::string error_msg = "ZSCustomOverworld ASM patch failed";
+    if (!patch_result->errors.empty()) {
+      error_msg += ": " + patch_result->errors.front();
+    }
+    return absl::InternalError(error_msg);
+  }
+
+  // Update ROM with patched data (asar modifies rom_data in-place)
+  if (patch_result->rom_size > 0 && 
+      static_cast<size_t>(patch_result->rom_size) != rom_->vector().size()) {
+    // ROM size changed, need to expand/shrink
+    rom_->Expand(patch_result->rom_size);
+  }
+  
+  // Copy patched data to ROM (rom_data was modified in-place by asar)
+  std::copy(rom_data.begin(), rom_data.end(), rom_->mutable_data());
+
+  // Log success and any symbols
+  util::logf("Successfully applied ZSCustomOverworld ASM v%d", target_version);
+  if (!patch_result->symbols.empty()) {
+    util::logf("Extracted %zu symbols from ASM patch", patch_result->symbols.size());
+  }
+
+  // Show any warnings from the assembler
+  if (!patch_result->warnings.empty()) {
+    util::logf("ASM patch warnings:");
+    for (const auto& warning : patch_result->warnings) {
+      util::logf("  %s", warning.c_str());
+    }
+  }
+
   return absl::OkStatus();
 }
 
