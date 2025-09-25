@@ -15,7 +15,7 @@ endif
 !ZS_CUSTOM_OVERWORLD = 1
 
 if !ZS_CUSTOM_OVERWORLD != 0
-  incsrc "ZSCustomOverworld.asm"
+  incsrc "ZSCustomOverworld_v3.asm"
 endif
 
 }

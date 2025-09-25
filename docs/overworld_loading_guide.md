@@ -50,7 +50,7 @@ constexpr int OverworldCustomASMHasBeenApplied = 0x140145;
 | Custom Tile Graphics | ❌ | ❌ | ✅ |
 | Vanilla Overlays | ✅ | ✅ | ✅ |
 
-**Note:** Subscreen overlays are a shared concept from vanilla ROMs. ZSCustomOverworld v2+ expands on this by adding support for special overworld areas and custom overlay configurations.
+**Note:** Subscreen overlays are visual effects (fog, rain, backgrounds, etc.) that are shared between vanilla ROMs and ZSCustomOverworld. ZSCustomOverworld v2+ expands on this by adding support for custom overlay configurations and additional overlay types.
 
 ## Overworld Map Structure
 
@@ -96,30 +96,41 @@ class OverworldMap {
 
 ### Understanding Overlays
 
-Overlays in Zelda 3 are **overworld maps from special areas** (maps 0x80-0x9F) that are displayed semi-transparently on top of other maps. This is a shared concept from vanilla ROMs that ZSCustomOverworld expands upon.
+Overlays in Zelda 3 are **visual effects** that are displayed over or behind the main overworld map. They include effects like fog, rain, canopy, backgrounds, and other atmospheric elements. Overlays are collections of tile positions and tile IDs that specify where to place specific graphics on the map.
 
 ### Special Area Maps (0x80-0x9F)
 
-Special area maps are the overworld maps past the dark world (maps 0x80-0x9F). These include:
+The special area maps (0x80-0x9F) contain the actual tile data for overlays. These maps store the graphics that overlays reference and use to create visual effects:
 
-- **0x80-0x8A**: Various special areas (Lost Woods, Skull Woods, etc.)
-- **0x8B-0x8F**: Additional special areas
-- **0x90-0x9F**: More special areas including Death Mountain variants
+- **0x80-0x8F**: Various special area maps containing overlay graphics
+- **0x90-0x9F**: Additional special area maps including more overlay graphics
 
 ### Overlay ID Mappings
 
-Common overlay IDs reference specific special area maps:
+Overlay IDs directly correspond to special area map indices. Common overlay mappings:
 
 | Overlay ID | Special Area Map | Description |
 |------------|------------------|-------------|
-| 0x009D | 0x8D | Fog 2 (Lost Woods/Skull Woods) |
-| 0x0095 | 0x85 | Sky Background (Death Mountain) |
-| 0x009C | 0x8C | Lava (Dark World Death Mountain) |
-| 0x0096 | 0x86 | Pyramid Background |
-| 0x0097 | 0x87 | Fog 1 (Master Sword Area) |
-| 0x0093 | 0x83 | Triforce Room Curtains |
+| 0x0093 | 0x93 | Triforce Room Curtain |
+| 0x0094 | 0x94 | Under the Bridge |
+| 0x0095 | 0x95 | Sky Background (LW Death Mountain) |
+| 0x0096 | 0x96 | Pyramid Background |
+| 0x0097 | 0x97 | First Fog Overlay (Master Sword Area) |
+| 0x009C | 0x9C | Lava Background (DW Death Mountain) |
+| 0x009D | 0x9D | Second Fog Overlay (Lost Woods/Skull Woods) |
+| 0x009E | 0x9E | Tree Canopy (Forest) |
+| 0x009F | 0x9F | Rain Effect (Misery Mire) |
+
+### Drawing Order
+
+Overlays are drawn in a specific order based on their type:
+
+- **Background Overlays** (0x95, 0x96, 0x9C): Drawn behind the main map tiles
+- **Foreground Overlays** (0x9D, 0x97, 0x93, 0x94, 0x9E, 0x9F): Drawn on top of the main map tiles with transparency
 
 ### Vanilla Overlay Loading
+
+In vanilla ROMs, overlays are loaded by parsing SNES assembly-like commands that specify tile positions and IDs:
 
 ```cpp
 absl::Status LoadVanillaOverlay() {
@@ -136,9 +147,14 @@ absl::Status LoadVanillaOverlay() {
                 ((*rom_)[kOverlayPointers + (index_ * 2) + 1] << 8) +
                 (*rom_)[kOverlayPointers + (index_ * 2)];
   
-  // Parse overlay commands (SNES assembly-like)
-  // Commands like LDA, LDX, STA, JMP, END (0x60)
-  // These commands configure which special area map to use as overlay
+  // Parse overlay commands:
+  // LDA #$xxxx - Load tile ID into accumulator
+  // LDX #$xxxx - Load position into X register  
+  // STA $xxxx - Store tile at position
+  // STA $xxxx,x - Store tile at position + X
+  // INC A - Increment accumulator (for sequential tiles)
+  // JMP $xxxx - Jump to another overlay routine
+  // END (0x60) - End of overlay data
   
   return absl::OkStatus();
 }
@@ -387,11 +403,11 @@ class OverworldMap {
 **Solution:** 
 - Verify overlay pointer addresses and SNES-to-PC conversion
 - Ensure special area maps (0x80-0x9F) are properly loaded with correct graphics
-- Check that overlay ID mappings are correct (e.g., 0x009D → map 0x8D)
+- Check that overlay ID mappings are correct (e.g., 0x009D → map 0x9D)
 - Verify that overlay preview shows the actual bitmap of the referenced special area map
 
-**Problem:** Overlay preview showing hex data instead of bitmap
-**Solution:** Implement proper overlay preview that displays the bitmap of the referenced special area map, not just the overlay command data
+**Problem:** Overlay preview showing incorrect information
+**Solution:** Ensure overlay preview correctly maps overlay IDs to special area map indices and displays the appropriate bitmap from the special area maps (0x80-0x9F)
 
 ### 5. Large Map Problems
 
