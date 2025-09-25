@@ -86,7 +86,7 @@ absl::Status DungeonEditor::Load() {
                    gfx::CreatePaletteGroupFromLargePalette(full_palette_));
 
   CalculateUsageStats();
-  
+
   // Initialize the new editor system
   if (dungeon_editor_system_) {
     auto status = dungeon_editor_system_->Initialize();
@@ -94,33 +94,36 @@ absl::Status DungeonEditor::Load() {
       return status;
     }
   }
-  
+
   // Initialize the new UI components with loaded data
   room_selector_.set_rom(rom_);
   room_selector_.set_rooms(&rooms_);
   room_selector_.set_entrances(&entrances_);
   room_selector_.set_active_rooms(active_rooms_);
-  room_selector_.set_room_selected_callback([this](int room_id) { OnRoomSelected(room_id); });
-  
+  room_selector_.set_room_selected_callback(
+      [this](int room_id) { OnRoomSelected(room_id); });
+
   canvas_viewer_.SetRom(rom_);
   canvas_viewer_.SetRooms(&rooms_);
   canvas_viewer_.SetCurrentPaletteGroup(current_palette_group_);
   canvas_viewer_.SetCurrentPaletteId(current_palette_id_);
-  
+
   object_selector_.SetRom(rom_);
   object_selector_.SetCurrentPaletteGroup(current_palette_group_);
   object_selector_.SetCurrentPaletteId(current_palette_id_);
   object_selector_.set_dungeon_editor_system(&dungeon_editor_system_);
   object_selector_.set_object_editor(&object_editor_);
   object_selector_.set_rooms(&rooms_);
-  
+
   // Set up object selection callback
-  object_selector_.SetObjectSelectedCallback([this](const zelda3::RoomObject& object) {
-    preview_object_ = object;
-    object_loaded_ = true;
-    placement_type_ = kObject; // Automatically switch to object placement mode
-  });
-  
+  object_selector_.SetObjectSelectedCallback(
+      [this](const zelda3::RoomObject& object) {
+        preview_object_ = object;
+        object_loaded_ = true;
+        placement_type_ =
+            kObject;  // Automatically switch to object placement mode
+      });
+
   is_loaded_ = true;
   return absl::OkStatus();
 }
@@ -131,20 +134,7 @@ absl::Status DungeonEditor::Update() {
     refresh_graphics_ = false;
   }
 
-  if (ImGui::BeginTabBar("##DungeonEditorTabBar")) {
-    if (ImGui::BeginTabItem("Room Editor")) {
-      status_ = UpdateDungeonRoomView();
-      ImGui::EndTabItem();
-    }
-    
-    if (ImGui::BeginTabItem("Usage Statistics")) {
-      if (is_loaded_) {
-        DrawUsageStats();
-      }
-      ImGui::EndTabItem();
-    }
-    ImGui::EndTabBar();
-  }
+  status_ = UpdateDungeonRoomView();
 
   return absl::OkStatus();
 }
@@ -191,13 +181,13 @@ absl::Status DungeonEditor::RefreshGraphics() {
 
 void DungeonEditor::LoadDungeonRoomSize() {
   std::map<int, std::vector<int>> rooms_by_bank;
-  for (const auto &room : room_size_addresses_) {
+  for (const auto& room : room_size_addresses_) {
     int bank = room.second >> 16;
     rooms_by_bank[bank].push_back(room.second);
   }
 
   // Process and calculate room sizes within each bank
-  for (auto &bank_rooms : rooms_by_bank) {
+  for (auto& bank_rooms : rooms_by_bank) {
     // Sort the rooms within this bank
     std::ranges::sort(bank_rooms.second);
 
@@ -207,7 +197,7 @@ void DungeonEditor::LoadDungeonRoomSize() {
       // Identify the room ID for the current room pointer
       int room_id =
           std::ranges::find_if(room_size_addresses_, [room_ptr](
-                                                         const auto &entry) {
+                                                         const auto& entry) {
             return entry.second == room_ptr;
           })->first;
 
@@ -244,9 +234,11 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
 
   // Correct 3-column layout as specified
   if (BeginTable("#DungeonEditTable", 3, kDungeonTableFlags, ImVec2(0, 0))) {
-    TableSetupColumn("Room/Entrance Selector", ImGuiTableColumnFlags_WidthFixed, 250);
+    TableSetupColumn("Room/Entrance Selector", ImGuiTableColumnFlags_WidthFixed,
+                     250);
     TableSetupColumn("Canvas & Properties", ImGuiTableColumnFlags_WidthStretch);
-    TableSetupColumn("Object Selector/Editor", ImGuiTableColumnFlags_WidthFixed, 300);
+    TableSetupColumn("Object Selector/Editor", ImGuiTableColumnFlags_WidthFixed,
+                     300);
     TableHeadersRow();
     TableNextRow();
 
@@ -261,7 +253,7 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
     // Column 3: Object selector, room graphics, and object editor
     TableNextColumn();
     object_selector_.Draw();
-    
+
     ImGui::EndTable();
   }
   return absl::OkStatus();
@@ -270,7 +262,7 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
 void DungeonEditor::OnRoomSelected(int room_id) {
   // Update current room ID
   current_room_id_ = room_id;
-  
+
   // Check if room is already open in a tab
   int existing_tab_index = -1;
   for (int i = 0; i < active_rooms_.Size; i++) {
@@ -279,7 +271,7 @@ void DungeonEditor::OnRoomSelected(int room_id) {
       break;
     }
   }
-  
+
   if (existing_tab_index >= 0) {
     // Room is already open, switch to that tab
     current_active_room_tab_ = existing_tab_index;
@@ -288,7 +280,7 @@ void DungeonEditor::OnRoomSelected(int room_id) {
     active_rooms_.push_back(room_id);
     current_active_room_tab_ = active_rooms_.Size - 1;
   }
-  
+
   // Update the room selector's active rooms list
   room_selector_.set_active_rooms(active_rooms_);
 }
@@ -296,12 +288,12 @@ void DungeonEditor::OnRoomSelected(int room_id) {
 void DungeonEditor::DrawToolset() {
   if (BeginTable("DWToolset", 16, ImGuiTableFlags_SizingFixedFit,
                  ImVec2(0, 0))) {
-    static std::array<const char *, 16> tool_names = {
+    static std::array<const char*, 16> tool_names = {
         "Undo", "Redo",      "Separator", "Any",    "BG1",  "BG2",
         "BG3",  "Separator", "Object",    "Sprite", "Item", "Entrance",
         "Door", "Chest",     "Block",     "Palette"};
     std::ranges::for_each(tool_names,
-                          [](const char *name) { TableSetupColumn(name); });
+                          [](const char* name) { TableSetupColumn(name); });
 
     TableNextColumn();
     if (Button(ICON_MD_UNDO)) {
@@ -414,9 +406,28 @@ void DungeonEditor::DrawToolset() {
 
     ImGui::EndTable();
   }
-  
+
   ImGui::Separator();
-  ImGui::Text("Instructions: Click to place objects, Ctrl+Click to select, drag to move");
+  ImGui::Text(
+      "Instructions: Click to place objects, Ctrl+Click to select, drag to "
+      "move");
+
+  ImGui::SameLine();
+  // Usage statistics as a popup to save space
+  if (ImGui::Button("Usage Statistics")) {
+    ImGui::OpenPopup("UsageStatsPopup");
+  }
+
+  if (ImGui::BeginPopupModal("UsageStatsPopup", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (is_loaded_) {
+      DrawUsageStats();
+    }
+    if (ImGui::Button("Close")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
 }
 
 void DungeonEditor::DrawCanvasAndPropertiesPanel() {
@@ -426,49 +437,60 @@ void DungeonEditor::DrawCanvasAndPropertiesPanel() {
       DrawDungeonTabView();
       ImGui::EndTabItem();
     }
-    
+
     // Room Properties tab - debug and editing controls
     if (ImGui::BeginTabItem("Room Properties")) {
       if (ImGui::Button("Room Debug Info")) {
         ImGui::OpenPopup("RoomDebugPopup");
       }
-      
+
       // Room properties popup
       if (ImGui::BeginPopup("RoomDebugPopup")) {
         DrawRoomPropertiesDebugPopup();
         ImGui::EndPopup();
       }
-      
+
       // Quick room info display
       int current_room = current_room_id_;
-      if (!active_rooms_.empty() && current_active_room_tab_ < active_rooms_.Size) {
+      if (!active_rooms_.empty() &&
+          current_active_room_tab_ < active_rooms_.Size) {
         current_room = active_rooms_[current_active_room_tab_];
       }
-      
+
       if (current_room >= 0 && current_room < rooms_.size()) {
         auto& room = rooms_[current_room];
-        
+
         ImGui::Text("Current Room: %03X (%d)", current_room, current_room);
         ImGui::Text("Objects: %zu", room.GetTileObjects().size());
         ImGui::Text("Sprites: %zu", room.GetSprites().size());
         ImGui::Text("Chests: %zu", room.GetChests().size());
-        
+
+        // Selection info
+        if (!selected_object_indices_.empty()) {
+          ImGui::Separator();
+          ImGui::Text("Selected Objects: %zu", selected_object_indices_.size());
+          if (ImGui::Button("Clear Selection")) {
+            selected_object_indices_.clear();
+            object_select_active_ = false;
+          }
+        }
+
         ImGui::Separator();
-        
+
         // Quick edit controls
         gui::InputHexByte("Layout", &room.layout);
         gui::InputHexByte("Blockset", &room.blockset);
         gui::InputHexByte("Spriteset", &room.spriteset);
         gui::InputHexByte("Palette", &room.palette);
-        
+
         if (ImGui::Button("Reload Room Graphics")) {
           (void)LoadAndRenderRoomGraphics(current_room);
         }
       }
-      
+
       ImGui::EndTabItem();
     }
-    
+
     ImGui::EndTabBar();
   }
 }
@@ -478,69 +500,86 @@ void DungeonEditor::DrawRoomPropertiesDebugPopup() {
   if (!active_rooms_.empty() && current_active_room_tab_ < active_rooms_.Size) {
     current_room = active_rooms_[current_active_room_tab_];
   }
-  
+
   if (current_room < 0 || current_room >= rooms_.size()) {
     ImGui::Text("Invalid room");
     return;
   }
-  
+
   auto& room = rooms_[current_room];
-  
+
   ImGui::Text("Room %03X Debug Information", current_room);
   ImGui::Separator();
-  
+
   // Room properties table
-  if (ImGui::BeginTable("RoomPropertiesPopup", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+  if (ImGui::BeginTable("RoomPropertiesPopup", 2,
+                        ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
     ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 120);
     ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableHeadersRow();
-    
+
     ImGui::TableNextRow();
-    ImGui::TableNextColumn(); ImGui::Text("Room ID");
-    ImGui::TableNextColumn(); ImGui::Text("%03X (%d)", current_room, current_room);
-    
+    ImGui::TableNextColumn();
+    ImGui::Text("Room ID");
+    ImGui::TableNextColumn();
+    ImGui::Text("%03X (%d)", current_room, current_room);
+
     ImGui::TableNextRow();
-    ImGui::TableNextColumn(); ImGui::Text("Layout");
-    ImGui::TableNextColumn(); gui::InputHexByte("##layout", &room.layout);
-    
+    ImGui::TableNextColumn();
+    ImGui::Text("Layout");
+    ImGui::TableNextColumn();
+    gui::InputHexByte("##layout", &room.layout);
+
     ImGui::TableNextRow();
-    ImGui::TableNextColumn(); ImGui::Text("Blockset");
-    ImGui::TableNextColumn(); gui::InputHexByte("##blockset", &room.blockset);
-    
+    ImGui::TableNextColumn();
+    ImGui::Text("Blockset");
+    ImGui::TableNextColumn();
+    gui::InputHexByte("##blockset", &room.blockset);
+
     ImGui::TableNextRow();
-    ImGui::TableNextColumn(); ImGui::Text("Spriteset");
-    ImGui::TableNextColumn(); gui::InputHexByte("##spriteset", &room.spriteset);
-    
+    ImGui::TableNextColumn();
+    ImGui::Text("Spriteset");
+    ImGui::TableNextColumn();
+    gui::InputHexByte("##spriteset", &room.spriteset);
+
     ImGui::TableNextRow();
-    ImGui::TableNextColumn(); ImGui::Text("Palette");
-    ImGui::TableNextColumn(); gui::InputHexByte("##palette", &room.palette);
-    
+    ImGui::TableNextColumn();
+    ImGui::Text("Palette");
+    ImGui::TableNextColumn();
+    gui::InputHexByte("##palette", &room.palette);
+
     ImGui::TableNextRow();
-    ImGui::TableNextColumn(); ImGui::Text("Floor 1");
-    ImGui::TableNextColumn(); gui::InputHexByte("##floor1", &room.floor1);
-    
+    ImGui::TableNextColumn();
+    ImGui::Text("Floor 1");
+    ImGui::TableNextColumn();
+    gui::InputHexByte("##floor1", &room.floor1);
+
     ImGui::TableNextRow();
-    ImGui::TableNextColumn(); ImGui::Text("Floor 2");
-    ImGui::TableNextColumn(); gui::InputHexByte("##floor2", &room.floor2);
-    
+    ImGui::TableNextColumn();
+    ImGui::Text("Floor 2");
+    ImGui::TableNextColumn();
+    gui::InputHexByte("##floor2", &room.floor2);
+
     ImGui::TableNextRow();
-    ImGui::TableNextColumn(); ImGui::Text("Message ID");
-    ImGui::TableNextColumn(); gui::InputHexWord("##message_id", &room.message_id_);
-    
+    ImGui::TableNextColumn();
+    ImGui::Text("Message ID");
+    ImGui::TableNextColumn();
+    gui::InputHexWord("##message_id", &room.message_id_);
+
     ImGui::EndTable();
   }
-  
+
   ImGui::Separator();
-  
+
   // Object statistics
   ImGui::Text("Object Statistics:");
   ImGui::Text("Total Objects: %zu", room.GetTileObjects().size());
   ImGui::Text("Layout Objects: %zu", room.GetLayout().GetObjects().size());
   ImGui::Text("Sprites: %zu", room.GetSprites().size());
   ImGui::Text("Chests: %zu", room.GetChests().size());
-  
+
   ImGui::Separator();
-  
+
   if (ImGui::Button("Reload Objects")) {
     room.LoadObjects();
   }
@@ -553,7 +592,6 @@ void DungeonEditor::DrawRoomPropertiesDebugPopup() {
     ImGui::CloseCurrentPopup();
   }
 }
-
 
 void DungeonEditor::DrawDungeonTabView() {
   static int next_tab_id = 0;
@@ -579,7 +617,7 @@ void DungeonEditor::DrawDungeonTabView() {
 
       if (BeginTabItem(zelda3::kRoomNames[active_rooms_[n]].data(), &open,
                        ImGuiTabItemFlags_None)) {
-        current_active_room_tab_ = n; // Track which tab is currently active
+        current_active_room_tab_ = n;  // Track which tab is currently active
         DrawDungeonCanvas(active_rooms_[n]);
         EndTabItem();
       }
@@ -601,7 +639,7 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
     ImGui::Text("Invalid room ID: %d", room_id);
     return;
   }
-  
+
   if (!rom_ || !rom_->is_loaded()) {
     ImGui::Text("ROM not loaded");
     return;
@@ -632,7 +670,7 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   if (Button("Load Room Graphics")) {
     (void)LoadAndRenderRoomGraphics(room_id);
   }
-  
+
   ImGui::SameLine();
   if (ImGui::Button("Reload All Graphics")) {
     (void)ReloadAllRoomGraphics();
@@ -649,7 +687,8 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
     show_debug_popup = false;
   }
 
-  if (ImGui::BeginPopupModal("Room Debug Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal("Room Debug Info", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
     static bool show_objects = false;
     ImGui::Checkbox("Show Object Outlines", &show_objects);
 
@@ -675,21 +714,23 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
     ImGui::Text("Objects: %zu", rooms_[room_id].GetTileObjects().size());
     ImGui::Text("Layout Objects: %zu",
                 rooms_[room_id].GetLayout().GetObjects().size());
-    ImGui::Text("Sprites: %llu", static_cast<unsigned long long>(rooms_[room_id].GetSprites().size()));
+    ImGui::Text("Sprites: %llu", static_cast<unsigned long long>(
+                                     rooms_[room_id].GetSprites().size()));
     ImGui::Text("Chests: %zu", rooms_[room_id].GetChests().size());
 
     // Palette information
-    ImGui::Text("Current Palette Group: %llu", static_cast<unsigned long long>(current_palette_group_id_));
+    ImGui::Text("Current Palette Group: %llu",
+                static_cast<unsigned long long>(current_palette_group_id_));
     ImGui::Text("Palette Hash: %#016llx", last_palette_hash_);
 
     // Object type breakdown
     ImGui::Separator();
     ImGui::Text("Object Type Breakdown:");
     std::map<int, int> object_type_counts;
-    for (const auto &obj : rooms_[room_id].GetTileObjects()) {
+    for (const auto& obj : rooms_[room_id].GetTileObjects()) {
       object_type_counts[obj.id_]++;
     }
-    for (const auto &[type, count] : object_type_counts) {
+    for (const auto& [type, count] : object_type_counts) {
       ImGui::Text("Type 0x%02X: %d objects", type, count);
     }
 
@@ -719,7 +760,7 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 
     if (selected_object_id >= 0 &&
         selected_object_id < (int)rooms_[room_id].GetTileObjects().size()) {
-      const auto &selected_obj =
+      const auto& selected_obj =
           rooms_[room_id].GetTileObjects()[selected_object_id];
       ImGui::Separator();
       ImGui::Text("Selected Object:");
@@ -749,38 +790,41 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 
   canvas_.DrawBackground();
   canvas_.DrawContextMenu();
-  
+
+  // Handle object selection and placement
+  CheckForObjectSelection();
+
   // Handle mouse input for drag and select functionality
   HandleCanvasMouseInput();
-  
+
   // Update preview object position based on mouse cursor
   if (object_loaded_ && preview_object_.id_ >= 0 && canvas_.IsMouseHovering()) {
     const ImGuiIO& io = ImGui::GetIO();
     ImVec2 mouse_pos = io.MousePos;
     ImVec2 canvas_pos = canvas_.zero_point();
-    ImVec2 canvas_mouse_pos = ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
-    auto [room_x, room_y] = CanvasToRoomCoordinates(
-      static_cast<int>(canvas_mouse_pos.x), 
-      static_cast<int>(canvas_mouse_pos.y)
-    );
+    ImVec2 canvas_mouse_pos =
+        ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
+    auto [room_x, room_y] =
+        CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
+                                static_cast<int>(canvas_mouse_pos.y));
     preview_object_.x_ = room_x;
     preview_object_.y_ = room_y;
   }
-  
+
   if (is_loaded_) {
     // Automatically load room graphics if not already loaded
     if (rooms_[room_id].blocks().empty()) {
       (void)LoadAndRenderRoomGraphics(room_id);
     }
-    
+
     // Load room objects if not already loaded
     if (rooms_[room_id].GetTileObjects().empty()) {
       rooms_[room_id].LoadObjects();
     }
-    
+
     // Render background layers with proper positioning
     RenderRoomBackgroundLayers(room_id);
-    
+
     // Render room objects on top of background using the room's palette
     if (current_palette_id_ < current_palette_group_.size()) {
       auto room_palette = current_palette_group_[current_palette_id_];
@@ -789,22 +833,22 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
       }
     }
   }
-  
+
   // Draw selection box and drag preview
   DrawSelectBox();
   DrawDragPreview();
-  
+
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
 }
 
-void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject &object,
-                                         const gfx::SnesPalette &palette) {
+void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject& object,
+                                         const gfx::SnesPalette& palette) {
   // Validate ROM is loaded
   if (!rom_ || !rom_->is_loaded()) {
     return;
   }
-  
+
   // Create a mutable copy of the object to ensure tiles are loaded
   auto mutable_object = object;
   mutable_object.set_rom(rom_);
@@ -831,7 +875,7 @@ void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject &object,
   }
 
   // Check cache first
-  for (auto &cached : object_render_cache_) {
+  for (auto& cached : object_render_cache_) {
     if (cached.object_id == object.id_ && cached.object_x == object.x_ &&
         cached.object_y == object.y_ && cached.object_size == object.size_ &&
         cached.palette_hash == palette_hash && cached.is_valid) {
@@ -876,7 +920,7 @@ void DungeonEditor::RenderObjectInCanvas(const zelda3::RoomObject &object,
   object_render_cache_.push_back(std::move(cache_entry));
 }
 
-void DungeonEditor::DisplayObjectInfo(const zelda3::RoomObject &object,
+void DungeonEditor::DisplayObjectInfo(const zelda3::RoomObject& object,
                                       int canvas_x, int canvas_y) {
   // Display object information as text overlay
   std::string info_text = absl::StrFormat("ID:%d X:%d Y:%d S:%d", object.id_,
@@ -886,12 +930,12 @@ void DungeonEditor::DisplayObjectInfo(const zelda3::RoomObject &object,
   canvas_.DrawText(info_text, canvas_x, canvas_y - 12);
 }
 
-void DungeonEditor::RenderLayoutObjects(const zelda3::RoomLayout &layout,
-                                        const gfx::SnesPalette &palette) {
+void DungeonEditor::RenderLayoutObjects(const zelda3::RoomLayout& layout,
+                                        const gfx::SnesPalette& palette) {
   // Render layout objects (walls, floors, etc.) as simple colored rectangles
   // This provides a visual representation of the room's structure
 
-  for (const auto &layout_obj : layout.GetObjects()) {
+  for (const auto& layout_obj : layout.GetObjects()) {
     // Convert room coordinates to canvas coordinates using helper function
     auto [canvas_x, canvas_y] =
         RoomToCanvasCoordinates(layout_obj.x(), layout_obj.y());
@@ -942,15 +986,16 @@ void DungeonEditor::RenderLayoutObjects(const zelda3::RoomLayout &layout,
 std::pair<int, int> DungeonEditor::RoomToCanvasCoordinates(int room_x,
                                                            int room_y) const {
   // Convert room coordinates (16x16 tile units) to canvas coordinates (pixels)
-  // Note: The canvas applies global_scale_ and scrolling internally, so we return
-  // the base coordinates and let the canvas handle the transformation
+  // Note: The canvas applies global_scale_ and scrolling internally, so we
+  // return the base coordinates and let the canvas handle the transformation
   return {room_x * 16, room_y * 16};
 }
 
 std::pair<int, int> DungeonEditor::CanvasToRoomCoordinates(int canvas_x,
                                                            int canvas_y) const {
   // Convert canvas coordinates (pixels) to room coordinates (16x16 tile units)
-  // Note: This assumes the canvas coordinates are already adjusted for scaling and scrolling
+  // Note: This assumes the canvas coordinates are already adjusted for scaling
+  // and scrolling
   return {canvas_x / 16, canvas_y / 16};
 }
 
@@ -962,7 +1007,7 @@ bool DungeonEditor::IsWithinCanvasBounds(int canvas_x, int canvas_y,
   auto global_scale = canvas_.global_scale();
   int scaled_width = static_cast<int>(canvas_size.x * global_scale);
   int scaled_height = static_cast<int>(canvas_size.y * global_scale);
-  
+
   return (canvas_x >= -margin && canvas_y >= -margin &&
           canvas_x <= scaled_width + margin &&
           canvas_y <= scaled_height + margin);
@@ -973,34 +1018,37 @@ absl::Status DungeonEditor::LoadAndRenderRoomGraphics(int room_id) {
   if (room_id < 0 || room_id >= rooms_.size()) {
     return absl::InvalidArgumentError("Invalid room ID");
   }
-  
+
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
-  
+
   auto& room = rooms_[room_id];
-  
+
   // Load room graphics with proper blockset
   (void)room.LoadRoomGraphics(room.blockset);
-  
+
   // Load the room's palette with bounds checking
-  if (room.palette < rom()->paletteset_ids.size() && 
+  if (room.palette < rom()->paletteset_ids.size() &&
       !rom()->paletteset_ids[room.palette].empty()) {
     auto dungeon_palette_ptr = rom()->paletteset_ids[room.palette][0];
     auto palette_id = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
     if (palette_id.ok()) {
       current_palette_group_id_ = palette_id.value() / 180;
-      if (current_palette_group_id_ < rom()->palette_group().dungeon_main.size()) {
-        full_palette_ = rom()->palette_group().dungeon_main[current_palette_group_id_];
-        ASSIGN_OR_RETURN(current_palette_group_,
-                         gfx::CreatePaletteGroupFromLargePalette(full_palette_));
+      if (current_palette_group_id_ <
+          rom()->palette_group().dungeon_main.size()) {
+        full_palette_ =
+            rom()->palette_group().dungeon_main[current_palette_group_id_];
+        ASSIGN_OR_RETURN(
+            current_palette_group_,
+            gfx::CreatePaletteGroupFromLargePalette(full_palette_));
       }
     }
   }
-  
+
   // Render the room graphics to the graphics arena
   (void)room.RenderRoomGraphics();
-  
+
   return absl::OkStatus();
 }
 
@@ -1008,10 +1056,10 @@ absl::Status DungeonEditor::ReloadAllRoomGraphics() {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
-  
+
   // Clear existing graphics cache
   object_render_cache_.clear();
-  
+
   // Reload graphics for all rooms
   for (int i = 0; i < rooms_.size(); i++) {
     auto status = LoadAndRenderRoomGraphics(i);
@@ -1020,7 +1068,7 @@ absl::Status DungeonEditor::ReloadAllRoomGraphics() {
       continue;
     }
   }
-  
+
   return absl::OkStatus();
 }
 
@@ -1028,48 +1076,51 @@ void DungeonEditor::RenderRoomBackgroundLayers(int room_id) {
   if (room_id < 0 || room_id >= rooms_.size()) {
     return;
   }
-  
+
   auto& room = rooms_[room_id];
-  
+
   // Get canvas dimensions
   int canvas_width = canvas_.width();
   int canvas_height = canvas_.height();
-  
+
   // BG1 (background layer 1) - room graphics
   auto& bg1_bitmap = gfx::Arena::Get().bg1().bitmap();
-  if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
+  if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0 &&
+      bg1_bitmap.height() > 0) {
     // Scale the background to fit the canvas
     float scale_x = static_cast<float>(canvas_width) / bg1_bitmap.width();
     float scale_y = static_cast<float>(canvas_height) / bg1_bitmap.height();
     float scale = std::min(scale_x, scale_y);
-    
+
     int scaled_width = static_cast<int>(bg1_bitmap.width() * scale);
     int scaled_height = static_cast<int>(bg1_bitmap.height() * scale);
     int offset_x = (canvas_width - scaled_width) / 2;
     int offset_y = (canvas_height - scaled_height) / 2;
-    
+
     canvas_.DrawBitmap(bg1_bitmap, offset_x, offset_y, scale, 255);
   }
-  
+
   // BG2 (background layer 2) - sprite graphics (overlay)
   auto& bg2_bitmap = gfx::Arena::Get().bg2().bitmap();
-  if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
+  if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0 &&
+      bg2_bitmap.height() > 0) {
     // Scale the background to fit the canvas
     float scale_x = static_cast<float>(canvas_width) / bg2_bitmap.width();
     float scale_y = static_cast<float>(canvas_height) / bg2_bitmap.height();
     float scale = std::min(scale_x, scale_y);
-    
+
     int scaled_width = static_cast<int>(bg2_bitmap.width() * scale);
     int scaled_height = static_cast<int>(bg2_bitmap.height() * scale);
     int offset_x = (canvas_width - scaled_width) / 2;
     int offset_y = (canvas_height - scaled_height) / 2;
-    
-    canvas_.DrawBitmap(bg2_bitmap, offset_x, offset_y, scale, 200); // Semi-transparent overlay
+
+    canvas_.DrawBitmap(bg2_bitmap, offset_x, offset_y, scale,
+                       200);  // Semi-transparent overlay
   }
 }
 
 void DungeonEditor::CalculateUsageStats() {
-  for (const auto &room : rooms_) {
+  for (const auto& room : rooms_) {
     if (blockset_usage_.find(room.blockset) == blockset_usage_.end()) {
       blockset_usage_[room.blockset] = 1;
     } else {
@@ -1100,10 +1151,10 @@ void DungeonEditor::DrawUsageStats() {
     palette_usage_.clear();
     CalculateUsageStats();
   }
-  
+
   ImGui::Text("Usage Statistics");
   ImGui::Separator();
-  
+
   ImGui::Text("Blocksets: %zu used", blockset_usage_.size());
   ImGui::Text("Spritesets: %zu used", spriteset_usage_.size());
   ImGui::Text("Palettes: %zu used", palette_usage_.size());
@@ -1112,23 +1163,25 @@ void DungeonEditor::DrawUsageStats() {
 // Drag and select box functionality
 void DungeonEditor::HandleCanvasMouseInput() {
   const ImGuiIO& io = ImGui::GetIO();
-  
+
   // Check if mouse is over the canvas
   if (!canvas_.IsMouseHovering()) {
     return;
   }
-  
+
   // Get mouse position relative to canvas
   ImVec2 mouse_pos = io.MousePos;
   ImVec2 canvas_pos = canvas_.zero_point();
   ImVec2 canvas_size = canvas_.canvas_size();
-  
+
   // Convert to canvas coordinates
-  ImVec2 canvas_mouse_pos = ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
-  
+  ImVec2 canvas_mouse_pos =
+      ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
+
   // Handle mouse clicks
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) {
+    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
+        ImGui::IsKeyDown(ImGuiKey_RightCtrl)) {
       // Start selection box
       is_selecting_ = true;
       select_start_pos_ = canvas_mouse_pos;
@@ -1138,10 +1191,9 @@ void DungeonEditor::HandleCanvasMouseInput() {
       // Start dragging or place object
       if (object_loaded_) {
         // Convert canvas coordinates to room coordinates
-        auto [room_x, room_y] = CanvasToRoomCoordinates(
-          static_cast<int>(canvas_mouse_pos.x), 
-          static_cast<int>(canvas_mouse_pos.y)
-        );
+        auto [room_x, room_y] =
+            CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
+                                    static_cast<int>(canvas_mouse_pos.y));
         PlaceObjectAtPosition(room_x, room_y);
       } else {
         // Start dragging existing objects
@@ -1151,18 +1203,18 @@ void DungeonEditor::HandleCanvasMouseInput() {
       }
     }
   }
-  
+
   // Handle mouse drag
   if (is_selecting_ && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
     select_current_pos_ = canvas_mouse_pos;
     UpdateSelectedObjects();
   }
-  
+
   if (is_dragging_ && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
     drag_current_pos_ = canvas_mouse_pos;
     DrawDragPreview();
   }
-  
+
   // Handle mouse release
   if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
     if (is_selecting_) {
@@ -1178,20 +1230,18 @@ void DungeonEditor::HandleCanvasMouseInput() {
 
 void DungeonEditor::DrawSelectBox() {
   if (!is_selecting_) return;
-  
+
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 canvas_pos = canvas_.zero_point();
-  
+
   // Calculate select box bounds
   ImVec2 start = ImVec2(
-    canvas_pos.x + std::min(select_start_pos_.x, select_current_pos_.x),
-    canvas_pos.y + std::min(select_start_pos_.y, select_current_pos_.y)
-  );
+      canvas_pos.x + std::min(select_start_pos_.x, select_current_pos_.x),
+      canvas_pos.y + std::min(select_start_pos_.y, select_current_pos_.y));
   ImVec2 end = ImVec2(
-    canvas_pos.x + std::max(select_start_pos_.x, select_current_pos_.x),
-    canvas_pos.y + std::max(select_start_pos_.y, select_current_pos_.y)
-  );
-  
+      canvas_pos.x + std::max(select_start_pos_.x, select_current_pos_.x),
+      canvas_pos.y + std::max(select_start_pos_.y, select_current_pos_.y));
+
   // Draw selection box
   draw_list->AddRect(start, end, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
   draw_list->AddRectFilled(start, end, IM_COL32(255, 255, 0, 32));
@@ -1199,37 +1249,36 @@ void DungeonEditor::DrawSelectBox() {
 
 void DungeonEditor::DrawDragPreview() {
   if (!is_dragging_) return;
-  
+
   // Draw drag preview for selected objects
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 canvas_pos = canvas_.zero_point();
-  ImVec2 drag_delta = ImVec2(
-    drag_current_pos_.x - drag_start_pos_.x,
-    drag_current_pos_.y - drag_start_pos_.y
-  );
-  
+  ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
+                             drag_current_pos_.y - drag_start_pos_.y);
+
   // Draw preview of where objects would be moved
   for (int obj_id : selected_objects_) {
     // TODO: Draw preview of object at new position
-    // This would require getting the object's current position and drawing it offset by drag_delta
+    // This would require getting the object's current position and drawing it
+    // offset by drag_delta
   }
 }
 
 void DungeonEditor::UpdateSelectedObjects() {
   if (!is_selecting_) return;
-  
+
   selected_objects_.clear();
-  
+
   // Get current room
   int current_room = current_room_id_;
   if (!active_rooms_.empty() && current_active_room_tab_ < active_rooms_.Size) {
     current_room = active_rooms_[current_active_room_tab_];
   }
-  
+
   if (current_room < 0 || current_room >= rooms_.size()) return;
-  
+
   auto& room = rooms_[current_room];
-  
+
   // Check each object in the room
   for (const auto& object : room.GetTileObjects()) {
     if (IsObjectInSelectBox(object)) {
@@ -1238,50 +1287,157 @@ void DungeonEditor::UpdateSelectedObjects() {
   }
 }
 
-bool DungeonEditor::IsObjectInSelectBox(const zelda3::RoomObject& object) const {
+bool DungeonEditor::IsObjectInSelectBox(
+    const zelda3::RoomObject& object) const {
   if (!is_selecting_) return false;
-  
+
   // Convert object position to canvas coordinates
   auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
-  
+
   // Calculate select box bounds
   float min_x = std::min(select_start_pos_.x, select_current_pos_.x);
   float max_x = std::max(select_start_pos_.x, select_current_pos_.x);
   float min_y = std::min(select_start_pos_.y, select_current_pos_.y);
   float max_y = std::max(select_start_pos_.y, select_current_pos_.y);
-  
+
   // Check if object is within select box
-  return (canvas_x >= min_x && canvas_x <= max_x && 
-          canvas_y >= min_y && canvas_y <= max_y);
+  return (canvas_x >= min_x && canvas_x <= max_x && canvas_y >= min_y &&
+          canvas_y <= max_y);
 }
 
 void DungeonEditor::PlaceObjectAtPosition(int room_x, int room_y) {
   if (!object_loaded_ || preview_object_.id_ < 0) return;
-  
+
   // Get current room
   int current_room = current_room_id_;
   if (!active_rooms_.empty() && current_active_room_tab_ < active_rooms_.Size) {
     current_room = active_rooms_[current_active_room_tab_];
   }
-  
+
   if (current_room < 0 || current_room >= rooms_.size()) return;
-  
+
   // Create new object at the specified position
   auto new_object = preview_object_;
   new_object.x_ = room_x;
   new_object.y_ = room_y;
   new_object.set_rom(rom_);
   new_object.EnsureTilesLoaded();
-  
+
   // Add object to room
   auto& room = rooms_[current_room];
   room.AddTileObject(new_object);
-  
+
   // Clear the object render cache to force redraw
   object_render_cache_.clear();
-  
+
   // Update the object selector with the new object count
   object_selector_.set_current_room_id(current_room);
+}
+
+void DungeonEditor::CheckForObjectSelection() {
+  // Draw object selection rectangle similar to OverworldEditor
+  DrawObjectSelectRect();
+
+  // Handle object selection when rectangle is active
+  if (object_select_active_) {
+    SelectObjectsInRect();
+  }
+}
+
+void DungeonEditor::DrawObjectSelectRect() {
+  if (!canvas_.IsMouseHovering()) return;
+
+  const ImGuiIO& io = ImGui::GetIO();
+  const ImVec2 canvas_pos = canvas_.zero_point();
+  const ImVec2 mouse_pos =
+      ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
+
+  static bool dragging = false;
+  static ImVec2 drag_start_pos;
+
+  // Right click to start object selection
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !object_loaded_) {
+    drag_start_pos = mouse_pos;
+    object_select_start_ = mouse_pos;
+    selected_object_indices_.clear();
+    object_select_active_ = false;
+    dragging = false;
+  }
+
+  // Right drag to create selection rectangle
+  if (ImGui::IsMouseDragging(ImGuiMouseButton_Right) && !object_loaded_) {
+    object_select_end_ = mouse_pos;
+    dragging = true;
+
+    // Draw selection rectangle
+    ImVec2 start =
+        ImVec2(canvas_pos.x + std::min(drag_start_pos.x, mouse_pos.x),
+               canvas_pos.y + std::min(drag_start_pos.y, mouse_pos.y));
+    ImVec2 end = ImVec2(canvas_pos.x + std::max(drag_start_pos.x, mouse_pos.x),
+                        canvas_pos.y + std::max(drag_start_pos.y, mouse_pos.y));
+
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRect(start, end, IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+    draw_list->AddRectFilled(start, end, IM_COL32(255, 255, 0, 32));
+  }
+
+  // Complete selection on mouse release
+  if (dragging && !ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+    dragging = false;
+    object_select_active_ = true;
+    SelectObjectsInRect();
+  }
+}
+
+void DungeonEditor::SelectObjectsInRect() {
+  int current_room = current_room_id_;
+  if (!active_rooms_.empty() && current_active_room_tab_ < active_rooms_.Size) {
+    current_room = active_rooms_[current_active_room_tab_];
+  }
+
+  if (current_room < 0 || current_room >= rooms_.size()) return;
+
+  auto& room = rooms_[current_room];
+  selected_object_indices_.clear();
+
+  // Calculate selection bounds in room coordinates
+  auto [start_room_x, start_room_y] = CanvasToRoomCoordinates(
+      static_cast<int>(std::min(object_select_start_.x, object_select_end_.x)),
+      static_cast<int>(std::min(object_select_start_.y, object_select_end_.y)));
+  auto [end_room_x, end_room_y] = CanvasToRoomCoordinates(
+      static_cast<int>(std::max(object_select_start_.x, object_select_end_.x)),
+      static_cast<int>(std::max(object_select_start_.y, object_select_end_.y)));
+
+  // Find objects within selection rectangle
+  const auto& objects = room.GetTileObjects();
+  for (size_t i = 0; i < objects.size(); ++i) {
+    const auto& object = objects[i];
+    if (object.x_ >= start_room_x && object.x_ <= end_room_x &&
+        object.y_ >= start_room_y && object.y_ <= end_room_y) {
+      selected_object_indices_.push_back(i);
+    }
+  }
+
+  // Highlight selected objects
+  if (!selected_object_indices_.empty()) {
+    for (size_t index : selected_object_indices_) {
+      if (index < objects.size()) {
+        const auto& object = objects[index];
+        auto [canvas_x, canvas_y] =
+            RoomToCanvasCoordinates(object.x_, object.y_);
+
+        // Draw selection highlight
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        ImVec2 canvas_pos = canvas_.zero_point();
+        ImVec2 obj_start(canvas_pos.x + canvas_x - 2,
+                         canvas_pos.y + canvas_y - 2);
+        ImVec2 obj_end(canvas_pos.x + canvas_x + 18,
+                       canvas_pos.y + canvas_y + 18);
+        draw_list->AddRect(obj_start, obj_end, IM_COL32(0, 255, 255, 255), 0.0f,
+                           0, 2.0f);
+      }
+    }
+  }
 }
 
 }  // namespace yaze::editor

@@ -130,6 +130,11 @@ class DungeonEditor : public Editor {
   bool IsObjectInSelectBox(const zelda3::RoomObject& object) const;
   void PlaceObjectAtPosition(int room_x, int room_y);
   
+  // Object selection rectangle (like OverworldEditor)
+  void CheckForObjectSelection();
+  void DrawObjectSelectRect();
+  void SelectObjectsInRect();
+  
   // Room graphics management
   absl::Status LoadAndRenderRoomGraphics(int room_id);
   absl::Status ReloadAllRoomGraphics();
@@ -195,6 +200,12 @@ class DungeonEditor : public Editor {
   ImVec2 select_current_pos_;
   std::vector<int> selected_objects_;
   int current_layer_ = 0; // 0 = BG1, 1 = BG2, 2 = Both
+  
+  // Object selection rectangle (like OverworldEditor)
+  bool object_select_active_ = false;
+  ImVec2 object_select_start_;
+  ImVec2 object_select_end_;
+  std::vector<size_t> selected_object_indices_;
   
   // New editor system integration
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;

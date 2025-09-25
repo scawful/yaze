@@ -119,9 +119,9 @@ void DungeonObjectSelector::DrawObjectBrowser() {
   
   ImGui::Separator();
   
-  // Object list with previews
-  const int preview_size = 32; // 32x32 pixel preview
-  const int items_per_row = 4; // 4 items per row
+  // Object list with previews - optimized for 300px column width
+  const int preview_size = 48; // Larger 48x48 pixel preview for better visibility
+  const int items_per_row = 5; // 5 items per row to fit in 300px column
   
   if (rom_ && rom_->is_loaded()) {
     auto palette = rom_->palette_group().dungeon_main[current_palette_group_id_];
@@ -145,9 +145,11 @@ void DungeonObjectSelector::DrawObjectBrowser() {
       test_object.set_rom(rom_);
       test_object.EnsureTilesLoaded();
       
-      // Calculate position in grid
-      float item_width = (ImGui::GetContentRegionAvail().x - (items_per_row - 1) * ImGui::GetStyle().ItemSpacing.x) / items_per_row;
-      float item_height = preview_size + 40; // Preview + text
+      // Calculate position in grid - better sizing for 300px column
+      float available_width = ImGui::GetContentRegionAvail().x;
+      float spacing = ImGui::GetStyle().ItemSpacing.x;
+      float item_width = (available_width - (items_per_row - 1) * spacing) / items_per_row;
+      float item_height = preview_size + 30; // Preview + text (reduced padding)
       
       ImGui::PushID(obj_id);
       
@@ -196,9 +198,11 @@ void DungeonObjectSelector::DrawObjectBrowser() {
           "?");
       }
       
-      // Draw object ID and name
-      ImGui::SetCursorScreenPos(ImVec2(cursor_pos.x + 2, cursor_pos.y - 25));
-      ImGui::Text("0x%03X", obj_id);
+      // Draw object ID and name with better positioning
+      ImGui::SetCursorScreenPos(ImVec2(cursor_pos.x + 2, cursor_pos.y - 22));
+      ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
+      ImGui::Text("0x%02X", obj_id);
+      ImGui::PopStyleColor();
       
       // Try to get object name
       std::string object_name = "Unknown";
@@ -227,8 +231,15 @@ void DungeonObjectSelector::DrawObjectBrowser() {
         }
       }
       
-      ImGui::SetCursorScreenPos(ImVec2(cursor_pos.x + 2, cursor_pos.y - 10));
+      // Draw object name with better sizing
+      ImGui::SetCursorScreenPos(ImVec2(cursor_pos.x + 2, cursor_pos.y - 8));
+      ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(200, 200, 200, 255));
+      // Truncate long names to fit
+      if (object_name.length() > 8) {
+        object_name = object_name.substr(0, 8) + "...";
+      }
       ImGui::Text("%s", object_name.c_str());
+      ImGui::PopStyleColor();
       
       ImGui::PopID();
       
@@ -298,9 +309,9 @@ void DungeonObjectSelector::DrawRoomGraphics() {
     }
     
     int current_block = 0;
-    const int max_blocks_per_row = 4; // Limit blocks per row to fit canvas
-    const int block_width = 0x100; // 256 pixels per block
-    const int block_height = 0x40; // 64 pixels per block
+    const int max_blocks_per_row = 2; // 2 blocks per row for 300px column
+    const int block_width = 128; // Reduced size to fit column
+    const int block_height = 32; // Reduced height
     
     for (int block : blocks) {
       if (current_block >= 16) break; // Only show first 16 blocks
