@@ -216,9 +216,12 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
 
 #elif defined(__linux__)
 
+#ifdef YAZE_ENABLE_NFD
 #include <nfd.h>
+#endif
 
 std::string FileDialogWrapper::ShowOpenFileDialog() {
+#ifdef YAZE_ENABLE_NFD
   NFD_Init();
   nfdu8char_t *out_path = NULL;
   nfdu8filter_item_t filters[1] = {{"Rom File", "sfc,smc"}};
@@ -237,9 +240,14 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
   }
   NFD_Quit();
   return "Error: NFD_OpenDialog";
+#else
+  // NFD not available - return empty string or implement fallback
+  return "";
+#endif
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
+#ifdef YAZE_ENABLE_NFD
   NFD_Init();
   nfdu8char_t *out_path = NULL;
   nfdresult_t result = NFD_PickFolderU8(&out_path);
@@ -254,6 +262,10 @@ std::string FileDialogWrapper::ShowOpenFolderDialog() {
   }
   NFD_Quit();
   return "Error: NFD_PickFolder";
+#else
+  // NFD not available - return empty string or implement fallback
+  return "";
+#endif
 }
 
 std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(
