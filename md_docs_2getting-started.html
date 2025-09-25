@@ -109,21 +109,21 @@ $(function(){initNavTree('md_docs_2getting-started.html',''); initResizable(true
   <div class="headertitle"><div class="title">Getting Started</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md224"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md292"></a></p>
 <p>This software allows you to modify "The Legend of Zelda: A Link to the Past" (US or JP) ROMs.</p>
 <p>This editor is built to be compatible with ZScream projects and is designed to be cross platform.</p>
 <p>Please note that this project is currently a work in progress, and some features may not be fully implemented or may be subject to change.</p>
-<h1><a class="anchor" id="autotoc_md225"></a>
+<h1><a class="anchor" id="autotoc_md293"></a>
 General Tips</h1>
 <ul>
 <li>Experiment flags determine whether certain features are enabled or not. To change your flags, go to <code>File</code> &gt; <code>Options</code> &gt; <code>Experiment Flags</code> or in the Settings tab.</li>
 <li>Backup files are enabled by default. Each save will produce a timestamped copy of your ROM before you last saved. You can disable this feature in the settings.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md226"></a>
+<h1><a class="anchor" id="autotoc_md294"></a>
 Extending Functionality</h1>
 <p>In addition to the built-in features, this software provides a pure C library interface and a Python module that can be used for building extensions and custom sprites without assembly. In the editor these can be loaded under the <code>Extensions</code> menu.</p>
 <p>This feature is still in development and is not yet fully documented.</p>
-<h1><a class="anchor" id="autotoc_md227"></a>
+<h1><a class="anchor" id="autotoc_md295"></a>
 Supported Features</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -161,35 +161,41 @@ Supported Features</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Hex Editing   </td><td class="markdownTableBodyNone">Done   </td><td class="markdownTableBodyNone">View and edit ROM data in hex.    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Asar Patching   </td><td class="markdownTableBodyNone">In Progress   </td><td class="markdownTableBodyNone">Apply Asar patches to your ROM or Project.   </td></tr>
+<td class="markdownTableBodyNone">Asar Patching   </td><td class="markdownTableBodyNone">Complete   </td><td class="markdownTableBodyNone">Apply Asar 65816 assembly patches to ROM.   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md228"></a>
+<h1><a class="anchor" id="autotoc_md296"></a>
 Command Line Interface</h1>
 <p>Included with the editor is a command line interface (CLI) that allows you to perform various operations on your ROMs from the command line. This aims to reduce the need for multiple tools in zelda3 hacking like Zcompress, LunarExpand, LunarAddress, Asar, and others.</p>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Command   </th><th class="markdownTableHeadNone">Arg   </th><th class="markdownTableHeadNone">Params   </th><th class="markdownTableHeadNone">Status    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Apply BPS Patch   </td><td class="markdownTableBodyNone">-a   </td><td class="markdownTableBodyNone">rom_file bps_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
+<td class="markdownTableBodyNone">Apply Asar Patch   </td><td class="markdownTableBodyNone">asar   </td><td class="markdownTableBodyNone">patch.asm [&ndash;rom=file]   </td><td class="markdownTableBodyNone">Complete    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Create BPS Patch   </td><td class="markdownTableBodyNone">-c   </td><td class="markdownTableBodyNone">bps_file src_file modified_file   </td><td class="markdownTableBodyNone">Not started    </td></tr>
+<td class="markdownTableBodyNone">Extract Symbols   </td><td class="markdownTableBodyNone">extract   </td><td class="markdownTableBodyNone">patch.asm   </td><td class="markdownTableBodyNone">Complete    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Asar Patch   </td><td class="markdownTableBodyNone">-asar   </td><td class="markdownTableBodyNone">asm_file rom_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
+<td class="markdownTableBodyNone">Validate Assembly   </td><td class="markdownTableBodyNone">validate   </td><td class="markdownTableBodyNone">patch.asm   </td><td class="markdownTableBodyNone">Complete    </td></tr>
 <tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Apply BPS Patch   </td><td class="markdownTableBodyNone">patch   </td><td class="markdownTableBodyNone">patch.bps [&ndash;rom=file]   </td><td class="markdownTableBodyNone">Complete    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">Create BPS Patch   </td><td class="markdownTableBodyNone">create   </td><td class="markdownTableBodyNone">src_file modified_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Asar Patch (legacy)   </td><td class="markdownTableBodyNone">-asar   </td><td class="markdownTableBodyNone">asm_file rom_file   </td><td class="markdownTableBodyNone">Complete    </td></tr>
+<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Open ROM   </td><td class="markdownTableBodyNone">-o   </td><td class="markdownTableBodyNone">rom_file   </td><td class="markdownTableBodyNone">Complete    </td></tr>
-<tr class="markdownTableRowOdd">
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Backup ROM   </td><td class="markdownTableBodyNone">-b   </td><td class="markdownTableBodyNone">rom_file [new_file]   </td><td class="markdownTableBodyNone">In progress    </td></tr>
-<tr class="markdownTableRowEven">
+<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Expand ROM   </td><td class="markdownTableBodyNone">-x   </td><td class="markdownTableBodyNone">rom_file file_size   </td><td class="markdownTableBodyNone">Not started    </td></tr>
-<tr class="markdownTableRowOdd">
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Transfer Tile16   </td><td class="markdownTableBodyNone">-t   </td><td class="markdownTableBodyNone">src_rom dest_rom tile32_id_list(csv)   </td><td class="markdownTableBodyNone">Complete    </td></tr>
-<tr class="markdownTableRowEven">
+<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Export Graphics   </td><td class="markdownTableBodyNone">-e   </td><td class="markdownTableBodyNone">rom_file bin_file   </td><td class="markdownTableBodyNone">In progress    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Import Graphics   </td><td class="markdownTableBodyNone">-i   </td><td class="markdownTableBodyNone">bin_file rom_file   </td><td class="markdownTableBodyNone">Not started    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">SNES to PC Address   </td><td class="markdownTableBodyNone">-s   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete    </td></tr>
+<td class="markdownTableBodyNone">Import Graphics   </td><td class="markdownTableBodyNone">-i   </td><td class="markdownTableBodyNone">bin_file rom_file   </td><td class="markdownTableBodyNone">Not started    </td></tr>
 <tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">SNES to PC Address   </td><td class="markdownTableBodyNone">-s   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete    </td></tr>
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">PC to SNES Address   </td><td class="markdownTableBodyNone">-p   </td><td class="markdownTableBodyNone">address   </td><td class="markdownTableBodyNone">Complete   </td></tr>
 </table>
 </div></div><!-- contents -->

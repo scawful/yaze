@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['⏳_20planned_0',['⏳ Planned',['../md_docs_2index.html#autotoc_md242',1,'']]]
+  ['→_20stable_0',['Promotion Criteria (Experimental → Stable)',['../md_docs_2ci-testing-guide.html#autotoc_md145',1,'']]]
 ];

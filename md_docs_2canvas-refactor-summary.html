@@ -109,8 +109,8 @@ $(function(){initNavTree('md_docs_2canvas-refactor-summary.html',''); initResiza
   <div class="headertitle"><div class="title">Canvas Interface Refactoring</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md47"></a></p>
-<h1><a class="anchor" id="autotoc_md48"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md83"></a></p>
+<h1><a class="anchor" id="autotoc_md84"></a>
 Problem Statement</h1>
 <p>The current <code>Canvas</code> class has several issues:</p><ol type="1">
 <li><b>Duplicate Declarations</b>: Methods declared in both public and private sections</li>
@@ -119,12 +119,12 @@ Problem Statement</h1>
 <li><b>Tight Coupling</b>: Drawing operations tightly coupled to class implementation</li>
 <li><b>Compilation Errors</b>: Multiple redefinition errors preventing builds</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md49"></a>
+<h1><a class="anchor" id="autotoc_md85"></a>
 Solution Overview</h1>
 <p>A <b>pure function interface</b> has been created that maintains the same public API while providing better separation of concerns and eliminating the compilation issues. The refactoring is complete and integrated into the codebase.</p>
-<h1><a class="anchor" id="autotoc_md50"></a>
+<h1><a class="anchor" id="autotoc_md86"></a>
 Files Created</h1>
-<h2><a class="anchor" id="autotoc_md51"></a>
+<h2><a class="anchor" id="autotoc_md87"></a>
 1. <code>canvas_interface.h</code> - Pure Function Interface</h2>
 <ul>
 <li>Defines <code>CanvasState</code> structure containing all canvas state</li>
@@ -139,7 +139,7 @@ Files Created</h1>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md52"></a>
+<h2><a class="anchor" id="autotoc_md88"></a>
 2. <code>canvas_simplified.h</code> - New Canvas Class</h2>
 <ul>
 <li>Maintains <b>identical public API</b> to original Canvas</li>
@@ -147,28 +147,28 @@ Files Created</h1>
 <li>Uses <code>CanvasState</code> internally instead of scattered member variables</li>
 <li>Provides backward compatibility</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md53"></a>
+<h2><a class="anchor" id="autotoc_md89"></a>
 3. <code>canvas_interface.cc</code> - Pure Function Implementations</h2>
 <ul>
 <li>Implements all pure functions</li>
 <li>Handles state management through <code>CanvasState</code> parameter</li>
 <li>Provides foundation for testing and modularity</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md54"></a>
+<h2><a class="anchor" id="autotoc_md90"></a>
 4. <code>canvas_simplified.cc</code> - Canvas Class Implementation</h2>
 <ul>
 <li>Implements all public methods by delegating to pure functions</li>
 <li>Maintains exact same API as original Canvas</li>
 <li>No breaking changes for existing code</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md55"></a>
+<h2><a class="anchor" id="autotoc_md91"></a>
 5. <code>canvas_example.cc</code> - Usage Examples</h2>
 <ul>
 <li>Shows how to use the new interface</li>
 <li>Demonstrates migration path</li>
 <li>Examples of custom operations using pure functions</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md56"></a>
+<h2><a class="anchor" id="autotoc_md92"></a>
 6. <code>canvas_migration.md</code> - Migration Strategy</h2>
 <ul>
 <li>Detailed plan for transitioning from old to new Canvas</li>
@@ -176,20 +176,20 @@ Files Created</h1>
 <li>Testing strategy</li>
 <li>Rollback plan</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md57"></a>
+<h1><a class="anchor" id="autotoc_md93"></a>
 Key Benefits</h1>
-<h2><a class="anchor" id="autotoc_md58"></a>
+<h2><a class="anchor" id="autotoc_md94"></a>
 1. <b>No Breaking Changes</b></h2>
 <div class="fragment"><div class="line"><span class="comment">// Old code continues to work unchanged</span></div>
 <div class="line">CanvasSimplified canvas(<span class="stringliteral">&quot;MyCanvas&quot;</span>);</div>
 <div class="line">canvas.DrawBitmap(bitmap, 2, 1.0f);  <span class="comment">// Same API!</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md59"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md95"></a>
 2. <b>Better Testability</b></h2>
 <div class="fragment"><div class="line"><span class="comment">// Test pure functions without Canvas instance</span></div>
 <div class="line">canvas_ops::CanvasState state;</div>
 <div class="line">canvas_ops::drawing::DrawBitmap(state, bitmap, 2, 1.0f);</div>
 <div class="line">assert(state.refresh_graphics_ == <span class="keyword">true</span>);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md60"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md96"></a>
 3. <b>Cleaner Separation of Concerns</b></h2>
 <div class="fragment"><div class="line"><span class="comment">// Drawing operations</span></div>
 <div class="line">canvas_ops::drawing::DrawGrid(state, 64.0f);</div>
@@ -199,23 +199,23 @@ Key Benefits</h1>
 <div class="line"> </div>
 <div class="line"><span class="comment">// State management</span></div>
 <div class="line">canvas_ops::canvas_management::SetCanvasSize(state, ImVec2(512, 512));</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md61"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md97"></a>
 4. <b>Easier Maintenance</b></h2>
 <ul>
 <li>Pure functions are easier to understand and modify</li>
 <li>State is centralized in <code>CanvasState</code> structure</li>
 <li>No more duplicate declarations or access pattern confusion</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md62"></a>
+<h2><a class="anchor" id="autotoc_md98"></a>
 5. <b>Extensibility</b></h2>
 <div class="fragment"><div class="line"><span class="comment">// Easy to add new operations without modifying Canvas class</span></div>
 <div class="line"><span class="keyword">namespace </span>custom_operations {</div>
 <div class="line">  <span class="keywordtype">void</span> DrawCustomBorder(canvas_ops::CanvasState&amp; state, ImColor color, <span class="keywordtype">float</span> thickness);</div>
 <div class="line">  <span class="keywordtype">void</span> DrawCustomGrid(canvas_ops::CanvasState&amp; state, ImColor color, <span class="keywordtype">float</span> spacing);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md63"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md99"></a>
 Migration Path</h1>
-<h2><a class="anchor" id="autotoc_md64"></a>
+<h2><a class="anchor" id="autotoc_md100"></a>
 Phase 1: Immediate Fix ✅ COMPLETED</h2>
 <ol type="1">
 <li>✅ Add <code><a class="el" href="map__properties_8cc.html">map_properties.cc</a></code> to CMake build</li>
@@ -223,48 +223,48 @@ Phase 1: Immediate Fix ✅ COMPLETED</h2>
 <li>✅ Create <code>CanvasSimplified</code> class</li>
 <li>✅ Maintain backward compatibility</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md65"></a>
+<h2><a class="anchor" id="autotoc_md101"></a>
 Phase 2: Gradual Migration ✅ COMPLETED</h2>
 <ul>
 <li>✅ Pure function interface implemented</li>
 <li>✅ <code>CanvasSimplified</code> class available</li>
 <li>✅ Backward compatibility maintained</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md66"></a>
+<h2><a class="anchor" id="autotoc_md102"></a>
 Phase 3: Full Migration ✅ COMPLETED</h2>
 <ol type="1">
 <li>✅ New interface integrated into codebase</li>
 <li>✅ Old Canvas implementation maintained for compatibility</li>
 <li>✅ Both interfaces available for use</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md67"></a>
+<h1><a class="anchor" id="autotoc_md103"></a>
 Current Status</h1>
-<h2><a class="anchor" id="autotoc_md68"></a>
+<h2><a class="anchor" id="autotoc_md104"></a>
 ✅ Build Issues Resolved</h2>
 <p>The Canvas class compilation errors have been resolved through the pure function interface.</p>
-<h2><a class="anchor" id="autotoc_md69"></a>
+<h2><a class="anchor" id="autotoc_md105"></a>
 ✅ Build System Integration</h2>
 <p>The new interface files are integrated into the CMake build system:</p><ul>
 <li><code>app/gui/canvas_interface.cc</code></li>
 <li><code>app/gui/canvas_simplified.cc</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md70"></a>
+<h2><a class="anchor" id="autotoc_md106"></a>
 ✅ Backward Compatibility Verified</h2>
 <p>The new interface maintains full backward compatibility: </p><div class="fragment"><div class="line"><span class="comment">// This works without any changes</span></div>
 <div class="line">CanvasSimplified canvas;</div>
 <div class="line">canvas.DrawBitmap(bitmap, 2, 1.0f);</div>
 <div class="line">canvas.DrawGrid(64.0f);</div>
 <div class="line">canvas.DrawOverlay();</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md71"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md107"></a>
 Performance Considerations</h1>
 <ul>
 <li><b>Minimal Overhead</b>: Pure functions have same performance as method calls</li>
 <li><b>No Memory Overhead</b>: <code>CanvasState</code> has same memory layout as original class</li>
 <li><b>Same API</b>: No performance impact on existing code</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md72"></a>
+<h1><a class="anchor" id="autotoc_md108"></a>
 Testing Strategy</h1>
-<h2><a class="anchor" id="autotoc_md73"></a>
+<h2><a class="anchor" id="autotoc_md109"></a>
 Unit Tests</h2>
 <div class="fragment"><div class="line">TEST(CanvasOps, DrawBitmap) {</div>
 <div class="line">  canvas_ops::CanvasState state;</div>
@@ -274,7 +274,7 @@ Unit Tests</h2>
 <div class="line">  </div>
 <div class="line">  EXPECT_TRUE(state.refresh_graphics_);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md74"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md110"></a>
 Integration Tests</h2>
 <div class="fragment"><div class="line">TEST(CanvasIntegration, OverworldEditor) {</div>
 <div class="line">  CanvasSimplified canvas;</div>
@@ -283,7 +283,7 @@ Integration Tests</h2>
 <div class="line">  <span class="comment">// Test that editor still works with new canvas</span></div>
 <div class="line">  editor.Draw();</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md75"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md111"></a>
 Conclusion</h1>
 <p>This refactoring provides:</p><ul>
 <li>✅ <b>Fixes compilation errors</b> immediately</li>

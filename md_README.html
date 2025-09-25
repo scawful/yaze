@@ -109,60 +109,65 @@ $(function(){initNavTree('md_README.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">Yet Another Zelda3 Editor</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md364"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md468"></a></p>
+<p>A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM hacking.</p>
 <ul>
-<li>Platform: Windows, macOS, iOS, GNU/Linux</li>
-<li>Dependencies: SDL2, <a class="el" href="namespaceImGui.html">ImGui</a>, abseil-cpp</li>
+<li><b>Platform</b>: Windows, macOS, Linux</li>
+<li><b>Language</b>: C++23 with modern CMake build system</li>
+<li><b>Features</b>: ROM editing, Asar 65816 assembly patching, ZSCustomOverworld v3, GUI docking</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md365"></a>
-Description</h1>
-<p>General purpose editor for The Legend of Zelda: A Link to the Past for the Super Nintendo.</p>
-<p>Provides bindings in C and Python for building custom tools and utilities.</p>
-<p>Takes heavy inspiration from ALTTP community efforts such as <a href="https://www.romhacking.net/utilities/200/">Hyrule Magic</a> and <a href="https://github.com/Zarby89/ZScreamDungeon">ZScream</a></p>
-<h1><a class="anchor" id="autotoc_md366"></a>
-Building and installation</h1>
-<p><a href="http://www.cmake.org" title="CMake">CMake</a> is required to build yaze</p>
-<ol type="1">
-<li>Clone the repository</li>
-<li>Create the build directory and configuration</li>
-<li>Build and run the application</li>
-<li>(Optional) Run the tests</li>
-</ol>
+<h1><a class="anchor" id="autotoc_md469"></a>
+Key Features</h1>
+<ul>
+<li><b>Asar Integration</b>: Apply 65816 assembly patches and extract symbols</li>
+<li><b>ZSCustomOverworld v3</b>: Enhanced overworld editing capabilities</li>
+<li><b>Message Editing</b>: Advanced text editing with real-time preview <br  />
+</li>
+<li><b>GUI Docking</b>: Flexible workspace management</li>
+<li><b>Modern CLI</b>: Enhanced z3ed tool with interactive TUI</li>
+</ul>
+<p>Takes inspiration from <a href="https://www.romhacking.net/utilities/200/">Hyrule Magic</a> and <a href="https://github.com/Zarby89/ZScreamDungeon">ZScream</a></p>
+<h1><a class="anchor" id="autotoc_md470"></a>
+Building and Installation</h1>
+<h2><a class="anchor" id="autotoc_md471"></a>
+Quick Build</h2>
 <div class="fragment"><div class="line">git clone --recurse-submodules https://github.com/scawful/yaze.git </div>
-<div class="line">cmake -S . -B build</div>
-<div class="line">cmake --build build</div>
-</div><!-- fragment --><p>By default this will build all targets.</p>
+<div class="line">cd yaze</div>
+<div class="line">cmake --preset default</div>
+<div class="line">cmake --build --preset default</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md472"></a>
+Targets</h2>
 <ul>
-<li><b>yaze</b>: Editor Application</li>
+<li><b>yaze</b>: GUI Editor Application</li>
+<li><b>z3ed</b>: Command Line Interface with Asar support</li>
 <li><b>yaze_c</b>: C Library</li>
-<li><b>yaze_emu</b>: SNES Emulator</li>
-<li><b>yaze_py</b>: Python Module</li>
 <li><b>yaze_test</b>: Unit Tests</li>
-<li><b>z3ed</b>: Command Line Interface</li>
 </ul>
-<p>Dependencies are included as submodules and will be built automatically. For those who want to reduce compile times, consider installing the dependencies on your system. See <a class="el" href="md_docs_2build-instructions.html">build-instructions.md</a> for more information.</p>
-<h1><a class="anchor" id="autotoc_md367"></a>
+<h2><a class="anchor" id="autotoc_md473"></a>
+Asar Examples</h2>
+<div class="fragment"><div class="line"># Apply assembly patch</div>
+<div class="line">z3ed asar patch.asm --rom=zelda3.sfc</div>
+<div class="line"> </div>
+<div class="line"># Extract symbols  </div>
+<div class="line">z3ed extract patch.asm</div>
+<div class="line"> </div>
+<div class="line"># Interactive TUI</div>
+<div class="line">z3ed --tui</div>
+</div><!-- fragment --><p>See <a class="el" href="md_docs_2build-instructions.html">build-instructions.md</a> for detailed setup information.</p>
+<h1><a class="anchor" id="autotoc_md474"></a>
 Documentation</h1>
 <ul>
-<li><b><a class="el" href="md_docs_2getting-started.html">Getting Started</a></b> - Basic setup and usage guide</li>
-<li><b><a class="el" href="md_docs_2build-instructions.html">Build Instructions</a></b> - Detailed build and installation guide</li>
+<li><b><a class="el" href="md_docs_2getting-started.html">Getting Started</a></b> - Setup and basic usage</li>
+<li><b><a class="el" href="md_docs_2asar-integration.html">Asar Integration</a></b> - Assembly patching and symbol extraction</li>
+<li><b><a class="el" href="md_docs_2build-instructions.html">Build Instructions</a></b> - Detailed build guide</li>
+<li><b><a class="el" href="md_docs_2contributing.html">Contributing</a></b> - How to contribute</li>
 <li><b><a class="el" href="md_docs_2index.html">Documentation Index</a></b> - Complete documentation overview</li>
-<li><b><a class="el" href="md_docs_2contributing.html">Contributing</a></b> - How to contribute to the project</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md368"></a>
-Key Documentation</h2>
-<ul>
-<li><b><a class="el" href="md_docs_2dungeon-editor-comprehensive-guide.html">Dungeon Editor Guide</a></b> - Complete dungeon editing guide</li>
-<li><b><a class="el" href="md_docs_2overworld__loading__guide.html">Overworld Loading Guide</a></b> - ZSCustomOverworld implementation</li>
-<li><b><a class="el" href="md_docs_2canvas-refactor-summary.html">Canvas Interface</a></b> - Graphics system architecture</li>
-<li><b><a class="el" href="md_docs_2integration__test__guide.html">Integration Tests</a></b> - Testing framework</li>
-</ul>
-<p>For developers, see the <a class="el" href="md_docs_2index.html">documentation index</a> for a complete overview of all available documentation.</p>
-<h1><a class="anchor" id="autotoc_md369"></a>
+<h1><a class="anchor" id="autotoc_md475"></a>
 License</h1>
 <p>YAZE is distributed under the <a href="https://www.gnu.org/licenses/gpl-3.0.txt">GNU GPLv3</a> license.</p>
 <p>SDL2, <a class="el" href="namespaceImGui.html">ImGui</a> and Abseil are subject to respective licenses.</p>
-<h1><a class="anchor" id="autotoc_md370"></a>
+<h1><a class="anchor" id="autotoc_md476"></a>
 Screenshots</h1>
 <p><img src="https://github.com/scawful/yaze/assets/47263509/8b62b142-1de4-4ca4-8c49-d50c08ba4c8e" alt="image" class="inline"/></p>
 <p><img src="https://github.com/scawful/yaze/assets/47263509/d8f0039d-d2e4-47d7-b420-554b20ac626f" alt="image" class="inline"/></p>

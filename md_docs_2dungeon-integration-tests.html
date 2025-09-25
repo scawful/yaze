@@ -109,14 +109,14 @@ $(function(){initNavTree('md_docs_2dungeon-integration-tests.html',''); initResi
   <div class="headertitle"><div class="title">Dungeon Integration Tests</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md192"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md260"></a></p>
 <p>This document describes the comprehensive integration test suite for the Zelda 3 dungeon object rendering system.</p>
-<h1><a class="anchor" id="autotoc_md193"></a>
+<h1><a class="anchor" id="autotoc_md261"></a>
 Overview</h1>
 <p>The integration tests provide comprehensive validation of the dungeon object rendering system using both real ROM data and mock implementations. The test suite ensures that all components work together correctly and can handle real-world scenarios.</p>
-<h1><a class="anchor" id="autotoc_md194"></a>
+<h1><a class="anchor" id="autotoc_md262"></a>
 Test Files</h1>
-<h2><a class="anchor" id="autotoc_md195"></a>
+<h2><a class="anchor" id="autotoc_md263"></a>
 1. <code>dungeon_object_renderer_integration_test.cc</code></h2>
 <p><b>Purpose</b>: Integration tests using the real Zelda 3 ROM (<code>build/bin/zelda3.sfc</code>)</p>
 <p><b>Key Features</b>:</p><ul>
@@ -140,7 +140,7 @@ Test Files</h1>
 <li>Palette validation against vanilla values</li>
 <li>Comprehensive room loading and validation</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md196"></a>
+<h2><a class="anchor" id="autotoc_md264"></a>
 2. <code>dungeon_object_renderer_mock_test.cc</code></h2>
 <p><b>Purpose</b>: Integration tests using mock ROM data for testing without real ROMs</p>
 <p><b>Key Features</b>:</p><ul>
@@ -157,7 +157,7 @@ Test Files</h1>
 <li>Mock palette data</li>
 <li>Mock object data</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md197"></a>
+<h2><a class="anchor" id="autotoc_md265"></a>
 3. <code>dungeon_editor_system_integration_test.cc</code></h2>
 <p><b>Purpose</b>: Integration tests for the complete dungeon editor system</p>
 <p><b>Key Features</b>:</p><ul>
@@ -174,9 +174,9 @@ Test Files</h1>
 <li>Validation and error handling</li>
 <li>Performance testing</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md198"></a>
+<h1><a class="anchor" id="autotoc_md266"></a>
 Test Data Sources</h1>
-<h2><a class="anchor" id="autotoc_md199"></a>
+<h2><a class="anchor" id="autotoc_md267"></a>
 Real ROM Data</h2>
 <ul>
 <li><b>ROM File</b>: <code>build/bin/zelda3.sfc</code> (Link to the Past ROM)</li>
@@ -184,7 +184,7 @@ Real ROM Data</h2>
 <li><b>Room Data</b>: Based on room pointers at <code>0x1F8000</code></li>
 <li><b>Object Types</b>: Validated against disassembly object definitions</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md200"></a>
+<h2><a class="anchor" id="autotoc_md268"></a>
 Disassembly Integration</h2>
 <p>The tests use information from the US disassembly to validate:</p><ul>
 <li>Room IDs and their purposes (Ganon's room: 0x0000, Sewer rooms: 0x0002/0x0012, etc.)</li>
@@ -192,16 +192,16 @@ Disassembly Integration</h2>
 <li>Room data structure and pointers</li>
 <li>Palette and graphics data locations</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md201"></a>
+<h1><a class="anchor" id="autotoc_md269"></a>
 Running the Tests</h1>
-<h2><a class="anchor" id="autotoc_md202"></a>
+<h2><a class="anchor" id="autotoc_md270"></a>
 Prerequisites</h2>
 <ol type="1">
 <li>Real ROM file at <code>build/bin/zelda3.sfc</code></li>
 <li>Compiled test suite</li>
 <li>All dependencies available</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md203"></a>
+<h2><a class="anchor" id="autotoc_md271"></a>
 Command Line</h2>
 <div class="fragment"><div class="line"># Run all dungeon integration tests</div>
 <div class="line">./build/bin/yaze_test --gtest_filter=&quot;DungeonObjectRendererIntegrationTest.*&quot;</div>
@@ -214,16 +214,16 @@ Command Line</h2>
 <div class="line"> </div>
 <div class="line"># Run specific test</div>
 <div class="line">./build/bin/yaze_test --gtest_filter=&quot;DungeonObjectRendererIntegrationTest.RealRoomObjectRendering&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md204"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md272"></a>
 CI/CD Considerations</h2>
 <ul>
 <li>Tests are skipped on Linux for automated builds (requires ROM file)</li>
 <li>Mock tests can run in any environment</li>
 <li>Performance tests have reasonable timeouts</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md205"></a>
+<h1><a class="anchor" id="autotoc_md273"></a>
 Test Coverage</h1>
-<h2><a class="anchor" id="autotoc_md206"></a>
+<h2><a class="anchor" id="autotoc_md274"></a>
 Object Rendering</h2>
 <ul>
 <li>✅ Basic object rendering</li>
@@ -235,7 +235,7 @@ Object Rendering</h2>
 <li>✅ Memory usage validation</li>
 <li>✅ Cache effectiveness</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md207"></a>
+<h2><a class="anchor" id="autotoc_md275"></a>
 Dungeon Editor System</h2>
 <ul>
 <li>✅ Room management (load, save, create, delete)</li>
@@ -250,7 +250,7 @@ Dungeon Editor System</h2>
 <li>✅ Undo/redo functionality</li>
 <li>✅ Validation and error handling</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md208"></a>
+<h2><a class="anchor" id="autotoc_md276"></a>
 Integration Features</h2>
 <ul>
 <li>✅ Real ROM data validation</li>
@@ -261,7 +261,7 @@ Integration Features</h2>
 <li>✅ Memory management</li>
 <li>✅ Cache optimization</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md209"></a>
+<h1><a class="anchor" id="autotoc_md277"></a>
 Performance Benchmarks</h1>
 <p>The tests include performance benchmarks with expected thresholds:</p>
 <ul>
@@ -270,9 +270,9 @@ Performance Benchmarks</h1>
 <li><b>System Operations</b>: &lt; 5000ms for 200 operations</li>
 <li><b>Cache Hit Rate</b>: &gt; 50% for repeated operations</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md210"></a>
+<h1><a class="anchor" id="autotoc_md278"></a>
 Validation Points</h1>
-<h2><a class="anchor" id="autotoc_md211"></a>
+<h2><a class="anchor" id="autotoc_md279"></a>
 ROM Integrity</h2>
 <ul>
 <li>ROM header validation</li>
@@ -280,7 +280,7 @@ ROM Integrity</h2>
 <li>Palette data validation</li>
 <li>Object data structure validation</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md212"></a>
+<h2><a class="anchor" id="autotoc_md280"></a>
 Object Data</h2>
 <ul>
 <li>Object type validation against disassembly</li>
@@ -288,7 +288,7 @@ Object Data</h2>
 <li>Object position validation</li>
 <li>Object collision detection</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md213"></a>
+<h2><a class="anchor" id="autotoc_md281"></a>
 System Integration</h2>
 <ul>
 <li>Component interaction validation</li>
@@ -296,9 +296,9 @@ System Integration</h2>
 <li>State management validation</li>
 <li>Error propagation validation</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md214"></a>
+<h1><a class="anchor" id="autotoc_md282"></a>
 Debugging and Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md215"></a>
+<h2><a class="anchor" id="autotoc_md283"></a>
 Common Issues</h2>
 <ol type="1">
 <li><b>ROM Not Found</b>: Ensure <code>zelda3.sfc</code> is in <code>build/bin/</code></li>
@@ -306,7 +306,7 @@ Common Issues</h2>
 <li><b>Performance Failures</b>: Check system resources and adjust thresholds</li>
 <li><b>Memory Issues</b>: Monitor memory usage during large object tests</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md216"></a>
+<h2><a class="anchor" id="autotoc_md284"></a>
 Debug Output</h2>
 <p>Tests include extensive debug output:</p><ul>
 <li>Room loading statistics</li>
@@ -315,9 +315,9 @@ Debug Output</h2>
 <li>Cache statistics</li>
 <li>Memory usage reports</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md217"></a>
+<h1><a class="anchor" id="autotoc_md285"></a>
 Extending the Tests</h1>
-<h2><a class="anchor" id="autotoc_md218"></a>
+<h2><a class="anchor" id="autotoc_md286"></a>
 Adding New Tests</h2>
 <ol type="1">
 <li>Follow existing test patterns</li>
@@ -325,14 +325,14 @@ Adding New Tests</h2>
 <li>Include performance benchmarks where relevant</li>
 <li>Add debug output for troubleshooting</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md219"></a>
+<h2><a class="anchor" id="autotoc_md287"></a>
 Adding New Mock Data</h2>
 <ol type="1">
 <li>Extend <code>MockRom</code> class for new data types</li>
 <li>Update <code>MockRoomGenerator</code> for new room types</li>
 <li>Add validation in corresponding tests</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md220"></a>
+<h2><a class="anchor" id="autotoc_md288"></a>
 Adding New Validation</h2>
 <ol type="1">
 <li>Use disassembly data for validation</li>
@@ -340,9 +340,9 @@ Adding New Validation</h2>
 <li>Add performance benchmarks</li>
 <li>Document expected behavior</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md221"></a>
+<h1><a class="anchor" id="autotoc_md289"></a>
 Maintenance</h1>
-<h2><a class="anchor" id="autotoc_md222"></a>
+<h2><a class="anchor" id="autotoc_md290"></a>
 Regular Updates</h2>
 <ul>
 <li>Update test data when ROM structure changes</li>
@@ -350,7 +350,7 @@ Regular Updates</h2>
 <li>Adjust performance thresholds based on system changes</li>
 <li>Update mock data to match real ROM structure</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md223"></a>
+<h2><a class="anchor" id="autotoc_md291"></a>
 Monitoring</h2>
 <ul>
 <li>Track test execution time</li>

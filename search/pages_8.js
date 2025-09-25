@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['migration_20strategy_0',['Canvas Interface Migration Strategy',['../md_docs_2canvas-migration.html',1,'']]]
+  ['for_20yaze_20v0_203_200_0',['Testing Strategy for Yaze v0.3.0',['../md_docs_2testing-strategy.html',1,'']]]
 ];

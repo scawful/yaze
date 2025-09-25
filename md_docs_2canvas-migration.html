@@ -109,11 +109,11 @@ $(function(){initNavTree('md_docs_2canvas-migration.html',''); initResizable(tru
   <div class="headertitle"><div class="title">Canvas Interface Migration Strategy</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md18"></a></p>
-<h1><a class="anchor" id="autotoc_md19"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md54"></a></p>
+<h1><a class="anchor" id="autotoc_md55"></a>
 Overview</h1>
 <p>This document outlines a strategy for migrating from the current complex Canvas class to a simplified version that uses pure functions while maintaining backward compatibility.</p>
-<h1><a class="anchor" id="autotoc_md20"></a>
+<h1><a class="anchor" id="autotoc_md56"></a>
 Current Issues</h1>
 <ol type="1">
 <li><b>Duplicate Declarations</b>: Many methods are declared in both public and private sections</li>
@@ -121,18 +121,18 @@ Current Issues</h1>
 <li><b>Complex State Management</b>: Canvas state is scattered across many member variables</li>
 <li><b>Tight Coupling</b>: Drawing operations are tightly coupled to the class implementation</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md21"></a>
+<h1><a class="anchor" id="autotoc_md57"></a>
 Migration Strategy</h1>
-<h2><a class="anchor" id="autotoc_md22"></a>
+<h2><a class="anchor" id="autotoc_md58"></a>
 Phase 1: Create Pure Function Interface (COMPLETED)</h2>
 <ul>
 <li>✅ Created <code>canvas_interface.h</code> with pure function definitions</li>
 <li>✅ Created <code>CanvasSimplified</code> class that uses pure functions</li>
 <li>✅ Maintained identical public API for backward compatibility</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md23"></a>
+<h2><a class="anchor" id="autotoc_md59"></a>
 Phase 2: Gradual Migration</h2>
-<h3><a class="anchor" id="autotoc_md24"></a>
+<h3><a class="anchor" id="autotoc_md60"></a>
 Step 1: Add Compatibility Layer</h3>
 <div class="fragment"><div class="line"><span class="comment">// In existing Canvas class, add delegation methods</span></div>
 <div class="line"><span class="keyword">class </span>Canvas {</div>
@@ -145,28 +145,28 @@ Step 1: Add Compatibility Layer</h3>
 <div class="line"><span class="keyword">private</span>:</div>
 <div class="line">  canvas_ops::CanvasState state_;  <span class="comment">// Replace individual members</span></div>
 <div class="line">};</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md25"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md61"></a>
 Step 2: Update Existing Code</h3>
 <div class="fragment"><div class="line"><span class="comment">// Before</span></div>
 <div class="line">canvas.DrawBitmap(bitmap, 2, 1.0f);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// After (same API, different implementation)</span></div>
 <div class="line">canvas.DrawBitmap(bitmap, 2, 1.0f);  <span class="comment">// No change needed!</span></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md26"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md62"></a>
 Step 3: Gradual Replacement</h3>
 <div class="fragment"><div class="line"><span class="comment">// Option 1: Replace Canvas with CanvasSimplified</span></div>
 <div class="line"><span class="keyword">using </span>Canvas = CanvasSimplified;</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Option 2: Use typedef for gradual migration</span></div>
 <div class="line"><span class="keyword">typedef</span> CanvasSimplified NewCanvas;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md27"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md63"></a>
 Phase 3: Benefits of New Interface</h2>
-<h3><a class="anchor" id="autotoc_md28"></a>
+<h3><a class="anchor" id="autotoc_md64"></a>
 1. Pure Functions</h3>
 <div class="fragment"><div class="line"><span class="comment">// Testable without Canvas instance</span></div>
 <div class="line">canvas_ops::CanvasState test_state;</div>
 <div class="line">canvas_ops::drawing::DrawBitmap(test_state, bitmap, 2, 1.0f);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md29"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md65"></a>
 2. Better Separation of Concerns</h3>
 <div class="fragment"><div class="line"><span class="comment">// Drawing operations</span></div>
 <div class="line">canvas_ops::drawing::DrawGrid(state, 64.0f);</div>
@@ -176,7 +176,7 @@ Phase 3: Benefits of New Interface</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// State management</span></div>
 <div class="line">canvas_ops::canvas_management::SetCanvasSize(state, ImVec2(512, 512));</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md30"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md66"></a>
 3. Easier Testing</h3>
 <div class="fragment"><div class="line">TEST(CanvasDrawing, DrawBitmap) {</div>
 <div class="line">  canvas_ops::CanvasState state;</div>
@@ -187,9 +187,9 @@ Phase 3: Benefits of New Interface</h2>
 <div class="line">  <span class="comment">// Assert on state changes</span></div>
 <div class="line">  EXPECT_TRUE(state.refresh_graphics_);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md31"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md67"></a>
 Implementation Plan</h1>
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md68"></a>
 Week 1: Core Infrastructure</h2>
 <ul class="check">
 <li class="unchecked">Implement pure function bodies in <code>canvas_interface.cc</code></li>
@@ -200,7 +200,7 @@ Week 1: Core Infrastructure</h2>
 <ul class="check">
 <li class="unchecked">Add unit tests for pure functions</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md33"></a>
+<h2><a class="anchor" id="autotoc_md69"></a>
 Week 2: Compatibility Layer</h2>
 <ul class="check">
 <li class="unchecked">Add delegation methods to existing Canvas class</li>
@@ -211,7 +211,7 @@ Week 2: Compatibility Layer</h2>
 <ul class="check">
 <li class="unchecked">Test backward compatibility</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md34"></a>
+<h2><a class="anchor" id="autotoc_md70"></a>
 Week 3: Gradual Migration</h2>
 <ul class="check">
 <li class="unchecked">Update one editor at a time (overworld, dungeon, etc.)</li>
@@ -222,7 +222,7 @@ Week 3: Gradual Migration</h2>
 <ul class="check">
 <li class="unchecked">Monitor for any breaking changes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md35"></a>
+<h2><a class="anchor" id="autotoc_md71"></a>
 Week 4: Cleanup</h2>
 <ul class="check">
 <li class="unchecked">Remove old Canvas implementation</li>
@@ -233,21 +233,21 @@ Week 4: Cleanup</h2>
 <ul class="check">
 <li class="unchecked">Update documentation</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md36"></a>
+<h1><a class="anchor" id="autotoc_md72"></a>
 Breaking Changes</h1>
-<h2><a class="anchor" id="autotoc_md37"></a>
+<h2><a class="anchor" id="autotoc_md73"></a>
 None Expected</h2>
 <p>The new interface maintains the exact same public API, so existing code should continue to work without changes.</p>
-<h2><a class="anchor" id="autotoc_md38"></a>
+<h2><a class="anchor" id="autotoc_md74"></a>
 Optional Improvements</h2>
 <div class="fragment"><div class="line"><span class="comment">// Old way (still works)</span></div>
 <div class="line">canvas.DrawBitmap(bitmap, 2, 1.0f);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// New way (optional, more explicit)</span></div>
 <div class="line">canvas_ops::drawing::DrawBitmap(canvas.GetState(), bitmap, 2, 1.0f);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md39"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md75"></a>
 Testing Strategy</h1>
-<h2><a class="anchor" id="autotoc_md40"></a>
+<h2><a class="anchor" id="autotoc_md76"></a>
 Unit Tests</h2>
 <div class="fragment"><div class="line">TEST(CanvasOps, DrawBitmap) {</div>
 <div class="line">  canvas_ops::CanvasState state;</div>
@@ -258,7 +258,7 @@ Unit Tests</h2>
 <div class="line">  <span class="comment">// Verify state changes</span></div>
 <div class="line">  EXPECT_TRUE(state.refresh_graphics_);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md41"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md77"></a>
 Integration Tests</h2>
 <div class="fragment"><div class="line">TEST(CanvasIntegration, OverworldEditor) {</div>
 <div class="line">  CanvasSimplified canvas;</div>
@@ -267,23 +267,23 @@ Integration Tests</h2>
 <div class="line">  <span class="comment">// Test that editor still works with new canvas</span></div>
 <div class="line">  editor.Draw();</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md42"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md78"></a>
 Performance Considerations</h1>
-<h2><a class="anchor" id="autotoc_md43"></a>
+<h2><a class="anchor" id="autotoc_md79"></a>
 Minimal Overhead</h2>
 <ul>
 <li>Pure functions have minimal overhead compared to method calls</li>
 <li><code>CanvasState</code> is passed by reference, no copying</li>
 <li>Same memory layout as original class</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md44"></a>
+<h2><a class="anchor" id="autotoc_md80"></a>
 Potential Optimizations</h2>
 <div class="fragment"><div class="line"><span class="comment">// Batch operations</span></div>
 <div class="line">canvas_ops::CanvasState&amp; state = canvas.GetState();</div>
 <div class="line">canvas_ops::drawing::DrawGrid(state, 64.0f);</div>
 <div class="line">canvas_ops::drawing::DrawOverlay(state);</div>
 <div class="line"><span class="comment">// Single state update at end</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md45"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md81"></a>
 Rollback Plan</h1>
 <p>If issues arise:</p><ol type="1">
 <li>Keep both implementations available</li>
@@ -291,7 +291,7 @@ Rollback Plan</h1>
 <li>Revert to original Canvas if needed</li>
 <li>Gradual rollback of individual editors</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md46"></a>
+<h1><a class="anchor" id="autotoc_md82"></a>
 Conclusion</h1>
 <p>This migration strategy provides:</p><ul>
 <li>✅ Backward compatibility</li>

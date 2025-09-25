@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['list_0',['List',['../deprecated.html',1,'Deprecated List'],['../test.html',1,'Test List'],['../todo.html',1,'Todo List']]],
-  ['loading_20guide_1',['Overworld Loading Guide',['../md_docs_2overworld__loading__guide.html',1,'']]]
+  ['editor_0',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
+  ['editor_20design_20plan_1',['Dungeon Editor Design Plan',['../md_docs_2dungeon-editor-design-plan.html',1,'']]],
+  ['editor_20guide_2',['Dungeon Editor Guide',['../md_docs_2dungeon-editor-comprehensive-guide.html',1,'']]],
+  ['efficient_20workflows_3',['CI/CD Testing Strategy - Efficient Workflows',['../md_docs_2ci-testing-guide.html',1,'']]]
 ];

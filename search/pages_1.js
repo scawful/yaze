@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['build_20instructions_0',['Build Instructions',['../md_docs_2build-instructions.html',1,'']]]
+  ['3_200_0',['Testing Strategy for Yaze v0.3.0',['../md_docs_2testing-strategy.html',1,'']]]
 ];

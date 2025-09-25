@@ -109,19 +109,20 @@ $(function(){initNavTree('md_docs_2infrastructure.html',''); initResizable(true)
   <div class="headertitle"><div class="title">Infrastructure Overview</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md256"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md329"></a></p>
 <p>For developers to reference.</p>
-<p>The goal of yaze is to build a cross platform editor for the Legend of Zelda: A Link to the Past. The project is built using C++20, SDL2, and <a class="el" href="namespaceImGui.html">ImGui</a>. The project is built using CMake and is designed to be modular and extensible. The project is designed to be built on Windows, macOS, iOS, and Linux.</p>
-<h1><a class="anchor" id="autotoc_md257"></a>
+<p>The goal of yaze is to build a cross platform editor for the Legend of Zelda: A Link to the Past. The project is built using C++23, SDL2, <a class="el" href="namespaceImGui.html">ImGui</a>, and Asar 65816 assembler. The project uses modern CMake 3.16+ and is designed to be modular and extensible. The project supports Windows, macOS, and Linux with professional packaging and CI/CD.</p>
+<h1><a class="anchor" id="autotoc_md330"></a>
 Targets</h1>
 <ul>
-<li><b>yaze</b>: Desktop application for Windows/macOS/Linux</li>
-<li><b>z3ed</b>: Command Line Interface</li>
-<li><b>yaze_c</b>: C Library</li>
-<li><b>yaze_test</b>: Unit test executable</li>
-<li><b>yaze_ios</b>: iOS application</li>
+<li><b>yaze</b>: Desktop application with GUI docking system (Windows/macOS/Linux)</li>
+<li><b>z3ed</b>: Enhanced command line interface with Asar integration and TUI</li>
+<li><b>yaze_c</b>: C Library for custom tools and extensions</li>
+<li><b>yaze_test</b>: Comprehensive unit test executable with ROM-dependent test separation</li>
+<li><b>yaze_emu</b>: Standalone SNES emulator application</li>
+<li><b>yaze_ios</b>: iOS application (coming in future release)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md258"></a>
+<h1><a class="anchor" id="autotoc_md331"></a>
 Directory Structure</h1>
 <ul>
 <li><b>assets</b>: Hosts assets like fonts, icons, assembly source, etc.</li>
@@ -139,16 +140,32 @@ Directory Structure</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md259"></a>
+<h1><a class="anchor" id="autotoc_md332"></a>
 Dependencies</h1>
 <p>See <a class="el" href="md_docs_2build-instructions.html">build-instructions.md</a> for more information.</p>
+<h2><a class="anchor" id="autotoc_md333"></a>
+Core Dependencies</h2>
 <ul>
-<li><b>SDL2</b>: Graphics library</li>
-<li><b><a class="el" href="namespaceImGui.html">ImGui</a></b>: GUI library</li>
-<li><b>Abseil</b>: C++ library</li>
-<li><b>libpng</b>: Image library</li>
+<li><b>SDL2</b>: Graphics and input library</li>
+<li><b><a class="el" href="namespaceImGui.html">ImGui</a></b>: Immediate mode GUI library with docking support</li>
+<li><b>Abseil</b>: Modern C++ utilities library</li>
+<li><b>libpng</b>: Image processing library</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md260"></a>
+<h2><a class="anchor" id="autotoc_md334"></a>
+New in v0.3.0</h2>
+<ul>
+<li><b>Asar</b>: 65816 assembler for ROM patching and symbol extraction</li>
+<li><b>ftxui</b>: Terminal UI library for enhanced CLI experience</li>
+<li><b>GoogleTest/GoogleMock</b>: Comprehensive testing framework</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md335"></a>
+Build System</h2>
+<ul>
+<li><b>CMake 3.16+</b>: Modern build system with target-based configuration</li>
+<li><b>CMakePresets</b>: Development workflow presets</li>
+<li><b>Cross-platform CI/CD</b>: GitHub Actions for automated builds and testing</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md336"></a>
 Flow of Control</h1>
 <ul>
 <li><a class="el" href="main_8cc.html">app/main.cc</a><ul>
@@ -186,14 +203,14 @@ Flow of Control</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md261"></a>
+<h1><a class="anchor" id="autotoc_md337"></a>
 Rom</h1>
 <ul>
 <li><a class="el" href="rom_8cc.html">app/rom.cc</a></li>
 <li><a class="el" href="rom_8h.html">app/rom.h</a></li>
 </ul>
 <p>The Rom class provides methods to manipulate and access data from a ROM.</p>
-<h1><a class="anchor" id="autotoc_md262"></a>
+<h1><a class="anchor" id="autotoc_md338"></a>
 Bitmap</h1>
 <ul>
 <li><a class="el" href="bitmap_8cc.html">app/gfx/bitmap.cc</a></li>
