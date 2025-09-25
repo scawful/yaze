@@ -160,6 +160,11 @@ void DungeonObjectSelector::DrawObjectBrowser() {
         preview_object_ = test_object;
         preview_palette_ = palette;
         object_loaded_ = true;
+        
+        // Notify the main editor that an object was selected
+        if (object_selected_callback_) {
+          object_selected_callback_(preview_object_);
+        }
       }
       
       // Draw preview image
@@ -252,15 +257,25 @@ void DungeonObjectSelector::DrawObjectBrowser() {
 }
 
 void DungeonObjectSelector::Draw() {
-  if (ImGui::BeginTabBar("##ObjectEditorTabBar")) {
-    if (ImGui::BeginTabItem("Graphics")) {
+  if (ImGui::BeginTabBar("##ObjectSelectorTabBar")) {
+    // Object Selector tab - for placing objects
+    if (ImGui::BeginTabItem("Object Selector")) {
+      DrawObjectBrowser();
+      ImGui::EndTabItem();
+    }
+    
+    // Room Graphics tab - 8 bitmaps viewer
+    if (ImGui::BeginTabItem("Room Graphics")) {
       DrawRoomGraphics();
       ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Editor")) {
+    
+    // Object Editor tab - experimental editor
+    if (ImGui::BeginTabItem("Object Editor")) {
       DrawIntegratedEditingPanels();
       ImGui::EndTabItem();
     }
+    
     ImGui::EndTabBar();
   }
 }
