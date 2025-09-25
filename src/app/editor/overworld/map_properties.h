@@ -5,6 +5,13 @@
 #include "app/rom.h"
 #include "app/gui/canvas.h"
 
+// Forward declaration
+namespace yaze {
+namespace editor {
+class OverworldEditor;
+}
+}
+
 namespace yaze {
 namespace editor {
 
@@ -19,7 +26,7 @@ class MapPropertiesSystem {
   void DrawSimplifiedMapSettings(int& current_world, int& current_map, 
                                 bool& current_map_lock, bool& show_map_properties_panel,
                                 bool& show_custom_bg_color_editor, bool& show_overlay_editor,
-                                bool& show_overlay_preview, int& game_state);
+                                bool& show_overlay_preview, int& game_state, int& current_mode);
   
   void DrawMapPropertiesPanel(int current_map, bool& show_map_properties_panel);
   
@@ -37,8 +44,8 @@ class MapPropertiesSystem {
 
  private:
   // Property category drawers
-  void DrawGraphicsPopup(int current_map);
-  void DrawPalettesPopup(int current_map, bool& show_custom_bg_color_editor);
+  void DrawGraphicsPopup(int current_map, int game_state);
+  void DrawPalettesPopup(int current_map, int game_state, bool& show_custom_bg_color_editor);
   void DrawPropertiesPopup(int current_map, bool& show_map_properties_panel, 
                           bool& show_overlay_preview, int& game_state);
   
@@ -46,6 +53,11 @@ class MapPropertiesSystem {
   void DrawMosaicControls(int current_map);
   void DrawOverlayControls(int current_map, bool& show_overlay_preview);
   std::string GetOverlayDescription(uint16_t overlay_id);
+  
+  // Integrated toolset popup functions
+  void DrawToolsPopup(int& current_mode);
+  void DrawViewPopup();
+  void DrawQuickAccessPopup();
   
   // Tab content drawers
   void DrawBasicPropertiesTab(int current_map);
@@ -63,9 +75,7 @@ class MapPropertiesSystem {
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp_;
   gui::Canvas* canvas_;
   
-  // Static constants
-  static constexpr float kInputFieldSize = 30.f;
-  static constexpr int kOverworldMapSize = 512;
+  // Using centralized UI constants from ui_constants.h
 };
 
 }  // namespace editor

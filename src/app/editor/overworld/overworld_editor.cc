@@ -10,7 +10,6 @@
 #include "app/core/features.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/window.h"
-#include "app/editor/graphics/palette_editor.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/gfx/arena.h"
@@ -74,80 +73,73 @@ void OverworldEditor::Initialize() {
                     }
                   });
 
-  gui::AddTableColumn(toolset_table_, "##Undo", [&]() {
-    if (Button(ICON_MD_UNDO)) status_ = Undo();
-  });
-  gui::AddTableColumn(toolset_table_, "##Redo", [&]() {
-    if (Button(ICON_MD_REDO)) status_ = Redo();
-  });
-  gui::AddTableColumn(toolset_table_, "##Sep1", ICON_MD_MORE_VERT);
-  gui::AddTableColumn(toolset_table_, "##ZoomOut", [&]() {
-    if (Button(ICON_MD_ZOOM_OUT)) ow_map_canvas_.ZoomOut();
-  });
-  gui::AddTableColumn(toolset_table_, "##ZoomIn", [&]() {
-    if (Button(ICON_MD_ZOOM_IN)) ow_map_canvas_.ZoomIn();
-  });
-  gui::AddTableColumn(toolset_table_, "##Fullscreen", [&]() {
-    if (Button(ICON_MD_OPEN_IN_FULL))
-      overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
-    HOVER_HINT("Fullscreen Canvas");
-  });
-  gui::AddTableColumn(toolset_table_, "##Sep2", ICON_MD_MORE_VERT);
+  // Core editing tools
   gui::AddTableColumn(toolset_table_, "##Pan", [&]() {
     if (Selectable(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN)) {
       current_mode = EditingMode::PAN;
       ow_map_canvas_.set_draggable(true);
     }
-    HOVER_HINT("Pan (Right click and drag)");
+    HOVER_HINT("Pan (1) - Middle click and drag");
   });
   gui::AddTableColumn(toolset_table_, "##DrawTile", [&]() {
     if (Selectable(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE)) {
       current_mode = EditingMode::DRAW_TILE;
     }
-    HOVER_HINT("Draw Tile");
+    HOVER_HINT("Draw Tile (2)");
   });
   gui::AddTableColumn(toolset_table_, "##Entrances", [&]() {
     if (Selectable(ICON_MD_DOOR_FRONT, current_mode == EditingMode::ENTRANCES))
       current_mode = EditingMode::ENTRANCES;
-    HOVER_HINT("Entrances");
+    HOVER_HINT("Entrances (3)");
   });
   gui::AddTableColumn(toolset_table_, "##Exits", [&]() {
     if (Selectable(ICON_MD_DOOR_BACK, current_mode == EditingMode::EXITS))
       current_mode = EditingMode::EXITS;
-    HOVER_HINT("Exits");
+    HOVER_HINT("Exits (4)");
   });
   gui::AddTableColumn(toolset_table_, "##Items", [&]() {
     if (Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
       current_mode = EditingMode::ITEMS;
-    HOVER_HINT("Items");
+    HOVER_HINT("Items (5)");
   });
   gui::AddTableColumn(toolset_table_, "##Sprites", [&]() {
     if (Selectable(ICON_MD_PEST_CONTROL_RODENT,
                    current_mode == EditingMode::SPRITES))
       current_mode = EditingMode::SPRITES;
-    HOVER_HINT("Sprites");
+    HOVER_HINT("Sprites (6)");
   });
   gui::AddTableColumn(toolset_table_, "##Transports", [&]() {
     if (Selectable(ICON_MD_ADD_LOCATION,
                    current_mode == EditingMode::TRANSPORTS))
       current_mode = EditingMode::TRANSPORTS;
-    HOVER_HINT("Transports");
+    HOVER_HINT("Transports (7)");
   });
   gui::AddTableColumn(toolset_table_, "##Music", [&]() {
     if (Selectable(ICON_MD_MUSIC_NOTE, current_mode == EditingMode::MUSIC))
       current_mode = EditingMode::MUSIC;
-    HOVER_HINT("Music");
+    HOVER_HINT("Music (8)");
   });
+  
+  // View controls
+  gui::AddTableColumn(toolset_table_, "##ZoomOut", [&]() {
+    if (Button(ICON_MD_ZOOM_OUT)) ow_map_canvas_.ZoomOut();
+    HOVER_HINT("Zoom Out");
+  });
+  gui::AddTableColumn(toolset_table_, "##ZoomIn", [&]() {
+    if (Button(ICON_MD_ZOOM_IN)) ow_map_canvas_.ZoomIn();
+    HOVER_HINT("Zoom In");
+  });
+  gui::AddTableColumn(toolset_table_, "##Fullscreen", [&]() {
+    if (Button(ICON_MD_OPEN_IN_FULL))
+      overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
+    HOVER_HINT("Fullscreen Canvas (F11)");
+  });
+  
+  // Quick access tools
   gui::AddTableColumn(toolset_table_, "##Tile16Editor", [&]() {
     if (Button(ICON_MD_GRID_VIEW)) show_tile16_editor_ = !show_tile16_editor_;
-    HOVER_HINT("Tile16 Editor");
+    HOVER_HINT("Tile16 Editor (Ctrl+T)");
   });
-  gui::AddTableColumn(toolset_table_, "##GfxGroupEditor", [&]() {
-    if (Button(ICON_MD_TABLE_CHART))
-      show_gfx_group_editor_ = !show_gfx_group_editor_;
-    HOVER_HINT("Gfx Group Editor");
-  });
-  gui::AddTableColumn(toolset_table_, "##sep3", ICON_MD_MORE_VERT);
   gui::AddTableColumn(toolset_table_, "##CopyMap", [&]() {
     if (Button(ICON_MD_CONTENT_COPY)) {
       std::vector<uint8_t> png_data;
@@ -160,31 +152,6 @@ void OverworldEditor::Initialize() {
       }
     }
     HOVER_HINT("Copy Map to Clipboard");
-  });
-  gui::AddTableColumn(toolset_table_, "##Palette", [&]() {
-    status_ = DisplayPalette(palette_, overworld_.is_loaded());
-  });
-  gui::AddTableColumn(toolset_table_, "##Sep4", ICON_MD_MORE_VERT);
-  gui::AddTableColumn(toolset_table_, "##Properties", [&]() {
-    Checkbox("Properties", &show_properties_editor_);
-  });
-  gui::AddTableColumn(toolset_table_, "##MapLock", [&]() {
-    if (Button(current_map_lock_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN)) {
-      current_map_lock_ = !current_map_lock_;
-    }
-    HOVER_HINT(current_map_lock_ ? "Unlock Map" : "Lock Map");
-  });
-  gui::AddTableColumn(toolset_table_, "##CustomBG", [&]() {
-    if (Button(ICON_MD_PALETTE)) {
-      show_custom_bg_color_editor_ = !show_custom_bg_color_editor_;
-    }
-    HOVER_HINT("Custom Background Colors");
-  });
-  gui::AddTableColumn(toolset_table_, "##Overlay", [&]() {
-    if (Button(ICON_MD_LAYERS)) {
-      show_overlay_editor_ = !show_overlay_editor_;
-    }
-    HOVER_HINT("Overlay Editor");
   });
 }
 
@@ -263,9 +230,11 @@ void OverworldEditor::DrawToolset() {
     ImGui::End();
   }
 
-  // TODO: Customizable shortcuts for the Overworld Editor
+  // Keyboard shortcuts for the Overworld Editor
   if (!ImGui::IsAnyItemActive()) {
     using enum EditingMode;
+    
+    // Tool shortcuts
     if (ImGui::IsKeyDown(ImGuiKey_1)) {
       current_mode = PAN;
     } else if (ImGui::IsKeyDown(ImGuiKey_2)) {
@@ -282,6 +251,21 @@ void OverworldEditor::DrawToolset() {
       current_mode = TRANSPORTS;
     } else if (ImGui::IsKeyDown(ImGuiKey_8)) {
       current_mode = MUSIC;
+    }
+    
+    // View shortcuts
+    if (ImGui::IsKeyDown(ImGuiKey_F11)) {
+      overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
+    }
+    
+    // Toggle map lock with L key
+    if (ImGui::IsKeyDown(ImGuiKey_L) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+      current_map_lock_ = !current_map_lock_;
+    }
+    
+    // Toggle Tile16 editor with T key
+    if (ImGui::IsKeyDown(ImGuiKey_T) && ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) {
+      show_tile16_editor_ = !show_tile16_editor_;
     }
   }
 }
@@ -848,7 +832,8 @@ void OverworldEditor::DrawOverworldCanvas() {
     if (core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
       map_properties_system_->DrawSimplifiedMapSettings(
           current_world_, current_map_, current_map_lock_, show_map_properties_panel_,
-          show_custom_bg_color_editor_, show_overlay_editor_, show_overlay_preview_, game_state_);
+          show_custom_bg_color_editor_, show_overlay_editor_, show_overlay_preview_, game_state_, 
+          reinterpret_cast<int&>(current_mode));
     } else {
       DrawOverworldMapSettings();
     }
@@ -1531,56 +1516,49 @@ void OverworldEditor::DrawOverlayEditor() {
 
     Text("Current Map: %d (0x%02X)", current_map_, current_map_);
 
-    // Show vanilla overlay information
-    auto *current_map = overworld_.overworld_map(current_map_);
-    if (current_map->has_vanilla_overlay()) {
-      Text("Vanilla Overlay ID: 0x%04X", current_map->vanilla_overlay_id());
-      Text("Overlay Data Size: %d bytes",
-           static_cast<int>(current_map->vanilla_overlay_data().size()));
+    // Show vanilla subscreen overlay information
+    Text("Vanilla ROM - Subscreen Overlays:");
+    Text("Subscreen overlays in vanilla ROMs reference special area maps");
+    Text("(0x80-0x9F) for visual effects like fog, rain, backgrounds.");
+    
+    Separator();
+    if (Checkbox("Show Subscreen Overlay Preview", &show_overlay_preview_)) {
+      // Toggle subscreen overlay preview
+    }
 
-      Separator();
-      if (Checkbox("Show Overlay Preview", &show_overlay_preview_)) {
-        // Toggle overlay preview
-      }
-
-      if (show_overlay_preview_) {
-        DrawOverlayPreview();
-      }
-    } else {
-      Text("No vanilla overlay data for this map");
+    if (show_overlay_preview_) {
+      DrawOverlayPreview();
     }
 
     Separator();
     Text(
-        "Note: Vanilla overlays are read-only. Use ZSCustomOverworld v1+ for "
-        "editable overlays.");
+        "Note: Vanilla subscreen overlays are read-only. Use ZSCustomOverworld v1+ for "
+        "editable subscreen overlays.");
     return;
   }
 
-  if (asm_version < 1) {
-    Text("Overlay editor is only available in ZSCustomOverworld v1+");
-    return;
-  }
+  // Subscreen overlays are available for all versions for LW and DW maps
+  // Check if subscreen overlays are enabled (for custom overworld ROMs)
+  if (asm_version != 0xFF) {
+    bool overlay_enabled =
+        (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] != 0x00;
+    if (Checkbox("Enable Subscreen Overlays", &overlay_enabled)) {
+      (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] =
+          overlay_enabled ? 0x01 : 0x00;
+    }
 
-  // Check if subscreen overlays are enabled
-  bool overlay_enabled =
-      (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] != 0x00;
-  if (Checkbox("Enable Subscreen Overlays", &overlay_enabled)) {
-    (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] =
-        overlay_enabled ? 0x01 : 0x00;
-  }
-
-  if (!overlay_enabled) {
-    Text("Subscreen overlays are disabled.");
-    return;
+    if (!overlay_enabled) {
+      Text("Subscreen overlays are disabled.");
+      return;
+    }
   }
 
   Separator();
 
-  // Display current map's overlay
+  // Display current map's subscreen overlay
   Text("Current Map: %d (0x%02X)", current_map_, current_map_);
 
-  // Get current overlay ID
+  // Get current subscreen overlay ID
   uint16_t current_overlay =
       (*rom_)[zelda3::OverworldCustomSubscreenOverlayArray +
               (current_map_ * 2)] |
@@ -1588,8 +1566,8 @@ void OverworldEditor::DrawOverlayEditor() {
                (current_map_ * 2) + 1]
        << 8);
 
-  // Overlay ID input
-  if (gui::InputHexWord("Overlay ID", &current_overlay, 100)) {
+  // Subscreen overlay ID input
+  if (gui::InputHexWord("Subscreen Overlay ID", &current_overlay, 100)) {
     // Write to ROM
     (*rom_)[zelda3::OverworldCustomSubscreenOverlayArray + (current_map_ * 2)] =
         current_overlay & 0xFF;
@@ -1606,8 +1584,8 @@ void OverworldEditor::DrawOverlayEditor() {
 
   Separator();
 
-  // Show overlay information
-  Text("Overlay Information:");
+  // Show subscreen overlay information
+  Text("Subscreen Overlay Information:");
   Text("ID: 0x%04X", current_overlay);
 
   if (current_overlay == 0x00FF) {
@@ -1638,19 +1616,16 @@ void OverworldEditor::DrawOverlayEditor() {
 void OverworldEditor::DrawOverlayPreview() {
   if (!show_overlay_preview_) return;
   
-  auto *current_map = overworld_.overworld_map(current_map_);
-  if (!current_map->has_vanilla_overlay()) return;
-  
-  Text("Overlay Preview:");
+  Text("Subscreen Overlay Preview:");
   Separator();
   
-  // Get the overlay ID to determine what visual effect this is
-  uint16_t overlay_id = current_map->vanilla_overlay_id();
+  // Get the subscreen overlay ID from the current map
+  uint16_t overlay_id = overworld_.overworld_map(current_map_)->subscreen_overlay();
   
-  // Show overlay information
-  Text("Overlay ID: 0x%04X", overlay_id);
+  // Show subscreen overlay information
+  Text("Subscreen Overlay ID: 0x%04X", overlay_id);
   
-  // Show overlay description based on common overlay IDs
+  // Show subscreen overlay description based on common overlay IDs
   std::string overlay_desc = "";
   if (overlay_id == 0x0093) {
     overlay_desc = "Triforce Room Curtain";
@@ -1671,49 +1646,49 @@ void OverworldEditor::DrawOverlayPreview() {
   } else if (overlay_id == 0x009F) {
     overlay_desc = "Rain Effect (Misery Mire)";
   } else if (overlay_id == 0x00FF) {
-    overlay_desc = "No Overlay";
+    overlay_desc = "No Subscreen Overlay";
   } else {
-    overlay_desc = "Custom overlay effect";
+    overlay_desc = "Custom subscreen overlay effect";
   }
   Text("Description: %s", overlay_desc.c_str());
   
   Separator();
   
-  // Map overlay ID to special area map for preview
+  // Map subscreen overlay ID to special area map for preview
   int overlay_map_index = -1;
   if (overlay_id >= 0x80 && overlay_id < 0xA0) {
     overlay_map_index = overlay_id;
   }
   
   if (overlay_map_index >= 0 && overlay_map_index < zelda3::kNumOverworldMaps) {
-    Text("Overlay Source Map: %d (0x%02X)", overlay_map_index, overlay_map_index);
+    Text("Subscreen Overlay Source Map: %d (0x%02X)", overlay_map_index, overlay_map_index);
     
-    // Get the overlay map's bitmap
+    // Get the subscreen overlay map's bitmap
     const auto &overlay_bitmap = maps_bmp_[overlay_map_index];
     
     if (overlay_bitmap.is_active()) {
-      // Display the overlay map bitmap
+      // Display the subscreen overlay map bitmap
       ImVec2 image_size(256, 256);  // Scale down for preview
       ImGui::Image((ImTextureID)(intptr_t)overlay_bitmap.texture(), image_size);
       
       Separator();
-      Text("This overlay would be displayed semi-transparently");
+      Text("This subscreen overlay would be displayed semi-transparently");
       Text("on top of the current map when active.");
       
       // Show drawing order info
-      if (overlay_id == 0x0095 || overlay_id == 0x0096) {
-        Text("Note: This overlay is drawn as a background");
+      if (overlay_id == 0x0095 || overlay_id == 0x0096 || overlay_id == 0x009C) {
+        Text("Note: This subscreen overlay is drawn as a background");
         Text("(behind the main map tiles).");
       } else {
-        Text("Note: This overlay is drawn on top of");
+        Text("Note: This subscreen overlay is drawn on top of");
         Text("the main map tiles.");
       }
     } else {
-      Text("Overlay map bitmap not available");
+      Text("Subscreen overlay map bitmap not available");
     }
   } else {
-    Text("Unknown overlay ID: 0x%04X", overlay_id);
-    Text("Could not determine overlay source map");
+    Text("Unknown subscreen overlay ID: 0x%04X", overlay_id);
+    Text("Could not determine subscreen overlay source map");
   }
 }
 
@@ -1785,15 +1760,15 @@ void OverworldEditor::DrawOverworldContextMenu() {
           current_map_ = hovered_map;
         }
 
-        if (MenuItem("Overlay Settings")) {
+        if (MenuItem("Subscreen Overlay Settings")) {
           show_overlay_editor_ = true;
           current_map_ = hovered_map;
         }
       } else if (asm_version == 0xFF) {
-        // Show vanilla overlay information
-        auto *hovered_map_obj = overworld_.overworld_map(hovered_map);
-        if (hovered_map_obj->has_vanilla_overlay()) {
-          if (MenuItem("View Vanilla Overlay")) {
+        // Show vanilla subscreen overlay information for LW and DW maps only
+        bool is_special_overworld_map = (hovered_map >= 0x80 && hovered_map < 0xA0);
+        if (!is_special_overworld_map) {
+          if (MenuItem("View Subscreen Overlay")) {
             show_overlay_editor_ = true;
             current_map_ = hovered_map;
           }
