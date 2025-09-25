@@ -68,7 +68,7 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(int& current_world, int& cur
     }
 
     TableNextColumn();
-    if (ImGui::Button(current_map_lock ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN, ImVec2(30, 0))) {
+    if (ImGui::Button(current_map_lock ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN, ImVec2(40, 0))) {
       current_map_lock = !current_map_lock;
     }
     HOVER_HINT(current_map_lock ? "Unlock Map" : "Lock Map");
