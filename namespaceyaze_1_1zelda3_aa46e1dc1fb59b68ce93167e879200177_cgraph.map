@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::TEST_F" name="yaze::zelda3::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,150,72"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a4896812c223749b7ea5d56337afb43de" title=" " alt="" coords="198,5,378,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,45,182,40,183,45,151,50"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a85444f5c0c5caaedd1543308b33e3999" title=" " alt="" coords="198,71,378,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,67,183,72,182,78,150,73"/>
+</map>

@@ -3,6 +3,7 @@ var classyaze_1_1zelda3_1_1RoomLayout =
     [ "RoomLayout", "classyaze_1_1zelda3_1_1RoomLayout.html#ad992c56251b0487c714519a2d5b196b4", null ],
     [ "RoomLayout", "classyaze_1_1zelda3_1_1RoomLayout.html#a20e12f33eaddade88ce96ce58c227fb9", null ],
     [ "LoadLayout", "classyaze_1_1zelda3_1_1RoomLayout.html#ac488974000ffa8457a507457b462b736", null ],
+    [ "LoadLayoutData", "classyaze_1_1zelda3_1_1RoomLayout.html#adc897fe5f3ea54f358d3c890521f73cf", null ],
     [ "GetObjectsByType", "classyaze_1_1zelda3_1_1RoomLayout.html#afd05fd7a8057f15f6c8e5bf3202592e1", null ],
     [ "GetObjectAt", "classyaze_1_1zelda3_1_1RoomLayout.html#ade53a427b18577211cb4314f79d24db1", null ],
     [ "GetObjects", "classyaze_1_1zelda3_1_1RoomLayout.html#a95c3d2cfd70c9e30ba3323e51755b6ad", null ],

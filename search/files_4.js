@@ -11,5 +11,6 @@ var searchData=
   ['entity_2ecc_8',['entity.cc',['../entity_8cc.html',1,'']]],
   ['entity_2eh_9',['entity.h',['../entity_8h.html',1,'']]],
   ['extension_5fmanager_2ecc_10',['extension_manager.cc',['../extension__manager_8cc.html',1,'']]],
-  ['extension_5fmanager_2eh_11',['extension_manager.h',['../extension__manager_8h.html',1,'']]]
+  ['extension_5fmanager_2eh_11',['extension_manager.h',['../extension__manager_8h.html',1,'']]],
+  ['extract_5fvanilla_5fvalues_2ecc_12',['extract_vanilla_values.cc',['../extract__vanilla__values_8cc.html',1,'']]]
 ];

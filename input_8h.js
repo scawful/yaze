@@ -16,6 +16,8 @@ var input_8h =
     [ "yaze::gui::InputHexWord", "namespaceyaze_1_1gui.html#a5e21a03b6c3b26d504d415843f6a02db", null ],
     [ "yaze::gui::InputHexByte", "namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651", null ],
     [ "yaze::gui::InputHexByte", "namespaceyaze_1_1gui.html#a9c550be2cd26d4f7af10472461cff8d5", null ],
+    [ "yaze::gui::InputHexByteCustom", "namespaceyaze_1_1gui.html#a0356af962011bce8e97b9d6e95e65bbd", null ],
+    [ "yaze::gui::InputHexWordCustom", "namespaceyaze_1_1gui.html#a84a13625d308186227f8870a6d75434e", null ],
     [ "yaze::gui::Paragraph", "namespaceyaze_1_1gui.html#a1f2b653e2fd5b5b6c3741bbe332e3a02", null ],
     [ "yaze::gui::ClickableText", "namespaceyaze_1_1gui.html#a0fd30b00c2e36f50139ddf4980e72633", null ],
     [ "yaze::gui::ListBox", "namespaceyaze_1_1gui.html#a384cb97485e1d8ed280808163a529998", null ],

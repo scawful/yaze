@@ -6,6 +6,6 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="206,144,126,185,123,180,204,140"/>
 <area shape="rect" id="Node000006" href="$sprite__editor_8cc.html" title=" " alt="" coords="189,183,326,223"/>
 <area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="260,150,260,182,255,182,255,150"/>
-<area shape="rect" id="Node000007" href="$room_8cc.html" title=" " alt="" coords="350,183,509,223"/>
-<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="311,140,392,180,389,185,309,144"/>
+<area shape="rect" id="Node000007" href="$dungeon__editor__system_8h.html" title=" " alt="" coords="350,183,522,223"/>
+<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="313,139,397,180,395,185,311,144"/>
 </map>

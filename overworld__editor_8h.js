@@ -13,6 +13,8 @@ var overworld__editor_8h =
     [ "yaze::editor::kOWMapFlags", "namespaceyaze_1_1editor.html#a21a3ee57d060881f0c1f7e062418a71f", null ],
     [ "yaze::editor::kToolsetTableFlags", "namespaceyaze_1_1editor.html#a615aec1dbd7a854131aa04103e8ea5b6", null ],
     [ "yaze::editor::kOWEditFlags", "namespaceyaze_1_1editor.html#aa788b4bcda80a46b48ff4ac934c58505", null ],
+    [ "yaze::editor::kWorldList", "namespaceyaze_1_1editor.html#a509c76430fe7bd64995ca4c2a0004443", null ],
+    [ "yaze::editor::kGamePartComboString", "namespaceyaze_1_1editor.html#a547f59f67b587aa557ea5c83a29ca4f9", null ],
     [ "yaze::editor::kTileSelectorTab", "namespaceyaze_1_1editor.html#add4e4fce8dc72655325d8a50581404dd", null ],
     [ "yaze::editor::kOWEditTable", "namespaceyaze_1_1editor.html#aa7eb073b2dec436454b35ff273655642", null ],
     [ "yaze::editor::kOWMapTable", "namespaceyaze_1_1editor.html#a1d8e24b671e1338c02fbe726de12a0a3", null ]

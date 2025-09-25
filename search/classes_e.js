@@ -9,10 +9,13 @@ var searchData=
   ['paletteset_6',['Paletteset',['../structyaze_1_1gfx_1_1Paletteset.html',1,'yaze::gfx']]],
   ['parsedelement_7',['ParsedElement',['../structyaze_1_1editor_1_1ParsedElement.html',1,'yaze::editor']]],
   ['pctosnescommand_8',['PcToSnesCommand',['../classyaze_1_1cli_1_1PcToSnesCommand.html',1,'yaze::cli']]],
-  ['popupmanager_9',['PopupManager',['../classyaze_1_1editor_1_1PopupManager.html',1,'yaze::editor']]],
-  ['popupparams_10',['PopupParams',['../structyaze_1_1editor_1_1PopupParams.html',1,'yaze::editor']]],
-  ['ppu_11',['Ppu',['../classyaze_1_1emu_1_1Ppu.html',1,'yaze::emu']]],
-  ['ppuinterface_12',['PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html',1,'yaze::emu::PpuInterface'],['../classyaze_1_1test_1_1PpuInterface.html',1,'yaze::test::PpuInterface']]],
-  ['pputest_13',['PpuTest',['../classyaze_1_1test_1_1PpuTest.html',1,'yaze::test']]],
-  ['project_14',['Project',['../structyaze_1_1Project.html',1,'yaze']]]
+  ['performancemetrics_9',['PerformanceMetrics',['../structyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest_1_1PerformanceMetrics.html',1,'yaze::zelda3::DungeonObjectRendererIntegrationTest']]],
+  ['performancemonitor_10',['PerformanceMonitor',['../classyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceMonitor.html',1,'yaze::zelda3::ObjectRenderer']]],
+  ['performancestats_11',['PerformanceStats',['../structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html',1,'yaze::zelda3::ObjectRenderer']]],
+  ['popupmanager_12',['PopupManager',['../classyaze_1_1editor_1_1PopupManager.html',1,'yaze::editor']]],
+  ['popupparams_13',['PopupParams',['../structyaze_1_1editor_1_1PopupParams.html',1,'yaze::editor']]],
+  ['ppu_14',['Ppu',['../classyaze_1_1emu_1_1Ppu.html',1,'yaze::emu']]],
+  ['ppuinterface_15',['PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html',1,'yaze::emu::PpuInterface'],['../classyaze_1_1test_1_1PpuInterface.html',1,'yaze::test::PpuInterface']]],
+  ['pputest_16',['PpuTest',['../classyaze_1_1test_1_1PpuTest.html',1,'yaze::test']]],
+  ['project_17',['Project',['../structyaze_1_1Project.html',1,'yaze']]]
 ];

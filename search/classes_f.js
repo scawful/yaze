@@ -6,12 +6,14 @@ var searchData=
   ['resourcelabelmanager_3',['ResourceLabelManager',['../structyaze_1_1ResourceLabelManager.html',1,'yaze']]],
   ['resourcetype_4',['ResourceType',['../structyaze_1_1ResourceLabelManager_1_1ResourceType.html',1,'yaze::ResourceLabelManager']]],
   ['rom_5',['Rom',['../classyaze_1_1Rom.html',1,'yaze::Rom'],['../classyaze_1_1test_1_1Rom.html',1,'yaze::test::Rom']]],
-  ['romsession_6',['RomSession',['../structyaze_1_1editor_1_1EditorManager_1_1RomSession.html',1,'yaze::editor::EditorManager']]],
-  ['romtest_7',['RomTest',['../classyaze_1_1test_1_1RomTest.html',1,'yaze::test']]],
-  ['room_8',['Room',['../classyaze_1_1zelda3_1_1Room.html',1,'yaze::zelda3']]],
-  ['roomentrance_9',['RoomEntrance',['../classyaze_1_1zelda3_1_1RoomEntrance.html',1,'yaze::zelda3']]],
-  ['roomlayout_10',['RoomLayout',['../classyaze_1_1zelda3_1_1RoomLayout.html',1,'yaze::zelda3']]],
-  ['roomlayoutobject_11',['RoomLayoutObject',['../classyaze_1_1zelda3_1_1RoomLayoutObject.html',1,'yaze::zelda3']]],
-  ['roomobject_12',['RoomObject',['../classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]],
-  ['roomsize_13',['RoomSize',['../structyaze_1_1zelda3_1_1RoomSize.html',1,'yaze::zelda3']]]
+  ['rompatchutility_6',['ROMPatchUtility',['../classROMPatchUtility.html',1,'']]],
+  ['romsession_7',['RomSession',['../structyaze_1_1editor_1_1EditorManager_1_1RomSession.html',1,'yaze::editor::EditorManager']]],
+  ['romtest_8',['RomTest',['../classyaze_1_1test_1_1RomTest.html',1,'yaze::test']]],
+  ['room_9',['Room',['../classyaze_1_1zelda3_1_1Room.html',1,'yaze::zelda3']]],
+  ['roomentrance_10',['RoomEntrance',['../classyaze_1_1zelda3_1_1RoomEntrance.html',1,'yaze::zelda3']]],
+  ['roomlayout_11',['RoomLayout',['../classyaze_1_1zelda3_1_1RoomLayout.html',1,'yaze::zelda3']]],
+  ['roomlayoutobject_12',['RoomLayoutObject',['../classyaze_1_1zelda3_1_1RoomLayoutObject.html',1,'yaze::zelda3']]],
+  ['roomobject_13',['RoomObject',['../classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]],
+  ['roomproperties_14',['RoomProperties',['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html',1,'yaze::zelda3::DungeonEditorSystem']]],
+  ['roomsize_15',['RoomSize',['../structyaze_1_1zelda3_1_1RoomSize.html',1,'yaze::zelda3']]]
 ];

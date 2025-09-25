@@ -1,7 +1,9 @@
 <map id="yaze::zelda3::RoomLayout::LoadLayout" name="yaze::zelda3::RoomLayout::LoadLayout">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,35,175,75"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1RoomLayout.html#a91f9a6759ac57cd5df520733bb25524e" title=" " alt="" coords="223,5,392,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1RoomLayout.html#adc897fe5f3ea54f358d3c890521f73cf" title=" " alt="" coords="223,5,392,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,41,207,37,208,42,175,46"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="250,70,364,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,63,235,71,235,76,175,69"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="250,70,364,96"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="175,63,235,71,235,76,175,69"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1RoomLayout.html#a91f9a6759ac57cd5df520733bb25524e" title=" " alt="" coords="440,5,609,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="392,23,424,23,424,28,392,28"/>
 </map>

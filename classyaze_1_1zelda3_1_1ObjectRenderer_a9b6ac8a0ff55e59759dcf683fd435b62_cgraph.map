@@ -1,5 +1,5 @@
 <map id="yaze::zelda3::ObjectRenderer::RenderTilePattern" name="yaze::zelda3::ObjectRenderer::RenderTilePattern">
-<area shape="rect" id="Node000001" title="Render a simple pattern when graphics sheet is not available." alt="" coords="5,128,192,169"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,128,192,169"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="252,5,375,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,125,238,57,249,51,252,56,241,61,131,130"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a8179832296f4cbac7ecd47b0a198d0b7" title="Set a pixel at the given x,y coordinates." alt="" coords="252,95,375,135"/>

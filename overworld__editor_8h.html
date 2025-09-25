@@ -119,6 +119,7 @@ $(function(){initNavTree('overworld__editor_8h.html',''); initResizable(true); }
 <code>#include &quot;<a class="el" href="gfx__group__editor_8h_source.html">app/editor/graphics/gfx_group_editor.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="palette__editor_8h_source.html">app/editor/graphics/palette_editor.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="tile16__editor_8h_source.html">app/editor/overworld/tile16_editor.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="map__properties_8h_source.html">app/editor/overworld/map_properties.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="tilemap_8h_source.html">app/gfx/tilemap.h</a>&quot;</code><br />
@@ -133,16 +134,16 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="overworld__editor_8h__dep__incl.png" border="0" usemap="#asrc_2app_2editor_2overworld_2overworld__editor_8hdep" alt=""/></div>
 <map name="asrc_2app_2editor_2overworld_2overworld__editor_8hdep" id="asrc_2app_2editor_2overworld_2overworld__editor_8hdep">
-<area shape="rect" title=" " alt="" coords="99,5,259,46"/>
+<area shape="rect" title=" " alt="" coords="132,5,292,46"/>
 <area shape="rect" href="editor__manager_8cc.html" title=" " alt="" coords="5,183,142,223"/>
-<area shape="poly" title=" " alt="" coords="137,58,117,75,101,95,91,117,84,141,77,183,72,182,78,139,86,115,97,93,113,71,133,54"/>
-<area shape="rect" href="editor__manager_8h.html" title=" " alt="" coords="111,94,247,135"/>
-<area shape="poly" title=" " alt="" coords="182,62,182,94,176,94,176,62"/>
-<area shape="rect" href="overworld__editor_8cc.html" title=" " alt="" coords="271,94,431,135"/>
-<area shape="poly" title=" " alt="" coords="233,51,313,91,311,96,230,56"/>
-<area shape="poly" title=" " alt="" coords="145,147,99,184,96,180,142,143"/>
-<area shape="rect" href="controller_8cc.html" title=" " alt="" coords="166,190,333,216"/>
-<area shape="poly" title=" " alt="" coords="206,145,242,188,238,192,202,148"/>
+<area shape="poly" title=" " alt="" coords="119,47,79,66,63,79,49,95,42,116,44,139,52,161,62,181,58,183,47,164,39,140,37,116,45,93,59,75,77,62,116,42"/>
+<area shape="rect" href="editor__manager_8h.html" title=" " alt="" coords="59,94,195,135"/>
+<area shape="poly" title=" " alt="" coords="184,59,148,95,144,92,180,55"/>
+<area shape="rect" href="map__properties_8cc.html" title=" " alt="" coords="219,94,379,135"/>
+<area shape="poly" title=" " alt="" coords="244,55,281,92,277,95,241,59"/>
+<area shape="rect" href="overworld__editor_8cc.html" title=" " alt="" coords="403,94,563,135"/>
+<area shape="poly" title=" " alt="" coords="289,49,422,91,421,96,288,54"/>
+<area shape="poly" title=" " alt="" coords="109,149,88,184,83,181,105,147"/>
 </map>
 </div>
 </div>
@@ -192,6 +193,10 @@ Variables</h2></td></tr>
 <tr class="separator:a615aec1dbd7a854131aa04103e8ea5b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa788b4bcda80a46b48ff4ac934c58505" id="r_aa788b4bcda80a46b48ff4ac934c58505"><td class="memItemLeft" align="right" valign="top">constexpr ImGuiTableFlags&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#aa788b4bcda80a46b48ff4ac934c58505">yaze::editor::kOWEditFlags</a></td></tr>
 <tr class="separator:aa788b4bcda80a46b48ff4ac934c58505"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a509c76430fe7bd64995ca4c2a0004443" id="r_a509c76430fe7bd64995ca4c2a0004443"><td class="memItemLeft" align="right" valign="top">constexpr absl::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a509c76430fe7bd64995ca4c2a0004443">yaze::editor::kWorldList</a></td></tr>
+<tr class="separator:a509c76430fe7bd64995ca4c2a0004443"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a547f59f67b587aa557ea5c83a29ca4f9" id="r_a547f59f67b587aa557ea5c83a29ca4f9"><td class="memItemLeft" align="right" valign="top">constexpr absl::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a547f59f67b587aa557ea5c83a29ca4f9">yaze::editor::kGamePartComboString</a> = &quot;Part 0\0Part 1\0Part 2\0&quot;</td></tr>
+<tr class="separator:a547f59f67b587aa557ea5c83a29ca4f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add4e4fce8dc72655325d8a50581404dd" id="r_add4e4fce8dc72655325d8a50581404dd"><td class="memItemLeft" align="right" valign="top">constexpr absl::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#add4e4fce8dc72655325d8a50581404dd">yaze::editor::kTileSelectorTab</a> = &quot;##TileSelectorTabBar&quot;</td></tr>
 <tr class="separator:add4e4fce8dc72655325d8a50581404dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa7eb073b2dec436454b35ff273655642" id="r_aa7eb073b2dec436454b35ff273655642"><td class="memItemLeft" align="right" valign="top">constexpr absl::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#aa7eb073b2dec436454b35ff273655642">yaze::editor::kOWEditTable</a> = &quot;##OWEditTable&quot;</td></tr>

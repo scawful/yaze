@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::MockRom::MockRom" name="yaze::zelda3::MockRom::MockRom">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,161,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1MockRom.html#a48780c55846e6db890732a693f334abf" title=" " alt="" coords="209,5,364,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,23,193,23,193,28,161,28"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1MockRom.html#af7398c143325bc34ba4ad82ce1221749" title=" " alt="" coords="412,5,567,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="364,23,396,23,396,28,364,28"/>
+</map>

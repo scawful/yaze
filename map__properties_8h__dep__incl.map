@@ -1,5 +1,13 @@
 <map id="src/app/editor/overworld/map_properties.h" name="src/app/editor/overworld/map_properties.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,166,46"/>
-<area shape="rect" id="Node000002" href="$map__properties_8cc.html" title=" " alt="" coords="5,94,166,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,62,88,94,83,94,83,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="177,5,338,46"/>
+<area shape="rect" id="Node000002" href="$map__properties_8cc.html" title=" " alt="" coords="5,183,166,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,57,167,96,129,141,100,184,95,180,124,138,164,92,212,53"/>
+<area shape="rect" id="Node000003" href="$overworld__editor_8cc.html" title=" " alt="" coords="349,183,510,223"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="303,53,351,92,391,138,420,180,415,184,386,141,348,96,300,57"/>
+<area shape="rect" id="Node000004" href="$overworld__editor_8h.html" title=" " alt="" coords="177,94,338,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="260,62,260,94,255,94,255,62"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="206,144,126,185,123,180,204,140"/>
+<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="311,140,392,180,389,185,309,144"/>
+<area shape="rect" id="Node000005" href="$editor__manager_8cc.html" title=" " alt="" coords="189,183,326,223"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="260,150,260,182,255,182,255,150"/>
 </map>

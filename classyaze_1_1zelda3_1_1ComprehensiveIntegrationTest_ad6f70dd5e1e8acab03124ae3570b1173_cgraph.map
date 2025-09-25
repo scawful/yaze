@@ -1,0 +1,12 @@
+<map id="yaze::zelda3::ComprehensiveIntegrationTest::CreateV3PatchedROM" name="yaze::zelda3::ComprehensiveIntegrationTest::CreateV3PatchedROM">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,252,120"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html#ad6be83b9280552051d817931098bd43c" title=" " alt="" coords="300,22,496,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,76,284,64,285,69,228,81"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="315,87,481,112"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="252,97,299,97,299,102,252,102"/>
+<area shape="rect" id="Node000034" href="$classyaze_1_1Rom.html#a85481fc21993edbc298608a66cb70ba9" title=" " alt="" coords="322,136,474,162"/>
+<area shape="poly" id="edge5_Node000001_Node000034" title=" " alt="" coords="244,118,309,130,308,135,243,123"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a3f76910dd3716dc67f477e7da77cee33" title=" " alt="" coords="544,29,686,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="496,40,529,40,529,45,496,45"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="579,31,572,21,576,11,591,5,615,3,642,5,655,12,653,17,640,10,615,8,592,10,580,15,577,20,583,27"/>
+</map>

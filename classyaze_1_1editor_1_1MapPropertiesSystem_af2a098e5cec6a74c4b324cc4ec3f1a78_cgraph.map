@@ -1,0 +1,11 @@
+<map id="yaze::editor::MapPropertiesSystem::DrawOverlayControls" name="yaze::editor::MapPropertiesSystem::DrawOverlayControls">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,199,133"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1MapPropertiesSystem.html#af0ced4af579c03f1671e65d982f289d8" title=" " alt="" coords="247,5,448,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,89,246,55,264,49,266,54,248,60,157,94"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="268,70,426,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,98,252,92,253,97,200,103"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1MapPropertiesSystem.html#a1ae3f21d8a5446c4e4b9039230061039" title=" " alt="" coords="247,120,448,161"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="200,121,232,124,231,130,199,126"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1editor_1_1MapPropertiesSystem.html#a3f3c216f891a78be9d5f289d2c13e2cc" title=" " alt="" coords="247,185,448,226"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="152,131,248,170,268,177,266,182,246,175,150,136"/>
+</map>

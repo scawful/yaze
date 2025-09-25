@@ -1,0 +1,15 @@
+<map id="yaze::zelda3::ObjectRenderer::RenderTileToBitmap" name="yaze::zelda3::ObjectRenderer::RenderTileToBitmap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,62,192,103"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="474,29,597,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,59,181,34,239,14,291,5,333,3,426,14,461,21,460,27,426,20,332,8,292,10,240,19,183,39,135,64"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1ObjectRenderer.html#a4168e5359f9462502879bd2da6acb058" title=" " alt="" coords="240,29,426,69"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,66,224,62,225,67,192,72"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="474,94,597,135"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="135,101,184,125,240,144,292,153,332,155,426,144,460,137,461,142,426,149,333,160,291,158,239,149,182,130,133,105"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1zelda3_1_1ObjectRenderer.html#a9b6ac8a0ff55e59759dcf683fd435b62" title=" " alt="" coords="240,94,426,135"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="192,92,225,97,224,102,192,98"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="427,46,459,46,459,52,427,52"/>
+<area shape="poly" id="edge4_Node000003_Node000009" title=" " alt="" coords="399,67,460,87,458,92,397,72"/>
+<area shape="poly" id="edge6_Node000010_Node000002" title=" " alt="" coords="397,91,458,71,460,76,399,96"/>
+<area shape="poly" id="edge7_Node000010_Node000009" title=" " alt="" coords="427,112,459,112,459,117,427,117"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::DungeonObjectEditor::DeleteSelectedObjects" name="yaze::zelda3::DungeonObjectEditor::DeleteSelectedObjects">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,199,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#abdf029d764421cacf401cbeb9232f1ba" title=" " alt="" coords="247,5,432,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,43,231,38,232,43,199,48"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a58d5890e5ecb6e54f7f80237b0007e4c" title=" " alt="" coords="247,71,432,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,69,232,74,231,79,199,75"/>
+</map>

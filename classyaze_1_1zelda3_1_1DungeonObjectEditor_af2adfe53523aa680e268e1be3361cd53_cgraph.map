@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::DungeonObjectEditor::SetROM" name="yaze::zelda3::DungeonObjectEditor::SetROM">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,191,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a38c755e945ea85c6802fc232ef8cce49" title=" " alt="" coords="239,5,424,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,23,223,23,223,28,191,28"/>
+</map>

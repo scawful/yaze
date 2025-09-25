@@ -1,0 +1,11 @@
+<map id="yaze::zelda3::DungeonObjectEditor::SelectObject" name="yaze::zelda3::DungeonObjectEditor::SelectObject">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,191,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#abdf029d764421cacf401cbeb9232f1ba" title=" " alt="" coords="256,5,441,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,67,252,48,254,53,179,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a66d421eb290c954bd90b07cd5efe285f" title=" " alt="" coords="256,71,441,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,88,240,88,240,94,191,94"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a14981172110a76948c1e24f8b214aa8c" title=" " alt="" coords="239,136,458,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="179,109,254,129,252,134,178,115"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#abe70995c3d107cfc1c1d99d4b7f4a21f" title=" " alt="" coords="506,71,691,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="442,88,491,88,491,94,442,94"/>
+</map>

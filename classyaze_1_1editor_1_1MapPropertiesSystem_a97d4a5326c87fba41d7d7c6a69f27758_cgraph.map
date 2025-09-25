@@ -1,0 +1,11 @@
+<map id="yaze::editor::MapPropertiesSystem::DrawPalettesPopup" name="yaze::editor::MapPropertiesSystem::DrawPalettesPopup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,88,192,129"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#a0356af962011bce8e97b9d6e95e65bbd" title=" " alt="" coords="240,5,440,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,86,186,63,239,41,264,33,265,38,241,46,188,68,141,90"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1MapPropertiesSystem.html#af4a5f8735127f4d5016b22d194bd7e30" title=" " alt="" coords="249,55,431,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,93,232,88,233,93,192,99"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1MapPropertiesSystem.html#a1ae3f21d8a5446c4e4b9039230061039" title=" " alt="" coords="240,120,440,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="192,119,225,123,224,128,192,124"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1MapPropertiesSystem.html#a3f3c216f891a78be9d5f289d2c13e2cc" title=" " alt="" coords="240,186,440,226"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="143,127,241,170,260,178,258,183,239,175,141,132"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::DungeonObjectEditor::FindObjectAt" name="yaze::zelda3::DungeonObjectEditor::FindObjectAt">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,191,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#abe70995c3d107cfc1c1d99d4b7f4a21f" title=" " alt="" coords="239,5,424,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,23,223,23,223,28,191,28"/>
+</map>

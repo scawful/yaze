@@ -1,0 +1,10 @@
+<map id="yaze::zelda3::ComprehensiveIntegrationTest::ApplyV3Patch" name="yaze::zelda3::ComprehensiveIntegrationTest::ApplyV3Patch">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,202,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a3f76910dd3716dc67f477e7da77cee33" title=" " alt="" coords="250,31,392,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,41,234,41,234,46,202,46"/>
+<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="290,32,284,22,288,12,300,6,321,4,343,7,354,13,352,18,341,12,321,9,302,11,292,16,289,21,295,29"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="447,5,558,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="392,31,432,25,432,31,393,36"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd" title=" " alt="" coords="440,55,565,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="393,50,425,55,424,60,392,56"/>
+</map>

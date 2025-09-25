@@ -1,0 +1,5 @@
+<map id="yaze::test::DungeonObjectRenderingTests::CreateDesertPalacePalette" name="yaze::test::DungeonObjectRenderingTests::CreateDesertPalacePalette">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,240,61"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="288,13,435,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,30,272,30,272,36,240,36"/>
+</map>

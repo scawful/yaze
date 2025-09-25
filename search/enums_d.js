@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['yaze_5fstatus_0',['yaze_status',['../yaze_8h.html#a8b8638fa48e18e420ef66414847265c0',1,'yaze.h']]]
+  ['widgettype_0',['WidgetType',['../namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43',1,'yaze::gui::zeml']]]
 ];

@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::DungeonObjectEditor::LoadRoom" name="yaze::zelda3::DungeonObjectEditor::LoadRoom">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,191,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#abdf029d764421cacf401cbeb9232f1ba" title=" " alt="" coords="239,5,424,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,43,223,38,223,44,192,48"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a58d5890e5ecb6e54f7f80237b0007e4c" title=" " alt="" coords="239,71,424,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,69,223,74,223,79,191,74"/>
+</map>

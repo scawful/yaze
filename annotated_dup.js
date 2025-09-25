@@ -252,6 +252,7 @@ var annotated_dup =
         [ "CpuCallbacks", "structyaze_1_1test_1_1CpuCallbacks.html", "structyaze_1_1test_1_1CpuCallbacks" ],
         [ "CpuTest", "classyaze_1_1test_1_1CpuTest.html", "classyaze_1_1test_1_1CpuTest" ],
         [ "DungeonEditorIntegrationTest", "classyaze_1_1test_1_1DungeonEditorIntegrationTest.html", "classyaze_1_1test_1_1DungeonEditorIntegrationTest" ],
+        [ "DungeonObjectRenderingTests", "classyaze_1_1test_1_1DungeonObjectRenderingTests.html", "classyaze_1_1test_1_1DungeonObjectRenderingTests" ],
         [ "DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", "classyaze_1_1test_1_1DungeonRoomTest" ],
         [ "EditorIntegrationTest", "classyaze_1_1test_1_1EditorIntegrationTest.html", "classyaze_1_1test_1_1EditorIntegrationTest" ],
         [ "IplHandshakeTest", "classyaze_1_1test_1_1IplHandshakeTest.html", "classyaze_1_1test_1_1IplHandshakeTest" ],
@@ -263,7 +264,6 @@ var annotated_dup =
         [ "MockRom", "classyaze_1_1test_1_1MockRom.html", "classyaze_1_1test_1_1MockRom" ],
         [ "ObjectParserStructsTest", "classyaze_1_1test_1_1ObjectParserStructsTest.html", "classyaze_1_1test_1_1ObjectParserStructsTest" ],
         [ "ObjectParserTest", "classyaze_1_1test_1_1ObjectParserTest.html", "classyaze_1_1test_1_1ObjectParserTest" ],
-        [ "OverworldTest", "classyaze_1_1test_1_1OverworldTest.html", "classyaze_1_1test_1_1OverworldTest" ],
         [ "PpuInterface", "classyaze_1_1test_1_1PpuInterface.html", "classyaze_1_1test_1_1PpuInterface" ],
         [ "PpuTest", "classyaze_1_1test_1_1PpuTest.html", "classyaze_1_1test_1_1PpuTest" ],
         [ "Rom", "classyaze_1_1test_1_1Rom.html", "classyaze_1_1test_1_1Rom" ],
@@ -288,6 +288,12 @@ var annotated_dup =
         [ "anonymous_namespace{room_object.cc}", "namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03.html", [
           [ "SubtypeTableInfo", "structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html", "structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo" ]
         ] ],
+        [ "EntranceTypes", "namespaceyaze_1_1zelda3_1_1EntranceTypes.html", [
+          [ "EntranceInfo", "structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html", "structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo" ]
+        ] ],
+        [ "ItemTypes", "namespaceyaze_1_1zelda3_1_1ItemTypes.html", [
+          [ "ItemInfo", "structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html", "structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo" ]
+        ] ],
         [ "music", "namespaceyaze_1_1zelda3_1_1music.html", [
           [ "SampleEdit", "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html", "structyaze_1_1zelda3_1_1music_1_1SampleEdit" ],
           [ "Song", "structyaze_1_1zelda3_1_1music_1_1Song.html", "structyaze_1_1zelda3_1_1music_1_1Song" ],
@@ -300,10 +306,27 @@ var annotated_dup =
           [ "ZeldaSfxInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument" ],
           [ "ZeldaWave", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave" ]
         ] ],
+        [ "ObjectCategories", "namespaceyaze_1_1zelda3_1_1ObjectCategories.html", [
+          [ "ObjectCategory", "structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html", "structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory" ],
+          [ "ObjectInfo", "structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectInfo.html", "structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectInfo" ]
+        ] ],
+        [ "SpriteTypes", "namespaceyaze_1_1zelda3_1_1SpriteTypes.html", [
+          [ "SpriteInfo", "structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html", "structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo" ]
+        ] ],
+        [ "ComprehensiveIntegrationTest", "classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html", "classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest" ],
+        [ "DungeonEditorSystem", "classyaze_1_1zelda3_1_1DungeonEditorSystem.html", "classyaze_1_1zelda3_1_1DungeonEditorSystem" ],
+        [ "DungeonEditorSystemIntegrationTest", "classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html", "classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest" ],
+        [ "DungeonIntegrationTest", "classyaze_1_1zelda3_1_1DungeonIntegrationTest.html", "classyaze_1_1zelda3_1_1DungeonIntegrationTest" ],
         [ "DungeonMap", "structyaze_1_1zelda3_1_1DungeonMap.html", "structyaze_1_1zelda3_1_1DungeonMap" ],
+        [ "DungeonObjectEditor", "classyaze_1_1zelda3_1_1DungeonObjectEditor.html", "classyaze_1_1zelda3_1_1DungeonObjectEditor" ],
+        [ "DungeonObjectRendererIntegrationTest", "classyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest.html", "classyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest" ],
+        [ "DungeonObjectRendererMockTest", "classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html", "classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest" ],
         [ "GameEntity", "classyaze_1_1zelda3_1_1GameEntity.html", "classyaze_1_1zelda3_1_1GameEntity" ],
         [ "Inventory", "classyaze_1_1zelda3_1_1Inventory.html", "classyaze_1_1zelda3_1_1Inventory" ],
         [ "LayerMergeType", "structyaze_1_1zelda3_1_1LayerMergeType.html", "structyaze_1_1zelda3_1_1LayerMergeType" ],
+        [ "MockRom", "classyaze_1_1zelda3_1_1MockRom.html", "classyaze_1_1zelda3_1_1MockRom" ],
+        [ "MockRoomGenerator", "classyaze_1_1zelda3_1_1MockRoomGenerator.html", null ],
+        [ "MouseConfig", "structyaze_1_1zelda3_1_1MouseConfig.html", "structyaze_1_1zelda3_1_1MouseConfig" ],
         [ "ObjectParser", "classyaze_1_1zelda3_1_1ObjectParser.html", "classyaze_1_1zelda3_1_1ObjectParser" ],
         [ "ObjectRenderer", "classyaze_1_1zelda3_1_1ObjectRenderer.html", "classyaze_1_1zelda3_1_1ObjectRenderer" ],
         [ "ObjectRoutineInfo", "structyaze_1_1zelda3_1_1ObjectRoutineInfo.html", "structyaze_1_1zelda3_1_1ObjectRoutineInfo" ],
@@ -313,9 +336,12 @@ var annotated_dup =
         [ "OverworldEntrance", "classyaze_1_1zelda3_1_1OverworldEntrance.html", "classyaze_1_1zelda3_1_1OverworldEntrance" ],
         [ "OverworldEntranceTileTypes", "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html", "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes" ],
         [ "OverworldExit", "classyaze_1_1zelda3_1_1OverworldExit.html", "classyaze_1_1zelda3_1_1OverworldExit" ],
+        [ "OverworldIntegrationTest", "classyaze_1_1zelda3_1_1OverworldIntegrationTest.html", "classyaze_1_1zelda3_1_1OverworldIntegrationTest" ],
         [ "OverworldItem", "classyaze_1_1zelda3_1_1OverworldItem.html", "classyaze_1_1zelda3_1_1OverworldItem" ],
         [ "OverworldMap", "classyaze_1_1zelda3_1_1OverworldMap.html", "classyaze_1_1zelda3_1_1OverworldMap" ],
         [ "OverworldMapTiles", "structyaze_1_1zelda3_1_1OverworldMapTiles.html", "structyaze_1_1zelda3_1_1OverworldMapTiles" ],
+        [ "OverworldTest", "classyaze_1_1zelda3_1_1OverworldTest.html", "classyaze_1_1zelda3_1_1OverworldTest" ],
+        [ "OverworldV3IntegrationTest", "classyaze_1_1zelda3_1_1OverworldV3IntegrationTest.html", "classyaze_1_1zelda3_1_1OverworldV3IntegrationTest" ],
         [ "Renderer", "classyaze_1_1zelda3_1_1Renderer.html", "classyaze_1_1zelda3_1_1Renderer" ],
         [ "Room", "classyaze_1_1zelda3_1_1Room.html", "classyaze_1_1zelda3_1_1Room" ],
         [ "RoomEntrance", "classyaze_1_1zelda3_1_1RoomEntrance.html", "classyaze_1_1zelda3_1_1RoomEntrance" ],
@@ -323,10 +349,12 @@ var annotated_dup =
         [ "RoomLayoutObject", "classyaze_1_1zelda3_1_1RoomLayoutObject.html", "classyaze_1_1zelda3_1_1RoomLayoutObject" ],
         [ "RoomObject", "classyaze_1_1zelda3_1_1RoomObject.html", "classyaze_1_1zelda3_1_1RoomObject" ],
         [ "RoomSize", "structyaze_1_1zelda3_1_1RoomSize.html", "structyaze_1_1zelda3_1_1RoomSize" ],
+        [ "ScrollWheelConfig", "structyaze_1_1zelda3_1_1ScrollWheelConfig.html", "structyaze_1_1zelda3_1_1ScrollWheelConfig" ],
         [ "Sprite", "classyaze_1_1zelda3_1_1Sprite.html", "classyaze_1_1zelda3_1_1Sprite" ],
         [ "SpriteAction", "classyaze_1_1zelda3_1_1SpriteAction.html", "classyaze_1_1zelda3_1_1SpriteAction" ],
         [ "SpriteBuilder", "classyaze_1_1zelda3_1_1SpriteBuilder.html", "classyaze_1_1zelda3_1_1SpriteBuilder" ],
         [ "SpriteInstruction", "classyaze_1_1zelda3_1_1SpriteInstruction.html", "classyaze_1_1zelda3_1_1SpriteInstruction" ],
+        [ "SpritePositionTest", "classyaze_1_1zelda3_1_1SpritePositionTest.html", "classyaze_1_1zelda3_1_1SpritePositionTest" ],
         [ "Subtype1", "classyaze_1_1zelda3_1_1Subtype1.html", "classyaze_1_1zelda3_1_1Subtype1" ],
         [ "Subtype2", "classyaze_1_1zelda3_1_1Subtype2.html", "classyaze_1_1zelda3_1_1Subtype2" ],
         [ "Subtype3", "classyaze_1_1zelda3_1_1Subtype3.html", "classyaze_1_1zelda3_1_1Subtype3" ],
@@ -349,6 +377,7 @@ var annotated_dup =
     [ "dungeon_sprite", "structdungeon__sprite.html", "structdungeon__sprite" ],
     [ "object_door", "structobject__door.html", "structobject__door" ],
     [ "overloaded", "structoverloaded.html", null ],
+    [ "ROMPatchUtility", "classROMPatchUtility.html", null ],
     [ "SDL_Deleter", "structSDL__Deleter.html", "structSDL__Deleter" ],
     [ "snes_color", "structsnes__color.html", "structsnes__color" ],
     [ "snes_palette", "structsnes__palette.html", "structsnes__palette" ],

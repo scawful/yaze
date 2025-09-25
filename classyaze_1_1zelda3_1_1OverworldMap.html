@@ -158,6 +158,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a42b3dfddf368bb31ea68607d28509dbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa9666407b61df643fda421b945919a80" id="r_aa9666407b61df643fda421b945919a80"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa9666407b61df643fda421b945919a80">LoadPalette</a> ()</td></tr>
 <tr class="separator:aa9666407b61df643fda421b945919a80"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a565e09d96550a5bc57f9978b2067ff5b" id="r_a565e09d96550a5bc57f9978b2067ff5b"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a565e09d96550a5bc57f9978b2067ff5b">LoadOverlay</a> ()</td></tr>
+<tr class="separator:a565e09d96550a5bc57f9978b2067ff5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23c6abbeb479d62bbc97c2d3b74d3888" id="r_a23c6abbeb479d62bbc97c2d3b74d3888"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a23c6abbeb479d62bbc97c2d3b74d3888">LoadVanillaOverlayData</a> ()</td></tr>
+<tr class="separator:a23c6abbeb479d62bbc97c2d3b74d3888"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e4f1dd89416721389a3dd564ef51fbb" id="r_a7e4f1dd89416721389a3dd564ef51fbb"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7e4f1dd89416721389a3dd564ef51fbb">BuildTileset</a> ()</td></tr>
 <tr class="separator:a7e4f1dd89416721389a3dd564ef51fbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6acf9a0239cbc5d0aa4834ace9a0f159" id="r_a6acf9a0239cbc5d0aa4834ace9a0f159"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6acf9a0239cbc5d0aa4834ace9a0f159">BuildTiles16Gfx</a> (std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles16, int count)</td></tr>
@@ -220,6 +224,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aa8a38100cf5ee1defc2473c1d68b2bce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8830424cfa6364a41229352fcd9ba0ee" id="r_a8830424cfa6364a41229352fcd9ba0ee"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8830424cfa6364a41229352fcd9ba0ee">custom_tileset</a> (int index) const</td></tr>
 <tr class="separator:a8830424cfa6364a41229352fcd9ba0ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3fbe888b3ebd3eab383c127d725f7739" id="r_a3fbe888b3ebd3eab383c127d725f7739"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3fbe888b3ebd3eab383c127d725f7739">overlay_id</a> () const</td></tr>
+<tr class="separator:a3fbe888b3ebd3eab383c127d725f7739"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af3e1b2cf539e2c98d43dbfad9caa3cf6" id="r_af3e1b2cf539e2c98d43dbfad9caa3cf6"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3e1b2cf539e2c98d43dbfad9caa3cf6">has_overlay</a> () const</td></tr>
+<tr class="separator:af3e1b2cf539e2c98d43dbfad9caa3cf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f801b62529ffcd3a0da9a7cd245e52b" id="r_a5f801b62529ffcd3a0da9a7cd245e52b"><td class="memItemLeft" align="right" valign="top">const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5f801b62529ffcd3a0da9a7cd245e52b">overlay_data</a> () const</td></tr>
+<tr class="separator:a5f801b62529ffcd3a0da9a7cd245e52b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4331d3eeb9aa2548be0d746883a5ce38" id="r_a4331d3eeb9aa2548be0d746883a5ce38"><td class="memItemLeft" align="right" valign="top">const std::array&lt; bool, 4 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4331d3eeb9aa2548be0d746883a5ce38">mosaic_expanded</a> () const</td></tr>
+<tr class="separator:a4331d3eeb9aa2548be0d746883a5ce38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aece7f1236d68d3b1fd9eed8e1a51a47b" id="r_aece7f1236d68d3b1fd9eed8e1a51a47b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aece7f1236d68d3b1fd9eed8e1a51a47b">set_mosaic_expanded</a> (int index, bool value)</td></tr>
+<tr class="separator:aece7f1236d68d3b1fd9eed8e1a51a47b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57a7555a93b004df1d4a30296c9e642d" id="r_a57a7555a93b004df1d4a30296c9e642d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a57a7555a93b004df1d4a30296c9e642d">set_custom_tileset</a> (int index, uint8_t value)</td></tr>
 <tr class="separator:a57a7555a93b004df1d4a30296c9e642d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac2e492cac975f018fe6c5fc31299fb60" id="r_ac2e492cac975f018fe6c5fc31299fb60"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac2e492cac975f018fe6c5fc31299fb60">mutable_current_graphics</a> ()</td></tr>
@@ -340,6 +354,12 @@ Private Attributes</h2></td></tr>
 <tr class="separator:aa4160e54eb1f6c933790ec7144ab390d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a20f812315df0eb49b2be9694db433946" id="r_a20f812315df0eb49b2be9694db433946"><td class="memItemLeft" align="right" valign="top">std::array&lt; bool, 4 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a20f812315df0eb49b2be9694db433946">mosaic_expanded_</a></td></tr>
 <tr class="separator:a20f812315df0eb49b2be9694db433946"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5907024c9dcc726ed09d3bed5136cdd0" id="r_a5907024c9dcc726ed09d3bed5136cdd0"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5907024c9dcc726ed09d3bed5136cdd0">overlay_id_</a> = 0</td></tr>
+<tr class="separator:a5907024c9dcc726ed09d3bed5136cdd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95d451b92008cb4be5638afa811ef021" id="r_a95d451b92008cb4be5638afa811ef021"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a95d451b92008cb4be5638afa811ef021">has_overlay_</a> = false</td></tr>
+<tr class="separator:a95d451b92008cb4be5638afa811ef021"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad16bbc0c9b5fe327d537f9d2c26e3c8f" id="r_ad16bbc0c9b5fe327d537f9d2c26e3c8f"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad16bbc0c9b5fe327d537f9d2c26e3c8f">overlay_data_</a></td></tr>
+<tr class="separator:ad16bbc0c9b5fe327d537f9d2c26e3c8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a20cde22bd5f4d8dd04269f7b3205ebd8" id="r_a20cde22bd5f4d8dd04269f7b3205ebd8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a20cde22bd5f4d8dd04269f7b3205ebd8">current_blockset_</a></td></tr>
 <tr class="separator:a20cde22bd5f4d8dd04269f7b3205ebd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1dc1962259be87d729e4222f82fb202c" id="r_a1dc1962259be87d729e4222f82fb202c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1dc1962259be87d729e4222f82fb202c">current_gfx_</a></td></tr>
@@ -360,7 +380,7 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Represents a single <a class="el" href="classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world.">Overworld</a> map screen. </p>
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00090">90</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00097">97</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a3ab891d3f7c9ea8e57b5aa645bf5099f" name="a3ab891d3f7c9ea8e57b5aa645bf5099f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3ab891d3f7c9ea8e57b5aa645bf5099f">&#9670;&#160;</a></span>OverworldMap() <span class="overload">[1/2]</span></h2>
@@ -408,7 +428,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00017">17</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="features_8h_source.html#l00066">yaze::core::FeatureFlags::get()</a>, <a class="el" href="overworld__map_8h_source.html#l00236">index_</a>, <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00256">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>, <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">References <a class="el" href="features_8h_source.html#l00066">yaze::core::FeatureFlags::get()</a>, <a class="el" href="overworld__map_8h_source.html#l00266">index_</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00257">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>, <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -465,7 +485,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00033">33</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00245">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00246">area_palette_</a>, <a class="el" href="overworld__map_8cc_source.html#l00927">BuildBitmap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00881">BuildTiles16Gfx()</a>, <a class="el" href="overworld__map_8cc_source.html#l00853">BuildTileset()</a>, <a class="el" href="overworld__map_8h_source.html#l00231">built_</a>, <a class="el" href="overworld__map_8h_source.html#l00240">game_state_</a>, <a class="el" href="overworld__map_8h_source.html#l00236">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00233">initialized_</a>, <a class="el" href="overworld_8h_source.html#l00039">yaze::zelda3::kAreaGfxIdPtr</a>, <a class="el" href="overworld_8h_source.html#l00029">yaze::zelda3::kOverworldMapPaletteIds</a>, <a class="el" href="overworld_8h_source.html#l00033">yaze::zelda3::kOverworldSpecialGfxGroup</a>, <a class="el" href="overworld_8h_source.html#l00034">yaze::zelda3::kOverworldSpecialPalGroup</a>, <a class="el" href="overworld__map_8h_source.html#l00064">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00232">large_map_</a>, <a class="el" href="overworld__map_8cc_source.html#l00557">LoadAreaGraphics()</a>, <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>, <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, and <a class="el" href="overworld__map_8h_source.html#l00239">world_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00275">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00276">area_palette_</a>, <a class="el" href="overworld__map_8cc_source.html#l01073">BuildBitmap()</a>, <a class="el" href="overworld__map_8cc_source.html#l01027">BuildTiles16Gfx()</a>, <a class="el" href="overworld__map_8cc_source.html#l00999">BuildTileset()</a>, <a class="el" href="overworld__map_8h_source.html#l00261">built_</a>, <a class="el" href="overworld__map_8h_source.html#l00270">game_state_</a>, <a class="el" href="overworld__map_8h_source.html#l00266">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00263">initialized_</a>, <a class="el" href="overworld_8h_source.html#l00039">yaze::zelda3::kAreaGfxIdPtr</a>, <a class="el" href="overworld_8h_source.html#l00029">yaze::zelda3::kOverworldMapPaletteIds</a>, <a class="el" href="overworld_8h_source.html#l00033">yaze::zelda3::kOverworldSpecialGfxGroup</a>, <a class="el" href="overworld_8h_source.html#l00034">yaze::zelda3::kOverworldSpecialPalGroup</a>, <a class="el" href="overworld__map_8h_source.html#l00071">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00262">large_map_</a>, <a class="el" href="overworld__map_8cc_source.html#l00564">LoadAreaGraphics()</a>, <a class="el" href="overworld__map_8cc_source.html#l00834">LoadOverlay()</a>, <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>, <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, and <a class="el" href="overworld__map_8h_source.html#l00269">world_</a>.</p>
 
 </div>
 </div>
@@ -484,9 +504,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00557">557</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00564">564</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8cc_source.html#l00533">LoadAreaGraphicsBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00548">LoadDeathMountainGFX()</a>, <a class="el" href="overworld__map_8cc_source.html#l00482">LoadMainBlocksetId()</a>, <a class="el" href="overworld__map_8cc_source.html#l00508">LoadMainBlocksets()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00493">LoadSpritesBlocksets()</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8cc_source.html#l00540">LoadAreaGraphicsBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00555">LoadDeathMountainGFX()</a>, <a class="el" href="overworld__map_8cc_source.html#l00483">LoadMainBlocksetId()</a>, <a class="el" href="overworld__map_8cc_source.html#l00515">LoadMainBlocksets()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00500">LoadSpritesBlocksets()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>.</p>
 
@@ -507,9 +527,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00700">700</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00707">707</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00246">area_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00250">area_specific_bg_color_</a>, <a class="el" href="macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="overworld__map_8h_source.html#l00266">current_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00240">game_state_</a>, <a class="el" href="overworld__map_8cc_source.html#l00687">GetPalette()</a>, <a class="el" href="overworld__map_8h_source.html#l00236">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00063">yaze::zelda3::kDarkWorldMapIdStart</a>, <a class="el" href="overworld_8h_source.html#l00095">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="overworld_8h_source.html#l00029">yaze::zelda3::kOverworldMapPaletteIds</a>, <a class="el" href="overworld__map_8h_source.html#l00059">yaze::zelda3::kOverworldPalettesScreenToSetNew</a>, <a class="el" href="overworld_8h_source.html#l00031">yaze::zelda3::kOverworldSpritePaletteGroup</a>, <a class="el" href="overworld_8h_source.html#l00030">yaze::zelda3::kOverworldSpritePaletteIds</a>, <a class="el" href="overworld__map_8h_source.html#l00064">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="emu_8cc_source.html#l00020">main()</a>, <a class="el" href="overworld__map_8h_source.html#l00247">main_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00027">yaze::zelda3::OverworldCustomAreaSpecificBGEnabled</a>, <a class="el" href="overworld__map_8h_source.html#l00024">yaze::zelda3::OverworldCustomAreaSpecificBGPalette</a>, <a class="el" href="overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="snes__palette_8h_source.html#l00430">yaze::gfx::GfxContext::palettesets_</a>, <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>, <a class="el" href="overworld__map_8cc_source.html#l00567">yaze::zelda3::palette_internal::SetColorsPalette()</a>, and <a class="el" href="overworld__map_8h_source.html#l00255">sprite_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00276">area_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00280">area_specific_bg_color_</a>, <a class="el" href="macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="overworld__map_8h_source.html#l00301">current_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00270">game_state_</a>, <a class="el" href="overworld__map_8cc_source.html#l00694">GetPalette()</a>, <a class="el" href="overworld__map_8h_source.html#l00266">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00070">yaze::zelda3::kDarkWorldMapIdStart</a>, <a class="el" href="overworld_8h_source.html#l00095">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="overworld_8h_source.html#l00029">yaze::zelda3::kOverworldMapPaletteIds</a>, <a class="el" href="overworld__map_8h_source.html#l00066">yaze::zelda3::kOverworldPalettesScreenToSetNew</a>, <a class="el" href="overworld_8h_source.html#l00031">yaze::zelda3::kOverworldSpritePaletteGroup</a>, <a class="el" href="overworld_8h_source.html#l00030">yaze::zelda3::kOverworldSpritePaletteIds</a>, <a class="el" href="overworld__map_8h_source.html#l00071">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="emu_8cc_source.html#l00020">main()</a>, <a class="el" href="overworld__map_8h_source.html#l00277">main_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00027">yaze::zelda3::OverworldCustomAreaSpecificBGEnabled</a>, <a class="el" href="overworld__map_8h_source.html#l00024">yaze::zelda3::OverworldCustomAreaSpecificBGPalette</a>, <a class="el" href="overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="snes__palette_8h_source.html#l00430">yaze::gfx::GfxContext::palettesets_</a>, <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>, <a class="el" href="overworld__map_8cc_source.html#l00574">yaze::zelda3::palette_internal::SetColorsPalette()</a>, and <a class="el" href="overworld__map_8h_source.html#l00285">sprite_palette_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>.</p>
 <div class="dynheader">
@@ -532,6 +552,62 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a565e09d96550a5bc57f9978b2067ff5b" name="a565e09d96550a5bc57f9978b2067ff5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a565e09d96550a5bc57f9978b2067ff5b">&#9670;&#160;</a></span>LoadOverlay()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::zelda3::OverworldMap::LoadOverlay </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00834">834</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00293">has_overlay_</a>, <a class="el" href="overworld__map_8cc_source.html#l00850">LoadVanillaOverlayData()</a>, <a class="el" href="overworld__map_8h_source.html#l00294">overlay_data_</a>, <a class="el" href="overworld__map_8h_source.html#l00292">overlay_id_</a>, <a class="el" href="overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, and <a class="el" href="overworld__map_8h_source.html#l00279">subscreen_overlay_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1zelda3_1_1OverworldMap_a565e09d96550a5bc57f9978b2067ff5b_cgraph.png" border="0" usemap="#aclassyaze_1_1zelda3_1_1OverworldMap_a565e09d96550a5bc57f9978b2067ff5b_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1zelda3_1_1OverworldMap_a565e09d96550a5bc57f9978b2067ff5b_cgraph" id="aclassyaze_1_1zelda3_1_1OverworldMap_a565e09d96550a5bc57f9978b2067ff5b_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,186,46"/>
+<area shape="rect" href="classyaze_1_1zelda3_1_1OverworldMap.html#a23c6abbeb479d62bbc97c2d3b74d3888" title=" " alt="" coords="234,5,414,46"/>
+<area shape="poly" title=" " alt="" coords="186,23,218,23,218,28,186,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a23c6abbeb479d62bbc97c2d3b74d3888" name="a23c6abbeb479d62bbc97c2d3b74d3888"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23c6abbeb479d62bbc97c2d3b74d3888">&#9670;&#160;</a></span>LoadVanillaOverlayData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::zelda3::OverworldMap::LoadVanillaOverlayData </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00850">850</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00293">has_overlay_</a>, <a class="el" href="overworld__map_8h_source.html#l00266">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00042">yaze::zelda3::kOverlayData1</a>, <a class="el" href="overworld__map_8h_source.html#l00043">yaze::zelda3::kOverlayData2</a>, <a class="el" href="overworld__map_8h_source.html#l00040">yaze::zelda3::kOverlayPointers</a>, <a class="el" href="overworld__map_8h_source.html#l00041">yaze::zelda3::kOverlayPointersBank</a>, <a class="el" href="overworld__map_8h_source.html#l00294">overlay_data_</a>, <a class="el" href="overworld__map_8h_source.html#l00292">overlay_id_</a>, and <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00834">LoadOverlay()</a>.</p>
+
+</div>
+</div>
 <a id="a7e4f1dd89416721389a3dd564ef51fbb" name="a7e4f1dd89416721389a3dd564ef51fbb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7e4f1dd89416721389a3dd564ef51fbb">&#9670;&#160;</a></span>BuildTileset()</h2>
 
@@ -547,9 +623,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00853">853</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00999">999</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00262">current_gfx_</a>, <a class="el" href="overworld__map_8cc_source.html#l00827">ProcessGraphicsBuffer()</a>, <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>, and <a class="el" href="overworld__map_8h_source.html#l00257">static_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00297">current_gfx_</a>, <a class="el" href="overworld__map_8cc_source.html#l00973">ProcessGraphicsBuffer()</a>, <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>, and <a class="el" href="overworld__map_8h_source.html#l00287">static_graphics_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>.</p>
 <div class="dynheader">
@@ -584,9 +660,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00881">881</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l01027">1027</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00261">current_blockset_</a>, <a class="el" href="overworld__map_8h_source.html#l00262">current_gfx_</a>, <a class="el" href="snes__tile_8h_source.html#l00056">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::palette_</a>, and <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::vertical_mirror_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00296">current_blockset_</a>, <a class="el" href="overworld__map_8h_source.html#l00297">current_gfx_</a>, <a class="el" href="snes__tile_8h_source.html#l00056">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::palette_</a>, and <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::vertical_mirror_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>.</p>
 
@@ -607,9 +683,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00927">927</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l01073">1073</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00263">bitmap_data_</a>, <a class="el" href="snes__tile_8cc_source.html#l00366">yaze::gfx::CopyTile8bpp16()</a>, <a class="el" href="overworld__map_8h_source.html#l00261">current_blockset_</a>, <a class="el" href="overworld__map_8h_source.html#l00236">index_</a>, and <a class="el" href="overworld__map_8h_source.html#l00239">world_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00298">bitmap_data_</a>, <a class="el" href="snes__tile_8cc_source.html#l00366">yaze::gfx::CopyTile8bpp16()</a>, <a class="el" href="overworld__map_8h_source.html#l00296">current_blockset_</a>, <a class="el" href="overworld__map_8h_source.html#l00266">index_</a>, and <a class="el" href="overworld__map_8h_source.html#l00269">world_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>.</p>
 <div class="dynheader">
@@ -640,9 +716,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00522">522</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00529">529</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00257">static_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00287">static_graphics_</a>.</p>
 
 </div>
 </div>
@@ -669,9 +745,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00107">107</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00116">116</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00261">current_blockset_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00296">current_blockset_</a>.</p>
 
 </div>
 </div>
@@ -698,9 +774,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00108">108</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00117">117</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00262">current_gfx_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00297">current_gfx_</a>.</p>
 
 </div>
 </div>
@@ -727,9 +803,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00109">109</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00118">118</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00266">current_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00301">current_palette_</a>.</p>
 
 </div>
 </div>
@@ -756,9 +832,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00110">110</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00119">119</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00263">bitmap_data_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00298">bitmap_data_</a>.</p>
 
 </div>
 </div>
@@ -785,9 +861,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00111">111</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00120">120</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00232">large_map_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00262">large_map_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00146">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -814,9 +892,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00112">112</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00121">121</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00233">initialized_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00263">initialized_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00239">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -843,9 +923,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00113">113</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00122">122</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00146">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -872,9 +954,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00114">114</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00123">123</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00234">mosaic_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00264">mosaic_</a>.</p>
 
 </div>
 </div>
@@ -901,9 +983,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00115">115</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00124">124</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00266">current_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00301">current_palette_</a>.</p>
 
 </div>
 </div>
@@ -930,9 +1012,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00117">117</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00126">126</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00245">area_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00275">area_graphics_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="comprehensive__integration__test_8cc_source.html#l00280">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00321">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00156">yaze::zelda3::TEST_F()</a>, <a class="el" href="dungeon__integration__test_8cc_source.html#l00107">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__integration__test_8cc_source.html#l00237">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__integration__test_8cc_source.html#l00063">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00202">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00239">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00096">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__integration__test_8cc_source.html#l00224">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -959,9 +1043,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00118">118</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00127">127</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00246">area_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00276">area_palette_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="comprehensive__integration__test_8cc_source.html#l00280">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00321">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00156">yaze::zelda3::TEST_F()</a>, <a class="el" href="dungeon__integration__test_8cc_source.html#l00107">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__integration__test_8cc_source.html#l00237">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__integration__test_8cc_source.html#l00074">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00202">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00096">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__integration__test_8cc_source.html#l00224">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -988,9 +1074,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00119">119</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00128">128</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00254">sprite_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00284">sprite_graphics_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00180">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1017,9 +1105,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00120">120</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00129">129</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00255">sprite_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00285">sprite_palette_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00180">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1046,9 +1136,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00121">121</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00130">130</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00244">message_id_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00274">message_id_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="comprehensive__integration__test_8cc_source.html#l00280">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00321">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00268">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00156">yaze::zelda3::TEST_F()</a>, <a class="el" href="dungeon__integration__test_8cc_source.html#l00107">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__integration__test_8cc_source.html#l00237">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__integration__test_8cc_source.html#l00083">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00202">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00096">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1075,9 +1167,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00122">122</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00131">131</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00256">area_music_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00286">area_music_</a>.</p>
 
 </div>
 </div>
@@ -1104,9 +1196,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00123">123</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00132">132</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00257">static_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00287">static_graphics_</a>.</p>
 
 </div>
 </div>
@@ -1133,9 +1225,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00124">124</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00133">133</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00238">large_index_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00268">large_index_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00146">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1162,9 +1256,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00125">125</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00134">134</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00242">area_size_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00272">area_size_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="comprehensive__integration__test_8cc_source.html#l00321">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00200">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00156">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__integration__test_8cc_source.html#l00237">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00239">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00096">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00146">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__integration__test_8cc_source.html#l00161">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1191,9 +1287,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00127">127</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00136">136</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00247">main_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00277">main_palette_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="comprehensive__integration__test_8cc_source.html#l00321">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00211">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__integration__test_8cc_source.html#l00237">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00239">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00096">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__integration__test_8cc_source.html#l00170">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1220,9 +1318,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00128">128</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00137">137</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00247">main_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00277">main_palette_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00239">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1249,9 +1349,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00130">130</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00139">139</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00250">area_specific_bg_color_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00280">area_specific_bg_color_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="comprehensive__integration__test_8cc_source.html#l00321">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00222">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00096">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__integration__test_8cc_source.html#l00179">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1278,9 +1380,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00131">131</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00140">140</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00250">area_specific_bg_color_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00280">area_specific_bg_color_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1307,9 +1411,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00135">135</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00144">144</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00249">subscreen_overlay_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00279">subscreen_overlay_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="comprehensive__integration__test_8cc_source.html#l00321">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00233">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00096">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__integration__test_8cc_source.html#l00188">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1336,9 +1442,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00136">136</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00145">145</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00249">subscreen_overlay_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00279">subscreen_overlay_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1365,9 +1473,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00138">138</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00147">147</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00248">animated_gfx_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00278">animated_gfx_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="comprehensive__integration__test_8cc_source.html#l00321">yaze::zelda3::TEST_F()</a>, <a class="el" href="comprehensive__integration__test_8cc_source.html#l00244">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00096">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__integration__test_8cc_source.html#l00197">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1394,9 +1504,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00139">139</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00148">148</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00248">animated_gfx_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00278">animated_gfx_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1423,9 +1535,160 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00141">141</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00150">150</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00253">custom_gfx_ids_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00283">custom_gfx_ids_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="comprehensive__integration__test_8cc_source.html#l00255">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00164">yaze::zelda3::TEST_F()</a>, <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__integration__test_8cc_source.html#l00206">yaze::zelda3::TEST_F()</a>.</p>
+
+</div>
+</div>
+<a id="a3fbe888b3ebd3eab383c127d725f7739" name="a3fbe888b3ebd3eab383c127d725f7739"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3fbe888b3ebd3eab383c127d725f7739">&#9670;&#160;</a></span>overlay_id()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::zelda3::OverworldMap::overlay_id </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00153">153</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00292">overlay_id_</a>.</p>
+
+</div>
+</div>
+<a id="af3e1b2cf539e2c98d43dbfad9caa3cf6" name="af3e1b2cf539e2c98d43dbfad9caa3cf6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af3e1b2cf539e2c98d43dbfad9caa3cf6">&#9670;&#160;</a></span>has_overlay()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::zelda3::OverworldMap::has_overlay </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00154">154</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00293">has_overlay_</a>.</p>
+
+</div>
+</div>
+<a id="a5f801b62529ffcd3a0da9a7cd245e52b" name="a5f801b62529ffcd3a0da9a7cd245e52b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f801b62529ffcd3a0da9a7cd245e52b">&#9670;&#160;</a></span>overlay_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const auto &amp; yaze::zelda3::OverworldMap::overlay_data </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00155">155</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00294">overlay_data_</a>.</p>
+
+</div>
+</div>
+<a id="a4331d3eeb9aa2548be0d746883a5ce38" name="a4331d3eeb9aa2548be0d746883a5ce38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4331d3eeb9aa2548be0d746883a5ce38">&#9670;&#160;</a></span>mosaic_expanded()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::array&lt; bool, 4 &gt; &amp; yaze::zelda3::OverworldMap::mosaic_expanded </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00158">158</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00289">mosaic_expanded_</a>.</p>
+
+</div>
+</div>
+<a id="aece7f1236d68d3b1fd9eed8e1a51a47b" name="aece7f1236d68d3b1fd9eed8e1a51a47b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aece7f1236d68d3b1fd9eed8e1a51a47b">&#9670;&#160;</a></span>set_mosaic_expanded()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::OverworldMap::set_mosaic_expanded </td>
+          <td>(</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>index</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>value</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00159">159</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00289">mosaic_expanded_</a>.</p>
 
 </div>
 </div>
@@ -1456,9 +1719,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00142">142</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00160">160</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00253">custom_gfx_ids_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00283">custom_gfx_ids_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00164">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1485,9 +1750,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00144">144</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00162">162</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00262">current_gfx_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00297">current_gfx_</a>.</p>
 
 </div>
 </div>
@@ -1514,9 +1779,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00145">145</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00163">163</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00245">area_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00275">area_graphics_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1543,9 +1810,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00146">146</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00164">164</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00246">area_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00276">area_palette_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1572,9 +1841,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00147">147</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00165">165</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00254">sprite_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00284">sprite_graphics_</a>.</p>
 
 </div>
 </div>
@@ -1601,9 +1870,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00148">148</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00166">166</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00255">sprite_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00285">sprite_palette_</a>.</p>
 
 </div>
 </div>
@@ -1630,9 +1899,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00149">149</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00167">167</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00244">message_id_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00274">message_id_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1659,9 +1930,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00150">150</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00168">168</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00247">main_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00277">main_palette_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1688,9 +1961,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00151">151</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00169">169</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00248">animated_gfx_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00278">animated_gfx_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1717,9 +1992,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00152">152</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00170">170</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00249">subscreen_overlay_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00279">subscreen_overlay_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00216">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1746,9 +2023,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00153">153</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00171">171</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00256">area_music_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00286">area_music_</a>.</p>
 
 </div>
 </div>
@@ -1775,9 +2052,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00154">154</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00172">172</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00257">static_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00287">static_graphics_</a>.</p>
 
 </div>
 </div>
@@ -1804,9 +2081,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00156">156</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00174">174</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00245">area_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00275">area_graphics_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00202">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__test_8cc_source.html#l00239">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1833,9 +2112,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00157">157</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00175">175</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00246">area_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00276">area_palette_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00202">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1866,9 +2147,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00158">158</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00176">176</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00254">sprite_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00284">sprite_graphics_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00180">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1899,9 +2182,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00161">161</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00179">179</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00255">sprite_palette_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00285">sprite_palette_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00180">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1928,9 +2213,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00162">162</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00180">180</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00244">message_id_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00274">message_id_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00202">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1957,9 +2244,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00164">164</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00182">182</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00253">custom_gfx_ids_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00283">custom_gfx_ids_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00164">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1990,9 +2279,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00166">166</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00184">184</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00242">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00238">large_index_</a>, <a class="el" href="overworld__map_8h_source.html#l00232">large_map_</a>, <a class="el" href="overworld__map_8h_source.html#l00082">yaze::zelda3::LargeArea</a>, and <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00272">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00268">large_index_</a>, <a class="el" href="overworld__map_8h_source.html#l00262">large_map_</a>, <a class="el" href="overworld__map_8h_source.html#l00089">yaze::zelda3::LargeArea</a>, and <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00146">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -2019,9 +2310,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00173">173</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00191">191</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00242">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00236">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00238">large_index_</a>, <a class="el" href="overworld__map_8h_source.html#l00232">large_map_</a>, <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>, and <a class="el" href="overworld__map_8h_source.html#l00081">yaze::zelda3::SmallArea</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00272">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00266">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00268">large_index_</a>, <a class="el" href="overworld__map_8h_source.html#l00262">large_map_</a>, <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>, and <a class="el" href="overworld__map_8h_source.html#l00088">yaze::zelda3::SmallArea</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00146">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -2048,9 +2341,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00183">183</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00201">201</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00242">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00232">large_map_</a>, and <a class="el" href="overworld__map_8h_source.html#l00082">yaze::zelda3::LargeArea</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00272">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00262">large_map_</a>, and <a class="el" href="overworld__map_8h_source.html#l00089">yaze::zelda3::LargeArea</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00239">yaze::zelda3::TEST_F()</a>, and <a class="el" href="overworld__test_8cc_source.html#l00118">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -2077,9 +2372,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00188">188</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00206">206</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00248">animated_gfx_</a>, <a class="el" href="overworld__map_8h_source.html#l00245">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00246">area_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00263">bitmap_data_</a>, <a class="el" href="overworld__map_8h_source.html#l00231">built_</a>, <a class="el" href="overworld__map_8h_source.html#l00261">current_blockset_</a>, <a class="el" href="overworld__map_8h_source.html#l00262">current_gfx_</a>, <a class="el" href="overworld__map_8h_source.html#l00240">game_state_</a>, <a class="el" href="overworld__map_8h_source.html#l00236">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00233">initialized_</a>, <a class="el" href="overworld__map_8h_source.html#l00238">large_index_</a>, <a class="el" href="overworld__map_8h_source.html#l00232">large_map_</a>, <a class="el" href="overworld__map_8h_source.html#l00241">main_gfx_id_</a>, <a class="el" href="overworld__map_8h_source.html#l00265">map_tiles_</a>, <a class="el" href="overworld__map_8h_source.html#l00244">message_id_</a>, <a class="el" href="overworld__map_8h_source.html#l00234">mosaic_</a>, <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>, <a class="el" href="overworld__map_8h_source.html#l00249">subscreen_overlay_</a>, and <a class="el" href="overworld__map_8h_source.html#l00239">world_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00278">animated_gfx_</a>, <a class="el" href="overworld__map_8h_source.html#l00275">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00286">area_music_</a>, <a class="el" href="overworld__map_8h_source.html#l00276">area_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00272">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00280">area_specific_bg_color_</a>, <a class="el" href="overworld__map_8h_source.html#l00298">bitmap_data_</a>, <a class="el" href="overworld__map_8h_source.html#l00261">built_</a>, <a class="el" href="overworld__map_8h_source.html#l00296">current_blockset_</a>, <a class="el" href="overworld__map_8h_source.html#l00297">current_gfx_</a>, <a class="el" href="overworld__map_8h_source.html#l00283">custom_gfx_ids_</a>, <a class="el" href="overworld__map_8h_source.html#l00270">game_state_</a>, <a class="el" href="overworld__map_8h_source.html#l00293">has_overlay_</a>, <a class="el" href="overworld__map_8h_source.html#l00266">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00263">initialized_</a>, <a class="el" href="overworld__map_8h_source.html#l00268">large_index_</a>, <a class="el" href="overworld__map_8h_source.html#l00262">large_map_</a>, <a class="el" href="overworld__map_8h_source.html#l00271">main_gfx_id_</a>, <a class="el" href="overworld__map_8h_source.html#l00277">main_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00300">map_tiles_</a>, <a class="el" href="overworld__map_8h_source.html#l00274">message_id_</a>, <a class="el" href="overworld__map_8h_source.html#l00264">mosaic_</a>, <a class="el" href="overworld__map_8h_source.html#l00289">mosaic_expanded_</a>, <a class="el" href="overworld__map_8h_source.html#l00294">overlay_data_</a>, <a class="el" href="overworld__map_8h_source.html#l00292">overlay_id_</a>, <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>, <a class="el" href="overworld__map_8h_source.html#l00088">yaze::zelda3::SmallArea</a>, <a class="el" href="overworld__map_8h_source.html#l00284">sprite_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00285">sprite_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00287">static_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00279">subscreen_overlay_</a>, and <a class="el" href="overworld__map_8h_source.html#l00269">world_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__test_8cc_source.html#l00239">yaze::zelda3::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -2106,9 +2403,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00066">66</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00067">67</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00245">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00256">area_music_</a>, <a class="el" href="overworld__map_8h_source.html#l00246">area_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00242">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00236">index_</a>, <a class="el" href="overworld_8h_source.html#l00039">yaze::zelda3::kAreaGfxIdPtr</a>, <a class="el" href="overworld__map_8h_source.html#l00063">yaze::zelda3::kDarkWorldMapIdStart</a>, <a class="el" href="overworld_8h_source.html#l00029">yaze::zelda3::kOverworldMapPaletteIds</a>, <a class="el" href="overworld_8h_source.html#l00040">yaze::zelda3::kOverworldMessageIds</a>, <a class="el" href="overworld__map_8h_source.html#l00046">yaze::zelda3::kOverworldMessagesExpanded</a>, <a class="el" href="overworld_8h_source.html#l00045">yaze::zelda3::kOverworldMusicAgahnim</a>, <a class="el" href="overworld_8h_source.html#l00042">yaze::zelda3::kOverworldMusicBeginning</a>, <a class="el" href="overworld_8h_source.html#l00046">yaze::zelda3::kOverworldMusicDarkWorld</a>, <a class="el" href="overworld_8h_source.html#l00044">yaze::zelda3::kOverworldMusicMasterSword</a>, <a class="el" href="overworld_8h_source.html#l00043">yaze::zelda3::kOverworldMusicZelda</a>, <a class="el" href="overworld__map_8h_source.html#l00059">yaze::zelda3::kOverworldPalettesScreenToSetNew</a>, <a class="el" href="overworld_8h_source.html#l00065">yaze::zelda3::kOverworldScreenSize</a>, <a class="el" href="overworld_8h_source.html#l00033">yaze::zelda3::kOverworldSpecialGfxGroup</a>, <a class="el" href="overworld_8h_source.html#l00034">yaze::zelda3::kOverworldSpecialPalGroup</a>, <a class="el" href="overworld__map_8h_source.html#l00060">yaze::zelda3::kOverworldSpecialSpriteGfxGroupExpandedTemp</a>, <a class="el" href="overworld__map_8h_source.html#l00061">yaze::zelda3::kOverworldSpecialSpritePaletteExpandedTemp</a>, <a class="el" href="overworld_8h_source.html#l00030">yaze::zelda3::kOverworldSpritePaletteIds</a>, <a class="el" href="overworld_8h_source.html#l00032">yaze::zelda3::kOverworldSpriteset</a>, <a class="el" href="overworld__map_8h_source.html#l00064">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00232">large_map_</a>, <a class="el" href="overworld__map_8h_source.html#l00082">yaze::zelda3::LargeArea</a>, <a class="el" href="overworld__map_8h_source.html#l00244">message_id_</a>, <a class="el" href="overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>, <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>, <a class="el" href="overworld__map_8h_source.html#l00081">yaze::zelda3::SmallArea</a>, <a class="el" href="overworld__map_8h_source.html#l00254">sprite_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00255">sprite_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00084">yaze::zelda3::TallArea</a>, and <a class="el" href="overworld__map_8h_source.html#l00083">yaze::zelda3::WideArea</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00275">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00286">area_music_</a>, <a class="el" href="overworld__map_8h_source.html#l00276">area_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00272">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00266">index_</a>, <a class="el" href="overworld_8h_source.html#l00039">yaze::zelda3::kAreaGfxIdPtr</a>, <a class="el" href="overworld__map_8h_source.html#l00070">yaze::zelda3::kDarkWorldMapIdStart</a>, <a class="el" href="overworld_8h_source.html#l00029">yaze::zelda3::kOverworldMapPaletteIds</a>, <a class="el" href="overworld_8h_source.html#l00040">yaze::zelda3::kOverworldMessageIds</a>, <a class="el" href="overworld__map_8h_source.html#l00053">yaze::zelda3::kOverworldMessagesExpanded</a>, <a class="el" href="overworld_8h_source.html#l00045">yaze::zelda3::kOverworldMusicAgahnim</a>, <a class="el" href="overworld_8h_source.html#l00042">yaze::zelda3::kOverworldMusicBeginning</a>, <a class="el" href="overworld_8h_source.html#l00046">yaze::zelda3::kOverworldMusicDarkWorld</a>, <a class="el" href="overworld_8h_source.html#l00044">yaze::zelda3::kOverworldMusicMasterSword</a>, <a class="el" href="overworld_8h_source.html#l00043">yaze::zelda3::kOverworldMusicZelda</a>, <a class="el" href="overworld__map_8h_source.html#l00066">yaze::zelda3::kOverworldPalettesScreenToSetNew</a>, <a class="el" href="overworld_8h_source.html#l00065">yaze::zelda3::kOverworldScreenSize</a>, <a class="el" href="overworld_8h_source.html#l00033">yaze::zelda3::kOverworldSpecialGfxGroup</a>, <a class="el" href="overworld_8h_source.html#l00034">yaze::zelda3::kOverworldSpecialPalGroup</a>, <a class="el" href="overworld__map_8h_source.html#l00067">yaze::zelda3::kOverworldSpecialSpriteGfxGroupExpandedTemp</a>, <a class="el" href="overworld__map_8h_source.html#l00068">yaze::zelda3::kOverworldSpecialSpritePaletteExpandedTemp</a>, <a class="el" href="overworld_8h_source.html#l00030">yaze::zelda3::kOverworldSpritePaletteIds</a>, <a class="el" href="overworld_8h_source.html#l00032">yaze::zelda3::kOverworldSpriteset</a>, <a class="el" href="overworld__map_8h_source.html#l00071">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00262">large_map_</a>, <a class="el" href="overworld__map_8h_source.html#l00089">yaze::zelda3::LargeArea</a>, <a class="el" href="overworld__map_8h_source.html#l00274">message_id_</a>, <a class="el" href="overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>, <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>, <a class="el" href="overworld__map_8h_source.html#l00088">yaze::zelda3::SmallArea</a>, <a class="el" href="overworld__map_8h_source.html#l00284">sprite_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00285">sprite_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00091">yaze::zelda3::TallArea</a>, and <a class="el" href="overworld__map_8h_source.html#l00090">yaze::zelda3::WideArea</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00017">OverworldMap()</a>.</p>
 
@@ -2136,11 +2433,11 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000036">Todo</a></b></dt><dd>Might need this one too "index == 0x1B" </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000055">Todo</a></b></dt><dd>Might need this one too "index == 0x1B" </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00256">256</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00257">257</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00248">animated_gfx_</a>, <a class="el" href="overworld__map_8h_source.html#l00245">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00253">custom_gfx_ids_</a>, <a class="el" href="overworld__map_8h_source.html#l00236">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00063">yaze::zelda3::kDarkWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00064">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00247">main_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00259">mosaic_expanded_</a>, <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>, <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>, and <a class="el" href="overworld__map_8h_source.html#l00249">subscreen_overlay_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00278">animated_gfx_</a>, <a class="el" href="overworld__map_8h_source.html#l00275">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00283">custom_gfx_ids_</a>, <a class="el" href="overworld__map_8h_source.html#l00266">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00070">yaze::zelda3::kDarkWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00071">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00277">main_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00289">mosaic_expanded_</a>, <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>, <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>, and <a class="el" href="overworld__map_8h_source.html#l00279">subscreen_overlay_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00017">OverworldMap()</a>.</p>
 
@@ -2169,9 +2466,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00393">393</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00394">394</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00248">animated_gfx_</a>, <a class="el" href="overworld__map_8h_source.html#l00245">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00242">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00253">custom_gfx_ids_</a>, <a class="el" href="overworld__map_8h_source.html#l00236">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00063">yaze::zelda3::kDarkWorldMapIdStart</a>, <a class="el" href="overworld_8h_source.html#l00065">yaze::zelda3::kOverworldScreenSize</a>, <a class="el" href="overworld__map_8h_source.html#l00064">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00232">large_map_</a>, <a class="el" href="overworld__map_8h_source.html#l00082">yaze::zelda3::LargeArea</a>, <a class="el" href="overworld__map_8h_source.html#l00247">main_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00234">mosaic_</a>, <a class="el" href="overworld__map_8h_source.html#l00259">mosaic_expanded_</a>, <a class="el" href="overworld__map_8h_source.html#l00032">yaze::zelda3::OverworldCustomAnimatedGFXArray</a>, <a class="el" href="overworld__map_8h_source.html#l00040">yaze::zelda3::OverworldCustomMainPaletteArray</a>, <a class="el" href="overworld__map_8h_source.html#l00036">yaze::zelda3::OverworldCustomMosaicArray</a>, <a class="el" href="overworld__map_8h_source.html#l00030">yaze::zelda3::OverworldCustomSubscreenOverlayArray</a>, <a class="el" href="overworld__map_8h_source.html#l00034">yaze::zelda3::OverworldCustomTileGFXGroupArray</a>, <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>, <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>, and <a class="el" href="overworld__map_8h_source.html#l00249">subscreen_overlay_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00278">animated_gfx_</a>, <a class="el" href="overworld__map_8h_source.html#l00275">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00272">area_size_</a>, <a class="el" href="overworld__map_8h_source.html#l00283">custom_gfx_ids_</a>, <a class="el" href="overworld__map_8h_source.html#l00266">index_</a>, <a class="el" href="overworld__map_8h_source.html#l00070">yaze::zelda3::kDarkWorldMapIdStart</a>, <a class="el" href="overworld_8h_source.html#l00065">yaze::zelda3::kOverworldScreenSize</a>, <a class="el" href="overworld__map_8h_source.html#l00071">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00262">large_map_</a>, <a class="el" href="overworld__map_8h_source.html#l00089">yaze::zelda3::LargeArea</a>, <a class="el" href="overworld__map_8h_source.html#l00277">main_palette_</a>, <a class="el" href="overworld__map_8h_source.html#l00264">mosaic_</a>, <a class="el" href="overworld__map_8h_source.html#l00289">mosaic_expanded_</a>, <a class="el" href="overworld__map_8h_source.html#l00032">yaze::zelda3::OverworldCustomAnimatedGFXArray</a>, <a class="el" href="overworld__map_8h_source.html#l00047">yaze::zelda3::OverworldCustomMainPaletteArray</a>, <a class="el" href="overworld__map_8h_source.html#l00036">yaze::zelda3::OverworldCustomMosaicArray</a>, <a class="el" href="overworld__map_8h_source.html#l00030">yaze::zelda3::OverworldCustomSubscreenOverlayArray</a>, <a class="el" href="overworld__map_8h_source.html#l00034">yaze::zelda3::OverworldCustomTileGFXGroupArray</a>, <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>, <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>, and <a class="el" href="overworld__map_8h_source.html#l00279">subscreen_overlay_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00017">OverworldMap()</a>.</p>
 
@@ -2200,11 +2497,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00482">482</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00483">483</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00063">yaze::zelda3::kDarkWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00064">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00241">main_gfx_id_</a>, and <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00070">yaze::zelda3::kDarkWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00071">yaze::zelda3::kSpecialWorldMapIdStart</a>, <a class="el" href="overworld__map_8h_source.html#l00271">main_gfx_id_</a>, and <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00557">LoadAreaGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00564">LoadAreaGraphics()</a>.</p>
 
 </div>
 </div>
@@ -2231,11 +2528,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00493">493</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00500">500</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00240">game_state_</a>, <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>, <a class="el" href="overworld__map_8h_source.html#l00254">sprite_graphics_</a>, and <a class="el" href="overworld__map_8h_source.html#l00257">static_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00270">game_state_</a>, <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>, <a class="el" href="overworld__map_8h_source.html#l00284">sprite_graphics_</a>, and <a class="el" href="overworld__map_8h_source.html#l00287">static_graphics_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00557">LoadAreaGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00564">LoadAreaGraphics()</a>.</p>
 
 </div>
 </div>
@@ -2262,11 +2559,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00508">508</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00515">515</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00241">main_gfx_id_</a>, <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>, and <a class="el" href="overworld__map_8h_source.html#l00257">static_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00271">main_gfx_id_</a>, <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>, and <a class="el" href="overworld__map_8h_source.html#l00287">static_graphics_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00557">LoadAreaGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00564">LoadAreaGraphics()</a>.</p>
 
 </div>
 </div>
@@ -2293,11 +2590,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00533">533</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00540">540</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00245">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>, and <a class="el" href="overworld__map_8h_source.html#l00257">static_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00275">area_graphics_</a>, <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>, and <a class="el" href="overworld__map_8h_source.html#l00287">static_graphics_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00557">LoadAreaGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00564">LoadAreaGraphics()</a>.</p>
 
 </div>
 </div>
@@ -2323,13 +2620,13 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000037">Todo</a></b></dt><dd>Change the conditions for death mountain gfx </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000056">Todo</a></b></dt><dd>Change the conditions for death mountain gfx </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00548">548</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00555">555</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00237">parent_</a>, and <a class="el" href="overworld__map_8h_source.html#l00257">static_graphics_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00267">parent_</a>, and <a class="el" href="overworld__map_8h_source.html#l00287">static_graphics_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00557">LoadAreaGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00564">LoadAreaGraphics()</a>.</p>
 
 </div>
 </div>
@@ -2370,11 +2667,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00827">827</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00973">973</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00262">current_gfx_</a>, and <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00297">current_gfx_</a>, and <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00853">BuildTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00999">BuildTileset()</a>.</p>
 
 </div>
 </div>
@@ -2415,11 +2712,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00687">687</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8cc_source.html#l00694">694</a> of file <a class="el" href="overworld__map_8cc_source.html">overworld_map.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00229">rom_</a>.</p>
+<p class="reference">References <a class="el" href="overworld__map_8h_source.html#l00259">rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>.</p>
 
 </div>
 </div>
@@ -2444,9 +2741,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00229">229</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00259">259</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00853">BuildTileset()</a>, <a class="el" href="overworld__map_8cc_source.html#l00687">GetPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00533">LoadAreaGraphicsBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00256">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00508">LoadMainBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00493">LoadSpritesBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00017">OverworldMap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00827">ProcessGraphicsBuffer()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00999">BuildTileset()</a>, <a class="el" href="overworld__map_8cc_source.html#l00694">GetPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00540">LoadAreaGraphicsBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00257">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00515">LoadMainBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00500">LoadSpritesBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00850">LoadVanillaOverlayData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00017">OverworldMap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00973">ProcessGraphicsBuffer()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2470,9 +2767,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00231">231</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00261">261</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, and <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, and <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>.</p>
 
 </div>
 </div>
@@ -2496,9 +2793,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00232">232</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00262">262</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8h_source.html#l00111">is_large_map()</a>, <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8h_source.html#l00183">SetAreaSize()</a>, <a class="el" href="overworld__map_8h_source.html#l00166">SetAsLargeMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00173">SetAsSmallMap()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8h_source.html#l00120">is_large_map()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8h_source.html#l00201">SetAreaSize()</a>, <a class="el" href="overworld__map_8h_source.html#l00184">SetAsLargeMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00191">SetAsSmallMap()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2522,9 +2819,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00233">233</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00263">263</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, and <a class="el" href="overworld__map_8h_source.html#l00112">is_initialized()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, and <a class="el" href="overworld__map_8h_source.html#l00121">is_initialized()</a>.</p>
 
 </div>
 </div>
@@ -2548,9 +2845,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00234">234</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00264">264</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8h_source.html#l00114">mutable_mosaic()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8h_source.html#l00123">mutable_mosaic()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2574,9 +2871,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00236">236</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00266">266</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00927">BuildBitmap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00256">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00017">OverworldMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00173">SetAsSmallMap()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l01073">BuildBitmap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00257">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00850">LoadVanillaOverlayData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00017">OverworldMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00191">SetAsSmallMap()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2600,9 +2897,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00237">237</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00267">267</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00256">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00548">LoadDeathMountainGFX()</a>, <a class="el" href="overworld__map_8cc_source.html#l00482">LoadMainBlocksetId()</a>, <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00017">OverworldMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00113">parent()</a>, <a class="el" href="overworld__map_8h_source.html#l00166">SetAsLargeMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00173">SetAsSmallMap()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00257">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00555">LoadDeathMountainGFX()</a>, <a class="el" href="overworld__map_8cc_source.html#l00483">LoadMainBlocksetId()</a>, <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00017">OverworldMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00122">parent()</a>, <a class="el" href="overworld__map_8h_source.html#l00184">SetAsLargeMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00191">SetAsSmallMap()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2626,9 +2923,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00238">238</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00268">268</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8h_source.html#l00124">large_index()</a>, <a class="el" href="overworld__map_8h_source.html#l00166">SetAsLargeMap()</a>, and <a class="el" href="overworld__map_8h_source.html#l00173">SetAsSmallMap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8h_source.html#l00133">large_index()</a>, <a class="el" href="overworld__map_8h_source.html#l00184">SetAsLargeMap()</a>, and <a class="el" href="overworld__map_8h_source.html#l00191">SetAsSmallMap()</a>.</p>
 
 </div>
 </div>
@@ -2652,9 +2949,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00239">239</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00269">269</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00927">BuildBitmap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, and <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l01073">BuildBitmap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, and <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>.</p>
 
 </div>
 </div>
@@ -2678,9 +2975,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00240">240</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00270">270</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00493">LoadSpritesBlocksets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00500">LoadSpritesBlocksets()</a>.</p>
 
 </div>
 </div>
@@ -2704,9 +3001,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00241">241</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00271">271</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00482">LoadMainBlocksetId()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00508">LoadMainBlocksets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00483">LoadMainBlocksetId()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00515">LoadMainBlocksets()</a>.</p>
 
 </div>
 </div>
@@ -2730,9 +3027,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00242">242</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00272">272</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00125">area_size()</a>, <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8h_source.html#l00183">SetAreaSize()</a>, <a class="el" href="overworld__map_8h_source.html#l00166">SetAsLargeMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00173">SetAsSmallMap()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00134">area_size()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8h_source.html#l00201">SetAreaSize()</a>, <a class="el" href="overworld__map_8h_source.html#l00184">SetAsLargeMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00191">SetAsSmallMap()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2756,9 +3053,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00244">244</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00274">274</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8h_source.html#l00121">message_id()</a>, <a class="el" href="overworld__map_8h_source.html#l00149">mutable_message_id()</a>, and <a class="el" href="overworld__map_8h_source.html#l00162">set_message_id()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8h_source.html#l00130">message_id()</a>, <a class="el" href="overworld__map_8h_source.html#l00167">mutable_message_id()</a>, and <a class="el" href="overworld__map_8h_source.html#l00180">set_message_id()</a>.</p>
 
 </div>
 </div>
@@ -2782,9 +3079,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00245">245</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00275">275</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00117">area_graphics()</a>, <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00533">LoadAreaGraphicsBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00256">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8h_source.html#l00145">mutable_area_graphics()</a>, <a class="el" href="overworld__map_8h_source.html#l00156">set_area_graphics()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00126">area_graphics()</a>, <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00540">LoadAreaGraphicsBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00257">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8h_source.html#l00163">mutable_area_graphics()</a>, <a class="el" href="overworld__map_8h_source.html#l00174">set_area_graphics()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2808,9 +3105,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00246">246</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00276">276</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00118">area_palette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>, <a class="el" href="overworld__map_8h_source.html#l00146">mutable_area_palette()</a>, and <a class="el" href="overworld__map_8h_source.html#l00157">set_area_palette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00127">area_palette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00033">BuildMap()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>, <a class="el" href="overworld__map_8h_source.html#l00164">mutable_area_palette()</a>, and <a class="el" href="overworld__map_8h_source.html#l00175">set_area_palette()</a>.</p>
 
 </div>
 </div>
@@ -2834,9 +3131,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00247">247</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00277">277</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00256">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>, <a class="el" href="overworld__map_8h_source.html#l00127">main_palette()</a>, <a class="el" href="overworld__map_8h_source.html#l00150">mutable_main_palette()</a>, <a class="el" href="overworld__map_8h_source.html#l00128">set_main_palette()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00257">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>, <a class="el" href="overworld__map_8h_source.html#l00136">main_palette()</a>, <a class="el" href="overworld__map_8h_source.html#l00168">mutable_main_palette()</a>, <a class="el" href="overworld__map_8h_source.html#l00137">set_main_palette()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2860,9 +3157,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00248">248</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00278">278</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00138">animated_gfx()</a>, <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00256">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8h_source.html#l00151">mutable_animated_gfx()</a>, <a class="el" href="overworld__map_8h_source.html#l00139">set_animated_gfx()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00147">animated_gfx()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00257">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8h_source.html#l00169">mutable_animated_gfx()</a>, <a class="el" href="overworld__map_8h_source.html#l00148">set_animated_gfx()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2886,9 +3183,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00249">249</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00279">279</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00256">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8h_source.html#l00152">mutable_subscreen_overlay()</a>, <a class="el" href="overworld__map_8h_source.html#l00136">set_subscreen_overlay()</a>, <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>, and <a class="el" href="overworld__map_8h_source.html#l00135">subscreen_overlay()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00257">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8cc_source.html#l00834">LoadOverlay()</a>, <a class="el" href="overworld__map_8h_source.html#l00170">mutable_subscreen_overlay()</a>, <a class="el" href="overworld__map_8h_source.html#l00145">set_subscreen_overlay()</a>, <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>, and <a class="el" href="overworld__map_8h_source.html#l00144">subscreen_overlay()</a>.</p>
 
 </div>
 </div>
@@ -2914,9 +3211,9 @@ Here is the call graph for this function:</div>
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">      0</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00250">250</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00280">280</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00130">area_specific_bg_color()</a>, <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>, and <a class="el" href="overworld__map_8h_source.html#l00131">set_area_specific_bg_color()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00139">area_specific_bg_color()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>, and <a class="el" href="overworld__map_8h_source.html#l00140">set_area_specific_bg_color()</a>.</p>
 
 </div>
 </div>
@@ -2940,9 +3237,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00253">253</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00283">283</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00141">custom_tileset()</a>, <a class="el" href="overworld__map_8cc_source.html#l00256">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8h_source.html#l00164">mutable_custom_tileset()</a>, <a class="el" href="overworld__map_8h_source.html#l00142">set_custom_tileset()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00150">custom_tileset()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00257">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8h_source.html#l00182">mutable_custom_tileset()</a>, <a class="el" href="overworld__map_8h_source.html#l00160">set_custom_tileset()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
 
 </div>
 </div>
@@ -2966,9 +3263,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00254">254</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00284">284</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00493">LoadSpritesBlocksets()</a>, <a class="el" href="overworld__map_8h_source.html#l00147">mutable_sprite_graphics()</a>, <a class="el" href="overworld__map_8h_source.html#l00158">set_sprite_graphics()</a>, and <a class="el" href="overworld__map_8h_source.html#l00119">sprite_graphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00500">LoadSpritesBlocksets()</a>, <a class="el" href="overworld__map_8h_source.html#l00165">mutable_sprite_graphics()</a>, <a class="el" href="overworld__map_8h_source.html#l00176">set_sprite_graphics()</a>, and <a class="el" href="overworld__map_8h_source.html#l00128">sprite_graphics()</a>.</p>
 
 </div>
 </div>
@@ -2992,9 +3289,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00255">255</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00285">285</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>, <a class="el" href="overworld__map_8h_source.html#l00148">mutable_sprite_palette()</a>, <a class="el" href="overworld__map_8h_source.html#l00161">set_sprite_palette()</a>, and <a class="el" href="overworld__map_8h_source.html#l00120">sprite_palette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>, <a class="el" href="overworld__map_8h_source.html#l00166">mutable_sprite_palette()</a>, <a class="el" href="overworld__map_8h_source.html#l00179">set_sprite_palette()</a>, and <a class="el" href="overworld__map_8h_source.html#l00129">sprite_palette()</a>.</p>
 
 </div>
 </div>
@@ -3018,9 +3315,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00256">256</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00286">286</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00122">area_music()</a>, <a class="el" href="overworld__map_8cc_source.html#l00066">LoadAreaInfo()</a>, and <a class="el" href="overworld__map_8h_source.html#l00153">mutable_area_music()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00131">area_music()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00067">LoadAreaInfo()</a>, and <a class="el" href="overworld__map_8h_source.html#l00171">mutable_area_music()</a>.</p>
 
 </div>
 </div>
@@ -3044,9 +3341,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00257">257</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00287">287</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00853">BuildTileset()</a>, <a class="el" href="overworld__map_8cc_source.html#l00522">DrawAnimatedTiles()</a>, <a class="el" href="overworld__map_8cc_source.html#l00533">LoadAreaGraphicsBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00548">LoadDeathMountainGFX()</a>, <a class="el" href="overworld__map_8cc_source.html#l00508">LoadMainBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00493">LoadSpritesBlocksets()</a>, <a class="el" href="overworld__map_8h_source.html#l00154">mutable_static_graphics()</a>, and <a class="el" href="overworld__map_8h_source.html#l00123">static_graphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00999">BuildTileset()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00529">DrawAnimatedTiles()</a>, <a class="el" href="overworld__map_8cc_source.html#l00540">LoadAreaGraphicsBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00555">LoadDeathMountainGFX()</a>, <a class="el" href="overworld__map_8cc_source.html#l00515">LoadMainBlocksets()</a>, <a class="el" href="overworld__map_8cc_source.html#l00500">LoadSpritesBlocksets()</a>, <a class="el" href="overworld__map_8h_source.html#l00172">mutable_static_graphics()</a>, and <a class="el" href="overworld__map_8h_source.html#l00132">static_graphics()</a>.</p>
 
 </div>
 </div>
@@ -3070,9 +3367,87 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00259">259</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00289">289</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00256">LoadCustomOverworldData()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00393">SetupCustomTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00257">LoadCustomOverworldData()</a>, <a class="el" href="overworld__map_8h_source.html#l00158">mosaic_expanded()</a>, <a class="el" href="overworld__map_8h_source.html#l00159">set_mosaic_expanded()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00394">SetupCustomTileset()</a>.</p>
+
+</div>
+</div>
+<a id="a5907024c9dcc726ed09d3bed5136cdd0" name="a5907024c9dcc726ed09d3bed5136cdd0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5907024c9dcc726ed09d3bed5136cdd0">&#9670;&#160;</a></span>overlay_id_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t yaze::zelda3::OverworldMap::overlay_id_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00292">292</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00834">LoadOverlay()</a>, <a class="el" href="overworld__map_8cc_source.html#l00850">LoadVanillaOverlayData()</a>, and <a class="el" href="overworld__map_8h_source.html#l00153">overlay_id()</a>.</p>
+
+</div>
+</div>
+<a id="a95d451b92008cb4be5638afa811ef021" name="a95d451b92008cb4be5638afa811ef021"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95d451b92008cb4be5638afa811ef021">&#9670;&#160;</a></span>has_overlay_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::zelda3::OverworldMap::has_overlay_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00293">293</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8h_source.html#l00154">has_overlay()</a>, <a class="el" href="overworld__map_8cc_source.html#l00834">LoadOverlay()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00850">LoadVanillaOverlayData()</a>.</p>
+
+</div>
+</div>
+<a id="ad16bbc0c9b5fe327d537f9d2c26e3c8f" name="ad16bbc0c9b5fe327d537f9d2c26e3c8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad16bbc0c9b5fe327d537f9d2c26e3c8f">&#9670;&#160;</a></span>overlay_data_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;uint8_t&gt; yaze::zelda3::OverworldMap::overlay_data_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00294">294</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8cc_source.html#l00834">LoadOverlay()</a>, <a class="el" href="overworld__map_8cc_source.html#l00850">LoadVanillaOverlayData()</a>, and <a class="el" href="overworld__map_8h_source.html#l00155">overlay_data()</a>.</p>
 
 </div>
 </div>
@@ -3096,9 +3471,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00261">261</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00296">296</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00927">BuildBitmap()</a>, <a class="el" href="overworld__map_8cc_source.html#l00881">BuildTiles16Gfx()</a>, <a class="el" href="overworld__map_8h_source.html#l00107">current_tile16_blockset()</a>, and <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l01073">BuildBitmap()</a>, <a class="el" href="overworld__map_8cc_source.html#l01027">BuildTiles16Gfx()</a>, <a class="el" href="overworld__map_8h_source.html#l00116">current_tile16_blockset()</a>, and <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>.</p>
 
 </div>
 </div>
@@ -3122,9 +3497,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00262">262</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00297">297</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l00881">BuildTiles16Gfx()</a>, <a class="el" href="overworld__map_8cc_source.html#l00853">BuildTileset()</a>, <a class="el" href="overworld__map_8h_source.html#l00108">current_graphics()</a>, <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>, <a class="el" href="overworld__map_8h_source.html#l00144">mutable_current_graphics()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00827">ProcessGraphicsBuffer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8cc_source.html#l01027">BuildTiles16Gfx()</a>, <a class="el" href="overworld__map_8cc_source.html#l00999">BuildTileset()</a>, <a class="el" href="overworld__map_8h_source.html#l00117">current_graphics()</a>, <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>, <a class="el" href="overworld__map_8h_source.html#l00162">mutable_current_graphics()</a>, and <a class="el" href="overworld__map_8cc_source.html#l00973">ProcessGraphicsBuffer()</a>.</p>
 
 </div>
 </div>
@@ -3148,9 +3523,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00263">263</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00298">298</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00110">bitmap_data()</a>, <a class="el" href="overworld__map_8cc_source.html#l00927">BuildBitmap()</a>, and <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00119">bitmap_data()</a>, <a class="el" href="overworld__map_8cc_source.html#l01073">BuildBitmap()</a>, and <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>.</p>
 
 </div>
 </div>
@@ -3174,9 +3549,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00265">265</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00300">300</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00188">Destroy()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00206">Destroy()</a>.</p>
 
 </div>
 </div>
@@ -3200,9 +3575,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00266">266</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="overworld__map_8h_source.html#l00301">301</a> of file <a class="el" href="overworld__map_8h_source.html">overworld_map.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00109">current_palette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00700">LoadPalette()</a>, and <a class="el" href="overworld__map_8h_source.html#l00115">mutable_current_palette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="overworld__map_8h_source.html#l00118">current_palette()</a>, <a class="el" href="overworld__map_8cc_source.html#l00707">LoadPalette()</a>, and <a class="el" href="overworld__map_8h_source.html#l00124">mutable_current_palette()</a>.</p>
 
 </div>
 </div>
