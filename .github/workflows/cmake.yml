@@ -40,6 +40,9 @@ jobs:
     - name: Install Boost and Boost Python
       run: sudo apt install libboost-all-dev libboost-python-dev
 
+    - name: Install libpng
+      run: sudo apt install libpng-dev
+
     - name: Install CPython headers
       run: sudo apt install python3-dev libpython3-dev
 
