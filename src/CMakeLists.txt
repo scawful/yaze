@@ -119,21 +119,29 @@ if (YAZE_BUILD_LIB)
     ${CMAKE_SOURCE_DIR}/incl/
     ${CMAKE_SOURCE_DIR}/src/
     ${ASAR_INCLUDE_DIRS}
-    ${PNG_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIR}
     ${PROJECT_BINARY_DIR}
   )
+  
+  # Conditionally add PNG include dirs if available
+  if(PNG_FOUND)
+    target_include_directories(yaze_c PUBLIC ${PNG_INCLUDE_DIRS})
+  endif()
 
   target_link_libraries(
     yaze_c PRIVATE
     asar-static
     ${ABSL_TARGETS}
     ${SDL_TARGETS}
-    ${PNG_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ImGuiTestEngine
     ImGui
   )
+  
+  # Conditionally link PNG if available
+  if(PNG_FOUND)
+    target_link_libraries(yaze_c PRIVATE ${PNG_LIBRARIES})
+  endif()
 
   if (YAZE_INSTALL_LIB)
     install(TARGETS yaze_c

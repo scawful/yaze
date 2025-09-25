@@ -166,16 +166,9 @@ jobs:
 
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
+      shell: cmd
       run: |
-        cmake -B ${{ github.workspace }}/build ^
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
-          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake ^
-          -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} ^
-          -DYAZE_MINIMAL_BUILD=ON ^
-          -DYAZE_ENABLE_ROM_TESTS=OFF ^
-          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF ^
-          -G "${{ matrix.cmake_generator }}" ^
-          -A ${{ matrix.cmake_generator_platform }}
+        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_ROM_TESTS=OFF -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_generator_platform }}
 
     # Build
     - name: Build

@@ -45,10 +45,14 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}/incl/
   ${CMAKE_SOURCE_DIR}/src/
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
-  ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
 )
+
+# Conditionally add PNG include dirs if available
+if(PNG_FOUND)
+  target_include_directories(yaze PUBLIC ${PNG_INCLUDE_DIRS})
+endif()
 
 # Conditionally link nfd if available
 if(YAZE_HAS_NFD)
@@ -63,11 +67,15 @@ target_link_libraries(
   asar-static
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
-  ${PNG_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ImGui
   ImGuiTestEngine
 )
+
+# Conditionally link PNG if available
+if(PNG_FOUND)
+  target_link_libraries(yaze PUBLIC ${PNG_LIBRARIES})
+endif()
 
 if (APPLE)
   target_link_libraries(yaze PUBLIC ${COCOA_LIBRARY})

@@ -1,7 +1,15 @@
-if (MINGW)
+if (MINGW OR WIN32)
+  add_subdirectory(src/lib/abseil-cpp)
+elseif(YAZE_MINIMAL_BUILD)
+  # For CI builds, always use submodule to avoid dependency issues
   add_subdirectory(src/lib/abseil-cpp)
 else()
-  find_package(absl)
+  # Try system package first, fallback to submodule
+  find_package(absl QUIET)
+  if(NOT absl_FOUND)
+    message(STATUS "System Abseil not found, using submodule")
+    add_subdirectory(src/lib/abseil-cpp)
+  endif()
 endif()
 set(ABSL_PROPAGATE_CXX_STD ON)
 set(ABSL_CXX_STANDARD 17)

@@ -26,8 +26,13 @@ option(YAZE_ENABLE_EXPERIMENTAL_TESTS "Enable experimental/unstable tests" ON)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
 
-# libpng features in bitmap.cc
-add_definitions("-DYAZE_LIB_PNG=1")
+# libpng features in bitmap.cc - conditional for minimal builds
+if(PNG_FOUND)
+    add_definitions("-DYAZE_LIB_PNG=1")
+else()
+    add_definitions("-DYAZE_LIB_PNG=0")
+    message(STATUS "Building without PNG support for minimal build")
+endif()
 
 # Modern CMake standards
 set(CMAKE_CXX_STANDARD 23)
