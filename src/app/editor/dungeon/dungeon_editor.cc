@@ -527,9 +527,13 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   gui::InputHexWord("Message ID", &rooms_[room_id].message_id_);
   SameLine();
 
-  if (Button("Load Room")) {
-    rooms_[room_id].LoadRoomGraphics(rooms_[room_id].blockset);
-    rooms_[room_id].RenderRoomGraphics();
+  if (Button("Load Room Graphics")) {
+    (void)LoadAndRenderRoomGraphics(room_id);
+  }
+  
+  ImGui::SameLine();
+  if (ImGui::Button("Reload All Graphics")) {
+    (void)ReloadAllRoomGraphics();
   }
 
   static bool show_objects = false;
@@ -561,11 +565,11 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
     ImGui::Text("Objects: %zu", rooms_[room_id].GetTileObjects().size());
     ImGui::Text("Layout Objects: %zu",
                 rooms_[room_id].GetLayout().GetObjects().size());
-    ImGui::Text("Sprites: %zu", rooms_[room_id].GetSprites().size());
+    ImGui::Text("Sprites: %llu", static_cast<unsigned long long>(rooms_[room_id].GetSprites().size()));
     ImGui::Text("Chests: %zu", rooms_[room_id].GetChests().size());
 
     // Palette information
-    ImGui::Text("Current Palette Group: %d", current_palette_group_id_);
+    ImGui::Text("Current Palette Group: %llu", static_cast<unsigned long long>(current_palette_group_id_));
     ImGui::Text("Palette Hash: %#016llx", last_palette_hash_);
 
     // Object type breakdown
@@ -631,8 +635,18 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   canvas_.DrawBackground();
   canvas_.DrawContextMenu();
   if (is_loaded_) {
-    canvas_.DrawBitmap(gfx::Arena::Get().bg1().bitmap(), 1.0f, 1.0f);
-    canvas_.DrawBitmap(gfx::Arena::Get().bg2().bitmap(), 1.0f, 1.0f);
+    // Automatically load room graphics if not already loaded
+    if (rooms_[room_id].blocks().empty()) {
+      (void)LoadAndRenderRoomGraphics(room_id);
+    }
+    
+    // Render background layers with proper positioning
+    RenderRoomBackgroundLayers(room_id);
+    
+    // Render room objects on top of background
+    for (const auto& object : rooms_[room_id].GetTileObjects()) {
+      RenderObjectInCanvas(object, current_palette_group_[current_palette_id_]);
+    }
 
     if (show_objects || render_objects) {
       // Get the current room's palette for object rendering
@@ -1167,7 +1181,7 @@ void DungeonEditor::DrawUsageGrid() {
             ImGuiCol_Button,
             ImVec4(1.0f, 0.5f, 0.0f, 1.0f));  // Or any highlight color
       }
-      if (Button(absl::StrFormat("%#x", room_sizes_[row * squaresWide + col])
+      if (Button(absl::StrFormat("%#llx", static_cast<unsigned long long>(room_sizes_[row * squaresWide + col]))
                      .c_str(),
                  ImVec2(55, 30))) {
         // Switch over to the room editor tab
@@ -1257,13 +1271,13 @@ void DungeonEditor::DrawObjectEditor() {
   // Editor configuration
   auto config = object_editor_->GetConfig();
   if (ImGui::Checkbox("Snap to Grid", &config.snap_to_grid)) {
-    object_editor_->SetConfig(config);
+    (void)object_editor_->SetConfig(config);
   }
   if (ImGui::Checkbox("Show Grid", &config.show_grid)) {
-    object_editor_->SetConfig(config);
+    (void)object_editor_->SetConfig(config);
   }
   if (ImGui::Checkbox("Show Preview", &config.show_preview)) {
-    object_editor_->SetConfig(config);
+    (void)object_editor_->SetConfig(config);
   }
 
   // Object count and selection info
@@ -1665,11 +1679,11 @@ void DungeonEditor::DrawCompactObjectEditor() {
   // Quick configuration checkboxes
   auto config = object_editor_->GetConfig();
   if (ImGui::Checkbox("Snap to Grid", &config.snap_to_grid)) {
-    object_editor_->SetConfig(config);
+    (void)object_editor_->SetConfig(config);
   }
   ImGui::SameLine();
   if (ImGui::Checkbox("Show Grid", &config.show_grid)) {
-    object_editor_->SetConfig(config);
+    (void)object_editor_->SetConfig(config);
   }
 
   // Object count and selection info
@@ -1684,11 +1698,11 @@ void DungeonEditor::DrawCompactObjectEditor() {
   // Undo/Redo buttons
   ImGui::Separator();
   if (ImGui::Button("Undo") && object_editor_->CanUndo()) {
-    object_editor_->Undo();
+    (void)object_editor_->Undo();
   }
   ImGui::SameLine();
   if (ImGui::Button("Redo") && object_editor_->CanRedo()) {
-    object_editor_->Redo();
+    (void)object_editor_->Redo();
   }
 }
 
@@ -2038,6 +2052,138 @@ bool DungeonEditor::IsWithinCanvasBounds(int canvas_x, int canvas_y,
   return (canvas_x >= -margin && canvas_y >= -margin &&
           canvas_x <= canvas_width + margin &&
           canvas_y <= canvas_height + margin);
+}
+
+// Room graphics management methods
+absl::Status DungeonEditor::LoadAndRenderRoomGraphics(int room_id) {
+  if (room_id < 0 || room_id >= rooms_.size()) {
+    return absl::InvalidArgumentError("Invalid room ID");
+  }
+  
+  auto& room = rooms_[room_id];
+  
+  // Load room graphics with proper blockset
+  (void)room.LoadRoomGraphics(room.blockset);
+  
+  // Render the room graphics to the graphics arena
+  (void)room.RenderRoomGraphics();
+  
+  // Update the background layers with proper palette
+  RETURN_IF_ERROR(UpdateRoomBackgroundLayers(room_id));
+  
+  // Refresh the graphics system
+  refresh_graphics_ = true;
+  
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditor::ReloadAllRoomGraphics() {
+  // Reload graphics for all currently loaded rooms
+  for (int room_id = 0; room_id < rooms_.size(); ++room_id) {
+    RETURN_IF_ERROR(LoadAndRenderRoomGraphics(room_id));
+  }
+  
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditor::UpdateRoomBackgroundLayers(int room_id) {
+  if (room_id < 0 || room_id >= rooms_.size()) {
+    return absl::InvalidArgumentError("Invalid room ID");
+  }
+  
+  auto& room = rooms_[room_id];
+  
+  // Get the current room's palette
+  auto current_palette = rom()->palette_group().dungeon_main[current_palette_group_id_];
+  
+  // Update BG1 (background layer 1) with proper palette
+  if (room.blocks().size() >= 8) {
+    for (int i = 0; i < 8; i++) {
+      int block = room.blocks()[i];
+      if (block < gfx::Arena::Get().gfx_sheets().size()) {
+        gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
+            current_palette_group_[current_palette_id_], 0);
+        core::Renderer::Get().UpdateBitmap(&gfx::Arena::Get().gfx_sheets()[block]);
+      }
+    }
+  }
+  
+  // Update BG2 (background layer 2) with sprite auxiliary palette
+  if (room.blocks().size() >= 16) {
+    auto sprites_aux1_pal_group = rom()->palette_group().sprites_aux1;
+    for (int i = 8; i < 16; i++) {
+      int block = room.blocks()[i];
+      if (block < gfx::Arena::Get().gfx_sheets().size()) {
+        gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
+            sprites_aux1_pal_group[current_palette_id_], 0);
+        core::Renderer::Get().UpdateBitmap(&gfx::Arena::Get().gfx_sheets()[block]);
+      }
+    }
+  }
+  
+  return absl::OkStatus();
+}
+
+void DungeonEditor::RenderRoomBackgroundLayers(int room_id) {
+  if (room_id < 0 || room_id >= rooms_.size()) {
+    return;
+  }
+  
+  auto& room = rooms_[room_id];
+  
+  // Render BG1 (background layer 1) - main room graphics
+  if (room.blocks().size() >= 8) {
+    // Calculate the total size of all BG1 blocks
+    int bg1_width = 0;
+    int bg1_height = 0;
+    
+    for (int i = 0; i < 8; i++) {
+      int block = room.blocks()[i];
+      if (block < gfx::Arena::Get().gfx_sheets().size()) {
+        auto& gfx_sheet = gfx::Arena::Get().gfx_sheets()[block];
+        bg1_width += gfx_sheet.width();
+        bg1_height = std::max(bg1_height, gfx_sheet.height());
+      }
+    }
+    
+    // Render BG1 blocks in sequence
+    int current_x = 0;
+    for (int i = 0; i < 8; i++) {
+      int block = room.blocks()[i];
+      if (block < gfx::Arena::Get().gfx_sheets().size()) {
+        auto& gfx_sheet = gfx::Arena::Get().gfx_sheets()[block];
+        canvas_.DrawBitmap(gfx_sheet, current_x, 0, 1.0f, 255);
+        current_x += gfx_sheet.width();
+      }
+    }
+  }
+  
+  // Render BG2 (background layer 2) - sprite graphics
+  if (room.blocks().size() >= 16) {
+    // Calculate the total size of all BG2 blocks
+    int bg2_width = 0;
+    int bg2_height = 0;
+    
+    for (int i = 8; i < 16; i++) {
+      int block = room.blocks()[i];
+      if (block < gfx::Arena::Get().gfx_sheets().size()) {
+        auto& gfx_sheet = gfx::Arena::Get().gfx_sheets()[block];
+        bg2_width += gfx_sheet.width();
+        bg2_height = std::max(bg2_height, gfx_sheet.height());
+      }
+    }
+    
+    // Render BG2 blocks in sequence (overlay on BG1)
+    int current_x = 0;
+    for (int i = 8; i < 16; i++) {
+      int block = room.blocks()[i];
+      if (block < gfx::Arena::Get().gfx_sheets().size()) {
+        auto& gfx_sheet = gfx::Arena::Get().gfx_sheets()[block];
+        canvas_.DrawBitmap(gfx_sheet, current_x, 0, 1.0f, 200); // Semi-transparent
+        current_x += gfx_sheet.width();
+      }
+    }
+  }
 }
 
 }  // namespace yaze::editor
