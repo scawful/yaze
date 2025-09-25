@@ -2,7 +2,7 @@
 
 #include "app/editor/message/message_data.h"
 #include "app/editor/message/message_editor.h"
-#include "test/testing.h"
+#include "testing.h"
 
 namespace yaze {
 namespace test {

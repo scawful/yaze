@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Yaze
+Comment=Yet Another Zelda3 Editor
+Comment[en]=ROM editor for The Legend of Zelda: A Link to the Past
+Exec=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_BINDIR@/yaze
+Icon=yaze
+Terminal=false
+Categories=Game;Development;
+Keywords=zelda;snes;rom;editor;hacking;
+StartupNotify=true
+MimeType=application/x-snes-rom;application/x-sfc;application/x-smc;

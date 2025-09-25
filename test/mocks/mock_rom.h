@@ -4,7 +4,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "test/testing.h"
+#include "testing.h"
 
 #include "app/rom.h"
 

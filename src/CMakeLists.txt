@@ -112,6 +112,7 @@ if (YAZE_BUILD_LIB)
     app/
     ${CMAKE_SOURCE_DIR}/incl/
     ${CMAKE_SOURCE_DIR}/src/
+    ${ASAR_INCLUDE_DIRS}
     ${PNG_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIR}
     ${PROJECT_BINARY_DIR}
@@ -119,6 +120,7 @@ if (YAZE_BUILD_LIB)
 
   target_link_libraries(
     yaze_c PRIVATE
+    asar-static
     ${ABSL_TARGETS}
     ${SDL_TARGETS}
     ${PNG_LIBRARIES}

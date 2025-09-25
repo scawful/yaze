@@ -1,39 +1,94 @@
-# Asar Assembler for 65816 SNES Assembly
-add_subdirectory(src/lib/asar/src)
+# Modern Asar 65816 Assembler Integration
+# Improved cross-platform support for macOS, Linux, and Windows
 
-set(ASAR_GEN_EXE OFF)
-set(ASAR_GEN_DLL ON)
-set(ASAR_GEN_LIB ON)
-set(ASAR_GEN_EXE_TEST OFF)
-set(ASAR_GEN_DLL_TEST OFF)
-set(ASAR_STATIC_SRC_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar")
+# Configure Asar build options
+set(ASAR_GEN_EXE OFF CACHE BOOL "Build Asar standalone executable")
+set(ASAR_GEN_DLL ON CACHE BOOL "Build Asar shared library")
+set(ASAR_GEN_LIB ON CACHE BOOL "Build Asar static library")
+set(ASAR_GEN_EXE_TEST OFF CACHE BOOL "Build Asar executable tests")
+set(ASAR_GEN_DLL_TEST OFF CACHE BOOL "Build Asar DLL tests")
 
-get_target_property(ASAR_INCLUDE_DIR asar-static INCLUDE_DIRECTORIES)
-list(APPEND ASAR_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src")
-target_include_directories(asar-static PRIVATE ${ASAR_INCLUDE_DIR})
+# Set Asar source directory
+set(ASAR_SRC_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src")
 
-set(ASAR_STATIC_SRC
-  "${ASAR_STATIC_SRC_DIR}/interface-lib.cpp"
-  "${ASAR_STATIC_SRC_DIR}/addr2line.cpp"
-  "${ASAR_STATIC_SRC_DIR}/arch-65816.cpp"
-  "${ASAR_STATIC_SRC_DIR}/arch-spc700.cpp"
-  "${ASAR_STATIC_SRC_DIR}/arch-superfx.cpp"
-  "${ASAR_STATIC_SRC_DIR}/assembleblock.cpp"
-  "${ASAR_STATIC_SRC_DIR}/crc32.cpp"
-  "${ASAR_STATIC_SRC_DIR}/libcon.cpp"
-  "${ASAR_STATIC_SRC_DIR}/libsmw.cpp"
-  "${ASAR_STATIC_SRC_DIR}/libstr.cpp"
-  "${ASAR_STATIC_SRC_DIR}/macro.cpp"
-  "${ASAR_STATIC_SRC_DIR}/main.cpp"
-  "${ASAR_STATIC_SRC_DIR}/asar_math.cpp"
-  "${ASAR_STATIC_SRC_DIR}/virtualfile.cpp"
-  "${ASAR_STATIC_SRC_DIR}/warnings.cpp"
-  "${ASAR_STATIC_SRC_DIR}/errors.cpp"
-  "${ASAR_STATIC_SRC_DIR}/platform/file-helpers.cpp"
-)
+# Add Asar as subdirectory
+add_subdirectory(${ASAR_SRC_DIR} EXCLUDE_FROM_ALL)
 
-if(WIN32 OR MINGW)
-  list(APPEND ASAR_STATIC_SRC "${ASAR_STATIC_SRC_DIR}/platform/windows/file-helpers-win32.cpp")
+# Create modern CMake target for Asar integration
+if(TARGET asar-static)
+    # Ensure asar-static is available and properly configured
+    set_target_properties(asar-static PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+        POSITION_INDEPENDENT_CODE ON
+    )
+    
+    # Set platform-specific definitions for Asar
+    if(WIN32)
+        target_compile_definitions(asar-static PRIVATE
+            windows
+            strncasecmp=_strnicmp
+            strcasecmp=_stricmp
+            _CRT_SECURE_NO_WARNINGS
+            _CRT_NONSTDC_NO_WARNINGS
+        )
+    elseif(UNIX AND NOT APPLE)
+        target_compile_definitions(asar-static PRIVATE
+            linux
+            stricmp=strcasecmp
+        )
+    elseif(APPLE)
+        target_compile_definitions(asar-static PRIVATE
+            MACOS
+            stricmp=strcasecmp
+        )
+    endif()
+    
+    # Add include directories
+    target_include_directories(asar-static PUBLIC
+        $<BUILD_INTERFACE:${ASAR_SRC_DIR}>
+        $<BUILD_INTERFACE:${ASAR_SRC_DIR}/asar>
+        $<BUILD_INTERFACE:${ASAR_SRC_DIR}/asar-dll-bindings/c>
+    )
+    
+    # Create alias for easier linking
+    add_library(yaze::asar ALIAS asar-static)
+    
+    # Export Asar variables for use in other parts of the build
+    set(ASAR_FOUND TRUE CACHE BOOL "Asar library found")
+    set(ASAR_LIBRARIES asar-static CACHE STRING "Asar library target")
+    set(ASAR_INCLUDE_DIRS 
+        "${ASAR_SRC_DIR}"
+        "${ASAR_SRC_DIR}/asar"
+        "${ASAR_SRC_DIR}/asar-dll-bindings/c"
+        CACHE STRING "Asar include directories"
+    )
+    
+    message(STATUS "Asar 65816 assembler integration configured successfully")
 else()
-  list(APPEND ASAR_STATIC_SRC "${ASAR_STATIC_SRC_DIR}/platform/linux/file-helpers-linux.cpp")
+    message(WARNING "Failed to configure Asar static library target")
+    set(ASAR_FOUND FALSE CACHE BOOL "Asar library found")
 endif()
+
+# Function to add Asar patching capabilities to a target
+function(yaze_add_asar_support target_name)
+    if(ASAR_FOUND)
+        target_link_libraries(${target_name} PRIVATE yaze::asar)
+        target_include_directories(${target_name} PRIVATE ${ASAR_INCLUDE_DIRS})
+        target_compile_definitions(${target_name} PRIVATE YAZE_ENABLE_ASAR=1)
+    else()
+        message(WARNING "Asar not available for target ${target_name}")
+    endif()
+endfunction()
+
+# Create function for ROM patching utilities
+function(yaze_create_asar_patch_tool tool_name patch_file rom_file)
+    if(ASAR_FOUND)
+        add_custom_target(${tool_name}
+            COMMAND ${CMAKE_COMMAND} -E echo "Patching ROM with Asar..."
+            COMMAND $<TARGET_FILE:asar-standalone> ${patch_file} ${rom_file}
+            DEPENDS asar-standalone
+            COMMENT "Applying Asar patch ${patch_file} to ${rom_file}"
+        )
+    endif()
+endfunction()

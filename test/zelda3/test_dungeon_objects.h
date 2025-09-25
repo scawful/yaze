@@ -6,8 +6,8 @@
 
 #include "app/rom.h"
 #include "gtest/gtest.h"
-#include "test/mocks/mock_rom.h"
-#include "test/testing.h"
+#include "mocks/mock_rom.h"
+#include "testing.h"
 
 namespace yaze {
 namespace test {
