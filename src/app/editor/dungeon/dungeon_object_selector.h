@@ -50,6 +50,15 @@ class DungeonObjectSelector {
   void set_current_palette_group_id(uint64_t id) { current_palette_group_id_ = id; }
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& palette_group) { current_palette_group_ = palette_group; }
   void SetCurrentPaletteId(uint64_t palette_id) { current_palette_id_ = palette_id; }
+  
+  // Object selection callbacks
+  void SetObjectSelectedCallback(std::function<void(const zelda3::RoomObject&)> callback) {
+    object_selected_callback_ = callback;
+  }
+  
+  // Get current preview object for placement
+  const zelda3::RoomObject& GetPreviewObject() const { return preview_object_; }
+  bool IsObjectLoaded() const { return object_loaded_; }
 
  private:
   void DrawRoomGraphics();
@@ -84,6 +93,9 @@ class DungeonObjectSelector {
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
   gfx::SnesPalette preview_palette_;
   bool object_loaded_ = false;
+  
+  // Callback for object selection
+  std::function<void(const zelda3::RoomObject&)> object_selected_callback_;
 };
 
 }  // namespace editor

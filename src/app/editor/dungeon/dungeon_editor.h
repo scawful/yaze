@@ -89,6 +89,10 @@ class DungeonEditor : public Editor {
   void DrawDungeonTabView();
   void DrawDungeonCanvas(int room_id);
   
+  // Enhanced UI methods
+  void DrawCanvasAndPropertiesPanel();
+  void DrawRoomPropertiesDebugPopup();
+  
   // Room selection management
   void OnRoomSelected(int room_id);
 
