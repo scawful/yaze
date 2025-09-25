@@ -114,6 +114,9 @@ absl::Status DungeonEditor::Load() {
   object_selector_.SetRom(rom_);
   object_selector_.SetCurrentPaletteGroup(current_palette_group_);
   object_selector_.SetCurrentPaletteId(current_palette_id_);
+  object_selector_.set_dungeon_editor_system(&dungeon_editor_system_);
+  object_selector_.set_object_editor(&object_editor_);
+  object_selector_.set_rooms(&rooms_);
   
   is_loaded_ = true;
   return absl::OkStatus();
@@ -236,6 +239,9 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
     ImGui::End();
   }
 
+  // Restored tabbed room view functionality
+  DrawDungeonTabView();
+
   // Simplified 3-column layout: Room/Entrance Selector | Canvas | Object Selector/Editor
   if (BeginTable("#DungeonEditTable", 3, kDungeonTableFlags, ImVec2(0, 0))) {
     TableSetupColumn("Room/Entrance Selector", ImGuiTableColumnFlags_WidthFixed, 250);
@@ -259,6 +265,7 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
 
     // Column 3: Object Selector and Editor (using new component)
     TableNextColumn();
+    object_selector_.set_current_room_id(current_room);
     object_selector_.Draw();
     
     ImGui::EndTable();
