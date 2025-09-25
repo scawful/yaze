@@ -1,6 +1,7 @@
 #include "project.h"
 
 #include <fstream>
+#include <sstream>
 #include <string>
 
 #include "app/gui/icons.h"
