@@ -37,7 +37,7 @@ This feature is still in development and is not yet fully documented.
 | Dungeon Maps      | Todo        | Edit dungeon maps.                             |
 | Scad Format       | Done-ish    | Open and view scad files (SCR, CGX, COL)       |
 | Hex Editing       | Done        | View and edit ROM data in hex.                 |
-| Asar Patching     | In Progress | Apply Asar patches to your ROM or Project.     |
+| Asar Patching     | Complete    | Apply Asar 65816 assembly patches to ROM.      |
 
 ## Command Line Interface
 
@@ -45,9 +45,12 @@ Included with the editor is a command line interface (CLI) that allows you to pe
 
 | Command            | Arg   | Params                               | Status      |
 |--------------------|-------|--------------------------------------|-------------|
-| Apply BPS Patch    | -a    | rom_file bps_file                    | In progress |
-| Create BPS Patch   | -c    | bps_file src_file modified_file      | Not started |
-| Asar Patch         | -asar | asm_file rom_file                    | In progress |
+| Apply Asar Patch   | asar  | patch.asm [--rom=file]              | Complete    |
+| Extract Symbols    | extract | patch.asm                          | Complete    |
+| Validate Assembly  | validate | patch.asm                         | Complete    |
+| Apply BPS Patch    | patch | patch.bps [--rom=file]              | Complete    |
+| Create BPS Patch   | create | src_file modified_file             | In progress |
+| Asar Patch (legacy) | -asar | asm_file rom_file                   | Complete    |
 | Open ROM           | -o    | rom_file                             | Complete    |
 | Backup ROM         | -b    | rom_file [new_file]                  | In progress |
 | Expand ROM         | -x    | rom_file file_size                   | Not started |

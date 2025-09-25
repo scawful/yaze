@@ -2,15 +2,16 @@
 
 For developers to reference.
 
-The goal of yaze is to build a cross platform editor for the Legend of Zelda: A Link to the Past. The project is built using C++20, SDL2, and ImGui. The project is built using CMake and is designed to be modular and extensible. The project is designed to be built on Windows, macOS, iOS, and Linux.
+The goal of yaze is to build a cross platform editor for the Legend of Zelda: A Link to the Past. The project is built using C++23, SDL2, ImGui, and Asar 65816 assembler. The project uses modern CMake 3.16+ and is designed to be modular and extensible. The project supports Windows, macOS, and Linux with professional packaging and CI/CD.
 
 ## Targets
 
-- **yaze**: Desktop application for Windows/macOS/Linux
-- **z3ed**: Command Line Interface
-- **yaze_c**: C Library
-- **yaze_test**: Unit test executable
-- **yaze_ios**: iOS application
+- **yaze**: Desktop application with GUI docking system (Windows/macOS/Linux)
+- **z3ed**: Enhanced command line interface with Asar integration and TUI
+- **yaze_c**: C Library for custom tools and extensions
+- **yaze_test**: Comprehensive unit test executable with ROM-dependent test separation
+- **yaze_emu**: Standalone SNES emulator application
+- **yaze_ios**: iOS application (coming in future release)
 
 ## Directory Structure
 
@@ -31,10 +32,21 @@ The goal of yaze is to build a cross platform editor for the Legend of Zelda: A 
 
 See [build-instructions.md](docs/build-instructions.md) for more information.
 
-- **SDL2**: Graphics library
-- **ImGui**: GUI library
-- **Abseil**: C++ library
-- **libpng**: Image library
+### Core Dependencies
+- **SDL2**: Graphics and input library
+- **ImGui**: Immediate mode GUI library with docking support
+- **Abseil**: Modern C++ utilities library
+- **libpng**: Image processing library
+
+### New in v0.3.0
+- **Asar**: 65816 assembler for ROM patching and symbol extraction
+- **ftxui**: Terminal UI library for enhanced CLI experience
+- **GoogleTest/GoogleMock**: Comprehensive testing framework
+
+### Build System
+- **CMake 3.16+**: Modern build system with target-based configuration
+- **CMakePresets**: Development workflow presets
+- **Cross-platform CI/CD**: GitHub Actions for automated builds and testing
 
 ## Flow of Control
 

@@ -1,56 +1,58 @@
 # Yet Another Zelda3 Editor
 
-- Platform: Windows, macOS, iOS, GNU/Linux
-- Dependencies: SDL2, ImGui, abseil-cpp
+A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM hacking.
 
-## Description
+- **Platform**: Windows, macOS, Linux
+- **Language**: C++23 with modern CMake build system
+- **Features**: ROM editing, Asar 65816 assembly patching, ZSCustomOverworld v3, GUI docking
 
-General purpose editor for The Legend of Zelda: A Link to the Past for the Super Nintendo.
+## Key Features
 
-Provides bindings in C and Python for building custom tools and utilities.
+- **Asar Integration**: Apply 65816 assembly patches and extract symbols
+- **ZSCustomOverworld v3**: Enhanced overworld editing capabilities
+- **Message Editing**: Advanced text editing with real-time preview  
+- **GUI Docking**: Flexible workspace management
+- **Modern CLI**: Enhanced z3ed tool with interactive TUI
 
-Takes heavy inspiration from ALTTP community efforts such as [Hyrule Magic](https://www.romhacking.net/utilities/200/) and [ZScream](https://github.com/Zarby89/ZScreamDungeon)
+Takes inspiration from [Hyrule Magic](https://www.romhacking.net/utilities/200/) and [ZScream](https://github.com/Zarby89/ZScreamDungeon)
 
-Building and installation
--------------------------
-[CMake](http://www.cmake.org "CMake") is required to build yaze 
+## Building and Installation
 
-1. Clone the repository
-2. Create the build directory and configuration
-3. Build and run the application 
-4. (Optional) Run the tests
-
+### Quick Build
+```bash
+git clone --recurse-submodules https://github.com/scawful/yaze.git 
+cd yaze
+cmake --preset default
+cmake --build --preset default
 ```
-  git clone --recurse-submodules https://github.com/scawful/yaze.git 
-  cmake -S . -B build
-  cmake --build build
+
+### Targets
+- **yaze**: GUI Editor Application
+- **z3ed**: Command Line Interface with Asar support
+- **yaze_c**: C Library
+- **yaze_test**: Unit Tests
+
+### Asar Examples
+```bash
+# Apply assembly patch
+z3ed asar patch.asm --rom=zelda3.sfc
+
+# Extract symbols  
+z3ed extract patch.asm
+
+# Interactive TUI
+z3ed --tui
 ```
 
-By default this will build all targets. 
-
-- **yaze**:       Editor Application
-- **yaze_c**:     C Library
-- **yaze_emu**:   SNES Emulator
-- **yaze_py**:    Python Module
-- **yaze_test**:  Unit Tests
-- **z3ed**:       Command Line Interface
-
-Dependencies are included as submodules and will be built automatically. For those who want to reduce compile times, consider installing the dependencies on your system. See [build-instructions.md](docs/build-instructions.md) for more information.
+See [build-instructions.md](docs/build-instructions.md) for detailed setup information.
 
 ## Documentation
 
-- **[Getting Started](docs/getting-started.md)** - Basic setup and usage guide
-- **[Build Instructions](docs/build-instructions.md)** - Detailed build and installation guide
+- **[Getting Started](docs/getting-started.md)** - Setup and basic usage
+- **[Asar Integration](docs/asar-integration.md)** - Assembly patching and symbol extraction
+- **[Build Instructions](docs/build-instructions.md)** - Detailed build guide
+- **[Contributing](docs/contributing.md)** - How to contribute
 - **[Documentation Index](docs/index.md)** - Complete documentation overview
-- **[Contributing](docs/contributing.md)** - How to contribute to the project
-
-### Key Documentation
-- **[Dungeon Editor Guide](docs/dungeon-editor-comprehensive-guide.md)** - Complete dungeon editing guide
-- **[Overworld Loading Guide](docs/overworld_loading_guide.md)** - ZSCustomOverworld implementation
-- **[Canvas Interface](docs/canvas-refactor-summary.md)** - Graphics system architecture
-- **[Integration Tests](docs/integration_test_guide.md)** - Testing framework
-
-For developers, see the [documentation index](docs/index.md) for a complete overview of all available documentation.
 
 License
 --------

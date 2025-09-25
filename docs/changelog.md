@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0 (01-2025)
+- **Asar 65816 Assembler Integration**: Complete cross-platform support for ROM patching with assembly code
+- **ZSCustomOverworld v3**: Full integration with enhanced overworld editing capabilities
+- **Advanced Message Editing**: Enhanced text editing interface with improved parsing and real-time preview
+- **GUI Docking System**: Improved docking and workspace management for better user workflow
+- **Symbol Extraction**: Extract symbol names and opcodes from assembly files  
+- **Modernized Build System**: Upgraded to CMake 3.16+ with target-based configuration
+- **Enhanced CLI Tools**: Improved z3ed with modern command line interface and TUI
+- **CMakePresets**: Added development workflow presets for better productivity
+- **Cross-Platform CI/CD**: Multi-platform automated builds and testing
+- **Professional Packaging**: NSIS, DMG, and DEB/RPM installers
+- **ROM-Dependent Testing**: Separated testing infrastructure for CI compatibility
+- **Comprehensive Documentation**: Updated guides and API documentation
+
 ## 0.2.2 (12-31-2024)
 - DungeonMap editing improvements
 - ZSCustomOverworld support
