@@ -9,7 +9,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-// #include "app/core/asar_wrapper.h"  // Commented out for build compatibility
+#include "app/core/asar_wrapper.h"
 #include "app/core/features.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/window.h"
@@ -27,6 +27,7 @@
 #include "app/rom.h"
 #include "app/zelda3/common.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "app/zelda3/overworld/overworld_map.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 #include "util/hex.h"
@@ -2632,9 +2633,140 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
         "ZSCustomOverworld ASM application is disabled in feature flags");
   }
 
-  // TODO: Implement ASM application when Asar wrapper is available
-  util::logf("ASM application not yet implemented - only setting version marker");
-  return absl::UnimplementedError("ASM application feature not yet implemented");
+  // Validate target version
+  if (target_version < 2 || target_version > 3) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid target version: %d. Must be 2 or 3.", target_version));
+  }
+
+  // Check current ROM version
+  uint8_t current_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  if (current_version != 0xFF && current_version >= target_version) {
+    return absl::AlreadyExistsError(
+        absl::StrFormat("ROM is already version %d or higher", current_version));
+  }
+
+  util::logf("Applying ZSCustomOverworld ASM v%d to ROM...", target_version);
+
+  // Initialize Asar wrapper
+  auto asar_wrapper = std::make_unique<app::core::AsarWrapper>();
+  RETURN_IF_ERROR(asar_wrapper->Initialize());
+
+  // Create backup of ROM data
+  std::vector<uint8_t> original_rom_data = rom_->vector();
+  std::vector<uint8_t> working_rom_data = original_rom_data;
+
+  try {
+    // Determine which ASM file to apply
+    std::string asm_file_path;
+    if (target_version == 3) {
+      asm_file_path = "assets/asm/yaze.asm";  // Master file with v3
+    } else {
+      asm_file_path = "assets/asm/ZSCustomOverworld.asm";  // v2 standalone
+    }
+
+    // Check if ASM file exists
+    if (!std::filesystem::exists(asm_file_path)) {
+      return absl::NotFoundError(
+          absl::StrFormat("ASM file not found: %s", asm_file_path));
+    }
+
+    // Apply the ASM patch
+    auto patch_result = asar_wrapper->ApplyPatch(asm_file_path, working_rom_data);
+    if (!patch_result.ok()) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to apply ASM patch: %s", patch_result.status().message()));
+    }
+
+    const auto& result = patch_result.value();
+    if (!result.success) {
+      std::string error_details = "ASM patch failed with errors:\n";
+      for (const auto& error : result.errors) {
+        error_details += "  - " + error + "\n";
+      }
+      if (!result.warnings.empty()) {
+        error_details += "Warnings:\n";
+        for (const auto& warning : result.warnings) {
+          error_details += "  - " + warning + "\n";
+        }
+      }
+      return absl::InternalError(error_details);
+    }
+
+    // Update ROM with patched data
+    RETURN_IF_ERROR(rom_->LoadFromData(working_rom_data, false));
+
+    // Update version marker and feature flags
+    RETURN_IF_ERROR(UpdateROMVersionMarkers(target_version));
+
+    // Log symbols found during patching
+    util::logf("ASM patch applied successfully. Found %zu symbols:", result.symbols.size());
+    for (const auto& symbol : result.symbols) {
+      util::logf("  %s @ $%06X", symbol.name.c_str(), symbol.address);
+    }
+
+    // Refresh overworld data to reflect changes
+    RETURN_IF_ERROR(overworld_.Load(rom_));
+
+    util::logf("ZSCustomOverworld v%d successfully applied to ROM", target_version);
+    return absl::OkStatus();
+
+  } catch (const std::exception& e) {
+    // Restore original ROM data on any exception
+    auto restore_result = rom_->LoadFromData(original_rom_data, false);
+    if (!restore_result.ok()) {
+      util::logf("Failed to restore ROM data: %s", restore_result.message().data());
+    }
+    return absl::InternalError(
+        absl::StrFormat("Exception during ASM application: %s", e.what()));
+  }
+}
+
+absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
+  // Set the main version marker
+  (*rom_)[zelda3::OverworldCustomASMHasBeenApplied] = static_cast<uint8_t>(target_version);
+
+  // Enable feature flags based on target version
+  if (target_version >= 2) {
+    // v2+ features
+    (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] = 0x01;
+    (*rom_)[zelda3::OverworldCustomMainPaletteEnabled] = 0x01;
+    
+    util::logf("Enabled v2+ features: Custom BG colors, Main palettes");
+  }
+
+  if (target_version >= 3) {
+    // v3 features
+    (*rom_)[zelda3::OverworldCustomSubscreenOverlayEnabled] = 0x01;
+    (*rom_)[zelda3::OverworldCustomAnimatedGFXEnabled] = 0x01;
+    (*rom_)[zelda3::OverworldCustomTileGFXGroupEnabled] = 0x01;
+    (*rom_)[zelda3::OverworldCustomMosaicEnabled] = 0x01;
+    
+    util::logf("Enabled v3+ features: Subscreen overlays, Animated GFX, Tile GFX groups, Mosaic");
+    
+    // Initialize area size data for v3 (set all areas to small by default)
+    for (int i = 0; i < 0xA0; i++) {
+      (*rom_)[zelda3::kOverworldScreenSize + i] = static_cast<uint8_t>(zelda3::AreaSizeEnum::SmallArea);
+    }
+    
+    // Set appropriate sizes for known large areas
+    const std::vector<int> large_areas = {
+      0x00, 0x02, 0x05, 0x07, 0x0A, 0x0B, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15,
+      0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1D, 0x1E, 0x25, 0x28, 0x29, 0x2A, 0x2B,
+      0x2C, 0x2E, 0x2F, 0x30, 0x32, 0x33, 0x34, 0x35, 0x37, 0x3A, 0x3B, 0x3C, 0x3F
+    };
+    
+    for (int area_id : large_areas) {
+      if (area_id < 0xA0) {
+        (*rom_)[zelda3::kOverworldScreenSize + area_id] = static_cast<uint8_t>(zelda3::AreaSizeEnum::LargeArea);
+      }
+    }
+    
+    util::logf("Initialized area size data for %zu areas", large_areas.size());
+  }
+
+  util::logf("ROM version markers updated to v%d", target_version);
+  return absl::OkStatus();
 }
 
 }  // namespace yaze::editor

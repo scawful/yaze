@@ -98,6 +98,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    */
   absl::Status ApplyZSCustomOverworldASM(int target_version);
 
+  /**
+   * @brief Update ROM version markers and feature flags after ASM patching
+   */
+  absl::Status UpdateROMVersionMarkers(int target_version);
+
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
