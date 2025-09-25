@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_parser.h"
@@ -254,7 +253,7 @@ class Subtype3 : public RoomObject {
   }
 };
 
-constexpr static inline absl::string_view Type1RoomObjectNames[] = {
+constexpr static inline const char* Type1RoomObjectNames[] = {
     "Ceiling ↔",
     "Wall (top, north) ↔",
     "Wall (top, south) ↔",
@@ -505,7 +504,7 @@ constexpr static inline absl::string_view Type1RoomObjectNames[] = {
     "Nothing",
 };
 
-constexpr static inline absl::string_view Type2RoomObjectNames[] = {
+constexpr static inline const char* Type2RoomObjectNames[] = {
     "Corner (top, concave) ▛",
     "Corner (top, concave) ▙",
     "Corner (top, concave) ▜",
@@ -572,7 +571,7 @@ constexpr static inline absl::string_view Type2RoomObjectNames[] = {
     "Magic bat altar",
 };
 
-constexpr static inline absl::string_view Type3RoomObjectNames[] = {
+constexpr static inline const char* Type3RoomObjectNames[] = {
     "Waterfall face (empty)",
     "Waterfall face (short)",
     "Waterfall face (long)",

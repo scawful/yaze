@@ -1,6 +1,5 @@
 #include "dungeon_room_selector.h"
 
-#include "absl/strings/str_format.h"
 #include "app/gui/input.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/room_entrance.h"
@@ -10,14 +9,8 @@
 namespace yaze::editor {
 
 using ImGui::BeginChild;
-using ImGui::BeginTabBar;
-using ImGui::BeginTabItem;
 using ImGui::EndChild;
-using ImGui::EndTabBar;
-using ImGui::EndTabItem;
-using ImGui::Separator;
 using ImGui::SameLine;
-using ImGui::Text;
 
 void DungeonRoomSelector::Draw() {
   if (ImGui::BeginTabBar("##DungeonRoomTabBar")) {
@@ -51,8 +44,9 @@ void DungeonRoomSelector::DrawRoomSelector() {
           each_room_name.data());
       if (ImGui::IsItemClicked()) {
         current_room_id_ = i;
-        if (!active_rooms_.contains(i)) {
-          active_rooms_.push_back(i);
+        // Notify the dungeon editor about room selection
+        if (room_selected_callback_) {
+          room_selected_callback_(i);
         }
       }
       i += 1;
@@ -84,7 +78,7 @@ void DungeonRoomSelector::DrawEntranceSelector() {
   gui::InputHexByte("Music", &current_entrance.music_, 50.f, true);
   SameLine();
   gui::InputHexByte("Floor", &current_entrance.floor_);
-  Separator();
+  ImGui::Separator();
 
   gui::InputHexWord("Player X   ", &current_entrance.x_position_);
   SameLine();
@@ -100,9 +94,9 @@ void DungeonRoomSelector::DrawEntranceSelector() {
 
   gui::InputHexWord("Exit", &current_entrance.exit_, 50.f, true);
 
-  Separator();
+  ImGui::Separator();
   ImGui::Text("Camera Boundaries");
-  Separator();
+  ImGui::Separator();
   ImGui::Text("\t\t\t\t\tNorth         East         South         West");
   gui::InputHexByte("Quadrant", &current_entrance.camera_boundary_qn_, 50.f,
                     true);
@@ -124,15 +118,24 @@ void DungeonRoomSelector::DrawEntranceSelector() {
 
   if (BeginChild("EntranceSelector", ImVec2(0, 0), true,
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    for (int i = 0; i < 0x85 + 7; i++) {
+    for (int i = 0; i < 0x8C; i++) {
+      // The last seven are the spawn points
+      auto entrance_name = absl::StrFormat("Spawn Point %d", i - 0x85);
+      if (i < 0x85) {
+        entrance_name = std::string(zelda3::kEntranceNames[i]);
+      }
       rom_->resource_label()->SelectableLabelWithNameEdit(
           current_entrance_id_ == i, "Dungeon Entrance Names",
-          util::HexByte(i), zelda3::kEntranceNames[i].data());
+          util::HexByte(i), entrance_name);
 
       if (ImGui::IsItemClicked()) {
         current_entrance_id_ = i;
-        if (!active_rooms_.contains(i)) {
-          active_rooms_.push_back((*entrances_)[i].room_);
+        if (i < entrances_->size()) {
+          int room_id = (*entrances_)[i].room_;
+          // Notify the dungeon editor about room selection
+          if (room_selected_callback_) {
+            room_selected_callback_(room_id);
+          }
         }
       }
     }

@@ -53,6 +53,7 @@ class DungeonObjectSelector {
 
  private:
   void DrawRoomGraphics();
+  void DrawObjectBrowser();
   void DrawCompactObjectEditor();
   void DrawCompactSpriteEditor();
   void DrawCompactItemEditor();

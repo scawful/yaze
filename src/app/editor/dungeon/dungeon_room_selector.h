@@ -1,9 +1,9 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_ROOM_SELECTOR_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_ROOM_SELECTOR_H
 
+#include <functional>
 #include "imgui/imgui.h"
 #include "app/rom.h"
-#include "app/gui/input.h"
 #include "app/zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room.h"
 
@@ -40,6 +40,11 @@ class DungeonRoomSelector {
   void set_rooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
   void set_entrances(std::array<zelda3::RoomEntrance, 0x8C>* entrances) { entrances_ = entrances; }
 
+  // Callback for room selection events
+  void set_room_selected_callback(std::function<void(int)> callback) { 
+    room_selected_callback_ = callback; 
+  }
+
  private:
   Rom* rom_ = nullptr;
   uint16_t current_room_id_ = 0;
@@ -48,6 +53,9 @@ class DungeonRoomSelector {
   
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   std::array<zelda3::RoomEntrance, 0x8C>* entrances_ = nullptr;
+  
+  // Callback for room selection events
+  std::function<void(int)> room_selected_callback_;
 };
 
 }  // namespace editor
