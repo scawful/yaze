@@ -11,15 +11,21 @@ class FileDialogWrapper {
  public:
   /**
    * @brief ShowOpenFileDialog opens a file dialog and returns the selected
-   * filepath.
+   * filepath. Uses global feature flag to choose implementation.
    */
   static std::string ShowOpenFileDialog();
 
   /**
    * @brief ShowOpenFolderDialog opens a file dialog and returns the selected
-   * folder path.
+   * folder path. Uses global feature flag to choose implementation.
    */
   static std::string ShowOpenFolderDialog();
+  
+  // Specific implementations for testing
+  static std::string ShowOpenFileDialogNFD();
+  static std::string ShowOpenFileDialogBespoke();
+  static std::string ShowOpenFolderDialogNFD();
+  static std::string ShowOpenFolderDialogBespoke();
   static std::vector<std::string> GetSubdirectoriesInFolder(
       const std::string &folder_path);
   static std::vector<std::string> GetFilesInFolder(

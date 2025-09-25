@@ -56,13 +56,44 @@ class RomDependentTestSuite : public TestSuite {
       return absl::OkStatus();
     }
     
-    // Run ROM-dependent tests
-    RunRomHeaderValidationTest(results, current_rom);
-    RunRomDataAccessTest(results, current_rom);
-    RunRomGraphicsExtractionTest(results, current_rom);
-    RunRomOverworldLoadingTest(results, current_rom);
-    RunTile16EditorTest(results, current_rom);
-    RunComprehensiveSaveTest(results, current_rom);
+    // Run ROM-dependent tests (only if enabled)
+    auto& test_manager = TestManager::Get();
+    
+    if (test_manager.IsTestEnabled("ROM_Header_Validation_Test")) {
+      RunRomHeaderValidationTest(results, current_rom);
+    } else {
+      AddSkippedTest(results, "ROM_Header_Validation_Test", "Test disabled by user");
+    }
+    
+    if (test_manager.IsTestEnabled("ROM_Data_Access_Test")) {
+      RunRomDataAccessTest(results, current_rom);
+    } else {
+      AddSkippedTest(results, "ROM_Data_Access_Test", "Test disabled by user");
+    }
+    
+    if (test_manager.IsTestEnabled("ROM_Graphics_Extraction_Test")) {
+      RunRomGraphicsExtractionTest(results, current_rom);
+    } else {
+      AddSkippedTest(results, "ROM_Graphics_Extraction_Test", "Test disabled by user");
+    }
+    
+    if (test_manager.IsTestEnabled("ROM_Overworld_Loading_Test")) {
+      RunRomOverworldLoadingTest(results, current_rom);
+    } else {
+      AddSkippedTest(results, "ROM_Overworld_Loading_Test", "Test disabled by user");
+    }
+    
+    if (test_manager.IsTestEnabled("Tile16_Editor_Test")) {
+      RunTile16EditorTest(results, current_rom);
+    } else {
+      AddSkippedTest(results, "Tile16_Editor_Test", "Test disabled by user");
+    }
+    
+    if (test_manager.IsTestEnabled("Comprehensive_Save_Test")) {
+      RunComprehensiveSaveTest(results, current_rom);
+    } else {
+      AddSkippedTest(results, "Comprehensive_Save_Test", "Test disabled by user (known to crash)");
+    }
     
     if (test_advanced_features_) {
       RunRomSpriteDataTest(results, current_rom);
@@ -102,8 +133,21 @@ class RomDependentTestSuite : public TestSuite {
       ImGui::Unindent();
     }
   }
-
+  
  private:
+  // Helper method to add skipped test results
+  void AddSkippedTest(TestResults& results, const std::string& test_name, const std::string& reason) {
+    TestResult result;
+    result.name = test_name;
+    result.suite_name = GetName();
+    result.category = GetCategory();
+    result.status = TestStatus::kSkipped;
+    result.error_message = reason;
+    result.duration = std::chrono::milliseconds{0};
+    result.timestamp = std::chrono::steady_clock::now();
+    results.AddResult(result);
+  }
+  
   void RunRomHeaderValidationTest(TestResults& results, Rom* rom) {
     auto start_time = std::chrono::steady_clock::now();
     

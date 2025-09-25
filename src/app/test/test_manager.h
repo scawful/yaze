@@ -192,6 +192,15 @@ class TestManager {
   absl::Status TestRomSaveLoad(Rom* rom);
   absl::Status TestRomDataIntegrity(Rom* rom);
   absl::Status TestRomWithCopy(Rom* source_rom, std::function<absl::Status(Rom*)> test_function);
+  
+  // Test configuration management
+  void DisableTest(const std::string& test_name) { disabled_tests_[test_name] = true; }
+  void EnableTest(const std::string& test_name) { disabled_tests_[test_name] = false; }
+  bool IsTestEnabled(const std::string& test_name) const { 
+    auto it = disabled_tests_.find(test_name);
+    return it == disabled_tests_.end() || !it->second;
+  }
+  // File dialog mode now uses global feature flags
 
  private:
   TestManager();
@@ -242,7 +251,11 @@ class TestManager {
   bool show_rom_test_results_ = false;
   bool show_rom_file_dialog_ = false;
   bool show_test_session_dialog_ = false;
+  bool show_test_configuration_ = false;
   std::string test_rom_path_for_session_;
+  
+  // Test selection and configuration
+  std::unordered_map<std::string, bool> disabled_tests_;
 };
 
 // Utility functions for test result formatting
