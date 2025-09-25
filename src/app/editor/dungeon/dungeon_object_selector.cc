@@ -127,6 +127,20 @@ void DungeonObjectSelector::DrawObjectRenderer() {
   }
 }
 
+void DungeonObjectSelector::Draw() {
+  if (ImGui::BeginTabBar("##ObjectEditorTabBar")) {
+    if (ImGui::BeginTabItem("Graphics")) {
+      DrawRoomGraphics();
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem("Editor")) {
+      DrawIntegratedEditingPanels();
+      ImGui::EndTabItem();
+    }
+    ImGui::EndTabBar();
+  }
+}
+
 void DungeonObjectSelector::DrawRoomGraphics() {
   const auto height = 0x40;
   room_gfx_canvas_.DrawBackground();

@@ -17,6 +17,7 @@ class DungeonRoomSelector {
  public:
   explicit DungeonRoomSelector(Rom* rom = nullptr) : rom_(rom) {}
 
+  void Draw();
   void DrawRoomSelector();
   void DrawEntranceSelector();
   

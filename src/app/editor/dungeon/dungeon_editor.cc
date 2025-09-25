@@ -100,6 +100,21 @@ absl::Status DungeonEditor::Load() {
     }
   }
   
+  // Initialize the new UI components with loaded data
+  room_selector_.set_rom(rom_);
+  room_selector_.set_rooms(&rooms_);
+  room_selector_.set_entrances(&entrances_);
+  room_selector_.set_active_rooms(active_rooms_);
+  
+  canvas_viewer_.SetRom(rom_);
+  canvas_viewer_.SetRooms(&rooms_);
+  canvas_viewer_.SetCurrentPaletteGroup(current_palette_group_);
+  canvas_viewer_.SetCurrentPaletteId(current_palette_id_);
+  
+  object_selector_.SetRom(rom_);
+  object_selector_.SetCurrentPaletteGroup(current_palette_group_);
+  object_selector_.SetCurrentPaletteId(current_palette_id_);
+  
   is_loaded_ = true;
   return absl::OkStatus();
 }
@@ -230,33 +245,21 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
     TableHeadersRow();
     TableNextRow();
 
-    // Column 1: Room and Entrance Selector
+    // Column 1: Room and Entrance Selector (using new component)
     TableNextColumn();
-    if (ImGui::BeginTabBar("##DungeonRoomTabBar")) {
-      TAB_ITEM("Rooms");
-      DrawRoomSelector();
-      END_TAB_ITEM();
-      TAB_ITEM("Entrances");
-      DrawEntranceSelector();
-      END_TAB_ITEM();
-      ImGui::EndTabBar();
-    }
+    room_selector_.Draw();
 
-    // Column 2: Main Canvas
+    // Column 2: Main Canvas (using new component)
     TableNextColumn();
-    DrawDungeonTabView();
-
-    // Column 3: Object Selector and Editor
-    TableNextColumn();
-    if (ImGui::BeginTabBar("##ObjectEditorTabBar")) {
-      TAB_ITEM("Graphics");
-      DrawTileSelector();
-      END_TAB_ITEM();
-      TAB_ITEM("Editor");
-      DrawIntegratedEditingPanels();
-      END_TAB_ITEM();
-      ImGui::EndTabBar();
+    int current_room = current_room_id_;
+    if (!active_rooms_.empty() && current_active_room_tab_ < active_rooms_.Size) {
+      current_room = active_rooms_[current_active_room_tab_];
     }
+    canvas_viewer_.Draw(current_room);
+
+    // Column 3: Object Selector and Editor (using new component)
+    TableNextColumn();
+    object_selector_.Draw();
     
     ImGui::EndTable();
   }

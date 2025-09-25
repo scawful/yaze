@@ -22,8 +22,13 @@ class DungeonObjectSelector {
   void DrawTileSelector();
   void DrawObjectRenderer();
   void DrawIntegratedEditingPanels();
+  void Draw();
   
   void set_rom(Rom* rom) { 
+    rom_ = rom; 
+    object_renderer_.SetROM(rom);
+  }
+  void SetRom(Rom* rom) { 
     rom_ = rom; 
     object_renderer_.SetROM(rom);
   }
@@ -43,6 +48,8 @@ class DungeonObjectSelector {
 
   // Palette access
   void set_current_palette_group_id(uint64_t id) { current_palette_group_id_ = id; }
+  void SetCurrentPaletteGroup(const gfx::PaletteGroup& palette_group) { current_palette_group_ = palette_group; }
+  void SetCurrentPaletteId(uint64_t palette_id) { current_palette_id_ = palette_id; }
 
  private:
   void DrawRoomGraphics();
@@ -69,6 +76,8 @@ class DungeonObjectSelector {
   
   // Palette data
   uint64_t current_palette_group_id_ = 0;
+  uint64_t current_palette_id_ = 0;
+  gfx::PaletteGroup current_palette_group_;
   
   // Object preview system
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};

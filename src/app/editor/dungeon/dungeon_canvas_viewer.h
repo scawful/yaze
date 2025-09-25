@@ -20,22 +20,23 @@ class DungeonCanvasViewer {
 
   void DrawDungeonTabView();
   void DrawDungeonCanvas(int room_id);
+  void Draw(int room_id);
   
-  void set_rom(Rom* rom) { 
+  void SetRom(Rom* rom) { 
     rom_ = rom; 
     object_renderer_.SetROM(rom);
   }
   Rom* rom() const { return rom_; }
 
   // Room data access
-  void set_rooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
+  void SetRooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
   void set_active_rooms(const ImVector<int>& rooms) { active_rooms_ = rooms; }
   void set_current_active_room_tab(int tab) { current_active_room_tab_ = tab; }
 
   // Palette access
   void set_current_palette_group_id(uint64_t id) { current_palette_group_id_ = id; }
-  void set_current_palette_id(uint64_t id) { current_palette_id_ = id; }
-  void set_current_palette_group(const gfx::PaletteGroup& group) { current_palette_group_ = group; }
+  void SetCurrentPaletteId(uint64_t id) { current_palette_id_ = id; }
+  void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) { current_palette_group_ = group; }
 
   // Canvas access
   gui::Canvas& canvas() { return canvas_; }

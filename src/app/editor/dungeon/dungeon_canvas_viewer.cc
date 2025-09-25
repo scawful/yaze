@@ -65,6 +65,10 @@ void DungeonCanvasViewer::DrawDungeonTabView() {
   Separator();
 }
 
+void DungeonCanvasViewer::Draw(int room_id) {
+  DrawDungeonCanvas(room_id);
+}
+
 void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // Validate room_id and ROM
   if (room_id < 0 || room_id >= 128) {

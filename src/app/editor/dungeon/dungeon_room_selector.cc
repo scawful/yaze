@@ -10,9 +10,28 @@
 namespace yaze::editor {
 
 using ImGui::BeginChild;
+using ImGui::BeginTabBar;
+using ImGui::BeginTabItem;
 using ImGui::EndChild;
+using ImGui::EndTabBar;
+using ImGui::EndTabItem;
 using ImGui::Separator;
 using ImGui::SameLine;
+using ImGui::Text;
+
+void DungeonRoomSelector::Draw() {
+  if (ImGui::BeginTabBar("##DungeonRoomTabBar")) {
+    if (ImGui::BeginTabItem("Rooms")) {
+      DrawRoomSelector();
+      ImGui::EndTabItem();
+    }
+    if (ImGui::BeginTabItem("Entrances")) {
+      DrawEntranceSelector();
+      ImGui::EndTabItem();
+    }
+    ImGui::EndTabBar();
+  }
+}
 
 void DungeonRoomSelector::DrawRoomSelector() {
   if (!rom_ || !rom_->is_loaded()) {
