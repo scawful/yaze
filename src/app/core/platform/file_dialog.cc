@@ -13,6 +13,8 @@
 #include <sstream>
 #include <cstring>
 
+#include "app/core/features.h"
+
 namespace yaze {
 namespace core {
 
@@ -222,6 +224,15 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
 #endif
 
 std::string FileDialogWrapper::ShowOpenFileDialog() {
+  // Use global feature flag to choose implementation
+  if (FeatureFlags::get().kUseNativeFileDialog) {
+    return ShowOpenFileDialogNFD();
+  } else {
+    return ShowOpenFileDialogBespoke();
+  }
+}
+
+std::string FileDialogWrapper::ShowOpenFileDialogNFD() {
 #ifdef YAZE_ENABLE_NFD
   NFD_Init();
   nfdu8char_t *out_path = NULL;
@@ -242,12 +253,27 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
   NFD_Quit();
   return "Error: NFD_OpenDialog";
 #else
-  // NFD not available - return empty string or implement fallback
-  return "";
+  // NFD not available - fallback to bespoke
+  return ShowOpenFileDialogBespoke();
 #endif
 }
 
+std::string FileDialogWrapper::ShowOpenFileDialogBespoke() {
+  // Implement bespoke file dialog or return placeholder
+  // This would contain the custom macOS implementation
+  return ""; // Placeholder for bespoke implementation
+}
+
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
+  // Use global feature flag to choose implementation
+  if (FeatureFlags::get().kUseNativeFileDialog) {
+    return ShowOpenFolderDialogNFD();
+  } else {
+    return ShowOpenFolderDialogBespoke();
+  }
+}
+
+std::string FileDialogWrapper::ShowOpenFolderDialogNFD() {
 #ifdef YAZE_ENABLE_NFD
   NFD_Init();
   nfdu8char_t *out_path = NULL;
@@ -264,9 +290,15 @@ std::string FileDialogWrapper::ShowOpenFolderDialog() {
   NFD_Quit();
   return "Error: NFD_PickFolder";
 #else
-  // NFD not available - return empty string or implement fallback
-  return "";
+  // NFD not available - fallback to bespoke
+  return ShowOpenFolderDialogBespoke();
 #endif
+}
+
+std::string FileDialogWrapper::ShowOpenFolderDialogBespoke() {
+  // Implement bespoke folder dialog or return placeholder
+  // This would contain the custom macOS implementation
+  return ""; // Placeholder for bespoke implementation
 }
 
 std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(

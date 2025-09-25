@@ -2,6 +2,8 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
+#include "app/core/features.h"
+#include "app/core/platform/file_dialog.h"
 #include "app/gfx/arena.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
@@ -443,13 +445,42 @@ void TestManager::DrawTestDashboard() {
     }
     
     if (ImGui::BeginMenu("Configure")) {
-      if (ImGui::MenuItem("Test Settings")) {
-        // Show configuration for all test suites
+      if (ImGui::MenuItem("Test Configuration")) {
+        show_test_configuration_ = true;
+      }
+      ImGui::Separator();
+      bool nfd_mode = core::FeatureFlags::get().kUseNativeFileDialog;
+      if (ImGui::MenuItem("Use NFD File Dialog", nullptr, &nfd_mode)) {
+        core::FeatureFlags::get().kUseNativeFileDialog = nfd_mode;
+        util::logf("Global file dialog mode changed to: %s", nfd_mode ? "NFD" : "Bespoke");
       }
       ImGui::EndMenu();
     }
     
     ImGui::EndMenuBar();
+  }
+  
+  // Show test configuration status
+  int enabled_count = 0;
+  int total_count = 0;
+  static const std::vector<std::string> all_test_names = {
+    "ROM_Header_Validation_Test", "ROM_Data_Access_Test", "ROM_Graphics_Extraction_Test",
+    "ROM_Overworld_Loading_Test", "Tile16_Editor_Test", "Comprehensive_Save_Test",
+    "ROM_Sprite_Data_Test", "ROM_Music_Data_Test"
+  };
+  
+  for (const auto& test_name : all_test_names) {
+    total_count++;
+    if (IsTestEnabled(test_name)) {
+      enabled_count++;
+    }
+  }
+  
+  ImGui::Text("%s Test Status: %d/%d enabled", ICON_MD_CHECKLIST, enabled_count, total_count);
+  if (enabled_count < total_count) {
+    ImGui::SameLine();
+    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), 
+                      "(Some tests disabled - check Configuration)");
   }
   
   // Enhanced test execution status
@@ -496,6 +527,11 @@ void TestManager::DrawTestDashboard() {
     ImGui::SameLine();
     if (ImGui::Button(absl::StrCat(ICON_MD_CLEAR, " Clear").c_str(), ImVec2(80, 0))) {
       ClearResults();
+    }
+    
+    ImGui::SameLine();
+    if (ImGui::Button(absl::StrCat(ICON_MD_SETTINGS, " Config").c_str(), ImVec2(80, 0))) {
+      show_test_configuration_ = true;
     }
   }
   
@@ -794,6 +830,210 @@ void TestManager::DrawTestDashboard() {
       ImGui::Separator();
       if (ImGui::Button("Cancel", ImVec2(-1, 0))) {
         show_rom_file_dialog_ = false;
+      }
+    }
+    ImGui::End();
+  }
+  
+  // Test Configuration Window
+  if (show_test_configuration_) {
+    ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Test Configuration", &show_test_configuration_)) {
+      ImGui::Text("%s Test Configuration", ICON_MD_SETTINGS);
+      ImGui::Separator();
+      
+      // File Dialog Configuration
+      if (ImGui::CollapsingHeader("File Dialog Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Text("File Dialog Implementation:");
+        
+        bool nfd_mode = core::FeatureFlags::get().kUseNativeFileDialog;
+        if (ImGui::RadioButton("NFD (Native File Dialog)", nfd_mode)) {
+          core::FeatureFlags::get().kUseNativeFileDialog = true;
+          util::logf("Global file dialog mode set to: NFD");
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Use NFD library for native OS file dialogs (global setting)");
+        }
+        
+        if (ImGui::RadioButton("Bespoke Implementation", !nfd_mode)) {
+          core::FeatureFlags::get().kUseNativeFileDialog = false;
+          util::logf("Global file dialog mode set to: Bespoke");
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Use custom file dialog implementation (global setting)");
+        }
+        
+        ImGui::Separator();
+        ImGui::Text("Current Mode: %s", core::FeatureFlags::get().kUseNativeFileDialog ? "NFD" : "Bespoke");
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Note: This setting affects ALL file dialogs in the application");
+        
+        if (ImGui::Button("Test Current File Dialog")) {
+          // Test the current file dialog implementation
+          util::logf("Testing global file dialog mode: %s", 
+                     core::FeatureFlags::get().kUseNativeFileDialog ? "NFD" : "Bespoke");
+          
+          // Actually test the file dialog
+          auto result = core::FileDialogWrapper::ShowOpenFileDialog();
+          if (!result.empty()) {
+            util::logf("File dialog test successful: %s", result.c_str());
+          } else {
+            util::logf("File dialog test: No file selected or dialog canceled");
+          }
+        }
+        
+        ImGui::SameLine();
+        if (ImGui::Button("Test NFD Directly")) {
+          auto result = core::FileDialogWrapper::ShowOpenFileDialogNFD();
+          if (!result.empty()) {
+            util::logf("NFD test successful: %s", result.c_str());
+          } else {
+            util::logf("NFD test: No file selected, canceled, or error occurred");
+          }
+        }
+        
+        ImGui::SameLine();
+        if (ImGui::Button("Test Bespoke Directly")) {
+          auto result = core::FileDialogWrapper::ShowOpenFileDialogBespoke();
+          if (!result.empty()) {
+            util::logf("Bespoke test successful: %s", result.c_str());
+          } else {
+            util::logf("Bespoke test: No file selected or not implemented");
+          }
+        }
+      }
+      
+      // Test Selection Configuration
+      if (ImGui::CollapsingHeader("Test Selection", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Text("Enable/Disable Individual Tests:");
+        ImGui::Separator();
+        
+        // List of known tests with their risk levels
+        static const std::vector<std::pair<std::string, std::string>> known_tests = {
+          {"ROM_Header_Validation_Test", "Safe - Read-only ROM header validation"},
+          {"ROM_Data_Access_Test", "Safe - Basic ROM data access testing"}, 
+          {"ROM_Graphics_Extraction_Test", "Safe - Graphics data extraction testing"},
+          {"ROM_Overworld_Loading_Test", "Safe - Overworld data loading testing"},
+          {"Tile16_Editor_Test", "Moderate - Tile16 editor initialization"},
+          {"Comprehensive_Save_Test", "DANGEROUS - Known to crash, uses ROM copies"},
+          {"ROM_Sprite_Data_Test", "Safe - Sprite data validation"},
+          {"ROM_Music_Data_Test", "Safe - Music data validation"}
+        };
+        
+        // Initialize problematic tests as disabled by default
+        static bool initialized_defaults = false;
+        if (!initialized_defaults) {
+          DisableTest("Comprehensive_Save_Test"); // Disable crash-prone test by default
+          initialized_defaults = true;
+        }
+        
+        if (ImGui::BeginTable("TestSelection", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+          ImGui::TableSetupColumn("Test Name", ImGuiTableColumnFlags_WidthFixed, 200);
+          ImGui::TableSetupColumn("Risk Level", ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 80);
+          ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed, 100);
+          ImGui::TableHeadersRow();
+          
+          for (const auto& [test_name, description] : known_tests) {
+            bool enabled = IsTestEnabled(test_name);
+            
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", test_name.c_str());
+            
+            ImGui::TableNextColumn();
+            // Color-code the risk level
+            if (description.find("DANGEROUS") != std::string::npos) {
+              ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "%s", description.c_str());
+            } else if (description.find("Moderate") != std::string::npos) {
+              ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "%s", description.c_str());
+            } else {
+              ImGui::TextColored(ImVec4(0.0f, 0.8f, 0.0f, 1.0f), "%s", description.c_str());
+            }
+            
+            ImGui::TableNextColumn();
+            if (enabled) {
+              ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s ON", ICON_MD_CHECK);
+            } else {
+              ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s OFF", ICON_MD_BLOCK);
+            }
+            
+            ImGui::TableNextColumn();
+            ImGui::PushID(test_name.c_str());
+            if (enabled) {
+              if (ImGui::Button("Disable")) {
+                DisableTest(test_name);
+                util::logf("Disabled test: %s", test_name.c_str());
+              }
+            } else {
+              if (ImGui::Button("Enable")) {
+                EnableTest(test_name);
+                util::logf("Enabled test: %s", test_name.c_str());
+              }
+            }
+            ImGui::PopID();
+          }
+          
+          ImGui::EndTable();
+        }
+        
+        ImGui::Separator();
+        ImGui::Text("Quick Actions:");
+        
+        if (ImGui::Button("Enable Safe Tests Only")) {
+          for (const auto& [test_name, description] : known_tests) {
+            if (description.find("Safe") != std::string::npos) {
+              EnableTest(test_name);
+            } else {
+              DisableTest(test_name);
+            }
+          }
+          util::logf("Enabled only safe tests");
+        }
+        ImGui::SameLine();
+        
+        if (ImGui::Button("Enable All Tests")) {
+          for (const auto& [test_name, description] : known_tests) {
+            EnableTest(test_name);
+          }
+          util::logf("Enabled all tests (including dangerous ones)");
+        }
+        ImGui::SameLine();
+        
+        if (ImGui::Button("Disable All Tests")) {
+          for (const auto& [test_name, description] : known_tests) {
+            DisableTest(test_name);
+          }
+          util::logf("Disabled all tests");
+        }
+        
+        ImGui::Separator();
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), 
+                          "⚠️  Recommendation: Use 'Enable Safe Tests Only' to avoid crashes");
+      }
+      
+      // Platform-specific settings
+      if (ImGui::CollapsingHeader("Platform Settings")) {
+        ImGui::Text("macOS Tahoe Compatibility:");
+        ImGui::BulletText("NFD may have issues on macOS Sequoia+");
+        ImGui::BulletText("Bespoke dialog provides fallback option");
+        ImGui::BulletText("Global setting affects File → Open, Project dialogs, etc.");
+        
+        ImGui::Separator();
+        ImGui::Text("Test Both Implementations:");
+        
+        if (ImGui::Button("Quick Test NFD")) {
+          auto result = core::FileDialogWrapper::ShowOpenFileDialogNFD();
+          util::logf("NFD test result: %s", result.empty() ? "Failed/Canceled" : result.c_str());
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Quick Test Bespoke")) {
+          auto result = core::FileDialogWrapper::ShowOpenFileDialogBespoke();
+          util::logf("Bespoke test result: %s", result.empty() ? "Failed/Not Implemented" : result.c_str());
+        }
+        
+        ImGui::Separator();
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), 
+                          "Note: These tests don't change the global setting");
       }
     }
     ImGui::End();

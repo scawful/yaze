@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "app/core/features.h"
+
 #if defined(__APPLE__) && defined(__MACH__)
 /* Apple OSX and iOS (Darwin). */
 #include <Foundation/Foundation.h>
@@ -65,13 +67,25 @@ std::string yaze::core::GetBundleResourcePath() {
 /* macOS */
 
 #import <Cocoa/Cocoa.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-std::string yaze::core::FileDialogWrapper::ShowOpenFileDialog() {
+std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogBespoke() {
   NSOpenPanel* openPanel = [NSOpenPanel openPanel];
   [openPanel setCanChooseFiles:YES];
   [openPanel setCanChooseDirectories:NO];
   [openPanel setAllowsMultipleSelection:NO];
-  [openPanel setAllowedFileTypes:@[ @"sfc", @"smc", @"yaze" ]];
+  
+  // Use modern allowedContentTypes for macOS 12.0+ compatibility
+  if (@available(macOS 12.0, *)) {
+    [openPanel setAllowedContentTypes:@[
+      [UTType typeWithFilenameExtension:@"sfc"],
+      [UTType typeWithFilenameExtension:@"smc"], 
+      [UTType typeWithFilenameExtension:@"yaze"]
+    ]];
+  } else {
+    // Fallback for older macOS versions
+    [openPanel setAllowedFileTypes:@[ @"sfc", @"smc", @"yaze" ]];
+  }
 
   if ([openPanel runModal] == NSModalResponseOK) {
     NSURL* url = [[openPanel URLs] objectAtIndex:0];
@@ -82,7 +96,47 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFileDialog() {
   return "";
 }
 
+// Global feature flag-based dispatch methods
+std::string yaze::core::FileDialogWrapper::ShowOpenFileDialog() {
+  if (FeatureFlags::get().kUseNativeFileDialog) {
+    return ShowOpenFileDialogNFD();
+  } else {
+    return ShowOpenFileDialogBespoke();
+  }
+}
+
 std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialog() {
+  if (FeatureFlags::get().kUseNativeFileDialog) {
+    return ShowOpenFolderDialogNFD();
+  } else {
+    return ShowOpenFolderDialogBespoke();
+  }
+}
+
+// NFD implementation for macOS (fallback to bespoke if NFD not available)
+std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogNFD() {
+#ifdef YAZE_ENABLE_NFD
+  // NFD implementation would go here when available
+  // For now, fallback to bespoke implementation
+  return ShowOpenFileDialogBespoke();
+#else
+  // NFD not compiled in, use bespoke
+  return ShowOpenFileDialogBespoke();
+#endif
+}
+
+std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialogNFD() {
+#ifdef YAZE_ENABLE_NFD
+  // NFD folder implementation would go here when available
+  // For now, fallback to bespoke implementation
+  return ShowOpenFolderDialogBespoke();
+#else
+  // NFD not compiled in, use bespoke
+  return ShowOpenFolderDialogBespoke();
+#endif
+}
+
+std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialogBespoke() {
   NSOpenPanel* openPanel = [NSOpenPanel openPanel];
   [openPanel setCanChooseFiles:NO];
   [openPanel setCanChooseDirectories:YES];

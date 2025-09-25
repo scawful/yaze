@@ -38,6 +38,9 @@ class FeatureFlags {
     // Log to the console.
     bool kLogToConsole = false;
 
+    // Use NFD (Native File Dialog) instead of bespoke file dialog implementation.
+    bool kUseNativeFileDialog = true;
+
     // Overworld flags
     struct Overworld {
       // Load and render overworld sprites to the screen. Unstable.
@@ -100,6 +103,8 @@ class FeatureFlags {
               std::to_string(get().overworld.kLoadCustomOverworld) + "\n";
     result += "kApplyZSCustomOverworldASM: " +
               std::to_string(get().overworld.kApplyZSCustomOverworldASM) + "\n";
+    result += "kUseNativeFileDialog: " +
+              std::to_string(get().kUseNativeFileDialog) + "\n";
     return result;
   }
 };
@@ -145,6 +150,7 @@ struct FlagsMenu {
     Checkbox("Enable Console Logging", &FeatureFlags::get().kLogToConsole);
     Checkbox("Log Instructions to Emulator Debugger",
              &FeatureFlags::get().kLogInstructions);
+    Checkbox("Use Native File Dialog (NFD)", &FeatureFlags::get().kUseNativeFileDialog);
   }
 };
 
