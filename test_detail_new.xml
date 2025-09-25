@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="9" failures="0" disabled="0" errors="0" time="0.096" timestamp="2025-09-25T00:18:47.169" name="AllTests">
+  <testsuite name="AsarIntegrationTest" tests="9" failures="0" disabled="0" skipped="0" errors="0" time="0.096" timestamp="2025-09-25T00:18:47.169">
+    <testcase name="Initialization" file="/workspace/test/asar/asar_integration_test.cc" line="66" status="run" result="completed" time="0" timestamp="2025-09-25T00:18:47.169" classname="AsarIntegrationTest" />
+    <testcase name="Get65816Opcodes" file="/workspace/test/asar/asar_integration_test.cc" line="72" status="run" result="completed" time="0" timestamp="2025-09-25T00:18:47.169" classname="AsarIntegrationTest" />
+    <testcase name="PatchRomWithValidAssembly" file="/workspace/test/asar/asar_integration_test.cc" line="92" status="run" result="completed" time="0.026" timestamp="2025-09-25T00:18:47.169" classname="AsarIntegrationTest" />
+    <testcase name="PatchRomWithInvalidAssembly" file="/workspace/test/asar/asar_integration_test.cc" line="134" status="run" result="completed" time="0.015" timestamp="2025-09-25T00:18:47.196" classname="AsarIntegrationTest" />
+    <testcase name="ExtractSymbolsOnly" file="/workspace/test/asar/asar_integration_test.cc" line="161" status="run" result="completed" time="0.013" timestamp="2025-09-25T00:18:47.211" classname="AsarIntegrationTest" />
+    <testcase name="GetSymbolValue" file="/workspace/test/asar/asar_integration_test.cc" line="192" status="run" result="completed" time="0.013" timestamp="2025-09-25T00:18:47.225" classname="AsarIntegrationTest" />
+    <testcase name="GenerateSymbolsFile" file="/workspace/test/asar/asar_integration_test.cc" line="221" status="run" result="completed" time="0.013" timestamp="2025-09-25T00:18:47.239" classname="AsarIntegrationTest" />
+    <testcase name="GetWrittenBlocks" file="/workspace/test/asar/asar_integration_test.cc" line="244" status="run" result="completed" time="0.013" timestamp="2025-09-25T00:18:47.252" classname="AsarIntegrationTest" />
+    <testcase name="CrossPlatformCompatibility" file="/workspace/test/asar/asar_integration_test.cc" line="273" status="run" result="completed" time="0" timestamp="2025-09-25T00:18:47.265" classname="AsarIntegrationTest" />
+  </testsuite>
+</testsuites>

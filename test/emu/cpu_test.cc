@@ -24,6 +24,20 @@ class CpuTest : public ::testing::Test {
     mock_memory.Init();
     EXPECT_CALL(mock_memory, ClearMemory()).Times(::testing::AtLeast(1));
     mock_memory.ClearMemory();
+    
+    // Set up CPU callbacks to use mock memory
+    cpu_callbacks.read_byte = [this](uint32_t address) {
+      return mock_memory.ReadByte(address);
+    };
+    cpu_callbacks.write_byte = [this](uint32_t address, uint8_t value) {
+      mock_memory.WriteByte(address, value);
+    };
+    cpu_callbacks.idle = [](bool waiting) {
+      // Do nothing for idle callback
+    };
+    
+    // Connect callbacks to CPU
+    cpu.callbacks() = cpu_callbacks;
   }
 
   AsmParser asm_parser;
