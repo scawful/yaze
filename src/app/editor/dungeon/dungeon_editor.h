@@ -116,6 +116,12 @@ class DungeonEditor : public Editor {
   std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;
   std::pair<int, int> CanvasToRoomCoordinates(int canvas_x, int canvas_y) const;
   bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
+  
+  // Room graphics management
+  absl::Status LoadAndRenderRoomGraphics(int room_id);
+  absl::Status ReloadAllRoomGraphics();
+  absl::Status UpdateRoomBackgroundLayers(int room_id);
+  void RenderRoomBackgroundLayers(int room_id);
 
   // Object rendering cache to avoid re-rendering the same objects
   struct ObjectRenderCache {
