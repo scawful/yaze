@@ -22,47 +22,47 @@ constexpr uint16_t TileNameMask = 0x03FF;
 
 snes_tile8 UnpackBppTile(std::span<uint8_t> data, const uint32_t offset,
                          const uint32_t bpp) {
-  snes_tile8 tile;
+  snes_tile8 tile = {};  // Initialize to zero
   assert(bpp >= 1 && bpp <= 8);
   unsigned int bpp_pos[8];  // More for conveniance and readibility
-  for (int col = 0; col < 8; col++) {
-    for (int row = 0; row < 8; row++) {
+  for (int row = 0; row < 8; row++) {  // Process rows first (Y coordinate)
+    for (int col = 0; col < 8; col++) {  // Then columns (X coordinate)
       if (bpp == 1) {
-        tile.data[col * 8 + row] = (data[offset + col] >> (7 - row)) & 0x01;
+        tile.data[row * 8 + col] = (data[offset + row] >> (7 - col)) & 0x01;
         continue;
       }
       /* SNES bpp format interlace each byte of the first 2 bitplanes.
        * | byte 1 of first bitplane | byte 1 of second bitplane |
        * | byte 2 of first bitplane | byte 2 of second bitplane | ..
        */
-      bpp_pos[0] = offset + col * 2;
-      bpp_pos[1] = offset + col * 2 + 1;
-      char mask = 1 << (7 - row);
-      tile.data[col * 8 + row] = (data[bpp_pos[0]] & mask) == mask;
-      tile.data[col * 8 + row] |= ((data[bpp_pos[1]] & mask) == mask) << 1;
+      bpp_pos[0] = offset + row * 2;
+      bpp_pos[1] = offset + row * 2 + 1;
+      char mask = 1 << (7 - col);
+      tile.data[row * 8 + col] = (data[bpp_pos[0]] & mask) ? 1 : 0;
+      tile.data[row * 8 + col] |= ((data[bpp_pos[1]] & mask) ? 1 : 0) << 1;
       if (bpp == 3) {
         // When we have 3 bitplanes, the bytes for the third bitplane are after
         // the 16 bytes of the 2 bitplanes.
-        bpp_pos[2] = offset + 16 + col;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[2]] & mask) == mask) << 2;
+        bpp_pos[2] = offset + 16 + row;
+        tile.data[row * 8 + col] |= ((data[bpp_pos[2]] & mask) ? 1 : 0) << 2;
       }
       if (bpp >= 4) {
         // For 4 bitplanes, the 2 added bitplanes are interlaced like the first
         // two.
-        bpp_pos[2] = offset + 16 + col * 2;
-        bpp_pos[3] = offset + 16 + col * 2 + 1;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[2]] & mask) == mask) << 2;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[3]] & mask) == mask) << 3;
+        bpp_pos[2] = offset + 16 + row * 2;
+        bpp_pos[3] = offset + 16 + row * 2 + 1;
+        tile.data[row * 8 + col] |= ((data[bpp_pos[2]] & mask) ? 1 : 0) << 2;
+        tile.data[row * 8 + col] |= ((data[bpp_pos[3]] & mask) ? 1 : 0) << 3;
       }
       if (bpp == 8) {
-        bpp_pos[4] = offset + 32 + col * 2;
-        bpp_pos[5] = offset + 32 + col * 2 + 1;
-        bpp_pos[6] = offset + 48 + col * 2;
-        bpp_pos[7] = offset + 48 + col * 2 + 1;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[4]] & mask) == mask) << 4;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[5]] & mask) == mask) << 5;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[6]] & mask) == mask) << 6;
-        tile.data[col * 8 + row] |= ((data[bpp_pos[7]] & mask) == mask) << 7;
+        bpp_pos[4] = offset + 32 + row * 2;
+        bpp_pos[5] = offset + 32 + row * 2 + 1;
+        bpp_pos[6] = offset + 48 + row * 2;
+        bpp_pos[7] = offset + 48 + row * 2 + 1;
+        tile.data[row * 8 + col] |= ((data[bpp_pos[4]] & mask) ? 1 : 0) << 4;
+        tile.data[row * 8 + col] |= ((data[bpp_pos[5]] & mask) ? 1 : 0) << 5;
+        tile.data[row * 8 + col] |= ((data[bpp_pos[6]] & mask) ? 1 : 0) << 6;
+        tile.data[row * 8 + col] |= ((data[bpp_pos[7]] & mask) ? 1 : 0) << 7;
       }
     }
   }
@@ -72,40 +72,40 @@ snes_tile8 UnpackBppTile(std::span<uint8_t> data, const uint32_t offset,
 std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp) {
   // Allocate memory for output data
   std::vector<uint8_t> output(bpp * 8, 0);  // initialized with 0
-  unsigned maxcolor = 2 << bpp;
+  unsigned maxcolor = 1 << bpp;  // Fix: should be 1 << bpp, not 2 << bpp
 
-  // Iterate over all columns and rows of the tile
-  for (unsigned int col = 0; col < 8; col++) {
-    for (unsigned int row = 0; row < 8; row++) {
-      uint8_t color = tile.data[col * 8 + row];
-      if (color > maxcolor) {
+  // Iterate over all rows and columns of the tile
+  for (unsigned int row = 0; row < 8; row++) {
+    for (unsigned int col = 0; col < 8; col++) {
+      uint8_t color = tile.data[row * 8 + col];
+      if (color >= maxcolor) {
         throw std::invalid_argument("Invalid color value.");
       }
 
       // 1bpp format
-      if (bpp == 1) output[col] += (uint8_t)((color & 1) << (7 - row));
+      if (bpp == 1) output[row] += (uint8_t)((color & 1) << (7 - col));
 
       // 2bpp format
       if (bpp >= 2) {
-        output[col * 2] += ((color & 1) << (7 - row));
-        output[col * 2 + 1] += (((color & 2) == 2) << (7 - row));
+        output[row * 2] += ((color & 1) << (7 - col));
+        output[row * 2 + 1] += (((color & 2) == 2) << (7 - col));
       }
 
       // 3bpp format
-      if (bpp == 3) output[16 + col] += (((color & 4) == 4) << (7 - row));
+      if (bpp == 3) output[16 + row] += (((color & 4) == 4) << (7 - col));
 
       // 4bpp format
       if (bpp >= 4) {
-        output[16 + col * 2] += (((color & 4) == 4) << (7 - row));
-        output[16 + col * 2 + 1] += (((color & 8) == 8) << (7 - row));
+        output[16 + row * 2] += (((color & 4) == 4) << (7 - col));
+        output[16 + row * 2 + 1] += (((color & 8) == 8) << (7 - col));
       }
 
       // 8bpp format
       if (bpp == 8) {
-        output[32 + col * 2] += (((color & 16) == 16) << (7 - row));
-        output[32 + col * 2 + 1] += (((color & 32) == 32) << (7 - row));
-        output[48 + col * 2] += (((color & 64) == 64) << (7 - row));
-        output[48 + col * 2 + 1] += (((color & 128) == 128) << (7 - row));
+        output[32 + row * 2] += (((color & 16) == 16) << (7 - col));
+        output[32 + row * 2 + 1] += (((color & 32) == 32) << (7 - col));
+        output[48 + row * 2] += (((color & 64) == 64) << (7 - col));
+        output[48 + row * 2 + 1] += (((color & 128) == 128) << (7 - col));
       }
     }
   }
