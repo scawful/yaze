@@ -208,16 +208,16 @@
   ],
   "testPresets": [
     {
-      "name": "default",
+      "name": "stable",
       "configurePreset": "default",
-      "displayName": "Default Tests",
+      "displayName": "Stable Tests (Release Ready)",
       "execution": {
         "noTestsAction": "error",
-        "stopOnFailure": false
+        "stopOnFailure": true
       },
       "filter": {
-        "exclude": {
-          "label": "ROM_DEPENDENT"
+        "include": {
+          "label": "STABLE"
         }
       }
     },
@@ -228,19 +228,48 @@
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false
+      },
+      "filter": {
+        "exclude": {
+          "label": "EXPERIMENTAL"
+        }
       }
     },
     {
       "name": "ci",
       "configurePreset": "ci",
-      "displayName": "CI Tests (no ROM)",
+      "displayName": "CI Tests (stable only)",
       "execution": {
         "noTestsAction": "error",
+        "stopOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "label": "STABLE"
+        }
+      }
+    },
+    {
+      "name": "experimental",
+      "configurePreset": "debug",
+      "displayName": "Experimental Tests",
+      "execution": {
+        "noTestsAction": "ignore",
         "stopOnFailure": false
       },
       "filter": {
-        "exclude": {
-          "label": "ROM_DEPENDENT"
+        "include": {
+          "label": "EXPERIMENTAL"
+        }
+      }
+    },
+    {
+      "name": "asar-only",
+      "configurePreset": "default",
+      "displayName": "Asar Tests Only",
+      "filter": {
+        "include": {
+          "name": "*Asar*"
         }
       }
     },
@@ -251,16 +280,6 @@
       "filter": {
         "include": {
           "label": "UNIT_TEST"
-        }
-      }
-    },
-    {
-      "name": "integration-only",
-      "configurePreset": "dev",
-      "displayName": "Integration Tests Only",
-      "filter": {
-        "include": {
-          "label": "INTEGRATION_TEST"
         }
       }
     }

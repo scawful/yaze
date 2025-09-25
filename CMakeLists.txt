@@ -20,8 +20,10 @@ set(YAZE_BUILD_Z3ED ON)
 set(YAZE_BUILD_TESTS ON)
 set(YAZE_INSTALL_LIB OFF)
 
-# ROM Testing Configuration
+# Testing and CI Configuration
 option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" OFF)
+option(YAZE_ENABLE_EXPERIMENTAL_TESTS "Enable experimental/unstable tests" ON)
+option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
 
 # libpng features in bitmap.cc

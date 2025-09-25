@@ -50,10 +50,13 @@ target_include_directories(
   ${PROJECT_BINARY_DIR}
 )
 
-target_link_libraries(
-  yaze PRIVATE
-  nfd
-)
+# Conditionally link nfd if available
+if(YAZE_HAS_NFD)
+  target_link_libraries(yaze PRIVATE nfd)
+  target_compile_definitions(yaze PRIVATE YAZE_ENABLE_NFD=1)
+else()
+  target_compile_definitions(yaze PRIVATE YAZE_ENABLE_NFD=0)
+endif()
 
 target_link_libraries(
   yaze PUBLIC

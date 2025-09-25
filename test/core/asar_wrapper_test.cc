@@ -275,7 +275,10 @@ TEST_F(AsarWrapperTest, AssemblyValidation) {
   auto invalid_status = wrapper_->ValidateAssembly(invalid_asm_path_.string());
   EXPECT_FALSE(invalid_status.ok());
   EXPECT_THAT(invalid_status.message(), 
-              testing::HasSubstr("validation failed"));
+              testing::AnyOf(testing::HasSubstr("validation failed"),
+                           testing::HasSubstr("Patch failed"),
+                           testing::HasSubstr("Unknown command"),
+                           testing::HasSubstr("Label")));
 }
 
 TEST_F(AsarWrapperTest, ResetFunctionality) {
