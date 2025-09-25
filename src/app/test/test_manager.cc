@@ -281,13 +281,16 @@ void TestManager::TrimResourceHistory() {
   }
 }
 
-void TestManager::DrawTestDashboard() {
-  show_dashboard_ = true; // Enable dashboard visibility
+void TestManager::DrawTestDashboard(bool* show_dashboard) {
+  bool* dashboard_flag = show_dashboard ? show_dashboard : &show_dashboard_;
   
   // Set a larger default window size
   ImGui::SetNextWindowSize(ImVec2(900, 700), ImGuiCond_FirstUseEver);
   
-  ImGui::Begin("Test Dashboard", &show_dashboard_, ImGuiWindowFlags_MenuBar);
+  if (!ImGui::Begin("Test Dashboard", dashboard_flag, ImGuiWindowFlags_MenuBar)) {
+    ImGui::End();
+    return;
+  }
   
   // ROM status indicator with detailed information
   bool has_rom = current_rom_ && current_rom_->is_loaded();

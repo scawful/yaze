@@ -164,7 +164,7 @@ class TestManager {
   float GetProgress() const { return progress_; }
 
   // UI Interface
-  void DrawTestDashboard();
+  void DrawTestDashboard(bool* show_dashboard = nullptr);
 
   // ROM-dependent testing
   void SetCurrentRom(Rom* rom) { 
