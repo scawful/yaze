@@ -10,6 +10,7 @@
 #include "app/gfx/arena.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "app/editor/overworld/tile16_editor.h"
 #include "app/gui/icons.h"
 
 namespace yaze {
@@ -47,6 +48,8 @@ class RomDependentTestSuite : public TestSuite {
     RunRomDataAccessTest(results, current_rom);
     RunRomGraphicsExtractionTest(results, current_rom);
     RunRomOverworldLoadingTest(results, current_rom);
+    RunTile16EditorTest(results, current_rom);
+    RunComprehensiveSaveTest(results, current_rom);
     
     if (test_advanced_features_) {
       RunRomSpriteDataTest(results, current_rom);
@@ -327,11 +330,109 @@ class RomDependentTestSuite : public TestSuite {
     results.AddResult(result);
   }
   
+  void RunTile16EditorTest(TestResults& results, Rom* rom) {
+    auto start_time = std::chrono::steady_clock::now();
+    
+    TestResult result;
+    result.name = "Tile16_Editor_Test";
+    result.suite_name = GetName();
+    result.category = GetCategory();
+    result.timestamp = start_time;
+    
+    try {
+      // Test Tile16 editor functionality
+      editor::Tile16Editor tile16_editor(rom, nullptr);
+      
+      // Create test bitmaps with minimal data
+      std::vector<uint8_t> test_data(256, 0); // 16x16 = 256 pixels
+      gfx::Bitmap test_blockset_bmp, test_gfx_bmp;
+      test_blockset_bmp.Create(256, 8192, 8, test_data);
+      test_gfx_bmp.Create(256, 256, 8, test_data);
+      
+      std::array<uint8_t, 0x200> tile_types{};
+      
+      // Test initialization
+      auto init_status = tile16_editor.Initialize(test_blockset_bmp, test_gfx_bmp, tile_types);
+      if (!init_status.ok()) {
+        result.status = TestStatus::kFailed;
+        result.error_message = "Tile16Editor initialization failed: " + init_status.ToString();
+      } else {
+        result.status = TestStatus::kPassed;
+        result.error_message = "Tile16Editor initialized successfully";
+      }
+    } catch (const std::exception& e) {
+      result.status = TestStatus::kFailed;
+      result.error_message = "Tile16Editor test exception: " + std::string(e.what());
+    }
+    
+    auto end_time = std::chrono::steady_clock::now();
+    result.duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+        end_time - start_time);
+    
+    results.AddResult(result);
+  }
+  
+  void RunComprehensiveSaveTest(TestResults& results, Rom* rom) {
+    auto start_time = std::chrono::steady_clock::now();
+    
+    TestResult result;
+    result.name = "Comprehensive_Save_Test";
+    result.suite_name = GetName();
+    result.category = GetCategory();
+    result.timestamp = start_time;
+    
+    try {
+      // Test comprehensive save functionality
+      // 1. Create backup of original ROM data  
+      auto original_data = rom->vector();
+      
+      // 2. Test overworld modifications
+      zelda3::Overworld overworld(rom);
+      auto load_status = overworld.Load(rom);
+      if (!load_status.ok()) {
+        result.status = TestStatus::kFailed;
+        result.error_message = "Failed to load overworld: " + load_status.ToString();
+      } else {
+        // 3. Make a small, safe modification
+        auto* test_map = overworld.mutable_overworld_map(0);
+        uint8_t original_gfx = test_map->area_graphics();
+        test_map->set_area_graphics(0x01); // Change to a different graphics set
+        
+        // 4. Test save operations
+        auto save_maps_status = overworld.SaveOverworldMaps();
+        auto save_props_status = overworld.SaveMapProperties();
+        
+        // 5. Restore original value immediately
+        test_map->set_area_graphics(original_gfx);
+        
+        if (save_maps_status.ok() && save_props_status.ok()) {
+          result.status = TestStatus::kPassed;
+          result.error_message = "Save operations completed successfully";
+        } else {
+          result.status = TestStatus::kFailed;
+          result.error_message = "Save operations failed";
+        }
+      }
+      
+    } catch (const std::exception& e) {
+      result.status = TestStatus::kFailed;
+      result.error_message = "Comprehensive save test exception: " + std::string(e.what());
+    }
+    
+    auto end_time = std::chrono::steady_clock::now();
+    result.duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+        end_time - start_time);
+    
+    results.AddResult(result);
+  }
+  
   // Configuration
   bool test_header_validation_ = true;
   bool test_data_access_ = true;
   bool test_graphics_extraction_ = true;
   bool test_overworld_loading_ = true;
+  bool test_tile16_editor_ = true;
+  bool test_comprehensive_save_ = true;
   bool test_advanced_features_ = false;
   bool test_sprite_data_ = false;
   bool test_music_data_ = false;

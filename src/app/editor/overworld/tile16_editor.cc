@@ -1,7 +1,5 @@
 #include "tile16_editor.h"
 
-#include <future>
-
 #include "absl/status/status.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/window.h"
@@ -14,6 +12,7 @@
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace editor {
@@ -34,7 +33,7 @@ absl::Status Tile16Editor::Initialize(
       tile16_blockset_bmp.depth(), tile16_blockset_bmp.vector());
   tile16_blockset_bmp_.SetPalette(tile16_blockset_bmp.palette());
   core::Renderer::Get().RenderBitmap(&tile16_blockset_bmp_);
-  // RETURN_IF_ERROR(LoadTile8());
+  RETURN_IF_ERROR(LoadTile8());
   map_blockset_loaded_ = true;
 
   ImVector<std::string> tile16_names;
@@ -187,6 +186,19 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
   constexpr int tile8_size = 8;
   constexpr int tile16_size = 16;
 
+  // Bounds check for current_tile8_
+  if (current_tile8_ < 0 || current_tile8_ >= static_cast<int>(current_gfx_individual_.size())) {
+    return absl::OutOfRangeError(absl::StrFormat("Invalid tile8 index: %d", current_tile8_));
+  }
+  
+  if (!current_gfx_individual_[current_tile8_].is_active()) {
+    return absl::FailedPreconditionError("Source tile8 bitmap not active");
+  }
+  
+  if (!current_tile16_bmp_.is_active()) {
+    return absl::FailedPreconditionError("Target tile16 bitmap not active");
+  }
+
   // Calculate the tile index for x and y based on the click_position
   // Adjusting for Tile16 (16x16) which contains 4 Tile8 (8x8)
   int tile_index_x = static_cast<int>(click_position.x) / tile8_size;
@@ -201,6 +213,12 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
   int start_x = tile_index_x * tile8_size;
   int start_y = tile_index_y * tile8_size;
 
+  // Get source tile data
+  const auto& source_tile = current_gfx_individual_[current_tile8_];
+  if (source_tile.size() < 64) { // 8x8 = 64 pixels
+    return absl::FailedPreconditionError("Source tile data too small");
+  }
+
   // Draw the Tile8 to the correct position within the Tile16
   for (int y = 0; y < tile8_size; ++y) {
     for (int x = 0; x < tile8_size; ++x) {
@@ -208,6 +226,11 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
       int pixel_x = start_x + x;
       int pixel_y = start_y + y;
       int pixel_index = pixel_y * tile16_size + pixel_x;
+
+      // Bounds check for tile16 bitmap
+      if (pixel_index < 0 || pixel_index >= static_cast<int>(current_tile16_bmp_.size())) {
+        continue;
+      }
 
       // Calculate the pixel position in the Tile8 bitmap
       int gfx_pixel_index = y * tile8_size + x;
@@ -224,13 +247,15 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
             (tile8_size - 1 - y) * tile8_size + (tile8_size - 1 - x);
       }
 
-      // Write the pixel to the Tile16 bitmap
-      current_tile16_bmp_.WriteToPixel(
-          pixel_index,
-          current_gfx_individual_[current_tile8_].data()[gfx_pixel_index]);
+      // Bounds check for source tile
+      if (gfx_pixel_index >= 0 && gfx_pixel_index < static_cast<int>(source_tile.size())) {
+        // Write the pixel to the Tile16 bitmap
+        current_tile16_bmp_.WriteToPixel(pixel_index, source_tile.data()[gfx_pixel_index]);
+      }
     }
   }
 
+  current_tile16_bmp_.set_modified(true);
   return absl::OkStatus();
 }
 
@@ -260,10 +285,14 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           tile8_source_canvas_.DrawBackground();
           tile8_source_canvas_.DrawContextMenu();
           if (tile8_source_canvas_.DrawTileSelector(32)) {
-            current_gfx_individual_[current_tile8_].SetPaletteWithTransparent(
-                ow_main_pal_group[0], current_palette_);
-            Renderer::Get().UpdateBitmap(
-                &current_gfx_individual_[current_tile8_]);
+            // Bounds check before accessing current_gfx_individual_
+            if (current_tile8_ >= 0 && current_tile8_ < static_cast<int>(current_gfx_individual_.size()) &&
+                current_gfx_individual_[current_tile8_].is_active()) {
+              current_gfx_individual_[current_tile8_].SetPaletteWithTransparent(
+                  ow_main_pal_group[0], current_palette_);
+              Renderer::Get().UpdateBitmap(
+                  &current_gfx_individual_[current_tile8_]);
+            }
           }
           tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 0, 0, 4.0f);
           tile8_source_canvas_.DrawGrid();
@@ -415,72 +444,112 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     uint16_t y = tile8_source_canvas_.points().front().y / 16;
 
     current_tile8_ = x + (y * 8);
-    current_gfx_individual_[current_tile8_].SetPaletteWithTransparent(
-        ow_main_pal_group[0], current_palette_);
-    Renderer::Get().UpdateBitmap(&current_gfx_individual_[current_tile8_]);
+    
+    // Bounds check before accessing current_gfx_individual_
+    if (current_tile8_ >= 0 && current_tile8_ < static_cast<int>(current_gfx_individual_.size()) &&
+        current_gfx_individual_[current_tile8_].is_active()) {
+      current_gfx_individual_[current_tile8_].SetPaletteWithTransparent(
+          ow_main_pal_group[0], current_palette_);
+      Renderer::Get().UpdateBitmap(&current_gfx_individual_[current_tile8_]);
+    }
   }
 
   return absl::OkStatus();
 }
 
 absl::Status Tile16Editor::LoadTile8() {
-  auto ow_main_pal_group = rom()->palette_group().overworld_main;
+  if (!current_gfx_bmp_.is_active() || current_gfx_bmp_.data() == nullptr) {
+    return absl::FailedPreconditionError("Current graphics bitmap not initialized");
+  }
+
+  const auto& ow_main_pal_group = rom()->palette_group().overworld_main;
+  if (ow_main_pal_group.size() == 0) {
+    return absl::FailedPreconditionError("Overworld palette group not loaded");
+  }
+  
+  current_gfx_individual_.clear();
   current_gfx_individual_.reserve(1024);
 
-  std::vector<std::future<std::array<uint8_t, 0x40>>> futures;
-
+  // Process tiles sequentially to avoid race conditions
   for (int index = 0; index < 1024; index++) {
-    auto task_function = [&]() {
-      std::array<uint8_t, 0x40> tile_data;
-      // Copy the pixel data for the current tile into the vector
-      for (int ty = 0; ty < 8; ty++) {
-        for (int tx = 0; tx < 8; tx++) {
-          // Gfx is 16 sheets of 8x8 tiles ordered 16 wide by 4 tall
-          // Calculate the position in the tile data vector
-          int position = tx + (ty * 0x08);
-
-          // Calculate the position in the current gfx data
-          int num_columns = current_gfx_bmp_.width() / 8;
-          int x = (index % num_columns) * 8 + tx;
-          int y = (index / num_columns) * 8 + ty;
-          int gfx_position = x + (y * 0x100);
-
-          // Get the pixel value from the current gfx data
+    std::array<uint8_t, 0x40> tile_data{};
+    
+    // Calculate the position in the current gfx data
+    int num_columns = current_gfx_bmp_.width() / 8;
+    if (num_columns <= 0) {
+      continue; // Skip invalid tiles
+    }
+    
+    // Copy the pixel data for the current tile into the vector
+    for (int ty = 0; ty < 8; ty++) {
+      for (int tx = 0; tx < 8; tx++) {
+        // Calculate the position in the tile data vector
+        int position = tx + (ty * 8);
+        
+        // Calculate the position in the current gfx data
+        int x = (index % num_columns) * 8 + tx;
+        int y = (index / num_columns) * 8 + ty;
+        int gfx_position = x + (y * current_gfx_bmp_.width());
+        
+        // Bounds check
+        if (gfx_position >= 0 && gfx_position < static_cast<int>(current_gfx_bmp_.size())) {
           uint8_t value = current_gfx_bmp_.data()[gfx_position];
-
+          
+          // Handle palette adjustment
           if (value & 0x80) {
             value -= 0x88;
           }
-
+          
           tile_data[position] = value;
         }
       }
-      return tile_data;
-    };
-    futures.emplace_back(std::async(std::launch::async, task_function));
-  }
-
-  for (auto &future : futures) {
-    future.wait();
-    auto tile_data = future.get();
+    }
+    
+    // Create the tile bitmap
     current_gfx_individual_.emplace_back();
     auto &tile_bitmap = current_gfx_individual_.back();
-    tile_bitmap.Create(0x08, 0x08, 0x08, tile_data);
-    tile_bitmap.SetPaletteWithTransparent(ow_main_pal_group[0],
-                                          current_palette_);
-    Renderer::Get().RenderBitmap(&tile_bitmap);
+    
+    try {
+      tile_bitmap.Create(8, 8, 8, tile_data);
+      if (current_palette_ < ow_main_pal_group.size()) {
+        tile_bitmap.SetPaletteWithTransparent(ow_main_pal_group[0], current_palette_);
+      }
+      Renderer::Get().RenderBitmap(&tile_bitmap);
+    } catch (const std::exception& e) {
+      // Log error but continue with other tiles
+      util::logf("Error creating tile %d: %s", index, e.what());
+      continue;
+    }
   }
 
   return absl::OkStatus();
 }
 
 absl::Status Tile16Editor::SetCurrentTile(int id) {
+  if (id < 0 || id >= zelda3::kNumTile16Individual) {
+    return absl::OutOfRangeError(absl::StrFormat("Invalid tile16 id: %d", id));
+  }
+  
+  if (!tile16_blockset_) {
+    return absl::FailedPreconditionError("Tile16 blockset not initialized");
+  }
+
   current_tile16_ = id;
-  gfx::RenderTile(*tile16_blockset_, current_tile16_);
-  current_tile16_bmp_ = tile16_blockset_->tile_bitmaps[current_tile16_];
-  auto ow_main_pal_group = rom()->palette_group().overworld_main;
-  current_tile16_bmp_.SetPalette(ow_main_pal_group[current_palette_]);
-  Renderer::Get().UpdateBitmap(&current_tile16_bmp_);
+  
+  try {
+    gfx::RenderTile(*tile16_blockset_, current_tile16_);
+    current_tile16_bmp_ = tile16_blockset_->tile_bitmaps[current_tile16_];
+
+    const auto& ow_main_pal_group = rom()->palette_group().overworld_main;
+    if (ow_main_pal_group.size() > 0 && current_palette_ < ow_main_pal_group.size()) {
+      current_tile16_bmp_.SetPalette(ow_main_pal_group[current_palette_]);
+    }
+    
+    Renderer::Get().UpdateBitmap(&current_tile16_bmp_);
+  } catch (const std::exception& e) {
+    return absl::InternalError(absl::StrFormat("Failed to set current tile: %s", e.what()));
+  }
+  
   return absl::OkStatus();
 }
 

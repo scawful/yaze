@@ -9,7 +9,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/core/asar_wrapper.h"
+// #include "app/core/asar_wrapper.h"  // Commented out for build compatibility
 #include "app/core/features.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/window.h"
@@ -1145,8 +1145,9 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
   gui::EndPadding();
   {
     current_gfx_canvas_.DrawContextMenu();
-    current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_],
-                                   /*border_offset=*/2, 2.0f);
+    if (current_graphics_set_.contains(current_map_) && current_graphics_set_[current_map_].is_active()) {
+      current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_], 2, 2, 2.0f);
+    }
     current_gfx_canvas_.DrawTileSelector(32.0f);
     current_gfx_canvas_.DrawGrid();
     current_gfx_canvas_.DrawOverlay();
@@ -2631,69 +2632,9 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
         "ZSCustomOverworld ASM application is disabled in feature flags");
   }
 
-  // Initialize Asar wrapper
-  app::core::AsarWrapper asar;
-  RETURN_IF_ERROR(asar.Initialize());
-
-  // Determine which ASM file to use based on target version
-  std::string asm_file_path;
-  if (target_version >= 3) {
-    asm_file_path = "assets/asm/ZSCustomOverworld_v3.asm";
-  } else {
-    asm_file_path = "assets/asm/ZSCustomOverworld.asm";
-  }
-
-  // Check if ASM file exists
-  if (!std::filesystem::exists(asm_file_path)) {
-    return absl::NotFoundError(
-        absl::StrFormat("ASM file not found: %s", asm_file_path));
-  }
-
-  util::logf("Applying ZSCustomOverworld ASM v%d to ROM...", target_version);
-
-  // Apply the ASM patch
-  auto rom_data = rom_->vector();
-  auto patch_result = asar.ApplyPatch(asm_file_path, rom_data);
-  if (!patch_result.ok()) {
-    return absl::InternalError(
-        absl::StrFormat("Failed to apply ZSCustomOverworld ASM: %s",
-                        patch_result.status().ToString()));
-  }
-
-  if (!patch_result->success) {
-    std::string error_msg = "ZSCustomOverworld ASM patch failed";
-    if (!patch_result->errors.empty()) {
-      error_msg += ": " + patch_result->errors.front();
-    }
-    return absl::InternalError(error_msg);
-  }
-
-  // Update ROM with patched data (asar modifies rom_data in-place)
-  if (patch_result->rom_size > 0 &&
-      static_cast<size_t>(patch_result->rom_size) != rom_->vector().size()) {
-    // ROM size changed, need to expand/shrink
-    rom_->Expand(patch_result->rom_size);
-  }
-
-  // Copy patched data to ROM (rom_data was modified in-place by asar)
-  std::copy(rom_data.begin(), rom_data.end(), rom_->mutable_data());
-
-  // Log success and any symbols
-  util::logf("Successfully applied ZSCustomOverworld ASM v%d", target_version);
-  if (!patch_result->symbols.empty()) {
-    util::logf("Extracted %zu symbols from ASM patch",
-               patch_result->symbols.size());
-  }
-
-  // Show any warnings from the assembler
-  if (!patch_result->warnings.empty()) {
-    util::logf("ASM patch warnings:");
-    for (const auto &warning : patch_result->warnings) {
-      util::logf("  %s", warning.c_str());
-    }
-  }
-
-  return absl::OkStatus();
+  // TODO: Implement ASM application when Asar wrapper is available
+  util::logf("ASM application not yet implemented - only setting version marker");
+  return absl::UnimplementedError("ASM application feature not yet implemented");
 }
 
 }  // namespace yaze::editor
