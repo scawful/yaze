@@ -39,13 +39,13 @@ void CommandManager::ShowWhichKey() {
 
     if (ImGui::BeginTable("CommandsTable", commands_.size(),
                           ImGuiTableFlags_SizingStretchProp)) {
-      for (const auto &[shortcut, info] : commands_) {
-        ImGui::TableNextColumn();
-        ImGui::TextColored(colors[colorIndex], "%c: %s",
-                           info.command_info.mnemonic,
-                           info.command_info.name.c_str());
-        colorIndex = (colorIndex + 1) % numColors;
-      }
+    for (const auto &[shortcut, group] : commands_) {
+      ImGui::TableNextColumn();
+      ImGui::TextColored(colors[colorIndex], "%c: %s",
+                         group.main_command.mnemonic,
+                         group.main_command.name.c_str());
+      colorIndex = (colorIndex + 1) % numColors;
+    }
       ImGui::EndTable();
     }
     ImGui::EndPopup();
@@ -55,9 +55,9 @@ void CommandManager::ShowWhichKey() {
 void CommandManager::SaveKeybindings(const std::string &filepath) {
   std::ofstream out(filepath);
   if (out.is_open()) {
-    for (const auto &[shortcut, info] : commands_) {
-      out << shortcut << " " << info.command_info.mnemonic << " "
-          << info.command_info.name << " " << info.command_info.desc << "\n";
+    for (const auto &[shortcut, group] : commands_) {
+      out << shortcut << " " << group.main_command.mnemonic << " "
+          << group.main_command.name << " " << group.main_command.desc << "\n";
     }
     out.close();
   }
@@ -70,7 +70,7 @@ void CommandManager::LoadKeybindings(const std::string &filepath) {
     std::string shortcut, name, desc;
     char mnemonic;
     while (in >> shortcut >> mnemonic >> name >> desc) {
-      commands_[shortcut].command_info = {nullptr, mnemonic, name, desc};
+      commands_[shortcut].main_command = {nullptr, mnemonic, name, desc};
     }
     in.close();
   }
