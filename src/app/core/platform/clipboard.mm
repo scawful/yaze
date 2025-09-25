@@ -6,6 +6,7 @@
 #ifdef TARGET_OS_MAC
 #import <Cocoa/Cocoa.h>
 
+#if YAZE_LIB_PNG == 1
 void yaze::core::CopyImageToClipboard(const std::vector<uint8_t>& pngData) {
   NSData* data = [NSData dataWithBytes:pngData.data() length:pngData.size()];
   NSImage* image = [[NSImage alloc] initWithData:data];
@@ -41,5 +42,6 @@ void yaze::core::GetImageFromClipboard(std::vector<uint8_t>& pixel_data, int& wi
   CGContextDrawImage(context, CGRectMake(0, 0, width, height), cgImage);
   CGContextRelease(context);
 }
+#endif  // YAZE_LIB_PNG
 
-#endif
+#endif  // TARGET_OS_MAC
