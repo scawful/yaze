@@ -228,8 +228,9 @@ Bitmap::Bitmap(const Bitmap& other)
   if (active_ && !data_.empty()) {
     surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                            GetSnesPixelFormat(BitmapFormat::kIndexed));
-    if (surface_) {
-      surface_->pixels = pixel_data_;
+    if (surface_ && surface_->pixels) {
+      memcpy(surface_->pixels, pixel_data_, 
+             std::min(data_.size(), static_cast<size_t>(surface_->h * surface_->pitch)));
     }
   }
 }
@@ -345,14 +346,24 @@ void Bitmap::Create(int width, int height, int depth, int format,
     active_ = false;
     return;
   }
-  surface_->pixels = pixel_data_;
+  
+  // Copy our data into the surface's pixel buffer instead of pointing to external data
+  if (surface_->pixels && data_.size() > 0) {
+    memcpy(surface_->pixels, pixel_data_, 
+           std::min(data_.size(), static_cast<size_t>(surface_->h * surface_->pitch)));
+  }
   active_ = true;
 }
 
 void Bitmap::Reformat(int format) {
   surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                           GetSnesPixelFormat(format));
-  surface_->pixels = pixel_data_;
+  
+  // Copy our data into the surface's pixel buffer
+  if (surface_ && surface_->pixels && data_.size() > 0) {
+    memcpy(surface_->pixels, pixel_data_, 
+           std::min(data_.size(), static_cast<size_t>(surface_->h * surface_->pitch)));
+  }
   active_ = true;
   SetPalette(palette_);
 }
@@ -362,7 +373,13 @@ void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
     CreateTexture(renderer);
     return;
   }
-  memcpy(surface_->pixels, data_.data(), data_.size());
+  
+  // Ensure surface pixels are synchronized with our data
+  if (surface_ && surface_->pixels && data_.size() > 0) {
+    memcpy(surface_->pixels, data_.data(), 
+           std::min(data_.size(), static_cast<size_t>(surface_->h * surface_->pitch)));
+  }
+  
   Arena::Get().UpdateTexture(texture_, surface_);
 }
 

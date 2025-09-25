@@ -109,6 +109,9 @@ class EditorManager {
   absl::Status OpenRomOrProject(const std::string& filename);
   absl::Status OpenProject();
   absl::Status SaveProject();
+  
+  // Testing system
+  void InitializeTestSuites();
 
   bool quit_ = false;
   bool backup_rom_ = false;
@@ -131,6 +134,9 @@ class EditorManager {
   bool show_homepage_ = true;
   bool show_command_palette_ = false;
   bool show_global_search_ = false;
+  
+  // Testing interface
+  bool show_test_dashboard_ = false;
 
   std::string version_ = "";
   std::string settings_filename_ = "settings.ini";

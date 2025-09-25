@@ -18,7 +18,21 @@ Arena::Arena() {
 }
 
 Arena::~Arena() {
+  // Safely clear all resources with proper error checking
+  for (auto& [key, texture] : textures_) {
+    // Don't rely on unique_ptr deleter during shutdown - manually manage
+    if (texture && key) {
+      [[maybe_unused]] auto* released = texture.release(); // Release ownership to prevent double deletion
+    }
+  }
   textures_.clear();
+  
+  for (auto& [key, surface] : surfaces_) {
+    // Don't rely on unique_ptr deleter during shutdown - manually manage
+    if (surface && key) {
+      [[maybe_unused]] auto* released = surface.release(); // Release ownership to prevent double deletion
+    }
+  }
   surfaces_.clear();
 }
 
@@ -54,6 +68,16 @@ void Arena::FreeTexture(SDL_Texture* texture) {
   if (it != textures_.end()) {
     textures_.erase(it);
   }
+}
+
+void Arena::Shutdown() {
+  // Clear all resources safely - let the unique_ptr deleters handle the cleanup
+  // while SDL context is still available
+  
+  // Just clear the containers - the unique_ptr destructors will handle SDL cleanup
+  // This avoids double-free issues from manual destruction
+  textures_.clear();
+  surfaces_.clear();
 }
 
 void Arena::UpdateTexture(SDL_Texture* texture, SDL_Surface* surface) {
@@ -103,6 +127,7 @@ SDL_Surface* Arena::AllocateSurface(int width, int height, int depth,
       std::unique_ptr<SDL_Surface, core::SDL_Surface_Deleter>(surface);
   return surface;
 }
+
 
 void Arena::FreeSurface(SDL_Surface* surface) {
   if (!surface) return;

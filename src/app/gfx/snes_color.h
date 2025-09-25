@@ -42,9 +42,9 @@ class SnesColor {
 
   explicit SnesColor(const ImVec4 val) : rgb_(val) {
     snes_color color;
-    color.red = val.x / kColorByteMax;
-    color.green = val.y / kColorByteMax;
-    color.blue = val.z / kColorByteMax;
+    color.red = static_cast<uint16_t>(val.x * kColorByteMax);
+    color.green = static_cast<uint16_t>(val.y * kColorByteMax);
+    color.blue = static_cast<uint16_t>(val.z * kColorByteMax);
     snes_ = ConvertRgbToSnes(color);
   }
 

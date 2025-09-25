@@ -20,6 +20,8 @@
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "test/test_manager.h"
+#include "test/unit_test_suite.h"
 #include "editor/editor.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
@@ -105,6 +107,17 @@ void EditorManager::LoadWorkspacePreset(const std::string &name) {
   last_workspace_preset_ = name;
 }
 
+void EditorManager::InitializeTestSuites() {
+  auto& test_manager = test::TestManager::Get();
+  
+  // Register unit test suites
+  test_manager.RegisterTestSuite(std::make_unique<test::UnitTestSuite>());
+  test_manager.RegisterTestSuite(std::make_unique<test::ArenaTestSuite>());
+  
+  // Update resource monitoring to track Arena state
+  test_manager.UpdateResourceStats();
+}
+
 constexpr const char *kOverworldEditorName = ICON_MD_LAYERS " Overworld Editor";
 constexpr const char *kGraphicsEditorName = ICON_MD_PHOTO " Graphics Editor";
 constexpr const char *kPaletteEditorName = ICON_MD_PALETTE " Palette Editor";
@@ -134,6 +147,9 @@ void EditorManager::Initialize(const std::string &filename) {
   // Load user settings and workspace presets
   LoadUserSettings();
   RefreshWorkspacePresets();
+  
+  // Initialize testing system
+  InitializeTestSuites();
 
   context_.shortcut_manager.RegisterShortcut(
       "Open", {ImGuiKey_O, ImGuiMod_Ctrl}, [this]() { status_ = LoadRom(); });
@@ -360,18 +376,55 @@ void EditorManager::Initialize(const std::string &filename) {
            {absl::StrCat(ICON_MD_SPACE_DASHBOARD, " Layout"), "",
             [&]() { show_workspace_layout = true; }},
        }},
+      {"Testing",
+       {},
+       {},
+       {},
+       {
+           {absl::StrCat(ICON_MD_SCIENCE, " Test Dashboard"), "",
+            [&]() { show_test_dashboard_ = true; }},
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_PLAY_ARROW, " Run All Tests"), "",
+            [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunAllTests(); }},
+           {absl::StrCat(ICON_MD_INTEGRATION_INSTRUCTIONS, " Run Unit Tests"), "",
+            [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kUnit); }},
+           {absl::StrCat(ICON_MD_MEMORY, " Run Integration Tests"), "",
+            [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kIntegration); }},
+           {absl::StrCat(ICON_MD_MOUSE, " Run UI Tests"), "",
+            [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kUI); }},
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_CLEAR_ALL, " Clear Results"), "",
+            [&]() { test::TestManager::Get().ClearResults(); }},
+       }},
       {"Help",
        {},
        {},
        {},
        {
-           {absl::StrCat(ICON_MD_HELP, " How to open a ROM"), "",
+           {absl::StrCat(ICON_MD_HELP, " Getting Started"), "",
+            [&]() { popup_manager_->Show("Getting Started"); }},
+           {absl::StrCat(ICON_MD_INTEGRATION_INSTRUCTIONS, " Asar Integration Guide"), "",
+            [&]() { popup_manager_->Show("Asar Integration"); }},
+           {absl::StrCat(ICON_MD_BUILD, " Build Instructions"), "",
+            [&]() { popup_manager_->Show("Build Instructions"); }},
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_FILE_OPEN, " How to open a ROM"), "",
             [&]() { popup_manager_->Show("Open a ROM"); }},
-           {absl::StrCat(ICON_MD_HELP, " Supported Features"), "",
+           {absl::StrCat(ICON_MD_LIST, " Supported Features"), "",
             [&]() { popup_manager_->Show("Supported Features"); }},
-           {absl::StrCat(ICON_MD_HELP, " How to manage a project"), "",
+           {absl::StrCat(ICON_MD_FOLDER_OPEN, " How to manage a project"), "",
             [&]() { popup_manager_->Show("Manage Project"); }},
-           {absl::StrCat(ICON_MD_HELP, " About"), "F1",
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_TERMINAL, " CLI Tool Usage"), "",
+            [&]() { popup_manager_->Show("CLI Usage"); }},
+           {absl::StrCat(ICON_MD_BUG_REPORT, " Troubleshooting"), "",
+            [&]() { popup_manager_->Show("Troubleshooting"); }},
+           {absl::StrCat(ICON_MD_CODE, " Contributing"), "",
+            [&]() { popup_manager_->Show("Contributing"); }},
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_ANNOUNCEMENT, " What's New in v0.3"), "",
+            [&]() { popup_manager_->Show("Whats New v03"); }},
+           {absl::StrCat(ICON_MD_INFO, " About"), "F1",
             [&]() { popup_manager_->Show("About"); }},
        }}};
 }
@@ -576,6 +629,13 @@ void EditorManager::DrawMenuBar() {
   }
   if (show_asm_editor_ && current_editor_set_) {
     current_editor_set_->assembly_editor_.Update(show_asm_editor_);
+  }
+  
+  // Testing interface
+  if (show_test_dashboard_) {
+    auto& test_manager = test::TestManager::Get();
+    test_manager.UpdateResourceStats(); // Update monitoring data
+    test_manager.DrawTestDashboard();
   }
 
   if (show_emulator_) {

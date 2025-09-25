@@ -73,6 +73,15 @@ class PopupManager {
   // Draw the manage project popup
   void DrawManageProjectPopup();
 
+  // v0.3 Help Documentation popups
+  void DrawGettingStartedPopup();
+  void DrawAsarIntegrationPopup();
+  void DrawBuildInstructionsPopup();
+  void DrawCLIUsagePopup();
+  void DrawTroubleshootingPopup();
+  void DrawContributingPopup();
+  void DrawWhatsNewPopup();
+
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;
   absl::Status status_;
