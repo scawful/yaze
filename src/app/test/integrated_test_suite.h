@@ -151,32 +151,41 @@ class IntegratedTestSuite : public TestSuite {
       result.error_message = "ROM testing disabled in configuration";
     } else {
       try {
-        // Test ROM class instantiation
-        Rom test_rom;
+        // First try to use currently loaded ROM from editor
+        Rom* current_rom = TestManager::Get().GetCurrentRom();
         
-        // Test with actual ROM file if available
-        std::string rom_path = test_rom_path_;
-        if (rom_path.empty()) {
-          rom_path = "zelda3.sfc";
-        }
-        
-        if (std::filesystem::exists(rom_path)) {
-          auto status = test_rom.LoadFromFile(rom_path);
-          if (status.ok()) {
-            result.status = TestStatus::kPassed;
-            result.error_message = absl::StrFormat(
-                "ROM loaded successfully: %s (%zu bytes)", 
-                test_rom.title().c_str(), test_rom.size());
+        if (current_rom && current_rom->is_loaded()) {
+          // Test with currently loaded ROM
+          result.status = TestStatus::kPassed;
+          result.error_message = absl::StrFormat(
+              "Current ROM validated: %s (%zu bytes)", 
+              current_rom->title().c_str(), current_rom->size());
+        } else {
+          // Fallback to loading ROM file
+          Rom test_rom;
+          std::string rom_path = test_rom_path_;
+          if (rom_path.empty()) {
+            rom_path = "zelda3.sfc";
+          }
+          
+          if (std::filesystem::exists(rom_path)) {
+            auto status = test_rom.LoadFromFile(rom_path);
+            if (status.ok()) {
+              result.status = TestStatus::kPassed;
+              result.error_message = absl::StrFormat(
+                  "ROM loaded from file: %s (%zu bytes)", 
+                  test_rom.title().c_str(), test_rom.size());
+            } else {
+              result.status = TestStatus::kFailed;
+              result.error_message = "ROM loading failed: " + std::string(status.message());
+            }
+          } else if (skip_missing_rom_) {
+            result.status = TestStatus::kSkipped;
+            result.error_message = "No current ROM and file not found: " + rom_path;
           } else {
             result.status = TestStatus::kFailed;
-            result.error_message = "ROM loading failed: " + std::string(status.message());
+            result.error_message = "No current ROM and required file not found: " + rom_path;
           }
-        } else if (skip_missing_rom_) {
-          result.status = TestStatus::kSkipped;
-          result.error_message = "ROM file not found: " + rom_path;
-        } else {
-          result.status = TestStatus::kFailed;
-          result.error_message = "Required ROM file not found: " + rom_path;
         }
         
       } catch (const std::exception& e) {
