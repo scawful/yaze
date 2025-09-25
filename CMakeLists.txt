@@ -108,12 +108,16 @@ include(cmake/asar.cmake)
 # ImGui
 include(cmake/imgui.cmake)
 
+# Google Test (if needed for main app integration)
+if (YAZE_BUILD_TESTS)
+include(cmake/gtest.cmake)
+endif()
+
 # Project Files
 add_subdirectory(src)
 
 # Tests
 if (YAZE_BUILD_TESTS)
-include(cmake/gtest.cmake)
 add_subdirectory(test)
 endif()
 

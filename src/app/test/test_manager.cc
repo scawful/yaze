@@ -1,5 +1,6 @@
 #include "app/test/test_manager.h"
 
+#include "absl/strings/str_format.h"
 #include "app/gfx/arena.h"
 #include "imgui/imgui.h"
 
@@ -274,11 +275,12 @@ void TestManager::DrawTestDashboard() {
   ImGui::Begin("Test Dashboard", &show_dashboard_, ImGuiWindowFlags_MenuBar);
   
   // Menu bar
-    if (ImGui::BeginMenuBar()) {
+  if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu("Run")) {
-      if (ImGui::MenuItem("All Tests", nullptr, false, !is_running_)) {
+      if (ImGui::MenuItem("All Tests", "Ctrl+T", false, !is_running_)) {
         [[maybe_unused]] auto status = RunAllTests();
       }
+      ImGui::Separator();
       if (ImGui::MenuItem("Unit Tests", nullptr, false, !is_running_)) {
         [[maybe_unused]] auto status = RunTestsByCategory(TestCategory::kUnit);
       }
@@ -288,80 +290,207 @@ void TestManager::DrawTestDashboard() {
       if (ImGui::MenuItem("UI Tests", nullptr, false, !is_running_)) {
         [[maybe_unused]] auto status = RunTestsByCategory(TestCategory::kUI);
       }
+      if (ImGui::MenuItem("Performance Tests", nullptr, false, !is_running_)) {
+        [[maybe_unused]] auto status = RunTestsByCategory(TestCategory::kPerformance);
+      }
+      if (ImGui::MenuItem("Memory Tests", nullptr, false, !is_running_)) {
+        [[maybe_unused]] auto status = RunTestsByCategory(TestCategory::kMemory);
+      }
       ImGui::EndMenu();
     }
     
     if (ImGui::BeginMenu("View")) {
       ImGui::MenuItem("Resource Monitor", nullptr, &show_resource_monitor_);
+      ImGui::Separator();
+      if (ImGui::MenuItem("Export Results", nullptr, false, last_results_.total_tests > 0)) {
+        // TODO: Implement result export
+      }
+      ImGui::EndMenu();
+    }
+    
+    if (ImGui::BeginMenu("Configure")) {
+      if (ImGui::MenuItem("Test Settings")) {
+        // Show configuration for all test suites
+      }
       ImGui::EndMenu();
     }
     
     ImGui::EndMenuBar();
   }
   
-  // Test execution status
+  // Enhanced test execution status
   if (is_running_) {
-    ImGui::Text("Running: %s", current_test_name_.c_str());
-    ImGui::ProgressBar(progress_, ImVec2(-1, 0), "");
+    ImGui::PushStyleColor(ImGuiCol_Text, GetTestStatusColor(TestStatus::kRunning));
+    ImGui::Text("⚡ Running: %s", current_test_name_.c_str());
+    ImGui::PopStyleColor();
+    ImGui::ProgressBar(progress_, ImVec2(-1, 0), 
+                      absl::StrFormat("%.0f%%", progress_ * 100.0f).c_str());
   } else {
-    if (ImGui::Button("Run All Tests", ImVec2(120, 0))) {
+    // Enhanced control buttons
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
+    if (ImGui::Button("🚀 Run All Tests", ImVec2(140, 0))) {
       [[maybe_unused]] auto status = RunAllTests();
     }
+    ImGui::PopStyleColor();
+    
     ImGui::SameLine();
-    if (ImGui::Button("Clear Results", ImVec2(120, 0))) {
+    if (ImGui::Button("🧪 Quick Test", ImVec2(100, 0))) {
+      [[maybe_unused]] auto status = RunTestsByCategory(TestCategory::kMemory);
+    }
+    
+    ImGui::SameLine();
+    if (ImGui::Button("🗑️ Clear", ImVec2(80, 0))) {
       ClearResults();
     }
   }
   
   ImGui::Separator();
   
-  // Test results summary
+  // Enhanced test results summary with better visuals
   if (last_results_.total_tests > 0) {
-    ImGui::Text("Total Tests: %zu", last_results_.total_tests);
+    // Test summary header
+    ImGui::Text("📊 Test Results Summary");
+    
+    // Progress bar showing pass rate
+    float pass_rate = last_results_.GetPassRate();
+    ImVec4 progress_color = pass_rate >= 0.9f ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f) :
+                           pass_rate >= 0.7f ? ImVec4(1.0f, 1.0f, 0.0f, 1.0f) :
+                                              ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+    
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, progress_color);
+    ImGui::ProgressBar(pass_rate, ImVec2(-1, 0), 
+                      absl::StrFormat("Pass Rate: %.1f%%", pass_rate * 100.0f).c_str());
+    ImGui::PopStyleColor();
+    
+    // Test counts with icons
+    ImGui::Text("📈 Total: %zu", last_results_.total_tests);
     ImGui::SameLine();
     ImGui::TextColored(GetTestStatusColor(TestStatus::kPassed), 
-                      "Passed: %zu", last_results_.passed_tests);
+                      "✅ %zu", last_results_.passed_tests);
     ImGui::SameLine();
     ImGui::TextColored(GetTestStatusColor(TestStatus::kFailed), 
-                      "Failed: %zu", last_results_.failed_tests);
+                      "❌ %zu", last_results_.failed_tests);
     ImGui::SameLine();
     ImGui::TextColored(GetTestStatusColor(TestStatus::kSkipped), 
-                      "Skipped: %zu", last_results_.skipped_tests);
+                      "⏭️ %zu", last_results_.skipped_tests);
     
-    ImGui::Text("Pass Rate: %.1f%%", last_results_.GetPassRate() * 100.0f);
-    ImGui::Text("Total Duration: %lld ms", last_results_.total_duration.count());
+    ImGui::Text("⏱️ Duration: %lld ms", last_results_.total_duration.count());
+    
+    // Test suite breakdown
+    if (ImGui::CollapsingHeader("Test Suite Breakdown")) {
+      std::unordered_map<std::string, std::pair<size_t, size_t>> suite_stats; // passed, total
+      for (const auto& result : last_results_.individual_results) {
+        suite_stats[result.suite_name].second++; // total
+        if (result.status == TestStatus::kPassed) {
+          suite_stats[result.suite_name].first++; // passed
+        }
+      }
+      
+      for (const auto& [suite_name, stats] : suite_stats) {
+        float suite_pass_rate = stats.second > 0 ? 
+                                static_cast<float>(stats.first) / stats.second : 0.0f;
+        ImGui::Text("%s: %zu/%zu (%.0f%%)", 
+                   suite_name.c_str(), stats.first, stats.second, 
+                   suite_pass_rate * 100.0f);
+      }
+    }
   }
   
   ImGui::Separator();
   
-  // Test filter
-  static char filter_buffer[256] = "";
-  if (ImGui::InputText("Filter", filter_buffer, sizeof(filter_buffer))) {
-    test_filter_ = std::string(filter_buffer);
+  // Enhanced test filter with category selection
+  ImGui::Text("🔍 Filter & View Options");
+  
+  // Category filter
+  const char* categories[] = {"All", "Unit", "Integration", "UI", "Performance", "Memory"};
+  static int selected_category = 0;
+  if (ImGui::Combo("Category", &selected_category, categories, IM_ARRAYSIZE(categories))) {
+    switch (selected_category) {
+      case 0: category_filter_ = TestCategory::kUnit; break; // All - use Unit as default
+      case 1: category_filter_ = TestCategory::kUnit; break;
+      case 2: category_filter_ = TestCategory::kIntegration; break;
+      case 3: category_filter_ = TestCategory::kUI; break;
+      case 4: category_filter_ = TestCategory::kPerformance; break;
+      case 5: category_filter_ = TestCategory::kMemory; break;
+    }
   }
   
-  // Test results list
+  // Text filter
+  static char filter_buffer[256] = "";
+  ImGui::SetNextItemWidth(-80);
+  if (ImGui::InputTextWithHint("##filter", "Search tests...", filter_buffer, sizeof(filter_buffer))) {
+    test_filter_ = std::string(filter_buffer);
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Clear")) {
+    filter_buffer[0] = '\0';
+    test_filter_.clear();
+  }
+  
+  ImGui::Separator();
+  
+  // Enhanced test results list with better formatting
   if (ImGui::BeginChild("TestResults", ImVec2(0, 0), true)) {
-    for (const auto& result : last_results_.individual_results) {
-      if (!test_filter_.empty() && 
-          result.name.find(test_filter_) == std::string::npos) {
-        continue;
+    if (last_results_.individual_results.empty()) {
+      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), 
+                        "No test results to display. Run some tests to see results here.");
+    } else {
+      for (const auto& result : last_results_.individual_results) {
+        // Apply filters
+        bool category_match = (selected_category == 0) || (result.category == category_filter_);
+        bool text_match = test_filter_.empty() || 
+                         result.name.find(test_filter_) != std::string::npos ||
+                         result.suite_name.find(test_filter_) != std::string::npos;
+        
+        if (!category_match || !text_match) {
+          continue;
+        }
+        
+        ImGui::PushID(&result);
+        
+        // Status icon and test name
+        const char* status_icon = "❓";
+        switch (result.status) {
+          case TestStatus::kPassed: status_icon = "✅"; break;
+          case TestStatus::kFailed: status_icon = "❌"; break;
+          case TestStatus::kSkipped: status_icon = "⏭️"; break;
+          case TestStatus::kRunning: status_icon = "⚡"; break;
+          default: break;
+        }
+        
+        ImGui::TextColored(GetTestStatusColor(result.status), 
+                          "%s %s::%s", 
+                          status_icon,
+                          result.suite_name.c_str(),
+                          result.name.c_str());
+        
+        // Show duration and timestamp on same line if space allows
+        if (ImGui::GetContentRegionAvail().x > 200) {
+          ImGui::SameLine();
+          ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), 
+                            "(%lld ms)", result.duration.count());
+        }
+        
+        // Show detailed information for failed tests
+        if (result.status == TestStatus::kFailed && !result.error_message.empty()) {
+          ImGui::Indent();
+          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.8f, 1.0f));
+          ImGui::TextWrapped("💥 %s", result.error_message.c_str());
+          ImGui::PopStyleColor();
+          ImGui::Unindent();
+        }
+        
+        // Show additional info for passed tests if they have messages
+        if (result.status == TestStatus::kPassed && !result.error_message.empty()) {
+          ImGui::Indent();
+          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 1.0f, 0.8f, 1.0f));
+          ImGui::TextWrapped("ℹ️ %s", result.error_message.c_str());
+          ImGui::PopStyleColor();
+          ImGui::Unindent();
+        }
+        
+        ImGui::PopID();
       }
-      
-      ImGui::PushID(&result);
-      ImGui::TextColored(GetTestStatusColor(result.status), 
-                        "[%s] %s::%s", 
-                        TestStatusToString(result.status),
-                        result.suite_name.c_str(),
-                        result.name.c_str());
-      
-      if (result.status == TestStatus::kFailed && !result.error_message.empty()) {
-        ImGui::Indent();
-        ImGui::TextWrapped("Error: %s", result.error_message.c_str());
-        ImGui::Unindent();
-      }
-      
-      ImGui::PopID();
     }
   }
   ImGui::EndChild();

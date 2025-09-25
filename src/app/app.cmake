@@ -80,6 +80,14 @@ else()
   target_compile_definitions(yaze PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
 endif()
 
+# Link Google Test if available for integrated testing
+if(YAZE_BUILD_TESTS AND TARGET gtest AND TARGET gtest_main)
+  target_link_libraries(yaze PRIVATE gtest gtest_main)
+  target_compile_definitions(yaze PRIVATE YAZE_ENABLE_GTEST=1)
+else()
+  target_compile_definitions(yaze PRIVATE YAZE_ENABLE_GTEST=0)
+endif()
+
 # Conditionally link PNG if available
 if(PNG_FOUND)
   target_link_libraries(yaze PUBLIC ${PNG_LIBRARIES})
