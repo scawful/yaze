@@ -137,6 +137,9 @@ class EditorManager {
   bool show_homepage_ = true;
   bool show_command_palette_ = false;
   bool show_global_search_ = false;
+  bool show_session_rename_dialog_ = false;
+  size_t session_to_rename_ = 0;
+  char session_rename_buffer_[256] = {};
   
   // Testing interface
   bool show_test_dashboard_ = false;
@@ -147,6 +150,7 @@ class EditorManager {
   std::vector<std::string> workspace_presets_;
   std::string last_workspace_preset_ = "";
   std::string status_message_ = "";
+  bool workspace_presets_loaded_ = false;
 
   absl::Status status_;
   emu::Emulator emulator_;
@@ -154,10 +158,22 @@ class EditorManager {
   struct RomSession {
     Rom rom;
     EditorSet editors;
+    std::string custom_name; // User-defined session name
+    std::string filepath;    // ROM filepath for duplicate detection
 
     RomSession() = default;
     explicit RomSession(Rom&& r)
-        : rom(std::move(r)), editors(&rom) {}
+        : rom(std::move(r)), editors(&rom) {
+      filepath = rom.filename();
+    }
+    
+    // Get display name (custom name or ROM title)
+    std::string GetDisplayName() const {
+      if (!custom_name.empty()) {
+        return custom_name;
+      }
+      return rom.title().empty() ? "Untitled Session" : rom.title();
+    }
   };
 
   std::deque<RomSession> sessions_;
@@ -196,10 +212,16 @@ class EditorManager {
   void LoadDesignerLayout();
   void LoadModderLayout();
   
+  // Session management helpers
+  bool HasDuplicateSession(const std::string& filepath);
+  void RenameSession(size_t index, const std::string& new_name);
+  std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index);
+  
   // UI drawing helpers
   void DrawSessionSwitcher();
   void DrawSessionManager();
   void DrawLayoutPresets();
+  void DrawSessionRenameDialog();
 };
 
 }  // namespace editor

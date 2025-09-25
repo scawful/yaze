@@ -78,16 +78,39 @@ void EditorManager::SaveUserSettings() {
 }
 
 void EditorManager::RefreshWorkspacePresets() {
-  workspace_presets_.clear();
-  // Try to read a simple index file of presets
+  // Safe clearing with error handling
   try {
-    auto data = core::LoadConfigFile("workspace_presets.txt");
-    std::istringstream ss(data);
-    std::string name;
-    while (std::getline(ss, name)) {
-      if (!name.empty()) workspace_presets_.push_back(name);
+    // Create a new vector instead of clearing to avoid corruption
+    std::vector<std::string> new_presets;
+    
+    // Try to read a simple index file of presets
+    try {
+      auto data = core::LoadConfigFile("workspace_presets.txt");
+      if (!data.empty()) {
+        std::istringstream ss(data);
+        std::string name;
+        while (std::getline(ss, name)) {
+          // Trim whitespace and validate
+          name.erase(0, name.find_first_not_of(" \t\r\n"));
+          name.erase(name.find_last_not_of(" \t\r\n") + 1);
+          if (!name.empty() && name.length() < 256) { // Reasonable length limit
+            new_presets.emplace_back(std::move(name));
+          }
+        }
+      }
+    } catch (const std::exception& e) {
+      util::logf("Warning: Failed to load workspace presets: %s", e.what());
     }
-  } catch (...) {
+    
+    // Safely replace the vector
+    workspace_presets_ = std::move(new_presets);
+    workspace_presets_loaded_ = true;
+    
+  } catch (const std::exception& e) {
+    util::logf("Error in RefreshWorkspacePresets: %s", e.what());
+    // Ensure we have a valid empty vector
+    workspace_presets_ = std::vector<std::string>();
+    workspace_presets_loaded_ = true; // Mark as loaded even if empty to avoid retry
   }
 }
 
@@ -95,13 +118,22 @@ void EditorManager::SaveWorkspacePreset(const std::string &name) {
   if (name.empty()) return;
   std::string ini_name = absl::StrCat("yaze_workspace_", name, ".ini");
   ImGui::SaveIniSettingsToDisk(ini_name.c_str());
+  
+  // Ensure presets are loaded before updating
+  if (!workspace_presets_loaded_) {
+    RefreshWorkspacePresets();
+  }
+  
   // Update index
-  RefreshWorkspacePresets();
   if (std::find(workspace_presets_.begin(), workspace_presets_.end(), name) == workspace_presets_.end()) {
-    workspace_presets_.push_back(name);
-    std::ostringstream ss;
-    for (auto &n : workspace_presets_) ss << n << "\n";
-    core::SaveFile("workspace_presets.txt", ss.str());
+    workspace_presets_.emplace_back(name);
+    try {
+      std::ostringstream ss;
+      for (const auto &n : workspace_presets_) ss << n << "\n";
+      core::SaveFile("workspace_presets.txt", ss.str());
+    } catch (const std::exception& e) {
+      util::logf("Warning: Failed to save workspace presets: %s", e.what());
+    }
   }
   last_workspace_preset_ = name;
 }
@@ -158,11 +190,13 @@ void EditorManager::Initialize(const std::string &filename) {
   // Set the popup manager in the context
   context_.popup_manager = popup_manager_.get();
 
-  // Load user settings and workspace presets
+  // Load critical user settings first
   LoadUserSettings();
-  RefreshWorkspacePresets();
   
-  // Initialize testing system
+  // Defer workspace presets loading to avoid initialization crashes
+  // This will be called lazily when workspace features are accessed
+  
+  // Initialize testing system (lightweight)
   InitializeTestSuites();
   
   // TestManager will be updated when ROMs are loaded via SetCurrentRom calls
@@ -720,8 +754,9 @@ absl::Status EditorManager::Update() {
         }
       }
 
-      // Clean window titles without session clutter
-      std::string window_title = GetEditorName(editor->type());
+      // Generate unique window titles for multi-session support
+      size_t session_index = GetCurrentSessionIndex();
+      std::string window_title = GenerateUniqueEditorTitle(editor->type(), session_index);
       
       if (ImGui::Begin(window_title.c_str(), editor->active())) {
         current_editor_ = editor;
@@ -919,7 +954,7 @@ void EditorManager::DrawMenuBar() {
     End();
   }
 
-  if (show_imgui_demo_) ShowDemoWindow();
+  if (show_imgui_demo_) ShowDemoWindow(&show_imgui_demo_);
   if (show_imgui_metrics_) ShowMetricsWindow(&show_imgui_metrics_);
   if (show_memory_editor_ && current_editor_set_) {
     current_editor_set_->memory_editor_.Update(show_memory_editor_);
@@ -932,7 +967,7 @@ void EditorManager::DrawMenuBar() {
   if (show_test_dashboard_) {
     auto& test_manager = test::TestManager::Get();
     test_manager.UpdateResourceStats(); // Update monitoring data
-    test_manager.DrawTestDashboard();
+    test_manager.DrawTestDashboard(&show_test_dashboard_);
   }
 
   if (show_emulator_) {
@@ -1087,6 +1122,12 @@ void EditorManager::DrawMenuBar() {
 
   if (show_load_workspace_preset_) {
     Begin("Load Workspace Preset", &show_load_workspace_preset_, ImGuiWindowFlags_AlwaysAutoResize);
+    
+    // Lazy load workspace presets when UI is accessed
+    if (!workspace_presets_loaded_) {
+      RefreshWorkspacePresets();
+    }
+    
     for (const auto &name : workspace_presets_) {
       if (Selectable(name.c_str())) {
         LoadWorkspacePreset(name);
@@ -1102,6 +1143,7 @@ void EditorManager::DrawMenuBar() {
   DrawSessionSwitcher();
   DrawSessionManager();
   DrawLayoutPresets();
+  DrawSessionRenameDialog();
 }
 
 absl::Status EditorManager::LoadRom() {
@@ -1109,22 +1151,26 @@ absl::Status EditorManager::LoadRom() {
   if (file_name.empty()) {
     return absl::OkStatus();
   }
+  
+  // Check for duplicate sessions
+  if (HasDuplicateSession(file_name)) {
+    toast_manager_.Show("ROM already open in another session", editor::ToastType::kWarning);
+    return absl::OkStatus();
+  }
+  
   Rom temp_rom;
   RETURN_IF_ERROR(temp_rom.LoadFromFile(file_name));
 
   sessions_.emplace_back(std::move(temp_rom));
   RomSession &session = sessions_.back();
+  session.filepath = file_name; // Store filepath for duplicate detection
+  
   // Wire editor contexts
   for (auto *editor : session.editors.active_editors_) {
     editor->set_context(&context_);
   }
   current_rom_ = &session.rom;
   current_editor_set_ = &session.editors;
-  
-  // Update test manager with current ROM for ROM-dependent tests
-  util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
-             (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
-  test::TestManager::Get().SetCurrentRom(current_rom_);
   
   // Update test manager with current ROM for ROM-dependent tests
   util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
@@ -1353,11 +1399,8 @@ void EditorManager::SwitchToSession(size_t index) {
   util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
              (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
   test::TestManager::Get().SetCurrentRom(current_rom_);
-  test::TestManager::Get().SetCurrentRom(current_rom_);
   
-  std::string session_name = current_rom_->title().empty() ? 
-                            absl::StrFormat("Session %zu", index + 1) : 
-                            current_rom_->title();
+  std::string session_name = session.GetDisplayName();
   toast_manager_.Show(absl::StrFormat("Switched to %s", session_name), 
                      editor::ToastType::kInfo);
 }
@@ -1504,9 +1547,7 @@ void EditorManager::DrawSessionSwitcher() {
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
       }
       
-      std::string session_name = session.rom.title().empty() ? 
-                                absl::StrFormat("Session %zu", i + 1) : 
-                                session.rom.title();
+      std::string session_name = session.GetDisplayName();
       
       if (ImGui::Button(absl::StrFormat("%s %s %s", 
                                        ICON_MD_STORAGE, 
@@ -1583,8 +1624,12 @@ void EditorManager::DrawSessionManager() {
         }
         
         ImGui::TableNextColumn();
-        std::string rom_title = session.rom.title().empty() ? "No ROM" : session.rom.title();
-        ImGui::Text("%s", rom_title.c_str());
+        std::string display_name = session.GetDisplayName();
+        if (!session.custom_name.empty()) {
+          ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f), "%s %s", ICON_MD_EDIT, display_name.c_str());
+        } else {
+          ImGui::Text("%s", display_name.c_str());
+        }
         
         ImGui::TableNextColumn();
         if (session.rom.is_loaded()) {
@@ -1602,6 +1647,13 @@ void EditorManager::DrawSessionManager() {
         
         if (!is_current && ImGui::Button(absl::StrCat(ICON_MD_SWITCH_ACCESS_SHORTCUT, " Switch").c_str())) {
           SwitchToSession(i);
+        }
+        
+        ImGui::SameLine();
+        if (ImGui::Button(absl::StrCat(ICON_MD_EDIT, " Rename").c_str())) {
+          session_to_rename_ = i;
+          strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
+          show_session_rename_dialog_ = true;
         }
         
         if (is_current) {
@@ -1678,6 +1730,76 @@ void EditorManager::DrawLayoutPresets() {
     ImGui::Separator();
     if (ImGui::Button(absl::StrCat(ICON_MD_ADD, " Save Current Layout").c_str())) {
       show_save_workspace_preset_ = true;
+    }
+  }
+  ImGui::End();
+}
+
+bool EditorManager::HasDuplicateSession(const std::string& filepath) {
+  for (const auto& session : sessions_) {
+    if (session.filepath == filepath) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void EditorManager::RenameSession(size_t index, const std::string& new_name) {
+  if (index < sessions_.size()) {
+    sessions_[index].custom_name = new_name;
+    toast_manager_.Show(absl::StrFormat("Session renamed to: %s", new_name.c_str()), 
+                       editor::ToastType::kSuccess);
+  }
+}
+
+std::string EditorManager::GenerateUniqueEditorTitle(EditorType type, size_t session_index) {
+  std::string base_name = GetEditorName(type);
+  
+  if (sessions_.size() <= 1) {
+    return base_name; // No need for session identifier with single session
+  }
+  
+  // Add session identifier
+  const auto& session = sessions_[session_index];
+  std::string session_name = session.GetDisplayName();
+  
+  // Truncate long session names
+  if (session_name.length() > 15) {
+    session_name = session_name.substr(0, 12) + "...";
+  }
+  
+  return absl::StrFormat("%s (%s)", base_name.c_str(), session_name.c_str());
+}
+
+void EditorManager::DrawSessionRenameDialog() {
+  if (!show_session_rename_dialog_) return;
+  
+  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+  ImGui::SetNextWindowSize(ImVec2(400, 150), ImGuiCond_Appearing);
+  
+  if (ImGui::Begin("Rename Session", &show_session_rename_dialog_, ImGuiWindowFlags_NoResize)) {
+    if (session_to_rename_ < sessions_.size()) {
+      const auto& session = sessions_[session_to_rename_];
+      
+      ImGui::Text("Rename Session:");
+      ImGui::Text("Current: %s", session.GetDisplayName().c_str());
+      ImGui::Separator();
+      
+      ImGui::InputText("New Name", session_rename_buffer_, sizeof(session_rename_buffer_));
+      
+      ImGui::Separator();
+      if (ImGui::Button("Rename", ImVec2(120, 0))) {
+        std::string new_name(session_rename_buffer_);
+        if (!new_name.empty()) {
+          RenameSession(session_to_rename_, new_name);
+        }
+        show_session_rename_dialog_ = false;
+      }
+      
+      ImGui::SameLine();
+      if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+        show_session_rename_dialog_ = false;
+      }
     }
   }
   ImGui::End();
