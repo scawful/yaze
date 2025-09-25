@@ -27,11 +27,12 @@ var searchData=
   ['mockppu_24',['MockPpu',['../classyaze_1_1test_1_1MockPpu.html',1,'yaze::test']]],
   ['mockrom_25',['MockRom',['../classyaze_1_1test_1_1MockRom.html',1,'yaze::test::MockRom'],['../classyaze_1_1zelda3_1_1MockRom.html',1,'yaze::zelda3::MockRom']]],
   ['mockroomgenerator_26',['MockRoomGenerator',['../classyaze_1_1zelda3_1_1MockRoomGenerator.html',1,'yaze::zelda3']]],
-  ['mosaic_27',['Mosaic',['../structyaze_1_1emu_1_1Mosaic.html',1,'yaze::emu']]],
-  ['mouseconfig_28',['MouseConfig',['../structyaze_1_1zelda3_1_1MouseConfig.html',1,'yaze::zelda3']]],
-  ['mpyh_29',['MPYH',['../structyaze_1_1emu_1_1MPYH.html',1,'yaze::emu']]],
-  ['mpyl_30',['MPYL',['../structyaze_1_1emu_1_1MPYL.html',1,'yaze::emu']]],
-  ['mpym_31',['MPYM',['../structyaze_1_1emu_1_1MPYM.html',1,'yaze::emu']]],
-  ['multiselect_32',['MultiSelect',['../classyaze_1_1gui_1_1MultiSelect.html',1,'yaze::gui']]],
-  ['musiceditor_33',['MusicEditor',['../classyaze_1_1editor_1_1MusicEditor.html',1,'yaze::editor']]]
+  ['moderncli_27',['ModernCLI',['../classyaze_1_1cli_1_1ModernCLI.html',1,'yaze::cli']]],
+  ['mosaic_28',['Mosaic',['../structyaze_1_1emu_1_1Mosaic.html',1,'yaze::emu']]],
+  ['mouseconfig_29',['MouseConfig',['../structyaze_1_1zelda3_1_1MouseConfig.html',1,'yaze::zelda3']]],
+  ['mpyh_30',['MPYH',['../structyaze_1_1emu_1_1MPYH.html',1,'yaze::emu']]],
+  ['mpyl_31',['MPYL',['../structyaze_1_1emu_1_1MPYL.html',1,'yaze::emu']]],
+  ['mpym_32',['MPYM',['../structyaze_1_1emu_1_1MPYM.html',1,'yaze::emu']]],
+  ['multiselect_33',['MultiSelect',['../classyaze_1_1gui_1_1MultiSelect.html',1,'yaze::gui']]],
+  ['musiceditor_34',['MusicEditor',['../classyaze_1_1editor_1_1MusicEditor.html',1,'yaze::editor']]]
 ];

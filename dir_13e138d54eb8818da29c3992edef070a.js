@@ -1,5 +1,6 @@
 var dir_13e138d54eb8818da29c3992edef070a =
 [
+    [ "core", "dir_453640859cfc4e9268868ec6c20756ed.html", "dir_453640859cfc4e9268868ec6c20756ed" ],
     [ "editor", "dir_0e579cc64755cf26f576fedee3b2b4c1.html", "dir_0e579cc64755cf26f576fedee3b2b4c1" ],
     [ "emu", "dir_52f51a7af620887c859e1cd9a999e761.html", "dir_52f51a7af620887c859e1cd9a999e761" ],
     [ "gfx", "dir_47c4e98413e453c7bbaeb742d0253c57.html", "dir_47c4e98413e453c7bbaeb742d0253c57" ],
@@ -10,6 +11,7 @@ var dir_13e138d54eb8818da29c3992edef070a =
     [ "rom_test.cc", "rom__test_8cc.html", "rom__test_8cc" ],
     [ "test_editor.cc", "test__editor_8cc.html", "test__editor_8cc" ],
     [ "test_editor.h", "test__editor_8h.html", "test__editor_8h" ],
+    [ "test_utils.h", "test__utils_8h.html", "test__utils_8h" ],
     [ "testing.h", "testing_8h.html", "testing_8h" ],
     [ "yaze_test.cc", "yaze__test_8cc.html", "yaze__test_8cc" ]
 ];

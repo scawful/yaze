@@ -9,6 +9,9 @@ var hierarchy =
     [ "yaze::emu::ApuCallbacks", "structyaze_1_1emu_1_1ApuCallbacks.html", null ],
     [ "yaze::test::ApuCallbacks", "structyaze_1_1test_1_1ApuCallbacks.html", null ],
     [ "yaze::gfx::Arena", "classyaze_1_1gfx_1_1Arena.html", null ],
+    [ "yaze::app::core::AsarPatchResult", "structyaze_1_1app_1_1core_1_1AsarPatchResult.html", null ],
+    [ "yaze::app::core::AsarSymbol", "structyaze_1_1app_1_1core_1_1AsarSymbol.html", null ],
+    [ "yaze::app::core::AsarWrapper", "classyaze_1_1app_1_1core_1_1AsarWrapper.html", null ],
     [ "yaze::emu::AsmParser", "classyaze_1_1emu_1_1AsmParser.html", null ],
     [ "yaze::test::AsmParser", "classyaze_1_1test_1_1AsmParser.html", null ],
     [ "yaze::gui::AssetObject", "structyaze_1_1gui_1_1AssetObject.html", [
@@ -66,6 +69,7 @@ var hierarchy =
       [ "yaze::cli::SnesToPcCommand", "classyaze_1_1cli_1_1SnesToPcCommand.html", null ],
       [ "yaze::cli::Tile16Transfer", "classyaze_1_1cli_1_1Tile16Transfer.html", null ]
     ] ],
+    [ "yaze::cli::CommandInfo", "structyaze_1_1cli_1_1CommandInfo.html", null ],
     [ "yaze::editor::CommandManager::CommandInfo", "structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html", null ],
     [ "yaze::editor::CommandManager::CommandInfoOrPrefix", "structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html", null ],
     [ "yaze::editor::CommandManager", "classyaze_1_1editor_1_1CommandManager.html", null ],
@@ -200,6 +204,7 @@ var hierarchy =
     [ "yaze::emu::MnemonicModeHash", "structyaze_1_1emu_1_1MnemonicModeHash.html", null ],
     [ "yaze::zelda3::MockRom::MockPaletteGroup", "structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html", null ],
     [ "yaze::zelda3::MockRoomGenerator", "classyaze_1_1zelda3_1_1MockRoomGenerator.html", null ],
+    [ "yaze::cli::ModernCLI", "classyaze_1_1cli_1_1ModernCLI.html", null ],
     [ "yaze::emu::Mosaic", "structyaze_1_1emu_1_1Mosaic.html", null ],
     [ "yaze::zelda3::MouseConfig", "structyaze_1_1zelda3_1_1MouseConfig.html", null ],
     [ "yaze::emu::MPYH", "structyaze_1_1emu_1_1MPYH.html", null ],
@@ -340,6 +345,7 @@ var hierarchy =
     [ "yaze::zelda3::anonymous_namespace{room_object.cc}::SubtypeTableInfo", "structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html", null ],
     [ "yaze::gui::Table", "structyaze_1_1gui_1_1Table.html", null ],
     [ "testing::Test", null, [
+      [ "yaze::app::core::anonymous_namespace{asar_wrapper_test.cc}::AsarWrapperTest", "classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html", null ],
       [ "yaze::test::ApuTest", "classyaze_1_1test_1_1ApuTest.html", null ],
       [ "yaze::test::CpuTest", "classyaze_1_1test_1_1CpuTest.html", null ],
       [ "yaze::test::DungeonEditorIntegrationTest", "classyaze_1_1test_1_1DungeonEditorIntegrationTest.html", null ],
@@ -350,10 +356,14 @@ var hierarchy =
       [ "yaze::test::ObjectParserStructsTest", "classyaze_1_1test_1_1ObjectParserStructsTest.html", null ],
       [ "yaze::test::ObjectParserTest", "classyaze_1_1test_1_1ObjectParserTest.html", null ],
       [ "yaze::test::PpuTest", "classyaze_1_1test_1_1PpuTest.html", null ],
+      [ "yaze::test::RomDependentTest", "classyaze_1_1test_1_1RomDependentTest.html", [
+        [ "yaze::test::integration::AsarRomIntegrationTest", "classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html", null ]
+      ] ],
       [ "yaze::test::RomTest", "classyaze_1_1test_1_1RomTest.html", null ],
       [ "yaze::test::Spc700Test", "classyaze_1_1test_1_1Spc700Test.html", null ],
       [ "yaze::test::SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", null ],
       [ "yaze::test::TestDungeonObjects", "classyaze_1_1test_1_1TestDungeonObjects.html", null ],
+      [ "yaze::test::integration::AsarIntegrationTest", "classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html", null ],
       [ "yaze::zelda3::ComprehensiveIntegrationTest", "classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html", null ],
       [ "yaze::zelda3::DungeonEditorSystemIntegrationTest", "classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html", null ],
       [ "yaze::zelda3::DungeonIntegrationTest", "classyaze_1_1zelda3_1_1DungeonIntegrationTest.html", null ],
@@ -364,6 +374,7 @@ var hierarchy =
       [ "yaze::zelda3::OverworldV3IntegrationTest", "classyaze_1_1zelda3_1_1OverworldV3IntegrationTest.html", null ],
       [ "yaze::zelda3::SpritePositionTest", "classyaze_1_1zelda3_1_1SpritePositionTest.html", null ]
     ] ],
+    [ "yaze::test::TestRomManager", "classyaze_1_1test_1_1TestRomManager.html", null ],
     [ "yaze::gui::Text", "structyaze_1_1gui_1_1Text.html", null ],
     [ "yaze::gui::TextBox", "structyaze_1_1gui_1_1TextBox.html", null ],
     [ "TextEditor", "classTextEditor.html", null ],

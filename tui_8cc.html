@@ -118,8 +118,11 @@ $(function(){initNavTree('tui_8cc.html',''); initResizable(true); });
 <code>#include &lt;ftxui/dom/elements.hpp&gt;</code><br />
 <code>#include &lt;ftxui/screen/screen.hpp&gt;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_join.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="bps_8h_source.html">util/bps.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="file__dialog_8h_source.html">app/core/platform/file_dialog.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="asar__wrapper_8h_source.html">app/core/asar_wrapper.h</a>&quot;</code><br />
 </div>
 <p><a href="tui_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -146,6 +149,12 @@ Functions</h2></td></tr>
 <tr class="separator:a6588526a2719d947bb19f4ad714989a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a879bdc125949b92f2e3b4e8f26d26521" id="r_a879bdc125949b92f2e3b4e8f26d26521"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a879bdc125949b92f2e3b4e8f26d26521">yaze::cli::anonymous_namespace{tui.cc}::GenerateSaveFileComponent</a> (ftxui::ScreenInteractive &amp;screen)</td></tr>
 <tr class="separator:a879bdc125949b92f2e3b4e8f26d26521"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5071629fc6cbcafef9c3efa6c851f536" id="r_a5071629fc6cbcafef9c3efa6c851f536"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a5071629fc6cbcafef9c3efa6c851f536">yaze::cli::anonymous_namespace{tui.cc}::ApplyAsarPatchComponent</a> (ftxui::ScreenInteractive &amp;screen)</td></tr>
+<tr class="separator:a5071629fc6cbcafef9c3efa6c851f536"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67dd0fa752ae48367e75313a4325cb11" id="r_a67dd0fa752ae48367e75313a4325cb11"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a67dd0fa752ae48367e75313a4325cb11">yaze::cli::anonymous_namespace{tui.cc}::ExtractSymbolsComponent</a> (ftxui::ScreenInteractive &amp;screen)</td></tr>
+<tr class="separator:a67dd0fa752ae48367e75313a4325cb11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a647d436e3c168d5e1ba1b90243356d59" id="r_a647d436e3c168d5e1ba1b90243356d59"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a647d436e3c168d5e1ba1b90243356d59">yaze::cli::anonymous_namespace{tui.cc}::ValidateAssemblyComponent</a> (ftxui::ScreenInteractive &amp;screen)</td></tr>
+<tr class="separator:a647d436e3c168d5e1ba1b90243356d59"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d7b3c2328f2fcab44ddbe20d7df3c32" id="r_a2d7b3c2328f2fcab44ddbe20d7df3c32"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2d7b3c2328f2fcab44ddbe20d7df3c32">yaze::cli::anonymous_namespace{tui.cc}::LoadRomComponent</a> (ftxui::ScreenInteractive &amp;screen)</td></tr>
 <tr class="separator:a2d7b3c2328f2fcab44ddbe20d7df3c32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42e2b26b5b0aaf880b0d9c4c4a255d09" id="r_a42e2b26b5b0aaf880b0d9c4c4a255d09"><td class="memItemLeft" align="right" valign="top">Element&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a42e2b26b5b0aaf880b0d9c4c4a255d09">yaze::cli::anonymous_namespace{tui.cc}::ColorBox</a> (const Color &amp;color)</td></tr>

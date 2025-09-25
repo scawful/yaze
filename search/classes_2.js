@@ -14,7 +14,7 @@ var searchData=
   ['coldata_11',['COLDATA',['../structyaze_1_1emu_1_1COLDATA.html',1,'yaze::emu']]],
   ['color_12',['Color',['../structyaze_1_1emu_1_1Color.html',1,'yaze::emu::Color'],['../structyaze_1_1gui_1_1Color.html',1,'yaze::gui::Color']]],
   ['commandhandler_13',['CommandHandler',['../classyaze_1_1cli_1_1CommandHandler.html',1,'yaze::cli']]],
-  ['commandinfo_14',['CommandInfo',['../structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html',1,'yaze::editor::CommandManager']]],
+  ['commandinfo_14',['CommandInfo',['../structyaze_1_1cli_1_1CommandInfo.html',1,'yaze::cli::CommandInfo'],['../structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html',1,'yaze::editor::CommandManager::CommandInfo']]],
   ['commandinfoorprefix_15',['CommandInfoOrPrefix',['../structyaze_1_1editor_1_1CommandManager_1_1CommandInfoOrPrefix.html',1,'yaze::editor::CommandManager']]],
   ['commandmanager_16',['CommandManager',['../classyaze_1_1editor_1_1CommandManager.html',1,'yaze::editor']]],
   ['comprehensiveintegrationtest_17',['ComprehensiveIntegrationTest',['../classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html',1,'yaze::zelda3']]],

@@ -3,7 +3,10 @@ var tui_8h =
     [ "yaze::cli::Context", "structyaze_1_1cli_1_1Context.html", "structyaze_1_1cli_1_1Context" ],
     [ "yaze::cli::MainMenuEntry", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395", [
       [ "yaze::cli::MainMenuEntry::kLoadRom", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a0904aa5cd86ead4695a80b68d96d331b", null ],
+      [ "yaze::cli::MainMenuEntry::kApplyAsarPatch", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a9978b1e85e90363034e4108b61d4bd8c", null ],
       [ "yaze::cli::MainMenuEntry::kApplyBpsPatch", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a57e5a4c1d9b0cbe935452dfae44794f5", null ],
+      [ "yaze::cli::MainMenuEntry::kExtractSymbols", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a7de855edff8ee04ef9420ce89aa94a79", null ],
+      [ "yaze::cli::MainMenuEntry::kValidateAssembly", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a9ee5f942b6e88db1636d50d9d14f6246", null ],
       [ "yaze::cli::MainMenuEntry::kGenerateSaveFile", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a32e58e3f081d3cf47b399dbfea2604c1", null ],
       [ "yaze::cli::MainMenuEntry::kPaletteEditor", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395af28bb58ff40de28e33f3558e7e6b119a", null ],
       [ "yaze::cli::MainMenuEntry::kHelp", "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a244ce4b6c7f56eaa446d64fc2d068bbb", null ],
@@ -11,7 +14,10 @@ var tui_8h =
     ] ],
     [ "yaze::cli::LayoutID", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33", [
       [ "yaze::cli::kLoadRom", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33af6aa4f00977101448893001bd7e064da", null ],
+      [ "yaze::cli::kApplyAsarPatch", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a7869cccd030ae1643d6fedca84c75cf2", null ],
       [ "yaze::cli::kApplyBpsPatch", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33afb1cff8d82fb71fbc9b02d9168c0d1e3", null ],
+      [ "yaze::cli::kExtractSymbols", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a1cdd13ff71088412626cb895a9857670", null ],
+      [ "yaze::cli::kValidateAssembly", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33aa4092dc81b981432a504e30d43a2e3c6", null ],
       [ "yaze::cli::kGenerateSaveFile", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a12b4a262eaa3162ca945f9a64adcd083", null ],
       [ "yaze::cli::kPaletteEditor", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a724318eeaede64cad18fefb4cd170c6e", null ],
       [ "yaze::cli::kHelp", "namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a820bfc28af3d274b2ee7c7d6a53f2df2", null ],

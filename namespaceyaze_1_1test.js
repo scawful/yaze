@@ -12,6 +12,7 @@ var namespaceyaze_1_1test =
     [ "anonymous_namespace{snes_palette_test.cc}", "namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html", [
       [ "test_convert", "namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#a0492926f27e09c79e929ad1165ae19a5", null ]
     ] ],
+    [ "integration", "namespaceyaze_1_1test_1_1integration.html", "namespaceyaze_1_1test_1_1integration" ],
     [ "Apu", "classyaze_1_1test_1_1Apu.html", "classyaze_1_1test_1_1Apu" ],
     [ "ApuCallbacks", "structyaze_1_1test_1_1ApuCallbacks.html", "structyaze_1_1test_1_1ApuCallbacks" ],
     [ "ApuTest", "classyaze_1_1test_1_1ApuTest.html", "classyaze_1_1test_1_1ApuTest" ],
@@ -38,6 +39,7 @@ var namespaceyaze_1_1test =
     [ "PpuInterface", "classyaze_1_1test_1_1PpuInterface.html", "classyaze_1_1test_1_1PpuInterface" ],
     [ "PpuTest", "classyaze_1_1test_1_1PpuTest.html", "classyaze_1_1test_1_1PpuTest" ],
     [ "Rom", "classyaze_1_1test_1_1Rom.html", "classyaze_1_1test_1_1Rom" ],
+    [ "RomDependentTest", "classyaze_1_1test_1_1RomDependentTest.html", "classyaze_1_1test_1_1RomDependentTest" ],
     [ "RomTest", "classyaze_1_1test_1_1RomTest.html", "classyaze_1_1test_1_1RomTest" ],
     [ "Spc700", "classyaze_1_1test_1_1Spc700.html", "classyaze_1_1test_1_1Spc700" ],
     [ "Spc700Test", "classyaze_1_1test_1_1Spc700Test.html", "classyaze_1_1test_1_1Spc700Test" ],
@@ -45,6 +47,7 @@ var namespaceyaze_1_1test =
     [ "SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1SpriteBuilderTest" ],
     [ "TestDungeonObjects", "classyaze_1_1test_1_1TestDungeonObjects.html", "classyaze_1_1test_1_1TestDungeonObjects" ],
     [ "TestEditor", "classyaze_1_1test_1_1TestEditor.html", "classyaze_1_1test_1_1TestEditor" ],
+    [ "TestRomManager", "classyaze_1_1test_1_1TestRomManager.html", null ],
     [ "Tilemap", "structyaze_1_1test_1_1Tilemap.html", "structyaze_1_1test_1_1Tilemap" ],
     [ "BackgroundMode", "namespaceyaze_1_1test.html#a5447aec0bc02ba1ff714b6c4c8df382b", null ],
     [ "TEST_F", "namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3", null ],

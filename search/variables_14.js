@@ -10,9 +10,10 @@ var searchData=
   ['unusedbyte_7',['unusedByte',['../structyaze_1_1emu_1_1DmaChannel.html#aae6c94eb054752a85c3585f582b349f2',1,'yaze::emu::DmaChannel']]],
   ['up_5fbutton_8',['up_button',['../structyaze_1_1emu_1_1EmulatorKeybindings.html#a2bdd4d8bc84e492f6ea69eb6f2ac561d',1,'yaze::emu::EmulatorKeybindings']]],
   ['uppercase_9',['uppercase',['../structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157',1,'yaze::util::HexStringParams']]],
-  ['use_5farea_5fspecific_5fbg_5fcolor_5f_10',['use_area_specific_bg_color_',['../classyaze_1_1editor_1_1OverworldEditor.html#a4684ee50e02be751568f089674c4c7cd',1,'yaze::editor::OverworldEditor']]],
-  ['usegain_11',['useGain',['../structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705',1,'yaze::emu::DspChannel']]],
-  ['usenoise_12',['useNoise',['../structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74',1,'yaze::emu::DspChannel']]],
-  ['user_5froutines_13',['user_routines',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7',1,'yaze::editor::zsprite::SubEditor']]],
-  ['userroutines_14',['userRoutines',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]]
+  ['usage_10',['usage',['../structyaze_1_1cli_1_1CommandInfo.html#ae5b87522f7e23309fb1579ffd8c4eff4',1,'yaze::cli::CommandInfo']]],
+  ['use_5farea_5fspecific_5fbg_5fcolor_5f_11',['use_area_specific_bg_color_',['../classyaze_1_1editor_1_1OverworldEditor.html#a4684ee50e02be751568f089674c4c7cd',1,'yaze::editor::OverworldEditor']]],
+  ['usegain_12',['useGain',['../structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705',1,'yaze::emu::DspChannel']]],
+  ['usenoise_13',['useNoise',['../structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74',1,'yaze::emu::DspChannel']]],
+  ['user_5froutines_14',['user_routines',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7',1,'yaze::editor::zsprite::SubEditor']]],
+  ['userroutines_15',['userRoutines',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]]
 ];

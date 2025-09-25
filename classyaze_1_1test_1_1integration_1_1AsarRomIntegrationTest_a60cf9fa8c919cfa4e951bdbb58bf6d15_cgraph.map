@@ -1,0 +1,11 @@
+<map id="yaze::test::integration::AsarRomIntegrationTest::SetUp" name="yaze::test::integration::AsarRomIntegrationTest::SetUp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,41,174,97"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html#a2a5a0b10c30ebaece0916a24095f9596" title=" " alt="" coords="223,5,391,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,53,207,47,207,52,174,58"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1RomDependentTest.html#af9cf9b86c3670041790b60765c9f4f07" title=" " alt="" coords="222,85,392,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="174,80,207,86,206,91,173,86"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1TestRomManager.html#af64c3f5cef8de02391717ec16c40e7d7" title="Load the test ROM file into memory." alt="" coords="440,52,624,92"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="392,90,424,85,425,90,393,95"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1test_1_1TestRomManager.html#a6b8155ee2899d72e030b214e718d05c3" title="Skip test if ROM testing is not enabled." alt="" coords="440,117,624,158"/>
+<area shape="poly" id="edge4_Node000003_Node000007" title=" " alt="" coords="393,115,425,119,424,125,392,120"/>
+</map>

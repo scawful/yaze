@@ -141,53 +141,127 @@ $(function(){initNavTree('patch_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
 <div class="foldopen" id="foldopen00029" data-start="{" data-end="}">
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno"><a class="line" href="classyaze_1_1cli_1_1AsarPatch.html#a9a794ec4ea7297ca773bb280d1674c48">   29</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1cli_1_1AsarPatch.html#a9a794ec4ea7297ca773bb280d1674c48">AsarPatch::Run</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  std::string patch_filename = arg_vec[1];</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  std::string rom_filename = arg_vec[2];</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <a class="code hl_define" href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_variable" href="classyaze_1_1cli_1_1CommandHandler.html#aa379924610d041d4d87ed115551adb21">rom_</a>.LoadFromFile(rom_filename))</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="keywordtype">int</span> buflen = <a class="code hl_variable" href="classyaze_1_1cli_1_1CommandHandler.html#aa379924610d041d4d87ed115551adb21">rom_</a>.vector().size();</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="keywordtype">int</span> romlen = <a class="code hl_variable" href="classyaze_1_1cli_1_1CommandHandler.html#aa379924610d041d4d87ed115551adb21">rom_</a>.vector().size();</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keywordflow">if</span> (!asar_patch(patch_filename.c_str(), rom_filename.data(), buflen,</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>                  &amp;romlen)) {</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    std::string error_message = <span class="stringliteral">&quot;Failed to apply patch: &quot;</span>;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keywordtype">int</span> num_errors = 0;</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keyword">const</span> errordata* errors = asar_geterrors(&amp;num_errors);</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; num_errors; i++) {</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      error_message += absl::StrFormat(<span class="stringliteral">&quot;%s&quot;</span>, errors[i].fullerrdata);</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    }</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keywordflow">return</span> absl::InternalError(error_message);</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  }</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>}</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordflow">if</span> (arg_vec.size() &lt; 2) {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(<span class="stringliteral">&quot;Usage: asar &lt;patch_file&gt; &lt;rom_file&gt;&quot;</span>);</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  }</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  std::string patch_filename = arg_vec[0];</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  std::string rom_filename = arg_vec[1];</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="comment">// Load ROM file</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  <a class="code hl_define" href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_variable" href="classyaze_1_1cli_1_1CommandHandler.html#aa379924610d041d4d87ed115551adb21">rom_</a>.LoadFromFile(rom_filename))</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="comment">// Get ROM data</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keyword">auto</span> rom_data = <a class="code hl_variable" href="classyaze_1_1cli_1_1CommandHandler.html#aa379924610d041d4d87ed115551adb21">rom_</a>.vector();</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keywordtype">int</span> buflen = <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(rom_data.size());</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keywordtype">int</span> romlen = buflen;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  </div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="comment">// Ensure we have enough buffer space</span></div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> max_rom_size = asar_maxromsize();</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordflow">if</span> (buflen &lt; max_rom_size) {</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    rom_data.resize(max_rom_size, 0);</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    buflen = max_rom_size;</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  }</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  </div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <span class="comment">// Apply Asar patch</span></div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  <span class="keywordflow">if</span> (!asar_patch(patch_filename.c_str(), </div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>                  <span class="keyword">reinterpret_cast&lt;</span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(rom_data.data()), </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>                  buflen, &amp;romlen)) {</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    std::string error_message = <span class="stringliteral">&quot;Failed to apply Asar patch:\n&quot;</span>;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keywordtype">int</span> num_errors = 0;</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <span class="keyword">const</span> errordata* errors = asar_geterrors(&amp;num_errors);</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; num_errors; i++) {</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>      error_message += absl::StrFormat(<span class="stringliteral">&quot;  %s\n&quot;</span>, errors[i].fullerrdata);</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    }</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keywordflow">return</span> absl::InternalError(error_message);</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  }</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  </div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="comment">// Resize ROM to actual size </span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  rom_data.resize(romlen);</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  </div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  <span class="comment">// Update the ROM data by writing the patched data back</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; rom_data.size(); ++i) {</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keyword">auto</span> status = <a class="code hl_variable" href="classyaze_1_1cli_1_1CommandHandler.html#aa379924610d041d4d87ed115551adb21">rom_</a>.WriteByte(i, rom_data[i]);</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      <span class="keywordflow">return</span> status;</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    }</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  }</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  <span class="comment">// Save patched ROM</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  std::string output_filename = rom_filename;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  <span class="keywordtype">size_t</span> dot_pos = output_filename.find_last_of(<span class="charliteral">&#39;.&#39;</span>);</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  <span class="keywordflow">if</span> (dot_pos != std::string::npos) {</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    output_filename.insert(dot_pos, <span class="stringliteral">&quot;_patched&quot;</span>);</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    output_filename += <span class="stringliteral">&quot;_patched&quot;</span>;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  }</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  <a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a> settings;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  settings.<a class="code hl_variable" href="structyaze_1_1Rom_1_1SaveSettings.html#a21e32750a0a04101b26825f6c31ce81c">filename</a> = output_filename;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  <a class="code hl_define" href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(<a class="code hl_variable" href="classyaze_1_1cli_1_1CommandHandler.html#aa379924610d041d4d87ed115551adb21">rom_</a>.SaveToFile(settings))</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  </div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;✅ Asar patch applied successfully!&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;📁 Output: &quot;</span> &lt;&lt; output_filename &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;📊 Final ROM size: &quot;</span> &lt;&lt; romlen &lt;&lt; <span class="stringliteral">&quot; bytes&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  </div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  <span class="comment">// Show warnings if any</span></div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="keywordtype">int</span> num_warnings = 0;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  <span class="keyword">const</span> errordata* warnings = asar_getwarnings(&amp;num_warnings);</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  <span class="keywordflow">if</span> (num_warnings &gt; 0) {</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    std::cout &lt;&lt; <span class="stringliteral">&quot;⚠️  Warnings:&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; num_warnings; i++) {</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  &quot;</span> &lt;&lt; warnings[i].fullerrdata &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    }</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  }</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>  </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  <span class="comment">// Show extracted symbols</span></div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  <span class="keywordtype">int</span> num_labels = 0;</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  <span class="keyword">const</span> labeldata* labels = asar_getalllabels(&amp;num_labels);</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  <span class="keywordflow">if</span> (num_labels &gt; 0) {</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    std::cout &lt;&lt; <span class="stringliteral">&quot;🏷️  Extracted &quot;</span> &lt;&lt; num_labels &lt;&lt; <span class="stringliteral">&quot; symbols:&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; std::min(10, num_labels); i++) {  <span class="comment">// Show first 10</span></div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  &quot;</span> &lt;&lt; labels[i].name &lt;&lt; <span class="stringliteral">&quot; @ $&quot;</span> </div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>                &lt;&lt; std::hex &lt;&lt; std::uppercase &lt;&lt; labels[i].location &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    }</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    <span class="keywordflow">if</span> (num_labels &gt; 10) {</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  ... and &quot;</span> &lt;&lt; (num_labels - 10) &lt;&lt; <span class="stringliteral">&quot; more&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    }</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  }</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  </div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>}</div>
 </div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="foldopen" id="foldopen00048" data-start="{" data-end="}">
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="classyaze_1_1cli_1_1CreatePatch.html#a7b4706567447759477678755fb72c591">   48</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1cli_1_1CreatePatch.html#a7b4706567447759477678755fb72c591">CreatePatch::Run</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  std::vector&lt;uint8_t&gt; source;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  std::vector&lt;uint8_t&gt; target;</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  std::vector&lt;uint8_t&gt; patch;</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <span class="comment">// Create patch</span></div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  <a class="code hl_function" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">util::CreateBpsPatch</a>(source, target, patch);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  <span class="comment">// Save patch to file</span></div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <span class="comment">// std::ofstream patchFile(&quot;patch.bps&quot;, ios::binary);</span></div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  <span class="comment">// patchFile.write(reinterpret_cast&lt;const char*&gt;(patch.data()),</span></div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  <span class="comment">// patch.size()); patchFile.close();</span></div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>}</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span> </div>
+<div class="foldopen" id="foldopen00120" data-start="{" data-end="}">
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="classyaze_1_1cli_1_1CreatePatch.html#a7b4706567447759477678755fb72c591">  120</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1cli_1_1CreatePatch.html#a7b4706567447759477678755fb72c591">CreatePatch::Run</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  std::vector&lt;uint8_t&gt; source;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  std::vector&lt;uint8_t&gt; target;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  std::vector&lt;uint8_t&gt; patch;</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <span class="comment">// Create patch</span></div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  <a class="code hl_function" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">util::CreateBpsPatch</a>(source, target, patch);</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  <span class="comment">// Save patch to file</span></div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  <span class="comment">// std::ofstream patchFile(&quot;patch.bps&quot;, ios::binary);</span></div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  <span class="comment">// patchFile.write(reinterpret_cast&lt;const char*&gt;(patch.data()),</span></div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  <span class="comment">// patch.size()); patchFile.close();</span></div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>}</div>
 </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>}  <span class="comment">// namespace cli</span></div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span> </div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>}  <span class="comment">// namespace cli</span></div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="abps_8h_html"><div class="ttname"><a href="bps_8h.html">bps.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1ApplyPatch_html_a80e7bf5abc2bc47a79d095a75912b044"><div class="ttname"><a href="classyaze_1_1cli_1_1ApplyPatch.html#a80e7bf5abc2bc47a79d095a75912b044">yaze::cli::ApplyPatch::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="#l00008">patch.cc:8</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1AsarPatch_html_a9a794ec4ea7297ca773bb280d1674c48"><div class="ttname"><a href="classyaze_1_1cli_1_1AsarPatch.html#a9a794ec4ea7297ca773bb280d1674c48">yaze::cli::AsarPatch::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="#l00029">patch.cc:29</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1CommandHandler_html_aa379924610d041d4d87ed115551adb21"><div class="ttname"><a href="classyaze_1_1cli_1_1CommandHandler.html#aa379924610d041d4d87ed115551adb21">yaze::cli::CommandHandler::rom_</a></div><div class="ttdeci">Rom rom_</div><div class="ttdef"><b>Definition</b> <a href="z3ed_8h_source.html#l00026">z3ed.h:26</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1CreatePatch_html_a7b4706567447759477678755fb72c591"><div class="ttname"><a href="classyaze_1_1cli_1_1CreatePatch.html#a7b4706567447759477678755fb72c591">yaze::cli::CreatePatch::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="#l00048">patch.cc:48</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1CreatePatch_html_a7b4706567447759477678755fb72c591"><div class="ttname"><a href="classyaze_1_1cli_1_1CreatePatch.html#a7b4706567447759477678755fb72c591">yaze::cli::CreatePatch::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="#l00120">patch.cc:120</a></div></div>
 <div class="ttc" id="amacro_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="macro_8h_source.html#l00053">macro.h:53</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1cli_html"><div class="ttname"><a href="namespaceyaze_1_1cli.html">yaze::cli</a></div><div class="ttdoc">Namespace for the command line interface.</div><div class="ttdef"><b>Definition</b> <a href="compress_8cc_source.html#l00004">compress.cc:4</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html"><div class="ttname"><a href="namespaceyaze_1_1cli.html">yaze::cli</a></div><div class="ttdoc">Namespace for the command line interface.</div><div class="ttdef"><b>Definition</b> <a href="cli__main_8cc_source.html#l00029">cli_main.cc:29</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1util_html_a3eadcc44d8287dad5ea9d6dbd25bd44d"><div class="ttname"><a href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">yaze::util::CreateBpsPatch</a></div><div class="ttdeci">void CreateBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</div><div class="ttdef"><b>Definition</b> <a href="bps_8cc_source.html#l00048">bps.cc:48</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1util_html_a991030a6ecb07dd710fd4877b48cdcd8"><div class="ttname"><a href="namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8">yaze::util::ApplyBpsPatch</a></div><div class="ttdeci">void ApplyBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</div><div class="ttdef"><b>Definition</b> <a href="bps_8cc_source.html#l00137">bps.cc:137</a></div></div>
-<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="controller_8cc_source.html#l00012">controller.cc:12</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00013">asar_wrapper.cc:13</a></div></div>
+<div class="ttc" id="astructyaze_1_1Rom_1_1SaveSettings_html"><div class="ttname"><a href="structyaze_1_1Rom_1_1SaveSettings.html">yaze::Rom::SaveSettings</a></div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00059">rom.h:59</a></div></div>
+<div class="ttc" id="astructyaze_1_1Rom_1_1SaveSettings_html_a21e32750a0a04101b26825f6c31ce81c"><div class="ttname"><a href="structyaze_1_1Rom_1_1SaveSettings.html#a21e32750a0a04101b26825f6c31ce81c">yaze::Rom::SaveSettings::filename</a></div><div class="ttdeci">std::string filename</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00063">rom.h:63</a></div></div>
 <div class="ttc" id="az3ed_8h_html"><div class="ttname"><a href="z3ed_8h.html">z3ed.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

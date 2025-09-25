@@ -9,10 +9,16 @@ var searchData=
   ['apucallbacks_6',['ApuCallbacks',['../structyaze_1_1emu_1_1ApuCallbacks.html',1,'yaze::emu::ApuCallbacks'],['../structyaze_1_1test_1_1ApuCallbacks.html',1,'yaze::test::ApuCallbacks']]],
   ['aputest_7',['ApuTest',['../classyaze_1_1test_1_1ApuTest.html',1,'yaze::test']]],
   ['arena_8',['Arena',['../classyaze_1_1gfx_1_1Arena.html',1,'yaze::gfx']]],
-  ['asarpatch_9',['AsarPatch',['../classyaze_1_1cli_1_1AsarPatch.html',1,'yaze::cli']]],
-  ['asmparser_10',['AsmParser',['../classyaze_1_1emu_1_1AsmParser.html',1,'yaze::emu::AsmParser'],['../classyaze_1_1test_1_1AsmParser.html',1,'yaze::test::AsmParser']]],
-  ['assemblyeditor_11',['AssemblyEditor',['../classyaze_1_1editor_1_1AssemblyEditor.html',1,'yaze::editor']]],
-  ['assetobject_12',['AssetObject',['../structyaze_1_1gui_1_1AssetObject.html',1,'yaze::gui']]],
-  ['audioram_13',['AudioRam',['../classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu::AudioRam'],['../classyaze_1_1test_1_1AudioRam.html',1,'yaze::test::AudioRam']]],
-  ['audioramimpl_14',['AudioRamImpl',['../classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]]
+  ['asarintegrationtest_9',['AsarIntegrationTest',['../classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html',1,'yaze::test::integration']]],
+  ['asarpatch_10',['AsarPatch',['../classyaze_1_1cli_1_1AsarPatch.html',1,'yaze::cli']]],
+  ['asarpatchresult_11',['AsarPatchResult',['../structyaze_1_1app_1_1core_1_1AsarPatchResult.html',1,'yaze::app::core']]],
+  ['asarromintegrationtest_12',['AsarRomIntegrationTest',['../classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html',1,'yaze::test::integration']]],
+  ['asarsymbol_13',['AsarSymbol',['../structyaze_1_1app_1_1core_1_1AsarSymbol.html',1,'yaze::app::core']]],
+  ['asarwrapper_14',['AsarWrapper',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html',1,'yaze::app::core']]],
+  ['asarwrappertest_15',['AsarWrapperTest',['../classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html',1,'yaze::app::core::anonymous_namespace{asar_wrapper_test.cc}']]],
+  ['asmparser_16',['AsmParser',['../classyaze_1_1emu_1_1AsmParser.html',1,'yaze::emu::AsmParser'],['../classyaze_1_1test_1_1AsmParser.html',1,'yaze::test::AsmParser']]],
+  ['assemblyeditor_17',['AssemblyEditor',['../classyaze_1_1editor_1_1AssemblyEditor.html',1,'yaze::editor']]],
+  ['assetobject_18',['AssetObject',['../structyaze_1_1gui_1_1AssetObject.html',1,'yaze::gui']]],
+  ['audioram_19',['AudioRam',['../classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu::AudioRam'],['../classyaze_1_1test_1_1AudioRam.html',1,'yaze::test::AudioRam']]],
+  ['audioramimpl_20',['AudioRamImpl',['../classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]]
 ];

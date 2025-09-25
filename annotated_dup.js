@@ -1,16 +1,28 @@
 var annotated_dup =
 [
     [ "yaze", "namespaceyaze.html", [
+      [ "app", "namespaceyaze_1_1app.html", [
+        [ "core", "namespaceyaze_1_1app_1_1core.html", [
+          [ "anonymous_namespace{asar_wrapper_test.cc}", "namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03.html", [
+            [ "AsarWrapperTest", "classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html", "classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest" ]
+          ] ],
+          [ "AsarPatchResult", "structyaze_1_1app_1_1core_1_1AsarPatchResult.html", "structyaze_1_1app_1_1core_1_1AsarPatchResult" ],
+          [ "AsarSymbol", "structyaze_1_1app_1_1core_1_1AsarSymbol.html", "structyaze_1_1app_1_1core_1_1AsarSymbol" ],
+          [ "AsarWrapper", "classyaze_1_1app_1_1core_1_1AsarWrapper.html", "classyaze_1_1app_1_1core_1_1AsarWrapper" ]
+        ] ]
+      ] ],
       [ "cli", "namespaceyaze_1_1cli.html", [
         [ "ApplyPatch", "classyaze_1_1cli_1_1ApplyPatch.html", "classyaze_1_1cli_1_1ApplyPatch" ],
         [ "AsarPatch", "classyaze_1_1cli_1_1AsarPatch.html", "classyaze_1_1cli_1_1AsarPatch" ],
         [ "Backup", "classyaze_1_1cli_1_1Backup.html", "classyaze_1_1cli_1_1Backup" ],
         [ "CommandHandler", "classyaze_1_1cli_1_1CommandHandler.html", "classyaze_1_1cli_1_1CommandHandler" ],
+        [ "CommandInfo", "structyaze_1_1cli_1_1CommandInfo.html", "structyaze_1_1cli_1_1CommandInfo" ],
         [ "Compress", "classyaze_1_1cli_1_1Compress.html", "classyaze_1_1cli_1_1Compress" ],
         [ "Context", "structyaze_1_1cli_1_1Context.html", "structyaze_1_1cli_1_1Context" ],
         [ "CreatePatch", "classyaze_1_1cli_1_1CreatePatch.html", "classyaze_1_1cli_1_1CreatePatch" ],
         [ "Decompress", "classyaze_1_1cli_1_1Decompress.html", "classyaze_1_1cli_1_1Decompress" ],
         [ "Expand", "classyaze_1_1cli_1_1Expand.html", "classyaze_1_1cli_1_1Expand" ],
+        [ "ModernCLI", "classyaze_1_1cli_1_1ModernCLI.html", "classyaze_1_1cli_1_1ModernCLI" ],
         [ "Open", "classyaze_1_1cli_1_1Open.html", "classyaze_1_1cli_1_1Open" ],
         [ "PcToSnesCommand", "classyaze_1_1cli_1_1PcToSnesCommand.html", "classyaze_1_1cli_1_1PcToSnesCommand" ],
         [ "ReadFromRom", "classyaze_1_1cli_1_1ReadFromRom.html", "classyaze_1_1cli_1_1ReadFromRom" ],
@@ -244,6 +256,10 @@ var annotated_dup =
         [ "UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", "structyaze_1_1gui_1_1UnsortedAsset" ]
       ] ],
       [ "test", "namespaceyaze_1_1test.html", [
+        [ "integration", "namespaceyaze_1_1test_1_1integration.html", [
+          [ "AsarIntegrationTest", "classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html", "classyaze_1_1test_1_1integration_1_1AsarIntegrationTest" ],
+          [ "AsarRomIntegrationTest", "classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html", "classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest" ]
+        ] ],
         [ "Apu", "classyaze_1_1test_1_1Apu.html", "classyaze_1_1test_1_1Apu" ],
         [ "ApuCallbacks", "structyaze_1_1test_1_1ApuCallbacks.html", "structyaze_1_1test_1_1ApuCallbacks" ],
         [ "ApuTest", "classyaze_1_1test_1_1ApuTest.html", "classyaze_1_1test_1_1ApuTest" ],
@@ -270,6 +286,7 @@ var annotated_dup =
         [ "PpuInterface", "classyaze_1_1test_1_1PpuInterface.html", "classyaze_1_1test_1_1PpuInterface" ],
         [ "PpuTest", "classyaze_1_1test_1_1PpuTest.html", "classyaze_1_1test_1_1PpuTest" ],
         [ "Rom", "classyaze_1_1test_1_1Rom.html", "classyaze_1_1test_1_1Rom" ],
+        [ "RomDependentTest", "classyaze_1_1test_1_1RomDependentTest.html", "classyaze_1_1test_1_1RomDependentTest" ],
         [ "RomTest", "classyaze_1_1test_1_1RomTest.html", "classyaze_1_1test_1_1RomTest" ],
         [ "Spc700", "classyaze_1_1test_1_1Spc700.html", "classyaze_1_1test_1_1Spc700" ],
         [ "Spc700Test", "classyaze_1_1test_1_1Spc700Test.html", "classyaze_1_1test_1_1Spc700Test" ],
@@ -277,6 +294,7 @@ var annotated_dup =
         [ "SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", "classyaze_1_1test_1_1SpriteBuilderTest" ],
         [ "TestDungeonObjects", "classyaze_1_1test_1_1TestDungeonObjects.html", "classyaze_1_1test_1_1TestDungeonObjects" ],
         [ "TestEditor", "classyaze_1_1test_1_1TestEditor.html", "classyaze_1_1test_1_1TestEditor" ],
+        [ "TestRomManager", "classyaze_1_1test_1_1TestRomManager.html", null ],
         [ "Tilemap", "structyaze_1_1test_1_1Tilemap.html", "structyaze_1_1test_1_1Tilemap" ]
       ] ],
       [ "util", "namespaceyaze_1_1util.html", [

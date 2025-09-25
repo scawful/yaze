@@ -63,13 +63,14 @@ var searchData=
   ['updateusagestats_60',['UpdateUsageStats',['../classyaze_1_1editor_1_1OverworldEditor.html#a14ae026e75243f19defc01df2f7523f2',1,'yaze::editor::OverworldEditor']]],
   ['uppercase_61',['uppercase',['../structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157',1,'yaze::util::HexStringParams']]],
   ['us_62',['US',['../zelda_8h.html#a9b154d4f0904082e537a24b5ae25575da56de89a713ba25cddd89edd52fdf2eaa',1,'zelda.h']]],
-  ['usage_20examples_63',['Usage Examples',['../md_docs_2canvas-refactor-summary.html#autotoc_md55',1,'5. &lt;tt&gt;canvas_example.cc&lt;/tt&gt; - Usage Examples'],['../md_docs_2dungeon-editor-comprehensive-guide.html#autotoc_md129',1,'Usage Examples']]],
-  ['use_20gdb_20for_20debugging_64',['2. Use GDB for Debugging',['../md_docs_2integration__test__guide.html#autotoc_md290',1,'']]],
-  ['use_5farea_5fspecific_5fbg_5fcolor_5f_65',['use_area_specific_bg_color_',['../classyaze_1_1editor_1_1OverworldEditor.html#a4684ee50e02be751568f089674c4c7cd',1,'yaze::editor::OverworldEditor']]],
-  ['usegain_66',['useGain',['../structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705',1,'yaze::emu::DspChannel']]],
-  ['usenoise_67',['useNoise',['../structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74',1,'yaze::emu::DspChannel']]],
-  ['user_20interface_68',['User Interface',['../md_docs_2dungeon-editor-comprehensive-guide.html#autotoc_md116',1,'']]],
-  ['user_5froutines_69',['user_routines',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7',1,'yaze::editor::zsprite::SubEditor']]],
-  ['userroutine_70',['UserRoutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::editor::zsprite::UserRoutine'],['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine::UserRoutine()']]],
-  ['userroutines_71',['userRoutines',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]]
+  ['usage_63',['usage',['../structyaze_1_1cli_1_1CommandInfo.html#ae5b87522f7e23309fb1579ffd8c4eff4',1,'yaze::cli::CommandInfo']]],
+  ['usage_20examples_64',['Usage Examples',['../md_docs_2canvas-refactor-summary.html#autotoc_md55',1,'5. &lt;tt&gt;canvas_example.cc&lt;/tt&gt; - Usage Examples'],['../md_docs_2dungeon-editor-comprehensive-guide.html#autotoc_md129',1,'Usage Examples']]],
+  ['use_20gdb_20for_20debugging_65',['2. Use GDB for Debugging',['../md_docs_2integration__test__guide.html#autotoc_md290',1,'']]],
+  ['use_5farea_5fspecific_5fbg_5fcolor_5f_66',['use_area_specific_bg_color_',['../classyaze_1_1editor_1_1OverworldEditor.html#a4684ee50e02be751568f089674c4c7cd',1,'yaze::editor::OverworldEditor']]],
+  ['usegain_67',['useGain',['../structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705',1,'yaze::emu::DspChannel']]],
+  ['usenoise_68',['useNoise',['../structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74',1,'yaze::emu::DspChannel']]],
+  ['user_20interface_69',['User Interface',['../md_docs_2dungeon-editor-comprehensive-guide.html#autotoc_md116',1,'']]],
+  ['user_5froutines_70',['user_routines',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7',1,'yaze::editor::zsprite::SubEditor']]],
+  ['userroutine_71',['UserRoutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::editor::zsprite::UserRoutine'],['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine::UserRoutine()']]],
+  ['userroutines_72',['userRoutines',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]]
 ];
