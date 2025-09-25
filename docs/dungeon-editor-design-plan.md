@@ -1,430 +1,364 @@
-# Dungeon Editor Design Plan & Future Development Guide
+# Dungeon Editor Design Plan
 
 ## Overview
-This document provides a comprehensive design plan for the Yaze Dungeon Editor, including current architecture, identified issues, and a roadmap for future developers to continue development effectively.
 
-## Current Architecture
+This document provides a comprehensive guide for future developers working on the Zelda 3 Dungeon Editor system. The dungeon editor has been refactored into a modular, component-based architecture that separates concerns and improves maintainability.
 
-### Main Components
+## Architecture Overview
 
-#### 1. **DungeonEditor** (Main Controller)
-- **File**: `src/app/editor/dungeon/dungeon_editor.h/cc`
-- **Purpose**: Main UI controller and coordinator
-- **Responsibilities**:
-  - Managing the 3-column UI layout
-  - Coordinating between different editor components
-  - Handling ROM loading and initialization
-  - Managing editor state and undo/redo
+### Core Components
 
-#### 2. **DungeonRoomSelector** (Room/Entrance Selection)
-- **File**: `src/app/editor/dungeon/dungeon_room_selector.h/cc`
-- **Purpose**: Handles room and entrance selection UI
-- **Responsibilities**:
-  - Room list display and selection
-  - Entrance configuration and selection
-  - Room properties editing
+The dungeon editor system consists of several key components:
 
-#### 3. **DungeonCanvasViewer** (Main Canvas)
-- **File**: `src/app/editor/dungeon/dungeon_canvas_viewer.h/cc`
-- **Purpose**: Main canvas rendering and interaction
-- **Responsibilities**:
-  - Room graphics rendering
-  - Object rendering and positioning
-  - Canvas interaction (pan, zoom, select)
-  - Coordinate system management
+1. **DungeonEditor** - Main orchestrator class that manages the overall editor state
+2. **DungeonRoomSelector** - Handles room and entrance selection UI
+3. **DungeonCanvasViewer** - Manages the main canvas rendering and room display
+4. **DungeonObjectSelector** - Provides object selection, editing panels, and tile graphics
+5. **ObjectRenderer** - Core rendering engine for dungeon objects
+6. **DungeonEditorSystem** - High-level system for managing dungeon editing operations
 
-#### 4. **DungeonObjectSelector** (Object Management)
-- **File**: `src/app/editor/dungeon/dungeon_object_selector.h/cc`
-- **Purpose**: Object selection, preview, and editing
-- **Responsibilities**:
-  - Object preview rendering
-  - Object editing controls
-  - Graphics sheet display
-  - Integrated editing panels
+### File Structure
 
-### Core Systems
+```
+src/app/editor/dungeon/
+├── dungeon_editor.h/cc              # Main editor orchestrator
+├── dungeon_room_selector.h/cc       # Room/entrance selection component
+├── dungeon_canvas_viewer.h/cc       # Canvas rendering component
+├── dungeon_object_selector.h/cc     # Object editing component
+└── dungeon_editor_system.h/cc       # Core editing system
 
-#### 1. **ObjectRenderer**
-- **File**: `src/app/zelda3/dungeon/object_renderer.h/cc`
-- **Purpose**: Renders dungeon objects to bitmaps
-- **Features**: Caching, performance monitoring, memory management
+src/app/zelda3/dungeon/
+├── object_renderer.h/cc             # Object rendering engine
+├── dungeon_object_editor.h/cc       # Object editing logic
+├── room.h/cc                        # Room data structures
+├── room_object.h/cc                 # Object data structures
+└── room_entrance.h/cc               # Entrance data structures
+```
 
-#### 2. **DungeonEditorSystem**
-- **File**: `src/app/zelda3/dungeon/dungeon_editor_system.h/cc`
-- **Purpose**: High-level dungeon editing operations
-- **Features**: Undo/redo, room management, object operations
+## Component Responsibilities
 
-#### 3. **DungeonObjectEditor**
-- **File**: `src/app/zelda3/dungeon/dungeon_object_editor.h/cc`
-- **Purpose**: Interactive object editing
-- **Features**: Object placement, editing modes, validation
+### DungeonEditor (Main Orchestrator)
 
-## Current Issues & Fixes Applied
+**Responsibilities:**
+- Manages overall editor state and ROM data
+- Coordinates between UI components
+- Handles data initialization and propagation
+- Implements the 3-column layout (Room Selector | Canvas | Object Selector)
 
-### 1. **Crash Prevention** ✅ FIXED
-- **Issue**: Multiple crashes when ROM not loaded or invalid data accessed
-- **Fixes Applied**:
-  - Added comprehensive null checks in `DrawSpriteTile`
-  - Added ROM validation in `LoadAnimatedGraphics` and `CopyRoomGraphicsToBuffer`
-  - Added bounds checking for all array/vector accesses
-  - Added graceful error handling with early returns
+**Key Methods:**
+- `UpdateDungeonRoomView()` - Main UI update loop
+- `Load()` - Initialize editor with ROM data
+- `set_rom()` - Update ROM reference across components
 
-### 2. **UI Simplification** ✅ FIXED
-- **Issue**: 4-column layout was too crowded
-- **Fixes Applied**:
-  - Reduced to 3-column layout: Room/Entrance Selector | Canvas | Object Selector/Editor
-  - Fixed column widths for better space utilization
-  - Separated logical components into dedicated classes
+### DungeonRoomSelector
 
-### 3. **Coordinate System Issues** ✅ PARTIALLY FIXED
-- **Issue**: Object previews and coordinates were incorrect
-- **Fixes Applied**:
-  - Fixed object preview centering in canvas
-  - Added coordinate conversion helper functions
-  - Improved bounds checking for object rendering
+**Responsibilities:**
+- Room selection and navigation
+- Entrance selection and editing
+- Active room management
+- Room list display with names
 
-## Remaining Issues
+**Key Methods:**
+- `Draw()` - Main rendering method
+- `DrawRoomSelector()` - Room list and selection
+- `DrawEntranceSelector()` - Entrance editing interface
+- `set_rom()`, `set_rooms()`, `set_entrances()` - Data access methods
 
-### 1. **Object Preview Not Showing**
-- **Current Status**: Objects may not render in preview due to:
-  - ROM data not properly loaded
-  - Palette issues
-  - Object parsing failures
-- **Recommended Fix**: Add debug logging and fallback rendering
+### DungeonCanvasViewer
 
-### 2. **Graphics Loading Issues**
-- **Current Status**: Room graphics may not load properly
-- **Recommended Fix**: Implement proper error handling and user feedback
+**Responsibilities:**
+- Main canvas rendering and display
+- Room graphics loading and management
+- Object rendering with proper coordinates
+- Background layer management
+- Coordinate conversion (room ↔ canvas)
 
-### 3. **Memory Management**
-- **Current Status**: Potential memory leaks in graphics caching
-- **Recommended Fix**: Implement proper cleanup and memory monitoring
+**Key Methods:**
+- `Draw(int room_id)` - Main canvas rendering
+- `LoadAndRenderRoomGraphics()` - Graphics loading
+- `RenderObjectInCanvas()` - Object rendering
+- `RoomToCanvasCoordinates()` - Coordinate conversion
+- `RenderRoomBackgroundLayers()` - Background rendering
 
-## Future Development Roadmap
+### DungeonObjectSelector
 
-### Phase 1: Stability & Bug Fixes (Priority: High)
+**Responsibilities:**
+- Object selection and preview
+- Tile graphics display
+- Compact editing panels for all editor modes
+- Object renderer integration
 
-#### 1.1 Object Preview System
+**Key Methods:**
+- `Draw()` - Main rendering with tabbed interface
+- `DrawRoomGraphics()` - Tile graphics display
+- `DrawIntegratedEditingPanels()` - Editing interface
+- `DrawCompactObjectEditor()` - Object editing controls
+- `DrawCompactSpriteEditor()` - Sprite editing controls
+- Similar methods for Items, Entrances, Doors, Chests, Properties
+
+## Data Flow
+
+### Initialization Flow
+
+1. **ROM Loading**: `DungeonEditor::Load()` is called with ROM data
+2. **Component Setup**: ROM and data pointers are propagated to all components
+3. **Graphics Initialization**: Room graphics are loaded and cached
+4. **UI State Setup**: Active rooms, palettes, and editor modes are initialized
+
+### Runtime Data Flow
+
+1. **User Interaction**: User selects rooms, objects, or editing modes
+2. **State Updates**: Components update their internal state
+3. **Data Propagation**: Changes are communicated between components
+4. **Rendering**: All components re-render with updated data
+
+### Key Data Structures
+
 ```cpp
-// In DungeonObjectSelector::DrawObjectRenderer()
-void DungeonObjectSelector::DrawObjectRenderer() {
-  // Add debug information
-  if (ImGui::Button("Debug Object Preview")) {
-    // Log object data, ROM state, palette info
-    LogObjectPreviewDebugInfo();
-  }
-  
-  // Add fallback rendering
-  if (!object_loaded_) {
-    ImGui::Text("No object preview available");
-    if (ImGui::Button("Force Load Preview")) {
-      ForceLoadObjectPreview();
-    }
-  }
+// Main editor state
+std::array<zelda3::Room, 0x128> rooms_;
+std::array<zelda3::RoomEntrance, 0x8C> entrances_;
+ImVector<int> active_rooms_;
+gfx::PaletteGroup current_palette_group_;
+
+// Component instances
+DungeonRoomSelector room_selector_;
+DungeonCanvasViewer canvas_viewer_;
+DungeonObjectSelector object_selector_;
+```
+
+## Integration Patterns
+
+### Component Communication
+
+Components communicate through:
+1. **Direct method calls** - Parent calls child methods
+2. **Data sharing** - Shared pointers to common data structures
+3. **Event propagation** - State changes trigger updates
+
+### ROM Data Management
+
+```cpp
+// ROM propagation pattern
+void DungeonEditor::set_rom(Rom* rom) {
+    rom_ = rom;
+    room_selector_.set_rom(rom);
+    canvas_viewer_.SetRom(rom);
+    object_selector_.SetRom(rom);
 }
 ```
 
-#### 1.2 Error Handling & User Feedback
+### State Synchronization
+
+Components maintain their own state but receive updates from the main editor:
+- Room selection state is managed by `DungeonRoomSelector`
+- Canvas rendering state is managed by `DungeonCanvasViewer`
+- Object editing state is managed by `DungeonObjectSelector`
+
+## UI Layout Architecture
+
+### 3-Column Layout
+
+The main editor uses a 3-column ImGui table layout:
+
 ```cpp
-// Add to all major operations
-absl::Status LoadRoomGraphics(int room_id) {
-  auto result = DoLoadRoomGraphics(room_id);
-  if (!result.ok()) {
-    ShowErrorMessage("Failed to load room graphics", result.message());
-    return result;
-  }
-  ShowSuccessMessage("Room graphics loaded successfully");
-  return absl::OkStatus();
-}
-```
-
-#### 1.3 Memory Management
-```cpp
-// Add memory monitoring
-class DungeonEditor {
-private:
-  void MonitorMemoryUsage() {
-    auto stats = object_renderer_.GetPerformanceStats();
-    if (stats.memory_usage > kMaxMemoryUsage) {
-      ClearObjectCache();
-      ShowWarningMessage("Memory usage high, cleared cache");
-    }
-  }
-};
-```
-
-### Phase 2: Feature Enhancement (Priority: Medium)
-
-#### 2.1 Advanced Object Editing
-- Multi-object selection
-- Object grouping
-- Copy/paste operations
-- Object templates
-
-#### 2.2 Enhanced Canvas Features
-- Zoom controls
-- Grid snapping
-- Layer management
-- Real-time preview
-
-#### 2.3 Room Management
-- Room duplication
-- Room templates
-- Bulk operations
-- Room validation
-
-### Phase 3: Advanced Features (Priority: Low)
-
-#### 3.1 Scripting Support
-- Lua scripting for custom operations
-- Automation tools
-- Batch processing
-
-#### 3.2 Plugin System
-- Modular architecture
-- Third-party plugins
-- Custom object types
-
-## Implementation Guidelines
-
-### 1. **Error Handling Pattern**
-```cpp
-absl::Status DoOperation() {
-  // Validate inputs
-  if (!IsValidInput()) {
-    return absl::InvalidArgumentError("Invalid input");
-  }
-  
-  // Perform operation with error checking
-  auto result = PerformOperation();
-  if (!result.ok()) {
-    LogError("Operation failed", result.status());
-    return result.status();
-  }
-  
-  return absl::OkStatus();
-}
-```
-
-### 2. **UI Component Pattern**
-```cpp
-class ComponentName {
-public:
-  void Draw() {
-    if (!IsValid()) {
-      ImGui::Text("Component not ready");
-      return;
-    }
+if (BeginTable("#DungeonEditTable", 3, kDungeonTableFlags, ImVec2(0, 0))) {
+    TableSetupColumn("Room/Entrance Selector", ImGuiTableColumnFlags_WidthFixed, 250);
+    TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch);
+    TableSetupColumn("Object Selector/Editor", ImGuiTableColumnFlags_WidthFixed, 300);
     
-    // Draw component UI
-    DrawMainUI();
+    // Column 1: Room Selector
+    TableNextColumn();
+    room_selector_.Draw();
     
-    // Handle interactions
-    HandleInteractions();
-  }
-  
-private:
-  bool IsValid() const {
-    return rom_ != nullptr && rom_->is_loaded();
-  }
-};
+    // Column 2: Canvas
+    TableNextColumn();
+    canvas_viewer_.Draw(current_room);
+    
+    // Column 3: Object Selector
+    TableNextColumn();
+    object_selector_.Draw();
+}
 ```
 
-### 3. **Memory Management Pattern**
+### Component Internal Layout
+
+Each component manages its own internal layout:
+- **DungeonRoomSelector**: Tabbed interface (Rooms | Entrances)
+- **DungeonCanvasViewer**: Canvas with controls and debug popup
+- **DungeonObjectSelector**: Tabbed interface (Graphics | Editor)
+
+## Coordinate System
+
+### Room Coordinates vs Canvas Coordinates
+
+- **Room Coordinates**: 16x16 tile units (0-15 for a standard room)
+- **Canvas Coordinates**: Pixel coordinates for rendering
+- **Conversion**: `RoomToCanvasCoordinates(x, y) = (x * 16, y * 16)`
+
+### Bounds Checking
+
+All rendering operations include bounds checking:
 ```cpp
-class GraphicsManager {
-public:
-  void ClearCache() {
-    object_cache_.clear();
-    texture_cache_.clear();
-    memory_pool_.Reset();
-  }
-  
-  size_t GetMemoryUsage() const {
-    return object_cache_.size() * sizeof(CachedObject) +
-           texture_cache_.size() * sizeof(Texture);
-  }
-  
-private:
-  std::vector<CachedObject> object_cache_;
-  std::unordered_map<int, Texture> texture_cache_;
-  MemoryPool memory_pool_;
-};
+bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
 ```
 
-## Testing Strategy
+## Error Handling & Validation
 
-### 1. **Unit Tests**
-- Test each component in isolation
-- Mock ROM data for consistent testing
-- Test error conditions and edge cases
+### ROM Validation
 
-### 2. **Integration Tests**
-- Test component interactions
-- Test with real ROM data
-- Test performance under load
+All components validate ROM state before operations:
+```cpp
+if (!rom_ || !rom_->is_loaded()) {
+    ImGui::Text("ROM not loaded");
+    return;
+}
+```
 
-### 3. **UI Tests**
-- Test user interactions
-- Test layout responsiveness
-- Test accessibility
+### Bounds Validation
+
+Graphics operations include bounds checking:
+```cpp
+if (room_id < 0 || room_id >= rooms_->size()) {
+    return; // Skip invalid operations
+}
+```
 
 ## Performance Considerations
 
-### 1. **Rendering Optimization**
-- Implement object culling
-- Use texture atlases
-- Implement level-of-detail (LOD)
+### Caching Strategy
 
-### 2. **Memory Optimization**
-- Implement smart caching
-- Use memory pools
-- Monitor memory usage
+- **Object Render Cache**: Cached rendered bitmaps to avoid re-rendering
+- **Graphics Cache**: Cached graphics sheets for frequently accessed data
+- **Memory Pool**: Efficient memory allocation for temporary objects
 
-### 3. **UI Responsiveness**
-- Use async operations for heavy tasks
-- Implement progress indicators
-- Minimize UI blocking operations
+### Rendering Optimization
+
+- **Viewport Culling**: Objects outside visible area are not rendered
+- **Lazy Loading**: Graphics are loaded only when needed
+- **Selective Updates**: Only changed components re-render
+
+## Testing Strategy
+
+### Integration Tests
+
+The system includes comprehensive integration tests:
+- `dungeon_object_renderer_integration_test.cc` - Core rendering tests
+- `dungeon_editor_system_integration_test.cc` - System integration tests
+- `dungeon_object_renderer_mock_test.cc` - Mock ROM testing
+
+### Test Categories
+
+1. **Real ROM Tests**: Tests with actual Zelda 3 ROM data
+2. **Mock ROM Tests**: Tests with simulated ROM data
+3. **Performance Tests**: Rendering performance benchmarks
+4. **Error Handling Tests**: Validation and error recovery
+
+## Future Development Guidelines
+
+### Adding New Features
+
+1. **Identify Component**: Determine which component should handle the feature
+2. **Extend Interface**: Add necessary methods to component header
+3. **Implement Logic**: Add implementation in component source file
+4. **Update Integration**: Modify main editor to use new functionality
+5. **Add Tests**: Create tests for new functionality
+
+### Component Extension Patterns
+
+```cpp
+// Adding new data access method
+void Component::SetNewData(const NewDataType& data) { 
+    new_data_ = data; 
+}
+
+// Adding new rendering method
+void Component::DrawNewFeature() {
+    // Implementation
+}
+
+// Adding to main Draw method
+void Component::Draw() {
+    // Existing code
+    DrawNewFeature();
+}
+```
+
+### Data Flow Extension
+
+When adding new data types:
+1. Add to main editor state
+2. Create setter methods in relevant components
+3. Update initialization in `Load()` method
+4. Add to `set_rom()` propagation if ROM-dependent
+
+### UI Layout Extension
+
+For new UI elements:
+1. Determine placement (new tab, new panel, etc.)
+2. Follow existing ImGui patterns
+3. Maintain consistent spacing and styling
+4. Add to appropriate component's Draw method
+
+## Common Pitfalls & Solutions
+
+### Memory Management
+
+- **Issue**: Dangling pointers to ROM data
+- **Solution**: Always validate ROM state before use
+
+### Coordinate System
+
+- **Issue**: Objects rendering at wrong positions
+- **Solution**: Use coordinate conversion helper methods
+
+### State Synchronization
+
+- **Issue**: Components showing stale data
+- **Solution**: Ensure data propagation in setter methods
+
+### Performance Issues
+
+- **Issue**: Slow rendering with many objects
+- **Solution**: Implement viewport culling and caching
 
 ## Debugging Tools
 
-### 1. **Debug Console**
+### Debug Popup
+
+The canvas viewer includes a comprehensive debug popup with:
+- Object statistics and metadata
+- Cache information
+- Performance metrics
+- Object type breakdowns
+
+### Logging
+
+Key operations include logging for debugging:
 ```cpp
-class DebugConsole {
-public:
-  void LogObjectState(const RoomObject& obj) {
-    ImGui::Text("Object ID: %d", obj.id_);
-    ImGui::Text("Position: (%d, %d)", obj.x_, obj.y_);
-    ImGui::Text("Size: %d", obj.size_);
-    ImGui::Text("Layer: %d", static_cast<int>(obj.layer_));
-    ImGui::Text("Tiles Loaded: %s", obj.tiles().empty() ? "No" : "Yes");
-  }
-};
+std::cout << "Loading room graphics for room " << room_id << std::endl;
 ```
 
-### 2. **Performance Monitor**
-```cpp
-class PerformanceMonitor {
-public:
-  void DrawPerformanceStats() {
-    auto stats = GetStats();
-    ImGui::Text("Render Time: %.2f ms", stats.render_time.count());
-    ImGui::Text("Memory Usage: %.2f MB", stats.memory_usage / 1024.0 / 1024.0);
-    ImGui::Text("Cache Hit Rate: %.2f%%", stats.cache_hit_rate * 100);
-  }
-};
+## Build Integration
+
+### CMake Configuration
+
+New components are automatically included via:
+```cmake
+# In CMakeLists.txt
+file(GLOB YAZE_SRC_FILES "src/app/editor/dungeon/*.cc")
 ```
 
-## Current Implementation Status
+### Dependencies
 
-### ✅ Completed (Phase 1)
-- **UI Component Separation**: Successfully separated DungeonEditor into 3 main components:
-  - `DungeonRoomSelector`: Room and entrance selection UI
-  - `DungeonCanvasViewer`: Main canvas rendering and interaction
-  - `DungeonObjectSelector`: Object management and editing panels
-- **3-Column Layout**: Implemented clean 3-column layout as requested
-- **Debug Elements Popup**: Moved debug controls into modal popup for cleaner UI
-- **Crash Prevention**: Added comprehensive null checks and bounds validation
-- **Component Architecture**: Established proper separation of concerns
-
-### 🔄 In Progress (Phase 2)
-- **Component Integration**: Currently integrating UI components into main DungeonEditor
-- **Method Implementation**: Adding missing SetRom, SetRooms, SetCurrentPaletteGroup methods
-- **Data Flow**: Establishing proper data flow between components
-
-### ⏳ Next Steps (Phase 3)
-1. **Complete Method Implementation**: Add all missing methods to UI components
-2. **Test Integration**: Verify all components work together correctly
-3. **Error Handling**: Add proper error handling and user feedback
-4. **Performance Optimization**: Implement caching and memory management
-
-## Implementation Notes for Future Developers
-
-### Component Integration Pattern
-```cpp
-// Main DungeonEditor coordinates components
-class DungeonEditor {
-private:
-  DungeonRoomSelector room_selector_;
-  DungeonCanvasViewer canvas_viewer_;
-  DungeonObjectSelector object_selector_;
-  
-public:
-  void Load() {
-    // Initialize components with data
-    room_selector_.set_rom(rom_);
-    room_selector_.set_rooms(&rooms_);
-    room_selector_.set_entrances(&entrances_);
-    
-    canvas_viewer_.SetRom(rom_);
-    canvas_viewer_.SetRooms(rooms_);
-    canvas_viewer_.SetCurrentPaletteGroup(current_palette_group_);
-    
-    object_selector_.SetRom(rom_);
-    object_selector_.SetCurrentPaletteGroup(current_palette_group_);
-  }
-  
-  void UpdateDungeonRoomView() {
-    // 3-column layout
-    if (BeginTable("#DungeonEditTable", 3, kDungeonTableFlags)) {
-      TableNextColumn();
-      room_selector_.Draw();  // Column 1: Room/Entrance Selector
-      
-      TableNextColumn();
-      canvas_viewer_.Draw(current_room_id_);  // Column 2: Canvas
-      
-      TableNextColumn();
-      object_selector_.Draw();  // Column 3: Object Selector/Editor
-      
-      EndTable();
-    }
-  }
-};
-```
-
-### Required Methods for UI Components
-Each UI component needs these methods for proper integration:
-
-```cpp
-// DungeonRoomSelector
-void SetRom(Rom* rom);
-void SetRooms(std::array<Room, 0x128>* rooms);
-void SetEntrances(std::array<RoomEntrance, 0x8C>* entrances);
-void Draw();
-
-// DungeonCanvasViewer  
-void SetRom(Rom* rom);
-void SetRooms(std::array<Room, 0x128>& rooms);
-void SetCurrentPaletteGroup(const gfx::PaletteGroup& palette_group);
-void SetCurrentPaletteId(uint64_t palette_id);
-void Draw(int room_id);
-
-// DungeonObjectSelector
-void SetRom(Rom* rom);
-void SetCurrentPaletteGroup(const gfx::PaletteGroup& palette_group);
-void SetCurrentPaletteId(uint64_t palette_id);
-void Draw();
-```
+Key dependencies:
+- ImGui for UI rendering
+- gfx library for graphics operations
+- zelda3 library for ROM data structures
+- absl for status handling
 
 ## Conclusion
 
-The Dungeon Editor has a solid foundation with proper separation of concerns and crash prevention measures in place. The main areas for improvement are:
+This modular architecture provides a solid foundation for future dungeon editor development. The separation of concerns makes the codebase maintainable, testable, and extensible. Future developers should follow the established patterns and extend components rather than modifying the main orchestrator class.
 
-1. **Component Integration**: Complete the integration of UI components (IN PROGRESS)
-2. **Object Preview System**: Needs debugging and fallback mechanisms
-3. **Error Handling**: Needs better user feedback and recovery
-4. **Memory Management**: Needs monitoring and cleanup
-5. **UI Polish**: Needs better visual feedback and responsiveness
-
-Following this design plan will ensure the Dungeon Editor becomes a robust, user-friendly tool for Zelda 3 ROM editing.
-
-## Quick Start for New Developers
-
-1. **Read the Architecture**: Understand the component separation
-2. **Study the Crash Fixes**: Learn the error handling patterns
-3. **Start with Debugging**: Add logging to understand current issues
-4. **Implement Incrementally**: Make small, testable changes
-5. **Test Thoroughly**: Always test with real ROM data
-6. **Document Changes**: Update this document as you make improvements
-
-The codebase is well-structured and ready for continued development. Focus on stability first, then features.
+For questions or clarifications, refer to the existing integration tests and component implementations as examples of proper usage patterns.

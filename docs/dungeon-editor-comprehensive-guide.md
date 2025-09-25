@@ -1,4 +1,4 @@
-# Yaze Dungeon Editor - Comprehensive Guide
+# Dungeon Editor Guide
 
 ## Overview
 
