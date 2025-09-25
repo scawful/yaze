@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SYSTEM_COMMAND_MANAGER_H
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -31,38 +32,36 @@ class CommandManager {
     CommandInfo() = default;
   };
 
-  // New command info which supports subsections of commands
-  struct CommandInfoOrPrefix {
-    CommandInfo command_info;
-    std::unordered_map<std::string, CommandInfoOrPrefix> subcommands;
-    CommandInfoOrPrefix(CommandInfo command_info)
-        : command_info(std::move(command_info)) {}
-    CommandInfoOrPrefix() = default;
+  // Simplified command structure without recursive types
+  struct CommandGroup {
+    CommandInfo main_command;
+    std::unordered_map<std::string, CommandInfo> subcommands;
+    
+    CommandGroup() = default;
+    CommandGroup(CommandInfo main) : main_command(std::move(main)) {}
   };
 
   void RegisterPrefix(const std::string &group_name, const char prefix,
                       const std::string &name, const std::string &desc) {
-    commands_[group_name].command_info = {nullptr, prefix, name, desc};
+    commands_[group_name].main_command = {nullptr, prefix, name, desc};
   }
 
   void RegisterSubcommand(const std::string &group_name,
                           const std::string &shortcut, const char mnemonic,
                           const std::string &name, const std::string &desc,
                           Command command) {
-    commands_[group_name].subcommands[shortcut].command_info = {
-        command, mnemonic, name, desc};
+    commands_[group_name].subcommands[shortcut] = {command, mnemonic, name, desc};
   }
 
   void RegisterCommand(const std::string &shortcut, Command command,
                        char mnemonic, const std::string &name,
                        const std::string &desc) {
-    commands_[shortcut].command_info = {std::move(command), mnemonic, name,
-                                        desc};
+    commands_[shortcut].main_command = {std::move(command), mnemonic, name, desc};
   }
 
   void ExecuteCommand(const std::string &shortcut) {
     if (commands_.find(shortcut) != commands_.end()) {
-      commands_[shortcut].command_info.command();
+      commands_[shortcut].main_command.command();
     }
   }
 
@@ -72,7 +71,7 @@ class CommandManager {
   void LoadKeybindings(const std::string &filepath);
 
  private:
-  std::unordered_map<std::string, CommandInfoOrPrefix> commands_;
+  std::unordered_map<std::string, CommandGroup> commands_;
 };
 
 }  // namespace editor
