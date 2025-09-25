@@ -121,9 +121,14 @@ void GraphicsEditor::DrawGfxEditToolset() {
 
     TableNextColumn();
     if (Button(ICON_MD_CONTENT_COPY)) {
+#if YAZE_LIB_PNG == 1
       std::vector<uint8_t> png_data =
           gfx::Arena::Get().gfx_sheets().at(current_sheet_).GetPngData();
       core::CopyImageToClipboard(png_data);
+#else
+      // PNG support disabled - show message or alternative action
+      status_ = absl::UnimplementedError("PNG export not available in this build");
+#endif
     }
     HOVER_HINT("Copy to Clipboard");
 

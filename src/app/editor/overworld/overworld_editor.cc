@@ -142,14 +142,17 @@ void OverworldEditor::Initialize() {
   });
   gui::AddTableColumn(toolset_table_, "##CopyMap", [&]() {
     if (Button(ICON_MD_CONTENT_COPY)) {
-      std::vector<uint8_t> png_data;
-      png_data = maps_bmp_[current_map_].GetPngData();
+#if YAZE_LIB_PNG == 1
+      std::vector<uint8_t> png_data = maps_bmp_[current_map_].GetPngData();
       if (png_data.size() > 0) {
         core::CopyImageToClipboard(png_data);
       } else {
         status_ = absl::InternalError(
             "Failed to convert overworld map surface to PNG");
       }
+#else
+      status_ = absl::UnimplementedError("PNG export not available in this build");
+#endif
     }
     HOVER_HINT("Copy Map to Clipboard");
   });
