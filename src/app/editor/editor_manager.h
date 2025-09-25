@@ -131,6 +131,9 @@ class EditorManager {
   bool show_workspace_layout = false;
   bool show_save_workspace_preset_ = false;
   bool show_load_workspace_preset_ = false;
+  bool show_session_switcher_ = false;
+  bool show_session_manager_ = false;
+  bool show_layout_presets_ = false;
   bool show_homepage_ = true;
   bool show_command_palette_ = false;
   bool show_global_search_ = false;
@@ -174,6 +177,29 @@ class EditorManager {
   void RefreshWorkspacePresets();
   void SaveWorkspacePreset(const std::string& name);
   void LoadWorkspacePreset(const std::string& name);
+  
+  // Workspace management
+  void CreateNewSession();
+  void DuplicateCurrentSession();
+  void CloseCurrentSession();
+  void SwitchToSession(size_t index);
+  size_t GetCurrentSessionIndex() const;
+  void ResetWorkspaceLayout();
+  void SaveWorkspaceLayout();
+  void LoadWorkspaceLayout();
+  void ShowAllWindows();
+  void HideAllWindows();
+  void MaximizeCurrentWindow();
+  void RestoreAllWindows();
+  void CloseAllFloatingWindows();
+  void LoadDeveloperLayout();
+  void LoadDesignerLayout();
+  void LoadModderLayout();
+  
+  // UI drawing helpers
+  void DrawSessionSwitcher();
+  void DrawSessionManager();
+  void DrawLayoutPresets();
 };
 
 }  // namespace editor
