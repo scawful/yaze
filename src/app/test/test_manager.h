@@ -18,7 +18,7 @@ namespace yaze {
 namespace editor {
 class EditorManager;
 }
-}
+}  // namespace yaze
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_engine.h"
@@ -167,36 +167,43 @@ class TestManager {
   void DrawTestDashboard(bool* show_dashboard = nullptr);
 
   // ROM-dependent testing
-  void SetCurrentRom(Rom* rom) { 
+  void SetCurrentRom(Rom* rom) {
     util::logf("TestManager::SetCurrentRom called with ROM: %p", (void*)rom);
     if (rom) {
-      util::logf("ROM title: '%s', loaded: %s", rom->title().c_str(), rom->is_loaded() ? "true" : "false");
+      util::logf("ROM title: '%s', loaded: %s", rom->title().c_str(),
+                 rom->is_loaded() ? "true" : "false");
     }
-    current_rom_ = rom; 
+    current_rom_ = rom;
   }
   Rom* GetCurrentRom() const { return current_rom_; }
-  void RefreshCurrentRom(); // Refresh ROM pointer from editor manager
+  void RefreshCurrentRom();  // Refresh ROM pointer from editor manager
   // Remove EditorManager dependency to avoid circular includes
-  
+
   // Enhanced ROM testing
   absl::Status LoadRomForTesting(const std::string& filename);
   void ShowRomComparisonResults(const Rom& before, const Rom& after);
-  
+
   // Test ROM management
-  absl::Status CreateTestRomCopy(Rom* source_rom, std::unique_ptr<Rom>& test_rom);
+  absl::Status CreateTestRomCopy(Rom* source_rom,
+                                 std::unique_ptr<Rom>& test_rom);
   std::string GenerateTestRomFilename(const std::string& base_name);
   void OfferTestSessionCreation(const std::string& test_rom_path);
-  
+
  public:
   // ROM testing methods (work on copies, not originals)
   absl::Status TestRomSaveLoad(Rom* rom);
   absl::Status TestRomDataIntegrity(Rom* rom);
-  absl::Status TestRomWithCopy(Rom* source_rom, std::function<absl::Status(Rom*)> test_function);
-  
+  absl::Status TestRomWithCopy(Rom* source_rom,
+                               std::function<absl::Status(Rom*)> test_function);
+
   // Test configuration management
-  void DisableTest(const std::string& test_name) { disabled_tests_[test_name] = true; }
-  void EnableTest(const std::string& test_name) { disabled_tests_[test_name] = false; }
-  bool IsTestEnabled(const std::string& test_name) const { 
+  void DisableTest(const std::string& test_name) {
+    disabled_tests_[test_name] = true;
+  }
+  void EnableTest(const std::string& test_name) {
+    disabled_tests_[test_name] = false;
+  }
+  bool IsTestEnabled(const std::string& test_name) const {
     auto it = disabled_tests_.find(test_name);
     return it == disabled_tests_.end() || !it->second;
   }
@@ -245,7 +252,7 @@ class TestManager {
   // ROM-dependent testing
   Rom* current_rom_ = nullptr;
   // Removed editor_manager_ to avoid circular dependency
-  
+
   // UI state
   bool show_google_tests_ = false;
   bool show_rom_test_results_ = false;
@@ -253,7 +260,7 @@ class TestManager {
   bool show_test_session_dialog_ = false;
   bool show_test_configuration_ = false;
   std::string test_rom_path_for_session_;
-  
+
   // Test selection and configuration
   std::unordered_map<std::string, bool> disabled_tests_;
 };

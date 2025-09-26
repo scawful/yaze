@@ -127,6 +127,26 @@ if (YAZE_BUILD_TESTS)
 add_subdirectory(test)
 endif()
 
+# Code quality targets
+find_program(CLANG_FORMAT NAMES clang-format clang-format-14 clang-format-15 clang-format-16 clang-format-17 clang-format-18)
+if(CLANG_FORMAT)
+  file(GLOB_RECURSE ALL_SOURCE_FILES 
+       "${CMAKE_SOURCE_DIR}/src/*.cc" 
+       "${CMAKE_SOURCE_DIR}/src/*.h"
+       "${CMAKE_SOURCE_DIR}/test/*.cc"
+       "${CMAKE_SOURCE_DIR}/test/*.h")
+  
+  add_custom_target(format
+    COMMAND ${CLANG_FORMAT} -i --style=Google ${ALL_SOURCE_FILES}
+    COMMENT "Running clang-format on source files"
+  )
+  
+  add_custom_target(format-check
+    COMMAND ${CLANG_FORMAT} --dry-run --Werror --style=Google ${ALL_SOURCE_FILES}
+    COMMENT "Checking code format"
+  )
+endif()
+
 # Packaging configuration
 include(cmake/packaging.cmake)
 
