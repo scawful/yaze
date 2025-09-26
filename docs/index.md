@@ -1,46 +1,39 @@
-# Yaze Documentation
+# YAZE Documentation
 
-Welcome to the Yaze documentation. This cross-platform Zelda 3 ROM editor is built with modern C++23, SDL2, ImGui, and integrated Asar 65816 assembler support.
+Cross-platform Zelda 3 ROM editor built with modern C++23, SDL2, ImGui, and integrated Asar 65816 assembler support.
 
 ## Quick Start
 
-- [Getting Started](getting-started.md) - Basic setup and usage
-- [Build Instructions](build-instructions.md) - How to build yaze from source
-- [Contributing](contributing.md) - How to contribute to the project
+- [Getting Started](01-getting-started.md) - Basic setup and usage
+- [Build Instructions](02-build-instructions.md) - How to build from source
+- [Asar Integration](03-asar-integration.md) - Complete 65816 assembler guide
+- [API Reference](04-api-reference.md) - C/C++ API documentation
 
-## New in v0.3.0
+## Development
 
-- [Asar Integration Guide](asar-integration.md) - Complete 65816 assembler integration
-- [Roadmap](roadmap.md) - Updated development plans and release timeline
-- [Changelog](changelog.md) - Complete version history and changes
+- [Testing Guide](A1-testing-guide.md) - Comprehensive testing framework
+- [Contributing](B1-contributing.md) - Development guidelines and standards
+- [Changelog](C1-changelog.md) - Version history and changes
+- [Roadmap](D1-roadmap.md) - Development plans and timeline
 
-## Core Documentation
+## Technical Documentation
 
-### Architecture & Infrastructure
-- [Infrastructure](infrastructure.md) - Project structure and modern build system
-- [Assembly Style Guide](asm-style-guide.md) - 65816 assembly coding standards
+### Assembly & Code
+- [Assembly Style Guide](E1-asm-style-guide.md) - 65816 assembly coding standards
 
-### Editors
+### Editor Systems
+- [Dungeon Editor Guide](E2-dungeon-editor-guide.md) - Complete dungeon editing guide
+- [Dungeon Editor Design](E3-dungeon-editor-design.md) - Architecture and development guide
+- [Dungeon Editor Refactoring](E4-dungeon-editor-refactoring.md) - Component-based architecture plan
+- [Dungeon Object System](E5-dungeon-object-system.md) - Object management framework
 
-#### Overworld Editor
-- [Overworld Loading Guide](overworld_loading_guide.md) - ZSCustomOverworld v3 implementation
-- [Overworld Expansion](overworld-expansion.md) - Advanced overworld features
-
-#### Dungeon Editor  
-- [Dungeon Editor Guide](dungeon-editor-comprehensive-guide.md) - Complete dungeon editing guide
-- [Dungeon Editor Design Plan](dungeon-editor-design-plan.md) - Architecture and development guide
-- [Dungeon Integration Tests](dungeon-integration-tests.md) - Testing framework
-
-### Graphics & UI
-- [Canvas Interface Refactoring](canvas-refactor-summary.md) - Canvas system architecture
-- [Canvas Migration](canvas-migration.md) - Migration guide for canvas changes
-
-### Testing & Development
-- [Integration Test Guide](integration_test_guide.md) - Comprehensive testing framework
+### Overworld System
+- [Overworld Loading](F1-overworld-loading.md) - ZSCustomOverworld v3 implementation
+- [Overworld Expansion](F2-overworld-expansion.md) - Advanced overworld features
 
 ## Current Version: 0.3.0 (January 2025)
 
-### ✅ Major New Features
+### ✅ Major Features
 
 #### Asar 65816 Assembler Integration
 - **Cross-platform ROM patching** with assembly code support
@@ -129,7 +122,7 @@ Welcome to the Yaze documentation. This cross-platform Zelda 3 ROM editor is bui
 - **Comprehensive Testing**: Unit tests, integration tests, and ROM validation
 
 ### Contributing
-See [Contributing](contributing.md) for guidelines on:
+See [Contributing](B1-contributing.md) for guidelines on:
 - Code style and C++23 standards
 - Testing requirements and ROM handling
 - Pull request process and review
@@ -137,7 +130,7 @@ See [Contributing](contributing.md) for guidelines on:
 
 ### Community
 - **Discord**: [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk)
-- **GitHub**: [Yaze Repository](https://github.com/scawful/yaze)
+- **GitHub**: [YAZE Repository](https://github.com/scawful/yaze)
 - **Issues**: Report bugs and request features on GitHub
 - **Discussions**: Community discussions and support
 
