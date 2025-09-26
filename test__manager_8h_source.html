@@ -131,7 +131,7 @@ $(function(){initNavTree('test__manager_8h_source.html',''); initResizable(true)
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>}</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>}</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) &amp;&amp; YAZE_ENABLE_IMGUI_TEST_ENGINE</span></div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;imgui_test_engine/imgui_te_engine.h&quot;</span></div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#else</span></div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="comment">// Forward declaration when ImGui Test Engine is not available</span></div>
@@ -273,7 +273,7 @@ $(function(){initNavTree('test__manager_8h_source.html',''); initResizable(true)
 </div>
 <div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
 <div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  <span class="comment">// UI Testing (ImGui Test Engine integration)</span></div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span><span class="preprocessor">#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE</span></div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span><span class="preprocessor">#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) &amp;&amp; YAZE_ENABLE_IMGUI_TEST_ENGINE</span></div>
 <div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  ImGuiTestEngine* <a class="code hl_function" href="classyaze_1_1test_1_1TestManager.html#ac37b52f7a9e71251dd91f907d5ab8cd9">GetUITestEngine</a>() { <span class="keywordflow">return</span> ui_test_engine_; }</div>
 <div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1TestManager.html#af46f3839ce3e1b6b015a8c19a23f16f6">InitializeUITesting</a>();</div>
 <div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1test_1_1TestManager.html#a3aca72c1a57f02a13c336e9a7760effe">StopUITesting</a>();  <span class="comment">// Stop test engine while ImGui context is valid</span></div>
