@@ -21,6 +21,24 @@ if (APPLE)
     # Bundled Resources
     ${YAZE_RESOURCE_FILES}
   )
+  
+  # Add the app icon to the macOS bundle
+  set(ICON_FILE "${CMAKE_SOURCE_DIR}/assets/yaze.icns")
+  target_sources(yaze PRIVATE ${ICON_FILE})
+  set_source_files_properties(${ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+  
+  # Set macOS bundle properties
+  set_target_properties(yaze PROPERTIES
+    MACOSX_BUNDLE_ICON_FILE "yaze.icns"
+    MACOSX_BUNDLE_BUNDLE_NAME "Yaze"
+    MACOSX_BUNDLE_EXECUTABLE_NAME "yaze"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "com.scawful.yaze"
+    MACOSX_BUNDLE_INFO_STRING "Yet Another Zelda3 Editor"
+    MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+    MACOSX_BUNDLE_COPYRIGHT "Copyright © 2024 scawful. All rights reserved."
+  )
 else()
   add_executable(
     yaze

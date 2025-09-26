@@ -79,11 +79,6 @@ if (YAZE_BUILD_Z3ED)
 endif()
 
 if(MACOS)
-  set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_SOURCE_DIR}/win32/yaze.ico)
-  set(MACOSX_BUNDLE_BUNDLE_NAME "yaze")
-  set(MACOSX_BUNDLE_EXECUTABLE_NAME "yaze")
-  set(MACOSX_BUNDLE_GUI_IDENTIFIER "yaze")
-  set(MACOSX_BUNDLE_INFO_STRING "yaze")
   set_target_properties(yaze
     PROPERTIES
     BUNDLE True
