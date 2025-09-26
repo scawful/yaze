@@ -1,0 +1,9 @@
+<map id="yaze::core::Controller::OnLoad" name="yaze::core::Controller::OnLoad">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,145,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1DockSpaceRenderer.html#a1ba913b34642a33fca7ac1c2c93ba4bb" title=" " alt="" coords="193,23,388,64"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,41,177,41,177,46,145,46"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gui_1_1BackgroundRenderer.html#a673834365e9ae7426b6bb608eb6bb896" title=" " alt="" coords="436,5,660,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="388,31,420,28,421,33,389,37"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="452,55,645,80"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="389,50,436,54,436,60,388,55"/>
+</map>

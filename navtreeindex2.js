@@ -1,5 +1,10 @@
 var NAVTREEINDEX2 =
 {
+"classyaze_1_1app_1_1core_1_1AsarWrapper.html#af9e95539acce5f3ced889b261fb87cc5":[23,0,3,0,0,3,12],
+"classyaze_1_1app_1_1core_1_1AsarWrapper.html#af9e95539acce5f3ced889b261fb87cc5":[24,0,0,0,0,3,12],
+"classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html":[23,0,3,0,0,0,0],
+"classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html":[24,0,0,0,0,0,0],
+"classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html#a13cddefbfd705993a3aba0eb4666d080":[23,0,3,0,0,0,0,7],
 "classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html#a13cddefbfd705993a3aba0eb4666d080":[24,0,0,0,0,0,0,7],
 "classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html#a17c07290d6c54f0ba3b31f47ebd05599":[23,0,3,0,0,0,0,0],
 "classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html#a17c07290d6c54f0ba3b31f47ebd05599":[24,0,0,0,0,0,0,0],
@@ -244,10 +249,5 @@ var NAVTREEINDEX2 =
 "classyaze_1_1editor_1_1AssemblyEditor.html#adb7411335d90a8d6404e2ee2cb08e265":[23,0,3,3,8,10],
 "classyaze_1_1editor_1_1AssemblyEditor.html#adb7411335d90a8d6404e2ee2cb08e265":[24,0,0,3,2,10],
 "classyaze_1_1editor_1_1AssemblyEditor.html#ae05d2701e4bd69ee07fff43b5136b51b":[23,0,3,3,8,20],
-"classyaze_1_1editor_1_1AssemblyEditor.html#ae05d2701e4bd69ee07fff43b5136b51b":[24,0,0,3,2,20],
-"classyaze_1_1editor_1_1AssemblyEditor.html#ae7d852af842e211c0315a6226ce4b9c9":[23,0,3,3,8,7],
-"classyaze_1_1editor_1_1AssemblyEditor.html#ae7d852af842e211c0315a6226ce4b9c9":[24,0,0,3,2,7],
-"classyaze_1_1editor_1_1AssemblyEditor.html#af9415eb7fa1473378bc255b74c92ceea":[23,0,3,3,8,22],
-"classyaze_1_1editor_1_1AssemblyEditor.html#af9415eb7fa1473378bc255b74c92ceea":[24,0,0,3,2,22],
-"classyaze_1_1editor_1_1CommandManager.html":[23,0,3,3,9]
+"classyaze_1_1editor_1_1AssemblyEditor.html#ae05d2701e4bd69ee07fff43b5136b51b":[24,0,0,3,2,20]
 };

@@ -1,5 +1,10 @@
 var NAVTREEINDEX16 =
 {
+"classyaze_1_1emu_1_1MockMemory.html#ac3c79b12659340cd8379ab2f634897b2":[23,0,3,4,49,7],
+"classyaze_1_1emu_1_1MockMemory.html#ac3c79b12659340cd8379ab2f634897b2":[24,0,0,4,47,7],
+"classyaze_1_1emu_1_1MockMemory.html#ac7fd471f078178f683cf6720d2abf527":[23,0,3,4,49,21],
+"classyaze_1_1emu_1_1MockMemory.html#ac7fd471f078178f683cf6720d2abf527":[24,0,0,4,47,21],
+"classyaze_1_1emu_1_1MockMemory.html#ac93ada9a1f0d3c9c45d295ccd28b703b":[23,0,3,4,49,29],
 "classyaze_1_1emu_1_1MockMemory.html#ac93ada9a1f0d3c9c45d295ccd28b703b":[24,0,0,4,47,29],
 "classyaze_1_1emu_1_1MockMemory.html#acd03504c7fe9bf7379d1b71748442b06":[23,0,3,4,49,18],
 "classyaze_1_1emu_1_1MockMemory.html#acd03504c7fe9bf7379d1b71748442b06":[24,0,0,4,47,18],
@@ -244,10 +249,5 @@ var NAVTREEINDEX16 =
 "classyaze_1_1emu_1_1Ppu.html#ad2f7b791e794907525793264c9e4ecda":[23,0,3,4,63,84],
 "classyaze_1_1emu_1_1Ppu.html#ad2f7b791e794907525793264c9e4ecda":[24,0,0,4,61,84],
 "classyaze_1_1emu_1_1Ppu.html#ad8bfc6218cdb6d3652a1f7166ba0ee0f":[23,0,3,4,63,18],
-"classyaze_1_1emu_1_1Ppu.html#ad8bfc6218cdb6d3652a1f7166ba0ee0f":[24,0,0,4,61,18],
-"classyaze_1_1emu_1_1Ppu.html#ad95817ee14159a615b0682afe797cfb8":[23,0,3,4,63,21],
-"classyaze_1_1emu_1_1Ppu.html#ad95817ee14159a615b0682afe797cfb8":[24,0,0,4,61,21],
-"classyaze_1_1emu_1_1Ppu.html#ada194b4745930e71d6c20655281a8988":[23,0,3,4,63,45],
-"classyaze_1_1emu_1_1Ppu.html#ada194b4745930e71d6c20655281a8988":[24,0,0,4,61,45],
-"classyaze_1_1emu_1_1Ppu.html#ae43f85c3bac33708cb00e7e52604fdc5":[23,0,3,4,63,72]
+"classyaze_1_1emu_1_1Ppu.html#ad8bfc6218cdb6d3652a1f7166ba0ee0f":[24,0,0,4,61,18]
 };

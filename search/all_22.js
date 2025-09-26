@@ -14,7 +14,7 @@ var searchData=
   ['yaze_11',['yaze',['../namespaceyaze.html',1,'']]],
   ['yaze_20documentation_12',['YAZE Documentation',['../md_docs_2index.html',1,'']]],
   ['yaze_20h_20tt_20tt_20incl_20zelda_20h_20tt_13',['C API (&lt;tt&gt;incl/yaze.h&lt;/tt&gt;, &lt;tt&gt;incl/zelda.h&lt;/tt&gt;)',['../md_docs_204-api-reference.html#autotoc_md50',1,'']]],
-  ['yaze_20implementation_14',['Yaze Implementation',['../md_docs_2F1-overworld-loading.html#autotoc_md407',1,'']]],
+  ['yaze_20implementation_14',['Yaze Implementation',['../md_docs_2F1-overworld-loading.html#autotoc_md408',1,'']]],
   ['yaze_20yet_20another_20zelda3_20editor_15',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
   ['yaze_2ecc_16',['yaze.cc',['../yaze_8cc.html',1,'']]],
   ['yaze_2eh_17',['yaze.h',['../yaze_8h.html',1,'']]],

@@ -1,0 +1,9 @@
+<map id="yaze::gui::ThemeManager::ThemeManager" name="yaze::gui::ThemeManager::ThemeManager">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,172,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1ThemeManager.html#acb78558905bfc39b3dbb361abb059fef" title=" " alt="" coords="220,39,386,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,56,204,56,204,62,172,62"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gui_1_1ThemeManager.html#a07e0158bf968a29390c4f04524066c47" title=" " alt="" coords="434,5,620,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="386,44,418,39,419,44,386,49"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gui_1_1ThemeManager.html#a6b48f98d51216a10286d81cd20fa5c6b" title=" " alt="" coords="444,71,610,111"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="386,68,429,74,428,80,386,73"/>
+</map>

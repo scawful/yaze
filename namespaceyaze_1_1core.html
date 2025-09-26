@@ -36,7 +36,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.2.2</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.0</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -198,6 +198,8 @@ Functions</h2></td></tr>
 <tr class="separator:a7345775b8c056bb6c1b6f663eb7e25a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2f59a19103453af1c33ddd072d81f07" id="r_ad2f59a19103453af1c33ddd072d81f07"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad2f59a19103453af1c33ddd072d81f07">SaveFile</a> (const std::string &amp;filename, const std::string &amp;contents)</td></tr>
 <tr class="separator:ad2f59a19103453af1c33ddd072d81f07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ce3cf710bdabe4b53e4f92c41c00a34" id="r_a7ce3cf710bdabe4b53e4f92c41c00a34"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7ce3cf710bdabe4b53e4f92c41c00a34">GetResourcePath</a> (const std::string &amp;resource_path)</td></tr>
+<tr class="separator:a7ce3cf710bdabe4b53e4f92c41c00a34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af3dbed157830d6193bd5c7f74b8361a3" id="r_af3dbed157830d6193bd5c7f74b8361a3"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af3dbed157830d6193bd5c7f74b8361a3">GetConfigDirectory</a> ()</td></tr>
 <tr class="separator:af3dbed157830d6193bd5c7f74b8361a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00e77355a028aee0d2e98d928c4931f5" id="r_a00e77355a028aee0d2e98d928c4931f5"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a00e77355a028aee0d2e98d928c4931f5">GetBundleResourcePath</a> ()</td></tr>
@@ -339,7 +341,7 @@ Variables</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00037">37</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tui_8cc_source.html#l00054">yaze::cli::anonymous_namespace{tui.cc}::ApplyBpsPatchComponent()</a>, and <a class="el" href="style_8cc_source.html#l00048">yaze::gui::LoadTheme()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tui_8cc_source.html#l00054">yaze::cli::anonymous_namespace{tui.cc}::ApplyBpsPatchComponent()</a>, and <a class="el" href="style_8cc_source.html#l00050">yaze::gui::LoadTheme()</a>.</p>
 
 </div>
 </div>
@@ -360,9 +362,9 @@ Variables</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00052">52</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00081">GetConfigDirectory()</a>, <a class="el" href="file__dialog_8h_source.html#l00041">kLinux</a>, <a class="el" href="file__dialog_8h_source.html#l00041">kMacOS</a>, and <a class="el" href="file__dialog_8h_source.html#l00041">kWindows</a>.</p>
+<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00094">GetConfigDirectory()</a>, <a class="el" href="file__dialog_8h_source.html#l00041">kLinux</a>, <a class="el" href="file__dialog_8h_source.html#l00041">kMacOS</a>, and <a class="el" href="file__dialog_8h_source.html#l00041">kWindows</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00053">yaze::editor::EditorManager::LoadUserSettings()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00082">yaze::editor::EditorManager::RefreshWorkspacePresets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00055">yaze::editor::EditorManager::LoadUserSettings()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00084">yaze::editor::EditorManager::RefreshWorkspacePresets()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -397,9 +399,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00072">72</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00081">GetConfigDirectory()</a>.</p>
+<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00094">GetConfigDirectory()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00074">yaze::editor::EditorManager::SaveUserSettings()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00119">yaze::editor::EditorManager::SaveWorkspacePreset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__manager_8cc_source.html#l00076">yaze::editor::EditorManager::SaveUserSettings()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00121">yaze::editor::EditorManager::SaveWorkspacePreset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -408,6 +410,39 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,5,141,31"/>
 <area shape="rect" href="namespaceyaze_1_1core.html#af3dbed157830d6193bd5c7f74b8361a3" title=" " alt="" coords="189,5,381,31"/>
 <area shape="poly" title=" " alt="" coords="141,16,173,16,173,21,141,21"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a7ce3cf710bdabe4b53e4f92c41c00a34" name="a7ce3cf710bdabe4b53e4f92c41c00a34"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ce3cf710bdabe4b53e4f92c41c00a34">&#9670;&#160;</a></span>GetResourcePath()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::core::GetResourcePath </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>resource_path</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00081">81</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="#a00e77355a028aee0d2e98d928c4931f5">GetBundleResourcePath()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00248">yaze::gui::ThemeManager::LoadThemeFromFile()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="namespaceyaze_1_1core_a7ce3cf710bdabe4b53e4f92c41c00a34_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_a7ce3cf710bdabe4b53e4f92c41c00a34_cgraph" alt=""/></div>
+<map name="anamespaceyaze_1_1core_a7ce3cf710bdabe4b53e4f92c41c00a34_cgraph" id="anamespaceyaze_1_1core_a7ce3cf710bdabe4b53e4f92c41c00a34_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,193,31"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="241,5,468,31"/>
+<area shape="poly" title=" " alt="" coords="193,16,225,16,225,21,193,21"/>
 </map>
 </div>
 
@@ -428,7 +463,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00081">81</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="file__dialog_8cc_source.html#l00094">94</a> of file <a class="el" href="file__dialog_8cc_source.html">file_dialog.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="file__dialog_8h_source.html#l00041">kiOS</a>, <a class="el" href="file__dialog_8h_source.html#l00041">kLinux</a>, <a class="el" href="file__dialog_8h_source.html#l00041">kMacOS</a>, <a class="el" href="file__dialog_8h_source.html#l00041">kUnknown</a>, and <a class="el" href="file__dialog_8h_source.html#l00041">kWindows</a>.</p>
 
@@ -453,7 +488,7 @@ Here is the call graph for this function:</div>
 
 <p>GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS. </p>
 
-<p class="reference">Referenced by <a class="el" href="zeml_8cc_source.html#l00589">yaze::gui::zeml::LoadFile()</a>, and <a class="el" href="font__loader_8cc_source.html#l00032">yaze::core::anonymous_namespace{font_loader.cc}::SetFontPath()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="file__dialog_8cc_source.html#l00081">GetResourcePath()</a>, <a class="el" href="zeml_8cc_source.html#l00589">yaze::gui::zeml::LoadFile()</a>, and <a class="el" href="font__loader_8cc_source.html#l00032">yaze::core::anonymous_namespace{font_loader.cc}::SetFontPath()</a>.</p>
 
 </div>
 </div>
@@ -476,7 +511,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="window_8cc_source.html#l00017">CreateWindow()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="window_8cc_source.html#l00019">CreateWindow()</a>.</p>
 
 </div>
 </div>
@@ -537,25 +572,25 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8cc_source.html#l00017">17</a> of file <a class="el" href="window_8cc_source.html">window.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8cc_source.html#l00019">19</a> of file <a class="el" href="window_8cc_source.html">window.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="window_8h_source.html#l00019">yaze::core::Window::audio_buffer_</a>, <a class="el" href="window_8h_source.html#l00018">yaze::core::Window::audio_device_</a>, <a class="el" href="style_8cc_source.html#l00132">yaze::gui::ColorsYaze()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="font__loader_8cc_source.html#l00098">LoadPackageFonts()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, and <a class="el" href="window_8h_source.html#l00017">yaze::core::Window::window_</a>.</p>
+<p class="reference">References <a class="el" href="window_8h_source.html#l00019">yaze::core::Window::audio_buffer_</a>, <a class="el" href="window_8h_source.html#l00018">yaze::core::Window::audio_device_</a>, <a class="el" href="style_8cc_source.html#l00134">yaze::gui::ColorsYaze()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="theme__manager_8cc_source.html#l00103">yaze::gui::ThemeManager::Get()</a>, <a class="el" href="font__loader_8cc_source.html#l00098">LoadPackageFonts()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, and <a class="el" href="window_8h_source.html#l00017">yaze::core::Window::window_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="editor__integration__test_8cc_source.html#l00030">yaze::test::EditorIntegrationTest::Initialize()</a>, <a class="el" href="controller_8cc_source.html#l00015">yaze::core::Controller::OnEntry()</a>, and <a class="el" href="test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="editor__integration__test_8cc_source.html#l00030">yaze::test::EditorIntegrationTest::Initialize()</a>, <a class="el" href="controller_8cc_source.html#l00017">yaze::core::Controller::OnEntry()</a>, and <a class="el" href="test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="namespaceyaze_1_1core_a14f2050902009800d7995d94a8c169fc_cgraph.png" border="0" usemap="#anamespaceyaze_1_1core_a14f2050902009800d7995d94a8c169fc_cgraph" alt=""/></div>
 <map name="anamespaceyaze_1_1core_a14f2050902009800d7995d94a8c169fc_cgraph" id="anamespaceyaze_1_1core_a14f2050902009800d7995d94a8c169fc_cgraph">
-<area shape="rect" title=" " alt="" coords="5,55,174,80"/>
+<area shape="rect" title=" " alt="" coords="5,80,174,106"/>
 <area shape="rect" href="namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad" title=" " alt="" coords="249,5,392,31"/>
-<area shape="poly" title=" " alt="" coords="153,51,241,32,243,37,154,57"/>
+<area shape="poly" title=" " alt="" coords="121,77,221,40,244,33,246,38,223,45,123,82"/>
 <area shape="rect" href="classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="239,55,402,80"/>
-<area shape="poly" title=" " alt="" coords="174,65,223,65,223,70,174,70"/>
-<area shape="rect" href="namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd" title=" " alt="" coords="222,104,419,130"/>
-<area shape="poly" title=" " alt="" coords="154,78,243,98,241,103,153,84"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="467,47,603,88"/>
-<area shape="poly" title=" " alt="" coords="402,65,451,65,451,70,402,70"/>
+<area shape="poly" title=" " alt="" coords="174,81,223,75,224,81,174,86"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="224,104,417,130"/>
+<area shape="poly" title=" " alt="" coords="174,99,208,103,208,108,174,104"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd" title=" " alt="" coords="222,153,419,179"/>
+<area shape="poly" title=" " alt="" coords="124,104,222,140,246,146,244,152,221,145,122,109"/>
 </map>
 </div>
 
@@ -576,11 +611,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8cc_source.html#l00073">73</a> of file <a class="el" href="window_8cc_source.html">window.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8cc_source.html#l00084">84</a> of file <a class="el" href="window_8cc_source.html">window.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="window_8h_source.html#l00018">yaze::core::Window::audio_device_</a>, <a class="el" href="test__manager_8h_source.html#l00157">yaze::test::TestManager::DestroyUITestingContext()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="test__manager_8cc_source.html#l00061">yaze::test::TestManager::Get()</a>, <a class="el" href="arena_8cc_source.html#l00073">yaze::gfx::Arena::Shutdown()</a>, <a class="el" href="test__manager_8h_source.html#l00156">yaze::test::TestManager::StopUITesting()</a>, and <a class="el" href="window_8h_source.html#l00017">yaze::core::Window::window_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00078">yaze::core::Controller::OnExit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00080">yaze::core::Controller::OnExit()</a>.</p>
 
 </div>
 </div>
@@ -599,11 +634,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8cc_source.html#l00103">103</a> of file <a class="el" href="window_8cc_source.html">window.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8cc_source.html#l00114">114</a> of file <a class="el" href="window_8cc_source.html">window.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="window_8h_source.html#l00020">yaze::core::Window::active_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00024">yaze::core::Controller::OnInput()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="controller_8cc_source.html#l00026">yaze::core::Controller::OnInput()</a>.</p>
 
 </div>
 </div>

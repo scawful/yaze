@@ -10,12 +10,13 @@ var searchData=
   ['editorstate_7',['EditorState',['../structTextEditor_1_1EditorState.html',1,'TextEditor::EditorState'],['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EditorState.html',1,'yaze::zelda3::DungeonEditorSystem::EditorState']]],
   ['emulator_8',['Emulator',['../classyaze_1_1emu_1_1Emulator.html',1,'yaze::emu']]],
   ['emulatorkeybindings_9',['EmulatorKeybindings',['../structyaze_1_1emu_1_1EmulatorKeybindings.html',1,'yaze::emu']]],
-  ['entrancedata_10',['EntranceData',['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EntranceData.html',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['entranceinfo_11',['EntranceInfo',['../structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html',1,'yaze::zelda3::EntranceTypes']]],
-  ['exampleapppropertyeditor_12',['ExampleAppPropertyEditor',['../structyaze_1_1editor_1_1ExampleAppPropertyEditor.html',1,'yaze::editor']]],
-  ['examplememberinfo_13',['ExampleMemberInfo',['../structyaze_1_1editor_1_1ExampleMemberInfo.html',1,'yaze::editor']]],
-  ['exampleselectionwithdeletion_14',['ExampleSelectionWithDeletion',['../structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html',1,'yaze::gui']]],
-  ['exampletreenode_15',['ExampleTreeNode',['../structyaze_1_1editor_1_1ExampleTreeNode.html',1,'yaze::editor']]],
-  ['expand_16',['Expand',['../classyaze_1_1cli_1_1Expand.html',1,'yaze::cli']]],
-  ['extensionmanager_17',['ExtensionManager',['../classyaze_1_1editor_1_1ExtensionManager.html',1,'yaze::editor']]]
+  ['enhancedtheme_10',['EnhancedTheme',['../structyaze_1_1gui_1_1EnhancedTheme.html',1,'yaze::gui']]],
+  ['entrancedata_11',['EntranceData',['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EntranceData.html',1,'yaze::zelda3::DungeonEditorSystem']]],
+  ['entranceinfo_12',['EntranceInfo',['../structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html',1,'yaze::zelda3::EntranceTypes']]],
+  ['exampleapppropertyeditor_13',['ExampleAppPropertyEditor',['../structyaze_1_1editor_1_1ExampleAppPropertyEditor.html',1,'yaze::editor']]],
+  ['examplememberinfo_14',['ExampleMemberInfo',['../structyaze_1_1editor_1_1ExampleMemberInfo.html',1,'yaze::editor']]],
+  ['exampleselectionwithdeletion_15',['ExampleSelectionWithDeletion',['../structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html',1,'yaze::gui']]],
+  ['exampletreenode_16',['ExampleTreeNode',['../structyaze_1_1editor_1_1ExampleTreeNode.html',1,'yaze::editor']]],
+  ['expand_17',['Expand',['../classyaze_1_1cli_1_1Expand.html',1,'yaze::cli']]],
+  ['extensionmanager_18',['ExtensionManager',['../classyaze_1_1editor_1_1ExtensionManager.html',1,'yaze::editor']]]
 ];

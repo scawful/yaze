@@ -36,7 +36,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.2.2</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.0</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -153,6 +153,8 @@ Functions</h2></td></tr>
 <tr class="separator:afdc6f50508cd51e6d8c6b1cbffd46d34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae673c9b14bcf937c1a1f925876e1282" id="r_aae673c9b14bcf937c1a1f925876e1282"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aae673c9b14bcf937c1a1f925876e1282">HexLongLong</a> (uint64_t qword, <a class="el" href="structyaze_1_1util_1_1HexStringParams.html">HexStringParams</a> params)</td></tr>
 <tr class="separator:aae673c9b14bcf937c1a1f925876e1282"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6bbc71a621ec673d0bcd37544c2318e" id="r_ae6bbc71a621ec673d0bcd37544c2318e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae6bbc71a621ec673d0bcd37544c2318e">SetLogFile</a> (const std::string &amp;filepath)</td></tr>
+<tr class="separator:ae6bbc71a621ec673d0bcd37544c2318e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a3eadcc44d8287dad5ea9d6dbd25bd44d" name="a3eadcc44d8287dad5ea9d6dbd25bd44d"></a>
@@ -240,7 +242,7 @@ Functions</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="flag_8h_source.html#l00099">99</a> of file <a class="el" href="flag_8h_source.html">flag.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="main_8cc_source.html#l00018">main()</a>, <a class="el" href="z3ed_8cc_source.html#l00027">main()</a>, <a class="el" href="flag_8cc_source.html#l00010">yaze::util::FlagParser::Parse()</a>, and <a class="el" href="yaze_8cc_source.html#l00024">yaze_app_main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="main_8cc_source.html#l00023">main()</a>, <a class="el" href="z3ed_8cc_source.html#l00027">main()</a>, <a class="el" href="flag_8cc_source.html#l00010">yaze::util::FlagParser::Parse()</a>, and <a class="el" href="yaze_8cc_source.html#l00024">yaze_app_main()</a>.</p>
 
 </div>
 </div>
@@ -348,7 +350,36 @@ Functions</h2></td></tr>
 
 <p class="reference">References <a class="el" href="hex_8h_source.html#l00012">yaze::util::HexStringParams::uppercase</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00133">yaze::editor::PopupManager::DrawRomInfoPopup()</a>, and <a class="el" href="hex__test_8cc_source.html#l00079">yaze::test::TEST()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="popup__manager_8cc_source.html#l00134">yaze::editor::PopupManager::DrawRomInfoPopup()</a>, and <a class="el" href="hex__test_8cc_source.html#l00079">yaze::test::TEST()</a>.</p>
+
+</div>
+</div>
+<a id="ae6bbc71a621ec673d0bcd37544c2318e" name="ae6bbc71a621ec673d0bcd37544c2318e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6bbc71a621ec673d0bcd37544c2318e">&#9670;&#160;</a></span>SetLogFile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::util::SetLogFile </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>filepath</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="log_8h_source.html#l00020">20</a> of file <a class="el" href="log_8h_source.html">log.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="main_8cc_source.html#l00023">main()</a>.</p>
 
 </div>
 </div>

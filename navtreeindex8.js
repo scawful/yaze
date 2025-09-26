@@ -1,5 +1,10 @@
 var NAVTREEINDEX8 =
 {
+"classyaze_1_1editor_1_1MapPropertiesSystem.html#a1de697d16ae9aa6c2ca6d9cd09daa072":[23,0,3,3,33,26],
+"classyaze_1_1editor_1_1MapPropertiesSystem.html#a1de697d16ae9aa6c2ca6d9cd09daa072":[24,0,0,3,27,26],
+"classyaze_1_1editor_1_1MapPropertiesSystem.html#a28204da147523d30af76ad3ad3e8f32d":[23,0,3,3,33,4],
+"classyaze_1_1editor_1_1MapPropertiesSystem.html#a28204da147523d30af76ad3ad3e8f32d":[24,0,0,3,27,4],
+"classyaze_1_1editor_1_1MapPropertiesSystem.html#a2bd278af0fe262342d95735db7fb1a6b":[23,0,3,3,33,9],
 "classyaze_1_1editor_1_1MapPropertiesSystem.html#a2bd278af0fe262342d95735db7fb1a6b":[24,0,0,3,27,9],
 "classyaze_1_1editor_1_1MapPropertiesSystem.html#a363c5443f9668c862e91ff80858cef95":[23,0,3,3,33,0],
 "classyaze_1_1editor_1_1MapPropertiesSystem.html#a363c5443f9668c862e91ff80858cef95":[24,0,0,3,27,0],
@@ -244,10 +249,5 @@ var NAVTREEINDEX8 =
 "classyaze_1_1editor_1_1OverworldEditor.html#a3d4bc025b428972beadd361eac00a311":[23,0,3,3,39,93],
 "classyaze_1_1editor_1_1OverworldEditor.html#a3d4bc025b428972beadd361eac00a311":[24,0,0,3,33,93],
 "classyaze_1_1editor_1_1OverworldEditor.html#a42d558b87c70e5c3b035cb950dd8ff57":[23,0,3,3,39,113],
-"classyaze_1_1editor_1_1OverworldEditor.html#a42d558b87c70e5c3b035cb950dd8ff57":[24,0,0,3,33,113],
-"classyaze_1_1editor_1_1OverworldEditor.html#a4684ee50e02be751568f089674c4c7cd":[23,0,3,3,39,87],
-"classyaze_1_1editor_1_1OverworldEditor.html#a4684ee50e02be751568f089674c4c7cd":[24,0,0,3,33,87],
-"classyaze_1_1editor_1_1OverworldEditor.html#a47db8d1736a0d24480adc2b86a644a02":[23,0,3,3,39,56],
-"classyaze_1_1editor_1_1OverworldEditor.html#a47db8d1736a0d24480adc2b86a644a02":[24,0,0,3,33,56],
-"classyaze_1_1editor_1_1OverworldEditor.html#a4800077708a99fafefa535c0802390a8":[23,0,3,3,39,30]
+"classyaze_1_1editor_1_1OverworldEditor.html#a42d558b87c70e5c3b035cb950dd8ff57":[24,0,0,3,33,113]
 };

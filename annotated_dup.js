@@ -247,11 +247,14 @@ var annotated_dup =
           [ "WidgetAttributes", "structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html", "structyaze_1_1gui_1_1zeml_1_1WidgetAttributes" ]
         ] ],
         [ "AssetObject", "structyaze_1_1gui_1_1AssetObject.html", "structyaze_1_1gui_1_1AssetObject" ],
+        [ "BackgroundRenderer", "classyaze_1_1gui_1_1BackgroundRenderer.html", "classyaze_1_1gui_1_1BackgroundRenderer" ],
         [ "Bitmap", "classyaze_1_1gui_1_1Bitmap.html", "classyaze_1_1gui_1_1Bitmap" ],
         [ "Button", "structyaze_1_1gui_1_1Button.html", "structyaze_1_1gui_1_1Button" ],
         [ "Canvas", "classyaze_1_1gui_1_1Canvas.html", "classyaze_1_1gui_1_1Canvas" ],
         [ "Color", "structyaze_1_1gui_1_1Color.html", "structyaze_1_1gui_1_1Color" ],
+        [ "DockSpaceRenderer", "classyaze_1_1gui_1_1DockSpaceRenderer.html", null ],
         [ "DungeonAsset", "structyaze_1_1gui_1_1DungeonAsset.html", "structyaze_1_1gui_1_1DungeonAsset" ],
+        [ "EnhancedTheme", "structyaze_1_1gui_1_1EnhancedTheme.html", "structyaze_1_1gui_1_1EnhancedTheme" ],
         [ "ExampleSelectionWithDeletion", "structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", "structyaze_1_1gui_1_1ExampleSelectionWithDeletion" ],
         [ "GfxSheetAssetBrowser", "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", "structyaze_1_1gui_1_1GfxSheetAssetBrowser" ],
         [ "Layout", "structyaze_1_1gui_1_1Layout.html", "structyaze_1_1gui_1_1Layout" ],
@@ -264,6 +267,7 @@ var annotated_dup =
         [ "Text", "structyaze_1_1gui_1_1Text.html", "structyaze_1_1gui_1_1Text" ],
         [ "TextBox", "structyaze_1_1gui_1_1TextBox.html", "structyaze_1_1gui_1_1TextBox" ],
         [ "Theme", "structyaze_1_1gui_1_1Theme.html", "structyaze_1_1gui_1_1Theme" ],
+        [ "ThemeManager", "classyaze_1_1gui_1_1ThemeManager.html", "classyaze_1_1gui_1_1ThemeManager" ],
         [ "UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", "structyaze_1_1gui_1_1UnsortedAsset" ]
       ] ],
       [ "test", "namespaceyaze_1_1test.html", [

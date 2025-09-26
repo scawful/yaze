@@ -1,5 +1,10 @@
 var NAVTREEINDEX3 =
 {
+"classyaze_1_1editor_1_1AssemblyEditor.html#ae7d852af842e211c0315a6226ce4b9c9":[23,0,3,3,8,7],
+"classyaze_1_1editor_1_1AssemblyEditor.html#ae7d852af842e211c0315a6226ce4b9c9":[24,0,0,3,2,7],
+"classyaze_1_1editor_1_1AssemblyEditor.html#af9415eb7fa1473378bc255b74c92ceea":[23,0,3,3,8,22],
+"classyaze_1_1editor_1_1AssemblyEditor.html#af9415eb7fa1473378bc255b74c92ceea":[24,0,0,3,2,22],
+"classyaze_1_1editor_1_1CommandManager.html":[23,0,3,3,9],
 "classyaze_1_1editor_1_1CommandManager.html":[24,0,0,3,3],
 "classyaze_1_1editor_1_1CommandManager.html#a1bd784d67295a0381bd9ee6a59c93537":[23,0,3,3,9,4],
 "classyaze_1_1editor_1_1CommandManager.html#a1bd784d67295a0381bd9ee6a59c93537":[24,0,0,3,3,4],
@@ -244,10 +249,5 @@ var NAVTREEINDEX3 =
 "classyaze_1_1editor_1_1DungeonEditor.html#aede71a600ec1d03c8c578a917f5dd412":[23,0,3,3,12,63],
 "classyaze_1_1editor_1_1DungeonEditor.html#aede71a600ec1d03c8c578a917f5dd412":[24,0,0,3,6,63],
 "classyaze_1_1editor_1_1DungeonEditor.html#aee3a96eeb1862b3590d3b596c74ca1f0":[23,0,3,3,12,35],
-"classyaze_1_1editor_1_1DungeonEditor.html#aee3a96eeb1862b3590d3b596c74ca1f0":[24,0,0,3,6,35],
-"classyaze_1_1editor_1_1DungeonEditor.html#af22f8be27499699e66d1d22020b4662c":[23,0,3,3,12,69],
-"classyaze_1_1editor_1_1DungeonEditor.html#af22f8be27499699e66d1d22020b4662c":[24,0,0,3,6,69],
-"classyaze_1_1editor_1_1DungeonEditor.html#af3836952b631777d5b25a34e46453d75":[23,0,3,3,12,43],
-"classyaze_1_1editor_1_1DungeonEditor.html#af3836952b631777d5b25a34e46453d75":[24,0,0,3,6,43],
-"classyaze_1_1editor_1_1DungeonEditor.html#af53073ad938acb3e395526e0847ac820":[23,0,3,3,12,60]
+"classyaze_1_1editor_1_1DungeonEditor.html#aee3a96eeb1862b3590d3b596c74ca1f0":[24,0,0,3,6,35]
 };

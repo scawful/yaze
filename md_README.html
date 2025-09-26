@@ -36,7 +36,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.2.2</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.0</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -109,12 +109,12 @@ $(function(){initNavTree('md_README.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">YAZE - Yet Another Zelda3 Editor</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md438"></a></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md439"></a></p>
 <p>A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM hacking, built with C++23 and featuring complete Asar 65816 assembler integration.</p>
 <p><a href="https://github.com/scawful/yaze/actions"><img src="https://github.com/scawful/yaze/workflows/CI/badge.svg" alt="Build Status" style="pointer-events: none;" class="inline"/></a> <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3" style="pointer-events: none;" class="inline"/></a></p>
-<h1><a class="anchor" id="autotoc_md439"></a>
+<h1><a class="anchor" id="autotoc_md440"></a>
 Version 0.3.0 - Stable Release</h1>
-<h3><a class="anchor" id="autotoc_md440"></a>
+<h3><a class="anchor" id="autotoc_md441"></a>
 Asar 65816 Assembler Integration</h3>
 <ul>
 <li><b>Cross-platform ROM patching</b> with assembly code support</li>
@@ -122,7 +122,7 @@ Asar 65816 Assembler Integration</h3>
 <li><b>Assembly validation</b> with comprehensive error reporting</li>
 <li><b>Modern C++ API</b> with safe memory management</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md441"></a>
+<h3><a class="anchor" id="autotoc_md442"></a>
 ZSCustomOverworld v3</h3>
 <ul>
 <li><b>Enhanced overworld editing</b> capabilities</li>
@@ -130,15 +130,18 @@ ZSCustomOverworld v3</h3>
 <li><b>Custom graphics support</b> and tile management</li>
 <li><b>Improved compatibility</b> with existing projects</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md442"></a>
+<h3><a class="anchor" id="autotoc_md443"></a>
 Advanced Features</h3>
 <ul>
+<li><b>Theme Management</b>: Complete theme system with 5+ built-in themes and custom theme editor</li>
+<li><b>Multi-Session Support</b>: Work with multiple ROMs simultaneously in docked workspace</li>
+<li><b>Enhanced Welcome Screen</b>: Themed interface with quick access to all editors</li>
 <li><b>Message Editing</b>: Enhanced text editing interface with real-time preview</li>
 <li><b>GUI Docking</b>: Flexible workspace management with customizable layouts</li>
 <li><b>Modern CLI</b>: Enhanced z3ed tool with interactive TUI and subcommands</li>
 <li><b>Cross-Platform</b>: Full support for Windows, macOS, and Linux</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md443"></a>
+<h2><a class="anchor" id="autotoc_md444"></a>
 🛠️ Technical Improvements</h2>
 <ul>
 <li><b>Modern CMake 3.16+</b>: Target-based configuration and build system</li>
@@ -147,9 +150,9 @@ Advanced Features</h3>
 <li><b>Professional packaging</b>: NSIS, DMG, and DEB/RPM installers</li>
 <li><b>Enhanced testing</b>: ROM-dependent test separation for CI compatibility</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md444"></a>
+<h1><a class="anchor" id="autotoc_md445"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md445"></a>
+<h2><a class="anchor" id="autotoc_md446"></a>
 Build</h2>
 <div class="fragment"><div class="line"># Clone with submodules</div>
 <div class="line">git clone --recursive https://github.com/scawful/yaze.git</div>
@@ -158,16 +161,16 @@ Build</h2>
 <div class="line"># Build with CMake</div>
 <div class="line">cmake --preset debug        # macOS</div>
 <div class="line">cmake -B build &amp;&amp; cmake --build build  # Linux/Windows</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md446"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md447"></a>
 Applications</h2>
 <ul>
 <li><b>yaze</b>: Complete GUI editor for Zelda 3 ROM hacking</li>
 <li><b>z3ed</b>: Command-line tool with interactive interface</li>
 <li><b>yaze_test</b>: Comprehensive test suite for development</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md447"></a>
+<h1><a class="anchor" id="autotoc_md448"></a>
 Usage</h1>
-<h2><a class="anchor" id="autotoc_md448"></a>
+<h2><a class="anchor" id="autotoc_md449"></a>
 GUI Editor</h2>
 <p>Launch the main application to edit Zelda 3 ROMs:</p><ul>
 <li>Load ROM files using native file dialogs</li>
@@ -175,7 +178,7 @@ GUI Editor</h2>
 <li>Apply assembly patches with integrated Asar support</li>
 <li>Export modifications as patches or modified ROMs</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md449"></a>
+<h2><a class="anchor" id="autotoc_md450"></a>
 Command Line Tool</h2>
 <div class="fragment"><div class="line"># Apply assembly patch</div>
 <div class="line">z3ed asar patch.asm --rom=zelda3.sfc</div>
@@ -185,7 +188,7 @@ Command Line Tool</h2>
 <div class="line"> </div>
 <div class="line"># Interactive mode</div>
 <div class="line">z3ed --tui</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md450"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md451"></a>
 C++ API</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="yaze_8h.html">yaze.h</a>&quot;</span></div>
 <div class="line"> </div>
@@ -194,7 +197,7 @@ C++ API</h2>
 <div class="line">yaze_apply_asar_patch(project, <span class="stringliteral">&quot;patch.asm&quot;</span>);</div>
 <div class="line">yaze_save_project(project, <span class="stringliteral">&quot;modified.sfc&quot;</span>);</div>
 <div class="ttc" id="ayaze_8h_html"><div class="ttname"><a href="yaze_8h.html">yaze.h</a></div><div class="ttdoc">Yet Another Zelda3 Editor (YAZE) - Public C API.</div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md451"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md452"></a>
 Documentation</h1>
 <ul>
 <li><a class="el" href="md_docs_201-getting-started.html">Getting Started</a> - Setup and basic usage</li>
@@ -203,7 +206,7 @@ Documentation</h1>
 <li><a class="el" href="md_docs_2B1-contributing.html">Contributing</a> - Development guidelines</li>
 </ul>
 <p><b><a class="el" href="md_docs_2index.html">Complete Documentation</a></b></p>
-<h1><a class="anchor" id="autotoc_md452"></a>
+<h1><a class="anchor" id="autotoc_md453"></a>
 Supported Platforms</h1>
 <ul>
 <li><b>Windows</b> (MSVC 2019+, MinGW)</li>
@@ -211,28 +214,28 @@ Supported Platforms</h1>
 </li>
 <li><b>Linux</b> (GCC 13+, Clang 16+) </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md453"></a>
+<h1><a class="anchor" id="autotoc_md454"></a>
 ROM Compatibility</h1>
 <ul>
 <li>Original Zelda 3 ROMs (US/Japan versions)</li>
 <li>ZSCustomOverworld v2/v3 enhanced overworld features</li>
 <li>Community ROM hacks and modifications</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md454"></a>
+<h1><a class="anchor" id="autotoc_md455"></a>
 Contributing</h1>
 <p>See <a class="el" href="md_docs_2B1-contributing.html">Contributing Guide</a> for development guidelines.</p>
 <p><b>Community</b>: <a href="https://discord.gg/MBFkMTPEmk">Oracle of Secrets Discord</a></p>
-<h1><a class="anchor" id="autotoc_md455"></a>
+<h1><a class="anchor" id="autotoc_md456"></a>
 License</h1>
 <p>GNU GPL v3 - See [LICENSE](LICENSE) for details.</p>
-<h1><a class="anchor" id="autotoc_md456"></a>
+<h1><a class="anchor" id="autotoc_md457"></a>
 🙏 Acknowledgments</h1>
 <p>Takes inspiration from:</p><ul>
 <li><a href="https://www.romhacking.net/utilities/200/">Hyrule Magic</a> - Original Zelda 3 editor</li>
 <li><a href="https://github.com/Zarby89/ZScreamDungeon">ZScream</a> - Dungeon editing capabilities</li>
 <li><a href="https://github.com/RPGHacker/asar">Asar</a> - 65816 assembler integration</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md457"></a>
+<h1><a class="anchor" id="autotoc_md458"></a>
 📸 Screenshots</h1>
 <p><img src="https://github.com/scawful/yaze/assets/47263509/8b62b142-1de4-4ca4-8c49-d50c08ba4c8e" alt="YAZE GUI Editor" class="inline"/></p>
 <p><img src="https://github.com/scawful/yaze/assets/47263509/d8f0039d-d2e4-47d7-b420-554b20ac626f" alt="Dungeon Editor" class="inline"/></p>
