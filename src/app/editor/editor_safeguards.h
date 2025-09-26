@@ -3,6 +3,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace editor {

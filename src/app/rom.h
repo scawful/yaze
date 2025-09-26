@@ -192,7 +192,7 @@ class Rom {
     return palette_groups_.dungeon_main.mutable_palette(i);
   }
 
-  ResourceLabelManager* resource_label() { return &resource_label_manager_; }
+  core::ResourceLabelManager* resource_label() { return &resource_label_manager_; }
   zelda3_version_pointers version_constants() const {
     return kVersionConstantsMap.at(version_);
   }
@@ -222,7 +222,7 @@ class Rom {
   std::vector<uint8_t> graphics_buffer_;
 
   // Label manager for unique resource names.
-  ResourceLabelManager resource_label_manager_;
+  core::ResourceLabelManager resource_label_manager_;
 
   // All palette groups in the game
   gfx::PaletteGroupMap palette_groups_;
