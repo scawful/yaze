@@ -83,6 +83,14 @@ class DungeonEditor : public Editor {
   }
   Rom* rom() const { return rom_; }
 
+  // ROM state methods (from Editor base class)
+  bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
+  std::string GetRomStatus() const override {
+    if (!rom_) return "No ROM loaded";
+    if (!rom_->is_loaded()) return "ROM failed to load";
+    return absl::StrFormat("ROM loaded: %s", rom_->title());
+  }
+
  private:
   absl::Status RefreshGraphics();
 

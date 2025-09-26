@@ -46,6 +46,10 @@ void DungeonEditor::Initialize() {
 }
 
 absl::Status DungeonEditor::Load() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  
   auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
 
   // Use room loader component for loading rooms

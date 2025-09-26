@@ -22,6 +22,7 @@
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/emu/emulator.h"
+#include "app/core/features.h"
 #include "app/rom.h"
 #include "yaze_config.h"
 
@@ -99,9 +100,19 @@ class EditorManager {
   absl::Status SetCurrentRom(Rom* rom);
   auto GetCurrentRom() -> Rom* { return current_rom_; }
   auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
+  
+  // Get current session's feature flags (falls back to global if no session)
+  core::FeatureFlags::Flags* GetCurrentFeatureFlags() {
+    size_t current_index = GetCurrentSessionIndex();
+    if (current_index < sessions_.size()) {
+      return &sessions_[current_index].feature_flags;
+    }
+    return &core::FeatureFlags::get(); // Fallback to global
+  }
 
  private:
   void DrawHomepage();
+  void DrawWelcomeScreen();
   absl::Status DrawRomSelector();
   absl::Status LoadRom();
   absl::Status LoadAssets();
@@ -160,11 +171,14 @@ class EditorManager {
     EditorSet editors;
     std::string custom_name; // User-defined session name
     std::string filepath;    // ROM filepath for duplicate detection
+    core::FeatureFlags::Flags feature_flags; // Per-session feature flags
 
     RomSession() = default;
     explicit RomSession(Rom&& r)
         : rom(std::move(r)), editors(&rom) {
       filepath = rom.filename();
+      // Initialize with default feature flags
+      feature_flags = core::FeatureFlags::Flags{};
     }
     
     // Get display name (custom name or ROM title)
@@ -201,6 +215,9 @@ class EditorManager {
   void SwitchToSession(size_t index);
   size_t GetCurrentSessionIndex() const;
   void ResetWorkspaceLayout();
+  
+  // Multi-session editor management
+  std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index) const;
   void SaveWorkspaceLayout();
   void LoadWorkspaceLayout();
   void ShowAllWindows();

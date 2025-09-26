@@ -423,8 +423,6 @@ void EditorManager::Initialize(const std::string &filename) {
        {},
        {},
        {
-           {absl::StrCat(ICON_MD_HOME, " Home"), "",
-            [&]() { show_homepage_ = true; }},
            {kAssemblyEditorName, "", [&]() { show_asm_editor_ = true; },
             [&]() { return show_asm_editor_; }},
            {kDungeonEditorName, "",
@@ -734,37 +732,78 @@ absl::Status EditorManager::Update() {
     autosave_timer_ = 0.0f;
   }
 
-  if (show_homepage_) {
-    ImGui::Begin("Home", &show_homepage_);
-    DrawHomepage();
-    ImGui::End();
-  }
 
+  // Check if ROM is loaded before allowing editor updates
   if (!current_editor_set_) {
+    // Show welcome screen when no session is active
+    if (sessions_.empty()) {
+      DrawWelcomeScreen();
+    }
     return absl::OkStatus();
   }
-  for (auto editor : current_editor_set_->active_editors_) {
-    if (*editor->active()) {
-      if (editor->type() == EditorType::kOverworld) {
-        auto &overworld_editor = static_cast<OverworldEditor &>(*editor);
-        if (overworld_editor.jump_to_tab() != -1) {
-          current_editor_set_->dungeon_editor_.set_active(true);
-          // Set the dungeon editor to the jump to tab
-          current_editor_set_->dungeon_editor_.add_room(
-              overworld_editor.jump_to_tab());
-          overworld_editor.jump_to_tab_ = -1;
+  
+  // Check if current ROM is valid
+  if (!current_rom_) {
+    DrawWelcomeScreen();
+    return absl::OkStatus();
+  }
+  
+  // Check if any editors are active across ALL sessions
+  bool any_editor_active = false;
+  for (const auto& session : sessions_) {
+    if (!session.rom.is_loaded()) continue;
+    for (auto editor : session.editors.active_editors_) {
+      if (*editor->active()) {
+        any_editor_active = true;
+        break;
+      }
+    }
+    if (any_editor_active) break;
+  }
+  
+  // Show welcome screen if no editors are active (ROM loaded but editors not opened)
+  if (!any_editor_active) {
+    DrawWelcomeScreen();
+    return absl::OkStatus();
+  }
+  
+  // Iterate through ALL sessions to support multi-session docking
+  for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
+    auto& session = sessions_[session_idx];
+    if (!session.rom.is_loaded()) continue; // Skip sessions with invalid ROMs
+    
+    for (auto editor : session.editors.active_editors_) {
+      if (*editor->active()) {
+        if (editor->type() == EditorType::kOverworld) {
+          auto &overworld_editor = static_cast<OverworldEditor &>(*editor);
+          if (overworld_editor.jump_to_tab() != -1) {
+            session.editors.dungeon_editor_.set_active(true);
+            // Set the dungeon editor to the jump to tab
+            session.editors.dungeon_editor_.add_room(overworld_editor.jump_to_tab());
+            overworld_editor.jump_to_tab_ = -1;
+          }
         }
-      }
 
-      // Generate unique window titles for multi-session support
-      size_t session_index = GetCurrentSessionIndex();
-      std::string window_title = GenerateUniqueEditorTitle(editor->type(), session_index);
-      
-      if (ImGui::Begin(window_title.c_str(), editor->active())) {
-        current_editor_ = editor;
-        status_ = editor->Update();
+        // Generate unique window titles for multi-session support
+        std::string window_title = GenerateUniqueEditorTitle(editor->type(), session_idx);
+        
+        if (ImGui::Begin(window_title.c_str(), editor->active())) {
+          // Temporarily switch context for this editor's update
+          Rom* prev_rom = current_rom_;
+          EditorSet* prev_editor_set = current_editor_set_;
+          
+          current_rom_ = &session.rom;
+          current_editor_set_ = &session.editors;
+          current_editor_ = editor;
+          
+          status_ = editor->Update();
+          
+          // Restore context
+          current_rom_ = prev_rom;
+          current_editor_set_ = prev_editor_set;
+        }
+        ImGui::End();
       }
-      ImGui::End();
     }
   }
   return absl::OkStatus();
@@ -1424,6 +1463,26 @@ size_t EditorManager::GetCurrentSessionIndex() const {
   return 0; // Default to first session if not found
 }
 
+std::string EditorManager::GenerateUniqueEditorTitle(EditorType type, size_t session_index) const {
+  const char* base_name = kEditorNames[static_cast<int>(type)];
+  
+  if (sessions_.size() <= 1) {
+    // Single session - use simple name
+    return std::string(base_name);
+  }
+  
+  // Multi-session - include session identifier
+  const auto& session = sessions_[session_index];
+  std::string session_name = session.GetDisplayName();
+  
+  // Truncate long session names
+  if (session_name.length() > 20) {
+    session_name = session_name.substr(0, 17) + "...";
+  }
+  
+  return absl::StrFormat("%s - %s##session_%zu", base_name, session_name, session_index);
+}
+
 // Layout Management Functions
 void EditorManager::ResetWorkspaceLayout() {
   // Show confirmation popup first
@@ -1819,6 +1878,173 @@ void EditorManager::DrawSessionRenameDialog() {
   }
   ImGui::End();
 }
+
+void EditorManager::DrawWelcomeScreen() {
+  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+  ImGui::SetNextWindowSize(ImVec2(680, 500), ImGuiCond_Always);
+  
+  ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | 
+                          ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+  
+  if (ImGui::Begin("Welcome to Yaze", nullptr, flags)) {
+    // Header (reuse homepage style)
+    TextWrapped("Welcome to the Yet Another Zelda3 Editor (yaze)!");
+    TextWrapped("The Legend of Zelda: A Link to the Past.");
+    
+    // Show different messages based on state
+    if (!sessions_.empty() && !current_rom_) {
+      ImGui::Separator();
+      ImGui::Spacing();
+      ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.0f, 1.0f), ICON_MD_WARNING " ROM Loading Required");
+      TextWrapped("A session exists but no ROM is loaded. Please load a ROM file to continue editing.");
+      ImGui::Text("Active Sessions: %zu", sessions_.size());
+    } else {
+      ImGui::Separator();
+      ImGui::Spacing();
+      TextWrapped("No ROM loaded.");
+    }
+    
+    ImGui::Spacing();
+    
+    // Primary actions with material design icons
+    ImGui::Text("Get Started:");
+    ImGui::Spacing();
+    
+    if (ImGui::Button(ICON_MD_FILE_OPEN " Open ROM File", ImVec2(180, 35))) {
+      status_ = LoadRom();
+      if (!status_.ok()) {
+        toast_manager_.Show(std::string(status_.message()), editor::ToastType::kError);
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open Project", ImVec2(180, 35))) {
+      auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
+      if (!file_name.empty()) {
+        status_ = OpenRomOrProject(file_name);
+        if (!status_.ok()) {
+          toast_manager_.Show(std::string(status_.message()), editor::ToastType::kError);
+        }
+      }
+    }
+    
+    ImGui::Spacing();
+    
+    // Feature flags section (per-session)
+    ImGui::Text("Options:");
+    auto* flags = GetCurrentFeatureFlags();
+    Checkbox("Load custom overworld features", &flags->overworld.kLoadCustomOverworld);
+    
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+    
+    // Recent files section (reuse homepage logic)
+    ImGui::Text("Recent Files:");
+    ImGui::BeginChild("RecentFiles", ImVec2(0, 100), true);
+    static RecentFilesManager manager("recent_files.txt");
+    manager.Load();
+    for (const auto &file : manager.GetRecentFiles()) {
+      if (gui::ClickableText(file.c_str())) {
+        status_ = OpenRomOrProject(file);
+        if (!status_.ok()) {
+          toast_manager_.Show(std::string(status_.message()), editor::ToastType::kError);
+        }
+      }
+    }
+    ImGui::EndChild();
+    
+    ImGui::Spacing();
+    
+    // Show editor access buttons for loaded sessions
+    bool has_loaded_sessions = false;
+    for (const auto& session : sessions_) {
+      if (session.rom.is_loaded()) {
+        has_loaded_sessions = true;
+        break;
+      }
+    }
+    
+    if (has_loaded_sessions) {
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::Text("Available Editors:");
+      ImGui::Text("Click to open editor windows that can be docked side by side");
+      ImGui::Spacing();
+      
+      // Show sessions and their editors
+      for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
+        const auto& session = sessions_[session_idx];
+        if (!session.rom.is_loaded()) continue;
+        
+        ImGui::Text("Session: %s", session.GetDisplayName().c_str());
+        
+        // Editor buttons in a grid layout for this session
+        if (ImGui::BeginTable(absl::StrFormat("EditorsTable##%zu", session_idx).c_str(), 4, 
+                             ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX)) {
+          
+          // Row 1: Primary editors
+          ImGui::TableNextColumn();
+          if (ImGui::Button(absl::StrFormat(ICON_MD_MAP " Overworld##%zu", session_idx).c_str(), ImVec2(120, 30))) {
+            sessions_[session_idx].editors.overworld_editor_.set_active(true);
+          }
+          ImGui::TableNextColumn();
+          if (ImGui::Button(absl::StrFormat(ICON_MD_DOMAIN " Dungeon##%zu", session_idx).c_str(), ImVec2(120, 30))) {
+            sessions_[session_idx].editors.dungeon_editor_.set_active(true);
+          }
+          ImGui::TableNextColumn();
+          if (ImGui::Button(absl::StrFormat(ICON_MD_IMAGE " Graphics##%zu", session_idx).c_str(), ImVec2(120, 30))) {
+            sessions_[session_idx].editors.graphics_editor_.set_active(true);
+          }
+          ImGui::TableNextColumn();
+          if (ImGui::Button(absl::StrFormat(ICON_MD_PALETTE " Palette##%zu", session_idx).c_str(), ImVec2(120, 30))) {
+            sessions_[session_idx].editors.palette_editor_.set_active(true);
+          }
+          
+          // Row 2: Secondary editors
+          ImGui::TableNextColumn();
+          if (ImGui::Button(absl::StrFormat(ICON_MD_MESSAGE " Message##%zu", session_idx).c_str(), ImVec2(120, 30))) {
+            sessions_[session_idx].editors.message_editor_.set_active(true);
+          }
+          ImGui::TableNextColumn();
+          if (ImGui::Button(absl::StrFormat(ICON_MD_PERSON " Sprite##%zu", session_idx).c_str(), ImVec2(120, 30))) {
+            sessions_[session_idx].editors.sprite_editor_.set_active(true);
+          }
+          ImGui::TableNextColumn();
+          if (ImGui::Button(absl::StrFormat(ICON_MD_MUSIC_NOTE " Music##%zu", session_idx).c_str(), ImVec2(120, 30))) {
+            sessions_[session_idx].editors.music_editor_.set_active(true);
+          }
+          ImGui::TableNextColumn();
+          if (ImGui::Button(absl::StrFormat(ICON_MD_MONITOR " Screen##%zu", session_idx).c_str(), ImVec2(120, 30))) {
+            sessions_[session_idx].editors.screen_editor_.set_active(true);
+          }
+          
+          ImGui::EndTable();
+        }
+        
+        if (session_idx < sessions_.size() - 1) {
+          ImGui::Spacing();
+        }
+      }
+    }
+    
+    // Links section
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text("Help & Support:");
+    if (gui::ClickableText(ICON_MD_HELP " Getting Started Guide")) {
+      gui::OpenUrl("https://github.com/scawful/yaze/blob/master/docs/01-getting-started.md");
+    }
+    if (gui::ClickableText(ICON_MD_BUG_REPORT " Report Issues")) {
+      gui::OpenUrl("https://github.com/scawful/yaze/issues");
+    }
+    
+    // Show tip about drag and drop
+    ImGui::Spacing();
+    ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), ICON_MD_TIPS_AND_UPDATES " Tip: Drag and drop ROM files onto the window");
+  }
+  ImGui::End();
+}
+
 
 }  // namespace editor
 }  // namespace yaze

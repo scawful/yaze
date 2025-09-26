@@ -164,6 +164,10 @@ void OverworldEditor::Initialize() {
 }
 
 absl::Status OverworldEditor::Load() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  
   RETURN_IF_ERROR(LoadGraphics());
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
