@@ -1,7 +1,5 @@
 var NAVTREEINDEX40 =
 {
-"dma_8h.html":[23,0,3,0,2,2,2],
-"dma_8h_source.html":[23,0,3,0,2,2,2],
 "dsp_8cc.html":[23,0,3,0,2,0,3],
 "dsp_8cc_source.html":[23,0,3,0,2,0,3],
 "dsp_8h.html":[23,0,3,0,2,0,4],
@@ -249,5 +247,7 @@ var NAVTREEINDEX40 =
 "globals_o.html":[23,1,0,11],
 "globals_p.html":[23,1,0,12],
 "globals_r.html":[23,1,0,13],
-"globals_s.html":[23,1,0,14]
+"globals_s.html":[23,1,0,14],
+"globals_t.html":[23,1,0,15],
+"globals_type.html":[23,1,3]
 };

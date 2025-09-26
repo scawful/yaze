@@ -117,7 +117,7 @@ var searchData=
   ['endpadding_114',['EndPadding',['../namespaceyaze_1_1gui.html#a703ce750767a17205f5f2fcfc3294a37',1,'yaze::gui']]],
   ['endtime_115',['endtime',['../structyaze_1_1zelda3_1_1music_1_1SongRange.html#ad20ddd701e5a7d0535a4e11b65fef8e3',1,'yaze::zelda3::music::SongRange']]],
   ['endwindowwithdisplaysettings_116',['EndWindowWithDisplaySettings',['../namespaceyaze_1_1gui.html#a9c7ada455779c5dd4b0ce5a4c5d39fda',1,'yaze::gui']]],
-  ['engine_5f_117',['engine_',['../classyaze_1_1test_1_1EditorIntegrationTest.html#ade2e80555aea01f523b4c8d9044423a4',1,'yaze::test::EditorIntegrationTest::engine_'],['../classyaze_1_1test_1_1TestEditor.html#a3a90b1d576afc0310162e5b8b49d8848',1,'yaze::test::TestEditor::engine_']]],
+  ['engine_5f_117',['engine_',['../classyaze_1_1test_1_1EditorIntegrationTest.html#ade2e80555aea01f523b4c8d9044423a4',1,'yaze::test::EditorIntegrationTest::engine_'],['../classyaze_1_1test_1_1TestEditor.html#a90dd66dbe4ec161d05116917424e2363',1,'yaze::test::TestEditor::engine_']]],
   ['enhanced_20extensibility_20strong_118',['4. &lt;strong&gt;Enhanced Extensibility&lt;/strong&gt;',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md271',1,'']]],
   ['enhancements_119',['Enhancements',['../md_docs_2C1-changelog.html#autotoc_md109',1,'Enhancements'],['../md_docs_2E2-dungeon-editor-guide.html#autotoc_md190',1,'Future Enhancements'],['../md_docs_2E5-dungeon-object-system.html#autotoc_md328',1,'Future Enhancements']]],
   ['ensurecursorvisible_120',['EnsureCursorVisible',['../classTextEditor.html#a4f3086af2fcb20fa66017810413117c8',1,'TextEditor']]],

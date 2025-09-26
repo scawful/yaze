@@ -1,7 +1,5 @@
 var NAVTREEINDEX73 =
 {
-"structyaze__extension.html#a78827a2290a2eea969ded6fec5fcc4e9":[20,7,0,1],
-"structyaze__extension.html#a93cdd908fb3c54b68fa54307fcf3a090":[20,7,0,4],
 "structyaze__extension.html#aab3644cf16c4a7db79229ad20118d9f5":[20,7,0,5],
 "structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c":[20,7,0,0],
 "structzelda3__dungeon__room.html":[22,0,22],

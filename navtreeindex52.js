@@ -1,7 +1,5 @@
 var NAVTREEINDEX52 =
 {
-"md_docs_2F1-overworld-loading.html#autotoc_md337":[13,3],
-"md_docs_2F1-overworld-loading.html#autotoc_md338":[13,3,0],
 "md_docs_2F1-overworld-loading.html#autotoc_md339":[13,4],
 "md_docs_2F1-overworld-loading.html#autotoc_md340":[13,4,0],
 "md_docs_2F1-overworld-loading.html#autotoc_md341":[13,4,1],
@@ -249,5 +247,7 @@ var NAVTREEINDEX52 =
 "namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a647d436e3c168d5e1ba1b90243356d59":[21,0,2,1,0,7],
 "namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a6588526a2719d947bb19f4ad714989a6":[21,0,2,1,0,3],
 "namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a67dd0fa752ae48367e75313a4325cb11":[21,0,2,1,0,6],
-"namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548":[21,0,2,1,0,12]
+"namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548":[21,0,2,1,0,12],
+"namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a879bdc125949b92f2e3b4e8f26d26521":[21,0,2,1,0,4],
+"namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#abb3fbd2c5e9c53690714b06d6d882c52":[21,0,2,1,0,11]
 };

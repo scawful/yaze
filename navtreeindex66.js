@@ -1,7 +1,5 @@
 var NAVTREEINDEX66 =
 {
-"structyaze_1_1emu_1_1OAMDATAREAD.html":[22,0,0,4,56],
-"structyaze_1_1emu_1_1OAMDATAREAD.html#a58cf0314b098cb08efafbe5a3587eddb":[21,0,2,4,58,0],
 "structyaze_1_1emu_1_1OAMDATAREAD.html#a58cf0314b098cb08efafbe5a3587eddb":[22,0,0,4,56,0],
 "structyaze_1_1emu_1_1OAMSize.html":[21,0,2,4,59],
 "structyaze_1_1emu_1_1OAMSize.html":[22,0,0,4,57],
@@ -249,5 +247,7 @@ var NAVTREEINDEX66 =
 "structyaze_1_1emu_1_1VideoPortControl.html#a0dd5f71b096b82780b19a002a6ef4c48":[22,0,0,4,82,1],
 "structyaze_1_1emu_1_1VideoPortControl.html#a1ff519435b34eb3c2b07a815017f9db7":[21,0,2,4,84,3],
 "structyaze_1_1emu_1_1VideoPortControl.html#a1ff519435b34eb3c2b07a815017f9db7":[22,0,0,4,82,3],
-"structyaze_1_1emu_1_1VideoPortControl.html#ab703ab48a910ae17a451e0331abb5d49":[21,0,2,4,84,2]
+"structyaze_1_1emu_1_1VideoPortControl.html#ab703ab48a910ae17a451e0331abb5d49":[21,0,2,4,84,2],
+"structyaze_1_1emu_1_1VideoPortControl.html#ab703ab48a910ae17a451e0331abb5d49":[22,0,0,4,82,2],
+"structyaze_1_1emu_1_1VideoPortControl.html#aef75cbc3964d5292fc5660da2edaaf10":[21,0,2,4,84,0]
 };

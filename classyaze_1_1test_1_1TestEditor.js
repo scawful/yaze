@@ -12,6 +12,5 @@ var classyaze_1_1test_1_1TestEditor =
     [ "Update", "classyaze_1_1test_1_1TestEditor.html#a46fa09a20b2281f02d2c0bace8de5238", null ],
     [ "Save", "classyaze_1_1test_1_1TestEditor.html#a039ee18d19867fb71f89ecb2e957e260", null ],
     [ "Load", "classyaze_1_1test_1_1TestEditor.html#a8f5f3365bab46b7c45c4ff4ca4112269", null ],
-    [ "RegisterTests", "classyaze_1_1test_1_1TestEditor.html#a68c0b4b34a9b22d3d0b1133538101101", null ],
-    [ "engine_", "classyaze_1_1test_1_1TestEditor.html#a3a90b1d576afc0310162e5b8b49d8848", null ]
+    [ "engine_", "classyaze_1_1test_1_1TestEditor.html#a90dd66dbe4ec161d05116917424e2363", null ]
 ];

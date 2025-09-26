@@ -1,7 +1,5 @@
 var NAVTREEINDEX72 =
 {
-"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#aa47bd956a0f339b24070bdf2435dd4cc":[22,0,0,9,24,2],
-"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#ae74c5904bd0a17ff578dce8b7d1aaf26":[21,0,2,9,29,0],
 "structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#ae74c5904bd0a17ff578dce8b7d1aaf26":[22,0,0,9,24,0],
 "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html":[21,0,2,9,32],
 "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html":[22,0,0,9,27],
@@ -249,5 +247,7 @@ var NAVTREEINDEX72 =
 "structyaze__extension.html#a0dffb288aca27b9215e38655b525dd5f":[20,7,0,3],
 "structyaze__extension.html#a5437179462b8d5046807baf3ecee4fcd":[20,7,0,6],
 "structyaze__extension.html#a58ce455793101164e7e735e3a82e32ca":[20,7,0,7],
-"structyaze__extension.html#a5a71cfca4ed112e35f756fd3cd895b5b":[20,7,0,2]
+"structyaze__extension.html#a5a71cfca4ed112e35f756fd3cd895b5b":[20,7,0,2],
+"structyaze__extension.html#a78827a2290a2eea969ded6fec5fcc4e9":[20,7,0,1],
+"structyaze__extension.html#a93cdd908fb3c54b68fa54307fcf3a090":[20,7,0,4]
 };
