@@ -22,8 +22,10 @@ int main(int argc, char **argv) {
 
   absl::FailureSignalHandlerOptions options;
   options.symbolize_stacktrace = true;
-  options.use_alternate_stack = false;  // Disable alternate stack to avoid shutdown conflicts
-  options.alarm_on_failure_secs = false; // Disable alarm to avoid false positives during SDL cleanup
+  options.use_alternate_stack =
+      false;  // Disable alternate stack to avoid shutdown conflicts
+  options.alarm_on_failure_secs =
+      false;  // Disable alarm to avoid false positives during SDL cleanup
   options.call_previous_handler = true;
   absl::InstallFailureSignalHandler(options);
 
@@ -183,9 +185,9 @@ int main(int argc, char **argv) {
   SDL_PauseAudioDevice(audio_device_, 1);
   SDL_CloseAudioDevice(audio_device_);
   delete[] audio_buffer_;
-  //ImGui_ImplSDLRenderer2_Shutdown();
-  //ImGui_ImplSDL2_Shutdown();
-  //ImGui::DestroyContext();
+  // ImGui_ImplSDLRenderer2_Shutdown();
+  // ImGui_ImplSDL2_Shutdown();
+  // ImGui::DestroyContext();
   SDL_Quit();
 
   return EXIT_SUCCESS;

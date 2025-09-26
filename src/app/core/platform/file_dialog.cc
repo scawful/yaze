@@ -51,13 +51,12 @@ std::string LoadFile(const std::string &filename) {
 
 std::string LoadConfigFile(const std::string &filename) {
   std::string contents;
-  Platform platform;
 #if defined(_WIN32)
-  platform = Platform::kWindows;
+  Platform platform = Platform::kWindows;
 #elif defined(__APPLE__)
-  platform = Platform::kMacOS;
+  Platform platform = Platform::kMacOS;
 #else
-  platform = Platform::kLinux;
+  Platform platform = Platform::kLinux;
 #endif
   std::string filepath = GetConfigDirectory() + "/" + filename;
   std::ifstream file(filepath);
@@ -81,19 +80,18 @@ void SaveFile(const std::string &filename, const std::string &contents) {
 
 std::string GetConfigDirectory() {
   std::string config_directory = ".yaze";
-  Platform platform;
 #if defined(__APPLE__) && defined(__MACH__)
 #if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
-  platform = Platform::kiOS;
+  Platform platform = Platform::kiOS;
 #elif TARGET_OS_MAC == 1
-  platform = Platform::kMacOS;
+  Platform platform = Platform::kMacOS;
 #endif
 #elif defined(_WIN32)
-  platform = Platform::kWindows;
+  Platform platform = Platform::kWindows;
 #elif defined(__linux__)
-  platform = Platform::kLinux;
+  Platform platform = Platform::kLinux;
 #else
-  platform = Platform::kUnknown;
+  Platform platform = Platform::kUnknown;
 #endif
   switch (platform) {
     case Platform::kWindows:
