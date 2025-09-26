@@ -5,11 +5,7 @@ A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM 
 [![Build Status](https://github.com/scawful/yaze/workflows/CI/badge.svg)](https://github.com/scawful/yaze/actions)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-## 🚀 Version 0.3.0 - Major Release
-
-**Complete Asar Integration • Modern Build System • Enhanced CLI Tools • Professional CI/CD**
-
-### ✨ Key Features
+## Version 0.3.0 - Stable Release
 
 #### Asar 65816 Assembler Integration
 - **Cross-platform ROM patching** with assembly code support
@@ -36,12 +32,7 @@ A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM 
 - **Professional packaging**: NSIS, DMG, and DEB/RPM installers
 - **Enhanced testing**: ROM-dependent test separation for CI compatibility
 
-## 🏗️ Quick Start
-
-### Prerequisites
-- **CMake 3.16+**
-- **C++23 Compiler** (GCC 13+, Clang 16+, MSVC 2022 17.8+)
-- **Git** with submodule support
+## Quick Start
 
 ### Build
 ```bash
@@ -49,114 +40,76 @@ A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM 
 git clone --recursive https://github.com/scawful/yaze.git
 cd yaze
 
-# Build with presets
-cmake --preset dev
-cmake --build --preset dev
-
-# Run tests
-ctest --preset stable
+# Build with CMake
+cmake --preset debug        # macOS
+cmake -B build && cmake --build build  # Linux/Windows
 ```
 
-### Targets
-- **yaze**: GUI Editor Application with docking system
-- **z3ed**: Enhanced CLI Tool with Asar integration and TUI
-- **yaze_c**: C Library for extensions and custom tools
-- **yaze_test**: Comprehensive test suite executable
-- **yaze_emu**: Standalone SNES emulator application
+### Applications
+- **yaze**: Complete GUI editor for Zelda 3 ROM hacking
+- **z3ed**: Command-line tool with interactive interface
+- **yaze_test**: Comprehensive test suite for development
 
-## 💻 Usage Examples
+## Usage
 
-### Asar Assembly Patching
+### GUI Editor
+Launch the main application to edit Zelda 3 ROMs:
+- Load ROM files using native file dialogs
+- Edit overworld maps, dungeons, sprites, and graphics
+- Apply assembly patches with integrated Asar support
+- Export modifications as patches or modified ROMs
+
+### Command Line Tool
 ```bash
-# Apply assembly patch to ROM
-z3ed asar my_patch.asm --rom=zelda3.sfc
-✅ Asar patch applied successfully!
-📁 Output: zelda3_patched.sfc
-🏷️  Extracted 6 symbols:
-  main_routine @ $008000
-  data_table @ $008020
+# Apply assembly patch
+z3ed asar patch.asm --rom=zelda3.sfc
 
-# Extract symbols without patching
-z3ed extract my_patch.asm
+# Extract symbols from assembly
+z3ed extract patch.asm
 
-# Validate assembly syntax
-z3ed validate my_patch.asm
-✅ Assembly file is valid
-
-# Launch interactive TUI
+# Interactive mode
 z3ed --tui
 ```
 
-### C++ API Usage
+### C++ API
 ```cpp
-#include "app/core/asar_wrapper.h"
+#include "yaze.h"
 
-yaze::app::core::AsarWrapper wrapper;
-wrapper.Initialize();
-
-// Apply patch to ROM
-auto result = wrapper.ApplyPatch("patch.asm", rom_data);
-if (result.ok() && result->success) {
-    for (const auto& symbol : result->symbols) {
-        std::cout << symbol.name << " @ $" 
-                  << std::hex << symbol.address << std::endl;
-    }
-}
+// Load ROM and apply patch
+yaze_project_t* project = yaze_load_project("zelda3.sfc");
+yaze_apply_asar_patch(project, "patch.asm");
+yaze_save_project(project, "modified.sfc");
 ```
 
-## 📚 Documentation
+## Documentation
 
-### Core Documentation
-- **[Getting Started](docs/01-getting-started.md)** - Basic setup and usage
-- **[Build Instructions](docs/02-build-instructions.md)** - Detailed build guide
-- **[Asar Integration](docs/03-asar-integration.md)** - Complete 65816 assembler guide
-- **[API Reference](docs/04-api-reference.md)** - C/C++ API documentation
+- [Getting Started](docs/01-getting-started.md) - Setup and basic usage
+- [Build Instructions](docs/02-build-instructions.md) - Building from source
+- [API Reference](docs/04-api-reference.md) - Programming interface
+- [Contributing](docs/B1-contributing.md) - Development guidelines
 
-### Development
-- **[Testing Guide](docs/A1-testing-guide.md)** - Comprehensive testing framework
-- **[Contributing](docs/B1-contributing.md)** - Development guidelines and standards
-- **[Changelog](docs/C1-changelog.md)** - Version history and changes
-- **[Roadmap](docs/D1-roadmap.md)** - Development plans and timeline
+**[Complete Documentation](docs/index.md)**
 
-### Technical Documentation
-- **[Assembly Style Guide](docs/E1-asm-style-guide.md)** - 65816 assembly coding standards
-- **[Dungeon Editor Guide](docs/E2-dungeon-editor-guide.md)** - Complete dungeon editing guide
-- **[Overworld Loading](docs/F1-overworld-loading.md)** - ZSCustomOverworld v3 implementation
+## Supported Platforms
 
-**[Complete Documentation Index](docs/index.md)**
+- **Windows** (MSVC 2019+, MinGW)
+- **macOS** (Intel and Apple Silicon)  
+- **Linux** (GCC 13+, Clang 16+)
+## ROM Compatibility
 
-## 🔧 Supported Platforms
+- Original Zelda 3 ROMs (US/Japan versions)
+- ZSCustomOverworld v2/v3 enhanced overworld features
+- Community ROM hacks and modifications
 
-- **Windows**: Full support with MSVC and MinGW compilers
-- **macOS**: Universal binaries supporting Intel and Apple Silicon
-- **Linux**: GCC and Clang support with package management
-- **Professional Packaging**: Native installers for all platforms
+## Contributing
 
-## 🎮 ROM Compatibility
+See [Contributing Guide](docs/B1-contributing.md) for development guidelines.
 
-- **Vanilla ROMs**: Original Zelda 3 ROMs (US/JP)
-- **ZSCustomOverworld v2/v3**: Enhanced overworld features and compatibility
-- **Custom Modifications**: Support for community ROM hacks and modifications
+**Community**: [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk)
 
-## 🤝 Contributing
+## License
 
-We welcome contributions! Please see our [Contributing Guide](docs/B1-contributing.md) for:
-
-- Code style and C++23 standards
-- Testing requirements and ROM handling
-- Pull request process and review guidelines
-- Development setup with CMake presets
-
-### Community
-- **Discord**: [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk)
-- **GitHub Issues**: Report bugs and request features
-- **Discussions**: Community discussions and support
-
-## 📄 License
-
-YAZE is distributed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0) license.
-
-Third-party libraries (SDL2, ImGui, Abseil) are subject to their respective licenses.
+GNU GPL v3 - See [LICENSE](LICENSE) for details.
 
 ## 🙏 Acknowledgments
 

@@ -4,62 +4,150 @@ YAZE uses CMake 3.16+ with modern target-based configuration. For VSCode users, 
 - https://marketplace.visualstudio.com/items?itemName=twxs.cmake
 - https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools
 
-## Quick Build
+## Quick Start
 
+### macOS (Apple Silicon)
 ```bash
-# Development build
-cmake --preset dev
-cmake --build --preset dev
+cmake --preset debug
+cmake --build build
+```
 
-# CI build (minimal dependencies)
-cmake --preset ci
-cmake --build --preset ci
+### Linux / Windows
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build
+```
+
+### Minimal Build
+```bash
+cmake -B build -DYAZE_MINIMAL_BUILD=ON
+cmake --build build
 ```
 
 ## Dependencies
 
-### Core Dependencies
-- **SDL2**: Graphics and input library
-- **ImGui**: Immediate mode GUI library with docking support
-- **Abseil**: Modern C++ utilities library
-- **libpng**: Image processing library
+### Required
+- CMake 3.16+
+- C++23 compiler (GCC 13+, Clang 16+, MSVC 2019+)
+- Git with submodule support
 
-### v0.3.0 Additions
-- **Asar**: 65816 assembler for ROM patching
-- **ftxui**: Terminal UI library for CLI
-- **GoogleTest**: Comprehensive testing framework
+### Bundled Libraries
+- SDL2, ImGui, Abseil, Asar, GoogleTest
+- Native File Dialog Extended (NFD)
+- All dependencies included in repository
 
-## Platform-Specific Setup
-
-### Windows
-
-#### vcpkg (Recommended)
-```json
-{
-  "dependencies": [
-    "abseil", "sdl2", "libpng"
-  ]
-}
-```
-
-#### msys2 (Advanced)
-Install packages: `mingw-w64-x86_64-gcc`, `mingw-w64-x86_64-cmake`, `mingw-w64-x86_64-sdl2`, `mingw-w64-x86_64-libpng`, `mingw-w64-x86_64-abseil-cpp`
+## Platform Setup
 
 ### macOS
 ```bash
-brew install cmake sdl2 zlib libpng abseil boost-python3
+# Install Xcode Command Line Tools
+xcode-select --install
+
+# Optional: Install Homebrew dependencies (auto-detected)
+brew install cmake pkg-config
 ```
 
-### Linux
-Use your package manager to install the same dependencies as macOS.
+### Linux (Ubuntu/Debian)
+```bash
+sudo apt-get update
+sudo apt-get install -y build-essential cmake ninja-build pkg-config \
+  libgtk-3-dev libdbus-1-dev
+```
 
-### iOS
-Xcode required. The xcodeproject file is in the `ios` directory. Link `SDL2.framework` and `libpng.a`.
+### Windows
+**Option 1 - Minimal (Recommended for CI):**
+- Visual Studio 2019+ with C++ CMake tools
+- No additional dependencies needed (all bundled)
+
+**Option 2 - Full Development:**
+- Install vcpkg and dependencies from `vcpkg.json`
 
 ## Build Targets
 
-- **yaze**: Desktop GUI application
-- **z3ed**: Enhanced CLI tool
-- **yaze_c**: C library for extensions
-- **yaze_test**: Test suite executable
+### Applications
+- **yaze**: Main GUI editor application
+- **z3ed**: Command-line interface tool
+
+### Libraries  
+- **yaze_c**: C API library for extensions
+- **asar-static**: 65816 assembler library
+
+### Development (Debug Builds Only)
 - **yaze_emu**: Standalone SNES emulator
+- **yaze_test**: Comprehensive test suite
+
+## Build Configurations
+
+### Debug (Full Features)
+```bash
+cmake --preset debug  # macOS
+# OR
+cmake -B build -DCMAKE_BUILD_TYPE=Debug  # All platforms
+```
+**Includes**: NFD, ImGuiTestEngine, PNG support, emulator, all tools
+
+### Minimal (CI/Fast Builds)
+```bash
+cmake -B build -DYAZE_MINIMAL_BUILD=ON
+```
+**Excludes**: Emulator, CLI tools, UI tests, optional dependencies
+
+### Release
+```bash
+cmake --preset release  # macOS
+# OR  
+cmake -B build -DCMAKE_BUILD_TYPE=Release  # All platforms
+```
+
+## IDE Integration
+
+### VS Code
+1. Install CMake Tools extension
+2. Open project, select "Debug" preset
+3. Language server uses `compile_commands.json` automatically
+
+### CLion
+- Opens CMake projects directly
+- Select Debug configuration
+
+### Xcode (macOS)
+```bash
+cmake --preset debug -G Xcode
+open build/yaze.xcodeproj
+```
+
+## Features by Build Type
+
+| Feature | Debug | Release | Minimal (CI) |
+|---------|-------|---------|--------------|
+| GUI Editor | ✅ | ✅ | ✅ |
+| Native File Dialogs | ✅ | ✅ | ❌ |
+| PNG Support | ✅ | ✅ | ❌ |
+| Emulator | ✅ | ✅ | ❌ |
+| CLI Tools | ✅ | ✅ | ❌ |
+| Test Suite | ✅ | ❌ | ✅ (limited) |
+| UI Testing | ✅ | ❌ | ❌ |
+
+## Troubleshooting
+
+### Architecture Errors (macOS)
+```bash
+# Clean and use ARM64-only preset
+rm -rf build
+cmake --preset debug  # Uses arm64 only
+```
+
+### Missing Headers (Language Server)
+```bash
+# Regenerate compile commands
+cmake --preset debug
+cp build/compile_commands.json .
+# Restart VS Code
+```
+
+### CI Build Failures
+Use minimal build configuration that matches CI:
+```bash
+cmake -B build -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_UI_TESTS=OFF
+cmake --build build
+```
