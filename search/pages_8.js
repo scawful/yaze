@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['for_20yaze_20v0_203_200_0',['Testing Strategy for Yaze v0.3.0',['../md_docs_2testing-strategy.html',1,'']]]
+  ['instructions_0',['Build Instructions',['../md_docs_202-build-instructions.html',1,'']]],
+  ['integration_1',['Asar 65816 Assembler Integration',['../md_docs_203-asar-integration.html',1,'']]]
 ];

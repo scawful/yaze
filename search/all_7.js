@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['7_2001_2027_202024_0',['0.0.7 (01-27-2024)',['../md_docs_2changelog.html#autotoc_md62',1,'']]],
-  ['7_20x_1',['0.7.X',['../md_docs_2roadmap.html#autotoc_md395',1,'']]]
+  ['7_20january_202024_0',['0.0.7 (January 2024)',['../md_docs_2C1-changelog.html#autotoc_md118',1,'']]],
+  ['7_20x_1',['0.7.X',['../md_docs_2D1-roadmap.html#autotoc_md131',1,'']]]
 ];

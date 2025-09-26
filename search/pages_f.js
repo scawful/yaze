@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['started_0',['Getting Started',['../md_docs_2getting-started.html',1,'']]],
-  ['strategy_20efficient_20workflows_1',['CI/CD Testing Strategy - Efficient Workflows',['../md_docs_2ci-testing-guide.html',1,'']]],
-  ['strategy_20for_20yaze_20v0_203_200_2',['Testing Strategy for Yaze v0.3.0',['../md_docs_2testing-strategy.html',1,'']]],
-  ['style_20guide_3',['Asm Style Guide',['../md_docs_2asm-style-guide.html',1,'']]],
-  ['system_4',['YAZE Dungeon Object System',['../md_docs_2dungeon-object-system.html',1,'']]]
+  ['yaze_20documentation_0',['YAZE Documentation',['../md_docs_2index.html',1,'']]],
+  ['yaze_20dungeon_20object_20system_1',['YAZE Dungeon Object System',['../md_docs_2E5-dungeon-object-system.html',1,'']]],
+  ['yaze_20yet_20another_20zelda3_20editor_2',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
+  ['yet_20another_20zelda3_20editor_3',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]]
 ];

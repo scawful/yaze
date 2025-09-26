@@ -12,11 +12,11 @@ var searchData=
   ['y_5fscroll_5f_9',['y_scroll_',['../classyaze_1_1zelda3_1_1OverworldExit.html#acb73f703e9748d95d1bdae60d31c2cf8',1,'yaze::zelda3::OverworldExit']]],
   ['ya_10',['YA',['../classyaze_1_1emu_1_1Spc700.html#ac9901ac685887d6b3e06bc1409e9e1ae',1,'yaze::emu::Spc700::YA'],['../classyaze_1_1test_1_1Spc700.html#ac9901ac685887d6b3e06bc1409e9e1ae',1,'yaze::test::Spc700::YA']]],
   ['yaze_11',['yaze',['../namespaceyaze.html',1,'']]],
-  ['yaze_20documentation_12',['Yaze Documentation',['../md_docs_2index.html',1,'']]],
-  ['yaze_20dungeon_20object_20system_13',['YAZE Dungeon Object System',['../md_docs_2dungeon-object-system.html',1,'']]],
-  ['yaze_20editor_14',['Integration with Yaze Editor',['../md_docs_2asar-integration.html#autotoc_md23',1,'']]],
-  ['yaze_20implementation_15',['Yaze Implementation',['../md_docs_2overworld__loading__guide.html#autotoc_md367',1,'']]],
-  ['yaze_20v0_203_200_16',['Testing Strategy for Yaze v0.3.0',['../md_docs_2testing-strategy.html',1,'']]],
+  ['yaze_20documentation_12',['YAZE Documentation',['../md_docs_2index.html',1,'']]],
+  ['yaze_20dungeon_20object_20system_13',['YAZE Dungeon Object System',['../md_docs_2E5-dungeon-object-system.html',1,'']]],
+  ['yaze_20h_20tt_20tt_20incl_20zelda_20h_20tt_14',['C API (&lt;tt&gt;incl/yaze.h&lt;/tt&gt;, &lt;tt&gt;incl/zelda.h&lt;/tt&gt;)',['../md_docs_204-api-reference.html#autotoc_md34',1,'']]],
+  ['yaze_20implementation_15',['Yaze Implementation',['../md_docs_2F1-overworld-loading.html#autotoc_md356',1,'']]],
+  ['yaze_20yet_20another_20zelda3_20editor_16',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
   ['yaze_2ecc_17',['yaze.cc',['../yaze_8cc.html',1,'']]],
   ['yaze_2eh_18',['yaze.h',['../yaze_8h.html',1,'']]],
   ['yaze_3a_3aapp_19',['app',['../namespaceyaze_1_1app.html',1,'yaze']]],
@@ -130,7 +130,5 @@ var searchData=
   ['yaze_5fversion_5fnumber_127',['YAZE_VERSION_NUMBER',['../group__version.html#ga0fc282e05f78f4ead8edd3880ada5a02',1,'yaze.h']]],
   ['yaze_5fversion_5fpatch_128',['YAZE_VERSION_PATCH',['../group__version.html#ga1ef0890c21d5e052a03ace9b1f3d0e3c',1,'yaze.h']]],
   ['yaze_5fversion_5fstring_129',['YAZE_VERSION_STRING',['../group__version.html#gabc3b93252a656c28dee5ac55e492cc96',1,'yaze.h']]],
-  ['yet_20another_20zelda3_20editor_130',['Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
-  ['your_20changes_131',['Contributing your Changes',['../md_docs_2contributing.html#autotoc_md109',1,'']]],
-  ['your_20patches_132',['Testing Your Patches',['../md_docs_2asar-integration.html#autotoc_md29',1,'']]]
+  ['yet_20another_20zelda3_20editor_130',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]]
 ];

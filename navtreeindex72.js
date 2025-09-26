@@ -1,7 +1,5 @@
 var NAVTREEINDEX72 =
 {
-"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e":[22,0,0,9,27,1],
-"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[21,0,2,9,32,0],
 "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[22,0,0,9,27,0],
 "structyaze_1_1zelda3_1_1OverworldMapTiles.html":[21,0,2,9,37],
 "structyaze_1_1zelda3_1_1OverworldMapTiles.html":[22,0,0,9,32],
@@ -249,5 +247,7 @@ var NAVTREEINDEX72 =
 "structyaze__extension.html#aab3644cf16c4a7db79229ad20118d9f5":[20,7,0,5],
 "structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c":[20,7,0,0],
 "structzelda3__dungeon__room.html":[22,0,22],
-"structzelda3__dungeon__room.html#a22aab9efb3c4bc0c4b1bbf5354e78d10":[22,0,22,4]
+"structzelda3__dungeon__room.html#a22aab9efb3c4bc0c4b1bbf5354e78d10":[22,0,22,4],
+"structzelda3__dungeon__room.html#a234565451209a33c7710e0f33e226663":[22,0,22,13],
+"structzelda3__dungeon__room.html#a23d11d15de835636309f62cb4b813c82":[22,0,22,1]
 };

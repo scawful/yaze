@@ -1,7 +1,5 @@
 var NAVTREEINDEX61 =
 {
-"structTextEditor_1_1Glyph.html#a7545cbd5cdcca8a4d73fd2218af20019":[22,0,18,3,1],
-"structTextEditor_1_1Glyph.html#a8574ee4841bfd39fc688d72c999d9be7":[22,0,18,3,0],
 "structTextEditor_1_1Glyph.html#ac73459bb7dd69fa94409b5bd7009f5fc":[22,0,18,3,4],
 "structTextEditor_1_1Identifier.html":[22,0,18,4],
 "structTextEditor_1_1Identifier.html#ae3be0995cbd2d21feeb354e722861b4a":[22,0,18,4,1],
@@ -249,5 +247,7 @@ var NAVTREEINDEX61 =
 "structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html#acd6cf1f6ea1cbae92b37599f037646cc":[22,0,0,2,1,0,0,2],
 "structyaze_1_1core_1_1FlagsMenu.html":[21,0,2,2,4],
 "structyaze_1_1core_1_1FlagsMenu.html":[22,0,0,2,3],
-"structyaze_1_1core_1_1FlagsMenu.html#aa33d2f748044e1f59d2ce0936cd994ab":[21,0,2,2,4,0]
+"structyaze_1_1core_1_1FlagsMenu.html#aa33d2f748044e1f59d2ce0936cd994ab":[21,0,2,2,4,0],
+"structyaze_1_1core_1_1FlagsMenu.html#aa33d2f748044e1f59d2ce0936cd994ab":[22,0,0,2,3,0],
+"structyaze_1_1core_1_1FlagsMenu.html#abc68206a2a17b5a9081d776338b5af1d":[21,0,2,2,4,1]
 };

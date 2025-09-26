@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['5_2011_2021_202023_0',['0.0.5 (11-21-2023)',['../md_docs_2changelog.html#autotoc_md64',1,'']]],
-  ['5_20continuous_20integration_1',['5. Continuous Integration',['../md_docs_2integration__test__guide.html#autotoc_md336',1,'']]],
-  ['5_20large_20map_20problems_2',['5. Large Map Problems',['../md_docs_2overworld__loading__guide.html#autotoc_md381',1,'']]],
-  ['5_20minutes_3',['Fast CI Pipeline (&lt; 5 minutes)',['../md_docs_2ci-testing-guide.html#autotoc_md80',1,'']]],
-  ['5_20x_4',['0.5.X',['../md_docs_2roadmap.html#autotoc_md393',1,'']]]
+  ['5_20dungeonusagetracker_20tt_20dungeon_5fusage_5ftracker_20h_20cc_20tt_0',['5. DungeonUsageTracker (&lt;tt&gt;dungeon_usage_tracker.h/cc&lt;/tt&gt;)',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md251',1,'']]],
+  ['5_20large_20map_20problems_1',['5. Large Map Problems',['../md_docs_2F1-overworld-loading.html#autotoc_md370',1,'']]],
+  ['5_20november_202023_2',['0.0.5 (November 2023)',['../md_docs_2C1-changelog.html#autotoc_md120',1,'']]],
+  ['5_20strong_20cleaner_20dependencies_20strong_3',['5. &lt;strong&gt;Cleaner Dependencies&lt;/strong&gt;',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md272',1,'']]],
+  ['5_20x_4',['0.5.X',['../md_docs_2D1-roadmap.html#autotoc_md127',1,'']]]
 ];

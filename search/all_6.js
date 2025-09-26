@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['6_2011_2022_202023_0',['0.0.6 (11-22-2023)',['../md_docs_2changelog.html#autotoc_md63',1,'']]],
-  ['6_20special_20area_20graphics_20issues_1',['6. Special Area Graphics Issues',['../md_docs_2overworld__loading__guide.html#autotoc_md382',1,'']]],
-  ['6_20x_2',['0.6.X',['../md_docs_2roadmap.html#autotoc_md394',1,'']]],
-  ['65816_20assembler_20integration_3',['Asar 65816 Assembler Integration',['../md_docs_2index.html#autotoc_md268',1,'']]],
-  ['65816_20assembler_20integration_20guide_4',['Asar 65816 Assembler Integration Guide',['../md_docs_2asar-integration.html',1,'']]]
+  ['6_20november_202023_0',['0.0.6 (November 2023)',['../md_docs_2C1-changelog.html#autotoc_md119',1,'']]],
+  ['6_20special_20area_20graphics_20issues_1',['6. Special Area Graphics Issues',['../md_docs_2F1-overworld-loading.html#autotoc_md371',1,'']]],
+  ['6_20x_2',['0.6.X',['../md_docs_2D1-roadmap.html#autotoc_md129',1,'']]],
+  ['65816_20assembler_20integration_3',['65816 Assembler Integration',['../md_docs_203-asar-integration.html',1,'Asar 65816 Assembler Integration'],['../md_docs_2index.html#autotoc_md387',1,'Asar 65816 Assembler Integration'],['../md_README.html#autotoc_md410',1,'Asar 65816 Assembler Integration']]]
 ];

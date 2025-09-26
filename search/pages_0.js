@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['0_0',['Testing Strategy for Yaze v0.3.0',['../md_docs_2testing-strategy.html',1,'']]]
+  ['65816_20assembler_20integration_0',['Asar 65816 Assembler Integration',['../md_docs_203-asar-integration.html',1,'']]]
 ];

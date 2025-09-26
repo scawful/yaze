@@ -1,12 +1,21 @@
 var searchData=
 [
-  ['features_2eh_0',['features.h',['../features_8h.html',1,'']]],
-  ['file_5fdialog_2ecc_1',['file_dialog.cc',['../file__dialog_8cc.html',1,'']]],
-  ['file_5fdialog_2eh_2',['file_dialog.h',['../file__dialog_8h.html',1,'']]],
-  ['file_5fdialog_2emm_3',['file_dialog.mm',['../file__dialog_8mm.html',1,'']]],
-  ['flag_2ecc_4',['flag.cc',['../flag_8cc.html',1,'']]],
-  ['flag_2eh_5',['flag.h',['../flag_8h.html',1,'']]],
-  ['font_5floader_2ecc_6',['font_loader.cc',['../font__loader_8cc.html',1,'']]],
-  ['font_5floader_2eh_7',['font_loader.h',['../font__loader_8h.html',1,'']]],
-  ['font_5floader_2emm_8',['font_loader.mm',['../font__loader_8mm.html',1,'']]]
+  ['e1_2dasm_2dstyle_2dguide_2emd_0',['E1-asm-style-guide.md',['../E1-asm-style-guide_8md.html',1,'']]],
+  ['e2_2ddungeon_2deditor_2dguide_2emd_1',['E2-dungeon-editor-guide.md',['../E2-dungeon-editor-guide_8md.html',1,'']]],
+  ['e3_2ddungeon_2deditor_2ddesign_2emd_2',['E3-dungeon-editor-design.md',['../E3-dungeon-editor-design_8md.html',1,'']]],
+  ['e4_2ddungeon_2deditor_2drefactoring_2emd_3',['E4-dungeon-editor-refactoring.md',['../E4-dungeon-editor-refactoring_8md.html',1,'']]],
+  ['e5_2ddungeon_2dobject_2dsystem_2emd_4',['E5-dungeon-object-system.md',['../E5-dungeon-object-system_8md.html',1,'']]],
+  ['editor_2eh_5',['editor.h',['../editor_8h.html',1,'']]],
+  ['editor_5fintegration_5ftest_2ecc_6',['editor_integration_test.cc',['../editor__integration__test_8cc.html',1,'']]],
+  ['editor_5fintegration_5ftest_2eh_7',['editor_integration_test.h',['../editor__integration__test_8h.html',1,'']]],
+  ['editor_5fmanager_2ecc_8',['editor_manager.cc',['../editor__manager_8cc.html',1,'']]],
+  ['editor_5fmanager_2eh_9',['editor_manager.h',['../editor__manager_8h.html',1,'']]],
+  ['emu_2ecc_10',['emu.cc',['../emu_8cc.html',1,'']]],
+  ['emulator_2ecc_11',['emulator.cc',['../emulator_8cc.html',1,'']]],
+  ['emulator_2eh_12',['emulator.h',['../emulator_8h.html',1,'']]],
+  ['entity_2ecc_13',['entity.cc',['../entity_8cc.html',1,'']]],
+  ['entity_2eh_14',['entity.h',['../entity_8h.html',1,'']]],
+  ['extension_5fmanager_2ecc_15',['extension_manager.cc',['../extension__manager_8cc.html',1,'']]],
+  ['extension_5fmanager_2eh_16',['extension_manager.h',['../extension__manager_8h.html',1,'']]],
+  ['extract_5fvanilla_5fvalues_2ecc_17',['extract_vanilla_values.cc',['../extract__vanilla__values_8cc.html',1,'']]]
 ];
