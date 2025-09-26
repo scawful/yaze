@@ -39,7 +39,6 @@ set(
   absl::demangle_internal
   absl::strings_internal
   absl::city
-  absl::cordz_functions
   absl::malloc_internal
   absl::graphcycles_internal
   absl::str_format_internal
