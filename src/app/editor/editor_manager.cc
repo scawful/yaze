@@ -243,7 +243,7 @@ void EditorManager::Initialize(const std::string &filename) {
 
   context_.shortcut_manager.RegisterShortcut(
       "Load Last ROM", {ImGuiKey_R, ImGuiMod_Ctrl}, [this]() {
-        static RecentFilesManager manager("recent_files.txt");
+        static core::RecentFilesManager manager("recent_files.txt");
         manager.Load();
         if (!manager.GetRecentFiles().empty()) {
           auto front = manager.GetRecentFiles().front();
@@ -281,7 +281,7 @@ void EditorManager::Initialize(const std::string &filename) {
 
   // Initialize menu items
   std::vector<gui::MenuItem> recent_files;
-  static RecentFilesManager manager("recent_files.txt");
+  static core::RecentFilesManager manager("recent_files.txt");
   manager.Load();
   if (manager.GetRecentFiles().empty()) {
     recent_files.emplace_back("No Recent Files", "", nullptr);
@@ -323,7 +323,7 @@ void EditorManager::Initialize(const std::string &filename) {
                                      [this]() { status_ = OpenProject(); });
   project_menu_subitems.emplace_back(
       "Save Project", "", [this]() { status_ = SaveProject(); },
-      [this]() { return current_project_.project_opened_; });
+         [this]() { return current_project_.project_opened(); });
   project_menu_subitems.emplace_back(
       "Save Workspace Layout", "", [this]() {
         ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
@@ -828,7 +828,7 @@ void EditorManager::DrawHomepage() {
              &core::FeatureFlags::get().overworld.kLoadCustomOverworld);
 
     ImGui::BeginChild("Recent Files", ImVec2(-1, -1), true);
-    static RecentFilesManager manager("recent_files.txt");
+    static core::RecentFilesManager manager("recent_files.txt");
     manager.Load();
     for (const auto &file : manager.GetRecentFiles()) {
       if (gui::ClickableText(file.c_str())) {
@@ -1135,7 +1135,7 @@ void EditorManager::DrawMenuBar() {
       }
       Text(ICON_MD_HISTORY " Recent Files");
       Indent();
-      static RecentFilesManager manager("recent_files.txt");
+      static core::RecentFilesManager manager("recent_files.txt");
       manager.Load();
       for (const auto &file : manager.GetRecentFiles()) {
         if (query[0] != '\0' && file.find(query) == std::string::npos) continue;
@@ -1157,9 +1157,9 @@ void EditorManager::DrawMenuBar() {
 
   if (show_resource_label_manager && current_rom_) {
     current_rom_->resource_label()->DisplayLabels(&show_resource_label_manager);
-    if (current_project_.project_opened_ &&
-        !current_project_.labels_filename_.empty()) {
-      current_project_.labels_filename_ =
+    if (current_project_.project_opened() &&
+        !current_project_.labels_filename.empty()) {
+      current_project_.labels_filename =
           current_rom_->resource_label()->filename_;
     }
   }
@@ -1189,26 +1189,26 @@ void EditorManager::DrawMenuBar() {
     SameLine();
     Text("%s", current_project_.filepath.c_str());
     if (Button("ROM File", gui::kDefaultModalSize)) {
-      current_project_.rom_filename_ = FileDialogWrapper::ShowOpenFileDialog();
+      current_project_.rom_filename = FileDialogWrapper::ShowOpenFileDialog();
     }
     SameLine();
-    Text("%s", current_project_.rom_filename_.c_str());
+    Text("%s", current_project_.rom_filename.c_str());
     if (Button("Labels File", gui::kDefaultModalSize)) {
-      current_project_.labels_filename_ =
+      current_project_.labels_filename =
           FileDialogWrapper::ShowOpenFileDialog();
     }
     SameLine();
-    Text("%s", current_project_.labels_filename_.c_str());
+    Text("%s", current_project_.labels_filename.c_str());
     if (Button("Code Folder", gui::kDefaultModalSize)) {
-      current_project_.code_folder_ = FileDialogWrapper::ShowOpenFolderDialog();
+      current_project_.code_folder = FileDialogWrapper::ShowOpenFolderDialog();
     }
     SameLine();
-    Text("%s", current_project_.code_folder_.c_str());
+    Text("%s", current_project_.code_folder.c_str());
 
     Separator();
     if (Button("Create", gui::kDefaultModalSize)) {
       new_project_menu = false;
-      status_ = current_project_.Create(save_as_filename);
+      status_ = current_project_.Create(save_as_filename, current_project_.filepath);
       if (status_.ok()) {
         status_ = current_project_.Save();
       }
@@ -1292,7 +1292,7 @@ absl::Status EditorManager::LoadRom() {
              (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
   test::TestManager::Get().SetCurrentRom(current_rom_);
 
-  static RecentFilesManager manager("recent_files.txt");
+  static core::RecentFilesManager manager("recent_files.txt");
   manager.Load();
   manager.AddFile(file_name);
   manager.Save();
@@ -1372,50 +1372,162 @@ absl::Status EditorManager::OpenRomOrProject(const std::string &filename) {
   return absl::OkStatus();
 }
 
-absl::Status EditorManager::OpenProject() {
-  Rom temp_rom;
-  RETURN_IF_ERROR(temp_rom.LoadFromFile(current_project_.rom_filename_));
 
-  if (!temp_rom.resource_label()->LoadLabels(
-          current_project_.labels_filename_)) {
-    return absl::InternalError(
-        "Could not load labels file, update your project file.");
-  }
+// Enhanced Project Management Implementation
 
-  sessions_.emplace_back(std::move(temp_rom));
-  RomSession &session = sessions_.back();
-  for (auto *editor : session.editors.active_editors_) {
-    editor->set_context(&context_);
+absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
+  auto dialog_path = core::FileDialogWrapper::ShowOpenFolderDialog();
+  if (dialog_path.empty()) {
+    return absl::OkStatus(); // User cancelled
   }
-  current_rom_ = &session.rom;
-  current_editor_set_ = &session.editors;
   
-  // Update test manager with current ROM for ROM-dependent tests
-  util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
-             (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
-  test::TestManager::Get().SetCurrentRom(current_rom_);
+  // Show project creation dialog
+  popup_manager_->Show("Create New Project");
+  return absl::OkStatus();
+}
 
-  static RecentFilesManager manager("recent_files.txt");
-  manager.Load();
-  manager.AddFile(current_project_.filepath + "/" + current_project_.name +
-                  ".yaze");
-  manager.Save();
-  if (current_editor_set_) {
-    current_editor_set_->assembly_editor_.OpenFolder(
-        current_project_.code_folder_);
+absl::Status EditorManager::OpenProject() {
+  auto file_path = core::FileDialogWrapper::ShowOpenFileDialog();
+  if (file_path.empty()) {
+    return absl::OkStatus();
   }
-  current_project_.project_opened_ = true;
-  RETURN_IF_ERROR(LoadAssets());
+  
+  core::YazeProject new_project;
+  RETURN_IF_ERROR(new_project.Open(file_path));
+  
+  // Validate project
+  auto validation_status = new_project.Validate();
+  if (!validation_status.ok()) {
+    toast_manager_.Show(absl::StrFormat("Project validation failed: %s", 
+                                       validation_status.message()), 
+                       editor::ToastType::kWarning, 5.0f);
+    
+    // Ask user if they want to repair
+    popup_manager_->Show("Project Repair");
+  }
+  
+  current_project_ = std::move(new_project);
+  
+  // Load ROM if specified in project
+  if (!current_project_.rom_filename.empty()) {
+    Rom temp_rom;
+    RETURN_IF_ERROR(temp_rom.LoadFromFile(current_project_.rom_filename));
+
+    if (!current_project_.labels_filename.empty()) {
+      if (!temp_rom.resource_label()->LoadLabels(current_project_.labels_filename)) {
+        toast_manager_.Show("Could not load labels file from project", 
+                           editor::ToastType::kWarning);
+      }
+    }
+
+    sessions_.emplace_back(std::move(temp_rom));
+    RomSession &session = sessions_.back();
+    for (auto *editor : session.editors.active_editors_) {
+      editor->set_context(&context_);
+    }
+    current_rom_ = &session.rom;
+    current_editor_set_ = &session.editors;
+    
+    // Apply project feature flags to the session
+    session.feature_flags = current_project_.feature_flags;
+    
+    // Update test manager with current ROM for ROM-dependent tests
+    util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
+               (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
+    test::TestManager::Get().SetCurrentRom(current_rom_);
+
+    if (current_editor_set_ && !current_project_.code_folder.empty()) {
+      current_editor_set_->assembly_editor_.OpenFolder(current_project_.code_folder);
+    }
+    
+    RETURN_IF_ERROR(LoadAssets());
+  }
+  
+  // Apply workspace settings
+  font_global_scale_ = current_project_.workspace_settings.font_global_scale;
+  autosave_enabled_ = current_project_.workspace_settings.autosave_enabled;
+  autosave_interval_secs_ = current_project_.workspace_settings.autosave_interval_secs;
+  ImGui::GetIO().FontGlobalScale = font_global_scale_;
+  
+  // Add to recent files
+  static core::RecentFilesManager manager("recent_files.txt");
+  manager.Load();
+  manager.AddFile(current_project_.filepath);
+  manager.Save();
+  
+  toast_manager_.Show(absl::StrFormat("Project '%s' loaded successfully", 
+                                     current_project_.GetDisplayName()), 
+                     editor::ToastType::kSuccess);
+  
   return absl::OkStatus();
 }
 
 absl::Status EditorManager::SaveProject() {
-  if (current_project_.project_opened_) {
-    RETURN_IF_ERROR(current_project_.Save());
-  } else {
-    new_project_menu = true;
+  if (!current_project_.project_opened()) {
+    return CreateNewProject();
   }
+  
+  // Update project with current settings
+  if (current_rom_ && current_editor_set_) {
+    size_t session_idx = GetCurrentSessionIndex();
+    if (session_idx < sessions_.size()) {
+      current_project_.feature_flags = sessions_[session_idx].feature_flags;
+    }
+    
+    current_project_.workspace_settings.font_global_scale = font_global_scale_;
+    current_project_.workspace_settings.autosave_enabled = autosave_enabled_;
+    current_project_.workspace_settings.autosave_interval_secs = autosave_interval_secs_;
+    
+    // Save recent files
+    static core::RecentFilesManager manager("recent_files.txt");
+    manager.Load();
+    current_project_.workspace_settings.recent_files.clear();
+    for (const auto& file : manager.GetRecentFiles()) {
+      current_project_.workspace_settings.recent_files.push_back(file);
+    }
+  }
+  
+  return current_project_.Save();
+}
+
+absl::Status EditorManager::SaveProjectAs() {
+  auto file_path = core::FileDialogWrapper::ShowOpenFolderDialog();
+  if (file_path.empty()) {
+    return absl::OkStatus();
+  }
+  
+  popup_manager_->Show("Save Project As");
   return absl::OkStatus();
+}
+
+absl::Status EditorManager::ImportProject(const std::string& project_path) {
+  core::YazeProject imported_project;
+  
+  if (project_path.ends_with(".zsproj")) {
+    RETURN_IF_ERROR(imported_project.ImportZScreamProject(project_path));
+    toast_manager_.Show("ZScream project imported successfully. Please configure ROM and folders.", 
+                       editor::ToastType::kInfo, 5.0f);
+  } else {
+    RETURN_IF_ERROR(imported_project.Open(project_path));
+  }
+  
+  current_project_ = std::move(imported_project);
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::RepairCurrentProject() {
+  if (!current_project_.project_opened()) {
+    return absl::FailedPreconditionError("No project is currently open");
+  }
+  
+  RETURN_IF_ERROR(current_project_.RepairProject());
+  toast_manager_.Show("Project repaired successfully", editor::ToastType::kSuccess);
+  
+  return absl::OkStatus();
+}
+
+void EditorManager::ShowProjectHelp() {
+  popup_manager_->Show("Project Help");
 }
 
 absl::Status EditorManager::SetCurrentRom(Rom *rom) {
@@ -2152,7 +2264,7 @@ void EditorManager::DrawWelcomeScreen() {
     // Recent files section (reuse homepage logic)
     ImGui::Text("Recent Files:");
     ImGui::BeginChild("RecentFiles", ImVec2(0, 100), true);
-    static RecentFilesManager manager("recent_files.txt");
+    static core::RecentFilesManager manager("recent_files.txt");
     manager.Load();
     for (const auto &file : manager.GetRecentFiles()) {
       if (gui::ClickableText(file.c_str())) {

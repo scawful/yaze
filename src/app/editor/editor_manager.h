@@ -118,8 +118,15 @@ class EditorManager {
   absl::Status LoadAssets();
   absl::Status SaveRom();
   absl::Status OpenRomOrProject(const std::string& filename);
+  
+  // Enhanced project management
+  absl::Status CreateNewProject(const std::string& template_name = "Basic ROM Hack");
   absl::Status OpenProject();
   absl::Status SaveProject();
+  absl::Status SaveProjectAs();
+  absl::Status ImportProject(const std::string& project_path);
+  absl::Status RepairCurrentProject();
+  void ShowProjectHelp();
   
   // Testing system
   void InitializeTestSuites();
@@ -196,7 +203,7 @@ class EditorManager {
   Editor* current_editor_ = nullptr;
   EditorSet blank_editor_set_{};
 
-  Project current_project_;
+  core::YazeProject current_project_;
   EditorContext context_;
   std::unique_ptr<PopupManager> popup_manager_;
   ToastManager toast_manager_;
