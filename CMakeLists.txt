@@ -32,9 +32,11 @@ option(YAZE_ENABLE_EXPERIMENTAL_TESTS "Enable experimental/unstable tests" ON)
 option(YAZE_ENABLE_UI_TESTS "Enable ImGui Test Engine UI testing" ON)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
 
-# Disable UI tests in minimal builds
+# Disable optional components in minimal builds
 if(YAZE_MINIMAL_BUILD)
   set(YAZE_ENABLE_UI_TESTS OFF CACHE BOOL "Disabled for minimal build" FORCE)
+  set(YAZE_BUILD_EMU OFF CACHE BOOL "Disabled for minimal build" FORCE)
+  set(YAZE_BUILD_Z3ED OFF CACHE BOOL "Disabled for minimal build" FORCE)
 endif()
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
 
