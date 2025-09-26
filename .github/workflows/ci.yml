@@ -153,11 +153,9 @@ jobs:
       uses: lukka/run-vcpkg@v11
       with:
         vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
-        vcpkgArguments: '--triplet=${{ matrix.vcpkg_triplet }}'
-        doNotUpdateVcpkg: true
-        doNotUpdateBaseline: true
-
-    # Configure CMake
+        runVcpkgInstall: true
+        vcpkgJsonGlob: '**/vcpkg.json'
+        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
     - name: Configure CMake (Linux/macOS)
       if: runner.os != 'Windows'
       run: |
