@@ -10,7 +10,7 @@
       "name": "default",
       "displayName": "Default Config",
       "description": "Default build configuration",
-      "generator": "Ninja",
+      "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
@@ -53,6 +53,16 @@
       }
     },
     {
+      "name": "macos-dev",
+      "displayName": "macOS Development (ARM64)",
+      "description": "macOS ARM64 development build with ROM testing",
+      "inherits": "macos-debug",
+      "cacheVariables": {
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/build/bin/zelda3.sfc"
+      }
+    },
+    {
       "name": "ci",
       "displayName": "Continuous Integration",
       "description": "CI build without ROM-dependent tests",
@@ -64,8 +74,38 @@
     },
     {
       "name": "macos-debug",
-      "displayName": "macOS Debug",
-      "description": "macOS-specific debug configuration",
+      "displayName": "macOS Debug (ARM64)",
+      "description": "macOS ARM64-specific debug configuration",
+      "inherits": "debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
+        "CMAKE_OSX_ARCHITECTURES": "arm64"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macOS Release (ARM64)",
+      "description": "macOS ARM64-specific release configuration",
+      "inherits": "release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
+        "CMAKE_OSX_ARCHITECTURES": "arm64"
+      }
+    },
+    {
+      "name": "macos-debug-universal",
+      "displayName": "macOS Debug (Universal)",
+      "description": "macOS universal binary debug configuration",
       "inherits": "debug",
       "condition": {
         "type": "equals",
@@ -78,9 +118,9 @@
       }
     },
     {
-      "name": "macos-release",
-      "displayName": "macOS Release",
-      "description": "macOS-specific release configuration",
+      "name": "macos-release-universal",
+      "displayName": "macOS Release (Universal)",
+      "description": "macOS universal binary release configuration",
       "inherits": "release",
       "condition": {
         "type": "equals",
@@ -185,6 +225,11 @@
       "displayName": "Development Build"
     },
     {
+      "name": "macos-dev",
+      "configurePreset": "macos-dev",
+      "displayName": "macOS Development Build (ARM64)"
+    },
+    {
       "name": "ci",
       "configurePreset": "ci",
       "displayName": "CI Build"
@@ -197,7 +242,17 @@
     {
       "name": "macos-release",
       "configurePreset": "macos-release",
-      "displayName": "macOS Release Build"
+      "displayName": "macOS Release Build (ARM64)"
+    },
+    {
+      "name": "macos-debug-universal",
+      "configurePreset": "macos-debug-universal",
+      "displayName": "macOS Debug Build (Universal)"
+    },
+    {
+      "name": "macos-release-universal",
+      "configurePreset": "macos-release-universal",
+      "displayName": "macOS Release Build (Universal)"
     },
     {
       "name": "fast",
@@ -293,7 +348,12 @@
     {
       "name": "macos",
       "configurePreset": "macos-release",
-      "displayName": "macOS Package"
+      "displayName": "macOS Package (ARM64)"
+    },
+    {
+      "name": "macos-universal",
+      "configurePreset": "macos-release-universal",
+      "displayName": "macOS Package (Universal)"
     }
   ],
   "workflowPresets": [
