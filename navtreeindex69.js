@@ -1,5 +1,13 @@
 var NAVTREEINDEX69 =
 {
+"structyaze_1_1gui_1_1TextBox.html#a89c0349e9a967ba2141bb661bfcf5286":[22,0,0,6,17,1],
+"structyaze_1_1gui_1_1TextBox.html#a8ab9f78c5bf5c84b5f6db3c26d7a705e":[21,0,2,6,19,10],
+"structyaze_1_1gui_1_1TextBox.html#a8ab9f78c5bf5c84b5f6db3c26d7a705e":[22,0,0,6,17,10],
+"structyaze_1_1gui_1_1TextBox.html#a94f514e74aac2463a96c93147d9507c6":[21,0,2,6,19,14],
+"structyaze_1_1gui_1_1TextBox.html#a94f514e74aac2463a96c93147d9507c6":[22,0,0,6,17,14],
+"structyaze_1_1gui_1_1TextBox.html#a96e5550890f2786ed07f9a59afacd765":[21,0,2,6,19,16],
+"structyaze_1_1gui_1_1TextBox.html#a96e5550890f2786ed07f9a59afacd765":[22,0,0,6,17,16],
+"structyaze_1_1gui_1_1TextBox.html#a9c3ee2e772b1b020782d21e3ef369702":[21,0,2,6,19,15],
 "structyaze_1_1gui_1_1TextBox.html#a9c3ee2e772b1b020782d21e3ef369702":[22,0,0,6,17,15],
 "structyaze_1_1gui_1_1TextBox.html#aa856ff94712e1bc869b286a5ec932e05":[21,0,2,6,19,17],
 "structyaze_1_1gui_1_1TextBox.html#aa856ff94712e1bc869b286a5ec932e05":[22,0,0,6,17,17],
@@ -241,13 +249,5 @@ var NAVTREEINDEX69 =
 "structyaze_1_1test_1_1SpriteAttributes.html#ab1590b0468b8c90e2535b2206a4c800b":[22,0,0,7,36,6],
 "structyaze_1_1test_1_1TestResult.html":[21,0,2,7,43],
 "structyaze_1_1test_1_1TestResult.html":[22,0,0,7,41],
-"structyaze_1_1test_1_1TestResult.html#a05f2e331e42a54a70aa25181fe1584c4":[21,0,2,7,43,3],
-"structyaze_1_1test_1_1TestResult.html#a05f2e331e42a54a70aa25181fe1584c4":[22,0,0,7,41,3],
-"structyaze_1_1test_1_1TestResult.html#a9dd90885181f2ff45f83ea9708baf22b":[21,0,2,7,43,5],
-"structyaze_1_1test_1_1TestResult.html#a9dd90885181f2ff45f83ea9708baf22b":[22,0,0,7,41,5],
-"structyaze_1_1test_1_1TestResult.html#aaadc252a5659f8953163fdb05f09c40b":[21,0,2,7,43,4],
-"structyaze_1_1test_1_1TestResult.html#aaadc252a5659f8953163fdb05f09c40b":[22,0,0,7,41,4],
-"structyaze_1_1test_1_1TestResult.html#aacd93e00b3313800e3b9bd3f8cb16e8e":[21,0,2,7,43,1],
-"structyaze_1_1test_1_1TestResult.html#aacd93e00b3313800e3b9bd3f8cb16e8e":[22,0,0,7,41,1],
-"structyaze_1_1test_1_1TestResult.html#ac9392b661a7e721a892e19978b7dfc4e":[21,0,2,7,43,0]
+"structyaze_1_1test_1_1TestResult.html#a05f2e331e42a54a70aa25181fe1584c4":[21,0,2,7,43,3]
 };

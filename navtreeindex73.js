@@ -1,5 +1,13 @@
 var NAVTREEINDEX73 =
 {
+"structyaze__extension.html#a78827a2290a2eea969ded6fec5fcc4e9":[20,7,0,1],
+"structyaze__extension.html#a93cdd908fb3c54b68fa54307fcf3a090":[20,7,0,4],
+"structyaze__extension.html#aab3644cf16c4a7db79229ad20118d9f5":[20,7,0,5],
+"structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c":[20,7,0,0],
+"structzelda3__dungeon__room.html":[22,0,22],
+"structzelda3__dungeon__room.html#a22aab9efb3c4bc0c4b1bbf5354e78d10":[22,0,22,4],
+"structzelda3__dungeon__room.html#a234565451209a33c7710e0f33e226663":[22,0,22,13],
+"structzelda3__dungeon__room.html#a23d11d15de835636309f62cb4b813c82":[22,0,22,1],
 "structzelda3__dungeon__room.html#a3e4378ef2ad1ec373971935881247a30":[22,0,22,11],
 "structzelda3__dungeon__room.html#a42678ea7c1ec348ce2fda7a594f6ba90":[22,0,22,15],
 "structzelda3__dungeon__room.html#a4473c6659b4ed289cbdc446fb3190288":[22,0,22,16],

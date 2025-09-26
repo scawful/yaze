@@ -693,11 +693,11 @@ var NAVTREEINDEX =
 "structyaze_1_1emu_1_1OAMDATAREAD.html",
 "structyaze_1_1emu_1_1VideoPortControl.html#ab703ab48a910ae17a451e0331abb5d49",
 "structyaze_1_1gfx_1_1Paletteset.html#a4e691551109932639735b4390f69c98d",
-"structyaze_1_1gui_1_1TextBox.html#a9c3ee2e772b1b020782d21e3ef369702",
-"structyaze_1_1test_1_1TestResult.html#ac9392b661a7e721a892e19978b7dfc4e",
-"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a615eed735f21dfc4017bcd6cf0895897",
-"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935",
-"structzelda3__dungeon__room.html#a3e4378ef2ad1ec373971935881247a30"
+"structyaze_1_1gui_1_1TextBox.html#a89c0349e9a967ba2141bb661bfcf5286",
+"structyaze_1_1test_1_1TestResult.html#a05f2e331e42a54a70aa25181fe1584c4",
+"structyaze_1_1zelda3_1_1DungeonMap.html#ac0db5386648063e45da045b79fbd67c6",
+"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#aa47bd956a0f339b24070bdf2435dd4cc",
+"structyaze__extension.html#a78827a2290a2eea969ded6fec5fcc4e9"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';
