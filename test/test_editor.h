@@ -2,8 +2,11 @@
 #define YAZE_TEST_INTEGRATION_TEST_EDITOR_H
 
 #include "app/editor/editor.h"
+
+#ifdef IMGUI_ENABLE_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
+#endif
 
 namespace yaze {
 namespace test {
@@ -44,10 +47,16 @@ class TestEditor : public yaze::editor::Editor {
     return absl::UnimplementedError("Not implemented");
   }
 
+#ifdef IMGUI_ENABLE_TEST_ENGINE
   void RegisterTests(ImGuiTestEngine* engine);
+#endif
 
  private:
+#ifdef IMGUI_ENABLE_TEST_ENGINE
   ImGuiTestEngine* engine_;
+#else
+  void* engine_; // Placeholder when test engine is disabled
+#endif
 };
 
 int RunIntegrationTest();

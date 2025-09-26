@@ -1,8 +1,15 @@
 # SDL2
 if (UNIX OR MINGW OR WIN32)
   add_subdirectory(src/lib/SDL)
-  # When using bundled SDL, use the static target
+  # When using bundled SDL, use the static target and set include directories
   set(SDL_TARGETS SDL2-static)
+  set(SDL2_INCLUDE_DIR 
+    ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
+    ${CMAKE_BINARY_DIR}/src/lib/SDL/include
+    ${CMAKE_BINARY_DIR}/src/lib/SDL/include-config-${CMAKE_BUILD_TYPE}
+  )
+  # Also set for consistency with bundled SDL
+  set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
 else()
   find_package(SDL2)
   # When using system SDL, use the imported targets

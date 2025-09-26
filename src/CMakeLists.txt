@@ -165,6 +165,7 @@ if (YAZE_BUILD_LIB)
     ${SDL_TARGETS}
     ${CMAKE_DL_LIBS}
     ImGui
+    Threads::Threads
   )
   
   # Conditionally link ImGui Test Engine and set definitions
