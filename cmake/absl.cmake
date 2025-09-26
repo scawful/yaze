@@ -18,6 +18,7 @@ set(ABSL_ENABLE_INSTALL ON)
 set(
   ABSL_TARGETS
   absl::strings
+  absl::str_format
   absl::flags
   absl::status
   absl::statusor
@@ -39,4 +40,7 @@ set(
   absl::flags_program_name
   absl::flags_config
   absl::flags_reflection
+  absl::container_memory
+  absl::memory
+  absl::utility
 )
