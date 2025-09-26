@@ -6,6 +6,10 @@
 
 #include "app/core/features.h"
 
+#ifdef YAZE_ENABLE_NFD
+#include <nfd.h>
+#endif
+
 #if defined(__APPLE__) && defined(__MACH__)
 /* Apple OSX and iOS (Darwin). */
 #include <Foundation/Foundation.h>
@@ -104,9 +108,25 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialog() {
 // NFD implementation for macOS (fallback to bespoke if NFD not available)
 std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogNFD() {
 #ifdef YAZE_ENABLE_NFD
-  // NFD implementation would go here when available
-  // For now, fallback to bespoke implementation
-  return ShowOpenFileDialogBespoke();
+  NFD_Init();
+  nfdu8char_t *out_path = NULL;
+  nfdu8filteritem_t filters[1] = {{"Rom File", "sfc,smc"}};
+  nfdopendialogu8args_t args = {0};
+  args.filterList = filters;
+  args.filterCount = 1;
+  
+  nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
+  if (result == NFD_OKAY) {
+    std::string file_path(out_path);
+    NFD_FreePath(out_path);
+    NFD_Quit();
+    return file_path;
+  } else if (result == NFD_CANCEL) {
+    NFD_Quit();
+    return "";
+  }
+  NFD_Quit();
+  return "";
 #else
   // NFD not compiled in, use bespoke
   return ShowOpenFileDialogBespoke();
@@ -115,9 +135,21 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogNFD() {
 
 std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialogNFD() {
 #ifdef YAZE_ENABLE_NFD
-  // NFD folder implementation would go here when available
-  // For now, fallback to bespoke implementation
-  return ShowOpenFolderDialogBespoke();
+  NFD_Init();
+  nfdu8char_t *out_path = NULL;
+  nfdresult_t result = NFD_PickFolderU8(&out_path, NULL);
+  
+  if (result == NFD_OKAY) {
+    std::string folder_path(out_path);
+    NFD_FreePath(out_path);
+    NFD_Quit();
+    return folder_path;
+  } else if (result == NFD_CANCEL) {
+    NFD_Quit();
+    return "";
+  }
+  NFD_Quit();
+  return "";
 #else
   // NFD not compiled in, use bespoke
   return ShowOpenFolderDialogBespoke();
