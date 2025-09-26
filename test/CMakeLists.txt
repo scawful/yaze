@@ -72,7 +72,7 @@ target_include_directories(
 
 target_link_libraries(
   extract_vanilla_values
-  SDL2::SDL2
+  ${SDL_TARGETS}
   asar-static
   ${ABSL_TARGETS}
   ${PNG_LIBRARIES}
@@ -97,7 +97,7 @@ target_include_directories(
 
 target_link_libraries(
   yaze_test
-  SDL2::SDL2
+  ${SDL_TARGETS}
   asar-static
   ${ABSL_TARGETS}
   ${PNG_LIBRARIES}

@@ -2,6 +2,7 @@
 #include <memory>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
@@ -18,7 +19,8 @@ protected:
     std::string rom_path = "bin/zelda3.sfc";
     
     // Check if ROM exists in build directory
-    if (std::filesystem::exists(rom_path)) {
+    std::ifstream rom_file(rom_path);
+    if (rom_file.good()) {
       ASSERT_TRUE(rom_->LoadFromFile(rom_path).ok()) << "Failed to load ROM from " << rom_path;
     } else {
       // Skip test if ROM not found
