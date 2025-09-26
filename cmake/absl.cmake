@@ -33,29 +33,10 @@ set(
   absl::synchronization
   absl::time
   absl::symbolize
-  absl::city
-  absl::cordz_handle
-  absl::cordz_info
   absl::flags_commandlineflag
   absl::flags_marshalling
   absl::flags_private_handle_accessor
   absl::flags_program_name
   absl::flags_config
   absl::flags_reflection
-  absl::hashtablez_sampler
-  absl::raw_hash_set
-  absl::int128
-  absl::time_zone
-  absl::exponential_biased
-  absl::civil_time
-  absl::bad_optional_access
-  absl::bad_variant_access
-  absl::throw_delegate
-  absl::log_severity
-  absl::spinlock_wait
-  absl::strerror
-  absl::raw_hash_set
-  absl::cord
-  absl::city
-  absl::hash
 )
