@@ -118,7 +118,7 @@ $(function(){initNavTree('bps_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;cmath&gt;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#ifdef YAZE_LIB_PNG</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#if YAZE_LIB_PNG == 1</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;zlib.h&gt;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
@@ -129,7 +129,7 @@ $(function(){initNavTree('bps_8cc_source.html',''); initResizable(true); });
 <div class="foldopen" id="foldopen00017" data-start="{" data-end="}">
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html">   17</a></span><span class="keyword">namespace </span>{</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#ifdef YAZE_LIB_PNG</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#if YAZE_LIB_PNG == 1</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>uint32_t <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">crc32</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;data) {</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  uint32_t crc = <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">::crc32</a>(0L, Z_NULL, 0);</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  return ::crc32(crc, data.data(), data.size());</div>

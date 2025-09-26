@@ -376,7 +376,7 @@ $(function(){initNavTree('input_8cc_source.html',''); initResizable(true); });
 <div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  <span class="keyword">const</span> ImGuiStyle&amp; style = ImGui::GetStyle();</div>
 <div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  <span class="keywordtype">float</span> fullWidth = ImGui::GetContentRegionAvail().x;</div>
 <div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  <span class="keywordtype">float</span> itemWidth = ImGui::CalcItemWidth() + style.ItemSpacing.x;</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>  ImVec2 textSize = ImGui::CalcTextSize(title.begin(), title.end());</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>  ImVec2 textSize = ImGui::CalcTextSize(title.data(), title.data() + title.size());</div>
 <div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  ImRect textRect;</div>
 <div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  textRect.Min = ImGui::GetCursorScreenPos();</div>
 <div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  <span class="keywordflow">if</span> (flags &amp; ItemLabelFlag::Right) textRect.Min.x = textRect.Min.x + itemWidth;</div>
