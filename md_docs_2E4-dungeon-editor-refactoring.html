@@ -109,15 +109,15 @@ $(function(){initNavTree('md_docs_2E4-dungeon-editor-refactoring.html',''); init
   <div class="headertitle"><div class="title">DungeonEditor Refactoring Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md243"></a></p>
-<h1><a class="anchor" id="autotoc_md244"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md294"></a></p>
+<h1><a class="anchor" id="autotoc_md295"></a>
 Overview</h1>
 <p>This document outlines the comprehensive refactoring of the 1444-line <code><a class="el" href="dungeon__editor_8cc.html">dungeon_editor.cc</a></code> file into focused, single-responsibility components.</p>
-<h1><a class="anchor" id="autotoc_md245"></a>
+<h1><a class="anchor" id="autotoc_md296"></a>
 Component Structure</h1>
-<h2><a class="anchor" id="autotoc_md246"></a>
+<h2><a class="anchor" id="autotoc_md297"></a>
 ✅ Created Components</h2>
-<h3><a class="anchor" id="autotoc_md247"></a>
+<h3><a class="anchor" id="autotoc_md298"></a>
 1. DungeonToolset (<code>dungeon_toolset.h/cc</code>)</h3>
 <p><b>Responsibility</b>: Toolbar UI management</p><ul>
 <li>Background layer selection (All/BG1/BG2/BG3)</li>
@@ -125,7 +125,7 @@ Component Structure</h1>
 <li>Undo/Redo buttons with callbacks</li>
 <li><b>Replaces</b>: <code>DrawToolset()</code> method (~70 lines)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md248"></a>
+<h3><a class="anchor" id="autotoc_md299"></a>
 2. DungeonObjectInteraction (<code>dungeon_object_interaction.h/cc</code>)</h3>
 <p><b>Responsibility</b>: Object selection and placement</p><ul>
 <li>Mouse interaction handling</li>
@@ -134,7 +134,7 @@ Component Structure</h1>
 <li>Coordinate conversion utilities</li>
 <li><b>Replaces</b>: All mouse/selection methods (~400 lines)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md249"></a>
+<h3><a class="anchor" id="autotoc_md300"></a>
 3. DungeonRenderer (<code>dungeon_renderer.h/cc</code>)</h3>
 <p><b>Responsibility</b>: All rendering operations</p><ul>
 <li>Object rendering with caching</li>
@@ -143,7 +143,7 @@ Component Structure</h1>
 <li>Render cache management</li>
 <li><b>Replaces</b>: All rendering methods (~200 lines)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md250"></a>
+<h3><a class="anchor" id="autotoc_md301"></a>
 4. DungeonRoomLoader (<code>dungeon_room_loader.h/cc</code>)</h3>
 <p><b>Responsibility</b>: ROM data loading</p><ul>
 <li>Room loading from ROM</li>
@@ -152,7 +152,7 @@ Component Structure</h1>
 <li>Graphics loading coordination</li>
 <li><b>Replaces</b>: Room loading methods (~150 lines)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md251"></a>
+<h3><a class="anchor" id="autotoc_md302"></a>
 5. DungeonUsageTracker (<code>dungeon_usage_tracker.h/cc</code>)</h3>
 <p><b>Responsibility</b>: Resource usage analysis</p><ul>
 <li>Blockset/spriteset/palette usage tracking</li>
@@ -160,9 +160,9 @@ Component Structure</h1>
 <li>Resource optimization insights</li>
 <li><b>Replaces</b>: Usage statistics methods (~100 lines)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md252"></a>
+<h1><a class="anchor" id="autotoc_md303"></a>
 Refactored DungeonEditor Structure</h1>
-<h2><a class="anchor" id="autotoc_md253"></a>
+<h2><a class="anchor" id="autotoc_md304"></a>
 Before Refactoring: 1444 lines</h2>
 <div class="fragment"><div class="line"><span class="keyword">class </span>DungeonEditor {</div>
 <div class="line">  <span class="comment">// 30+ methods handling everything</span></div>
@@ -170,7 +170,7 @@ Before Refactoring: 1444 lines</h2>
 <div class="line">  <span class="comment">// Large data structures</span></div>
 <div class="line">  <span class="comment">// Complex dependencies</span></div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md254"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md305"></a>
 After Refactoring: ~400 lines</h2>
 <div class="fragment"><div class="line"><span class="keyword">class </span>DungeonEditor {</div>
 <div class="line">  <span class="comment">// Core editor interface (unchanged)</span></div>
@@ -205,9 +205,9 @@ After Refactoring: ~400 lines</h2>
 <div class="line">  <span class="keywordtype">bool</span> is_loaded_ = <span class="keyword">false</span>;</div>
 <div class="line">  <span class="comment">// etc.</span></div>
 <div class="line">};</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md255"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md306"></a>
 Method Migration Map</h1>
-<h2><a class="anchor" id="autotoc_md256"></a>
+<h2><a class="anchor" id="autotoc_md307"></a>
 Core Editor Methods (Keep in main file)</h2>
 <ul>
 <li>✅ <code>Initialize()</code> - Component initialization</li>
@@ -216,7 +216,7 @@ Core Editor Methods (Keep in main file)</h2>
 <li>✅ <code>Save()</code>, <code>Undo()</code>, <code>Redo()</code> - Editor interface</li>
 <li>✅ <code>UpdateDungeonRoomView()</code> - UI orchestration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md257"></a>
+<h2><a class="anchor" id="autotoc_md308"></a>
 UI Methods (Keep for coordination)</h2>
 <ul>
 <li>✅ <code>DrawCanvasAndPropertiesPanel()</code> - Tab management</li>
@@ -225,14 +225,14 @@ UI Methods (Keep for coordination)</h2>
 <li>✅ <code>DrawDungeonCanvas()</code> - Canvas coordination</li>
 <li>✅ <code>OnRoomSelected()</code> - Room selection handling</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md258"></a>
+<h2><a class="anchor" id="autotoc_md309"></a>
 Methods Moved to Components</h2>
-<h3><a class="anchor" id="autotoc_md259"></a>
+<h3><a class="anchor" id="autotoc_md310"></a>
 → DungeonToolset</h3>
 <ul>
 <li>❌ <code>DrawToolset()</code> - Toolbar rendering</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md260"></a>
+<h3><a class="anchor" id="autotoc_md311"></a>
 → DungeonObjectInteraction</h3>
 <ul>
 <li>❌ <code>HandleCanvasMouseInput()</code> - Mouse handling</li>
@@ -246,7 +246,7 @@ Methods Moved to Components</h2>
 <li>❌ <code>IsObjectInSelectBox()</code> - Selection testing</li>
 <li>❌ Coordinate conversion helpers</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md261"></a>
+<h3><a class="anchor" id="autotoc_md312"></a>
 → DungeonRenderer</h3>
 <ul>
 <li>❌ <code>RenderObjectInCanvas()</code> - Object rendering</li>
@@ -256,7 +256,7 @@ Methods Moved to Components</h2>
 <li>❌ <code>RefreshGraphics()</code> - Graphics refresh</li>
 <li>❌ Object cache management</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md262"></a>
+<h3><a class="anchor" id="autotoc_md313"></a>
 → DungeonRoomLoader</h3>
 <ul>
 <li>❌ <code>LoadDungeonRoomSize()</code> - Room size calculation</li>
@@ -264,7 +264,7 @@ Methods Moved to Components</h2>
 <li>❌ <code>ReloadAllRoomGraphics()</code> - Bulk reload</li>
 <li>❌ Room size and address management</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md263"></a>
+<h3><a class="anchor" id="autotoc_md314"></a>
 → DungeonUsageTracker</h3>
 <ul>
 <li>❌ <code>CalculateUsageStats()</code> - Usage calculation</li>
@@ -272,9 +272,9 @@ Methods Moved to Components</h2>
 <li>❌ <code>DrawUsageGrid()</code> - Usage visualization</li>
 <li>❌ <code>RenderSetUsage()</code> - Set usage rendering</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md264"></a>
+<h1><a class="anchor" id="autotoc_md315"></a>
 Component Communication</h1>
-<h2><a class="anchor" id="autotoc_md265"></a>
+<h2><a class="anchor" id="autotoc_md316"></a>
 Callback System</h2>
 <div class="fragment"><div class="line"><span class="comment">// Object placement callback</span></div>
 <div class="line">object_interaction_.SetObjectPlacedCallback([<span class="keyword">this</span>](<span class="keyword">const</span> <span class="keyword">auto</span>&amp; <span class="keywordtype">object</span>) {</div>
@@ -290,7 +290,7 @@ Callback System</h2>
 <div class="line">  object_interaction_.SetPreviewObject(<span class="keywordtype">object</span>, <span class="keyword">true</span>);</div>
 <div class="line">  toolset_.set_placement_type(DungeonToolset::kObject);</div>
 <div class="line">});</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md266"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md317"></a>
 Data Sharing</h2>
 <div class="fragment"><div class="line"><span class="comment">// Update components with current room</span></div>
 <div class="line"><span class="keywordtype">void</span> OnRoomSelected(<span class="keywordtype">int</span> room_id) {</div>
@@ -298,46 +298,46 @@ Data Sharing</h2>
 <div class="line">  object_interaction_.SetCurrentRoom(&amp;rooms_, room_id);</div>
 <div class="line">  <span class="comment">// etc.</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md267"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md318"></a>
 Benefits of Refactoring</h1>
-<h2><a class="anchor" id="autotoc_md268"></a>
+<h2><a class="anchor" id="autotoc_md319"></a>
 1. <b>Reduced Complexity</b></h2>
 <ul>
 <li>Main file: 1444 → ~400 lines (72% reduction)</li>
 <li>Single responsibility per component</li>
 <li>Clear separation of concerns</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md269"></a>
+<h2><a class="anchor" id="autotoc_md320"></a>
 2. <b>Improved Testability</b></h2>
 <ul>
 <li>Individual components can be unit tested</li>
 <li>Mocking becomes easier</li>
 <li>Isolated functionality testing</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md270"></a>
+<h2><a class="anchor" id="autotoc_md321"></a>
 3. <b>Better Maintainability</b></h2>
 <ul>
 <li>Changes isolated to relevant components</li>
 <li>Easier to locate and fix bugs</li>
 <li>Cleaner code reviews</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md271"></a>
+<h2><a class="anchor" id="autotoc_md322"></a>
 4. <b>Enhanced Extensibility</b></h2>
 <ul>
 <li>New features added to appropriate components</li>
 <li>Component interfaces allow easy replacement</li>
 <li>Plugin-style architecture possible</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md272"></a>
+<h2><a class="anchor" id="autotoc_md323"></a>
 5. <b>Cleaner Dependencies</b></h2>
 <ul>
 <li>UI separate from data manipulation</li>
 <li>Rendering separate from business logic</li>
 <li>Clear component boundaries</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md273"></a>
+<h1><a class="anchor" id="autotoc_md324"></a>
 Implementation Status</h1>
-<h2><a class="anchor" id="autotoc_md274"></a>
+<h2><a class="anchor" id="autotoc_md325"></a>
 ✅ Completed</h2>
 <ul>
 <li>Created all component header files</li>
@@ -345,14 +345,14 @@ Implementation Status</h1>
 <li>Updated DungeonEditor header with components</li>
 <li>Basic component integration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md275"></a>
+<h2><a class="anchor" id="autotoc_md326"></a>
 🔄 In Progress</h2>
 <ul>
 <li>Method migration from main file to components</li>
 <li>Component callback setup</li>
 <li>Legacy method removal</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md276"></a>
+<h2><a class="anchor" id="autotoc_md327"></a>
 ⏳ Pending</h2>
 <ul>
 <li>Full method implementation in components</li>
@@ -360,30 +360,30 @@ Implementation Status</h1>
 <li>Documentation updates</li>
 <li>Build system updates</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md277"></a>
+<h1><a class="anchor" id="autotoc_md328"></a>
 Migration Strategy</h1>
-<h2><a class="anchor" id="autotoc_md278"></a>
+<h2><a class="anchor" id="autotoc_md329"></a>
 Phase 1: Create Components ✅</h2>
 <ul>
 <li>Define component interfaces</li>
 <li>Create header and implementation files</li>
 <li>Set up basic structure</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md279"></a>
+<h2><a class="anchor" id="autotoc_md330"></a>
 Phase 2: Integrate Components 🔄</h2>
 <ul>
 <li>Add components to DungeonEditor</li>
 <li>Set up callback systems</li>
 <li>Begin method delegation</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md280"></a>
+<h2><a class="anchor" id="autotoc_md331"></a>
 Phase 3: Move Methods</h2>
 <ul>
 <li>Systematically move methods to components</li>
 <li>Update method calls to use components</li>
 <li>Remove old implementations</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md281"></a>
+<h2><a class="anchor" id="autotoc_md332"></a>
 Phase 4: Cleanup</h2>
 <ul>
 <li>Remove unused member variables</li>

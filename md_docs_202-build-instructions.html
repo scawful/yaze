@@ -115,64 +115,152 @@ $(function(){initNavTree('md_docs_202-build-instructions.html',''); initResizabl
 <li><a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools">https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools</a></li>
 </ul>
 <h1><a class="anchor" id="autotoc_md7"></a>
-Quick Build</h1>
-<div class="fragment"><div class="line"># Development build</div>
-<div class="line">cmake --preset dev</div>
-<div class="line">cmake --build --preset dev</div>
-<div class="line"> </div>
-<div class="line"># CI build (minimal dependencies)</div>
-<div class="line">cmake --preset ci</div>
-<div class="line">cmake --build --preset ci</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md8"></a>
+Quick Start</h1>
+<h2><a class="anchor" id="autotoc_md8"></a>
+macOS (Apple Silicon)</h2>
+<div class="fragment"><div class="line">cmake --preset debug</div>
+<div class="line">cmake --build build</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md9"></a>
+Linux / Windows</h2>
+<div class="fragment"><div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
+<div class="line">cmake --build build</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md10"></a>
+Minimal Build</h2>
+<div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
+<div class="line">cmake --build build</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>
 Dependencies</h1>
-<h2><a class="anchor" id="autotoc_md9"></a>
-Core Dependencies</h2>
-<ul>
-<li><b>SDL2</b>: Graphics and input library</li>
-<li><b><a class="el" href="namespaceImGui.html">ImGui</a></b>: Immediate mode GUI library with docking support</li>
-<li><b>Abseil</b>: Modern C++ utilities library</li>
-<li><b>libpng</b>: Image processing library</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md10"></a>
-v0.3.0 Additions</h2>
-<ul>
-<li><b>Asar</b>: 65816 assembler for ROM patching</li>
-<li><b>ftxui</b>: Terminal UI library for CLI</li>
-<li><b>GoogleTest</b>: Comprehensive testing framework</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md11"></a>
-Platform-Specific Setup</h1>
 <h2><a class="anchor" id="autotoc_md12"></a>
-Windows</h2>
-<h3><a class="anchor" id="autotoc_md13"></a>
-vcpkg (Recommended)</h3>
-<div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;dependencies&quot;: [</div>
-<div class="line">    &quot;abseil&quot;, &quot;sdl2&quot;, &quot;libpng&quot;</div>
-<div class="line">  ]</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md14"></a>
-msys2 (Advanced)</h3>
-<p>Install packages: <code>mingw-w64-x86_64-gcc</code>, <code>mingw-w64-x86_64-cmake</code>, <code>mingw-w64-x86_64-sdl2</code>, <code>mingw-w64-x86_64-libpng</code>, <code>mingw-w64-x86_64-abseil-cpp</code></p>
+Required</h2>
+<ul>
+<li>CMake 3.16+</li>
+<li>C++23 compiler (GCC 13+, Clang 16+, MSVC 2019+)</li>
+<li>Git with submodule support</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md13"></a>
+Bundled Libraries</h2>
+<ul>
+<li>SDL2, <a class="el" href="namespaceImGui.html">ImGui</a>, Abseil, Asar, GoogleTest</li>
+<li>Native File Dialog Extended (NFD)</li>
+<li>All dependencies included in repository</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md14"></a>
+Platform Setup</h1>
 <h2><a class="anchor" id="autotoc_md15"></a>
 macOS</h2>
-<div class="fragment"><div class="line">brew install cmake sdl2 zlib libpng abseil boost-python3</div>
+<div class="fragment"><div class="line"># Install Xcode Command Line Tools</div>
+<div class="line">xcode-select --install</div>
+<div class="line"> </div>
+<div class="line"># Optional: Install Homebrew dependencies (auto-detected)</div>
+<div class="line">brew install cmake pkg-config</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md16"></a>
-Linux</h2>
-<p>Use your package manager to install the same dependencies as macOS.</p>
-<h2><a class="anchor" id="autotoc_md17"></a>
-iOS</h2>
-<p>Xcode required. The xcodeproject file is in the <code>ios</code> directory. Link <code>SDL2.framework</code> and <code>libpng.a</code>.</p>
+Linux (Ubuntu/Debian)</h2>
+<div class="fragment"><div class="line">sudo apt-get update</div>
+<div class="line">sudo apt-get install -y build-essential cmake ninja-build pkg-config \</div>
+<div class="line">  libgtk-3-dev libdbus-1-dev</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md17"></a>
+Windows</h2>
+<p><b>Option 1 - Minimal (Recommended for CI):</b></p><ul>
+<li>Visual Studio 2019+ with C++ CMake tools</li>
+<li>No additional dependencies needed (all bundled)</li>
+</ul>
+<p><b>Option 2 - Full Development:</b></p><ul>
+<li>Install vcpkg and dependencies from <code>vcpkg.json</code></li>
+</ul>
 <h1><a class="anchor" id="autotoc_md18"></a>
 Build Targets</h1>
+<h2><a class="anchor" id="autotoc_md19"></a>
+Applications</h2>
 <ul>
-<li><b>yaze</b>: Desktop GUI application</li>
-<li><b>z3ed</b>: Enhanced CLI tool</li>
-<li><b>yaze_c</b>: C library for extensions</li>
-<li><b>yaze_test</b>: Test suite executable</li>
-<li><b>yaze_emu</b>: Standalone SNES emulator </li>
+<li><b>yaze</b>: Main GUI editor application</li>
+<li><b>z3ed</b>: Command-line interface tool</li>
 </ul>
-</div></div><!-- contents -->
+<h2><a class="anchor" id="autotoc_md20"></a>
+Libraries</h2>
+<ul>
+<li><b>yaze_c</b>: C API library for extensions</li>
+<li><b>asar-static</b>: 65816 assembler library</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md21"></a>
+Development (Debug Builds Only)</h2>
+<ul>
+<li><b>yaze_emu</b>: Standalone SNES emulator</li>
+<li><b>yaze_test</b>: Comprehensive test suite</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md22"></a>
+Build Configurations</h1>
+<h2><a class="anchor" id="autotoc_md23"></a>
+Debug (Full Features)</h2>
+<div class="fragment"><div class="line">cmake --preset debug  # macOS</div>
+<div class="line"># OR</div>
+<div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug  # All platforms</div>
+</div><!-- fragment --><p> <b>Includes</b>: NFD, ImGuiTestEngine, PNG support, emulator, all tools</p>
+<h2><a class="anchor" id="autotoc_md24"></a>
+Minimal (CI/Fast Builds)</h2>
+<div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
+</div><!-- fragment --><p> <b>Excludes</b>: Emulator, CLI tools, UI tests, optional dependencies</p>
+<h2><a class="anchor" id="autotoc_md25"></a>
+Release</h2>
+<div class="fragment"><div class="line">cmake --preset release  # macOS</div>
+<div class="line"># OR  </div>
+<div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Release  # All platforms</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md26"></a>
+IDE Integration</h1>
+<h2><a class="anchor" id="autotoc_md27"></a>
+VS Code</h2>
+<ol type="1">
+<li>Install CMake Tools extension</li>
+<li>Open project, select "Debug" preset</li>
+<li>Language server uses <code>compile_commands.json</code> automatically</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md28"></a>
+CLion</h2>
+<ul>
+<li>Opens CMake projects directly</li>
+<li>Select Debug configuration</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md29"></a>
+Xcode (macOS)</h2>
+<div class="fragment"><div class="line">cmake --preset debug -G Xcode</div>
+<div class="line">open build/yaze.xcodeproj</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md30"></a>
+Features by Build Type</h1>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Feature   </th><th class="markdownTableHeadNone">Debug   </th><th class="markdownTableHeadNone">Release   </th><th class="markdownTableHeadNone">Minimal (CI)    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">GUI Editor   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">✅    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Native File Dialogs   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">PNG Support   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Emulator   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">CLI Tools   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">Test Suite   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">✅ (limited)    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">UI Testing   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">❌   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md31"></a>
+Troubleshooting</h1>
+<h2><a class="anchor" id="autotoc_md32"></a>
+Architecture Errors (macOS)</h2>
+<div class="fragment"><div class="line"># Clean and use ARM64-only preset</div>
+<div class="line">rm -rf build</div>
+<div class="line">cmake --preset debug  # Uses arm64 only</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md33"></a>
+Missing Headers (Language Server)</h2>
+<div class="fragment"><div class="line"># Regenerate compile commands</div>
+<div class="line">cmake --preset debug</div>
+<div class="line">cp build/compile_commands.json .</div>
+<div class="line"># Restart VS Code</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md34"></a>
+CI Build Failures</h2>
+<p>Use minimal build configuration that matches CI: </p><div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_UI_TESTS=OFF</div>
+<div class="line">cmake --build build</div>
+</div><!-- fragment --> </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->

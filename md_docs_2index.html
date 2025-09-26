@@ -109,32 +109,33 @@ $(function(){initNavTree('md_docs_2index.html',''); initResizable(true); });
   <div class="headertitle"><div class="title">YAZE Documentation</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md378"></a></p>
-<p>Cross-platform Zelda 3 ROM editor built with modern C++23, SDL2, <a class="el" href="namespaceImGui.html">ImGui</a>, and integrated Asar 65816 assembler support.</p>
-<h1><a class="anchor" id="autotoc_md379"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md429"></a></p>
+<p>Yet Another Zelda3 Editor - A comprehensive ROM editor for The Legend of Zelda: A Link to the Past.</p>
+<h1><a class="anchor" id="autotoc_md430"></a>
 Quick Start</h1>
 <ul>
 <li><a class="el" href="md_docs_201-getting-started.html">Getting Started</a> - Basic setup and usage</li>
-<li><a class="el" href="md_docs_202-build-instructions.html">Build Instructions</a> - How to build from source</li>
-<li><a class="el" href="md_docs_203-asar-integration.html">Asar Integration</a> - Complete 65816 assembler guide</li>
+<li><a class="el" href="md_docs_202-build-instructions.html">Build Instructions</a> - Cross-platform build guide</li>
+<li><a class="el" href="md_docs_203-asar-integration.html">Asar Integration</a> - 65816 assembler usage</li>
 <li><a class="el" href="md_docs_204-api-reference.html">API Reference</a> - C/C++ API documentation</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md380"></a>
+<h1><a class="anchor" id="autotoc_md431"></a>
 Development</h1>
 <ul>
-<li><a class="el" href="md_docs_2A1-testing-guide.html">Testing Guide</a> - Comprehensive testing framework</li>
-<li><a class="el" href="md_docs_2B1-contributing.html">Contributing</a> - Development guidelines and standards</li>
-<li><a class="el" href="md_docs_2C1-changelog.html">Changelog</a> - Version history and changes</li>
-<li><a class="el" href="md_docs_2D1-roadmap.html">Roadmap</a> - Development plans and timeline</li>
+<li><a class="el" href="md_docs_2A1-testing-guide.html">Testing Guide</a> - Testing framework and best practices</li>
+<li><a class="el" href="md_docs_2B1-contributing.html">Contributing</a> - Development guidelines and standards <br  />
+</li>
+<li><a class="el" href="md_docs_2B2-platform-compatibility.html">Platform Compatibility</a> - Cross-platform support details</li>
+<li><a class="el" href="md_docs_2B3-build-presets.html">Build Presets</a> - CMake preset usage guide</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md381"></a>
+<h1><a class="anchor" id="autotoc_md432"></a>
 Technical Documentation</h1>
-<h2><a class="anchor" id="autotoc_md382"></a>
+<h2><a class="anchor" id="autotoc_md433"></a>
 Assembly &amp; Code</h2>
 <ul>
 <li><a class="el" href="md_docs_2E1-asm-style-guide.html">Assembly Style Guide</a> - 65816 assembly coding standards</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md383"></a>
+<h2><a class="anchor" id="autotoc_md434"></a>
 Editor Systems</h2>
 <ul>
 <li><a class="el" href="md_docs_2E2-dungeon-editor-guide.html">Dungeon Editor Guide</a> - Complete dungeon editing guide</li>
@@ -142,149 +143,22 @@ Editor Systems</h2>
 <li><a class="el" href="md_docs_2E4-dungeon-editor-refactoring.html">Dungeon Editor Refactoring</a> - Component-based architecture plan</li>
 <li><a class="el" href="md_docs_2E5-dungeon-object-system.html">Dungeon Object System</a> - Object management framework</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md384"></a>
+<h2><a class="anchor" id="autotoc_md435"></a>
 Overworld System</h2>
 <ul>
 <li><a class="el" href="md_docs_2F1-overworld-loading.html">Overworld Loading</a> - ZSCustomOverworld v3 implementation</li>
-<li><a class="el" href="md_docs_2F2-overworld-expansion.html">Overworld Expansion</a> - Advanced overworld features</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md385"></a>
-Current Version: 0.3.0 (January 2025)</h1>
-<h2><a class="anchor" id="autotoc_md386"></a>
-✅ Major Features</h2>
-<h3><a class="anchor" id="autotoc_md387"></a>
-Asar 65816 Assembler Integration</h3>
-<ul>
-<li><b>Cross-platform ROM patching</b> with assembly code support</li>
-<li><b>Symbol extraction</b> with addresses and opcodes</li>
-<li><b>Assembly validation</b> and comprehensive error reporting</li>
-<li><b>Modern C++ API</b> with safe memory management</li>
-<li><b>Enhanced CLI tools</b> with improved UX</li>
-</ul>
-<h3><a class="anchor" id="autotoc_md388"></a>
-ZSCustomOverworld v3</h3>
-<ul>
-<li><b>Enhanced overworld editing</b> capabilities</li>
-<li><b>Advanced map properties</b> and metadata</li>
-<li><b>Custom graphics support</b> and tile management</li>
-<li><b>Improved compatibility</b> with existing projects</li>
-</ul>
-<h3><a class="anchor" id="autotoc_md389"></a>
-Advanced Message Editing</h3>
-<ul>
-<li><b>Enhanced text editing interface</b> with improved parsing</li>
-<li><b>Real-time preview</b> of message formatting</li>
-<li><b>Better error handling</b> for message validation</li>
-<li><b>Improved workflow</b> for text-based ROM hacking</li>
-</ul>
-<h3><a class="anchor" id="autotoc_md390"></a>
-GUI Docking System</h3>
-<ul>
-<li><b>Improved workspace management</b> with flexible layouts</li>
-<li><b>Better window organization</b> for complex editing tasks</li>
-<li><b>Enhanced user workflow</b> with customizable interfaces</li>
-<li><b>Modern UI improvements</b> throughout the application</li>
-</ul>
-<h3><a class="anchor" id="autotoc_md391"></a>
-Technical Improvements</h3>
-<ul>
-<li><b>Modern CMake 3.16+</b>: Target-based configuration and build system</li>
-<li><b>CMakePresets</b>: Development workflow presets for better productivity</li>
-<li><b>Cross-platform CI/CD</b>: Automated builds and testing for all platforms</li>
-<li><b>Professional packaging</b>: NSIS, DMG, and DEB/RPM installers</li>
-<li><b>Enhanced testing</b>: ROM-dependent test separation for CI compatibility</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md392"></a>
-🔄 In Progress</h2>
-<ul>
-<li><b>Sprite Builder System</b>: Custom sprite creation and editing tools</li>
-<li><b>Emulator Subsystem</b>: SNES emulation for testing modifications</li>
-<li><b>Music Editor</b>: Enhanced music data editing interface</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md393"></a>
-⏳ Planned for 0.4.X</h2>
-<ul>
-<li><b>Overworld Sprites</b>: Complete sprite editing with add/remove functionality</li>
-<li><b>Enhanced Dungeon Editing</b>: Advanced room object editing and manipulation</li>
-<li><b>Tile16 Editing</b>: Enhanced editor for creating and modifying tile16 data</li>
-<li><b>Plugin Architecture</b>: Framework for community extensions and custom tools</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md394"></a>
+<h1><a class="anchor" id="autotoc_md436"></a>
 Key Features</h1>
-<h2><a class="anchor" id="autotoc_md395"></a>
-ROM Editing Capabilities</h2>
 <ul>
-<li><b>Asar 65816 Assembly</b>: Apply assembly patches with symbol extraction</li>
-<li><b>Overworld Editing</b>: ZSCustomOverworld v3 with enhanced features</li>
-<li><b>Message Editing</b>: Advanced text editing with real-time preview</li>
-<li><b>Palette Management</b>: Comprehensive color and palette editing</li>
-<li><b>Graphics Editing</b>: SNES graphics manipulation and preview</li>
-<li><b>Hex Editing</b>: Direct ROM data editing with validation</li>
+<li>Complete GUI editor for all aspects of Zelda 3 ROM hacking</li>
+<li>Integrated Asar 65816 assembler for custom code patches</li>
+<li>ZSCustomOverworld v3 support for enhanced overworld editing</li>
+<li>Cross-platform support (Windows, macOS, Linux)</li>
+<li>Modern C++23 codebase with comprehensive testing</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md396"></a>
-Development Tools</h2>
-<ul>
-<li><b>Enhanced CLI</b>: Modern z3ed with subcommands and interactive TUI</li>
-<li><b>Symbol Analysis</b>: Extract and analyze assembly symbols</li>
-<li><b>ROM Validation</b>: Comprehensive ROM integrity checking</li>
-<li><b>Project Management</b>: Save and load complete ROM hacking projects</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md397"></a>
-Cross-Platform Support</h2>
-<ul>
-<li><b>Windows</b>: Full support with MSVC and MinGW compilers</li>
-<li><b>macOS</b>: Universal binaries supporting Intel and Apple Silicon</li>
-<li><b>Linux</b>: GCC and Clang support with package management</li>
-<li><b>Professional Packaging</b>: Native installers for all platforms</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md398"></a>
-Compatibility</h1>
-<h2><a class="anchor" id="autotoc_md399"></a>
-ROM Support</h2>
-<ul>
-<li><b>Vanilla ROMs</b>: Original Zelda 3 ROMs (US/JP)</li>
-<li><b>ZSCustomOverworld v2/v3</b>: Enhanced overworld features and compatibility</li>
-<li><b>Custom Modifications</b>: Support for community ROM hacks and modifications</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md400"></a>
-File Format Support</h2>
-<ul>
-<li><b>Assembly Files</b>: .asm files with Asar 65816 assembler</li>
-<li><b>BPS Patches</b>: Standard ROM patching format</li>
-<li><b>Graphics Files</b>: PNG, BMP, and SNES-specific formats</li>
-<li><b>Project Files</b>: .yaze project format for complete editing sessions</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md401"></a>
-Development &amp; Community</h1>
-<h2><a class="anchor" id="autotoc_md402"></a>
-Architecture</h2>
-<ul>
-<li><b>Modern C++23</b>: Latest language features for performance and safety</li>
-<li><b>Modular Design</b>: Component-based architecture for maintainability</li>
-<li><b>Cross-Platform</b>: Consistent experience across all supported platforms</li>
-<li><b>Comprehensive Testing</b>: Unit tests, integration tests, and ROM validation</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md403"></a>
-Contributing</h2>
-<p>See <a class="el" href="md_docs_2B1-contributing.html">Contributing</a> for guidelines on:</p><ul>
-<li>Code style and C++23 standards</li>
-<li>Testing requirements and ROM handling</li>
-<li>Pull request process and review</li>
-<li>Development setup with CMake presets</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md404"></a>
-Community</h2>
-<ul>
-<li><b>Discord</b>: <a href="https://discord.gg/MBFkMTPEmk">Oracle of Secrets Discord</a></li>
-<li><b>GitHub</b>: <a href="https://github.com/scawful/yaze">YAZE Repository</a></li>
-<li><b>Issues</b>: Report bugs and request features on GitHub</li>
-<li><b>Discussions</b>: Community discussions and support</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md405"></a>
-License</h1>
-<p>This project is licensed under the terms specified in the <a href="../LICENSE">LICENSE</a> file.</p>
 <hr  />
-<p><em>Last updated: January 2025 - Version 0.3.0</em> </p>
+<p><em>Last updated: September 2025 - Version 0.3.0</em> </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

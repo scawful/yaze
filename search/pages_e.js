@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['test_20list_0',['Test List',['../test.html',1,'']]],
-  ['testing_20guide_1',['Testing Guide',['../md_docs_2A1-testing-guide.html',1,'']]],
-  ['todo_20list_2',['Todo List',['../todo.html',1,'']]]
+  ['yaze_20documentation_0',['YAZE Documentation',['../md_docs_2index.html',1,'']]],
+  ['yaze_20yet_20another_20zelda3_20editor_1',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
+  ['yet_20another_20zelda3_20editor_2',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]]
 ];

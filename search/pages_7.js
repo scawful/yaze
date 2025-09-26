@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['getting_20started_0',['Getting Started',['../md_docs_201-getting-started.html',1,'']]],
-  ['guide_1',['Guide',['../md_docs_2E1-asm-style-guide.html',1,'Asm Style Guide'],['../md_docs_2E2-dungeon-editor-guide.html',1,'Dungeon Editor Guide'],['../md_docs_2F1-overworld-loading.html',1,'Overworld Loading Guide'],['../md_docs_2A1-testing-guide.html',1,'Testing Guide']]]
+  ['improvements_0',['Improvements',['../md_docs_2B2-ci-cd-fixes.html',1,'Platform Compatibility Improvements'],['../md_docs_2B2-platform-compatibility.html',1,'Platform Compatibility Improvements']]],
+  ['instructions_1',['Build Instructions',['../md_docs_202-build-instructions.html',1,'']]],
+  ['integration_2',['Asar 65816 Assembler Integration',['../md_docs_203-asar-integration.html',1,'']]]
 ];

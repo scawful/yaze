@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['📚_20documentation_0',['📚 Documentation',['../md_README.html#autotoc_md421',1,'']]]
+  ['🔍_20troubleshooting_0',['🔍 Troubleshooting',['../md_docs_2B3-build-presets.html#autotoc_md155',1,'']]]
 ];

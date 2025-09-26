@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['plan_0',['Plan',['../md_docs_2E3-dungeon-editor-design.html',1,'Dungeon Editor Design Plan'],['../md_docs_2E4-dungeon-editor-refactoring.html',1,'DungeonEditor Refactoring Plan']]]
+  ['refactoring_20plan_0',['DungeonEditor Refactoring Plan',['../md_docs_2E4-dungeon-editor-refactoring.html',1,'']]],
+  ['reference_1',['API Reference',['../md_docs_204-api-reference.html',1,'']]],
+  ['roadmap_2',['Roadmap',['../md_docs_2D1-roadmap.html',1,'']]]
 ];

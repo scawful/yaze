@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.13.2"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: Roadmap</title>
+<title>yaze: Platform Compatibility Improvements</title>
 <link rel="icon" href="yaze.ico" type="image/x-icon" />
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
@@ -80,7 +80,7 @@ $(function() { codefold.init(0); });
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(function(){initNavTree('md_docs_2D1-roadmap.html',''); initResizable(true); });
+$(function(){initNavTree('md_docs_2B2-ci-cd-fixes.html',''); initResizable(true); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -106,88 +106,69 @@ $(function(){initNavTree('md_docs_2D1-roadmap.html',''); initResizable(true); })
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">Roadmap</div></div>
+  <div class="headertitle"><div class="title">Platform Compatibility Improvements</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md174"></a></p>
-<h1><a class="anchor" id="autotoc_md175"></a>
-0.4.X (Next Major Release)</h1>
-<h2><a class="anchor" id="autotoc_md176"></a>
-Core Features</h2>
-<ul>
-<li><b>Overworld Sprites</b>: Complete sprite editing with add/remove functionality</li>
-<li><b>Enhanced Dungeon Editing</b>: Advanced room object editing and manipulation</li>
-<li><b>Tile16 Editing</b>: Enhanced editor for creating and modifying tile16 data</li>
-<li><b>Plugin Architecture</b>: Framework for community extensions and custom tools</li>
-<li><b>Graphics Sheets</b>: Complete editing, saving, and re-importing of sheets</li>
-<li><b>Project Refactoring</b>: Clean up resource loading and memory usage</li>
+<div class="textblock"><p><a class="anchor" id="autotoc_md122"></a></p>
+<p>Recent improvements to ensure YAZE works reliably across all supported platforms.</p>
+<h1><a class="anchor" id="autotoc_md123"></a>
+Native File Dialog Support</h1>
+<p>YAZE now features native file dialogs on all platforms:</p><ul>
+<li><b>macOS</b>: Cocoa-based file selection with proper sandboxing support</li>
+<li><b>Windows</b>: Windows Explorer integration with COM APIs</li>
+<li><b>Linux</b>: GTK3 dialogs that match system appearance</li>
+<li><b>Fallback</b>: Bespoke implementation when native dialogs unavailable</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md177"></a>
-Technical Improvements</h2>
-<ul>
-<li><b>Sprite Property Editor</b>: Add support for changing sprite behavior and attributes</li>
-<li><b>Custom Sprites</b>: Support creating and editing custom sprites</li>
-<li><b>Asar Patching</b>: Stabilize existing patching system for advanced modifications</li>
+<h1><a class="anchor" id="autotoc_md124"></a>
+Cross-Platform Build Reliability</h1>
+<p>Enhanced build system ensures consistent compilation:</p><ul>
+<li><b>Windows</b>: Resolved MSVC compatibility issues and dependency conflicts</li>
+<li><b>Linux</b>: Fixed standard library compatibility for older distributions <br  />
+</li>
+<li><b>macOS</b>: Proper support for both Intel and Apple Silicon architectures</li>
+<li><b>All Platforms</b>: Bundled dependencies eliminate external package requirements</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md178"></a>
-0.5.X</h1>
-<h2><a class="anchor" id="autotoc_md179"></a>
-Advanced Features</h2>
+<h1><a class="anchor" id="autotoc_md125"></a>
+Build Configuration Options</h1>
+<p>YAZE supports different build configurations for various use cases:</p>
+<h2><a class="anchor" id="autotoc_md126"></a>
+Full Build (Development)</h2>
+<p>Includes all features: emulator, CLI tools, UI testing framework, and optional libraries.</p>
+<h2><a class="anchor" id="autotoc_md127"></a>
+Minimal Build</h2>
+<p>Streamlined build excluding complex components, optimized for automated testing and CI environments.</p>
+<h1><a class="anchor" id="autotoc_md128"></a>
+Implementation Details</h1>
+<p>The build system automatically detects platform capabilities and adjusts feature sets accordingly:</p>
 <ul>
-<li><b>SCAD Format</b>: Polish and finalize the scad file integration</li>
-<li><b>Hex Editing Improvements</b>: Enhance user interface for direct ROM manipulation</li>
-<li><b>Music Editing</b>: Add an interface to edit and manage music data</li>
+<li><b>File Dialogs</b>: Uses native platform dialogs when available, with cross-platform fallbacks</li>
+<li><b>Dependencies</b>: Bundles all required libraries to eliminate external package requirements <br  />
+</li>
+<li><b>Testing</b>: Separates ROM-dependent tests from unit tests for CI compatibility</li>
+<li><b>Architecture</b>: Supports both Intel and Apple Silicon on macOS without conflicts</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md180"></a>
-0.6.X</h1>
-<h2><a class="anchor" id="autotoc_md181"></a>
-Platform &amp; Integration</h2>
+<h1><a class="anchor" id="autotoc_md129"></a>
+Platform-Specific Adaptations</h1>
+<h2><a class="anchor" id="autotoc_md130"></a>
+Windows</h2>
 <ul>
-<li><b>Cross-Platform Stability</b>: Test and refine builds across Windows, macOS, iOS, and Linux</li>
-<li><b>Plugin/Integration Framework</b>: Provide hooks or scripting for community add-ons</li>
+<li>Complete COM-based file dialog implementation</li>
+<li>MSVC compatibility improvements for modern C++ features</li>
+<li>Resource file handling for proper application integration</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md182"></a>
-0.7.X</h1>
-<h2><a class="anchor" id="autotoc_md183"></a>
-Performance &amp; Polish</h2>
+<h2><a class="anchor" id="autotoc_md131"></a>
+macOS</h2>
 <ul>
-<li><b>Performance Optimizations</b>: Remove bottlenecks in rendering and data processing</li>
-<li><b>Documentation Overhaul</b>: Update manuals, guides, and in-app tooltips</li>
+<li>Cocoa-based native file dialogs with sandboxing support</li>
+<li>Universal binary support for Intel and Apple Silicon</li>
+<li>Proper bundle configuration for macOS applications</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md184"></a>
-0.8.X</h1>
-<h2><a class="anchor" id="autotoc_md185"></a>
-Beta Preparation</h2>
+<h2><a class="anchor" id="autotoc_md132"></a>
+Linux</h2>
 <ul>
-<li><b>Beta Release</b>: Code freeze on major features, focus on bug fixes and polish</li>
-<li><b>User Interface Refinements</b>: Improve UI consistency, iconography, and layout</li>
-<li><b>Internal Cleanup</b>: Remove deprecated code, finalize API calls</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md186"></a>
-1.0.0</h1>
-<h2><a class="anchor" id="autotoc_md187"></a>
-Stable Release</h2>
-<ul>
-<li><b>Stable Release</b>: Final, production-ready version</li>
-<li><b>Changelog</b>: Comprehensive summary of all changes since 0.0.0</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md188"></a>
-Current Focus Areas</h1>
-<h2><a class="anchor" id="autotoc_md189"></a>
-Immediate Priorities (v0.4.X)</h2>
-<ol type="1">
-<li><b>Dungeon Editor Refactoring</b>: Complete component-based architecture</li>
-<li><b>Sprite System</b>: Implement comprehensive sprite editing</li>
-<li><b>Graphics Pipeline</b>: Enhance graphics editing capabilities</li>
-<li><b>Plugin System</b>: Enable community extensions</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md190"></a>
-Long-term Vision</h2>
-<ul>
-<li><b>Community-Driven</b>: Robust plugin system for community contributions</li>
-<li><b>Cross-Platform Excellence</b>: Seamless experience across all platforms</li>
-<li><b>Performance</b>: Optimized for large ROMs and complex modifications</li>
-<li><b>Accessibility</b>: User-friendly interface for both beginners and experts </li>
+<li>GTK3 integration for native file dialogs</li>
+<li>Package manager integration for system dependencies</li>
+<li>Support for multiple compiler toolchains (GCC, Clang) </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
