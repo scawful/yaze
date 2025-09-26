@@ -122,10 +122,13 @@ endif()
 # ImGui (after minimal build flags are set)
 include(cmake/imgui.cmake)
 
-# Project Files
-# Copy theme files to build directory
+# Project Files  
+# Copy theme files to build directory (for development)
 file(GLOB THEME_FILES "${CMAKE_SOURCE_DIR}/assets/themes/*.theme")
 file(COPY ${THEME_FILES} DESTINATION "${CMAKE_BINARY_DIR}/assets/themes/")
+
+# IMPORTANT: Also ensure themes are included in macOS bundles
+# This is handled in src/CMakeLists.txt via YAZE_RESOURCE_FILES
 
 add_subdirectory(src)
 

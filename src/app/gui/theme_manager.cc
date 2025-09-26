@@ -2,6 +2,7 @@
 
 #include <cctype>
 #include <fstream>
+#include <set>
 #include <sstream>
 
 #include "absl/strings/str_format.h"
@@ -109,20 +110,10 @@ void ThemeManager::InitializeBuiltInThemes() {
   // Always create fallback theme first
   CreateFallbackYazeClassic();
   
-  // Try to load themes from files (will override fallback if successful)
-  std::vector<std::string> theme_files = {
-    "yaze_tre.theme",
-    "cyberpunk.theme", 
-    "sunset.theme",
-    "forest.theme",
-    "midnight.theme"
-  };
-  
-  for (const auto& theme_file : theme_files) {
-    auto status = LoadThemeFromFile(theme_file);
-    if (!status.ok()) {
-      util::logf("Failed to load theme file %s: %s", theme_file.c_str(), status.message().data());
-    }
+  // Load all available theme files dynamically
+  auto status = LoadAllAvailableThemes();
+  if (!status.ok()) {
+    util::logf("Warning: Failed to load some theme files: %s", status.message().data());
   }
   
   // Ensure we have a valid current theme (prefer file-based theme)
@@ -424,6 +415,14 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
     }
     
     ImGui::Separator();
+    if (ImGui::Button(absl::StrFormat("%s Refresh Themes", ICON_MD_REFRESH).c_str())) {
+      auto status = RefreshAvailableThemes();
+      if (!status.ok()) {
+        util::logf("Failed to refresh themes: %s", status.message().data());
+      }
+    }
+    
+    ImGui::SameLine();
     if (ImGui::Button(absl::StrFormat("%s Load Custom Theme", ICON_MD_FOLDER_OPEN).c_str())) {
       auto file_path = core::FileDialogWrapper::ShowOpenFileDialog();
       if (!file_path.empty()) {
@@ -873,6 +872,164 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
     }
   }
   ImGui::End();
+}
+
+std::vector<std::string> ThemeManager::GetThemeSearchPaths() const {
+  std::vector<std::string> search_paths;
+  
+  // Development path (relative to build directory)
+  search_paths.push_back("assets/themes/");
+  search_paths.push_back("../assets/themes/");
+  
+  // Platform-specific resource paths
+#ifdef __APPLE__
+  // macOS bundle resource path (this should be the primary path for bundled apps)
+  std::string bundle_themes = core::GetResourcePath("assets/themes/");
+  util::logf("🔍 Bundle themes path from GetResourcePath: '%s'", bundle_themes.c_str());
+  if (!bundle_themes.empty()) {
+    search_paths.push_back(bundle_themes);
+  }
+  
+  // Alternative bundle locations
+  std::string bundle_root = core::GetBundleResourcePath();
+  util::logf("🔍 Bundle root path: '%s'", bundle_root.c_str());
+  
+  search_paths.push_back(bundle_root + "Contents/Resources/themes/");
+  search_paths.push_back(bundle_root + "Contents/Resources/assets/themes/");
+  search_paths.push_back(bundle_root + "assets/themes/");
+  search_paths.push_back(bundle_root + "themes/");
+#else
+  // Linux/Windows relative paths
+  search_paths.push_back("./assets/themes/");
+  search_paths.push_back("./themes/");
+#endif
+  
+  // User config directory
+  std::string config_themes = core::GetConfigDirectory() + "/themes/";
+  search_paths.push_back(config_themes);
+  
+  // Debug: Print all search paths
+  util::logf("🔍 Theme search paths (%zu total):", search_paths.size());
+  for (size_t i = 0; i < search_paths.size(); ++i) {
+    util::logf("  [%zu]: '%s'", i, search_paths[i].c_str());
+  }
+  
+  return search_paths;
+}
+
+std::string ThemeManager::GetThemesDirectory() const {
+  auto search_paths = GetThemeSearchPaths();
+  
+  // Try each search path and return the first one that exists
+  for (const auto& path : search_paths) {
+    std::ifstream test_file(path + ".");  // Test if directory exists by trying to access it
+    if (test_file.good()) {
+      util::logf("Found themes directory: %s", path.c_str());
+      return path;
+    }
+    
+    // Also try with platform-specific directory separators
+    std::string normalized_path = path;
+    if (!normalized_path.empty() && normalized_path.back() != '/' && normalized_path.back() != '\\') {
+      normalized_path += "/";
+    }
+    
+    std::ifstream test_file2(normalized_path + ".");
+    if (test_file2.good()) {
+      util::logf("Found themes directory: %s", normalized_path.c_str());
+      return normalized_path;
+    }
+  }
+  
+  util::logf("No themes directory found in search paths");
+  return search_paths.empty() ? "assets/themes/" : search_paths[0];
+}
+
+std::vector<std::string> ThemeManager::DiscoverAvailableThemeFiles() const {
+  std::vector<std::string> theme_files;
+  auto search_paths = GetThemeSearchPaths();
+  
+  for (const auto& search_path : search_paths) {
+    util::logf("Searching for theme files in: %s", search_path.c_str());
+    
+    try {
+      // Use platform-specific file discovery instead of glob
+#ifdef __APPLE__
+      auto files_in_folder = core::FileDialogWrapper::GetFilesInFolder(search_path);
+      for (const auto& file : files_in_folder) {
+        if (file.length() > 6 && file.substr(file.length() - 6) == ".theme") {
+          std::string full_path = search_path + file;
+          util::logf("Found theme file: %s", full_path.c_str());
+          theme_files.push_back(full_path);
+        }
+      }
+#else
+      // For Linux/Windows, use filesystem directory iteration
+      // (could be extended with platform-specific implementations if needed)
+      std::vector<std::string> known_themes = {
+        "yaze_tre.theme", "cyberpunk.theme", "sunset.theme", 
+        "forest.theme", "midnight.theme"
+      };
+      
+      for (const auto& theme_name : known_themes) {
+        std::string full_path = search_path + theme_name;
+        std::ifstream test_file(full_path);
+        if (test_file.good()) {
+          util::logf("Found theme file: %s", full_path.c_str());
+          theme_files.push_back(full_path);
+        }
+      }
+#endif
+    } catch (const std::exception& e) {
+      util::logf("Error scanning directory %s: %s", search_path.c_str(), e.what());
+    }
+  }
+  
+  // Remove duplicates while preserving order
+  std::vector<std::string> unique_files;
+  std::set<std::string> seen_basenames;
+  
+  for (const auto& file : theme_files) {
+    std::string basename = core::GetFileName(file);
+    if (seen_basenames.find(basename) == seen_basenames.end()) {
+      unique_files.push_back(file);
+      seen_basenames.insert(basename);
+    }
+  }
+  
+  util::logf("Discovered %zu unique theme files", unique_files.size());
+  return unique_files;
+}
+
+absl::Status ThemeManager::LoadAllAvailableThemes() {
+  auto theme_files = DiscoverAvailableThemeFiles();
+  
+  int successful_loads = 0;
+  int failed_loads = 0;
+  
+  for (const auto& theme_file : theme_files) {
+    auto status = LoadThemeFromFile(theme_file);
+    if (status.ok()) {
+      successful_loads++;
+      util::logf("✅ Successfully loaded theme: %s", theme_file.c_str());
+    } else {
+      failed_loads++;
+      util::logf("❌ Failed to load theme %s: %s", theme_file.c_str(), status.message().data());
+    }
+  }
+  
+  util::logf("Theme loading complete: %d successful, %d failed", successful_loads, failed_loads);
+  
+  if (successful_loads == 0 && failed_loads > 0) {
+    return absl::InternalError(absl::StrFormat("Failed to load any themes (%d failures)", failed_loads));
+  }
+  
+  return absl::OkStatus();
+}
+
+absl::Status ThemeManager::RefreshAvailableThemes() {
+  util::logf("Refreshing available themes...");
+  return LoadAllAvailableThemes();
 }
 
 } // namespace gui
