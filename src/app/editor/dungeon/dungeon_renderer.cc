@@ -16,14 +16,12 @@ void DungeonRenderer::RenderObjectInCanvas(const zelda3::RoomObject& object,
     return;
   }
   
-  // Create a mutable copy of the object to ensure tiles are loaded
-  auto mutable_object = object;
-  mutable_object.set_rom(rom_);
-  mutable_object.EnsureTilesLoaded();
+  // Convert room coordinates to canvas coordinates
+  auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
 
-  // Check if tiles were loaded successfully
-  if (mutable_object.tiles().empty()) {
-    return;  // Skip objects without tiles
+  // Check if object is within canvas bounds
+  if (!IsWithinCanvasBounds(canvas_x, canvas_y, 32)) {
+    return;  // Skip objects outside visible area
   }
 
   // Calculate palette hash for caching
@@ -31,14 +29,6 @@ void DungeonRenderer::RenderObjectInCanvas(const zelda3::RoomObject& object,
   for (size_t i = 0; i < palette.size() && i < 16; ++i) {
     palette_hash ^= std::hash<uint16_t>{}(palette[i].snes()) + 0x9e3779b9 +
                     (palette_hash << 6) + (palette_hash >> 2);
-  }
-
-  // Convert room coordinates to canvas coordinates
-  auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
-
-  // Check if object is within canvas bounds
-  if (!IsWithinCanvasBounds(canvas_x, canvas_y, 32)) {
-    return;  // Skip objects outside visible area
   }
 
   // Check cache first
@@ -51,34 +41,67 @@ void DungeonRenderer::RenderObjectInCanvas(const zelda3::RoomObject& object,
     }
   }
 
-  // Render the object to a bitmap
+  // Create a mutable copy of the object to ensure tiles are loaded
+  auto mutable_object = object;
+  mutable_object.set_rom(rom_);
+  mutable_object.EnsureTilesLoaded();
+
+  // Try to render the object with proper graphics
   auto render_result = object_renderer_.RenderObject(mutable_object, palette);
-  if (!render_result.ok()) {
-    return;  // Skip if rendering failed
+  if (render_result.ok()) {
+    auto object_bitmap = std::move(render_result.value());
+    
+    // Ensure the bitmap is valid and has meaningful content
+    if (object_bitmap.width() > 0 && object_bitmap.height() > 0 && 
+        object_bitmap.data() != nullptr) {
+      object_bitmap.SetPalette(palette);
+      core::Renderer::Get().RenderBitmap(&object_bitmap);
+      canvas_->DrawBitmap(object_bitmap, canvas_x, canvas_y, 1.0f, 255);
+      // Cache the successfully rendered bitmap
+      ObjectRenderCache cache_entry;
+      cache_entry.object_id = object.id_;
+      cache_entry.object_x = object.x_;
+      cache_entry.object_y = object.y_;
+      cache_entry.object_size = object.size_;
+      cache_entry.palette_hash = palette_hash;
+      cache_entry.rendered_bitmap = object_bitmap;
+      cache_entry.is_valid = true;
+
+      // Add to cache (limit cache size)
+      if (object_render_cache_.size() >= 100) {
+        object_render_cache_.erase(object_render_cache_.begin());
+      }
+      object_render_cache_.push_back(std::move(cache_entry));
+      return;
+    }
   }
-
-  auto object_bitmap = std::move(render_result.value());
-  object_bitmap.SetPalette(palette);
-  core::Renderer::Get().RenderBitmap(&object_bitmap);
-
-  // Draw the object bitmap to the canvas
-  canvas_->DrawBitmap(object_bitmap, canvas_x, canvas_y, 1.0f, 255);
-
-  // Cache the rendered bitmap
-  ObjectRenderCache cache_entry;
-  cache_entry.object_id = object.id_;
-  cache_entry.object_x = object.x_;
-  cache_entry.object_y = object.y_;
-  cache_entry.object_size = object.size_;
-  cache_entry.palette_hash = palette_hash;
-  cache_entry.rendered_bitmap = object_bitmap;
-  cache_entry.is_valid = true;
-
-  // Add to cache (limit cache size)
-  if (object_render_cache_.size() >= 100) {
-    object_render_cache_.erase(object_render_cache_.begin());
+  
+  // Fallback: Draw object as colored rectangle with ID if rendering fails
+  ImVec4 object_color;
+  
+  // Color-code objects based on layer for better identification
+  switch (object.layer_) {
+    case zelda3::RoomObject::LayerType::BG1:
+      object_color = ImVec4(0.8f, 0.4f, 0.4f, 0.8f); // Red-ish for BG1
+      break;
+    case zelda3::RoomObject::LayerType::BG2:
+      object_color = ImVec4(0.4f, 0.8f, 0.4f, 0.8f); // Green-ish for BG2
+      break;
+    case zelda3::RoomObject::LayerType::BG3:
+      object_color = ImVec4(0.4f, 0.4f, 0.8f, 0.8f); // Blue-ish for BG3
+      break;
+    default:
+      object_color = ImVec4(0.6f, 0.6f, 0.6f, 0.8f); // Gray for unknown
+      break;
   }
-  object_render_cache_.push_back(std::move(cache_entry));
+  
+  // Calculate object size (16x16 is base, size affects width/height)
+  int object_width = 16 + (object.size_ & 0x0F) * 8;
+  int object_height = 16 + ((object.size_ >> 4) & 0x0F) * 8;
+  
+  canvas_->DrawRect(canvas_x, canvas_y, object_width, object_height, object_color);
+  canvas_->DrawRect(canvas_x, canvas_y, object_width, object_height, 
+                   ImVec4(0.0f, 0.0f, 0.0f, 1.0f)); // Black border
 }
 
 void DungeonRenderer::DisplayObjectInfo(const zelda3::RoomObject& object,
@@ -88,46 +111,25 @@ void DungeonRenderer::DisplayObjectInfo(const zelda3::RoomObject& object,
   canvas_->DrawText(info_text, canvas_x, canvas_y - 12);
 }
 
-void DungeonRenderer::RenderLayoutObjects(const zelda3::RoomLayout& layout,
-                                          const gfx::SnesPalette& palette) {
-  for (const auto& layout_obj : layout.GetObjects()) {
-    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(layout_obj.x(), layout_obj.y());
-
-    if (!IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
-      continue;
+void DungeonRenderer::RenderSprites(const zelda3::Room& room) {
+  // Render sprites as simple 16x16 squares with sprite name/ID  
+  for (const auto& sprite : room.GetSprites()) {
+    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(sprite.x(), sprite.y());
+    
+    if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
+      // Draw 16x16 square for sprite
+      ImVec4 sprite_color;
+      
+      // Color-code sprites based on layer for identification
+      if (sprite.layer() == 0) {
+        sprite_color = ImVec4(0.2f, 0.8f, 0.2f, 0.8f); // Green for layer 0
+      } else {
+        sprite_color = ImVec4(0.2f, 0.2f, 0.8f, 0.8f); // Blue for layer 1
+      }
+      
+      canvas_->DrawRect(canvas_x, canvas_y, 16, 16, sprite_color);
+      canvas_->DrawRect(canvas_x, canvas_y, 16, 16, ImVec4(0.0f, 0.0f, 0.0f, 1.0f)); // Border
     }
-
-    // Choose color based on object type
-    gfx::SnesColor color;
-    switch (layout_obj.type()) {
-      case zelda3::RoomLayoutObject::Type::kWall:
-        color = gfx::SnesColor(0x7FFF);  // Gray
-        break;
-      case zelda3::RoomLayoutObject::Type::kFloor:
-        color = gfx::SnesColor(0x4210);  // Dark brown
-        break;
-      case zelda3::RoomLayoutObject::Type::kCeiling:
-        color = gfx::SnesColor(0x739C);  // Light gray
-        break;
-      case zelda3::RoomLayoutObject::Type::kPit:
-        color = gfx::SnesColor(0x0000);  // Black
-        break;
-      case zelda3::RoomLayoutObject::Type::kWater:
-        color = gfx::SnesColor(0x001F);  // Blue
-        break;
-      case zelda3::RoomLayoutObject::Type::kStairs:
-        color = gfx::SnesColor(0x7E0F);  // Yellow
-        break;
-      case zelda3::RoomLayoutObject::Type::kDoor:
-        color = gfx::SnesColor(0xF800);  // Red
-        break;
-      default:
-        color = gfx::SnesColor(0x7C1F);  // Magenta for unknown
-        break;
-    }
-
-    canvas_->DrawRect(canvas_x, canvas_y, 16, 16,
-                      gui::ConvertSnesColorToImVec4(color));
   }
 }
 

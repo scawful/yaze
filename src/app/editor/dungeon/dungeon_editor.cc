@@ -630,12 +630,17 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
     // Render background layers with proper positioning
     renderer_.RenderRoomBackgroundLayers(room_id);
 
-    // Render room objects on top of background using the room's palette
+    // Render room objects and sprites with improved graphics
     if (current_palette_id_ < current_palette_group_.size()) {
       auto room_palette = current_palette_group_[current_palette_id_];
+      
+      // Render regular objects with improved fallback
       for (const auto& object : rooms_[room_id].GetTileObjects()) {
         renderer_.RenderObjectInCanvas(object, room_palette);
       }
+      
+      // Render sprites as simple 16x16 squares with labels
+      renderer_.RenderSprites(rooms_[room_id]);
     }
   }
 

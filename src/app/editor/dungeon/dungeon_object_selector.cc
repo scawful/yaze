@@ -6,6 +6,7 @@
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
+#include "app/gui/modules/asset_browser.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room.h"
@@ -42,29 +43,42 @@ void DungeonObjectSelector::DrawTileSelector() {
 }
 
 void DungeonObjectSelector::DrawObjectRenderer() {
-  // Create a comprehensive object browser with previews
+  // Use AssetBrowser for better object selection
   if (ImGui::BeginTable("DungeonObjectEditorTable", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV, ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("Object Browser", ImGuiTableColumnFlags_WidthFixed, 280);
+    ImGui::TableSetupColumn("Object Browser", ImGuiTableColumnFlags_WidthFixed, 400);
     ImGui::TableSetupColumn("Preview Canvas", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableHeadersRow();
 
-    // Left column: Object browser with previews
+    // Left column: AssetBrowser for object selection
     ImGui::TableNextColumn();
-    BeginChild("ObjectBrowser", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    ImGui::BeginChild("AssetBrowser", ImVec2(0, 0), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
     
-    DrawObjectBrowser();
+    DrawObjectAssetBrowser();
     
-    EndChild();
+    ImGui::EndChild();
 
-    // Right column: Large preview canvas
+    // Right column: Preview and placement controls
     ImGui::TableNextColumn();
-    BeginChild("PreviewCanvas", ImVec2(0, 0), true);
+    ImGui::BeginChild("PreviewCanvas", ImVec2(0, 0), true);
 
+    // Object placement controls
+    ImGui::SeparatorText("Object Placement");
+    static int place_x = 0, place_y = 0;
+    ImGui::InputInt("X Position", &place_x);
+    ImGui::InputInt("Y Position", &place_y);
+    
+    if (ImGui::Button("Place Object") && object_loaded_) {
+      PlaceObjectAtPosition(place_x, place_y);
+    }
+    
+    ImGui::Separator();
+    
+    // Preview canvas
     object_canvas_.DrawBackground(ImVec2(256 + 1, 0x10 * 0x40 + 1));
     object_canvas_.DrawContextMenu();
-    object_canvas_.DrawTileSelector(32);
     object_canvas_.DrawGrid(32.0f);
 
-    // Render selected object preview
+    // Render selected object preview with primitive fallback
     if (object_loaded_ && preview_object_.id_ >= 0) {
       int preview_x = 128 - 16;  // Center horizontally
       int preview_y = 128 - 16;  // Center vertically
@@ -72,14 +86,22 @@ void DungeonObjectSelector::DrawObjectRenderer() {
       auto preview_result = object_renderer_.RenderObject(preview_object_, preview_palette_);
       if (preview_result.ok()) {
         auto preview_bitmap = std::move(preview_result.value());
-        preview_bitmap.SetPalette(preview_palette_);
-        core::Renderer::Get().RenderBitmap(&preview_bitmap);
-        object_canvas_.DrawBitmap(preview_bitmap, preview_x, preview_y, 1.0f, 255);
+        if (preview_bitmap.width() > 0 && preview_bitmap.height() > 0) {
+          preview_bitmap.SetPalette(preview_palette_);
+          core::Renderer::Get().RenderBitmap(&preview_bitmap);
+          object_canvas_.DrawBitmap(preview_bitmap, preview_x, preview_y, 1.0f, 255);
+        } else {
+          // Fallback: Draw primitive shape
+          RenderObjectPrimitive(preview_object_, preview_x, preview_y);
+        }
+      } else {
+        // Fallback: Draw primitive shape
+        RenderObjectPrimitive(preview_object_, preview_x, preview_y);
       }
     }
 
     object_canvas_.DrawOverlay();
-    EndChild();
+    ImGui::EndChild();
     ImGui::EndTable();
   }
 
@@ -174,32 +196,34 @@ void DungeonObjectSelector::DrawObjectBrowser() {
       ImVec2 preview_pos = ImVec2(cursor_pos.x + (item_width - preview_size) / 2, 
                                   cursor_pos.y - item_height + 5);
       
-      // Try to render object preview
-      auto preview_result = object_renderer_.GetObjectPreview(test_object, palette);
-      if (preview_result.ok()) {
-        auto preview_bitmap = std::move(preview_result.value());
-        preview_bitmap.SetPalette(palette);
-        core::Renderer::Get().RenderBitmap(&preview_bitmap);
-        
-        // Draw preview using ImGui image
-        ImGui::SetCursorScreenPos(preview_pos);
-        ImGui::Image((ImTextureID)(intptr_t)preview_bitmap.texture(), 
-                     ImVec2(preview_size, preview_size));
-      } else {
-        // Draw placeholder if preview fails
-        ImGui::SetCursorScreenPos(preview_pos);
-        ImGui::GetWindowDrawList()->AddRectFilled(
-          preview_pos, 
-          ImVec2(preview_pos.x + preview_size, preview_pos.y + preview_size),
-          IM_COL32(64, 64, 64, 255));
-        ImGui::GetWindowDrawList()->AddText(
-          ImVec2(preview_pos.x + 8, preview_pos.y + 12),
-          IM_COL32(255, 255, 255, 255),
-          "?");
-      }
+      // Draw simplified primitive preview for object selector
+      ImGui::SetCursorScreenPos(preview_pos);
       
-      // Draw object ID and name with better positioning
-      ImGui::SetCursorScreenPos(ImVec2(cursor_pos.x + 2, cursor_pos.y - 22));
+      // Draw object as colored rectangle with ID
+      ImU32 object_color = GetObjectTypeColor(obj_id);
+      ImGui::GetWindowDrawList()->AddRectFilled(
+        preview_pos, 
+        ImVec2(preview_pos.x + preview_size, preview_pos.y + preview_size),
+        object_color);
+      
+      // Draw border
+      ImGui::GetWindowDrawList()->AddRect(
+        preview_pos, 
+        ImVec2(preview_pos.x + preview_size, preview_pos.y + preview_size),
+        IM_COL32(0, 0, 0, 255), 0.0f, 0, 2.0f);
+      
+      // Draw object type symbol in center
+      std::string symbol = GetObjectTypeSymbol(obj_id);
+      ImVec2 text_size = ImGui::CalcTextSize(symbol.c_str());
+      ImVec2 text_pos = ImVec2(
+        preview_pos.x + (preview_size - text_size.x) / 2,
+        preview_pos.y + (preview_size - text_size.y) / 2);
+      
+      ImGui::GetWindowDrawList()->AddText(
+        text_pos, IM_COL32(255, 255, 255, 255), symbol.c_str());
+      
+      // Draw object ID below preview
+      ImGui::SetCursorScreenPos(ImVec2(preview_pos.x, preview_pos.y + preview_size + 2));
       ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 255, 255));
       ImGui::Text("0x%02X", obj_id);
       ImGui::PopStyleColor();
@@ -269,9 +293,9 @@ void DungeonObjectSelector::DrawObjectBrowser() {
 
 void DungeonObjectSelector::Draw() {
   if (ImGui::BeginTabBar("##ObjectSelectorTabBar")) {
-    // Object Selector tab - for placing objects
+    // Object Selector tab - for placing objects with new AssetBrowser
     if (ImGui::BeginTabItem("Object Selector")) {
-      DrawObjectBrowser();
+      DrawObjectRenderer();
       ImGui::EndTabItem();
     }
     
@@ -468,6 +492,241 @@ void DungeonObjectSelector::DrawCompactObjectEditor() {
   if (ImGui::Button("Redo") && editor.CanRedo()) {
     (void)editor.Redo();
   }
+}
+
+ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
+  // Color-code objects based on their type and function
+  if (object_id >= 0x10 && object_id <= 0x1F) {
+    return IM_COL32(128, 128, 128, 255); // Gray for walls
+  } else if (object_id >= 0x20 && object_id <= 0x2F) {
+    return IM_COL32(139, 69, 19, 255); // Brown for floors
+  } else if (object_id == 0xF9 || object_id == 0xFA) {
+    return IM_COL32(255, 215, 0, 255); // Gold for chests
+  } else if (object_id >= 0x17 && object_id <= 0x1E) {
+    return IM_COL32(139, 69, 19, 255); // Brown for doors
+  } else if (object_id == 0x2F || object_id == 0x2B) {
+    return IM_COL32(160, 82, 45, 255); // Saddle brown for pots
+  } else if (object_id >= 0x138 && object_id <= 0x13B) {
+    return IM_COL32(255, 255, 0, 255); // Yellow for stairs
+  } else if (object_id >= 0x30 && object_id <= 0x3F) {
+    return IM_COL32(105, 105, 105, 255); // Dim gray for decorations
+  } else {
+    return IM_COL32(96, 96, 96, 255); // Default gray
+  }
+}
+
+std::string DungeonObjectSelector::GetObjectTypeSymbol(int object_id) {
+  // Return symbol representing object type
+  if (object_id >= 0x10 && object_id <= 0x1F) {
+    return "■"; // Wall
+  } else if (object_id >= 0x20 && object_id <= 0x2F) {
+    return "□"; // Floor
+  } else if (object_id == 0xF9 || object_id == 0xFA) {
+    return "⬛"; // Chest
+  } else if (object_id >= 0x17 && object_id <= 0x1E) {
+    return "◊"; // Door
+  } else if (object_id == 0x2F || object_id == 0x2B) {
+    return "●"; // Pot
+  } else if (object_id >= 0x138 && object_id <= 0x13B) {
+    return "▲"; // Stairs
+  } else if (object_id >= 0x30 && object_id <= 0x3F) {
+    return "◆"; // Decoration
+  } else {
+    return "?"; // Unknown
+  }
+}
+
+void DungeonObjectSelector::RenderObjectPrimitive(const zelda3::RoomObject& object, int x, int y) {
+  // Render object as primitive shape on canvas
+  ImU32 color = GetObjectTypeColor(object.id_);
+  
+  // Calculate object size with proper wall length handling
+  int obj_width, obj_height;
+  CalculateObjectDimensions(object, obj_width, obj_height);
+  
+  // Draw object rectangle
+  ImVec4 color_vec = ImGui::ColorConvertU32ToFloat4(color);
+  object_canvas_.DrawRect(x, y, obj_width, obj_height, color_vec);
+  object_canvas_.DrawRect(x, y, obj_width, obj_height, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+  
+  // Draw object ID as text
+  std::string obj_text = absl::StrFormat("0x%X", object.id_);
+  object_canvas_.DrawText(obj_text, x + obj_width + 2, y + 4);
+}
+
+void DungeonObjectSelector::DrawObjectAssetBrowser() {
+  ImGui::SeparatorText("Dungeon Objects");
+  
+  // Debug info
+  ImGui::Text("Asset Browser Debug: Available width: %.1f", ImGui::GetContentRegionAvail().x);
+  
+  // Object type filter
+  static int object_type_filter = 0;
+  const char* object_types[] = {"All", "Walls", "Floors", "Chests", "Doors", "Decorations", "Stairs"};
+  if (ImGui::Combo("Object Type", &object_type_filter, object_types, 7)) {
+    // Filter will be applied in the loop below
+  }
+  
+  ImGui::Separator();
+  
+  // Create asset browser-style grid
+  const float item_size = 64.0f;
+  const float item_spacing = 8.0f;
+  const int columns = std::max(1, static_cast<int>((ImGui::GetContentRegionAvail().x - item_spacing) / (item_size + item_spacing)));
+  
+  ImGui::Text("Columns: %d, Item size: %.1f", columns, item_size);
+  
+  int current_column = 0;
+  int items_drawn = 0;
+  
+  // Draw object grid based on filter
+  for (int obj_id = 0; obj_id <= 0xFF && items_drawn < 100; ++obj_id) {
+    // Apply object type filter
+    if (object_type_filter > 0 && !MatchesObjectFilter(obj_id, object_type_filter)) {
+      continue;
+    }
+    
+    if (current_column > 0) {
+      ImGui::SameLine();
+    }
+    
+    ImGui::PushID(obj_id);
+    
+    // Create selectable button for object
+    bool is_selected = (selected_object_id_ == obj_id);
+    ImVec2 button_size(item_size, item_size);
+    
+    if (ImGui::Selectable("", is_selected, ImGuiSelectableFlags_None, button_size)) {
+      selected_object_id_ = obj_id;
+      
+      // Create and update preview object
+      preview_object_ = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
+      preview_object_.set_rom(rom_);
+      if (rom_) {
+        auto palette = rom_->palette_group().dungeon_main[current_palette_group_id_];
+        preview_palette_ = palette;
+      }
+      object_loaded_ = true;
+      
+      // Notify callback
+      if (object_selected_callback_) {
+        object_selected_callback_(preview_object_);
+      }
+    }
+    
+    // Draw object preview on the button
+    ImVec2 button_pos = ImGui::GetItemRectMin();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    
+    // Draw object as colored rectangle with symbol
+    ImU32 obj_color = GetObjectTypeColor(obj_id);
+    draw_list->AddRectFilled(button_pos, 
+                            ImVec2(button_pos.x + item_size, button_pos.y + item_size), 
+                            obj_color);
+    
+    // Draw border
+    ImU32 border_color = is_selected ? IM_COL32(255, 255, 0, 255) : IM_COL32(0, 0, 0, 255);
+    draw_list->AddRect(button_pos, 
+                      ImVec2(button_pos.x + item_size, button_pos.y + item_size), 
+                      border_color, 0.0f, 0, is_selected ? 3.0f : 1.0f);
+    
+    // Draw object symbol
+    std::string symbol = GetObjectTypeSymbol(obj_id);
+    ImVec2 text_size = ImGui::CalcTextSize(symbol.c_str());
+    ImVec2 text_pos = ImVec2(
+      button_pos.x + (item_size - text_size.x) / 2,
+      button_pos.y + (item_size - text_size.y) / 2);
+    draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), symbol.c_str());
+    
+    // Draw object ID at bottom
+    std::string id_text = absl::StrFormat("%02X", obj_id);
+    ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
+    ImVec2 id_pos = ImVec2(
+      button_pos.x + (item_size - id_size.x) / 2,
+      button_pos.y + item_size - id_size.y - 2);
+    draw_list->AddText(id_pos, IM_COL32(255, 255, 255, 255), id_text.c_str());
+    
+    ImGui::PopID();
+    
+    current_column = (current_column + 1) % columns;
+    if (current_column == 0) {
+      // Force new line
+    }
+    
+    items_drawn++;
+  }
+  
+  ImGui::Separator();
+  ImGui::Text("Items drawn: %d", items_drawn);
+}
+
+bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {
+  switch (filter_type) {
+    case 1: // Walls
+      return obj_id >= 0x10 && obj_id <= 0x1F;
+    case 2: // Floors
+      return obj_id >= 0x20 && obj_id <= 0x2F;
+    case 3: // Chests
+      return obj_id == 0xF9 || obj_id == 0xFA;
+    case 4: // Doors
+      return obj_id >= 0x17 && obj_id <= 0x1E;
+    case 5: // Decorations
+      return obj_id >= 0x30 && obj_id <= 0x3F;
+    case 6: // Stairs
+      return obj_id >= 0x138 && obj_id <= 0x13B;
+    default: // All
+      return true;
+  }
+}
+
+void DungeonObjectSelector::CalculateObjectDimensions(const zelda3::RoomObject& object, int& width, int& height) {
+  // Default base size
+  width = 16;
+  height = 16;
+  
+  // For walls, use the size field to determine length
+  if (object.id_ >= 0x10 && object.id_ <= 0x1F) {
+    // Wall objects: size determines length and orientation
+    uint8_t size_x = object.size_ & 0x0F;
+    uint8_t size_y = (object.size_ >> 4) & 0x0F;
+    
+    // Walls can be horizontal or vertical based on size parameters
+    if (size_x > size_y) {
+      // Horizontal wall
+      width = 16 + size_x * 16; // Each unit adds 16 pixels
+      height = 16;
+    } else if (size_y > size_x) {
+      // Vertical wall
+      width = 16;
+      height = 16 + size_y * 16;
+    } else {
+      // Square wall or corner
+      width = 16 + size_x * 8;
+      height = 16 + size_y * 8;
+    }
+  } else {
+    // For other objects, use standard size calculation
+    width = 16 + (object.size_ & 0x0F) * 8;
+    height = 16 + ((object.size_ >> 4) & 0x0F) * 8;
+  }
+  
+  // Clamp to reasonable limits
+  width = std::min(width, 256);
+  height = std::min(height, 256);
+}
+
+void DungeonObjectSelector::PlaceObjectAtPosition(int x, int y) {
+  if (!object_loaded_ || !object_placement_callback_) {
+    return;
+  }
+  
+  // Create object with specified position
+  auto placed_object = preview_object_;
+  placed_object.set_x(static_cast<uint8_t>(x));
+  placed_object.set_y(static_cast<uint8_t>(y));
+  
+  // Call placement callback
+  object_placement_callback_(placed_object);
 }
 
 void DungeonObjectSelector::DrawCompactSpriteEditor() {

@@ -56,6 +56,10 @@ class DungeonObjectSelector {
     object_selected_callback_ = callback;
   }
   
+  void SetObjectPlacementCallback(std::function<void(const zelda3::RoomObject&)> callback) {
+    object_placement_callback_ = callback;
+  }
+  
   // Get current preview object for placement
   const zelda3::RoomObject& GetPreviewObject() const { return preview_object_; }
   bool IsObjectLoaded() const { return object_loaded_; }
@@ -65,6 +69,17 @@ class DungeonObjectSelector {
   void DrawObjectBrowser();
   void DrawCompactObjectEditor();
   void DrawCompactSpriteEditor();
+  
+  // Helper methods for primitive object rendering
+  ImU32 GetObjectTypeColor(int object_id);
+  std::string GetObjectTypeSymbol(int object_id);
+  void RenderObjectPrimitive(const zelda3::RoomObject& object, int x, int y);
+  
+  // AssetBrowser-style object selection
+  void DrawObjectAssetBrowser();
+  bool MatchesObjectFilter(int obj_id, int filter_type);
+  void CalculateObjectDimensions(const zelda3::RoomObject& object, int& width, int& height);
+  void PlaceObjectAtPosition(int x, int y);
   void DrawCompactItemEditor();
   void DrawCompactEntranceEditor();
   void DrawCompactDoorEditor();
@@ -96,6 +111,10 @@ class DungeonObjectSelector {
   
   // Callback for object selection
   std::function<void(const zelda3::RoomObject&)> object_selected_callback_;
+  std::function<void(const zelda3::RoomObject&)> object_placement_callback_;
+  
+  // Object selection state
+  int selected_object_id_ = -1;
 };
 
 }  // namespace editor

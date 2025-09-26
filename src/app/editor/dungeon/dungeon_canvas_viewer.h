@@ -13,6 +13,11 @@ namespace editor {
 
 /**
  * @brief Handles the main dungeon canvas rendering and interaction
+ * 
+ * In Link to the Past, dungeon "layers" are not separate visual layers
+ * but a game concept where objects exist on different logical levels.
+ * Players move between these levels using stair objects that act as
+ * transitions between the different object planes.
  */
 class DungeonCanvasViewer {
  public:
@@ -47,13 +52,21 @@ class DungeonCanvasViewer {
                             const gfx::SnesPalette &palette);
   void DisplayObjectInfo(const zelda3::RoomObject &object, int canvas_x,
                          int canvas_y);
-  void RenderLayoutObjects(const zelda3::RoomLayout &layout,
-                           const gfx::SnesPalette &palette);
+  void RenderStairObjects(const zelda3::Room& room, 
+                          const gfx::SnesPalette& palette);
+  void RenderSprites(const zelda3::Room& room);
+  void RenderChests(const zelda3::Room& room);
+  void RenderDoorObjects(const zelda3::Room& room);
+  void RenderWallObjects(const zelda3::Room& room);
+  void RenderPotObjects(const zelda3::Room& room);
   
   // Coordinate conversion helpers
   std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;
   std::pair<int, int> CanvasToRoomCoordinates(int canvas_x, int canvas_y) const;
   bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
+  
+  // Object dimension calculation
+  void CalculateWallDimensions(const zelda3::RoomObject& object, int& width, int& height);
   
   // Room graphics management
   absl::Status LoadAndRenderRoomGraphics(int room_id);

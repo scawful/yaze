@@ -30,8 +30,7 @@ class DungeonRenderer {
   void RenderObjectInCanvas(const zelda3::RoomObject& object,
                             const gfx::SnesPalette& palette);
   void DisplayObjectInfo(const zelda3::RoomObject& object, int canvas_x, int canvas_y);
-  void RenderLayoutObjects(const zelda3::RoomLayout& layout,
-                           const gfx::SnesPalette& palette);
+  void RenderSprites(const zelda3::Room& room);
   
   // Background rendering
   void RenderRoomBackgroundLayers(int room_id);
