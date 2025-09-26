@@ -528,15 +528,15 @@ void Room::HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY, int& nbr_
       if (nbr_of_staircase < 4) {
         tile_objects_.back().set_options(ObjectOption::Stairs |
                                          tile_objects_.back().options());
-        z3_staircases_.push_back(staircase(
+        z3_staircases_.push_back({
             posX, posY,
             absl::StrCat("To ", staircase_rooms_[nbr_of_staircase])
-                .data()));
+                .data()});
         nbr_of_staircase++;
       } else {
         tile_objects_.back().set_options(ObjectOption::Stairs |
                                          tile_objects_.back().options());
-        z3_staircases_.push_back(staircase(posX, posY, "To ???"));
+        z3_staircases_.push_back({posX, posY, "To ???"});
       }
       break;
     }
@@ -624,7 +624,7 @@ void Room::LoadChests() {
       }
 
       chests_in_room_.emplace_back(
-          chest_data(rom_data[cpos + (i * 3) + 2], big));
+          chest_data{rom_data[cpos + (i * 3) + 2], big});
     }
   }
 }
