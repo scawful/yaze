@@ -93,6 +93,8 @@ var namespaceyaze_1_1editor =
       [ "kError", "namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7ae3587c730cc1aa530fa4ddc9c4204e97", null ]
     ] ],
     [ "PaletteCategory", "namespaceyaze_1_1editor.html#a82a8956476ffc04750bcfc4120c8b8db", null ],
+    [ "GetRomStatusMessage", "namespaceyaze_1_1editor.html#a09e3eaa0655502231991af8156e1fd60", null ],
+    [ "IsRomReadyForEditing", "namespaceyaze_1_1editor.html#ac0bc6f29ccc20a3f2757c2228eb56160", null ],
     [ "DisplayPalette", "namespaceyaze_1_1editor.html#a8657cfd46f4a80e164e0b2331c98ad98", null ],
     [ "FindMatchingCharacter", "namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c", null ],
     [ "FindDictionaryEntry", "namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d", null ],

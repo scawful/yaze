@@ -10,5 +10,6 @@ var dir_767a2d6ce89f966c317c25dc7e3aed5d =
     [ "system", "dir_6786299e5fb540707e8551af9d97f855.html", "dir_6786299e5fb540707e8551af9d97f855" ],
     [ "editor.h", "editor_8h.html", "editor_8h" ],
     [ "editor_manager.cc", "editor__manager_8cc.html", "editor__manager_8cc" ],
-    [ "editor_manager.h", "editor__manager_8h.html", "editor__manager_8h" ]
+    [ "editor_manager.h", "editor__manager_8h.html", "editor__manager_8h" ],
+    [ "editor_safeguards.h", "editor__safeguards_8h.html", "editor__safeguards_8h" ]
 ];

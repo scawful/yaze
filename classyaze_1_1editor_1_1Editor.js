@@ -17,6 +17,9 @@ var classyaze_1_1editor_1_1Editor =
     [ "set_context", "classyaze_1_1editor_1_1Editor.html#a027446f4b4564fe8db76db7b865d991e", null ],
     [ "active", "classyaze_1_1editor_1_1Editor.html#a452299050ad2b9d197ab90c9b56dd61a", null ],
     [ "set_active", "classyaze_1_1editor_1_1Editor.html#a71ffe102a71543805133c5c9eccd493e", null ],
+    [ "IsRomLoaded", "classyaze_1_1editor_1_1Editor.html#a97b9351230a4009008f1e53b135acc1f", null ],
+    [ "GetRomStatus", "classyaze_1_1editor_1_1Editor.html#a8293165f236b0d03875df48a3de943ff", null ],
+    [ "SafeRomAccess", "classyaze_1_1editor_1_1Editor.html#aa4444a268047e82e40ae536ecf805fa0", null ],
     [ "active_", "classyaze_1_1editor_1_1Editor.html#aec6da79cc0133af242f05ea5286e527a", null ],
     [ "type_", "classyaze_1_1editor_1_1Editor.html#a84126d69916364100eece497a4ced26e", null ],
     [ "context_", "classyaze_1_1editor_1_1Editor.html#afe8b2977196af9ee2d7f7892fbddc1b6", null ]

@@ -14,6 +14,8 @@ var classyaze_1_1editor_1_1DungeonEditor =
     [ "add_room", "classyaze_1_1editor_1_1DungeonEditor.html#a0867626a4677c96be31fb181fff86ccd", null ],
     [ "set_rom", "classyaze_1_1editor_1_1DungeonEditor.html#a67d4329e86fcdc64e3931432d459438d", null ],
     [ "rom", "classyaze_1_1editor_1_1DungeonEditor.html#ab28f3a2da1281e2b00ddccc6aebe2eb8", null ],
+    [ "IsRomLoaded", "classyaze_1_1editor_1_1DungeonEditor.html#aabd90daa8c29e0a2b38287f70b33bbd0", null ],
+    [ "GetRomStatus", "classyaze_1_1editor_1_1DungeonEditor.html#a5834216f489647db164cff728ee779cb", null ],
     [ "RefreshGraphics", "classyaze_1_1editor_1_1DungeonEditor.html#a0fb4f2c30d76ea757405184e34a64ea8", null ],
     [ "LoadDungeonRoomSize", "classyaze_1_1editor_1_1DungeonEditor.html#a04832bdf64d6e767d5a11317606b04e4", null ],
     [ "UpdateDungeonRoomView", "classyaze_1_1editor_1_1DungeonEditor.html#ad0705b525915d3d3cab1d56df72aff5f", null ],

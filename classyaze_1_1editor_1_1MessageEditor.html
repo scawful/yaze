@@ -191,6 +191,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a452299050ad2b9d197ab90c9b56dd61a inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a71ffe102a71543805133c5c9eccd493e inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a71ffe102a71543805133c5c9eccd493e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a71ffe102a71543805133c5c9eccd493e">set_active</a> (bool <a class="el" href="classyaze_1_1editor_1_1Editor.html#a452299050ad2b9d197ab90c9b56dd61a">active</a>)</td></tr>
 <tr class="separator:a71ffe102a71543805133c5c9eccd493e inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97b9351230a4009008f1e53b135acc1f inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a97b9351230a4009008f1e53b135acc1f"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a97b9351230a4009008f1e53b135acc1f">IsRomLoaded</a> () const</td></tr>
+<tr class="separator:a97b9351230a4009008f1e53b135acc1f inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8293165f236b0d03875df48a3de943ff inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a8293165f236b0d03875df48a3de943ff"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a8293165f236b0d03875df48a3de943ff">GetRomStatus</a> () const</td></tr>
+<tr class="separator:a8293165f236b0d03875df48a3de943ff inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -231,6 +235,10 @@ Private Attributes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pro_methods_classyaze_1_1editor_1_1Editor"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_methods_classyaze_1_1editor_1_1Editor')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classyaze_1_1editor_1_1Editor.html">yaze::editor::Editor</a></td></tr>
+<tr class="memitem:aa4444a268047e82e40ae536ecf805fa0 inherit pro_methods_classyaze_1_1editor_1_1Editor" id="r_aa4444a268047e82e40ae536ecf805fa0"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:aa4444a268047e82e40ae536ecf805fa0 inherit pro_methods_classyaze_1_1editor_1_1Editor"><td class="memTemplItemLeft" align="right" valign="top">absl::StatusOr&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#aa4444a268047e82e40ae536ecf805fa0">SafeRomAccess</a> (std::function&lt; T()&gt; accessor, const std::string &amp;operation=&quot;&quot;) const</td></tr>
+<tr class="separator:aa4444a268047e82e40ae536ecf805fa0 inherit pro_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_classyaze_1_1editor_1_1Editor"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pro_attribs_classyaze_1_1editor_1_1Editor')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classyaze_1_1editor_1_1Editor.html">yaze::editor::Editor</a></td></tr>
 <tr class="memitem:aec6da79cc0133af242f05ea5286e527a inherit pro_attribs_classyaze_1_1editor_1_1Editor" id="r_aec6da79cc0133af242f05ea5286e527a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#aec6da79cc0133af242f05ea5286e527a">active_</a> = false</td></tr>
 <tr class="separator:aec6da79cc0133af242f05ea5286e527a inherit pro_attribs_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -268,7 +276,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8h_source.html#l00032">32</a> of file <a class="el" href="message__editor_8h_source.html">message_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor_8h_source.html#l00054">yaze::editor::kMessage</a>, <a class="el" href="message__editor_8h_source.html#l00062">rom()</a>, <a class="el" href="message__editor_8h_source.html#l00085">rom_</a>, and <a class="el" href="editor_8h_source.html#l00106">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="editor_8h_source.html#l00057">yaze::editor::kMessage</a>, <a class="el" href="message__editor_8h_source.html#l00062">rom()</a>, <a class="el" href="message__editor_8h_source.html#l00085">rom_</a>, and <a class="el" href="editor_8h_source.html#l00113">yaze::editor::Editor::type_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -534,7 +542,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="message__editor_8cc_source.html#l00236">236</a> of file <a class="el" href="message__editor_8cc_source.html">message_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="message__data_8h_source.html#l00094">yaze::editor::MessageData::Address</a>, <a class="el" href="editor_8h_source.html#l00107">yaze::editor::Editor::context_</a>, <a class="el" href="message__editor_8h_source.html#l00072">expanded_messages_</a>, <a class="el" href="message__data_8h_source.html#l00093">yaze::editor::MessageData::ID</a>, <a class="el" href="message__data_8cc_source.html#l00423">yaze::editor::LoadExpandedMessages()</a>, <a class="el" href="message__editor_8h_source.html#l00075">message_preview_</a>, <a class="el" href="message__editor_8h_source.html#l00070">parsed_messages_</a>, <a class="el" href="macro_8h_source.html#l00027">PRINT_IF_ERROR</a>, <a class="el" href="message__editor_8cc_source.html#l00383">SaveExpandedMessages()</a>, and <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>.</p>
+<p class="reference">References <a class="el" href="message__data_8h_source.html#l00094">yaze::editor::MessageData::Address</a>, <a class="el" href="editor_8h_source.html#l00114">yaze::editor::Editor::context_</a>, <a class="el" href="message__editor_8h_source.html#l00072">expanded_messages_</a>, <a class="el" href="message__data_8h_source.html#l00093">yaze::editor::MessageData::ID</a>, <a class="el" href="message__data_8cc_source.html#l00423">yaze::editor::LoadExpandedMessages()</a>, <a class="el" href="message__editor_8h_source.html#l00075">message_preview_</a>, <a class="el" href="message__editor_8h_source.html#l00070">parsed_messages_</a>, <a class="el" href="macro_8h_source.html#l00027">PRINT_IF_ERROR</a>, <a class="el" href="message__editor_8cc_source.html#l00383">SaveExpandedMessages()</a>, and <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="message__editor_8cc_source.html#l00096">Update()</a>.</p>
 <div class="dynheader">

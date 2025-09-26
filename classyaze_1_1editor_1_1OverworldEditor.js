@@ -39,6 +39,8 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "ApplyZSCustomOverworldASM", "classyaze_1_1editor_1_1OverworldEditor.html#a1bf68d3b386fe5d05e77fdd603673176", null ],
     [ "UpdateROMVersionMarkers", "classyaze_1_1editor_1_1OverworldEditor.html#a5958f041f070af4bd280eef1c669d8ab", null ],
     [ "jump_to_tab", "classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9", null ],
+    [ "IsRomLoaded", "classyaze_1_1editor_1_1OverworldEditor.html#abe9bb99ce779b538b42a7e300a5c85e4", null ],
+    [ "GetRomStatus", "classyaze_1_1editor_1_1OverworldEditor.html#ab78bdba499d5e53d5892006e48d7f80f", null ],
     [ "LoadGraphics", "classyaze_1_1editor_1_1OverworldEditor.html#ad8777e42d3b62d08401b380cce94230b", null ],
     [ "DrawFullscreenCanvas", "classyaze_1_1editor_1_1OverworldEditor.html#a85c7e85183b05afd17cebf8925da2e7e", null ],
     [ "DrawToolset", "classyaze_1_1editor_1_1OverworldEditor.html#abd85ac71082a0372db173be15e56cba8", null ],
