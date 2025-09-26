@@ -53,6 +53,7 @@ target_link_libraries(
   ${PNG_LIBRARIES} 
   ${CMAKE_DL_LIBS} 
   ImGui
+  asar-static
 )
 
 # Conditionally link ImGui Test Engine
