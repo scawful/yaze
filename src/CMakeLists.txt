@@ -100,19 +100,29 @@ elseif(UNIX)
   target_compile_definitions(yaze PRIVATE "linux")
   target_compile_definitions(yaze PRIVATE "stricmp=strcasecmp")
 else()
-  set_target_properties(yaze
-    PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-    LINK_FLAGS "${CMAKE_CURRENT_SOURCE_DIR}/win32/yaze.res"
-  )
+  if(YAZE_MINIMAL_BUILD)
+    # Skip Windows resource file in CI/minimal builds to avoid architecture conflicts
+    set_target_properties(yaze
+      PROPERTIES
+      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+  else()
+    set_target_properties(yaze
+      PROPERTIES
+      ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+      LINK_FLAGS "${CMAKE_CURRENT_SOURCE_DIR}/win32/yaze.res"
+    )
+  endif()
 endif()
 
 # Yaze C API
 if (YAZE_BUILD_LIB)
-  add_library(
-    yaze_c SHARED
+  # Create source list for yaze_c
+  set(YAZE_C_SOURCES
     ./yaze.cc
     app/rom.cc
     ${YAZE_APP_EMU_SRC}
@@ -123,8 +133,14 @@ if (YAZE_BUILD_LIB)
     ${YAZE_GUI_SRC}
     ${YAZE_UTIL_SRC}
     ${IMGUI_SRC}
-    ${IMGUI_TEST_ENGINE_SOURCES}
   )
+  
+  # Only add ImGui Test Engine sources if UI tests are enabled
+  if(YAZE_ENABLE_UI_TESTS)
+    list(APPEND YAZE_C_SOURCES ${IMGUI_TEST_ENGINE_SOURCES})
+  endif()
+  
+  add_library(yaze_c SHARED ${YAZE_C_SOURCES})
 
   target_include_directories(
     yaze_c PUBLIC
@@ -151,9 +167,12 @@ if (YAZE_BUILD_LIB)
     ImGui
   )
   
-  # Conditionally link ImGui Test Engine
+  # Conditionally link ImGui Test Engine and set definitions
   if(YAZE_ENABLE_UI_TESTS AND TARGET ImGuiTestEngine)
     target_link_libraries(yaze_c PRIVATE ImGuiTestEngine)
+    target_compile_definitions(yaze_c PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
+  else()
+    target_compile_definitions(yaze_c PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
   endif()
   
   # Conditionally link PNG if available

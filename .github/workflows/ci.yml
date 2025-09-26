@@ -147,9 +147,9 @@ jobs:
         # Install Homebrew dependencies if needed
         # brew install pkg-config libpng boost abseil
 
-    # Windows-specific setup
-    - name: Set up vcpkg (non-minimal builds only)
-      if: runner.os == 'Windows' && env.BUILD_TYPE != 'RelWithDebInfo'
+    # Windows-specific setup (skip vcpkg for CI builds)
+    - name: Set up vcpkg (non-CI builds only)
+      if: runner.os == 'Windows' && github.event_name != 'push' && github.event_name != 'pull_request'
       uses: lukka/run-vcpkg@v11
       with:
         vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
@@ -171,14 +171,8 @@ jobs:
           -Wno-dev \
           -GNinja
 
-    - name: Configure CMake (Windows with vcpkg)
-      if: runner.os == 'Windows' && env.BUILD_TYPE != 'RelWithDebInfo'
-      shell: cmd
-      run: |
-        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} -DCMAKE_POLICY_VERSION_MINIMUM=3.16 -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_ROM_TESTS=OFF -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF -DYAZE_ENABLE_UI_TESTS=OFF -Wno-dev -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_generator_platform }}
-
-    - name: Configure CMake (Windows minimal build)
-      if: runner.os == 'Windows' && env.BUILD_TYPE == 'RelWithDebInfo'
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
       shell: cmd
       run: |
         cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_POLICY_VERSION_MINIMUM=3.16 -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_ROM_TESTS=OFF -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF -DYAZE_ENABLE_UI_TESTS=OFF -Wno-dev -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_generator_platform }}

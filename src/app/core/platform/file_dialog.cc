@@ -109,7 +109,23 @@ std::string GetConfigDirectory() {
 
 #ifdef _WIN32
 
+// Forward declaration for the main implementation
+std::string ShowOpenFileDialogImpl();
+
 std::string FileDialogWrapper::ShowOpenFileDialog() {
+  return ShowOpenFileDialogImpl();
+}
+
+std::string FileDialogWrapper::ShowOpenFileDialogNFD() {
+  // Windows doesn't use NFD in this implementation, fallback to bespoke
+  return ShowOpenFileDialogBespoke();
+}
+
+std::string FileDialogWrapper::ShowOpenFileDialogBespoke() {
+  return ShowOpenFileDialogImpl();
+}
+
+std::string ShowOpenFileDialogImpl() {
   CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
   IFileDialog *pfd = NULL;
@@ -141,7 +157,23 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
   return file_path_windows;
 }
 
+// Forward declaration for folder dialog implementation
+std::string ShowOpenFolderDialogImpl();
+
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
+  return ShowOpenFolderDialogImpl();
+}
+
+std::string FileDialogWrapper::ShowOpenFolderDialogNFD() {
+  // Windows doesn't use NFD in this implementation, fallback to bespoke
+  return ShowOpenFolderDialogBespoke();
+}
+
+std::string FileDialogWrapper::ShowOpenFolderDialogBespoke() {
+  return ShowOpenFolderDialogImpl();
+}
+
+std::string ShowOpenFolderDialogImpl() {
   CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
   IFileDialog *pfd = NULL;

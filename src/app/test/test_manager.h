@@ -20,7 +20,7 @@ class EditorManager;
 }
 }
 
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_engine.h"
 #else
 // Forward declaration when ImGui Test Engine is not available
@@ -143,7 +143,7 @@ class TestManager {
   }
 
   // UI Testing (ImGui Test Engine integration)
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* GetUITestEngine() { return ui_test_engine_; }
   void InitializeUITesting();
   void StopUITesting();  // Stop test engine while ImGui context is valid
