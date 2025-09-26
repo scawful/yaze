@@ -167,6 +167,7 @@ jobs:
           -DYAZE_MINIMAL_BUILD=ON \
           -DYAZE_ENABLE_ROM_TESTS=OFF \
           -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
+          -DYAZE_ENABLE_UI_TESTS=OFF \
           -Wno-dev \
           -GNinja
 
@@ -174,13 +175,13 @@ jobs:
       if: runner.os == 'Windows' && env.BUILD_TYPE != 'RelWithDebInfo'
       shell: cmd
       run: |
-        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} -DCMAKE_POLICY_VERSION_MINIMUM=3.16 -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_ROM_TESTS=OFF -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF -Wno-dev -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_generator_platform }}
+        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} -DCMAKE_POLICY_VERSION_MINIMUM=3.16 -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_ROM_TESTS=OFF -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF -DYAZE_ENABLE_UI_TESTS=OFF -Wno-dev -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_generator_platform }}
 
     - name: Configure CMake (Windows minimal build)
       if: runner.os == 'Windows' && env.BUILD_TYPE == 'RelWithDebInfo'
       shell: cmd
       run: |
-        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_POLICY_VERSION_MINIMUM=3.16 -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_ROM_TESTS=OFF -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF -Wno-dev -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_generator_platform }}
+        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_POLICY_VERSION_MINIMUM=3.16 -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_ROM_TESTS=OFF -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF -DYAZE_ENABLE_UI_TESTS=OFF -Wno-dev -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_generator_platform }}
 
     # Build
     - name: Build

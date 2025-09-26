@@ -90,10 +90,14 @@ target_link_libraries(
 )
 
 # Conditionally link ImGui Test Engine
-if(YAZE_ENABLE_UI_TESTS AND TARGET ImGuiTestEngine)
-  target_include_directories(yaze PUBLIC ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine)
-  target_link_libraries(yaze PUBLIC ${IMGUI_TEST_ENGINE_TARGET})
-  target_compile_definitions(yaze PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
+if(YAZE_ENABLE_UI_TESTS)
+  if(TARGET ImGuiTestEngine)
+    target_include_directories(yaze PUBLIC ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine)
+    target_link_libraries(yaze PUBLIC ImGuiTestEngine)
+    target_compile_definitions(yaze PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
+  else()
+    target_compile_definitions(yaze PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
+  endif()
 else()
   target_compile_definitions(yaze PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
 endif()
