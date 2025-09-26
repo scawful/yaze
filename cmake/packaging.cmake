@@ -64,8 +64,12 @@ elseif(APPLE)
     set(CPACK_PACKAGE_FILE_NAME "yaze-${CPACK_PACKAGE_VERSION}-macos")
     
     # macOS app bundle configuration
-    set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/assets/dmg_background.png")
-    set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_SOURCE_DIR}/cmake/dmg_setup.scpt")
+    if(EXISTS "${CMAKE_SOURCE_DIR}/assets/dmg_background.png")
+        set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/assets/dmg_background.png")
+    endif()
+    if(EXISTS "${CMAKE_SOURCE_DIR}/cmake/dmg_setup.scpt")
+        set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_SOURCE_DIR}/cmake/dmg_setup.scpt")
+    endif()
     
 elseif(UNIX)
     # Linux DEB/RPM configuration
