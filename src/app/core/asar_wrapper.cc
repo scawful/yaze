@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -135,12 +136,15 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchFromString(
   // Create temporary file for patch content
   std::string temp_path = "/tmp/yaze_temp_patch.asm";
   if (!base_path.empty()) {
+    // Ensure directory exists
+    std::filesystem::create_directories(base_path);
     temp_path = base_path + "/temp_patch.asm";
   }
 
   std::ofstream temp_file(temp_path);
   if (!temp_file) {
-    return absl::InternalError("Failed to create temporary patch file");
+    return absl::InternalError(absl::StrFormat(
+        "Failed to create temporary patch file at: %s", temp_path));
   }
   
   temp_file << patch_content;
