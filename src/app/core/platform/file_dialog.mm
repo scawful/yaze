@@ -6,7 +6,7 @@
 
 #include "app/core/features.h"
 
-#ifdef YAZE_ENABLE_NFD
+#if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
 #include <nfd.h>
 #endif
 
@@ -107,7 +107,7 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialog() {
 
 // NFD implementation for macOS (fallback to bespoke if NFD not available)
 std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogNFD() {
-#ifdef YAZE_ENABLE_NFD
+#if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
   NFD_Init();
   nfdu8char_t *out_path = NULL;
   nfdu8filteritem_t filters[1] = {{"Rom File", "sfc,smc"}};
@@ -134,7 +134,7 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogNFD() {
 }
 
 std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialogNFD() {
-#ifdef YAZE_ENABLE_NFD
+#if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
   NFD_Init();
   nfdu8char_t *out_path = NULL;
   nfdresult_t result = NFD_PickFolderU8(&out_path, NULL);
