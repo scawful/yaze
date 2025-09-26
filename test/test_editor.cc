@@ -7,7 +7,7 @@
 #include "app/gui/style.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
-#include "imgui/imgui.h"
+#include "imgui.h"
 
 #ifdef IMGUI_ENABLE_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"

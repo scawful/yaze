@@ -34,8 +34,11 @@ endif()
 
 target_include_directories(
   yaze_emu PUBLIC
-  lib/
-  app/
+  ${CMAKE_SOURCE_DIR}/src/lib/
+  ${CMAKE_SOURCE_DIR}/src/app/
+  ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
   ${CMAKE_SOURCE_DIR}/incl/
   ${CMAKE_SOURCE_DIR}/src/
   ${PNG_INCLUDE_DIRS}
