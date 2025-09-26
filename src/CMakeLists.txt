@@ -141,10 +141,8 @@ if (YAZE_BUILD_LIB)
     ${IMGUI_SRC}
   )
   
-  # Add emulator sources only in full builds
-  if(NOT YAZE_MINIMAL_BUILD)
-    list(APPEND YAZE_C_SOURCES ${YAZE_APP_EMU_SRC})
-  endif()
+  # Add emulator sources (required for comprehensive testing)
+  list(APPEND YAZE_C_SOURCES ${YAZE_APP_EMU_SRC})
   
   # Only add ImGui Test Engine sources if UI tests are enabled
   if(YAZE_ENABLE_UI_TESTS)
@@ -154,8 +152,12 @@ if (YAZE_BUILD_LIB)
   # Create the core library (static for testing)
   add_library(yaze_core STATIC ${YAZE_CORE_SOURCES})
   
-  # Create the full C API library (shared)
-  add_library(yaze_c SHARED ${YAZE_C_SOURCES})
+  # Create the full C API library (static for CI, shared for release)
+  if(YAZE_MINIMAL_BUILD)
+    add_library(yaze_c STATIC ${YAZE_C_SOURCES})
+  else()
+    add_library(yaze_c SHARED ${YAZE_C_SOURCES})
+  endif()
 
   # Configure core library (for testing)
   target_include_directories(

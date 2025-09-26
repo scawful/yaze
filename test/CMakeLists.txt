@@ -44,9 +44,6 @@ add_executable(
   zelda3/object_parser_test.cc
   zelda3/object_parser_structs_test.cc
   zelda3/test_dungeon_objects.cc
-  ${ASAR_STATIC_SRC}
-  ${IMGUI_SRC}
-  ${YAZE_SRC_FILES}
 )
 
 # Add vanilla value extraction utility (only for local development with ROM access)
@@ -121,7 +118,7 @@ target_link_libraries(
 
 # Link core library for essential functionality (BPS, ASAR, etc.)
 if(YAZE_BUILD_LIB)
-  target_link_libraries(yaze_test yaze_c)
+  target_link_libraries(yaze_test yaze_core)
 endif()
 
 # Conditionally link ImGuiTestEngine only when UI tests are enabled

@@ -90,10 +90,10 @@ TEST(SnesTileTest, PackBppTile) {
   tile2bpp.data[56] = 2;
   tile2bpp.data[63] = 3;
   auto packed2bpp = gfx::PackBppTile(tile2bpp, 2);
-  EXPECT_EQ(packed2bpp[0], 0x80);   // First byte of first plane
-  EXPECT_EQ(packed2bpp[1], 0x80);   // First byte of second plane
-  EXPECT_EQ(packed2bpp[14], 0x01);  // Last byte of first plane
-  EXPECT_EQ(packed2bpp[15], 0x01);  // Last byte of second plane
+  EXPECT_EQ(packed2bpp[0], 0x81);   // First byte of first plane: pixel0=3→0x80, pixel7=1→0x01
+  EXPECT_EQ(packed2bpp[1], 0x80);   // First byte of second plane: pixel0=3→0x80, pixel7=1→0x00  
+  EXPECT_EQ(packed2bpp[14], 0x01);  // Last byte of first plane: pixel56=2→0x00, pixel63=3→0x01
+  EXPECT_EQ(packed2bpp[15], 0x81);  // Last byte of second plane: pixel56=2→0x80, pixel63=3→0x01
 }
 
 TEST(SnesTileTest, ConvertBpp) {
@@ -104,11 +104,15 @@ TEST(SnesTileTest, ConvertBpp) {
   auto converted4bpp = gfx::ConvertBpp(data2bpp, 2, 4);
   EXPECT_EQ(converted4bpp.size(), 32);  // 4bpp tile is 32 bytes
 
-  // Test 4bpp to 2bpp conversion
+  // Test 4bpp to 2bpp conversion (using only colors 0-3 for valid 2bpp)
   std::vector<uint8_t> data4bpp = {
-      0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01, 0x01, 0x02, 0x04,
-      0x08, 0x10, 0x20, 0x40, 0x80, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04,
-      0x02, 0x01, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+      // Planes 1&2 (rows 0-7) - create colors 0-3 only
+      0x80, 0x80, 0x40, 0x00, 0x20, 0x40, 0x10, 0x80, // rows 0-3
+      0x08, 0x00, 0x04, 0x40, 0x02, 0x80, 0x01, 0x00, // rows 4-7
+      // Planes 3&4 (rows 0-7) - all zeros to ensure colors stay ≤ 3
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // rows 0-3
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00  // rows 4-7
+  };
   auto converted2bpp = gfx::ConvertBpp(data4bpp, 4, 2);
   EXPECT_EQ(converted2bpp.size(), 16);  // 2bpp tile is 16 bytes
 }
@@ -122,8 +126,8 @@ TEST(SnesTileTest, TileInfo) {
   EXPECT_TRUE(info.horizontal_mirror_);
   EXPECT_TRUE(info.over_);
 
-  // Test TileInfo from bytes
-  gfx::TileInfo infoFromBytes(0x23, 0xE1);  // v=1, h=1, o=1, p=3, id=0x123
+  // Test TileInfo from bytes  
+  gfx::TileInfo infoFromBytes(0x23, 0xED);  // v=1, h=1, o=1, p=3, id=0x123
   EXPECT_EQ(infoFromBytes.id_, 0x123);
   EXPECT_EQ(infoFromBytes.palette_, 3);
   EXPECT_TRUE(infoFromBytes.vertical_mirror_);
@@ -148,7 +152,7 @@ TEST(SnesTileTest, TileInfoToWord) {
 }
 
 TEST(SnesTileTest, WordToTileInfo) {
-  uint16_t word = 0xE123;  // v=1, h=1, o=1, p=3, id=0x123
+  uint16_t word = 0xED23;  // v=1, h=1, o=1, p=3, id=0x123
   gfx::TileInfo info = gfx::WordToTileInfo(word);
 
   EXPECT_EQ(info.id_, 0x123);
