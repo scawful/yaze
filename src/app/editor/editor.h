@@ -3,8 +3,11 @@
 
 #include <array>
 #include <vector>
+#include <functional>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/system/command_manager.h"
 #include "app/editor/system/extension_manager.h"
 #include "app/editor/system/history_manager.h"
@@ -101,10 +104,30 @@ class Editor {
   bool* active() { return &active_; }
   void set_active(bool active) { active_ = active; }
 
+  // ROM loading state helpers (default implementations)
+  virtual bool IsRomLoaded() const { return false; }
+  virtual std::string GetRomStatus() const { return "ROM state not implemented"; }
+
  protected:
   bool active_ = false;
   EditorType type_;
   EditorContext* context_ = nullptr;
+
+  // Helper method for ROM access with safety check
+  template<typename T>
+  absl::StatusOr<T> SafeRomAccess(std::function<T()> accessor, const std::string& operation = "") const {
+    if (!IsRomLoaded()) {
+      return absl::FailedPreconditionError(
+          operation.empty() ? "ROM not loaded" : 
+          absl::StrFormat("%s: ROM not loaded", operation));
+    }
+    try {
+      return accessor();
+    } catch (const std::exception& e) {
+      return absl::InternalError(absl::StrFormat(
+          "%s: %s", operation.empty() ? "ROM access failed" : operation, e.what()));
+    }
+  }
 };
 
 }  // namespace editor
