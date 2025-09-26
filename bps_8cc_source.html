@@ -112,234 +112,293 @@ $(function(){initNavTree('bps_8cc_source.html',''); initResizable(true); });
 <a href="bps_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span> </div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#include &quot;<a class="code" href="bps_8h.html">bps.h</a>&quot;</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;zlib.h&gt;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;stdexcept&gt;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;cmath&gt;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
-<div class="foldopen" id="foldopen00013" data-start="{" data-end="}">
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util.html">   13</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1util.html">util</a> {</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;stdexcept&gt;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;cmath&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#ifdef YAZE_LIB_PNG</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;zlib.h&gt;</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
 <div class="foldopen" id="foldopen00015" data-start="{" data-end="}">
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html">   15</a></span><span class="keyword">namespace </span>{</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util.html">   15</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1util.html">util</a> {</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
 <div class="foldopen" id="foldopen00017" data-start="{" data-end="}">
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">   17</a></span>uint32_t <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">crc32</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;data) {</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  uint32_t crc = <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">::crc32</a>(0L, Z_NULL, 0);</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  return ::crc32(crc, data.data(), data.size());</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>}</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html">   17</a></span><span class="keyword">namespace </span>{</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#ifdef YAZE_LIB_PNG</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>uint32_t <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">crc32</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;data) {</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  uint32_t crc = <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">::crc32</a>(0L, Z_NULL, 0);</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  return ::crc32(crc, data.data(), data.size());</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>}</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="comment">// Simple CRC32 implementation when zlib is not available</span></div>
+<div class="foldopen" id="foldopen00026" data-start="{" data-end="}">
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">   26</a></span>uint32_t <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">crc32</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;data) {</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keyword">static</span> <span class="keyword">const</span> uint32_t crc_table[256] = {</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2,</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7,</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec, 0x14015c4f, 0x63066cd9,</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    0xfa0f3d63, 0x8d080df5, 0x3b6e20c8, 0x4c69105e, 0xd56041e4, 0xa2677172,</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    0x3c03e4d1, 0x4b04d447, 0xd20d85fd, 0xa50ab56b, 0x35b5a8fa, 0x42b2986c,</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    0xdbbbc9d6, 0xacbcf940, 0x32d86ce3, 0x45df5c75, 0xdcd60dcf, 0xabd13d59,</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    0x26d930ac, 0x51de003a, 0xc8d75180, 0xbfd06116, 0x21b4f4b5, 0x56b3c423,</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    0xcfba9599, 0xb8bda50f, 0x2802b89e, 0x5f058808, 0xc60cd9b2, 0xb10be924,</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    0x2f6f7c87, 0x58684c11, 0xc1611dab, 0xb6662d3d, 0x76dc4190, 0x01db7106,</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    0x98d220bc, 0xefd5102a, 0x71b18589, 0x06b6b51f, 0x9fbfe4a5, 0xe8b8d433,</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    0x7807c9a2, 0x0f00f934, 0x9609a88e, 0xe10e9818, 0x7f6a0dbb, 0x086d3d2d,</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    0x91646c97, 0xe6635c01, 0x6b6b51f4, 0x1c6c6162, 0x856530d8, 0xf262004e,</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    0x6c0695ed, 0x1b01a57b, 0x8208f4c1, 0xf50fc457, 0x65b0d9c6, 0x12b7e950,</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    0x8bbeb8ea, 0xfcb9887c, 0x62dd1ddf, 0x15da2d49, 0x8cd37cf3, 0xfbd44c65,</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    0x4db26158, 0x3ab551ce, 0xa3bc0074, 0xd4bb30e2, 0x4adfa541, 0x3dd895d7,</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    0xa4d1c46d, 0xd3d6f4fb, 0x4369e96a, 0x346ed9fc, 0xad678846, 0xda60b8d0,</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    0x44042d73, 0x33031de5, 0xaa0a4c5f, 0xdd0d7cc9, 0x5005713c, 0x270241aa,</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    0xbe0b1010, 0xc90c2086, 0x5768b525, 0x206f85b3, 0xb966d409, 0xce61e49f,</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    0x5edef90e, 0x29d9c998, 0xb0d09822, 0xc7d7a8b4, 0x59b33d17, 0x2eb40d81,</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    0xb7bd5c3b, 0xc0ba6cad, 0xedb88320, 0x9abfb3b6, 0x03b6e20c, 0x74b1d29a,</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    0xead54739, 0x9dd277af, 0x04db2615, 0x73dc1683, 0xe3630b12, 0x94643b84,</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    0x0d6d6a3e, 0x7a6a5aa8, 0xe40ecf0b, 0x9309ff9d, 0x0a00ae27, 0x7d079eb1,</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    0xf00f9344, 0x8708a3d2, 0x1e01f268, 0x6906c2fe, 0xf762575d, 0x806567cb,</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    0x196c3671, 0x6e6b06e7, 0xfed41b76, 0x89d32be0, 0x10da7a5a, 0x67dd4acc,</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    0xf9b9df6f, 0x8ebeeff9, 0x17b7be43, 0x60b08ed5, 0xd6d6a3e8, 0xa1d1937e,</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    0x38d8c2c4, 0x4fdff252, 0xd1bb67f1, 0xa6bc5767, 0x3fb506dd, 0x48b2364b,</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    0xd80d2bda, 0xaf0a1b4c, 0x36034af6, 0x41047a60, 0xdf60efc3, 0xa867df55,</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    0x316e8eef, 0x4669be79, 0xcb61b38c, 0xbc66831a, 0x256fd2a0, 0x5268e236,</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    0xcc0c7795, 0xbb0b4703, 0x220216b9, 0x5505262f, 0xc5ba3bbe, 0xb2bd0b28,</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    0x2bb45a92, 0x5cb36a04, 0xc2d7ffa7, 0xb5d0cf31, 0x2cd99e8b, 0x5bdeae1d,</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    0x9b64c2b0, 0xec63f226, 0x756aa39c, 0x026d930a, 0x9c0906a9, 0xeb0e363f,</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    0x72076785, 0x05005713, 0x95bf4a82, 0xe2b87a14, 0x7bb12bae, 0x0cb61b38,</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    0x92d28e9b, 0xe5d5be0d, 0x7cdcefb7, 0x0bdbdf21, 0x86d3d2d4, 0xf1d4e242,</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    0x68ddb3f8, 0x1fda836e, 0x81be16cd, 0xf6b9265b, 0x6fb077e1, 0x18b74777,</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    0x88085ae6, 0xff0f6a70, 0x66063bca, 0x11010b5c, 0x8f659eff, 0xf862ae69,</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    0x616bffd3, 0x166ccf45, 0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2,</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db, 0xaed16a4a, 0xd9d65adc,</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    0x40df0b66, 0x37d83bf0, 0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9,</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693,</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  };</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  </div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  uint32_t crc = 0xFFFFFFFF;</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  <span class="keywordflow">for</span> (uint8_t <span class="keywordtype">byte</span> : data) {</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    crc = crc_table[(crc ^ byte) &amp; 0xFF] ^ (crc &gt;&gt; 8);</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  }</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  <span class="keywordflow">return</span> crc ^ 0xFFFFFFFF;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>}</div>
 </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
-<div class="foldopen" id="foldopen00022" data-start="{" data-end="}">
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#af030929a88a229dd186c01330c979b6c">   22</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#af030929a88a229dd186c01330c979b6c">encode</a>(uint64_t data, std::vector&lt;uint8_t&gt; &amp;output) {</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    uint8_t x = data &amp; 0x7f;</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    data &gt;&gt;= 7;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keywordflow">if</span> (data == 0) {</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>      output.push_back(0x80 | x);</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    }</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    output.push_back(x);</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    data--;</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  }</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>}</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="foldopen" id="foldopen00081" data-start="{" data-end="}">
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#af030929a88a229dd186c01330c979b6c">   81</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#af030929a88a229dd186c01330c979b6c">encode</a>(uint64_t data, std::vector&lt;uint8_t&gt; &amp;output) {</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    uint8_t x = data &amp; 0x7f;</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    data &gt;&gt;= 7;</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <span class="keywordflow">if</span> (data == 0) {</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      output.push_back(0x80 | x);</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    }</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    output.push_back(x);</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    data--;</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  }</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>}</div>
 </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="foldopen" id="foldopen00035" data-start="{" data-end="}">
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#ae89f272c2128a09aeede534ade2fd8e5">   35</a></span>uint64_t <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#ae89f272c2128a09aeede534ade2fd8e5">decode</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;input, <span class="keywordtype">size_t</span> &amp;offset) {</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  uint64_t data = 0;</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  uint64_t shift = 1;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    uint8_t x = input[offset++];</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    data += (x &amp; 0x7f) * shift;</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keywordflow">if</span> (x &amp; 0x80) <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    shift &lt;&lt;= 7;</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    data += shift;</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  }</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keywordflow">return</span> data;</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>}</div>
-</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>}  <span class="comment">// namespace</span></div>
-</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="foldopen" id="foldopen00050" data-start="{" data-end="}">
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">   50</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">CreateBpsPatch</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;source,</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>                    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;target,</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>                    std::vector&lt;uint8_t&gt; &amp;patch) {</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  patch.clear();</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  patch.insert(patch.end(), {<span class="stringliteral">&#39;B&#39;</span>, <span class="stringliteral">&#39;P&#39;</span>, <span class="stringliteral">&#39;S&#39;</span>, <span class="stringliteral">&#39;1&#39;</span>});</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  encode(source.size(), patch);</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  encode(target.size(), patch);</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  encode(0, patch);  <span class="comment">// No metadata</span></div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  <span class="keywordtype">size_t</span> source_offset = 0;</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="keywordtype">size_t</span> target_offset = 0;</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  int64_t source_rel_offset = 0;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  int64_t target_rel_offset = 0;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keywordflow">while</span> (target_offset &lt; target.size()) {</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keywordflow">if</span> (source_offset &lt; source.size() &amp;&amp;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        source[source_offset] == target[target_offset]) {</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      <span class="keywordtype">size_t</span> length = 0;</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>      <span class="keywordflow">while</span> (source_offset + length &lt; source.size() &amp;&amp;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>             target_offset + length &lt; target.size() &amp;&amp;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>             source[source_offset + length] == target[target_offset + length]) {</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        length++;</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      }</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      encode((length - 1) &lt;&lt; 2 | 0, patch);  <span class="comment">// SourceRead</span></div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      source_offset += length;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      target_offset += length;</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      <span class="keywordtype">size_t</span> length = 0;</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      <span class="keywordflow">while</span> (</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>          target_offset + length &lt; target.size() &amp;&amp;</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>          (source_offset + length &gt;= source.size() ||</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>           source[source_offset + length] != target[target_offset + length])) {</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>        length++;</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      }</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>      <span class="keywordflow">if</span> (length &gt; 0) {</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>        encode((length - 1) &lt;&lt; 2 | 1, patch);  <span class="comment">// TargetRead</span></div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>        <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; length; i++) {</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>          patch.push_back(target[target_offset + i]);</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        }</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>        target_offset += length;</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      }</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    }</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="comment">// SourceCopy</span></div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordflow">if</span> (source_offset &lt; source.size()) {</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      <span class="keywordtype">size_t</span> length = 0;</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>      int64_t offset = source_offset - source_rel_offset;</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>      <span class="keywordflow">while</span> (source_offset + length &lt; source.size() &amp;&amp;</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>             target_offset + length &lt; target.size() &amp;&amp;</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>             source[source_offset + length] == target[target_offset + length]) {</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>        length++;</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>      }</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>      <span class="keywordflow">if</span> (length &gt; 0) {</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>        encode((length - 1) &lt;&lt; 2 | 2, patch);</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>        encode((offset &lt; 0 ? 1 : 0) | (abs(offset) &lt;&lt; 1), patch);</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>        source_offset += length;</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        target_offset += length;</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        source_rel_offset = source_offset;</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>      }</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    }</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    <span class="comment">// TargetCopy</span></div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    <span class="keywordflow">if</span> (target_offset &gt; 0) {</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      <span class="keywordtype">size_t</span> length = 0;</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>      int64_t offset = target_offset - target_rel_offset;</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      <span class="keywordflow">while</span> (target_offset + length &lt; target.size() &amp;&amp;</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>             target[target_offset - 1] == target[target_offset + length]) {</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>        length++;</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>      }</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>      <span class="keywordflow">if</span> (length &gt; 0) {</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        encode((length - 1) &lt;&lt; 2 | 3, patch);</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>        encode((offset &lt; 0 ? 1 : 0) | (abs(offset) &lt;&lt; 1), patch);</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>        target_offset += length;</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>        target_rel_offset = target_offset;</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>      }</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>    }</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  }</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span> </div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  patch.resize(patch.size() + 12);  <span class="comment">// Make space for the checksums</span></div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  uint32_t source_checksum = crc32(source);</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  uint32_t target_checksum = crc32(target);</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  uint32_t patch_checksum = crc32(patch);</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span> </div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  memcpy(patch.data() + patch.size() - 12, &amp;source_checksum, <span class="keyword">sizeof</span>(uint32_t));</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  memcpy(patch.data() + patch.size() - 8, &amp;target_checksum, <span class="keyword">sizeof</span>(uint32_t));</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  memcpy(patch.data() + patch.size() - 4, &amp;patch_checksum, <span class="keyword">sizeof</span>(uint32_t));</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>}</div>
+<div class="foldopen" id="foldopen00094" data-start="{" data-end="}">
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#ae89f272c2128a09aeede534ade2fd8e5">   94</a></span>uint64_t <a class="code hl_function" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#ae89f272c2128a09aeede534ade2fd8e5">decode</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;input, <span class="keywordtype">size_t</span> &amp;offset) {</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  uint64_t data = 0;</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  uint64_t shift = 1;</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    uint8_t x = input[offset++];</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    data += (x &amp; 0x7f) * shift;</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="keywordflow">if</span> (x &amp; 0x80) <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    shift &lt;&lt;= 7;</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    data += shift;</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  }</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  <span class="keywordflow">return</span> data;</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>}</div>
 </div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
-<div class="foldopen" id="foldopen00139" data-start="{" data-end="}">
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8">  139</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8">ApplyBpsPatch</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;source,</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>                   <span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;patch,</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>                   std::vector&lt;uint8_t&gt; &amp;target) {</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  <span class="keywordflow">if</span> (patch.size() &lt; 4 || patch[0] != <span class="charliteral">&#39;B&#39;</span> || patch[1] != <span class="charliteral">&#39;P&#39;</span> ||</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>      patch[2] != <span class="charliteral">&#39;S&#39;</span> || patch[3] != <span class="charliteral">&#39;1&#39;</span>) {</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>    <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Invalid patch format&quot;</span>);</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  }</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span> </div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <span class="keywordtype">size_t</span> patch_offset = 4;</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  uint64_t target_size = decode(patch, patch_offset);</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  uint64_t metadata_size = decode(patch, patch_offset);</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  patch_offset += metadata_size;</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span> </div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  target.resize(target_size);</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  <span class="keywordtype">size_t</span> source_offset = 0;</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>  <span class="keywordtype">size_t</span> target_offset = 0;</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  int64_t source_rel_offset = 0;</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  int64_t target_rel_offset = 0;</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  <span class="keywordflow">while</span> (patch_offset &lt; patch.size() - 12) {</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    uint64_t data = decode(patch, patch_offset);</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    uint64_t command = data &amp; 3;</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    uint64_t length = (data &gt;&gt; 2) + 1;</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    <span class="keywordflow">switch</span> (command) {</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>      <span class="keywordflow">case</span> 0:  <span class="comment">// SourceRead</span></div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>        <span class="keywordflow">while</span> (length--) {</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>          target[target_offset++] = source[source_offset++];</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>        }</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>      <span class="keywordflow">case</span> 1:  <span class="comment">// TargetRead</span></div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>        <span class="keywordflow">while</span> (length--) {</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>          target[target_offset++] = patch[patch_offset++];</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>        }</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>      <span class="keywordflow">case</span> 2:  <span class="comment">// SourceCopy</span></div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>      {</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>        int64_t offsetData = decode(patch, patch_offset);</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>        source_rel_offset += (offsetData &amp; 1 ? -1 : +1) * (offsetData &gt;&gt; 1);</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>        <span class="keywordflow">while</span> (length--) {</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>          target[target_offset++] = source[source_rel_offset++];</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>        }</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>      <span class="keywordflow">case</span> 3:  <span class="comment">// TargetCopy</span></div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>      {</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>        uint64_t offsetData = decode(patch, patch_offset);</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>        target_rel_offset += (offsetData &amp; 1 ? -1 : +1) * (offsetData &gt;&gt; 1);</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        <span class="keywordflow">while</span> (length--) {</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>          target[target_offset++] = target[target_rel_offset++];</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>        }</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>      }</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>      <span class="keywordflow">default</span>:</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Invalid patch command&quot;</span>);</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    }</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  }</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>  uint32_t source_checksum;</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>  uint32_t target_checksum;</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>  uint32_t patch_checksum;</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  memcpy(&amp;source_checksum, patch.data() + patch.size() - 12, <span class="keyword">sizeof</span>(uint32_t));</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>  memcpy(&amp;target_checksum, patch.data() + patch.size() - 8, <span class="keyword">sizeof</span>(uint32_t));</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>  memcpy(&amp;patch_checksum, patch.data() + patch.size() - 4, <span class="keyword">sizeof</span>(uint32_t));</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span> </div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>  <span class="keywordflow">if</span> (source_checksum != crc32(source) || target_checksum != crc32(target) ||</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>      patch_checksum !=</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>          crc32(std::vector&lt;uint8_t&gt;(patch.begin(), patch.end() - 4))) {</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Checksum mismatch&quot;</span>);</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  }</div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>}</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>}  <span class="comment">// namespace</span></div>
 </div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span> </div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>}  <span class="comment">// namespace util</span></div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
+<div class="foldopen" id="foldopen00109" data-start="{" data-end="}">
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">  109</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">CreateBpsPatch</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;source,</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>                    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;target,</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>                    std::vector&lt;uint8_t&gt; &amp;patch) {</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  patch.clear();</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>  patch.insert(patch.end(), {<span class="stringliteral">&#39;B&#39;</span>, <span class="stringliteral">&#39;P&#39;</span>, <span class="stringliteral">&#39;S&#39;</span>, <span class="stringliteral">&#39;1&#39;</span>});</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  encode(source.size(), patch);</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  encode(target.size(), patch);</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  encode(0, patch);  <span class="comment">// No metadata</span></div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>  <span class="keywordtype">size_t</span> source_offset = 0;</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  <span class="keywordtype">size_t</span> target_offset = 0;</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  int64_t source_rel_offset = 0;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  int64_t target_rel_offset = 0;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <span class="keywordflow">while</span> (target_offset &lt; target.size()) {</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="keywordflow">if</span> (source_offset &lt; source.size() &amp;&amp;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>        source[source_offset] == target[target_offset]) {</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>      <span class="keywordtype">size_t</span> length = 0;</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>      <span class="keywordflow">while</span> (source_offset + length &lt; source.size() &amp;&amp;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>             target_offset + length &lt; target.size() &amp;&amp;</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>             source[source_offset + length] == target[target_offset + length]) {</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>        length++;</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>      }</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>      encode((length - 1) &lt;&lt; 2 | 0, patch);  <span class="comment">// SourceRead</span></div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>      source_offset += length;</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>      target_offset += length;</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>      <span class="keywordtype">size_t</span> length = 0;</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>      <span class="keywordflow">while</span> (</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>          target_offset + length &lt; target.size() &amp;&amp;</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>          (source_offset + length &gt;= source.size() ||</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>           source[source_offset + length] != target[target_offset + length])) {</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>        length++;</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>      }</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>      <span class="keywordflow">if</span> (length &gt; 0) {</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>        encode((length - 1) &lt;&lt; 2 | 1, patch);  <span class="comment">// TargetRead</span></div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; length; i++) {</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>          patch.push_back(target[target_offset + i]);</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>        }</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>        target_offset += length;</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>      }</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>    }</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span> </div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>    <span class="comment">// SourceCopy</span></div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    <span class="keywordflow">if</span> (source_offset &lt; source.size()) {</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>      <span class="keywordtype">size_t</span> length = 0;</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>      int64_t offset = source_offset - source_rel_offset;</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>      <span class="keywordflow">while</span> (source_offset + length &lt; source.size() &amp;&amp;</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>             target_offset + length &lt; target.size() &amp;&amp;</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>             source[source_offset + length] == target[target_offset + length]) {</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>        length++;</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>      }</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>      <span class="keywordflow">if</span> (length &gt; 0) {</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>        encode((length - 1) &lt;&lt; 2 | 2, patch);</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>        encode((offset &lt; 0 ? 1 : 0) | (abs(offset) &lt;&lt; 1), patch);</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>        source_offset += length;</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>        target_offset += length;</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>        source_rel_offset = source_offset;</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>      }</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>    }</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span> </div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    <span class="comment">// TargetCopy</span></div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    <span class="keywordflow">if</span> (target_offset &gt; 0) {</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>      <span class="keywordtype">size_t</span> length = 0;</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>      int64_t offset = target_offset - target_rel_offset;</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>      <span class="keywordflow">while</span> (target_offset + length &lt; target.size() &amp;&amp;</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>             target[target_offset - 1] == target[target_offset + length]) {</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>        length++;</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>      }</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>      <span class="keywordflow">if</span> (length &gt; 0) {</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>        encode((length - 1) &lt;&lt; 2 | 3, patch);</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>        encode((offset &lt; 0 ? 1 : 0) | (abs(offset) &lt;&lt; 1), patch);</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>        target_offset += length;</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>        target_rel_offset = target_offset;</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>      }</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    }</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  }</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span> </div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>  patch.resize(patch.size() + 12);  <span class="comment">// Make space for the checksums</span></div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>  uint32_t source_checksum = crc32(source);</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  uint32_t target_checksum = crc32(target);</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>  uint32_t patch_checksum = crc32(patch);</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span> </div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  memcpy(patch.data() + patch.size() - 12, &amp;source_checksum, <span class="keyword">sizeof</span>(uint32_t));</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>  memcpy(patch.data() + patch.size() - 8, &amp;target_checksum, <span class="keyword">sizeof</span>(uint32_t));</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>  memcpy(patch.data() + patch.size() - 4, &amp;patch_checksum, <span class="keyword">sizeof</span>(uint32_t));</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>}</div>
 </div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span> </div>
+<div class="foldopen" id="foldopen00198" data-start="{" data-end="}">
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8">  198</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8">ApplyBpsPatch</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;source,</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>                   <span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;patch,</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>                   std::vector&lt;uint8_t&gt; &amp;target) {</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>  <span class="keywordflow">if</span> (patch.size() &lt; 4 || patch[0] != <span class="charliteral">&#39;B&#39;</span> || patch[1] != <span class="charliteral">&#39;P&#39;</span> ||</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>      patch[2] != <span class="charliteral">&#39;S&#39;</span> || patch[3] != <span class="charliteral">&#39;1&#39;</span>) {</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Invalid patch format&quot;</span>);</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  }</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span> </div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  <span class="keywordtype">size_t</span> patch_offset = 4;</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  uint64_t target_size = decode(patch, patch_offset);</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  uint64_t metadata_size = decode(patch, patch_offset);</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  patch_offset += metadata_size;</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span> </div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  target.resize(target_size);</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  <span class="keywordtype">size_t</span> source_offset = 0;</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  <span class="keywordtype">size_t</span> target_offset = 0;</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  int64_t source_rel_offset = 0;</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  int64_t target_rel_offset = 0;</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span> </div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>  <span class="keywordflow">while</span> (patch_offset &lt; patch.size() - 12) {</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    uint64_t data = decode(patch, patch_offset);</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    uint64_t command = data &amp; 3;</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    uint64_t length = (data &gt;&gt; 2) + 1;</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span> </div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    <span class="keywordflow">switch</span> (command) {</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>      <span class="keywordflow">case</span> 0:  <span class="comment">// SourceRead</span></div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>        <span class="keywordflow">while</span> (length--) {</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>          target[target_offset++] = source[source_offset++];</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>        }</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>      <span class="keywordflow">case</span> 1:  <span class="comment">// TargetRead</span></div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>        <span class="keywordflow">while</span> (length--) {</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>          target[target_offset++] = patch[patch_offset++];</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>        }</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>      <span class="keywordflow">case</span> 2:  <span class="comment">// SourceCopy</span></div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>      {</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>        int64_t offsetData = decode(patch, patch_offset);</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        source_rel_offset += (offsetData &amp; 1 ? -1 : +1) * (offsetData &gt;&gt; 1);</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        <span class="keywordflow">while</span> (length--) {</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>          target[target_offset++] = source[source_rel_offset++];</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>        }</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>      } <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>      <span class="keywordflow">case</span> 3:  <span class="comment">// TargetCopy</span></div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>      {</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>        uint64_t offsetData = decode(patch, patch_offset);</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>        target_rel_offset += (offsetData &amp; 1 ? -1 : +1) * (offsetData &gt;&gt; 1);</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>        <span class="keywordflow">while</span> (length--) {</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>          target[target_offset++] = target[target_rel_offset++];</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>        }</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>      }</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>      <span class="keywordflow">default</span>:</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>        <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Invalid patch command&quot;</span>);</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    }</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>  }</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span> </div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>  uint32_t source_checksum;</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>  uint32_t target_checksum;</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  uint32_t patch_checksum;</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  memcpy(&amp;source_checksum, patch.data() + patch.size() - 12, <span class="keyword">sizeof</span>(uint32_t));</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  memcpy(&amp;target_checksum, patch.data() + patch.size() - 8, <span class="keyword">sizeof</span>(uint32_t));</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>  memcpy(&amp;patch_checksum, patch.data() + patch.size() - 4, <span class="keyword">sizeof</span>(uint32_t));</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span> </div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>  <span class="keywordflow">if</span> (source_checksum != crc32(source) || target_checksum != crc32(target) ||</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>      patch_checksum !=</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>          crc32(std::vector&lt;uint8_t&gt;(patch.begin(), patch.end() - 4))) {</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    <span class="keywordflow">throw</span> std::runtime_error(<span class="stringliteral">&quot;Checksum mismatch&quot;</span>);</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>  }</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>}</div>
+</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span> </div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>}  <span class="comment">// namespace util</span></div>
+</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="abps_8h_html"><div class="ttname"><a href="bps_8h.html">bps.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03_html_a7adb9c174735af33d844e4ee1e8e2ee0"><div class="ttname"><a href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">yaze::util::anonymous_namespace{bps.cc}::crc32</a></div><div class="ttdeci">uint32_t crc32(const std::vector&lt; uint8_t &gt; &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="#l00017">bps.cc:17</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03_html_ae89f272c2128a09aeede534ade2fd8e5"><div class="ttname"><a href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#ae89f272c2128a09aeede534ade2fd8e5">yaze::util::anonymous_namespace{bps.cc}::decode</a></div><div class="ttdeci">uint64_t decode(const std::vector&lt; uint8_t &gt; &amp;input, size_t &amp;offset)</div><div class="ttdef"><b>Definition</b> <a href="#l00035">bps.cc:35</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03_html_af030929a88a229dd186c01330c979b6c"><div class="ttname"><a href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#af030929a88a229dd186c01330c979b6c">yaze::util::anonymous_namespace{bps.cc}::encode</a></div><div class="ttdeci">void encode(uint64_t data, std::vector&lt; uint8_t &gt; &amp;output)</div><div class="ttdef"><b>Definition</b> <a href="#l00022">bps.cc:22</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1util_html"><div class="ttname"><a href="namespaceyaze_1_1util.html">yaze::util</a></div><div class="ttdef"><b>Definition</b> <a href="#l00013">bps.cc:13</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1util_html_a3eadcc44d8287dad5ea9d6dbd25bd44d"><div class="ttname"><a href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">yaze::util::CreateBpsPatch</a></div><div class="ttdeci">void CreateBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</div><div class="ttdef"><b>Definition</b> <a href="#l00050">bps.cc:50</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1util_html_a991030a6ecb07dd710fd4877b48cdcd8"><div class="ttname"><a href="namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8">yaze::util::ApplyBpsPatch</a></div><div class="ttdeci">void ApplyBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</div><div class="ttdef"><b>Definition</b> <a href="#l00139">bps.cc:139</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03_html_a7adb9c174735af33d844e4ee1e8e2ee0"><div class="ttname"><a href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a7adb9c174735af33d844e4ee1e8e2ee0">yaze::util::anonymous_namespace{bps.cc}::crc32</a></div><div class="ttdeci">uint32_t crc32(const std::vector&lt; uint8_t &gt; &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="#l00026">bps.cc:26</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03_html_ae89f272c2128a09aeede534ade2fd8e5"><div class="ttname"><a href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#ae89f272c2128a09aeede534ade2fd8e5">yaze::util::anonymous_namespace{bps.cc}::decode</a></div><div class="ttdeci">uint64_t decode(const std::vector&lt; uint8_t &gt; &amp;input, size_t &amp;offset)</div><div class="ttdef"><b>Definition</b> <a href="#l00094">bps.cc:94</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03_html_af030929a88a229dd186c01330c979b6c"><div class="ttname"><a href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#af030929a88a229dd186c01330c979b6c">yaze::util::anonymous_namespace{bps.cc}::encode</a></div><div class="ttdeci">void encode(uint64_t data, std::vector&lt; uint8_t &gt; &amp;output)</div><div class="ttdef"><b>Definition</b> <a href="#l00081">bps.cc:81</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1util_html"><div class="ttname"><a href="namespaceyaze_1_1util.html">yaze::util</a></div><div class="ttdef"><b>Definition</b> <a href="#l00015">bps.cc:15</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1util_html_a3eadcc44d8287dad5ea9d6dbd25bd44d"><div class="ttname"><a href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">yaze::util::CreateBpsPatch</a></div><div class="ttdeci">void CreateBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</div><div class="ttdef"><b>Definition</b> <a href="#l00109">bps.cc:109</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1util_html_a991030a6ecb07dd710fd4877b48cdcd8"><div class="ttname"><a href="namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8">yaze::util::ApplyBpsPatch</a></div><div class="ttdeci">void ApplyBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</div><div class="ttdef"><b>Definition</b> <a href="#l00198">bps.cc:198</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00013">asar_wrapper.cc:13</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
