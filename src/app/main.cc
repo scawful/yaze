@@ -15,17 +15,20 @@ using namespace yaze;
 
 DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   absl::InitializeSymbolizer(argv[0]);
-  
+
   // Configure failure signal handler to be less aggressive
   // This prevents false positives during SDL/graphics cleanup
   absl::FailureSignalHandlerOptions options;
   options.symbolize_stacktrace = true;
-  options.use_alternate_stack = false;  // Avoid conflicts with normal stack during cleanup
-  options.alarm_on_failure_secs = false; // Don't set alarms that can trigger on natural leaks
+  options.use_alternate_stack =
+      false;  // Avoid conflicts with normal stack during cleanup
+  options.alarm_on_failure_secs =
+      false;  // Don't set alarms that can trigger on natural leaks
   options.call_previous_handler = true;  // Allow system handlers to also run
-  options.writerfn = nullptr;  // Use default writer to avoid custom handling issues
+  options.writerfn =
+      nullptr;  // Use default writer to avoid custom handling issues
   absl::InstallFailureSignalHandler(options);
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
   RETURN_IF_EXCEPTION(parser.Parse(argc, argv));

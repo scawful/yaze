@@ -3,8 +3,8 @@
 
 #include <cstdint>
 #include <functional>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace yaze {
 namespace emu {

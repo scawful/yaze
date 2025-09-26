@@ -245,7 +245,8 @@ void InitHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cpu_cycles) {
             snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++);
         snes->RunCycles(8);
         channel[i].size |=
-            snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++) << 8;
+            snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++)
+            << 8;
       }
       channel[i].do_transfer = true;
     }
@@ -286,7 +287,8 @@ void DoHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cycles) {
                          channel[i].b_addr + bAdrOffsets[channel[i].mode][j],
                          channel[i].from_b);
           } else {
-            TransferByte(snes, memory, channel[i].table_addr++, channel[i].a_bank,
+            TransferByte(snes, memory, channel[i].table_addr++,
+                         channel[i].a_bank,
                          channel[i].b_addr + bAdrOffsets[channel[i].mode][j],
                          channel[i].from_b);
           }
@@ -317,7 +319,8 @@ void DoHdma(Snes* snes, MemoryImpl* memory, bool do_sync, int cycles) {
           }
           snes->RunCycles(8);
           channel[i].size |=
-              snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++) << 8;
+              snes->Read((channel[i].a_bank << 16) | channel[i].table_addr++)
+              << 8;
         }
         if (channel[i].rep_count == 0) channel[i].terminated = true;
         channel[i].do_transfer = true;
