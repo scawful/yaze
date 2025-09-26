@@ -935,7 +935,7 @@ void EditorManager::DrawMenuBar() {
       SameLine();
     }
     
-    // ROM status with natural integration
+    // Enhanced ROM status with metadata popup
     if (current_rom_ && current_rom_->is_loaded()) {
       std::string rom_display = current_rom_->title();
       if (rom_display.length() > 16) {
@@ -946,18 +946,92 @@ void EditorManager::DrawMenuBar() {
                            ImVec4(1.0f, 0.5f, 0.0f, 1.0f) :  // Orange for modified
                            ImVec4(0.0f, 0.8f, 0.0f, 1.0f);   // Green for clean
       
-      TextColored(status_color, "%s %s%s", 
-                 ICON_MD_STORAGE, 
-                 rom_display.c_str(),
-                 current_rom_->dirty() ? "*" : "");
-      
-      if (IsItemHovered()) {
-        SetTooltip("ROM: %s\nFile: %s\nSize: %zu bytes\nStatus: %s", 
-                  current_rom_->title().c_str(),
-                  current_rom_->filename().c_str(), 
-                  current_rom_->size(),
-                  current_rom_->dirty() ? "Modified" : "Clean");
+      // Make ROM status clickable for detailed popup
+      if (SmallButton(absl::StrFormat("%s %s%s", 
+                                     ICON_MD_STORAGE, 
+                                     rom_display.c_str(),
+                                     current_rom_->dirty() ? "*" : "").c_str())) {
+        ImGui::OpenPopup("ROM Details");
       }
+      
+      // Enhanced tooltip on hover
+      if (IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("%s ROM Information", ICON_MD_INFO);
+        ImGui::Separator();
+        ImGui::Text("%s Title: %s", ICON_MD_TITLE, current_rom_->title().c_str());
+        ImGui::Text("%s File: %s", ICON_MD_FOLDER_OPEN, current_rom_->filename().c_str());
+        ImGui::Text("%s Size: %.1f MB (%zu bytes)", ICON_MD_STORAGE, 
+                   current_rom_->size() / 1048576.0f, current_rom_->size());
+        ImGui::Text("%s Status: %s", current_rom_->dirty() ? ICON_MD_EDIT : ICON_MD_CHECK_CIRCLE,
+                   current_rom_->dirty() ? "Modified" : "Clean");
+        ImGui::Text("%s Click for detailed view", ICON_MD_LAUNCH);
+        ImGui::EndTooltip();
+      }
+      
+      // Detailed ROM popup
+      if (ImGui::BeginPopup("ROM Details")) {
+        ImGui::Text("%s ROM Detailed Information", ICON_MD_INFO);
+        ImGui::Separator();
+        ImGui::Spacing();
+        
+        // Basic info with icons
+        if (ImGui::BeginTable("ROMDetailsTable", 2, ImGuiTableFlags_SizingFixedFit)) {
+          ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 120);
+          ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+          
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("%s Title", ICON_MD_TITLE);
+          ImGui::TableNextColumn();
+          ImGui::Text("%s", current_rom_->title().c_str());
+          
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("%s File", ICON_MD_FOLDER_OPEN);
+          ImGui::TableNextColumn();
+          ImGui::Text("%s", current_rom_->filename().c_str());
+          
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("%s Size", ICON_MD_STORAGE);
+          ImGui::TableNextColumn();
+          ImGui::Text("%.1f MB (%zu bytes)", current_rom_->size() / 1048576.0f, current_rom_->size());
+          
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("%s Status", current_rom_->dirty() ? ICON_MD_EDIT : ICON_MD_CHECK_CIRCLE);
+          ImGui::TableNextColumn();
+          ImGui::TextColored(status_color, "%s", current_rom_->dirty() ? "Modified" : "Clean");
+          
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("%s Session", ICON_MD_TAB);
+          ImGui::TableNextColumn();
+          size_t current_session_idx = GetCurrentSessionIndex();
+          ImGui::Text("Session %zu of %zu", current_session_idx + 1, sessions_.size());
+          
+          ImGui::EndTable();
+        }
+        
+        ImGui::Spacing();
+        ImGui::Separator();
+        
+        // Quick actions
+        ImGui::Text("%s Quick Actions", ICON_MD_FLASH_ON);
+        if (ImGui::Button(absl::StrFormat("%s Save ROM", ICON_MD_SAVE).c_str(), ImVec2(120, 0))) {
+          status_ = SaveRom();
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(absl::StrFormat("%s Switch Session", ICON_MD_SWITCH_ACCOUNT).c_str(), ImVec2(120, 0))) {
+          show_session_switcher_ = true;
+          ImGui::CloseCurrentPopup();
+        }
+        
+        ImGui::EndPopup();
+      }
+      
       SameLine();
     } else {
       TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "%s No ROM", ICON_MD_HELP_OUTLINE);
@@ -1600,51 +1674,123 @@ void EditorManager::DrawSessionSwitcher() {
   if (!show_session_switcher_) return;
   
   ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-  ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_Appearing);
+  ImGui::SetNextWindowSize(ImVec2(500, 350), ImGuiCond_Appearing);
   
-  if (ImGui::Begin(absl::StrCat(ICON_MD_SWITCH_ACCOUNT, " Session Switcher").c_str(), 
+  if (ImGui::Begin(absl::StrFormat("%s Session Switcher", ICON_MD_SWITCH_ACCOUNT).c_str(), 
                    &show_session_switcher_, ImGuiWindowFlags_NoCollapse)) {
     
+    // Header with enhanced info
     ImGui::Text("%s %zu Sessions Available", ICON_MD_TAB, sessions_.size());
+    ImGui::SameLine(ImGui::GetWindowWidth() - 120);
+    if (ImGui::Button(absl::StrFormat("%s New", ICON_MD_ADD).c_str(), ImVec2(50, 0))) {
+      CreateNewSession();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(absl::StrFormat("%s Manager", ICON_MD_SETTINGS).c_str(), ImVec2(60, 0))) {
+      show_session_manager_ = true;
+    }
+    
     ImGui::Separator();
     
+    // Enhanced session list with metadata
     for (size_t i = 0; i < sessions_.size(); ++i) {
       auto& session = sessions_[i];
       bool is_current = (&session.rom == current_rom_);
       
+      ImGui::PushID(static_cast<int>(i));
+      
+      // Session card with background
+      ImVec2 button_size = ImVec2(-1, 70);
       if (is_current) {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.3f, 0.3f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.7f, 0.3f, 0.4f));
+      } else {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.1f, 0.1f, 0.2f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 0.3f));
       }
       
-      std::string session_name = session.GetDisplayName();
-      
-      if (ImGui::Button(absl::StrFormat("%s %s %s", 
-                                       ICON_MD_STORAGE, 
-                                       session_name.c_str(),
-                                       is_current ? "(Current)" : "").c_str(), 
-                       ImVec2(-1, 0))) {
+      if (ImGui::Button("##session_card", button_size)) {
         if (!is_current) {
           SwitchToSession(i);
           show_session_switcher_ = false;
         }
       }
+      ImGui::PopStyleColor(2);
       
-      if (is_current) {
-        ImGui::PopStyleColor();
+      // Session content overlay
+      ImVec2 button_min = ImGui::GetItemRectMin();
+      ImVec2 button_max = ImGui::GetItemRectMax();
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+      
+      // Session icon and name
+      ImVec2 text_pos = ImVec2(button_min.x + 10, button_min.y + 8);
+      std::string session_display = session.GetDisplayName();
+      if (session_display.length() > 25) {
+        session_display = session_display.substr(0, 22) + "...";
       }
       
-      // Show ROM info on hover
-      if (ImGui::IsItemHovered() && session.rom.is_loaded()) {
-        ImGui::BeginTooltip();
-        ImGui::Text("File: %s", session.rom.filename().c_str());
-        ImGui::Text("Size: %zu bytes", session.rom.size());
-        ImGui::Text("Modified: %s", session.rom.dirty() ? "Yes" : "No");
-        ImGui::EndTooltip();
+      ImU32 text_color = is_current ? IM_COL32(255, 255, 255, 255) : IM_COL32(220, 220, 220, 255);
+      draw_list->AddText(text_pos, text_color, 
+                        absl::StrFormat("%s %s %s", 
+                                       ICON_MD_STORAGE, 
+                                       session_display.c_str(),
+                                       is_current ? "(Current)" : "").c_str());
+      
+      // ROM metadata
+      if (session.rom.is_loaded()) {
+        ImVec2 metadata_pos = ImVec2(button_min.x + 10, button_min.y + 28);
+        std::string rom_info = absl::StrFormat("%s %s | %.1f MB | %s", 
+                                              ICON_MD_VIDEOGAME_ASSET,
+                                              session.rom.title().c_str(),
+                                              session.rom.size() / 1048576.0f,
+                                              session.rom.dirty() ? "Modified" : "Clean");
+        if (rom_info.length() > 40) {
+          rom_info = rom_info.substr(0, 37) + "...";
+        }
+        draw_list->AddText(metadata_pos, IM_COL32(180, 180, 180, 255), rom_info.c_str());
+      } else {
+        ImVec2 metadata_pos = ImVec2(button_min.x + 10, button_min.y + 28);
+        draw_list->AddText(metadata_pos, IM_COL32(150, 150, 150, 255), 
+                          absl::StrFormat("%s No ROM loaded", ICON_MD_WARNING).c_str());
       }
+      
+      // Action buttons on the right
+      ImVec2 rename_pos = ImVec2(button_max.x - 90, button_min.y + 5);
+      ImVec2 close_pos = ImVec2(button_max.x - 45, button_min.y + 5);
+      
+      ImGui::SetCursorScreenPos(rename_pos);
+      if (ImGui::SmallButton(absl::StrFormat("%s##rename_%zu", ICON_MD_EDIT, i).c_str())) {
+        session_to_rename_ = i;
+        strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
+        show_session_rename_dialog_ = true;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Rename Session");
+      }
+      
+      ImGui::SetCursorScreenPos(close_pos);
+      if (sessions_.size() > 1) {
+        if (ImGui::SmallButton(absl::StrFormat("%s##close_%zu", ICON_MD_CLOSE, i).c_str())) {
+          if (is_current) {
+            CloseCurrentSession();
+          } else {
+            // Switch to this session first, then close it
+            SwitchToSession(i);
+            CloseCurrentSession();
+          }
+          break; // Exit the loop since session structure changed
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Close Session");
+        }
+      }
+      
+      ImGui::PopID();
+      ImGui::Spacing();
     }
     
     ImGui::Separator();
-    if (ImGui::Button(absl::StrCat(ICON_MD_CLOSE, " Close").c_str(), ImVec2(-1, 0))) {
+    if (ImGui::Button(absl::StrFormat("%s Close Switcher", ICON_MD_CLOSE).c_str(), ImVec2(-1, 0))) {
       show_session_switcher_ = false;
     }
   }
@@ -1670,12 +1816,13 @@ void EditorManager::DrawSessionManager() {
     ImGui::Separator();
     ImGui::Text("%s Active Sessions (%zu)", ICON_MD_TAB, sessions_.size());
     
-    // Session list with controls
-    if (ImGui::BeginTable("SessionTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-      ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn("ROM", ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 80);
-      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 120);
+    // Session list with controls (improved sizing)
+    if (ImGui::BeginTable("SessionTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | 
+                         ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY)) {
+      ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch, 120.0f);
+      ImGui::TableSetupColumn("ROM", ImGuiTableColumnFlags_WidthStretch, 200.0f);
+      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 90.0f);
+      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 200.0f);
       ImGui::TableHeadersRow();
       
       for (size_t i = 0; i < sessions_.size(); ++i) {
@@ -1881,15 +2028,72 @@ void EditorManager::DrawSessionRenameDialog() {
 
 void EditorManager::DrawWelcomeScreen() {
   ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-  ImGui::SetNextWindowSize(ImVec2(680, 500), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(750, 550), ImGuiCond_Always);
+  
+  // Create a subtle animated background effect
+  static float animation_time = 0.0f;
+  animation_time += ImGui::GetIO().DeltaTime;
   
   ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | 
-                          ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+                          ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
+                          ImGuiWindowFlags_NoBackground;
   
   if (ImGui::Begin("Welcome to Yaze", nullptr, flags)) {
-    // Header (reuse homepage style)
-    TextWrapped("Welcome to the Yet Another Zelda3 Editor (yaze)!");
-    TextWrapped("The Legend of Zelda: A Link to the Past.");
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 window_pos = ImGui::GetWindowPos();
+    ImVec2 window_size = ImGui::GetWindowSize();
+    
+    // Draw animated gradient background
+    ImU32 bg_color_top = IM_COL32(25, 35, 50, 240);
+    ImU32 bg_color_bottom = IM_COL32(15, 25, 40, 240);
+    draw_list->AddRectFilledMultiColor(
+        window_pos, 
+        ImVec2(window_pos.x + window_size.x, window_pos.y + window_size.y),
+        bg_color_top, bg_color_top, bg_color_bottom, bg_color_bottom);
+    
+    // Animated border with gradient effect
+    float border_thickness = 3.0f;
+    float pulse = 0.8f + 0.2f * sinf(animation_time * 2.0f);
+    ImU32 border_color = IM_COL32(70, 130, 200, (int)(255 * pulse));
+    draw_list->AddRect(window_pos, 
+                      ImVec2(window_pos.x + window_size.x, window_pos.y + window_size.y), 
+                      border_color, 12.0f, 0, border_thickness);
+    
+    // Subtle floating particles effect
+    for (int i = 0; i < 8; ++i) {
+      float offset_x = sinf(animation_time * 0.5f + i * 0.8f) * 20.0f;
+      float offset_y = cosf(animation_time * 0.3f + i * 1.2f) * 15.0f;
+      ImVec2 particle_pos = ImVec2(
+          window_pos.x + 50 + (i * 80) + offset_x,
+          window_pos.y + 100 + offset_y);
+      
+      float alpha = 0.3f + 0.2f * sinf(animation_time * 1.5f + i);
+      ImU32 particle_color = IM_COL32(100, 150, 255, (int)(alpha * 100));
+      draw_list->AddCircleFilled(particle_pos, 2.0f + sinf(animation_time + i) * 0.5f, particle_color);
+    }
+    
+    // Header with enhanced styling
+    ImGui::Spacing();
+    ImGui::SetCursorPosX((window_size.x - ImGui::CalcTextSize("Welcome to Yet Another Zelda3 Editor").x) * 0.5f);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.95f, 1.0f, 1.0f));
+    ImGui::Text("Welcome to Yet Another Zelda3 Editor");
+    ImGui::PopStyleColor();
+    
+    ImGui::SetCursorPosX((window_size.x - ImGui::CalcTextSize("The Legend of Zelda: A Link to the Past").x) * 0.5f);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.8f, 0.9f, 0.9f));
+    ImGui::Text("The Legend of Zelda: A Link to the Past");
+    ImGui::PopStyleColor();
+    
+    ImGui::Spacing();
+    
+    // Decorative line with glow effect
+    ImVec2 line_start = ImVec2(window_pos.x + 50, window_pos.y + 120);
+    ImVec2 line_end = ImVec2(window_pos.x + window_size.x - 50, window_pos.y + 120);
+    float glow_alpha = 0.5f + 0.3f * sinf(animation_time * 1.5f);
+    draw_list->AddLine(line_start, line_end, IM_COL32(100, 150, 255, (int)(glow_alpha * 255)), 2.0f);
+    
+    ImGui::Spacing();
+    ImGui::Spacing();
     
     // Show different messages based on state
     if (!sessions_.empty() && !current_rom_) {
@@ -1906,18 +2110,23 @@ void EditorManager::DrawWelcomeScreen() {
     
     ImGui::Spacing();
     
-    // Primary actions with material design icons
+    // Enhanced primary actions with glowing buttons
     ImGui::Text("Get Started:");
     ImGui::Spacing();
     
-    if (ImGui::Button(ICON_MD_FILE_OPEN " Open ROM File", ImVec2(180, 35))) {
+    // Stylish primary buttons with hover effects
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.9f, 0.8f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.6f, 1.0f, 0.9f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.4f, 0.8f, 1.0f));
+    
+    if (ImGui::Button(ICON_MD_FILE_OPEN " Open ROM File", ImVec2(200, 40))) {
       status_ = LoadRom();
       if (!status_.ok()) {
         toast_manager_.Show(std::string(status_.message()), editor::ToastType::kError);
       }
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open Project", ImVec2(180, 35))) {
+    if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open Project", ImVec2(200, 40))) {
       auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
       if (!file_name.empty()) {
         status_ = OpenRomOrProject(file_name);
@@ -1926,6 +2135,8 @@ void EditorManager::DrawWelcomeScreen() {
         }
       }
     }
+    
+    ImGui::PopStyleColor(3);
     
     ImGui::Spacing();
     
