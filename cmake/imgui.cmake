@@ -1,8 +1,13 @@
 # gui libraries ---------------------------------------------------------------
 set(IMGUI_PATH  ${CMAKE_SOURCE_DIR}/src/lib/imgui)
 file(GLOB IMGUI_SOURCES ${IMGUI_PATH}/*.cpp)
-add_library("ImGui" STATIC ${IMGUI_SOURCES})
-target_include_directories("ImGui" PUBLIC ${IMGUI_PATH})
+set(IMGUI_BACKEND_SOURCES
+  ${IMGUI_PATH}/backends/imgui_impl_sdl2.cpp
+  ${IMGUI_PATH}/backends/imgui_impl_sdlrenderer2.cpp
+  ${IMGUI_PATH}/misc/cpp/imgui_stdlib.cpp
+)
+add_library("ImGui" STATIC ${IMGUI_SOURCES} ${IMGUI_BACKEND_SOURCES})
+target_include_directories("ImGui" PUBLIC ${IMGUI_PATH} ${IMGUI_PATH}/backends)
 target_include_directories(ImGui PUBLIC ${SDL2_INCLUDE_DIR})
 target_compile_definitions(ImGui PUBLIC
   IMGUI_IMPL_OPENGL_LOADER_CUSTOM=<SDL2/SDL_opengl.h>  GL_GLEXT_PROTOTYPES=1)
