@@ -211,10 +211,13 @@ var searchData=
   ['external_5fsync_208',['external_sync',['../structyaze_1_1emu_1_1SETINI.html#af196a13908c98ae9011fe228dd36b0eb',1,'yaze::emu::SETINI']]],
   ['extra_5fcgx_5fdata_5f_209',['extra_cgx_data_',['../classyaze_1_1editor_1_1GraphicsEditor.html#aba39edaf965ceffd5fe1c90168345c73',1,'yaze::editor::GraphicsEditor']]],
   ['extract_210',['Extract',['../namespaceyaze_1_1gfx.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::gfx::Extract()'],['../namespaceyaze_1_1test.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::test::Extract()']]],
-  ['extract_5fvanilla_5fvalues_2ecc_211',['extract_vanilla_values.cc',['../extract__vanilla__values_8cc.html',1,'']]],
-  ['extractflag_212',['ExtractFlag',['../classyaze_1_1util_1_1FlagParser.html#ae87e95c42728b7d9e5b30b79aa688d58',1,'yaze::util::FlagParser']]],
-  ['extractflagandvalue_213',['ExtractFlagAndValue',['../classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d',1,'yaze::util::FlagParser']]],
-  ['extractsymbols_214',['ExtractSymbols',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#a63133a75451a212ece7886eacf46fa8b',1,'yaze::app::core::AsarWrapper']]],
-  ['extractsymbolscomponent_215',['ExtractSymbolsComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a67dd0fa752ae48367e75313a4325cb11',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
-  ['extractsymbolsfromlastoperation_216',['ExtractSymbolsFromLastOperation',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#ae627cf8b68c21f8042f1d92139b3902b',1,'yaze::app::core::AsarWrapper']]]
+  ['extract_5fchangelog_211',['extract_changelog',['../namespaceextract__changelog.html',1,'']]],
+  ['extract_5fchangelog_2epy_212',['extract_changelog.py',['../extract__changelog_8py.html',1,'']]],
+  ['extract_5fvanilla_5fvalues_2ecc_213',['extract_vanilla_values.cc',['../extract__vanilla__values_8cc.html',1,'']]],
+  ['extract_5fversion_5fchangelog_214',['extract_version_changelog',['../namespaceextract__changelog.html#af0484ad211279dc459fc067553a0f98f',1,'extract_changelog']]],
+  ['extractflag_215',['ExtractFlag',['../classyaze_1_1util_1_1FlagParser.html#ae87e95c42728b7d9e5b30b79aa688d58',1,'yaze::util::FlagParser']]],
+  ['extractflagandvalue_216',['ExtractFlagAndValue',['../classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d',1,'yaze::util::FlagParser']]],
+  ['extractsymbols_217',['ExtractSymbols',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#a63133a75451a212ece7886eacf46fa8b',1,'yaze::app::core::AsarWrapper']]],
+  ['extractsymbolscomponent_218',['ExtractSymbolsComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a67dd0fa752ae48367e75313a4325cb11',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
+  ['extractsymbolsfromlastoperation_219',['ExtractSymbolsFromLastOperation',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#ae627cf8b68c21f8042f1d92139b3902b',1,'yaze::app::core::AsarWrapper']]]
 ];

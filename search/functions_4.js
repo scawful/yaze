@@ -50,9 +50,10 @@ var searchData=
   ['exportdungeontofile_47',['ExportDungeonToFile',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ac39aca2c991a12ba457342b7fd697f6a',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['exportroomtofile_48',['ExportRoomToFile',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a1756ac575fd0e32d73620f33a95192e1',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['extract_49',['Extract',['../namespaceyaze_1_1gfx.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::gfx::Extract()'],['../namespaceyaze_1_1test.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::test::Extract()']]],
-  ['extractflag_50',['ExtractFlag',['../classyaze_1_1util_1_1FlagParser.html#ae87e95c42728b7d9e5b30b79aa688d58',1,'yaze::util::FlagParser']]],
-  ['extractflagandvalue_51',['ExtractFlagAndValue',['../classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d',1,'yaze::util::FlagParser']]],
-  ['extractsymbols_52',['ExtractSymbols',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#a63133a75451a212ece7886eacf46fa8b',1,'yaze::app::core::AsarWrapper']]],
-  ['extractsymbolscomponent_53',['ExtractSymbolsComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a67dd0fa752ae48367e75313a4325cb11',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
-  ['extractsymbolsfromlastoperation_54',['ExtractSymbolsFromLastOperation',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#ae627cf8b68c21f8042f1d92139b3902b',1,'yaze::app::core::AsarWrapper']]]
+  ['extract_5fversion_5fchangelog_50',['extract_version_changelog',['../namespaceextract__changelog.html#af0484ad211279dc459fc067553a0f98f',1,'extract_changelog']]],
+  ['extractflag_51',['ExtractFlag',['../classyaze_1_1util_1_1FlagParser.html#ae87e95c42728b7d9e5b30b79aa688d58',1,'yaze::util::FlagParser']]],
+  ['extractflagandvalue_52',['ExtractFlagAndValue',['../classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d',1,'yaze::util::FlagParser']]],
+  ['extractsymbols_53',['ExtractSymbols',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#a63133a75451a212ece7886eacf46fa8b',1,'yaze::app::core::AsarWrapper']]],
+  ['extractsymbolscomponent_54',['ExtractSymbolsComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a67dd0fa752ae48367e75313a4325cb11',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
+  ['extractsymbolsfromlastoperation_55',['ExtractSymbolsFromLastOperation',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#ae627cf8b68c21f8042f1d92139b3902b',1,'yaze::app::core::AsarWrapper']]]
 ];

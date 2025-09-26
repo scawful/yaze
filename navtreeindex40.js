@@ -100,6 +100,8 @@ var NAVTREEINDEX40 =
 "extension__manager_8cc_source.html":[25,0,3,0,1,7,2],
 "extension__manager_8h.html":[25,0,3,0,1,7,3],
 "extension__manager_8h_source.html":[25,0,3,0,1,7,3],
+"extract__changelog_8py.html":[25,0,2,0],
+"extract__changelog_8py_source.html":[25,0,2,0],
 "extract__vanilla__values_8cc.html":[25,0,4,6,7],
 "extract__vanilla__values_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4":[25,0,4,6,7,0],
 "extract__vanilla__values_8cc_source.html":[25,0,4,6,7],
@@ -247,7 +249,5 @@ var NAVTREEINDEX40 =
 "globals_o.html":[25,1,0,11],
 "globals_p.html":[25,1,0,12],
 "globals_r.html":[25,1,0,13],
-"globals_s.html":[25,1,0,14],
-"globals_t.html":[25,1,0,15],
-"globals_type.html":[25,1,3]
+"globals_s.html":[25,1,0,14]
 };

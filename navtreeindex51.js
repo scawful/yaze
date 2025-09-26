@@ -1,5 +1,7 @@
 var NAVTREEINDEX51 =
 {
+"md_docs_2B1-contributing.html#autotoc_md104":[5,3,1],
+"md_docs_2B1-contributing.html#autotoc_md105":[5,4],
 "md_docs_2B1-contributing.html#autotoc_md106":[5,4,0],
 "md_docs_2B1-contributing.html#autotoc_md107":[5,4,1],
 "md_docs_2B1-contributing.html#autotoc_md108":[5,4,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX51 =
 "md_docs_2E5-dungeon-object-system.html#autotoc_md341":[15,2],
 "md_docs_2E5-dungeon-object-system.html#autotoc_md342":[15,2,0],
 "md_docs_2E5-dungeon-object-system.html#autotoc_md343":[15,2,0,0],
-"md_docs_2E5-dungeon-object-system.html#autotoc_md344":[15,2,0,1],
-"md_docs_2E5-dungeon-object-system.html#autotoc_md345":[15,2,0,2],
-"md_docs_2E5-dungeon-object-system.html#autotoc_md346":[15,2,1]
+"md_docs_2E5-dungeon-object-system.html#autotoc_md344":[15,2,0,1]
 };

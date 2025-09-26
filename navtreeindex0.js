@@ -249,5 +249,5 @@ var NAVTREEINDEX0 =
 "classTextEditor_1_1UndoRecord.html#aebc5c6eb74dcd288b7dec42c7de4a648":[24,0,18,6,5],
 "classTextEditor_1_1UndoRecord.html#af8ff683f758574847c014770c3509f3c":[24,0,18,6,3],
 "classes.html":[24,1],
-"classyaze_1_1RecentFilesManager.html":[23,0,2,11]
+"classyaze_1_1RecentFilesManager.html":[23,0,3,11]
 };
