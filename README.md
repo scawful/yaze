@@ -20,6 +20,9 @@ A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM 
 - **Improved compatibility** with existing projects
 
 #### Advanced Features
+- **Theme Management**: Complete theme system with 5+ built-in themes and custom theme editor
+- **Multi-Session Support**: Work with multiple ROMs simultaneously in docked workspace
+- **Enhanced Welcome Screen**: Themed interface with quick access to all editors
 - **Message Editing**: Enhanced text editing interface with real-time preview
 - **GUI Docking**: Flexible workspace management with customizable layouts
 - **Modern CLI**: Enhanced z3ed tool with interactive TUI and subcommands

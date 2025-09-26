@@ -1,8 +1,11 @@
 # Changelog
 
-## 0.3.0 (January 2025)
+## 0.3.0 (September 2025)
 
 ### Major Features
+- **Complete Theme Management System**: 5+ built-in themes with custom theme creation and editing
+- **Multi-Session Workspace**: Work with multiple ROMs simultaneously in enhanced docked interface
+- **Enhanced Welcome Screen**: Themed interface with quick access to all editors and features
 - **Asar 65816 Assembler Integration**: Complete cross-platform ROM patching with assembly code
 - **ZSCustomOverworld v3**: Full integration with enhanced overworld editing capabilities
 - **Advanced Message Editing**: Enhanced text editing interface with improved parsing and real-time preview
@@ -10,13 +13,20 @@
 - **Symbol Extraction**: Extract symbol names and opcodes from assembly files
 - **Modernized Build System**: Upgraded to CMake 3.16+ with target-based configuration
 
+### User Interface & Theming
+- **Built-in Themes**: Classic YAZE, YAZE Tre, Cyberpunk, Sunset, Forest, and Midnight themes
+- **Theme Editor**: Complete custom theme creation with save-to-file functionality
+- **Animated Background Grid**: Optional moving grid with color breathing effects
+- **Theme Import/Export**: Share custom themes with the community
+- **Responsive UI**: All UI elements properly adapt to selected themes
+
 ### Enhancements
 - **Enhanced CLI Tools**: Improved z3ed with modern command line interface and TUI
 - **CMakePresets**: Added development workflow presets for better productivity
-- **Cross-Platform CI/CD**: Multi-platform automated builds and testing
+- **Cross-Platform CI/CD**: Multi-platform automated builds and testing with lenient code quality checks
 - **Professional Packaging**: NSIS, DMG, and DEB/RPM installers
-- **ROM-Dependent Testing**: Separated testing infrastructure for CI compatibility
-- **Comprehensive Documentation**: Updated guides and API documentation
+- **ROM-Dependent Testing**: Separated testing infrastructure for CI compatibility with 46+ core tests
+- **Comprehensive Documentation**: Updated guides, help menus, and API documentation
 
 ### Technical Improvements
 - **Modern C++23**: Latest language features for performance and safety

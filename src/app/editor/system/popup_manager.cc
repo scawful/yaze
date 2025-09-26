@@ -1,5 +1,6 @@
 #include "popup_manager.h"
 
+#include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
 #include "app/gui/style.h"
 #include "app/gui/icons.h"
@@ -197,28 +198,59 @@ void PopupManager::DrawNewProjectPopup() {
 }
 
 void PopupManager::DrawSupportedFeaturesPopup() {
-  Text("Overworld");
-  BulletText("LW/DW/SW Tilemap Editing");
-  BulletText("LW/DW/SW Map Properties");
-  BulletText("Create/Delete/Update Entrances");
-  BulletText("Create/Delete/Update Exits");
-  BulletText("Create/Delete/Update Sprites");
-  BulletText("Create/Delete/Update Items");
+  if (CollapsingHeader(absl::StrFormat("%s Overworld Editor", ICON_MD_LAYERS).c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+    BulletText("LW/DW/SW Tilemap Editing");
+    BulletText("LW/DW/SW Map Properties");
+    BulletText("Create/Delete/Update Entrances");
+    BulletText("Create/Delete/Update Exits");
+    BulletText("Create/Delete/Update Sprites");
+    BulletText("Create/Delete/Update Items");
+    BulletText("Multi-session map editing support");
+  }
 
-  Text("Dungeon");
-  BulletText("View Room Header Properties");
-  BulletText("View Entrance Properties");
+  if (CollapsingHeader(absl::StrFormat("%s Dungeon Editor", ICON_MD_CASTLE).c_str())) {
+    BulletText("View Room Header Properties");
+    BulletText("View Entrance Properties");
+    BulletText("Enhanced room navigation");
+  }
 
-  Text("Graphics");
-  BulletText("View Decompressed Graphics Sheets");
-  BulletText("View/Update Graphics Groups");
+  if (CollapsingHeader(absl::StrFormat("%s Graphics & Themes", ICON_MD_PALETTE).c_str())) {
+    BulletText("View Decompressed Graphics Sheets");
+    BulletText("View/Update Graphics Groups");
+    BulletText("5+ Built-in themes (Classic, Cyberpunk, Sunset, Forest, Midnight)");
+    BulletText("Custom theme creation and editing");
+    BulletText("Theme import/export functionality");
+    BulletText("Animated background grid effects");
+  }
 
-  Text("Palettes");
-  BulletText("View Palette Groups");
+  if (CollapsingHeader(absl::StrFormat("%s Palettes", ICON_MD_COLOR_LENS).c_str())) {
+    BulletText("View Palette Groups");
+    BulletText("Enhanced palette editing tools");
+    BulletText("Color conversion utilities");
+  }
+  
+  if (CollapsingHeader(absl::StrFormat("%s Project Management", ICON_MD_FOLDER).c_str())) {
+    BulletText("Multi-session workspace support");
+    BulletText("Enhanced project creation and management");
+    BulletText("ZScream project format compatibility");
+    BulletText("Workspace settings and feature flags");
+  }
+  
+  if (CollapsingHeader(absl::StrFormat("%s Development Tools", ICON_MD_BUILD).c_str())) {
+    BulletText("Asar 65816 assembler integration");
+    BulletText("Enhanced CLI tools with TUI interface");
+    BulletText("Memory editor with advanced features");
+    BulletText("Hex editor with search and navigation");
+    BulletText("Assembly validation and symbol extraction");
+  }
 
-  Text("Saveable");
-  BulletText("All Listed Overworld Features");
-  BulletText("Hex Editor Changes");
+  if (CollapsingHeader(absl::StrFormat("%s Save Capabilities", ICON_MD_SAVE).c_str())) {
+    BulletText("All Overworld editing features");
+    BulletText("Hex Editor changes");
+    BulletText("Theme configurations");
+    BulletText("Project settings and workspace layouts");
+    BulletText("Custom assembly patches");
+  }
 
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Supported Features");
@@ -347,13 +379,49 @@ void PopupManager::DrawContributingPopup() {
 void PopupManager::DrawWhatsNewPopup() {
   TextWrapped("What's New in YAZE v0.3");
   Spacing();
-  TextWrapped("New Features:");
-  BulletText("Asar 65816 assembler integration");
-  BulletText("Enhanced CLI tools with TUI interface");
-  BulletText("Modernized build system with CMake presets");
-  BulletText("Optimized CI/CD pipeline");
-  BulletText("Integrated testing framework");
-  BulletText("Professional packaging for all platforms");
+  
+  if (CollapsingHeader(absl::StrFormat("%s User Interface & Theming", ICON_MD_PALETTE).c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+    BulletText("Complete theme management system with 5+ built-in themes");
+    BulletText("Custom theme editor with save-to-file functionality");
+    BulletText("Animated background grid with breathing effects (optional)");
+    BulletText("Enhanced welcome screen with themed elements");
+    BulletText("Multi-session workspace support with docking");
+    BulletText("Improved editor organization and navigation");
+  }
+  
+  if (CollapsingHeader(absl::StrFormat("%s Development & Build System", ICON_MD_BUILD).c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+    BulletText("Asar 65816 assembler integration for ROM patching");
+    BulletText("Enhanced CLI tools with TUI (Terminal User Interface)");
+    BulletText("Modernized CMake build system with presets");
+    BulletText("Cross-platform CI/CD pipeline (Windows, macOS, Linux)");
+    BulletText("Comprehensive testing framework with 46+ core tests");
+    BulletText("Professional packaging for all platforms (DMG, MSI, DEB)");
+  }
+  
+  if (CollapsingHeader(absl::StrFormat("%s Core Improvements", ICON_MD_SETTINGS).c_str())) {
+    BulletText("Enhanced project management with YazeProject structure");
+    BulletText("Improved ROM loading and validation");
+    BulletText("Better error handling and status reporting");
+    BulletText("Memory safety improvements with sanitizers");
+    BulletText("Enhanced file dialog integration");
+    BulletText("Improved logging and debugging capabilities");
+  }
+  
+  if (CollapsingHeader(absl::StrFormat("%s Editor Features", ICON_MD_EDIT).c_str())) {
+    BulletText("Enhanced overworld editing capabilities");
+    BulletText("Improved graphics sheet viewing and editing");
+    BulletText("Better palette management and editing");
+    BulletText("Enhanced memory and hex editing tools");
+    BulletText("Improved sprite and item management");
+    BulletText("Better entrance and exit editing");
+  }
+  
+  Spacing();
+  if (Button(absl::StrFormat("%s View Theme Editor", ICON_MD_PALETTE).c_str(), ImVec2(-1, 30))) {
+    // Close this popup and show theme settings
+    Hide("Whats New v03");
+    // Could trigger theme editor opening here
+  }
   
   if (Button("Close", gui::kDefaultModalSize)) {
     Hide("Whats New v03");
