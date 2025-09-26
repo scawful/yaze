@@ -7,6 +7,7 @@
 #include <vector>
 #include <stdexcept>
 #include <cmath>
+#include <cstring>
 
 namespace yaze {
 namespace util {
