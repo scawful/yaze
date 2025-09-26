@@ -240,7 +240,7 @@ void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
   const ImGuiStyle& style = ImGui::GetStyle();
   float fullWidth = ImGui::GetContentRegionAvail().x;
   float itemWidth = ImGui::CalcItemWidth() + style.ItemSpacing.x;
-  ImVec2 textSize = ImGui::CalcTextSize(title.begin(), title.end());
+  ImVec2 textSize = ImGui::CalcTextSize(title.data(), title.data() + title.size());
   ImRect textRect;
   textRect.Min = ImGui::GetCursorScreenPos();
   if (flags & ItemLabelFlag::Right) textRect.Min.x = textRect.Min.x + itemWidth;

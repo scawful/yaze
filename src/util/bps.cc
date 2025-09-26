@@ -7,7 +7,7 @@
 #include <cmath>
 #include <cstring>
 
-#ifdef YAZE_LIB_PNG
+#if YAZE_LIB_PNG == 1
 #include <zlib.h>
 #endif
 
@@ -16,7 +16,7 @@ namespace util {
 
 namespace {
 
-#ifdef YAZE_LIB_PNG
+#if YAZE_LIB_PNG == 1
 uint32_t crc32(const std::vector<uint8_t> &data) {
   uint32_t crc = ::crc32(0L, Z_NULL, 0);
   return ::crc32(crc, data.data(), data.size());

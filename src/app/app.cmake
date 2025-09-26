@@ -94,7 +94,9 @@ if(YAZE_ENABLE_UI_TESTS)
   if(TARGET ImGuiTestEngine)
     target_include_directories(yaze PUBLIC ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine)
     target_link_libraries(yaze PUBLIC ImGuiTestEngine)
-    target_compile_definitions(yaze PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
+    target_compile_definitions(yaze PRIVATE 
+      YAZE_ENABLE_IMGUI_TEST_ENGINE=1
+      ${IMGUI_TEST_ENGINE_DEFINITIONS})
   else()
     target_compile_definitions(yaze PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
   endif()
