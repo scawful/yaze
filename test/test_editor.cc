@@ -8,10 +8,13 @@
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
+
+#ifdef IMGUI_ENABLE_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_imconfig.h"
 #include "imgui_test_engine/imgui_te_ui.h"
+#endif
 
 namespace yaze {
 namespace test {
@@ -25,13 +28,19 @@ absl::Status TestEditor::Update() {
 
   static bool show_demo_window = true;
 
+#ifdef IMGUI_ENABLE_TEST_ENGINE
   ImGuiTestEngine_ShowTestEngineWindows(engine_, &show_demo_window);
+#else
+  ImGui::Text("ImGui Test Engine not available in this build");
+  (void)show_demo_window; // Suppress unused variable warning
+#endif
 
   ImGui::End();
 
   return absl::OkStatus();
 }
 
+#ifdef IMGUI_ENABLE_TEST_ENGINE
 void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
   engine_ = engine;
   ImGuiTest* test = IM_REGISTER_TEST(engine, "demo_test", "test1");
@@ -41,6 +50,7 @@ void TestEditor::RegisterTests(ImGuiTestEngine* engine) {
     ctx->ItemCheck("Node/Checkbox");
   };
 }
+#endif
 
 // TODO: Fix the window/controller management
 int RunIntegrationTest() {
@@ -50,11 +60,15 @@ int RunIntegrationTest() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
-  // Initialize Test Engine
+  // Initialize Test Engine (if available)
+#ifdef IMGUI_ENABLE_TEST_ENGINE
   ImGuiTestEngine* engine = ImGuiTestEngine_CreateContext();
   ImGuiTestEngineIO& test_io = ImGuiTestEngine_GetIO(engine);
   test_io.ConfigVerboseLevel = ImGuiTestVerboseLevel_Info;
   test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;
+#else
+  void* engine = nullptr; // Placeholder when test engine is disabled
+#endif
 
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -65,8 +79,10 @@ int RunIntegrationTest() {
   ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::Get().renderer());
 
   yaze::test::TestEditor test_editor;
+#ifdef IMGUI_ENABLE_TEST_ENGINE
   test_editor.RegisterTests(engine);
   ImGuiTestEngine_Start(engine, ImGui::GetCurrentContext());
+#endif
   controller.set_active(true);
 
   // Set the default style
@@ -85,7 +101,9 @@ int RunIntegrationTest() {
     controller.DoRender();
   }
 
+#ifdef IMGUI_ENABLE_TEST_ENGINE
   ImGuiTestEngine_Stop(engine);
+#endif
   controller.OnExit();
   return EXIT_SUCCESS;
 }

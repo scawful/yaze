@@ -46,7 +46,6 @@ add_executable(
   zelda3/test_dungeon_objects.cc
   ${ASAR_STATIC_SRC}
   ${IMGUI_SRC}
-  ${IMGUI_TEST_ENGINE_SOURCES}
   ${YAZE_SRC_FILES}
 )
 
@@ -78,8 +77,12 @@ target_link_libraries(
   ${PNG_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  yaze_c
 )
+
+# Conditionally link yaze_c only when library is built
+if(YAZE_BUILD_LIB)
+  target_link_libraries(extract_vanilla_values yaze_c)
+endif()
 
 target_include_directories(
   yaze_test PUBLIC
@@ -103,14 +106,23 @@ target_link_libraries(
   ${PNG_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
-  yaze_c
-  ImGuiTestEngine
   ImGui
   gmock_main
   gmock
   gtest_main
   gtest
 )
+
+# Conditionally link yaze_c only when library is built
+if(YAZE_BUILD_LIB)
+  target_link_libraries(yaze_test yaze_c)
+endif()
+
+# Conditionally link ImGuiTestEngine only when UI tests are enabled
+if(YAZE_ENABLE_UI_TESTS)
+  target_link_libraries(yaze_test ${IMGUI_TEST_ENGINE_TARGET})
+  target_compile_definitions(yaze_test PRIVATE ${IMGUI_TEST_ENGINE_DEFINITIONS})
+endif()
 # ROM Testing Configuration
 if(YAZE_ENABLE_ROM_TESTS)
     target_compile_definitions(yaze_test PRIVATE 
@@ -119,7 +131,7 @@ if(YAZE_ENABLE_ROM_TESTS)
     )
 endif()
 
-target_compile_definitions(yaze_test PRIVATE "IMGUI_ENABLE_TEST_ENGINE")
+# ImGui Test Engine definitions are now handled conditionally above
 
 # Platform-specific definitions
 if(UNIX AND NOT APPLE)

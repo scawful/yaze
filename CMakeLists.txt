@@ -37,6 +37,7 @@ if(YAZE_MINIMAL_BUILD)
   set(YAZE_ENABLE_UI_TESTS OFF CACHE BOOL "Disabled for minimal build" FORCE)
   set(YAZE_BUILD_EMU OFF CACHE BOOL "Disabled for minimal build" FORCE)
   set(YAZE_BUILD_Z3ED OFF CACHE BOOL "Disabled for minimal build" FORCE)
+  set(YAZE_BUILD_LIB OFF CACHE BOOL "Disabled for minimal build" FORCE)
 endif()
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
 

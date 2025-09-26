@@ -4,7 +4,6 @@
 #include <gtest/gtest.h>
 
 #include "testing.h"
-#include "yaze.h"
 
 namespace yaze {
 namespace test {
