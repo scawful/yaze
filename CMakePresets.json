@@ -29,7 +29,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS_DEBUG": "-g -O0 -DDEBUG",
-        "CMAKE_C_FLAGS_DEBUG": "-g -O0 -DDEBUG"
+        "CMAKE_C_FLAGS_DEBUG": "-g -O0 -DDEBUG",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
