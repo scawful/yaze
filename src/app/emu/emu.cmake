@@ -53,5 +53,12 @@ target_link_libraries(
   ${PNG_LIBRARIES} 
   ${CMAKE_DL_LIBS} 
   ImGui
-  ImGuiTestEngine
 )
+
+# Conditionally link ImGui Test Engine
+if(YAZE_ENABLE_UI_TESTS)
+  target_link_libraries(yaze_emu PUBLIC ImGuiTestEngine)
+  target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
+else()
+  target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
+endif()
