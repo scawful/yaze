@@ -29,12 +29,10 @@ void HandleHexStringParams(std::string &hex, const HexStringParams &params) {
 
 std::string HexByte(uint8_t byte, HexStringParams params) {
   std::string result;
-  const static std::string kLowerFormat = "%02x";
-  const static std::string kUpperFormat = "%02X";
   if (params.uppercase) {
-    result = absl::StrFormat(kUpperFormat.c_str(), byte);
+    result = absl::StrFormat("%02X", byte);
   } else {
-    result = absl::StrFormat(kLowerFormat.c_str(), byte);
+    result = absl::StrFormat("%02x", byte);
   }
   HandleHexStringParams(result, params);
   return result;
@@ -42,12 +40,10 @@ std::string HexByte(uint8_t byte, HexStringParams params) {
 
 std::string HexWord(uint16_t word, HexStringParams params) {
   std::string result;
-  const static std::string kLowerFormat = "%04x";
-  const static std::string kUpperFormat = "%04X";
   if (params.uppercase) {
-    result = absl::StrFormat(kUpperFormat.c_str(), word);
+    result = absl::StrFormat("%04X", word);
   } else {
-    result = absl::StrFormat(kLowerFormat.c_str(), word);
+    result = absl::StrFormat("%04x", word);
   }
   HandleHexStringParams(result, params);
   return result;
@@ -55,12 +51,10 @@ std::string HexWord(uint16_t word, HexStringParams params) {
 
 std::string HexLong(uint32_t dword, HexStringParams params) {
   std::string result;
-  const static std::string kLowerFormat = "%06x";
-  const static std::string kUpperFormat = "%06X";
   if (params.uppercase) {
-    result = absl::StrFormat(kUpperFormat.c_str(), dword);
+    result = absl::StrFormat("%06X", dword);
   } else {
-    result = absl::StrFormat(kLowerFormat.c_str(), dword);
+    result = absl::StrFormat("%06x", dword);
   }
   HandleHexStringParams(result, params);
   return result;
@@ -68,12 +62,10 @@ std::string HexLong(uint32_t dword, HexStringParams params) {
 
 std::string HexLongLong(uint64_t qword, HexStringParams params) {
   std::string result;
-  const static std::string kLowerFormat = "%08x";
-  const static std::string kUpperFormat = "%08X";
   if (params.uppercase) {
-    result = absl::StrFormat(kUpperFormat.c_str(), qword);
+    result = absl::StrFormat("%08X", qword);
   } else {
-    result = absl::StrFormat(kLowerFormat.c_str(), qword);
+    result = absl::StrFormat("%08x", qword);
   }
   HandleHexStringParams(result, params);
   return result;
