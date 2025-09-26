@@ -5,6 +5,8 @@
 #include "absl/status/status.h"
 #include "app/core/window.h"
 #include "app/editor/editor_manager.h"
+#include "app/gui/background_renderer.h"
+#include "app/gui/theme_manager.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -54,10 +56,10 @@ absl::Status Controller::OnLoad() {
   ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
   ImGui::PopStyleVar(3);
 
-  // Create DockSpace
+  // Create DockSpace first
   ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-  ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f),
-                   ImGuiDockNodeFlags_PassthruCentralNode);
+  gui::DockSpaceRenderer::BeginEnhancedDockSpace(dockspace_id, ImVec2(0.0f, 0.0f),
+                                                 ImGuiDockNodeFlags_PassthruCentralNode);
 
   editor_manager_.DrawMenuBar();  // Draw the fixed menu bar at the top
 

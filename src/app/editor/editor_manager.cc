@@ -21,6 +21,8 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
+#include "app/gui/theme_manager.h"
+#include "app/gui/background_renderer.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld_map.h"
 #include "app/test/test_manager.h"
@@ -704,6 +706,21 @@ absl::Status EditorManager::Update() {
   ExecuteShortcuts(context_.shortcut_manager);
   toast_manager_.Draw();
   
+  // Draw background grid effects for the entire viewport
+  if (ImGui::GetCurrentContext()) {
+    ImDrawList* bg_draw_list = ImGui::GetBackgroundDrawList();
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    
+    auto& theme_manager = gui::ThemeManager::Get();
+    auto current_theme = theme_manager.GetCurrentTheme();
+    auto& bg_renderer = gui::BackgroundRenderer::Get();
+    
+    // Draw grid covering the entire main viewport
+    ImVec2 grid_pos = viewport->WorkPos;
+    ImVec2 grid_size = viewport->WorkSize;
+    bg_renderer.RenderDockingBackground(bg_draw_list, grid_pos, grid_size, current_theme.primary);
+  }
+  
   // Ensure TestManager always has the current ROM
   static Rom* last_test_rom = nullptr;
   if (last_test_rom != current_rom_) {
@@ -938,9 +955,6 @@ void EditorManager::DrawMenuBar() {
     // Enhanced ROM status with metadata popup
     if (current_rom_ && current_rom_->is_loaded()) {
       std::string rom_display = current_rom_->title();
-      if (rom_display.length() > 16) {
-        rom_display = rom_display.substr(0, 16) + "..";
-      }
       
       ImVec4 status_color = current_rom_->dirty() ? 
                            ImVec4(1.0f, 0.5f, 0.0f, 1.0f) :  // Orange for modified
@@ -2155,23 +2169,30 @@ void EditorManager::DrawWelcomeScreen() {
     ImVec2 window_pos = ImGui::GetWindowPos();
     ImVec2 window_size = ImGui::GetWindowSize();
     
-    // Draw animated gradient background
-    ImU32 bg_color_top = IM_COL32(25, 35, 50, 240);
-    ImU32 bg_color_bottom = IM_COL32(15, 25, 40, 240);
+    // Get theme colors for welcome screen
+    auto& theme_manager = gui::ThemeManager::Get();
+    auto bg_color = theme_manager.GetWelcomeScreenBackground();
+    auto border_color = theme_manager.GetWelcomeScreenBorder(); 
+    auto accent_color = theme_manager.GetWelcomeScreenAccent();
+    
+    // Draw themed gradient background
+    ImU32 bg_top = ImGui::ColorConvertFloat4ToU32(ImVec4(bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha));
+    ImU32 bg_bottom = ImGui::ColorConvertFloat4ToU32(ImVec4(bg_color.red * 0.8f, bg_color.green * 0.8f, bg_color.blue * 0.8f, bg_color.alpha));
     draw_list->AddRectFilledMultiColor(
         window_pos, 
         ImVec2(window_pos.x + window_size.x, window_pos.y + window_size.y),
-        bg_color_top, bg_color_top, bg_color_bottom, bg_color_bottom);
+        bg_top, bg_top, bg_bottom, bg_bottom);
     
-    // Animated border with gradient effect
+    // Themed animated border
     float border_thickness = 3.0f;
     float pulse = 0.8f + 0.2f * sinf(animation_time * 2.0f);
-    ImU32 border_color = IM_COL32(70, 130, 200, (int)(255 * pulse));
+    ImU32 themed_border = ImGui::ColorConvertFloat4ToU32(ImVec4(
+        border_color.red, border_color.green, border_color.blue, pulse * border_color.alpha));
     draw_list->AddRect(window_pos, 
                       ImVec2(window_pos.x + window_size.x, window_pos.y + window_size.y), 
-                      border_color, 12.0f, 0, border_thickness);
+                      themed_border, 12.0f, 0, border_thickness);
     
-    // Subtle floating particles effect
+    // Themed floating particles effect
     for (int i = 0; i < 8; ++i) {
       float offset_x = sinf(animation_time * 0.5f + i * 0.8f) * 20.0f;
       float offset_y = cosf(animation_time * 0.3f + i * 1.2f) * 15.0f;
@@ -2180,29 +2201,34 @@ void EditorManager::DrawWelcomeScreen() {
           window_pos.y + 100 + offset_y);
       
       float alpha = 0.3f + 0.2f * sinf(animation_time * 1.5f + i);
-      ImU32 particle_color = IM_COL32(100, 150, 255, (int)(alpha * 100));
+      ImU32 particle_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
+          accent_color.red, accent_color.green, accent_color.blue, alpha * 0.4f));
       draw_list->AddCircleFilled(particle_pos, 2.0f + sinf(animation_time + i) * 0.5f, particle_color);
     }
     
-    // Header with enhanced styling
+    // Header with themed styling
     ImGui::Spacing();
     ImGui::SetCursorPosX((window_size.x - ImGui::CalcTextSize("Welcome to Yet Another Zelda3 Editor").x) * 0.5f);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.95f, 1.0f, 1.0f));
+    auto text_color = theme_manager.GetCurrentTheme().text_primary;
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(text_color.red, text_color.green, text_color.blue, text_color.alpha));
     ImGui::Text("Welcome to Yet Another Zelda3 Editor");
     ImGui::PopStyleColor();
     
     ImGui::SetCursorPosX((window_size.x - ImGui::CalcTextSize("The Legend of Zelda: A Link to the Past").x) * 0.5f);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.8f, 0.9f, 0.9f));
+    auto subtitle_color = theme_manager.GetCurrentTheme().text_secondary;
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(subtitle_color.red, subtitle_color.green, subtitle_color.blue, subtitle_color.alpha * 0.9f));
     ImGui::Text("The Legend of Zelda: A Link to the Past");
     ImGui::PopStyleColor();
     
     ImGui::Spacing();
     
-    // Decorative line with glow effect
+    // Themed decorative line with glow effect
     ImVec2 line_start = ImVec2(window_pos.x + 50, window_pos.y + 120);
     ImVec2 line_end = ImVec2(window_pos.x + window_size.x - 50, window_pos.y + 120);
     float glow_alpha = 0.5f + 0.3f * sinf(animation_time * 1.5f);
-    draw_list->AddLine(line_start, line_end, IM_COL32(100, 150, 255, (int)(glow_alpha * 255)), 2.0f);
+    ImU32 line_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
+        accent_color.red, accent_color.green, accent_color.blue, glow_alpha));
+    draw_list->AddLine(line_start, line_end, line_color, 2.0f);
     
     ImGui::Spacing();
     ImGui::Spacing();
@@ -2226,10 +2252,11 @@ void EditorManager::DrawWelcomeScreen() {
     ImGui::Text("Get Started:");
     ImGui::Spacing();
     
-    // Stylish primary buttons with hover effects
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.9f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.6f, 1.0f, 0.9f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.4f, 0.8f, 1.0f));
+    // Themed primary buttons with enhanced effects
+    auto current_theme = theme_manager.GetCurrentTheme();
+    ImGui::PushStyleColor(ImGuiCol_Button, ConvertColorToImVec4(current_theme.primary));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ConvertColorToImVec4(current_theme.accent));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ConvertColorToImVec4(current_theme.secondary));
     
     if (ImGui::Button(ICON_MD_FILE_OPEN " Open ROM File", ImVec2(200, 40))) {
       status_ = LoadRom();

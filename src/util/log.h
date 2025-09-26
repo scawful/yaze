@@ -14,7 +14,12 @@
 namespace yaze {
 namespace util {
 
-static const std::string kLogFileOut = "yaze_log.txt";
+static std::string g_log_file_path = "yaze_log.txt";
+
+// Set custom log file path
+inline void SetLogFile(const std::string& filepath) {
+  g_log_file_path = filepath;
+}
 
 template <typename... Args>
 static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
@@ -29,8 +34,20 @@ static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
   if (core::FeatureFlags::get().kLogToConsole) {
     std::cout << message;
   }
-  static std::ofstream fout(kLogFileOut, std::ios::out | std::ios::app);
+  
+  // Use the configurable log file path
+  static std::ofstream fout;
+  static std::string last_log_path = "";
+  
+  // Reopen file if path changed
+  if (g_log_file_path != last_log_path) {
+    fout.close();
+    fout.open(g_log_file_path, std::ios::out | std::ios::app);
+    last_log_path = g_log_file_path;
+  }
+  
   fout << message;
+  fout.flush(); // Ensure immediate write for debugging
 }
 
 }  // namespace util

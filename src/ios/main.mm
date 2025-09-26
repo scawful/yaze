@@ -128,6 +128,8 @@
 }
 
 - (void)drawInMTKView:(MTKView *)view {
+  if (!_controller->active()) return;
+
   ImGuiIO &io = ImGui::GetIO();
   io.DisplaySize.x = view.bounds.size.width;
   io.DisplaySize.y = view.bounds.size.height;
@@ -235,6 +237,9 @@
   ImGuiIO &io = ImGui::GetIO();
   io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
   io.AddMouseWheelEvent(0.0f, gesture.scale);
+  UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
+  io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
+                      [gestureRecognizer locationInView:self.view].y);
 }
 
 - (void)HandleSwipe:(UISwipeGestureRecognizer *)gesture {
@@ -245,12 +250,18 @@
   } else if (gesture.direction == UISwipeGestureRecognizerDirectionLeft) {
     io.AddMouseWheelEvent(-1.0f, 0.0f);  // Swipe Left
   }
+  UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
+  io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
+                      [gestureRecognizer locationInView:self.view].y);
 }
 
 - (void)handleLongPress:(UILongPressGestureRecognizer *)gesture {
   ImGuiIO &io = ImGui::GetIO();
   io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
   io.AddMouseButtonEvent(1, gesture.state == UIGestureRecognizerStateBegan);
+  UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
+  io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
+                      [gestureRecognizer locationInView:self.view].y);
 }
 
 #endif

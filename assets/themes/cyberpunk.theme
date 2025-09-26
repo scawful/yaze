@@ -1,0 +1,62 @@
+# Cyberpunk Theme
+# Neon-inspired futuristic theme
+name=Cyberpunk
+description=Neon-inspired futuristic theme
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors (neon cyberpunk)
+primary=255,20,147,255
+secondary=0,255,255,255
+accent=255,0,128,255
+background=10,10,20,255
+surface=20,20,40,255
+
+# Status colors
+error=255,50,100,255
+warning=255,255,0,255
+success=0,255,100,255
+info=100,200,255,255
+
+# Text colors
+text_primary=255,255,255,255
+text_secondary=200,200,255,255
+text_disabled=100,100,150,255
+
+# Window colors
+window_bg=15,15,30,240
+child_bg=10,10,25,200
+popup_bg=20,20,40,250
+
+# Interactive elements
+button=40,20,60,255
+button_hovered=120,20,120,255
+button_active=160,40,160,255
+frame_bg=30,30,50,255
+frame_bg_hovered=40,40,70,255
+frame_bg_active=60,20,80,255
+
+# Navigation
+header=30,10,50,255
+header_hovered=80,20,100,255
+header_active=120,40,140,255
+tab=25,15,45,255
+tab_hovered=60,30,80,255
+tab_active=100,20,120,255
+menu_bar_bg=20,10,40,255
+title_bg=25,15,45,255
+title_bg_active=30,10,50,255
+title_bg_collapsed=25,15,45,255
+
+[style]
+window_rounding=10.0
+frame_rounding=8.0
+scrollbar_rounding=10.0
+grab_rounding=6.0
+tab_rounding=6.0
+window_border_size=1.0
+frame_border_size=1.0
+enable_animations=true
+enable_glow_effects=true
+animation_speed=1.5

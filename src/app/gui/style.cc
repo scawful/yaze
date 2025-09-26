@@ -1,6 +1,8 @@
 #include "style.h"
 
 #include "app/core/platform/file_dialog.h"
+#include "app/gui/theme_manager.h"
+#include "app/gui/background_renderer.h"
 #include "core/platform/font_loader.h"
 #include "gui/color.h"
 #include "imgui/imgui.h"
@@ -408,6 +410,68 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
 
   ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
 
+  // Enhanced theme selector
+  auto& theme_manager = ThemeManager::Get();
+  static bool show_theme_selector = false;
+  
+  ImGui::Text("Theme Selection:");
+  
+  // Add special "Classic YAZE" option first
+  std::string current_display_name = theme_manager.GetCurrentTheme().name;
+  if (current_display_name == "Classic YAZE") {
+    current_display_name = "Classic YAZE (Original)";
+  }
+  
+  if (ImGui::BeginCombo("##ThemeSelector", current_display_name.c_str())) {
+    // Classic YAZE option (direct ColorsYaze() function)
+    bool is_classic_selected = (theme_manager.GetCurrentTheme().name == "Classic YAZE");
+    if (ImGui::Selectable("Classic YAZE (Original)", is_classic_selected)) {
+      theme_manager.ApplyClassicYazeTheme();
+      ref_saved_style = style; // Update reference when theme changes
+    }
+    if (is_classic_selected) {
+      ImGui::SetItemDefaultFocus();
+    }
+    
+    ImGui::Separator();
+    
+    // File-based themes (sorted)
+    auto available_themes = theme_manager.GetAvailableThemes();
+    std::sort(available_themes.begin(), available_themes.end());
+    
+    for (const auto& theme_name : available_themes) {
+      bool is_selected = (theme_name == theme_manager.GetCurrentTheme().name);
+      if (ImGui::Selectable(theme_name.c_str(), is_selected)) {
+        auto status = theme_manager.LoadTheme(theme_name); // Use LoadTheme for consistency
+        if (!status.ok()) {
+          // Could show error message to user here
+        }
+        ref_saved_style = style; // Update reference when theme changes
+      }
+      if (is_selected) {
+        ImGui::SetItemDefaultFocus();
+      }
+    }
+    ImGui::EndCombo();
+  }
+  
+  ImGui::SameLine();
+  if (ImGui::Button("Theme Settings")) {
+    show_theme_selector = true;
+  }
+  
+  if (show_theme_selector) {
+    theme_manager.ShowThemeSelector(&show_theme_selector);
+  }
+  
+  ImGui::Separator();
+  
+  // Background effects settings
+  auto& bg_renderer = gui::BackgroundRenderer::Get();
+  bg_renderer.DrawSettingsUI();
+  
+  ImGui::Separator();
+  
   if (ImGui::ShowStyleSelector("Colors##Selector")) ref_saved_style = style;
   ImGui::ShowFontSelector("Fonts##Selector");
 

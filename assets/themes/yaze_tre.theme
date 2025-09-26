@@ -1,0 +1,92 @@
+# YAZE Tre Theme
+# Theme resource edition based on original ColorsYaze() function
+name=YAZE Tre
+description=YAZE theme resource edition (file-based)
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors (exact ALTTP colors from original code)
+primary=92,115,92,255           # 0.36f, 0.45f, 0.36f - allttpLightGreen
+secondary=71,92,71,255          # 0.28f, 0.36f, 0.28f - alttpMidGreen
+accent=89,119,89,255            # 0.347f, 0.466f, 0.347f - TabActive exact
+background=8,8,8,255            # Very dark gray for better grid visibility
+surface=12,12,12,255            # Slightly lighter dark gray surface
+
+# Status colors
+error=220,50,47,255
+warning=255,193,7,255
+success=92,115,92,255
+info=52,152,219,255
+
+# Text colors (exact from original)
+text_primary=230,230,230,255    # 0.90f, 0.90f, 0.90f
+text_secondary=180,180,180,255
+text_disabled=153,153,153,255   # 0.60f, 0.60f, 0.60f
+
+# Window colors (exact from original)
+window_bg=8,8,8,217             # Very dark gray with same alpha
+child_bg=0,0,0,0                # 0.00f, 0.00f, 0.00f, 0.00f - transparent
+popup_bg=28,28,36,235           # 0.11f, 0.11f, 0.14f, 0.92f
+
+# Interactive elements (exact from original)
+button=71,92,71,255             # alttpMidGreen
+button_hovered=125,145,125,255  # allttpLightestGreen (exact)
+button_active=92,115,92,255     # allttpLightGreen
+frame_bg=110,110,110,99         # 0.43f, 0.43f, 0.43f, 0.39f
+frame_bg_hovered=71,92,71,102   # 0.28f, 0.36f, 0.28f, 0.40f
+frame_bg_active=71,92,71,176    # 0.28f, 0.36f, 0.28f, 0.69f
+
+# Navigation (exact from original)
+header=46,66,46,255             # alttpDarkGreen
+header_hovered=92,115,92,255    # allttpLightGreen
+header_active=71,92,71,255      # alttpMidGreen
+tab=46,66,46,255                # alttpDarkGreen
+tab_hovered=71,92,71,255        # alttpMidGreen
+tab_active=89,119,89,255        # TabActive exact color
+menu_bar_bg=46,66,46,255        # alttpDarkGreen
+title_bg=71,92,71,255           # alttpMidGreen
+title_bg_active=46,66,46,255    # alttpDarkGreen
+title_bg_collapsed=71,92,71,255 # alttpMidGreen
+
+# Borders and separators (exact from original)
+border=92,115,92,255            # allttpLightGreen
+border_shadow=0,0,0,0           # No shadow in original
+separator=127,127,127,153       # 0.50f, 0.50f, 0.50f, 0.60f
+separator_hovered=153,153,178,255 # 0.60f, 0.60f, 0.70f
+separator_active=178,178,230,255  # 0.70f, 0.70f, 0.90f
+
+# Scrollbars (exact from original)
+scrollbar_bg=92,115,92,153      # 0.36f, 0.45f, 0.36f, 0.60f
+scrollbar_grab=92,115,92,76     # 0.36f, 0.45f, 0.36f, 0.30f (exact)
+scrollbar_grab_hovered=92,115,92,102 # 0.36f, 0.45f, 0.36f, 0.40f
+scrollbar_grab_active=92,115,92,153  # 0.36f, 0.45f, 0.36f, 0.60f
+
+# Resize grips (exact from original - these are light blue, not white!)
+resize_grip=255,255,255,26      # 1.00f, 1.00f, 1.00f, 0.10f
+resize_grip_hovered=199,209,255,153 # 0.78f, 0.82f, 1.00f, 0.60f (light blue!)
+resize_grip_active=199,209,255,230  # 0.78f, 0.82f, 1.00f, 0.90f (light blue!)
+
+# Additional controls (missing from theme)
+check_mark=230,230,230,128      # 0.90f, 0.90f, 0.90f, 0.50f
+slider_grab=255,255,255,77      # 1.00f, 1.00f, 1.00f, 0.30f  
+slider_grab_active=92,115,92,153 # 0.36f, 0.45f, 0.36f, 0.60f
+
+# Table colors (from original)
+table_header_bg=46,66,46,255    # alttpDarkGreen
+table_border_strong=71,92,71,255 # alttpMidGreen
+table_border_light=66,66,71,255 # 0.26f, 0.26f, 0.28f
+table_row_bg=0,0,0,0            # Transparent
+table_row_bg_alt=255,255,255,18 # 1.00f, 1.00f, 1.00f, 0.07f
+
+[style]
+window_rounding=0.0
+frame_rounding=5.0
+scrollbar_rounding=5.0
+grab_rounding=3.0
+tab_rounding=0.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0

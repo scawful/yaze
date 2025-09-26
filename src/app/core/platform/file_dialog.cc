@@ -78,6 +78,19 @@ void SaveFile(const std::string &filename, const std::string &contents) {
   }
 }
 
+std::string GetResourcePath(const std::string &resource_path) {
+#ifdef __APPLE__
+#if TARGET_OS_IOS == 1
+  const std::string kBundlePath = GetBundleResourcePath();
+  return kBundlePath + resource_path;
+#else
+  return GetBundleResourcePath() + "Contents/Resources/" + resource_path;
+#endif
+#else
+  return resource_path;  // On Linux/Windows, resources are relative to executable
+#endif
+}
+
 std::string GetConfigDirectory() {
   std::string config_directory = ".yaze";
   Platform platform;

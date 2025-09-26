@@ -123,6 +123,10 @@ endif()
 include(cmake/imgui.cmake)
 
 # Project Files
+# Copy theme files to build directory
+file(GLOB THEME_FILES "${CMAKE_SOURCE_DIR}/assets/themes/*.theme")
+file(COPY ${THEME_FILES} DESTINATION "${CMAKE_BINARY_DIR}/assets/themes/")
+
 add_subdirectory(src)
 
 # Tests
