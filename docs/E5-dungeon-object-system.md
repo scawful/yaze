@@ -1,8 +1,8 @@
-# YAZE Dungeon Object System
+# Dungeon Object System
 
 ## Overview
 
-The YAZE Dungeon Object System provides a comprehensive framework for editing and managing dungeon rooms, objects, and layouts in The Legend of Zelda: A Link to the Past. This system combines real-time visual editing with precise data manipulation to create a powerful dungeon creation and modification toolkit.
+The Dungeon Object System provides a comprehensive framework for editing and managing dungeon rooms, objects, and layouts in The Legend of Zelda: A Link to the Past. This system combines real-time visual editing with precise data manipulation to create a powerful dungeon creation and modification toolkit.
 
 ## Architecture
 
