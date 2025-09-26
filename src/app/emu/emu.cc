@@ -107,8 +107,8 @@ int main(int argc, char **argv) {
   if (rom_.is_loaded()) {
     rom_data_ = rom_.vector();
     snes_.Init(rom_data_);
-    wanted_frames_ = 1.0 / (snes_.Memory().pal_timing() ? 50.0 : 60.0);
-    wanted_samples_ = 48000 / (snes_.Memory().pal_timing() ? 50 : 60);
+    wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
+    wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
     loaded = true;
   }
 
@@ -120,8 +120,8 @@ int main(int argc, char **argv) {
           if (rom_.is_loaded()) {
             rom_data_ = rom_.vector();
             snes_.Init(rom_data_);
-            wanted_frames_ = 1.0 / (snes_.Memory().pal_timing() ? 50.0 : 60.0);
-            wanted_samples_ = 48000 / (snes_.Memory().pal_timing() ? 50 : 60);
+            wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
+            wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
             loaded = true;
           }
           SDL_free(event.drop.file);
