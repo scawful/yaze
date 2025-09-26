@@ -5,7 +5,9 @@
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
 #include "app/core/controller.h"
+#include "app/core/features.h"
 #include "util/flag.h"
+#include "util/log.h"
 
 /**
  * @namespace yaze
@@ -13,7 +15,10 @@
  */
 using namespace yaze;
 
+// Enhanced flags for debugging
 DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
+DEFINE_FLAG(std::string, log_file, "", "Output log file path for debugging.");
+DEFINE_FLAG(bool, debug, false, "Enable debug logging and verbose output.");
 
 int main(int argc, char **argv) {
   absl::InitializeSymbolizer(argv[0]);
@@ -30,8 +35,22 @@ int main(int argc, char **argv) {
   options.writerfn =
       nullptr;  // Use default writer to avoid custom handling issues
   absl::InstallFailureSignalHandler(options);
+  
+  // Parse command line flags with custom parser
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
   RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
+  
+  // Set up logging and debug flags (using custom flag system)
+  if (!FLAGS_log_file->Get().empty()) {
+    yaze::util::SetLogFile(FLAGS_log_file->Get());
+  }
+  
+  // Enable debugging if requested
+  if (FLAGS_debug->Get()) {
+    yaze::core::FeatureFlags::get().kLogToConsole = true;
+    yaze::util::logf("🚀 YAZE started in debug mode");
+  }
+  
   std::string rom_filename = "";
   if (!FLAGS_rom_file->Get().empty()) {
     rom_filename = FLAGS_rom_file->Get();

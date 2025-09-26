@@ -1,0 +1,73 @@
+# Midnight Theme
+# Enhanced midnight theme with better readability
+name=Midnight
+description=Deep blue midnight theme with enhanced readability
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors (enhanced midnight with better contrast)
+primary=100,160,230,255         # Brighter blue
+secondary=70,120,180,255        # Mid blue
+accent=140,200,255,255          # Light blue accent
+background=10,15,25,255         # Darker background for contrast
+surface=20,25,35,255
+
+# Status colors
+error=255,120,120,255
+warning=255,220,120,255
+success=120,255,180,255
+info=140,200,255,255
+
+# Text colors (enhanced for readability)
+text_primary=245,250,255,255    # Very light blue-white
+text_secondary=200,220,240,255  # Light blue tint
+text_disabled=140,160,180,255   # Brighter disabled text
+
+# Window colors (better contrast)
+window_bg=15,20,30,240
+child_bg=10,15,25,200
+popup_bg=20,25,35,250
+
+# Interactive elements (better visibility)
+button=50,80,120,255
+button_hovered=80,120,160,255
+button_active=110,150,190,255
+frame_bg=30,45,65,200
+frame_bg_hovered=40,60,85,220
+frame_bg_active=60,90,130,240
+
+# Navigation (better contrast)
+header=40,65,100,255
+header_hovered=70,110,150,255
+header_active=100,140,180,255
+tab=30,55,90,255
+tab_hovered=50,80,120,255
+tab_active=70,110,150,255
+menu_bar_bg=25,50,85,255
+title_bg=35,60,95,255
+title_bg_active=40,65,100,255
+title_bg_collapsed=30,55,90,255
+
+# Separators (better visibility)
+separator=100,140,180,180
+separator_hovered=130,170,210,220
+separator_active=160,200,240,255
+
+# Scrollbars (better visibility)
+scrollbar_bg=30,45,65,180
+scrollbar_grab=70,110,150,200
+scrollbar_grab_hovered=100,140,180,230
+scrollbar_grab_active=130,170,210,255
+
+[style]
+window_rounding=8.0
+frame_rounding=6.0
+scrollbar_rounding=8.0
+grab_rounding=4.0
+tab_rounding=6.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=true
+animation_speed=1.2
