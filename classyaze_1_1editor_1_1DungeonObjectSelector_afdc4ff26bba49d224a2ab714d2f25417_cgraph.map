@@ -1,12 +1,7 @@
 <map id="yaze::editor::DungeonObjectSelector::DrawObjectBrowser" name="yaze::editor::DungeonObjectSelector::DrawObjectBrowser">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,51,197,91"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="245,21,408,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,53,229,47,230,52,197,58"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="258,79,394,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="197,80,244,86,243,91,196,86"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#ac8762d7ca064094faf9603be575caf07" title=" " alt="" coords="456,5,592,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="408,28,440,26,440,32,408,33"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="462,95,586,135"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="395,102,447,106,447,111,395,107"/>
-<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="487,95,485,85,491,76,504,70,524,68,546,70,559,77,556,81,544,76,524,73,505,75,494,80,490,86,492,93"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,197,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#a22177108991ab3a7afe2a23bb8a4b468" title=" " alt="" coords="251,5,444,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,43,235,38,236,43,198,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#a585482153e4cc102743fec85955be0ad" title=" " alt="" coords="245,71,450,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="198,69,229,73,229,78,197,74"/>
 </map>

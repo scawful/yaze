@@ -1,0 +1,11 @@
+<map id="test/dungeon_component_unit_test.cc" name="test/dungeon_component_unit_test.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="134,5,301,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,102,99,127"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,49,90,96,87,92,179,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="122,102,190,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,48,175,91,171,88,201,45"/>
+<area shape="rect" id="Node000004" href="$dungeon__toolset_8h.html" title=" " alt="" coords="214,94,346,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="234,45,259,80,255,83,229,48"/>
+<area shape="rect" id="Node000008" href="$dungeon__usage__tracker_8h.html" title=" " alt="" coords="369,94,543,135"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="272,44,388,86,387,91,271,49"/>
+</map>

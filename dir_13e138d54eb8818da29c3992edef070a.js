@@ -7,6 +7,7 @@ var dir_13e138d54eb8818da29c3992edef070a =
     [ "integration", "dir_bbf9f1b56ba6c621651be8934a24eced.html", "dir_bbf9f1b56ba6c621651be8934a24eced" ],
     [ "mocks", "dir_cdf6d930f2dcd230c29757233293cb63.html", "dir_cdf6d930f2dcd230c29757233293cb63" ],
     [ "zelda3", "dir_eaa1b733378fb3b1395357d81d39f62b.html", "dir_eaa1b733378fb3b1395357d81d39f62b" ],
+    [ "dungeon_component_unit_test.cc", "dungeon__component__unit__test_8cc.html", "dungeon__component__unit__test_8cc" ],
     [ "hex_test.cc", "hex__test_8cc.html", "hex__test_8cc" ],
     [ "rom_test.cc", "rom__test_8cc.html", "rom__test_8cc" ],
     [ "test_editor.cc", "test__editor_8cc.html", "test__editor_8cc" ],

@@ -1,0 +1,9 @@
+<map id="yaze::editor::DungeonCanvasViewer::RenderSprites" name="yaze::editor::DungeonCanvasViewer::RenderSprites">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,192,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Room.html#ab244664d49bb3675668265d369b1a3fc" title=" " alt="" coords="289,5,420,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,67,273,43,275,49,182,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1DungeonCanvasViewer.html#acee2e7d7b4e75a7009c33e6d4c0775b7" title=" " alt="" coords="253,71,456,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,88,238,88,238,94,192,94"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1DungeonCanvasViewer.html#a13fe086070d63616d7338f29fee19ecb" title=" " alt="" coords="240,136,469,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="182,109,258,129,257,134,180,115"/>
+</map>

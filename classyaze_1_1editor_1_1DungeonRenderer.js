@@ -4,7 +4,7 @@ var classyaze_1_1editor_1_1DungeonRenderer =
     [ "DungeonRenderer", "classyaze_1_1editor_1_1DungeonRenderer.html#aa47b9f15370587cee694f6fda4170d89", null ],
     [ "RenderObjectInCanvas", "classyaze_1_1editor_1_1DungeonRenderer.html#adf72eb44bf7da7768f3fd1f0e76f77da", null ],
     [ "DisplayObjectInfo", "classyaze_1_1editor_1_1DungeonRenderer.html#a3c907fccece64b18d37a2be9ba46a0a0", null ],
-    [ "RenderLayoutObjects", "classyaze_1_1editor_1_1DungeonRenderer.html#af1a9f36fb331dcd0d565c5ee55ccb2ef", null ],
+    [ "RenderSprites", "classyaze_1_1editor_1_1DungeonRenderer.html#a46947006a8d380f47196e7a63e59b130", null ],
     [ "RenderRoomBackgroundLayers", "classyaze_1_1editor_1_1DungeonRenderer.html#a9a98a436a8723d7e003d418eb3755ef6", null ],
     [ "RefreshGraphics", "classyaze_1_1editor_1_1DungeonRenderer.html#af6a80c05c5f0b857385d4b468307aeaa", null ],
     [ "LoadAndRenderRoomGraphics", "classyaze_1_1editor_1_1DungeonRenderer.html#af479372095af127f1169e60bfbeaa5ad", null ],

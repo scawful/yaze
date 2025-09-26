@@ -138,7 +138,7 @@ var searchData=
   ['placement_5ftype_135',['placement_type',['../classyaze_1_1editor_1_1DungeonToolset.html#a6d271b966c263928162467c4741ea47d',1,'yaze::editor::DungeonToolset']]],
   ['placement_5ftype_5f_136',['placement_type_',['../classyaze_1_1editor_1_1DungeonToolset.html#aecd873aed56e896f55c1fac226de9c27',1,'yaze::editor::DungeonToolset']]],
   ['placementtype_137',['PlacementType',['../classyaze_1_1editor_1_1DungeonToolset.html#ac9170fbc1d88691828b594c519f8ad40',1,'yaze::editor::DungeonToolset']]],
-  ['placeobjectatposition_138',['PlaceObjectAtPosition',['../classyaze_1_1editor_1_1DungeonObjectInteraction.html#a58d4c1048c8358de2ace2278bb1a14ba',1,'yaze::editor::DungeonObjectInteraction']]],
+  ['placeobjectatposition_138',['PlaceObjectAtPosition',['../classyaze_1_1editor_1_1DungeonObjectInteraction.html#a58d4c1048c8358de2ace2278bb1a14ba',1,'yaze::editor::DungeonObjectInteraction::PlaceObjectAtPosition()'],['../classyaze_1_1editor_1_1DungeonObjectSelector.html#a3137d1466b84f0fefc457673fae71a9e',1,'yaze::editor::DungeonObjectSelector::PlaceObjectAtPosition()']]],
   ['plan_139',['Dungeon Editor Design Plan',['../md_docs_2dungeon-editor-design-plan.html',1,'']]],
   ['planned_20features_140',['Planned Features',['../md_docs_2dungeon-editor-comprehensive-guide.html#autotoc_md150',1,'Planned Features'],['../md_docs_2dungeon-object-system.html#autotoc_md249',1,'Planned Features']]],
   ['planned_20for_200_204_20x_141',['⏳ Planned for 0.4.X',['../md_docs_2index.html#autotoc_md274',1,'']]],
