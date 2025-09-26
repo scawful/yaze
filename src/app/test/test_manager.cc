@@ -16,7 +16,7 @@ class EditorManager;
 }
 }
 
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_engine.h"
 #endif
 
@@ -64,19 +64,19 @@ TestManager& TestManager::Get() {
 }
 
 TestManager::TestManager() {
-  // Initialize UI test engine
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
+// Initialize UI test engine
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   InitializeUITesting();
 #endif
 }
 
 TestManager::~TestManager() {
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ShutdownUITesting();
 #endif
 }
 
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 void TestManager::InitializeUITesting() {
   if (!ui_test_engine_) {
     ui_test_engine_ = ImGuiTestEngine_CreateContext();
