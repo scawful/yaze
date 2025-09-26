@@ -80,18 +80,21 @@ void SaveFile(const std::string &filename, const std::string &contents) {
 
 std::string GetConfigDirectory() {
   std::string config_directory = ".yaze";
+  Platform platform;
 #if defined(__APPLE__) && defined(__MACH__)
 #if TARGET_IPHONE_SIMULATOR == 1 || TARGET_OS_IPHONE == 1
-  Platform platform = Platform::kiOS;
+  platform = Platform::kiOS;
 #elif TARGET_OS_MAC == 1
-  Platform platform = Platform::kMacOS;
+  platform = Platform::kMacOS;
+#else
+  platform = Platform::kMacOS; // Default for macOS
 #endif
 #elif defined(_WIN32)
-  Platform platform = Platform::kWindows;
+  platform = Platform::kWindows;
 #elif defined(__linux__)
-  Platform platform = Platform::kLinux;
+  platform = Platform::kLinux;
 #else
-  Platform platform = Platform::kUnknown;
+  platform = Platform::kUnknown;
 #endif
   switch (platform) {
     case Platform::kWindows:
