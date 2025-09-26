@@ -219,7 +219,7 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
 
 #elif defined(__linux__)
 
-#ifdef YAZE_ENABLE_NFD
+#if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
 #include <nfd.h>
 #endif
 
@@ -233,17 +233,17 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
 }
 
 std::string FileDialogWrapper::ShowOpenFileDialogNFD() {
-#ifdef YAZE_ENABLE_NFD
+#if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
   NFD_Init();
   nfdu8char_t *out_path = NULL;
-  nfdu8filter_item_t filters[1] = {{"Rom File", "sfc,smc"}};
+  nfdu8filteritem_t filters[1] = {{"Rom File", "sfc,smc"}};
   nfdopendialogu8args_t args = {0};
   args.filterList = filters;
   args.filterCount = 1;
   nfdresult_t result = NFD_OpenDialogU8_With(&out_path, &args);
   if (result == NFD_OKAY) {
     std::string file_path_linux(out_path);
-    NFD_Free(out_path);
+    NFD_FreePath(out_path);
     NFD_Quit();
     return file_path_linux;
   } else if (result == NFD_CANCEL) {
@@ -274,13 +274,13 @@ std::string FileDialogWrapper::ShowOpenFolderDialog() {
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialogNFD() {
-#ifdef YAZE_ENABLE_NFD
+#if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
   NFD_Init();
   nfdu8char_t *out_path = NULL;
-  nfdresult_t result = NFD_PickFolderU8(&out_path);
+  nfdresult_t result = NFD_PickFolderU8(&out_path, NULL);
   if (result == NFD_OKAY) {
     std::string folder_path_linux(out_path);
-    NFD_Free(out_path);
+    NFD_FreePath(out_path);
     NFD_Quit();
     return folder_path_linux;
   } else if (result == NFD_CANCEL) {
