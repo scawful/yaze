@@ -138,6 +138,12 @@ public:
   absl::Status LoadThemeFromFile(const std::string& filepath);
   absl::Status SaveThemeToFile(const EnhancedTheme& theme, const std::string& filepath) const;
   
+  // Dynamic theme discovery - replaces hardcoded theme lists with automatic discovery
+  // This works across development builds, macOS app bundles, and other deployment scenarios
+  std::vector<std::string> DiscoverAvailableThemeFiles() const;
+  absl::Status LoadAllAvailableThemes();
+  absl::Status RefreshAvailableThemes(); // Public method to refresh at runtime
+  
   // Built-in themes
   void InitializeBuiltInThemes();
   std::vector<std::string> GetAvailableThemes() const;
@@ -171,6 +177,10 @@ private:
   absl::Status ParseThemeFile(const std::string& content, EnhancedTheme& theme);
   Color ParseColorFromString(const std::string& color_str) const;
   std::string SerializeTheme(const EnhancedTheme& theme) const;
+  
+  // Helper methods for path resolution
+  std::vector<std::string> GetThemeSearchPaths() const;
+  std::string GetThemesDirectory() const;
 };
 
 } // namespace gui

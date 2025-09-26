@@ -32,6 +32,10 @@ set(YAZE_RESOURCE_FILES
   ${CMAKE_SOURCE_DIR}/assets/font/MaterialIcons-Regular.ttf
 )
 
+# Add theme files for macOS bundle (replacing the glob pattern with explicit files)
+file(GLOB YAZE_THEME_FILES "${CMAKE_SOURCE_DIR}/assets/themes/*.theme")
+list(APPEND YAZE_RESOURCE_FILES ${YAZE_THEME_FILES})
+
 foreach (FILE ${YAZE_RESOURCE_FILES})
   file(RELATIVE_PATH NEW_FILE "${CMAKE_SOURCE_DIR}/assets" ${FILE})
   get_filename_component(NEW_FILE_PATH ${NEW_FILE} DIRECTORY)
