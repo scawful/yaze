@@ -38,6 +38,7 @@ add_executable(
   emu/audio/apu_test.cc
   emu/audio/ipl_handshake_test.cc
   integration/dungeon_editor_test.cc
+  dungeon_component_unit_test.cc
   integration/asar_integration_test.cc
   integration/asar_rom_test.cc
   zelda3/object_parser_test.cc
