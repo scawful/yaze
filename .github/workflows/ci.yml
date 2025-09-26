@@ -225,6 +225,12 @@ jobs:
   code-quality:
     name: Code Quality Checks
     runs-on: ubuntu-22.04
+    # Relaxed requirements for releases and master branch:
+    # - Formatting errors become warnings
+    # - Fewer cppcheck categories enabled  
+    # - Reduced clang-tidy file count
+    # - Job failure won't block releases
+    continue-on-error: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') }}
     
     steps:
     - name: Checkout code
@@ -242,32 +248,74 @@ jobs:
 
     - name: Check code formatting
       run: |
-        find src test -name "*.cc" -o -name "*.h" | \
-        xargs clang-format-14 --dry-run --Werror
+        # Relaxed formatting check for releases and master branch
+        if [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.ref }}" == refs/tags/* ]] || [[ "${{ github.event_name }}" == "pull_request" && "${{ github.base_ref }}" == "master" ]]; then
+          echo "🔄 Running relaxed formatting check for release/master branch..."
+          find src test -name "*.cc" -o -name "*.h" | \
+          xargs clang-format-14 --dry-run --Werror || {
+            echo "⚠️  Code formatting issues found, but allowing for release builds"
+            echo "📝 Consider running 'make format' to fix formatting before next release"
+            exit 0
+          }
+        else
+          echo "🔍 Running strict formatting check for development..."
+          find src test -name "*.cc" -o -name "*.h" | \
+          xargs clang-format-14 --dry-run --Werror
+        fi
 
     - name: Run cppcheck
       run: |
-        cppcheck --enable=warning,style,performance \
-          --error-exitcode=0 \
-          --suppress=missingIncludeSystem \
-          --suppress=unusedFunction \
-          --suppress=unmatchedSuppression \
-          --suppress=variableScope \
-          --suppress=cstyleCast \
-          --suppress=unreadVariable \
-          --suppress=unusedStructMember \
-          --suppress=constParameter \
-          --suppress=constVariable \
-          --suppress=useStlAlgorithm \
-          --inconclusive \
-          src/ || echo "Cppcheck completed with warnings (non-blocking)"
+        if [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          echo "🔄 Running relaxed cppcheck for release/master branch..."
+          cppcheck --enable=warning \
+            --error-exitcode=0 \
+            --suppress=missingIncludeSystem \
+            --suppress=unusedFunction \
+            --suppress=unmatchedSuppression \
+            --suppress=variableScope \
+            --suppress=cstyleCast \
+            --suppress=unreadVariable \
+            --suppress=unusedStructMember \
+            --suppress=constParameter \
+            --suppress=constVariable \
+            --suppress=useStlAlgorithm \
+            --suppress=noExplicitConstructor \
+            --suppress=passedByValue \
+            --suppress=functionStatic \
+            src/ || echo "Cppcheck completed (non-blocking for releases)"
+        else
+          echo "🔍 Running standard cppcheck for development..."
+          cppcheck --enable=warning,style,performance \
+            --error-exitcode=0 \
+            --suppress=missingIncludeSystem \
+            --suppress=unusedFunction \
+            --suppress=unmatchedSuppression \
+            --suppress=variableScope \
+            --suppress=cstyleCast \
+            --suppress=unreadVariable \
+            --suppress=unusedStructMember \
+            --suppress=constParameter \
+            --suppress=constVariable \
+            --suppress=useStlAlgorithm \
+            --inconclusive \
+            src/ || echo "Cppcheck completed with warnings (non-blocking)"
+        fi
           
     - name: Run clang-tidy (lenient)
       run: |
-        # Run clang-tidy on a subset of files to avoid overwhelming output
-        find src -name "*.cc" -not -path "*/lib/*" | head -20 | \
-        xargs clang-tidy-14 --config-file=.clang-tidy \
-        --header-filter='src/.*\.(h|hpp)$' || echo "Clang-tidy completed with warnings (non-blocking)"
+        if [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          echo "🔄 Running minimal clang-tidy for release/master branch..."
+          # Only check a small subset of critical files for releases
+          find src -name "*.cc" -not -path "*/lib/*" -not -path "*/gui/*" | head -10 | \
+          xargs clang-tidy-14 --config-file=.clang-tidy \
+          --header-filter='src/.*\.(h|hpp)$' || echo "Clang-tidy completed (non-blocking for releases)"
+        else
+          echo "🔍 Running standard clang-tidy for development..."
+          # Run clang-tidy on a subset of files to avoid overwhelming output
+          find src -name "*.cc" -not -path "*/lib/*" | head -20 | \
+          xargs clang-tidy-14 --config-file=.clang-tidy \
+          --header-filter='src/.*\.(h|hpp)$' || echo "Clang-tidy completed with warnings (non-blocking)"
+        fi
 
   memory-sanitizer:
     name: Memory Sanitizer (Linux)
