@@ -31,64 +31,12 @@ jobs:
     - name: Generate release notes
       id: release_notes
       run: |
-        # Generate changelog from commits since last tag
-        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-        if [ -z "$LAST_TAG" ]; then
-          CHANGES=$(git log --pretty=format:"- %s" HEAD)
-        else
-          CHANGES=$(git log --pretty=format:"- %s" ${LAST_TAG}..HEAD)
-        fi
+        # Extract release version from tag
+        VERSION="${{ github.ref_name || github.event.inputs.tag }}"
+        VERSION_NUM=$(echo "$VERSION" | sed 's/^v//')
         
-        cat > release_notes.md << EOF
-        # Yaze v0.3.0 Release Notes
-        
-        ## New Features
-        - **Asar 65816 Assembler Integration**: Full cross-platform support for ROM patching with assembly code
-        - **Symbol Extraction**: Extract symbol names and opcodes from assembly files
-        - **ZSCustomOverworld v3 Support**: Enhanced overworld editing capabilities
-        - **Message Editing**: Improved text editing interface
-        - **GUI Docking**: Enhanced docking system for better workflow
-        - **Modern CMake Build System**: Updated to CMake 3.16+ with improved cross-platform support
-        
-        ## Improvements
-        - Enhanced cross-platform compatibility (Windows, macOS, Linux)
-        - Modernized CI/CD pipeline with comprehensive testing
-        - Improved error handling and logging
-        - Better memory management and performance optimizations
-        
-        ## Bug Fixes
-        - Fixed Asar integration issues across different platforms
-        - Resolved build system inconsistencies
-        - Improved stability and reliability
-        
-        ## Technical Changes
-        $CHANGES
-        
-        ## Download Instructions
-        
-        ### Windows
-        - Download \`yaze-windows-x64.zip\` for 64-bit Windows
-        - Download \`yaze-windows-x86.zip\` for 32-bit Windows
-        - Extract and run \`yaze.exe\`
-        
-        ### macOS
-        - Download \`yaze-macos.dmg\` 
-        - Mount the DMG and drag Yaze to Applications
-        - You may need to allow the app in System Preferences > Security & Privacy
-        
-        ### Linux
-        - Download \`yaze-linux-x64.tar.gz\`
-        - Extract: \`tar -xzf yaze-linux-x64.tar.gz\`
-        - Run: \`./yaze\`
-        
-        ## System Requirements
-        - **Windows**: Windows 10 or later (64-bit recommended)
-        - **macOS**: macOS 10.15 (Catalina) or later
-        - **Linux**: Ubuntu 20.04 or equivalent, with X11 or Wayland
-        
-        ## Support
-        For issues and questions, please visit our [GitHub Issues](https://github.com/scawful/yaze/issues) page.
-        EOF
+        # Generate release notes using the dedicated script
+        python3 scripts/extract_changelog.py "$VERSION_NUM" > release_notes.md
 
     - name: Create Release
       id: create_release
