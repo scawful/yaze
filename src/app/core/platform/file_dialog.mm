@@ -75,18 +75,6 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogBespoke() {
   [openPanel setCanChooseDirectories:NO];
   [openPanel setAllowsMultipleSelection:NO];
   
-  // Use modern allowedContentTypes for macOS 12.0+ compatibility
-  if (@available(macOS 12.0, *)) {
-    [openPanel setAllowedContentTypes:@[
-      [UTType typeWithFilenameExtension:@"sfc"],
-      [UTType typeWithFilenameExtension:@"smc"], 
-      [UTType typeWithFilenameExtension:@"yaze"]
-    ]];
-  } else {
-    // Fallback for older macOS versions
-    [openPanel setAllowedFileTypes:@[ @"sfc", @"smc", @"yaze" ]];
-  }
-
   if ([openPanel runModal] == NSModalResponseOK) {
     NSURL* url = [[openPanel URLs] objectAtIndex:0];
     NSString* path = [url path];
