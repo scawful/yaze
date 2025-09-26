@@ -342,7 +342,7 @@ $(function(){initNavTree('file__dialog_8cc_source.html',''); initResizable(true)
 <div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span> </div>
 <div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span><span class="preprocessor">#elif defined(__linux__)</span></div>
 <div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span> </div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span><span class="preprocessor">#ifdef YAZE_ENABLE_NFD</span></div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span><span class="preprocessor">#if defined(YAZE_ENABLE_NFD) &amp;&amp; YAZE_ENABLE_NFD</span></div>
 <div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span><span class="preprocessor">#include &lt;nfd.h&gt;</span></div>
 <div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span> </div>
@@ -356,17 +356,17 @@ $(function(){initNavTree('file__dialog_8cc_source.html',''); initResizable(true)
 <div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>}</div>
 <div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span> </div>
 <div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>std::string <a class="code hl_function" href="classyaze_1_1core_1_1FileDialogWrapper.html#ac0c1fed7d3124cb09b6d54e9a388d0f3">FileDialogWrapper::ShowOpenFileDialogNFD</a>() {</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span><span class="preprocessor">#ifdef YAZE_ENABLE_NFD</span></div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span><span class="preprocessor">#if defined(YAZE_ENABLE_NFD) &amp;&amp; YAZE_ENABLE_NFD</span></div>
 <div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  NFD_Init();</div>
 <div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  nfdu8char_t *out_path = NULL;</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  nfdu8filter_item_t filters[1] = {{<span class="stringliteral">&quot;Rom File&quot;</span>, <span class="stringliteral">&quot;sfc,smc&quot;</span>}};</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  nfdu8filteritem_t filters[1] = {{<span class="stringliteral">&quot;Rom File&quot;</span>, <span class="stringliteral">&quot;sfc,smc&quot;</span>}};</div>
 <div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  nfdopendialogu8args_t args = {0};</div>
 <div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  args.filterList = filters;</div>
 <div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  args.filterCount = 1;</div>
 <div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>  nfdresult_t result = NFD_OpenDialogU8_With(&amp;out_path, &amp;args);</div>
 <div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  <span class="keywordflow">if</span> (result == NFD_OKAY) {</div>
 <div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    std::string file_path_linux(out_path);</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    NFD_Free(out_path);</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    NFD_FreePath(out_path);</div>
 <div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    NFD_Quit();</div>
 <div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    <span class="keywordflow">return</span> file_path_linux;</div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (result == NFD_CANCEL) {</div>
@@ -397,13 +397,13 @@ $(function(){initNavTree('file__dialog_8cc_source.html',''); initResizable(true)
 <div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>}</div>
 <div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span> </div>
 <div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>std::string <a class="code hl_function" href="classyaze_1_1core_1_1FileDialogWrapper.html#a3bcec6597bdb51e3e4464299ac10335e">FileDialogWrapper::ShowOpenFolderDialogNFD</a>() {</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span><span class="preprocessor">#ifdef YAZE_ENABLE_NFD</span></div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span><span class="preprocessor">#if defined(YAZE_ENABLE_NFD) &amp;&amp; YAZE_ENABLE_NFD</span></div>
 <div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>  NFD_Init();</div>
 <div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>  nfdu8char_t *out_path = NULL;</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>  nfdresult_t result = NFD_PickFolderU8(&amp;out_path);</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>  nfdresult_t result = NFD_PickFolderU8(&amp;out_path, NULL);</div>
 <div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>  <span class="keywordflow">if</span> (result == NFD_OKAY) {</div>
 <div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    std::string folder_path_linux(out_path);</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    NFD_Free(out_path);</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    NFD_FreePath(out_path);</div>
 <div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>    NFD_Quit();</div>
 <div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>    <span class="keywordflow">return</span> folder_path_linux;</div>
 <div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (result == NFD_CANCEL) {</div>

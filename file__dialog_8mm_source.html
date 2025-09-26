@@ -117,7 +117,7 @@ $(function(){initNavTree('file__dialog_8mm_source.html',''); initResizable(true)
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="features_8h.html">app/core/features.h</a>&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#ifdef YAZE_ENABLE_NFD</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#if defined(YAZE_ENABLE_NFD) &amp;&amp; YAZE_ENABLE_NFD</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;nfd.h&gt;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
@@ -218,7 +218,7 @@ $(function(){initNavTree('file__dialog_8mm_source.html',''); initResizable(true)
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span> </div>
 <div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span><span class="comment">// NFD implementation for macOS (fallback to bespoke if NFD not available)</span></div>
 <div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>std::string <a class="code hl_function" href="classyaze_1_1core_1_1FileDialogWrapper.html#ac0c1fed7d3124cb09b6d54e9a388d0f3">yaze::core::FileDialogWrapper::ShowOpenFileDialogNFD</a>() {</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span><span class="preprocessor">#ifdef YAZE_ENABLE_NFD</span></div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span><span class="preprocessor">#if defined(YAZE_ENABLE_NFD) &amp;&amp; YAZE_ENABLE_NFD</span></div>
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>  NFD_Init();</div>
 <div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  nfdu8char_t *out_path = NULL;</div>
 <div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>  nfdu8filteritem_t filters[1] = {{<span class="stringliteral">&quot;Rom File&quot;</span>, <span class="stringliteral">&quot;sfc,smc&quot;</span>}};</div>
@@ -245,7 +245,7 @@ $(function(){initNavTree('file__dialog_8mm_source.html',''); initResizable(true)
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>}</div>
 <div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
 <div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>std::string <a class="code hl_function" href="classyaze_1_1core_1_1FileDialogWrapper.html#a3bcec6597bdb51e3e4464299ac10335e">yaze::core::FileDialogWrapper::ShowOpenFolderDialogNFD</a>() {</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span><span class="preprocessor">#ifdef YAZE_ENABLE_NFD</span></div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span><span class="preprocessor">#if defined(YAZE_ENABLE_NFD) &amp;&amp; YAZE_ENABLE_NFD</span></div>
 <div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  NFD_Init();</div>
 <div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  nfdu8char_t *out_path = NULL;</div>
 <div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>  nfdresult_t result = NFD_PickFolderU8(&amp;out_path, NULL);</div>
