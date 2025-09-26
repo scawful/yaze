@@ -1,5 +1,7 @@
 var NAVTREEINDEX32 =
 {
+"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a8b449a11bd225d0ba823743124904b6caa075d0261593f6a884f416df38cb9696":[24,0,0,9,11,7,2],
+"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a8b449a11bd225d0ba823743124904b6caf3b589f6fb7e0e8ec524374ce03caef5":[23,0,3,9,16,7,3],
 "classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a8b449a11bd225d0ba823743124904b6caf3b589f6fb7e0e8ec524374ce03caef5":[24,0,0,9,11,7,3],
 "classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a8b449a11bd225d0ba823743124904b6caf4e3adac6b2931705cc593cf78ae23d7":[23,0,3,9,16,7,5],
 "classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a8b449a11bd225d0ba823743124904b6caf4e3adac6b2931705cc593cf78ae23d7":[24,0,0,9,11,7,5],
@@ -247,7 +249,5 @@ var NAVTREEINDEX32 =
 "classyaze_1_1zelda3_1_1MockRom.html#a9963c736a049df5d82802562b079b16e":[24,0,0,9,17,8],
 "classyaze_1_1zelda3_1_1MockRom.html#abffbf5d98d3247b4b0c209c5798088e5":[23,0,3,9,22,7],
 "classyaze_1_1zelda3_1_1MockRom.html#abffbf5d98d3247b4b0c209c5798088e5":[24,0,0,9,17,7],
-"classyaze_1_1zelda3_1_1MockRom.html#ad0567b787d900c6859162d36e4d7e740":[23,0,3,9,22,3],
-"classyaze_1_1zelda3_1_1MockRom.html#ad0567b787d900c6859162d36e4d7e740":[24,0,0,9,17,3],
-"classyaze_1_1zelda3_1_1MockRom.html#ad4e5fbfbcd4ec44a66d8d5f7b3ce473f":[23,0,3,9,22,1]
+"classyaze_1_1zelda3_1_1MockRom.html#ad0567b787d900c6859162d36e4d7e740":[23,0,3,9,22,3]
 };

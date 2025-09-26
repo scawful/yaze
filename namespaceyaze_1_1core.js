@@ -6,23 +6,39 @@ var namespaceyaze_1_1core =
       [ "AddIconFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a08b31e50b92a5dfc3a79a2910e83536c", null ],
       [ "AddJapaneseFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#ac68b7980e16adf40118f3d3634b4a8cb", null ]
     ] ],
+    [ "anonymous_namespace{project.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html", [
+      [ "ParseKeyValue", "namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#ad27d05709b9eec1a229aab08f178575c", null ],
+      [ "ParseBool", "namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#ab275661a03c76657529623faa3f23c55", null ],
+      [ "ParseFloat", "namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#a0369272ce2752af89286d11b1477d29c", null ],
+      [ "ParseStringList", "namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#a8990b1b4fa967540cf11979bcaec8a7d", null ]
+    ] ],
     [ "Controller", "classyaze_1_1core_1_1Controller.html", "classyaze_1_1core_1_1Controller" ],
     [ "FeatureFlags", "classyaze_1_1core_1_1FeatureFlags.html", "classyaze_1_1core_1_1FeatureFlags" ],
     [ "FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
     [ "FlagsMenu", "structyaze_1_1core_1_1FlagsMenu.html", "structyaze_1_1core_1_1FlagsMenu" ],
     [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
     [ "FontState", "structyaze_1_1core_1_1FontState.html", "structyaze_1_1core_1_1FontState" ],
+    [ "ProjectManager", "classyaze_1_1core_1_1ProjectManager.html", "classyaze_1_1core_1_1ProjectManager" ],
+    [ "ProjectMetadata", "structyaze_1_1core_1_1ProjectMetadata.html", "structyaze_1_1core_1_1ProjectMetadata" ],
+    [ "RecentFilesManager", "classyaze_1_1core_1_1RecentFilesManager.html", "classyaze_1_1core_1_1RecentFilesManager" ],
     [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
+    [ "ResourceLabelManager", "structyaze_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1core_1_1ResourceLabelManager" ],
     [ "SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", "structyaze_1_1core_1_1SDL__Deleter" ],
     [ "SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1core_1_1SDL__Surface__Deleter" ],
     [ "SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1core_1_1SDL__Texture__Deleter" ],
     [ "Window", "structyaze_1_1core_1_1Window.html", "structyaze_1_1core_1_1Window" ],
+    [ "WorkspaceSettings", "structyaze_1_1core_1_1WorkspaceSettings.html", "structyaze_1_1core_1_1WorkspaceSettings" ],
+    [ "YazeProject", "structyaze_1_1core_1_1YazeProject.html", "structyaze_1_1core_1_1YazeProject" ],
     [ "Platform", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648", [
       [ "kUnknown", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648a25c2dc47991b3df171ed5192bcf70390", null ],
       [ "kMacOS", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648ad4b84d921444ff96b6ed220a036f9a8a", null ],
       [ "kiOS", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648a693c2aebaf2fb12fb4dcc15732891b18", null ],
       [ "kWindows", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648aad547616982f990862d4e1213452c089", null ],
       [ "kLinux", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648ae3f917d82e495f1c002357925ca3047e", null ]
+    ] ],
+    [ "ProjectFormat", "namespaceyaze_1_1core.html#a1142e14777c50b720b0e9e102bff707e", [
+      [ "kYazeNative", "namespaceyaze_1_1core.html#a1142e14777c50b720b0e9e102bff707ea642441ddc46e01a3de6f671c113ea184", null ],
+      [ "kZScreamCompat", "namespaceyaze_1_1core.html#a1142e14777c50b720b0e9e102bff707ea1e3b2427a636684daa5c2b1d5a1dc4b5", null ]
     ] ],
     [ "GetFileExtension", "namespaceyaze_1_1core.html#abc62834eb5824227302b2f2e7f5b375d", null ],
     [ "GetFileName", "namespaceyaze_1_1core.html#a91b15ab541fc413b5208c32d750b87c8", null ],
@@ -36,5 +52,6 @@ var namespaceyaze_1_1core =
     [ "LoadSystemFonts", "namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c", null ],
     [ "CreateWindow", "namespaceyaze_1_1core.html#a14f2050902009800d7995d94a8c169fc", null ],
     [ "ShutdownWindow", "namespaceyaze_1_1core.html#a0f3dc6283ebf6a0957247ec1ca09c657", null ],
-    [ "HandleEvents", "namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51", null ]
+    [ "HandleEvents", "namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51", null ],
+    [ "kRecentFilesFilename", "namespaceyaze_1_1core.html#a3529a0c0bdd833f9ac318e43d3ca26ca", null ]
 ];

@@ -2,7 +2,7 @@ var searchData=
 [
   ['edit_0',['edit',['../classyaze_1_1util_1_1NotifyValue.html#ad5f620f900bf68c8e369cf568f687bc1',1,'yaze::util::NotifyValue']]],
   ['editcolorinpalette_1',['EditColorInPalette',['../classyaze_1_1editor_1_1PaletteEditor.html#af33bcbc1e8f1627ccbbf2abad17eafca',1,'yaze::editor::PaletteEditor']]],
-  ['editlabel_2',['EditLabel',['../structyaze_1_1ResourceLabelManager.html#a3111a44065af307dffd87b22a8cd203a',1,'yaze::ResourceLabelManager']]],
+  ['editlabel_2',['EditLabel',['../structyaze_1_1core_1_1ResourceLabelManager.html#ac50702b614f32dd9bd5400b573bec5e0',1,'yaze::core::ResourceLabelManager']]],
   ['editor_3',['Editor',['../classyaze_1_1editor_1_1Editor.html#a247da2182c494a6505ec0790476930df',1,'yaze::editor::Editor']]],
   ['editorintegrationtest_4',['EditorIntegrationTest',['../classyaze_1_1test_1_1EditorIntegrationTest.html#acc34089c7393eb34c57b8394c1747279',1,'yaze::test::EditorIntegrationTest']]],
   ['editormanager_5',['EditorManager',['../classyaze_1_1editor_1_1EditorManager.html#a5e1bc7f274b01593c207c0cd72cc17c3',1,'yaze::editor::EditorManager']]],
@@ -48,12 +48,13 @@ var searchData=
   ['expectdecompressok_45',['ExpectDecompressOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a99723a1d41ac08d62332d49124d0d186',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['expectnewcompressionpieceok_46',['ExpectNewCompressionPieceOk',['../namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9ceacaaa96ef2d18ba0ce84eb6751d3b',1,'yaze::test::anonymous_namespace{compression_test.cc}']]],
   ['exportdungeontofile_47',['ExportDungeonToFile',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ac39aca2c991a12ba457342b7fd697f6a',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['exportroomtofile_48',['ExportRoomToFile',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a1756ac575fd0e32d73620f33a95192e1',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['extract_49',['Extract',['../namespaceyaze_1_1gfx.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::gfx::Extract()'],['../namespaceyaze_1_1test.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::test::Extract()']]],
-  ['extract_5fversion_5fchangelog_50',['extract_version_changelog',['../namespaceextract__changelog.html#af0484ad211279dc459fc067553a0f98f',1,'extract_changelog']]],
-  ['extractflag_51',['ExtractFlag',['../classyaze_1_1util_1_1FlagParser.html#ae87e95c42728b7d9e5b30b79aa688d58',1,'yaze::util::FlagParser']]],
-  ['extractflagandvalue_52',['ExtractFlagAndValue',['../classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d',1,'yaze::util::FlagParser']]],
-  ['extractsymbols_53',['ExtractSymbols',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#a63133a75451a212ece7886eacf46fa8b',1,'yaze::app::core::AsarWrapper']]],
-  ['extractsymbolscomponent_54',['ExtractSymbolsComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a67dd0fa752ae48367e75313a4325cb11',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
-  ['extractsymbolsfromlastoperation_55',['ExtractSymbolsFromLastOperation',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#ae627cf8b68c21f8042f1d92139b3902b',1,'yaze::app::core::AsarWrapper']]]
+  ['exportforzscream_48',['ExportForZScream',['../structyaze_1_1core_1_1YazeProject.html#ae7575ef11bbe6c311ab49237d536fe6e',1,'yaze::core::YazeProject']]],
+  ['exportroomtofile_49',['ExportRoomToFile',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a1756ac575fd0e32d73620f33a95192e1',1,'yaze::zelda3::DungeonEditorSystem']]],
+  ['extract_50',['Extract',['../namespaceyaze_1_1gfx.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::gfx::Extract()'],['../namespaceyaze_1_1test.html#a10d06c5c03e3faef4b05f4183024650e',1,'yaze::test::Extract()']]],
+  ['extract_5fversion_5fchangelog_51',['extract_version_changelog',['../namespaceextract__changelog.html#af0484ad211279dc459fc067553a0f98f',1,'extract_changelog']]],
+  ['extractflag_52',['ExtractFlag',['../classyaze_1_1util_1_1FlagParser.html#ae87e95c42728b7d9e5b30b79aa688d58',1,'yaze::util::FlagParser']]],
+  ['extractflagandvalue_53',['ExtractFlagAndValue',['../classyaze_1_1util_1_1FlagParser.html#a43fcdab496791d7851bf54aaeefa910d',1,'yaze::util::FlagParser']]],
+  ['extractsymbols_54',['ExtractSymbols',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#a63133a75451a212ece7886eacf46fa8b',1,'yaze::app::core::AsarWrapper']]],
+  ['extractsymbolscomponent_55',['ExtractSymbolsComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a67dd0fa752ae48367e75313a4325cb11',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
+  ['extractsymbolsfromlastoperation_56',['ExtractSymbolsFromLastOperation',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html#ae627cf8b68c21f8042f1d92139b3902b',1,'yaze::app::core::AsarWrapper']]]
 ];

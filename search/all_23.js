@@ -50,9 +50,13 @@ var searchData=
   ['zoomwheelaccum_47',['ZoomWheelAccum',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#ad94388a6feb4f480ecd4ff5948a137a7',1,'yaze::gui::GfxSheetAssetBrowser']]],
   ['zscream_48',['ZScream',['../md_docs_2E5-dungeon-object-system.html#autotoc_md368',1,'Comparison with ZScream'],['../md_docs_2E2-dungeon-editor-guide.html#autotoc_md223',1,'Integration with ZScream']]],
   ['zscream_20implementation_49',['ZScream Implementation',['../md_docs_2F1-overworld-loading.html#autotoc_md404',1,'']]],
-  ['zscustomoverworld_20v2_20v3_50',['ZSCustomOverworld v2/v3',['../md_docs_2F1-overworld-loading.html#autotoc_md402',1,'']]],
-  ['zscustomoverworld_20v3_51',['ZSCustomOverworld v3',['../md_README.html#autotoc_md441',1,'']]],
-  ['zsprite_52',['ZSprite',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html',1,'yaze::editor::zsprite']]],
-  ['zsprite_2eh_53',['zsprite.h',['../zsprite_8h.html',1,'']]],
-  ['zw_54',['zw',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#aafa703e41d0955c7e8a4f835d6f53c4f',1,'yaze::zelda3::music::SampleEdit']]]
+  ['zscream_5fcompatible_50',['zscream_compatible',['../structyaze_1_1core_1_1ProjectMetadata.html#a2f101110f627521dc133a9fa2c4b4d6b',1,'yaze::core::ProjectMetadata']]],
+  ['zscream_5fmappings_51',['zscream_mappings',['../structyaze_1_1core_1_1YazeProject.html#a0ef9040cae9819621476d87f8b09cf76',1,'yaze::core::YazeProject']]],
+  ['zscream_5fproject_5ffile_52',['zscream_project_file',['../structyaze_1_1core_1_1YazeProject.html#ac7cd96ac6b28d043989e0ec28da9af42',1,'yaze::core::YazeProject']]],
+  ['zscream_5fversion_53',['zscream_version',['../structyaze_1_1core_1_1ProjectMetadata.html#a71e64f64d2e0ac0bbc04f89508238b7f',1,'yaze::core::ProjectMetadata']]],
+  ['zscustomoverworld_20v2_20v3_54',['ZSCustomOverworld v2/v3',['../md_docs_2F1-overworld-loading.html#autotoc_md402',1,'']]],
+  ['zscustomoverworld_20v3_55',['ZSCustomOverworld v3',['../md_README.html#autotoc_md441',1,'']]],
+  ['zsprite_56',['ZSprite',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html',1,'yaze::editor::zsprite']]],
+  ['zsprite_2eh_57',['zsprite.h',['../zsprite_8h.html',1,'']]],
+  ['zw_58',['zw',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#aafa703e41d0955c7e8a4f835d6f53c4f',1,'yaze::zelda3::music::SampleEdit']]]
 ];

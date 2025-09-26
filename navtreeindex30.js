@@ -1,5 +1,7 @@
 var NAVTREEINDEX30 =
 {
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a0e5f052329770fe482adcd4182c3218f":[24,0,0,9,7,107],
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a0e8b04d2928009a813ccd116617d45fb":[23,0,3,9,12,31],
 "classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a0e8b04d2928009a813ccd116617d45fb":[24,0,0,9,7,31],
 "classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a0fc9ed9b68909b2e235347fd0a3237ad":[23,0,3,9,12,57],
 "classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a0fc9ed9b68909b2e235347fd0a3237ad":[24,0,0,9,7,57],
@@ -247,7 +249,5 @@ var NAVTREEINDEX30 =
 "classyaze_1_1zelda3_1_1DungeonEditorSystem.html#abf44ad73ddb85b250d546aee12eb4bd2":[24,0,0,9,7,160],
 "classyaze_1_1zelda3_1_1DungeonEditorSystem.html#abfbe429af6ad9b563a05b97cf39feaac":[23,0,3,9,12,92],
 "classyaze_1_1zelda3_1_1DungeonEditorSystem.html#abfbe429af6ad9b563a05b97cf39feaac":[24,0,0,9,7,92],
-"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ac04ceb61f27921c10b713043b4e21b29":[23,0,3,9,12,147],
-"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ac04ceb61f27921c10b713043b4e21b29":[24,0,0,9,7,147],
-"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ac1fe990c241228ce7133b04919c6d9b2":[23,0,3,9,12,22]
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ac04ceb61f27921c10b713043b4e21b29":[23,0,3,9,12,147]
 };

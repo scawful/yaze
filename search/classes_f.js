@@ -1,11 +1,11 @@
 var searchData=
 [
   ['readfromrom_0',['ReadFromRom',['../classyaze_1_1cli_1_1ReadFromRom.html',1,'yaze::cli']]],
-  ['recentfilesmanager_1',['RecentFilesManager',['../classyaze_1_1RecentFilesManager.html',1,'yaze']]],
+  ['recentfilesmanager_1',['RecentFilesManager',['../classyaze_1_1core_1_1RecentFilesManager.html',1,'yaze::core']]],
   ['renderer_2',['Renderer',['../classyaze_1_1core_1_1Renderer.html',1,'yaze::core::Renderer'],['../classyaze_1_1editor_1_1Renderer.html',1,'yaze::editor::Renderer'],['../classyaze_1_1gui_1_1Renderer.html',1,'yaze::gui::Renderer'],['../classyaze_1_1Renderer.html',1,'yaze::Renderer'],['../classyaze_1_1zelda3_1_1Renderer.html',1,'yaze::zelda3::Renderer']]],
-  ['resourcelabelmanager_3',['ResourceLabelManager',['../structyaze_1_1ResourceLabelManager.html',1,'yaze']]],
+  ['resourcelabelmanager_3',['ResourceLabelManager',['../structyaze_1_1core_1_1ResourceLabelManager.html',1,'yaze::core']]],
   ['resourcestats_4',['ResourceStats',['../structyaze_1_1test_1_1ResourceStats.html',1,'yaze::test']]],
-  ['resourcetype_5',['ResourceType',['../structyaze_1_1ResourceLabelManager_1_1ResourceType.html',1,'yaze::ResourceLabelManager']]],
+  ['resourcetype_5',['ResourceType',['../structyaze_1_1core_1_1ResourceLabelManager_1_1ResourceType.html',1,'yaze::core::ResourceLabelManager']]],
   ['rom_6',['Rom',['../classyaze_1_1Rom.html',1,'yaze::Rom'],['../classyaze_1_1test_1_1Rom.html',1,'yaze::test::Rom']]],
   ['romdependenttest_7',['RomDependentTest',['../classyaze_1_1test_1_1RomDependentTest.html',1,'yaze::test']]],
   ['romdependenttestsuite_8',['RomDependentTestSuite',['../classyaze_1_1test_1_1RomDependentTestSuite.html',1,'yaze::test']]],

@@ -15,6 +15,7 @@ var searchData=
   ['windowposition_12',['WindowPosition',['../structyaze_1_1emu_1_1WindowPosition.html',1,'yaze::emu']]],
   ['wobjlog_13',['WOBJLOG',['../structyaze_1_1emu_1_1WOBJLOG.html',1,'yaze::emu']]],
   ['wobjsel_14',['WOBJSEL',['../structyaze_1_1emu_1_1WOBJSEL.html',1,'yaze::emu']]],
-  ['wramaccessregisters_15',['WramAccessRegisters',['../structyaze_1_1emu_1_1WramAccessRegisters.html',1,'yaze::emu']]],
-  ['writeaction_16',['WriteAction',['../structyaze_1_1Rom_1_1WriteAction.html',1,'yaze::Rom::WriteAction'],['../structyaze_1_1test_1_1Rom_1_1WriteAction.html',1,'yaze::test::Rom::WriteAction']]]
+  ['workspacesettings_15',['WorkspaceSettings',['../structyaze_1_1core_1_1WorkspaceSettings.html',1,'yaze::core']]],
+  ['wramaccessregisters_16',['WramAccessRegisters',['../structyaze_1_1emu_1_1WramAccessRegisters.html',1,'yaze::emu']]],
+  ['writeaction_17',['WriteAction',['../structyaze_1_1Rom_1_1WriteAction.html',1,'yaze::Rom::WriteAction'],['../structyaze_1_1test_1_1Rom_1_1WriteAction.html',1,'yaze::test::Rom::WriteAction']]]
 ];

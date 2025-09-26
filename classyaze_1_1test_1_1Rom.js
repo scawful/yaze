@@ -48,7 +48,7 @@ var classyaze_1_1test_1_1Rom =
     [ "mutable_palette_group", "classyaze_1_1test_1_1Rom.html#a35e5778c114edd659015f76c6d067cd8", null ],
     [ "dungeon_palette", "classyaze_1_1test_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117", null ],
     [ "mutable_dungeon_palette", "classyaze_1_1test_1_1Rom.html#a6a005b3b2e4ceeee4328c6815b955880", null ],
-    [ "resource_label", "classyaze_1_1test_1_1Rom.html#a5afd22af393bd1f5e6e317190b31e560", null ],
+    [ "resource_label", "classyaze_1_1test_1_1Rom.html#aaf2600f3334bb925086268e63e225418", null ],
     [ "version_constants", "classyaze_1_1test_1_1Rom.html#a97d2783a3b91dd4acb21af5547a4ecfa", null ],
     [ "main_blockset_ids", "classyaze_1_1test_1_1Rom.html#af90d7c0928f8827c1f7ecef04f6efa8c", null ],
     [ "room_blockset_ids", "classyaze_1_1test_1_1Rom.html#a88ec2d03d01e7d4aec9c03e7b2ed78a9", null ],
@@ -60,7 +60,7 @@ var classyaze_1_1test_1_1Rom =
     [ "short_name_", "classyaze_1_1test_1_1Rom.html#ad7bbc9fed4c80bd3363a7d299fc4f77b", null ],
     [ "rom_data_", "classyaze_1_1test_1_1Rom.html#a25988f8127d85751e13e15a97a16c181", null ],
     [ "graphics_buffer_", "classyaze_1_1test_1_1Rom.html#a973094927e5a266698d40d834fc26f5c", null ],
-    [ "resource_label_manager_", "classyaze_1_1test_1_1Rom.html#a98dabc039713c62b9dedbd471b4f3064", null ],
+    [ "resource_label_manager_", "classyaze_1_1test_1_1Rom.html#accbd16bbb5115258e16d6bd066865b82", null ],
     [ "palette_groups_", "classyaze_1_1test_1_1Rom.html#a2a4ba7137dfced685cd4b6432c5fe047", null ],
     [ "version_", "classyaze_1_1test_1_1Rom.html#a089a86f09767d8d7fb1f253806a33b23", null ],
     [ "dirty_", "classyaze_1_1test_1_1Rom.html#aa01aefe8299ee4a8e45117b5c5930efa", null ]

@@ -1,5 +1,7 @@
 var NAVTREEINDEX19 =
 {
+"classyaze_1_1gfx_1_1BackgroundBuffer.html#a587b03ca3d3cb0aba9ce7145f30a9541":[24,0,0,5,2,7],
+"classyaze_1_1gfx_1_1BackgroundBuffer.html#a5d0ea199b5cc12f10be63eb56af4310e":[23,0,3,5,4,11],
 "classyaze_1_1gfx_1_1BackgroundBuffer.html#a5d0ea199b5cc12f10be63eb56af4310e":[24,0,0,5,2,11],
 "classyaze_1_1gfx_1_1BackgroundBuffer.html#a6ec3fcac0b505bec4ddaf7ab0113ae1b":[23,0,3,5,4,3],
 "classyaze_1_1gfx_1_1BackgroundBuffer.html#a6ec3fcac0b505bec4ddaf7ab0113ae1b":[24,0,0,5,2,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX19 =
 "classyaze_1_1gfx_1_1SnesPalette.html#a9b14bc1de5d1dd131a63d6ac818bb960":[24,0,0,5,14,23],
 "classyaze_1_1gfx_1_1SnesPalette.html#aa1a0b63e4451628a9b295ddd1ba1677a":[23,0,3,5,16,20],
 "classyaze_1_1gfx_1_1SnesPalette.html#aa1a0b63e4451628a9b295ddd1ba1677a":[24,0,0,5,14,20],
-"classyaze_1_1gfx_1_1SnesPalette.html#aa3d5ad0a0ad19df994e243baf817f598":[23,0,3,5,16,19],
-"classyaze_1_1gfx_1_1SnesPalette.html#aa3d5ad0a0ad19df994e243baf817f598":[24,0,0,5,14,19],
-"classyaze_1_1gfx_1_1SnesPalette.html#aae6a17a905d9d0e2ef4d506a35da91da":[23,0,3,5,16,15]
+"classyaze_1_1gfx_1_1SnesPalette.html#aa3d5ad0a0ad19df994e243baf817f598":[23,0,3,5,16,19]
 };

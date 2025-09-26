@@ -1,9 +1,9 @@
 <map id="yaze::test::Rom" name="yaze::test::Rom">
-<area shape="rect" id="Node000001" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="137,348,245,373"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1ResourceLabelManager.html" title=" " alt="" coords="5,259,196,285"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,299,117,322,132,335,150,345,148,349,129,339,113,325,101,301"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="220,259,397,285"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="293,299,267,326,225,349,223,345,264,322,289,296"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="232,5,385,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="311,47,311,259,306,259,306,47"/>
+<area shape="rect" id="Node000001" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="128,363,236,388"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,259,177,300"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,315,102,337,116,350,134,360,131,364,113,355,98,340,88,317"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="201,266,378,292"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="279,308,253,341,215,364,212,360,249,337,275,304"/>
+<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="214,5,366,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="292,47,292,266,287,266,287,47"/>
 </map>

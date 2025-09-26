@@ -13,7 +13,7 @@ var searchData=
   ['oninput_10',['OnInput',['../classyaze_1_1core_1_1Controller.html#a4da513a611336bcfc09e4c40119c362b',1,'yaze::core::Controller']]],
   ['onload_11',['OnLoad',['../classyaze_1_1core_1_1Controller.html#a01f86833b789e985cd84926b41081e84',1,'yaze::core::Controller']]],
   ['onroomselected_12',['OnRoomSelected',['../classyaze_1_1editor_1_1DungeonEditor.html#aab56c74a57fe0f7af1e6a5bc069d18d7',1,'yaze::editor::DungeonEditor']]],
-  ['open_13',['Open',['../structyaze_1_1Project.html#a37390efefd036cff957a29bf5241f9e0',1,'yaze::Project']]],
+  ['open_13',['Open',['../structyaze_1_1core_1_1YazeProject.html#a01c9181e16416e9999014de5ea21f9c4',1,'yaze::core::YazeProject']]],
   ['open_5fbus_14',['open_bus',['../classyaze_1_1emu_1_1Memory.html#ab6fa37e325f24ed2836db1ab28650f35',1,'yaze::emu::Memory::open_bus()'],['../classyaze_1_1emu_1_1MemoryImpl.html#a0e1947d5642b0a24b83ec980238a6bc1',1,'yaze::emu::MemoryImpl::open_bus()'],['../classyaze_1_1test_1_1MemoryImpl.html#a0e1947d5642b0a24b83ec980238a6bc1',1,'yaze::test::MemoryImpl::open_bus()']]],
   ['openfolder_15',['OpenFolder',['../classyaze_1_1editor_1_1AssemblyEditor.html#a85cff0f1b9734435c8becb8dad02d6bd',1,'yaze::editor::AssemblyEditor']]],
   ['openproject_16',['OpenProject',['../classyaze_1_1editor_1_1EditorManager.html#a2f7b946839734d5ad6ec6782552dd84d',1,'yaze::editor::EditorManager']]],

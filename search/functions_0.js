@@ -29,7 +29,7 @@ var searchData=
   ['addcustominstruction_26',['AddCustomInstruction',['../classyaze_1_1zelda3_1_1SpriteAction.html#aae93d588253489ae313beacf5093cb7c',1,'yaze::zelda3::SpriteAction']]],
   ['adddoor_27',['AddDoor',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a944933c1eb9bc1a16af6663c2afb18c2',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['addentrance_28',['AddEntrance',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#af3609dbad67e040fc87eaacc698f2aab',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['addfile_29',['AddFile',['../classyaze_1_1RecentFilesManager.html#adbd4f1df10af5115874360106a030a1a',1,'yaze::RecentFilesManager']]],
+  ['addfile_29',['AddFile',['../classyaze_1_1core_1_1RecentFilesManager.html#afbc83ec38add3cd38d8b2b80efc12783',1,'yaze::core::RecentFilesManager']]],
   ['addfunction_30',['AddFunction',['../classyaze_1_1zelda3_1_1SpriteBuilder.html#aca5b9586b4716ae505185113b702c269',1,'yaze::zelda3::SpriteBuilder::AddFunction(const std::string &amp;asmCode)'],['../classyaze_1_1zelda3_1_1SpriteBuilder.html#aaad069abe935e76ecad0c1b4d75351c3',1,'yaze::zelda3::SpriteBuilder::AddFunction(const SpriteAction &amp;action)']]],
   ['addiconfont_31',['AddIconFont',['../namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a08b31e50b92a5dfc3a79a2910e83536c',1,'yaze::core::anonymous_namespace{font_loader.cc}']]],
   ['addinstruction_32',['AddInstruction',['../classyaze_1_1zelda3_1_1SpriteAction.html#a57aef31ec0675499d7cdce91f50cba3f',1,'yaze::zelda3::SpriteAction']]],

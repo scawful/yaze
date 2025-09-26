@@ -8,5 +8,9 @@ var searchData=
   ['z_5f_5',['z_',['../classyaze_1_1zelda3_1_1RoomObject.html#a5e538dc8978f34a17bd287973bc12135',1,'yaze::zelda3::RoomObject']]],
   ['zoom_6',['zoom',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a84fe61fb873711a6dee9d617de246bc9',1,'yaze::zelda3::music::SampleEdit']]],
   ['zoomwheelaccum_7',['ZoomWheelAccum',['../structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#ad94388a6feb4f480ecd4ff5948a137a7',1,'yaze::gui::GfxSheetAssetBrowser']]],
-  ['zw_8',['zw',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#aafa703e41d0955c7e8a4f835d6f53c4f',1,'yaze::zelda3::music::SampleEdit']]]
+  ['zscream_5fcompatible_8',['zscream_compatible',['../structyaze_1_1core_1_1ProjectMetadata.html#a2f101110f627521dc133a9fa2c4b4d6b',1,'yaze::core::ProjectMetadata']]],
+  ['zscream_5fmappings_9',['zscream_mappings',['../structyaze_1_1core_1_1YazeProject.html#a0ef9040cae9819621476d87f8b09cf76',1,'yaze::core::YazeProject']]],
+  ['zscream_5fproject_5ffile_10',['zscream_project_file',['../structyaze_1_1core_1_1YazeProject.html#ac7cd96ac6b28d043989e0ec28da9af42',1,'yaze::core::YazeProject']]],
+  ['zscream_5fversion_11',['zscream_version',['../structyaze_1_1core_1_1ProjectMetadata.html#a71e64f64d2e0ac0bbc04f89508238b7f',1,'yaze::core::ProjectMetadata']]],
+  ['zw_12',['zw',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#aafa703e41d0955c7e8a4f835d6f53c4f',1,'yaze::zelda3::music::SampleEdit']]]
 ];

@@ -36,11 +36,17 @@ var annotated_dup =
         [ "FlagsMenu", "structyaze_1_1core_1_1FlagsMenu.html", "structyaze_1_1core_1_1FlagsMenu" ],
         [ "FontConfig", "structyaze_1_1core_1_1FontConfig.html", "structyaze_1_1core_1_1FontConfig" ],
         [ "FontState", "structyaze_1_1core_1_1FontState.html", "structyaze_1_1core_1_1FontState" ],
+        [ "ProjectManager", "classyaze_1_1core_1_1ProjectManager.html", "classyaze_1_1core_1_1ProjectManager" ],
+        [ "ProjectMetadata", "structyaze_1_1core_1_1ProjectMetadata.html", "structyaze_1_1core_1_1ProjectMetadata" ],
+        [ "RecentFilesManager", "classyaze_1_1core_1_1RecentFilesManager.html", "classyaze_1_1core_1_1RecentFilesManager" ],
         [ "Renderer", "classyaze_1_1core_1_1Renderer.html", "classyaze_1_1core_1_1Renderer" ],
+        [ "ResourceLabelManager", "structyaze_1_1core_1_1ResourceLabelManager.html", "structyaze_1_1core_1_1ResourceLabelManager" ],
         [ "SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", "structyaze_1_1core_1_1SDL__Deleter" ],
         [ "SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", "structyaze_1_1core_1_1SDL__Surface__Deleter" ],
         [ "SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", "structyaze_1_1core_1_1SDL__Texture__Deleter" ],
-        [ "Window", "structyaze_1_1core_1_1Window.html", "structyaze_1_1core_1_1Window" ]
+        [ "Window", "structyaze_1_1core_1_1Window.html", "structyaze_1_1core_1_1Window" ],
+        [ "WorkspaceSettings", "structyaze_1_1core_1_1WorkspaceSettings.html", "structyaze_1_1core_1_1WorkspaceSettings" ],
+        [ "YazeProject", "structyaze_1_1core_1_1YazeProject.html", "structyaze_1_1core_1_1YazeProject" ]
       ] ],
       [ "editor", "namespaceyaze_1_1editor.html", [
         [ "palette_internal", "namespaceyaze_1_1editor_1_1palette__internal.html", [
@@ -398,13 +404,9 @@ var annotated_dup =
         [ "SubtypeInfo", "structyaze_1_1zelda3_1_1SubtypeInfo.html", "structyaze_1_1zelda3_1_1SubtypeInfo" ],
         [ "TitleScreen", "classyaze_1_1zelda3_1_1TitleScreen.html", "classyaze_1_1zelda3_1_1TitleScreen" ]
       ] ],
-      [ "Project", "structyaze_1_1Project.html", "structyaze_1_1Project" ],
-      [ "RecentFilesManager", "classyaze_1_1RecentFilesManager.html", "classyaze_1_1RecentFilesManager" ],
       [ "Renderer", "classyaze_1_1Renderer.html", "classyaze_1_1Renderer" ],
-      [ "ResourceLabelManager", "structyaze_1_1ResourceLabelManager.html", "structyaze_1_1ResourceLabelManager" ],
       [ "Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
-      [ "Transaction", "classyaze_1_1Transaction.html", "classyaze_1_1Transaction" ],
-      [ "VersionControlManager", "classyaze_1_1VersionControlManager.html", "classyaze_1_1VersionControlManager" ]
+      [ "Transaction", "classyaze_1_1Transaction.html", "classyaze_1_1Transaction" ]
     ] ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],

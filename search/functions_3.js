@@ -45,7 +45,7 @@ var searchData=
   ['disabletest_42',['DisableTest',['../classyaze_1_1test_1_1TestManager.html#acdefeaf65383cc782c7fa8f8cee95348',1,'yaze::test::TestManager']]],
   ['disconnectrooms_43',['DisconnectRooms',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#abf18bf4dc9d94a40de5d98067f231b93',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['displayeditablepalette_44',['DisplayEditablePalette',['../namespaceyaze_1_1gui.html#ae0d03d6cdef355d2ffa9bfa5d5e3247a',1,'yaze::gui']]],
-  ['displaylabels_45',['DisplayLabels',['../structyaze_1_1ResourceLabelManager.html#a7cde5d474812f45421c687a16ad49852',1,'yaze::ResourceLabelManager']]],
+  ['displaylabels_45',['DisplayLabels',['../structyaze_1_1core_1_1ResourceLabelManager.html#a7814996619554a29c5e870e32d572c0e',1,'yaze::core::ResourceLabelManager']]],
   ['displayobjectinfo_46',['DisplayObjectInfo',['../classyaze_1_1editor_1_1DungeonCanvasViewer.html#afdc313f9d759216613f5674e21860a9a',1,'yaze::editor::DungeonCanvasViewer::DisplayObjectInfo()'],['../classyaze_1_1editor_1_1DungeonRenderer.html#a3c907fccece64b18d37a2be9ba46a0a0',1,'yaze::editor::DungeonRenderer::DisplayObjectInfo()']]],
   ['displaypalette_47',['DisplayPalette',['../namespaceyaze_1_1editor.html#a8657cfd46f4a80e164e0b2331c98ad98',1,'yaze::editor::DisplayPalette()'],['../namespaceyaze_1_1gui.html#ab4191a76f6cec5d60a28a6c49d7065d9',1,'yaze::gui::DisplayPalette()']]],
   ['displaytextoverflowerror_48',['DisplayTextOverflowError',['../namespaceyaze_1_1editor_1_1anonymous__namespace_02message__editor_8cc_03.html#aef9df899003974391ac30afec5b1d4c5',1,'yaze::editor::anonymous_namespace{message_editor.cc}']]],

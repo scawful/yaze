@@ -1,5 +1,7 @@
 var NAVTREEINDEX33 =
 {
+"classyaze_1_1zelda3_1_1MockRom.html#ad0567b787d900c6859162d36e4d7e740":[24,0,0,9,17,3],
+"classyaze_1_1zelda3_1_1MockRom.html#ad4e5fbfbcd4ec44a66d8d5f7b3ce473f":[23,0,3,9,22,1],
 "classyaze_1_1zelda3_1_1MockRom.html#ad4e5fbfbcd4ec44a66d8d5f7b3ce473f":[24,0,0,9,17,1],
 "classyaze_1_1zelda3_1_1MockRom.html#af7398c143325bc34ba4ad82ce1221749":[23,0,3,9,22,13],
 "classyaze_1_1zelda3_1_1MockRom.html#af7398c143325bc34ba4ad82ce1221749":[24,0,0,9,17,13],
@@ -247,7 +249,5 @@ var NAVTREEINDEX33 =
 "classyaze_1_1zelda3_1_1Overworld.html#a215dce21aed4510d4a293df8cf865a27":[24,0,0,9,25,22],
 "classyaze_1_1zelda3_1_1Overworld.html#a255e6fcd46be3ed63a80b171f75f4c33":[23,0,3,9,30,0],
 "classyaze_1_1zelda3_1_1Overworld.html#a255e6fcd46be3ed63a80b171f75f4c33":[24,0,0,9,25,0],
-"classyaze_1_1zelda3_1_1Overworld.html#a255e6fcd46be3ed63a80b171f75f4c33a0118bf81791cbd107fc177c99b42b3a7":[23,0,3,9,30,0,0],
-"classyaze_1_1zelda3_1_1Overworld.html#a255e6fcd46be3ed63a80b171f75f4c33a0118bf81791cbd107fc177c99b42b3a7":[24,0,0,9,25,0,0],
-"classyaze_1_1zelda3_1_1Overworld.html#a255e6fcd46be3ed63a80b171f75f4c33a7adac9506b7acb3ff2d04a94242d5cd4":[23,0,3,9,30,0,2]
+"classyaze_1_1zelda3_1_1Overworld.html#a255e6fcd46be3ed63a80b171f75f4c33a0118bf81791cbd107fc177c99b42b3a7":[23,0,3,9,30,0,0]
 };

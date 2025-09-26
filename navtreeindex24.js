@@ -1,5 +1,7 @@
 var NAVTREEINDEX24 =
 {
+"classyaze_1_1test_1_1Cpu.html#adbb54e45e350b0b7f22631df58de96e5":[24,0,0,7,9,34],
+"classyaze_1_1test_1_1Cpu.html#adc25bdad386f5d547f0c193d7b82b020":[23,0,3,7,11,95],
 "classyaze_1_1test_1_1Cpu.html#adc25bdad386f5d547f0c193d7b82b020":[24,0,0,7,9,95],
 "classyaze_1_1test_1_1Cpu.html#addb7e1eb0dd7a5dd9555469385156df1":[23,0,3,7,11,222],
 "classyaze_1_1test_1_1Cpu.html#addb7e1eb0dd7a5dd9555469385156df1":[24,0,0,7,9,222],
@@ -247,7 +249,5 @@ var NAVTREEINDEX24 =
 "classyaze_1_1test_1_1MemoryImpl.html":[24,0,0,7,18],
 "classyaze_1_1test_1_1MemoryImpl.html#a06347168c624c16693efdb2193bb8ca0":[23,0,3,7,20,29],
 "classyaze_1_1test_1_1MemoryImpl.html#a06347168c624c16693efdb2193bb8ca0":[24,0,0,7,18,29],
-"classyaze_1_1test_1_1MemoryImpl.html#a09fc0829ad63d6bff53d0c93d3111ec7":[23,0,3,7,20,26],
-"classyaze_1_1test_1_1MemoryImpl.html#a09fc0829ad63d6bff53d0c93d3111ec7":[24,0,0,7,18,26],
-"classyaze_1_1test_1_1MemoryImpl.html#a0bf6ff9e51253aaf97bb3517258e83ae":[23,0,3,7,20,53]
+"classyaze_1_1test_1_1MemoryImpl.html#a09fc0829ad63d6bff53d0c93d3111ec7":[23,0,3,7,20,26]
 };
