@@ -16,7 +16,14 @@ if(YAZE_ENABLE_UI_TESTS)
   target_link_libraries(ImGuiTestEngine PUBLIC ImGui)
   
   # Enable test engine definitions only when UI tests are enabled
-  add_definitions("-DIMGUI_ENABLE_TEST_ENGINE -DIMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1")
+  target_compile_definitions(ImGuiTestEngine PUBLIC 
+    IMGUI_ENABLE_TEST_ENGINE=1 
+    IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1)
+  
+  # Also define for targets that link to ImGuiTestEngine
+  set(IMGUI_TEST_ENGINE_DEFINITIONS 
+    IMGUI_ENABLE_TEST_ENGINE=1 
+    IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1)
   
   # Make ImGuiTestEngine target available
   set(IMGUI_TEST_ENGINE_TARGET ImGuiTestEngine)
@@ -24,6 +31,7 @@ else()
   # Create empty variables when UI tests are disabled
   set(IMGUI_TEST_ENGINE_SOURCES "")
   set(IMGUI_TEST_ENGINE_TARGET "")
+  set(IMGUI_TEST_ENGINE_DEFINITIONS "")
 endif()
 
 set(

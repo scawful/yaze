@@ -39,7 +39,11 @@ class FeatureFlags {
     bool kLogToConsole = false;
 
     // Use NFD (Native File Dialog) instead of bespoke file dialog implementation.
+#if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
     bool kUseNativeFileDialog = true;
+#else
+    bool kUseNativeFileDialog = false;
+#endif
 
     // Overworld flags
     struct Overworld {

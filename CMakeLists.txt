@@ -111,13 +111,13 @@ include(cmake/sdl2.cmake)
 # Asar
 include(cmake/asar.cmake)
 
-# ImGui
-include(cmake/imgui.cmake)
-
 # Google Test (if needed for main app integration)
 if (YAZE_BUILD_TESTS)
 include(cmake/gtest.cmake)
 endif()
+
+# ImGui (after minimal build flags are set)
+include(cmake/imgui.cmake)
 
 # Project Files
 add_subdirectory(src)
