@@ -27,32 +27,50 @@ endif()
 
 # Platform-specific configuration
 if(WIN32)
-    # Windows NSIS installer configuration
-    set(CPACK_GENERATOR "NSIS;ZIP")
-    set(CPACK_NSIS_DISPLAY_NAME "Yaze - Zelda3 Editor")
-    set(CPACK_NSIS_PACKAGE_NAME "Yaze")
-    set(CPACK_NSIS_CONTACT "scawful@github.com")
-    set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/scawful/yaze")
-    set(CPACK_NSIS_HELP_LINK "https://github.com/scawful/yaze/issues")
-    set(CPACK_NSIS_MENU_LINKS
-        "bin/yaze.exe" "Yaze Editor"
-        "https://github.com/scawful/yaze" "Yaze Homepage"
-    )
-    set(CPACK_NSIS_CREATE_ICONS_EXTRA
-        "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Yaze.lnk' '$INSTDIR\\\\bin\\\\yaze.exe'"
-        "CreateShortCut '$DESKTOP\\\\Yaze.lnk' '$INSTDIR\\\\bin\\\\yaze.exe'"
-    )
-    set(CPACK_NSIS_DELETE_ICONS_EXTRA
-        "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Yaze.lnk'"
-        "Delete '$DESKTOP\\\\Yaze.lnk'"
-    )
+    # Windows packaging configuration (conditional based on environment)
+    if(DEFINED ENV{GITHUB_ACTIONS})
+        # CI/CD build - use only ZIP (NSIS not available)
+        set(CPACK_GENERATOR "ZIP")
+    else()
+        # Local build - use both NSIS installer and ZIP
+        set(CPACK_GENERATOR "NSIS;ZIP")
+    endif()
+    
+    # NSIS-specific configuration (only for local builds with NSIS available)
+    if(NOT DEFINED ENV{GITHUB_ACTIONS})
+        set(CPACK_NSIS_DISPLAY_NAME "Yaze - Zelda3 Editor")
+        set(CPACK_NSIS_PACKAGE_NAME "Yaze")
+        set(CPACK_NSIS_CONTACT "scawful@github.com")
+        set(CPACK_NSIS_URL_INFO_ABOUT "https://github.com/scawful/yaze")
+        set(CPACK_NSIS_HELP_LINK "https://github.com/scawful/yaze/issues")
+        set(CPACK_NSIS_MENU_LINKS
+            "bin/yaze.exe" "Yaze Editor"
+            "https://github.com/scawful/yaze" "Yaze Homepage"
+        )
+        set(CPACK_NSIS_CREATE_ICONS_EXTRA
+            "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Yaze.lnk' '$INSTDIR\\\\bin\\\\yaze.exe'"
+            "CreateShortCut '$DESKTOP\\\\Yaze.lnk' '$INSTDIR\\\\bin\\\\yaze.exe'"
+        )
+        set(CPACK_NSIS_DELETE_ICONS_EXTRA
+            "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Yaze.lnk'"
+            "Delete '$DESKTOP\\\\Yaze.lnk'"
+        )
+    endif()
     
     # Windows architecture detection
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(CPACK_PACKAGE_FILE_NAME "yaze-${CPACK_PACKAGE_VERSION}-win64")
+        if(DEFINED ENV{GITHUB_ACTIONS})
+            set(CPACK_PACKAGE_FILE_NAME "yaze-${CPACK_PACKAGE_VERSION}-windows-x64")
+        else()
+            set(CPACK_PACKAGE_FILE_NAME "yaze-${CPACK_PACKAGE_VERSION}-win64")
+        endif()
         set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
     else()
-        set(CPACK_PACKAGE_FILE_NAME "yaze-${CPACK_PACKAGE_VERSION}-win32")
+        if(DEFINED ENV{GITHUB_ACTIONS})
+            set(CPACK_PACKAGE_FILE_NAME "yaze-${CPACK_PACKAGE_VERSION}-windows-x86")
+        else()
+            set(CPACK_PACKAGE_FILE_NAME "yaze-${CPACK_PACKAGE_VERSION}-win32")
+        endif()
         set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES")
     endif()
     
