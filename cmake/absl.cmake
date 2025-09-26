@@ -26,33 +26,22 @@ set(
   absl::base
   absl::config
   absl::core_headers
-  absl::raw_logging_internal
   absl::failure_signal_handler
   absl::flat_hash_map
-  absl::str_format_internal
   absl::cord
   absl::hash
   absl::synchronization
   absl::time
   absl::symbolize
-  absl::debugging_internal
-  absl::demangle_internal
-  absl::strings_internal
   absl::city
-  absl::malloc_internal
-  absl::graphcycles_internal
-  absl::str_format_internal
-  absl::cord_internal
   absl::cordz_handle
   absl::cordz_info
   absl::flags_commandlineflag
-  absl::flags_commandlineflag_internal
   absl::flags_marshalling
   absl::flags_private_handle_accessor
   absl::flags_program_name
   absl::flags_config
   absl::flags_reflection
-  absl::flags_internal
   absl::hashtablez_sampler
   absl::raw_hash_set
   absl::int128
@@ -66,9 +55,7 @@ set(
   absl::spinlock_wait
   absl::strerror
   absl::raw_hash_set
-  absl::flags_internal
   absl::cord
   absl::city
   absl::hash
-  absl::strings_internal
 )
