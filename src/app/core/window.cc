@@ -75,7 +75,9 @@ absl::Status ShutdownWindow(Window& window) {
   SDL_CloseAudioDevice(window.audio_device_);
   
   // Stop test engine WHILE ImGui context is still valid
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   test::TestManager::Get().StopUITesting();
+#endif
   
   // Shutdown ImGui implementations
   ImGui_ImplSDL2_Shutdown();
@@ -85,7 +87,9 @@ absl::Status ShutdownWindow(Window& window) {
   ImGui::DestroyContext();
   
   // NOW destroy test engine context (after ImGui context is destroyed)
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   test::TestManager::Get().DestroyUITestingContext();
+#endif
   
   // Shutdown graphics arena BEFORE destroying SDL contexts
   gfx::Arena::Get().Shutdown();

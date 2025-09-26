@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <vector>
 #include <stdexcept>
+#include <cmath>
 
 namespace yaze {
 namespace util {
