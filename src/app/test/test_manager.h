@@ -10,7 +10,7 @@
 
 #include "absl/status/status.h"
 #include "app/rom.h"
-#include "imgui/imgui.h"
+#include "imgui.h"
 #include "util/log.h"
 
 // Forward declarations

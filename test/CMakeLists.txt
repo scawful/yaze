@@ -49,50 +49,56 @@ add_executable(
   ${YAZE_SRC_FILES}
 )
 
-# Add vanilla value extraction utility
-add_executable(
-  extract_vanilla_values
-  zelda3/extract_vanilla_values.cc
-  ${YAZE_SRC_FILES}
-)
+# Add vanilla value extraction utility (only for local development with ROM access)
+if(NOT YAZE_MINIMAL_BUILD AND YAZE_ENABLE_ROM_TESTS)
+  add_executable(
+    extract_vanilla_values
+    zelda3/extract_vanilla_values.cc
+    ${YAZE_SRC_FILES}
+  )
 
-target_include_directories(
-  extract_vanilla_values PUBLIC
-  app/
-  lib/
-  ${CMAKE_SOURCE_DIR}/incl/
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
-  ${ASAR_INCLUDE_DIR}
-  ${SDL2_INCLUDE_DIR}
-  ${PNG_INCLUDE_DIRS}
-  ${PROJECT_BINARY_DIR}
-)
+  target_include_directories(
+    extract_vanilla_values PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/app/
+    ${CMAKE_SOURCE_DIR}/src/lib/
+    ${CMAKE_SOURCE_DIR}/incl/
+    ${CMAKE_SOURCE_DIR}/src/
+    ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
+    ${SDL2_INCLUDE_DIR}
+    ${PNG_INCLUDE_DIRS}
+    ${PROJECT_BINARY_DIR}
+  )
 
-target_link_libraries(
-  extract_vanilla_values
-  ${SDL_TARGETS}
-  asar-static
-  ${ABSL_TARGETS}
-  ${PNG_LIBRARIES}
-  ${OPENGL_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-)
+  target_link_libraries(
+    extract_vanilla_values
+    ${SDL_TARGETS}
+    asar-static
+    ${ABSL_TARGETS}
+    ${PNG_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    ${CMAKE_DL_LIBS}
+  )
 
-# Conditionally link yaze_c only when library is built
-if(YAZE_BUILD_LIB)
-  target_link_libraries(extract_vanilla_values yaze_c)
+  # Conditionally link yaze_c only when library is built
+  if(YAZE_BUILD_LIB)
+    target_link_libraries(extract_vanilla_values yaze_c)
+  endif()
 endif()
 
 target_include_directories(
   yaze_test PUBLIC
-  app/
-  lib/
+  ${CMAKE_SOURCE_DIR}/src/app/
+  ${CMAKE_SOURCE_DIR}/src/lib/
   ${CMAKE_SOURCE_DIR}/incl/
   ${CMAKE_SOURCE_DIR}/src/
   ${CMAKE_SOURCE_DIR}/test/
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
-  ${ASAR_INCLUDE_DIRS}
+  ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
   ${SDL2_INCLUDE_DIR}
   ${PNG_INCLUDE_DIRS}
   ${PROJECT_BINARY_DIR}

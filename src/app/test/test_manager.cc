@@ -6,7 +6,7 @@
 #include "app/core/platform/file_dialog.h"
 #include "app/gfx/arena.h"
 #include "app/gui/icons.h"
-#include "imgui/imgui.h"
+#include "imgui.h"
 #include "util/log.h"
 
 // Forward declaration to avoid circular dependency
