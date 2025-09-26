@@ -65,11 +65,15 @@ TestManager& TestManager::Get() {
 
 TestManager::TestManager() {
   // Initialize UI test engine
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   InitializeUITesting();
+#endif
 }
 
 TestManager::~TestManager() {
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   ShutdownUITesting();
+#endif
 }
 
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE

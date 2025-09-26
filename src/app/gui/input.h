@@ -87,6 +87,27 @@ struct MenuItem {
   std::function<void()> callback;
   std::function<bool()> enabled_condition = kDefaultEnabledCondition;
   std::vector<MenuItem> subitems;
+
+  // Default constructor
+  MenuItem() = default;
+  
+  // Constructor for basic menu items
+  MenuItem(const std::string& name, const std::string& shortcut, 
+           std::function<void()> callback)
+      : name(name), shortcut(shortcut), callback(callback) {}
+  
+  // Constructor for menu items with enabled condition
+  MenuItem(const std::string& name, const std::string& shortcut, 
+           std::function<void()> callback, std::function<bool()> enabled_condition)
+      : name(name), shortcut(shortcut), callback(callback), 
+        enabled_condition(enabled_condition) {}
+  
+  // Constructor for menu items with subitems
+  MenuItem(const std::string& name, const std::string& shortcut, 
+           std::function<void()> callback, std::function<bool()> enabled_condition,
+           std::vector<MenuItem> subitems)
+      : name(name), shortcut(shortcut), callback(callback), 
+        enabled_condition(enabled_condition), subitems(std::move(subitems)) {}
 };
 using Menu = std::vector<MenuItem>;
 

@@ -153,9 +153,13 @@ if (YAZE_BUILD_LIB)
     ${ABSL_TARGETS}
     ${SDL_TARGETS}
     ${CMAKE_DL_LIBS}
-    ImGuiTestEngine
     ImGui
   )
+  
+  # Conditionally link ImGui Test Engine
+  if(YAZE_ENABLE_UI_TESTS AND TARGET ImGuiTestEngine)
+    target_link_libraries(yaze_c PRIVATE ImGuiTestEngine)
+  endif()
   
   # Conditionally link PNG if available
   if(PNG_FOUND)
