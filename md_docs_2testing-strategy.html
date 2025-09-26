@@ -109,11 +109,11 @@ $(function(){initNavTree('md_docs_2testing-strategy.html',''); initResizable(tru
   <div class="headertitle"><div class="title">Testing Strategy for Yaze v0.3.0</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md382"></a></p>
-<h1><a class="anchor" id="autotoc_md383"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md399"></a></p>
+<h1><a class="anchor" id="autotoc_md400"></a>
 Test Categories</h1>
 <p>Yaze uses a comprehensive testing strategy with different categories of tests to ensure quality while maintaining efficient CI/CD pipelines.</p>
-<h2><a class="anchor" id="autotoc_md384"></a>
+<h2><a class="anchor" id="autotoc_md401"></a>
 Stable Tests (STABLE)</h2>
 <p><b>Always run in CI/CD - Required for releases</b></p>
 <ul>
@@ -130,7 +130,7 @@ Stable Tests (STABLE)</h2>
 <li>High reliability and deterministic results</li>
 <li>Core functionality testing</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md385"></a>
+<h2><a class="anchor" id="autotoc_md402"></a>
 ROM-Dependent Tests (ROM_DEPENDENT)</h2>
 <p><b>Only run in development with available ROM files</b></p>
 <ul>
@@ -143,7 +143,7 @@ ROM-Dependent Tests (ROM_DEPENDENT)</h2>
 <li>May be slower due to large file operations</li>
 <li>Automatically skipped in CI if ROM files unavailable</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md386"></a>
+<h2><a class="anchor" id="autotoc_md403"></a>
 Experimental Tests (EXPERIMENTAL)</h2>
 <p><b>Run separately, allowed to fail</b></p>
 <ul>
@@ -159,7 +159,7 @@ Experimental Tests (EXPERIMENTAL)</h2>
 <li>Allowed to fail without blocking releases</li>
 <li>Run in separate CI job with <code>continue-on-error: true</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md387"></a>
+<h2><a class="anchor" id="autotoc_md404"></a>
 GUI Tests (GUI_TEST)</h2>
 <p><b>Tests requiring graphical components</b></p>
 <ul>
@@ -171,16 +171,16 @@ GUI Tests (GUI_TEST)</h2>
 <li>May not work in headless CI environments</li>
 <li>Focus on user interface functionality</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md388"></a>
+<h1><a class="anchor" id="autotoc_md405"></a>
 CI/CD Strategy</h1>
-<h2><a class="anchor" id="autotoc_md389"></a>
+<h2><a class="anchor" id="autotoc_md406"></a>
 Main CI Pipeline</h2>
 <div class="fragment"><div class="line"># Always run - required for merge</div>
 <div class="line">- Run Stable Tests: --label-regex &quot;STABLE&quot;</div>
 <div class="line">  </div>
 <div class="line"># Optional - allowed to fail  </div>
 <div class="line">- Run Experimental Tests: --label-regex &quot;EXPERIMENTAL&quot; (continue-on-error: true)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md390"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md407"></a>
 Development Testing</h2>
 <div class="fragment"><div class="line"># Quick development testing</div>
 <div class="line">ctest --preset stable</div>
@@ -190,14 +190,14 @@ Development Testing</h2>
 <div class="line"> </div>
 <div class="line"># Test specific functionality</div>
 <div class="line">ctest --preset asar-only</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md391"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md408"></a>
 Release Testing</h2>
 <div class="fragment"><div class="line"># Release candidate testing</div>
 <div class="line">ctest --preset stable --parallel</div>
 <div class="line">ctest --preset ci</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md392"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md409"></a>
 Test Execution Examples</h1>
-<h2><a class="anchor" id="autotoc_md393"></a>
+<h2><a class="anchor" id="autotoc_md410"></a>
 Command Line Usage</h2>
 <div class="fragment"><div class="line"># Run only stable tests (release-ready)</div>
 <div class="line">ctest --test-dir build --label-regex &quot;STABLE&quot;</div>
@@ -214,7 +214,7 @@ Command Line Usage</h2>
 <div class="line"># Run with specific preset</div>
 <div class="line">ctest --preset stable</div>
 <div class="line">ctest --preset experimental</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md394"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md411"></a>
 CMake Preset Usage</h2>
 <div class="fragment"><div class="line"># Development workflow</div>
 <div class="line">cmake --preset dev</div>
@@ -230,9 +230,9 @@ CMake Preset Usage</h2>
 <div class="line">cmake --preset release</div>
 <div class="line">cmake --build --preset release</div>
 <div class="line">ctest --preset stable</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md395"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md412"></a>
 Test Development Guidelines</h1>
-<h2><a class="anchor" id="autotoc_md396"></a>
+<h2><a class="anchor" id="autotoc_md413"></a>
 Writing Stable Tests</h2>
 <ul>
 <li><b>Fast execution</b>: Aim for &lt; 1 second per test</li>
@@ -240,7 +240,7 @@ Writing Stable Tests</h2>
 <li><b>Deterministic</b>: Same results every run</li>
 <li><b>Core functionality</b>: Test essential features only</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md397"></a>
+<h2><a class="anchor" id="autotoc_md414"></a>
 Writing Experimental Tests</h2>
 <ul>
 <li><b>Complex scenarios</b>: Multi-component integration</li>
@@ -248,7 +248,7 @@ Writing Experimental Tests</h2>
 <li><b>Performance tests</b>: May vary by system</li>
 <li><b>GUI components</b>: May require display context</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md398"></a>
+<h2><a class="anchor" id="autotoc_md415"></a>
 Writing ROM-Dependent Tests</h2>
 <ul>
 <li><b>Use TestRomManager</b>: Proper ROM file handling</li>
@@ -256,9 +256,9 @@ Writing ROM-Dependent Tests</h2>
 <li><b>Real-world scenarios</b>: Test with actual game data</li>
 <li><b>Label appropriately</b>: Always include ROM_DEPENDENT label</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md399"></a>
+<h1><a class="anchor" id="autotoc_md416"></a>
 CI/CD Efficiency</h1>
-<h2><a class="anchor" id="autotoc_md400"></a>
+<h2><a class="anchor" id="autotoc_md417"></a>
 Fast Feedback Loop</h2>
 <ol type="1">
 <li><b>Stable tests run first</b> - Quick feedback for developers</li>
@@ -266,7 +266,7 @@ Fast Feedback Loop</h2>
 <li><b>ROM tests skipped</b> - No dependency on external files</li>
 <li><b>Selective test execution</b> - Only run relevant tests for changes</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md401"></a>
+<h2><a class="anchor" id="autotoc_md418"></a>
 Release Quality Gates</h2>
 <ol type="1">
 <li><b>All stable tests must pass</b> - No exceptions</li>
@@ -274,9 +274,9 @@ Release Quality Gates</h2>
 <li><b>ROM tests run manually</b> - When ROM files available</li>
 <li><b>Performance benchmarks</b> - Track regression trends</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md402"></a>
+<h1><a class="anchor" id="autotoc_md419"></a>
 Maintenance Strategy</h1>
-<h2><a class="anchor" id="autotoc_md403"></a>
+<h2><a class="anchor" id="autotoc_md420"></a>
 Regular Review</h2>
 <ul>
 <li><b>Monthly review</b> of experimental test failures</li>
@@ -284,7 +284,7 @@ Regular Review</h2>
 <li><b>Deprecate obsolete tests</b> that no longer provide value</li>
 <li><b>Update test categorization</b> as features mature</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md404"></a>
+<h2><a class="anchor" id="autotoc_md421"></a>
 Performance Monitoring</h2>
 <ul>
 <li><b>Track test execution times</b> for CI efficiency</li>
@@ -292,30 +292,30 @@ Performance Monitoring</h2>
 <li><b>Monitor CI resource usage</b> and adjust parallelism</li>
 <li><b>Benchmark critical path tests</b> for performance regression</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md405"></a>
+<h1><a class="anchor" id="autotoc_md422"></a>
 Test Categories by Feature</h1>
-<h2><a class="anchor" id="autotoc_md406"></a>
+<h2><a class="anchor" id="autotoc_md423"></a>
 Asar Integration</h2>
 <ul>
 <li><b>Stable</b>: AsarWrapperTest, AsarIntegrationTest</li>
 <li><b>ROM-Dependent</b>: AsarRomIntegrationTest</li>
 <li><b>Focus</b>: Core assembly patching and symbol extraction</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md407"></a>
+<h2><a class="anchor" id="autotoc_md424"></a>
 Graphics System</h2>
 <ul>
 <li><b>Stable</b>: SnesTileTest, SnesPaletteTest, CompressionTest</li>
 <li><b>Experimental</b>: Complex rendering tests</li>
 <li><b>Focus</b>: SNES graphics format handling</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md408"></a>
+<h2><a class="anchor" id="autotoc_md425"></a>
 Emulation</h2>
 <ul>
 <li><b>Experimental</b>: CpuTest, Spc700Test, ApuTest, PpuTest</li>
 <li><b>Focus</b>: Hardware emulation accuracy</li>
 <li><b>Note</b>: Complex timing-sensitive tests</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md409"></a>
+<h2><a class="anchor" id="autotoc_md426"></a>
 Editor Components</h2>
 <ul>
 <li><b>GUI</b>: DungeonEditorIntegrationTest, Editor integration tests</li>

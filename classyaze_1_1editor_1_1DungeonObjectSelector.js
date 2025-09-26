@@ -15,7 +15,11 @@ var classyaze_1_1editor_1_1DungeonObjectSelector =
     [ "set_current_palette_group_id", "classyaze_1_1editor_1_1DungeonObjectSelector.html#acfd71037e50ef2237d340326c279ab17", null ],
     [ "SetCurrentPaletteGroup", "classyaze_1_1editor_1_1DungeonObjectSelector.html#a81068f27537cd72d8584f1aa7018b120", null ],
     [ "SetCurrentPaletteId", "classyaze_1_1editor_1_1DungeonObjectSelector.html#aa58708e33d9772f10657f76f6b9e8b9b", null ],
+    [ "SetObjectSelectedCallback", "classyaze_1_1editor_1_1DungeonObjectSelector.html#ae223151414c7656eec1109742ad6fe4a", null ],
+    [ "GetPreviewObject", "classyaze_1_1editor_1_1DungeonObjectSelector.html#aa9251056b54a1fb46242db873a68d792", null ],
+    [ "IsObjectLoaded", "classyaze_1_1editor_1_1DungeonObjectSelector.html#a6534b1876f2cc893db1fc40d7d56bd18", null ],
     [ "DrawRoomGraphics", "classyaze_1_1editor_1_1DungeonObjectSelector.html#ad40f587d64e1b68993a4bf33388f5625", null ],
+    [ "DrawObjectBrowser", "classyaze_1_1editor_1_1DungeonObjectSelector.html#afdc4ff26bba49d224a2ab714d2f25417", null ],
     [ "DrawCompactObjectEditor", "classyaze_1_1editor_1_1DungeonObjectSelector.html#a8f9eafd9f5295d45b0efd4eb0f98ca66", null ],
     [ "DrawCompactSpriteEditor", "classyaze_1_1editor_1_1DungeonObjectSelector.html#aa11d2ad9b08d4960ccd82f9525f22da3", null ],
     [ "DrawCompactItemEditor", "classyaze_1_1editor_1_1DungeonObjectSelector.html#aa031ac525b0fe77ff4c7176a62e7983b", null ],
@@ -36,5 +40,6 @@ var classyaze_1_1editor_1_1DungeonObjectSelector =
     [ "current_palette_group_", "classyaze_1_1editor_1_1DungeonObjectSelector.html#ad63d5f2053281f68612d8f6e06743886", null ],
     [ "preview_object_", "classyaze_1_1editor_1_1DungeonObjectSelector.html#a21615dfc5ff04ebd1d2fdcffd886b904", null ],
     [ "preview_palette_", "classyaze_1_1editor_1_1DungeonObjectSelector.html#a64c2a1ff1c308c01d7794fe15b796da2", null ],
-    [ "object_loaded_", "classyaze_1_1editor_1_1DungeonObjectSelector.html#af901caf6397cda1c579cddc4786e4855", null ]
+    [ "object_loaded_", "classyaze_1_1editor_1_1DungeonObjectSelector.html#af901caf6397cda1c579cddc4786e4855", null ],
+    [ "object_selected_callback_", "classyaze_1_1editor_1_1DungeonObjectSelector.html#a58b30041e18ee176720b80772c91f5dc", null ]
 ];

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['january_202025_0',['January 2025',['../md_docs_2roadmap.html#autotoc_md373',1,'0.3.0 (Current - Released January 2025)'],['../md_docs_2index.html#autotoc_md249',1,'Current Version: 0.3.0 (January 2025)']]],
+  ['january_202025_0',['January 2025',['../md_docs_2roadmap.html#autotoc_md390',1,'0.3.0 (Current - Released January 2025)'],['../md_docs_2index.html#autotoc_md266',1,'Current Version: 0.3.0 (January 2025)']]],
   ['jml_1',['JML',['../classyaze_1_1emu_1_1Cpu.html#a0d7557981c654477aa034e1e44344974',1,'yaze::emu::Cpu::JML()'],['../classyaze_1_1test_1_1Cpu.html#a0d7557981c654477aa034e1e44344974',1,'yaze::test::Cpu::JML()']]],
   ['jmp_2',['JMP',['../classyaze_1_1emu_1_1Spc700.html#a0f9709ced56bfe1de31e62d2580f2fce',1,'yaze::emu::Spc700::JMP()'],['../classyaze_1_1emu_1_1Cpu.html#ae6fa6c1c9b120d33deb5d3d027a43fbc',1,'yaze::emu::Cpu::JMP()'],['../classyaze_1_1test_1_1Cpu.html#ae6fa6c1c9b120d33deb5d3d027a43fbc',1,'yaze::test::Cpu::JMP()'],['../classyaze_1_1test_1_1Spc700.html#a0f9709ced56bfe1de31e62d2580f2fce',1,'yaze::test::Spc700::JMP()']]],
   ['joypaddata_3',['joypadData',['../structyaze_1_1emu_1_1JoypadRegisters.html#a11184805d9757bc1d776d5d56302b03f',1,'yaze::emu::JoypadRegisters']]],

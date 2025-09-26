@@ -165,6 +165,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:afcedfc2b040300464c4450ca09436592"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e0f774fbd05970e01b1a33f9eca1b43" id="r_a0e0f774fbd05970e01b1a33f9eca1b43"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0e0f774fbd05970e01b1a33f9eca1b43">set_entrances</a> (std::array&lt; <a class="el" href="classyaze_1_1zelda3_1_1RoomEntrance.html">zelda3::RoomEntrance</a>, 0x8C &gt; *entrances)</td></tr>
 <tr class="separator:a0e0f774fbd05970e01b1a33f9eca1b43"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9848b56cbcd611b02e580adcfad35f39" id="r_a9848b56cbcd611b02e580adcfad35f39"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9848b56cbcd611b02e580adcfad35f39">set_room_selected_callback</a> (std::function&lt; void(int)&gt; callback)</td></tr>
+<tr class="separator:a9848b56cbcd611b02e580adcfad35f39"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -180,6 +182,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ae78014bff9105e86d38652c15524a6a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e0aa5ddadbc4fb07fdd67892cb8a96d" id="r_a9e0aa5ddadbc4fb07fdd67892cb8a96d"><td class="memItemLeft" align="right" valign="top">std::array&lt; <a class="el" href="classyaze_1_1zelda3_1_1RoomEntrance.html">zelda3::RoomEntrance</a>, 0x8C &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9e0aa5ddadbc4fb07fdd67892cb8a96d">entrances_</a> = nullptr</td></tr>
 <tr class="separator:a9e0aa5ddadbc4fb07fdd67892cb8a96d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ace45952bdff186d407073d402dd411c2" id="r_ace45952bdff186d407073d402dd411c2"><td class="memItemLeft" align="right" valign="top">std::function&lt; void(int)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ace45952bdff186d407073d402dd411c2">room_selected_callback_</a></td></tr>
+<tr class="separator:ace45952bdff186d407073d402dd411c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Handles room and entrance selection UI. </p>
@@ -211,7 +215,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00018">18</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00025">rom()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00044">rom_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00025">rom()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00049">rom_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -241,9 +245,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8cc_source.html#l00022">22</a> of file <a class="el" href="dungeon__room__selector_8cc_source.html">dungeon_room_selector.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8cc_source.html#l00015">15</a> of file <a class="el" href="dungeon__room__selector_8cc_source.html">dungeon_room_selector.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8cc_source.html#l00064">DrawEntranceSelector()</a>, and <a class="el" href="dungeon__room__selector_8cc_source.html#l00036">DrawRoomSelector()</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8cc_source.html#l00058">DrawEntranceSelector()</a>, and <a class="el" href="dungeon__room__selector_8cc_source.html#l00029">DrawRoomSelector()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -279,11 +283,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8cc_source.html#l00036">36</a> of file <a class="el" href="dungeon__room__selector_8cc_source.html">dungeon_room_selector.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8cc_source.html#l00029">29</a> of file <a class="el" href="dungeon__room__selector_8cc_source.html">dungeon_room_selector.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00047">active_rooms_</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00045">current_room_id_</a>, <a class="el" href="hex_8cc_source.html#l00030">yaze::util::HexByte()</a>, <a class="el" href="input_8cc_source.html#l00162">yaze::gui::InputHexWord()</a>, <a class="el" href="room_8h_source.html#l00397">yaze::zelda3::kRoomNames</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00044">rom_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00050">current_room_id_</a>, <a class="el" href="hex_8cc_source.html#l00030">yaze::util::HexByte()</a>, <a class="el" href="input_8cc_source.html#l00162">yaze::gui::InputHexWord()</a>, <a class="el" href="room_8h_source.html#l00397">yaze::zelda3::kRoomNames</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00049">rom_</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00058">room_selected_callback_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8cc_source.html#l00022">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8cc_source.html#l00015">Draw()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -316,11 +320,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8cc_source.html#l00064">64</a> of file <a class="el" href="dungeon__room__selector_8cc_source.html">dungeon_room_selector.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8cc_source.html#l00058">58</a> of file <a class="el" href="dungeon__room__selector_8cc_source.html">dungeon_room_selector.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00047">active_rooms_</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00046">current_entrance_id_</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00050">entrances_</a>, <a class="el" href="hex_8cc_source.html#l00030">yaze::util::HexByte()</a>, <a class="el" href="input_8cc_source.html#l00176">yaze::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00162">yaze::gui::InputHexWord()</a>, <a class="el" href="common_8h_source.html#l00048">yaze::zelda3::kEntranceNames</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00044">rom_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00051">current_entrance_id_</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00055">entrances_</a>, <a class="el" href="hex_8cc_source.html#l00030">yaze::util::HexByte()</a>, <a class="el" href="input_8cc_source.html#l00176">yaze::gui::InputHexByte()</a>, <a class="el" href="input_8cc_source.html#l00162">yaze::gui::InputHexWord()</a>, <a class="el" href="common_8h_source.html#l00047">yaze::zelda3::kEntranceNames</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00049">rom_</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00058">room_selected_callback_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8cc_source.html#l00022">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8cc_source.html#l00015">Draw()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -366,7 +370,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00024">24</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00025">rom()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00044">rom_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00025">rom()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00049">rom_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -405,7 +409,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00025">25</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00044">rom_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00049">rom_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8h_source.html#l00018">DungeonRoomSelector()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00024">set_rom()</a>.</p>
 
@@ -436,7 +440,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00028">28</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00045">current_room_id_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00050">current_room_id_</a>.</p>
 
 </div>
 </div>
@@ -465,7 +469,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00029">29</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00045">current_room_id_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00050">current_room_id_</a>.</p>
 
 </div>
 </div>
@@ -494,7 +498,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00031">31</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00047">active_rooms_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00052">active_rooms_</a>.</p>
 
 </div>
 </div>
@@ -523,7 +527,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00032">32</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00047">active_rooms_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00052">active_rooms_</a>.</p>
 
 </div>
 </div>
@@ -552,7 +556,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00033">33</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00047">active_rooms_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00052">active_rooms_</a>.</p>
 
 </div>
 </div>
@@ -581,7 +585,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00036">36</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00046">current_entrance_id_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00051">current_entrance_id_</a>.</p>
 
 </div>
 </div>
@@ -610,7 +614,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00037">37</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00046">current_entrance_id_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00051">current_entrance_id_</a>.</p>
 
 </div>
 </div>
@@ -639,7 +643,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00040">40</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00049">rooms_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00054">rooms_</a>.</p>
 
 </div>
 </div>
@@ -668,7 +672,36 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00041">41</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00050">entrances_</a>.</p>
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00055">entrances_</a>.</p>
+
+</div>
+</div>
+<a id="a9848b56cbcd611b02e580adcfad35f39" name="a9848b56cbcd611b02e580adcfad35f39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9848b56cbcd611b02e580adcfad35f39">&#9670;&#160;</a></span>set_room_selected_callback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::DungeonRoomSelector::set_room_selected_callback </td>
+          <td>(</td>
+          <td class="paramtype">std::function&lt; void(int)&gt;</td>          <td class="paramname"><span class="paramname"><em>callback</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00044">44</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
+
+<p class="reference">References <a class="el" href="dungeon__room__selector_8h_source.html#l00058">room_selected_callback_</a>.</p>
 
 </div>
 </div>
@@ -693,9 +726,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00044">44</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00049">49</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8cc_source.html#l00064">DrawEntranceSelector()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00036">DrawRoomSelector()</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00018">DungeonRoomSelector()</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00025">rom()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00024">set_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8cc_source.html#l00058">DrawEntranceSelector()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00029">DrawRoomSelector()</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00018">DungeonRoomSelector()</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00025">rom()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00024">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -719,9 +752,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00045">45</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00050">50</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8h_source.html#l00029">current_room_id()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00036">DrawRoomSelector()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00028">set_current_room_id()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8h_source.html#l00029">current_room_id()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00029">DrawRoomSelector()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00028">set_current_room_id()</a>.</p>
 
 </div>
 </div>
@@ -745,9 +778,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00046">46</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00051">51</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8h_source.html#l00037">current_entrance_id()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00064">DrawEntranceSelector()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00036">set_current_entrance_id()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8h_source.html#l00037">current_entrance_id()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00058">DrawEntranceSelector()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00036">set_current_entrance_id()</a>.</p>
 
 </div>
 </div>
@@ -771,9 +804,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00047">47</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00052">52</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8h_source.html#l00032">active_rooms()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00064">DrawEntranceSelector()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00036">DrawRoomSelector()</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00033">mutable_active_rooms()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00031">set_active_rooms()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8h_source.html#l00032">active_rooms()</a>, <a class="el" href="dungeon__room__selector_8h_source.html#l00033">mutable_active_rooms()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00031">set_active_rooms()</a>.</p>
 
 </div>
 </div>
@@ -797,7 +830,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00049">49</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00054">54</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8h_source.html#l00040">set_rooms()</a>.</p>
 
@@ -823,9 +856,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00050">50</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00055">55</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8cc_source.html#l00064">DrawEntranceSelector()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00041">set_entrances()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8cc_source.html#l00058">DrawEntranceSelector()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00041">set_entrances()</a>.</p>
+
+</div>
+</div>
+<a id="ace45952bdff186d407073d402dd411c2" name="ace45952bdff186d407073d402dd411c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ace45952bdff186d407073d402dd411c2">&#9670;&#160;</a></span>room_selected_callback_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::function&lt;void(int)&gt; yaze::editor::DungeonRoomSelector::room_selected_callback_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="dungeon__room__selector_8h_source.html#l00058">58</a> of file <a class="el" href="dungeon__room__selector_8h_source.html">dungeon_room_selector.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="dungeon__room__selector_8cc_source.html#l00058">DrawEntranceSelector()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00029">DrawRoomSelector()</a>, and <a class="el" href="dungeon__room__selector_8h_source.html#l00044">set_room_selected_callback()</a>.</p>
 
 </div>
 </div>

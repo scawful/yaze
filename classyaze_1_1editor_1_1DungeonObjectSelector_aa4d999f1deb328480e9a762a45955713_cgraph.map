@@ -1,11 +1,12 @@
 <map id="yaze::editor::DungeonObjectSelector::DrawTileSelector" name="yaze::editor::DungeonObjectSelector::DrawTileSelector">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,186,100"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#a056008899e5dacbd507cd0f26f801ccd" title=" " alt="" coords="234,26,429,66"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,64,218,60,218,65,187,69"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#ad40f587d64e1b68993a4bf33388f5625" title=" " alt="" coords="236,91,427,132"/>
-<area shape="poly" id="edge4_Node000001_Node000010" title=" " alt="" coords="187,89,221,94,220,99,186,94"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="477,5,640,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="429,31,461,27,462,33,430,37"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="490,55,627,96"/>
-<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="430,56,475,62,474,67,429,61"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,67,186,107"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#a056008899e5dacbd507cd0f26f801ccd" title=" " alt="" coords="234,33,429,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,72,218,67,218,72,187,77"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#ad40f587d64e1b68993a4bf33388f5625" title=" " alt="" coords="236,99,427,139"/>
+<area shape="poly" id="edge5_Node000001_Node000011" title=" " alt="" coords="187,97,221,101,220,107,186,102"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1DungeonObjectSelector.html#afdc4ff26bba49d224a2ab714d2f25417" title=" " alt="" coords="477,5,668,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="429,40,461,36,462,41,430,45"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="716,42,880,68"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="429,54,477,55,668,55,701,55,701,60,668,60,477,60,429,59"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="669,35,701,40,700,45,668,41"/>
 </map>

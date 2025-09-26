@@ -87,7 +87,7 @@ var searchData=
   ['kentrancelinkspawn_84',['kEntranceLinkSpawn',['../namespaceyaze_1_1zelda3.html#afe00a37c0e43039237d6f7452d6daca6',1,'yaze::zelda3']]],
   ['kentrancemusic_85',['kEntranceMusic',['../namespaceyaze_1_1zelda3.html#aabbed84401e10f830675c9169cda67d3',1,'yaze::zelda3']]],
   ['kentrancemusicexp_86',['kEntranceMusicEXP',['../namespaceyaze_1_1zelda3.html#af2353873362052aac0583f2e63f7ad54',1,'yaze::zelda3']]],
-  ['kentrancenames_87',['kEntranceNames',['../namespaceyaze_1_1zelda3.html#a11f897c391430c3e4e14c91b9606721a',1,'yaze::zelda3']]],
+  ['kentrancenames_87',['kEntranceNames',['../namespaceyaze_1_1zelda3.html#ad6c18d29e97e55ec6ceca23a3b32920f',1,'yaze::zelda3']]],
   ['kentrancenorthtavern_88',['kEntranceNorthTavern',['../namespaceyaze_1_1zelda3.html#a68adf6fe4308d3ef799a9c5f67b170ea',1,'yaze::zelda3']]],
   ['kentranceroom_89',['kEntranceRoom',['../namespaceyaze_1_1zelda3.html#a26495cd86a21e1780a9f4483b5049575',1,'yaze::zelda3']]],
   ['kentranceroomexp_90',['kEntranceRoomEXP',['../namespaceyaze_1_1zelda3.html#a878727135e8e89c736977b9433e14d12',1,'yaze::zelda3']]],

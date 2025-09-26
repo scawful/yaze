@@ -15,10 +15,12 @@ var classyaze_1_1editor_1_1DungeonRoomSelector =
     [ "current_entrance_id", "classyaze_1_1editor_1_1DungeonRoomSelector.html#ab3e2bfb6ab232560b31f58394bc00e03", null ],
     [ "set_rooms", "classyaze_1_1editor_1_1DungeonRoomSelector.html#afcedfc2b040300464c4450ca09436592", null ],
     [ "set_entrances", "classyaze_1_1editor_1_1DungeonRoomSelector.html#a0e0f774fbd05970e01b1a33f9eca1b43", null ],
+    [ "set_room_selected_callback", "classyaze_1_1editor_1_1DungeonRoomSelector.html#a9848b56cbcd611b02e580adcfad35f39", null ],
     [ "rom_", "classyaze_1_1editor_1_1DungeonRoomSelector.html#a1213b1e19cf2e4e50eecd9022ea4f315", null ],
     [ "current_room_id_", "classyaze_1_1editor_1_1DungeonRoomSelector.html#ab6d24e0f430c11c60f1e62b095f7efba", null ],
     [ "current_entrance_id_", "classyaze_1_1editor_1_1DungeonRoomSelector.html#a71dccd8119ca3b7de5db415be504992e", null ],
     [ "active_rooms_", "classyaze_1_1editor_1_1DungeonRoomSelector.html#afa8576c3189f3965210f67a1b63ccbc6", null ],
     [ "rooms_", "classyaze_1_1editor_1_1DungeonRoomSelector.html#ae78014bff9105e86d38652c15524a6a9", null ],
-    [ "entrances_", "classyaze_1_1editor_1_1DungeonRoomSelector.html#a9e0aa5ddadbc4fb07fdd67892cb8a96d", null ]
+    [ "entrances_", "classyaze_1_1editor_1_1DungeonRoomSelector.html#a9e0aa5ddadbc4fb07fdd67892cb8a96d", null ],
+    [ "room_selected_callback_", "classyaze_1_1editor_1_1DungeonRoomSelector.html#ace45952bdff186d407073d402dd411c2", null ]
 ];

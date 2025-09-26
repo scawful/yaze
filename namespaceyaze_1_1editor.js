@@ -4,9 +4,6 @@ var namespaceyaze_1_1editor =
       [ "RemoveIgnoredFiles", "namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#afb9e8d9b03590a412db61ef023a6e689", null ],
       [ "LoadFolder", "namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a892d14f134c77a3840951d2cfa0f7ce7", null ]
     ] ],
-    [ "anonymous_namespace{dungeon_editor.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html", [
-      [ "RenderUnusedSets", "namespaceyaze_1_1editor_1_1anonymous__namespace_02dungeon__editor_8cc_03.html#a49f56fef596e5100283beb1a405fd472", null ]
-    ] ],
     [ "anonymous_namespace{editor_manager.cc}", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html", [
       [ "GetEditorName", "namespaceyaze_1_1editor_1_1anonymous__namespace_02editor__manager_8cc_03.html#a04a2feb18db36480026c96f4c432701d", null ]
     ] ],
@@ -30,8 +27,13 @@ var namespaceyaze_1_1editor =
     [ "DictionaryEntry", "structyaze_1_1editor_1_1DictionaryEntry.html", "structyaze_1_1editor_1_1DictionaryEntry" ],
     [ "DungeonCanvasViewer", "classyaze_1_1editor_1_1DungeonCanvasViewer.html", "classyaze_1_1editor_1_1DungeonCanvasViewer" ],
     [ "DungeonEditor", "classyaze_1_1editor_1_1DungeonEditor.html", "classyaze_1_1editor_1_1DungeonEditor" ],
+    [ "DungeonObjectInteraction", "classyaze_1_1editor_1_1DungeonObjectInteraction.html", "classyaze_1_1editor_1_1DungeonObjectInteraction" ],
     [ "DungeonObjectSelector", "classyaze_1_1editor_1_1DungeonObjectSelector.html", "classyaze_1_1editor_1_1DungeonObjectSelector" ],
+    [ "DungeonRenderer", "classyaze_1_1editor_1_1DungeonRenderer.html", "classyaze_1_1editor_1_1DungeonRenderer" ],
+    [ "DungeonRoomLoader", "classyaze_1_1editor_1_1DungeonRoomLoader.html", "classyaze_1_1editor_1_1DungeonRoomLoader" ],
     [ "DungeonRoomSelector", "classyaze_1_1editor_1_1DungeonRoomSelector.html", "classyaze_1_1editor_1_1DungeonRoomSelector" ],
+    [ "DungeonToolset", "classyaze_1_1editor_1_1DungeonToolset.html", "classyaze_1_1editor_1_1DungeonToolset" ],
+    [ "DungeonUsageTracker", "classyaze_1_1editor_1_1DungeonUsageTracker.html", "classyaze_1_1editor_1_1DungeonUsageTracker" ],
     [ "Editor", "classyaze_1_1editor_1_1Editor.html", "classyaze_1_1editor_1_1Editor" ],
     [ "EditorContext", "structyaze_1_1editor_1_1EditorContext.html", "structyaze_1_1editor_1_1EditorContext" ],
     [ "EditorManager", "classyaze_1_1editor_1_1EditorManager.html", "classyaze_1_1editor_1_1EditorManager" ],

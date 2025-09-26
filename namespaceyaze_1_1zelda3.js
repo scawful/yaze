@@ -314,7 +314,7 @@ var namespaceyaze_1_1zelda3 =
     [ "TEST_F", "namespaceyaze_1_1zelda3.html#a046fd9599628dbd690eeb02858bd1d6c", null ],
     [ "TEST_F", "namespaceyaze_1_1zelda3.html#a30bef1fbc7b2d7044911b9e0e2159ab9", null ],
     [ "TEST_F", "namespaceyaze_1_1zelda3.html#afb146342cacf46d40b28803479fbf122", null ],
-    [ "kEntranceNames", "namespaceyaze_1_1zelda3.html#a11f897c391430c3e4e14c91b9606721a", null ],
+    [ "kEntranceNames", "namespaceyaze_1_1zelda3.html#ad6c18d29e97e55ec6ceca23a3b32920f", null ],
     [ "kGfxBufferOffset", "namespaceyaze_1_1zelda3.html#afbcf95f0000387646abc0306914ec5fd", null ],
     [ "kGfxBufferStride", "namespaceyaze_1_1zelda3.html#ad4150202e700fdd531d83924bc702860", null ],
     [ "kGfxBufferAnimatedFrameOffset", "namespaceyaze_1_1zelda3.html#a1757051a7fff37b8c2df0206cf5ac0cb", null ],

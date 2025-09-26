@@ -1,9 +1,0 @@
-<map id="yaze::editor::DungeonEditor::DrawUsageStats" name="yaze::editor::DungeonEditor::DrawUsageStats">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,181,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonEditor.html#aa267137dd569421127c1e7139f9e3848" title=" " alt="" coords="229,5,404,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,68,229,48,230,54,166,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1DungeonEditor.html#a4bd3393c470fa52c4c2a53b82fcf05c2" title=" " alt="" coords="229,71,404,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1DungeonEditor.html#a50117d0d1dd52b24e07f881737ec1ff5" title=" " alt="" coords="229,136,404,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="166,109,230,128,229,134,164,114"/>
-</map>
