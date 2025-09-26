@@ -1,5 +1,5 @@
 # SDL2
-if (UNIX OR MINGW)
+if (UNIX OR MINGW OR WIN32)
   add_subdirectory(src/lib/SDL)
   # When using bundled SDL, use the static target
   set(SDL_TARGETS SDL2-static)
