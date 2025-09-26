@@ -1,5 +1,15 @@
 var NAVTREEINDEX75 =
 {
+"structzelda3__dungeon__room.html#a23d11d15de835636309f62cb4b813c82":[24,0,22,1],
+"structzelda3__dungeon__room.html#a3e4378ef2ad1ec373971935881247a30":[24,0,22,11],
+"structzelda3__dungeon__room.html#a42678ea7c1ec348ce2fda7a594f6ba90":[24,0,22,15],
+"structzelda3__dungeon__room.html#a4473c6659b4ed289cbdc446fb3190288":[24,0,22,16],
+"structzelda3__dungeon__room.html#a5e8e0ebe5c97e584d49b312aeb6dffb6":[24,0,22,17],
+"structzelda3__dungeon__room.html#a646ef3c5d1408d9e1ab7d9fd045e76e9":[24,0,22,5],
+"structzelda3__dungeon__room.html#a6b06cd9b012c9983d3f5c5e2302134e1":[24,0,22,7],
+"structzelda3__dungeon__room.html#a71d06943f28f6fb29ca61efa49a937b5":[24,0,22,12],
+"structzelda3__dungeon__room.html#abe1933825d1e89747eb0b659498e1225":[24,0,22,10],
+"structzelda3__dungeon__room.html#abf2e45bd706a5ea889bfafaa93e03401":[24,0,22,18],
 "structzelda3__dungeon__room.html#ac3a118ab8816d0d9d8782bcda2d058ea":[24,0,22,9],
 "structzelda3__dungeon__room.html#ac85e6d5d1d8564f9ad5c33f10680615f":[24,0,22,6],
 "structzelda3__dungeon__room.html#acaa94c6cef83aefaefcdeb6a5db23525":[24,0,22,14],

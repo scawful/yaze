@@ -1,5 +1,15 @@
 var NAVTREEINDEX51 =
 {
+"macro_8h.html#a7ff41a09894e97938253afc4e6387add":[25,0,3,3,7,22],
+"macro_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11":[25,0,3,3,7,1],
+"macro_8h.html#a90be36f2e92f476b5bb13517da51afbe":[25,0,3,3,7,5],
+"macro_8h.html#a9a548e9537ecb0675b887fec6654d2d3":[25,0,3,3,7,12],
+"macro_8h.html#aada67a2281f9b16dbb495ed05b8755e0":[25,0,3,3,7,20],
+"macro_8h.html#ab92150ef2a5297e0ed00b05792f0e632":[25,0,3,3,7,13],
+"macro_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c":[25,0,3,3,7,0],
+"macro_8h.html#adf4d2e200654d8260cc2244953f64247":[25,0,3,3,7,9],
+"macro_8h.html#ae341b584a47fc74d82c009e929269df9":[25,0,3,3,7,7],
+"macro_8h.html#ae56011c65c8e5a0add681bf1c4f89641":[25,0,3,3,7,10],
 "macro_8h_source.html":[25,0,3,3,7],
 "main_8cc.html":[25,0,3,0,7],
 "main_8cc.html#a1519586100621dde15a2ce66a033b176":[25,0,3,0,7,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX51 =
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md205":[12,1],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md206":[12,1,0],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md207":[12,1,0,0],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md208":[12,1,0,1],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md209":[12,1,0,2],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md210":[12,1,0,3],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md211":[12,2],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md212":[12,2,0],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md213":[12,2,0,0],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md214":[12,2,1],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md215":[12,3],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md216":[12,3,0],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md217":[12,3,1],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md218":[12,3,2]
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md208":[12,1,0,1]
 };

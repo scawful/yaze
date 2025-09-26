@@ -1,5 +1,15 @@
 var NAVTREEINDEX68 =
 {
+"structyaze_1_1emu_1_1TilemapEntry.html#a828cbb0f34624b0c5e43bcf64972c957":[23,0,3,4,77,0],
+"structyaze_1_1emu_1_1TilemapEntry.html#a828cbb0f34624b0c5e43bcf64972c957":[24,0,0,4,75,0],
+"structyaze_1_1emu_1_1TilemapEntry.html#ad026284453b5909eb3899f838003a1eb":[23,0,3,4,77,1],
+"structyaze_1_1emu_1_1TilemapEntry.html#ad026284453b5909eb3899f838003a1eb":[24,0,0,4,75,1],
+"structyaze_1_1emu_1_1TilemapEntry.html#aeaae6fd5cdc2906a4c8d3ac7f23047b3":[23,0,3,4,77,3],
+"structyaze_1_1emu_1_1TilemapEntry.html#aeaae6fd5cdc2906a4c8d3ac7f23047b3":[24,0,0,4,75,3],
+"structyaze_1_1emu_1_1Timer.html":[23,0,3,4,79],
+"structyaze_1_1emu_1_1Timer.html":[24,0,0,4,77],
+"structyaze_1_1emu_1_1Timer.html#a3a754161256b4fc03ec9b3aaf6774280":[23,0,3,4,79,4],
+"structyaze_1_1emu_1_1Timer.html#a3a754161256b4fc03ec9b3aaf6774280":[24,0,0,4,77,4],
 "structyaze_1_1emu_1_1Timer.html#a3ccd05259a5c54b8c025ec759479f9d7":[23,0,3,4,79,3],
 "structyaze_1_1emu_1_1Timer.html#a3ccd05259a5c54b8c025ec759479f9d7":[24,0,0,4,77,3],
 "structyaze_1_1emu_1_1Timer.html#a49c59a8842aebcf193b9991b6f09e6c7":[23,0,3,4,79,1],
@@ -239,15 +249,5 @@ var NAVTREEINDEX68 =
 "structyaze_1_1gfx_1_1PaletteGroup.html#af48c9801e6d9f3d560c083ee6258bcf5":[23,0,3,5,12,9],
 "structyaze_1_1gfx_1_1PaletteGroup.html#af48c9801e6d9f3d560c083ee6258bcf5":[24,0,0,5,10,9],
 "structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb":[23,0,3,5,12,2],
-"structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb":[24,0,0,5,10,2],
-"structyaze_1_1gfx_1_1PaletteGroup.html#afa676ebbdcba9304ec77b572a2a218c4":[23,0,3,5,12,1],
-"structyaze_1_1gfx_1_1PaletteGroup.html#afa676ebbdcba9304ec77b572a2a218c4":[24,0,0,5,10,1],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html":[23,0,3,5,13],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html":[24,0,0,5,11],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html#a0307804b9ad3b7056d9ca4244c2ca89e":[23,0,3,5,13,4],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html#a0307804b9ad3b7056d9ca4244c2ca89e":[24,0,0,5,11,4],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html#a2a2874e281a3fd40f3605bde8d33ed67":[23,0,3,5,13,5],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html#a2a2874e281a3fd40f3605bde8d33ed67":[24,0,0,5,11,5],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html#a35199d150dfa83325939a618c3b9d4fa":[23,0,3,5,13,9],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html#a35199d150dfa83325939a618c3b9d4fa":[24,0,0,5,11,9]
+"structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb":[24,0,0,5,10,2]
 };

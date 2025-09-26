@@ -1,5 +1,15 @@
 var NAVTREEINDEX62 =
 {
+"structsnes__tile__info.html#add679660cf98cc91b529dfc9d5a897ca":[22,2,4,0],
+"structsnes__tile__info.html#ae7281dca7dedcd51d3df374f072d5711":[22,2,4,4],
+"structstaircase.html":[22,5,2],
+"structstaircase.html#a270d19c429618770fbb39e7e268bfa5d":[22,5,2,2],
+"structstaircase.html#aaeb97732cd0085d59c457345cd4add3b":[22,5,2,1],
+"structstaircase.html#aeb7b32de30b679d5d1664a6d9a0dde85":[22,5,2,0],
+"structyaze_1_1Rom_1_1SaveSettings.html":[23,0,3,11,0],
+"structyaze_1_1Rom_1_1SaveSettings.html":[24,0,0,11,0],
+"structyaze_1_1Rom_1_1SaveSettings.html#a1e3bfc53479ab1000ea5cbd679c519ab":[23,0,3,11,0,2],
+"structyaze_1_1Rom_1_1SaveSettings.html#a1e3bfc53479ab1000ea5cbd679c519ab":[24,0,0,11,0,2],
 "structyaze_1_1Rom_1_1SaveSettings.html#a21e32750a0a04101b26825f6c31ce81c":[23,0,3,11,0,3],
 "structyaze_1_1Rom_1_1SaveSettings.html#a21e32750a0a04101b26825f6c31ce81c":[24,0,0,11,0,3],
 "structyaze_1_1Rom_1_1SaveSettings.html#a3855ed07bf6f7953b619cf5da68f5fb5":[23,0,3,11,0,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX62 =
 "structyaze_1_1core_1_1WorkspaceSettings.html#a9d258591777fc43e4486c32c784f9eac":[23,0,3,2,17,3],
 "structyaze_1_1core_1_1WorkspaceSettings.html#a9d258591777fc43e4486c32c784f9eac":[24,0,0,2,15,3],
 "structyaze_1_1core_1_1WorkspaceSettings.html#ad9c96c80e552bf4978345ad6489b23c7":[23,0,3,2,17,10],
-"structyaze_1_1core_1_1WorkspaceSettings.html#ad9c96c80e552bf4978345ad6489b23c7":[24,0,0,2,15,10],
-"structyaze_1_1core_1_1WorkspaceSettings.html#ada5b3578e88f6691d3527b5c442dc49c":[23,0,3,2,17,2],
-"structyaze_1_1core_1_1WorkspaceSettings.html#ada5b3578e88f6691d3527b5c442dc49c":[24,0,0,2,15,2],
-"structyaze_1_1core_1_1WorkspaceSettings.html#aeaff6a8411b303f46125b61fed42a0ad":[23,0,3,2,17,13],
-"structyaze_1_1core_1_1WorkspaceSettings.html#aeaff6a8411b303f46125b61fed42a0ad":[24,0,0,2,15,13],
-"structyaze_1_1core_1_1WorkspaceSettings.html#aec05bff888367bfdb665fc2ccfb2e17d":[23,0,3,2,17,5],
-"structyaze_1_1core_1_1WorkspaceSettings.html#aec05bff888367bfdb665fc2ccfb2e17d":[24,0,0,2,15,5],
-"structyaze_1_1core_1_1YazeProject.html":[23,0,3,2,18],
-"structyaze_1_1core_1_1YazeProject.html":[24,0,0,2,16],
-"structyaze_1_1core_1_1YazeProject.html#a01c9181e16416e9999014de5ea21f9c4":[23,0,3,2,18,1],
-"structyaze_1_1core_1_1YazeProject.html#a01c9181e16416e9999014de5ea21f9c4":[24,0,0,2,16,1]
+"structyaze_1_1core_1_1WorkspaceSettings.html#ad9c96c80e552bf4978345ad6489b23c7":[24,0,0,2,15,10]
 };

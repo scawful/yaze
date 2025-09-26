@@ -1,5 +1,15 @@
 var NAVTREEINDEX66 =
 {
+"structyaze_1_1emu_1_1CpuCallbacks.html#a15ff9a76d86b1e0faa561539b0aa6e5f":[23,0,3,4,24,2],
+"structyaze_1_1emu_1_1CpuCallbacks.html#a15ff9a76d86b1e0faa561539b0aa6e5f":[24,0,0,4,22,2],
+"structyaze_1_1emu_1_1CpuCallbacks.html#a43f692c1bc53c498e49d4d81a75bdb29":[23,0,3,4,24,0],
+"structyaze_1_1emu_1_1CpuCallbacks.html#a43f692c1bc53c498e49d4d81a75bdb29":[24,0,0,4,22,0],
+"structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458":[23,0,3,4,24,1],
+"structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458":[24,0,0,4,22,1],
+"structyaze_1_1emu_1_1DmaChannel.html":[23,0,3,4,25],
+"structyaze_1_1emu_1_1DmaChannel.html":[24,0,0,4,23],
+"structyaze_1_1emu_1_1DmaChannel.html#a0c51d9f8efc83761dcace38d2ef37859":[23,0,3,4,25,2],
+"structyaze_1_1emu_1_1DmaChannel.html#a0c51d9f8efc83761dcace38d2ef37859":[24,0,0,4,23,2],
 "structyaze_1_1emu_1_1DmaChannel.html#a512d78862c904374842ccf71f53e6589":[23,0,3,4,25,14],
 "structyaze_1_1emu_1_1DmaChannel.html#a512d78862c904374842ccf71f53e6589":[24,0,0,4,23,14],
 "structyaze_1_1emu_1_1DmaChannel.html#a543e3949df21b16db2a2fd4df9e71aab":[23,0,3,4,25,11],
@@ -239,15 +249,5 @@ var NAVTREEINDEX66 =
 "structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae7b79a6181396e8e683c59b95d286225":[23,0,3,4,43,1],
 "structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae7b79a6181396e8e683c59b95d286225":[24,0,0,4,41,1],
 "structyaze_1_1emu_1_1MainSubScreenDesignation.html#aeecf10d7c491e3936bd881fdd9ba623a":[23,0,3,4,43,0],
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#aeecf10d7c491e3936bd881fdd9ba623a":[24,0,0,4,41,0],
-"structyaze_1_1emu_1_1MaskLogicSettings.html":[23,0,3,4,44],
-"structyaze_1_1emu_1_1MaskLogicSettings.html":[24,0,0,4,42],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a2e5c57c40b3a1ac4ea80bc085268a720":[23,0,3,4,44,1],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a2e5c57c40b3a1ac4ea80bc085268a720":[24,0,0,4,42,1],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a71343a7192fd3c98f9d702b0fbe75297":[23,0,3,4,44,0],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a71343a7192fd3c98f9d702b0fbe75297":[24,0,0,4,42,0],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a72f9c1d54a9c27b4b51f89ff32b32e86":[23,0,3,4,44,2],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a72f9c1d54a9c27b4b51f89ff32b32e86":[24,0,0,4,42,2],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a8b53ea986283dff85cedcd773ae492e7":[23,0,3,4,44,3],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a8b53ea986283dff85cedcd773ae492e7":[24,0,0,4,42,3]
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html#aeecf10d7c491e3936bd881fdd9ba623a":[24,0,0,4,41,0]
 };

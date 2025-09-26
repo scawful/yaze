@@ -1,5 +1,15 @@
 var NAVTREEINDEX33 =
 {
+"classyaze_1_1zelda3_1_1GameEntity.html":[23,0,3,9,19],
+"classyaze_1_1zelda3_1_1GameEntity.html":[24,0,0,9,14],
+"classyaze_1_1zelda3_1_1GameEntity.html#a03378b180b8ef2283ad4a48dd3cadcd3":[23,0,3,9,19,9],
+"classyaze_1_1zelda3_1_1GameEntity.html#a03378b180b8ef2283ad4a48dd3cadcd3":[24,0,0,9,14,9],
+"classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2":[23,0,3,9,19,0],
+"classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2":[24,0,0,9,14,0],
+"classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2a31fd9968723a0676325446e2e85c02d8":[23,0,3,9,19,0,4],
+"classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2a31fd9968723a0676325446e2e85c02d8":[24,0,0,9,14,0,4],
+"classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2a63e228dd8306a9d7705a1fbd45c814f8":[23,0,3,9,19,0,6],
+"classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2a63e228dd8306a9d7705a1fbd45c814f8":[24,0,0,9,14,0,6],
 "classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2a6a204134384605565d443b575009eb79":[23,0,3,9,19,0,1],
 "classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2a6a204134384605565d443b575009eb79":[24,0,0,9,14,0,1],
 "classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2a8cd1c7e970abfa25379087a6ed8f0b1a":[23,0,3,9,19,0,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX33 =
 "classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a346fd70458c6ec69fa61ee8021a40a13":[23,0,3,9,26,1,0],
 "classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a346fd70458c6ec69fa61ee8021a40a13":[24,0,0,9,21,1,0],
 "classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a355231802aae7b52c726b0df4047423a":[23,0,3,9,26,1,1],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a355231802aae7b52c726b0df4047423a":[24,0,0,9,21,1,1],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a410c2333e658cba4418984e70e575b99":[23,0,3,9,26,1,5],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a410c2333e658cba4418984e70e575b99":[24,0,0,9,21,1,5],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a46ac1a58d028deebba0859e182f0351e":[23,0,3,9,26,1,6],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a46ac1a58d028deebba0859e182f0351e":[24,0,0,9,21,1,6],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a701c3b7fbe512df8a7da516804cc5112":[23,0,3,9,26,1,8],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a701c3b7fbe512df8a7da516804cc5112":[24,0,0,9,21,1,8],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#adcc652933968dffd881444611e1379b9":[23,0,3,9,26,1,2],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#adcc652933968dffd881444611e1379b9":[24,0,0,9,21,1,2],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1ObjectParser.html":[23,0,3,9,26,2],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1ObjectParser.html":[24,0,0,9,21,2]
+"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a355231802aae7b52c726b0df4047423a":[24,0,0,9,21,1,1]
 };

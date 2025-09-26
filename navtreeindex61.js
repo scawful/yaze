@@ -1,5 +1,15 @@
 var NAVTREEINDEX61 =
 {
+"notify_8h_source.html":[25,0,3,3,8],
+"object__parser_8cc.html":[25,0,3,0,6,0,4],
+"object__parser_8cc_source.html":[25,0,3,0,6,0,4],
+"object__parser_8h.html":[25,0,3,0,6,0,5],
+"object__parser_8h_source.html":[25,0,3,0,6,0,5],
+"object__parser__structs__test_8cc.html":[25,0,4,6,9],
+"object__parser__structs__test_8cc_source.html":[25,0,4,6,9],
+"object__parser__test_8cc.html":[25,0,4,6,10],
+"object__parser__test_8cc_source.html":[25,0,4,6,10],
+"object__renderer_8cc.html":[25,0,3,0,6,0,6],
 "object__renderer_8cc_source.html":[25,0,3,0,6,0,6],
 "object__renderer_8h.html":[25,0,3,0,6,0,7],
 "object__renderer_8h_source.html":[25,0,3,0,6,0,7],
@@ -239,15 +249,5 @@ var NAVTREEINDEX61 =
 "structsnes__tile__info.html":[22,2,4],
 "structsnes__tile__info.html#a24f26fc9d167ee3dcfa66eb5e84debcc":[22,2,4,1],
 "structsnes__tile__info.html#a75cfaaf7645cc745bec82f700ba44ae4":[22,2,4,2],
-"structsnes__tile__info.html#a9ab328fac3bf6ecfb388748e33a4d826":[22,2,4,3],
-"structsnes__tile__info.html#add679660cf98cc91b529dfc9d5a897ca":[22,2,4,0],
-"structsnes__tile__info.html#ae7281dca7dedcd51d3df374f072d5711":[22,2,4,4],
-"structstaircase.html":[22,5,2],
-"structstaircase.html#a270d19c429618770fbb39e7e268bfa5d":[22,5,2,2],
-"structstaircase.html#aaeb97732cd0085d59c457345cd4add3b":[22,5,2,1],
-"structstaircase.html#aeb7b32de30b679d5d1664a6d9a0dde85":[22,5,2,0],
-"structyaze_1_1Rom_1_1SaveSettings.html":[23,0,3,11,0],
-"structyaze_1_1Rom_1_1SaveSettings.html":[24,0,0,11,0],
-"structyaze_1_1Rom_1_1SaveSettings.html#a1e3bfc53479ab1000ea5cbd679c519ab":[23,0,3,11,0,2],
-"structyaze_1_1Rom_1_1SaveSettings.html#a1e3bfc53479ab1000ea5cbd679c519ab":[24,0,0,11,0,2]
+"structsnes__tile__info.html#a9ab328fac3bf6ecfb388748e33a4d826":[22,2,4,3]
 };

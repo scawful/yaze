@@ -1,5 +1,15 @@
 var NAVTREEINDEX52 =
 {
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md209":[12,1,0,2],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md210":[12,1,0,3],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md211":[12,2],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md212":[12,2,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md213":[12,2,0,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md214":[12,2,1],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md215":[12,3],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md216":[12,3,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md217":[12,3,1],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md218":[12,3,2],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md219":[12,4],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md220":[12,4,0],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md221":[12,4,0,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX52 =
 "message__preview_8h_source.html":[25,0,3,0,1,3,5],
 "message__test_8cc.html":[25,0,4,6,8],
 "message__test_8cc_source.html":[25,0,4,6,8],
-"mock__memory_8h.html":[25,0,4,5,0],
-"mock__memory_8h_source.html":[25,0,4,5,0],
-"mock__rom_8h.html":[25,0,4,5,1],
-"mock__rom_8h_source.html":[25,0,4,5,1],
-"music__editor_8cc.html":[25,0,3,0,1,4,0],
-"music__editor_8cc_source.html":[25,0,3,0,1,4,0],
-"music__editor_8h.html":[25,0,3,0,1,4,1],
-"music__editor_8h_source.html":[25,0,3,0,1,4,1],
-"namespaceImGui.html":[23,0,1],
-"namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d":[23,0,1,0],
-"namespaceextract__changelog.html":[23,0,0]
+"mock__memory_8h.html":[25,0,4,5,0]
 };

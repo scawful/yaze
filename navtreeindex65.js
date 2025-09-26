@@ -1,5 +1,15 @@
 var NAVTREEINDEX65 =
 {
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3226c3e3f187558defafc2854eaffd81":[23,0,3,3,7,5,8],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3226c3e3f187558defafc2854eaffd81":[24,0,0,3,1,5,8],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a32432d22b18af188414e828c430dad5b":[23,0,3,3,7,5,27],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a32432d22b18af188414e828c430dad5b":[24,0,0,3,1,5,27],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a34b5603a8f27d08f4dd8d18bc2be8621":[23,0,3,3,7,5,16],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a34b5603a8f27d08f4dd8d18bc2be8621":[24,0,0,3,1,5,16],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e5876e61573a96c1028a15774cdc906":[23,0,3,3,7,5,22],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e5876e61573a96c1028a15774cdc906":[24,0,0,3,1,5,22],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e61c019ef3378d6de4930b30c948481":[23,0,3,3,7,5,6],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e61c019ef3378d6de4930b30c948481":[24,0,0,3,1,5,6],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a402255bcf4fc4bf667e56f62a1f0ec74":[23,0,3,3,7,5,21],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a402255bcf4fc4bf667e56f62a1f0ec74":[24,0,0,3,1,5,21],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a4d86d52b8f942e19c520a6af13bee02b":[23,0,3,3,7,5,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX65 =
 "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#add5d5913078f3d5af987c118e92ad21a":[23,0,3,4,22,1],
 "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#add5d5913078f3d5af987c118e92ad21a":[24,0,0,4,20,1],
 "structyaze_1_1emu_1_1CpuCallbacks.html":[23,0,3,4,24],
-"structyaze_1_1emu_1_1CpuCallbacks.html":[24,0,0,4,22],
-"structyaze_1_1emu_1_1CpuCallbacks.html#a15ff9a76d86b1e0faa561539b0aa6e5f":[23,0,3,4,24,2],
-"structyaze_1_1emu_1_1CpuCallbacks.html#a15ff9a76d86b1e0faa561539b0aa6e5f":[24,0,0,4,22,2],
-"structyaze_1_1emu_1_1CpuCallbacks.html#a43f692c1bc53c498e49d4d81a75bdb29":[23,0,3,4,24,0],
-"structyaze_1_1emu_1_1CpuCallbacks.html#a43f692c1bc53c498e49d4d81a75bdb29":[24,0,0,4,22,0],
-"structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458":[23,0,3,4,24,1],
-"structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458":[24,0,0,4,22,1],
-"structyaze_1_1emu_1_1DmaChannel.html":[23,0,3,4,25],
-"structyaze_1_1emu_1_1DmaChannel.html":[24,0,0,4,23],
-"structyaze_1_1emu_1_1DmaChannel.html#a0c51d9f8efc83761dcace38d2ef37859":[23,0,3,4,25,2],
-"structyaze_1_1emu_1_1DmaChannel.html#a0c51d9f8efc83761dcace38d2ef37859":[24,0,0,4,23,2]
+"structyaze_1_1emu_1_1CpuCallbacks.html":[24,0,0,4,22]
 };

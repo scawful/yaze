@@ -1,5 +1,15 @@
 var NAVTREEINDEX60 =
 {
+"namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747a4404a122c1d7b78cf18b6265c8e0ee59":[23,0,3,9,65,2],
+"namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747ad57c678319b4dbc801c759910f417fdc":[23,0,3,9,65,6],
+"namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747ae9536c38b4bb6b601bab83bfc2bed29b":[23,0,3,9,65,4],
+"namespaceyaze_1_1zelda3.html#a955976632b4be13438c7fd3992380788":[23,0,3,9,162],
+"namespaceyaze_1_1zelda3.html#a96166bd10efeffc68c002c7a8fe11fad":[23,0,3,9,160],
+"namespaceyaze_1_1zelda3.html#a96678ef2cc89582d5d8a7f2b74c5f69b":[23,0,3,9,59],
+"namespaceyaze_1_1zelda3.html#a9674f96015da115df6610300a744f6f1":[23,0,3,9,326],
+"namespaceyaze_1_1zelda3.html#a9788f71fa31f76d752e019285a1ec5cf":[23,0,3,9,191],
+"namespaceyaze_1_1zelda3.html#a983a46759f61bc10c22666455013d166":[23,0,3,9,304],
+"namespaceyaze_1_1zelda3.html#a984626c3994bd2b649c3b69438171e8d":[23,0,3,9,385],
 "namespaceyaze_1_1zelda3.html#a989c343a868d7dadaebe677d108a9e7a":[23,0,3,9,354],
 "namespaceyaze_1_1zelda3.html#a99409db6062bb5f7022b4575debf9f27":[23,0,3,9,111],
 "namespaceyaze_1_1zelda3.html#a9962de09957a22a794ab96f1f2a41803":[23,0,3,9,240],
@@ -239,15 +249,5 @@ var NAVTREEINDEX60 =
 "namespaceyaze_1_1zelda3_1_1music.html#af7107d5454a88b6094544b9ef0a3606c":[23,0,3,9,6,16],
 "namespaceyaze_1_1zelda3_1_1palette__internal.html":[23,0,3,9,9],
 "namespaceyaze_1_1zelda3_1_1palette__internal.html#a7f32e9b2fd815c57c56c9a2e878e8165":[23,0,3,9,9,0],
-"notify_8h.html":[25,0,3,3,8],
-"notify_8h_source.html":[25,0,3,3,8],
-"object__parser_8cc.html":[25,0,3,0,6,0,4],
-"object__parser_8cc_source.html":[25,0,3,0,6,0,4],
-"object__parser_8h.html":[25,0,3,0,6,0,5],
-"object__parser_8h_source.html":[25,0,3,0,6,0,5],
-"object__parser__structs__test_8cc.html":[25,0,4,6,9],
-"object__parser__structs__test_8cc_source.html":[25,0,4,6,9],
-"object__parser__test_8cc.html":[25,0,4,6,10],
-"object__parser__test_8cc_source.html":[25,0,4,6,10],
-"object__renderer_8cc.html":[25,0,3,0,6,0,6]
+"notify_8h.html":[25,0,3,3,8]
 };

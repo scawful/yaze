@@ -1,5 +1,15 @@
 var NAVTREEINDEX74 =
 {
+"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[23,0,3,9,32,0],
+"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[24,0,0,9,27,0],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html":[23,0,3,9,37],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html":[24,0,0,9,32],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a24021eda0471996e9868d00345bc205b":[23,0,3,9,37,1],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a24021eda0471996e9868d00345bc205b":[24,0,0,9,32,1],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a85b2252548d49352f992aa238745217b":[23,0,3,9,37,2],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a85b2252548d49352f992aa238745217b":[24,0,0,9,32,2],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#ac3b1bcb4e4dc8bed23ff857a008131bb":[23,0,3,9,37,0],
+"structyaze_1_1zelda3_1_1OverworldMapTiles.html#ac3b1bcb4e4dc8bed23ff857a008131bb":[24,0,0,9,32,0],
 "structyaze_1_1zelda3_1_1RoomSize.html":[23,0,3,9,46],
 "structyaze_1_1zelda3_1_1RoomSize.html":[24,0,0,9,41],
 "structyaze_1_1zelda3_1_1RoomSize.html#a6dfdeb7bad4af4b971d5566e36c5216e":[23,0,3,9,46,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX74 =
 "structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c":[22,7,0,0],
 "structzelda3__dungeon__room.html":[24,0,22],
 "structzelda3__dungeon__room.html#a22aab9efb3c4bc0c4b1bbf5354e78d10":[24,0,22,4],
-"structzelda3__dungeon__room.html#a234565451209a33c7710e0f33e226663":[24,0,22,13],
-"structzelda3__dungeon__room.html#a23d11d15de835636309f62cb4b813c82":[24,0,22,1],
-"structzelda3__dungeon__room.html#a3e4378ef2ad1ec373971935881247a30":[24,0,22,11],
-"structzelda3__dungeon__room.html#a42678ea7c1ec348ce2fda7a594f6ba90":[24,0,22,15],
-"structzelda3__dungeon__room.html#a4473c6659b4ed289cbdc446fb3190288":[24,0,22,16],
-"structzelda3__dungeon__room.html#a5e8e0ebe5c97e584d49b312aeb6dffb6":[24,0,22,17],
-"structzelda3__dungeon__room.html#a646ef3c5d1408d9e1ab7d9fd045e76e9":[24,0,22,5],
-"structzelda3__dungeon__room.html#a6b06cd9b012c9983d3f5c5e2302134e1":[24,0,22,7],
-"structzelda3__dungeon__room.html#a71d06943f28f6fb29ca61efa49a937b5":[24,0,22,12],
-"structzelda3__dungeon__room.html#abe1933825d1e89747eb0b659498e1225":[24,0,22,10],
-"structzelda3__dungeon__room.html#abf2e45bd706a5ea889bfafaa93e03401":[24,0,22,18]
+"structzelda3__dungeon__room.html#a234565451209a33c7710e0f33e226663":[24,0,22,13]
 };

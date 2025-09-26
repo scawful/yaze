@@ -143,6 +143,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6b48f98d51216a10286d81cd20fa5c6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abae7cc79cbeadd0219bad1e5d499fb2b" id="r_abae7cc79cbeadd0219bad1e5d499fb2b"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abae7cc79cbeadd0219bad1e5d499fb2b">SaveThemeToFile</a> (const <a class="el" href="structyaze_1_1gui_1_1EnhancedTheme.html">EnhancedTheme</a> &amp;theme, const std::string &amp;filepath) const</td></tr>
 <tr class="separator:abae7cc79cbeadd0219bad1e5d499fb2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c9ee887bc4142d23b373d588678138a" id="r_a8c9ee887bc4142d23b373d588678138a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8c9ee887bc4142d23b373d588678138a">DiscoverAvailableThemeFiles</a> () const</td></tr>
+<tr class="separator:a8c9ee887bc4142d23b373d588678138a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a947d1f918182a5c89f5982a3ab6700cd" id="r_a947d1f918182a5c89f5982a3ab6700cd"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a947d1f918182a5c89f5982a3ab6700cd">LoadAllAvailableThemes</a> ()</td></tr>
+<tr class="separator:a947d1f918182a5c89f5982a3ab6700cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5c215f4311023520117895b88d263f2" id="r_ad5c215f4311023520117895b88d263f2"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad5c215f4311023520117895b88d263f2">RefreshAvailableThemes</a> ()</td></tr>
+<tr class="separator:ad5c215f4311023520117895b88d263f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb78558905bfc39b3dbb361abb059fef" id="r_acb78558905bfc39b3dbb361abb059fef"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acb78558905bfc39b3dbb361abb059fef">InitializeBuiltInThemes</a> ()</td></tr>
 <tr class="separator:acb78558905bfc39b3dbb361abb059fef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afae6c39ee2e4afd75a03737a74cd71f8" id="r_afae6c39ee2e4afd75a03737a74cd71f8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afae6c39ee2e4afd75a03737a74cd71f8">GetAvailableThemes</a> () const</td></tr>
@@ -189,6 +195,10 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:a1488a43ee32b9c1b0f403291ea15e035"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf1819af282d588d3df592ccf9dd28ac" id="r_aaf1819af282d588d3df592ccf9dd28ac"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaf1819af282d588d3df592ccf9dd28ac">SerializeTheme</a> (const <a class="el" href="structyaze_1_1gui_1_1EnhancedTheme.html">EnhancedTheme</a> &amp;theme) const</td></tr>
 <tr class="separator:aaf1819af282d588d3df592ccf9dd28ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2e1248d86460a354b1b46205bf02ab7" id="r_aa2e1248d86460a354b1b46205bf02ab7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa2e1248d86460a354b1b46205bf02ab7">GetThemeSearchPaths</a> () const</td></tr>
+<tr class="separator:aa2e1248d86460a354b1b46205bf02ab7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ef08fa99d53f3bf49dbbbe2016e5719" id="r_a7ef08fa99d53f3bf49dbbbe2016e5719"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7ef08fa99d53f3bf49dbbbe2016e5719">GetThemesDirectory</a> () const</td></tr>
+<tr class="separator:a7ef08fa99d53f3bf49dbbbe2016e5719"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -227,11 +237,11 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8h_source.html#l00164">164</a> of file <a class="el" href="theme__manager_8h_source.html">theme_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8h_source.html#l00170">170</a> of file <a class="el" href="theme__manager_8h_source.html">theme_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00108">InitializeBuiltInThemes()</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00109">InitializeBuiltInThemes()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00103">Get()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00104">Get()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -242,8 +252,8 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="172,56,204,56,204,62,172,62"/>
 <area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a07e0158bf968a29390c4f04524066c47" title=" " alt="" coords="434,5,620,46"/>
 <area shape="poly" title=" " alt="" coords="386,44,418,39,419,44,386,49"/>
-<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a6b48f98d51216a10286d81cd20fa5c6b" title=" " alt="" coords="444,71,610,111"/>
-<area shape="poly" title=" " alt="" coords="386,68,429,74,428,80,386,73"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a947d1f918182a5c89f5982a3ab6700cd" title=" " alt="" coords="442,71,613,111"/>
+<area shape="poly" title=" " alt="" coords="386,68,426,74,426,79,386,73"/>
 </map>
 </div>
 
@@ -273,9 +283,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00103">103</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00104">104</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00164">ThemeManager()</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00170">ThemeManager()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="background__renderer_8cc_source.html#l00342">yaze::gui::DockSpaceRenderer::BeginEnhancedDockSpace()</a>, <a class="el" href="window_8cc_source.html#l00019">yaze::core::CreateWindow()</a>, <a class="el" href="style_8cc_source.html#l00398">yaze::gui::DrawDisplaySettings()</a>, <a class="el" href="background__renderer_8cc_source.html#l00240">yaze::gui::BackgroundRenderer::DrawSettingsUI()</a>, <a class="el" href="editor__manager_8cc_source.html#l02155">yaze::editor::EditorManager::DrawWelcomeScreen()</a>, <a class="el" href="background__renderer_8cc_source.html#l00022">yaze::gui::BackgroundRenderer::RenderDockingBackground()</a>, and <a class="el" href="editor__manager_8cc_source.html#l00704">yaze::editor::EditorManager::Update()</a>.</p>
 <div class="dynheader">
@@ -308,11 +318,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00235">235</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00226">226</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00167">current_theme_</a>, <a class="el" href="theme__manager_8h_source.html#l00168">current_theme_name_</a>, and <a class="el" href="theme__manager_8h_source.html#l00166">themes_</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00173">current_theme_</a>, <a class="el" href="theme__manager_8h_source.html#l00174">current_theme_name_</a>, and <a class="el" href="theme__manager_8h_source.html#l00172">themes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00314">ApplyTheme()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00344">ShowThemeSelector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00305">ApplyTheme()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00335">ShowThemeSelector()</a>.</p>
 
 </div>
 </div>
@@ -352,11 +362,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00248">248</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00239">239</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00081">yaze::core::GetResourcePath()</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8cc_source.html#l00457">ParseThemeFile()</a>, and <a class="el" href="theme__manager_8h_source.html#l00166">themes_</a>.</p>
+<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00081">yaze::core::GetResourcePath()</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8cc_source.html#l00456">ParseThemeFile()</a>, and <a class="el" href="theme__manager_8h_source.html#l00172">themes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00108">InitializeBuiltInThemes()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00344">ShowThemeSelector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l01004">LoadAllAvailableThemes()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00335">ShowThemeSelector()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -395,11 +405,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00684">684</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00683">683</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, and <a class="el" href="theme__manager_8cc_source.html#l00580">SerializeTheme()</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, and <a class="el" href="theme__manager_8cc_source.html#l00579">SerializeTheme()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00724">ShowSimpleThemeEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00723">ShowSimpleThemeEditor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -408,6 +418,121 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,5,172,46"/>
 <area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#aaf1819af282d588d3df592ccf9dd28ac" title=" " alt="" coords="220,5,386,46"/>
 <area shape="poly" title=" " alt="" coords="172,23,204,23,204,28,172,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a8c9ee887bc4142d23b373d588678138a" name="a8c9ee887bc4142d23b373d588678138a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c9ee887bc4142d23b373d588678138a">&#9670;&#160;</a></span>DiscoverAvailableThemeFiles()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; yaze::gui::ThemeManager::DiscoverAvailableThemeFiles </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00948">948</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="file__dialog_8cc_source.html#l00029">yaze::core::GetFileName()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a338f0a33e9a71750671cb3d4a3177f76">yaze::core::FileDialogWrapper::GetFilesInFolder()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00877">GetThemeSearchPaths()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l01004">LoadAllAvailableThemes()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1gui_1_1ThemeManager_a8c9ee887bc4142d23b373d588678138a_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1ThemeManager_a8c9ee887bc4142d23b373d588678138a_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gui_1_1ThemeManager_a8c9ee887bc4142d23b373d588678138a_cgraph" id="aclassyaze_1_1gui_1_1ThemeManager_a8c9ee887bc4142d23b373d588678138a_cgraph">
+<area shape="rect" title=" " alt="" coords="5,55,205,96"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a91b15ab541fc413b5208c32d750b87c8" title=" " alt="" coords="267,5,428,31"/>
+<area shape="poly" title=" " alt="" coords="193,52,274,33,275,38,194,57"/>
+<area shape="rect" href="classyaze_1_1core_1_1FileDialogWrapper.html#a338f0a33e9a71750671cb3d4a3177f76" title=" " alt="" coords="253,55,442,96"/>
+<area shape="poly" title=" " alt="" coords="205,73,237,73,237,78,205,78"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#aa2e1248d86460a354b1b46205bf02ab7" title=" " alt="" coords="264,120,430,161"/>
+<area shape="poly" title=" " alt="" coords="184,94,255,113,254,118,182,99"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="490,128,717,154"/>
+<area shape="poly" title=" " alt="" coords="431,138,474,138,474,144,431,144"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a947d1f918182a5c89f5982a3ab6700cd" name="a947d1f918182a5c89f5982a3ab6700cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a947d1f918182a5c89f5982a3ab6700cd">&#9670;&#160;</a></span>LoadAllAvailableThemes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::gui::ThemeManager::LoadAllAvailableThemes </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l01004">1004</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00948">DiscoverAvailableThemeFiles()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00239">LoadThemeFromFile()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00109">InitializeBuiltInThemes()</a>, and <a class="el" href="theme__manager_8cc_source.html#l01030">RefreshAvailableThemes()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1gui_1_1ThemeManager_a947d1f918182a5c89f5982a3ab6700cd_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1ThemeManager_a947d1f918182a5c89f5982a3ab6700cd_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gui_1_1ThemeManager_a947d1f918182a5c89f5982a3ab6700cd_cgraph" id="aclassyaze_1_1gui_1_1ThemeManager_a947d1f918182a5c89f5982a3ab6700cd_cgraph">
+<area shape="rect" title=" " alt="" coords="5,59,177,100"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a8c9ee887bc4142d23b373d588678138a" title=" " alt="" coords="225,26,424,66"/>
+<area shape="poly" title=" " alt="" coords="177,65,209,60,210,65,177,70"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a6b48f98d51216a10286d81cd20fa5c6b" title=" " alt="" coords="241,91,408,132"/>
+<area shape="poly" title=" " alt="" coords="177,89,226,95,226,101,177,94"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a91b15ab541fc413b5208c32d750b87c8" title=" " alt="" coords="486,5,647,31"/>
+<area shape="poly" title=" " alt="" coords="424,32,470,27,471,32,425,37"/>
+<area shape="rect" href="classyaze_1_1core_1_1FileDialogWrapper.html#a338f0a33e9a71750671cb3d4a3177f76" title=" " alt="" coords="472,55,661,96"/>
+<area shape="poly" title=" " alt="" coords="425,56,457,60,456,65,424,61"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ad5c215f4311023520117895b88d263f2" name="ad5c215f4311023520117895b88d263f2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5c215f4311023520117895b88d263f2">&#9670;&#160;</a></span>RefreshAvailableThemes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::gui::ThemeManager::RefreshAvailableThemes </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l01030">1030</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l01004">LoadAllAvailableThemes()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00335">ShowThemeSelector()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1gui_1_1ThemeManager_ad5c215f4311023520117895b88d263f2_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1ThemeManager_ad5c215f4311023520117895b88d263f2_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gui_1_1ThemeManager_ad5c215f4311023520117895b88d263f2_cgraph" id="aclassyaze_1_1gui_1_1ThemeManager_ad5c215f4311023520117895b88d263f2_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,178,79"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a947d1f918182a5c89f5982a3ab6700cd" title=" " alt="" coords="226,39,397,79"/>
+<area shape="poly" title=" " alt="" coords="178,56,210,56,210,62,178,62"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a8c9ee887bc4142d23b373d588678138a" title=" " alt="" coords="445,5,644,46"/>
+<area shape="poly" title=" " alt="" coords="397,44,429,39,430,45,398,49"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a6b48f98d51216a10286d81cd20fa5c6b" title=" " alt="" coords="462,71,628,111"/>
+<area shape="poly" title=" " alt="" coords="398,68,447,75,446,80,397,73"/>
 </map>
 </div>
 
@@ -428,11 +553,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00108">108</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00109">109</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00138">CreateFallbackYazeClassic()</a>, <a class="el" href="theme__manager_8h_source.html#l00167">current_theme_</a>, <a class="el" href="theme__manager_8h_source.html#l00168">current_theme_name_</a>, <a class="el" href="theme__manager_8cc_source.html#l00248">LoadThemeFromFile()</a>, and <a class="el" href="theme__manager_8h_source.html#l00166">themes_</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00129">CreateFallbackYazeClassic()</a>, <a class="el" href="theme__manager_8h_source.html#l00173">current_theme_</a>, <a class="el" href="theme__manager_8h_source.html#l00174">current_theme_name_</a>, <a class="el" href="theme__manager_8cc_source.html#l01004">LoadAllAvailableThemes()</a>, and <a class="el" href="theme__manager_8h_source.html#l00172">themes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8h_source.html#l00164">ThemeManager()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8h_source.html#l00170">ThemeManager()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -441,12 +566,12 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,39,172,79"/>
 <area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a07e0158bf968a29390c4f04524066c47" title=" " alt="" coords="220,5,406,46"/>
 <area shape="poly" title=" " alt="" coords="171,44,204,39,205,44,172,49"/>
-<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a6b48f98d51216a10286d81cd20fa5c6b" title=" " alt="" coords="230,71,396,111"/>
-<area shape="poly" title=" " alt="" coords="172,68,214,74,214,80,171,73"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#a360475adc3adcf2ead59d3d9dbc85ce6" title=" " alt="" coords="491,13,604,38"/>
-<area shape="poly" title=" " alt="" coords="407,23,475,23,475,28,407,28"/>
-<area shape="rect" href="namespaceyaze_1_1core.html#a7ce3cf710bdabe4b53e4f92c41c00a34" title=" " alt="" coords="454,78,641,104"/>
-<area shape="poly" title=" " alt="" coords="396,88,438,88,438,94,396,94"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a947d1f918182a5c89f5982a3ab6700cd" title=" " alt="" coords="227,71,398,111"/>
+<area shape="poly" title=" " alt="" coords="172,68,212,74,211,79,171,73"/>
+<area shape="rect" href="namespaceyaze_1_1gui.html#a360475adc3adcf2ead59d3d9dbc85ce6" title=" " alt="" coords="497,13,610,38"/>
+<area shape="poly" title=" " alt="" coords="407,23,481,23,481,28,407,28"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#a8c9ee887bc4142d23b373d588678138a" title=" " alt="" coords="454,71,653,111"/>
+<area shape="poly" title=" " alt="" coords="399,88,439,88,439,94,399,94"/>
 </map>
 </div>
 
@@ -467,9 +592,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00301">301</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00292">292</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00166">themes_</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00172">themes_</a>.</p>
 
 </div>
 </div>
@@ -488,9 +613,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00309">309</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00300">300</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00166">themes_</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00172">themes_</a>.</p>
 
 </div>
 </div>
@@ -517,9 +642,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8h_source.html#l00145">145</a> of file <a class="el" href="theme__manager_8h_source.html">theme_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8h_source.html#l00151">151</a> of file <a class="el" href="theme__manager_8h_source.html">theme_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00167">current_theme_</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00173">current_theme_</a>.</p>
 
 </div>
 </div>
@@ -538,11 +663,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00314">314</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00305">305</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00235">LoadTheme()</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00226">LoadTheme()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00724">ShowSimpleThemeEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00723">ShowSimpleThemeEditor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -571,9 +696,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00325">325</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00316">316</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00167">current_theme_</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00173">current_theme_</a>.</p>
 
 </div>
 </div>
@@ -592,11 +717,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00703">703</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00702">702</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00028">yaze::gui::EnhancedTheme::accent</a>, <a class="el" href="theme__manager_8h_source.html#l00023">yaze::gui::EnhancedTheme::author</a>, <a class="el" href="theme__manager_8h_source.html#l00029">yaze::gui::EnhancedTheme::background</a>, <a class="el" href="style_8cc_source.html#l00134">yaze::gui::ColorsYaze()</a>, <a class="el" href="theme__manager_8h_source.html#l00167">current_theme_</a>, <a class="el" href="theme__manager_8h_source.html#l00168">current_theme_name_</a>, <a class="el" href="theme__manager_8h_source.html#l00022">yaze::gui::EnhancedTheme::description</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8h_source.html#l00026">yaze::gui::EnhancedTheme::primary</a>, <a class="el" href="theme__manager_8cc_source.html#l00023">yaze::gui::RGBA()</a>, and <a class="el" href="theme__manager_8h_source.html#l00027">yaze::gui::EnhancedTheme::secondary</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00028">yaze::gui::EnhancedTheme::accent</a>, <a class="el" href="theme__manager_8h_source.html#l00023">yaze::gui::EnhancedTheme::author</a>, <a class="el" href="theme__manager_8h_source.html#l00029">yaze::gui::EnhancedTheme::background</a>, <a class="el" href="style_8cc_source.html#l00134">yaze::gui::ColorsYaze()</a>, <a class="el" href="theme__manager_8h_source.html#l00173">current_theme_</a>, <a class="el" href="theme__manager_8h_source.html#l00174">current_theme_name_</a>, <a class="el" href="theme__manager_8h_source.html#l00022">yaze::gui::EnhancedTheme::description</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8h_source.html#l00026">yaze::gui::EnhancedTheme::primary</a>, <a class="el" href="theme__manager_8cc_source.html#l00024">yaze::gui::RGBA()</a>, and <a class="el" href="theme__manager_8h_source.html#l00027">yaze::gui::EnhancedTheme::secondary</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00344">ShowThemeSelector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00335">ShowThemeSelector()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -661,9 +786,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00344">344</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00335">335</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00703">ApplyClassicYazeTheme()</a>, <a class="el" href="color_8h_source.html#l00021">yaze::gui::ConvertColorToImVec4()</a>, <a class="el" href="theme__manager_8h_source.html#l00168">current_theme_name_</a>, <a class="el" href="icons_8h_source.html#l00395">ICON_MD_CHECK</a>, <a class="el" href="icons_8h_source.html#l00409">ICON_MD_CIRCLE</a>, <a class="el" href="icons_8h_source.html#l00438">ICON_MD_COLOR_LENS</a>, <a class="el" href="icons_8h_source.html#l00643">ICON_MD_EDIT</a>, <a class="el" href="icons_8h_source.html#l00811">ICON_MD_FOLDER_OPEN</a>, <a class="el" href="icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="icons_8h_source.html#l01843">ICON_MD_STAR</a>, <a class="el" href="theme__manager_8cc_source.html#l00235">LoadTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00248">LoadThemeFromFile()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="theme__manager_8cc_source.html#l00724">ShowSimpleThemeEditor()</a>, and <a class="el" href="theme__manager_8h_source.html#l00166">themes_</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00702">ApplyClassicYazeTheme()</a>, <a class="el" href="color_8h_source.html#l00021">yaze::gui::ConvertColorToImVec4()</a>, <a class="el" href="theme__manager_8h_source.html#l00174">current_theme_name_</a>, <a class="el" href="icons_8h_source.html#l00395">ICON_MD_CHECK</a>, <a class="el" href="icons_8h_source.html#l00409">ICON_MD_CIRCLE</a>, <a class="el" href="icons_8h_source.html#l00438">ICON_MD_COLOR_LENS</a>, <a class="el" href="icons_8h_source.html#l00643">ICON_MD_EDIT</a>, <a class="el" href="icons_8h_source.html#l00811">ICON_MD_FOLDER_OPEN</a>, <a class="el" href="icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="icons_8h_source.html#l01843">ICON_MD_STAR</a>, <a class="el" href="theme__manager_8cc_source.html#l00226">LoadTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00239">LoadThemeFromFile()</a>, <a class="el" href="theme__manager_8cc_source.html#l01030">RefreshAvailableThemes()</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="theme__manager_8cc_source.html#l00723">ShowSimpleThemeEditor()</a>, and <a class="el" href="theme__manager_8h_source.html#l00172">themes_</a>.</p>
 
 </div>
 </div>
@@ -682,11 +807,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00724">724</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00723">723</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00028">yaze::gui::EnhancedTheme::accent</a>, <a class="el" href="theme__manager_8cc_source.html#l00314">ApplyTheme()</a>, <a class="el" href="theme__manager_8h_source.html#l00023">yaze::gui::EnhancedTheme::author</a>, <a class="el" href="theme__manager_8h_source.html#l00029">yaze::gui::EnhancedTheme::background</a>, <a class="el" href="theme__manager_8h_source.html#l00048">yaze::gui::EnhancedTheme::button</a>, <a class="el" href="theme__manager_8h_source.html#l00050">yaze::gui::EnhancedTheme::button_active</a>, <a class="el" href="theme__manager_8h_source.html#l00049">yaze::gui::EnhancedTheme::button_hovered</a>, <a class="el" href="color_8h_source.html#l00021">yaze::gui::ConvertColorToImVec4()</a>, <a class="el" href="theme__manager_8h_source.html#l00167">current_theme_</a>, <a class="el" href="theme__manager_8h_source.html#l00022">yaze::gui::EnhancedTheme::description</a>, <a class="el" href="icons_8h_source.html#l00643">ICON_MD_EDIT</a>, <a class="el" href="icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8h_source.html#l00044">yaze::gui::EnhancedTheme::popup_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00026">yaze::gui::EnhancedTheme::primary</a>, <a class="el" href="theme__manager_8cc_source.html#l00684">SaveThemeToFile()</a>, <a class="el" href="theme__manager_8h_source.html#l00027">yaze::gui::EnhancedTheme::secondary</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#ae9e6b685fe8521a6aa1830edd63e4ce0">yaze::core::FileDialogWrapper::ShowOpenFolderDialog()</a>, <a class="el" href="theme__manager_8h_source.html#l00039">yaze::gui::EnhancedTheme::text_disabled</a>, <a class="el" href="theme__manager_8h_source.html#l00037">yaze::gui::EnhancedTheme::text_primary</a>, <a class="el" href="theme__manager_8h_source.html#l00038">yaze::gui::EnhancedTheme::text_secondary</a>, <a class="el" href="theme__manager_8h_source.html#l00166">themes_</a>, and <a class="el" href="theme__manager_8h_source.html#l00042">yaze::gui::EnhancedTheme::window_bg</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00028">yaze::gui::EnhancedTheme::accent</a>, <a class="el" href="theme__manager_8cc_source.html#l00305">ApplyTheme()</a>, <a class="el" href="theme__manager_8h_source.html#l00023">yaze::gui::EnhancedTheme::author</a>, <a class="el" href="theme__manager_8h_source.html#l00029">yaze::gui::EnhancedTheme::background</a>, <a class="el" href="theme__manager_8h_source.html#l00048">yaze::gui::EnhancedTheme::button</a>, <a class="el" href="theme__manager_8h_source.html#l00050">yaze::gui::EnhancedTheme::button_active</a>, <a class="el" href="theme__manager_8h_source.html#l00049">yaze::gui::EnhancedTheme::button_hovered</a>, <a class="el" href="color_8h_source.html#l00021">yaze::gui::ConvertColorToImVec4()</a>, <a class="el" href="theme__manager_8h_source.html#l00173">current_theme_</a>, <a class="el" href="theme__manager_8h_source.html#l00022">yaze::gui::EnhancedTheme::description</a>, <a class="el" href="icons_8h_source.html#l00643">ICON_MD_EDIT</a>, <a class="el" href="icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8h_source.html#l00044">yaze::gui::EnhancedTheme::popup_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00026">yaze::gui::EnhancedTheme::primary</a>, <a class="el" href="theme__manager_8cc_source.html#l00683">SaveThemeToFile()</a>, <a class="el" href="theme__manager_8h_source.html#l00027">yaze::gui::EnhancedTheme::secondary</a>, <a class="el" href="classyaze_1_1core_1_1FileDialogWrapper.html#ae9e6b685fe8521a6aa1830edd63e4ce0">yaze::core::FileDialogWrapper::ShowOpenFolderDialog()</a>, <a class="el" href="theme__manager_8h_source.html#l00039">yaze::gui::EnhancedTheme::text_disabled</a>, <a class="el" href="theme__manager_8h_source.html#l00037">yaze::gui::EnhancedTheme::text_primary</a>, <a class="el" href="theme__manager_8h_source.html#l00038">yaze::gui::EnhancedTheme::text_secondary</a>, <a class="el" href="theme__manager_8h_source.html#l00172">themes_</a>, and <a class="el" href="theme__manager_8h_source.html#l00042">yaze::gui::EnhancedTheme::window_bg</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00344">ShowThemeSelector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00335">ShowThemeSelector()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -721,9 +846,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00330">330</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00321">321</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="color_8h_source.html#l00018">yaze::gui::Color::alpha</a>, <a class="el" href="color_8h_source.html#l00016">yaze::gui::Color::blue</a>, <a class="el" href="theme__manager_8h_source.html#l00167">current_theme_</a>, <a class="el" href="color_8h_source.html#l00017">yaze::gui::Color::green</a>, and <a class="el" href="color_8h_source.html#l00015">yaze::gui::Color::red</a>.</p>
+<p class="reference">References <a class="el" href="color_8h_source.html#l00018">yaze::gui::Color::alpha</a>, <a class="el" href="color_8h_source.html#l00016">yaze::gui::Color::blue</a>, <a class="el" href="theme__manager_8h_source.html#l00173">current_theme_</a>, <a class="el" href="color_8h_source.html#l00017">yaze::gui::Color::green</a>, and <a class="el" href="color_8h_source.html#l00015">yaze::gui::Color::red</a>.</p>
 
 </div>
 </div>
@@ -742,9 +867,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00336">336</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00327">327</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00167">current_theme_</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00173">current_theme_</a>.</p>
 
 </div>
 </div>
@@ -763,9 +888,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00340">340</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00331">331</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00167">current_theme_</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00173">current_theme_</a>.</p>
 
 </div>
 </div>
@@ -792,11 +917,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00138">138</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00129">129</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00028">yaze::gui::EnhancedTheme::accent</a>, <a class="el" href="theme__manager_8h_source.html#l00023">yaze::gui::EnhancedTheme::author</a>, <a class="el" href="theme__manager_8h_source.html#l00029">yaze::gui::EnhancedTheme::background</a>, <a class="el" href="theme__manager_8h_source.html#l00068">yaze::gui::EnhancedTheme::border</a>, <a class="el" href="theme__manager_8h_source.html#l00069">yaze::gui::EnhancedTheme::border_shadow</a>, <a class="el" href="theme__manager_8h_source.html#l00048">yaze::gui::EnhancedTheme::button</a>, <a class="el" href="theme__manager_8h_source.html#l00050">yaze::gui::EnhancedTheme::button_active</a>, <a class="el" href="theme__manager_8h_source.html#l00049">yaze::gui::EnhancedTheme::button_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00088">yaze::gui::EnhancedTheme::check_mark</a>, <a class="el" href="theme__manager_8h_source.html#l00043">yaze::gui::EnhancedTheme::child_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00167">current_theme_</a>, <a class="el" href="theme__manager_8h_source.html#l00168">current_theme_name_</a>, <a class="el" href="theme__manager_8h_source.html#l00022">yaze::gui::EnhancedTheme::description</a>, <a class="el" href="theme__manager_8h_source.html#l00085">yaze::gui::EnhancedTheme::docking_empty_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00084">yaze::gui::EnhancedTheme::docking_preview</a>, <a class="el" href="theme__manager_8h_source.html#l00097">yaze::gui::EnhancedTheme::drag_drop_target</a>, <a class="el" href="theme__manager_8h_source.html#l00121">yaze::gui::EnhancedTheme::enable_glow_effects</a>, <a class="el" href="theme__manager_8h_source.html#l00111">yaze::gui::EnhancedTheme::frame_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00056">yaze::gui::EnhancedTheme::header</a>, <a class="el" href="theme__manager_8h_source.html#l00058">yaze::gui::EnhancedTheme::header_active</a>, <a class="el" href="theme__manager_8h_source.html#l00057">yaze::gui::EnhancedTheme::header_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00091">yaze::gui::EnhancedTheme::input_text_cursor</a>, <a class="el" href="theme__manager_8h_source.html#l00062">yaze::gui::EnhancedTheme::menu_bar_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00095">yaze::gui::EnhancedTheme::modal_window_dim_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8h_source.html#l00092">yaze::gui::EnhancedTheme::nav_cursor</a>, <a class="el" href="theme__manager_8h_source.html#l00094">yaze::gui::EnhancedTheme::nav_windowing_dim_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00093">yaze::gui::EnhancedTheme::nav_windowing_highlight</a>, <a class="el" href="theme__manager_8h_source.html#l00106">yaze::gui::EnhancedTheme::plot_histogram</a>, <a class="el" href="theme__manager_8h_source.html#l00107">yaze::gui::EnhancedTheme::plot_histogram_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00104">yaze::gui::EnhancedTheme::plot_lines</a>, <a class="el" href="theme__manager_8h_source.html#l00105">yaze::gui::EnhancedTheme::plot_lines_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00044">yaze::gui::EnhancedTheme::popup_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00026">yaze::gui::EnhancedTheme::primary</a>, <a class="el" href="theme__manager_8h_source.html#l00081">yaze::gui::EnhancedTheme::resize_grip</a>, <a class="el" href="theme__manager_8h_source.html#l00083">yaze::gui::EnhancedTheme::resize_grip_active</a>, <a class="el" href="theme__manager_8h_source.html#l00082">yaze::gui::EnhancedTheme::resize_grip_hovered</a>, <a class="el" href="theme__manager_8cc_source.html#l00023">yaze::gui::RGBA()</a>, <a class="el" href="theme__manager_8h_source.html#l00075">yaze::gui::EnhancedTheme::scrollbar_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00076">yaze::gui::EnhancedTheme::scrollbar_grab</a>, <a class="el" href="theme__manager_8h_source.html#l00078">yaze::gui::EnhancedTheme::scrollbar_grab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00077">yaze::gui::EnhancedTheme::scrollbar_grab_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00112">yaze::gui::EnhancedTheme::scrollbar_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00027">yaze::gui::EnhancedTheme::secondary</a>, <a class="el" href="theme__manager_8h_source.html#l00070">yaze::gui::EnhancedTheme::separator</a>, <a class="el" href="theme__manager_8h_source.html#l00072">yaze::gui::EnhancedTheme::separator_active</a>, <a class="el" href="theme__manager_8h_source.html#l00071">yaze::gui::EnhancedTheme::separator_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00089">yaze::gui::EnhancedTheme::slider_grab</a>, <a class="el" href="theme__manager_8h_source.html#l00090">yaze::gui::EnhancedTheme::slider_grab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00059">yaze::gui::EnhancedTheme::tab</a>, <a class="el" href="theme__manager_8h_source.html#l00061">yaze::gui::EnhancedTheme::tab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00060">yaze::gui::EnhancedTheme::tab_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00114">yaze::gui::EnhancedTheme::tab_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00100">yaze::gui::EnhancedTheme::table_border_light</a>, <a class="el" href="theme__manager_8h_source.html#l00099">yaze::gui::EnhancedTheme::table_border_strong</a>, <a class="el" href="theme__manager_8h_source.html#l00098">yaze::gui::EnhancedTheme::table_header_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00101">yaze::gui::EnhancedTheme::table_row_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00102">yaze::gui::EnhancedTheme::table_row_bg_alt</a>, <a class="el" href="theme__manager_8h_source.html#l00039">yaze::gui::EnhancedTheme::text_disabled</a>, <a class="el" href="theme__manager_8h_source.html#l00103">yaze::gui::EnhancedTheme::text_link</a>, <a class="el" href="theme__manager_8h_source.html#l00037">yaze::gui::EnhancedTheme::text_primary</a>, <a class="el" href="theme__manager_8h_source.html#l00096">yaze::gui::EnhancedTheme::text_selected_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00166">themes_</a>, <a class="el" href="theme__manager_8h_source.html#l00063">yaze::gui::EnhancedTheme::title_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00064">yaze::gui::EnhancedTheme::title_bg_active</a>, <a class="el" href="theme__manager_8h_source.html#l00065">yaze::gui::EnhancedTheme::title_bg_collapsed</a>, <a class="el" href="theme__manager_8h_source.html#l00042">yaze::gui::EnhancedTheme::window_bg</a>, and <a class="el" href="theme__manager_8h_source.html#l00110">yaze::gui::EnhancedTheme::window_rounding</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00028">yaze::gui::EnhancedTheme::accent</a>, <a class="el" href="theme__manager_8h_source.html#l00023">yaze::gui::EnhancedTheme::author</a>, <a class="el" href="theme__manager_8h_source.html#l00029">yaze::gui::EnhancedTheme::background</a>, <a class="el" href="theme__manager_8h_source.html#l00068">yaze::gui::EnhancedTheme::border</a>, <a class="el" href="theme__manager_8h_source.html#l00069">yaze::gui::EnhancedTheme::border_shadow</a>, <a class="el" href="theme__manager_8h_source.html#l00048">yaze::gui::EnhancedTheme::button</a>, <a class="el" href="theme__manager_8h_source.html#l00050">yaze::gui::EnhancedTheme::button_active</a>, <a class="el" href="theme__manager_8h_source.html#l00049">yaze::gui::EnhancedTheme::button_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00088">yaze::gui::EnhancedTheme::check_mark</a>, <a class="el" href="theme__manager_8h_source.html#l00043">yaze::gui::EnhancedTheme::child_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00173">current_theme_</a>, <a class="el" href="theme__manager_8h_source.html#l00174">current_theme_name_</a>, <a class="el" href="theme__manager_8h_source.html#l00022">yaze::gui::EnhancedTheme::description</a>, <a class="el" href="theme__manager_8h_source.html#l00085">yaze::gui::EnhancedTheme::docking_empty_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00084">yaze::gui::EnhancedTheme::docking_preview</a>, <a class="el" href="theme__manager_8h_source.html#l00097">yaze::gui::EnhancedTheme::drag_drop_target</a>, <a class="el" href="theme__manager_8h_source.html#l00121">yaze::gui::EnhancedTheme::enable_glow_effects</a>, <a class="el" href="theme__manager_8h_source.html#l00111">yaze::gui::EnhancedTheme::frame_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00056">yaze::gui::EnhancedTheme::header</a>, <a class="el" href="theme__manager_8h_source.html#l00058">yaze::gui::EnhancedTheme::header_active</a>, <a class="el" href="theme__manager_8h_source.html#l00057">yaze::gui::EnhancedTheme::header_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00091">yaze::gui::EnhancedTheme::input_text_cursor</a>, <a class="el" href="theme__manager_8h_source.html#l00062">yaze::gui::EnhancedTheme::menu_bar_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00095">yaze::gui::EnhancedTheme::modal_window_dim_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8h_source.html#l00092">yaze::gui::EnhancedTheme::nav_cursor</a>, <a class="el" href="theme__manager_8h_source.html#l00094">yaze::gui::EnhancedTheme::nav_windowing_dim_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00093">yaze::gui::EnhancedTheme::nav_windowing_highlight</a>, <a class="el" href="theme__manager_8h_source.html#l00106">yaze::gui::EnhancedTheme::plot_histogram</a>, <a class="el" href="theme__manager_8h_source.html#l00107">yaze::gui::EnhancedTheme::plot_histogram_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00104">yaze::gui::EnhancedTheme::plot_lines</a>, <a class="el" href="theme__manager_8h_source.html#l00105">yaze::gui::EnhancedTheme::plot_lines_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00044">yaze::gui::EnhancedTheme::popup_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00026">yaze::gui::EnhancedTheme::primary</a>, <a class="el" href="theme__manager_8h_source.html#l00081">yaze::gui::EnhancedTheme::resize_grip</a>, <a class="el" href="theme__manager_8h_source.html#l00083">yaze::gui::EnhancedTheme::resize_grip_active</a>, <a class="el" href="theme__manager_8h_source.html#l00082">yaze::gui::EnhancedTheme::resize_grip_hovered</a>, <a class="el" href="theme__manager_8cc_source.html#l00024">yaze::gui::RGBA()</a>, <a class="el" href="theme__manager_8h_source.html#l00075">yaze::gui::EnhancedTheme::scrollbar_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00076">yaze::gui::EnhancedTheme::scrollbar_grab</a>, <a class="el" href="theme__manager_8h_source.html#l00078">yaze::gui::EnhancedTheme::scrollbar_grab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00077">yaze::gui::EnhancedTheme::scrollbar_grab_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00112">yaze::gui::EnhancedTheme::scrollbar_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00027">yaze::gui::EnhancedTheme::secondary</a>, <a class="el" href="theme__manager_8h_source.html#l00070">yaze::gui::EnhancedTheme::separator</a>, <a class="el" href="theme__manager_8h_source.html#l00072">yaze::gui::EnhancedTheme::separator_active</a>, <a class="el" href="theme__manager_8h_source.html#l00071">yaze::gui::EnhancedTheme::separator_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00089">yaze::gui::EnhancedTheme::slider_grab</a>, <a class="el" href="theme__manager_8h_source.html#l00090">yaze::gui::EnhancedTheme::slider_grab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00059">yaze::gui::EnhancedTheme::tab</a>, <a class="el" href="theme__manager_8h_source.html#l00061">yaze::gui::EnhancedTheme::tab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00060">yaze::gui::EnhancedTheme::tab_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00114">yaze::gui::EnhancedTheme::tab_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00100">yaze::gui::EnhancedTheme::table_border_light</a>, <a class="el" href="theme__manager_8h_source.html#l00099">yaze::gui::EnhancedTheme::table_border_strong</a>, <a class="el" href="theme__manager_8h_source.html#l00098">yaze::gui::EnhancedTheme::table_header_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00101">yaze::gui::EnhancedTheme::table_row_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00102">yaze::gui::EnhancedTheme::table_row_bg_alt</a>, <a class="el" href="theme__manager_8h_source.html#l00039">yaze::gui::EnhancedTheme::text_disabled</a>, <a class="el" href="theme__manager_8h_source.html#l00103">yaze::gui::EnhancedTheme::text_link</a>, <a class="el" href="theme__manager_8h_source.html#l00037">yaze::gui::EnhancedTheme::text_primary</a>, <a class="el" href="theme__manager_8h_source.html#l00096">yaze::gui::EnhancedTheme::text_selected_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00172">themes_</a>, <a class="el" href="theme__manager_8h_source.html#l00063">yaze::gui::EnhancedTheme::title_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00064">yaze::gui::EnhancedTheme::title_bg_active</a>, <a class="el" href="theme__manager_8h_source.html#l00065">yaze::gui::EnhancedTheme::title_bg_collapsed</a>, <a class="el" href="theme__manager_8h_source.html#l00042">yaze::gui::EnhancedTheme::window_bg</a>, and <a class="el" href="theme__manager_8h_source.html#l00110">yaze::gui::EnhancedTheme::window_rounding</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00108">InitializeBuiltInThemes()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00109">InitializeBuiltInThemes()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -837,11 +962,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00457">457</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00456">456</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00028">yaze::gui::EnhancedTheme::accent</a>, <a class="el" href="theme__manager_8h_source.html#l00120">yaze::gui::EnhancedTheme::animation_speed</a>, <a class="el" href="theme__manager_8h_source.html#l00023">yaze::gui::EnhancedTheme::author</a>, <a class="el" href="theme__manager_8h_source.html#l00029">yaze::gui::EnhancedTheme::background</a>, <a class="el" href="theme__manager_8h_source.html#l00068">yaze::gui::EnhancedTheme::border</a>, <a class="el" href="theme__manager_8h_source.html#l00069">yaze::gui::EnhancedTheme::border_shadow</a>, <a class="el" href="theme__manager_8h_source.html#l00048">yaze::gui::EnhancedTheme::button</a>, <a class="el" href="theme__manager_8h_source.html#l00050">yaze::gui::EnhancedTheme::button_active</a>, <a class="el" href="theme__manager_8h_source.html#l00049">yaze::gui::EnhancedTheme::button_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00043">yaze::gui::EnhancedTheme::child_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00022">yaze::gui::EnhancedTheme::description</a>, <a class="el" href="theme__manager_8h_source.html#l00119">yaze::gui::EnhancedTheme::enable_animations</a>, <a class="el" href="theme__manager_8h_source.html#l00121">yaze::gui::EnhancedTheme::enable_glow_effects</a>, <a class="el" href="theme__manager_8h_source.html#l00031">yaze::gui::EnhancedTheme::error</a>, <a class="el" href="theme__manager_8h_source.html#l00051">yaze::gui::EnhancedTheme::frame_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00053">yaze::gui::EnhancedTheme::frame_bg_active</a>, <a class="el" href="theme__manager_8h_source.html#l00052">yaze::gui::EnhancedTheme::frame_bg_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00116">yaze::gui::EnhancedTheme::frame_border_size</a>, <a class="el" href="theme__manager_8h_source.html#l00111">yaze::gui::EnhancedTheme::frame_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00113">yaze::gui::EnhancedTheme::grab_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00056">yaze::gui::EnhancedTheme::header</a>, <a class="el" href="theme__manager_8h_source.html#l00058">yaze::gui::EnhancedTheme::header_active</a>, <a class="el" href="theme__manager_8h_source.html#l00057">yaze::gui::EnhancedTheme::header_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00034">yaze::gui::EnhancedTheme::info</a>, <a class="el" href="theme__manager_8h_source.html#l00062">yaze::gui::EnhancedTheme::menu_bar_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8cc_source.html#l00563">ParseColorFromString()</a>, <a class="el" href="theme__manager_8h_source.html#l00044">yaze::gui::EnhancedTheme::popup_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00026">yaze::gui::EnhancedTheme::primary</a>, <a class="el" href="theme__manager_8h_source.html#l00081">yaze::gui::EnhancedTheme::resize_grip</a>, <a class="el" href="theme__manager_8h_source.html#l00083">yaze::gui::EnhancedTheme::resize_grip_active</a>, <a class="el" href="theme__manager_8h_source.html#l00082">yaze::gui::EnhancedTheme::resize_grip_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00075">yaze::gui::EnhancedTheme::scrollbar_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00076">yaze::gui::EnhancedTheme::scrollbar_grab</a>, <a class="el" href="theme__manager_8h_source.html#l00078">yaze::gui::EnhancedTheme::scrollbar_grab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00077">yaze::gui::EnhancedTheme::scrollbar_grab_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00112">yaze::gui::EnhancedTheme::scrollbar_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00027">yaze::gui::EnhancedTheme::secondary</a>, <a class="el" href="theme__manager_8h_source.html#l00070">yaze::gui::EnhancedTheme::separator</a>, <a class="el" href="theme__manager_8h_source.html#l00072">yaze::gui::EnhancedTheme::separator_active</a>, <a class="el" href="theme__manager_8h_source.html#l00071">yaze::gui::EnhancedTheme::separator_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00033">yaze::gui::EnhancedTheme::success</a>, <a class="el" href="theme__manager_8h_source.html#l00030">yaze::gui::EnhancedTheme::surface</a>, <a class="el" href="theme__manager_8h_source.html#l00059">yaze::gui::EnhancedTheme::tab</a>, <a class="el" href="theme__manager_8h_source.html#l00061">yaze::gui::EnhancedTheme::tab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00060">yaze::gui::EnhancedTheme::tab_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00114">yaze::gui::EnhancedTheme::tab_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00039">yaze::gui::EnhancedTheme::text_disabled</a>, <a class="el" href="theme__manager_8h_source.html#l00037">yaze::gui::EnhancedTheme::text_primary</a>, <a class="el" href="theme__manager_8h_source.html#l00038">yaze::gui::EnhancedTheme::text_secondary</a>, <a class="el" href="theme__manager_8h_source.html#l00063">yaze::gui::EnhancedTheme::title_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00064">yaze::gui::EnhancedTheme::title_bg_active</a>, <a class="el" href="theme__manager_8h_source.html#l00065">yaze::gui::EnhancedTheme::title_bg_collapsed</a>, <a class="el" href="theme__manager_8h_source.html#l00032">yaze::gui::EnhancedTheme::warning</a>, <a class="el" href="theme__manager_8h_source.html#l00042">yaze::gui::EnhancedTheme::window_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00115">yaze::gui::EnhancedTheme::window_border_size</a>, and <a class="el" href="theme__manager_8h_source.html#l00110">yaze::gui::EnhancedTheme::window_rounding</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00028">yaze::gui::EnhancedTheme::accent</a>, <a class="el" href="theme__manager_8h_source.html#l00120">yaze::gui::EnhancedTheme::animation_speed</a>, <a class="el" href="theme__manager_8h_source.html#l00023">yaze::gui::EnhancedTheme::author</a>, <a class="el" href="theme__manager_8h_source.html#l00029">yaze::gui::EnhancedTheme::background</a>, <a class="el" href="theme__manager_8h_source.html#l00068">yaze::gui::EnhancedTheme::border</a>, <a class="el" href="theme__manager_8h_source.html#l00069">yaze::gui::EnhancedTheme::border_shadow</a>, <a class="el" href="theme__manager_8h_source.html#l00048">yaze::gui::EnhancedTheme::button</a>, <a class="el" href="theme__manager_8h_source.html#l00050">yaze::gui::EnhancedTheme::button_active</a>, <a class="el" href="theme__manager_8h_source.html#l00049">yaze::gui::EnhancedTheme::button_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00043">yaze::gui::EnhancedTheme::child_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00022">yaze::gui::EnhancedTheme::description</a>, <a class="el" href="theme__manager_8h_source.html#l00119">yaze::gui::EnhancedTheme::enable_animations</a>, <a class="el" href="theme__manager_8h_source.html#l00121">yaze::gui::EnhancedTheme::enable_glow_effects</a>, <a class="el" href="theme__manager_8h_source.html#l00031">yaze::gui::EnhancedTheme::error</a>, <a class="el" href="theme__manager_8h_source.html#l00051">yaze::gui::EnhancedTheme::frame_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00053">yaze::gui::EnhancedTheme::frame_bg_active</a>, <a class="el" href="theme__manager_8h_source.html#l00052">yaze::gui::EnhancedTheme::frame_bg_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00116">yaze::gui::EnhancedTheme::frame_border_size</a>, <a class="el" href="theme__manager_8h_source.html#l00111">yaze::gui::EnhancedTheme::frame_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00113">yaze::gui::EnhancedTheme::grab_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00056">yaze::gui::EnhancedTheme::header</a>, <a class="el" href="theme__manager_8h_source.html#l00058">yaze::gui::EnhancedTheme::header_active</a>, <a class="el" href="theme__manager_8h_source.html#l00057">yaze::gui::EnhancedTheme::header_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00034">yaze::gui::EnhancedTheme::info</a>, <a class="el" href="theme__manager_8h_source.html#l00062">yaze::gui::EnhancedTheme::menu_bar_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8cc_source.html#l00562">ParseColorFromString()</a>, <a class="el" href="theme__manager_8h_source.html#l00044">yaze::gui::EnhancedTheme::popup_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00026">yaze::gui::EnhancedTheme::primary</a>, <a class="el" href="theme__manager_8h_source.html#l00081">yaze::gui::EnhancedTheme::resize_grip</a>, <a class="el" href="theme__manager_8h_source.html#l00083">yaze::gui::EnhancedTheme::resize_grip_active</a>, <a class="el" href="theme__manager_8h_source.html#l00082">yaze::gui::EnhancedTheme::resize_grip_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00075">yaze::gui::EnhancedTheme::scrollbar_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00076">yaze::gui::EnhancedTheme::scrollbar_grab</a>, <a class="el" href="theme__manager_8h_source.html#l00078">yaze::gui::EnhancedTheme::scrollbar_grab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00077">yaze::gui::EnhancedTheme::scrollbar_grab_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00112">yaze::gui::EnhancedTheme::scrollbar_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00027">yaze::gui::EnhancedTheme::secondary</a>, <a class="el" href="theme__manager_8h_source.html#l00070">yaze::gui::EnhancedTheme::separator</a>, <a class="el" href="theme__manager_8h_source.html#l00072">yaze::gui::EnhancedTheme::separator_active</a>, <a class="el" href="theme__manager_8h_source.html#l00071">yaze::gui::EnhancedTheme::separator_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00033">yaze::gui::EnhancedTheme::success</a>, <a class="el" href="theme__manager_8h_source.html#l00030">yaze::gui::EnhancedTheme::surface</a>, <a class="el" href="theme__manager_8h_source.html#l00059">yaze::gui::EnhancedTheme::tab</a>, <a class="el" href="theme__manager_8h_source.html#l00061">yaze::gui::EnhancedTheme::tab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00060">yaze::gui::EnhancedTheme::tab_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00114">yaze::gui::EnhancedTheme::tab_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00039">yaze::gui::EnhancedTheme::text_disabled</a>, <a class="el" href="theme__manager_8h_source.html#l00037">yaze::gui::EnhancedTheme::text_primary</a>, <a class="el" href="theme__manager_8h_source.html#l00038">yaze::gui::EnhancedTheme::text_secondary</a>, <a class="el" href="theme__manager_8h_source.html#l00063">yaze::gui::EnhancedTheme::title_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00064">yaze::gui::EnhancedTheme::title_bg_active</a>, <a class="el" href="theme__manager_8h_source.html#l00065">yaze::gui::EnhancedTheme::title_bg_collapsed</a>, <a class="el" href="theme__manager_8h_source.html#l00032">yaze::gui::EnhancedTheme::warning</a>, <a class="el" href="theme__manager_8h_source.html#l00042">yaze::gui::EnhancedTheme::window_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00115">yaze::gui::EnhancedTheme::window_border_size</a>, and <a class="el" href="theme__manager_8h_source.html#l00110">yaze::gui::EnhancedTheme::window_rounding</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00248">LoadThemeFromFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00239">LoadThemeFromFile()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -880,11 +1005,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00563">563</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00562">562</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00023">yaze::gui::RGBA()</a>.</p>
+<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00024">yaze::gui::RGBA()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00457">ParseThemeFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00456">ParseThemeFile()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -921,11 +1046,103 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00580">580</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00579">579</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="theme__manager_8h_source.html#l00028">yaze::gui::EnhancedTheme::accent</a>, <a class="el" href="theme__manager_8h_source.html#l00023">yaze::gui::EnhancedTheme::author</a>, <a class="el" href="theme__manager_8h_source.html#l00029">yaze::gui::EnhancedTheme::background</a>, <a class="el" href="theme__manager_8h_source.html#l00068">yaze::gui::EnhancedTheme::border</a>, <a class="el" href="theme__manager_8h_source.html#l00069">yaze::gui::EnhancedTheme::border_shadow</a>, <a class="el" href="theme__manager_8h_source.html#l00048">yaze::gui::EnhancedTheme::button</a>, <a class="el" href="theme__manager_8h_source.html#l00050">yaze::gui::EnhancedTheme::button_active</a>, <a class="el" href="theme__manager_8h_source.html#l00049">yaze::gui::EnhancedTheme::button_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00043">yaze::gui::EnhancedTheme::child_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00022">yaze::gui::EnhancedTheme::description</a>, <a class="el" href="theme__manager_8h_source.html#l00119">yaze::gui::EnhancedTheme::enable_animations</a>, <a class="el" href="theme__manager_8h_source.html#l00121">yaze::gui::EnhancedTheme::enable_glow_effects</a>, <a class="el" href="theme__manager_8h_source.html#l00031">yaze::gui::EnhancedTheme::error</a>, <a class="el" href="theme__manager_8h_source.html#l00051">yaze::gui::EnhancedTheme::frame_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00053">yaze::gui::EnhancedTheme::frame_bg_active</a>, <a class="el" href="theme__manager_8h_source.html#l00052">yaze::gui::EnhancedTheme::frame_bg_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00111">yaze::gui::EnhancedTheme::frame_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00056">yaze::gui::EnhancedTheme::header</a>, <a class="el" href="theme__manager_8h_source.html#l00058">yaze::gui::EnhancedTheme::header_active</a>, <a class="el" href="theme__manager_8h_source.html#l00057">yaze::gui::EnhancedTheme::header_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00034">yaze::gui::EnhancedTheme::info</a>, <a class="el" href="theme__manager_8h_source.html#l00062">yaze::gui::EnhancedTheme::menu_bar_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00021">yaze::gui::EnhancedTheme::name</a>, <a class="el" href="theme__manager_8h_source.html#l00044">yaze::gui::EnhancedTheme::popup_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00026">yaze::gui::EnhancedTheme::primary</a>, <a class="el" href="theme__manager_8h_source.html#l00075">yaze::gui::EnhancedTheme::scrollbar_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00076">yaze::gui::EnhancedTheme::scrollbar_grab</a>, <a class="el" href="theme__manager_8h_source.html#l00078">yaze::gui::EnhancedTheme::scrollbar_grab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00077">yaze::gui::EnhancedTheme::scrollbar_grab_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00112">yaze::gui::EnhancedTheme::scrollbar_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00027">yaze::gui::EnhancedTheme::secondary</a>, <a class="el" href="theme__manager_8h_source.html#l00070">yaze::gui::EnhancedTheme::separator</a>, <a class="el" href="theme__manager_8h_source.html#l00072">yaze::gui::EnhancedTheme::separator_active</a>, <a class="el" href="theme__manager_8h_source.html#l00071">yaze::gui::EnhancedTheme::separator_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00033">yaze::gui::EnhancedTheme::success</a>, <a class="el" href="theme__manager_8h_source.html#l00030">yaze::gui::EnhancedTheme::surface</a>, <a class="el" href="theme__manager_8h_source.html#l00059">yaze::gui::EnhancedTheme::tab</a>, <a class="el" href="theme__manager_8h_source.html#l00061">yaze::gui::EnhancedTheme::tab_active</a>, <a class="el" href="theme__manager_8h_source.html#l00060">yaze::gui::EnhancedTheme::tab_hovered</a>, <a class="el" href="theme__manager_8h_source.html#l00114">yaze::gui::EnhancedTheme::tab_rounding</a>, <a class="el" href="theme__manager_8h_source.html#l00039">yaze::gui::EnhancedTheme::text_disabled</a>, <a class="el" href="theme__manager_8h_source.html#l00037">yaze::gui::EnhancedTheme::text_primary</a>, <a class="el" href="theme__manager_8h_source.html#l00038">yaze::gui::EnhancedTheme::text_secondary</a>, <a class="el" href="theme__manager_8h_source.html#l00063">yaze::gui::EnhancedTheme::title_bg</a>, <a class="el" href="theme__manager_8h_source.html#l00064">yaze::gui::EnhancedTheme::title_bg_active</a>, <a class="el" href="theme__manager_8h_source.html#l00065">yaze::gui::EnhancedTheme::title_bg_collapsed</a>, <a class="el" href="theme__manager_8h_source.html#l00032">yaze::gui::EnhancedTheme::warning</a>, <a class="el" href="theme__manager_8h_source.html#l00042">yaze::gui::EnhancedTheme::window_bg</a>, and <a class="el" href="theme__manager_8h_source.html#l00110">yaze::gui::EnhancedTheme::window_rounding</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00684">SaveThemeToFile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00683">SaveThemeToFile()</a>.</p>
+
+</div>
+</div>
+<a id="aa2e1248d86460a354b1b46205bf02ab7" name="aa2e1248d86460a354b1b46205bf02ab7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2e1248d86460a354b1b46205bf02ab7">&#9670;&#160;</a></span>GetThemeSearchPaths()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::string &gt; yaze::gui::ThemeManager::GetThemeSearchPaths </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00877">877</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5">yaze::core::GetBundleResourcePath()</a>, <a class="el" href="file__dialog_8cc_source.html#l00094">yaze::core::GetConfigDirectory()</a>, and <a class="el" href="file__dialog_8cc_source.html#l00081">yaze::core::GetResourcePath()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00948">DiscoverAvailableThemeFiles()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00920">GetThemesDirectory()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1gui_1_1ThemeManager_aa2e1248d86460a354b1b46205bf02ab7_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1ThemeManager_aa2e1248d86460a354b1b46205bf02ab7_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gui_1_1ThemeManager_aa2e1248d86460a354b1b46205bf02ab7_cgraph" id="aclassyaze_1_1gui_1_1ThemeManager_aa2e1248d86460a354b1b46205bf02ab7_cgraph">
+<area shape="rect" title=" " alt="" coords="5,16,172,57"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="460,24,687,49"/>
+<area shape="poly" title=" " alt="" coords="172,15,219,8,316,3,412,8,488,18,487,23,412,14,316,8,220,14,173,21"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#af3dbed157830d6193bd5c7f74b8361a3" title=" " alt="" coords="220,24,412,49"/>
+<area shape="poly" title=" " alt="" coords="172,34,204,34,204,39,172,39"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a7ce3cf710bdabe4b53e4f92c41c00a34" title=" " alt="" coords="222,73,410,99"/>
+<area shape="poly" title=" " alt="" coords="173,52,239,67,238,72,172,57"/>
+<area shape="poly" title=" " alt="" coords="386,70,487,50,488,55,387,75"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a7ef08fa99d53f3bf49dbbbe2016e5719" name="a7ef08fa99d53f3bf49dbbbe2016e5719"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ef08fa99d53f3bf49dbbbe2016e5719">&#9670;&#160;</a></span>GetThemesDirectory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::gui::ThemeManager::GetThemesDirectory </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel private">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="theme__manager_8cc_source.html#l00920">920</a> of file <a class="el" href="theme__manager_8cc_source.html">theme_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="theme__manager_8cc_source.html#l00877">GetThemeSearchPaths()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1gui_1_1ThemeManager_a7ef08fa99d53f3bf49dbbbe2016e5719_cgraph.png" border="0" usemap="#aclassyaze_1_1gui_1_1ThemeManager_a7ef08fa99d53f3bf49dbbbe2016e5719_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1gui_1_1ThemeManager_a7ef08fa99d53f3bf49dbbbe2016e5719_cgraph" id="aclassyaze_1_1gui_1_1ThemeManager_a7ef08fa99d53f3bf49dbbbe2016e5719_cgraph">
+<area shape="rect" title=" " alt="" coords="5,16,172,57"/>
+<area shape="rect" href="classyaze_1_1gui_1_1ThemeManager.html#aa2e1248d86460a354b1b46205bf02ab7" title=" " alt="" coords="220,16,386,57"/>
+<area shape="poly" title=" " alt="" coords="172,34,204,34,204,39,172,39"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="674,24,902,49"/>
+<area shape="poly" title=" " alt="" coords="386,15,434,8,530,3,627,8,702,18,701,23,626,14,530,8,434,14,387,21"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#af3dbed157830d6193bd5c7f74b8361a3" title=" " alt="" coords="434,24,626,49"/>
+<area shape="poly" title=" " alt="" coords="387,34,418,34,418,39,387,39"/>
+<area shape="rect" href="namespaceyaze_1_1core.html#a7ce3cf710bdabe4b53e4f92c41c00a34" title=" " alt="" coords="436,73,624,99"/>
+<area shape="poly" title=" " alt="" coords="387,52,454,67,453,72,386,57"/>
+<area shape="poly" title=" " alt="" coords="601,70,702,50,703,55,602,75"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -950,9 +1167,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8h_source.html#l00166">166</a> of file <a class="el" href="theme__manager_8h_source.html">theme_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8h_source.html#l00172">172</a> of file <a class="el" href="theme__manager_8h_source.html">theme_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00138">CreateFallbackYazeClassic()</a>, <a class="el" href="theme__manager_8cc_source.html#l00301">GetAvailableThemes()</a>, <a class="el" href="theme__manager_8cc_source.html#l00309">GetTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00108">InitializeBuiltInThemes()</a>, <a class="el" href="theme__manager_8cc_source.html#l00235">LoadTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00248">LoadThemeFromFile()</a>, <a class="el" href="theme__manager_8cc_source.html#l00724">ShowSimpleThemeEditor()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00344">ShowThemeSelector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00129">CreateFallbackYazeClassic()</a>, <a class="el" href="theme__manager_8cc_source.html#l00292">GetAvailableThemes()</a>, <a class="el" href="theme__manager_8cc_source.html#l00300">GetTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00109">InitializeBuiltInThemes()</a>, <a class="el" href="theme__manager_8cc_source.html#l00226">LoadTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00239">LoadThemeFromFile()</a>, <a class="el" href="theme__manager_8cc_source.html#l00723">ShowSimpleThemeEditor()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00335">ShowThemeSelector()</a>.</p>
 
 </div>
 </div>
@@ -976,9 +1193,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8h_source.html#l00167">167</a> of file <a class="el" href="theme__manager_8h_source.html">theme_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8h_source.html#l00173">173</a> of file <a class="el" href="theme__manager_8h_source.html">theme_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00703">ApplyClassicYazeTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00325">ApplyTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00138">CreateFallbackYazeClassic()</a>, <a class="el" href="theme__manager_8h_source.html#l00145">GetCurrentTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00340">GetWelcomeScreenAccent()</a>, <a class="el" href="theme__manager_8cc_source.html#l00330">GetWelcomeScreenBackground()</a>, <a class="el" href="theme__manager_8cc_source.html#l00336">GetWelcomeScreenBorder()</a>, <a class="el" href="theme__manager_8cc_source.html#l00108">InitializeBuiltInThemes()</a>, <a class="el" href="theme__manager_8cc_source.html#l00235">LoadTheme()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00724">ShowSimpleThemeEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00702">ApplyClassicYazeTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00316">ApplyTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00129">CreateFallbackYazeClassic()</a>, <a class="el" href="theme__manager_8h_source.html#l00151">GetCurrentTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00331">GetWelcomeScreenAccent()</a>, <a class="el" href="theme__manager_8cc_source.html#l00321">GetWelcomeScreenBackground()</a>, <a class="el" href="theme__manager_8cc_source.html#l00327">GetWelcomeScreenBorder()</a>, <a class="el" href="theme__manager_8cc_source.html#l00109">InitializeBuiltInThemes()</a>, <a class="el" href="theme__manager_8cc_source.html#l00226">LoadTheme()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00723">ShowSimpleThemeEditor()</a>.</p>
 
 </div>
 </div>
@@ -1002,9 +1219,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="theme__manager_8h_source.html#l00168">168</a> of file <a class="el" href="theme__manager_8h_source.html">theme_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="theme__manager_8h_source.html#l00174">174</a> of file <a class="el" href="theme__manager_8h_source.html">theme_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00703">ApplyClassicYazeTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00138">CreateFallbackYazeClassic()</a>, <a class="el" href="theme__manager_8cc_source.html#l00108">InitializeBuiltInThemes()</a>, <a class="el" href="theme__manager_8cc_source.html#l00235">LoadTheme()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00344">ShowThemeSelector()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="theme__manager_8cc_source.html#l00702">ApplyClassicYazeTheme()</a>, <a class="el" href="theme__manager_8cc_source.html#l00129">CreateFallbackYazeClassic()</a>, <a class="el" href="theme__manager_8cc_source.html#l00109">InitializeBuiltInThemes()</a>, <a class="el" href="theme__manager_8cc_source.html#l00226">LoadTheme()</a>, and <a class="el" href="theme__manager_8cc_source.html#l00335">ShowThemeSelector()</a>.</p>
 
 </div>
 </div>

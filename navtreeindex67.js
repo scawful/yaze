@@ -1,5 +1,15 @@
 var NAVTREEINDEX67 =
 {
+"structyaze_1_1emu_1_1MaskLogicSettings.html":[23,0,3,4,44],
+"structyaze_1_1emu_1_1MaskLogicSettings.html":[24,0,0,4,42],
+"structyaze_1_1emu_1_1MaskLogicSettings.html#a2e5c57c40b3a1ac4ea80bc085268a720":[23,0,3,4,44,1],
+"structyaze_1_1emu_1_1MaskLogicSettings.html#a2e5c57c40b3a1ac4ea80bc085268a720":[24,0,0,4,42,1],
+"structyaze_1_1emu_1_1MaskLogicSettings.html#a71343a7192fd3c98f9d702b0fbe75297":[23,0,3,4,44,0],
+"structyaze_1_1emu_1_1MaskLogicSettings.html#a71343a7192fd3c98f9d702b0fbe75297":[24,0,0,4,42,0],
+"structyaze_1_1emu_1_1MaskLogicSettings.html#a72f9c1d54a9c27b4b51f89ff32b32e86":[23,0,3,4,44,2],
+"structyaze_1_1emu_1_1MaskLogicSettings.html#a72f9c1d54a9c27b4b51f89ff32b32e86":[24,0,0,4,42,2],
+"structyaze_1_1emu_1_1MaskLogicSettings.html#a8b53ea986283dff85cedcd773ae492e7":[23,0,3,4,44,3],
+"structyaze_1_1emu_1_1MaskLogicSettings.html#a8b53ea986283dff85cedcd773ae492e7":[24,0,0,4,42,3],
 "structyaze_1_1emu_1_1MnemonicMode.html":[23,0,3,4,47],
 "structyaze_1_1emu_1_1MnemonicMode.html":[24,0,0,4,45],
 "structyaze_1_1emu_1_1MnemonicMode.html#a05cb65b83f837a5120436302deb877a6":[23,0,3,4,47,1],
@@ -239,15 +249,5 @@ var NAVTREEINDEX67 =
 "structyaze_1_1emu_1_1TilemapEntry.html#a085c97a91aed4521397d24579cc5a3e3":[23,0,3,4,77,2],
 "structyaze_1_1emu_1_1TilemapEntry.html#a085c97a91aed4521397d24579cc5a3e3":[24,0,0,4,75,2],
 "structyaze_1_1emu_1_1TilemapEntry.html#a430570f0982de0630270fbf58c873d50":[23,0,3,4,77,4],
-"structyaze_1_1emu_1_1TilemapEntry.html#a430570f0982de0630270fbf58c873d50":[24,0,0,4,75,4],
-"structyaze_1_1emu_1_1TilemapEntry.html#a828cbb0f34624b0c5e43bcf64972c957":[23,0,3,4,77,0],
-"structyaze_1_1emu_1_1TilemapEntry.html#a828cbb0f34624b0c5e43bcf64972c957":[24,0,0,4,75,0],
-"structyaze_1_1emu_1_1TilemapEntry.html#ad026284453b5909eb3899f838003a1eb":[23,0,3,4,77,1],
-"structyaze_1_1emu_1_1TilemapEntry.html#ad026284453b5909eb3899f838003a1eb":[24,0,0,4,75,1],
-"structyaze_1_1emu_1_1TilemapEntry.html#aeaae6fd5cdc2906a4c8d3ac7f23047b3":[23,0,3,4,77,3],
-"structyaze_1_1emu_1_1TilemapEntry.html#aeaae6fd5cdc2906a4c8d3ac7f23047b3":[24,0,0,4,75,3],
-"structyaze_1_1emu_1_1Timer.html":[23,0,3,4,79],
-"structyaze_1_1emu_1_1Timer.html":[24,0,0,4,77],
-"structyaze_1_1emu_1_1Timer.html#a3a754161256b4fc03ec9b3aaf6774280":[23,0,3,4,79,4],
-"structyaze_1_1emu_1_1Timer.html#a3a754161256b4fc03ec9b3aaf6774280":[24,0,0,4,77,4]
+"structyaze_1_1emu_1_1TilemapEntry.html#a430570f0982de0630270fbf58c873d50":[24,0,0,4,75,4]
 };

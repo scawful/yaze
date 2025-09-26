@@ -1,5 +1,15 @@
 var NAVTREEINDEX38 =
 {
+"classyaze_1_1zelda3_1_1RoomObject.html":[23,0,3,9,45],
+"classyaze_1_1zelda3_1_1RoomObject.html":[24,0,0,9,40],
+"classyaze_1_1zelda3_1_1RoomObject.html#a050bed64b7ed047dc7ddb14af92aa077":[23,0,3,9,45,24],
+"classyaze_1_1zelda3_1_1RoomObject.html#a050bed64b7ed047dc7ddb14af92aa077":[24,0,0,9,40,24],
+"classyaze_1_1zelda3_1_1RoomObject.html#a0b96cbdcf912d54adb20eb5b3880a668":[23,0,3,9,45,46],
+"classyaze_1_1zelda3_1_1RoomObject.html#a0b96cbdcf912d54adb20eb5b3880a668":[24,0,0,9,40,46],
+"classyaze_1_1zelda3_1_1RoomObject.html#a0da5fcd732d395df62a9e213fb18c810":[23,0,3,9,45,48],
+"classyaze_1_1zelda3_1_1RoomObject.html#a0da5fcd732d395df62a9e213fb18c810":[24,0,0,9,40,48],
+"classyaze_1_1zelda3_1_1RoomObject.html#a0e2f2cab3d3cca8ef1230e33773fdb61":[23,0,3,9,45,13],
+"classyaze_1_1zelda3_1_1RoomObject.html#a0e2f2cab3d3cca8ef1230e33773fdb61":[24,0,0,9,40,13],
 "classyaze_1_1zelda3_1_1RoomObject.html#a0e506f8a8453a9e017f3ec0928ee70b3":[23,0,3,9,45,34],
 "classyaze_1_1zelda3_1_1RoomObject.html#a0e506f8a8453a9e017f3ec0928ee70b3":[24,0,0,9,40,34],
 "classyaze_1_1zelda3_1_1RoomObject.html#a0f9dd8dac29cba04e64dcae10490b94a":[23,0,3,9,45,23],
@@ -239,15 +249,5 @@ var NAVTREEINDEX38 =
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a79a8cfe38f4f463e05fb0e9e9da3e293":[23,0,3,9,50,0],
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#a79a8cfe38f4f463e05fb0e9e9da3e293":[24,0,0,9,45,0],
 "classyaze_1_1zelda3_1_1SpriteBuilder.html#aaad069abe935e76ecad0c1b4d75351c3":[23,0,3,9,50,6],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#aaad069abe935e76ecad0c1b4d75351c3":[24,0,0,9,45,6],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#aca5b9586b4716ae505185113b702c269":[23,0,3,9,50,5],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#aca5b9586b4716ae505185113b702c269":[24,0,0,9,45,5],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28":[23,0,3,9,50,13],
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28":[24,0,0,9,45,13],
-"classyaze_1_1zelda3_1_1SpriteInstruction.html":[23,0,3,9,51],
-"classyaze_1_1zelda3_1_1SpriteInstruction.html":[24,0,0,9,46],
-"classyaze_1_1zelda3_1_1SpriteInstruction.html#a63832a9df6b05117140bb05d8abc3c63":[23,0,3,9,51,2],
-"classyaze_1_1zelda3_1_1SpriteInstruction.html#a63832a9df6b05117140bb05d8abc3c63":[24,0,0,9,46,2],
-"classyaze_1_1zelda3_1_1SpriteInstruction.html#a9206d062ee82eab689117d2d268a3357":[23,0,3,9,51,1],
-"classyaze_1_1zelda3_1_1SpriteInstruction.html#a9206d062ee82eab689117d2d268a3357":[24,0,0,9,46,1]
+"classyaze_1_1zelda3_1_1SpriteBuilder.html#aaad069abe935e76ecad0c1b4d75351c3":[24,0,0,9,45,6]
 };

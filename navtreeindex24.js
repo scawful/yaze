@@ -1,5 +1,15 @@
 var NAVTREEINDEX24 =
 {
+"classyaze_1_1test_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5":[23,0,3,7,11,7],
+"classyaze_1_1test_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5":[24,0,0,7,9,7],
+"classyaze_1_1test_1_1Cpu.html#aad7df7574682156aea5cd8da5c2896a9":[23,0,3,7,11,20],
+"classyaze_1_1test_1_1Cpu.html#aad7df7574682156aea5cd8da5c2896a9":[24,0,0,7,9,20],
+"classyaze_1_1test_1_1Cpu.html#aad8a065fd52e121ae96c0149489f62ee":[23,0,3,7,11,6],
+"classyaze_1_1test_1_1Cpu.html#aad8a065fd52e121ae96c0149489f62ee":[24,0,0,7,9,6],
+"classyaze_1_1test_1_1Cpu.html#aae01715a8f2cc12853288d8548c30a36":[23,0,3,7,11,111],
+"classyaze_1_1test_1_1Cpu.html#aae01715a8f2cc12853288d8548c30a36":[24,0,0,7,9,111],
+"classyaze_1_1test_1_1Cpu.html#aae2f880e597307df5d8b1d8d1486af0a":[23,0,3,7,11,77],
+"classyaze_1_1test_1_1Cpu.html#aae2f880e597307df5d8b1d8d1486af0a":[24,0,0,7,9,77],
 "classyaze_1_1test_1_1Cpu.html#ab0a1da5f723404c6af2e9bf5f5a0e646":[23,0,3,7,11,37],
 "classyaze_1_1test_1_1Cpu.html#ab0a1da5f723404c6af2e9bf5f5a0e646":[24,0,0,7,9,37],
 "classyaze_1_1test_1_1Cpu.html#ab147cf0d485096f0e897768d36a35c43":[23,0,3,7,11,55],
@@ -239,15 +249,5 @@ var NAVTREEINDEX24 =
 "classyaze_1_1test_1_1DungeonObjectRenderingTests.html#ae2ef749ddb81fee923c6c6aee5ac3950":[23,0,3,7,15,16],
 "classyaze_1_1test_1_1DungeonObjectRenderingTests.html#ae2ef749ddb81fee923c6c6aee5ac3950":[24,0,0,7,13,16],
 "classyaze_1_1test_1_1DungeonObjectRenderingTests.html#aefb2dd52c2cc7edd759240831b3d62f8":[23,0,3,7,15,10],
-"classyaze_1_1test_1_1DungeonObjectRenderingTests.html#aefb2dd52c2cc7edd759240831b3d62f8":[24,0,0,7,13,10],
-"classyaze_1_1test_1_1DungeonObjectRenderingTests.html#af708efd9a941edf945e2c4ce888f6647":[23,0,3,7,15,3],
-"classyaze_1_1test_1_1DungeonObjectRenderingTests.html#af708efd9a941edf945e2c4ce888f6647":[24,0,0,7,13,3],
-"classyaze_1_1test_1_1DungeonObjectRenderingTests.html#af830a5266055265f96e6409b74d73de8":[23,0,3,7,15,4],
-"classyaze_1_1test_1_1DungeonObjectRenderingTests.html#af830a5266055265f96e6409b74d73de8":[24,0,0,7,13,4],
-"classyaze_1_1test_1_1DungeonRoomTest.html":[23,0,3,7,16],
-"classyaze_1_1test_1_1DungeonRoomTest.html":[24,0,0,7,14],
-"classyaze_1_1test_1_1DungeonRoomTest.html#a5be6445a4f4ea1649862b7257a06d468":[23,0,3,7,16,1],
-"classyaze_1_1test_1_1DungeonRoomTest.html#a5be6445a4f4ea1649862b7257a06d468":[24,0,0,7,14,1],
-"classyaze_1_1test_1_1DungeonRoomTest.html#abe74b5287d1ccb15edf619f9a4b347f4":[23,0,3,7,16,2],
-"classyaze_1_1test_1_1DungeonRoomTest.html#abe74b5287d1ccb15edf619f9a4b347f4":[24,0,0,7,14,2]
+"classyaze_1_1test_1_1DungeonObjectRenderingTests.html#aefb2dd52c2cc7edd759240831b3d62f8":[24,0,0,7,13,10]
 };

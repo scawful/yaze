@@ -1,5 +1,15 @@
 var NAVTREEINDEX55 =
 {
+"namespaceyaze_1_1emu.html#aebe45a6f7255501f85ca42f741d48a11":[23,0,3,4,107],
+"namespaceyaze_1_1emu.html#aec20b9afa8a3b18448e357b95d969121":[23,0,3,4,185],
+"namespaceyaze_1_1emu.html#aec31e870622f17e593e5c98c5d3e3f22":[23,0,3,4,140],
+"namespaceyaze_1_1emu.html#aece6aec9450537dcd2ea81691385889e":[23,0,3,4,149],
+"namespaceyaze_1_1emu.html#af5ebc77f7ec3bf25df1520e43ceeb609":[23,0,3,4,181],
+"namespaceyaze_1_1emu.html#af620eddd037635df72715bafb009784e":[23,0,3,4,169],
+"namespaceyaze_1_1emu.html#afb1ae455a3f0161d340533c1a9015602":[23,0,3,4,145],
+"namespaceyaze_1_1emu.html#afed9dfd506ad3d7247efc5ef53017459":[23,0,3,4,152],
+"namespaceyaze_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html":[23,0,3,4,0],
+"namespaceyaze_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html#a9fd47357fde3f087bedba71cc56b471d":[23,0,3,4,0,0],
 "namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html":[23,0,3,4,1],
 "namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a34f0bcbc0fe70ab704bb3d117f3a73b1":[23,0,3,4,1,0],
 "namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#ac647c716cf7e74b51fd5993fa6ff70fa":[23,0,3,4,1,1],
@@ -239,15 +249,5 @@ var NAVTREEINDEX55 =
 "namespaceyaze_1_1gui.html#a1136a9ab95fd67e2ab97a00f59818ddb":[23,0,3,6,39],
 "namespaceyaze_1_1gui.html#a16adfc7583097bf343bd2cc7065e445d":[23,0,3,6,34],
 "namespaceyaze_1_1gui.html#a1c69fb98d01063e11dbbce71acf2eacc":[23,0,3,6,84],
-"namespaceyaze_1_1gui.html#a1f2b653e2fd5b5b6c3741bbe332e3a02":[23,0,3,6,53],
-"namespaceyaze_1_1gui.html#a201299f3c61d29a272f11301c7f03265":[23,0,3,6,55],
-"namespaceyaze_1_1gui.html#a216f2984ca7cc50dd872c9605352c95e":[23,0,3,6,68],
-"namespaceyaze_1_1gui.html#a24eebca5b3fe9d6e674cefcb0a64e7e4":[23,0,3,6,31],
-"namespaceyaze_1_1gui.html#a24eebca5b3fe9d6e674cefcb0a64e7e4a0f74d4695fd4cccbe4380a5fcf6f8cc0":[23,0,3,6,31,1],
-"namespaceyaze_1_1gui.html#a24eebca5b3fe9d6e674cefcb0a64e7e4abe579a9078c06d1cd7c291ae5c92485f":[23,0,3,6,31,0],
-"namespaceyaze_1_1gui.html#a25424ecc8f2e33914dbac1c45aaaedbb":[23,0,3,6,76],
-"namespaceyaze_1_1gui.html#a28dd8b4161ca3d4103b8285519a4871a":[23,0,3,6,81],
-"namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237":[23,0,3,6,49],
-"namespaceyaze_1_1gui.html#a2fab6c87cc29a26e4b09632253507131":[23,0,3,6,64],
-"namespaceyaze_1_1gui.html#a329bfec318646ab338eae2167beee7a2":[23,0,3,6,33]
+"namespaceyaze_1_1gui.html#a1f2b653e2fd5b5b6c3741bbe332e3a02":[23,0,3,6,53]
 };

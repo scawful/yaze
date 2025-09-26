@@ -1,5 +1,15 @@
 var NAVTREEINDEX73 =
 {
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a615eed735f21dfc4017bcd6cf0895897":[23,0,3,9,16,0,0],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a615eed735f21dfc4017bcd6cf0895897":[24,0,0,9,11,0,0],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a7c0014bcd7b2d35f4d102ba1e7018785":[23,0,3,9,16,0,7],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a7c0014bcd7b2d35f4d102ba1e7018785":[24,0,0,9,11,0,7],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a82dfa975a7401bfae34638db0833019f":[23,0,3,9,16,0,4],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a82dfa975a7401bfae34638db0833019f":[24,0,0,9,11,0,4],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a8ecf8a6f35162ab9e18cbd103cd3eff3":[23,0,3,9,16,0,1],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a8ecf8a6f35162ab9e18cbd103cd3eff3":[24,0,0,9,11,0,1],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a954811c0f14b2d4ccf58a77871d42625":[23,0,3,9,16,0,5],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a954811c0f14b2d4ccf58a77871d42625":[24,0,0,9,11,0,5],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#aa8af3ed348fef4662c6fe84b3ceb74a4":[23,0,3,9,16,0,6],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#aa8af3ed348fef4662c6fe84b3ceb74a4":[24,0,0,9,11,0,6],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#ac5654680bb230383bac85e8481306ed3":[23,0,3,9,16,0,8],
@@ -239,15 +249,5 @@ var NAVTREEINDEX73 =
 "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html":[23,0,3,9,32],
 "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html":[24,0,0,9,27],
 "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e":[23,0,3,9,32,1],
-"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e":[24,0,0,9,27,1],
-"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[23,0,3,9,32,0],
-"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[24,0,0,9,27,0],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html":[23,0,3,9,37],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html":[24,0,0,9,32],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a24021eda0471996e9868d00345bc205b":[23,0,3,9,37,1],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a24021eda0471996e9868d00345bc205b":[24,0,0,9,32,1],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a85b2252548d49352f992aa238745217b":[23,0,3,9,37,2],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#a85b2252548d49352f992aa238745217b":[24,0,0,9,32,2],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#ac3b1bcb4e4dc8bed23ff857a008131bb":[23,0,3,9,37,0],
-"structyaze_1_1zelda3_1_1OverworldMapTiles.html#ac3b1bcb4e4dc8bed23ff857a008131bb":[24,0,0,9,32,0]
+"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e":[24,0,0,9,27,1]
 };
