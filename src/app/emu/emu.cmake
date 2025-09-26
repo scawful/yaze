@@ -1,5 +1,5 @@
-# Yaze Emulator Standalone Application
-if (APPLE)
+# Yaze Emulator Standalone Application (skip in minimal builds)
+if (NOT YAZE_MINIMAL_BUILD AND APPLE)
   add_executable(
     yaze_emu
     MACOSX_BUNDLE
@@ -16,7 +16,7 @@ if (APPLE)
     ${IMGUI_SRC}
   )
   target_link_libraries(yaze_emu PUBLIC ${COCOA_LIBRARY})
-else()
+elseif(NOT YAZE_MINIMAL_BUILD)
   add_executable(
     yaze_emu
     app/rom.cc
@@ -32,34 +32,37 @@ else()
   )
 endif()
 
-target_include_directories(
-  yaze_emu PUBLIC
-  ${CMAKE_SOURCE_DIR}/src/lib/
-  ${CMAKE_SOURCE_DIR}/src/app/
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
-  ${CMAKE_SOURCE_DIR}/incl/
-  ${CMAKE_SOURCE_DIR}/src/
-  ${PNG_INCLUDE_DIRS}
-  ${SDL2_INCLUDE_DIR}
-  ${PROJECT_BINARY_DIR}
-)
+# Only configure emulator target if it was created
+if(NOT YAZE_MINIMAL_BUILD)
+  target_include_directories(
+    yaze_emu PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/lib/
+    ${CMAKE_SOURCE_DIR}/src/app/
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
+    ${CMAKE_SOURCE_DIR}/incl/
+    ${CMAKE_SOURCE_DIR}/src/
+    ${PNG_INCLUDE_DIRS}
+    ${SDL2_INCLUDE_DIR}
+    ${PROJECT_BINARY_DIR}
+  )
 
-target_link_libraries(
-  yaze_emu PUBLIC 
-  ${ABSL_TARGETS} 
-  ${SDL_TARGETS} 
-  ${PNG_LIBRARIES} 
-  ${CMAKE_DL_LIBS} 
-  ImGui
-  asar-static
-)
+  target_link_libraries(
+    yaze_emu PUBLIC 
+    ${ABSL_TARGETS} 
+    ${SDL_TARGETS} 
+    ${PNG_LIBRARIES} 
+    ${CMAKE_DL_LIBS} 
+    ImGui
+    asar-static
+  )
 
-# Conditionally link ImGui Test Engine
-if(YAZE_ENABLE_UI_TESTS)
-  target_link_libraries(yaze_emu PUBLIC ImGuiTestEngine)
-  target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
-else()
-  target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
+  # Conditionally link ImGui Test Engine
+  if(YAZE_ENABLE_UI_TESTS)
+    target_link_libraries(yaze_emu PUBLIC ImGuiTestEngine)
+    target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
+  else()
+    target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
+  endif()
 endif()
