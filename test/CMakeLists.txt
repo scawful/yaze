@@ -119,7 +119,7 @@ target_link_libraries(
   gtest
 )
 
-# Conditionally link yaze_c only when library is built
+# Link core library for essential functionality (BPS, ASAR, etc.)
 if(YAZE_BUILD_LIB)
   target_link_libraries(yaze_test yaze_c)
 endif()

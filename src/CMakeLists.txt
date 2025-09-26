@@ -119,36 +119,80 @@ else()
   endif()
 endif()
 
-# Yaze C API
+# Yaze Core Library (for testing and C API)
 if (YAZE_BUILD_LIB)
-  # Create source list for yaze_c
-  set(YAZE_C_SOURCES
-    ./yaze.cc
+  # Create core library for testing (includes editor and zelda3 components needed by tests)
+  set(YAZE_CORE_SOURCES
     app/rom.cc
-    ${YAZE_APP_EMU_SRC}
     ${YAZE_APP_CORE_SRC}
+    ${YAZE_APP_GFX_SRC} 
     ${YAZE_APP_EDITOR_SRC}
-    ${YAZE_APP_GFX_SRC}
     ${YAZE_APP_ZELDA3_SRC}
+    ${YAZE_APP_EMU_SRC}
     ${YAZE_GUI_SRC}
     ${YAZE_UTIL_SRC}
+  )
+  
+  # Create full library for C API
+  set(YAZE_C_SOURCES
+    ./yaze.cc
+    ${YAZE_CORE_SOURCES}
+    ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
   )
+  
+  # Add emulator sources only in full builds
+  if(NOT YAZE_MINIMAL_BUILD)
+    list(APPEND YAZE_C_SOURCES ${YAZE_APP_EMU_SRC})
+  endif()
   
   # Only add ImGui Test Engine sources if UI tests are enabled
   if(YAZE_ENABLE_UI_TESTS)
     list(APPEND YAZE_C_SOURCES ${IMGUI_TEST_ENGINE_SOURCES})
   endif()
   
+  # Create the core library (static for testing)
+  add_library(yaze_core STATIC ${YAZE_CORE_SOURCES})
+  
+  # Create the full C API library (shared)
   add_library(yaze_c SHARED ${YAZE_C_SOURCES})
 
+  # Configure core library (for testing)
   target_include_directories(
-    yaze_c PUBLIC
-    lib/
-    app/
+    yaze_core PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/lib/
+    ${CMAKE_SOURCE_DIR}/src/app/
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
     ${CMAKE_SOURCE_DIR}/incl/
     ${CMAKE_SOURCE_DIR}/src/
-    ${ASAR_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/src/lib/imgui
+    ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+    ${SDL2_INCLUDE_DIR}
+    ${PROJECT_BINARY_DIR}
+  )
+
+  target_link_libraries(
+    yaze_core PUBLIC
+    asar-static
+    ${ABSL_TARGETS}
+    ${SDL_TARGETS}
+    ${CMAKE_DL_LIBS}
+    ImGui
+  )
+
+  # Configure full C API library
+  target_include_directories(
+    yaze_c PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/lib/
+    ${CMAKE_SOURCE_DIR}/src/app/
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
+    ${CMAKE_SOURCE_DIR}/incl/
+    ${CMAKE_SOURCE_DIR}/src/
+    ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
     ${SDL2_INCLUDE_DIR}
     ${PROJECT_BINARY_DIR}
   )
@@ -156,16 +200,13 @@ if (YAZE_BUILD_LIB)
   # Conditionally add PNG include dirs if available
   if(PNG_FOUND)
     target_include_directories(yaze_c PUBLIC ${PNG_INCLUDE_DIRS})
+    target_include_directories(yaze_core PUBLIC ${PNG_INCLUDE_DIRS})
   endif()
 
   target_link_libraries(
     yaze_c PRIVATE
-    asar-static
-    ${ABSL_TARGETS}
-    ${SDL_TARGETS}
-    ${CMAKE_DL_LIBS}
+    yaze_core
     ImGui
-    Threads::Threads
   )
   
   # Conditionally link ImGui Test Engine and set definitions
@@ -179,6 +220,7 @@ if (YAZE_BUILD_LIB)
   # Conditionally link PNG if available
   if(PNG_FOUND)
     target_link_libraries(yaze_c PRIVATE ${PNG_LIBRARIES})
+    target_link_libraries(yaze_core PRIVATE ${PNG_LIBRARIES})
   endif()
 
   if (YAZE_INSTALL_LIB)
