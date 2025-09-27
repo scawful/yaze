@@ -17,11 +17,12 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  create-release:
-    name: Create Release
+  validate-and-prepare:
+    name: Validate Release
     runs-on: ubuntu-latest
     outputs:
       tag_name: ${{ env.VALIDATED_TAG }}
+      release_notes: ${{ steps.notes.outputs.content }}
     
     steps:
     - name: Validate tag format
@@ -91,22 +92,17 @@ jobs:
           echo "# Yaze $VERSION Release Notes\n\nPlease see the full changelog at docs/C1-changelog.md" > release_notes.md
         fi
 
-    - name: Create Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ env.VALIDATED_TAG }}
-        name: Yaze ${{ env.VALIDATED_TAG }}
-        body_path: release_notes.md
-        draft: false
-        prerelease: ${{ contains(env.VALIDATED_TAG, 'beta') || contains(env.VALIDATED_TAG, 'alpha') || contains(env.VALIDATED_TAG, 'rc') }}
-        generate_release_notes: true
+    - name: Store release notes
+      id: notes
+      run: |
+        # Store release notes content for later use
+        echo "content<<EOF" >> $GITHUB_OUTPUT
+        cat release_notes.md >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
   build-release:
     name: Build Release
-    needs: create-release
+    needs: validate-and-prepare
     strategy:
       matrix:
         include:
@@ -159,7 +155,7 @@ jobs:
               cp LICENSE dmg_staging/
               cp README.md dmg_staging/
               cp -r docs dmg_staging/
-              hdiutil create -srcfolder dmg_staging -format UDZO -volname "Yaze ${{ needs.create-release.outputs.tag_name }}" yaze-macos.dmg
+              hdiutil create -srcfolder dmg_staging -format UDZO -volname "Yaze ${{ needs.validate-and-prepare.outputs.tag_name }}" yaze-macos.dmg
             
           - name: "Linux x64"
             os: ubuntu-22.04
@@ -258,19 +254,24 @@ jobs:
       shell: bash
       run: ${{ matrix.package_cmd }}
 
-    # Upload to release
-    - name: Upload Release Asset
+    # Create release with artifacts (will create release if it doesn't exist)
+    - name: Upload to Release
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ needs.create-release.outputs.tag_name }}
+        tag_name: ${{ needs.validate-and-prepare.outputs.tag_name }}
+        name: Yaze ${{ needs.validate-and-prepare.outputs.tag_name }}
+        body: ${{ needs.validate-and-prepare.outputs.release_notes }}
+        draft: false
+        prerelease: ${{ contains(needs.validate-and-prepare.outputs.tag_name, 'beta') || contains(needs.validate-and-prepare.outputs.tag_name, 'alpha') || contains(needs.validate-and-prepare.outputs.tag_name, 'rc') }}
         files: |
           ${{ matrix.artifact_name }}.*
+        fail_on_unmatched_files: true
 
   publish-packages:
     name: Publish Packages
-    needs: [create-release, build-release]
+    needs: [validate-and-prepare, build-release]
     runs-on: ubuntu-latest
     if: success()
     
@@ -282,6 +283,6 @@ jobs:
 
     - name: Announce release
       run: |
-        echo "🎉 Yaze ${{ needs.create-release.outputs.tag_name }} has been released!"
+        echo "🎉 Yaze ${{ needs.validate-and-prepare.outputs.tag_name }} has been released!"
         echo "📦 Packages are now available for download"
-        echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.create-release.outputs.tag_name }}"
+        echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate-and-prepare.outputs.tag_name }}"
