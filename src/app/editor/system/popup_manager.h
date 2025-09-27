@@ -86,6 +86,9 @@ class PopupManager {
   void DrawWorkspaceHelpPopup();
   void DrawSessionLimitWarningPopup();
   void DrawLayoutResetConfirmPopup();
+  
+  // Settings popups (accessible without ROM)
+  void DrawDisplaySettingsPopup();
 
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;

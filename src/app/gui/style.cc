@@ -925,6 +925,444 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
   ImGui::PopItemWidth();
 }
 
+void DrawDisplaySettingsForPopup(ImGuiStyle *ref) {
+  // Popup-safe version of DrawDisplaySettings without problematic tables
+  ImGuiStyle &style = ImGui::GetStyle();
+  static ImGuiStyle ref_saved_style;
+
+  // Default to using internal storage as reference
+  static bool init = true;
+  if (init && ref == NULL) ref_saved_style = style;
+  init = false;
+  if (ref == NULL) ref = &ref_saved_style;
+
+  ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
+
+  // Enhanced theme management section (simplified for popup)
+  if (ImGui::CollapsingHeader("Theme Management", ImGuiTreeNodeFlags_DefaultOpen)) {
+    auto& theme_manager = ThemeManager::Get();
+    
+    ImGui::Text("%s Current Theme:", ICON_MD_PALETTE);
+    ImGui::SameLine();
+    
+    std::string current_theme_name = theme_manager.GetCurrentThemeName();
+    bool is_classic_active = (current_theme_name == "Classic YAZE");
+    
+    // Current theme display with color preview
+    if (is_classic_active) {
+      ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s", current_theme_name.c_str());
+    } else {
+      ImGui::Text("%s", current_theme_name.c_str());
+    }
+    
+    // Theme color preview
+    auto current_theme = theme_manager.GetCurrentTheme();
+    ImGui::SameLine();
+    ImGui::ColorButton("##primary_preview", gui::ConvertColorToImVec4(current_theme.primary), 
+                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+    ImGui::SameLine();
+    ImGui::ColorButton("##secondary_preview", gui::ConvertColorToImVec4(current_theme.secondary), 
+                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+    ImGui::SameLine();
+    ImGui::ColorButton("##accent_preview", gui::ConvertColorToImVec4(current_theme.accent), 
+                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+    
+    ImGui::Spacing();
+    
+    // Simplified theme selection (no table to avoid popup conflicts)
+    if (is_classic_active) {
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+    }
+    
+    if (ImGui::Button("Classic YAZE")) {
+      theme_manager.ApplyClassicYazeTheme();
+      ref_saved_style = style;
+    }
+    
+    if (is_classic_active) {
+      ImGui::PopStyleColor();
+    }
+    
+    ImGui::SameLine();
+    if (ImGui::Button("Reset ColorsYaze")) {
+      gui::ColorsYaze();
+      ref_saved_style = style;
+    }
+    
+    // File themes dropdown
+    auto available_themes = theme_manager.GetAvailableThemes();
+    const char* current_file_theme = "";
+    
+    // Find current file theme for display
+    for (const auto& theme_name : available_themes) {
+      if (theme_name == current_theme_name) {
+        current_file_theme = theme_name.c_str();
+        break;
+      }
+    }
+    
+    ImGui::Text("File Themes:");
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::BeginCombo("##FileThemes", current_file_theme)) {
+      for (const auto& theme_name : available_themes) {
+        bool is_selected = (theme_name == current_theme_name);
+        if (ImGui::Selectable(theme_name.c_str(), is_selected)) {
+          theme_manager.LoadTheme(theme_name);
+          ref_saved_style = style;
+        }
+      }
+      ImGui::EndCombo();
+    }
+    
+    if (ImGui::Button("Refresh Themes")) {
+      theme_manager.RefreshAvailableThemes();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Open Theme Editor")) {
+      static bool show_theme_editor = true;
+      theme_manager.ShowSimpleThemeEditor(&show_theme_editor);
+    }
+  }
+  
+  ImGui::Separator();
+  
+  // Background effects settings
+  auto& bg_renderer = gui::BackgroundRenderer::Get();
+  bg_renderer.DrawSettingsUI();
+  
+  ImGui::Separator();
+  
+  if (ImGui::ShowStyleSelector("Colors##Selector")) ref_saved_style = style;
+  ImGui::ShowFontSelector("Fonts##Selector");
+
+  // Quick style controls before the tabbed section
+  if (ImGui::SliderFloat("FrameRounding", &style.FrameRounding, 0.0f, 12.0f, "%.0f"))
+    style.GrabRounding = style.FrameRounding;
+    
+  // Border checkboxes (simplified layout)
+  bool window_border = (style.WindowBorderSize > 0.0f);
+  if (ImGui::Checkbox("WindowBorder", &window_border)) {
+    style.WindowBorderSize = window_border ? 1.0f : 0.0f;
+  }
+  ImGui::SameLine();
+  
+  bool frame_border = (style.FrameBorderSize > 0.0f);
+  if (ImGui::Checkbox("FrameBorder", &frame_border)) {
+    style.FrameBorderSize = frame_border ? 1.0f : 0.0f;
+  }
+  ImGui::SameLine();
+  
+  bool popup_border = (style.PopupBorderSize > 0.0f);
+  if (ImGui::Checkbox("PopupBorder", &popup_border)) {
+    style.PopupBorderSize = popup_border ? 1.0f : 0.0f;
+  }
+
+  // Save/Revert buttons
+  if (ImGui::Button("Save Ref")) *ref = ref_saved_style = style;
+  ImGui::SameLine();
+  if (ImGui::Button("Revert Ref")) style = *ref;
+
+  ImGui::Separator();
+
+  // Add the comprehensive tabbed settings from the original DrawDisplaySettings
+  if (ImGui::BeginTabBar("DisplaySettingsTabs", ImGuiTabBarFlags_None)) {
+    
+    if (ImGui::BeginTabItem("Sizes")) {
+      ImGui::SeparatorText("Main");
+      ImGui::SliderFloat2("WindowPadding", (float *)&style.WindowPadding, 0.0f,
+                          20.0f, "%.0f");
+      ImGui::SliderFloat2("FramePadding", (float *)&style.FramePadding, 0.0f,
+                          20.0f, "%.0f");
+      ImGui::SliderFloat2("ItemSpacing", (float *)&style.ItemSpacing, 0.0f,
+                          20.0f, "%.0f");
+      ImGui::SliderFloat2("ItemInnerSpacing", (float *)&style.ItemInnerSpacing,
+                          0.0f, 20.0f, "%.0f");
+      ImGui::SliderFloat2("TouchExtraPadding",
+                          (float *)&style.TouchExtraPadding, 0.0f, 10.0f,
+                          "%.0f");
+      ImGui::SliderFloat("IndentSpacing", &style.IndentSpacing, 0.0f, 30.0f,
+                         "%.0f");
+      ImGui::SliderFloat("ScrollbarSize", &style.ScrollbarSize, 1.0f, 20.0f,
+                         "%.0f");
+      ImGui::SliderFloat("GrabMinSize", &style.GrabMinSize, 1.0f, 20.0f,
+                         "%.0f");
+
+      ImGui::SeparatorText("Borders");
+      ImGui::SliderFloat("WindowBorderSize", &style.WindowBorderSize, 0.0f,
+                         1.0f, "%.0f");
+      ImGui::SliderFloat("ChildBorderSize", &style.ChildBorderSize, 0.0f, 1.0f,
+                         "%.0f");
+      ImGui::SliderFloat("PopupBorderSize", &style.PopupBorderSize, 0.0f, 1.0f,
+                         "%.0f");
+      ImGui::SliderFloat("FrameBorderSize", &style.FrameBorderSize, 0.0f, 1.0f,
+                         "%.0f");
+      ImGui::SliderFloat("TabBorderSize", &style.TabBorderSize, 0.0f, 1.0f,
+                         "%.0f");
+      ImGui::SliderFloat("TabBarBorderSize", &style.TabBarBorderSize, 0.0f,
+                         2.0f, "%.0f");
+
+      ImGui::SeparatorText("Rounding");
+      ImGui::SliderFloat("WindowRounding", &style.WindowRounding, 0.0f, 12.0f,
+                         "%.0f");
+      ImGui::SliderFloat("ChildRounding", &style.ChildRounding, 0.0f, 12.0f,
+                         "%.0f");
+      ImGui::SliderFloat("FrameRounding", &style.FrameRounding, 0.0f, 12.0f,
+                         "%.0f");
+      ImGui::SliderFloat("PopupRounding", &style.PopupRounding, 0.0f, 12.0f,
+                         "%.0f");
+      ImGui::SliderFloat("ScrollbarRounding", &style.ScrollbarRounding, 0.0f,
+                         12.0f, "%.0f");
+      ImGui::SliderFloat("GrabRounding", &style.GrabRounding, 0.0f, 12.0f,
+                         "%.0f");
+      ImGui::SliderFloat("TabRounding", &style.TabRounding, 0.0f, 12.0f,
+                         "%.0f");
+
+      ImGui::SeparatorText("Tables");
+      ImGui::SliderFloat2("CellPadding", (float *)&style.CellPadding, 0.0f,
+                          20.0f, "%.0f");
+      ImGui::SliderAngle("TableAngledHeadersAngle",
+                         &style.TableAngledHeadersAngle, -50.0f, +50.0f);
+
+      ImGui::SeparatorText("Widgets");
+      ImGui::SliderFloat2("WindowTitleAlign", (float *)&style.WindowTitleAlign,
+                          0.0f, 1.0f, "%.2f");
+      ImGui::Combo("ColorButtonPosition", (int *)&style.ColorButtonPosition,
+                   "Left\0Right\0");
+      ImGui::SliderFloat2("ButtonTextAlign", (float *)&style.ButtonTextAlign,
+                          0.0f, 1.0f, "%.2f");
+      ImGui::SameLine();
+
+      ImGui::SliderFloat2("SelectableTextAlign",
+                          (float *)&style.SelectableTextAlign, 0.0f, 1.0f,
+                          "%.2f");
+      ImGui::SameLine();
+
+      ImGui::SliderFloat("SeparatorTextBorderSize",
+                         &style.SeparatorTextBorderSize, 0.0f, 10.0f, "%.0f");
+      ImGui::SliderFloat2("SeparatorTextAlign",
+                          (float *)&style.SeparatorTextAlign, 0.0f, 1.0f,
+                          "%.2f");
+      ImGui::SliderFloat2("SeparatorTextPadding",
+                          (float *)&style.SeparatorTextPadding, 0.0f, 40.0f,
+                          "%.0f");
+      ImGui::SliderFloat("LogSliderDeadzone", &style.LogSliderDeadzone, 0.0f,
+                         12.0f, "%.0f");
+
+      ImGui::SeparatorText("Tooltips");
+      for (int n = 0; n < 2; n++)
+        if (ImGui::TreeNodeEx(n == 0 ? "HoverFlagsForTooltipMouse"
+                                     : "HoverFlagsForTooltipNav")) {
+          ImGuiHoveredFlags *p = (n == 0) ? &style.HoverFlagsForTooltipMouse
+                                          : &style.HoverFlagsForTooltipNav;
+          ImGui::CheckboxFlags("ImGuiHoveredFlags_DelayNone", p,
+                               ImGuiHoveredFlags_DelayNone);
+          ImGui::CheckboxFlags("ImGuiHoveredFlags_DelayShort", p,
+                               ImGuiHoveredFlags_DelayShort);
+          ImGui::CheckboxFlags("ImGuiHoveredFlags_DelayNormal", p,
+                               ImGuiHoveredFlags_DelayNormal);
+          ImGui::CheckboxFlags("ImGuiHoveredFlags_Stationary", p,
+                               ImGuiHoveredFlags_Stationary);
+          ImGui::CheckboxFlags("ImGuiHoveredFlags_NoSharedDelay", p,
+                               ImGuiHoveredFlags_NoSharedDelay);
+          ImGui::TreePop();
+        }
+
+      ImGui::SeparatorText("Misc");
+      ImGui::SliderFloat2("DisplaySafeAreaPadding",
+                          (float *)&style.DisplaySafeAreaPadding, 0.0f, 30.0f,
+                          "%.0f");
+      ImGui::SameLine();
+
+      ImGui::EndTabItem();
+    }
+
+    if (ImGui::BeginTabItem("Colors")) {
+      static int output_dest = 0;
+      static bool output_only_modified = true;
+      if (ImGui::Button("Export")) {
+        if (output_dest == 0)
+          ImGui::LogToClipboard();
+        else
+          ImGui::LogToTTY();
+        ImGui::LogText("ImVec4* colors = ImGui::GetStyle().Colors;" IM_NEWLINE);
+        for (int i = 0; i < ImGuiCol_COUNT; i++) {
+          const ImVec4 &col = style.Colors[i];
+          const char *name = ImGui::GetStyleColorName(i);
+          if (!output_only_modified ||
+              memcmp(&col, &ref->Colors[i], sizeof(ImVec4)) != 0)
+            ImGui::LogText(
+                "colors[ImGuiCol_%s]%*s= ImVec4(%.2ff, %.2ff, %.2ff, "
+                "%.2ff);" IM_NEWLINE,
+                name, 23 - (int)strlen(name), "", col.x, col.y, col.z, col.w);
+        }
+        ImGui::LogFinish();
+      }
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(120);
+      ImGui::Combo("##output_type", &output_dest, "To Clipboard\0To TTY\0");
+      ImGui::SameLine();
+      ImGui::Checkbox("Only Modified Colors", &output_only_modified);
+
+      static ImGuiTextFilter filter;
+      filter.Draw("Filter colors", ImGui::GetFontSize() * 16);
+
+      static ImGuiColorEditFlags alpha_flags = 0;
+      if (ImGui::RadioButton("Opaque",
+                             alpha_flags == ImGuiColorEditFlags_None)) {
+        alpha_flags = ImGuiColorEditFlags_None;
+      }
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Alpha",
+                             alpha_flags == ImGuiColorEditFlags_AlphaPreview)) {
+        alpha_flags = ImGuiColorEditFlags_AlphaPreview;
+      }
+      ImGui::SameLine();
+      if (ImGui::RadioButton(
+              "Both", alpha_flags == ImGuiColorEditFlags_AlphaPreviewHalf)) {
+        alpha_flags = ImGuiColorEditFlags_AlphaPreviewHalf;
+      }
+      ImGui::SameLine();
+
+      ImGui::SetNextWindowSizeConstraints(
+          ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 10),
+          ImVec2(FLT_MAX, FLT_MAX));
+      ImGui::BeginChild("##colors", ImVec2(0, 0), ImGuiChildFlags_Border,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                            ImGuiWindowFlags_AlwaysHorizontalScrollbar |
+                            ImGuiWindowFlags_NavFlattened);
+      ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
+      for (int i = 0; i < ImGuiCol_COUNT; i++) {
+        const char *name = ImGui::GetStyleColorName(i);
+        if (!filter.PassFilter(name)) continue;
+        ImGui::PushID(i);
+        ImGui::ColorEdit4("##color", (float *)&style.Colors[i],
+                          ImGuiColorEditFlags_AlphaBar | alpha_flags);
+        if (memcmp(&style.Colors[i], &ref->Colors[i], sizeof(ImVec4)) != 0) {
+          // Tips: in a real user application, you may want to merge and use
+          // an icon font into the main font, so instead of "Save"/"Revert"
+          // you'd use icons! Read the FAQ and docs/FONTS.md about using icon
+          // fonts. It's really easy and super convenient!
+          ImGui::SameLine(0.0f, style.ItemInnerSpacing.x);
+          if (ImGui::Button("Save")) {
+            ref->Colors[i] = style.Colors[i];
+          }
+          ImGui::SameLine(0.0f, style.ItemInnerSpacing.x);
+          if (ImGui::Button("Revert")) {
+            style.Colors[i] = ref->Colors[i];
+          }
+        }
+        ImGui::SameLine(0.0f, style.ItemInnerSpacing.x);
+        ImGui::TextUnformatted(name);
+        ImGui::PopID();
+      }
+      ImGui::PopItemWidth();
+      ImGui::EndChild();
+
+      ImGui::EndTabItem();
+    }
+
+    if (ImGui::BeginTabItem("Fonts")) {
+      ImGuiIO &io = ImGui::GetIO();
+      ImFontAtlas *atlas = io.Fonts;
+      ImGui::ShowFontAtlas(atlas);
+
+      // Post-baking font scaling. Note that this is NOT the nice way of
+      // scaling fonts, read below. (we enforce hard clamping manually as by
+      // default DragFloat/SliderFloat allows CTRL+Click text to get out of
+      // bounds).
+      const float MIN_SCALE = 0.3f;
+      const float MAX_SCALE = 2.0f;
+
+      static float window_scale = 1.0f;
+      ImGui::PushItemWidth(ImGui::GetFontSize() * 8);
+      if (ImGui::DragFloat(
+              "window scale", &window_scale, 0.005f, MIN_SCALE, MAX_SCALE,
+              "%.2f",
+              ImGuiSliderFlags_AlwaysClamp))  // Scale only this window
+        ImGui::SetWindowFontScale(window_scale);
+      ImGui::DragFloat("global scale", &io.FontGlobalScale, 0.005f, MIN_SCALE,
+                       MAX_SCALE, "%.2f",
+                       ImGuiSliderFlags_AlwaysClamp);  // Scale everything
+      ImGui::PopItemWidth();
+
+      ImGui::EndTabItem();
+    }
+
+    if (ImGui::BeginTabItem("Rendering")) {
+      ImGui::Checkbox("Anti-aliased lines", &style.AntiAliasedLines);
+      ImGui::SameLine();
+
+      ImGui::Checkbox("Anti-aliased lines use texture",
+                      &style.AntiAliasedLinesUseTex);
+      ImGui::SameLine();
+
+      ImGui::Checkbox("Anti-aliased fill", &style.AntiAliasedFill);
+      ImGui::PushItemWidth(ImGui::GetFontSize() * 8);
+      ImGui::DragFloat("Curve Tessellation Tolerance",
+                       &style.CurveTessellationTol, 0.02f, 0.10f, 10.0f,
+                       "%.2f");
+      if (style.CurveTessellationTol < 0.10f)
+        style.CurveTessellationTol = 0.10f;
+
+      // When editing the "Circle Segment Max Error" value, draw a preview of
+      // its effect on auto-tessellated circles.
+      ImGui::DragFloat("Circle Tessellation Max Error",
+                       &style.CircleTessellationMaxError, 0.005f, 0.10f, 5.0f,
+                       "%.2f", ImGuiSliderFlags_AlwaysClamp);
+      const bool show_samples = ImGui::IsItemActive();
+      if (show_samples) ImGui::SetNextWindowPos(ImGui::GetCursorScreenPos());
+      if (show_samples && ImGui::BeginTooltip()) {
+        ImGui::TextUnformatted("(R = radius, N = number of segments)");
+        ImGui::Spacing();
+        ImDrawList *draw_list = ImGui::GetWindowDrawList();
+        const float min_widget_width = ImGui::CalcTextSize("N: MMM\nR: MMM").x;
+        for (int n = 0; n < 8; n++) {
+          const float RAD_MIN = 5.0f;
+          const float RAD_MAX = 70.0f;
+          const float rad =
+              RAD_MIN + (RAD_MAX - RAD_MIN) * (float)n / (8.0f - 1.0f);
+
+          ImGui::BeginGroup();
+
+          ImGui::Text("R: %.f\nN: %d", rad,
+                      draw_list->_CalcCircleAutoSegmentCount(rad));
+
+          const float canvas_width = std::max(min_widget_width, rad * 2.0f);
+          const float offset_x = floorf(canvas_width * 0.5f);
+          const float offset_y = floorf(RAD_MAX);
+
+          const ImVec2 p1 = ImGui::GetCursorScreenPos();
+          draw_list->AddCircle(ImVec2(p1.x + offset_x, p1.y + offset_y), rad,
+                               ImGui::GetColorU32(ImGuiCol_Text));
+          ImGui::Dummy(ImVec2(canvas_width, RAD_MAX * 2));
+
+          ImGui::EndGroup();
+          ImGui::SameLine();
+        }
+        ImGui::EndTooltip();
+      }
+      ImGui::SameLine();
+
+      ImGui::DragFloat("Global Alpha", &style.Alpha, 0.005f, 0.20f, 1.0f,
+                       "%.2f");  // Not exposing zero here so user doesn't
+                                 // "lose" the UI (zero alpha clips all
+                                 // widgets). But application code could have a
+                                 // toggle to switch between zero and non-zero.
+      ImGui::DragFloat("Disabled Alpha", &style.DisabledAlpha, 0.005f, 0.0f,
+                       1.0f, "%.2f");
+      ImGui::SameLine();
+
+      ImGui::PopItemWidth();
+
+      ImGui::EndTabItem();
+    }
+
+    ImGui::EndTabBar();
+  }
+
+  ImGui::PopItemWidth();
+}
+
 void TextWithSeparators(const absl::string_view &text) {
   ImGui::Separator();
   ImGui::Text("%s", text.data());

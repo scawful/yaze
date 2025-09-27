@@ -38,6 +38,9 @@ void PopupManager::Initialize() {
   popups_["Workspace Help"] = {"Workspace Help", false, [this]() { DrawWorkspaceHelpPopup(); }};
   popups_["Session Limit Warning"] = {"Session Limit Warning", false, [this]() { DrawSessionLimitWarningPopup(); }};
   popups_["Layout Reset Confirm"] = {"Reset Layout Confirmation", false, [this]() { DrawLayoutResetConfirmPopup(); }};
+  
+  // Settings popups (accessible without ROM)
+  popups_["Display Settings"] = {"Display Settings", false, [this]() { DrawDisplaySettingsPopup(); }};
 }
 
 void PopupManager::DrawPopups() {
@@ -48,7 +51,14 @@ void PopupManager::DrawPopups() {
   for (auto& [name, params] : popups_) {
     if (params.is_visible) {
       OpenPopup(name.c_str());
-      if (BeginPopupModal(name.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+      
+      // Special handling for Display Settings popup to make it resizable
+      ImGuiWindowFlags popup_flags = ImGuiWindowFlags_AlwaysAutoResize;
+      if (name == "Display Settings") {
+        popup_flags = ImGuiWindowFlags_None; // Allow resizing for display settings
+      }
+      
+      if (BeginPopupModal(name.c_str(), nullptr, popup_flags)) {
         params.draw_function();
         EndPopup();
       }
@@ -488,6 +498,47 @@ void PopupManager::DrawLayoutResetConfirmPopup() {
   SameLine();
   if (Button("Cancel", gui::kDefaultModalSize)) {
     Hide("Layout Reset Confirm");
+  }
+}
+
+void PopupManager::DrawDisplaySettingsPopup() {
+  // Set a comfortable default size with natural constraints
+  SetNextWindowSize(ImVec2(900, 700), ImGuiCond_FirstUseEver);
+  SetNextWindowSizeConstraints(ImVec2(600, 400), ImVec2(FLT_MAX, FLT_MAX));
+  
+  Text("%s Display & Theme Settings", ICON_MD_DISPLAY_SETTINGS);
+  TextWrapped("Customize your YAZE experience - accessible anytime!");
+  Separator();
+  
+  // Create a child window for scrollable content to avoid table conflicts
+  // Use remaining space minus the close button area
+  float available_height = GetContentRegionAvail().y - 60; // Reserve space for close button
+  if (BeginChild("DisplaySettingsContent", ImVec2(0, available_height), true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    // Use the popup-safe version to avoid table conflicts
+    gui::DrawDisplaySettingsForPopup();
+    
+    Separator();
+    gui::TextWithSeparators("Font Manager");
+    gui::DrawFontManager();
+    
+    // Global font scale (moved from the old display settings window)
+    ImGuiIO &io = GetIO();
+    Separator();
+    Text("Global Font Scale");
+    static float font_global_scale = io.FontGlobalScale;
+    if (SliderFloat("##global_scale", &font_global_scale, 0.5f, 1.8f, "%.2f")) {
+      if (editor_manager_) {
+        editor_manager_->SetFontGlobalScale(font_global_scale);
+      } else {
+        io.FontGlobalScale = font_global_scale;
+      }
+    }
+  }
+  EndChild();
+  
+  Separator();
+  if (Button("Close", gui::kDefaultModalSize)) {
+    Hide("Display Settings");
   }
 }
 

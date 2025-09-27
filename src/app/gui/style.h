@@ -73,6 +73,7 @@ void SetupCanvasTableColumn(const char* label, float width_ratio = 0.0f);
 void BeginCanvasTableCell(ImVec2 min_size = ImVec2(0, 0));
 
 void DrawDisplaySettings(ImGuiStyle *ref = nullptr);
+void DrawDisplaySettingsForPopup(ImGuiStyle *ref = nullptr); // Popup-safe version
 
 void TextWithSeparators(const absl::string_view &text);
 

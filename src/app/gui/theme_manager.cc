@@ -356,6 +356,29 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
   if (!p_open || !*p_open) return;
   
   if (ImGui::Begin(absl::StrFormat("%s Theme Selector", ICON_MD_PALETTE).c_str(), p_open)) {
+    
+    // Add subtle particle effects to theme selector
+    static float theme_animation_time = 0.0f;
+    theme_animation_time += ImGui::GetIO().DeltaTime;
+    
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 window_pos = ImGui::GetWindowPos();
+    ImVec2 window_size = ImGui::GetWindowSize();
+    
+    // Subtle corner particles for theme selector
+    for (int i = 0; i < 4; ++i) {
+      float corner_offset = i * 1.57f; // 90 degrees apart
+      float x = window_pos.x + window_size.x * 0.5f + cosf(theme_animation_time * 0.8f + corner_offset) * (window_size.x * 0.4f);
+      float y = window_pos.y + window_size.y * 0.5f + sinf(theme_animation_time * 0.8f + corner_offset) * (window_size.y * 0.4f);
+      
+      float alpha = 0.1f + 0.1f * sinf(theme_animation_time * 1.2f + corner_offset);
+      auto current_theme = GetCurrentTheme();
+      ImU32 particle_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
+          current_theme.accent.red, current_theme.accent.green, current_theme.accent.blue, alpha));
+      
+      draw_list->AddCircleFilled(ImVec2(x, y), 3.0f, particle_color);
+    }
+    
     ImGui::Text("%s Available Themes", ICON_MD_COLOR_LENS);
     ImGui::Separator();
     
@@ -900,6 +923,35 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
   
   if (ImGui::Begin(absl::StrFormat("%s Theme Editor", ICON_MD_PALETTE).c_str(), p_open, 
                    ImGuiWindowFlags_MenuBar)) {
+    
+    // Add gentle particle effects to theme editor background
+    static float editor_animation_time = 0.0f;
+    editor_animation_time += ImGui::GetIO().DeltaTime;
+    
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 window_pos = ImGui::GetWindowPos();
+    ImVec2 window_size = ImGui::GetWindowSize();
+    
+    // Floating color orbs representing different color categories
+    auto current_theme = GetCurrentTheme();
+    std::vector<gui::Color> theme_colors = {
+      current_theme.primary, current_theme.secondary, current_theme.accent,
+      current_theme.success, current_theme.warning, current_theme.error
+    };
+    
+    for (size_t i = 0; i < theme_colors.size(); ++i) {
+      float time_offset = i * 1.0f;
+      float orbit_radius = 60.0f + i * 8.0f;
+      float x = window_pos.x + window_size.x * 0.8f + cosf(editor_animation_time * 0.3f + time_offset) * orbit_radius;
+      float y = window_pos.y + window_size.y * 0.3f + sinf(editor_animation_time * 0.3f + time_offset) * orbit_radius;
+      
+      float alpha = 0.15f + 0.1f * sinf(editor_animation_time * 1.5f + time_offset);
+      ImU32 orb_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
+          theme_colors[i].red, theme_colors[i].green, theme_colors[i].blue, alpha));
+      
+      float radius = 4.0f + sinf(editor_animation_time * 2.0f + time_offset) * 1.0f;
+      draw_list->AddCircleFilled(ImVec2(x, y), radius, orb_color);
+    }
     
     // Menu bar for theme operations
     if (ImGui::BeginMenuBar()) {

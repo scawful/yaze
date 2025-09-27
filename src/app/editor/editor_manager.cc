@@ -780,7 +780,8 @@ absl::Status EditorManager::Update() {
   }
   
   // Show welcome screen if no editors are active (ROM loaded but editors not opened)
-  if (!any_editor_active) {
+  // Only show if explicitly requested to avoid stacking with manual welcome screen
+  if (!any_editor_active && !show_welcome_screen_) {
     DrawWelcomeScreen();
     return absl::OkStatus();
   }
@@ -1070,18 +1071,9 @@ void EditorManager::DrawMenuBar() {
   }
 
   if (show_display_settings) {
-    Begin("Display Settings", &show_display_settings, ImGuiWindowFlags_None);
-    gui::DrawDisplaySettings();
-    gui::TextWithSeparators("Font Manager");
-    gui::DrawFontManager();
-    ImGuiIO &io = ImGui::GetIO();
-    Separator();
-    Text("Global Scale");
-    if (SliderFloat("##global_scale", &font_global_scale_, 0.5f, 1.8f, "%.2f")) {
-      io.FontGlobalScale = font_global_scale_;
-      SaveUserSettings();
-    }
-    End();
+    // Use the popup manager instead of a separate window
+    popup_manager_->Show("Display Settings");
+    show_display_settings = false; // Close the old-style window
   }
 
   if (show_imgui_demo_) ShowDemoWindow(&show_imgui_demo_);
@@ -1111,60 +1103,247 @@ void EditorManager::DrawMenuBar() {
     End();
   }
 
-  // Command Palette UI
+  // Enhanced Command Palette UI
   if (show_command_palette_) {
-    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_Once);
-    if (Begin("Command Palette", &show_command_palette_, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) {
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_FirstUseEver);
+    
+    if (Begin(absl::StrFormat("%s Command Palette", ICON_MD_TERMINAL).c_str(), &show_command_palette_, 
+              ImGuiWindowFlags_NoCollapse)) {
+      
+      // Search input with focus management
       static char query[256] = {};
-      InputTextWithHint("##cmd_query", "Type a command or search...", query, IM_ARRAYSIZE(query));
+      ImGui::SetNextItemWidth(-100);
+      if (ImGui::IsWindowAppearing()) {
+        ImGui::SetKeyboardFocusHere();
+      }
+      
+      bool input_changed = InputTextWithHint("##cmd_query", 
+                                           absl::StrFormat("%s Type a command or search...", ICON_MD_SEARCH).c_str(), 
+                                           query, IM_ARRAYSIZE(query));
+      
+      ImGui::SameLine();
+      if (ImGui::Button(absl::StrFormat("%s Clear", ICON_MD_CLEAR).c_str())) {
+        query[0] = '\0';
+        input_changed = true;
+      }
+      
       Separator();
-      // List registered shortcuts as commands
+      
+      // Filter and categorize commands
+      std::vector<std::pair<std::string, std::string>> filtered_commands;
       for (const auto &entry : context_.shortcut_manager.GetShortcuts()) {
         const auto &name = entry.first;
         const auto &shortcut = entry.second;
-        if (query[0] != '\0' && name.find(query) == std::string::npos) continue;
-        if (Selectable(name.c_str())) {
-          if (shortcut.callback) shortcut.callback();
-          show_command_palette_ = false;
+        
+        if (query[0] == '\0' || name.find(query) != std::string::npos) {
+          std::string shortcut_text = shortcut.keys.empty() ? "" : 
+                                    absl::StrFormat("(%s)", PrintShortcut(shortcut.keys).c_str());
+          filtered_commands.emplace_back(name, shortcut_text);
         }
       }
+      
+      // Display results in a table for better organization
+      if (ImGui::BeginTable("CommandPaletteTable", 2, 
+                           ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
+                           ImGuiTableFlags_SizingStretchProp,
+                           ImVec2(0, -30))) { // Reserve space for status bar
+        
+        ImGui::TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch, 0.7f);
+        ImGui::TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch, 0.3f);
+        ImGui::TableHeadersRow();
+        
+        for (size_t i = 0; i < filtered_commands.size(); ++i) {
+          const auto& [command_name, shortcut_text] = filtered_commands[i];
+          
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          
+          ImGui::PushID(static_cast<int>(i));
+          if (Selectable(command_name.c_str(), false, ImGuiSelectableFlags_SpanAllColumns)) {
+            // Execute the command
+            const auto& shortcuts = context_.shortcut_manager.GetShortcuts();
+            auto it = shortcuts.find(command_name);
+            if (it != shortcuts.end() && it->second.callback) {
+              it->second.callback();
+              show_command_palette_ = false;
+            }
+          }
+          ImGui::PopID();
+          
+          ImGui::TableNextColumn();
+          ImGui::TextDisabled("%s", shortcut_text.c_str());
+        }
+        
+        ImGui::EndTable();
+      }
+      
+      // Status bar
+      ImGui::Separator();
+      ImGui::Text("%s %zu commands found", ICON_MD_INFO, filtered_commands.size());
+      ImGui::SameLine();
+      ImGui::TextDisabled("| Press Enter to execute selected command");
     }
     End();
   }
 
-  // Global Search UI (labels and recent files for now)
+  // Enhanced Global Search UI
   if (show_global_search_) {
-    ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_Once);
-    if (Begin("Global Search", &show_global_search_, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) {
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+    
+    if (Begin(absl::StrFormat("%s Global Search", ICON_MD_MANAGE_SEARCH).c_str(), &show_global_search_, 
+              ImGuiWindowFlags_NoCollapse)) {
+      
+      // Enhanced search input with focus management
       static char query[256] = {};
-      InputTextWithHint("##global_query", ICON_MD_SEARCH " Search labels, files...", query, IM_ARRAYSIZE(query));
+      ImGui::SetNextItemWidth(-100);
+      if (ImGui::IsWindowAppearing()) {
+        ImGui::SetKeyboardFocusHere();
+      }
+      
+      bool input_changed = InputTextWithHint("##global_query", 
+                                           absl::StrFormat("%s Search everything...", ICON_MD_SEARCH).c_str(), 
+                                           query, IM_ARRAYSIZE(query));
+      
+      ImGui::SameLine();
+      if (ImGui::Button(absl::StrFormat("%s Clear", ICON_MD_CLEAR).c_str())) {
+        query[0] = '\0';
+        input_changed = true;
+      }
+      
       Separator();
-      if (current_rom_ && current_rom_->resource_label()) {
-        Text(ICON_MD_LABEL " Labels");
-        Indent();
-        auto &labels = current_rom_->resource_label()->labels_;
-        for (const auto &type_pair : labels) {
-          for (const auto &kv : type_pair.second) {
-            if (query[0] != '\0' && kv.first.find(query) == std::string::npos && kv.second.find(query) == std::string::npos) continue;
-            if (Selectable((type_pair.first + ": " + kv.first + " -> " + kv.second).c_str())) {
-              // Future: navigate to related editor/location
+      
+      // Tabbed search results for better organization
+      if (ImGui::BeginTabBar("SearchResultTabs")) {
+        
+        // Recent Files Tab
+        if (ImGui::BeginTabItem(absl::StrFormat("%s Recent Files", ICON_MD_HISTORY).c_str())) {
+          static core::RecentFilesManager manager("recent_files.txt");
+          manager.Load();
+          auto recent_files = manager.GetRecentFiles();
+          
+          if (ImGui::BeginTable("RecentFilesTable", 3, 
+                               ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
+                               ImGuiTableFlags_SizingStretchProp)) {
+            
+            ImGui::TableSetupColumn("File", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+            ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+            ImGui::TableHeadersRow();
+            
+            for (const auto &file : recent_files) {
+              if (query[0] != '\0' && file.find(query) == std::string::npos) continue;
+              
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("%s", core::GetFileName(file).c_str());
+              
+              ImGui::TableNextColumn();
+              std::string ext = core::GetFileExtension(file);
+              if (ext == "sfc" || ext == "smc") {
+                ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s ROM", ICON_MD_VIDEOGAME_ASSET);
+              } else if (ext == "yaze") {
+                ImGui::TextColored(ImVec4(0.2f, 0.6f, 0.8f, 1.0f), "%s Project", ICON_MD_FOLDER);
+              } else {
+                ImGui::Text("%s File", ICON_MD_DESCRIPTION);
+              }
+              
+              ImGui::TableNextColumn();
+              ImGui::PushID(file.c_str());
+              if (ImGui::Button("Open")) {
+                status_ = OpenRomOrProject(file);
+                show_global_search_ = false;
+              }
+              ImGui::PopID();
             }
+            
+            ImGui::EndTable();
+          }
+          ImGui::EndTabItem();
+        }
+        
+        // Labels Tab (only if ROM is loaded)
+        if (current_rom_ && current_rom_->resource_label()) {
+          if (ImGui::BeginTabItem(absl::StrFormat("%s Labels", ICON_MD_LABEL).c_str())) {
+            auto &labels = current_rom_->resource_label()->labels_;
+            
+            if (ImGui::BeginTable("LabelsTable", 3, 
+                                 ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
+                                 ImGuiTableFlags_SizingStretchProp)) {
+              
+              ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+              ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+              ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+              ImGui::TableHeadersRow();
+              
+              for (const auto &type_pair : labels) {
+                for (const auto &kv : type_pair.second) {
+                  if (query[0] != '\0' && 
+                      kv.first.find(query) == std::string::npos && 
+                      kv.second.find(query) == std::string::npos) continue;
+                  
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s", type_pair.first.c_str());
+                  
+                  ImGui::TableNextColumn();
+                  if (Selectable(kv.first.c_str(), false, ImGuiSelectableFlags_SpanAllColumns)) {
+                    // Future: navigate to related editor/location
+                  }
+                  
+                  ImGui::TableNextColumn();
+                  ImGui::TextDisabled("%s", kv.second.c_str());
+                }
+              }
+              
+              ImGui::EndTable();
+            }
+            ImGui::EndTabItem();
           }
         }
-        Unindent();
-      }
-      Text(ICON_MD_HISTORY " Recent Files");
-      Indent();
-      static core::RecentFilesManager manager("recent_files.txt");
-      manager.Load();
-      for (const auto &file : manager.GetRecentFiles()) {
-        if (query[0] != '\0' && file.find(query) == std::string::npos) continue;
-        if (Selectable(file.c_str())) {
-          status_ = OpenRomOrProject(file);
-          show_global_search_ = false;
+        
+        // Sessions Tab
+        if (GetActiveSessionCount() > 1) {
+          if (ImGui::BeginTabItem(absl::StrFormat("%s Sessions", ICON_MD_TAB).c_str())) {
+            ImGui::Text("Search and switch between active sessions:");
+            
+            for (size_t i = 0; i < sessions_.size(); ++i) {
+              auto& session = sessions_[i];
+              if (session.custom_name == "[CLOSED SESSION]") continue;
+              
+              std::string session_info = session.GetDisplayName();
+              if (query[0] != '\0' && session_info.find(query) == std::string::npos) continue;
+              
+              bool is_current = (&session.rom == current_rom_);
+              if (is_current) {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
+              }
+              
+              if (Selectable(absl::StrFormat("%s %s %s", 
+                                           ICON_MD_TAB, 
+                                           session_info.c_str(),
+                                           is_current ? "(Current)" : "").c_str())) {
+                if (!is_current) {
+                  SwitchToSession(i);
+                  show_global_search_ = false;
+                }
+              }
+              
+              if (is_current) {
+                ImGui::PopStyleColor();
+              }
+            }
+            ImGui::EndTabItem();
+          }
         }
+        
+        ImGui::EndTabBar();
       }
-      Unindent();
+      
+      // Status bar
+      ImGui::Separator();
+      ImGui::Text("%s Global search across all YAZE data", ICON_MD_INFO);
     }
     End();
   }
@@ -2450,18 +2629,22 @@ void EditorManager::DrawSessionRenameDialog() {
 }
 
 void EditorManager::DrawWelcomeScreen() {
-  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-  ImGui::SetNextWindowSize(ImVec2(750, 550), ImGuiCond_Always);
+  // Make welcome screen moveable but with a good default position
+  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+  ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
   
   // Create a subtle animated background effect
   static float animation_time = 0.0f;
   animation_time += ImGui::GetIO().DeltaTime;
   
-  ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | 
-                          ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
-                          ImGuiWindowFlags_NoBackground;
+  // Make it moveable and resizable but keep the custom styling
+  ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground;
   
-  if (ImGui::Begin("Welcome to Yaze", nullptr, flags)) {
+  // Use a unique window name to prevent stacking
+  static int welcome_window_id = 0;
+  std::string window_name = absl::StrFormat("Welcome to YAZE##welcome_%d", welcome_window_id);
+  
+  if (ImGui::Begin(window_name.c_str(), &show_welcome_screen_, flags)) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 window_pos = ImGui::GetWindowPos();
     ImVec2 window_size = ImGui::GetWindowSize();
@@ -2489,18 +2672,39 @@ void EditorManager::DrawWelcomeScreen() {
                       ImVec2(window_pos.x + window_size.x, window_pos.y + window_size.y), 
                       themed_border, 12.0f, 0, border_thickness);
     
-    // Themed floating particles effect
-    for (int i = 0; i < 8; ++i) {
-      float offset_x = sinf(animation_time * 0.5f + i * 0.8f) * 20.0f;
-      float offset_y = cosf(animation_time * 0.3f + i * 1.2f) * 15.0f;
-      ImVec2 particle_pos = ImVec2(
-          window_pos.x + 50 + (i * 80) + offset_x,
-          window_pos.y + 100 + offset_y);
+    // Enhanced floating particles effect with multiple layers
+    for (int layer = 0; layer < 2; ++layer) {
+      int particle_count = layer == 0 ? 12 : 8;
+      float layer_speed = layer == 0 ? 1.0f : 0.6f;
+      float layer_alpha = layer == 0 ? 0.4f : 0.2f;
       
-      float alpha = 0.3f + 0.2f * sinf(animation_time * 1.5f + i);
-      ImU32 particle_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
-          accent_color.red, accent_color.green, accent_color.blue, alpha * 0.4f));
-      draw_list->AddCircleFilled(particle_pos, 2.0f + sinf(animation_time + i) * 0.5f, particle_color);
+      for (int i = 0; i < particle_count; ++i) {
+        float time_offset = layer * 3.14159f + i * 0.8f;
+        float offset_x = sinf(animation_time * 0.5f * layer_speed + time_offset) * (30.0f + layer * 10.0f);
+        float offset_y = cosf(animation_time * 0.3f * layer_speed + time_offset) * (20.0f + layer * 8.0f);
+        
+        // Distribute particles across the window
+        float base_x = window_pos.x + (window_size.x / particle_count) * i + 40;
+        float base_y = window_pos.y + 80 + layer * 30;
+        
+        ImVec2 particle_pos = ImVec2(base_x + offset_x, base_y + offset_y);
+        
+        // Pulsing alpha effect
+        float alpha = layer_alpha + 0.3f * sinf(animation_time * 1.5f + time_offset);
+        ImU32 particle_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
+            accent_color.red, accent_color.green, accent_color.blue, alpha));
+        
+        // Varying particle sizes
+        float radius = 1.5f + layer * 0.5f + sinf(animation_time * 2.0f + time_offset) * 0.8f;
+        draw_list->AddCircleFilled(particle_pos, radius, particle_color);
+        
+        // Add subtle glow effect for layer 0
+        if (layer == 0) {
+          ImU32 glow_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
+              accent_color.red, accent_color.green, accent_color.blue, alpha * 0.3f));
+          draw_list->AddCircleFilled(particle_pos, radius + 1.0f, glow_color);
+        }
+      }
     }
     
     // Header with themed styling
@@ -2520,7 +2724,7 @@ void EditorManager::DrawWelcomeScreen() {
     ImGui::Spacing();
     
     // Themed decorative line with glow effect (positioned closer to header)
-    float line_y = window_pos.y + 65; // Move even higher for tighter header integration
+    float line_y = window_pos.y + 35; // Move even higher for tighter header integration
     float line_margin = 80; // Maintain good horizontal balance
     ImVec2 line_start = ImVec2(window_pos.x + line_margin, line_y);
     ImVec2 line_end = ImVec2(window_pos.x + window_size.x - line_margin, line_y);
@@ -2698,15 +2902,32 @@ void EditorManager::DrawWelcomeScreen() {
     ImGui::Spacing();
     ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), ICON_MD_TIPS_AND_UPDATES " Tip: Drag and drop ROM files onto the window");
     
-    // Add close button in the bottom right corner
+    // Add settings and customization section (accessible before ROM loading)
     ImGui::Spacing();
     ImGui::Separator();
-    float close_button_width = 100.0f;
-    float offset = ImGui::GetContentRegionAvail().x - close_button_width;
-    if (offset > 0) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
+    ImGui::Text("%s Customization & Settings", ICON_MD_SETTINGS);
     
-    if (ImGui::Button(absl::StrFormat("%s Close Welcome", ICON_MD_CLOSE).c_str(), ImVec2(close_button_width, 0))) {
-      show_welcome_screen_ = false;
+    // Theme and display settings buttons (always accessible)
+    static bool show_welcome_theme_selector = false;
+    if (ImGui::Button(absl::StrFormat("%s Theme Settings", ICON_MD_PALETTE).c_str(), ImVec2(180, 35))) {
+      show_welcome_theme_selector = true;
+    }
+    
+    // Show theme selector if requested
+    if (show_welcome_theme_selector) {
+      auto& theme_manager = gui::ThemeManager::Get();
+      theme_manager.ShowThemeSelector(&show_welcome_theme_selector);
+    }
+    
+    ImGui::SameLine();
+    if (ImGui::Button(absl::StrFormat("%s Display Settings", ICON_MD_DISPLAY_SETTINGS).c_str(), ImVec2(180, 35))) {
+      // Open display settings popup (make it accessible without ROM)
+      popup_manager_->Show("Display Settings");
+    }
+    
+    ImGui::SameLine();
+    if (ImGui::Button(absl::StrFormat("%s Command Palette", ICON_MD_TERMINAL).c_str(), ImVec2(180, 35))) {
+      show_command_palette_ = true;
     }
   }
   ImGui::End();
