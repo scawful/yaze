@@ -10,7 +10,7 @@ var classyaze_1_1editor_1_1Tile16Editor =
     [ "DrawScratchSpace", "classyaze_1_1editor_1_1Tile16Editor.html#a4a8cb25fae6a5ee47fcf48f203233740", null ],
     [ "SaveLayoutToScratch", "classyaze_1_1editor_1_1Tile16Editor.html#a56d2e00be2cc222cbf517c42313caf5d", null ],
     [ "LoadLayoutFromScratch", "classyaze_1_1editor_1_1Tile16Editor.html#a0c44f9397aa6d70b8600af1dc70a3810", null ],
-    [ "DrawToCurrentTile16", "classyaze_1_1editor_1_1Tile16Editor.html#aa87fa9056cc7301d689c3b1e829db760", null ],
+    [ "DrawToCurrentTile16", "classyaze_1_1editor_1_1Tile16Editor.html#ad5e20a964051af720ba62cd72f46c694", null ],
     [ "UpdateTile16Edit", "classyaze_1_1editor_1_1Tile16Editor.html#a6edf31644612357ae6ec5805cdbf5d46", null ],
     [ "LoadTile8", "classyaze_1_1editor_1_1Tile16Editor.html#a949d1bf0430e24aa021b6d2ad66a389c", null ],
     [ "SetCurrentTile", "classyaze_1_1editor_1_1Tile16Editor.html#a9091f1246edbaf6058fbd9a1fd7976b1", null ],
