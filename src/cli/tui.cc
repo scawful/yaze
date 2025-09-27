@@ -532,7 +532,7 @@ void LoadRomComponent(ftxui::ScreenInteractive &screen) {
     // Load the ROM file here.
     auto rom_status = app_context.rom.LoadFromFile(rom_file);
     if (!rom_status.ok()) {
-      app_context.error_message = rom_status.message();
+      app_context.error_message = std::string(rom_status.message().data(), rom_status.message().size());
       SwitchComponents(screen, LayoutID::kError);
       return;
     }
