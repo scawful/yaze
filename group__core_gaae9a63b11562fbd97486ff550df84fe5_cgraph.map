@@ -2,8 +2,6 @@
 <area shape="rect" id="Node000001" title="Initialize a YAZE editor context." alt="" coords="5,31,77,56"/>
 <area shape="rect" id="Node000002" href="$group__core.html#ga3a3a4e60f272ceed1dea6ccaefd39e65" title="Initialize the YAZE library." alt="" coords="125,5,237,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,34,109,29,110,34,78,40"/>
-<area shape="rect" id="Node000003" href="$group__rom__functions.html#gac870fb2b7713b670247082c171053148" title="Load a ROM file." alt="" coords="127,55,234,80"/>
+<area shape="rect" id="Node000003" href="$group__rom__functions.html#gac870fb2b7713b670247082c171053148" title="Load a ROM file." alt="" coords="127,55,235,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="78,47,112,53,111,58,77,52"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="285,55,396,80"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="235,65,270,65,270,70,235,70"/>
 </map>

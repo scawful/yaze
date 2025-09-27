@@ -1,12 +1,12 @@
 <map id="yaze::zelda3::ObjectRenderer::RenderTilePattern" name="yaze::zelda3::ObjectRenderer::RenderTilePattern">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,128,192,169"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="252,5,375,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,125,238,57,249,51,252,56,241,61,131,130"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a8179832296f4cbac7ecd47b0a198d0b7" title="Set a pixel at the given x,y coordinates." alt="" coords="252,95,375,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,131,236,124,236,130,193,136"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="240,160,387,201"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="193,160,225,165,224,170,192,165"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="252,225,375,266"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="146,167,254,216,252,221,144,172"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="273,95,271,85,277,76,292,70,313,68,337,70,350,77,348,81,335,76,313,73,293,75,281,80,276,86,278,93"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,100,192,141"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="240,5,363,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,97,241,51,243,56,145,102"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a8179832296f4cbac7ecd47b0a198d0b7" title="Set a pixel at the given x,y coordinates." alt="" coords="240,71,363,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,104,224,99,225,105,193,109"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="411,100,558,141"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="192,120,240,120,363,120,395,120,396,125,363,126,240,126,192,125"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="240,185,363,226"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="150,139,238,176,236,181,148,144"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="364,98,396,103,395,109,363,103"/>
 </map>

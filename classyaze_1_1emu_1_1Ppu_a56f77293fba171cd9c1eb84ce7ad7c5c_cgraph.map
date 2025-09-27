@@ -1,5 +1,7 @@
 <map id="yaze::emu::Ppu::Write" name="yaze::emu::Ppu::Write">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,149,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,149,60"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Ppu.html#ad8bfc6218cdb6d3652a1f7166ba0ee0f" title=" " alt="" coords="197,5,403,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,16,181,16,181,21,149,21"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,35,182,31,183,36,150,41"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Memory.html#a8822e658b05dd7df7edc9c36d2038310" title=" " alt="" coords="232,55,368,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="150,54,217,62,216,68,149,59"/>
 </map>

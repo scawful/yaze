@@ -1,8 +1,0 @@
-<map id="yaze::Rom::WriteWord" name="yaze::Rom::WriteWord">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,152,56"/>
-<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="47,32,41,22,45,12,58,6,79,4,101,7,113,13,110,18,99,12,78,9,59,11,49,16,46,21,52,29"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="209,5,320,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,31,193,25,194,30,153,36"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1util.html#a27c80ad6b675be3cbc3da03416081454" title=" " alt="" coords="200,55,329,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,50,185,55,184,60,152,56"/>
-</map>

@@ -5,8 +5,8 @@ var searchData=
   ['appdelegate_2',['AppDelegate',['../classAppDelegate.html',1,'']]],
   ['applypatch_3',['ApplyPatch',['../classyaze_1_1cli_1_1ApplyPatch.html',1,'yaze::cli']]],
   ['appviewcontroller_4',['AppViewController',['../classAppViewController.html',1,'']]],
-  ['apu_5',['Apu',['../classyaze_1_1emu_1_1Apu.html',1,'yaze::emu::Apu'],['../classyaze_1_1test_1_1Apu.html',1,'yaze::test::Apu']]],
-  ['apucallbacks_6',['ApuCallbacks',['../structyaze_1_1emu_1_1ApuCallbacks.html',1,'yaze::emu::ApuCallbacks'],['../structyaze_1_1test_1_1ApuCallbacks.html',1,'yaze::test::ApuCallbacks']]],
+  ['apu_5',['Apu',['../classyaze_1_1emu_1_1Apu.html',1,'yaze::emu']]],
+  ['apucallbacks_6',['ApuCallbacks',['../structyaze_1_1emu_1_1ApuCallbacks.html',1,'yaze::emu']]],
   ['aputest_7',['ApuTest',['../classyaze_1_1test_1_1ApuTest.html',1,'yaze::test']]],
   ['arena_8',['Arena',['../classyaze_1_1gfx_1_1Arena.html',1,'yaze::gfx']]],
   ['arenatestsuite_9',['ArenaTestSuite',['../classyaze_1_1test_1_1ArenaTestSuite.html',1,'yaze::test']]],
@@ -17,9 +17,9 @@ var searchData=
   ['asarsymbol_14',['AsarSymbol',['../structyaze_1_1app_1_1core_1_1AsarSymbol.html',1,'yaze::app::core']]],
   ['asarwrapper_15',['AsarWrapper',['../classyaze_1_1app_1_1core_1_1AsarWrapper.html',1,'yaze::app::core']]],
   ['asarwrappertest_16',['AsarWrapperTest',['../classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html',1,'yaze::app::core::anonymous_namespace{asar_wrapper_test.cc}']]],
-  ['asmparser_17',['AsmParser',['../classyaze_1_1emu_1_1AsmParser.html',1,'yaze::emu::AsmParser'],['../classyaze_1_1test_1_1AsmParser.html',1,'yaze::test::AsmParser']]],
+  ['asmparser_17',['AsmParser',['../classyaze_1_1emu_1_1AsmParser.html',1,'yaze::emu']]],
   ['assemblyeditor_18',['AssemblyEditor',['../classyaze_1_1editor_1_1AssemblyEditor.html',1,'yaze::editor']]],
   ['assetobject_19',['AssetObject',['../structyaze_1_1gui_1_1AssetObject.html',1,'yaze::gui']]],
-  ['audioram_20',['AudioRam',['../classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu::AudioRam'],['../classyaze_1_1test_1_1AudioRam.html',1,'yaze::test::AudioRam']]],
+  ['audioram_20',['AudioRam',['../classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu']]],
   ['audioramimpl_21',['AudioRamImpl',['../classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]]
 ];

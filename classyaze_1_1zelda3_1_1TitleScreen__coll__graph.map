@@ -1,5 +1,5 @@
 <map id="yaze::zelda3::TitleScreen" name="yaze::zelda3::TitleScreen">
-<area shape="rect" id="Node000001" title=" " alt="" coords="136,243,299,268"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="137,243,299,268"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="51,109,131,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,144,182,217,207,240,203,244,178,221,110,148"/>
 <area shape="rect" id="Node000003" href="$structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,177,46"/>

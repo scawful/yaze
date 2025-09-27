@@ -7,7 +7,7 @@ var searchData=
   ['editorintegrationtest_4',['EditorIntegrationTest',['../classyaze_1_1test_1_1EditorIntegrationTest.html',1,'yaze::test']]],
   ['editormanager_5',['EditorManager',['../classyaze_1_1editor_1_1EditorManager.html',1,'yaze::editor']]],
   ['editorset_6',['EditorSet',['../classyaze_1_1editor_1_1EditorSet.html',1,'yaze::editor']]],
-  ['editorstate_7',['EditorState',['../structTextEditor_1_1EditorState.html',1,'TextEditor::EditorState'],['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EditorState.html',1,'yaze::zelda3::DungeonEditorSystem::EditorState']]],
+  ['editorstate_7',['editorstate',['../structTextEditor_1_1EditorState.html',1,'TextEditor::EditorState'],['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EditorState.html',1,'yaze::zelda3::DungeonEditorSystem::EditorState']]],
   ['emulator_8',['Emulator',['../classyaze_1_1emu_1_1Emulator.html',1,'yaze::emu']]],
   ['emulatorkeybindings_9',['EmulatorKeybindings',['../structyaze_1_1emu_1_1EmulatorKeybindings.html',1,'yaze::emu']]],
   ['enhancedtheme_10',['EnhancedTheme',['../structyaze_1_1gui_1_1EnhancedTheme.html',1,'yaze::gui']]],

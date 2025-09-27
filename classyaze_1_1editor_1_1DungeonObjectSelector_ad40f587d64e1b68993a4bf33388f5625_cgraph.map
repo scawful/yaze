@@ -1,9 +1,0 @@
-<map id="yaze::editor::DungeonObjectSelector::DrawRoomGraphics" name="yaze::editor::DungeonObjectSelector::DrawRoomGraphics">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,197,68"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="245,5,382,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,32,229,27,230,32,197,37"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Arena.html#abda8fe883e774ded3e618bb81dca3b74" title=" " alt="" coords="247,55,380,96"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="197,57,232,62,231,67,196,63"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#a8392acf381212aa4b22fafbdf87e28ca" title=" " alt="" coords="430,5,580,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="382,16,414,16,414,21,382,21"/>
-</map>

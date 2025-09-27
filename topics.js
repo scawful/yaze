@@ -9,5 +9,5 @@ var topics =
     [ "Message System", "group__messages.html", "group__messages" ],
     [ "Extension System", "group__extensions.html", "group__extensions" ],
     [ "ROM Types and Versions", "group__rom__types.html", "group__rom__types" ],
-    [ "ROM File Operations", "group__rom__functions.html", "group__rom__functions" ]
+    [ "ROM File Operations  <br>", "group__rom__functions.html", "group__rom__functions" ]
 ];

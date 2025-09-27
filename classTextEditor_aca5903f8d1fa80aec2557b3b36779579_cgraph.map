@@ -1,11 +1,11 @@
 <map id="TextEditor::MoveDown" name="TextEditor::MoveDown">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,74,156,100"/>
-<area shape="rect" id="Node000002" href="$classTextEditor.html#a4f3086af2fcb20fa66017810413117c8" title=" " alt="" coords="204,37,367,78"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,74,188,69,188,74,156,79"/>
-<area shape="rect" id="Node000008" href="$classTextEditor.html#af4de0071d66058fdf453af53e346fb36" title=" " alt="" coords="206,102,365,128"/>
-<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="156,95,191,99,190,105,156,100"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,76,156,101"/>
+<area shape="rect" id="Node000002" href="$classTextEditor.html#a4f3086af2fcb20fa66017810413117c8" title=" " alt="" coords="204,39,367,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,75,188,70,188,76,156,80"/>
+<area shape="rect" id="Node000008" href="$classTextEditor.html#af4de0071d66058fdf453af53e346fb36" title=" " alt="" coords="206,104,365,129"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="156,96,191,101,190,106,156,101"/>
 <area shape="rect" id="Node000003" href="$classTextEditor.html#adc502d0e9e3ad42f78182f495ec25307" title=" " alt="" coords="415,5,596,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="367,43,399,38,400,44,367,48"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="367,44,399,39,400,44,368,49"/>
 <area shape="rect" id="Node000006" href="$classTextEditor.html#aa72c1f3f1cbd4ebb68cbbb58d238e62a" title=" " alt="" coords="425,71,586,111"/>
-<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="368,67,410,74,409,79,367,73"/>
+<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="367,68,410,74,409,80,367,73"/>
 </map>

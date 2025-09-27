@@ -1,8 +1,7 @@
 <map id="yaze::editor::OverworldEditor::DrawOverworldProperties" name="yaze::editor::OverworldEditor::DrawOverworldProperties">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,189,79"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="54,39,51,29,59,20,74,14,97,12,122,14,137,21,135,26,121,20,97,17,75,19,62,24,57,30,59,37"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui.html#acffe7391ebbf95b3313a697bcb629ab3" title=" " alt="" coords="237,5,418,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,43,221,38,221,44,189,48"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#a9c7ada455779c5dd4b0ce5a4c5d39fda" title=" " alt="" coords="242,71,412,111"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="189,69,227,74,226,80,189,74"/>
+<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#a9c7ada455779c5dd4b0ce5a4c5d39fda" title=" " alt="" coords="242,71,413,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,69,227,74,226,80,189,74"/>
 </map>

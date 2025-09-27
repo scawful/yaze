@@ -1,5 +1,0 @@
-<map id="yaze::test::PpuInterface" name="yaze::test::PpuInterface">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,161,31"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1MockPpu.html" title="Mock Ppu class for testing." alt="" coords="15,79,151,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="86,46,86,79,80,79,80,46"/>
-</map>

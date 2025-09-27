@@ -89,7 +89,7 @@ var NAVTREE =
       [ "Development Workflow", "md_docs_203-asar-integration.html#autotoc_md48", null ]
     ] ],
     [ "API Reference", "md_docs_204-api-reference.html", [
-      [ "C API (incl/yaze.h, incl/zelda.h)", "md_docs_204-api-reference.html#autotoc_md50", [
+      [ "C API (<tt>incl/yaze.h</tt>, <tt>incl/zelda.h</tt>)", "md_docs_204-api-reference.html#autotoc_md50", [
         [ "Core Library Functions", "md_docs_204-api-reference.html#autotoc_md51", null ],
         [ "ROM Operations", "md_docs_204-api-reference.html#autotoc_md52", null ],
         [ "Graphics Operations", "md_docs_204-api-reference.html#autotoc_md53", null ],
@@ -97,7 +97,7 @@ var NAVTREE =
         [ "Message System", "md_docs_204-api-reference.html#autotoc_md55", null ]
       ] ],
       [ "C++ API", "md_docs_204-api-reference.html#autotoc_md56", [
-        [ "AsarWrapper (src/app/core/asar_wrapper.h)", "md_docs_204-api-reference.html#autotoc_md57", null ],
+        [ "AsarWrapper (<tt>src/app/core/asar_wrapper.h</tt>)", "md_docs_204-api-reference.html#autotoc_md57", null ],
         [ "Data Structures", "md_docs_204-api-reference.html#autotoc_md58", [
           [ "ROM Version Support", "md_docs_204-api-reference.html#autotoc_md59", null ],
           [ "SNES Graphics", "md_docs_204-api-reference.html#autotoc_md60", null ],
@@ -288,10 +288,10 @@ var NAVTREE =
       [ "Overview", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md204", null ],
       [ "Architecture", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md205", [
         [ "Core Components", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md206", [
-          [ "DungeonEditorSystem", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md207", null ],
-          [ "DungeonObjectEditor", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md208", null ],
-          [ "ObjectRenderer", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md209", null ],
-          [ "DungeonEditor (UI Layer)", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md210", null ]
+          [ "1. DungeonEditorSystem", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md207", null ],
+          [ "2. DungeonObjectEditor", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md208", null ],
+          [ "3. ObjectRenderer", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md209", null ],
+          [ "4. DungeonEditor (UI Layer)", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md210", null ]
         ] ]
       ] ],
       [ "Coordinate System", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md211", [
@@ -408,11 +408,11 @@ var NAVTREE =
       [ "Overview", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md296", null ],
       [ "Component Structure", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md297", [
         [ "✅ Created Components", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md298", [
-          [ "DungeonToolset (dungeon_toolset.h/cc)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md299", null ],
-          [ "DungeonObjectInteraction (dungeon_object_interaction.h/cc)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md300", null ],
-          [ "DungeonRenderer (dungeon_renderer.h/cc)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md301", null ],
-          [ "DungeonRoomLoader (dungeon_room_loader.h/cc)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md302", null ],
-          [ "DungeonUsageTracker (dungeon_usage_tracker.h/cc)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md303", null ]
+          [ "1. DungeonToolset (<tt>dungeon_toolset.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md299", null ],
+          [ "2. DungeonObjectInteraction (<tt>dungeon_object_interaction.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md300", null ],
+          [ "3. DungeonRenderer (<tt>dungeon_renderer.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md301", null ],
+          [ "4. DungeonRoomLoader (<tt>dungeon_room_loader.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md302", null ],
+          [ "5. DungeonUsageTracker (<tt>dungeon_usage_tracker.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md303", null ]
         ] ]
       ] ],
       [ "Refactored DungeonEditor Structure", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md304", [
@@ -435,11 +435,11 @@ var NAVTREE =
         [ "Data Sharing", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md318", null ]
       ] ],
       [ "Benefits of Refactoring", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md319", [
-        [ "Reduced Complexity", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md320", null ],
-        [ "Improved Testability", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md321", null ],
-        [ "Better Maintainability", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md322", null ],
-        [ "Enhanced Extensibility", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md323", null ],
-        [ "Cleaner Dependencies", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md324", null ]
+        [ "1. <strong>Reduced Complexity</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md320", null ],
+        [ "2. <strong>Improved Testability</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md321", null ],
+        [ "3. <strong>Better Maintainability</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md322", null ],
+        [ "4. <strong>Enhanced Extensibility</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md323", null ],
+        [ "5. <strong>Cleaner Dependencies</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md324", null ]
       ] ],
       [ "Implementation Status", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md325", [
         [ "✅ Completed", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md326", null ],
@@ -457,10 +457,10 @@ var NAVTREE =
       [ "Overview", "md_docs_2E5-dungeon-object-system.html#autotoc_md335", null ],
       [ "Architecture", "md_docs_2E5-dungeon-object-system.html#autotoc_md336", [
         [ "Core Components", "md_docs_2E5-dungeon-object-system.html#autotoc_md337", [
-          [ "DungeonEditor (src/app/editor/dungeon/dungeon_editor.h)", "md_docs_2E5-dungeon-object-system.html#autotoc_md338", null ],
-          [ "DungeonObjectSelector (src/app/editor/dungeon/dungeon_object_selector.h)", "md_docs_2E5-dungeon-object-system.html#autotoc_md339", null ],
-          [ "DungeonCanvasViewer (src/app/editor/dungeon/dungeon_canvas_viewer.h)", "md_docs_2E5-dungeon-object-system.html#autotoc_md340", null ],
-          [ "Room Management System (src/app/zelda3/dungeon/room.h)", "md_docs_2E5-dungeon-object-system.html#autotoc_md341", null ]
+          [ "1. DungeonEditor (<tt>src/app/editor/dungeon/dungeon_editor.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md338", null ],
+          [ "2. DungeonObjectSelector (<tt>src/app/editor/dungeon/dungeon_object_selector.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md339", null ],
+          [ "3. DungeonCanvasViewer (<tt>src/app/editor/dungeon/dungeon_canvas_viewer.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md340", null ],
+          [ "4. Room Management System (<tt>src/app/zelda3/dungeon/room.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md341", null ]
         ] ]
       ] ],
       [ "Object Types and Hierarchies", "md_docs_2E5-dungeon-object-system.html#autotoc_md342", [
@@ -493,7 +493,7 @@ var NAVTREE =
       ] ],
       [ "Integration with ROM Data", "md_docs_2E5-dungeon-object-system.html#autotoc_md363", [
         [ "Data Sources", "md_docs_2E5-dungeon-object-system.html#autotoc_md364", [
-          [ "Room Headers (0x1F8000)", "md_docs_2E5-dungeon-object-system.html#autotoc_md365", null ],
+          [ "Room Headers (<tt>0x1F8000</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md365", null ],
           [ "Object Data", "md_docs_2E5-dungeon-object-system.html#autotoc_md366", null ],
           [ "Graphics Data", "md_docs_2E5-dungeon-object-system.html#autotoc_md367", null ]
         ] ],
@@ -537,13 +537,13 @@ var NAVTREE =
         [ "Special Area Graphics Loading", "md_docs_2F1-overworld-loading.html#autotoc_md397", null ]
       ] ],
       [ "Loading Process", "md_docs_2F1-overworld-loading.html#autotoc_md398", [
-        [ "Version Detection", "md_docs_2F1-overworld-loading.html#autotoc_md399", null ],
-        [ "Map Initialization", "md_docs_2F1-overworld-loading.html#autotoc_md400", null ],
-        [ "Property Loading", "md_docs_2F1-overworld-loading.html#autotoc_md401", [
+        [ "1. Version Detection", "md_docs_2F1-overworld-loading.html#autotoc_md399", null ],
+        [ "2. Map Initialization", "md_docs_2F1-overworld-loading.html#autotoc_md400", null ],
+        [ "3. Property Loading", "md_docs_2F1-overworld-loading.html#autotoc_md401", [
           [ "Vanilla ROMs (asm_version == 0xFF)", "md_docs_2F1-overworld-loading.html#autotoc_md402", null ],
           [ "ZSCustomOverworld v2/v3", "md_docs_2F1-overworld-loading.html#autotoc_md403", null ]
         ] ],
-        [ "Custom Data Loading", "md_docs_2F1-overworld-loading.html#autotoc_md404", null ]
+        [ "4. Custom Data Loading", "md_docs_2F1-overworld-loading.html#autotoc_md404", null ]
       ] ],
       [ "ZScream Implementation", "md_docs_2F1-overworld-loading.html#autotoc_md405", [
         [ "OverworldMap Constructor", "md_docs_2F1-overworld-loading.html#autotoc_md406", null ],
@@ -555,24 +555,24 @@ var NAVTREE =
         [ "Current Status", "md_docs_2F1-overworld-loading.html#autotoc_md411", null ]
       ] ],
       [ "Key Differences", "md_docs_2F1-overworld-loading.html#autotoc_md412", [
-        [ "Language and Architecture", "md_docs_2F1-overworld-loading.html#autotoc_md413", null ],
-        [ "Data Structures", "md_docs_2F1-overworld-loading.html#autotoc_md414", null ],
-        [ "Error Handling", "md_docs_2F1-overworld-loading.html#autotoc_md415", null ],
-        [ "Graphics Processing", "md_docs_2F1-overworld-loading.html#autotoc_md416", null ]
+        [ "1. Language and Architecture", "md_docs_2F1-overworld-loading.html#autotoc_md413", null ],
+        [ "2. Data Structures", "md_docs_2F1-overworld-loading.html#autotoc_md414", null ],
+        [ "3. Error Handling", "md_docs_2F1-overworld-loading.html#autotoc_md415", null ],
+        [ "4. Graphics Processing", "md_docs_2F1-overworld-loading.html#autotoc_md416", null ]
       ] ],
       [ "Common Issues and Solutions", "md_docs_2F1-overworld-loading.html#autotoc_md417", [
-        [ "Version Detection Issues", "md_docs_2F1-overworld-loading.html#autotoc_md418", null ],
-        [ "Palette Loading Errors", "md_docs_2F1-overworld-loading.html#autotoc_md419", null ],
-        [ "Graphics Not Loading", "md_docs_2F1-overworld-loading.html#autotoc_md420", null ],
-        [ "Overlay Issues", "md_docs_2F1-overworld-loading.html#autotoc_md421", null ],
-        [ "Large Map Problems", "md_docs_2F1-overworld-loading.html#autotoc_md422", null ],
-        [ "Special Area Graphics Issues", "md_docs_2F1-overworld-loading.html#autotoc_md423", null ]
+        [ "1. Version Detection Issues", "md_docs_2F1-overworld-loading.html#autotoc_md418", null ],
+        [ "2. Palette Loading Errors", "md_docs_2F1-overworld-loading.html#autotoc_md419", null ],
+        [ "3. Graphics Not Loading", "md_docs_2F1-overworld-loading.html#autotoc_md420", null ],
+        [ "4. Overlay Issues", "md_docs_2F1-overworld-loading.html#autotoc_md421", null ],
+        [ "5. Large Map Problems", "md_docs_2F1-overworld-loading.html#autotoc_md422", null ],
+        [ "6. Special Area Graphics Issues", "md_docs_2F1-overworld-loading.html#autotoc_md423", null ]
       ] ],
       [ "Best Practices", "md_docs_2F1-overworld-loading.html#autotoc_md424", [
-        [ "Version-Specific Code", "md_docs_2F1-overworld-loading.html#autotoc_md425", null ],
-        [ "Error Handling", "md_docs_2F1-overworld-loading.html#autotoc_md426", null ],
-        [ "Memory Management", "md_docs_2F1-overworld-loading.html#autotoc_md427", null ],
-        [ "Thread Safety", "md_docs_2F1-overworld-loading.html#autotoc_md428", null ]
+        [ "1. Version-Specific Code", "md_docs_2F1-overworld-loading.html#autotoc_md425", null ],
+        [ "2. Error Handling", "md_docs_2F1-overworld-loading.html#autotoc_md426", null ],
+        [ "3. Memory Management", "md_docs_2F1-overworld-loading.html#autotoc_md427", null ],
+        [ "4. Thread Safety", "md_docs_2F1-overworld-loading.html#autotoc_md428", null ]
       ] ],
       [ "Conclusion", "md_docs_2F1-overworld-loading.html#autotoc_md429", null ]
     ] ],
@@ -653,82 +653,85 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"classTextEditor_1_1UndoRecord.html#aa6f9fd85578fb5109767445cd21c2196",
-"classyaze_1_1app_1_1core_1_1AsarWrapper.html#af9e95539acce5f3ced889b261fb87cc5",
-"classyaze_1_1editor_1_1AssemblyEditor.html#ae7d852af842e211c0315a6226ce4b9c9",
-"classyaze_1_1editor_1_1DungeonEditor.html#af22f8be27499699e66d1d22020b4662c",
-"classyaze_1_1editor_1_1DungeonRoomLoader.html#a9b56597b2a46499419a631675608b693",
-"classyaze_1_1editor_1_1EditorManager.html#a2f7b946839734d5ad6ec6782552dd84d",
-"classyaze_1_1editor_1_1GfxGroupEditor.html#afed2e8cc350ce8cc9fed4c2b36362642",
-"classyaze_1_1editor_1_1MapPropertiesSystem.html#a1ae3f21d8a5446c4e4b9039230061039",
-"classyaze_1_1editor_1_1OverworldEditor.html#a42d558b87c70e5c3b035cb950dd8ff57",
-"classyaze_1_1editor_1_1PaletteEditor.html#a9b00d8e6415f8e393e5972521408d57c",
-"classyaze_1_1editor_1_1SettingsEditor.html#ad7889d91a8c88214fb0f167e95ba4d7b",
-"classyaze_1_1emu_1_1Apu.html#a4f15d1b9a01829048e315b7bd7b9725c",
-"classyaze_1_1emu_1_1Cpu.html#a57b769978d8770c64733d36c33fc78c9",
-"classyaze_1_1emu_1_1Cpu.html#ae49a5adcf7c394a45acb909e8e190d32",
-"classyaze_1_1emu_1_1Memory.html#a23adfa0ca59960191d9d0c73153d4b9d",
-"classyaze_1_1emu_1_1MockMemory.html#aa64e1ee847c09e2b4792520ff5bf9e40",
-"classyaze_1_1emu_1_1Ppu.html#ad2f7b791e794907525793264c9e4ecda",
-"classyaze_1_1emu_1_1Spc700.html#a405422dea7cb9a6fd6bf3e819065b5e9",
-"classyaze_1_1gfx_1_1BackgroundBuffer.html#a06f7ea3079966e11d4844461ac7da7d7",
-"classyaze_1_1gfx_1_1SnesPalette.html#a93ef1ee0b127b6ba45f0c90ec4d1af46",
-"classyaze_1_1gui_1_1Canvas.html#a095a9be0f47665c1a3f245bbd5e414c8",
-"classyaze_1_1gui_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a",
-"classyaze_1_1test_1_1Cpu.html#a175d1d9217388ef9c0cbf8aaab3d8399",
-"classyaze_1_1test_1_1Cpu.html#aa97eb688f0c9a32fd057cf3cb50f090f",
-"classyaze_1_1test_1_1DungeonObjectRenderingTests.html#ac2251886f1c583272344864c69087b3c",
-"classyaze_1_1test_1_1MessageTest.html#a30c7e97fe3ef199380ce2fd8692ae210",
-"classyaze_1_1test_1_1Rom.html#a163d3440c466c5024e4a31ff199b246a",
-"classyaze_1_1test_1_1Spc700.html#a3ddaff286c54024f24247e77f985160f",
-"classyaze_1_1test_1_1TestEditor.html#a0c061c15a65fd6b2c7feab8fe27bb6cb",
-"classyaze_1_1util_1_1Flag.html#a4930e345088e4ed0ddc08e219d5a84e7",
-"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a763b675192e67f70d0750afa19292e48",
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a08f6db4b441659385f8d0d7ca904b0bb",
-"classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html#acc88d7626df4a4453a3418c839614c94",
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a1e3a1ef5252380b2c13ca04ba029e3c4",
-"classyaze_1_1zelda3_1_1Overworld.html#af55a53a8e629f7ddc74edad084f6f15e",
-"classyaze_1_1zelda3_1_1OverworldMap.html#aa4160e54eb1f6c933790ec7144ab390d",
-"classyaze_1_1zelda3_1_1Room.html#a9ae83ae7aa2d28fcc8cef2fc0455f073",
-"classyaze_1_1zelda3_1_1RoomLayoutObject.html#a8cd0501c7fbf58d10ee8a2c5e075b93c",
-"classyaze_1_1zelda3_1_1SpriteBuilder.html#a56c21fc84c57e72ecb989b32b22487eb",
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad122ec945c00a34d961233c5bced339f",
-"file__dialog_8h.html",
-"group__rom__functions.html#gac870fb2b7713b670247082c171053148",
-"icons_8h.html#a1ac5296f45e09a210a993bd48692b59d",
-"icons_8h.html#a39df1f7e01692cd3c90691c3e83aa6e9",
-"icons_8h.html#a5451a4bd4b8cfacd178de759bb4a2c2e",
-"icons_8h.html#a722e5cecee310c1e1d5d64cf6814b5e1",
-"icons_8h.html#a921392274d64cea276c00e817c3b79a2",
-"icons_8h.html#aaf67d104fc88c3b3b65614794871d3c4",
-"icons_8h.html#acbf77dab0bb7e4f66b57dec21eb5f5e5",
-"icons_8h.html#ae7b66309729b0f2b2448a7dcc562a80d",
-"macro_8h.html#a4404ca6433f173c3a4f7bca6d431a879",
-"md_docs_2E1-asm-style-guide.html#autotoc_md201",
-"message__editor_8h_source.html",
-"namespaceyaze_1_1editor.html#a42382673ea2557750ccf0c490e8abc98",
-"namespaceyaze_1_1emu.html#ad5ca3e19448aae57af02fad21a169830",
-"namespaceyaze_1_1gui.html#a074b2ff8f8c07459d6dbdc5cac6b68cb",
-"namespaceyaze_1_1test.html#a3cf155bf56f11599e02f8e9ea30143bd",
-"namespaceyaze_1_1test.html#abe7451f4fae942c8ed66ba213493100e",
-"namespaceyaze_1_1zelda3.html#a30bef1fbc7b2d7044911b9e0e2159ab9",
-"namespaceyaze_1_1zelda3.html#a93615225ba653354300a1cebe01f368d",
-"namespaceyaze_1_1zelda3_1_1music.html#a5c8fc806dc71867ff65894f871964cba",
-"structsnes__tile8.html",
-"structyaze_1_1core_1_1WorkspaceSettings.html#a8aa5453b2b554f35787eb5d1ecedd2df",
-"structyaze_1_1editor_1_1ExampleTreeNode.html#a8a181fce0cc8e26fc206d31ad3467520",
-"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a1a975905ea0ab7e24384717361797f3c",
-"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a6234b49f870cc1f1501b6d031e6fdd2d",
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#adb342cbd1b01c5166d8d98cda438a841",
-"structyaze_1_1emu_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24",
-"structyaze_1_1gfx_1_1PaletteGroup.html#ad806aadfe8753d3e926852829f96d5be",
-"structyaze_1_1gui_1_1EnhancedTheme.html#a46a40f758994f63c3e3011303fe4885a",
-"structyaze_1_1gui_1_1TextBox.html#a89c0349e9a967ba2141bb661bfcf5286",
-"structyaze_1_1test_1_1TestResult.html#a05f2e331e42a54a70aa25181fe1584c4",
-"structyaze_1_1zelda3_1_1DungeonMap.html#ac0db5386648063e45da045b79fbd67c6",
-"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#aa47bd956a0f339b24070bdf2435dd4cc",
-"structyaze__extension.html#a5a71cfca4ed112e35f756fd3cd895b5b"
+"classTextEditor.html#a8057103e4e9c385159f7d80cf882c5de",
+"classyaze_1_1Transaction.html#a8c7a326b1feb4b5d97a13fe06c41fec1",
+"classyaze_1_1core_1_1Renderer.html#a13c91b0c5bbe796e7eff5e1076dee785",
+"classyaze_1_1editor_1_1DungeonEditor.html#a7a23a3aa2fbd1b1951680652c25d354c",
+"classyaze_1_1editor_1_1DungeonObjectSelector.html#ad63d5f2053281f68612d8f6e06743886",
+"classyaze_1_1editor_1_1Editor.html",
+"classyaze_1_1editor_1_1EditorManager.html#affe73c6625559f736677e476796f02a1",
+"classyaze_1_1editor_1_1GraphicsEditor.html#ac6abffcc7d048915a648a2fc0653e885",
+"classyaze_1_1editor_1_1MusicEditor.html#ad3bea6ea3167b3e32ff4702b63809927",
+"classyaze_1_1editor_1_1OverworldEditor.html#ae92daa6ce01246b804d6c5bbd257807f",
+"classyaze_1_1editor_1_1ScreenEditor.html#abe71861ba9a781c5840747a9015e45dc",
+"classyaze_1_1editor_1_1Tile16Editor.html#af36e0c6be26ef1ba0b5c135da5acc32d",
+"classyaze_1_1emu_1_1Cpu.html#a3cad2b4de11004019e03693fc2d228f3",
+"classyaze_1_1emu_1_1Cpu.html#ac5b00e20bd0dd22790f07a204fda2954",
+"classyaze_1_1emu_1_1Emulator.html#a9548a53ee762f8ae08f6732af5f92cd8",
+"classyaze_1_1emu_1_1MemoryImpl.html#afa04ee1fe6267f635bb9da1f039bd61b",
+"classyaze_1_1emu_1_1Ppu.html#a9bb68a2a73c93a8407fa4f1836c23752",
+"classyaze_1_1emu_1_1Spc700.html#a1432451833eb544f48add4d280397ac8",
+"classyaze_1_1emu_1_1Spc700.html#af7bbb7b6fd9373cb4ae8d21596ab7932",
+"classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2",
+"classyaze_1_1gui_1_1Canvas.html#a3f0afe4ee88fbd9ab6c6cbacff908763",
+"classyaze_1_1gui_1_1ThemeManager.html#aef7a53bab0bdbb234e5ccf5d20b1f5b9",
+"classyaze_1_1test_1_1MockPpu.html",
+"classyaze_1_1test_1_1TestEditor.html#af532131a4fd8fb9c65a5aa586a85d278",
+"classyaze_1_1util_1_1FlagParser.html#aa07d8084adebfe9e6c71db34e5fd0110",
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a9145190456643d3843bbfbcbf506816b",
+"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a1c2e473670e625afd1f0c27a77e7e775",
+"classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2a8cd1c7e970abfa25379087a6ed8f0b1a",
+"classyaze_1_1zelda3_1_1ObjectRenderer_1_1ObjectParser.html#a72bb37257061864f94680a4823d10fb3",
+"classyaze_1_1zelda3_1_1OverworldEntrance.html#a7e0af673ad4fc7e0e942b8abbe53ca8d",
+"classyaze_1_1zelda3_1_1OverworldMap.html#abb2df58763a161860ba694582ef31c0f",
+"classyaze_1_1zelda3_1_1Room.html#abf2af6ddb2586027c355bd5333ebff54",
+"classyaze_1_1zelda3_1_1RoomObject.html#a5d8fb4913316418def7352f19cfe9014",
+"classyaze_1_1zelda3_1_1Subtype2.html",
+"color_8cc.html#a1136a9ab95fd67e2ab97a00f59818ddb",
+"cpu__test_8cc.html#a1948cf42517b456693c6d11bc4942ae6",
+"cpu__test_8cc.html#aee7311b4b48e27b4751c0c616a73d776",
+"dungeon__object__rendering__tests_8cc.html#a8b3c1996d933497cf6ce730237e3ae20",
+"functions_vars_m.html",
+"icons_8h.html#a018216c23782081324d8bf1f071d366b",
+"icons_8h.html#a1f8e870993262f50abf6cdc1383e4cef",
+"icons_8h.html#a3d5fc53c42d6739ecf3ed0b4c4df5482",
+"icons_8h.html#a5a8e6cfa4341e107138f5d25977ab81c",
+"icons_8h.html#a7905b9690b8be93735c90fe7a3a30a2d",
+"icons_8h.html#a97f5ff4471ff0e0d96be7a4a729fc679",
+"icons_8h.html#ab4dee365ca32d558de8ecfcd8a2e43cf",
+"icons_8h.html#ad19db4539d1049a5b6915c93cfb1e2f1",
+"icons_8h.html#aeb65f0e9e76a4655cad9ef1871918a58",
+"ipl__handshake__test_8cc.html#ab2b0d6fc9eb8080351d54d11d6eef82e",
+"md_docs_2D1-roadmap.html#autotoc_md189",
+"memory_8cc_source.html",
+"namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33aa4092dc81b981432a504e30d43a2e3c6",
+"namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a71b09cdcff04b4aee920d11304a35d6d",
+"namespaceyaze_1_1gfx_1_1lc__lz2.html#a06931d5beec878518bd57c8f6ea65086",
+"namespaceyaze_1_1test.html#a0cb4271af035974b3900ada03026c818",
+"namespaceyaze_1_1test.html#a8f1843e781584584e3db9157b001e49f",
+"namespaceyaze_1_1util.html#aae673c9b14bcf937c1a1f925876e1282",
+"namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac2675bd91992ef84a73fd16069a3e55d",
+"namespaceyaze_1_1zelda3.html#aef1ab6563987d25f7a42413bc9522825",
+"overworld__entrance_8h.html#aa6f46cb06222bafca1a5aca58741eced",
+"rom_8cc.html#a3dde9364829e66bec50d5da15df53b6a",
+"room__entrance_8h.html#aff45f31b9cbd526c488300f30c3b3b24",
+"snes__tile_8cc.html#abddef303b6a036e2cbce669f424f7317",
+"structyaze_1_1cli_1_1CommandInfo.html",
+"structyaze_1_1core_1_1YazeProject.html#a9d7a6a9fcbb45b723ca17cb7bd987fdb",
+"structyaze_1_1editor_1_1MessagePreview.html#a5f86a00053b7e2046e71445d72504f71",
+"structyaze_1_1emu_1_1ApuCallbacks.html#a1580bfb125e5ef3aa4ce7d9ba97e671b",
+"structyaze_1_1emu_1_1DmaRegisters.html#afe66f46601ee9112ab22ef8d45ca92d4",
+"structyaze_1_1emu_1_1OAMSize.html#a03193132596c2eeceff71f2caa302f61",
+"structyaze_1_1emu_1_1W12SEL.html#a37bce5d1c79e2a2f2c49a6a7d257c100",
+"structyaze_1_1gfx_1_1Paletteset.html#a8681224d3a02a57994f531ad51aaff67",
+"structyaze_1_1gui_1_1EnhancedTheme.html#a9f55e0df4b7c8e18eb143511730c1138",
+"structyaze_1_1gui_1_1zeml_1_1Node.html#a773fddc97cd18e218a034064e94cb0e6",
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a495bd4c47d5aec5725e7925aa58ba8cf",
+"structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html",
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd",
+"test__manager_8h.html#a24fd08ea41d8314e6fccdb0fdcd9f072a2fc7fbf0d19294f85dd3880460dd3c0a",
+"zeml_8h.html#a708445e8c69e412cd00547fc713a5e43ac9a123faa6ec225161d25f26796b2960"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronization';
-var SYNCOFFMSG = 'click to enable panel synchronization';
+var SYNCONMSG = 'click to disable panel synchronisation';
+var SYNCOFFMSG = 'click to enable panel synchronisation';

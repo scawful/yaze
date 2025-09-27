@@ -1,6 +1,8 @@
 <map id="yaze::gfx::Bitmap::WriteColor" name="yaze::gfx::Bitmap::WriteColor">
-<area shape="rect" id="Node000001" title="Write a color to a pixel at the given position." alt="" coords="5,29,129,70"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="28,29,26,19,33,10,46,5,67,3,89,5,102,11,100,16,88,10,67,8,48,10,36,15,32,20,33,28"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="177,37,366,62"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,47,161,47,161,52,129,52"/>
+<area shape="rect" id="Node000001" title="Write a color to a pixel at the given position." alt="" coords="5,51,129,92"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="177,29,366,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,60,162,55,163,60,129,65"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="210,79,333,120"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="129,77,195,86,194,92,128,83"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="237,31,230,21,235,11,248,5,271,3,296,5,309,12,307,17,295,10,271,8,250,10,238,15,236,20,242,27"/>
 </map>

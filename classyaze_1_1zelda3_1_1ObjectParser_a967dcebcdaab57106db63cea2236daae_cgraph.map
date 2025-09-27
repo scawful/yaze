@@ -1,7 +1,13 @@
 <map id="yaze::zelda3::ObjectParser::ParseSubtype2" name="yaze::zelda3::ObjectParser::ParseSubtype2">
-<area shape="rect" id="Node000001" title="Parse subtype 2 objects (0x100&#45;0x1FF)" alt="" coords="5,5,178,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1ObjectParser.html#abbf61bb14411e1818ba02a795553522f" title="Read tile data from ROM." alt="" coords="226,5,398,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,23,210,23,210,28,178,28"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317" title=" " alt="" coords="446,13,610,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="398,23,430,23,430,28,398,28"/>
+<area shape="rect" id="Node000001" title="Parse subtype 2 objects (0x100&#45;0x1FF)" alt="" coords="5,51,178,92"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="473,5,584,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,48,225,37,348,23,457,17,457,23,348,29,226,42,171,53"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1ObjectParser.html#abbf61bb14411e1818ba02a795553522f" title="Read tile data from ROM." alt="" coords="226,51,398,92"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,69,210,69,210,74,178,74"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="474,112,583,138"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="171,90,226,101,349,114,458,121,458,126,348,120,225,106,170,95"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="396,48,458,33,459,38,398,53"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="398,90,459,105,458,110,396,95"/>
+<area shape="rect" id="Node000005" href="$namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317" title=" " alt="" coords="446,59,610,84"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="398,69,430,69,430,74,398,74"/>
 </map>

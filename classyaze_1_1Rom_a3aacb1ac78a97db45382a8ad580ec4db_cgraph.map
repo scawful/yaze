@@ -1,11 +1,12 @@
 <map id="yaze::Rom::LoadFromData" name="yaze::Rom::LoadFromData">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,178,56"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="247,5,358,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,30,232,24,233,29,179,36"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,178,80"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="247,5,359,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,51,231,32,233,37,150,57"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="226,55,380,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="179,51,210,54,210,60,178,56"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx.html#acb08518117f632fe321cc8191defe210" title="Loads all the palettes for the game." alt="" coords="432,29,601,55"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="380,56,417,51,417,57,381,61"/>
-<area shape="rect" id="Node000025" href="$classyaze_1_1Rom.html#a99c1cb4e80c3cafb975d1d74a842c833" title=" " alt="" coords="428,79,605,104"/>
-<area shape="poly" id="edge4_Node000003_Node000025" title=" " alt="" coords="381,74,413,77,412,82,380,79"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,65,210,65,210,70,178,70"/>
+<area shape="rect" id="Node000028" href="$classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="451,104,573,130"/>
+<area shape="poly" id="edge5_Node000001_Node000028" title=" " alt="" coords="157,78,226,90,336,102,436,110,435,115,335,108,225,95,156,84"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx.html#acb08518117f632fe321cc8191defe210" title="Loads all the palettes for the game." alt="" coords="428,55,596,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="381,65,412,65,412,70,381,70"/>
+<area shape="poly" id="edge4_Node000003_Node000028" title=" " alt="" coords="361,78,440,97,439,102,360,84"/>
 </map>

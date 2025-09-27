@@ -1,0 +1,11 @@
+<map id="yaze::Rom::SavePalette" name="yaze::Rom::SavePalette">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,163,118"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#ab33662ca6a270d3c533b2f9d22137f3f" title=" " alt="" coords="211,5,397,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,89,154,65,210,41,232,33,234,38,212,46,157,70,110,94"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="230,55,378,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,92,214,85,215,90,163,97"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="243,120,365,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="163,112,228,121,227,126,163,118"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html#a3411bbc77e219c54497575d362859c8f" title=" " alt="" coords="231,169,377,195"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="114,116,212,156,232,162,231,167,210,161,112,121"/>
+</map>

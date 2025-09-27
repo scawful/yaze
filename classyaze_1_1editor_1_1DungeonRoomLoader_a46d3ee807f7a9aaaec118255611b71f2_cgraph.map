@@ -1,9 +1,12 @@
 <map id="yaze::editor::DungeonRoomLoader::ReloadAllRoomGraphics" name="yaze::editor::DungeonRoomLoader::ReloadAllRoomGraphics">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,214,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3" title=" " alt="" coords="262,39,508,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,56,246,56,246,62,214,62"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141" title=" " alt="" coords="562,5,704,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="508,40,547,35,547,40,509,45"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1Room.html#a90a5706117083d42136fa54adc2e59a2" title=" " alt="" coords="556,71,710,111"/>
-<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="509,72,541,76,540,82,508,78"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,214,68"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="563,5,704,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,39,547,20,547,26,214,44"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3" title=" " alt="" coords="262,55,508,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,55,246,59,246,64,214,61"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="475,52,559,33,560,38,477,57"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141" title=" " alt="" coords="562,55,704,96"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="509,73,547,73,547,78,509,78"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1zelda3_1_1Room.html#a90a5706117083d42136fa54adc2e59a2" title=" " alt="" coords="556,121,710,161"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="466,94,541,114,540,119,464,99"/>
 </map>

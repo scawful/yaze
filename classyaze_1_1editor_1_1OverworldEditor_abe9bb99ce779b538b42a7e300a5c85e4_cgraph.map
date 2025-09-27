@@ -1,0 +1,5 @@
+<map id="yaze::editor::OverworldEditor::IsRomLoaded" name="yaze::editor::OverworldEditor::IsRomLoaded">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,189,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="237,13,378,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,23,221,23,221,28,189,28"/>
+</map>

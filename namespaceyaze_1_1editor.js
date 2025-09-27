@@ -42,7 +42,6 @@ var namespaceyaze_1_1editor =
     [ "ExampleMemberInfo", "structyaze_1_1editor_1_1ExampleMemberInfo.html", "structyaze_1_1editor_1_1ExampleMemberInfo" ],
     [ "ExampleTreeNode", "structyaze_1_1editor_1_1ExampleTreeNode.html", "structyaze_1_1editor_1_1ExampleTreeNode" ],
     [ "ExtensionManager", "classyaze_1_1editor_1_1ExtensionManager.html", "classyaze_1_1editor_1_1ExtensionManager" ],
-    [ "FileDialogWrapper", "classyaze_1_1editor_1_1FileDialogWrapper.html", null ],
     [ "FolderItem", "structyaze_1_1editor_1_1FolderItem.html", "structyaze_1_1editor_1_1FolderItem" ],
     [ "GfxGroupEditor", "classyaze_1_1editor_1_1GfxGroupEditor.html", "classyaze_1_1editor_1_1GfxGroupEditor" ],
     [ "GraphicsEditor", "classyaze_1_1editor_1_1GraphicsEditor.html", "classyaze_1_1editor_1_1GraphicsEditor" ],
@@ -58,7 +57,6 @@ var namespaceyaze_1_1editor =
     [ "ParsedElement", "structyaze_1_1editor_1_1ParsedElement.html", "structyaze_1_1editor_1_1ParsedElement" ],
     [ "PopupManager", "classyaze_1_1editor_1_1PopupManager.html", "classyaze_1_1editor_1_1PopupManager" ],
     [ "PopupParams", "structyaze_1_1editor_1_1PopupParams.html", "structyaze_1_1editor_1_1PopupParams" ],
-    [ "Renderer", "classyaze_1_1editor_1_1Renderer.html", "classyaze_1_1editor_1_1Renderer" ],
     [ "ScreenEditor", "classyaze_1_1editor_1_1ScreenEditor.html", "classyaze_1_1editor_1_1ScreenEditor" ],
     [ "SettingsEditor", "classyaze_1_1editor_1_1SettingsEditor.html", "classyaze_1_1editor_1_1SettingsEditor" ],
     [ "Shortcut", "structyaze_1_1editor_1_1Shortcut.html", "structyaze_1_1editor_1_1Shortcut" ],
@@ -92,7 +90,6 @@ var namespaceyaze_1_1editor =
       [ "kWarning", "namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7aec0da41f4e48b52c362303eb27ed5dee", null ],
       [ "kError", "namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7ae3587c730cc1aa530fa4ddc9c4204e97", null ]
     ] ],
-    [ "PaletteCategory", "namespaceyaze_1_1editor.html#a82a8956476ffc04750bcfc4120c8b8db", null ],
     [ "GetRomStatusMessage", "namespaceyaze_1_1editor.html#a09e3eaa0655502231991af8156e1fd60", null ],
     [ "IsRomReadyForEditing", "namespaceyaze_1_1editor.html#ac0bc6f29ccc20a3f2757c2228eb56160", null ],
     [ "DisplayPalette", "namespaceyaze_1_1editor.html#a8657cfd46f4a80e164e0b2331c98ad98", null ],
@@ -232,6 +229,5 @@ var namespaceyaze_1_1editor =
     [ "kCompactFramePadding", "namespaceyaze_1_1editor.html#a9cd369e38dc99a9b89db9a5c185b4fc1", null ],
     [ "kSpriteTabFlags", "namespaceyaze_1_1editor.html#a861a117f36af4cfe2abaaeb25a2bbc88", null ],
     [ "kSpriteTabBarFlags", "namespaceyaze_1_1editor.html#ae80653744ecd4402e10c58d26015bdd5", null ],
-    [ "kSpriteTableFlags", "namespaceyaze_1_1editor.html#a6d91eaa164b4529e047ae78ef99c47a0", null ],
-    [ "kPaletteGroupAddressesKeys", "namespaceyaze_1_1editor.html#a56ca525964a966ffda0388092ee28f6f", null ]
+    [ "kSpriteTableFlags", "namespaceyaze_1_1editor.html#a6d91eaa164b4529e047ae78ef99c47a0", null ]
 ];

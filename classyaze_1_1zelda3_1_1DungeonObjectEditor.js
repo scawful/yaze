@@ -4,7 +4,7 @@ var classyaze_1_1zelda3_1_1DungeonObjectEditor =
     [ "EditorConfig", "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html", "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig" ],
     [ "SelectionState", "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState.html", "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState" ],
     [ "UndoPoint", "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1UndoPoint.html", "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1UndoPoint" ],
-    [ "ObjectChangedCallback", "classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a9a862545c5b251d5eee4d0f70555fde2", null ],
+    [ "ObjectChangedCallback", "classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a08b70609072d887b1a71a2c7ba9db6dc", null ],
     [ "RoomChangedCallback", "classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a6f4185e245fdb54b26a6b855adc41cfc", null ],
     [ "SelectionChangedCallback", "classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a0e0716930246c42b22663d42459ca228", null ],
     [ "Mode", "classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a8b449a11bd225d0ba823743124904b6c", [

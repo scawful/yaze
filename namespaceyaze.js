@@ -10,7 +10,6 @@ var namespaceyaze =
     [ "test", "namespaceyaze_1_1test.html", "namespaceyaze_1_1test" ],
     [ "util", "namespaceyaze_1_1util.html", "namespaceyaze_1_1util" ],
     [ "zelda3", "namespaceyaze_1_1zelda3.html", "namespaceyaze_1_1zelda3" ],
-    [ "Renderer", "classyaze_1_1Renderer.html", "classyaze_1_1Renderer" ],
     [ "Rom", "classyaze_1_1Rom.html", "classyaze_1_1Rom" ],
     [ "Transaction", "classyaze_1_1Transaction.html", "classyaze_1_1Transaction" ],
     [ "GetGraphicsAddress", "namespaceyaze.html#acf543dde4eeff4bc273d61a4ffda5d41", null ],

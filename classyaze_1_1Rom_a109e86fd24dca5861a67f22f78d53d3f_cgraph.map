@@ -1,11 +1,12 @@
 <map id="yaze::Rom::LoadFromFile" name="yaze::Rom::LoadFromFile">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,172,56"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="230,5,364,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,31,214,25,215,31,173,36"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="220,55,374,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,50,204,54,203,59,172,56"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx.html#acb08518117f632fe321cc8191defe210" title="Loads all the palettes for the game." alt="" coords="426,29,595,55"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="374,56,411,51,411,57,375,61"/>
-<area shape="rect" id="Node000025" href="$classyaze_1_1Rom.html#a99c1cb4e80c3cafb975d1d74a842c833" title=" " alt="" coords="422,79,599,104"/>
-<area shape="poly" id="edge4_Node000003_Node000025" title=" " alt="" coords="375,74,407,77,406,82,374,79"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,172,118"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="238,5,373,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,89,219,41,240,34,241,39,221,46,116,94"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1core_1_1ResourceLabelManager.html#a4b955221628bb6a21d8cccd1cf63c3a3" title=" " alt="" coords="220,55,391,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="172,91,204,87,204,92,172,96"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="228,120,383,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,113,213,118,212,124,172,118"/>
+<area shape="rect" id="Node000029" href="$classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="439,145,561,171"/>
+<area shape="poly" id="edge5_Node000001_Node000029" title=" " alt="" coords="115,116,163,138,220,156,273,163,326,166,424,163,424,169,326,171,272,168,219,161,161,143,113,121"/>
+<area shape="poly" id="edge4_Node000004_Node000029" title=" " alt="" coords="383,140,424,146,424,151,382,145"/>
 </map>

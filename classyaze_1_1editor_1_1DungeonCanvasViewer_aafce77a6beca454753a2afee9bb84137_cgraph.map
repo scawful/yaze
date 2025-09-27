@@ -1,11 +1,11 @@
 <map id="yaze::editor::DungeonCanvasViewer::Draw" name="yaze::editor::DungeonCanvasViewer::Draw">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,192,88"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonCanvasViewer.html#ad5e66e0318966b1e82f9199ebe21c56b" title=" " alt="" coords="240,47,432,88"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,65,224,65,224,70,192,70"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="526,5,680,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="432,47,514,32,515,37,433,52"/>
-<area shape="rect" id="Node000005" href="$namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="524,55,682,80"/>
-<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="432,65,509,65,509,70,432,70"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1editor_1_1DungeonCanvasViewer.html#a2d99509c086bcf9917810835283ebbf2" title=" " alt="" coords="480,104,726,145"/>
-<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="433,86,491,98,490,103,432,91"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,192,111"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonCanvasViewer.html#ad5e66e0318966b1e82f9199ebe21c56b" title=" " alt="" coords="240,71,432,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,88,224,88,224,94,192,94"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gui_1_1Canvas.html#ad8f81f1ad4537d5b9c094ed4bb66d304" title=" " alt="" coords="481,5,607,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="402,68,465,47,467,53,403,73"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab" title=" " alt="" coords="480,71,607,111"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="433,88,464,88,464,94,433,94"/>
+<area shape="rect" id="Node000042" href="$classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="481,136,607,177"/>
+<area shape="poly" id="edge4_Node000002_Node000042" title=" " alt="" coords="403,109,467,129,465,135,402,114"/>
 </map>

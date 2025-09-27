@@ -20,7 +20,7 @@ var searchData=
   ['tile16transfer_17',['Tile16Transfer',['../classyaze_1_1cli_1_1Tile16Transfer.html',1,'yaze::cli']]],
   ['tile32_18',['Tile32',['../classyaze_1_1gfx_1_1Tile32.html',1,'yaze::gfx']]],
   ['tileinfo_19',['TileInfo',['../classyaze_1_1gfx_1_1TileInfo.html',1,'yaze::gfx']]],
-  ['tilemap_20',['Tilemap',['../structyaze_1_1emu_1_1Tilemap.html',1,'yaze::emu::Tilemap'],['../structyaze_1_1gfx_1_1Tilemap.html',1,'yaze::gfx::Tilemap'],['../structyaze_1_1test_1_1Tilemap.html',1,'yaze::test::Tilemap']]],
+  ['tilemap_20',['tilemap',['../structyaze_1_1emu_1_1Tilemap.html',1,'yaze::emu::Tilemap'],['../structyaze_1_1gfx_1_1Tilemap.html',1,'yaze::gfx::Tilemap']]],
   ['tilemapentry_21',['TilemapEntry',['../structyaze_1_1emu_1_1TilemapEntry.html',1,'yaze::emu']]],
   ['tilemaplocation_22',['TileMapLocation',['../structyaze_1_1emu_1_1TileMapLocation.html',1,'yaze::emu']]],
   ['tilerenderinfo_23',['TileRenderInfo',['../structyaze_1_1zelda3_1_1ObjectRenderer_1_1TileRenderInfo.html',1,'yaze::zelda3::ObjectRenderer']]],

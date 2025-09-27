@@ -1,12 +1,12 @@
 <map id="yaze::editor::DungeonRoomLoader::LoadAndRenderRoomGraphics" name="yaze::editor::DungeonRoomLoader::LoadAndRenderRoomGraphics">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,252,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141" title=" " alt="" coords="306,5,448,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,40,290,35,291,40,253,45"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Room.html#a90a5706117083d42136fa54adc2e59a2" title=" " alt="" coords="300,71,454,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="253,72,285,76,284,82,252,78"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Room.html#a14530368efe211f7ebbe9226189b5651" title=" " alt="" coords="502,21,660,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="448,26,486,27,486,33,448,31"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="451,68,517,49,519,54,452,73"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Arena.html#ad0f203b2f2a24eb23c980f4572670582" title=" " alt="" coords="512,78,650,104"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="454,88,497,88,497,94,454,94"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,252,96"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="306,5,448,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,52,302,33,303,38,220,57"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141" title=" " alt="" coords="306,55,448,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,73,290,73,290,78,252,78"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1Room.html#a90a5706117083d42136fa54adc2e59a2" title=" " alt="" coords="300,121,454,161"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="209,94,285,114,284,119,208,99"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Room.html#a14530368efe211f7ebbe9226189b5651" title=" " alt="" coords="502,96,660,122"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="449,84,487,91,486,96,448,90"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="454,126,486,121,487,126,455,131"/>
 </map>

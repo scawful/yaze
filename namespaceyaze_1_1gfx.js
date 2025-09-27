@@ -41,7 +41,7 @@ var namespaceyaze_1_1gfx =
     [ "Tile32", "classyaze_1_1gfx_1_1Tile32.html", "classyaze_1_1gfx_1_1Tile32" ],
     [ "TileInfo", "classyaze_1_1gfx_1_1TileInfo.html", "classyaze_1_1gfx_1_1TileInfo" ],
     [ "Tilemap", "structyaze_1_1gfx_1_1Tilemap.html", "structyaze_1_1gfx_1_1Tilemap" ],
-    [ "BitmapTable", "namespaceyaze_1_1gfx.html#ac70b35914f079891436c2442779b9113", null ],
+    [ "BitmapTable", "namespaceyaze_1_1gfx.html#ad59175cdad18379972f52c0aafa32d08", null ],
     [ "BitmapFormat", "namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3ba", [
       [ "kIndexed", "namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa5172f5b5640d9778d46551616f815c63", null ],
       [ "k4bpp", "namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baae51d9a2bf06ec9c737a060897ea2b165", null ],

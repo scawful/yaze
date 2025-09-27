@@ -5,15 +5,12 @@ var hierarchy =
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
     [ "yaze::emu::Apu", "classyaze_1_1emu_1_1Apu.html", null ],
-    [ "yaze::test::Apu", "classyaze_1_1test_1_1Apu.html", null ],
     [ "yaze::emu::ApuCallbacks", "structyaze_1_1emu_1_1ApuCallbacks.html", null ],
-    [ "yaze::test::ApuCallbacks", "structyaze_1_1test_1_1ApuCallbacks.html", null ],
     [ "yaze::gfx::Arena", "classyaze_1_1gfx_1_1Arena.html", null ],
     [ "yaze::app::core::AsarPatchResult", "structyaze_1_1app_1_1core_1_1AsarPatchResult.html", null ],
     [ "yaze::app::core::AsarSymbol", "structyaze_1_1app_1_1core_1_1AsarSymbol.html", null ],
     [ "yaze::app::core::AsarWrapper", "classyaze_1_1app_1_1core_1_1AsarWrapper.html", null ],
     [ "yaze::emu::AsmParser", "classyaze_1_1emu_1_1AsmParser.html", null ],
-    [ "yaze::test::AsmParser", "classyaze_1_1test_1_1AsmParser.html", null ],
     [ "yaze::gui::AssetObject", "structyaze_1_1gui_1_1AssetObject.html", [
       [ "yaze::gui::DungeonAsset", "structyaze_1_1gui_1_1DungeonAsset.html", null ],
       [ "yaze::gui::OverworldAsset", "structyaze_1_1gui_1_1OverworldAsset.html", null ],
@@ -21,10 +18,6 @@ var hierarchy =
       [ "yaze::gui::UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", null ]
     ] ],
     [ "yaze::emu::AudioRam", "classyaze_1_1emu_1_1AudioRam.html", [
-      [ "yaze::emu::AudioRamImpl", "classyaze_1_1emu_1_1AudioRamImpl.html", null ],
-      [ "yaze::test::MockAudioRam", "classyaze_1_1test_1_1MockAudioRam.html", null ]
-    ] ],
-    [ "yaze::test::AudioRam", "classyaze_1_1test_1_1AudioRam.html", [
       [ "yaze::emu::AudioRamImpl", "classyaze_1_1emu_1_1AudioRamImpl.html", null ],
       [ "yaze::test::MockAudioRam", "classyaze_1_1test_1_1MockAudioRam.html", null ]
     ] ],
@@ -38,7 +31,6 @@ var hierarchy =
     [ "yaze::emu::BGSC", "structyaze_1_1emu_1_1BGSC.html", null ],
     [ "yaze::emu::BGVOFS", "structyaze_1_1emu_1_1BGVOFS.html", null ],
     [ "yaze::gfx::Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", null ],
-    [ "yaze::gui::Bitmap", "classyaze_1_1gui_1_1Bitmap.html", null ],
     [ "yaze::emu::Emulator::Bookmark", "structyaze_1_1emu_1_1Emulator_1_1Bookmark.html", null ],
     [ "TextEditor::Breakpoint", "structTextEditor_1_1Breakpoint.html", null ],
     [ "yaze::gui::Button", "structyaze_1_1gui_1_1Button.html", null ],
@@ -76,18 +68,14 @@ var hierarchy =
     [ "yaze::editor::CommandManager", "classyaze_1_1editor_1_1CommandManager.html", null ],
     [ "yaze::gfx::lc_lz2::CompressionCommand", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html", null ],
     [ "yaze::gfx::lc_lz2::CompressionContext", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html", null ],
-    [ "yaze::test::CompressionContext", "structyaze_1_1test_1_1CompressionContext.html", null ],
     [ "yaze::gfx::lc_lz2::CompressionPiece", "structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", null ],
-    [ "yaze::test::CompressionPiece", "structyaze_1_1test_1_1CompressionPiece.html", null ],
     [ "yaze::cli::Context", "structyaze_1_1cli_1_1Context.html", null ],
     [ "yaze::gui::Canvas::ContextMenuItem", "structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html", null ],
     [ "yaze::core::Controller", "classyaze_1_1core_1_1Controller.html", null ],
     [ "TextEditor::Coordinates", "structTextEditor_1_1Coordinates.html", null ],
     [ "yaze::emu::CounterIrqNmiRegisters", "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html", null ],
     [ "yaze::emu::Cpu", "classyaze_1_1emu_1_1Cpu.html", null ],
-    [ "yaze::test::Cpu", "classyaze_1_1test_1_1Cpu.html", null ],
     [ "yaze::emu::CpuCallbacks", "structyaze_1_1emu_1_1CpuCallbacks.html", null ],
-    [ "yaze::test::CpuCallbacks", "structyaze_1_1test_1_1CpuCallbacks.html", null ],
     [ "destination", "structdestination.html", null ],
     [ "yaze::editor::DictionaryEntry", "structyaze_1_1editor_1_1DictionaryEntry.html", null ],
     [ "yaze::emu::DmaChannel", "structyaze_1_1emu_1_1DmaChannel.html", null ],
@@ -142,12 +130,10 @@ var hierarchy =
     [ "yaze::editor::ExtensionManager", "classyaze_1_1editor_1_1ExtensionManager.html", null ],
     [ "yaze::core::FeatureFlags", "classyaze_1_1core_1_1FeatureFlags.html", null ],
     [ "yaze::core::FileDialogWrapper", "classyaze_1_1core_1_1FileDialogWrapper.html", null ],
-    [ "yaze::editor::FileDialogWrapper", "classyaze_1_1editor_1_1FileDialogWrapper.html", null ],
     [ "yaze::util::FlagParser", "classyaze_1_1util_1_1FlagParser.html", null ],
     [ "yaze::util::FlagRegistry", "classyaze_1_1util_1_1FlagRegistry.html", null ],
     [ "yaze::core::FeatureFlags::Flags", "structyaze_1_1core_1_1FeatureFlags_1_1Flags.html", null ],
     [ "yaze::emu::Spc700::Flags", "structyaze_1_1emu_1_1Spc700_1_1Flags.html", null ],
-    [ "yaze::test::Spc700::Flags", "structyaze_1_1test_1_1Spc700_1_1Flags.html", null ],
     [ "yaze::core::FlagsMenu", "structyaze_1_1core_1_1FlagsMenu.html", null ],
     [ "yaze::editor::FolderItem", "structyaze_1_1editor_1_1FolderItem.html", null ],
     [ "yaze::core::FontConfig", "structyaze_1_1core_1_1FontConfig.html", null ],
@@ -222,6 +208,8 @@ var hierarchy =
     [ "yaze::gui::MultiSelect< T >", "classyaze_1_1gui_1_1MultiSelect.html", null ],
     [ "yaze::gui::zeml::Node", "structyaze_1_1gui_1_1zeml_1_1Node.html", null ],
     [ "yaze::util::NotifyValue< T >", "classyaze_1_1util_1_1NotifyValue.html", null ],
+    [ "yaze::util::NotifyValue< uint32_t >", "classyaze_1_1util_1_1NotifyValue.html", null ],
+    [ "yaze::util::NotifyValue< uint8_t >", "classyaze_1_1util_1_1NotifyValue.html", null ],
     [ "yaze::emu::OAMADDH", "structyaze_1_1emu_1_1OAMADDH.html", null ],
     [ "yaze::emu::OAMADDL", "structyaze_1_1emu_1_1OAMADDL.html", null ],
     [ "yaze::emu::OAMAddress", "structyaze_1_1emu_1_1OAMAddress.html", null ],
@@ -266,27 +254,15 @@ var hierarchy =
     [ "yaze::emu::PpuInterface", "classyaze_1_1emu_1_1PpuInterface.html", [
       [ "yaze::test::MockPpu", "classyaze_1_1test_1_1MockPpu.html", null ]
     ] ],
-    [ "yaze::test::PpuInterface", "classyaze_1_1test_1_1PpuInterface.html", [
-      [ "yaze::test::MockPpu", "classyaze_1_1test_1_1MockPpu.html", null ]
-    ] ],
     [ "yaze::core::ProjectManager", "classyaze_1_1core_1_1ProjectManager.html", null ],
     [ "yaze::core::ProjectMetadata", "structyaze_1_1core_1_1ProjectMetadata.html", null ],
     [ "yaze::core::ProjectManager::ProjectTemplate", "structyaze_1_1core_1_1ProjectManager_1_1ProjectTemplate.html", null ],
     [ "yaze::core::RecentFilesManager", "classyaze_1_1core_1_1RecentFilesManager.html", null ],
     [ "yaze::core::Renderer", "classyaze_1_1core_1_1Renderer.html", null ],
-    [ "yaze::editor::Renderer", "classyaze_1_1editor_1_1Renderer.html", null ],
-    [ "yaze::gui::Renderer", "classyaze_1_1gui_1_1Renderer.html", null ],
-    [ "yaze::Renderer", "classyaze_1_1Renderer.html", null ],
-    [ "yaze::zelda3::Renderer", "classyaze_1_1zelda3_1_1Renderer.html", null ],
     [ "yaze::core::ResourceLabelManager", "structyaze_1_1core_1_1ResourceLabelManager.html", null ],
     [ "yaze::test::ResourceStats", "structyaze_1_1test_1_1ResourceStats.html", null ],
     [ "yaze::core::ResourceLabelManager::ResourceType", "structyaze_1_1core_1_1ResourceLabelManager_1_1ResourceType.html", null ],
     [ "yaze::Rom", "classyaze_1_1Rom.html", [
-      [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ],
-      [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ],
-      [ "yaze::zelda3::MockRom", "classyaze_1_1zelda3_1_1MockRom.html", null ]
-    ] ],
-    [ "yaze::test::Rom", "classyaze_1_1test_1_1Rom.html", [
       [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ],
       [ "yaze::test::MockRom", "classyaze_1_1test_1_1MockRom.html", null ],
       [ "yaze::zelda3::MockRom", "classyaze_1_1zelda3_1_1MockRom.html", null ]
@@ -309,12 +285,10 @@ var hierarchy =
     ] ],
     [ "yaze::zelda3::music::SampleEdit", "structyaze_1_1zelda3_1_1music_1_1SampleEdit.html", null ],
     [ "yaze::Rom::SaveSettings", "structyaze_1_1Rom_1_1SaveSettings.html", null ],
-    [ "yaze::test::Rom::SaveSettings", "structyaze_1_1test_1_1Rom_1_1SaveSettings.html", null ],
     [ "yaze::emu::ScreenDisplay", "structyaze_1_1emu_1_1ScreenDisplay.html", null ],
     [ "yaze::emu::ScreenMode", "structyaze_1_1emu_1_1ScreenMode.html", null ],
     [ "yaze::emu::ScrollRegister", "structyaze_1_1emu_1_1ScrollRegister.html", null ],
     [ "yaze::zelda3::ScrollWheelConfig", "structyaze_1_1zelda3_1_1ScrollWheelConfig.html", null ],
-    [ "SDL_Deleter", "structSDL__Deleter.html", null ],
     [ "yaze::core::SDL_Deleter", "structyaze_1_1core_1_1SDL__Deleter.html", null ],
     [ "yaze::core::SDL_Surface_Deleter", "structyaze_1_1core_1_1SDL__Surface__Deleter.html", null ],
     [ "yaze::core::SDL_Texture_Deleter", "structyaze_1_1core_1_1SDL__Texture__Deleter.html", null ],
@@ -338,11 +312,9 @@ var hierarchy =
     [ "yaze::zelda3::music::SongRange", "structyaze_1_1zelda3_1_1music_1_1SongRange.html", null ],
     [ "yaze::zelda3::music::SongSpcBlock", "structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html", null ],
     [ "yaze::emu::Spc700", "classyaze_1_1emu_1_1Spc700.html", null ],
-    [ "yaze::test::Spc700", "classyaze_1_1test_1_1Spc700.html", null ],
     [ "yaze::zelda3::music::SpcCommand", "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html", null ],
     [ "yaze::zelda3::SpriteAction", "classyaze_1_1zelda3_1_1SpriteAction.html", null ],
     [ "yaze::emu::SpriteAttributes", "structyaze_1_1emu_1_1SpriteAttributes.html", null ],
-    [ "yaze::test::SpriteAttributes", "structyaze_1_1test_1_1SpriteAttributes.html", null ],
     [ "yaze::zelda3::SpriteBuilder", "classyaze_1_1zelda3_1_1SpriteBuilder.html", null ],
     [ "yaze::zelda3::DungeonEditorSystem::SpriteData", "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1SpriteData.html", null ],
     [ "yaze::zelda3::SpriteTypes::SpriteInfo", "structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html", null ],
@@ -410,7 +382,6 @@ var hierarchy =
     [ "yaze::gfx::TileInfo", "classyaze_1_1gfx_1_1TileInfo.html", null ],
     [ "yaze::emu::Tilemap", "structyaze_1_1emu_1_1Tilemap.html", null ],
     [ "yaze::gfx::Tilemap", "structyaze_1_1gfx_1_1Tilemap.html", null ],
-    [ "yaze::test::Tilemap", "structyaze_1_1test_1_1Tilemap.html", null ],
     [ "yaze::emu::TilemapEntry", "structyaze_1_1emu_1_1TilemapEntry.html", null ],
     [ "yaze::emu::TileMapLocation", "structyaze_1_1emu_1_1TileMapLocation.html", null ],
     [ "yaze::zelda3::ObjectRenderer::TileRenderInfo", "structyaze_1_1zelda3_1_1ObjectRenderer_1_1TileRenderInfo.html", null ],
@@ -424,9 +395,6 @@ var hierarchy =
     [ "yaze::zelda3::music::Tracker", "classyaze_1_1zelda3_1_1music_1_1Tracker.html", null ],
     [ "yaze::Transaction", "classyaze_1_1Transaction.html", null ],
     [ "yaze::emu::TS", "structyaze_1_1emu_1_1TS.html", null ],
-    [ "Ts...", null, [
-      [ "overloaded< Ts >", "structoverloaded.html", null ]
-    ] ],
     [ "yaze::emu::TSW", "structyaze_1_1emu_1_1TSW.html", null ],
     [ "yaze::zelda3::DungeonEditorSystem::UndoPoint", "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1UndoPoint.html", null ],
     [ "yaze::zelda3::DungeonObjectEditor::UndoPoint", "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1UndoPoint.html", null ],
@@ -457,7 +425,6 @@ var hierarchy =
     [ "yaze::core::WorkspaceSettings", "structyaze_1_1core_1_1WorkspaceSettings.html", null ],
     [ "yaze::emu::WramAccessRegisters", "structyaze_1_1emu_1_1WramAccessRegisters.html", null ],
     [ "yaze::Rom::WriteAction", "structyaze_1_1Rom_1_1WriteAction.html", null ],
-    [ "yaze::test::Rom::WriteAction", "structyaze_1_1test_1_1Rom_1_1WriteAction.html", null ],
     [ "yaze_bitmap", "structyaze__bitmap.html", null ],
     [ "yaze_editor_context", "structyaze__editor__context.html", null ],
     [ "yaze_extension", "structyaze__extension.html", null ],
@@ -471,5 +438,8 @@ var hierarchy =
     [ "yaze::zelda3::music::ZeldaInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html", null ],
     [ "yaze::zelda3::music::ZeldaSfxInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html", null ],
     [ "yaze::zelda3::music::ZeldaWave", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html", null ],
-    [ "yaze::editor::zsprite::ZSprite", "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html", null ]
+    [ "yaze::editor::zsprite::ZSprite", "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html", null ],
+    [ "Ts", null, [
+      [ "overloaded< Ts >", "structoverloaded.html", null ]
+    ] ]
 ];

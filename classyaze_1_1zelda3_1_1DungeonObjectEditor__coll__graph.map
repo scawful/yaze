@@ -1,11 +1,11 @@
 <map id="yaze::zelda3::DungeonObjectEditor" name="yaze::zelda3::DungeonObjectEditor">
-<area shape="rect" id="Node000001" title="Interactive dungeon object editor with scroll wheel support." alt="" coords="337,88,522,129"/>
+<area shape="rect" id="Node000001" title="Interactive dungeon object editor with scroll wheel support." alt="" coords="337,89,522,129"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="58,5,138,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,26,313,65,375,85,373,90,312,70,153,31"/>
 <area shape="rect" id="Node000006" href="$structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState.html" title=" " alt="" coords="5,55,191,96"/>
 <area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="207,84,336,97,336,102,206,89"/>
-<area shape="rect" id="Node000007" href="$structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html" title=" " alt="" coords="5,120,191,161"/>
+<area shape="rect" id="Node000007" href="$structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html" title=" " alt="" coords="5,121,191,161"/>
 <area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="206,128,336,115,336,120,207,133"/>
-<area shape="rect" id="Node000008" href="$structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html" title=" " alt="" coords="5,186,191,226"/>
+<area shape="rect" id="Node000008" href="$structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html" title=" " alt="" coords="5,186,191,227"/>
 <area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="201,179,312,148,372,127,374,132,313,153,203,184"/>
 </map>

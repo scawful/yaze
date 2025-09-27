@@ -1,12 +1,11 @@
 <map id="yaze::gfx::Bitmap::Bitmap" name="yaze::gfx::Bitmap::Bitmap">
-<area shape="rect" id="Node000001" title="Copy constructor &#45; creates a deep copy." alt="" coords="5,55,129,96"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a581325df602245d58086208cb6e85739" title=" " alt="" coords="177,55,300,96"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,73,161,73,161,78,129,78"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="205,55,204,45,209,36,221,31,238,29,257,31,268,37,266,42,256,36,238,34,222,36,213,40,209,46,211,54"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068" title=" " alt="" coords="348,5,496,31"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="300,54,363,34,365,39,301,59"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a985c964b37adc34496b5c6898712c8c0" title=" " alt="" coords="360,55,484,96"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="300,73,345,73,345,78,300,78"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="360,120,484,161"/>
-<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="298,94,350,112,348,117,297,99"/>
+<area shape="rect" id="Node000001" title="Copy constructor &#45; creates a deep copy." alt="" coords="5,88,129,129"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#a121f55b3526fdf8291ddcc48644b8226" title=" " alt="" coords="193,5,357,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,85,176,55,192,49,194,54,178,60,111,90"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="206,70,344,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="128,98,190,91,191,96,129,104"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gfx.html#a88d0646ee27ae9755070c4e936cb36bf" title="Get the SDL pixel format for a given bitmap format." alt="" coords="177,120,373,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="129,113,161,117,161,122,128,118"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="213,169,337,210"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="112,127,178,155,199,163,198,168,176,160,110,132"/>
 </map>

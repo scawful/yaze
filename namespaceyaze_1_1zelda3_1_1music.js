@@ -10,7 +10,7 @@ var namespaceyaze_1_1zelda3_1_1music =
     [ "ZeldaInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html", "structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument" ],
     [ "ZeldaSfxInstrument", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html", "structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument" ],
     [ "ZeldaWave", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html", "structyaze_1_1zelda3_1_1music_1_1ZeldaWave" ],
-    [ "text_buf_ty", "namespaceyaze_1_1zelda3_1_1music.html#aebf12437e767920e3173dbe2ea46ddf1", null ],
+    [ "text_buf_ty", "namespaceyaze_1_1zelda3_1_1music.html#a032e72a0b674908fa76224e18868bc8b", null ],
     [ "op_len", "namespaceyaze_1_1zelda3_1_1music.html#a90368fd97edefb8fda83523d58cf87dd", null ],
     [ "fil1", "namespaceyaze_1_1zelda3_1_1music.html#a14cb98e5f9eacb05f5e56c05cab7ba8c", null ],
     [ "fil2", "namespaceyaze_1_1zelda3_1_1music.html#a763e28f8ac2058f8fca36a359e5751ee", null ],

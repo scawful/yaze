@@ -1,6 +1,6 @@
 <map id="src/app/zelda3/screen/title_screen.h" name="src/app/zelda3/screen/title_screen.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="98,5,247,46"/>
-<area shape="rect" id="Node000002" href="$bitmap_8h.html" title=" " alt="" coords="210,168,327,193"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="99,5,247,46"/>
+<area shape="rect" id="Node000002" href="$bitmap_8h.html" title=" " alt="" coords="211,168,327,193"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,45,226,93,259,153,254,155,221,95,186,48"/>
 <area shape="rect" id="Node000023" href="$snes__tile_8h.html" title=" " alt="" coords="5,168,135,193"/>
 <area shape="poly" id="edge3_Node000001_Node000023" title=" " alt="" coords="159,48,124,96,86,156,82,153,120,92,155,45"/>

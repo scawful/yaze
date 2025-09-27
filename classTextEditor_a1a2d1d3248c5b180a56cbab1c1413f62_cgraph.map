@@ -1,5 +1,5 @@
 <map id="TextEditor::SelectWordUnderCursor" name="TextEditor::SelectWordUnderCursor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,48,193,89"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,49,193,89"/>
 <area shape="rect" id="Node000002" href="$classTextEditor.html#a8171a76adf4e1fc6a699f60b60eb7902" title=" " alt="" coords="483,5,645,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,46,190,28,240,16,299,8,358,5,467,7,467,12,358,10,299,13,241,21,192,34,146,51"/>
 <area shape="rect" id="Node000005" href="$classTextEditor.html#a5111c6334e494708b38cabd576f42b71" title=" " alt="" coords="480,80,648,106"/>

@@ -1,7 +1,7 @@
 <map id="yaze::editor::MusicEditor" name="yaze::editor::MusicEditor">
 <area shape="rect" id="Node000001" title="A class for editing music data in a Rom." alt="" coords="543,73,702,99"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="5,5,130,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,13,224,14,318,18,419,28,520,46,591,70,590,75,518,51,419,33,318,23,224,19,145,19"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,14,224,14,318,19,419,29,520,48,590,70,588,75,518,53,419,35,318,24,224,20,145,19"/>
 <area shape="rect" id="Node000039" href="$classyaze_1_1editor_1_1AssemblyEditor.html" title="Text editor for modifying assembly code." alt="" coords="210,47,391,72"/>
 <area shape="poly" id="edge5_Node000039_Node000002" title=" " alt="" coords="145,29,225,43,224,49,144,34"/>
 <area shape="rect" id="Node000010" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="27,69,108,95"/>

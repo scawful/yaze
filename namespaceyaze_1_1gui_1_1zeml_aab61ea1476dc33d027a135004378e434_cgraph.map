@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Parse a zeml string." alt="" coords="5,55,149,80"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1gui_1_1zeml.html#accac7b82a1856b4116a1ee235ff533a2" title="Parse a zeml node." alt="" coords="197,29,371,55"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,56,181,52,181,57,149,61"/>
-<area shape="rect" id="Node000006" href="$namespaceyaze_1_1gui_1_1zeml.html#a86668716419ae3c906fe8354bd7b6a96" title="Tokenize a zeml string." alt="" coords="203,79,364,104"/>
+<area shape="rect" id="Node000006" href="$namespaceyaze_1_1gui_1_1zeml.html#a86668716419ae3c906fe8354bd7b6a96" title="Tokenize a zeml string." alt="" coords="203,79,365,104"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="149,73,188,78,187,83,149,78"/>
 <area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="249,31,243,21,247,11,261,5,284,3,309,5,322,12,320,17,308,10,284,8,262,10,250,15,248,20,254,27"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui_1_1zeml.html#a6a8d0465bb3639ae5cec5439c895f939" title="Map a string to a widget type." alt="" coords="438,5,600,31"/>

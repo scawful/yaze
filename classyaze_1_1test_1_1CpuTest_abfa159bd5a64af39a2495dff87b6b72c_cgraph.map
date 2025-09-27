@@ -1,0 +1,12 @@
+<map id="yaze::test::CpuTest::SetUp" name="yaze::test::CpuTest::SetUp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,136,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Memory.html#a77f49d5295dd11b819e70fce351bef96" title=" " alt="" coords="394,5,530,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,51,379,30,379,35,136,56"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1MockMemory.html#a087ca0e687b2757710d0a1d515e55f62" title=" " alt="" coords="184,67,346,107"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="137,66,169,70,168,76,136,71"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="332,64,380,48,381,54,333,69"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Memory.html#abe3788bf3aed42d411012d7549c82a81" title=" " alt="" coords="394,71,530,111"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="347,86,378,87,378,92,346,91"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1Memory.html#a78611e5a9146f6f31d0677663b303c41" title=" " alt="" coords="394,136,530,177"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="326,105,389,128,387,133,324,111"/>
+</map>

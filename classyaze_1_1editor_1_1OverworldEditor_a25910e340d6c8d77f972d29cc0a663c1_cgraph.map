@@ -1,13 +1,9 @@
 <map id="yaze::editor::OverworldEditor::DrawOverworldEdits" name="yaze::editor::OverworldEditor::DrawOverworldEdits">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,189,119"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="53,79,51,69,58,60,74,54,97,52,122,54,137,61,135,66,121,60,97,57,75,59,62,64,56,70,59,77"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c" title=" " alt="" coords="243,45,414,70"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="188,80,237,71,238,77,189,85"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1editor_1_1OverworldEditor.html#a6a3388989f2d04a1803050b7c9a6bff8" title=" " alt="" coords="237,119,420,159"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="189,112,222,118,221,123,188,117"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="468,5,591,46"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="413,42,452,35,453,40,414,47"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="468,71,591,111"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="410,68,453,76,452,81,409,74"/>
-<area shape="poly" id="edge6_Node000005_Node000005" title=" " alt="" coords="290,119,288,109,294,100,308,94,328,92,350,94,363,101,361,105,349,100,328,97,309,99,298,104,293,110,295,117"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,189,79"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c" title=" " alt="" coords="237,46,407,72"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,56,221,56,221,62,189,62"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="455,5,578,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="400,43,439,36,440,41,401,48"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="455,71,578,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="405,70,440,76,439,81,404,75"/>
 </map>

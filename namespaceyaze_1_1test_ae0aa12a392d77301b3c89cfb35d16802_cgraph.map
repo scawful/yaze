@@ -6,6 +6,6 @@
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="339,68,403,48,404,54,340,73"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1ObjectParser.html#afb365588dfacf2b7d5e29c7d939b7ea5" title="Parse subtype 1 objects (0x00&#45;0xFF)" alt="" coords="403,71,575,111"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="356,88,388,88,388,94,356,94"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1zelda3_1_1ObjectParser.html#a967dcebcdaab57106db63cea2236daae" title="Parse subtype 2 objects (0x100&#45;0x1FF)" alt="" coords="403,136,575,177"/>
-<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="340,109,404,128,403,134,339,114"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1zelda3_1_1ObjectParser.html#a967dcebcdaab57106db63cea2236daae" title="Parse subtype 2 objects (0x100&#45;0x1FF)" alt="" coords="403,136,575,177"/>
+<area shape="poly" id="edge4_Node000002_Node000009" title=" " alt="" coords="340,109,404,128,403,134,339,114"/>
 </map>

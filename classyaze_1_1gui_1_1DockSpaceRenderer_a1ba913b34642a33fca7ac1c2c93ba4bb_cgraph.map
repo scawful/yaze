@@ -1,11 +1,7 @@
 <map id="yaze::gui::DockSpaceRenderer::BeginEnhancedDockSpace" name="yaze::gui::DockSpaceRenderer::BeginEnhancedDockSpace">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,201,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1BackgroundRenderer.html#a673834365e9ae7426b6bb608eb6bb896" title=" " alt="" coords="249,17,473,42"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,45,233,42,233,47,201,51"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="264,70,458,96"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="201,65,249,70,248,75,201,71"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gui_1_1BackgroundRenderer.html#a49a34299cf8753158a0db8746ca95c85" title=" " alt="" coords="521,5,718,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="473,25,505,25,505,30,473,31"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1gui_1_1ThemeManager.html#a4662c0c517873cda272f0ce0f27d13d2" title=" " alt="" coords="536,71,703,111"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="458,83,521,85,521,91,458,89"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,201,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1BackgroundRenderer.html#a673834365e9ae7426b6bb608eb6bb896" title=" " alt="" coords="249,5,473,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,31,233,28,233,33,201,37"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="264,55,458,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,50,249,54,248,60,201,55"/>
 </map>

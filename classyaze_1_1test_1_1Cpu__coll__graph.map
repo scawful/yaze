@@ -1,7 +1,0 @@
-<map id="yaze::test::Cpu" name="yaze::test::Cpu">
-<area shape="rect" id="Node000001" title=" " alt="" coords="104,94,208,120"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Memory.html" title="Memory interface." alt="" coords="5,5,136,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,40,146,92,142,96,91,44"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1emu_1_1CpuCallbacks.html" title=" " alt="" coords="160,5,325,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,44,170,96,166,92,218,40"/>
-</map>

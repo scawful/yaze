@@ -1,5 +1,5 @@
 <map id="src/app/editor/overworld/map_properties.h" name="src/app/editor/overworld/map_properties.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="106,5,266,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="106,5,267,46"/>
 <area shape="rect" id="Node000002" href="$overworld_8h.html" title=" " alt="" coords="5,94,149,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,49,115,86,112,82,160,44"/>
 <area shape="rect" id="Node000016" href="$rom_8h.html" title=" " alt="" coords="147,183,226,208"/>

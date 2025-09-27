@@ -1,0 +1,7 @@
+<map id="yaze::editor::DungeonEditor::GetRomStatus" name="yaze::editor::DungeonEditor::GetRomStatus">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,181,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="229,5,370,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,30,213,26,214,31,182,35"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="246,55,353,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,51,231,57,230,62,181,56"/>
+</map>

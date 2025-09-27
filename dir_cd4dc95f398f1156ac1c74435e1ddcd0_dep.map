@@ -1,6 +1,6 @@
 <map id="src/app/editor/dungeon" name="src/app/editor/dungeon">
-<area shape="rect" id="node1" href="dir_604df04d30852e974bc3eb4c7a0f631e.html" title="graphics" alt="" coords="26,126,96,152"/>
-<area shape="rect" id="node2" href="dir_cd4dc95f398f1156ac1c74435e1ddcd0.html" title="dungeon" alt="" coords="26,52,96,78"/>
+<area shape="rect" id="node1" href="dir_604df04d30852e974bc3eb4c7a0f631e.html" title="graphics" alt="" coords="26,126,97,152"/>
+<area shape="rect" id="node2" href="dir_cd4dc95f398f1156ac1c74435e1ddcd0.html" title="dungeon" alt="" coords="26,52,97,78"/>
 <area shape="poly" id="edge3" href="dir_000009_000017.html" alt="" coords="64,78,64,110,59,110,59,78"/>
 <area shape="rect" id="edge3-headlabel" href="dir_000009_000017.html" title="2" alt="" coords="66,100,73,115"/>
 <area shape="rect" id="node3" href="dir_0b974e391fb3f3024b1f06092da5c188.html" title="gfx" alt="" coords="121,126,159,152"/>
@@ -15,7 +15,7 @@
 <area shape="rect" id="node6" href="dir_b7878ad5ecbf2506f4125b9d34c97e45.html" title="util" alt="" coords="327,126,366,152"/>
 <area shape="poly" id="edge5" href="dir_000009_000042.html" alt="" coords="97,71,191,91,313,123,312,128,190,97,96,76"/>
 <area shape="rect" id="edge5-headlabel" href="dir_000009_000042.html" title="1" alt="" coords="308,109,315,124"/>
-<area shape="rect" id="node7" href="dir_fcc5e025f1b672ef47e35e5c700d9477.html" title="core" alt="" coords="390,126,436,152"/>
+<area shape="rect" id="node7" href="dir_fcc5e025f1b672ef47e35e5c700d9477.html" title="core" alt="" coords="390,126,437,152"/>
 <area shape="poly" id="edge6" href="dir_000009_000005.html" alt="" coords="97,69,217,89,376,123,375,128,216,94,96,74"/>
 <area shape="rect" id="edge6-headlabel" href="dir_000009_000005.html" title="4" alt="" coords="371,109,378,124"/>
 <area shape="rect" id="clust1" href="dir_767a2d6ce89f966c317c25dc7e3aed5d.html" title="editor" alt="" coords="16,16,107,162"/>

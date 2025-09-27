@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,171,79"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#acb987b6083bdd73c3c666a396b9b6b54" title=" " alt="" coords="228,5,440,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,45,212,39,213,45,172,50"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#ae518e5c625da6fbe0b7346cf713b82a1" title=" " alt="" coords="219,71,449,111"/>
-<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="172,67,203,71,203,77,171,72"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1MockRom.html#a1856fc21b2900474fb7762cf1522734c" title=" " alt="" coords="566,5,706,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="440,23,550,23,550,28,440,28"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#aacf9d54aa8bc8ac6d7e63b6a9ab2f457" title=" " alt="" coords="497,71,775,111"/>
-<area shape="poly" id="edge4_Node000005_Node000006" title=" " alt="" coords="449,88,481,88,481,94,449,94"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#ae518e5c625da6fbe0b7346cf713b82a1" title=" " alt="" coords="219,71,449,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="172,67,203,71,203,77,171,72"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#aacf9d54aa8bc8ac6d7e63b6a9ab2f457" title=" " alt="" coords="497,37,775,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="449,76,481,72,481,77,450,81"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#adf31048c1448fe3671b3e27b124c2644" title=" " alt="" coords="504,103,768,143"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="450,101,489,105,488,110,449,106"/>
 </map>

@@ -1,5 +1,5 @@
 <map id="yaze::zelda3::Overworld::DecompressAllMapTiles" name="yaze::zelda3::Overworld::DecompressAllMapTiles">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,84,174,125"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,85,174,125"/>
 <area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a21be514360ade54dad0e52c660a3ced6" title=" " alt="" coords="222,5,443,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,82,172,61,221,41,248,33,249,38,223,46,174,65,131,87"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1Overworld.html#a11ca5c8b37be3963bda9ea548f0859d1" title=" " alt="" coords="255,55,410,96"/>

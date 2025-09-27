@@ -1,6 +1,6 @@
 <map id="yaze::emu::Cpu::ReadOpcodeWord" name="yaze::emu::Cpu::ReadOpcodeWord">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,31,224,56"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Cpu.html#a4c45992dd7b78d7f3c6e41c91e47dd72" title=" " alt="" coords="283,5,448,31"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Cpu.html#a4c45992dd7b78d7f3c6e41c91e47dd72" title=" " alt="" coords="283,5,449,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="224,30,267,25,268,31,224,35"/>
 <area shape="rect" id="Node000005" href="$classyaze_1_1emu_1_1Cpu.html#a44ce3b48fcbd8e3c100a649bf1372177" title=" " alt="" coords="272,55,460,80"/>
 <area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="224,51,257,54,256,60,224,57"/>

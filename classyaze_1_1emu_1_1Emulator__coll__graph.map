@@ -1,7 +1,7 @@
 <map id="yaze::emu::Emulator" name="yaze::emu::Emulator">
-<area shape="rect" id="Node000001" title="A class for emulating and debugging SNES games." alt="" coords="191,94,326,120"/>
+<area shape="rect" id="Node000001" title="A class for emulating and debugging SNES games." alt="" coords="191,94,327,120"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,5,86,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,35,170,68,229,91,227,96,169,72,88,40"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,35,230,91,228,96,88,40"/>
 <area shape="rect" id="Node000006" href="$classyaze_1_1emu_1_1Snes.html" title=" " alt="" coords="110,5,224,31"/>
 <area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="193,40,248,92,244,96,189,44"/>
 <area shape="rect" id="Node000027" href="$structyaze_1_1emu_1_1EmulatorKeybindings.html" title=" " alt="" coords="248,5,454,31"/>

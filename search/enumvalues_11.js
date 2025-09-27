@@ -29,7 +29,7 @@ var searchData=
   ['spriteitemcolumnid_5fname_26',['SpriteItemColumnID_Name',['../namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80a65ffedea0f77a0ca7032eb572f389b49',1,'yaze::editor']]],
   ['sprites_27',['SPRITES',['../classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea05a245c75cdf9b6a708bad83456be7be',1,'yaze::editor::OverworldEditor']]],
   ['stairs_28',['Stairs',['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a0b01cc688e1e0b5f6b70f858a1b389ae',1,'yaze::zelda3']]],
-  ['string_29',['String',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a27118326006d3829667a400ad23d5d98',1,'TextEditor::String'],['../namespaceyaze_1_1gui_1_1zeml.html#ab789223ff6fb457facc22ec1800678f1a27118326006d3829667a400ad23d5d98',1,'yaze::gui::zeml::String']]],
+  ['string_29',['string',['../classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a27118326006d3829667a400ad23d5d98',1,'TextEditor::String'],['../namespaceyaze_1_1gui_1_1zeml.html#ab789223ff6fb457facc22ec1800678f1a27118326006d3829667a400ad23d5d98',1,'yaze::gui::zeml::String']]],
   ['sw_5fkill_5fenemy_5ffor_5fchest_30',['SW_Kill_Enemy_for_Chest',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7e8d9bcb571b69f4f2cf9842e2e29f96',1,'yaze::zelda3']]],
   ['sw_5fkill_5fenemy_5fto_5fopen_31',['SW_Kill_Enemy_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0',1,'yaze::zelda3']]],
   ['sw_5fpush_5fblock_5fto_5fopen_32',['SW_Push_Block_to_Open',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab3bd809672191b35e4a2ecd5d213648e',1,'yaze::zelda3']]],

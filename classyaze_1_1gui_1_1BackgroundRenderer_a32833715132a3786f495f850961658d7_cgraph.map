@@ -1,11 +1,11 @@
 <map id="yaze::gui::BackgroundRenderer::DrawSettingsUI" name="yaze::gui::BackgroundRenderer::DrawSettingsUI">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,203,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="253,16,446,41"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,44,237,40,238,45,203,49"/>
-<area shape="rect" id="Node000020" href="$classyaze_1_1gui_1_1BackgroundRenderer.html#a399d6ee17ba199e6ed31fddb2b6e4a55" title=" " alt="" coords="251,67,448,107"/>
-<area shape="poly" id="edge3_Node000001_Node000020" title=" " alt="" coords="203,68,235,71,235,77,203,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gui_1_1ThemeManager.html#a4662c0c517873cda272f0ce0f27d13d2" title=" " alt="" coords="512,5,678,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="447,25,496,24,496,29,447,30"/>
-<area shape="rect" id="Node000021" href="$classyaze_1_1gui_1_1BackgroundRenderer.html#abd139a65c9ebe3408116de984210e791" title=" " alt="" coords="496,71,693,111"/>
-<area shape="poly" id="edge4_Node000020_Node000021" title=" " alt="" coords="448,86,480,86,480,92,448,91"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,203,68"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="253,5,446,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,33,237,29,238,34,203,38"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gui_1_1BackgroundRenderer.html#a399d6ee17ba199e6ed31fddb2b6e4a55" title=" " alt="" coords="251,55,448,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,56,235,60,235,65,203,61"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gui_1_1BackgroundRenderer.html#abd139a65c9ebe3408116de984210e791" title=" " alt="" coords="496,22,693,63"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="448,59,480,55,481,60,449,65"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1gui_1_1BackgroundRenderer.html#ab7ff8d735f6d3af29ec3382da3c2582d" title=" " alt="" coords="496,87,693,128"/>
+<area shape="poly" id="edge4_Node000003_Node000006" title=" " alt="" coords="449,86,481,90,480,95,448,91"/>
 </map>

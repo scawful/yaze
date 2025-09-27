@@ -1,14 +1,7 @@
 <map id="yaze::zelda3::RoomEntrance::Save" name="yaze::zelda3::RoomEntrance::Save">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,187,100"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a3f76910dd3716dc67f477e7da77cee33" title=" " alt="" coords="237,103,380,128"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,92,222,98,221,104,186,97"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html#ac1848b47fb6ac63afe391b562d1f09a9" title=" " alt="" coords="235,29,382,55"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="186,61,219,55,220,60,187,66"/>
-<area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="277,104,271,94,275,84,288,78,308,76,331,79,342,85,340,90,329,84,308,81,289,83,279,88,277,93,282,101"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="437,41,548,67"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="349,100,436,70,438,75,350,105"/>
-<area shape="rect" id="Node000004" href="$namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd" title=" " alt="" coords="430,103,555,128"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="380,113,414,113,414,118,380,118"/>
-<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="383,44,421,47,421,52,382,50"/>
-<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="277,30,271,21,275,11,288,5,308,3,331,5,342,12,340,16,329,10,308,8,289,10,279,15,277,20,282,27"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,187,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a3f76910dd3716dc67f477e7da77cee33" title=" " alt="" coords="237,5,380,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,30,222,26,222,31,187,35"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#ac1848b47fb6ac63afe391b562d1f09a9" title=" " alt="" coords="235,55,382,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,51,220,55,219,60,187,56"/>
 </map>

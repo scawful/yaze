@@ -1,11 +1,11 @@
 <map id="yaze::test::TestDungeonObjects::SetUp" name="yaze::test::TestDungeonObjects::SetUp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,209,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1TestDungeonObjects.html#a496db835149a933fa5995f30ff9bc6b2" title=" " alt="" coords="257,37,460,78"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,75,241,71,241,76,209,80"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1test_1_1TestDungeonObjects.html#aaa4a5f921e2a882a632d1965952981bb" title=" " alt="" coords="257,103,460,143"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="209,101,241,105,241,111,209,107"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,72,209,113"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1TestDungeonObjects.html#a496db835149a933fa5995f30ff9bc6b2" title=" " alt="" coords="257,39,460,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,76,241,72,241,77,209,81"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1test_1_1TestDungeonObjects.html#aaa4a5f921e2a882a632d1965952981bb" title=" " alt="" coords="257,104,460,145"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="209,103,241,107,241,112,209,108"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1TestDungeonObjects.html#a9ee9152be704d3f19339f6c732af4e10" title=" " alt="" coords="508,5,711,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="460,42,492,38,493,43,461,47"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="460,43,492,39,493,44,461,48"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1TestDungeonObjects.html#a051b3373b45a23bd2070badb1e5d8238" title=" " alt="" coords="508,71,711,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="461,69,493,73,492,78,460,74"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="461,69,493,73,492,79,460,75"/>
 </map>

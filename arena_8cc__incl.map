@@ -1,5 +1,5 @@
 <map id="src/app/gfx/arena.cc" name="src/app/gfx/arena.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="110,5,248,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="110,5,249,31"/>
 <area shape="rect" id="Node000002" href="$arena_8h.html" title=" " alt="" coords="33,79,142,105"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,34,116,72,113,67,162,29"/>
 <area shape="rect" id="Node000007" href="$sdl__deleter_8h.html" title=" " alt="" coords="78,153,222,193"/>

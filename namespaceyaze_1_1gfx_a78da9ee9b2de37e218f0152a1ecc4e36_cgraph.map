@@ -1,5 +1,6 @@
 <map id="yaze::gfx::ConvertRgbToSnes" name="yaze::gfx::ConvertRgbToSnes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,195,31"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="243,5,432,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,16,227,16,227,21,195,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,195,55"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="243,29,432,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,40,227,40,227,45,195,45"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="298,31,290,21,295,11,311,5,337,3,367,6,381,13,379,17,365,11,337,8,312,10,299,15,296,20,302,27"/>
 </map>

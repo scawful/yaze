@@ -1,7 +1,7 @@
 var searchData=
 [
   ['g_0',['g',['../structyaze_1_1emu_1_1Color.html#ad01d1926e6516da6fd95d83abeeef51b',1,'yaze::emu::Color']]],
-  ['gain_1',['gain',['../structyaze_1_1emu_1_1DspChannel.html#a57b53bcf44ba79f053709a3e98460278',1,'yaze::emu::DspChannel::gain'],['../structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#aa4af301988bfb597c0b145eaebb6a7c8',1,'yaze::zelda3::music::ZeldaInstrument::gain'],['../structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ab28173d4514df73c8c75a2a4e5bf6efe',1,'yaze::zelda3::music::ZeldaSfxInstrument::gain']]],
+  ['gain_1',['gain',['../structyaze_1_1emu_1_1DspChannel.html#a57b53bcf44ba79f053709a3e98460278',1,'yaze::emu::DspChannel::gain'],['../structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ab28173d4514df73c8c75a2a4e5bf6efe',1,'yaze::zelda3::music::ZeldaSfxInstrument::gain'],['../structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#aa4af301988bfb597c0b145eaebb6a7c8',1,'yaze::zelda3::music::ZeldaInstrument::gain']]],
   ['gainmode_2',['gainMode',['../structyaze_1_1emu_1_1DspChannel.html#ae844e3ed520a0de6b2ba824668a432be',1,'yaze::emu::DspChannel']]],
   ['gainsustainlevel_3',['gainSustainLevel',['../structyaze_1_1emu_1_1DspChannel.html#af8751bd9f8c23bb5793d4d0b72f7c42b',1,'yaze::emu::DspChannel']]],
   ['gainvalue_4',['gainValue',['../structyaze_1_1emu_1_1DspChannel.html#ad88eba5f2b686c5460c73f177feafeec',1,'yaze::emu::DspChannel']]],
@@ -26,8 +26,8 @@ var searchData=
   ['globalspritepalettesmax_23',['GlobalSpritePalettesMax',['../namespaceyaze_1_1gfx.html#afe60ec3ca1f7cc03b5ca2cc3eb0073aa',1,'yaze::gfx']]],
   ['grab_5frounding_24',['grab_rounding',['../structyaze_1_1gui_1_1EnhancedTheme.html#af1e9bb3f1250ba2af0c56c8017f0f3c6',1,'yaze::gui::EnhancedTheme']]],
   ['graphics_5fbin_5f_25',['graphics_bin_',['../classyaze_1_1editor_1_1DungeonEditor.html#ac3b5233f2e7563ef9c06eb1290861f93',1,'yaze::editor::DungeonEditor']]],
-  ['graphics_5fbin_5fcanvas_5f_26',['graphics_bin_canvas_',['../classyaze_1_1editor_1_1GraphicsEditor.html#af43d671e88e319d9a63aedeeb9d437c2',1,'yaze::editor::GraphicsEditor::graphics_bin_canvas_'],['../classyaze_1_1editor_1_1OverworldEditor.html#ad50b76ad7d4a49ac8f5ea1ce940e6b74',1,'yaze::editor::OverworldEditor::graphics_bin_canvas_']]],
-  ['graphics_5fbuffer_5f_27',['graphics_buffer_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a60173ccc66c96004f5194089ef4a3c67',1,'yaze::editor::GraphicsEditor::graphics_buffer_'],['../classyaze_1_1Rom.html#a973094927e5a266698d40d834fc26f5c',1,'yaze::Rom::graphics_buffer_'],['../classyaze_1_1test_1_1Rom.html#a973094927e5a266698d40d834fc26f5c',1,'yaze::test::Rom::graphics_buffer_']]],
+  ['graphics_5fbin_5fcanvas_5f_26',['graphics_bin_canvas_',['../classyaze_1_1editor_1_1OverworldEditor.html#ad50b76ad7d4a49ac8f5ea1ce940e6b74',1,'yaze::editor::OverworldEditor::graphics_bin_canvas_'],['../classyaze_1_1editor_1_1GraphicsEditor.html#af43d671e88e319d9a63aedeeb9d437c2',1,'yaze::editor::GraphicsEditor::graphics_bin_canvas_']]],
+  ['graphics_5fbuffer_5f_27',['graphics_buffer_',['../classyaze_1_1Rom.html#a973094927e5a266698d40d834fc26f5c',1,'yaze::Rom::graphics_buffer_'],['../classyaze_1_1editor_1_1GraphicsEditor.html#a60173ccc66c96004f5194089ef4a3c67',1,'yaze::editor::GraphicsEditor::graphics_buffer_']]],
   ['graphics_5fcache_5f_28',['graphics_cache_',['../classyaze_1_1zelda3_1_1ObjectRenderer.html#a95de9a448259105e4fa5e9c17f6b9029',1,'yaze::zelda3::ObjectRenderer']]],
   ['graphics_5feditor_5f_29',['graphics_editor_',['../classyaze_1_1editor_1_1EditorSet.html#a75df97875600232e9193257a7c59a06a',1,'yaze::editor::EditorSet']]],
   ['graphics_5fsheet_5fcanvas_5f_30',['graphics_sheet_canvas_',['../classyaze_1_1editor_1_1SpriteEditor.html#a8c293cb8f9614047490cd0f558008610',1,'yaze::editor::SpriteEditor']]],
@@ -42,9 +42,9 @@ var searchData=
   ['gravesxtilepos_39',['GravesXTilePos',['../namespaceyaze_1_1zelda3.html#a554d0eb204588c14ad301e2958adf3cb',1,'yaze::zelda3']]],
   ['gravesyline_40',['GravesYLine',['../namespaceyaze_1_1zelda3.html#a45fdc1e0186598f0b52125907fbb1e2f',1,'yaze::zelda3']]],
   ['gravesytilepos_41',['GravesYTilePos',['../namespaceyaze_1_1zelda3.html#aeb1d1905adc848ab69a769e094b2ef2d',1,'yaze::zelda3']]],
-  ['green_42',['green',['../structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4',1,'snes_color::green'],['../structyaze_1_1gui_1_1Color.html#afff6ec23c27d488cfb0ed0a59b19fde5',1,'yaze::gui::Color::green']]],
+  ['green_42',['green',['../structyaze_1_1gui_1_1Color.html#afff6ec23c27d488cfb0ed0a59b19fde5',1,'yaze::gui::Color::green'],['../structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4',1,'snes_color::green']]],
   ['grid_5fenabled_5f_43',['grid_enabled_',['../classyaze_1_1gui_1_1DockSpaceRenderer.html#a1238f2bbcf78996f404ebfab58f81102',1,'yaze::gui::DockSpaceRenderer']]],
   ['grid_5fsettings_5f_44',['grid_settings_',['../classyaze_1_1gui_1_1BackgroundRenderer.html#ac2e11efdabb822f6e600d0a8dba1c60d',1,'yaze::gui::BackgroundRenderer']]],
-  ['grid_5fsize_45',['grid_size',['../structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#a00f0cd30fd28811da5447f36ecafc453',1,'yaze::gui::BackgroundRenderer::GridSettings::grid_size'],['../structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#af73446fd5f2f4a239c05b0be50ac5938',1,'yaze::zelda3::DungeonObjectEditor::EditorConfig::grid_size']]],
+  ['grid_5fsize_45',['grid_size',['../structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#af73446fd5f2f4a239c05b0be50ac5938',1,'yaze::zelda3::DungeonObjectEditor::EditorConfig::grid_size'],['../structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#a00f0cd30fd28811da5447f36ecafc453',1,'yaze::gui::BackgroundRenderer::GridSettings::grid_size']]],
   ['group_5fname_46',['group_name',['../structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a320ea66f9d77d77ad1397920fe67e0c2',1,'yaze::editor::palette_internal::PaletteChange']]]
 ];

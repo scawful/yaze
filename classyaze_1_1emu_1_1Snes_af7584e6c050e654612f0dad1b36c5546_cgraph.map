@@ -1,7 +1,0 @@
-<map id="yaze::emu::Snes::RunCycle" name="yaze::emu::Snes::RunCycle">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,181,56"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1Snes.html#a13d98a97fa3608fb26f6063aa0685b8a" title=" " alt="" coords="229,5,423,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,31,213,28,214,33,181,37"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1Snes.html#aef67cb2aaaa77f7f1c9ef01b4e198ec3" title=" " alt="" coords="231,55,421,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,50,215,53,215,59,180,55"/>
-</map>

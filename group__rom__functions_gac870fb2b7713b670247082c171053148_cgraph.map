@@ -1,5 +1,0 @@
-<map id="yaze_load_rom" name="yaze_load_rom">
-<area shape="rect" id="Node000001" title="Load a ROM file." alt="" coords="5,5,113,31"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="161,5,272,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,16,145,16,145,21,113,21"/>
-</map>

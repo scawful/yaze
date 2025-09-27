@@ -1,14 +1,9 @@
 <map id="yaze::editor::OverworldEditor::RefreshOverworldMap" name="yaze::editor::OverworldEditor::RefreshOverworldMap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,189,120"/>
-<area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="53,79,51,69,58,60,74,55,97,53,122,55,137,61,135,66,121,60,97,58,75,60,62,64,56,70,59,78"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="262,5,394,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,76,236,41,260,33,261,38,238,46,147,81"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="237,79,420,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,97,221,97,221,102,189,102"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title=" " alt="" coords="260,144,396,185"/>
-<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="172,118,246,139,244,144,171,123"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="290,79,288,69,294,60,308,55,328,53,350,55,363,61,361,66,349,60,328,58,309,60,298,64,293,70,295,78"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="468,144,591,185"/>
-<area shape="poly" id="edge6_Node000004_Node000005" title=" " alt="" coords="397,162,453,162,453,168,397,168"/>
-<area shape="poly" id="edge7_Node000005_Node000005" title=" " alt="" coords="491,144,490,135,496,126,509,120,530,118,552,120,565,126,562,131,550,125,530,123,511,125,499,130,495,136,497,143"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,189,68"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="237,5,400,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,33,221,28,222,34,190,38"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title=" " alt="" coords="250,55,387,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,56,236,62,235,68,189,62"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="448,55,571,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="387,73,433,73,433,78,387,78"/>
 </map>

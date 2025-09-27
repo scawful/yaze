@@ -1,8 +1,8 @@
 <map id="yaze::test::Spc700Test" name="yaze::test::Spc700Test">
-<area shape="rect" id="Node000001" title=" " alt="" coords="70,198,222,223"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="71,198,222,223"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,109,98,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,143,135,195,131,199,74,147"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1emu_1_1ApuCallbacks.html" title=" " alt="" coords="64,13,228,38"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1emu_1_1ApuCallbacks.html" title=" " alt="" coords="64,13,228,39"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="149,54,149,197,144,197,144,54"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1Spc700.html" title="The Spc700 class represents the SPC700 processor." alt="" coords="235,109,364,135"/>
 <area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="179,45,239,83,279,106,277,111,236,87,176,50"/>
