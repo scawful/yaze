@@ -43,6 +43,7 @@ if(NOT YAZE_MINIMAL_BUILD)
     ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
     ${CMAKE_SOURCE_DIR}/incl/
     ${CMAKE_SOURCE_DIR}/src/
+    ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
     ${PNG_INCLUDE_DIRS}
     ${SDL2_INCLUDE_DIR}
     ${PROJECT_BINARY_DIR}
