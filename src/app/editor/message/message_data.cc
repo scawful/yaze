@@ -27,7 +27,7 @@ int8_t FindDictionaryEntry(uint8_t value) {
 }
 
 std::optional<TextElement> FindMatchingCommand(uint8_t b) {
-  for (const auto &text_element : TextCommands) {
+  for (const auto& text_element : TextCommands) {
     if (text_element.ID == b) {
       return text_element;
     }
@@ -37,7 +37,7 @@ std::optional<TextElement> FindMatchingCommand(uint8_t b) {
 
 std::optional<TextElement> FindMatchingSpecial(uint8_t value) {
   auto it = std::ranges::find_if(SpecialChars,
-                                 [value](const TextElement &text_element) {
+                                 [value](const TextElement& text_element) {
                                    return text_element.ID == value;
                                  });
   if (it != SpecialChars.end()) {
@@ -46,12 +46,12 @@ std::optional<TextElement> FindMatchingSpecial(uint8_t value) {
   return std::nullopt;
 }
 
-ParsedElement FindMatchingElement(const std::string &str) {
+ParsedElement FindMatchingElement(const std::string& str) {
   std::smatch match;
   std::vector<TextElement> commands_and_chars = TextCommands;
   commands_and_chars.insert(commands_and_chars.end(), SpecialChars.begin(),
                             SpecialChars.end());
-  for (auto &text_element : commands_and_chars) {
+  for (auto& text_element : commands_and_chars) {
     match = text_element.MatchMe(str);
     if (match.size() > 0) {
       if (text_element.HasArgument) {
@@ -148,7 +148,7 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
   return bytes;
 }
 
-std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom) {
+std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom) {
   std::vector<DictionaryEntry> AllDictionaries;
   for (int i = 0; i < kNumDictionaryEntries; i++) {
     std::vector<uint8_t> bytes;
@@ -173,7 +173,7 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom) {
   }
 
   std::ranges::sort(AllDictionaries,
-                    [](const DictionaryEntry &a, const DictionaryEntry &b) {
+                    [](const DictionaryEntry& a, const DictionaryEntry& b) {
                       return a.Contents.size() > b.Contents.size();
                     });
 
@@ -183,7 +183,7 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom *rom) {
 std::string ReplaceAllDictionaryWords(std::string str,
                                       std::vector<DictionaryEntry> dictionary) {
   std::string temp = str;
-  for (const auto &entry : dictionary) {
+  for (const auto& entry : dictionary) {
     if (entry.ContainedInString(temp)) {
       temp = entry.ReplaceInstancesOfIn(temp);
     }
@@ -193,7 +193,7 @@ std::string ReplaceAllDictionaryWords(std::string str,
 
 DictionaryEntry FindRealDictionaryEntry(
     uint8_t value, std::vector<DictionaryEntry> dictionary) {
-  for (const auto &entry : dictionary) {
+  for (const auto& entry : dictionary) {
     if (entry.ID + DICTOFF == value) {
       return entry;
     }
@@ -202,7 +202,7 @@ DictionaryEntry FindRealDictionaryEntry(
 }
 
 absl::StatusOr<MessageData> ParseSingleMessage(
-    const std::vector<uint8_t> &rom_data, int *current_pos) {
+    const std::vector<uint8_t>& rom_data, int* current_pos) {
   MessageData message_data;
   int pos = *current_pos;
   uint8_t current_byte;
@@ -253,7 +253,7 @@ absl::StatusOr<MessageData> ParseSingleMessage(
       current_message_raw.append(util::HexWord(dictionary));
       current_message_raw.append("]");
 
-      auto mutable_rom_data = const_cast<uint8_t *>(rom_data.data());
+      auto mutable_rom_data = const_cast<uint8_t*>(rom_data.data());
       uint32_t address = Get24LocalFromPC(
           mutable_rom_data, kPointersDictionaries + (dictionary * 2));
       uint32_t address_end = Get24LocalFromPC(
@@ -282,20 +282,20 @@ absl::StatusOr<MessageData> ParseSingleMessage(
 }
 
 std::vector<std::string> ParseMessageData(
-    std::vector<MessageData> &message_data,
-    const std::vector<DictionaryEntry> &dictionary_entries) {
+    std::vector<MessageData>& message_data,
+    const std::vector<DictionaryEntry>& dictionary_entries) {
   std::vector<std::string> parsed_messages;
 
-  for (auto &message : message_data) {
+  for (auto& message : message_data) {
     std::string parsed_message = "";
     int pos = 0;
-    for (const uint8_t &byte : message.Data) {
+    for (const uint8_t& byte : message.Data) {
       if (CharEncoder.contains(byte)) {
         parsed_message.push_back(CharEncoder.at(byte));
       } else {
         if (byte >= DICTOFF && byte < (DICTOFF + 97)) {
           DictionaryEntry dic_entry;
-          for (const auto &entry : dictionary_entries) {
+          for (const auto& entry : dictionary_entries) {
             if (entry.ID == byte - DICTOFF) {
               dic_entry = entry;
               break;
@@ -333,7 +333,7 @@ std::vector<std::string> ParseMessageData(
   return parsed_messages;
 }
 
-std::vector<MessageData> ReadAllTextData(uint8_t *rom, int pos) {
+std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos) {
   std::vector<MessageData> list_of_texts;
   int message_id = 0;
 
@@ -420,10 +420,10 @@ std::vector<MessageData> ReadAllTextData(uint8_t *rom, int pos) {
   return list_of_texts;
 }
 
-absl::Status LoadExpandedMessages(std::string &expanded_message_path,
-                                  std::vector<std::string> &parsed_messages,
-                                  std::vector<MessageData> &expanded_messages,
-                                  std::vector<DictionaryEntry> &dictionary) {
+absl::Status LoadExpandedMessages(std::string& expanded_message_path,
+                                  std::vector<std::string>& parsed_messages,
+                                  std::vector<MessageData>& expanded_messages,
+                                  std::vector<DictionaryEntry>& dictionary) {
   static Rom expanded_message_rom;
   if (!expanded_message_rom.LoadFromFile(expanded_message_path, false).ok()) {
     return absl::InternalError("Failed to load expanded message ROM");
@@ -432,7 +432,7 @@ absl::Status LoadExpandedMessages(std::string &expanded_message_path,
   auto parsed_expanded_messages =
       ParseMessageData(expanded_messages, dictionary);
   // Insert into parsed_messages
-  for (const auto &expanded_message : expanded_messages) {
+  for (const auto& expanded_message : expanded_messages) {
     parsed_messages.push_back(parsed_expanded_messages[expanded_message.ID]);
   }
   return absl::OkStatus();
