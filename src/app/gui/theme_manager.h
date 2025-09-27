@@ -105,6 +105,13 @@ struct EnhancedTheme {
   Color plot_lines_hovered;
   Color plot_histogram;
   Color plot_histogram_hovered;
+  Color tree_lines;
+  
+  // Additional ImGui colors for complete coverage
+  Color tab_dimmed;
+  Color tab_dimmed_selected;
+  Color tab_dimmed_selected_overline;
+  Color tab_selected_overline;
   
   // Style parameters
   float window_rounding = 0.0f;
