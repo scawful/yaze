@@ -844,8 +844,11 @@ void OverworldEditor::CheckForSelectRectangle() {
     }
   }
   // Create a composite image of all the tile16s selected
-  if (!tile16_ids.empty()) {
-    ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_blockset_, 0x10, ow_map_canvas_.global_scale());
+  if (!tile16_ids.empty() && map_blockset_loaded_) {
+    // Ensure the tilemap is ready before drawing
+    if (tile16_blockset_.atlas.is_active()) {
+      ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_blockset_, 0x10, ow_map_canvas_.global_scale());
+    }
   }
 }
 
@@ -1008,6 +1011,15 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
       ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     RefreshOverworldMap();
     RETURN_IF_ERROR(RefreshTile16Blockset());
+    
+    // Ensure tile16 blockset is fully updated before rendering
+    if (tile16_blockset_.atlas.is_active()) {
+      Renderer::Get().UpdateBitmap(&tile16_blockset_.atlas);
+      
+      // Clear any cached tile bitmaps to force re-rendering
+      tile16_blockset_.tile_bitmaps.clear();
+    }
+    
     Renderer::Get().UpdateBitmap(&maps_bmp_[current_map_]);
     maps_bmp_[current_map_].set_modified(false);
   }

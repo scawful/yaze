@@ -745,6 +745,20 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
     return;
   }
 
+  // Pre-render all tiles to avoid timing issues
+  auto tilemap_size = tilemap.atlas.width() * tilemap.atlas.height() / tilemap.map_size.x;
+  for (int tile_id : group) {
+    if (tile_id >= 0 && tile_id < tilemap_size) {
+      gfx::RenderTile(tilemap, tile_id);
+      
+      // Ensure the tile is actually rendered and active
+      auto tile_it = tilemap.tile_bitmaps.find(tile_id);
+      if (tile_it != tilemap.tile_bitmaps.end() && !tile_it->second.is_active()) {
+        core::Renderer::Get().RenderBitmap(&tile_it->second);
+      }
+    }
+  }
+
   // Top-left and bottom-right corners of the rectangle
   ImVec2 rect_top_left = selected_points_[0];
   ImVec2 rect_bottom_right = selected_points_[1];
@@ -789,8 +803,21 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
 
         // Draw the tile bitmap at the calculated position
         gfx::RenderTile(tilemap, tile_id);
-        if (tilemap.tile_bitmaps.find(tile_id) != tilemap.tile_bitmaps.end()) {
-          DrawBitmap(tilemap.tile_bitmaps[tile_id], tile_pos_x, tile_pos_y, scale, 150);
+        
+        // Ensure the tile bitmap exists and is properly rendered
+        auto tile_it = tilemap.tile_bitmaps.find(tile_id);
+        if (tile_it != tilemap.tile_bitmaps.end()) {
+          auto& tile_bitmap = tile_it->second;
+          // Ensure the bitmap is active before drawing
+          if (tile_bitmap.is_active()) {
+            DrawBitmap(tile_bitmap, tile_pos_x, tile_pos_y, scale, 150);
+          } else {
+            // Force render if not active
+            core::Renderer::Get().RenderBitmap(&tile_bitmap);
+            if (tile_bitmap.is_active()) {
+              DrawBitmap(tile_bitmap, tile_pos_x, tile_pos_y, scale, 150);
+            }
+          }
         }
       }
       i++;
