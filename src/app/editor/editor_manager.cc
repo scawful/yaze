@@ -763,30 +763,15 @@ absl::Status EditorManager::Update() {
   
   // Check if current ROM is valid
   if (!current_rom_) {
-    // Only auto-show welcome screen if it hasn't been manually closed
-    if (!welcome_screen_manually_closed_) {
+    // Only show welcome screen for truly empty state, not when ROM is loaded but current_rom_ is null
+    if (sessions_.empty() && !welcome_screen_manually_closed_) {
       show_welcome_screen_ = true;
     }
     return absl::OkStatus();
   }
   
-  // Check if any editors are active across ALL sessions
-  bool any_editor_active = false;
-  for (const auto& session : sessions_) {
-    if (!session.rom.is_loaded()) continue;
-    for (auto editor : session.editors.active_editors_) {
-      if (*editor->active()) {
-        any_editor_active = true;
-        break;
-      }
-    }
-    if (any_editor_active) break;
-  }
-  
-  // Only auto-show welcome screen if no editors are active AND it hasn't been manually closed
-  if (!any_editor_active && !welcome_screen_manually_closed_) {
-    show_welcome_screen_ = true;
-  }
+  // ROM is loaded and valid - don't auto-show welcome screen
+  // Welcome screen should only be shown manually at this point
   
   // Iterate through ALL sessions to support multi-session docking
   for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
@@ -818,6 +803,21 @@ absl::Status EditorManager::Update() {
           current_editor_ = editor;
           
           status_ = editor->Update();
+          
+          // Route editor errors to toast manager
+          if (!status_.ok()) {
+            std::string editor_name = "Editor"; // Get actual editor name if available
+            if (editor == &session.editors.overworld_editor_) editor_name = "Overworld Editor";
+            else if (editor == &session.editors.dungeon_editor_) editor_name = "Dungeon Editor";
+            else if (editor == &session.editors.sprite_editor_) editor_name = "Sprite Editor";
+            else if (editor == &session.editors.graphics_editor_) editor_name = "Graphics Editor";
+            else if (editor == &session.editors.music_editor_) editor_name = "Music Editor";
+            else if (editor == &session.editors.palette_editor_) editor_name = "Palette Editor";
+            else if (editor == &session.editors.screen_editor_) editor_name = "Screen Editor";
+            
+            toast_manager_.Show(absl::StrFormat("%s Error: %s", editor_name, status_.message()), 
+                               editor::ToastType::kError, 8.0f);
+          }
           
           // Restore context
           current_rom_ = prev_rom;
@@ -1285,6 +1285,13 @@ void EditorManager::DrawMenuBar() {
   if (show_palette_editor_ && current_editor_set_) {
     Begin("Palette Editor", &show_palette_editor_);
     status_ = current_editor_set_->palette_editor_.Update();
+    
+    // Route palette editor errors to toast manager
+    if (!status_.ok()) {
+      toast_manager_.Show(absl::StrFormat("Palette Editor Error: %s", status_.message()), 
+                         editor::ToastType::kError, 8.0f);
+    }
+    
     End();
   }
 
@@ -1514,8 +1521,8 @@ absl::Status EditorManager::LoadRom() {
   manager.Save();
   RETURN_IF_ERROR(LoadAssets());
 
-  // Reset welcome screen state when ROM is loaded
-  welcome_screen_manually_closed_ = false;
+  // Hide welcome screen when ROM is successfully loaded - don't reset manual close state
+  show_welcome_screen_ = false;
 
   return absl::OkStatus();
 }

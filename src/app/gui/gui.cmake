@@ -3,6 +3,8 @@ set(
   app/gui/modules/asset_browser.cc
   app/gui/modules/text_editor.cc
   app/gui/canvas.cc
+  app/gui/canvas_utils.cc
+  app/gui/enhanced_palette_editor.cc
   app/gui/input.cc
   app/gui/style.cc
   app/gui/color.cc

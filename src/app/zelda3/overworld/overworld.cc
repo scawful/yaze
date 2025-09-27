@@ -2,9 +2,9 @@
 
 #include <algorithm>
 #include <future>
+#include <set>
 #include <unordered_map>
 #include <vector>
-#include <set>
 
 #include "absl/status/status.h"
 #include "app/core/features.h"
@@ -19,7 +19,7 @@
 namespace yaze {
 namespace zelda3 {
 
-absl::Status Overworld::Load(Rom *rom) {
+absl::Status Overworld::Load(Rom* rom) {
   if (rom->size() == 0) {
     return absl::InvalidArgumentError("ROM file not loaded");
   }
@@ -103,7 +103,7 @@ void Overworld::FetchLargeMaps() {
 }
 
 absl::StatusOr<uint16_t> Overworld::GetTile16ForTile32(
-    int index, int quadrant, int dimension, const uint32_t *map32address) {
+    int index, int quadrant, int dimension, const uint32_t* map32address) {
   ASSIGN_OR_RETURN(
       auto arg1, rom()->ReadByte(map32address[dimension] + quadrant + (index)));
   ASSIGN_OR_RETURN(auto arg2,
@@ -120,11 +120,12 @@ absl::Status Overworld::AssembleMap32Tiles() {
                               rom()->version_constants().kMap32TileTR,
                               rom()->version_constants().kMap32TileBL,
                               rom()->version_constants().kMap32TileBR};
-  
+
   // Use ASM version to determine expanded tile32 support, with flag as override
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_custom_overworld = (asm_version != 0xFF) || 
-                              core::FeatureFlags::get().overworld.kLoadCustomOverworld;
+  bool use_custom_overworld =
+      (asm_version != 0xFF) ||
+      core::FeatureFlags::get().overworld.kLoadCustomOverworld;
   if (rom()->data()[kMap32ExpandedFlagPos] != 0x04 && use_custom_overworld) {
     map32address[0] = rom()->version_constants().kMap32TileTL;
     map32address[1] = kMap32TileTRExpanded;
@@ -173,11 +174,12 @@ absl::Status Overworld::AssembleMap32Tiles() {
 absl::Status Overworld::AssembleMap16Tiles() {
   int tpos = kMap16Tiles;
   int num_tile16 = kNumTile16Individual;
-  
+
   // Use ASM version to determine expanded tile16 support, with flag as override
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_custom_overworld = (asm_version != 0xFF) || 
-                              core::FeatureFlags::get().overworld.kLoadCustomOverworld;
+  bool use_custom_overworld =
+      (asm_version != 0xFF) ||
+      core::FeatureFlags::get().overworld.kLoadCustomOverworld;
   if (rom()->data()[kMap16ExpandedFlagPos] != 0x0F && use_custom_overworld) {
     tpos = kMap16TilesExpanded;
     num_tile16 = NumberOfMap16Ex;
@@ -203,7 +205,7 @@ absl::Status Overworld::AssembleMap16Tiles() {
 }
 
 void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
-                                 OverworldBlockset &world) {
+                                 OverworldBlockset& world) {
   int position_x1 = (x * 2) + (sx * 32);
   int position_y1 = (y * 2) + (sy * 32);
   int position_x2 = (x * 2) + 1 + (sx * 32);
@@ -214,9 +216,9 @@ void Overworld::AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
   world[position_x2][position_y2] = tiles32_unique_[tpos].tile3_;
 }
 
-void Overworld::OrganizeMapTiles(std::vector<uint8_t> &bytes,
-                                 std::vector<uint8_t> &bytes2, int i, int sx,
-                                 int sy, int &ttpos) {
+void Overworld::OrganizeMapTiles(std::vector<uint8_t>& bytes,
+                                 std::vector<uint8_t>& bytes2, int i, int sx,
+                                 int sy, int& ttpos) {
   for (int y = 0; y < 16; y++) {
     for (int x = 0; x < 16; x++) {
       auto tidD = (uint16_t)((bytes2[ttpos] << 8) + bytes[ttpos]);
@@ -258,11 +260,15 @@ void Overworld::DecompressAllMapTiles() {
 
     int ttpos = 0;
 
-    if (p1 >= highest) highest = p1;
-    if (p2 >= highest) highest = p2;
+    if (p1 >= highest)
+      highest = p1;
+    if (p2 >= highest)
+      highest = p2;
 
-    if (p1 <= lowest && p1 > kBaseHighest) lowest = p1;
-    if (p2 <= lowest && p2 > kBaseHighest) lowest = p2;
+    if (p1 <= lowest && p1 > kBaseHighest)
+      lowest = p1;
+    if (p2 <= lowest && p2 > kBaseHighest)
+      lowest = p2;
 
     int size1, size2;
     auto bytes = gfx::HyruleMagicDecompress(rom()->data() + p2, &size1, 1);
@@ -302,7 +308,7 @@ absl::Status Overworld::LoadOverworldMaps() {
   }
 
   // Wait for all tasks to complete and check their results
-  for (auto &future : futures) {
+  for (auto& future : futures) {
     future.wait();
     RETURN_IF_ERROR(future.get());
   }
@@ -321,12 +327,14 @@ absl::Status Overworld::LoadEntrances() {
   int ow_entrance_pos_ptr = kOverworldEntrancePos;
   int ow_entrance_id_ptr = kOverworldEntranceEntranceId;
   int num_entrances = 129;
-  
+
   // Use ASM version to determine expanded entrance support, with flag as override
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_custom_overworld = (asm_version != 0xFF) || 
-                              core::FeatureFlags::get().overworld.kLoadCustomOverworld;
-  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8 && use_custom_overworld) {
+  bool use_custom_overworld =
+      (asm_version != 0xFF) ||
+      core::FeatureFlags::get().overworld.kLoadCustomOverworld;
+  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8 &&
+      use_custom_overworld) {
     ow_entrance_map_ptr = kOverworldEntranceMapExpanded;
     ow_entrance_pos_ptr = kOverworldEntrancePosExpanded;
     ow_entrance_id_ptr = kOverworldEntranceEntranceIdExpanded;
@@ -439,24 +447,29 @@ absl::Status Overworld::LoadItems() {
 
   // Version 0x03 of the OW ASM added item support for the SW.
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  
+
   // Determine max number of overworld maps based on ASM version
-  int max_ow = (asm_version >= 0x03 && asm_version != 0xFF) ? kNumOverworldMaps : 0x80;
-  
-  ASSIGN_OR_RETURN(uint32_t pointer_snes, 
+  int max_ow =
+      (asm_version >= 0x03 && asm_version != 0xFF) ? kNumOverworldMaps : 0x80;
+
+  ASSIGN_OR_RETURN(uint32_t pointer_snes,
                    rom()->ReadLong(zelda3::overworldItemsAddress));
-  uint32_t item_pointer_address = SnesToPc(pointer_snes);  // 0x1BC2F9 -> 0x0DC2F9
-  
+  uint32_t item_pointer_address =
+      SnesToPc(pointer_snes);  // 0x1BC2F9 -> 0x0DC2F9
+
   for (int i = 0; i < max_ow; i++) {
-    ASSIGN_OR_RETURN(uint8_t bank_byte, rom()->ReadByte(zelda3::overworldItemsAddressBank));
+    ASSIGN_OR_RETURN(uint8_t bank_byte,
+                     rom()->ReadByte(zelda3::overworldItemsAddressBank));
     int bank = bank_byte & 0x7F;
-    
-    ASSIGN_OR_RETURN(uint8_t addr_low, rom()->ReadByte(item_pointer_address + (i * 2)));
-    ASSIGN_OR_RETURN(uint8_t addr_high, rom()->ReadByte(item_pointer_address + (i * 2) + 1));
-    
-    uint32_t addr = (bank << 16) +     // 1B
-                    (addr_high << 8) + // F9  
-                    addr_low;          // 3C
+
+    ASSIGN_OR_RETURN(uint8_t addr_low,
+                     rom()->ReadByte(item_pointer_address + (i * 2)));
+    ASSIGN_OR_RETURN(uint8_t addr_high,
+                     rom()->ReadByte(item_pointer_address + (i * 2) + 1));
+
+    uint32_t addr = (bank << 16) +      // 1B
+                    (addr_high << 8) +  // F9
+                    addr_low;           // 3C
     addr = SnesToPc(addr);
 
     // Check if this is a large map and skip if not the parent
@@ -499,12 +512,13 @@ absl::Status Overworld::LoadItems() {
 
 absl::Status Overworld::LoadSprites() {
   std::vector<std::future<absl::Status>> futures;
-  
+
   // Use ASM version to determine sprite table locations, with flag as override
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_custom_overworld = (asm_version != 0xFF) || 
-                              core::FeatureFlags::get().overworld.kLoadCustomOverworld;
-  
+  bool use_custom_overworld =
+      (asm_version != 0xFF) ||
+      core::FeatureFlags::get().overworld.kLoadCustomOverworld;
+
   if (use_custom_overworld && asm_version >= 3 && asm_version != 0xFF) {
     // v3: Use expanded sprite tables
     futures.emplace_back(std::async(std::launch::async, [this]() {
@@ -529,7 +543,7 @@ absl::Status Overworld::LoadSprites() {
     }));
   }
 
-  for (auto &future : futures) {
+  for (auto& future : futures) {
     future.wait();
     RETURN_IF_ERROR(future.get());
   }
@@ -540,7 +554,8 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
                                            int num_maps_per_gamestate,
                                            int game_state) {
   for (int i = 0; i < num_maps_per_gamestate; i++) {
-    if (map_parent_[i] != i) continue;
+    if (map_parent_[i] != i)
+      continue;
 
     int current_spr_ptr = sprites_per_gamestate_ptr + (i * 2);
     ASSIGN_OR_RETURN(auto word_addr, rom()->ReadWord(current_spr_ptr));
@@ -549,7 +564,8 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
       ASSIGN_OR_RETURN(uint8_t b1, rom()->ReadByte(sprite_address));
       ASSIGN_OR_RETURN(uint8_t b2, rom()->ReadByte(sprite_address + 1));
       ASSIGN_OR_RETURN(uint8_t b3, rom()->ReadByte(sprite_address + 2));
-      if (b1 == 0xFF) break;
+      if (b1 == 0xFF)
+        break;
 
       int editor_map_index = i;
       if (game_state != 0) {
@@ -575,12 +591,18 @@ absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
   return absl::OkStatus();
 }
 
-absl::Status Overworld::Save(Rom *rom) {
+absl::Status Overworld::Save(Rom* rom) {
   rom_ = rom;
-  if (expanded_tile16_) RETURN_IF_ERROR(SaveMap16Expanded())
-  RETURN_IF_ERROR(SaveMap16Tiles())
-  if (expanded_tile32_) RETURN_IF_ERROR(SaveMap32Expanded())
-  RETURN_IF_ERROR(SaveMap32Tiles())
+  if (expanded_tile16_) {
+    RETURN_IF_ERROR(SaveMap16Expanded())
+  } else {
+    RETURN_IF_ERROR(SaveMap16Tiles())
+  }
+  if (expanded_tile32_) {
+    RETURN_IF_ERROR(SaveMap32Expanded())
+  } else {
+    RETURN_IF_ERROR(SaveMap32Tiles())
+  }
   RETURN_IF_ERROR(SaveOverworldMaps())
   RETURN_IF_ERROR(SaveEntrances())
   RETURN_IF_ERROR(SaveExits())
@@ -635,8 +657,8 @@ absl::Status Overworld::SaveOverworldMaps() {
       pos = kOverworldMapDataOverflow;  // 0x0F8780;
     }
 
-    const auto compare_array = [](const std::vector<uint8_t> &array1,
-                                  const std::vector<uint8_t> &array2) -> bool {
+    const auto compare_array = [](const std::vector<uint8_t>& array1,
+                                  const std::vector<uint8_t>& array2) -> bool {
       if (array1.size() != array2.size()) {
         return false;
       }
@@ -750,7 +772,7 @@ absl::Status Overworld::SaveLargeMaps() {
     // 0x200 otherwise pos * 0x200
     if (overworld_maps_[i].is_large_map()) {
       const uint8_t large_map_offsets[] = {0, 1, 8, 9};
-      for (const auto &offset : large_map_offsets) {
+      for (const auto& offset : large_map_offsets) {
         // Check 1
         RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapSize + i + offset, 0x20));
         // Check 2
@@ -1048,7 +1070,7 @@ absl::Status Overworld::SaveLargeMaps() {
 }
 
 namespace {
-std::vector<uint64_t> GetAllTile16(OverworldMapTiles &map_tiles_) {
+std::vector<uint64_t> GetAllTile16(OverworldMapTiles& map_tiles_) {
   std::vector<uint64_t> all_tile_16;  // Ensure it's 64 bits
 
   int sx = 0;
@@ -1199,6 +1221,127 @@ absl::Status Overworld::SaveMap32Expanded() {
       rom()->WriteLong(0x017788, PcToSnes(kMap32TileBRExpanded + 4)));
   RETURN_IF_ERROR(
       rom()->WriteLong(0x01779A, PcToSnes(kMap32TileBRExpanded + 5)));
+
+  constexpr int kTilesPer32x32Tile = 6;
+  int unique_tile_index = 0;
+  int num_unique_tiles = tiles32_unique_.size();
+
+  for (int i = 0; i < num_unique_tiles; i += kTilesPer32x32Tile) {
+    if (unique_tile_index >= limit) {
+      return absl::AbortedError("Too many unique tile32 definitions.");
+    }
+
+    // Top Left.
+    auto top_left = rom()->version_constants().kMap32TileTL;
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_left + i,
+        (uint8_t)(tiles32_unique_[unique_tile_index].tile0_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_left + (i + 1),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 1].tile0_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_left + (i + 2),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 2].tile0_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_left + (i + 3),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 3].tile0_ & 0xFF)));
+
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_left + (i + 4),
+        (uint8_t)(((tiles32_unique_[unique_tile_index].tile0_ >> 4) & 0xF0) +
+                  ((tiles32_unique_[unique_tile_index + 1].tile0_ >> 8) &
+                   0x0F))));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_left + (i + 5),
+        (uint8_t)(((tiles32_unique_[unique_tile_index + 2].tile0_ >> 4) &
+                   0xF0) +
+                  ((tiles32_unique_[unique_tile_index + 3].tile0_ >> 8) &
+                   0x0F))));
+
+    // Top Right.
+    auto top_right = topRight;
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_right + i,
+        (uint8_t)(tiles32_unique_[unique_tile_index].tile1_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_right + (i + 1),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 1].tile1_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_right + (i + 2),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 2].tile1_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_right + (i + 3),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 3].tile1_ & 0xFF)));
+
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_right + (i + 4),
+        (uint8_t)(((tiles32_unique_[unique_tile_index].tile1_ >> 4) & 0xF0) |
+                  ((tiles32_unique_[unique_tile_index + 1].tile1_ >> 8) &
+                   0x0F))));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        top_right + (i + 5),
+        (uint8_t)(((tiles32_unique_[unique_tile_index + 2].tile1_ >> 4) &
+                   0xF0) |
+                  ((tiles32_unique_[unique_tile_index + 3].tile1_ >> 8) &
+                   0x0F))));
+
+    // Bottom Left.
+    auto bottom_left = bottomLeft;
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_left + i,
+        (uint8_t)(tiles32_unique_[unique_tile_index].tile2_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_left + (i + 1),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 1].tile2_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_left + (i + 2),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 2].tile2_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_left + (i + 3),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 3].tile2_ & 0xFF)));
+
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_left + (i + 4),
+        (uint8_t)(((tiles32_unique_[unique_tile_index].tile2_ >> 4) & 0xF0) |
+                  ((tiles32_unique_[unique_tile_index + 1].tile2_ >> 8) &
+                   0x0F))));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_left + (i + 5),
+        (uint8_t)(((tiles32_unique_[unique_tile_index + 2].tile2_ >> 4) &
+                   0xF0) |
+                  ((tiles32_unique_[unique_tile_index + 3].tile2_ >> 8) &
+                   0x0F))));
+
+    // Bottom Right.
+    auto bottom_right = bottomRight;
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_right + i,
+        (uint8_t)(tiles32_unique_[unique_tile_index].tile3_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_right + (i + 1),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 1].tile3_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_right + (i + 2),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 2].tile3_ & 0xFF)));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_right + (i + 3),
+        (uint8_t)(tiles32_unique_[unique_tile_index + 3].tile3_ & 0xFF)));
+
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_right + (i + 4),
+        (uint8_t)(((tiles32_unique_[unique_tile_index].tile3_ >> 4) & 0xF0) |
+                  ((tiles32_unique_[unique_tile_index + 1].tile3_ >> 8) &
+                   0x0F))));
+    RETURN_IF_ERROR(rom()->WriteByte(
+        bottom_right + (i + 5),
+        (uint8_t)(((tiles32_unique_[unique_tile_index + 2].tile3_ >> 4) &
+                   0xF0) |
+                  ((tiles32_unique_[unique_tile_index + 3].tile3_ >> 8) &
+                   0x0F))));
+
+    unique_tile_index += 4;
+  }
+
   return absl::OkStatus();
 }
 
@@ -1406,6 +1549,23 @@ absl::Status Overworld::SaveMap16Expanded() {
       SnesToPc(0x02FD39),
       static_cast<uint8_t>(PcToSnes(kMap16TilesExpanded) >> 16)));
 
+  int tpos = kMap16TilesExpanded;
+  for (int i = 0; i < NumberOfMap16Ex; i += 1)  // 4096
+  {
+    RETURN_IF_ERROR(
+        rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile0_)));
+    tpos += 2;
+    RETURN_IF_ERROR(
+        rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile1_)));
+    tpos += 2;
+    RETURN_IF_ERROR(
+        rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile2_)));
+    tpos += 2;
+    RETURN_IF_ERROR(
+        rom()->WriteShort(tpos, TileInfoToShort(tiles16_[i].tile3_)));
+    tpos += 2;
+  }
+
   return absl::OkStatus();
 }
 
@@ -1532,7 +1692,7 @@ absl::Status Overworld::SaveItems() {
 
   for (int i = 0; i < kNumOverworldMapItemPointers; i++) {
     room_items[i] = std::vector<OverworldItem>();
-    for (const OverworldItem &item : all_items_) {
+    for (const OverworldItem& item : all_items_) {
       if (item.room_map_id_ == i) {
         room_items[i].emplace_back(item);
         if (item.id_ == 0x86) {
@@ -1570,7 +1730,7 @@ absl::Status Overworld::SaveItems() {
   for (int i = 0; i < kNumOverworldMapItemPointers; i++) {
     if (item_pointers_reuse[i] == -1) {
       item_pointers[i] = data_pos;
-      for (const OverworldItem &item : room_items[i]) {
+      for (const OverworldItem& item : room_items[i]) {
         short map_pos =
             static_cast<short>(((item.game_y_ << 6) + item.game_x_) << 1);
 
@@ -1657,7 +1817,7 @@ absl::Status Overworld::SaveMapProperties() {
 
 absl::Status Overworld::SaveMusic() {
   util::logf("Saving Music Data");
-  
+
   // Save music data for Light World maps
   for (int i = 0; i < kDarkWorldMapIdStart; i++) {
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldMusicBeginning + i,
@@ -1672,8 +1832,9 @@ absl::Status Overworld::SaveMusic() {
 
   // Save music data for Dark World maps
   for (int i = kDarkWorldMapIdStart; i < kSpecialWorldMapIdStart; i++) {
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldMusicDarkWorld + (i - kDarkWorldMapIdStart),
-                                     overworld_maps_[i].area_music(0)));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(kOverworldMusicDarkWorld + (i - kDarkWorldMapIdStart),
+                         overworld_maps_[i].area_music(0)));
   }
 
   return absl::OkStatus();
@@ -1681,7 +1842,7 @@ absl::Status Overworld::SaveMusic() {
 
 absl::Status Overworld::SaveAreaSizes() {
   util::logf("Saving V3 Area Sizes");
-  
+
   // Check if this is a v3 ROM
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   if (asm_version < 3 || asm_version == 0xFF) {
@@ -1690,14 +1851,16 @@ absl::Status Overworld::SaveAreaSizes() {
 
   // Save area sizes to the expanded table
   for (int i = 0; i < kNumOverworldMaps; i++) {
-    uint8_t area_size_byte = static_cast<uint8_t>(overworld_maps_[i].area_size());
+    uint8_t area_size_byte =
+        static_cast<uint8_t>(overworld_maps_[i].area_size());
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldScreenSize + i, area_size_byte));
   }
 
   // Save message IDs to expanded table
   for (int i = 0; i < kNumOverworldMaps; i++) {
     uint16_t message_id = overworld_maps_[i].message_id();
-    RETURN_IF_ERROR(rom()->WriteShort(kOverworldMessagesExpanded + (i * 2), message_id));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(kOverworldMessagesExpanded + (i * 2), message_id));
   }
 
   return absl::OkStatus();
