@@ -13,7 +13,10 @@ endif()
 
 # Platform-specific file dialog sources
 if(APPLE)
-  set(FILE_DIALOG_SRC app/core/platform/file_dialog.mm)
+  set(FILE_DIALOG_SRC 
+    app/core/platform/file_dialog.cc   # Utility functions (all platforms)
+    app/core/platform/file_dialog.mm   # macOS-specific dialogs
+  )
 else()
   set(FILE_DIALOG_SRC app/core/platform/file_dialog.cc)
 endif()
