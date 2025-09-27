@@ -828,74 +828,6 @@ absl::Status EditorManager::Update() {
   return absl::OkStatus();
 }
 
-void EditorManager::DrawHomepage() {
-  TextWrapped("Welcome to the Yet Another Zelda3 Editor (yaze)!");
-  TextWrapped("The Legend of Zelda: A Link to the Past.");
-  TextWrapped("Please report any bugs or issues you encounter.");
-  ImGui::SameLine();
-  if (gui::ClickableText("https://github.com/scawful/yaze")) {
-    gui::OpenUrl("https://github.com/scawful/yaze");
-  }
-
-  if (!current_rom_) {
-    TextWrapped("No ROM loaded.");
-    if (gui::ClickableText("Open a ROM")) {
-      status_ = LoadRom();
-    }
-    SameLine();
-    Checkbox("Load custom overworld features",
-             &core::FeatureFlags::get().overworld.kLoadCustomOverworld);
-
-    ImGui::BeginChild("Recent Files", ImVec2(-1, -1), true);
-    static core::RecentFilesManager manager("recent_files.txt");
-    manager.Load();
-    for (const auto &file : manager.GetRecentFiles()) {
-      if (gui::ClickableText(file.c_str())) {
-        status_ = OpenRomOrProject(file);
-      }
-    }
-    ImGui::EndChild();
-    return;
-  }
-
-  TextWrapped("Current ROM: %s", current_rom_->filename().c_str());
-  if (Button(kOverworldEditorName)) {
-    current_editor_set_->overworld_editor_.set_active(true);
-  }
-  ImGui::SameLine();
-  if (Button(kDungeonEditorName)) {
-    current_editor_set_->dungeon_editor_.set_active(true);
-  }
-  ImGui::SameLine();
-  if (Button(kGraphicsEditorName)) {
-    current_editor_set_->graphics_editor_.set_active(true);
-  }
-  ImGui::SameLine();
-  if (Button(kMessageEditorName)) {
-    current_editor_set_->message_editor_.set_active(true);
-  }
-
-  if (Button(kPaletteEditorName)) {
-    current_editor_set_->palette_editor_.set_active(true);
-  }
-  ImGui::SameLine();
-  if (Button(kScreenEditorName)) {
-    current_editor_set_->screen_editor_.set_active(true);
-  }
-  ImGui::SameLine();
-  if (Button(kSpriteEditorName)) {
-    current_editor_set_->sprite_editor_.set_active(true);
-  }
-  ImGui::SameLine();
-  if (Button(kMusicEditorName)) {
-    current_editor_set_->music_editor_.set_active(true);
-  }
-
-  if (Button(kSettingsEditorName)) {
-    current_editor_set_->settings_editor_.set_active(true);
-  }
-}
-
 absl::Status EditorManager::DrawRomSelector() {
   SameLine((GetWindowWidth() / 2) - 100);
   if (current_rom_ && current_rom_->is_loaded()) {
@@ -2724,7 +2656,7 @@ void EditorManager::DrawWelcomeScreen() {
     ImGui::Spacing();
     
     // Themed decorative line with glow effect (positioned closer to header)
-    float line_y = window_pos.y + 35; // Move even higher for tighter header integration
+    float line_y = window_pos.y + 30; // Move even higher for tighter header integration
     float line_margin = 80; // Maintain good horizontal balance
     ImVec2 line_start = ImVec2(window_pos.x + line_margin, line_y);
     ImVec2 line_end = ImVec2(window_pos.x + window_size.x - line_margin, line_y);

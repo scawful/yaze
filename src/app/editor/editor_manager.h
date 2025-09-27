@@ -117,7 +117,6 @@ class EditorManager {
   }
 
  private:
-  void DrawHomepage();
   void DrawWelcomeScreen();
   absl::Status DrawRomSelector();
   absl::Status LoadRom();
