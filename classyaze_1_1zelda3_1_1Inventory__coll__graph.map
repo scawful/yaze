@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="114,276,263,301"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="167,94,284,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,136,223,190,209,253,198,276,193,274,204,251,217,189,222,135"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="57,185,178,211"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="57,185,178,211"/>
 <area shape="poly" id="edge6_Node000008_Node000002" title=" " alt="" coords="184,129,160,146,141,166,127,186,122,183,137,162,156,142,181,125"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="219,5,366,31"/>
 <area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="315,43,320,54,335,98,344,136,342,172,324,214,306,236,283,254,234,278,232,273,280,250,302,233,319,211,336,171,339,136,330,100,315,56,310,45"/>

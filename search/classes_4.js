@@ -10,13 +10,14 @@ var searchData=
   ['editorstate_7',['editorstate',['../structTextEditor_1_1EditorState.html',1,'TextEditor::EditorState'],['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EditorState.html',1,'yaze::zelda3::DungeonEditorSystem::EditorState']]],
   ['emulator_8',['Emulator',['../classyaze_1_1emu_1_1Emulator.html',1,'yaze::emu']]],
   ['emulatorkeybindings_9',['EmulatorKeybindings',['../structyaze_1_1emu_1_1EmulatorKeybindings.html',1,'yaze::emu']]],
-  ['enhancedtheme_10',['EnhancedTheme',['../structyaze_1_1gui_1_1EnhancedTheme.html',1,'yaze::gui']]],
-  ['entrancedata_11',['EntranceData',['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EntranceData.html',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['entranceinfo_12',['EntranceInfo',['../structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html',1,'yaze::zelda3::EntranceTypes']]],
-  ['exampleapppropertyeditor_13',['ExampleAppPropertyEditor',['../structyaze_1_1editor_1_1ExampleAppPropertyEditor.html',1,'yaze::editor']]],
-  ['examplememberinfo_14',['ExampleMemberInfo',['../structyaze_1_1editor_1_1ExampleMemberInfo.html',1,'yaze::editor']]],
-  ['exampleselectionwithdeletion_15',['ExampleSelectionWithDeletion',['../structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html',1,'yaze::gui']]],
-  ['exampletreenode_16',['ExampleTreeNode',['../structyaze_1_1editor_1_1ExampleTreeNode.html',1,'yaze::editor']]],
-  ['expand_17',['Expand',['../classyaze_1_1cli_1_1Expand.html',1,'yaze::cli']]],
-  ['extensionmanager_18',['ExtensionManager',['../classyaze_1_1editor_1_1ExtensionManager.html',1,'yaze::editor']]]
+  ['enhancedpaletteeditor_10',['EnhancedPaletteEditor',['../classyaze_1_1gui_1_1EnhancedPaletteEditor.html',1,'yaze::gui']]],
+  ['enhancedtheme_11',['EnhancedTheme',['../structyaze_1_1gui_1_1EnhancedTheme.html',1,'yaze::gui']]],
+  ['entrancedata_12',['EntranceData',['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EntranceData.html',1,'yaze::zelda3::DungeonEditorSystem']]],
+  ['entranceinfo_13',['EntranceInfo',['../structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html',1,'yaze::zelda3::EntranceTypes']]],
+  ['exampleapppropertyeditor_14',['ExampleAppPropertyEditor',['../structyaze_1_1editor_1_1ExampleAppPropertyEditor.html',1,'yaze::editor']]],
+  ['examplememberinfo_15',['ExampleMemberInfo',['../structyaze_1_1editor_1_1ExampleMemberInfo.html',1,'yaze::editor']]],
+  ['exampleselectionwithdeletion_16',['ExampleSelectionWithDeletion',['../structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html',1,'yaze::gui']]],
+  ['exampletreenode_17',['ExampleTreeNode',['../structyaze_1_1editor_1_1ExampleTreeNode.html',1,'yaze::editor']]],
+  ['expand_18',['Expand',['../classyaze_1_1cli_1_1Expand.html',1,'yaze::cli']]],
+  ['extensionmanager_19',['ExtensionManager',['../classyaze_1_1editor_1_1ExtensionManager.html',1,'yaze::editor']]]
 ];

@@ -28,13 +28,14 @@ var searchData=
   ['overworld_25',['overworld',['../structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html',1,'yaze::core::FeatureFlags::Flags::Overworld'],['../classyaze_1_1zelda3_1_1Overworld.html',1,'yaze::zelda3::Overworld']]],
   ['overworldasset_26',['OverworldAsset',['../structyaze_1_1gui_1_1OverworldAsset.html',1,'yaze::gui']]],
   ['overworldeditor_27',['OverworldEditor',['../classyaze_1_1editor_1_1OverworldEditor.html',1,'yaze::editor']]],
-  ['overworldentrance_28',['OverworldEntrance',['../classyaze_1_1zelda3_1_1OverworldEntrance.html',1,'yaze::zelda3']]],
-  ['overworldentrancetiletypes_29',['OverworldEntranceTileTypes',['../structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html',1,'yaze::zelda3']]],
-  ['overworldexit_30',['OverworldExit',['../classyaze_1_1zelda3_1_1OverworldExit.html',1,'yaze::zelda3']]],
-  ['overworldintegrationtest_31',['OverworldIntegrationTest',['../classyaze_1_1zelda3_1_1OverworldIntegrationTest.html',1,'yaze::zelda3']]],
-  ['overworlditem_32',['OverworldItem',['../classyaze_1_1zelda3_1_1OverworldItem.html',1,'yaze::zelda3']]],
-  ['overworldmap_33',['OverworldMap',['../classyaze_1_1zelda3_1_1OverworldMap.html',1,'yaze::zelda3']]],
-  ['overworldmaptiles_34',['OverworldMapTiles',['../structyaze_1_1zelda3_1_1OverworldMapTiles.html',1,'yaze::zelda3']]],
-  ['overworldtest_35',['OverworldTest',['../classyaze_1_1zelda3_1_1OverworldTest.html',1,'yaze::zelda3']]],
-  ['overworldv3integrationtest_36',['OverworldV3IntegrationTest',['../classyaze_1_1zelda3_1_1OverworldV3IntegrationTest.html',1,'yaze::zelda3']]]
+  ['overworldeditormanager_28',['OverworldEditorManager',['../classyaze_1_1editor_1_1OverworldEditorManager.html',1,'yaze::editor']]],
+  ['overworldentrance_29',['OverworldEntrance',['../classyaze_1_1zelda3_1_1OverworldEntrance.html',1,'yaze::zelda3']]],
+  ['overworldentrancetiletypes_30',['OverworldEntranceTileTypes',['../structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html',1,'yaze::zelda3']]],
+  ['overworldexit_31',['OverworldExit',['../classyaze_1_1zelda3_1_1OverworldExit.html',1,'yaze::zelda3']]],
+  ['overworldintegrationtest_32',['OverworldIntegrationTest',['../classyaze_1_1zelda3_1_1OverworldIntegrationTest.html',1,'yaze::zelda3']]],
+  ['overworlditem_33',['OverworldItem',['../classyaze_1_1zelda3_1_1OverworldItem.html',1,'yaze::zelda3']]],
+  ['overworldmap_34',['OverworldMap',['../classyaze_1_1zelda3_1_1OverworldMap.html',1,'yaze::zelda3']]],
+  ['overworldmaptiles_35',['OverworldMapTiles',['../structyaze_1_1zelda3_1_1OverworldMapTiles.html',1,'yaze::zelda3']]],
+  ['overworldtest_36',['OverworldTest',['../classyaze_1_1zelda3_1_1OverworldTest.html',1,'yaze::zelda3']]],
+  ['overworldv3integrationtest_37',['OverworldV3IntegrationTest',['../classyaze_1_1zelda3_1_1OverworldV3IntegrationTest.html',1,'yaze::zelda3']]]
 ];

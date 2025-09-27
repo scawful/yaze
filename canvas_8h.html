@@ -110,8 +110,12 @@ $(document).ready(function(){initNavTree('canvas_8h.html',''); initResizable(); 
 <div class="textblock"><code>#include &quot;<a class="el" href="tilemap_8h_source.html">gfx/tilemap.h</a>&quot;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
+<code>#include &lt;memory&gt;</code><br />
 <code>#include &quot;<a class="el" href="bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="rom_8h_source.html">app/rom.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="canvas__utils_8h_source.html">app/gui/canvas_utils.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="enhanced__palette__editor_8h_source.html">app/gui/enhanced_palette_editor.h</a>&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
 </div>
 <p><a href="canvas_8h_source.html">Go to the source code of this file.</a></p>
@@ -119,7 +123,7 @@ $(document).ready(function(){initNavTree('canvas_8h.html',''); initResizable(); 
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1gui_1_1Canvas.html">yaze::gui::Canvas</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a canvas for drawing and manipulating graphics.  <a href="classyaze_1_1gui_1_1Canvas.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Modern, robust canvas for drawing and manipulating graphics.  <a href="classyaze_1_1gui_1_1Canvas.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html">yaze::gui::Canvas::ContextMenuItem</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -166,6 +170,8 @@ Functions</h2></td></tr>
 <tr class="separator:ae5dfb48bad69ce6a996a8ba300461364"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a097a97de3f408828135e749498b16bd6" id="r_a097a97de3f408828135e749498b16bd6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a097a97de3f408828135e749498b16bd6">yaze::gui::BitmapCanvasPipeline</a> (<a class="el" href="classyaze_1_1gui_1_1Canvas.html">gui::Canvas</a> &amp;canvas, <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;bitmap, int width, int height, int tile_size, bool is_loaded, bool scrollbar, int canvas_id)</td></tr>
 <tr class="separator:a097a97de3f408828135e749498b16bd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac4c4a4ccedd870c65c05fe1f65c478a8" id="r_ac4c4a4ccedd870c65c05fe1f65c478a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#ac4c4a4ccedd870c65c05fe1f65c478a8">yaze::gui::TableCanvasPipeline</a> (<a class="el" href="classyaze_1_1gui_1_1Canvas.html">gui::Canvas</a> &amp;canvas, <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;bitmap, const std::string &amp;label, bool auto_resize)</td></tr>
+<tr class="separator:ac4c4a4ccedd870c65c05fe1f65c478a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="adf4d73301961430d50d7edd96f92ce38" name="adf4d73301961430d50d7edd96f92ce38"></a>

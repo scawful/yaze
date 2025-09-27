@@ -1,5 +1,6 @@
 var classyaze_1_1editor_1_1OverworldEditor =
 [
+    [ "ScratchSpaceSlot", "structyaze_1_1editor_1_1OverworldEditor_1_1ScratchSpaceSlot.html", "structyaze_1_1editor_1_1OverworldEditor_1_1ScratchSpaceSlot" ],
     [ "EditingMode", "classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8e", [
       [ "DRAW_TILE", "classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea2cadd7c52c45cbfcbf4a9642e037cfc6", null ],
       [ "ENTRANCES", "classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8eacbf379de389a64412c5353c6e7157c46", null ],
@@ -79,6 +80,14 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "DrawMapPropertiesPanel", "classyaze_1_1editor_1_1OverworldEditor.html#a5e47f9e490148da5b9686f0f0b7e9f8d", null ],
     [ "HandleMapInteraction", "classyaze_1_1editor_1_1OverworldEditor.html#a1067150beb62b40aa2c5abe46de5cbff", null ],
     [ "SetupOverworldCanvasContextMenu", "classyaze_1_1editor_1_1OverworldEditor.html#a47db8d1736a0d24480adc2b86a644a02", null ],
+    [ "DrawScratchSpace", "classyaze_1_1editor_1_1OverworldEditor.html#a16ca27cc07fead3f30ba0789460bc402", null ],
+    [ "SaveCurrentSelectionToScratch", "classyaze_1_1editor_1_1OverworldEditor.html#a6cef930fc01fed78c28ae32c3057b187", null ],
+    [ "LoadScratchToSelection", "classyaze_1_1editor_1_1OverworldEditor.html#aadf139852c6c2d39375f3edefdad7c45", null ],
+    [ "ClearScratchSpace", "classyaze_1_1editor_1_1OverworldEditor.html#a218e2870a41d305882b97d32c287a1e4", null ],
+    [ "DrawScratchSpaceEdits", "classyaze_1_1editor_1_1OverworldEditor.html#a6e78a999ec7c2281a3732abda1e53986", null ],
+    [ "DrawScratchSpacePattern", "classyaze_1_1editor_1_1OverworldEditor.html#a61ee7daeb5e1187e6306450401fc0972", null ],
+    [ "DrawScratchSpaceSelection", "classyaze_1_1editor_1_1OverworldEditor.html#a40d5b1a587cfe694ba9cd32947b96ff9", null ],
+    [ "UpdateScratchBitmapTile", "classyaze_1_1editor_1_1OverworldEditor.html#aee6ad009e6007c1e881c31d4b8f05edd", null ],
     [ "UpdateUsageStats", "classyaze_1_1editor_1_1OverworldEditor.html#a14ae026e75243f19defc01df2f7523f2", null ],
     [ "DrawUsageGrid", "classyaze_1_1editor_1_1OverworldEditor.html#a374ed17f504a7503785b6af574f9ad32", null ],
     [ "DrawDebugWindow", "classyaze_1_1editor_1_1OverworldEditor.html#afacae18d961e34d0617af016c995fc55", null ],
@@ -113,6 +122,9 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "show_map_properties_panel_", "classyaze_1_1editor_1_1OverworldEditor.html#a5873c4e7112f1b93c3572672f09026cd", null ],
     [ "show_overlay_preview_", "classyaze_1_1editor_1_1OverworldEditor.html#ac5cfd0fd66d6307d30a0e6cb8b4f6086", null ],
     [ "map_properties_system_", "classyaze_1_1editor_1_1OverworldEditor.html#a093c928ecbbbe166f3218a579e7a7121", null ],
+    [ "overworld_manager_", "classyaze_1_1editor_1_1OverworldEditor.html#a4a679c667e38dca92928e42e5ff8c740", null ],
+    [ "scratch_spaces_", "classyaze_1_1editor_1_1OverworldEditor.html#a1ad0f7f8f1faf9bb2293bfc0e850a70d", null ],
+    [ "current_scratch_slot_", "classyaze_1_1editor_1_1OverworldEditor.html#af21b6972b94508ab68e9fdf926039d4c", null ],
     [ "tile16_blockset_", "classyaze_1_1editor_1_1OverworldEditor.html#a2f3df4c80fdea88e0b51bf3b74c2097f", null ],
     [ "rom_", "classyaze_1_1editor_1_1OverworldEditor.html#a21ddb17c0f6062a9055507fe99553649", null ],
     [ "tile16_editor_", "classyaze_1_1editor_1_1OverworldEditor.html#a3d4bc025b428972beadd361eac00a311", null ],
@@ -140,8 +152,8 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "blockset_canvas_", "classyaze_1_1editor_1_1OverworldEditor.html#a939d684939198a152ac3fa753276e4ce", null ],
     [ "graphics_bin_canvas_", "classyaze_1_1editor_1_1OverworldEditor.html#ad50b76ad7d4a49ac8f5ea1ce940e6b74", null ],
     [ "properties_canvas_", "classyaze_1_1editor_1_1OverworldEditor.html#af15b9838fc18496532d3664c90db811f", null ],
+    [ "scratch_canvas_", "classyaze_1_1editor_1_1OverworldEditor.html#a628a781d32ed5b88735741ee500a9ea8", null ],
     [ "toolset_table_", "classyaze_1_1editor_1_1OverworldEditor.html#ad2b1bd4d108482ecbc6d451e81b9c502", null ],
     [ "map_settings_table_", "classyaze_1_1editor_1_1OverworldEditor.html#af0e3533783ffa2a5eeea85e04ee40fa2", null ],
-    [ "layout_node_", "classyaze_1_1editor_1_1OverworldEditor.html#a09caa2d092a58b701ef487d87b47d12f", null ],
     [ "status_", "classyaze_1_1editor_1_1OverworldEditor.html#a92f496396b365517e10fab89f317ea60", null ]
 ];

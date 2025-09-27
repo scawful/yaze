@@ -100,11 +100,14 @@ $(document).ready(function(){initNavTree('tile16__editor_8h.html',''); initResiz
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">tile16_editor.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;array&gt;</code><br />
+<code>#include &lt;chrono&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="palette__editor_8h_source.html">app/editor/graphics/palette_editor.h</a>&quot;</code><br />
@@ -122,16 +125,15 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="tile16__editor_8h__dep__incl.png" border="0" usemap="#asrc_2app_2editor_2overworld_2tile16__editor_8hdep" alt=""/></div>
 <map name="asrc_2app_2editor_2overworld_2tile16__editor_8hdep" id="asrc_2app_2editor_2overworld_2tile16__editor_8hdep">
-<area shape="rect" title=" " alt="" coords="189,5,350,46"/>
+<area shape="rect" title=" " alt="" coords="287,5,447,46"/>
 <area shape="rect" href="overworld__editor_8h.html" title=" " alt="" coords="5,94,166,135"/>
-<area shape="poly" title=" " alt="" coords="215,55,128,96,126,91,213,50"/>
+<area shape="poly" title=" " alt="" coords="289,54,150,96,149,91,287,48"/>
 <area shape="rect" href="tile16__editor_8cc.html" title=" " alt="" coords="189,94,350,135"/>
-<area shape="poly" title=" " alt="" coords="272,62,272,94,267,94,267,62"/>
+<area shape="poly" title=" " alt="" coords="335,58,293,96,290,92,332,54"/>
 <area shape="rect" href="rom__dependent__test__suite_8h.html" title=" " alt="" coords="374,94,557,135"/>
-<area shape="poly" title=" " alt="" coords="329,50,422,91,420,96,327,55"/>
-<area shape="rect" href="editor__manager_8cc.html" title=" " alt="" coords="207,183,343,223"/>
-<area shape="poly" title=" " alt="" coords="143,139,233,180,231,185,141,144"/>
-<area shape="poly" title=" " alt="" coords="410,144,319,185,317,180,407,139"/>
+<area shape="poly" title=" " alt="" coords="402,54,445,92,441,96,399,58"/>
+<area shape="rect" href="tile16__editor__test_8cc.html" title=" " alt="" coords="582,94,696,135"/>
+<area shape="poly" title=" " alt="" coords="444,49,582,92,580,97,443,54"/>
 </map>
 </div>
 </div>
@@ -142,6 +144,10 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html">yaze::editor::Tile16Editor</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Popup window to edit Tile16 data.  <a href="classyaze_1_1editor_1_1Tile16Editor.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1Tile16Editor_1_1LayoutScratch.html">yaze::editor::Tile16Editor::LayoutScratch</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1editor_1_1Tile16Editor_1_1UndoState.html">yaze::editor::Tile16Editor::UndoState</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
@@ -151,6 +157,29 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceyaze_1_1editor" id="r_namespaceyaze_1_1editor"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html">yaze::editor</a></td></tr>
 <tr class="memdesc:namespaceyaze_1_1editor"><td class="mdescLeft">&#160;</td><td class="mdescRight">Editors are the view controllers for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a8dc3baef6adc771af0290ef25f331bb4" id="r_a8dc3baef6adc771af0290ef25f331bb4"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a8dc3baef6adc771af0290ef25f331bb4">yaze::editor::kTile16Size</a> = 16</td></tr>
+<tr class="separator:a8dc3baef6adc771af0290ef25f331bb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e496b12910031cfaa4fb492c4af0ae4" id="r_a7e496b12910031cfaa4fb492c4af0ae4"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a7e496b12910031cfaa4fb492c4af0ae4">yaze::editor::kTile8Size</a> = 8</td></tr>
+<tr class="separator:a7e496b12910031cfaa4fb492c4af0ae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af28f4f6ce975808297fb0f6210efa555" id="r_af28f4f6ce975808297fb0f6210efa555"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#af28f4f6ce975808297fb0f6210efa555">yaze::editor::kTilesheetEditorWidth</a> = 0x100</td></tr>
+<tr class="separator:af28f4f6ce975808297fb0f6210efa555"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a824f3d7b414fd53fe5bbd0b2687a811a" id="r_a824f3d7b414fd53fe5bbd0b2687a811a"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a824f3d7b414fd53fe5bbd0b2687a811a">yaze::editor::kTilesheetEditorHeight</a> = 0x4000</td></tr>
+<tr class="separator:a824f3d7b414fd53fe5bbd0b2687a811a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ca12a09e73dbe5ae06be665d9a68cc9" id="r_a7ca12a09e73dbe5ae06be665d9a68cc9"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a7ca12a09e73dbe5ae06be665d9a68cc9">yaze::editor::kTile16CanvasSize</a> = 0x20</td></tr>
+<tr class="separator:a7ca12a09e73dbe5ae06be665d9a68cc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad1dc8b6a79c23b4ab819d66313a332d2" id="r_ad1dc8b6a79c23b4ab819d66313a332d2"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#ad1dc8b6a79c23b4ab819d66313a332d2">yaze::editor::kTile8CanvasHeight</a> = 0x175</td></tr>
+<tr class="separator:ad1dc8b6a79c23b4ab819d66313a332d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8ff8e06de2c93a9e95b33fe31a624124" id="r_a8ff8e06de2c93a9e95b33fe31a624124"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a8ff8e06de2c93a9e95b33fe31a624124">yaze::editor::kNumScratchSlots</a> = 4</td></tr>
+<tr class="separator:a8ff8e06de2c93a9e95b33fe31a624124"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada97b57de5a18d02ca3a8716f2a5704c" id="r_ada97b57de5a18d02ca3a8716f2a5704c"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#ada97b57de5a18d02ca3a8716f2a5704c">yaze::editor::kNumPalettes</a> = 8</td></tr>
+<tr class="separator:ada97b57de5a18d02ca3a8716f2a5704c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ebfdf6b643e1c843a888aa1910c72dc" id="r_a0ebfdf6b643e1c843a888aa1910c72dc"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a0ebfdf6b643e1c843a888aa1910c72dc">yaze::editor::kTile8PixelCount</a> = 64</td></tr>
+<tr class="separator:a0ebfdf6b643e1c843a888aa1910c72dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03f8004d70cacf7268d75bf8f8cbc933" id="r_a03f8004d70cacf7268d75bf8f8cbc933"><td class="memItemLeft" align="right" valign="top">constexpr int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1editor.html#a03f8004d70cacf7268d75bf8f8cbc933">yaze::editor::kTile16PixelCount</a> = 256</td></tr>
+<tr class="separator:a03f8004d70cacf7268d75bf8f8cbc933"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

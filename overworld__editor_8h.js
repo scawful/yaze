@@ -1,6 +1,7 @@
 var overworld__editor_8h =
 [
     [ "yaze::editor::OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", "classyaze_1_1editor_1_1OverworldEditor" ],
+    [ "yaze::editor::OverworldEditor::ScratchSpaceSlot", "structyaze_1_1editor_1_1OverworldEditor_1_1ScratchSpaceSlot.html", "structyaze_1_1editor_1_1OverworldEditor_1_1ScratchSpaceSlot" ],
     [ "kOverworldCanvasSize", "overworld__editor_8h.html#a090fa407d64c5928169ffda52eaa3829", null ],
     [ "kCurrentGfxCanvasSize", "overworld__editor_8h.html#a6c5b2de380ffaaff96b0f397b6530509", null ],
     [ "kBlocksetCanvasSize", "overworld__editor_8h.html#a9642f410bca21770ba2cc03f59921fe6", null ],

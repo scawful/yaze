@@ -1,0 +1,5 @@
+<map id="yaze::editor::OverworldEditorManager::DrawOverlaySettings" name="yaze::editor::OverworldEditorManager::DrawOverlaySettings">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,205,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Overworld.html#a90cc1152067e0937c7e48d69e88a563f" title=" " alt="" coords="253,5,421,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,23,237,23,237,28,205,28"/>
+</map>

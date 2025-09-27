@@ -21,5 +21,6 @@ var canvas_8h =
     [ "BeginCanvas", "canvas_8h.html#a329bfec318646ab338eae2167beee7a2", null ],
     [ "EndCanvas", "canvas_8h.html#a16adfc7583097bf343bd2cc7065e445d", null ],
     [ "GraphicsBinCanvasPipeline", "canvas_8h.html#ae5dfb48bad69ce6a996a8ba300461364", null ],
-    [ "BitmapCanvasPipeline", "canvas_8h.html#a097a97de3f408828135e749498b16bd6", null ]
+    [ "BitmapCanvasPipeline", "canvas_8h.html#a097a97de3f408828135e749498b16bd6", null ],
+    [ "TableCanvasPipeline", "canvas_8h.html#ac4c4a4ccedd870c65c05fe1f65c478a8", null ]
 ];

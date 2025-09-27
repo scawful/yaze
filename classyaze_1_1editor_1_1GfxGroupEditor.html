@@ -115,17 +115,16 @@ Collaboration diagram for yaze::editor::GfxGroupEditor:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1editor_1_1GfxGroupEditor__coll__graph.png" border="0" usemap="#ayaze_1_1editor_1_1GfxGroupEditor_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1editor_1_1GfxGroupEditor_coll__map" id="ayaze_1_1editor_1_1GfxGroupEditor_coll__map">
-<area shape="rect" title="Manage graphics group configurations in a Rom." alt="" coords="67,301,246,327"/>
-<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="96,183,217,208"/>
-<area shape="poly" title=" " alt="" coords="159,224,159,301,154,301,154,224"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="95,94,212,120"/>
-<area shape="poly" title=" " alt="" coords="156,135,157,159,158,182,153,182,151,159,151,135"/>
-<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,5,153,31"/>
-<area shape="poly" title=" " alt="" coords="78,47,74,121,77,165,87,208,99,235,115,261,147,300,143,303,111,264,94,238,82,209,72,165,69,121,72,46"/>
-<area shape="poly" title=" " alt="" coords="101,41,145,92,141,95,97,45"/>
-<area shape="rect" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="240,94,321,120"/>
-<area shape="poly" title=" " alt="" coords="289,135,293,167,293,205,286,244,268,279,252,293,234,303,232,298,249,289,264,276,281,242,288,204,288,167,284,135"/>
-<area shape="poly" title=" " alt="" coords="252,131,175,184,172,180,249,127"/>
+<area shape="rect" title="Manage graphics group configurations in a Rom." alt="" coords="137,213,316,238"/>
+<area shape="rect" href="classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="38,94,158,120"/>
+<area shape="poly" title=" " alt="" coords="94,135,93,162,95,175,102,187,118,202,137,212,135,217,114,206,97,190,90,177,87,163,88,134"/>
+<area shape="rect" href="structyaze_1_1gui_1_1CanvasConfig.html" title="Configuration for canvas display and interaction." alt="" coords="5,5,162,31"/>
+<area shape="poly" title=" " alt="" coords="91,46,99,93,94,94,85,47"/>
+<area shape="rect" href="classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="186,5,266,31"/>
+<area shape="poly" title=" " alt="" coords="229,46,229,212,224,212,224,46"/>
+<area shape="poly" title=" " alt="" coords="197,42,118,96,115,91,194,38"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="282,94,429,120"/>
+<area shape="poly" title=" " alt="" coords="333,132,241,214,238,210,329,128"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -197,6 +196,8 @@ Private Attributes</h2></td></tr>
 
 <p class="reference">References <a class="el" href="gfx__group__editor_8cc_source.html#l00086">DrawBlocksetViewer()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00238">DrawPaletteViewer()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00125">DrawRoomsetViewer()</a>, <a class="el" href="gfx__group__editor_8cc_source.html#l00178">DrawSpritesetViewer()</a>, <a class="el" href="input_8cc_source.html#l00176">yaze::gui::InputHexByte()</a>, <a class="el" href="rom_8h_source.html#l00195">yaze::Rom::resource_label()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00031">rom()</a>, <a class="el" href="project_8cc_source.html#l00802">yaze::core::ResourceLabelManager::SelectableLabelWithNameEdit()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00034">selected_blockset_</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00035">selected_roomset_</a>, and <a class="el" href="gfx__group__editor_8h_source.html#l00036">selected_spriteset_</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l02496">yaze::editor::OverworldEditor::DrawOverworldProperties()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00240">yaze::editor::OverworldEditor::DrawToolset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00157">yaze::editor::OverworldEditor::Update()</a>.</p>
+
 </div>
 </div>
 <a id="af717c706131b3d04d8140179888c5050" name="af717c706131b3d04d8140179888c5050"></a>
@@ -217,7 +218,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="gfx__group__editor_8cc_source.html#l00086">86</a> of file <a class="el" href="gfx__group__editor_8cc_source.html">gfx_group_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8cc_source.html#l01099">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00039">blockset_canvas_</a>, <a class="el" href="arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="input_8cc_source.html#l00176">yaze::gui::InputHexByte()</a>, <a class="el" href="rom_8h_source.html#l00200">yaze::Rom::main_blockset_ids</a>, <a class="el" href="arena_8h_source.html#l00040">yaze::gfx::Arena::mutable_gfx_sheets()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00031">rom()</a>, and <a class="el" href="gfx__group__editor_8h_source.html#l00034">selected_blockset_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8cc_source.html#l01163">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00039">blockset_canvas_</a>, <a class="el" href="arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="input_8cc_source.html#l00176">yaze::gui::InputHexByte()</a>, <a class="el" href="rom_8h_source.html#l00200">yaze::Rom::main_blockset_ids</a>, <a class="el" href="arena_8h_source.html#l00040">yaze::gfx::Arena::mutable_gfx_sheets()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00031">rom()</a>, and <a class="el" href="gfx__group__editor_8h_source.html#l00034">selected_blockset_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00043">Update()</a>.</p>
 
@@ -240,7 +241,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="gfx__group__editor_8cc_source.html#l00125">125</a> of file <a class="el" href="gfx__group__editor_8cc_source.html">gfx_group_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8cc_source.html#l01099">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="input_8cc_source.html#l00176">yaze::gui::InputHexByte()</a>, <a class="el" href="arena_8h_source.html#l00040">yaze::gfx::Arena::mutable_gfx_sheets()</a>, <a class="el" href="rom_8h_source.html#l00195">yaze::Rom::resource_label()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00031">rom()</a>, <a class="el" href="rom_8h_source.html#l00201">yaze::Rom::room_blockset_ids</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00040">roomset_canvas_</a>, <a class="el" href="project_8cc_source.html#l00802">yaze::core::ResourceLabelManager::SelectableLabelWithNameEdit()</a>, and <a class="el" href="gfx__group__editor_8h_source.html#l00035">selected_roomset_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8cc_source.html#l01163">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="input_8cc_source.html#l00176">yaze::gui::InputHexByte()</a>, <a class="el" href="arena_8h_source.html#l00040">yaze::gfx::Arena::mutable_gfx_sheets()</a>, <a class="el" href="rom_8h_source.html#l00195">yaze::Rom::resource_label()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00031">rom()</a>, <a class="el" href="rom_8h_source.html#l00201">yaze::Rom::room_blockset_ids</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00040">roomset_canvas_</a>, <a class="el" href="project_8cc_source.html#l00802">yaze::core::ResourceLabelManager::SelectableLabelWithNameEdit()</a>, and <a class="el" href="gfx__group__editor_8h_source.html#l00035">selected_roomset_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00043">Update()</a>.</p>
 
@@ -264,7 +265,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="gfx__group__editor_8cc_source.html#l00178">178</a> of file <a class="el" href="gfx__group__editor_8cc_source.html">gfx_group_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8cc_source.html#l01099">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="input_8cc_source.html#l00176">yaze::gui::InputHexByte()</a>, <a class="el" href="arena_8h_source.html#l00040">yaze::gfx::Arena::mutable_gfx_sheets()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00031">rom()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00036">selected_spriteset_</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00041">spriteset_canvas_</a>, and <a class="el" href="rom_8h_source.html#l00202">yaze::Rom::spriteset_ids</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8cc_source.html#l01163">yaze::gui::BitmapCanvasPipeline()</a>, <a class="el" href="arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="input_8cc_source.html#l00176">yaze::gui::InputHexByte()</a>, <a class="el" href="arena_8h_source.html#l00040">yaze::gfx::Arena::mutable_gfx_sheets()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00031">rom()</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00036">selected_spriteset_</a>, <a class="el" href="gfx__group__editor_8h_source.html#l00041">spriteset_canvas_</a>, and <a class="el" href="rom_8h_source.html#l00202">yaze::Rom::spriteset_ids</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="gfx__group__editor_8cc_source.html#l00043">Update()</a>.</p>
 

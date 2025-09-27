@@ -12,11 +12,13 @@ var searchData=
   ['overworld_2eh_9',['overworld.h',['../overworld_8h.html',1,'']]],
   ['overworld_5feditor_2ecc_10',['overworld_editor.cc',['../overworld__editor_8cc.html',1,'']]],
   ['overworld_5feditor_2eh_11',['overworld_editor.h',['../overworld__editor_8h.html',1,'']]],
-  ['overworld_5fentrance_2eh_12',['overworld_entrance.h',['../overworld__entrance_8h.html',1,'']]],
-  ['overworld_5fexit_2eh_13',['overworld_exit.h',['../overworld__exit_8h.html',1,'']]],
-  ['overworld_5fintegration_5ftest_2ecc_14',['overworld_integration_test.cc',['../overworld__integration__test_8cc.html',1,'']]],
-  ['overworld_5fitem_2eh_15',['overworld_item.h',['../overworld__item_8h.html',1,'']]],
-  ['overworld_5fmap_2ecc_16',['overworld_map.cc',['../overworld__map_8cc.html',1,'']]],
-  ['overworld_5fmap_2eh_17',['overworld_map.h',['../overworld__map_8h.html',1,'']]],
-  ['overworld_5ftest_2ecc_18',['overworld_test.cc',['../overworld__test_8cc.html',1,'']]]
+  ['overworld_5feditor_5fmanager_2ecc_12',['overworld_editor_manager.cc',['../overworld__editor__manager_8cc.html',1,'']]],
+  ['overworld_5feditor_5fmanager_2eh_13',['overworld_editor_manager.h',['../overworld__editor__manager_8h.html',1,'']]],
+  ['overworld_5fentrance_2eh_14',['overworld_entrance.h',['../overworld__entrance_8h.html',1,'']]],
+  ['overworld_5fexit_2eh_15',['overworld_exit.h',['../overworld__exit_8h.html',1,'']]],
+  ['overworld_5fintegration_5ftest_2ecc_16',['overworld_integration_test.cc',['../overworld__integration__test_8cc.html',1,'']]],
+  ['overworld_5fitem_2eh_17',['overworld_item.h',['../overworld__item_8h.html',1,'']]],
+  ['overworld_5fmap_2ecc_18',['overworld_map.cc',['../overworld__map_8cc.html',1,'']]],
+  ['overworld_5fmap_2eh_19',['overworld_map.h',['../overworld__map_8h.html',1,'']]],
+  ['overworld_5ftest_2ecc_20',['overworld_test.cc',['../overworld__test_8cc.html',1,'']]]
 ];

@@ -1,7 +1,0 @@
-<map id="yaze::editor::OverworldEditor::DrawTile8Selector" name="yaze::editor::OverworldEditor::DrawTile8Selector">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,189,68"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="237,5,374,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,32,221,27,222,33,190,37"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#abda8fe883e774ded3e618bb81dca3b74" title=" " alt="" coords="239,55,372,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,57,224,62,223,67,189,63"/>
-</map>

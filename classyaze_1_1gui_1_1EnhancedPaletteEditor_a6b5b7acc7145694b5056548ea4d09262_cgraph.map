@@ -1,0 +1,5 @@
+<map id="yaze::gui::EnhancedPaletteEditor::RestorePaletteBackup" name="yaze::gui::EnhancedPaletteEditor::RestorePaletteBackup">
+<area shape="rect" id="Node000001" title="Restore palette from backup." alt="" coords="5,5,196,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="244,5,391,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,23,228,23,228,28,196,28"/>
+</map>

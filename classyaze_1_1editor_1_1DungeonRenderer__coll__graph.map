@@ -1,13 +1,13 @@
 <map id="yaze::editor::DungeonRenderer" name="yaze::editor::DungeonRenderer">
-<area shape="rect" id="Node000001" title="Handles rendering of dungeon objects, layouts, and backgrounds." alt="" coords="99,183,293,208"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1Canvas.html" title="Represents a canvas for drawing and manipulating graphics." alt="" coords="28,94,148,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,131,127,157,166,180,163,184,124,161,101,135"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="5,5,123,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="65,46,68,69,81,93,76,95,63,71,60,47"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="156,5,236,31"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="199,46,199,182,193,182,193,46"/>
-<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="167,42,147,57,103,95,99,91,144,53,164,38"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1zelda3_1_1ObjectRenderer.html" title="Unified ObjectRenderer combining all optimizations and enhancements." alt="" coords="252,94,439,120"/>
-<area shape="poly" id="edge6_Node000009_Node000005" title=" " alt="" coords="231,37,326,91,323,96,229,41"/>
-<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="313,130,218,184,216,180,310,125"/>
+<area shape="rect" id="Node000001" title="Handles rendering of dungeon objects, layouts, and backgrounds." alt="" coords="125,183,319,208"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="54,94,174,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,131,153,157,192,180,189,184,150,161,127,135"/>
+<area shape="rect" id="Node000003" href="$structyaze_1_1gui_1_1CanvasConfig.html" title="Configuration for canvas display and interaction." alt="" coords="5,5,162,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="89,45,95,69,108,92,103,95,90,71,84,47"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="186,5,266,31"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="228,46,225,182,220,182,223,46"/>
+<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="195,42,173,57,128,96,125,92,170,53,192,38"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1zelda3_1_1ObjectRenderer.html" title="Unified ObjectRenderer combining all optimizations and enhancements." alt="" coords="278,94,465,120"/>
+<area shape="poly" id="edge6_Node000011_Node000007" title=" " alt="" coords="261,37,352,91,350,96,258,42"/>
+<area shape="poly" id="edge5_Node000001_Node000011" title=" " alt="" coords="339,130,245,184,242,180,336,125"/>
 </map>

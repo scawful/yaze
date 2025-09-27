@@ -14,10 +14,12 @@ var searchData=
   ['emu_2ecc_11',['emu.cc',['../emu_8cc.html',1,'']]],
   ['emulator_2ecc_12',['emulator.cc',['../emulator_8cc.html',1,'']]],
   ['emulator_2eh_13',['emulator.h',['../emulator_8h.html',1,'']]],
-  ['entity_2ecc_14',['entity.cc',['../entity_8cc.html',1,'']]],
-  ['entity_2eh_15',['entity.h',['../entity_8h.html',1,'']]],
-  ['extension_5fmanager_2ecc_16',['extension_manager.cc',['../extension__manager_8cc.html',1,'']]],
-  ['extension_5fmanager_2eh_17',['extension_manager.h',['../extension__manager_8h.html',1,'']]],
-  ['extract_5fchangelog_2epy_18',['extract_changelog.py',['../extract__changelog_8py.html',1,'']]],
-  ['extract_5fvanilla_5fvalues_2ecc_19',['extract_vanilla_values.cc',['../extract__vanilla__values_8cc.html',1,'']]]
+  ['enhanced_5fpalette_5feditor_2ecc_14',['enhanced_palette_editor.cc',['../enhanced__palette__editor_8cc.html',1,'']]],
+  ['enhanced_5fpalette_5feditor_2eh_15',['enhanced_palette_editor.h',['../enhanced__palette__editor_8h.html',1,'']]],
+  ['entity_2ecc_16',['entity.cc',['../entity_8cc.html',1,'']]],
+  ['entity_2eh_17',['entity.h',['../entity_8h.html',1,'']]],
+  ['extension_5fmanager_2ecc_18',['extension_manager.cc',['../extension__manager_8cc.html',1,'']]],
+  ['extension_5fmanager_2eh_19',['extension_manager.h',['../extension__manager_8h.html',1,'']]],
+  ['extract_5fchangelog_2epy_20',['extract_changelog.py',['../extract__changelog_8py.html',1,'']]],
+  ['extract_5fvanilla_5fvalues_2ecc_21',['extract_vanilla_values.cc',['../extract__vanilla__values_8cc.html',1,'']]]
 ];

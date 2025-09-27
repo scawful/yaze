@@ -12,6 +12,7 @@ var style_8h =
     [ "BeginNoPadding", "style_8h.html#a86b74b300fa6a281d7bc15a16b17c2ae", null ],
     [ "EndNoPadding", "style_8h.html#a59476f506247500392e1f7512924649a", null ],
     [ "BeginChildWithScrollbar", "style_8h.html#ade93c7dcd1ffbb9d83002534f950c8bc", null ],
+    [ "BeginChildWithScrollbar", "style_8h.html#a92b3511aa78e6fcaaa782d8ca28390eb", null ],
     [ "BeginChildBothScrollbars", "style_8h.html#a28dd8b4161ca3d4103b8285519a4871a", null ],
     [ "BeginTableCanvas", "style_8h.html#a0d2c0f31de8344832a398ba2d7c8ea86", null ],
     [ "EndTableCanvas", "style_8h.html#ab76a8001af04a4afe36359b5b62f8f20", null ],

@@ -1,0 +1,12 @@
+<map id="src/app/gui/zeml.h" name="src/app/gui/zeml.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="140,5,267,31"/>
+<area shape="rect" id="Node000002" href="$emulator_8cc.html" title=" " alt="" coords="5,160,170,186"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,41,137,58,115,81,104,100,97,122,91,160,85,159,92,121,99,98,111,77,134,54,160,36"/>
+<area shape="rect" id="Node000003" href="$emulator_8h.html" title=" " alt="" coords="125,79,282,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,46,206,79,201,79,201,46"/>
+<area shape="rect" id="Node000016" href="$zeml_8cc.html" title=" " alt="" coords="306,79,440,105"/>
+<area shape="poly" id="edge5_Node000001_Node000016" title=" " alt="" coords="247,35,345,76,343,81,245,40"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="175,116,107,162,104,157,172,111"/>
+<area shape="rect" id="Node000004" href="$editor__manager_8cc.html" title=" " alt="" coords="194,153,330,193"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="224,116,250,151,246,154,219,119"/>
+</map>

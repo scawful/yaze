@@ -1,0 +1,13 @@
+<map id="yaze::editor::test::Tile16EditorIntegrationTest::SetUp" name="yaze::editor::test::Tile16EditorIntegrationTest::SetUp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,188,135"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#a0d5a59f3505536cfb25b54a54c1d855d" title=" " alt="" coords="236,29,406,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,81,223,72,224,77,189,86"/>
+<area shape="rect" id="Node000018" href="$namespaceyaze_1_1gfx.html#a2064ed9f541dd72deb72f78523e006c4" title=" " alt="" coords="241,94,401,120"/>
+<area shape="poly" id="edge4_Node000001_Node000018" title=" " alt="" coords="188,104,225,104,225,110,188,110"/>
+<area shape="rect" id="Node000019" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="454,120,617,145"/>
+<area shape="poly" id="edge6_Node000001_Node000019" title=" " alt="" coords="189,123,236,130,340,135,438,134,438,139,340,140,235,135,188,129"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Create a bitmap with the given dimensions and data." alt="" coords="474,29,597,70"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="407,47,459,47,459,52,407,52"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="495,29,493,19,500,10,514,5,536,3,559,5,573,11,571,16,558,10,536,8,515,10,503,15,498,20,500,28"/>
+<area shape="poly" id="edge5_Node000018_Node000019" title=" " alt="" coords="401,114,439,118,438,124,401,119"/>
+</map>

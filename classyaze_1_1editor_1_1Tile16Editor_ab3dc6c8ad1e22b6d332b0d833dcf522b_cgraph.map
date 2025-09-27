@@ -1,0 +1,9 @@
+<map id="yaze::editor::Tile16Editor::UpdateROMTile16Data" name="yaze::editor::Tile16Editor::UpdateROMTile16Data">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,167,75"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Tile16Editor.html#abebf8fffcdcc5ed3d5404adca0c48eb4" title=" " alt="" coords="215,5,374,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,41,199,36,199,42,167,46"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#a7113e4e4db134e18b9693a0065ed16ae" title=" " alt="" coords="219,70,370,96"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="167,63,203,68,203,73,166,68"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a30f8894fdffdecfde25c13cd39882861" title=" " alt="" coords="422,13,573,39"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="374,23,407,23,407,28,374,28"/>
+</map>

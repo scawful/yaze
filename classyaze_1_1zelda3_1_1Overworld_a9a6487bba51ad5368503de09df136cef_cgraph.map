@@ -1,11 +1,9 @@
 <map id="yaze::zelda3::Overworld::LoadSprites" name="yaze::zelda3::Overworld::LoadSprites">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,161,68"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="209,5,393,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,34,193,30,194,35,161,40"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Overworld.html#ac8964f7153a9e49bd61c81b936feab3d" title=" " alt="" coords="223,55,379,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,55,208,61,207,66,160,60"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4" title=" " alt="" coords="441,37,624,63"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="379,64,425,59,426,64,379,70"/>
-<area shape="rect" id="Node000005" href="$namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="476,87,590,112"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="379,81,460,89,460,95,379,86"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,161,64"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Overworld.html#ac8964f7153a9e49bd61c81b936feab3d" title=" " alt="" coords="209,23,364,64"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,41,193,41,193,46,161,46"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4" title=" " alt="" coords="412,5,595,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="364,32,396,28,397,33,365,37"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="447,55,561,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="365,49,431,57,430,62,364,55"/>
 </map>

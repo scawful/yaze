@@ -53,6 +53,9 @@ var annotated_dup =
           [ "PaletteChange", "structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html", "structyaze_1_1editor_1_1palette__internal_1_1PaletteChange" ],
           [ "PaletteEditorHistory", "classyaze_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html", "classyaze_1_1editor_1_1palette__internal_1_1PaletteEditorHistory" ]
         ] ],
+        [ "test", "namespaceyaze_1_1editor_1_1test.html", [
+          [ "Tile16EditorIntegrationTest", "classyaze_1_1editor_1_1test_1_1Tile16EditorIntegrationTest.html", "classyaze_1_1editor_1_1test_1_1Tile16EditorIntegrationTest" ]
+        ] ],
         [ "zsprite", "namespaceyaze_1_1editor_1_1zsprite.html", [
           [ "AnimationGroup", "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html", "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup" ],
           [ "OamTile", "structyaze_1_1editor_1_1zsprite_1_1OamTile.html", "structyaze_1_1editor_1_1zsprite_1_1OamTile" ],
@@ -92,6 +95,7 @@ var annotated_dup =
         [ "MessagePreview", "structyaze_1_1editor_1_1MessagePreview.html", "structyaze_1_1editor_1_1MessagePreview" ],
         [ "MusicEditor", "classyaze_1_1editor_1_1MusicEditor.html", "classyaze_1_1editor_1_1MusicEditor" ],
         [ "OverworldEditor", "classyaze_1_1editor_1_1OverworldEditor.html", "classyaze_1_1editor_1_1OverworldEditor" ],
+        [ "OverworldEditorManager", "classyaze_1_1editor_1_1OverworldEditorManager.html", "classyaze_1_1editor_1_1OverworldEditorManager" ],
         [ "PaletteEditor", "classyaze_1_1editor_1_1PaletteEditor.html", "classyaze_1_1editor_1_1PaletteEditor" ],
         [ "ParsedElement", "structyaze_1_1editor_1_1ParsedElement.html", "structyaze_1_1editor_1_1ParsedElement" ],
         [ "PopupManager", "classyaze_1_1editor_1_1PopupManager.html", "classyaze_1_1editor_1_1PopupManager" ],
@@ -238,6 +242,9 @@ var annotated_dup =
         [ "Tilemap", "structyaze_1_1gfx_1_1Tilemap.html", "structyaze_1_1gfx_1_1Tilemap" ]
       ] ],
       [ "gui", "namespaceyaze_1_1gui.html", [
+        [ "CanvasUtils", "namespaceyaze_1_1gui_1_1CanvasUtils.html", [
+          [ "CanvasRenderContext", "structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html", "structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext" ]
+        ] ],
         [ "zeml", "namespaceyaze_1_1gui_1_1zeml.html", [
           [ "Action", "structyaze_1_1gui_1_1zeml_1_1Action.html", "structyaze_1_1gui_1_1zeml_1_1Action" ],
           [ "Node", "structyaze_1_1gui_1_1zeml_1_1Node.html", "structyaze_1_1gui_1_1zeml_1_1Node" ],
@@ -248,9 +255,14 @@ var annotated_dup =
         [ "BackgroundRenderer", "classyaze_1_1gui_1_1BackgroundRenderer.html", "classyaze_1_1gui_1_1BackgroundRenderer" ],
         [ "Button", "structyaze_1_1gui_1_1Button.html", "structyaze_1_1gui_1_1Button" ],
         [ "Canvas", "classyaze_1_1gui_1_1Canvas.html", "classyaze_1_1gui_1_1Canvas" ],
+        [ "CanvasConfig", "structyaze_1_1gui_1_1CanvasConfig.html", "structyaze_1_1gui_1_1CanvasConfig" ],
+        [ "CanvasContextMenuItem", "structyaze_1_1gui_1_1CanvasContextMenuItem.html", "structyaze_1_1gui_1_1CanvasContextMenuItem" ],
+        [ "CanvasPaletteManager", "structyaze_1_1gui_1_1CanvasPaletteManager.html", "structyaze_1_1gui_1_1CanvasPaletteManager" ],
+        [ "CanvasSelection", "structyaze_1_1gui_1_1CanvasSelection.html", "structyaze_1_1gui_1_1CanvasSelection" ],
         [ "Color", "structyaze_1_1gui_1_1Color.html", "structyaze_1_1gui_1_1Color" ],
         [ "DockSpaceRenderer", "classyaze_1_1gui_1_1DockSpaceRenderer.html", null ],
         [ "DungeonAsset", "structyaze_1_1gui_1_1DungeonAsset.html", "structyaze_1_1gui_1_1DungeonAsset" ],
+        [ "EnhancedPaletteEditor", "classyaze_1_1gui_1_1EnhancedPaletteEditor.html", "classyaze_1_1gui_1_1EnhancedPaletteEditor" ],
         [ "EnhancedTheme", "structyaze_1_1gui_1_1EnhancedTheme.html", "structyaze_1_1gui_1_1EnhancedTheme" ],
         [ "ExampleSelectionWithDeletion", "structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", "structyaze_1_1gui_1_1ExampleSelectionWithDeletion" ],
         [ "GfxSheetAssetBrowser", "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", "structyaze_1_1gui_1_1GfxSheetAssetBrowser" ],

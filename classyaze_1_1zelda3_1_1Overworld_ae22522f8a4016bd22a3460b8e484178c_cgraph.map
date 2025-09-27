@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::Overworld::SaveMapOverlays" name="yaze::zelda3::Overworld::SaveMapOverlays">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,161,64"/>
+<area shape="rect" id="Node000002" href="$namespaceyaze.html#a17bc6f37bc5f5ccbe7d722c42cb8b1ab" title=" " alt="" coords="243,5,358,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,32,227,24,228,29,162,37"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4" title=" " alt="" coords="209,55,392,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="162,49,193,53,193,58,161,55"/>
+</map>

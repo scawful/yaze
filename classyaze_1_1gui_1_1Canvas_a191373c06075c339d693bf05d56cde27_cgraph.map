@@ -1,0 +1,7 @@
+<map id="yaze::gui::Canvas::ShowScalingControls" name="yaze::gui::Canvas::ShowScalingControls">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,151,79"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="199,5,322,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,43,183,37,184,42,151,48"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="199,71,322,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="151,69,184,75,183,80,150,74"/>
+</map>
