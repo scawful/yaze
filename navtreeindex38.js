@@ -1,5 +1,13 @@
 var NAVTREEINDEX38 =
 {
+"dungeon__object__renderer__mock__test_8cc.html#a59972415cbec072806ba8b0be32a37a1":[25,0,4,6,4,9],
+"dungeon__object__renderer__mock__test_8cc.html#a632fd96e7f910188f493659b679045a5":[25,0,4,6,4,13],
+"dungeon__object__renderer__mock__test_8cc.html#a6b7b49e8af105c4e558028b320b9969d":[25,0,4,6,4,8],
+"dungeon__object__renderer__mock__test_8cc.html#ab25915c2485e0e38db4a186e352cb76e":[25,0,4,6,4,7],
+"dungeon__object__renderer__mock__test_8cc.html#ab331dc37d627768a4c833ae5fba1bf6c":[25,0,4,6,4,12],
+"dungeon__object__renderer__mock__test_8cc.html#acd7274a6b4ad71fc86fe4f7a81bcd4c4":[25,0,4,6,4,11],
+"dungeon__object__renderer__mock__test_8cc.html#ae80104301f390026b742af74cdefce92":[25,0,4,6,4,14],
+"dungeon__object__renderer__mock__test_8cc.html#af7d993205978d56736135d0969a74ad6":[25,0,4,6,4,5],
 "dungeon__object__renderer__mock__test_8cc.html#afecebe93f63ef6cf2753b1b549c6cc2c":[25,0,4,6,4,6],
 "dungeon__object__renderer__mock__test_8cc_source.html":[25,0,4,6,4],
 "dungeon__object__rendering__tests_8cc.html":[25,0,4,6,5],
@@ -241,13 +249,5 @@ var NAVTREEINDEX38 =
 "functions_q.html":[24,3,0,16],
 "functions_r.html":[24,3,0,17],
 "functions_s.html":[24,3,0,18],
-"functions_t.html":[24,3,0,19],
-"functions_type.html":[24,3,3],
-"functions_u.html":[24,3,0,20],
-"functions_v.html":[24,3,0,21],
-"functions_vars.html":[24,3,2],
-"functions_vars.html":[24,3,2,0],
-"functions_vars_b.html":[24,3,2,1],
-"functions_vars_c.html":[24,3,2,2],
-"functions_vars_d.html":[24,3,2,3]
+"functions_t.html":[24,3,0,19]
 };

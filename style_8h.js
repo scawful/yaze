@@ -1,11 +1,7 @@
 var style_8h =
 [
-    [ "yaze::gui::Theme", "structyaze_1_1gui_1_1Theme.html", "structyaze_1_1gui_1_1Theme" ],
     [ "yaze::gui::TextBox", "structyaze_1_1gui_1_1TextBox.html", "structyaze_1_1gui_1_1TextBox" ],
     [ "yaze::gui::MultiSelect< T >", "classyaze_1_1gui_1_1MultiSelect.html", "classyaze_1_1gui_1_1MultiSelect" ],
-    [ "LoadTheme", "style_8h.html#a216f2984ca7cc50dd872c9605352c95e", null ],
-    [ "SaveTheme", "style_8h.html#a7f5085854df78a52ad2598b0448850ed", null ],
-    [ "ApplyTheme", "style_8h.html#ae9a47f0d85166d6363717c61056b83a3", null ],
     [ "ColorsYaze", "style_8h.html#abd9a49ec6350e33700334b783e0c9cad", null ],
     [ "GetAssemblyLanguageDef", "style_8h.html#a662ce2afc1c96ab4df4f8f645e837981", null ],
     [ "DrawBitmapViewer", "style_8h.html#a003e28a61099ac2e0a2563005c681efc", null ],

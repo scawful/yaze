@@ -20,6 +20,7 @@ var classyaze_1_1editor_1_1MapPropertiesSystem =
     [ "DrawSpritePropertiesTab", "classyaze_1_1editor_1_1MapPropertiesSystem.html#a7b7775a8ac7465f2a4e8dbbd56c082e5", null ],
     [ "DrawCustomFeaturesTab", "classyaze_1_1editor_1_1MapPropertiesSystem.html#a8af37e9dc145e7ecad7a1cae241dfd74", null ],
     [ "DrawTileGraphicsTab", "classyaze_1_1editor_1_1MapPropertiesSystem.html#aeaba82ba7a6ca2a3eadb7e9e74109a95", null ],
+    [ "DrawMusicTab", "classyaze_1_1editor_1_1MapPropertiesSystem.html#a8397475e1159777e834c33dbfc4066a5", null ],
     [ "RefreshMapProperties", "classyaze_1_1editor_1_1MapPropertiesSystem.html#a1ae3f21d8a5446c4e4b9039230061039", null ],
     [ "RefreshOverworldMap", "classyaze_1_1editor_1_1MapPropertiesSystem.html#a3f3c216f891a78be9d5f289d2c13e2cc", null ],
     [ "RefreshMapPalette", "classyaze_1_1editor_1_1MapPropertiesSystem.html#af4a5f8735127f4d5016b22d194bd7e30", null ],

@@ -1,10 +1,6 @@
 var style_8cc =
 [
     [ "ParseColor", "style_8cc.html#a81e571437cbb87acc15065daeddcbb19", null ],
-    [ "ParseThemeContents", "style_8cc.html#ae406e4e173820f2b6ea19760dd4681a3", null ],
-    [ "LoadTheme", "style_8cc.html#a216f2984ca7cc50dd872c9605352c95e", null ],
-    [ "SaveTheme", "style_8cc.html#a7f5085854df78a52ad2598b0448850ed", null ],
-    [ "ApplyTheme", "style_8cc.html#ae9a47f0d85166d6363717c61056b83a3", null ],
     [ "ColorsYaze", "style_8cc.html#abd9a49ec6350e33700334b783e0c9cad", null ],
     [ "DrawBitmapViewer", "style_8cc.html#a003e28a61099ac2e0a2563005c681efc", null ],
     [ "GetAssemblyLanguageDef", "style_8cc.html#a662ce2afc1c96ab4df4f8f645e837981", null ],

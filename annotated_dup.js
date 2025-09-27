@@ -262,7 +262,6 @@ var annotated_dup =
         [ "Table", "structyaze_1_1gui_1_1Table.html", "structyaze_1_1gui_1_1Table" ],
         [ "Text", "structyaze_1_1gui_1_1Text.html", "structyaze_1_1gui_1_1Text" ],
         [ "TextBox", "structyaze_1_1gui_1_1TextBox.html", "structyaze_1_1gui_1_1TextBox" ],
-        [ "Theme", "structyaze_1_1gui_1_1Theme.html", "structyaze_1_1gui_1_1Theme" ],
         [ "ThemeManager", "classyaze_1_1gui_1_1ThemeManager.html", "classyaze_1_1gui_1_1ThemeManager" ],
         [ "UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", "structyaze_1_1gui_1_1UnsortedAsset" ]
       ] ],

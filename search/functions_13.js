@@ -59,7 +59,7 @@ var searchData=
   ['trimresourcehistory_56',['TrimResourceHistory',['../classyaze_1_1test_1_1TestManager.html#aac8ba5225045f940a57ed1f7bfa1e774',1,'yaze::test::TestManager']]],
   ['tryparsebyte_57',['TryParseByte',['../classyaze_1_1emu_1_1AsmParser.html#a6ebefb8ac2822d8030c691b1a3ce2402',1,'yaze::emu::AsmParser']]],
   ['tryparsehex_58',['TryParseHex',['../classyaze_1_1emu_1_1AsmParser.html#a2dc4cfff44721a57acc183a7e122a9b0',1,'yaze::emu::AsmParser']]],
-  ['tsb_59',['tsb',['../classyaze_1_1emu_1_1Cpu.html#a7d149e83459d55b4519e0d7fa765b3ed',1,'yaze::emu::Cpu::Tsb(uint32_t low, uint32_t high)'],['../classyaze_1_1emu_1_1Cpu.html#a91fa3f2a2be7dd1b784e967ad421d1dd',1,'yaze::emu::Cpu::TSB(uint16_t address)']]],
+  ['tsb_59',['tsb',['../classyaze_1_1emu_1_1Cpu.html#a91fa3f2a2be7dd1b784e967ad421d1dd',1,'yaze::emu::Cpu::TSB(uint16_t address)'],['../classyaze_1_1emu_1_1Cpu.html#a7d149e83459d55b4519e0d7fa765b3ed',1,'yaze::emu::Cpu::Tsb(uint32_t low, uint32_t high)']]],
   ['tsc_60',['TSC',['../classyaze_1_1emu_1_1Cpu.html#ae5c9c3ccec7248fe82b9e261d0aab84a',1,'yaze::emu::Cpu']]],
   ['tset1_61',['TSET1',['../classyaze_1_1emu_1_1Spc700.html#aec933e6fee8a8562c97a0bb1ede87ea7',1,'yaze::emu::Spc700']]],
   ['tsx_62',['TSX',['../classyaze_1_1emu_1_1Cpu.html#aa9e52ad4678a5e0ed74f0602fa105f2c',1,'yaze::emu::Cpu']]],

@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.0</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.1</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -101,15 +101,15 @@ $(document).ready(function(){initNavTree('md_docs_2E2-dungeon-editor-guide.html'
   <div class="headertitle"><div class="title">Dungeon Editor Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md203"></a> </p>
-<h1><a class="anchor" id="autotoc_md204"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md204"></a> </p>
+<h1><a class="anchor" id="autotoc_md205"></a>
 Overview</h1>
 <p>The Yaze Dungeon Editor is a comprehensive tool for editing Zelda 3: A Link to the Past dungeon rooms, objects, sprites, items, entrances, doors, and chests. It provides an integrated editing experience with real-time rendering, coordinate system management, and advanced features for dungeon modification.</p>
-<h1><a class="anchor" id="autotoc_md205"></a>
+<h1><a class="anchor" id="autotoc_md206"></a>
 Architecture</h1>
-<h2><a class="anchor" id="autotoc_md206"></a>
+<h2><a class="anchor" id="autotoc_md207"></a>
 Core Components</h2>
-<h3><a class="anchor" id="autotoc_md207"></a>
+<h3><a class="anchor" id="autotoc_md208"></a>
 1. DungeonEditorSystem</h3>
 <ul>
 <li><b>Purpose</b>: Central coordinator for all dungeon editing operations</li>
@@ -126,7 +126,7 @@ Core Components</h2>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md208"></a>
+<h3><a class="anchor" id="autotoc_md209"></a>
 2. DungeonObjectEditor</h3>
 <ul>
 <li><b>Purpose</b>: Specialized editor for room objects (walls, floors, decorations)</li>
@@ -142,7 +142,7 @@ Core Components</h2>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md209"></a>
+<h3><a class="anchor" id="autotoc_md210"></a>
 3. ObjectRenderer</h3>
 <ul>
 <li><b>Purpose</b>: High-performance rendering system for dungeon objects</li>
@@ -157,7 +157,7 @@ Core Components</h2>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md210"></a>
+<h3><a class="anchor" id="autotoc_md211"></a>
 4. DungeonEditor (UI Layer)</h3>
 <ul>
 <li><b>Purpose</b>: User interface and interaction handling</li>
@@ -172,16 +172,16 @@ Core Components</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md211"></a>
+<h1><a class="anchor" id="autotoc_md212"></a>
 Coordinate System</h1>
-<h2><a class="anchor" id="autotoc_md212"></a>
+<h2><a class="anchor" id="autotoc_md213"></a>
 Room Coordinates vs Canvas Coordinates</h2>
 <p>The dungeon editor uses a two-tier coordinate system:</p>
 <ol type="1">
 <li><b>Room Coordinates</b>: 16x16 tile units (as used in the ROM)</li>
 <li><b>Canvas Coordinates</b>: Pixel coordinates for rendering</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md213"></a>
+<h3><a class="anchor" id="autotoc_md214"></a>
 Conversion Functions</h3>
 <div class="fragment"><div class="line"><span class="comment">// Convert room coordinates to canvas coordinates</span></div>
 <div class="line">std::pair&lt;int, int&gt; RoomToCanvasCoordinates(<span class="keywordtype">int</span> room_x, <span class="keywordtype">int</span> room_y)<span class="keyword"> const </span>{</div>
@@ -195,7 +195,7 @@ Conversion Functions</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Check if coordinates are within canvas bounds</span></div>
 <div class="line"><span class="keywordtype">bool</span> IsWithinCanvasBounds(<span class="keywordtype">int</span> canvas_x, <span class="keywordtype">int</span> canvas_y, <span class="keywordtype">int</span> margin = 32) <span class="keyword">const</span>;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md214"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md215"></a>
 Coordinate System Features</h2>
 <ul>
 <li><b>Automatic Bounds Checking</b>: Objects outside visible canvas area are culled</li>
@@ -203,9 +203,9 @@ Coordinate System Features</h2>
 <li><b>Grid Alignment</b>: 16x16 pixel grid for precise object placement</li>
 <li><b>Margin Support</b>: Configurable margins for partial object visibility</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md215"></a>
+<h1><a class="anchor" id="autotoc_md216"></a>
 Object Rendering System</h1>
-<h2><a class="anchor" id="autotoc_md216"></a>
+<h2><a class="anchor" id="autotoc_md217"></a>
 Object Types</h2>
 <p>The system supports three main object subtypes based on ROM structure:</p>
 <ol type="1">
@@ -213,7 +213,7 @@ Object Types</h2>
 <li><b>Subtype 2</b> (0x100-0x1FF): Interactive objects (doors, switches, chests)</li>
 <li><b>Subtype 3</b> (0x200+): Special objects (stairs, warps, bosses)</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md217"></a>
+<h2><a class="anchor" id="autotoc_md218"></a>
 Rendering Pipeline</h2>
 <ol type="1">
 <li><b>Object Loading</b>: Objects are loaded from ROM data using <code>LoadObjects()</code></li>
@@ -222,7 +222,7 @@ Rendering Pipeline</h2>
 <li><b>Palette Application</b>: SNES palettes are applied to object graphics</li>
 <li><b>Canvas Rendering</b>: Objects are rendered to canvas with proper coordinate transformation</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md218"></a>
+<h2><a class="anchor" id="autotoc_md219"></a>
 Performance Optimizations</h2>
 <ul>
 <li><b>Graphics Cache</b>: Reduces redundant graphics sheet loading</li>
@@ -231,12 +231,12 @@ Performance Optimizations</h2>
 <li><b>Bounds Culling</b>: Objects outside visible area are skipped</li>
 <li><b>Cache Invalidation</b>: Smart cache management based on palette changes</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md219"></a>
+<h1><a class="anchor" id="autotoc_md220"></a>
 User Interface</h1>
-<h2><a class="anchor" id="autotoc_md220"></a>
+<h2><a class="anchor" id="autotoc_md221"></a>
 Integrated Editing Panels</h2>
 <p>The dungeon editor features a consolidated interface with:</p>
-<h3><a class="anchor" id="autotoc_md221"></a>
+<h3><a class="anchor" id="autotoc_md222"></a>
 Main Canvas</h3>
 <ul>
 <li><b>Room Visualization</b>: Real-time room rendering with background layers</li>
@@ -245,7 +245,7 @@ Main Canvas</h3>
 <li><b>Grid Overlay</b>: Optional grid display for precise positioning</li>
 <li><b>Coordinate Display</b>: Real-time coordinate information</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md222"></a>
+<h3><a class="anchor" id="autotoc_md223"></a>
 Compact Editing Panels</h3>
 <ol type="1">
 <li><b>Object Editor</b><ul>
@@ -299,7 +299,7 @@ Compact Editing Panels</h3>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md223"></a>
+<h2><a class="anchor" id="autotoc_md224"></a>
 Object Preview System</h2>
 <ul>
 <li><b>Real-time Preview</b>: Objects are previewed in the canvas as they're selected</li>
@@ -307,33 +307,33 @@ Object Preview System</h2>
 <li><b>Palette Support</b>: Previews use current palette settings</li>
 <li><b>Information Display</b>: Object properties are shown in preview window</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md224"></a>
+<h1><a class="anchor" id="autotoc_md225"></a>
 Integration with ZScream</h1>
 <p>The dungeon editor is designed to be compatible with ZScream C# patterns:</p>
-<h2><a class="anchor" id="autotoc_md225"></a>
+<h2><a class="anchor" id="autotoc_md226"></a>
 Room Loading</h2>
 <ul>
 <li>Uses same room loading patterns as ZScream</li>
 <li>Compatible with ZScream room data structures</li>
 <li>Supports ZScream room naming conventions</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md226"></a>
+<h2><a class="anchor" id="autotoc_md227"></a>
 Object Parsing</h2>
 <ul>
 <li>Follows ZScream object parsing logic</li>
 <li>Compatible with ZScream object type definitions</li>
 <li>Supports ZScream size encoding</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md227"></a>
+<h2><a class="anchor" id="autotoc_md228"></a>
 Coordinate System</h2>
 <ul>
 <li>Matches ZScream coordinate conventions</li>
 <li>Uses same tile size calculations</li>
 <li>Compatible with ZScream positioning logic</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md228"></a>
+<h1><a class="anchor" id="autotoc_md229"></a>
 Testing and Validation</h1>
-<h2><a class="anchor" id="autotoc_md229"></a>
+<h2><a class="anchor" id="autotoc_md230"></a>
 Integration Tests</h2>
 <p>The system includes comprehensive integration tests:</p>
 <ol type="1">
@@ -345,7 +345,7 @@ Integration Tests</h2>
 <li><b>Cache Effectiveness</b>: Tests graphics cache performance</li>
 <li><b>Error Handling</b>: Tests error conditions and edge cases</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md230"></a>
+<h2><a class="anchor" id="autotoc_md231"></a>
 Test Data</h2>
 <p>Tests use real ROM data from <code>build/bin/zelda3.sfc</code>:</p><ul>
 <li><b>Room 0x0000</b>: Ganon's room (from disassembly)</li>
@@ -353,7 +353,7 @@ Test Data</h2>
 <li><b>Room 0x0020</b>: Agahnim's tower (from disassembly)</li>
 <li><b>Additional rooms</b>: 0x0001, 0x0010, 0x0033, 0x005A</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md231"></a>
+<h2><a class="anchor" id="autotoc_md232"></a>
 Performance Benchmarks</h2>
 <ul>
 <li><b>Rendering Time</b>: &lt; 500ms for 100 objects</li>
@@ -361,9 +361,9 @@ Performance Benchmarks</h2>
 <li><b>Cache Hit Rate</b>: Optimized for frequent object access</li>
 <li><b>Coordinate Conversion</b>: O(1) coordinate transformation</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md232"></a>
+<h1><a class="anchor" id="autotoc_md233"></a>
 Usage Examples</h1>
-<h2><a class="anchor" id="autotoc_md233"></a>
+<h2><a class="anchor" id="autotoc_md234"></a>
 Basic Object Editing</h2>
 <div class="fragment"><div class="line"><span class="comment">// Load a room</span></div>
 <div class="line"><span class="keyword">auto</span> room_result = dungeon_editor_system_-&gt;GetRoom(0x0000);</div>
@@ -374,7 +374,7 @@ Basic Object Editing</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Render objects</span></div>
 <div class="line"><span class="keyword">auto</span> result = object_renderer_-&gt;RenderObjects(objects, palette);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md234"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md235"></a>
 Coordinate Conversion</h2>
 <div class="fragment"><div class="line"><span class="comment">// Convert room coordinates to canvas coordinates</span></div>
 <div class="line"><span class="keyword">auto</span> [canvas_x, canvas_y] = RoomToCanvasCoordinates(room_x, room_y);</div>
@@ -383,7 +383,7 @@ Coordinate Conversion</h2>
 <div class="line"><span class="keywordflow">if</span> (IsWithinCanvasBounds(canvas_x, canvas_y)) {</div>
 <div class="line">    <span class="comment">// Render object at this position</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md235"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md236"></a>
 Object Preview</h2>
 <div class="fragment"><div class="line"><span class="comment">// Create preview object</span></div>
 <div class="line"><span class="keyword">auto</span> preview_object = zelda3::RoomObject(<span class="keywordtype">id</span>, 8, 8, 0x12, 0);</div>
@@ -392,9 +392,9 @@ Object Preview</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Render preview</span></div>
 <div class="line"><span class="keyword">auto</span> result = object_renderer_-&gt;RenderObject(preview_object, palette);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md236"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md237"></a>
 Configuration Options</h1>
-<h2><a class="anchor" id="autotoc_md237"></a>
+<h2><a class="anchor" id="autotoc_md238"></a>
 Editor Configuration</h2>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>EditorConfig {</div>
 <div class="line">  <span class="keywordtype">bool</span> snap_to_grid = <span class="keyword">true</span>;</div>
@@ -406,7 +406,7 @@ Editor Configuration</h2>
 <div class="line">  <span class="keywordtype">bool</span> validate_objects = <span class="keyword">true</span>;</div>
 <div class="line">  <span class="keywordtype">bool</span> show_collision_bounds = <span class="keyword">false</span>;</div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md238"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md239"></a>
 Performance Configuration</h2>
 <div class="fragment"><div class="line"><span class="comment">// Object renderer settings</span></div>
 <div class="line">object_renderer_-&gt;SetCacheSize(100);</div>
@@ -415,9 +415,9 @@ Performance Configuration</h2>
 <div class="line"><span class="comment">// Canvas settings</span></div>
 <div class="line">canvas_.SetCanvasSize(ImVec2(512, 512));</div>
 <div class="line">canvas_.set_draggable(<span class="keyword">true</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md239"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md240"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md240"></a>
+<h2><a class="anchor" id="autotoc_md241"></a>
 Common Issues</h2>
 <ol type="1">
 <li><b>Objects Not Displaying</b><ul>
@@ -445,7 +445,7 @@ Common Issues</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md241"></a>
+<h2><a class="anchor" id="autotoc_md242"></a>
 Debug Information</h2>
 <p>The system provides comprehensive debug information:</p><ul>
 <li>Object count and statistics</li>
@@ -454,9 +454,9 @@ Debug Information</h2>
 <li>Performance metrics</li>
 <li>Coordinate system validation</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md242"></a>
+<h1><a class="anchor" id="autotoc_md243"></a>
 Future Enhancements</h1>
-<h2><a class="anchor" id="autotoc_md243"></a>
+<h2><a class="anchor" id="autotoc_md244"></a>
 Planned Features</h2>
 <ol type="1">
 <li><b>Advanced Object Editing</b><ul>
@@ -484,7 +484,7 @@ Planned Features</h2>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md244"></a>
+<h1><a class="anchor" id="autotoc_md245"></a>
 Conclusion</h1>
 <p>The Yaze Dungeon Editor provides a comprehensive, high-performance solution for editing Zelda 3 dungeon rooms. With its integrated interface, robust coordinate system, and advanced rendering capabilities, it offers both novice and expert users the tools needed to create and modify dungeon content effectively.</p>
 <p>The system's compatibility with ZScream patterns and comprehensive testing ensure reliability and consistency with existing tools, while its modern architecture provides a foundation for future enhancements and features. </p>

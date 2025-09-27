@@ -374,7 +374,6 @@ var hierarchy =
     [ "yaze::gui::TextBox", "structyaze_1_1gui_1_1TextBox.html", null ],
     [ "TextEditor", "classTextEditor.html", null ],
     [ "yaze::editor::TextElement", "structyaze_1_1editor_1_1TextElement.html", null ],
-    [ "yaze::gui::Theme", "structyaze_1_1gui_1_1Theme.html", null ],
     [ "yaze::gui::ThemeManager", "classyaze_1_1gui_1_1ThemeManager.html", null ],
     [ "yaze::emu::Tile", "structyaze_1_1emu_1_1Tile.html", null ],
     [ "yaze::gfx::Tile16", "classyaze_1_1gfx_1_1Tile16.html", null ],
