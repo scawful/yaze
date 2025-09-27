@@ -156,7 +156,6 @@ void EditorManager::InitializeTestSuites() {
   test_manager.RegisterTestSuite(std::make_unique<test::IntegratedTestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::PerformanceTestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::UITestSuite>());
-  // test_manager.RegisterTestSuite(std::make_unique<test::ArenaTestSuite>()); // TODO: Implement ArenaTestSuite
   test_manager.RegisterTestSuite(std::make_unique<test::RomDependentTestSuite>());
   
   // Register Google Test suite if available
@@ -1211,9 +1210,22 @@ void EditorManager::DrawMenuBar() {
     ImGui::SameLine();
     if (Button(absl::StrFormat("%s Save", ICON_MD_SAVE).c_str(), gui::kDefaultModalSize)) {
       if (!save_as_filename.empty()) {
-        // TODO: Implement SaveRomAs functionality with the specified filename
-        status_ = SaveRom(); // For now, use existing save functionality
-        save_as_menu = false;
+        // Ensure proper file extension
+        std::string final_filename = save_as_filename;
+        if (final_filename.find(".sfc") == std::string::npos && 
+            final_filename.find(".smc") == std::string::npos) {
+          final_filename += ".sfc";
+        }
+        
+        status_ = SaveRomAs(final_filename);
+        if (status_.ok()) {
+          save_as_menu = false;
+          toast_manager_.Show(absl::StrFormat("ROM saved as: %s", final_filename), 
+                             editor::ToastType::kSuccess);
+        } else {
+          toast_manager_.Show(absl::StrFormat("Failed to save ROM: %s", status_.message()), 
+                             editor::ToastType::kError);
+        }
       }
     }
     
@@ -1441,6 +1453,54 @@ absl::Status EditorManager::SaveRom() {
   return current_rom_->SaveToFile(settings);
 }
 
+absl::Status EditorManager::SaveRomAs(const std::string& filename) {
+  if (!current_rom_ || !current_editor_set_) {
+    return absl::FailedPreconditionError("No ROM or editor set loaded");
+  }
+
+  if (filename.empty()) {
+    return absl::InvalidArgumentError("Filename cannot be empty");
+  }
+
+  // Save editor data first (same as SaveRom)
+  if (core::FeatureFlags::get().kSaveDungeonMaps) {
+    RETURN_IF_ERROR(zelda3::SaveDungeonMaps(
+        *current_rom_, current_editor_set_->screen_editor_.dungeon_maps_));
+  }
+
+  RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Save());
+
+  if (core::FeatureFlags::get().kSaveGraphicsSheet)
+    RETURN_IF_ERROR(
+        SaveAllGraphicsData(*current_rom_, gfx::Arena::Get().gfx_sheets()));
+
+  // Create save settings with custom filename
+  Rom::SaveSettings settings;
+  settings.backup = backup_rom_;
+  settings.save_new = false; // Don't auto-generate name, use provided filename
+  settings.filename = filename;
+  
+  auto save_status = current_rom_->SaveToFile(settings);
+  if (save_status.ok()) {
+    // Update current ROM filepath to the new location
+    size_t current_session_idx = GetCurrentSessionIndex();
+    if (current_session_idx < sessions_.size()) {
+      sessions_[current_session_idx].filepath = filename;
+    }
+    
+    // Add to recent files
+    static core::RecentFilesManager manager("recent_files.txt");
+    manager.Load();
+    manager.AddFile(filename);
+    manager.Save();
+    
+    toast_manager_.Show(absl::StrFormat("ROM saved as: %s", filename), 
+                       editor::ToastType::kSuccess);
+  }
+  
+  return save_status;
+}
+
 absl::Status EditorManager::OpenRomOrProject(const std::string &filename) {
   if (filename.empty()) {
     return absl::OkStatus();
@@ -1579,13 +1639,43 @@ absl::Status EditorManager::SaveProject() {
 }
 
 absl::Status EditorManager::SaveProjectAs() {
-  auto file_path = core::FileDialogWrapper::ShowOpenFolderDialog();
+  // Get current project name for default filename
+  std::string default_name = current_project_.project_opened() ? 
+                           current_project_.GetDisplayName() : 
+                           "untitled_project";
+  
+  auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(default_name, "yaze");
   if (file_path.empty()) {
     return absl::OkStatus();
   }
   
-  popup_manager_->Show("Save Project As");
-  return absl::OkStatus();
+  // Ensure .yaze extension
+  if (file_path.find(".yaze") == std::string::npos) {
+    file_path += ".yaze";
+  }
+  
+  // Update project filepath and save
+  std::string old_filepath = current_project_.filepath;
+  current_project_.filepath = file_path;
+  
+  auto save_status = current_project_.Save();
+  if (save_status.ok()) {
+    // Add to recent files
+    static core::RecentFilesManager manager("recent_files.txt");
+    manager.Load();
+    manager.AddFile(file_path);
+    manager.Save();
+    
+    toast_manager_.Show(absl::StrFormat("Project saved as: %s", file_path), 
+                       editor::ToastType::kSuccess);
+  } else {
+    // Restore old filepath on failure
+    current_project_.filepath = old_filepath;
+    toast_manager_.Show(absl::StrFormat("Failed to save project: %s", save_status.message()), 
+                       editor::ToastType::kError);
+  }
+  
+  return save_status;
 }
 
 absl::Status EditorManager::ImportProject(const std::string& project_path) {
@@ -1687,24 +1777,59 @@ void EditorManager::DuplicateCurrentSession() {
 }
 
 void EditorManager::CloseCurrentSession() {
-  if (sessions_.size() <= 1) {
-    toast_manager_.Show("Cannot close the last session", editor::ToastType::kWarning);
+  if (GetActiveSessionCount() <= 1) {
+    toast_manager_.Show("Cannot close the last active session", editor::ToastType::kWarning);
     return;
   }
   
-  // For now, just switch to the next available session 
-  // TODO: Implement proper session removal when RomSession becomes movable
+  // Find current session index
+  size_t current_index = GetCurrentSessionIndex();
+  
+  // Switch to another active session before removing current one
+  size_t next_index = 0;
   for (size_t i = 0; i < sessions_.size(); ++i) {
-    if (&sessions_[i].rom != current_rom_) {
-      current_rom_ = &sessions_[i].rom;
-      current_editor_set_ = &sessions_[i].editors;
-      test::TestManager::Get().SetCurrentRom(current_rom_);
+    if (i != current_index && sessions_[i].custom_name != "[CLOSED SESSION]") {
+      next_index = i;
       break;
     }
   }
   
-  toast_manager_.Show("Switched to next session (full session removal coming soon)", 
-                     editor::ToastType::kInfo, 4.0f);
+  current_rom_ = &sessions_[next_index].rom;
+  current_editor_set_ = &sessions_[next_index].editors;
+  test::TestManager::Get().SetCurrentRom(current_rom_);
+  
+  // Now remove the current session
+  RemoveSession(current_index);
+  
+  toast_manager_.Show("Session closed successfully", editor::ToastType::kSuccess);
+}
+
+void EditorManager::RemoveSession(size_t index) {
+  if (index >= sessions_.size()) {
+    toast_manager_.Show("Invalid session index for removal", editor::ToastType::kError);
+    return;
+  }
+  
+  if (GetActiveSessionCount() <= 1) {
+    toast_manager_.Show("Cannot remove the last active session", editor::ToastType::kWarning);
+    return;
+  }
+  
+  // Get session info for logging
+  std::string session_name = sessions_[index].GetDisplayName();
+  
+  // For now, mark the session as invalid instead of removing it from the deque
+  // This is a safer approach until RomSession becomes fully movable
+  sessions_[index].rom.Close(); // Close the ROM to mark as invalid
+  sessions_[index].custom_name = "[CLOSED SESSION]";
+  sessions_[index].filepath = "";
+  
+  util::logf("Marked session as closed: %s (index %zu)", session_name.c_str(), index);
+  toast_manager_.Show(absl::StrFormat("Session marked as closed: %s", session_name), 
+                     editor::ToastType::kInfo);
+  
+  // TODO: Implement proper session removal when EditorSet becomes movable
+  // The current workaround marks sessions as closed instead of removing them
 }
 
 void EditorManager::SwitchToSession(size_t index) {
@@ -1729,11 +1854,21 @@ void EditorManager::SwitchToSession(size_t index) {
 
 size_t EditorManager::GetCurrentSessionIndex() const {
   for (size_t i = 0; i < sessions_.size(); ++i) {
-    if (&sessions_[i].rom == current_rom_) {
+    if (&sessions_[i].rom == current_rom_ && sessions_[i].custom_name != "[CLOSED SESSION]") {
       return i;
     }
   }
   return 0; // Default to first session if not found
+}
+
+size_t EditorManager::GetActiveSessionCount() const {
+  size_t count = 0;
+  for (const auto& session : sessions_) {
+    if (session.custom_name != "[CLOSED SESSION]") {
+      count++;
+    }
+  }
+  return count;
 }
 
 std::string EditorManager::GenerateUniqueEditorTitle(EditorType type, size_t session_index) const {
@@ -1905,6 +2040,12 @@ void EditorManager::DrawSessionSwitcher() {
       
       for (size_t i = 0; i < sessions_.size(); ++i) {
         auto& session = sessions_[i];
+        
+        // Skip closed sessions
+        if (session.custom_name == "[CLOSED SESSION]") {
+          continue;
+        }
+        
         bool is_current = (&session.rom == current_rom_);
         
         ImGui::PushID(static_cast<int>(i));
@@ -1976,7 +2117,7 @@ void EditorManager::DrawSessionSwitcher() {
         ImGui::SameLine();
         
         // Close button logic
-        bool can_close = sessions_.size() > 1;
+        bool can_close = GetActiveSessionCount() > 1;
         if (!can_close) {
           ImGui::BeginDisabled();
         }
@@ -1985,7 +2126,9 @@ void EditorManager::DrawSessionSwitcher() {
           if (is_current) {
             CloseCurrentSession();
           } else {
-            toast_manager_.Show("Session removal temporarily disabled", editor::ToastType::kWarning);
+            // Remove non-current session directly
+            RemoveSession(i);
+            show_session_switcher_ = false; // Close switcher since indices changed
           }
         }
         
@@ -2026,7 +2169,7 @@ void EditorManager::DrawSessionManager() {
     }
     
     ImGui::Separator();
-    ImGui::Text("%s Active Sessions (%zu)", ICON_MD_TAB, sessions_.size());
+    ImGui::Text("%s Active Sessions (%zu)", ICON_MD_TAB, GetActiveSessionCount());
     
     // Enhanced session management table with proper sizing
     const float AVAILABLE_HEIGHT = ImGui::GetContentRegionAvail().y;
@@ -2048,6 +2191,12 @@ void EditorManager::DrawSessionManager() {
       
       for (size_t i = 0; i < sessions_.size(); ++i) {
         auto& session = sessions_[i];
+        
+        // Skip closed sessions in session manager too
+        if (session.custom_name == "[CLOSED SESSION]") {
+          continue;
+        }
+        
         bool is_current = (&session.rom == current_rom_);
         
         ImGui::TableNextRow(ImGuiTableRowFlags_None, 50.0f); // Consistent row height
@@ -2144,7 +2293,7 @@ void EditorManager::DrawSessionManager() {
         ImGui::SameLine();
         
         // Close button logic
-        bool can_close = sessions_.size() > 1;
+        bool can_close = GetActiveSessionCount() > 1;
         if (!can_close || is_current) {
           ImGui::BeginDisabled();
         }
@@ -2154,9 +2303,9 @@ void EditorManager::DrawSessionManager() {
             CloseCurrentSession();
             break; // Exit loop since current session was closed
           } else {
-            toast_manager_.Show("Session removal temporarily disabled due to technical constraints", 
-                               editor::ToastType::kWarning);
-            break;
+            // Remove non-current session directly
+            RemoveSession(i);
+            break; // Exit loop since session indices changed
           }
         }
         
@@ -2396,7 +2545,7 @@ void EditorManager::DrawWelcomeScreen() {
       ImGui::Spacing();
       ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.0f, 1.0f), ICON_MD_WARNING " ROM Loading Required");
       TextWrapped("A session exists but no ROM is loaded. Please load a ROM file to continue editing.");
-      ImGui::Text("Active Sessions: %zu", sessions_.size());
+      ImGui::Text("Active Sessions: %zu", GetActiveSessionCount());
     } else {
       ImGui::Separator();
       ImGui::Spacing();
