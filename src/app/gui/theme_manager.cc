@@ -110,19 +110,22 @@ void ThemeManager::InitializeBuiltInThemes() {
   // Always create fallback theme first
   CreateFallbackYazeClassic();
   
+  // Create the Classic YAZE theme during initialization
+  ApplyClassicYazeTheme();
+  
   // Load all available theme files dynamically
   auto status = LoadAllAvailableThemes();
   if (!status.ok()) {
     util::logf("Warning: Failed to load some theme files: %s", status.message().data());
   }
   
-  // Ensure we have a valid current theme (prefer file-based theme)
-  if (themes_.find("YAZE Classic") != themes_.end()) {
-    current_theme_ = themes_["YAZE Classic"];
-    current_theme_name_ = "YAZE Classic";
-  } else if (themes_.find("YAZE Tre") != themes_.end()) {
-    current_theme_ = themes_["YAZE Tre"];
-    current_theme_name_ = "YAZE Tre";
+  // Ensure we have a valid current theme (Classic is already set above)
+  // Only fallback to file themes if Classic creation failed
+  if (current_theme_name_ != "Classic YAZE") {
+    if (themes_.find("YAZE Tre") != themes_.end()) {
+      current_theme_ = themes_["YAZE Tre"];
+      current_theme_name_ = "YAZE Tre";
+    }
   }
 }
 
@@ -315,6 +318,7 @@ void ThemeManager::ApplyTheme(const std::string& theme_name) {
 
 void ThemeManager::ApplyTheme(const EnhancedTheme& theme) {
   current_theme_ = theme;
+  current_theme_name_ = theme.name; // CRITICAL: Update the name tracking
   current_theme_.ApplyToImGui();
 }
 
@@ -704,19 +708,94 @@ void ThemeManager::ApplyClassicYazeTheme() {
   ColorsYaze();
   current_theme_name_ = "Classic YAZE";
   
-  // Update current_theme_ to reflect the applied colors for consistency
-  // (This creates a temporary theme object that matches what ColorsYaze() sets)
+  // Create a complete Classic theme object that matches what ColorsYaze() sets
   EnhancedTheme classic_theme;
   classic_theme.name = "Classic YAZE";
   classic_theme.description = "Original YAZE theme (direct ColorsYaze() function)";
   classic_theme.author = "YAZE Team";
   
-  // Extract the basic colors that ColorsYaze() sets (adjusted for grid visibility)
-  classic_theme.primary = RGBA(92, 115, 92);     // allttpLightGreen 
-  classic_theme.secondary = RGBA(71, 92, 71);    // alttpMidGreen
-  classic_theme.accent = RGBA(89, 119, 89);      // TabActive color
-  classic_theme.background = RGBA(8, 8, 8);      // Very dark gray for better grid visibility
+  // Extract ALL the colors that ColorsYaze() sets (copy from CreateFallbackYazeClassic)
+  classic_theme.primary = RGBA(92, 115, 92);          // allttpLightGreen
+  classic_theme.secondary = RGBA(71, 92, 71);         // alttpMidGreen  
+  classic_theme.accent = RGBA(89, 119, 89);           // TabActive
+  classic_theme.background = RGBA(8, 8, 8);           // Very dark gray for better grid visibility
   
+  classic_theme.text_primary = RGBA(230, 230, 230);   // 0.90f, 0.90f, 0.90f
+  classic_theme.text_disabled = RGBA(153, 153, 153);  // 0.60f, 0.60f, 0.60f
+  classic_theme.window_bg = RGBA(8, 8, 8, 217);       // Very dark gray with same alpha
+  classic_theme.child_bg = RGBA(0, 0, 0, 0);          // Transparent
+  classic_theme.popup_bg = RGBA(28, 28, 36, 235);     // 0.11f, 0.11f, 0.14f, 0.92f
+  
+  classic_theme.button = RGBA(71, 92, 71);            // alttpMidGreen
+  classic_theme.button_hovered = RGBA(125, 146, 125); // allttpLightestGreen
+  classic_theme.button_active = RGBA(92, 115, 92);    // allttpLightGreen
+  
+  classic_theme.header = RGBA(46, 66, 46);            // alttpDarkGreen
+  classic_theme.header_hovered = RGBA(92, 115, 92);   // allttpLightGreen
+  classic_theme.header_active = RGBA(71, 92, 71);     // alttpMidGreen
+  
+  classic_theme.menu_bar_bg = RGBA(46, 66, 46);       // alttpDarkGreen
+  classic_theme.tab = RGBA(46, 66, 46);               // alttpDarkGreen
+  classic_theme.tab_hovered = RGBA(71, 92, 71);       // alttpMidGreen
+  classic_theme.tab_active = RGBA(89, 119, 89);       // TabActive
+  
+  // Complete all remaining ImGui colors from original ColorsYaze() function
+  classic_theme.title_bg = RGBA(71, 92, 71);          // alttpMidGreen
+  classic_theme.title_bg_active = RGBA(46, 66, 46);   // alttpDarkGreen
+  classic_theme.title_bg_collapsed = RGBA(71, 92, 71); // alttpMidGreen
+  
+  // Borders and separators
+  classic_theme.border = RGBA(92, 115, 92);           // allttpLightGreen
+  classic_theme.border_shadow = RGBA(0, 0, 0, 0);     // Transparent
+  classic_theme.separator = RGBA(128, 128, 128, 153); // 0.50f, 0.50f, 0.50f, 0.60f
+  classic_theme.separator_hovered = RGBA(153, 153, 178); // 0.60f, 0.60f, 0.70f
+  classic_theme.separator_active = RGBA(178, 178, 230);  // 0.70f, 0.70f, 0.90f
+  
+  // Scrollbars
+  classic_theme.scrollbar_bg = RGBA(92, 115, 92, 153);    // 0.36f, 0.45f, 0.36f, 0.60f
+  classic_theme.scrollbar_grab = RGBA(92, 115, 92, 76);   // 0.36f, 0.45f, 0.36f, 0.30f
+  classic_theme.scrollbar_grab_hovered = RGBA(92, 115, 92, 102); // 0.36f, 0.45f, 0.36f, 0.40f
+  classic_theme.scrollbar_grab_active = RGBA(92, 115, 92, 153);  // 0.36f, 0.45f, 0.36f, 0.60f
+  
+  // Add all the missing colors that CreateFallbackYazeClassic has
+  classic_theme.frame_bg = classic_theme.window_bg;
+  classic_theme.frame_bg_hovered = classic_theme.button_hovered;
+  classic_theme.frame_bg_active = classic_theme.button_active;
+  classic_theme.resize_grip = RGBA(255, 255, 255, 26);
+  classic_theme.resize_grip_hovered = RGBA(199, 209, 255, 153);
+  classic_theme.resize_grip_active = RGBA(199, 209, 255, 230);
+  classic_theme.check_mark = RGBA(230, 230, 230, 128);
+  classic_theme.slider_grab = RGBA(255, 255, 255, 77);
+  classic_theme.slider_grab_active = RGBA(92, 115, 92, 153);
+  classic_theme.input_text_cursor = classic_theme.text_primary;
+  classic_theme.nav_cursor = classic_theme.accent;
+  classic_theme.nav_windowing_highlight = classic_theme.accent;
+  classic_theme.nav_windowing_dim_bg = RGBA(0, 0, 0, 128);
+  classic_theme.modal_window_dim_bg = RGBA(0, 0, 0, 89);
+  classic_theme.text_selected_bg = RGBA(89, 119, 89, 89);
+  classic_theme.drag_drop_target = classic_theme.accent;
+  classic_theme.table_header_bg = RGBA(46, 66, 46);
+  classic_theme.table_border_strong = RGBA(71, 92, 71);
+  classic_theme.table_border_light = RGBA(66, 66, 71);
+  classic_theme.table_row_bg = RGBA(0, 0, 0, 0);
+  classic_theme.table_row_bg_alt = RGBA(255, 255, 255, 18);
+  classic_theme.text_link = classic_theme.accent;
+  classic_theme.plot_lines = RGBA(255, 255, 255);
+  classic_theme.plot_lines_hovered = RGBA(230, 178, 0);
+  classic_theme.plot_histogram = RGBA(230, 178, 0);
+  classic_theme.plot_histogram_hovered = RGBA(255, 153, 0);
+  classic_theme.docking_preview = RGBA(92, 115, 92, 180);
+  classic_theme.docking_empty_bg = RGBA(46, 66, 46, 255);
+  
+  // Apply original style settings
+  classic_theme.window_rounding = 0.0f;
+  classic_theme.frame_rounding = 5.0f;
+  classic_theme.scrollbar_rounding = 5.0f;
+  classic_theme.tab_rounding = 0.0f;
+  classic_theme.enable_glow_effects = false;
+  
+  // DON'T add Classic theme to themes map - keep it as a special case
+  // themes_["Classic YAZE"] = classic_theme; // REMOVED to prevent off-by-one
   current_theme_ = classic_theme;
 }
 
@@ -765,6 +844,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       ImVec4 text_primary = ConvertColorToImVec4(edit_theme.text_primary);
       ImVec4 text_secondary = ConvertColorToImVec4(edit_theme.text_secondary);
       ImVec4 text_disabled = ConvertColorToImVec4(edit_theme.text_disabled);
+      ImVec4 text_link = ConvertColorToImVec4(edit_theme.text_link);
       
       if (ImGui::ColorEdit3("Primary Text", &text_primary.x)) {
         edit_theme.text_primary = {text_primary.x, text_primary.y, text_primary.z, text_primary.w};
@@ -775,6 +855,16 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       if (ImGui::ColorEdit3("Disabled Text", &text_disabled.x)) {
         edit_theme.text_disabled = {text_disabled.x, text_disabled.y, text_disabled.z, text_disabled.w};
       }
+      if (ImGui::ColorEdit3("Link Text", &text_link.x)) {
+        edit_theme.text_link = {text_link.x, text_link.y, text_link.z, text_link.w};
+      }
+      
+      // Show contrast preview against current background
+      ImGui::Text("Link Preview:");
+      ImGui::SameLine();
+      ImGui::PushStyleColor(ImGuiCol_Text, text_link);
+      ImGui::Text("Sample clickable link");
+      ImGui::PopStyleColor();
     }
     
     // Window Colors
@@ -830,6 +920,48 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       // Add to themes map and apply
       themes_[edit_theme.name] = edit_theme;
       ApplyTheme(edit_theme);
+    }
+    
+    ImGui::SameLine();
+    
+    // Save Over Current button - overwrites the current theme file
+    std::string current_file_path = GetCurrentThemeFilePath();
+    bool can_save_over = !current_file_path.empty();
+    
+    if (!can_save_over) {
+      ImGui::BeginDisabled();
+    }
+    
+    if (ImGui::Button("Save Over Current")) {
+      edit_theme.name = std::string(theme_name);
+      edit_theme.description = std::string(theme_description);
+      edit_theme.author = std::string(theme_author);
+      
+      auto status = SaveThemeToFile(edit_theme, current_file_path);
+      if (status.ok()) {
+        // Update themes map and apply
+        themes_[edit_theme.name] = edit_theme;
+        ApplyTheme(edit_theme);
+        util::logf("Theme saved over current file: %s", current_file_path.c_str());
+      } else {
+        util::logf("Failed to save over current theme: %s", status.message().data());
+      }
+    }
+    
+    if (!can_save_over) {
+      ImGui::EndDisabled();
+    }
+    
+    if (ImGui::IsItemHovered() && can_save_over) {
+      ImGui::BeginTooltip();
+      ImGui::Text("Save over current theme file:");
+      ImGui::Text("%s", current_file_path.c_str());
+      ImGui::EndTooltip();
+    } else if (ImGui::IsItemHovered()) {
+      ImGui::BeginTooltip();
+      ImGui::Text("No current theme file to overwrite");
+      ImGui::Text("Use 'Save to File...' to create a new theme file");
+      ImGui::EndTooltip();
     }
     
     ImGui::SameLine();
@@ -1030,6 +1162,34 @@ absl::Status ThemeManager::LoadAllAvailableThemes() {
 absl::Status ThemeManager::RefreshAvailableThemes() {
   util::logf("Refreshing available themes...");
   return LoadAllAvailableThemes();
+}
+
+std::string ThemeManager::GetCurrentThemeFilePath() const {
+  if (current_theme_name_ == "Classic YAZE") {
+    return ""; // Classic theme doesn't have a file
+  }
+  
+  // Try to find the current theme file in the search paths
+  auto search_paths = GetThemeSearchPaths();
+  std::string theme_filename = current_theme_name_ + ".theme";
+  
+  // Convert theme name to safe filename (replace spaces and special chars)
+  for (char& c : theme_filename) {
+    if (!std::isalnum(c) && c != '.' && c != '_') {
+      c = '_';
+    }
+  }
+  
+  for (const auto& search_path : search_paths) {
+    std::string full_path = search_path + theme_filename;
+    std::ifstream test_file(full_path);
+    if (test_file.good()) {
+      return full_path;
+    }
+  }
+  
+  // If not found, return path in the first search directory (for new saves)
+  return search_paths.empty() ? theme_filename : search_paths[0] + theme_filename;
 }
 
 } // namespace gui

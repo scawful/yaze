@@ -156,6 +156,7 @@ class EditorManager {
   bool show_command_palette_ = false;
   bool show_global_search_ = false;
   bool show_session_rename_dialog_ = false;
+  bool show_welcome_screen_ = false;
   size_t session_to_rename_ = 0;
   char session_rename_buffer_[256] = {};
   

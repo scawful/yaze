@@ -149,6 +149,7 @@ public:
   std::vector<std::string> GetAvailableThemes() const;
   const EnhancedTheme* GetTheme(const std::string& name) const;
   const EnhancedTheme& GetCurrentTheme() const { return current_theme_; }
+  const std::string& GetCurrentThemeName() const { return current_theme_name_; }
   
   // Theme application
   void ApplyTheme(const std::string& theme_name);
@@ -171,7 +172,7 @@ private:
   
   std::map<std::string, EnhancedTheme> themes_;
   EnhancedTheme current_theme_;
-  std::string current_theme_name_ = "YAZE Classic";
+  std::string current_theme_name_ = "Classic YAZE";
   
   void CreateFallbackYazeClassic();
   absl::Status ParseThemeFile(const std::string& content, EnhancedTheme& theme);
@@ -181,6 +182,7 @@ private:
   // Helper methods for path resolution
   std::vector<std::string> GetThemeSearchPaths() const;
   std::string GetThemesDirectory() const;
+  std::string GetCurrentThemeFilePath() const;
 };
 
 } // namespace gui

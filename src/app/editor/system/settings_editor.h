@@ -228,6 +228,8 @@ class SettingsEditor : public Editor {
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
 
+  bool IsRomLoaded() const override { return true; } // Allow access without ROM for global settings
+
  private:
   Rom* rom_;
   void DrawGeneralSettings();
