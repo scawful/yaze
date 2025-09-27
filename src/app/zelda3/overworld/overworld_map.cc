@@ -18,21 +18,23 @@ OverworldMap::OverworldMap(int index, Rom *rom)
     : index_(index), parent_(index), rom_(rom) {
   LoadAreaInfo();
 
-  // Use ASM version byte as source of truth, with flag as override
+  // Use ASM version byte as source of truth
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
-  bool use_custom_overworld = (asm_version != 0xFF) || 
-                              core::FeatureFlags::get().overworld.kLoadCustomOverworld;
   
-  if (use_custom_overworld) {
-    if (asm_version == 0x00 || asm_version == 0xFF) {
-      // No custom ASM applied but flag enabled - set up vanilla values manually
+  if (asm_version != 0xFF) {
+    // Custom overworld ASM is applied - use custom logic
+    if (asm_version == 0x00) {
+      // Special case: version 0 means flag-enabled vanilla mode
       LoadCustomOverworldData();
     } else {
       // Custom overworld ASM applied - set up custom tileset
       SetupCustomTileset(asm_version);
     }
+  } else if (core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
+    // Pure vanilla ROM but flag enabled - set up custom data manually
+    LoadCustomOverworldData();
   }
-  // For vanilla ROMs without flag, LoadAreaInfo already handles everything
+  // For pure vanilla ROMs, LoadAreaInfo already handles everything
 }
 
 absl::Status OverworldMap::BuildMap(int count, int game_state, int world,

@@ -124,12 +124,11 @@ absl::Status Overworld::AssembleMap32Tiles() {
                               rom()->version_constants().kMap32TileBL,
                               rom()->version_constants().kMap32TileBR};
 
-  // Use ASM version to determine expanded tile32 support, with flag as override
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_custom_overworld =
-      (asm_version != 0xFF) ||
-      core::FeatureFlags::get().overworld.kLoadCustomOverworld;
-  if (rom()->data()[kMap32ExpandedFlagPos] != 0x04 && use_custom_overworld) {
+  // Check if expanded tile32 data is actually present in ROM
+  // The flag position should contain 0x04 for vanilla, something else for expanded
+  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  if (rom()->data()[kMap32ExpandedFlagPos] != 0x04 || asm_version >= 3) {
+    // ROM has expanded tile32 data - use expanded addresses
     map32address[0] = rom()->version_constants().kMap32TileTL;
     map32address[1] = kMap32TileTRExpanded;
     map32address[2] = kMap32TileBLExpanded;
@@ -137,6 +136,7 @@ absl::Status Overworld::AssembleMap32Tiles() {
     num_tile32 = kMap32TileCountExpanded;
     expanded_tile32_ = true;
   }
+  // Otherwise use vanilla addresses (already set above)
 
   // Loop through each 32x32 pixel tile in the rom
   for (int i = 0; i < num_tile32; i += 6) {
@@ -178,16 +178,16 @@ absl::Status Overworld::AssembleMap16Tiles() {
   int tpos = kMap16Tiles;
   int num_tile16 = kNumTile16Individual;
 
-  // Use ASM version to determine expanded tile16 support, with flag as override
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_custom_overworld =
-      (asm_version != 0xFF) ||
-      core::FeatureFlags::get().overworld.kLoadCustomOverworld;
-  if (rom()->data()[kMap16ExpandedFlagPos] != 0x0F && use_custom_overworld) {
+  // Check if expanded tile16 data is actually present in ROM
+  // The flag position should contain 0x0F for vanilla, something else for expanded
+  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  if (rom()->data()[kMap16ExpandedFlagPos] == 0x0F || asm_version >= 3) {
+    // ROM has expanded tile16 data - use expanded addresses
     tpos = kMap16TilesExpanded;
     num_tile16 = NumberOfMap16Ex;
     expanded_tile16_ = true;
   }
+  // Otherwise use vanilla addresses (already set above)
 
   for (int i = 0; i < num_tile16; i += 1) {
     ASSIGN_OR_RETURN(auto t0_data, rom()->ReadWord(tpos));
@@ -331,19 +331,17 @@ absl::Status Overworld::LoadEntrances() {
   int ow_entrance_id_ptr = kOverworldEntranceEntranceId;
   int num_entrances = 129;
 
-  // Use ASM version to determine expanded entrance support, with flag as override
-  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_custom_overworld =
-      (asm_version != 0xFF) ||
-      core::FeatureFlags::get().overworld.kLoadCustomOverworld;
-  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8 &&
-      use_custom_overworld) {
+  // Check if expanded entrance data is actually present in ROM
+  // The flag position should contain 0xB8 for vanilla, something else for expanded
+  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8) {
+    // ROM has expanded entrance data - use expanded addresses
     ow_entrance_map_ptr = kOverworldEntranceMapExpanded;
     ow_entrance_pos_ptr = kOverworldEntrancePosExpanded;
     ow_entrance_id_ptr = kOverworldEntranceEntranceIdExpanded;
     expanded_entrances_ = true;
     num_entrances = 256;  // Expanded entrance count
   }
+  // Otherwise use vanilla addresses (already set above)
 
   for (int i = 0; i < num_entrances; i++) {
     ASSIGN_OR_RETURN(auto map_id,
@@ -443,9 +441,9 @@ absl::Status Overworld::LoadItems() {
   // Version 0x03 of the OW ASM added item support for the SW.
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
 
-  // Determine max number of overworld maps based on ASM version
-  int max_ow =
-      (asm_version >= 0x03 && asm_version != 0xFF) ? kNumOverworldMaps : 0x80;
+  // Determine max number of overworld maps based on actual ASM version
+  // Only use expanded maps (0xA0) if v3+ ASM is actually applied
+  int max_ow = (asm_version >= 0x03 && asm_version != 0xFF) ? kNumOverworldMaps : 0x80;
 
   ASSIGN_OR_RETURN(uint32_t pointer_snes,
                    rom()->ReadLong(zelda3::overworldItemsAddress));
@@ -508,13 +506,10 @@ absl::Status Overworld::LoadItems() {
 absl::Status Overworld::LoadSprites() {
   std::vector<std::future<absl::Status>> futures;
 
-  // Use ASM version to determine sprite table locations, with flag as override
+  // Determine sprite table locations based on actual ASM version in ROM
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_custom_overworld =
-      (asm_version != 0xFF) ||
-      core::FeatureFlags::get().overworld.kLoadCustomOverworld;
 
-  if (use_custom_overworld && asm_version >= 3 && asm_version != 0xFF) {
+  if (asm_version >= 3 && asm_version != 0xFF) {
     // v3: Use expanded sprite tables
     futures.emplace_back(std::async(std::launch::async, [this]() {
       return LoadSpritesFromMap(overworldSpritesBeginingExpanded, 64, 0);
