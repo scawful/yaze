@@ -1,5 +1,13 @@
 var NAVTREEINDEX31 =
 {
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a763b675192e67f70d0750afa19292e48":[23,0,3,9,12,60],
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a763b675192e67f70d0750afa19292e48":[24,0,0,9,7,60],
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a764c31f0e0ffc818c9a2755c13a7464f":[23,0,3,9,12,133],
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a764c31f0e0ffc818c9a2755c13a7464f":[24,0,0,9,7,133],
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a77b36bdce436d988f9f856012e74b83a":[23,0,3,9,12,81],
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a77b36bdce436d988f9f856012e74b83a":[24,0,0,9,7,81],
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a78636bc5b08246d514589cd5ad5833b0":[23,0,3,9,12,85],
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a78636bc5b08246d514589cd5ad5833b0":[24,0,0,9,7,85],
 "classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a80887e0e38111dab119a82a75a92e204":[23,0,3,9,12,34],
 "classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a80887e0e38111dab119a82a75a92e204":[24,0,0,9,7,34],
 "classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a80a5b314bf39886d42dc7ddd3ae2fab2":[23,0,3,9,12,130],
@@ -241,13 +249,5 @@ var NAVTREEINDEX31 =
 "classyaze_1_1zelda3_1_1DungeonIntegrationTest.html#acc415dc2c9bb33342a03f7b52cf02c11":[23,0,3,9,14,2],
 "classyaze_1_1zelda3_1_1DungeonIntegrationTest.html#acc415dc2c9bb33342a03f7b52cf02c11":[24,0,0,9,9,2],
 "classyaze_1_1zelda3_1_1DungeonObjectEditor.html":[23,0,3,9,16],
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html":[24,0,0,9,11],
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a08f6db4b441659385f8d0d7ca904b0bb":[23,0,3,9,16,65],
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a08f6db4b441659385f8d0d7ca904b0bb":[24,0,0,9,11,65],
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a0e0716930246c42b22663d42459ca228":[23,0,3,9,16,6],
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a0e0716930246c42b22663d42459ca228":[24,0,0,9,11,6],
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a0e6991c6dc742a8fd5a43c82de17a5b6":[23,0,3,9,16,26],
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a0e6991c6dc742a8fd5a43c82de17a5b6":[24,0,0,9,11,26],
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a0f55adf00f7e1e2304540b128229cb3d":[23,0,3,9,16,28],
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a0f55adf00f7e1e2304540b128229cb3d":[24,0,0,9,11,28]
+"classyaze_1_1zelda3_1_1DungeonObjectEditor.html":[24,0,0,9,11]
 };

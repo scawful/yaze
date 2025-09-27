@@ -13,6 +13,7 @@ var classyaze_1_1editor_1_1SettingsEditor =
     [ "Find", "classyaze_1_1editor_1_1SettingsEditor.html#a36776960cd1414fe7f0977f9d638b34d", null ],
     [ "set_rom", "classyaze_1_1editor_1_1SettingsEditor.html#af3bb080cc4f4fa32ebb9c008378e71a2", null ],
     [ "rom", "classyaze_1_1editor_1_1SettingsEditor.html#ad7889d91a8c88214fb0f167e95ba4d7b", null ],
+    [ "IsRomLoaded", "classyaze_1_1editor_1_1SettingsEditor.html#af0aac84bad56bfecd39658f52b63aba5", null ],
     [ "DrawGeneralSettings", "classyaze_1_1editor_1_1SettingsEditor.html#a1f4ad9210d7bfaebf191b98e752f8a0b", null ],
     [ "DrawKeyboardShortcuts", "classyaze_1_1editor_1_1SettingsEditor.html#ab90539b1706c9e00c6070d223623e6b8", null ],
     [ "rom_", "classyaze_1_1editor_1_1SettingsEditor.html#a2b2f18410f2a93f5e02206da5f0b8805", null ]

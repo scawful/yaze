@@ -1,5 +1,13 @@
 var NAVTREEINDEX63 =
 {
+"structyaze_1_1core_1_1WorkspaceSettings.html#a8aa5453b2b554f35787eb5d1ecedd2df":[23,0,3,2,17,0],
+"structyaze_1_1core_1_1WorkspaceSettings.html#a8aa5453b2b554f35787eb5d1ecedd2df":[24,0,0,2,15,0],
+"structyaze_1_1core_1_1WorkspaceSettings.html#a8c38e8f51107cdc38567336e9e02e256":[23,0,3,2,17,4],
+"structyaze_1_1core_1_1WorkspaceSettings.html#a8c38e8f51107cdc38567336e9e02e256":[24,0,0,2,15,4],
+"structyaze_1_1core_1_1WorkspaceSettings.html#a9d258591777fc43e4486c32c784f9eac":[23,0,3,2,17,3],
+"structyaze_1_1core_1_1WorkspaceSettings.html#a9d258591777fc43e4486c32c784f9eac":[24,0,0,2,15,3],
+"structyaze_1_1core_1_1WorkspaceSettings.html#ad9c96c80e552bf4978345ad6489b23c7":[23,0,3,2,17,10],
+"structyaze_1_1core_1_1WorkspaceSettings.html#ad9c96c80e552bf4978345ad6489b23c7":[24,0,0,2,15,10],
 "structyaze_1_1core_1_1WorkspaceSettings.html#ada5b3578e88f6691d3527b5c442dc49c":[23,0,3,2,17,2],
 "structyaze_1_1core_1_1WorkspaceSettings.html#ada5b3578e88f6691d3527b5c442dc49c":[24,0,0,2,15,2],
 "structyaze_1_1core_1_1WorkspaceSettings.html#aeaff6a8411b303f46125b61fed42a0ad":[23,0,3,2,17,13],
@@ -241,13 +249,5 @@ var NAVTREEINDEX63 =
 "structyaze_1_1editor_1_1ExampleTreeNode.html#a20d21fa9a6b0a23d285eebfa193ce989":[23,0,3,3,26,4],
 "structyaze_1_1editor_1_1ExampleTreeNode.html#a20d21fa9a6b0a23d285eebfa193ce989":[24,0,0,3,20,4],
 "structyaze_1_1editor_1_1ExampleTreeNode.html#a226fe22f61fe1d902359f99fce6cdbb1":[23,0,3,3,26,0],
-"structyaze_1_1editor_1_1ExampleTreeNode.html#a226fe22f61fe1d902359f99fce6cdbb1":[24,0,0,3,20,0],
-"structyaze_1_1editor_1_1ExampleTreeNode.html#a8a181fce0cc8e26fc206d31ad3467520":[23,0,3,3,26,3],
-"structyaze_1_1editor_1_1ExampleTreeNode.html#a8a181fce0cc8e26fc206d31ad3467520":[24,0,0,3,20,3],
-"structyaze_1_1editor_1_1ExampleTreeNode.html#aa3765d8d3588911db68deae637d8a358":[23,0,3,3,26,7],
-"structyaze_1_1editor_1_1ExampleTreeNode.html#aa3765d8d3588911db68deae637d8a358":[24,0,0,3,20,7],
-"structyaze_1_1editor_1_1ExampleTreeNode.html#aed37b60fa8fea6ba9681daaea0aca0dc":[23,0,3,3,26,6],
-"structyaze_1_1editor_1_1ExampleTreeNode.html#aed37b60fa8fea6ba9681daaea0aca0dc":[24,0,0,3,20,6],
-"structyaze_1_1editor_1_1ExampleTreeNode.html#afc5d9f4ffc55716206e8b7ffb6c1bbbf":[23,0,3,3,26,2],
-"structyaze_1_1editor_1_1ExampleTreeNode.html#afc5d9f4ffc55716206e8b7ffb6c1bbbf":[24,0,0,3,20,2]
+"structyaze_1_1editor_1_1ExampleTreeNode.html#a226fe22f61fe1d902359f99fce6cdbb1":[24,0,0,3,20,0]
 };

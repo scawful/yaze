@@ -1,5 +1,13 @@
 var NAVTREEINDEX52 =
 {
+"md_docs_2E1-asm-style-guide.html#autotoc_md201":[11,8],
+"md_docs_2E1-asm-style-guide.html#autotoc_md202":[11,9],
+"md_docs_2E2-dungeon-editor-guide.html":[12],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md204":[12,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md205":[12,1],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md206":[12,1,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md207":[12,1,0,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md208":[12,1,0,1],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md209":[12,1,0,2],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md210":[12,1,0,3],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md211":[12,2],
@@ -241,13 +249,5 @@ var NAVTREEINDEX52 =
 "message__data_8h_source.html":[25,0,3,0,1,3,1],
 "message__editor_8cc.html":[25,0,3,0,1,3,2],
 "message__editor_8cc_source.html":[25,0,3,0,1,3,2],
-"message__editor_8h.html":[25,0,3,0,1,3,3],
-"message__editor_8h_source.html":[25,0,3,0,1,3,3],
-"message__preview_8cc.html":[25,0,3,0,1,3,4],
-"message__preview_8cc_source.html":[25,0,3,0,1,3,4],
-"message__preview_8h.html":[25,0,3,0,1,3,5],
-"message__preview_8h_source.html":[25,0,3,0,1,3,5],
-"message__test_8cc.html":[25,0,4,6,8],
-"message__test_8cc_source.html":[25,0,4,6,8],
-"mock__memory_8h.html":[25,0,4,5,0]
+"message__editor_8h.html":[25,0,3,0,1,3,3]
 };

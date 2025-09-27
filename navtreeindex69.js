@@ -1,5 +1,13 @@
 var NAVTREEINDEX69 =
 {
+"structyaze_1_1gfx_1_1PaletteGroup.html#ad806aadfe8753d3e926852829f96d5be":[23,0,3,5,12,5],
+"structyaze_1_1gfx_1_1PaletteGroup.html#ad806aadfe8753d3e926852829f96d5be":[24,0,0,5,10,5],
+"structyaze_1_1gfx_1_1PaletteGroup.html#af3d5e4db785c3074593c43448153f109":[23,0,3,5,12,10],
+"structyaze_1_1gfx_1_1PaletteGroup.html#af3d5e4db785c3074593c43448153f109":[24,0,0,5,10,10],
+"structyaze_1_1gfx_1_1PaletteGroup.html#af48c9801e6d9f3d560c083ee6258bcf5":[23,0,3,5,12,9],
+"structyaze_1_1gfx_1_1PaletteGroup.html#af48c9801e6d9f3d560c083ee6258bcf5":[24,0,0,5,10,9],
+"structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb":[23,0,3,5,12,2],
+"structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb":[24,0,0,5,10,2],
 "structyaze_1_1gfx_1_1PaletteGroup.html#afa676ebbdcba9304ec77b572a2a218c4":[23,0,3,5,12,1],
 "structyaze_1_1gfx_1_1PaletteGroup.html#afa676ebbdcba9304ec77b572a2a218c4":[24,0,0,5,10,1],
 "structyaze_1_1gfx_1_1PaletteGroupMap.html":[23,0,3,5,13],
@@ -241,13 +249,5 @@ var NAVTREEINDEX69 =
 "structyaze_1_1gui_1_1EnhancedTheme.html#a4334c8d6a279b35d429cfd24594742dd":[23,0,3,6,11,33],
 "structyaze_1_1gui_1_1EnhancedTheme.html#a4334c8d6a279b35d429cfd24594742dd":[24,0,0,6,9,33],
 "structyaze_1_1gui_1_1EnhancedTheme.html#a45e310075749aed0082bb13d4b456455":[23,0,3,6,11,13],
-"structyaze_1_1gui_1_1EnhancedTheme.html#a45e310075749aed0082bb13d4b456455":[24,0,0,6,9,13],
-"structyaze_1_1gui_1_1EnhancedTheme.html#a46a40f758994f63c3e3011303fe4885a":[23,0,3,6,11,54],
-"structyaze_1_1gui_1_1EnhancedTheme.html#a46a40f758994f63c3e3011303fe4885a":[24,0,0,6,9,54],
-"structyaze_1_1gui_1_1EnhancedTheme.html#a47f2a3b7e14f2bbe32e94e600e5e5f3d":[23,0,3,6,11,2],
-"structyaze_1_1gui_1_1EnhancedTheme.html#a47f2a3b7e14f2bbe32e94e600e5e5f3d":[24,0,0,6,9,2],
-"structyaze_1_1gui_1_1EnhancedTheme.html#a4895f38e2b689aa303e4c439d2469824":[23,0,3,6,11,72],
-"structyaze_1_1gui_1_1EnhancedTheme.html#a4895f38e2b689aa303e4c439d2469824":[24,0,0,6,9,72],
-"structyaze_1_1gui_1_1EnhancedTheme.html#a4b5c789f369362196e0a26d0c926b60f":[23,0,3,6,11,19],
-"structyaze_1_1gui_1_1EnhancedTheme.html#a4b5c789f369362196e0a26d0c926b60f":[24,0,0,6,9,19]
+"structyaze_1_1gui_1_1EnhancedTheme.html#a45e310075749aed0082bb13d4b456455":[24,0,0,6,9,13]
 };

@@ -1,5 +1,7 @@
 var NAVTREEINDEX7 =
 {
+"classyaze_1_1editor_1_1GfxGroupEditor.html#afed2e8cc350ce8cc9fed4c2b36362642":[23,0,3,3,30,9],
+"classyaze_1_1editor_1_1GfxGroupEditor.html#afed2e8cc350ce8cc9fed4c2b36362642":[24,0,0,3,24,9],
 "classyaze_1_1editor_1_1GraphicsEditor.html":[23,0,3,3,31],
 "classyaze_1_1editor_1_1GraphicsEditor.html":[24,0,0,3,25],
 "classyaze_1_1editor_1_1GraphicsEditor.html#a0125b3251acbd85b5032bd130fc755ec":[23,0,3,3,31,92],
@@ -247,7 +249,5 @@ var NAVTREEINDEX7 =
 "classyaze_1_1editor_1_1MapPropertiesSystem.html":[23,0,3,3,33],
 "classyaze_1_1editor_1_1MapPropertiesSystem.html":[24,0,0,3,27],
 "classyaze_1_1editor_1_1MapPropertiesSystem.html#a0f88c7b087251df85e84b24ab1a4abfe":[23,0,3,3,33,25],
-"classyaze_1_1editor_1_1MapPropertiesSystem.html#a0f88c7b087251df85e84b24ab1a4abfe":[24,0,0,3,27,25],
-"classyaze_1_1editor_1_1MapPropertiesSystem.html#a1ae3f21d8a5446c4e4b9039230061039":[23,0,3,3,33,20],
-"classyaze_1_1editor_1_1MapPropertiesSystem.html#a1ae3f21d8a5446c4e4b9039230061039":[24,0,0,3,27,20]
+"classyaze_1_1editor_1_1MapPropertiesSystem.html#a0f88c7b087251df85e84b24ab1a4abfe":[24,0,0,3,27,25]
 };

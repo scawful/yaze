@@ -1,5 +1,13 @@
 var NAVTREEINDEX35 =
 {
+"classyaze_1_1zelda3_1_1Overworld.html#af55a53a8e629f7ddc74edad084f6f15e":[23,0,3,9,30,29],
+"classyaze_1_1zelda3_1_1Overworld.html#af55a53a8e629f7ddc74edad084f6f15e":[24,0,0,9,25,29],
+"classyaze_1_1zelda3_1_1Overworld.html#af57c5a4b4afad92783c63b4987d799b9":[23,0,3,9,30,67],
+"classyaze_1_1zelda3_1_1Overworld.html#af57c5a4b4afad92783c63b4987d799b9":[24,0,0,9,25,67],
+"classyaze_1_1zelda3_1_1Overworld.html#af5e22b0d28e94857306d433ec807badf":[23,0,3,9,30,74],
+"classyaze_1_1zelda3_1_1Overworld.html#af5e22b0d28e94857306d433ec807badf":[24,0,0,9,25,74],
+"classyaze_1_1zelda3_1_1Overworld.html#af6be45d4754f2486d5a849a4f40964f8":[23,0,3,9,30,1],
+"classyaze_1_1zelda3_1_1Overworld.html#af6be45d4754f2486d5a849a4f40964f8":[24,0,0,9,25,1],
 "classyaze_1_1zelda3_1_1Overworld.html#af729948f7b1336fec9512432e7b6b887":[23,0,3,9,30,63],
 "classyaze_1_1zelda3_1_1Overworld.html#af729948f7b1336fec9512432e7b6b887":[24,0,0,9,25,63],
 "classyaze_1_1zelda3_1_1OverworldEntrance.html":[23,0,3,9,31],
@@ -241,13 +249,5 @@ var NAVTREEINDEX35 =
 "classyaze_1_1zelda3_1_1OverworldMap.html#aa08d56743cec6094b3a9109445e95125":[23,0,3,9,36,46],
 "classyaze_1_1zelda3_1_1OverworldMap.html#aa08d56743cec6094b3a9109445e95125":[24,0,0,9,31,46],
 "classyaze_1_1zelda3_1_1OverworldMap.html#aa38a09518c808a099b271a18bcdb8a61":[23,0,3,9,36,88],
-"classyaze_1_1zelda3_1_1OverworldMap.html#aa38a09518c808a099b271a18bcdb8a61":[24,0,0,9,31,88],
-"classyaze_1_1zelda3_1_1OverworldMap.html#aa4160e54eb1f6c933790ec7144ab390d":[23,0,3,9,36,98],
-"classyaze_1_1zelda3_1_1OverworldMap.html#aa4160e54eb1f6c933790ec7144ab390d":[24,0,0,9,31,98],
-"classyaze_1_1zelda3_1_1OverworldMap.html#aa50f9583b7396d68bc83f13cc4ee6207":[23,0,3,9,36,92],
-"classyaze_1_1zelda3_1_1OverworldMap.html#aa50f9583b7396d68bc83f13cc4ee6207":[24,0,0,9,31,92],
-"classyaze_1_1zelda3_1_1OverworldMap.html#aa604c0e0873870e1497efbdf6bbff59e":[23,0,3,9,36,94],
-"classyaze_1_1zelda3_1_1OverworldMap.html#aa604c0e0873870e1497efbdf6bbff59e":[24,0,0,9,31,94],
-"classyaze_1_1zelda3_1_1OverworldMap.html#aa61e7e7116b2d790e886768b65ea9414":[23,0,3,9,36,17],
-"classyaze_1_1zelda3_1_1OverworldMap.html#aa61e7e7116b2d790e886768b65ea9414":[24,0,0,9,31,17]
+"classyaze_1_1zelda3_1_1OverworldMap.html#aa38a09518c808a099b271a18bcdb8a61":[24,0,0,9,31,88]
 };

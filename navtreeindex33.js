@@ -1,5 +1,13 @@
 var NAVTREEINDEX33 =
 {
+"classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html#acc88d7626df4a4453a3418c839614c94":[23,0,3,9,18,9],
+"classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html#acc88d7626df4a4453a3418c839614c94":[24,0,0,9,13,9],
+"classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html#adbb6c21baa9cc5436cf25b65a392cc0b":[23,0,3,9,18,4],
+"classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html#adbb6c21baa9cc5436cf25b65a392cc0b":[24,0,0,9,13,4],
+"classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html#adc45acb4d1b752c39a1fc382f3257d86":[23,0,3,9,18,6],
+"classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html#adc45acb4d1b752c39a1fc382f3257d86":[24,0,0,9,13,6],
+"classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html#ae57f6721abd05985a729a746a7648f17":[23,0,3,9,18,8],
+"classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html#ae57f6721abd05985a729a746a7648f17":[24,0,0,9,13,8],
 "classyaze_1_1zelda3_1_1GameEntity.html":[23,0,3,9,19],
 "classyaze_1_1zelda3_1_1GameEntity.html":[24,0,0,9,14],
 "classyaze_1_1zelda3_1_1GameEntity.html#a03378b180b8ef2283ad4a48dd3cadcd3":[23,0,3,9,19,9],
@@ -241,13 +249,5 @@ var NAVTREEINDEX33 =
 "classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html":[23,0,3,9,26,1],
 "classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html":[24,0,0,9,21,1],
 "classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a1dacde8eac1b3b46684cd4fda7c045a0":[23,0,3,9,26,1,7],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a1dacde8eac1b3b46684cd4fda7c045a0":[24,0,0,9,21,1,7],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a1e3a1ef5252380b2c13ca04ba029e3c4":[23,0,3,9,26,1,4],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a1e3a1ef5252380b2c13ca04ba029e3c4":[24,0,0,9,21,1,4],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a317296d8c7fb32ebbf5f42991530e19a":[23,0,3,9,26,1,3],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a317296d8c7fb32ebbf5f42991530e19a":[24,0,0,9,21,1,3],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a346fd70458c6ec69fa61ee8021a40a13":[23,0,3,9,26,1,0],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a346fd70458c6ec69fa61ee8021a40a13":[24,0,0,9,21,1,0],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a355231802aae7b52c726b0df4047423a":[23,0,3,9,26,1,1],
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a355231802aae7b52c726b0df4047423a":[24,0,0,9,21,1,1]
+"classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a1dacde8eac1b3b46684cd4fda7c045a0":[24,0,0,9,21,1,7]
 };

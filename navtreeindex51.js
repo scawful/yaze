@@ -1,5 +1,13 @@
 var NAVTREEINDEX51 =
 {
+"macro_8h.html#a4404ca6433f173c3a4f7bca6d431a879":[25,0,3,3,7,2],
+"macro_8h.html#a5cb25b198dc5695c2269aa5cb3b8698d":[25,0,3,3,7,8],
+"macro_8h.html#a69aa29b598b851b0640aa225a9e5d61d":[25,0,3,3,7,23],
+"macro_8h.html#a6e9350746df40af9eff68f6fe9aff386":[25,0,3,3,7,16],
+"macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce":[25,0,3,3,7,11],
+"macro_8h.html#a76ecc345f3680496c1de21f6d7d39f02":[25,0,3,3,7,18],
+"macro_8h.html#a7c9a94f98921a34151985779cfb8f64a":[25,0,3,3,7,21],
+"macro_8h.html#a7ce4f33830c140b9d5c668fbcf0998ec":[25,0,3,3,7,17],
 "macro_8h.html#a7ff41a09894e97938253afc4e6387add":[25,0,3,3,7,22],
 "macro_8h.html#a81f9a082dfcd5eb1f1c97c06e99afe11":[25,0,3,3,7,1],
 "macro_8h.html#a90be36f2e92f476b5bb13517da51afbe":[25,0,3,3,7,5],
@@ -241,13 +249,5 @@ var NAVTREEINDEX51 =
 "md_docs_2E1-asm-style-guide.html#autotoc_md197":[11,4],
 "md_docs_2E1-asm-style-guide.html#autotoc_md198":[11,5],
 "md_docs_2E1-asm-style-guide.html#autotoc_md199":[11,6],
-"md_docs_2E1-asm-style-guide.html#autotoc_md200":[11,7],
-"md_docs_2E1-asm-style-guide.html#autotoc_md201":[11,8],
-"md_docs_2E1-asm-style-guide.html#autotoc_md202":[11,9],
-"md_docs_2E2-dungeon-editor-guide.html":[12],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md204":[12,0],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md205":[12,1],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md206":[12,1,0],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md207":[12,1,0,0],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md208":[12,1,0,1]
+"md_docs_2E1-asm-style-guide.html#autotoc_md200":[11,7]
 };

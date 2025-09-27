@@ -1,5 +1,13 @@
 var NAVTREEINDEX73 =
 {
+"structyaze_1_1zelda3_1_1DungeonMap.html#ac0db5386648063e45da045b79fbd67c6":[23,0,3,9,15,3],
+"structyaze_1_1zelda3_1_1DungeonMap.html#ac0db5386648063e45da045b79fbd67c6":[24,0,0,9,10,3],
+"structyaze_1_1zelda3_1_1DungeonMap.html#ad7a6cc8ccd920d355b6ab634a3cb3b08":[23,0,3,9,15,5],
+"structyaze_1_1zelda3_1_1DungeonMap.html#ad7a6cc8ccd920d355b6ab634a3cb3b08":[24,0,0,9,10,5],
+"structyaze_1_1zelda3_1_1DungeonMap.html#aecb7ad4d854e942189933dbc3942f3bb":[23,0,3,9,15,1],
+"structyaze_1_1zelda3_1_1DungeonMap.html#aecb7ad4d854e942189933dbc3942f3bb":[24,0,0,9,10,1],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html":[23,0,3,9,16,0],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html":[24,0,0,9,11,0],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a615eed735f21dfc4017bcd6cf0895897":[23,0,3,9,16,0,0],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a615eed735f21dfc4017bcd6cf0895897":[24,0,0,9,11,0,0],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a7c0014bcd7b2d35f4d102ba1e7018785":[23,0,3,9,16,0,7],
@@ -241,13 +249,5 @@ var NAVTREEINDEX73 =
 "structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#a44e621f3ebbd70f94744243c7c2ecb56":[23,0,3,9,29,4],
 "structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#a44e621f3ebbd70f94744243c7c2ecb56":[24,0,0,9,24,4],
 "structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#a59a338f92c71267652dc798c6a06f0a4":[23,0,3,9,29,3],
-"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#a59a338f92c71267652dc798c6a06f0a4":[24,0,0,9,24,3],
-"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#aa47bd956a0f339b24070bdf2435dd4cc":[23,0,3,9,29,2],
-"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#aa47bd956a0f339b24070bdf2435dd4cc":[24,0,0,9,24,2],
-"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#ae74c5904bd0a17ff578dce8b7d1aaf26":[23,0,3,9,29,0],
-"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#ae74c5904bd0a17ff578dce8b7d1aaf26":[24,0,0,9,24,0],
-"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html":[23,0,3,9,32],
-"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html":[24,0,0,9,27],
-"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e":[23,0,3,9,32,1],
-"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e":[24,0,0,9,27,1]
+"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#a59a338f92c71267652dc798c6a06f0a4":[24,0,0,9,24,3]
 };

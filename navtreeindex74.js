@@ -1,5 +1,13 @@
 var NAVTREEINDEX74 =
 {
+"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#aa47bd956a0f339b24070bdf2435dd4cc":[23,0,3,9,29,2],
+"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#aa47bd956a0f339b24070bdf2435dd4cc":[24,0,0,9,24,2],
+"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#ae74c5904bd0a17ff578dce8b7d1aaf26":[23,0,3,9,29,0],
+"structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#ae74c5904bd0a17ff578dce8b7d1aaf26":[24,0,0,9,24,0],
+"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html":[23,0,3,9,32],
+"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html":[24,0,0,9,27],
+"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e":[23,0,3,9,32,1],
+"structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e":[24,0,0,9,27,1],
 "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[23,0,3,9,32,0],
 "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[24,0,0,9,27,0],
 "structyaze_1_1zelda3_1_1OverworldMapTiles.html":[23,0,3,9,37],
@@ -241,13 +249,5 @@ var NAVTREEINDEX74 =
 "structyaze__extension.html":[22,7,0],
 "structyaze__extension.html#a0dffb288aca27b9215e38655b525dd5f":[22,7,0,3],
 "structyaze__extension.html#a5437179462b8d5046807baf3ecee4fcd":[22,7,0,6],
-"structyaze__extension.html#a58ce455793101164e7e735e3a82e32ca":[22,7,0,7],
-"structyaze__extension.html#a5a71cfca4ed112e35f756fd3cd895b5b":[22,7,0,2],
-"structyaze__extension.html#a78827a2290a2eea969ded6fec5fcc4e9":[22,7,0,1],
-"structyaze__extension.html#a93cdd908fb3c54b68fa54307fcf3a090":[22,7,0,4],
-"structyaze__extension.html#aab3644cf16c4a7db79229ad20118d9f5":[22,7,0,5],
-"structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c":[22,7,0,0],
-"structzelda3__dungeon__room.html":[24,0,22],
-"structzelda3__dungeon__room.html#a22aab9efb3c4bc0c4b1bbf5354e78d10":[24,0,22,4],
-"structzelda3__dungeon__room.html#a234565451209a33c7710e0f33e226663":[24,0,22,13]
+"structyaze__extension.html#a58ce455793101164e7e735e3a82e32ca":[22,7,0,7]
 };

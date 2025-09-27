@@ -1,5 +1,13 @@
 var NAVTREEINDEX67 =
 {
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html#adb342cbd1b01c5166d8d98cda438a841":[23,0,3,4,43,2],
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html#adb342cbd1b01c5166d8d98cda438a841":[24,0,0,4,41,2],
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae2ecbcfd6c66116a666479887d24e5af":[23,0,3,4,43,3],
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae2ecbcfd6c66116a666479887d24e5af":[24,0,0,4,41,3],
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae7b79a6181396e8e683c59b95d286225":[23,0,3,4,43,1],
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae7b79a6181396e8e683c59b95d286225":[24,0,0,4,41,1],
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html#aeecf10d7c491e3936bd881fdd9ba623a":[23,0,3,4,43,0],
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html#aeecf10d7c491e3936bd881fdd9ba623a":[24,0,0,4,41,0],
 "structyaze_1_1emu_1_1MaskLogicSettings.html":[23,0,3,4,44],
 "structyaze_1_1emu_1_1MaskLogicSettings.html":[24,0,0,4,42],
 "structyaze_1_1emu_1_1MaskLogicSettings.html#a2e5c57c40b3a1ac4ea80bc085268a720":[23,0,3,4,44,1],
@@ -241,13 +249,5 @@ var NAVTREEINDEX67 =
 "structyaze_1_1emu_1_1TileMapLocation.html#a83d4691418a6aea07f658dc0cf4c4dbd":[23,0,3,4,78,2],
 "structyaze_1_1emu_1_1TileMapLocation.html#a83d4691418a6aea07f658dc0cf4c4dbd":[24,0,0,4,76,2],
 "structyaze_1_1emu_1_1Tilemap.html":[23,0,3,4,76],
-"structyaze_1_1emu_1_1Tilemap.html":[24,0,0,4,74],
-"structyaze_1_1emu_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24":[23,0,3,4,76,0],
-"structyaze_1_1emu_1_1Tilemap.html#a99df22d3822fec48f10edbaf60294d24":[24,0,0,4,74,0],
-"structyaze_1_1emu_1_1TilemapEntry.html":[23,0,3,4,77],
-"structyaze_1_1emu_1_1TilemapEntry.html":[24,0,0,4,75],
-"structyaze_1_1emu_1_1TilemapEntry.html#a085c97a91aed4521397d24579cc5a3e3":[23,0,3,4,77,2],
-"structyaze_1_1emu_1_1TilemapEntry.html#a085c97a91aed4521397d24579cc5a3e3":[24,0,0,4,75,2],
-"structyaze_1_1emu_1_1TilemapEntry.html#a430570f0982de0630270fbf58c873d50":[23,0,3,4,77,4],
-"structyaze_1_1emu_1_1TilemapEntry.html#a430570f0982de0630270fbf58c873d50":[24,0,0,4,75,4]
+"structyaze_1_1emu_1_1Tilemap.html":[24,0,0,4,74]
 };

@@ -169,6 +169,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af3bb080cc4f4fa32ebb9c008378e71a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7889d91a8c88214fb0f167e95ba4d7b" id="r_ad7889d91a8c88214fb0f167e95ba4d7b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1Rom.html">Rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7889d91a8c88214fb0f167e95ba4d7b">rom</a> () const</td></tr>
 <tr class="separator:ad7889d91a8c88214fb0f167e95ba4d7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af0aac84bad56bfecd39658f52b63aba5" id="r_af0aac84bad56bfecd39658f52b63aba5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af0aac84bad56bfecd39658f52b63aba5">IsRomLoaded</a> () const override</td></tr>
+<tr class="separator:af0aac84bad56bfecd39658f52b63aba5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1editor_1_1Editor"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classyaze_1_1editor_1_1Editor')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classyaze_1_1editor_1_1Editor.html">yaze::editor::Editor</a></td></tr>
 <tr class="memitem:a247da2182c494a6505ec0790476930df inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a247da2182c494a6505ec0790476930df"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a247da2182c494a6505ec0790476930df">Editor</a> ()=default</td></tr>
 <tr class="separator:a247da2182c494a6505ec0790476930df inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -184,8 +186,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a452299050ad2b9d197ab90c9b56dd61a inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a71ffe102a71543805133c5c9eccd493e inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a71ffe102a71543805133c5c9eccd493e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a71ffe102a71543805133c5c9eccd493e">set_active</a> (bool <a class="el" href="classyaze_1_1editor_1_1Editor.html#a452299050ad2b9d197ab90c9b56dd61a">active</a>)</td></tr>
 <tr class="separator:a71ffe102a71543805133c5c9eccd493e inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97b9351230a4009008f1e53b135acc1f inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a97b9351230a4009008f1e53b135acc1f"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a97b9351230a4009008f1e53b135acc1f">IsRomLoaded</a> () const</td></tr>
-<tr class="separator:a97b9351230a4009008f1e53b135acc1f inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8293165f236b0d03875df48a3de943ff inherit pub_methods_classyaze_1_1editor_1_1Editor" id="r_a8293165f236b0d03875df48a3de943ff"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Editor.html#a8293165f236b0d03875df48a3de943ff">GetRomStatus</a> () const</td></tr>
 <tr class="separator:a8293165f236b0d03875df48a3de943ff inherit pub_methods_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -244,7 +244,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00210">210</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="editor_8h_source.html#l00058">yaze::editor::kSettings</a>, <a class="el" href="settings__editor_8h_source.html#l00229">rom()</a>, <a class="el" href="settings__editor_8h_source.html#l00232">rom_</a>, and <a class="el" href="editor_8h_source.html#l00113">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="editor_8h_source.html#l00058">yaze::editor::kSettings</a>, <a class="el" href="settings__editor_8h_source.html#l00229">rom()</a>, <a class="el" href="settings__editor_8h_source.html#l00234">rom_</a>, and <a class="el" href="editor_8h_source.html#l00113">yaze::editor::Editor::type_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -373,7 +373,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="settings__editor_8cc_source.html#l00028">28</a> of file <a class="el" href="settings__editor_8cc_source.html">settings_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00823">yaze::gui::DrawFontManager()</a>, <a class="el" href="settings__editor_8cc_source.html#l00048">DrawGeneralSettings()</a>, and <a class="el" href="settings__editor_8cc_source.html#l00078">DrawKeyboardShortcuts()</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00834">yaze::gui::DrawFontManager()</a>, <a class="el" href="settings__editor_8cc_source.html#l00048">DrawGeneralSettings()</a>, and <a class="el" href="settings__editor_8cc_source.html#l00078">DrawKeyboardShortcuts()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -592,7 +592,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00226">226</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="settings__editor_8h_source.html#l00229">rom()</a>, and <a class="el" href="settings__editor_8h_source.html#l00232">rom_</a>.</p>
+<p class="reference">References <a class="el" href="settings__editor_8h_source.html#l00229">rom()</a>, and <a class="el" href="settings__editor_8h_source.html#l00234">rom_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -631,9 +631,38 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00229">229</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="settings__editor_8h_source.html#l00232">rom_</a>.</p>
+<p class="reference">References <a class="el" href="settings__editor_8h_source.html#l00234">rom_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="settings__editor_8h_source.html#l00226">set_rom()</a>, and <a class="el" href="settings__editor_8h_source.html#l00210">SettingsEditor()</a>.</p>
+
+</div>
+</div>
+<a id="af0aac84bad56bfecd39658f52b63aba5" name="af0aac84bad56bfecd39658f52b63aba5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0aac84bad56bfecd39658f52b63aba5">&#9670;&#160;</a></span>IsRomLoaded()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::SettingsEditor::IsRomLoaded </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reimplemented from <a class="el" href="classyaze_1_1editor_1_1Editor.html#a97b9351230a4009008f1e53b135acc1f">yaze::editor::Editor</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00231">231</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
 </div>
 </div>
@@ -746,7 +775,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00232">232</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="settings__editor_8h_source.html#l00234">234</a> of file <a class="el" href="settings__editor_8h_source.html">settings_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="settings__editor_8h_source.html#l00229">rom()</a>, <a class="el" href="settings__editor_8h_source.html#l00226">set_rom()</a>, and <a class="el" href="settings__editor_8h_source.html#l00210">SettingsEditor()</a>.</p>
 

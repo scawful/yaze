@@ -1,5 +1,13 @@
 var NAVTREEINDEX66 =
 {
+"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a6234b49f870cc1f1501b6d031e6fdd2d":[23,0,3,4,22,2],
+"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a6234b49f870cc1f1501b6d031e6fdd2d":[24,0,0,4,20,2],
+"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a8871ea62a527891f33ef8702807a7ec6":[23,0,3,4,22,5],
+"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a8871ea62a527891f33ef8702807a7ec6":[24,0,0,4,20,5],
+"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#add5d5913078f3d5af987c118e92ad21a":[23,0,3,4,22,1],
+"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#add5d5913078f3d5af987c118e92ad21a":[24,0,0,4,20,1],
+"structyaze_1_1emu_1_1CpuCallbacks.html":[23,0,3,4,24],
+"structyaze_1_1emu_1_1CpuCallbacks.html":[24,0,0,4,22],
 "structyaze_1_1emu_1_1CpuCallbacks.html#a15ff9a76d86b1e0faa561539b0aa6e5f":[23,0,3,4,24,2],
 "structyaze_1_1emu_1_1CpuCallbacks.html#a15ff9a76d86b1e0faa561539b0aa6e5f":[24,0,0,4,22,2],
 "structyaze_1_1emu_1_1CpuCallbacks.html#a43f692c1bc53c498e49d4d81a75bdb29":[23,0,3,4,24,0],
@@ -241,13 +249,5 @@ var NAVTREEINDEX66 =
 "structyaze_1_1emu_1_1MainSubScreenDesignation.html#ab4668e8e6fa7ad5d7dead109bac441e1":[23,0,3,4,43,4],
 "structyaze_1_1emu_1_1MainSubScreenDesignation.html#ab4668e8e6fa7ad5d7dead109bac441e1":[24,0,0,4,41,4],
 "structyaze_1_1emu_1_1MainSubScreenDesignation.html#ad001a6409f3b3fb7a4107d5ee727230c":[23,0,3,4,43,5],
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ad001a6409f3b3fb7a4107d5ee727230c":[24,0,0,4,41,5],
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#adb342cbd1b01c5166d8d98cda438a841":[23,0,3,4,43,2],
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#adb342cbd1b01c5166d8d98cda438a841":[24,0,0,4,41,2],
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae2ecbcfd6c66116a666479887d24e5af":[23,0,3,4,43,3],
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae2ecbcfd6c66116a666479887d24e5af":[24,0,0,4,41,3],
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae7b79a6181396e8e683c59b95d286225":[23,0,3,4,43,1],
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae7b79a6181396e8e683c59b95d286225":[24,0,0,4,41,1],
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#aeecf10d7c491e3936bd881fdd9ba623a":[23,0,3,4,43,0],
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#aeecf10d7c491e3936bd881fdd9ba623a":[24,0,0,4,41,0]
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ad001a6409f3b3fb7a4107d5ee727230c":[24,0,0,4,41,5]
 };

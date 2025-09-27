@@ -1,5 +1,13 @@
 var NAVTREEINDEX62 =
 {
+"structsnes__tile8.html":[22,2,3],
+"structsnes__tile8.html#a31238a531373c34f184472d718ec33e8":[22,2,3,0],
+"structsnes__tile8.html#ab4471447241bf1409ab7d127473e99bf":[22,2,3,2],
+"structsnes__tile8.html#afc5deb54b6f6b59dda0dea55d477348b":[22,2,3,1],
+"structsnes__tile__info.html":[22,2,4],
+"structsnes__tile__info.html#a24f26fc9d167ee3dcfa66eb5e84debcc":[22,2,4,1],
+"structsnes__tile__info.html#a75cfaaf7645cc745bec82f700ba44ae4":[22,2,4,2],
+"structsnes__tile__info.html#a9ab328fac3bf6ecfb388748e33a4d826":[22,2,4,3],
 "structsnes__tile__info.html#add679660cf98cc91b529dfc9d5a897ca":[22,2,4,0],
 "structsnes__tile__info.html#ae7281dca7dedcd51d3df374f072d5711":[22,2,4,4],
 "structstaircase.html":[22,5,2],
@@ -241,13 +249,5 @@ var NAVTREEINDEX62 =
 "structyaze_1_1core_1_1WorkspaceSettings.html#a78a79d14ed3dd938a1b90e6905743ed2":[23,0,3,2,17,11],
 "structyaze_1_1core_1_1WorkspaceSettings.html#a78a79d14ed3dd938a1b90e6905743ed2":[24,0,0,2,15,11],
 "structyaze_1_1core_1_1WorkspaceSettings.html#a7cb004b5abe83bedabfc4732ed8f2d19":[23,0,3,2,17,8],
-"structyaze_1_1core_1_1WorkspaceSettings.html#a7cb004b5abe83bedabfc4732ed8f2d19":[24,0,0,2,15,8],
-"structyaze_1_1core_1_1WorkspaceSettings.html#a8aa5453b2b554f35787eb5d1ecedd2df":[23,0,3,2,17,0],
-"structyaze_1_1core_1_1WorkspaceSettings.html#a8aa5453b2b554f35787eb5d1ecedd2df":[24,0,0,2,15,0],
-"structyaze_1_1core_1_1WorkspaceSettings.html#a8c38e8f51107cdc38567336e9e02e256":[23,0,3,2,17,4],
-"structyaze_1_1core_1_1WorkspaceSettings.html#a8c38e8f51107cdc38567336e9e02e256":[24,0,0,2,15,4],
-"structyaze_1_1core_1_1WorkspaceSettings.html#a9d258591777fc43e4486c32c784f9eac":[23,0,3,2,17,3],
-"structyaze_1_1core_1_1WorkspaceSettings.html#a9d258591777fc43e4486c32c784f9eac":[24,0,0,2,15,3],
-"structyaze_1_1core_1_1WorkspaceSettings.html#ad9c96c80e552bf4978345ad6489b23c7":[23,0,3,2,17,10],
-"structyaze_1_1core_1_1WorkspaceSettings.html#ad9c96c80e552bf4978345ad6489b23c7":[24,0,0,2,15,10]
+"structyaze_1_1core_1_1WorkspaceSettings.html#a7cb004b5abe83bedabfc4732ed8f2d19":[24,0,0,2,15,8]
 };

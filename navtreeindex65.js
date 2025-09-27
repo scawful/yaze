@@ -1,5 +1,13 @@
 var NAVTREEINDEX65 =
 {
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a1a975905ea0ab7e24384717361797f3c":[23,0,3,3,7,5,1],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a1a975905ea0ab7e24384717361797f3c":[24,0,0,3,1,5,1],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a1b72f929a206d4b1241c1c7d9a68094c":[23,0,3,3,7,5,30],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a1b72f929a206d4b1241c1c7d9a68094c":[24,0,0,3,1,5,30],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a1e7e9bb1ca73c61cbfcfc7ba96808283":[23,0,3,3,7,5,19],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a1e7e9bb1ca73c61cbfcfc7ba96808283":[24,0,0,3,1,5,19],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a2607e85e8ccf92da627f7d3b94ff2815":[23,0,3,3,7,5,15],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a2607e85e8ccf92da627f7d3b94ff2815":[24,0,0,3,1,5,15],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3226c3e3f187558defafc2854eaffd81":[23,0,3,3,7,5,8],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3226c3e3f187558defafc2854eaffd81":[24,0,0,3,1,5,8],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a32432d22b18af188414e828c430dad5b":[23,0,3,3,7,5,27],
@@ -241,13 +249,5 @@ var NAVTREEINDEX65 =
 "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a5ebb527ee002b56a14edd02268f7e4af":[23,0,3,4,22,4],
 "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a5ebb527ee002b56a14edd02268f7e4af":[24,0,0,4,20,4],
 "structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a60997e376dfc0f8ad1eeb52d6af3e237":[23,0,3,4,22,8],
-"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a60997e376dfc0f8ad1eeb52d6af3e237":[24,0,0,4,20,8],
-"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a6234b49f870cc1f1501b6d031e6fdd2d":[23,0,3,4,22,2],
-"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a6234b49f870cc1f1501b6d031e6fdd2d":[24,0,0,4,20,2],
-"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a8871ea62a527891f33ef8702807a7ec6":[23,0,3,4,22,5],
-"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a8871ea62a527891f33ef8702807a7ec6":[24,0,0,4,20,5],
-"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#add5d5913078f3d5af987c118e92ad21a":[23,0,3,4,22,1],
-"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#add5d5913078f3d5af987c118e92ad21a":[24,0,0,4,20,1],
-"structyaze_1_1emu_1_1CpuCallbacks.html":[23,0,3,4,24],
-"structyaze_1_1emu_1_1CpuCallbacks.html":[24,0,0,4,22]
+"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a60997e376dfc0f8ad1eeb52d6af3e237":[24,0,0,4,20,8]
 };

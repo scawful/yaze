@@ -12,6 +12,7 @@ var classyaze_1_1gui_1_1ThemeManager =
     [ "GetAvailableThemes", "classyaze_1_1gui_1_1ThemeManager.html#afae6c39ee2e4afd75a03737a74cd71f8", null ],
     [ "GetTheme", "classyaze_1_1gui_1_1ThemeManager.html#a20c14f25ab9ef816152f6446274acf41", null ],
     [ "GetCurrentTheme", "classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b", null ],
+    [ "GetCurrentThemeName", "classyaze_1_1gui_1_1ThemeManager.html#ac1ace3c68bec1243f23276a4eaaef0cf", null ],
     [ "ApplyTheme", "classyaze_1_1gui_1_1ThemeManager.html#a755894f623d55aeccef76a3a3c56a3a9", null ],
     [ "ApplyTheme", "classyaze_1_1gui_1_1ThemeManager.html#a77763b4c519669b526ab49b0726c9bcd", null ],
     [ "ApplyClassicYazeTheme", "classyaze_1_1gui_1_1ThemeManager.html#af6d205f94a3158450cd1d13874582288", null ],
@@ -28,6 +29,7 @@ var classyaze_1_1gui_1_1ThemeManager =
     [ "SerializeTheme", "classyaze_1_1gui_1_1ThemeManager.html#aaf1819af282d588d3df592ccf9dd28ac", null ],
     [ "GetThemeSearchPaths", "classyaze_1_1gui_1_1ThemeManager.html#aa2e1248d86460a354b1b46205bf02ab7", null ],
     [ "GetThemesDirectory", "classyaze_1_1gui_1_1ThemeManager.html#a7ef08fa99d53f3bf49dbbbe2016e5719", null ],
+    [ "GetCurrentThemeFilePath", "classyaze_1_1gui_1_1ThemeManager.html#a42e328416c1b34ebc848b3b1ccfc9f3e", null ],
     [ "themes_", "classyaze_1_1gui_1_1ThemeManager.html#afba549c57bb53fcd5eec254aabc9e7b0", null ],
     [ "current_theme_", "classyaze_1_1gui_1_1ThemeManager.html#a4c7e7289b929320740b41c22d3802b2f", null ],
     [ "current_theme_name_", "classyaze_1_1gui_1_1ThemeManager.html#a804427b8649eb8229addfc89d2a07bbd", null ]

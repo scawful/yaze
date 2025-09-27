@@ -1,5 +1,13 @@
 var NAVTREEINDEX61 =
 {
+"namespaceyaze_1_1zelda3_1_1music.html#a5c8fc806dc71867ff65894f871964cba":[23,0,3,9,6,15],
+"namespaceyaze_1_1zelda3_1_1music.html#a763e28f8ac2058f8fca36a359e5751ee":[23,0,3,9,6,13],
+"namespaceyaze_1_1zelda3_1_1music.html#a90368fd97edefb8fda83523d58cf87dd":[23,0,3,9,6,11],
+"namespaceyaze_1_1zelda3_1_1music.html#aebf12437e767920e3173dbe2ea46ddf1":[23,0,3,9,6,10],
+"namespaceyaze_1_1zelda3_1_1music.html#af7107d5454a88b6094544b9ef0a3606c":[23,0,3,9,6,16],
+"namespaceyaze_1_1zelda3_1_1palette__internal.html":[23,0,3,9,9],
+"namespaceyaze_1_1zelda3_1_1palette__internal.html#a7f32e9b2fd815c57c56c9a2e878e8165":[23,0,3,9,9,0],
+"notify_8h.html":[25,0,3,3,8],
 "notify_8h_source.html":[25,0,3,3,8],
 "object__parser_8cc.html":[25,0,3,0,6,0,4],
 "object__parser_8cc_source.html":[25,0,3,0,6,0,4],
@@ -241,13 +249,5 @@ var NAVTREEINDEX61 =
 "structsnes__tile32.html#a08487be5866c564ee0cb38fb2d73da79":[22,2,6,1],
 "structsnes__tile32.html#a31336d8e72c7ca6ea6c4d2d1fa552e9c":[22,2,6,0],
 "structsnes__tile32.html#ad0daa6a1d446c6a5e4ab22aa387ef09f":[22,2,6,2],
-"structsnes__tile32.html#ae12a46bd8f01a48a8c95f637b7ed0cf7":[22,2,6,3],
-"structsnes__tile8.html":[22,2,3],
-"structsnes__tile8.html#a31238a531373c34f184472d718ec33e8":[22,2,3,0],
-"structsnes__tile8.html#ab4471447241bf1409ab7d127473e99bf":[22,2,3,2],
-"structsnes__tile8.html#afc5deb54b6f6b59dda0dea55d477348b":[22,2,3,1],
-"structsnes__tile__info.html":[22,2,4],
-"structsnes__tile__info.html#a24f26fc9d167ee3dcfa66eb5e84debcc":[22,2,4,1],
-"structsnes__tile__info.html#a75cfaaf7645cc745bec82f700ba44ae4":[22,2,4,2],
-"structsnes__tile__info.html#a9ab328fac3bf6ecfb388748e33a4d826":[22,2,4,3]
+"structsnes__tile32.html#ae12a46bd8f01a48a8c95f637b7ed0cf7":[22,2,6,3]
 };
