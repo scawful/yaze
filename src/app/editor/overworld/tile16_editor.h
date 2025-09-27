@@ -104,6 +104,8 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status SaveTile16ToROM();
   absl::Status UpdateOverworldTilemap();
   absl::Status CommitChangesToBlockset();
+  absl::Status CommitChangesToOverworld();
+  absl::Status DiscardChanges();
 
   // Helper methods for palette management
   absl::Status UpdateTile8Palette(int tile8_id);
@@ -114,12 +116,18 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status UpdateROMTile16Data();
   absl::Status RefreshTile16Blockset();
   gfx::Tile16* GetCurrentTile16Data();
+  absl::Status RegenerateTile16BitmapFromROM();
   
   // Manual tile8 input controls
   void DrawManualTile8Inputs();
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+  
+  // Callback for when changes are committed to notify parent editor
+  void set_on_changes_committed(std::function<absl::Status()> callback) {
+    on_changes_committed_ = callback;
+  }
 
  private:
   Rom* rom_ = nullptr;
@@ -198,10 +206,10 @@ class Tile16Editor : public gfx::GfxContext {
       gui::CanvasGridSize::k32x32};
   gfx::Bitmap tile16_blockset_bmp_;
 
-  // Canvas for editing the selected tile - smaller size for table fit
+  // Canvas for editing the selected tile - optimized for 2x2 grid of 8x8 tiles (16x16 total)
   gui::Canvas tile16_edit_canvas_{"Tile16EditCanvas",
-                                  ImVec2(128, 128),  // Reduced from kTile16CanvasSize to fit tables
-                                  gui::CanvasGridSize::k64x64, 2.0f};  // Reduced scale to fit tables
+                                  ImVec2(64, 64),   // Fixed 64x64 display size (16x16 pixels at 4x scale)
+                                  gui::CanvasGridSize::k8x8, 4.0F};   // 8x8 grid with 4x scale for clarity
   gfx::Bitmap current_tile16_bmp_;
 
   // Tile8 canvas to get the tile to drawing in the tile16_edit_canvas_
@@ -220,6 +228,9 @@ class Tile16Editor : public gfx::GfxContext {
   gfx::SnesPalette palette_;
 
   absl::Status status_;
+  
+  // Callback to notify parent editor when changes are committed
+  std::function<absl::Status()> on_changes_committed_;
 };
 
 }  // namespace editor

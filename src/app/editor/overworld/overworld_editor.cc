@@ -149,6 +149,19 @@ absl::Status OverworldEditor::Load() {
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
+  
+  // Set up callback for when tile16 changes are committed
+  tile16_editor_.set_on_changes_committed([this]() -> absl::Status {
+    // Regenerate the overworld editor's tile16 blockset
+    RETURN_IF_ERROR(RefreshTile16Blockset());
+    
+    // Force refresh of the current overworld map to show changes
+    RefreshOverworldMap();
+    
+    util::logf("Overworld editor refreshed after Tile16 changes");
+    return absl::OkStatus();
+  });
+  
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
   all_gfx_loaded_ = true;
   return absl::OkStatus();
@@ -1286,7 +1299,7 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
   for (auto& each : overworld_.entrances()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40) && !each.deleted) {
-      auto color = ImVec4(255, 0, 255, 100);
+      auto color = ImVec4(255, 255, 0, 100);
       if (each.is_hole_) {
         color = ImVec4(255, 255, 0, 200);
       }

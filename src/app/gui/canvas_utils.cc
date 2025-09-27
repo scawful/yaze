@@ -16,19 +16,22 @@ ImVec2 AlignToGrid(ImVec2 pos, float grid_step) {
                 std::floor(pos.y / grid_step) * grid_step);
 }
 
-float CalculateEffectiveScale(ImVec2 canvas_size, ImVec2 content_size, float global_scale) {
-  if (content_size.x <= 0 || content_size.y <= 0) return global_scale;
-  
+float CalculateEffectiveScale(ImVec2 canvas_size, ImVec2 content_size,
+                              float global_scale) {
+  if (content_size.x <= 0 || content_size.y <= 0)
+    return global_scale;
+
   float scale_x = (canvas_size.x * global_scale) / content_size.x;
   float scale_y = (canvas_size.y * global_scale) / content_size.y;
   return std::min(scale_x, scale_y);
 }
 
-int GetTileIdFromPosition(ImVec2 mouse_pos, float tile_size, float scale, int tiles_per_row) {
+int GetTileIdFromPosition(ImVec2 mouse_pos, float tile_size, float scale,
+                          int tiles_per_row) {
   float scaled_tile_size = tile_size * scale;
   int tile_x = static_cast<int>(mouse_pos.x / scaled_tile_size);
   int tile_y = static_cast<int>(mouse_pos.y / scaled_tile_size);
-  
+
   return tile_x + (tile_y * tiles_per_row);
 }
 
@@ -36,35 +39,40 @@ bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
   if (!rom || palette_manager.palettes_loaded) {
     return palette_manager.palettes_loaded;
   }
-  
+
   try {
     const auto& palette_groups = rom->palette_group();
     palette_manager.rom_palette_groups.clear();
     palette_manager.palette_group_names.clear();
-    
+
     // Overworld palettes
     if (palette_groups.overworld_main.size() > 0) {
-      palette_manager.rom_palette_groups.push_back(palette_groups.overworld_main[0]);
+      palette_manager.rom_palette_groups.push_back(
+          palette_groups.overworld_main[0]);
       palette_manager.palette_group_names.push_back("Overworld Main");
     }
     if (palette_groups.overworld_aux.size() > 0) {
-      palette_manager.rom_palette_groups.push_back(palette_groups.overworld_aux[0]);
+      palette_manager.rom_palette_groups.push_back(
+          palette_groups.overworld_aux[0]);
       palette_manager.palette_group_names.push_back("Overworld Aux");
     }
     if (palette_groups.overworld_animated.size() > 0) {
-      palette_manager.rom_palette_groups.push_back(palette_groups.overworld_animated[0]);
+      palette_manager.rom_palette_groups.push_back(
+          palette_groups.overworld_animated[0]);
       palette_manager.palette_group_names.push_back("Overworld Animated");
     }
-    
+
     // Dungeon palettes
     if (palette_groups.dungeon_main.size() > 0) {
-      palette_manager.rom_palette_groups.push_back(palette_groups.dungeon_main[0]);
+      palette_manager.rom_palette_groups.push_back(
+          palette_groups.dungeon_main[0]);
       palette_manager.palette_group_names.push_back("Dungeon Main");
     }
-    
+
     // Sprite palettes
     if (palette_groups.global_sprites.size() > 0) {
-      palette_manager.rom_palette_groups.push_back(palette_groups.global_sprites[0]);
+      palette_manager.rom_palette_groups.push_back(
+          palette_groups.global_sprites[0]);
       palette_manager.palette_group_names.push_back("Global Sprites");
     }
     if (palette_groups.armors.size() > 0) {
@@ -75,38 +83,43 @@ bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
       palette_manager.rom_palette_groups.push_back(palette_groups.swords[0]);
       palette_manager.palette_group_names.push_back("Swords");
     }
-    
+
     palette_manager.palettes_loaded = true;
-    util::logf("Canvas: Loaded %zu ROM palette groups", palette_manager.rom_palette_groups.size());
+    util::logf("Canvas: Loaded %zu ROM palette groups",
+               palette_manager.rom_palette_groups.size());
     return true;
-    
+
   } catch (const std::exception& e) {
     util::logf("Canvas: Failed to load ROM palette groups: %s", e.what());
     return false;
   }
 }
 
-bool ApplyPaletteGroup(gfx::Bitmap* bitmap, const CanvasPaletteManager& palette_manager, 
+bool ApplyPaletteGroup(gfx::Bitmap* bitmap,
+                       const CanvasPaletteManager& palette_manager,
                        int group_index, int palette_index) {
-  if (!bitmap || group_index < 0 || 
-      group_index >= static_cast<int>(palette_manager.rom_palette_groups.size())) {
+  if (!bitmap || group_index < 0 ||
+      group_index >=
+          static_cast<int>(palette_manager.rom_palette_groups.size())) {
     return false;
   }
-  
+
   try {
-    const auto& selected_palette = palette_manager.rom_palette_groups[group_index];
-    
+    const auto& selected_palette =
+        palette_manager.rom_palette_groups[group_index];
+
     // Apply the palette based on the index
     if (palette_index >= 0 && palette_index < 8) {
       bitmap->SetPaletteWithTransparent(selected_palette, palette_index);
     } else {
       bitmap->SetPalette(selected_palette);
     }
-    
+
     Renderer::Get().UpdateBitmap(bitmap);
-    util::logf("Canvas: Applied palette group %d, index %d to bitmap", group_index, palette_index);
+    util::logf("Canvas: Applied palette group %d, index %d to bitmap",
+               group_index, palette_index);
     return true;
-    
+
   } catch (const std::exception& e) {
     util::logf("Canvas: Failed to apply palette: %s", e.what());
     return false;
@@ -114,22 +127,23 @@ bool ApplyPaletteGroup(gfx::Bitmap* bitmap, const CanvasPaletteManager& palette_
 }
 
 // Drawing utility functions
-void DrawCanvasRect(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling, 
-                   int x, int y, int w, int h, ImVec4 color, float global_scale) {
+void DrawCanvasRect(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
+                    int x, int y, int w, int h, ImVec4 color,
+                    float global_scale) {
   // Apply global scale to position and size
   float scaled_x = x * global_scale;
   float scaled_y = y * global_scale;
   float scaled_w = w * global_scale;
   float scaled_h = h * global_scale;
-  
+
   ImVec2 origin(canvas_p0.x + scrolling.x + scaled_x,
                 canvas_p0.y + scrolling.y + scaled_y);
   ImVec2 size(canvas_p0.x + scrolling.x + scaled_x + scaled_w,
               canvas_p0.y + scrolling.y + scaled_y + scaled_h);
-  
-  uint32_t color_u32 = IM_COL32(color.x * 255, color.y * 255, color.z * 255, color.w * 255);
+
+  uint32_t color_u32 = IM_COL32(color.x, color.y, color.z, color.w);
   draw_list->AddRectFilled(origin, size, color_u32);
-  
+
   // Add a black outline
   ImVec2 outline_origin(origin.x - 1, origin.y - 1);
   ImVec2 outline_size(size.x + 1, size.y + 1);
@@ -137,62 +151,67 @@ void DrawCanvasRect(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
 }
 
 void DrawCanvasText(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
-                   const std::string& text, int x, int y, float global_scale) {
+                    const std::string& text, int x, int y, float global_scale) {
   // Apply global scale to text position
   float scaled_x = x * global_scale;
   float scaled_y = y * global_scale;
-  
-  ImVec2 text_pos(canvas_p0.x + scrolling.x + scaled_x, 
+
+  ImVec2 text_pos(canvas_p0.x + scrolling.x + scaled_x,
                   canvas_p0.y + scrolling.y + scaled_y);
-  
+
   // Draw text with black shadow for better visibility
   draw_list->AddText(ImVec2(text_pos.x + 1, text_pos.y + 1),
                      IM_COL32(0, 0, 0, 255), text.c_str());
   draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), text.c_str());
 }
 
-void DrawCanvasOutline(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
-                      int x, int y, int w, int h, uint32_t color) {
-  ImVec2 origin(canvas_p0.x + scrolling.x + x,
-                canvas_p0.y + scrolling.y + y);
+void DrawCanvasOutline(ImDrawList* draw_list, ImVec2 canvas_p0,
+                       ImVec2 scrolling, int x, int y, int w, int h,
+                       uint32_t color) {
+  ImVec2 origin(canvas_p0.x + scrolling.x + x, canvas_p0.y + scrolling.y + y);
   ImVec2 size(canvas_p0.x + scrolling.x + x + w,
               canvas_p0.y + scrolling.y + y + h);
   draw_list->AddRect(origin, size, color, 0, 0, 1.5f);
 }
 
-void DrawCanvasOutlineWithColor(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
-                               int x, int y, int w, int h, ImVec4 color) {
-  uint32_t color_u32 = IM_COL32(color.x * 255, color.y * 255, color.z * 255, color.w * 255);
+void DrawCanvasOutlineWithColor(ImDrawList* draw_list, ImVec2 canvas_p0,
+                                ImVec2 scrolling, int x, int y, int w, int h,
+                                ImVec4 color) {
+  uint32_t color_u32 =
+      IM_COL32(color.x * 255, color.y * 255, color.z * 255, color.w * 255);
   DrawCanvasOutline(draw_list, canvas_p0, scrolling, x, y, w, h, color_u32);
 }
 
 // Grid utility functions
-void DrawCanvasGridLines(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 canvas_p1, 
-                        ImVec2 scrolling, float grid_step, float global_scale) {
+void DrawCanvasGridLines(ImDrawList* draw_list, ImVec2 canvas_p0,
+                         ImVec2 canvas_p1, ImVec2 scrolling, float grid_step,
+                         float global_scale) {
   const uint32_t grid_color = IM_COL32(200, 200, 200, 50);
   const float grid_thickness = 0.5f;
-  
+
   float scaled_grid_step = grid_step * global_scale;
-  
+
   for (float x = fmodf(scrolling.x, scaled_grid_step);
        x < (canvas_p1.x - canvas_p0.x); x += scaled_grid_step) {
     draw_list->AddLine(ImVec2(canvas_p0.x + x, canvas_p0.y),
-                       ImVec2(canvas_p0.x + x, canvas_p1.y), 
-                       grid_color, grid_thickness);
+                       ImVec2(canvas_p0.x + x, canvas_p1.y), grid_color,
+                       grid_thickness);
   }
-  
+
   for (float y = fmodf(scrolling.y, scaled_grid_step);
        y < (canvas_p1.y - canvas_p0.y); y += scaled_grid_step) {
     draw_list->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y),
-                       ImVec2(canvas_p1.x, canvas_p0.y + y), 
-                       grid_color, grid_thickness);
+                       ImVec2(canvas_p1.x, canvas_p0.y + y), grid_color,
+                       grid_thickness);
   }
 }
 
-void DrawCustomHighlight(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
-                        int highlight_tile_id, float grid_step) {
-  if (highlight_tile_id == -1) return;
-  
+void DrawCustomHighlight(ImDrawList* draw_list, ImVec2 canvas_p0,
+                         ImVec2 scrolling, int highlight_tile_id,
+                         float grid_step) {
+  if (highlight_tile_id == -1)
+    return;
+
   int tile_x = highlight_tile_id % 8;
   int tile_y = highlight_tile_id / 8;
   ImVec2 tile_pos(canvas_p0.x + scrolling.x + tile_x * grid_step,
@@ -202,10 +221,11 @@ void DrawCustomHighlight(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolli
   draw_list->AddRectFilled(tile_pos, tile_pos_end, IM_COL32(255, 0, 255, 255));
 }
 
-void DrawHexTileLabels(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
-                      ImVec2 canvas_sz, float grid_step, float global_scale) {
+void DrawHexTileLabels(ImDrawList* draw_list, ImVec2 canvas_p0,
+                       ImVec2 scrolling, ImVec2 canvas_sz, float grid_step,
+                       float global_scale) {
   float scaled_grid_step = grid_step * global_scale;
-  
+
   for (float x = fmodf(scrolling.x, scaled_grid_step);
        x < canvas_sz.x * global_scale; x += scaled_grid_step) {
     for (float y = fmodf(scrolling.y, scaled_grid_step);
@@ -213,19 +233,20 @@ void DrawHexTileLabels(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling
       int tile_x = (x - scrolling.x) / scaled_grid_step;
       int tile_y = (y - scrolling.y) / scaled_grid_step;
       int tile_id = tile_x + (tile_y * 16);
-      
+
       char hex_id[8];
       snprintf(hex_id, sizeof(hex_id), "%02X", tile_id);
-      
+
       draw_list->AddText(ImVec2(canvas_p0.x + x + (scaled_grid_step / 2) - 4,
-                               canvas_p0.y + y + (scaled_grid_step / 2) - 4),
-                        IM_COL32(255, 255, 255, 255), hex_id);
+                                canvas_p0.y + y + (scaled_grid_step / 2) - 4),
+                         IM_COL32(255, 255, 255, 255), hex_id);
     }
   }
 }
 
 // Layout and interaction utilities
-ImVec2 CalculateCanvasSize(ImVec2 content_region, ImVec2 custom_size, bool use_custom) {
+ImVec2 CalculateCanvasSize(ImVec2 content_region, ImVec2 custom_size,
+                           bool use_custom) {
   return use_custom ? custom_size : content_region;
 }
 
@@ -239,28 +260,30 @@ bool IsPointInCanvas(ImVec2 point, ImVec2 canvas_p0, ImVec2 canvas_p1) {
 }
 
 // Size reporting for ImGui table integration
-ImVec2 CalculateMinimumCanvasSize(ImVec2 content_size, float global_scale, float padding) {
+ImVec2 CalculateMinimumCanvasSize(ImVec2 content_size, float global_scale,
+                                  float padding) {
   // Calculate minimum size needed to display content with padding
   ImVec2 min_size = ImVec2(content_size.x * global_scale + padding * 2,
-                          content_size.y * global_scale + padding * 2);
-  
+                           content_size.y * global_scale + padding * 2);
+
   // Ensure minimum practical size
   min_size.x = std::max(min_size.x, 64.0f);
   min_size.y = std::max(min_size.y, 64.0f);
-  
+
   return min_size;
 }
 
-ImVec2 CalculatePreferredCanvasSize(ImVec2 content_size, float global_scale, float min_scale) {
+ImVec2 CalculatePreferredCanvasSize(ImVec2 content_size, float global_scale,
+                                    float min_scale) {
   // Calculate preferred size with minimum scale constraint
   float effective_scale = std::max(global_scale, min_scale);
   ImVec2 preferred_size = ImVec2(content_size.x * effective_scale + 8.0f,
-                                content_size.y * effective_scale + 8.0f);
-  
+                                 content_size.y * effective_scale + 8.0f);
+
   // Cap to reasonable maximum sizes for table integration
   preferred_size.x = std::min(preferred_size.x, 800.0f);
   preferred_size.y = std::min(preferred_size.y, 600.0f);
-  
+
   return preferred_size;
 }
 
@@ -271,7 +294,8 @@ void ReserveCanvasSpace(ImVec2 canvas_size, const std::string& label) {
   }
   ImGui::Dummy(canvas_size);
   ImGui::SameLine();
-  ImGui::SetCursorPosX(ImGui::GetCursorPosX() - canvas_size.x); // Move back to start
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX() -
+                       canvas_size.x);  // Move back to start
 }
 
 void SetNextCanvasSize(ImVec2 size, bool auto_resize) {
@@ -286,34 +310,38 @@ void SetNextCanvasSize(ImVec2 size, bool auto_resize) {
 
 // High-level composite operations
 void DrawCanvasGrid(const CanvasRenderContext& ctx, int highlight_tile_id) {
-  if (!ctx.enable_grid) return;
-  
+  if (!ctx.enable_grid)
+    return;
+
   ctx.draw_list->PushClipRect(ctx.canvas_p0, ctx.canvas_p1, true);
-  
+
   // Draw grid lines
-  DrawCanvasGridLines(ctx.draw_list, ctx.canvas_p0, ctx.canvas_p1, 
-                     ctx.scrolling, ctx.grid_step, ctx.global_scale);
-  
+  DrawCanvasGridLines(ctx.draw_list, ctx.canvas_p0, ctx.canvas_p1,
+                      ctx.scrolling, ctx.grid_step, ctx.global_scale);
+
   // Draw highlight if specified
   if (highlight_tile_id != -1) {
-    DrawCustomHighlight(ctx.draw_list, ctx.canvas_p0, ctx.scrolling, 
-                       highlight_tile_id, ctx.grid_step * ctx.global_scale);
+    DrawCustomHighlight(ctx.draw_list, ctx.canvas_p0, ctx.scrolling,
+                        highlight_tile_id, ctx.grid_step * ctx.global_scale);
   }
-  
+
   // Draw hex labels if enabled
   if (ctx.enable_hex_labels) {
     DrawHexTileLabels(ctx.draw_list, ctx.canvas_p0, ctx.scrolling,
-                     ImVec2(ctx.canvas_p1.x - ctx.canvas_p0.x, ctx.canvas_p1.y - ctx.canvas_p0.y),
-                     ctx.grid_step, ctx.global_scale);
+                      ImVec2(ctx.canvas_p1.x - ctx.canvas_p0.x,
+                             ctx.canvas_p1.y - ctx.canvas_p0.y),
+                      ctx.grid_step, ctx.global_scale);
   }
-  
+
   ctx.draw_list->PopClipRect();
 }
 
-void DrawCanvasOverlay(const CanvasRenderContext& ctx, const ImVector<ImVec2>& points, 
-                      const ImVector<ImVec2>& selected_points) {
-  const ImVec2 origin(ctx.canvas_p0.x + ctx.scrolling.x, ctx.canvas_p0.y + ctx.scrolling.y);
-  
+void DrawCanvasOverlay(const CanvasRenderContext& ctx,
+                       const ImVector<ImVec2>& points,
+                       const ImVector<ImVec2>& selected_points) {
+  const ImVec2 origin(ctx.canvas_p0.x + ctx.scrolling.x,
+                      ctx.canvas_p0.y + ctx.scrolling.y);
+
   // Draw hover points
   for (int n = 0; n < points.Size; n += 2) {
     ctx.draw_list->AddRect(
@@ -326,20 +354,22 @@ void DrawCanvasOverlay(const CanvasRenderContext& ctx, const ImVector<ImVec2>& p
   if (!selected_points.empty()) {
     for (int n = 0; n < selected_points.size(); n += 2) {
       ctx.draw_list->AddRect(ImVec2(origin.x + selected_points[n].x,
-                                   origin.y + selected_points[n].y),
-                            ImVec2(origin.x + selected_points[n + 1].x + 0x10,
-                                   origin.y + selected_points[n + 1].y + 0x10),
-                            IM_COL32(255, 255, 255, 255), 1.0f);
+                                    origin.y + selected_points[n].y),
+                             ImVec2(origin.x + selected_points[n + 1].x + 0x10,
+                                    origin.y + selected_points[n + 1].y + 0x10),
+                             IM_COL32(255, 255, 255, 255), 1.0f);
     }
   }
 }
 
-void DrawCanvasLabels(const CanvasRenderContext& ctx, const ImVector<ImVector<std::string>>& labels,
-                     int current_labels, int tile_id_offset) {
-  if (current_labels >= labels.size()) return;
-  
+void DrawCanvasLabels(const CanvasRenderContext& ctx,
+                      const ImVector<ImVector<std::string>>& labels,
+                      int current_labels, int tile_id_offset) {
+  if (current_labels >= labels.size())
+    return;
+
   float scaled_grid_step = ctx.grid_step * ctx.global_scale;
-  
+
   for (float x = fmodf(ctx.scrolling.x, scaled_grid_step);
        x < (ctx.canvas_p1.x - ctx.canvas_p0.x); x += scaled_grid_step) {
     for (float y = fmodf(ctx.scrolling.y, scaled_grid_step);
@@ -351,7 +381,7 @@ void DrawCanvasLabels(const CanvasRenderContext& ctx, const ImVector<ImVector<st
       if (tile_id >= labels[current_labels].size()) {
         break;
       }
-      
+
       const std::string& label = labels[current_labels][tile_id];
       ctx.draw_list->AddText(
           ImVec2(ctx.canvas_p0.x + x + (scaled_grid_step / 2) - tile_id_offset,
@@ -361,6 +391,6 @@ void DrawCanvasLabels(const CanvasRenderContext& ctx, const ImVector<ImVector<st
   }
 }
 
-} // namespace CanvasUtils
-} // namespace gui  
-} // namespace yaze
+}  // namespace CanvasUtils
+}  // namespace gui
+}  // namespace yaze
