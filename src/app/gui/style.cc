@@ -282,7 +282,27 @@ void BeginNoPadding() {
 void EndNoPadding() { ImGui::PopStyleVar(2); }
 
 void BeginChildWithScrollbar(const char *str_id) {
-  ImGui::BeginChild(str_id, ImGui::GetContentRegionAvail(), true,
+  // Get available region but ensure minimum size for proper scrolling
+  ImVec2 available = ImGui::GetContentRegionAvail();
+  if (available.x < 64.0f) available.x = 64.0f;
+  if (available.y < 64.0f) available.y = 64.0f;
+  
+  ImGui::BeginChild(str_id, available, true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+}
+
+void BeginChildWithScrollbar(const char *str_id, ImVec2 content_size) {
+  // Set content size before beginning child to enable proper scrolling
+  if (content_size.x > 0 && content_size.y > 0) {
+    ImGui::SetNextWindowContentSize(content_size);
+  }
+  
+  // Get available region but ensure minimum size for proper scrolling
+  ImVec2 available = ImGui::GetContentRegionAvail();
+  if (available.x < 64.0f) available.x = 64.0f;
+  if (available.y < 64.0f) available.y = 64.0f;
+  
+  ImGui::BeginChild(str_id, available, true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
 }
 

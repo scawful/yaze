@@ -7,6 +7,8 @@
 #include "app/gfx/bitmap.h"
 #include "app/gui/color.h"
 #include "app/gui/style.h"
+#include "app/gui/canvas_utils.h"
+#include "util/log.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 
@@ -45,10 +47,135 @@ ImVec2 AlignPosToGrid(ImVec2 pos, float scale) {
 }
 }  // namespace
 
+// Canvas class implementation begins here
+
+void Canvas::InitializeDefaults() {
+  // Initialize configuration with sensible defaults
+  config_.enable_grid = true;
+  config_.enable_hex_labels = false;
+  config_.enable_custom_labels = false;
+  config_.enable_context_menu = true;
+  config_.is_draggable = false;
+  config_.grid_step = 32.0f;
+  config_.global_scale = 1.0f;
+  config_.canvas_size = ImVec2(0, 0);
+  config_.custom_canvas_size = false;
+  
+  // Initialize selection state
+  selection_.Clear();
+  
+  // Initialize palette editor
+  palette_editor_ = std::make_unique<EnhancedPaletteEditor>();
+  
+  // Initialize legacy compatibility variables to match config
+  enable_grid_ = config_.enable_grid;
+  enable_hex_tile_labels_ = config_.enable_hex_labels;
+  enable_custom_labels_ = config_.enable_custom_labels;
+  enable_context_menu_ = config_.enable_context_menu;
+  draggable_ = config_.is_draggable;
+  custom_step_ = config_.grid_step;
+  global_scale_ = config_.global_scale;
+  custom_canvas_size_ = config_.custom_canvas_size;
+  select_rect_active_ = selection_.select_rect_active;
+  selected_tile_pos_ = selection_.selected_tile_pos;
+}
+
+void Canvas::Cleanup() {
+  palette_editor_.reset();
+  selection_.Clear();
+}
+
+void Canvas::InitializePaletteEditor(Rom* rom) {
+  rom_ = rom;
+  if (palette_editor_) {
+    palette_editor_->Initialize(rom);
+  }
+}
+
+void Canvas::ShowPaletteEditor() {
+  if (palette_editor_ && bitmap_) {
+    auto mutable_palette = bitmap_->mutable_palette();
+    palette_editor_->ShowPaletteEditor(*mutable_palette, "Canvas Palette Editor");
+  }
+}
+
+void Canvas::ShowColorAnalysis() {
+  if (palette_editor_ && bitmap_) {
+    palette_editor_->ShowColorAnalysis(*bitmap_, "Canvas Color Analysis");
+  }
+}
+
+bool Canvas::ApplyROMPalette(int group_index, int palette_index) {
+  if (palette_editor_ && bitmap_) {
+    return palette_editor_->ApplyROMPalette(bitmap_, group_index, palette_index);
+  }
+  return false;
+}
+
+// Size reporting methods for table integration
+ImVec2 Canvas::GetMinimumSize() const {
+  return CanvasUtils::CalculateMinimumCanvasSize(config_.content_size, config_.global_scale);
+}
+
+ImVec2 Canvas::GetPreferredSize() const {
+  return CanvasUtils::CalculatePreferredCanvasSize(config_.content_size, config_.global_scale);
+}
+
+void Canvas::ReserveTableSpace(const std::string& label) {
+  ImVec2 size = config_.auto_resize ? GetPreferredSize() : config_.canvas_size;
+  CanvasUtils::ReserveCanvasSpace(size, label);
+}
+
+bool Canvas::BeginTableCanvas(const std::string& label) {
+  if (config_.auto_resize) {
+    ImVec2 preferred_size = GetPreferredSize();
+    CanvasUtils::SetNextCanvasSize(preferred_size, true);
+  }
+  
+  // Begin child window that properly reports size to tables
+  std::string child_id = canvas_id_ + "_TableChild";
+  ImVec2 child_size = config_.auto_resize ? ImVec2(0, 0) : config_.canvas_size;
+  
+  bool result = ImGui::BeginChild(child_id.c_str(), child_size, 
+                                 true, // Always show border for table integration
+                                 ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  
+  if (!label.empty()) {
+    ImGui::Text("%s", label.c_str());
+  }
+  
+  return result;
+}
+
+void Canvas::EndTableCanvas() {
+  ImGui::EndChild();
+}
+
+// Improved interaction detection methods
+bool Canvas::HasValidSelection() const {
+  return !points_.empty() && points_.size() >= 2;
+}
+
+bool Canvas::WasClicked(ImGuiMouseButton button) const {
+  return ImGui::IsItemClicked(button) && HasValidSelection();
+}
+
+bool Canvas::WasDoubleClicked(ImGuiMouseButton button) const {
+  return ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(button) && HasValidSelection();
+}
+
+ImVec2 Canvas::GetLastClickPosition() const {
+  if (HasValidSelection()) {
+    return points_[0]; // Return the first point of the selection
+  }
+  return ImVec2(-1, -1); // Invalid position
+}
+
 void Canvas::UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
                                 const std::function<void()> &event,
                                 int tile_size, float scale) {
-  global_scale_ = scale;
+  config_.global_scale = scale;
+  global_scale_ = scale; // Legacy compatibility
   DrawBackground();
   DrawContextMenu();
   DrawBitmap(bitmap, 2, scale);
@@ -60,7 +187,8 @@ void Canvas::UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
 }
 
 void Canvas::UpdateInfoGrid(ImVec2 bg_size, float grid_size, int label_id) {
-  enable_custom_labels_ = true;
+  config_.enable_custom_labels = true;
+  enable_custom_labels_ = true; // Legacy compatibility
   DrawBackground(bg_size);
   DrawInfoGrid(grid_size, 8, label_id);
   DrawOverlay();
@@ -69,21 +197,27 @@ void Canvas::UpdateInfoGrid(ImVec2 bg_size, float grid_size, int label_id) {
 void Canvas::DrawBackground(ImVec2 canvas_size) {
   draw_list_ = GetWindowDrawList();
   canvas_p0_ = GetCursorScreenPos();
-  if (!custom_canvas_size_) canvas_sz_ = GetContentRegionAvail();
-  if (canvas_size.x != 0) canvas_sz_ = canvas_size;
-  canvas_p1_ = ImVec2(canvas_p0_.x + (canvas_sz_.x * global_scale_),
-                      canvas_p0_.y + (canvas_sz_.y * global_scale_));
+  
+  // Calculate canvas size using utility function
+  ImVec2 content_region = GetContentRegionAvail();
+  canvas_sz_ = CanvasUtils::CalculateCanvasSize(content_region, config_.canvas_size, config_.custom_canvas_size);
+  
+  if (canvas_size.x != 0) {
+    canvas_sz_ = canvas_size;
+    config_.canvas_size = canvas_size;
+  }
+  
+  // Calculate scaled canvas bounds
+  ImVec2 scaled_size = CanvasUtils::CalculateScaledCanvasSize(canvas_sz_, config_.global_scale);
+  canvas_p1_ = ImVec2(canvas_p0_.x + scaled_size.x, canvas_p0_.y + scaled_size.y);
 
   // Draw border and background color
   draw_list_->AddRectFilled(canvas_p0_, canvas_p1_, kRectangleColor);
   draw_list_->AddRect(canvas_p0_, canvas_p1_, kWhiteColor);
 
-  ImGui::InvisibleButton(
-      canvas_id_.c_str(),
-      ImVec2(canvas_sz_.x * global_scale_, canvas_sz_.y * global_scale_),
-      kMouseFlags);
+  ImGui::InvisibleButton(canvas_id_.c_str(), scaled_size, kMouseFlags);
 
-  if (draggable_ && IsItemHovered()) {
+  if (config_.is_draggable && IsItemHovered()) {
     const ImGuiIO &io = GetIO();
     const bool is_active = IsItemActive();  // Held
     const ImVec2 origin(canvas_p0_.x + scrolling_.x,
@@ -140,14 +274,20 @@ void Canvas::DrawContextMenu() {
     if (MenuItem("Zoom to Fit", nullptr, false) && bitmap_) {
       SetZoomToFit(*bitmap_);
     }
+    if (MenuItem("Advanced Properties", nullptr, false)) {
+      ImGui::OpenPopup("Advanced Canvas Properties");
+    }
     ImGui::Separator();
     MenuItem("Show Grid", nullptr, &enable_grid_);
     Selectable("Show Position Labels", &enable_hex_tile_labels_);
-    if (MenuItem("Bitmap Properties", nullptr, false) && bitmap_) {
-      ImGui::OpenPopup("Bitmap Properties");
-    }
     if (MenuItem("Edit Palette", nullptr, false) && bitmap_) {
-      ImGui::OpenPopup("Palette Editor");
+      ShowPaletteEditor();
+    }
+    if (MenuItem("Color Analysis", nullptr, false) && bitmap_) {
+      ShowColorAnalysis();
+    }
+    if (MenuItem("Scaling Controls", nullptr, false)) {
+      ImGui::OpenPopup("Scaling Controls");
     }
     if (BeginMenu("Canvas Properties")) {
       Text("Canvas Size: %.0f x %.0f", canvas_sz_.x, canvas_sz_.y);
@@ -178,38 +318,78 @@ void Canvas::DrawContextMenu() {
 
           EndMenu();
         }
-        if (BeginMenu("Change Palette")) {
-          Text("Work in progress");
-          // TODO: Get ROM data for change palette
-          // gui::TextWithSeparators("ROM Palette");
-          // ImGui::SetNextItemWidth(100.f);
-          // ImGui::Combo("Palette Group", (int *)&edit_palette_group_name_index_,
-          //              gfx::kPaletteGroupAddressesKeys,
-          //              IM_ARRAYSIZE(gfx::kPaletteGroupAddressesKeys));
-          // ImGui::SetNextItemWidth(100.f);
-          // gui::InputHexWord("Palette Group Index", &edit_palette_index_);
-
-          // auto palette_group = rom()->mutable_palette_group()->get_group(
-          //     gfx::kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
-          // auto palette = palette_group->mutable_palette(edit_palette_index_);
-
-          // if (ImGui::BeginChild("Palette", ImVec2(0, 300), true)) {
-          //   gui::SelectablePalettePipeline(edit_palette_sub_index_,
-          //                                  refresh_graphics_, *palette);
-
-          //   if (refresh_graphics_) {
-          //     bitmap_->SetPaletteWithTransparent(*palette,
-          //                                        edit_palette_sub_index_);
-          //     Renderer::Get().UpdateBitmap(bitmap_);
-          //     refresh_graphics_ = false;
-          //   }
-          //   ImGui::EndChild();
-          // }
+        if (BeginMenu("ROM Palette Selection") && rom_) {
+          Text("Select ROM Palette Group:");
+          
+          // Enhanced ROM palette group selection
+          if (palette_editor_) {
+            // Use our enhanced palette editor's ROM selection
+            if (MenuItem("Open Enhanced Palette Manager")) {
+              palette_editor_->ShowROMPaletteManager();
+            }
+            
+            ImGui::Separator();
+            
+            // Quick palette group selection
+            const char* palette_groups[] = {
+              "Overworld Main", "Overworld Aux", "Overworld Animated", 
+              "Dungeon Main", "Global Sprites", "Armor", "Swords"
+            };
+            
+            if (ImGui::Combo("Quick Palette Group", (int*)&edit_palette_group_name_index_,
+                            palette_groups, IM_ARRAYSIZE(palette_groups))) {
+              // Group selection changed
+            }
+            
+            ImGui::SetNextItemWidth(100.f);
+            if (ImGui::SliderInt("Palette Index", (int*)&edit_palette_index_, 0, 7)) {
+              // Palette index changed
+            }
+            
+            // Apply button with enhanced functionality
+            if (ImGui::Button("Apply to Canvas") && bitmap_) {
+              if (palette_editor_->ApplyROMPalette(bitmap_, 
+                                                  edit_palette_group_name_index_, 
+                                                  edit_palette_index_)) {
+                util::logf("Applied ROM palette group %d, index %d via context menu",
+                          edit_palette_group_name_index_, edit_palette_index_);
+              }
+            }
+            
+            // Direct palette editing with SelectablePalettePipeline
+            if (ImGui::TreeNode("Interactive Palette Editor")) {
+              if (rom_ && bitmap_) {
+                ImGui::Text("Interactive ROM Palette Editing");
+                ImGui::Text("Selected Group: %s", palette_groups[edit_palette_group_name_index_]);
+                
+                // Get the enhanced palette editor's ROM palette if available
+                if (const auto* rom_palette = palette_editor_->GetSelectedROMPalette()) {
+                  auto editable_palette = const_cast<gfx::SnesPalette&>(*rom_palette);
+                  
+                  if (ImGui::BeginChild("SelectablePalette", ImVec2(0, 200), true)) {
+                    // Use the existing SelectablePalettePipeline for interactive editing
+                    gui::SelectablePalettePipeline(edit_palette_sub_index_, 
+                                                  refresh_graphics_, editable_palette);
+                    
+                    if (refresh_graphics_) {
+                      bitmap_->SetPaletteWithTransparent(editable_palette, edit_palette_sub_index_);
+                      Renderer::Get().UpdateBitmap(bitmap_);
+                      refresh_graphics_ = false;
+                      util::logf("Applied interactive palette changes to canvas");
+                    }
+                    ImGui::EndChild();
+                  }
+                } else {
+                  ImGui::Text("Load ROM palettes first using Enhanced Palette Manager");
+                }
+              }
+              ImGui::TreePop();
+            }
+          }
           EndMenu();
         }
         if (BeginMenu("View Palette")) {
-          DisplayEditablePalette(*bitmap_->mutable_palette(), "Palette", true,
-                                 8);
+          (void)DisplayEditablePalette(*bitmap_->mutable_palette(), "Palette", true, 8);
           EndMenu();
         }
         EndMenu();
@@ -235,11 +415,9 @@ void Canvas::DrawContextMenu() {
     ImGui::EndPopup();
   }
   
-  // Draw enhanced property dialogs
-  if (bitmap_) {
-    ShowBitmapProperties(*bitmap_);
-    ShowPaletteEditor(*bitmap_->mutable_palette());
-  }
+  // Draw enhanced property dialogs  
+  ShowAdvancedCanvasProperties();
+  ShowScalingControls();
 }
 
 void Canvas::DrawContextMenuItem(const ContextMenuItem& item) {
@@ -275,66 +453,7 @@ void Canvas::ClearContextMenuItems() {
   context_menu_items_.clear();
 }
 
-void Canvas::ShowBitmapProperties(const gfx::Bitmap& bitmap) {
-  if (ImGui::BeginPopupModal("Bitmap Properties", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Bitmap Information");
-    ImGui::Separator();
-    
-    ImGui::Text("Size: %d x %d", bitmap.width(), bitmap.height());
-    ImGui::Text("Depth: %d bits", bitmap.depth());
-    ImGui::Text("Data Size: %zu bytes", bitmap.size());
-    ImGui::Text("Active: %s", bitmap.is_active() ? "Yes" : "No");
-    ImGui::Text("Modified: %s", bitmap.modified() ? "Yes" : "No");
-    
-    if (bitmap.surface()) {
-      ImGui::Separator();
-      ImGui::Text("SDL Surface");
-      ImGui::Text("Pitch: %d", bitmap.surface()->pitch);
-      ImGui::Text("Bits Per Pixel: %d", bitmap.surface()->format->BitsPerPixel);
-      ImGui::Text("Bytes Per Pixel: %d", bitmap.surface()->format->BytesPerPixel);
-    }
-    
-    if (ImGui::Button("Close")) {
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndPopup();
-  }
-}
-
-void Canvas::ShowPaletteEditor(gfx::SnesPalette& palette) {
-  if (ImGui::BeginPopupModal("Palette Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Palette Editor");
-    ImGui::Separator();
-    
-    // Display palette colors in a grid
-    int cols = 8;
-    for (int i = 0; i < palette.size(); i++) {
-      if (i % cols != 0) ImGui::SameLine();
-      
-      auto color = palette[i];
-      ImVec4 display_color = color.rgb();
-      
-      ImGui::PushID(i);
-      if (ImGui::ColorButton("##color", display_color, ImGuiColorEditFlags_NoTooltip, ImVec2(30, 30))) {
-        // Color selected - could open detailed editor
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Color %d: 0x%04X\nR:%d G:%d B:%d", 
-                         i, color.snes(), 
-                         (int)(display_color.x * 255),
-                         (int)(display_color.y * 255), 
-                         (int)(display_color.z * 255));
-      }
-      ImGui::PopID();
-    }
-    
-    ImGui::Separator();
-    if (ImGui::Button("Close")) {
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndPopup();
-  }
-}
+// Old ShowPaletteEditor method removed - now handled by EnhancedPaletteEditor
 
 void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
   if (!bitmap.is_active()) return;
@@ -342,17 +461,20 @@ void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
   ImVec2 available = ImGui::GetContentRegionAvail();
   float scale_x = available.x / bitmap.width();
   float scale_y = available.y / bitmap.height();
-  global_scale_ = std::min(scale_x, scale_y);
+  config_.global_scale = std::min(scale_x, scale_y);
   
   // Ensure minimum readable scale
-  if (global_scale_ < 0.25f) global_scale_ = 0.25f;
+  if (config_.global_scale < 0.25f) config_.global_scale = 0.25f;
+  
+  global_scale_ = config_.global_scale; // Legacy compatibility
   
   // Center the view
   scrolling_ = ImVec2(0, 0);
 }
 
 void Canvas::ResetView() {
-  global_scale_ = 1.0f;
+  config_.global_scale = 1.0f;
+  global_scale_ = 1.0f; // Legacy compatibility
   scrolling_ = ImVec2(0, 0);
 }
 
@@ -656,6 +778,10 @@ void Canvas::DrawBitmap(Bitmap &bitmap, int border_offset, float scale) {
     return;
   }
   bitmap_ = &bitmap;
+  
+  // Update content size for table integration
+  config_.content_size = ImVec2(bitmap.width(), bitmap.height());
+  
   draw_list_->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
                        ImVec2(canvas_p0_.x, canvas_p0_.y),
                        ImVec2(canvas_p0_.x + (bitmap.width() * scale),
@@ -669,14 +795,24 @@ void Canvas::DrawBitmap(Bitmap &bitmap, int x_offset, int y_offset, float scale,
     return;
   }
   bitmap_ = &bitmap;
+  
+  // Update content size for table integration
+  config_.content_size = ImVec2(bitmap.width(), bitmap.height());
+  
+  // Calculate the actual rendered size including scale and offsets
+  ImVec2 rendered_size(bitmap.width() * scale, bitmap.height() * scale);
+  ImVec2 total_size(x_offset + rendered_size.x, y_offset + rendered_size.y);
+  
   draw_list_->AddImage(
       (ImTextureID)(intptr_t)bitmap.texture(),
       ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
              canvas_p0_.y + y_offset + scrolling_.y),
       ImVec2(
-          canvas_p0_.x + x_offset + scrolling_.x + (bitmap.width() * scale),
-          canvas_p0_.y + y_offset + scrolling_.y + (bitmap.height() * scale)),
+          canvas_p0_.x + x_offset + scrolling_.x + rendered_size.x,
+          canvas_p0_.y + y_offset + scrolling_.y + rendered_size.y),
       ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha));
+  
+  // Note: Content size for child windows should be set before BeginChild, not here
 }
 
 void Canvas::DrawBitmap(Bitmap &bitmap, ImVec2 dest_pos, ImVec2 dest_size,
@@ -685,6 +821,10 @@ void Canvas::DrawBitmap(Bitmap &bitmap, ImVec2 dest_pos, ImVec2 dest_size,
     return;
   }
   bitmap_ = &bitmap;
+  
+  // Update content size for table integration
+  config_.content_size = ImVec2(bitmap.width(), bitmap.height());
+  
   draw_list_->AddImage(
       (ImTextureID)(intptr_t)bitmap.texture(),
       ImVec2(canvas_p0_.x + dest_pos.x, canvas_p0_.y + dest_pos.y),
@@ -710,28 +850,15 @@ void Canvas::DrawBitmapTable(const BitmapTable &gfx_bin) {
 }
 
 void Canvas::DrawOutline(int x, int y, int w, int h) {
-  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
-                canvas_p0_.y + scrolling_.y + y);
-  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
-              canvas_p0_.y + scrolling_.y + y + h);
-  draw_list_->AddRect(origin, size, kOutlineRect, 0, 0, 1.5f);
+  CanvasUtils::DrawCanvasOutline(draw_list_, canvas_p0_, scrolling_, x, y, w, h, IM_COL32(255, 255, 255, 200));
 }
 
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
-  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
-                canvas_p0_.y + scrolling_.y + y);
-  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
-              canvas_p0_.y + scrolling_.y + y + h);
-  draw_list_->AddRect(origin, size,
-                      IM_COL32(color.x, color.y, color.z, color.w));
+  CanvasUtils::DrawCanvasOutlineWithColor(draw_list_, canvas_p0_, scrolling_, x, y, w, h, color);
 }
 
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
-  ImVec2 origin(canvas_p0_.x + scrolling_.x + x,
-                canvas_p0_.y + scrolling_.y + y);
-  ImVec2 size(canvas_p0_.x + scrolling_.x + x + w,
-              canvas_p0_.y + scrolling_.y + y + h);
-  draw_list_->AddRect(origin, size, color);
+  CanvasUtils::DrawCanvasOutline(draw_list_, canvas_p0_, scrolling_, x, y, w, h, color);
 }
 
 void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
@@ -840,50 +967,15 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
 }
 
 void Canvas::DrawRect(int x, int y, int w, int h, ImVec4 color) {
-  // Apply global scale to position and size
-  float scaled_x = x * global_scale_;
-  float scaled_y = y * global_scale_;
-  float scaled_w = w * global_scale_;
-  float scaled_h = h * global_scale_;
-  
-  ImVec2 origin(canvas_p0_.x + scrolling_.x + scaled_x,
-                canvas_p0_.y + scrolling_.y + scaled_y);
-  ImVec2 size(canvas_p0_.x + scrolling_.x + scaled_x + scaled_w,
-              canvas_p0_.y + scrolling_.y + scaled_y + scaled_h);
-  draw_list_->AddRectFilled(origin, size,
-                            IM_COL32(color.x, color.y, color.z, color.w));
-  // Add a black outline
-  ImVec2 outline_origin(origin.x - 1, origin.y - 1);
-  ImVec2 outline_size(size.x + 1, size.y + 1);
-  draw_list_->AddRect(outline_origin, outline_size, kBlackColor);
+  CanvasUtils::DrawCanvasRect(draw_list_, canvas_p0_, scrolling_, x, y, w, h, color, config_.global_scale);
 }
 
 void Canvas::DrawText(std::string text, int x, int y) {
-  // Apply global scale to text position
-  float scaled_x = x * global_scale_;
-  float scaled_y = y * global_scale_;
-  
-  draw_list_->AddText(ImVec2(canvas_p0_.x + scrolling_.x + scaled_x + 1,
-                             canvas_p0_.y + scrolling_.y + scaled_y + 1),
-                      kBlackColor, text.data());
-  draw_list_->AddText(
-      ImVec2(canvas_p0_.x + scrolling_.x + scaled_x, canvas_p0_.y + scrolling_.y + scaled_y),
-      kWhiteColor, text.data());
+  CanvasUtils::DrawCanvasText(draw_list_, canvas_p0_, scrolling_, text, x, y, config_.global_scale);
 }
 
 void Canvas::DrawGridLines(float grid_step) {
-  const uint32_t grid_color = IM_COL32(200, 200, 200, 50);
-  const float grid_thickness = 0.5f;
-  for (float x = fmodf(scrolling_.x, grid_step);
-       x < canvas_sz_.x * global_scale_; x += grid_step)
-    draw_list_->AddLine(ImVec2(canvas_p0_.x + x, canvas_p0_.y),
-                        ImVec2(canvas_p0_.x + x, canvas_p1_.y), grid_color,
-                        grid_thickness);
-  for (float y = fmodf(scrolling_.y, grid_step);
-       y < canvas_sz_.y * global_scale_; y += grid_step)
-    draw_list_->AddLine(ImVec2(canvas_p0_.x, canvas_p0_.y + y),
-                        ImVec2(canvas_p1_.x, canvas_p0_.y + y), grid_color,
-                        grid_thickness);
+  CanvasUtils::DrawCanvasGridLines(draw_list_, canvas_p0_, canvas_p1_, scrolling_, grid_step, config_.global_scale);
 }
 
 void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
@@ -923,91 +1015,50 @@ void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
 }
 
 void Canvas::DrawCustomHighlight(float grid_step) {
-  if (highlight_tile_id != -1) {
-    int tile_x = highlight_tile_id % 8;
-    int tile_y = highlight_tile_id / 8;
-    ImVec2 tile_pos(canvas_p0_.x + scrolling_.x + tile_x * grid_step,
-                    canvas_p0_.y + scrolling_.y + tile_y * grid_step);
-    ImVec2 tile_pos_end(tile_pos.x + grid_step, tile_pos.y + grid_step);
-
-    draw_list_->AddRectFilled(tile_pos, tile_pos_end,
-                              IM_COL32(255, 0, 255, 255));
-  }
+  CanvasUtils::DrawCustomHighlight(draw_list_, canvas_p0_, scrolling_, highlight_tile_id, grid_step);
 }
 
 void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
-  // Draw grid + all lines in the canvas
-  draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
-  if (enable_grid_) {
-    if (custom_step_ != 0.f) grid_step = custom_step_;
-    grid_step *= global_scale_;  // Apply global scale to grid step
-
-    DrawGridLines(grid_step);
-    DrawCustomHighlight(grid_step);
-
-    if (enable_hex_tile_labels_) {
-      // Draw the hex ID of the tile in the center of the tile square
-      for (float x = fmodf(scrolling_.x, grid_step);
-           x < canvas_sz_.x * global_scale_; x += grid_step) {
-        for (float y = fmodf(scrolling_.y, grid_step);
-             y < canvas_sz_.y * global_scale_; y += grid_step) {
-          int tile_x = (x - scrolling_.x) / grid_step;
-          int tile_y = (y - scrolling_.y) / grid_step;
-          int tile_id = tile_x + (tile_y * 16);
-          std::string hex_id = absl::StrFormat("%02X", tile_id);
-          draw_list_->AddText(ImVec2(canvas_p0_.x + x + (grid_step / 2) - 4,
-                                     canvas_p0_.y + y + (grid_step / 2) - 4),
-                              kWhiteColor, hex_id.data());
-        }
-      }
-    }
-
-    if (!enable_custom_labels_) {
-      return;
-    }
-    // Draw the contents of labels on the grid
-    for (float x = fmodf(scrolling_.x, grid_step);
-         x < canvas_sz_.x * global_scale_; x += grid_step) {
-      for (float y = fmodf(scrolling_.y, grid_step);
-           y < canvas_sz_.y * global_scale_; y += grid_step) {
-        int tile_x = (x - scrolling_.x) / grid_step;
-        int tile_y = (y - scrolling_.y) / grid_step;
-        int tile_id = tile_x + (tile_y * tile_id_offset);
-
-        if (tile_id >= labels_[current_labels_].size()) {
-          break;
-        }
-        std::string label = labels_[current_labels_][tile_id];
-        draw_list_->AddText(
-            ImVec2(canvas_p0_.x + x + (grid_step / 2) - tile_id_offset,
-                   canvas_p0_.y + y + (grid_step / 2) - tile_id_offset),
-            kWhiteColor, label.data());
-      }
-    }
+  if (config_.grid_step != 0.f) grid_step = config_.grid_step;
+  
+  // Create render context for utilities
+  CanvasUtils::CanvasRenderContext ctx = {
+    .draw_list = draw_list_,
+    .canvas_p0 = canvas_p0_,
+    .canvas_p1 = canvas_p1_,
+    .scrolling = scrolling_,
+    .global_scale = config_.global_scale,
+    .enable_grid = config_.enable_grid,
+    .enable_hex_labels = config_.enable_hex_labels,
+    .grid_step = grid_step
+  };
+  
+  // Use high-level utility function
+  CanvasUtils::DrawCanvasGrid(ctx, highlight_tile_id);
+  
+  // Draw custom labels if enabled
+  if (config_.enable_custom_labels) {
+    draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
+    CanvasUtils::DrawCanvasLabels(ctx, labels_, current_labels_, tile_id_offset);
+    draw_list_->PopClipRect();
   }
 }
 
 void Canvas::DrawOverlay() {
-  const ImVec2 origin(canvas_p0_.x + scrolling_.x,
-                      canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
-  for (int n = 0; n < points_.Size; n += 2) {
-    draw_list_->AddRect(
-        ImVec2(origin.x + points_[n].x, origin.y + points_[n].y),
-        ImVec2(origin.x + points_[n + 1].x, origin.y + points_[n + 1].y),
-        kWhiteColor, 1.0f);
-  }
-
-  if (!selected_points_.empty()) {
-    for (int n = 0; n < selected_points_.size(); n += 2) {
-      draw_list_->AddRect(ImVec2(origin.x + selected_points_[n].x,
-                                 origin.y + selected_points_[n].y),
-                          ImVec2(origin.x + selected_points_[n + 1].x + 0x10,
-                                 origin.y + selected_points_[n + 1].y + 0x10),
-                          kWhiteColor, 1.0f);
-    }
-  }
-
-  draw_list_->PopClipRect();
+  // Create render context for utilities
+  CanvasUtils::CanvasRenderContext ctx = {
+    .draw_list = draw_list_,
+    .canvas_p0 = canvas_p0_,
+    .canvas_p1 = canvas_p1_,
+    .scrolling = scrolling_,
+    .global_scale = config_.global_scale,
+    .enable_grid = config_.enable_grid,
+    .enable_hex_labels = config_.enable_hex_labels,
+    .grid_step = config_.grid_step
+  };
+  
+  // Use high-level utility function
+  CanvasUtils::DrawCanvasOverlay(ctx, points_, selected_points_);
 }
 
 void Canvas::DrawLayeredElements() {
@@ -1053,7 +1104,20 @@ void Canvas::DrawLayeredElements() {
 
 void BeginCanvas(Canvas &canvas, ImVec2 child_size) {
   gui::BeginPadding(1);
-  ImGui::BeginChild(canvas.canvas_id().c_str(), child_size, true);
+  
+  // Use improved canvas sizing for table integration
+  ImVec2 effective_size = child_size;
+  if (child_size.x == 0 && child_size.y == 0) {
+    // Auto-size based on canvas configuration
+    if (canvas.IsAutoResize()) {
+      effective_size = canvas.GetPreferredSize();
+    } else {
+      effective_size = canvas.GetCurrentSize();
+    }
+  }
+  
+  ImGui::BeginChild(canvas.canvas_id().c_str(), effective_size, true,
+                   ImGuiWindowFlags_AlwaysVerticalScrollbar);
   canvas.DrawBackground();
   gui::EndPadding();
   canvas.DrawContextMenu();
@@ -1121,5 +1185,209 @@ void BitmapCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap, int width,
     draw_canvas(canvas, bitmap, width, height, tile_size, is_loaded);
   }
 }
+
+void TableCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap, 
+                        const std::string& label, bool auto_resize) {
+  // Configure canvas for table integration
+  canvas.SetAutoResize(auto_resize);
+  
+  if (auto_resize && bitmap.is_active()) {
+    // Auto-calculate size based on bitmap content
+    ImVec2 content_size = ImVec2(bitmap.width(), bitmap.height());
+    ImVec2 preferred_size = CanvasUtils::CalculatePreferredCanvasSize(content_size, canvas.GetGlobalScale());
+    canvas.SetCanvasSize(preferred_size);
+  }
+  
+  // Begin table-aware canvas
+  if (canvas.BeginTableCanvas(label)) {
+    // Draw the canvas content
+    canvas.DrawBackground();
+    canvas.DrawContextMenu();
+    
+    if (bitmap.is_active()) {
+      canvas.DrawBitmap(bitmap, 2, 2, canvas.GetGlobalScale());
+    }
+    
+    canvas.DrawGrid();
+    canvas.DrawOverlay();
+  }
+  canvas.EndTableCanvas();
+}
+
+void Canvas::ShowAdvancedCanvasProperties() {
+  if (ImGui::BeginPopupModal("Advanced Canvas Properties", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Advanced Canvas Configuration");
+    ImGui::Separator();
+    
+    // Canvas properties (read-only info)
+    ImGui::Text("Canvas Properties");
+    ImGui::Text("ID: %s", canvas_id_.c_str());
+    ImGui::Text("Canvas Size: %.0f x %.0f", config_.canvas_size.x, config_.canvas_size.y);
+    ImGui::Text("Content Size: %.0f x %.0f", config_.content_size.x, config_.content_size.y);
+    ImGui::Text("Global Scale: %.3f", config_.global_scale);
+    ImGui::Text("Grid Step: %.1f", config_.grid_step);
+    
+    if (config_.content_size.x > 0 && config_.content_size.y > 0) {
+      ImVec2 min_size = GetMinimumSize();
+      ImVec2 preferred_size = GetPreferredSize();
+      ImGui::Text("Minimum Size: %.0f x %.0f", min_size.x, min_size.y);
+      ImGui::Text("Preferred Size: %.0f x %.0f", preferred_size.x, preferred_size.y);
+    }
+    
+    // Editable properties using new config system
+    ImGui::Separator();
+    ImGui::Text("View Settings");
+    if (ImGui::Checkbox("Enable Grid", &config_.enable_grid)) {
+      enable_grid_ = config_.enable_grid; // Legacy sync
+    }
+    if (ImGui::Checkbox("Enable Hex Labels", &config_.enable_hex_labels)) {
+      enable_hex_tile_labels_ = config_.enable_hex_labels; // Legacy sync
+    }
+    if (ImGui::Checkbox("Enable Custom Labels", &config_.enable_custom_labels)) {
+      enable_custom_labels_ = config_.enable_custom_labels; // Legacy sync
+    }
+    if (ImGui::Checkbox("Enable Context Menu", &config_.enable_context_menu)) {
+      enable_context_menu_ = config_.enable_context_menu; // Legacy sync
+    }
+    if (ImGui::Checkbox("Draggable", &config_.is_draggable)) {
+      draggable_ = config_.is_draggable; // Legacy sync
+    }
+    if (ImGui::Checkbox("Auto Resize for Tables", &config_.auto_resize)) {
+      // Auto resize setting changed
+    }
+    
+    // Grid controls
+    ImGui::Separator();
+    ImGui::Text("Grid Configuration");
+    if (ImGui::SliderFloat("Grid Step", &config_.grid_step, 1.0f, 128.0f, "%.1f")) {
+      custom_step_ = config_.grid_step; // Legacy sync
+    }
+    
+    // Scale controls
+    ImGui::Separator();
+    ImGui::Text("Scale Configuration");
+    if (ImGui::SliderFloat("Global Scale", &config_.global_scale, 0.1f, 10.0f, "%.2f")) {
+      global_scale_ = config_.global_scale; // Legacy sync
+    }
+    
+    // Scrolling controls
+    ImGui::Separator();
+    ImGui::Text("Scrolling Configuration");
+    ImGui::Text("Current Scroll: %.1f, %.1f", scrolling_.x, scrolling_.y);
+    if (ImGui::Button("Reset Scroll")) {
+      scrolling_ = ImVec2(0, 0);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Center View")) {
+      if (bitmap_) {
+        scrolling_ = ImVec2(-(bitmap_->width() * config_.global_scale - config_.canvas_size.x) / 2.0f,
+                           -(bitmap_->height() * config_.global_scale - config_.canvas_size.y) / 2.0f);
+      }
+    }
+    
+    if (ImGui::Button("Close")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+}
+
+// Old ShowPaletteManager method removed - now handled by EnhancedPaletteEditor
+
+void Canvas::ShowScalingControls() {
+  if (ImGui::BeginPopupModal("Scaling Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Canvas Scaling and Display Controls");
+    ImGui::Separator();
+    
+    // Global scale with new config system
+    ImGui::Text("Global Scale: %.3f", config_.global_scale);
+    if (ImGui::SliderFloat("##GlobalScale", &config_.global_scale, 0.1f, 10.0f, "%.2f")) {
+      global_scale_ = config_.global_scale; // Legacy sync
+    }
+    
+    // Preset scale buttons
+    ImGui::Text("Preset Scales:");
+    if (ImGui::Button("0.25x")) {
+      config_.global_scale = 0.25f;
+      global_scale_ = config_.global_scale;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("0.5x")) {
+      config_.global_scale = 0.5f;
+      global_scale_ = config_.global_scale;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("1x")) {
+      config_.global_scale = 1.0f;
+      global_scale_ = config_.global_scale;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("2x")) {
+      config_.global_scale = 2.0f;
+      global_scale_ = config_.global_scale;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("4x")) {
+      config_.global_scale = 4.0f;
+      global_scale_ = config_.global_scale;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("8x")) {
+      config_.global_scale = 8.0f;
+      global_scale_ = config_.global_scale;
+    }
+    
+    // Grid configuration
+    ImGui::Separator();
+    ImGui::Text("Grid Configuration");
+    ImGui::Text("Grid Step: %.1f", config_.grid_step);
+    if (ImGui::SliderFloat("##GridStep", &config_.grid_step, 1.0f, 128.0f, "%.1f")) {
+      custom_step_ = config_.grid_step; // Legacy sync
+    }
+    
+    // Grid size presets
+    ImGui::Text("Grid Presets:");
+    if (ImGui::Button("8x8")) {
+      config_.grid_step = 8.0f;
+      custom_step_ = config_.grid_step;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("16x16")) {
+      config_.grid_step = 16.0f;
+      custom_step_ = config_.grid_step;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("32x32")) {
+      config_.grid_step = 32.0f;
+      custom_step_ = config_.grid_step;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("64x64")) {
+      config_.grid_step = 64.0f;
+      custom_step_ = config_.grid_step;
+    }
+    
+    // Canvas size info
+    ImGui::Separator();
+    ImGui::Text("Canvas Information");
+    ImGui::Text("Canvas Size: %.0f x %.0f", config_.canvas_size.x, config_.canvas_size.y);
+    ImGui::Text("Scaled Size: %.0f x %.0f", 
+               config_.canvas_size.x * config_.global_scale, 
+               config_.canvas_size.y * config_.global_scale);
+    if (bitmap_) {
+      ImGui::Text("Bitmap Size: %d x %d", bitmap_->width(), bitmap_->height());
+      ImGui::Text("Effective Scale: %.3f x %.3f", 
+                 (config_.canvas_size.x * config_.global_scale) / bitmap_->width(),
+                 (config_.canvas_size.y * config_.global_scale) / bitmap_->height());
+    }
+    
+    if (ImGui::Button("Close")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+}
+
+// Old ROM palette management methods removed - now handled by EnhancedPaletteEditor
 
 }  // namespace yaze::gui

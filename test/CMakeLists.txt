@@ -41,6 +41,7 @@ add_executable(
   dungeon_component_unit_test.cc
   integration/asar_integration_test.cc
   integration/asar_rom_test.cc
+  editor/tile16_editor_test.cc
   zelda3/object_parser_test.cc
   zelda3/object_parser_structs_test.cc
   zelda3/test_dungeon_objects.cc

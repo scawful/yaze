@@ -6,9 +6,13 @@
 
 #include <cstdint>
 #include <string>
+#include <functional>
+#include <memory>
 
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
+#include "app/gui/canvas_utils.h"
+#include "app/gui/enhanced_palette_editor.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -28,54 +32,67 @@ enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
 
 /**
  * @class Canvas
- * @brief Represents a canvas for drawing and manipulating graphics.
+ * @brief Modern, robust canvas for drawing and manipulating graphics.
  *
- * The Canvas class provides various functions for updating and drawing graphics
- * on a canvas. It supports features such as bitmap drawing, context menu
- * handling, tile painting, custom grid, and more.
+ * Following ImGui design patterns, this Canvas class provides:
+ * - Modular configuration through CanvasConfig
+ * - Separate selection state management  
+ * - Enhanced palette management integration
+ * - Performance-optimized rendering
+ * - Comprehensive context menu system
  */
 class Canvas {
  public:
   Canvas() = default;
-  explicit Canvas(const std::string &id) : canvas_id_(id) {
-    context_id_ = id + "Context";
+  
+  explicit Canvas(const std::string& id) 
+    : canvas_id_(id), context_id_(id + "Context") {
+    InitializeDefaults();
   }
-  explicit Canvas(const std::string &id, ImVec2 canvas_size)
-      : custom_canvas_size_(true), canvas_sz_(canvas_size), canvas_id_(id) {
-    context_id_ = id + "Context";
+  
+  explicit Canvas(const std::string& id, ImVec2 canvas_size)
+    : canvas_id_(id), context_id_(id + "Context") {
+    InitializeDefaults();
+    config_.canvas_size = canvas_size;
+    config_.custom_canvas_size = true;
   }
-  explicit Canvas(const std::string &id, ImVec2 canvas_size,
-                  CanvasGridSize grid_size)
-      : custom_canvas_size_(true), canvas_sz_(canvas_size), canvas_id_(id) {
-    context_id_ = id + "Context";
-    SetCanvasGridSize(grid_size);
+  
+  explicit Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size)
+    : canvas_id_(id), context_id_(id + "Context") {
+    InitializeDefaults();
+    config_.canvas_size = canvas_size;
+    config_.custom_canvas_size = true;
+    SetGridSize(grid_size);
   }
-  explicit Canvas(const std::string &id, ImVec2 canvas_size,
-                  CanvasGridSize grid_size, float global_scale)
-      : custom_canvas_size_(true),
-        global_scale_(global_scale),
-        canvas_sz_(canvas_size),
-        canvas_id_(id) {
-    context_id_ = id + "Context";
-    SetCanvasGridSize(grid_size);
+  
+  explicit Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale)
+    : canvas_id_(id), context_id_(id + "Context") {
+    InitializeDefaults();
+    config_.canvas_size = canvas_size;
+    config_.custom_canvas_size = true;
+    config_.global_scale = global_scale;
+    SetGridSize(grid_size);
   }
 
-  void SetCanvasGridSize(CanvasGridSize grid_size) {
+  void SetGridSize(CanvasGridSize grid_size) {
     switch (grid_size) {
       case CanvasGridSize::k8x8:
-        custom_step_ = 8.0f;
+        config_.grid_step = 8.0f;
         break;
       case CanvasGridSize::k16x16:
-        custom_step_ = 16.0f;
+        config_.grid_step = 16.0f;
         break;
       case CanvasGridSize::k32x32:
-        custom_step_ = 32.0f;
+        config_.grid_step = 32.0f;
         break;
       case CanvasGridSize::k64x64:
-        custom_step_ = 64.0f;
+        config_.grid_step = 64.0f;
         break;
     }
   }
+
+  // Legacy compatibility
+  void SetCanvasGridSize(CanvasGridSize grid_size) { SetGridSize(grid_size); }
 
   void UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
                           const std::function<void()> &event, int tile_size,
@@ -106,10 +123,44 @@ class Canvas {
   void SetContextMenuEnabled(bool enabled) { context_menu_enabled_ = enabled; }
   
   // Enhanced view and edit operations
-  void ShowBitmapProperties(const gfx::Bitmap& bitmap);
-  void ShowPaletteEditor(gfx::SnesPalette& palette);
+  void ShowAdvancedCanvasProperties();
+  void ShowScalingControls();
   void SetZoomToFit(const gfx::Bitmap& bitmap);
   void ResetView();
+  
+  // Modular component access
+  CanvasConfig& GetConfig() { return config_; }
+  const CanvasConfig& GetConfig() const { return config_; }
+  CanvasSelection& GetSelection() { return selection_; }
+  const CanvasSelection& GetSelection() const { return selection_; }
+  
+  // Enhanced palette management
+  void InitializePaletteEditor(Rom* rom);
+  void ShowPaletteEditor();
+  void ShowColorAnalysis();
+  bool ApplyROMPalette(int group_index, int palette_index);
+  
+  // Initialization and cleanup
+  void InitializeDefaults();
+  void Cleanup();
+  
+  // Size reporting for ImGui table integration
+  ImVec2 GetMinimumSize() const;
+  ImVec2 GetPreferredSize() const;
+  ImVec2 GetCurrentSize() const { return config_.canvas_size; }
+  void SetAutoResize(bool auto_resize) { config_.auto_resize = auto_resize; }
+  bool IsAutoResize() const { return config_.auto_resize; }
+  
+  // Table integration helpers
+  void ReserveTableSpace(const std::string& label = "");
+  bool BeginTableCanvas(const std::string& label = "");
+  void EndTableCanvas();
+  
+  // Improved interaction detection
+  bool HasValidSelection() const;
+  bool WasClicked(ImGuiMouseButton button = ImGuiMouseButton_Left) const;
+  bool WasDoubleClicked(ImGuiMouseButton button = ImGuiMouseButton_Left) const;
+  ImVec2 GetLastClickPosition() const;
   
  private:
   void DrawContextMenuItem(const ContextMenuItem& item);
@@ -173,19 +224,34 @@ class Canvas {
   void set_global_scale(float scale) { global_scale_ = scale; }
   void set_draggable(bool draggable) { draggable_ = draggable; }
   
-  // Public accessors for commonly used private members
-  auto select_rect_active() const { return select_rect_active_; }
-  auto selected_tiles() const { return selected_tiles_; }
-  auto selected_tile_pos() const { return selected_tile_pos_; }
-  void set_selected_tile_pos(ImVec2 pos) { selected_tile_pos_ = pos; }
+  // Modern accessors using modular structure
+  bool IsSelectRectActive() const { return selection_.select_rect_active; }
+  const std::vector<ImVec2>& GetSelectedTiles() const { return selection_.selected_tiles; }
+  ImVec2 GetSelectedTilePos() const { return selection_.selected_tile_pos; }
+  void SetSelectedTilePos(ImVec2 pos) { selection_.selected_tile_pos = pos; }
   
-  // Public methods for commonly used private methods
-  void SetCanvasSize(ImVec2 canvas_size) { canvas_sz_ = canvas_size; custom_canvas_size_ = true; }
-  auto global_scale() const { return global_scale_; }
-  auto custom_labels_enabled() { return &enable_custom_labels_; }
-  auto custom_step() const { return custom_step_; }
-  auto width() const { return canvas_sz_.x; }
-  auto height() const { return canvas_sz_.y; }
+  // Configuration accessors  
+  void SetCanvasSize(ImVec2 canvas_size) { 
+    config_.canvas_size = canvas_size; 
+    config_.custom_canvas_size = true; 
+  }
+  float GetGlobalScale() const { return config_.global_scale; }
+  void SetGlobalScale(float scale) { config_.global_scale = scale; }
+  bool* GetCustomLabelsEnabled() { return &config_.enable_custom_labels; }
+  float GetGridStep() const { return config_.grid_step; }
+  float GetCanvasWidth() const { return config_.canvas_size.x; }
+  float GetCanvasHeight() const { return config_.canvas_size.y; }
+  
+  // Legacy compatibility accessors
+  auto select_rect_active() const { return selection_.select_rect_active; }
+  auto selected_tiles() const { return selection_.selected_tiles; }
+  auto selected_tile_pos() const { return selection_.selected_tile_pos; }
+  void set_selected_tile_pos(ImVec2 pos) { selection_.selected_tile_pos = pos; }
+  auto global_scale() const { return config_.global_scale; }
+  auto custom_labels_enabled() { return &config_.enable_custom_labels; }
+  auto custom_step() const { return config_.grid_step; }
+  auto width() const { return config_.canvas_size.x; }
+  auto height() const { return config_.canvas_size.y; }
   
   // Public accessors for methods that need to be accessed externally
   auto canvas_id() const { return canvas_id_; }
@@ -231,50 +297,60 @@ class Canvas {
   Rom *rom() const { return rom_; }
 
  private:
-  bool draggable_ = false;
+  // Modular configuration and state
+  CanvasConfig config_;
+  CanvasSelection selection_;
+  std::unique_ptr<EnhancedPaletteEditor> palette_editor_;
+  
+  // Core canvas state
   bool is_hovered_ = false;
-  bool enable_grid_ = true;
-  bool enable_hex_tile_labels_ = false;
-  bool enable_custom_labels_ = false;
-  bool enable_context_menu_ = true;
-  bool custom_canvas_size_ = false;
-  bool select_rect_active_ = false;
   bool refresh_graphics_ = false;
 
   // Context menu system
   std::vector<ContextMenuItem> context_menu_items_;
   bool context_menu_enabled_ = true;
 
-  float custom_step_ = 0.0f;
-  float global_scale_ = 1.0f;
-
+  // Legacy members (to be gradually replaced)
   int current_labels_ = 0;
   int highlight_tile_id = -1;
-
   uint16_t edit_palette_index_ = 0;
   uint64_t edit_palette_group_name_index_ = 0;
   uint64_t edit_palette_sub_index_ = 0;
 
+  // Core canvas state
   Bitmap *bitmap_ = nullptr;
   Rom *rom_ = nullptr;
-
   ImDrawList *draw_list_ = nullptr;
 
+  // Canvas geometry and interaction state
   ImVec2 scrolling_;
   ImVec2 canvas_sz_;
   ImVec2 canvas_p0_;
   ImVec2 canvas_p1_;
   ImVec2 drawn_tile_pos_;
   ImVec2 mouse_pos_in_canvas_;
-  ImVec2 selected_tile_pos_ = ImVec2(-1, -1);
 
+  // Drawing and labeling
   ImVector<ImVec2> points_;
-  ImVector<ImVec2> selected_points_;
   ImVector<ImVector<std::string>> labels_;
 
+  // Identification
   std::string canvas_id_ = "Canvas";
   std::string context_id_ = "CanvasContext";
+  
+  // Legacy compatibility (gradually being replaced by selection_)
   std::vector<ImVec2> selected_tiles_;
+  ImVector<ImVec2> selected_points_;
+  ImVec2 selected_tile_pos_ = ImVec2(-1, -1);
+  bool select_rect_active_ = false;
+  float custom_step_ = 32.0f;
+  float global_scale_ = 1.0f;
+  bool enable_grid_ = true;
+  bool enable_hex_tile_labels_ = false;
+  bool enable_custom_labels_ = false;
+  bool enable_context_menu_ = true;
+  bool custom_canvas_size_ = false;
+  bool draggable_ = false;
 };
 
 void BeginCanvas(Canvas &canvas, ImVec2 child_size = ImVec2(0, 0));
@@ -287,6 +363,10 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
 void BitmapCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap, int width,
                           int height, int tile_size, bool is_loaded,
                           bool scrollbar, int canvas_id);
+
+// Table-optimized canvas pipeline with automatic sizing
+void TableCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap, 
+                        const std::string& label = "", bool auto_resize = true);
 
 }  // namespace gui
 }  // namespace yaze
