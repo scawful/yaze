@@ -455,6 +455,8 @@ void EditorManager::Initialize(const std::string &filename) {
             [&]() { current_editor_set_->settings_editor_.set_active(true); },
             [&]() { return *current_editor_set_->settings_editor_.active(); }},
            {gui::kSeparator, "", nullptr, []() { return true; }},
+           {absl::StrCat(ICON_MD_HOME, " Welcome Screen"), "",
+            [&]() { show_welcome_screen_ = true; }},
            {absl::StrCat(ICON_MD_GAMEPAD, " Emulator"), "",
             [&]() { show_emulator_ = true; }},
        }},
@@ -1098,6 +1100,11 @@ void EditorManager::DrawMenuBar() {
     test_manager.UpdateResourceStats(); // Update monitoring data
     test_manager.DrawTestDashboard(&show_test_dashboard_);
   }
+  
+  // Welcome screen (accessible from View menu)
+  if (show_welcome_screen_) {
+    DrawWelcomeScreen();
+  }
 
   if (show_emulator_) {
     Begin("Emulator", &show_emulator_, ImGuiWindowFlags_MenuBar);
@@ -1290,16 +1297,35 @@ absl::Status EditorManager::LoadRom() {
   Rom temp_rom;
   RETURN_IF_ERROR(temp_rom.LoadFromFile(file_name));
 
-  sessions_.emplace_back(std::move(temp_rom));
-  RomSession &session = sessions_.back();
-  session.filepath = file_name; // Store filepath for duplicate detection
-  
-  // Wire editor contexts
-  for (auto *editor : session.editors.active_editors_) {
-    editor->set_context(&context_);
+  // Check if there's an empty session we can populate instead of creating new one
+  RomSession* target_session = nullptr;
+  for (auto& session : sessions_) {
+    if (!session.rom.is_loaded()) {
+      target_session = &session;
+      util::logf("Found empty session to populate with ROM: %s", file_name.c_str());
+      break;
+    }
   }
-  current_rom_ = &session.rom;
-  current_editor_set_ = &session.editors;
+  
+  if (target_session) {
+    // Populate existing empty session
+    target_session->rom = std::move(temp_rom);
+    target_session->filepath = file_name;
+    current_rom_ = &target_session->rom;
+    current_editor_set_ = &target_session->editors;
+  } else {
+    // Create new session only if no empty ones exist
+    sessions_.emplace_back(std::move(temp_rom));
+    RomSession &session = sessions_.back();
+    session.filepath = file_name; // Store filepath for duplicate detection
+    
+    // Wire editor contexts
+    for (auto *editor : session.editors.active_editors_) {
+      editor->set_context(&context_);
+    }
+    current_rom_ = &session.rom;
+    current_editor_set_ = &session.editors;
+  }
   
   // Update test manager with current ROM for ROM-dependent tests
   util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
@@ -1942,21 +1968,25 @@ void EditorManager::DrawSessionManager() {
     ImGui::Separator();
     ImGui::Text("%s Active Sessions (%zu)", ICON_MD_TAB, sessions_.size());
     
-    // Session list with controls (improved sizing)
-    if (ImGui::BeginTable("SessionTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | 
-                         ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_ScrollY)) {
+    // Session list with controls (wider table for better readability)
+    if (ImGui::BeginTable("SessionTable", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | 
+                         ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY)) {
       ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch, 120.0f);
-      ImGui::TableSetupColumn("ROM", ImGuiTableColumnFlags_WidthStretch, 200.0f);
-      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 90.0f);
-      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 200.0f);
+      ImGui::TableSetupColumn("ROM", ImGuiTableColumnFlags_WidthStretch, 250.0f);
+      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+      ImGui::TableSetupColumn("Custom OW", ImGuiTableColumnFlags_WidthFixed, 110.0f);
+      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 220.0f);
       ImGui::TableHeadersRow();
       
       for (size_t i = 0; i < sessions_.size(); ++i) {
         auto& session = sessions_[i];
         bool is_current = (&session.rom == current_rom_);
         
-        ImGui::TableNextRow();
+        ImGui::TableNextRow(ImGuiTableRowFlags_None, 45.0f); // Increase row height for better spacing
         ImGui::TableNextColumn();
+        
+        // Add vertical centering for text
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f);
         
         if (is_current) {
           ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), 
@@ -1966,6 +1996,7 @@ void EditorManager::DrawSessionManager() {
         }
         
         ImGui::TableNextColumn();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f); // Vertical centering
         std::string display_name = session.GetDisplayName();
         if (!session.custom_name.empty()) {
           ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f), "%s %s", ICON_MD_EDIT, display_name.c_str());
@@ -1974,6 +2005,7 @@ void EditorManager::DrawSessionManager() {
         }
         
         ImGui::TableNextColumn();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f); // Vertical centering
         if (session.rom.is_loaded()) {
           if (session.rom.dirty()) {
             ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Modified", ICON_MD_EDIT);
@@ -1985,6 +2017,27 @@ void EditorManager::DrawSessionManager() {
         }
         
         ImGui::TableNextColumn();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f); // Vertical centering
+        // Custom Overworld flag (per-session)
+        ImGui::PushID(static_cast<int>(i + 100)); // Different ID to avoid conflicts
+        bool custom_ow_enabled = session.feature_flags.overworld.kLoadCustomOverworld;
+        if (ImGui::Checkbox("##CustomOW", &custom_ow_enabled)) {
+          session.feature_flags.overworld.kLoadCustomOverworld = custom_ow_enabled;
+          if (is_current) {
+            // Update global flags if this is the current session
+            core::FeatureFlags::get().overworld.kLoadCustomOverworld = custom_ow_enabled;
+          }
+          toast_manager_.Show(absl::StrFormat("Session %zu: Custom Overworld %s", 
+                                             i + 1, custom_ow_enabled ? "Enabled" : "Disabled"), 
+                             editor::ToastType::kInfo);
+        }
+        ImGui::PopID();
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Enable/disable custom overworld features for this session");
+        }
+        
+        ImGui::TableNextColumn();
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f); // Slightly less offset for buttons
         ImGui::PushID(static_cast<int>(i));
         
         if (!is_current && ImGui::Button(absl::StrCat(ICON_MD_SWITCH_ACCESS_SHORTCUT, " Switch").c_str())) {
@@ -2164,7 +2217,7 @@ void EditorManager::DrawWelcomeScreen() {
                           ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
                           ImGuiWindowFlags_NoBackground;
   
-  if (ImGui::Begin("Welcome to Yaze", nullptr, flags)) {
+  if (ImGui::Begin("Welcome to Yaze", &show_welcome_screen_, flags)) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 window_pos = ImGui::GetWindowPos();
     ImVec2 window_size = ImGui::GetWindowSize();
@@ -2222,13 +2275,22 @@ void EditorManager::DrawWelcomeScreen() {
     
     ImGui::Spacing();
     
-    // Themed decorative line with glow effect
-    ImVec2 line_start = ImVec2(window_pos.x + 50, window_pos.y + 120);
-    ImVec2 line_end = ImVec2(window_pos.x + window_size.x - 50, window_pos.y + 120);
-    float glow_alpha = 0.5f + 0.3f * sinf(animation_time * 1.5f);
+    // Themed decorative line with glow effect (positioned closer to header)
+    float line_y = window_pos.y + 65; // Move even higher for tighter header integration
+    float line_margin = 80; // Maintain good horizontal balance
+    ImVec2 line_start = ImVec2(window_pos.x + line_margin, line_y);
+    ImVec2 line_end = ImVec2(window_pos.x + window_size.x - line_margin, line_y);
+    
+    // Enhanced glow effect with multiple line layers for depth
+    float glow_alpha = 0.6f + 0.4f * sinf(animation_time * 1.5f);
     ImU32 line_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
         accent_color.red, accent_color.green, accent_color.blue, glow_alpha));
-    draw_list->AddLine(line_start, line_end, line_color, 2.0f);
+    
+    // Draw main line with glow effect
+    draw_list->AddLine(line_start, line_end, 
+        ImGui::ColorConvertFloat4ToU32(ImVec4(accent_color.red, accent_color.green, accent_color.blue, 0.3f)), 
+        4.0f); // Glow layer
+    draw_list->AddLine(line_start, line_end, line_color, 2.0f); // Main line
     
     ImGui::Spacing();
     ImGui::Spacing();

@@ -1,53 +1,53 @@
-# YAZE Tre Theme
-# Theme resource edition based on original ColorsYaze() function
+# YAZE Tre Theme - Enhanced Edition
+# Premium theme resource edition with improved colors and contrast
 name=YAZE Tre
-description=YAZE theme resource edition (file-based)
+description=Enhanced YAZE theme with improved readability and modern colors
 author=YAZE Team
-version=1.0
+version=2.0
 
 [colors]
-# Primary colors (exact ALTTP colors from original code)
-primary=92,115,92,255           # 0.36f, 0.45f, 0.36f - allttpLightGreen
-secondary=71,92,71,255          # 0.28f, 0.36f, 0.28f - alttpMidGreen
-accent=89,119,89,255            # 0.347f, 0.466f, 0.347f - TabActive exact
-background=8,8,8,255            # Very dark gray for better grid visibility
-surface=12,12,12,255            # Slightly lighter dark gray surface
+# Primary colors (enhanced ALTTP colors with better contrast)
+primary=105,135,105,255         # Brighter green for better visibility
+secondary=85,110,85,255         # Mid-tone green with more saturation
+accent=110,145,110,255          # Vibrant accent green for highlights
+background=12,12,15,255         # Slightly blue-tinted dark background
+surface=18,18,22,255            # Warmer surface color
 
-# Status colors
-error=220,50,47,255
-warning=255,193,7,255
-success=92,115,92,255
-info=52,152,219,255
+# Status colors (enhanced for better visibility)
+error=235,75,75,255             # Brighter red for better visibility
+warning=255,200,50,255          # Warmer yellow-orange
+success=105,135,105,255         # Match primary green
+info=70,170,255,255             # Brighter blue
 
-# Text colors (exact from original)
-text_primary=230,230,230,255    # 0.90f, 0.90f, 0.90f
-text_secondary=180,180,180,255
-text_disabled=153,153,153,255   # 0.60f, 0.60f, 0.60f
+# Text colors (enhanced contrast)
+text_primary=245,245,245,255    # Brighter white for better readability
+text_secondary=200,200,200,255  # Higher contrast secondary text
+text_disabled=140,140,140,255   # Slightly brighter disabled text
 
-# Window colors (exact from original)
-window_bg=8,8,8,217             # Very dark gray with same alpha
-child_bg=0,0,0,0                # 0.00f, 0.00f, 0.00f, 0.00f - transparent
-popup_bg=28,28,36,235           # 0.11f, 0.11f, 0.14f, 0.92f
+# Window colors (enhanced backgrounds)
+window_bg=12,12,15,230          # Slightly blue-tinted with transparency
+child_bg=0,0,0,0                # Transparent child backgrounds
+popup_bg=20,20,25,240           # Warmer popup background
 
-# Interactive elements (exact from original)
-button=71,92,71,255             # alttpMidGreen
-button_hovered=125,145,125,255  # allttpLightestGreen (exact)
-button_active=92,115,92,255     # allttpLightGreen
-frame_bg=110,110,110,99         # 0.43f, 0.43f, 0.43f, 0.39f
-frame_bg_hovered=71,92,71,102   # 0.28f, 0.36f, 0.28f, 0.40f
-frame_bg_active=71,92,71,176    # 0.28f, 0.36f, 0.28f, 0.69f
+# Interactive elements (enhanced for better UX)
+button=85,110,85,255            # Enhanced mid-green for better visibility
+button_hovered=135,160,135,255  # Brighter hover state
+button_active=105,135,105,255   # Active state matches primary
+frame_bg=25,25,30,150           # Darker frames with transparency
+frame_bg_hovered=85,110,85,120  # Green tint on hover
+frame_bg_active=105,135,105,180 # Primary green when active
 
-# Navigation (exact from original)
-header=46,66,46,255             # alttpDarkGreen
-header_hovered=92,115,92,255    # allttpLightGreen
-header_active=71,92,71,255      # alttpMidGreen
-tab=46,66,46,255                # alttpDarkGreen
-tab_hovered=71,92,71,255        # alttpMidGreen
-tab_active=89,119,89,255        # TabActive exact color
-menu_bar_bg=46,66,46,255        # alttpDarkGreen
-title_bg=71,92,71,255           # alttpMidGreen
-title_bg_active=46,66,46,255    # alttpDarkGreen
-title_bg_collapsed=71,92,71,255 # alttpMidGreen
+# Navigation (enhanced contrast)
+header=55,75,55,255             # Slightly brighter header
+header_hovered=105,135,105,255  # Primary green on hover
+header_active=85,110,85,255     # Secondary green when active
+tab=45,60,45,255                # Darker tab background
+tab_hovered=85,110,85,255       # Secondary green on hover
+tab_active=110,145,110,255      # Accent green for active tab
+menu_bar_bg=55,75,55,255        # Match header background
+title_bg=85,110,85,255          # Secondary green
+title_bg_active=55,75,55,255    # Darker when active
+title_bg_collapsed=85,110,85,255 # Secondary green when collapsed
 
 # Borders and separators (exact from original)
 border=92,115,92,255            # allttpLightGreen
@@ -67,17 +67,20 @@ resize_grip=255,255,255,26      # 1.00f, 1.00f, 1.00f, 0.10f
 resize_grip_hovered=199,209,255,153 # 0.78f, 0.82f, 1.00f, 0.60f (light blue!)
 resize_grip_active=199,209,255,230  # 0.78f, 0.82f, 1.00f, 0.90f (light blue!)
 
-# Additional controls (missing from theme)
-check_mark=230,230,230,128      # 0.90f, 0.90f, 0.90f, 0.50f
-slider_grab=255,255,255,77      # 1.00f, 1.00f, 1.00f, 0.30f  
-slider_grab_active=92,115,92,153 # 0.36f, 0.45f, 0.36f, 0.60f
+# Additional controls (enhanced)
+check_mark=245,245,245,200      # Brighter check marks for visibility
+slider_grab=180,180,180,120     # More visible slider grab
+slider_grab_active=110,145,110,200 # Accent color when active
 
-# Table colors (from original)
-table_header_bg=46,66,46,255    # alttpDarkGreen
-table_border_strong=71,92,71,255 # alttpMidGreen
-table_border_light=66,66,71,255 # 0.26f, 0.26f, 0.28f
+# Table colors (enhanced)
+table_header_bg=55,75,55,255    # Slightly brighter header
+table_border_strong=85,110,85,255 # Secondary green borders
+table_border_light=70,70,75,255 # Better contrast light borders
 table_row_bg=0,0,0,0            # Transparent
-table_row_bg_alt=255,255,255,18 # 1.00f, 1.00f, 1.00f, 0.07f
+table_row_bg_alt=255,255,255,25 # Slightly more visible alternating rows
+
+# Link colors (high contrast for better visibility)
+text_link=120,200,255,255       # Bright blue for links - high contrast against dark backgrounds
 
 [style]
 window_rounding=0.0

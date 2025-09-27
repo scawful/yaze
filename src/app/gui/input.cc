@@ -216,9 +216,32 @@ bool ClickableText(const std::string& text) {
     bool hovered = ImGui::IsItemHovered();
     bool clicked = ImGui::IsItemClicked();
 
-    // Render text with appropriate color
-    ImVec4 color = hovered ? ImGui::GetStyleColorVec4(ImGuiCol_Text)
-                           : ImGui::GetStyleColorVec4(ImGuiCol_TextLink);
+    // Render text with high-contrast appropriate color
+    ImVec4 link_color = ImGui::GetStyleColorVec4(ImGuiCol_TextLink);
+    ImVec4 bg_color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+    
+    // Ensure good contrast against background
+    float contrast_factor = (bg_color.x + bg_color.y + bg_color.z) < 1.5f ? 1.0f : 0.3f;
+    
+    ImVec4 color;
+    if (hovered) {
+      // Brighter color on hover for better visibility
+      color = ImVec4(
+        std::min(1.0f, link_color.x + 0.3f),
+        std::min(1.0f, link_color.y + 0.3f), 
+        std::min(1.0f, link_color.z + 0.3f),
+        1.0f
+      );
+    } else {
+      // Ensure link color has good contrast
+      color = ImVec4(
+        std::max(contrast_factor, link_color.x),
+        std::max(contrast_factor, link_color.y),
+        std::max(contrast_factor, link_color.z),
+        1.0f
+      );
+    }
+    
     ImGui::GetWindowDrawList()->AddText(
         pos, ImGui::ColorConvertFloat4ToU32(color), text.c_str());
 

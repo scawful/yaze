@@ -1,5 +1,7 @@
 #include "style.h"
 
+#include <algorithm>
+
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/theme_manager.h"
 #include "app/gui/background_renderer.h"
@@ -7,6 +9,7 @@
 #include "gui/color.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace gui {
@@ -416,40 +419,48 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
   
   ImGui::Text("Theme Selection:");
   
-  // Add special "Classic YAZE" option first
-  std::string current_display_name = theme_manager.GetCurrentTheme().name;
-  if (current_display_name == "Classic YAZE") {
-    current_display_name = "Classic YAZE (Original)";
+  // Classic YAZE button
+  std::string current_theme_name = theme_manager.GetCurrentThemeName();
+  bool is_classic_active = (current_theme_name == "Classic YAZE");
+  
+  if (is_classic_active) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
   }
   
-  if (ImGui::BeginCombo("##ThemeSelector", current_display_name.c_str())) {
-    // Classic YAZE option (direct ColorsYaze() function)
-    bool is_classic_selected = (theme_manager.GetCurrentTheme().name == "Classic YAZE");
-    if (ImGui::Selectable("Classic YAZE (Original)", is_classic_selected)) {
-      theme_manager.ApplyClassicYazeTheme();
-      ref_saved_style = style; // Update reference when theme changes
+  if (ImGui::Button("Classic YAZE")) {
+    theme_manager.ApplyClassicYazeTheme();
+    ref_saved_style = style;
+  }
+
+  if (ImGui::Button("ColorsYaze")) {
+    gui::ColorsYaze();
+  }
+  
+  if (is_classic_active) {
+    ImGui::PopStyleColor();
+  }
+  
+  ImGui::SameLine();
+  ImGui::Text(" | ");
+  ImGui::SameLine();
+  
+  // File themes dropdown - just the raw list, no sorting
+  auto available_themes = theme_manager.GetAvailableThemes();
+  const char* current_file_theme = "";
+  
+  // Find current file theme for display
+  for (const auto& theme_name : available_themes) {
+    if (theme_name == current_theme_name) {
+      current_file_theme = theme_name.c_str();
+      break;
     }
-    if (is_classic_selected) {
-      ImGui::SetItemDefaultFocus();
-    }
-    
-    ImGui::Separator();
-    
-    // File-based themes (sorted)
-    auto available_themes = theme_manager.GetAvailableThemes();
-    std::sort(available_themes.begin(), available_themes.end());
-    
+  }
+  
+  if (ImGui::BeginCombo("File Themes", current_file_theme)) {
     for (const auto& theme_name : available_themes) {
-      bool is_selected = (theme_name == theme_manager.GetCurrentTheme().name);
-      if (ImGui::Selectable(theme_name.c_str(), is_selected)) {
-        auto status = theme_manager.LoadTheme(theme_name); // Use LoadTheme for consistency
-        if (!status.ok()) {
-          // Could show error message to user here
-        }
-        ref_saved_style = style; // Update reference when theme changes
-      }
-      if (is_selected) {
-        ImGui::SetItemDefaultFocus();
+      if (ImGui::Selectable(theme_name.c_str())) {
+        theme_manager.LoadTheme(theme_name);
+        ref_saved_style = style;
       }
     }
     ImGui::EndCombo();
