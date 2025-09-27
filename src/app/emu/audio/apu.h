@@ -65,6 +65,18 @@ class Apu {
   auto dsp() -> Dsp & { return dsp_; }
   auto spc700() -> Spc700 & { return spc700_; }
 
+  uint64_t GetCycles() const { return cycles_; }
+  uint8_t GetStatus() const { return ram[0x00]; }
+  uint8_t GetControl() const { return ram[0x01]; }
+  void GetSamples(int16_t *buffer, int count, bool loop = false) {
+    dsp_.GetSamples(buffer, count, loop);
+  }
+  void WriteDma(uint16_t address, const uint8_t *data, int count) {
+    for (int i = 0; i < count; i++) {
+      ram[address + i] = data[i];
+    }
+  }
+
   // Port buffers (equivalent to $2140 to $2143 for the main CPU)
   std::array<uint8_t, 6> in_ports_;  // includes 2 bytes of ram
   std::array<uint8_t, 4> out_ports_;

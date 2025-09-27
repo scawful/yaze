@@ -1,15 +1,19 @@
 #include "music_editor.h"
 
-#include "imgui/imgui.h"
-
 #include "absl/strings/str_format.h"
 #include "app/editor/code/assembly_editor.h"
-#include "app/gui/canvas.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
+
+void MusicEditor::Initialize() {}
+
+absl::Status MusicEditor::Load() {
+  return absl::OkStatus();
+}
 
 absl::Status MusicEditor::Update() {
   if (ImGui::BeginTable("MusicEditorColumns", 2, music_editor_flags_,
@@ -194,9 +198,21 @@ void MusicEditor::DrawToolset() {
       is_playing = !is_playing;
     }
 
-    BUTTON_COLUMN(ICON_MD_FAST_REWIND)
-    BUTTON_COLUMN(ICON_MD_FAST_FORWARD)
-    BUTTON_COLUMN(ICON_MD_VOLUME_UP)
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_FAST_REWIND)) {
+      // Handle rewind button click
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_FAST_FORWARD)) {
+      // Handle fast forward button click
+    }
+
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_VOLUME_UP)) {
+      // Handle volume up button click
+    }
+
     if (ImGui::Button(ICON_MD_ACCESS_TIME)) {
       music_tracker_.LoadSongs(*rom());
     }

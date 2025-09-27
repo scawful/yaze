@@ -1,12 +1,15 @@
 #include "assembly_editor.h"
 
+#include <fstream>
+#include <string>
+#include <vector>
+
 #include "absl/strings/str_cat.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"
 #include "app/gui/modules/text_editor.h"
 
-namespace yaze {
-namespace editor {
+namespace yaze::editor {
 
 using core::FileDialogWrapper;
 
@@ -18,22 +21,21 @@ std::vector<std::string> RemoveIgnoredFiles(
   std::vector<std::string> filtered_files;
   for (const auto& file : files) {
     // Remove subdirectory files
-    if (file.find('/') != std::string::npos) {
+    if (file.contains('/')) {
       continue;
     }
     // Make sure the file has an extension
-    if (file.find('.') == std::string::npos) {
+    if (!file.contains('.')) {
       continue;
     }
-    if (std::find(ignored_files.begin(), ignored_files.end(), file) ==
-        ignored_files.end()) {
+    if (std::ranges::find(ignored_files, file) == ignored_files.end()) {
       filtered_files.push_back(file);
     }
   }
   return filtered_files;
 }
 
-core::FolderItem LoadFolder(const std::string& folder) {
+FolderItem LoadFolder(const std::string& folder) {
   // Check if .gitignore exists in the folder
   std::ifstream gitignore(folder + "/.gitignore");
   std::vector<std::string> ignored_files;
@@ -51,28 +53,27 @@ core::FolderItem LoadFolder(const std::string& folder) {
     }
   }
 
-  core::FolderItem current_folder;
+  FolderItem current_folder;
   current_folder.name = folder;
   auto root_files = FileDialogWrapper::GetFilesInFolder(current_folder.name);
   current_folder.files = RemoveIgnoredFiles(root_files, ignored_files);
 
   for (const auto& subfolder :
        FileDialogWrapper::GetSubdirectoriesInFolder(current_folder.name)) {
-    core::FolderItem folder_item;
+    FolderItem folder_item;
     folder_item.name = subfolder;
     std::string full_folder = current_folder.name + "/" + subfolder;
     auto folder_files = FileDialogWrapper::GetFilesInFolder(full_folder);
     for (const auto& files : folder_files) {
       // Remove subdirectory files
-      if (files.find('/') != std::string::npos) {
+      if (files.contains('/')) {
         continue;
       }
       // Make sure the file has an extension
-      if (files.find('.') == std::string::npos) {
+      if (!files.contains('.')) {
         continue;
       }
-      if (std::find(ignored_files.begin(), ignored_files.end(), files) !=
-          ignored_files.end()) {
+      if (std::ranges::find(ignored_files, files) != ignored_files.end()) {
         continue;
       }
       folder_item.files.push_back(files);
@@ -80,7 +81,7 @@ core::FolderItem LoadFolder(const std::string& folder) {
 
     for (const auto& subdir :
          FileDialogWrapper::GetSubdirectoriesInFolder(full_folder)) {
-      core::FolderItem subfolder_item;
+      FolderItem subfolder_item;
       subfolder_item.name = subdir;
       subfolder_item.files = FileDialogWrapper::GetFilesInFolder(subdir);
       folder_item.subfolders.push_back(subfolder_item);
@@ -92,6 +93,12 @@ core::FolderItem LoadFolder(const std::string& folder) {
 }
 
 }  // namespace
+
+void AssemblyEditor::Initialize() {
+  // Set the language definition
+}
+
+absl::Status AssemblyEditor::Load() { return absl::OkStatus(); }
 
 void AssemblyEditor::OpenFolder(const std::string& folder_path) {
   current_folder_ = LoadFolder(folder_path);
@@ -119,7 +126,6 @@ void AssemblyEditor::Update(bool& is_loaded) {
 }
 
 void AssemblyEditor::InlineUpdate() {
-  ChangeActiveFile("assets/asm/template_song.asm");
   auto cpos = text_editor_.GetCursorPosition();
   SetEditorText();
   ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
@@ -225,8 +231,8 @@ void AssemblyEditor::DrawFileTabView() {
 
   if (ImGui::BeginTabBar("AssemblyFileTabBar", ImGuiTabBarFlags_None)) {
     if (ImGui::TabItemButton(ICON_MD_ADD, ImGuiTabItemFlags_None)) {
-      if (std::find(active_files_.begin(), active_files_.end(),
-                    current_file_id_) != active_files_.end()) {
+      if (std::ranges::find(active_files_, current_file_id_) !=
+          active_files_.end()) {
         // Room is already open
         next_tab_id++;
       }
@@ -354,5 +360,4 @@ absl::Status AssemblyEditor::Redo() {
 
 absl::Status AssemblyEditor::Update() { return absl::OkStatus(); }
 
-}  // namespace editor
-}  // namespace yaze
+}  // namespace yaze::editor

@@ -3,6 +3,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
+#include "util/hex.h"
 
 namespace yaze {
 namespace editor {
@@ -91,7 +92,7 @@ void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
       ImGui::SetDragDropPayload("ENTITY_PAYLOAD", &entity,
                                 sizeof(zelda3::GameEntity));
       Text("Moving %s ID: %s", entity_type.c_str(),
-           core::HexByte(entity->entity_id_).c_str());
+           util::HexByte(entity->entity_id_).c_str());
       ImGui::EndDragDropSource();
     }
     MoveEntityOnGrid(dragged_entity, canvas_p0, scrolling, free_movement);
@@ -125,51 +126,70 @@ bool DrawEntranceInserterPopup() {
   return set_done;
 }
 
-// TODO: Implement deleting OverworldEntrance objects, currently only hides them
-bool DrawOverworldEntrancePopup(
-    zelda3::OverworldEntrance &entrance) {
+bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance) {
   static bool set_done = false;
   if (set_done) {
     set_done = false;
+    return true;
   }
-  if (ImGui::BeginPopupModal("Entrance editor", NULL,
+  
+  if (ImGui::BeginPopupModal("Entrance Editor", NULL,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Entrance ID: %d", entrance.entrance_id_);
+    ImGui::Separator();
+    
     gui::InputHexWord("Map ID", &entrance.map_id_);
     gui::InputHexByte("Entrance ID", &entrance.entrance_id_,
                       kInputFieldSize + 20);
-    gui::InputHex("X", &entrance.x_);
-    gui::InputHex("Y", &entrance.y_);
-
-    if (Button(ICON_MD_DONE)) {
-      ImGui::CloseCurrentPopup();
-    }
-    SameLine();
-    if (Button(ICON_MD_CANCEL)) {
+    gui::InputHex("X Position", &entrance.x_);
+    gui::InputHex("Y Position", &entrance.y_);
+    
+    ImGui::Checkbox("Is Hole", &entrance.is_hole_);
+    
+    ImGui::Separator();
+    
+    if (Button("Save")) {
       set_done = true;
       ImGui::CloseCurrentPopup();
     }
-    SameLine();
-    if (Button(ICON_MD_DELETE)) {
+    ImGui::SameLine();
+    if (Button("Delete")) {
       entrance.deleted = true;
+      set_done = true;
       ImGui::CloseCurrentPopup();
     }
+    ImGui::SameLine();
+    if (Button("Cancel")) {
+      ImGui::CloseCurrentPopup();
+    }
+    
     ImGui::EndPopup();
   }
   return set_done;
 }
 
-// TODO: Implement deleting OverworldExit objects
 void DrawExitInserterPopup() {
   if (ImGui::BeginPopup("Exit Inserter")) {
     static int exit_id = 0;
+    static int room_id = 0;
+    static int x_pos = 0;
+    static int y_pos = 0;
+    
+    ImGui::Text("Insert New Exit");
+    ImGui::Separator();
+    
     gui::InputHex("Exit ID", &exit_id);
+    gui::InputHex("Room ID", &room_id);
+    gui::InputHex("X Position", &x_pos);
+    gui::InputHex("Y Position", &y_pos);
 
-    if (Button(ICON_MD_DONE)) {
+    if (Button("Create Exit")) {
+      // This would need to be connected to the overworld editor to actually create the exit
       ImGui::CloseCurrentPopup();
     }
 
     SameLine();
-    if (Button(ICON_MD_CANCEL)) {
+    if (Button("Cancel")) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -317,8 +337,7 @@ void DrawItemInsertPopup() {
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     for (size_t i = 0; i < zelda3::kSecretItemNames.size(); i++) {
-      if (Selectable(zelda3::kSecretItemNames[i].c_str(),
-                     i == new_item_id)) {
+      if (Selectable(zelda3::kSecretItemNames[i].c_str(), i == new_item_id)) {
         new_item_id = i;
       }
     }
@@ -351,8 +370,7 @@ bool DrawItemEditorPopup(zelda3::OverworldItem &item) {
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     ImGui::BeginGroup();
     for (size_t i = 0; i < zelda3::kSecretItemNames.size(); i++) {
-      if (Selectable(zelda3::kSecretItemNames[i].c_str(),
-                     item.id_ == i)) {
+      if (Selectable(zelda3::kSecretItemNames[i].c_str(), item.id_ == i)) {
         item.id_ = i;
       }
     }
@@ -395,8 +413,8 @@ void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
   if (ImGui::BeginTable("##sprites", 2,
                         ImGuiTableFlags_Sortable | ImGuiTableFlags_Resizable)) {
     ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_DefaultSort, 0.0f,
-                            MyItemColumnID_ID);
-    ImGui::TableSetupColumn("Name", 0, 0.0f, MyItemColumnID_Name);
+                            SpriteItemColumnID_ID);
+    ImGui::TableSetupColumn("Name", 0, 0.0f, SpriteItemColumnID_Name);
     ImGui::TableHeadersRow();
 
     // Handle sorting
@@ -426,24 +444,35 @@ void DrawSpriteTable(std::function<void(int)> onSpriteSelect) {
   }
 }
 
-// TODO: Implement deleting OverworldSprite objects
 void DrawSpriteInserterPopup() {
   if (ImGui::BeginPopup("Sprite Inserter")) {
     static int new_sprite_id = 0;
-    Text("Add Sprite");
-    BeginChild("ScrollRegion", ImVec2(250, 250), true,
+    static int x_pos = 0;
+    static int y_pos = 0;
+    
+    ImGui::Text("Add New Sprite");
+    ImGui::Separator();
+    
+    BeginChild("ScrollRegion", ImVec2(250, 200), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     DrawSpriteTable([](int selected_id) { new_sprite_id = selected_id; });
     EndChild();
+    
+    ImGui::Separator();
+    ImGui::Text("Position:");
+    gui::InputHex("X Position", &x_pos);
+    gui::InputHex("Y Position", &y_pos);
 
-    if (Button(ICON_MD_DONE)) {
-      // Add the new item to the overworld
+    if (Button("Add Sprite")) {
+      // This would need to be connected to the overworld editor to actually create the sprite
       new_sprite_id = 0;
+      x_pos = 0;
+      y_pos = 0;
       ImGui::CloseCurrentPopup();
     }
     SameLine();
 
-    if (Button(ICON_MD_CANCEL)) {
+    if (Button("Cancel")) {
       ImGui::CloseCurrentPopup();
     }
 

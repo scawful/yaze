@@ -9,18 +9,20 @@
 
 namespace yaze {
 namespace zelda3 {
-namespace screen {
 
 constexpr int kInventoryStart = 0x6564A;
 constexpr int kBowItemPos = 0x6F631;
 
-class Inventory : public SharedRom {
+class Inventory {
  public:
-  auto Bitmap() const { return bitmap_; }
-  auto Tilesheet() const { return tilesheets_bmp_; }
-  auto Palette() const { return palette_; }
-
   absl::Status Create();
+
+  auto &bitmap() { return bitmap_; }
+  auto &tilesheet() { return tilesheets_bmp_; }
+  auto &palette() { return palette_; }
+
+  void LoadRom(Rom *rom) { rom_ = rom; }
+  auto rom() { return rom_; }
 
  private:
   absl::Status BuildTileset();
@@ -33,13 +35,12 @@ class Inventory : public SharedRom {
   gfx::Bitmap tilesheets_bmp_;
   gfx::SnesPalette palette_;
 
+  Rom *rom_;
   gui::Canvas canvas_;
   std::vector<gfx::TileInfo> tiles_;
 };
 
-}  // namespace screen
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_INVENTORY_H

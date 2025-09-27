@@ -1,10 +1,10 @@
 #ifndef YAZE_APP_EDITOR_SETTINGS_EDITOR_H
 #define YAZE_APP_EDITOR_SETTINGS_EDITOR_H
 
-#include "imgui/imgui.h"
-
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
+#include "app/rom.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
@@ -207,21 +207,33 @@ static void ShowExampleAppPropertyEditor(bool* p_open) {
 
 class SettingsEditor : public Editor {
  public:
-  SettingsEditor() : Editor() { type_ = EditorType::kSettings; }
+  explicit SettingsEditor(Rom* rom = nullptr) : rom_(rom) { 
+    type_ = EditorType::kSettings; 
+  }
 
+  void Initialize() override;
+  absl::Status Load() override;
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
   absl::Status Update() override;
-
-  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
+  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
+  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+  
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
+
+  bool IsRomLoaded() const override { return true; } // Allow access without ROM for global settings
 
  private:
+  Rom* rom_;
   void DrawGeneralSettings();
-
-  absl::Status DrawKeyboardShortcuts();
+  void DrawKeyboardShortcuts();
 };
 
 }  // namespace editor

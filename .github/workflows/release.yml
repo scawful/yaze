@@ -1,0 +1,310 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (must start with v and follow semantic versioning)'
+        required: true
+        default: 'v0.3.0'
+        type: string
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  validate-and-prepare:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ env.VALIDATED_TAG }}
+      release_notes: ${{ steps.notes.outputs.content }}
+    
+    steps:
+    - name: Validate tag format
+      run: |
+        # Debug information
+        echo "Event name: ${{ github.event_name }}"
+        echo "Ref: ${{ github.ref }}"
+        echo "Ref name: ${{ github.ref_name }}"
+        echo "Ref type: ${{ github.ref_type }}"
+        
+        # Determine the tag based on trigger type
+        if [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ "${{ github.ref_type }}" != "tag" ]]; then
+            echo "❌ Error: Release workflow triggered by push to ${{ github.ref_type }} '${{ github.ref_name }}'"
+            echo "This workflow should only be triggered by pushing version tags (v1.2.3)"
+            echo "Use: git tag v0.3.0 && git push origin v0.3.0"
+            exit 1
+          fi
+          TAG="${{ github.ref_name }}"
+        elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          TAG="${{ github.event.inputs.tag }}"
+          if [[ -z "$TAG" ]]; then
+            echo "❌ Error: No tag specified for manual workflow dispatch"
+            exit 1
+          fi
+        else
+          echo "❌ Error: Unsupported event type: ${{ github.event_name }}"
+          exit 1
+        fi
+        
+        echo "Validating tag: $TAG"
+        
+        # Check if tag follows semantic versioning pattern
+        if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]; then
+          echo "❌ Error: Tag '$TAG' does not follow semantic versioning format (v1.2.3 or v1.2.3-beta)"
+          echo "Valid examples: v0.3.0, v1.0.0, v2.1.3-beta, v1.0.0-rc1"
+          echo ""
+          echo "To create a proper release:"
+          echo "1. Use the helper script: ./scripts/create_release.sh 0.3.0"
+          echo "2. Or manually: git tag v0.3.0 && git push origin v0.3.0"
+          exit 1
+        fi
+        
+        echo "✅ Tag format is valid: $TAG"
+        echo "VALIDATED_TAG=$TAG" >> $GITHUB_ENV
+    
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        # Extract release version from validated tag
+        VERSION="${VALIDATED_TAG}"
+        VERSION_NUM=$(echo "$VERSION" | sed 's/^v//')
+        
+        # Generate release notes using the dedicated script
+        echo "Extracting changelog for version: $VERSION_NUM"
+        if python3 scripts/extract_changelog.py "$VERSION_NUM" > release_notes.md; then
+          echo "Changelog extracted successfully"
+          echo "Release notes content:"
+          cat release_notes.md
+        else
+          echo "Failed to extract changelog, creating default release notes"
+          echo "# Yaze $VERSION Release Notes\n\nPlease see the full changelog at docs/C1-changelog.md" > release_notes.md
+        fi
+
+    - name: Store release notes
+      id: notes
+      run: |
+        # Store release notes content for later use
+        echo "content<<EOF" >> $GITHUB_OUTPUT
+        cat release_notes.md >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+  build-release:
+    name: Build Release
+    needs: validate-and-prepare
+    strategy:
+      matrix:
+        include:
+          - name: "Windows x64"
+            os: windows-2022
+            vcpkg_triplet: x64-windows
+            cmake_generator: "Visual Studio 17 2022"
+            cmake_generator_platform: x64
+            artifact_name: "yaze-windows-x64"
+            artifact_path: "build/bin/Release/"
+            package_cmd: |
+              mkdir package
+              cp -r build/bin/Release/* package/
+              cp -r assets package/
+              cp LICENSE package/
+              cp README.md package/
+              cd package && 7z a ../yaze-windows-x64.zip *
+            
+          - name: "Windows x86"
+            os: windows-2022
+            vcpkg_triplet: x86-windows
+            cmake_generator: "Visual Studio 17 2022"
+            cmake_generator_platform: Win32
+            artifact_name: "yaze-windows-x86"
+            artifact_path: "build/bin/Release/"
+            package_cmd: |
+              mkdir package
+              cp -r build/bin/Release/* package/
+              cp -r assets package/
+              cp LICENSE package/
+              cp README.md package/
+              cd package && 7z a ../yaze-windows-x86.zip *
+            
+          - name: "macOS Universal"
+            os: macos-14
+            vcpkg_triplet: arm64-osx
+            artifact_name: "yaze-macos"
+            artifact_path: "build/bin/"
+            package_cmd: |
+              # Debug: List what was actually built
+              echo "Contents of build/bin/:"
+              ls -la build/bin/ || echo "build/bin/ does not exist"
+              
+              # Check if we have a bundle or standalone executable
+              if [ -d "build/bin/yaze.app" ]; then
+                echo "Found macOS bundle, using it directly"
+                # Use the existing bundle and just update it
+                cp -r build/bin/yaze.app ./Yaze.app
+                # Add additional resources to the bundle
+                cp -r assets "Yaze.app/Contents/Resources/"
+                # Update Info.plist if needed
+                if [ -f "cmake/yaze.plist.in" ]; then
+                  cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
+                fi
+              else
+                echo "No bundle found, creating manual bundle"
+                # Create bundle structure manually
+                mkdir -p "Yaze.app/Contents/MacOS"
+                mkdir -p "Yaze.app/Contents/Resources"
+                cp build/bin/yaze "Yaze.app/Contents/MacOS/"
+                cp -r assets "Yaze.app/Contents/Resources/"
+                cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
+              fi
+              
+              # Create DMG
+              mkdir dmg_staging
+              cp -r Yaze.app dmg_staging/
+              cp LICENSE dmg_staging/
+              cp README.md dmg_staging/
+              cp -r docs dmg_staging/
+              hdiutil create -srcfolder dmg_staging -format UDZO -volname "Yaze ${{ needs.validate-and-prepare.outputs.tag_name }}" yaze-macos.dmg
+            
+          - name: "Linux x64"
+            os: ubuntu-22.04
+            artifact_name: "yaze-linux-x64"
+            artifact_path: "build/bin/"
+            package_cmd: |
+              mkdir package
+              cp build/bin/yaze package/
+              cp -r assets package/
+              cp -r docs package/
+              cp LICENSE package/
+              cp README.md package/
+              tar -czf yaze-linux-x64.tar.gz -C package .
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    # Platform-specific dependency installation
+    - name: Install Linux dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          ninja-build \
+          pkg-config \
+          libglew-dev \
+          libxext-dev \
+          libwavpack-dev \
+          libabsl-dev \
+          libboost-all-dev \
+          libpng-dev \
+          python3-dev \
+          libpython3-dev \
+          libasound2-dev \
+          libpulse-dev \
+          libx11-dev \
+          libxrandr-dev \
+          libxcursor-dev \
+          libxinerama-dev \
+          libxi-dev
+
+    - name: Install macOS dependencies
+      if: runner.os == 'macOS'
+      run: |
+        # Install Homebrew dependencies needed for UI tests and full builds
+        brew install pkg-config libpng boost abseil ninja
+
+    - name: Setup build environment
+      run: |
+        echo "Using streamlined release build configuration for all platforms"
+        echo "Linux/macOS: UI tests enabled with full dependency support"
+        echo "Windows: Minimal build to avoid vcpkg issues, UI tests disabled"
+        echo "All platforms: Emulator and developer tools disabled for clean releases"
+
+    # Configure CMake
+    - name: Configure CMake (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.16 \
+          -DYAZE_BUILD_TESTS=OFF \
+          -DYAZE_BUILD_EMU=OFF \
+          -DYAZE_BUILD_Z3ED=OFF \
+          -DYAZE_ENABLE_UI_TESTS=ON \
+          -DYAZE_ENABLE_ROM_TESTS=OFF \
+          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
+          -DYAZE_INSTALL_LIB=OFF \
+          -GNinja
+
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        cmake -B build ^
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.16 ^
+          -DYAZE_BUILD_TESTS=OFF ^
+          -DYAZE_BUILD_EMU=OFF ^
+          -DYAZE_BUILD_Z3ED=OFF ^
+          -DYAZE_ENABLE_ROM_TESTS=OFF ^
+          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF ^
+          -DYAZE_INSTALL_LIB=OFF ^
+          -DYAZE_MINIMAL_BUILD=ON ^
+          -G "${{ matrix.cmake_generator }}" ^
+          -A ${{ matrix.cmake_generator_platform }}
+
+    # Build
+    - name: Build
+      run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+    # Package
+    - name: Package
+      shell: bash
+      run: ${{ matrix.package_cmd }}
+
+    # Create release with artifacts (will create release if it doesn't exist)
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ needs.validate-and-prepare.outputs.tag_name }}
+        name: Yaze ${{ needs.validate-and-prepare.outputs.tag_name }}
+        body: ${{ needs.validate-and-prepare.outputs.release_notes }}
+        draft: false
+        prerelease: ${{ contains(needs.validate-and-prepare.outputs.tag_name, 'beta') || contains(needs.validate-and-prepare.outputs.tag_name, 'alpha') || contains(needs.validate-and-prepare.outputs.tag_name, 'rc') }}
+        files: |
+          ${{ matrix.artifact_name }}.*
+        fail_on_unmatched_files: true
+
+  publish-packages:
+    name: Publish Packages
+    needs: [validate-and-prepare, build-release]
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: Update release status
+      run: |
+        echo "Release has been published successfully"
+        echo "All build artifacts have been uploaded"
+
+    - name: Announce release
+      run: |
+        echo "🎉 Yaze ${{ needs.validate-and-prepare.outputs.tag_name }} has been released!"
+        echo "📦 Packages are now available for download"
+        echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate-and-prepare.outputs.tag_name }}"

@@ -1,21 +1,36 @@
 set(
   YAZE_APP_EDITOR_SRC
-  app/editor/editor.cc
   app/editor/editor_manager.cc
   app/editor/dungeon/dungeon_editor.cc
+  app/editor/dungeon/dungeon_room_selector.cc
+  app/editor/dungeon/dungeon_canvas_viewer.cc
+  app/editor/dungeon/dungeon_object_selector.cc
+  app/editor/dungeon/dungeon_toolset.cc
+  app/editor/dungeon/dungeon_object_interaction.cc
+  app/editor/dungeon/dungeon_renderer.cc
+  app/editor/dungeon/dungeon_room_loader.cc
+  app/editor/dungeon/dungeon_usage_tracker.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/music/music_editor.cc
   app/editor/message/message_editor.cc
   app/editor/message/message_data.cc
+  app/editor/message/message_preview.cc
   app/editor/code/assembly_editor.cc
   app/editor/graphics/screen_editor.cc
   app/editor/graphics/graphics_editor.cc
   app/editor/graphics/palette_editor.cc
-  app/editor/graphics/tile16_editor.cc
+  app/editor/overworld/tile16_editor.cc
+  app/editor/overworld/map_properties.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/overworld/entity.cc
   app/editor/system/settings_editor.cc
   app/editor/system/command_manager.cc
   app/editor/system/extension_manager.cc
+  app/editor/system/shortcut_manager.cc
+  app/editor/system/popup_manager.cc
+  app/test/test_manager.cc
+  app/test/integrated_test_suite.h
+  app/test/rom_dependent_test_suite.h
+  app/test/unit_test_suite.h
 )

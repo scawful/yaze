@@ -1,0 +1,30 @@
+CompileFlags:
+  Add: 
+    - -std=c++23
+    - -Wall
+    - -Wextra
+  Remove:
+    - -mllvm
+    - -xclang
+    
+Index:
+  Background: Build
+  StandardLibrary: Yes
+
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
+
+Hover:
+  ShowAKA: Yes
+
+Diagnostics:
+  ClangTidy:
+    Add: 
+      - readability-*
+      - modernize-*
+      - performance-*
+    Remove:
+      - modernize-use-trailing-return-type
+      - readability-braces-around-statements

@@ -6,8 +6,9 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/constants.h"
 #include "app/rom.h"
+#include "app/zelda3/hyrule_magic.h"
+#include "util/macro.h"
 
 #define DEBUG_LOG(msg) std::cout << msg << std::endl
 
@@ -174,7 +175,7 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
   unsigned short c, d;
 
   for (;;) {
-    // retrieve a uchar from the buffer.
+    // retrieve a uint8_t from the buffer.
     a = *(src++);
 
     // end the decompression routine if we encounter 0xff.
@@ -237,13 +238,13 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
 
         // rle 16-bit alternating copy
 
-        d = core::ldle16b(src);
+        d = zelda3::ldle16b(src);
 
         src += 2;
 
         while (c > 1) {
           // copy that 16-bit number c/2 times into the b2 buffer.
-          core::stle16b(b2 + bd, d);
+          zelda3::stle16b(b2 + bd, d);
 
           bd += 2;
           c -= 2;  // hence c/2
@@ -276,7 +277,7 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
         if (p_big_endian) {
           d = (*src << 8) + src[1];
         } else {
-          d = core::ldle16b(src);
+          d = zelda3::ldle16b(src);
         }
 
         while (c--) {
@@ -320,10 +321,10 @@ void PrintCompressionChain(const CompressionPiecePointer& chain_head) {
   }
 }
 
-void CheckByteRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
+void CheckByteRepeat(const uint8_t* rom_data, DataSizeArray& data_size_taken,
                      CommandArgumentArray& cmd_args, uint& src_data_pos,
-                     const uint last_pos) {
-  uint pos = src_data_pos;
+                     const unsigned int last_pos) {
+  unsigned int pos = src_data_pos;
   char byte_to_repeat = rom_data[pos];
   while (pos <= last_pos && rom_data[pos] == byte_to_repeat) {
     data_size_taken[kCommandByteFill]++;
@@ -332,12 +333,12 @@ void CheckByteRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
   cmd_args[kCommandByteFill][0] = byte_to_repeat;
 }
 
-void CheckWordRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
+void CheckWordRepeat(const uint8_t* rom_data, DataSizeArray& data_size_taken,
                      CommandArgumentArray& cmd_args, uint& src_data_pos,
-                     const uint last_pos) {
+                     const unsigned int last_pos) {
   if (src_data_pos + 2 <= last_pos &&
       rom_data[src_data_pos] != rom_data[src_data_pos + 1]) {
-    uint pos = src_data_pos;
+    unsigned int pos = src_data_pos;
     char byte1 = rom_data[pos];
     char byte2 = rom_data[pos + 1];
     pos += 2;
@@ -354,10 +355,10 @@ void CheckWordRepeat(const uchar* rom_data, DataSizeArray& data_size_taken,
   }
 }
 
-void CheckIncByte(const uchar* rom_data, DataSizeArray& data_size_taken,
+void CheckIncByte(const uint8_t* rom_data, DataSizeArray& data_size_taken,
                   CommandArgumentArray& cmd_args, uint& src_data_pos,
-                  const uint last_pos) {
-  uint pos = src_data_pos;
+                  const unsigned int last_pos) {
+  unsigned int pos = src_data_pos;
   char byte = rom_data[pos];
   pos++;
   data_size_taken[kCommandIncreasingFill] = 1;
@@ -370,14 +371,14 @@ void CheckIncByte(const uchar* rom_data, DataSizeArray& data_size_taken,
   cmd_args[kCommandIncreasingFill][0] = rom_data[src_data_pos];
 }
 
-void CheckIntraCopy(const uchar* rom_data, DataSizeArray& data_size_taken,
+void CheckIntraCopy(const uint8_t* rom_data, DataSizeArray& data_size_taken,
                     CommandArgumentArray& cmd_args, uint& src_data_pos,
-                    const uint last_pos, uint start) {
+                    const unsigned int last_pos, unsigned int start) {
   if (src_data_pos != start) {
-    uint searching_pos = start;
-    uint current_pos_u = src_data_pos;
-    uint copied_size = 0;
-    uint search_start = start;
+    unsigned int searching_pos = start;
+    unsigned int current_pos_u = src_data_pos;
+    unsigned int copied_size = 0;
+    unsigned int search_start = start;
 
     while (searching_pos < src_data_pos && current_pos_u <= last_pos) {
       while (rom_data[current_pos_u] != rom_data[searching_pos] &&
@@ -409,8 +410,8 @@ void CheckIntraCopy(const uchar* rom_data, DataSizeArray& data_size_taken,
 void ValidateForByteGain(const DataSizeArray& data_size_taken,
                          const CommandSizeArray& cmd_size, uint& max_win,
                          uint& cmd_with_max) {
-  for (uint cmd_i = 1; cmd_i < 5; cmd_i++) {
-    uint cmd_size_taken = data_size_taken[cmd_i];
+  for (unsigned int cmd_i = 1; cmd_i < 5; cmd_i++) {
+    unsigned int cmd_size_taken = data_size_taken[cmd_i];
     // TODO(@scawful): Replace conditional with table of command sizes
     // "Table that is even with copy but all other cmd are 2"
     auto table_check =
@@ -424,7 +425,7 @@ void ValidateForByteGain(const DataSizeArray& data_size_taken,
   }
 }
 
-void CompressionCommandAlternative(const uchar* rom_data,
+void CompressionCommandAlternative(const uint8_t* rom_data,
                                    CompressionPiecePointer& compressed_chain,
                                    const CommandSizeArray& cmd_size,
                                    const CommandArgumentArray& cmd_args,
@@ -459,9 +460,9 @@ void CompressionCommandAlternative(const uchar* rom_data,
   comp_accumulator = 0;
 }
 
-void CheckByteRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
-                       CompressionCommand& cmd) {
-  uint i = 0;
+void CheckByteRepeatV2(const uint8_t* data, uint& src_pos,
+                       const unsigned int last_pos, CompressionCommand& cmd) {
+  unsigned int i = 0;
   while (src_pos + i < last_pos && data[src_pos] == data[src_pos + i]) {
     ++i;
   }
@@ -469,10 +470,10 @@ void CheckByteRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
   cmd.arguments[kCommandByteFill][0] = data[src_pos];
 }
 
-void CheckWordRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
-                       CompressionCommand& cmd) {
+void CheckWordRepeatV2(const uint8_t* data, uint& src_pos,
+                       const unsigned int last_pos, CompressionCommand& cmd) {
   if (src_pos + 2 <= last_pos && data[src_pos] != data[src_pos + 1]) {
-    uint pos = src_pos;
+    unsigned int pos = src_pos;
     char byte1 = data[pos];
     char byte2 = data[pos + 1];
     pos += 2;
@@ -489,9 +490,9 @@ void CheckWordRepeatV2(const uchar* data, uint& src_pos, const uint last_pos,
   }
 }
 
-void CheckIncByteV2(const uchar* rom_data, uint& src_data_pos,
-                    const uint last_pos, CompressionCommand& cmd) {
-  uint pos = src_data_pos;
+void CheckIncByteV2(const uint8_t* rom_data, uint& src_data_pos,
+                    const unsigned int last_pos, CompressionCommand& cmd) {
+  unsigned int pos = src_data_pos;
   char byte = rom_data[pos];
   pos++;
   cmd.data_size[kCommandIncreasingFill] = 1;
@@ -504,14 +505,14 @@ void CheckIncByteV2(const uchar* rom_data, uint& src_data_pos,
   cmd.arguments[kCommandIncreasingFill][0] = rom_data[src_data_pos];
 }
 
-void CheckIntraCopyV2(const uchar* rom_data, uint& src_data_pos,
-                      const uint last_pos, uint start,
+void CheckIntraCopyV2(const uint8_t* rom_data, uint& src_data_pos,
+                      const unsigned int last_pos, unsigned int start,
                       CompressionCommand& cmd) {
   if (src_data_pos != start) {
-    uint searching_pos = start;
-    uint current_pos_u = src_data_pos;
-    uint copied_size = 0;
-    uint search_start = start;
+    unsigned int searching_pos = start;
+    unsigned int current_pos_u = src_data_pos;
+    unsigned int copied_size = 0;
+    unsigned int search_start = start;
 
     while (searching_pos < src_data_pos && current_pos_u <= last_pos) {
       while (rom_data[current_pos_u] != rom_data[searching_pos] &&
@@ -544,8 +545,8 @@ const std::array<int, 5> kCommandSizes = {1, 2, 2, 2, 3};
 // TODO(@scawful): TEST ME
 void ValidateForByteGainV2(const CompressionCommand& cmd, uint& max_win,
                            uint& cmd_with_max) {
-  for (uint cmd_i = 1; cmd_i < 5; cmd_i++) {
-    uint cmd_size_taken = cmd.data_size[cmd_i];
+  for (unsigned int cmd_i = 1; cmd_i < 5; cmd_i++) {
+    unsigned int cmd_size_taken = cmd.data_size[cmd_i];
     // Check if the command size exceeds the maximum win and the size in the
     // command sizes table, except for the repeating bytes command when the size
     // taken is 3
@@ -558,7 +559,7 @@ void ValidateForByteGainV2(const CompressionCommand& cmd, uint& max_win,
   }
 }
 
-void CompressionCommandAlternativeV2(const uchar* rom_data,
+void CompressionCommandAlternativeV2(const uint8_t* rom_data,
                                      const CompressionCommand& cmd,
                                      CompressionPiecePointer& compressed_chain,
                                      uint& src_data_pos, uint& comp_accumulator,
@@ -593,7 +594,7 @@ void CompressionCommandAlternativeV2(const uchar* rom_data,
 }
 
 void AddAlternativeCompressionCommand(
-    const uchar* rom_data, CompressionPiecePointer& compressed_chain,
+    const uint8_t* rom_data, CompressionPiecePointer& compressed_chain,
     const CompressionCommand& command, uint& source_data_position,
     uint& uncompressed_data_size, uint& best_command, uint& best_command_gain) {
   std::cout << "- Identified a gain from command: " << best_command
@@ -642,7 +643,7 @@ void AddAlternativeCompressionCommand(
 absl::StatusOr<CompressionPiecePointer> SplitCompressionPiece(
     CompressionPiecePointer& piece, int mode) {
   CompressionPiecePointer new_piece;
-  uint length_left = piece->length - kMaxLengthCompression;
+  unsigned int length_left = piece->length - kMaxLengthCompression;
   piece->length = kMaxLengthCompression;
 
   switch (piece->command) {
@@ -670,7 +671,7 @@ absl::StatusOr<CompressionPiecePointer> SplitCompressionPiece(
     }
     case kCommandRepeatingBytes: {
       piece->argument_length = kMaxLengthCompression;
-      uint offset = piece->argument[0] + (piece->argument[1] << 8);
+      unsigned int offset = piece->argument[0] + (piece->argument[1] << 8);
       new_piece = std::make_shared<CompressionPiece>(
           piece->command, length_left, piece->argument, piece->argument_length);
       if (mode == kNintendoMode2) {
@@ -694,7 +695,7 @@ absl::StatusOr<CompressionPiecePointer> SplitCompressionPiece(
 
 std::vector<uint8_t> CreateCompressionString(CompressionPiecePointer& start,
                                              int mode) {
-  uint pos = 0;
+  unsigned int pos = 0;
   auto piece = start;
   std::vector<uint8_t> output;
 
@@ -704,7 +705,8 @@ std::vector<uint8_t> CreateCompressionString(CompressionPiecePointer& start,
       pos++;
     } else {
       if (piece->length <= kMaxLengthCompression) {
-        output.push_back(kCompressionStringMod | ((uchar)piece->command << 2) |
+        output.push_back(kCompressionStringMod |
+                         ((uint8_t)piece->command << 2) |
                          (((piece->length - 1) & 0xFF00) >> 8));
         pos++;
         printf("Building extended header : cmd: %d, length: %d -  %02X\n",
@@ -756,9 +758,9 @@ absl::Status ValidateCompressionResult(CompressionPiecePointer& chain_head,
   if (chain_head->next != nullptr) {
     Rom temp_rom;
     RETURN_IF_ERROR(
-        temp_rom.LoadFromBytes(CreateCompressionString(chain_head->next, mode)))
+        temp_rom.LoadFromData(CreateCompressionString(chain_head->next, mode)))
     ASSIGN_OR_RETURN(auto decomp_data,
-                     DecompressV2(temp_rom.data(), 0, temp_rom.size()))
+                     DecompressV2(temp_rom.data(), 0, temp_rom.size()));
     if (!std::equal(decomp_data.begin() + start, decomp_data.end(),
                     temp_rom.begin())) {
       return absl::InternalError(absl::StrFormat(
@@ -777,7 +779,7 @@ CompressionPiecePointer MergeCopy(CompressionPiecePointer& start) {
     if (piece->command == kCommandDirectCopy && piece->next != nullptr &&
         piece->next->command == kCommandDirectCopy &&
         piece->length + piece->next->length <= kMaxLengthCompression) {
-      uint previous_length = piece->length;
+      unsigned int previous_length = piece->length;
       piece->length = piece->length + piece->next->length;
 
       for (int i = 0; i < piece->next->argument_length; ++i) {
@@ -795,7 +797,7 @@ CompressionPiecePointer MergeCopy(CompressionPiecePointer& start) {
   return start;
 }
 
-absl::StatusOr<std::vector<uint8_t>> CompressV2(const uchar* data,
+absl::StatusOr<std::vector<uint8_t>> CompressV2(const uint8_t* data,
                                                 const int start,
                                                 const int length, int mode,
                                                 bool check) {
@@ -814,9 +816,9 @@ absl::StatusOr<std::vector<uint8_t>> CompressV2(const uchar* data,
                                     /*cmd_size*/ {0, 1, 2, 1, 2},
                                     /*data_size*/ {0, 0, 0, 0, 0}};
 
-  uint src_pos = start;
-  uint last_pos = start + length - 1;
-  uint comp_accumulator = 0;  // Used when skipping using copy
+  unsigned int src_pos = start;
+  unsigned int last_pos = start + length - 1;
+  unsigned int comp_accumulator = 0;  // Used when skipping using copy
 
   while (true) {
     current_cmd.data_size.fill({});
@@ -827,8 +829,8 @@ absl::StatusOr<std::vector<uint8_t>> CompressV2(const uchar* data,
     CheckIncByteV2(data, src_pos, last_pos, current_cmd);
     CheckIntraCopyV2(data, src_pos, last_pos, start, current_cmd);
 
-    uint max_win = 2;
-    uint cmd_with_max = kCommandDirectCopy;
+    unsigned int max_win = 2;
+    unsigned int cmd_with_max = kCommandDirectCopy;
     ValidateForByteGain(current_cmd.data_size, current_cmd.cmd_size, max_win,
                         cmd_with_max);
     // ValidateForByteGainV2(current_cmd, max_win, cmd_with_max);
@@ -871,13 +873,13 @@ absl::StatusOr<std::vector<uint8_t>> CompressV2(const uchar* data,
   return CreateCompressionString(compressed_chain_start->next, mode);
 }
 
-absl::StatusOr<std::vector<uint8_t>> CompressGraphics(const uchar* data,
+absl::StatusOr<std::vector<uint8_t>> CompressGraphics(const uint8_t* data,
                                                       const int pos,
                                                       const int length) {
   return CompressV2(data, pos, length, kNintendoMode2);
 }
 
-absl::StatusOr<std::vector<uint8_t>> CompressOverworld(const uchar* data,
+absl::StatusOr<std::vector<uint8_t>> CompressOverworld(const uint8_t* data,
                                                        const int pos,
                                                        const int length) {
   return CompressV2(data, pos, length, kNintendoMode1);
@@ -889,7 +891,7 @@ absl::StatusOr<std::vector<uint8_t>> CompressOverworld(
 }
 
 void CheckByteRepeatV3(CompressionContext& context) {
-  uint pos = context.src_pos;
+  unsigned int pos = context.src_pos;
 
   // Ensure the sequence does not start with an uncompressable byte
   if (pos == 0 || context.data[pos - 1] != context.data[pos]) {
@@ -910,7 +912,7 @@ void CheckByteRepeatV3(CompressionContext& context) {
 
 void CheckWordRepeatV3(CompressionContext& context) {
   if (context.src_pos + 1 <= context.last_pos) {  // Changed the condition here
-    uint pos = context.src_pos;
+    unsigned int pos = context.src_pos;
     char byte1 = context.data[pos];
     char byte2 = context.data[pos + 1];
     pos += 2;
@@ -935,7 +937,7 @@ void CheckWordRepeatV3(CompressionContext& context) {
 }
 
 void CheckIncByteV3(CompressionContext& context) {
-  uint pos = context.src_pos;
+  unsigned int pos = context.src_pos;
   uint8_t byte = context.data[pos];
   pos++;
   context.current_cmd.data_size[kCommandIncreasingFill] = 1;
@@ -974,8 +976,8 @@ void CheckIntraCopyV3(CompressionContext& context) {
   // beginning
   if (context.src_pos > 0 &&
       context.src_pos + window_size <= context.data.size()) {
-    uint max_copied_size = 0;
-    uint best_search_start = 0;
+    unsigned int max_copied_size = 0;
+    unsigned int best_search_start = 0;
 
     // Slide the window over the source data
     for (int win_pos = 1; win_pos < window_size && win_pos < context.src_pos;
@@ -991,7 +993,7 @@ void CheckIntraCopyV3(CompressionContext& context) {
 
       if (found_pos != search_end) {
         // Check the entire length of the match
-        uint len = 0;
+        unsigned int len = 0;
         while (context.src_pos + len < context.data.size() &&
                context.data[context.src_pos + len] == *(found_pos + len)) {
           len++;
@@ -1047,8 +1049,8 @@ void DetermineBestCompression(CompressionContext& context) {
   // Start with the default scenario.
   context.cmd_with_max = kCommandDirectCopy;
 
-  for (uint cmd_i = 1; cmd_i < 5; cmd_i++) {
-    uint cmd_size_taken = context.current_cmd.data_size[cmd_i];
+  for (unsigned int cmd_i = 1; cmd_i < 5; cmd_i++) {
+    unsigned int cmd_size_taken = context.current_cmd.data_size[cmd_i];
     int net_savings = cmd_size_taken - context.current_cmd.cmd_size[cmd_i];
 
     // Skip commands that aren't efficient.
@@ -1176,9 +1178,9 @@ void AddCompressionToChain(CompressionContext& context) {
 absl::Status ValidateCompressionResultV3(const CompressionContext& context) {
   if (!context.compressed_data.empty()) {
     Rom temp_rom;
-    RETURN_IF_ERROR(temp_rom.LoadFromBytes(context.compressed_data));
+    RETURN_IF_ERROR(temp_rom.LoadFromData(context.compressed_data));
     ASSIGN_OR_RETURN(auto decomp_data,
-                     DecompressV2(temp_rom.data(), 0, temp_rom.size()))
+                     DecompressV2(temp_rom.data(), 0, temp_rom.size()));
 
     if (!std::equal(decomp_data.begin() + context.start, decomp_data.end(),
                     temp_rom.begin())) {
@@ -1193,7 +1195,7 @@ absl::Status ValidateCompressionResultV3(const CompressionContext& context) {
 absl::StatusOr<CompressionPiece> SplitCompressionPieceV3(
     CompressionPiece& piece, int mode) {
   CompressionPiece new_piece;
-  uint length_left = piece.length - kMaxLengthCompression;
+  unsigned int length_left = piece.length - kMaxLengthCompression;
   piece.length = kMaxLengthCompression;
 
   switch (piece.command) {
@@ -1220,7 +1222,7 @@ absl::StatusOr<CompressionPiece> SplitCompressionPieceV3(
     }
     case kCommandRepeatingBytes: {
       piece.argument_length = kMaxLengthCompression;
-      uint offset = piece.argument[0] + (piece.argument[1] << 8);
+      unsigned int offset = piece.argument[0] + (piece.argument[1] << 8);
       new_piece = CompressionPiece(piece.command, length_left, piece.argument,
                                    piece.argument_length);
       if (mode == kNintendoMode2) {
@@ -1242,7 +1244,7 @@ absl::StatusOr<CompressionPiece> SplitCompressionPieceV3(
 }
 
 void FinalizeCompression(CompressionContext& context) {
-  uint pos = 0;
+  unsigned int pos = 0;
 
   for (CompressionPiece& piece : context.compression_pieces) {
     if (piece.length <= kMaxLengthNormalHeader) {  // Normal Header
@@ -1252,7 +1254,7 @@ void FinalizeCompression(CompressionContext& context) {
     } else {
       if (piece.length <= kMaxLengthCompression) {
         context.compression_string.push_back(
-            kCompressionStringMod | ((uchar)piece.command << 2) |
+            kCompressionStringMod | ((uint8_t)piece.command << 2) |
             (((piece.length - 1) & 0xFF00) >> 8));
         pos++;
         std::cout << "Building extended header : cmd: " << piece.command
@@ -1340,7 +1342,7 @@ absl::StatusOr<std::vector<uint8_t>> CompressV3(
                               context.compressed_data.end());
 }
 
-std::string SetBuffer(const uchar* data, int src_pos, int comp_accumulator) {
+std::string SetBuffer(const uint8_t* data, int src_pos, int comp_accumulator) {
   std::string buffer;
   for (int i = 0; i < comp_accumulator; ++i) {
     buffer.push_back(data[i + src_pos - comp_accumulator]);
@@ -1357,7 +1359,7 @@ std::string SetBuffer(const std::vector<uint8_t>& data, int src_pos,
   return buffer;
 }
 
-void memfill(const uchar* data, std::vector<uint8_t>& buffer, int buffer_pos,
+void memfill(const uint8_t* data, std::vector<uint8_t>& buffer, int buffer_pos,
              int offset, int length) {
   auto a = data[offset];
   auto b = data[offset + 1];
@@ -1367,17 +1369,18 @@ void memfill(const uchar* data, std::vector<uint8_t>& buffer, int buffer_pos,
   }
 }
 
-absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uchar* data, int offset,
-                                                  int size, int mode) {
+absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uint8_t* data,
+                                                  int offset, int size,
+                                                  int mode) {
   if (size == 0) {
     return std::vector<uint8_t>();
   }
 
   std::vector<uint8_t> buffer(size, 0);
-  uint length = 0;
-  uint buffer_pos = 0;
-  uchar command = 0;
-  uchar header = data[offset];
+  unsigned int length = 0;
+  unsigned int buffer_pos = 0;
+  uint8_t command = 0;
+  uint8_t header = data[offset];
 
   while (header != kSnesByteMax) {
     if ((header & kExpandedMod) == kExpandedMod) {
@@ -1418,8 +1421,8 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uchar* data, int offset,
         offset += 1;  // Advance 1 byte in the ROM
       } break;
       case kCommandRepeatingBytes: {
-        ushort s1 = ((data[offset + 1] & kSnesByteMax) << 8);
-        ushort s2 = (data[offset] & kSnesByteMax);
+        uint16_t s1 = ((data[offset + 1] & kSnesByteMax) << 8);
+        uint16_t s2 = (data[offset] & kSnesByteMax);
         int addr = (s1 | s2);
         if (mode == kNintendoMode1) {  // Reversed byte order for
                                        // overworld maps
@@ -1454,12 +1457,12 @@ absl::StatusOr<std::vector<uint8_t>> DecompressV2(const uchar* data, int offset,
   return buffer;
 }
 
-absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uchar* data,
+absl::StatusOr<std::vector<uint8_t>> DecompressGraphics(const uint8_t* data,
                                                         int pos, int size) {
   return DecompressV2(data, pos, size, kNintendoMode2);
 }
 
-absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uchar* data,
+absl::StatusOr<std::vector<uint8_t>> DecompressOverworld(const uint8_t* data,
                                                          int pos, int size) {
   return DecompressV2(data, pos, size, kNintendoMode1);
 }

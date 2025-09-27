@@ -3,13 +3,19 @@
 
 #include <string>
 
-#include "app/core/common.h"
 #include "app/editor/editor.h"
 #include "app/gui/modules/text_editor.h"
 #include "app/gui/style.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace editor {
+
+struct FolderItem {
+  std::string name;
+  std::vector<FolderItem> subfolders;
+  std::vector<std::string> files;
+};
 
 /**
  * @class AssemblyEditor
@@ -17,7 +23,7 @@ namespace editor {
  */
 class AssemblyEditor : public Editor {
  public:
-  AssemblyEditor() {
+  explicit AssemblyEditor(Rom* rom = nullptr) : rom_(rom) {
     text_editor_.SetLanguageDefinition(gui::GetAssemblyLanguageDef());
     text_editor_.SetPalette(TextEditor::GetDarkPalette());
     text_editor_.SetShowWhitespaces(false);
@@ -28,6 +34,8 @@ class AssemblyEditor : public Editor {
     file_is_loaded_ = false;
   }
 
+  void Initialize() override;
+  absl::Status Load() override;
   void Update(bool &is_loaded);
   void InlineUpdate();
 
@@ -43,28 +51,32 @@ class AssemblyEditor : public Editor {
 
   absl::Status Update() override;
 
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+
   void OpenFolder(const std::string &folder_path);
+
+  void set_rom(Rom* rom) { rom_ = rom; }
+  Rom* rom() const { return rom_; }
 
  private:
   void DrawFileMenu();
   void DrawEditMenu();
-
   void SetEditorText();
-
   void DrawCurrentFolder();
-
   void DrawFileTabView();
 
   bool file_is_loaded_ = false;
+  int current_file_id_ = 0;
 
   std::vector<std::string> files_;
   std::vector<TextEditor> open_files_;
   ImVector<int> active_files_;
-  int current_file_id_ = 0;
 
   std::string current_file_;
-  core::FolderItem current_folder_;
+  FolderItem current_folder_;
   TextEditor text_editor_;
+
+  Rom* rom_;
 };
 
 }  // namespace editor

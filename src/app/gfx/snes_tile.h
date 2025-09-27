@@ -1,11 +1,12 @@
 #ifndef YAZE_APP_GFX_SNES_TILE_H
 #define YAZE_APP_GFX_SNES_TILE_H
 
-#include <snes_tile.h>
+#include <yaze.h>
 
 #include <array>
 #include <cstdint>
 #include <cstring>
+#include <span>
 #include <stdexcept>
 #include <vector>
 
@@ -19,24 +20,24 @@ constexpr int kTilesheetDepth = 8;
 constexpr uint8_t kGraphicsBitmap[8] = {0x80, 0x40, 0x20, 0x10,
                                         0x08, 0x04, 0x02, 0x01};
 
-std::vector<uint8_t> SnesTo8bppSheet(const std::vector<uint8_t>& sheet, int bpp,
+std::vector<uint8_t> SnesTo8bppSheet(std::span<uint8_t> sheet, int bpp,
                                      int num_sheets = 1);
 std::vector<uint8_t> Bpp8SnesToIndexed(std::vector<uint8_t> data,
                                        uint64_t bpp = 0);
 
-snes_tile8 UnpackBppTile(const std::vector<uint8_t>& data,
-                         const uint32_t offset, const uint32_t bpp);
+snes_tile8 UnpackBppTile(std::span<uint8_t> data, const uint32_t offset,
+                         const uint32_t bpp);
 
 std::vector<uint8_t> PackBppTile(const snes_tile8& tile, const uint32_t bpp);
 
-std::vector<uint8_t> ConvertBpp(const std::vector<uint8_t>& tiles,
-                                uint32_t from_bpp, uint32_t to_bpp);
-
-std::vector<uint8_t> Convert3bppTo4bpp(const std::vector<uint8_t>& tiles);
-std::vector<uint8_t> Convert4bppTo3bpp(const std::vector<uint8_t>& tiles);
+std::vector<uint8_t> ConvertBpp(std::span<uint8_t> tiles, uint32_t from_bpp,
+                                uint32_t to_bpp);
 
 void CopyTile8bpp16(int x, int y, int tile, std::vector<uint8_t>& bitmap,
                     std::vector<uint8_t>& blockset);
+
+std::vector<uint8_t> LoadSNES4bppGFXToIndexedColorMatrix(
+    std::span<uint8_t> src);
 
 /**
  * @brief SNES 16-bit tile metadata container
@@ -60,6 +61,13 @@ class TileInfo {
         vertical_mirror_(v),
         horizontal_mirror_(h),
         palette_(palette) {}
+  TileInfo(uint8_t b1, uint8_t b2) {
+    id_ = (uint16_t)(((b2 & 0x01) << 8) + (b1));
+    vertical_mirror_ = (b2 & 0x80) == 0x80;
+    horizontal_mirror_ = (b2 & 0x40) == 0x40;
+    over_ = (b2 & 0x20) == 0x20;
+    palette_ = (b2 >> 2) & 0x07;
+  }
 
   bool operator==(const TileInfo& other) const {
     return id_ == other.id_ && over_ == other.over_ &&
@@ -221,7 +229,6 @@ class GraphicsBuffer {
 };
 
 }  // namespace gfx
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_GFX_SNES_TILE_H

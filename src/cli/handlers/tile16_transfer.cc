@@ -2,15 +2,14 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/core/common.h"
-#include "app/core/constants.h"
 #include "app/rom.h"
 #include "cli/z3ed.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace cli {
 
-absl::Status Tile16Transfer::handle(const std::vector<std::string>& arg_vec) {
+absl::Status Tile16Transfer::Run(const std::vector<std::string>& arg_vec) {
   // Load the source rom
   RETURN_IF_ERROR(rom_.LoadFromFile(arg_vec[0]))
 
@@ -51,8 +50,8 @@ absl::Status Tile16Transfer::handle(const std::vector<std::string>& arg_vec) {
     // Compare the tile16 data between source and destination ROMs.
     // auto source_tile16_data = rom_.ReadTile16(tile16_id_int);
     // auto dest_tile16_data = dest_rom.ReadTile16(tile16_id_int);
-    ASSIGN_OR_RETURN(auto source_tile16_data, rom_.ReadTile16(tile16_id_int))
-    ASSIGN_OR_RETURN(auto dest_tile16_data, dest_rom.ReadTile16(tile16_id_int))
+    ASSIGN_OR_RETURN(auto source_tile16_data, rom_.ReadTile16(tile16_id_int));
+    ASSIGN_OR_RETURN(auto dest_tile16_data, dest_rom.ReadTile16(tile16_id_int));
     if (source_tile16_data != dest_tile16_data) {
       // Notify user of difference
       std::cout << "Difference detected in tile16 ID " << tile16_id_int
@@ -73,8 +72,8 @@ absl::Status Tile16Transfer::handle(const std::vector<std::string>& arg_vec) {
     }
   }
 
-  RETURN_IF_ERROR(
-      dest_rom.SaveToFile(/*backup=*/true, /*save_new=*/false, arg_vec[1]))
+  RETURN_IF_ERROR(dest_rom.SaveToFile(yaze::Rom::SaveSettings{
+      .backup = true, .save_new = false, .filename = arg_vec[1]}))
 
   std::cout << "Successfully transferred tile16" << std::endl;
 

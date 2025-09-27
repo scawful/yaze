@@ -1,13 +1,21 @@
 #include "input.h"
 
 #include <functional>
-#include <optional>
 #include <string>
+#include <variant>
 
 #include "absl/strings/string_view.h"
 #include "app/gfx/snes_tile.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "imgui_memory_editor.h"
+
+template <class... Ts>
+struct overloaded : Ts... {
+  using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
 
 namespace ImGui {
 
@@ -185,13 +193,77 @@ bool InputHexByte(const char* label, uint8_t* data, uint8_t max_value,
   return false;
 }
 
+void Paragraph(const std::string& text) {
+  ImGui::TextWrapped("%s", text.c_str());
+}
+
+// TODO: Setup themes and text/clickable colors
+bool ClickableText(const std::string& text) {
+  ImGui::BeginGroup();
+  ImGui::PushID(text.c_str());
+
+  // Calculate text size
+  ImVec2 text_size = ImGui::CalcTextSize(text.c_str());
+
+  // Get cursor position for hover detection
+  ImVec2 pos = ImGui::GetCursorScreenPos();
+  ImRect bb(pos, ImVec2(pos.x + text_size.x, pos.y + text_size.y));
+
+  // Add item
+  const ImGuiID id = ImGui::GetID(text.c_str());
+  bool result = false;
+  if (ImGui::ItemAdd(bb, id)) {
+    bool hovered = ImGui::IsItemHovered();
+    bool clicked = ImGui::IsItemClicked();
+
+    // Render text with high-contrast appropriate color
+    ImVec4 link_color = ImGui::GetStyleColorVec4(ImGuiCol_TextLink);
+    ImVec4 bg_color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+    
+    // Ensure good contrast against background
+    float contrast_factor = (bg_color.x + bg_color.y + bg_color.z) < 1.5f ? 1.0f : 0.3f;
+    
+    ImVec4 color;
+    if (hovered) {
+      // Brighter color on hover for better visibility
+      color = ImVec4(
+        std::min(1.0f, link_color.x + 0.3f),
+        std::min(1.0f, link_color.y + 0.3f), 
+        std::min(1.0f, link_color.z + 0.3f),
+        1.0f
+      );
+    } else {
+      // Ensure link color has good contrast
+      color = ImVec4(
+        std::max(contrast_factor, link_color.x),
+        std::max(contrast_factor, link_color.y),
+        std::max(contrast_factor, link_color.z),
+        1.0f
+      );
+    }
+    
+    ImGui::GetWindowDrawList()->AddText(
+        pos, ImGui::ColorConvertFloat4ToU32(color), text.c_str());
+
+    result = clicked;
+  }
+
+  ImGui::PopID();
+
+  // Advance cursor past the text
+  ImGui::Dummy(text_size);
+  ImGui::EndGroup();
+
+  return result;
+}
+
 void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
   const ImVec2 lineStart = ImGui::GetCursorScreenPos();
   const ImGuiStyle& style = ImGui::GetStyle();
   float fullWidth = ImGui::GetContentRegionAvail().x;
   float itemWidth = ImGui::CalcItemWidth() + style.ItemSpacing.x;
-  ImVec2 textSize = ImGui::CalcTextSize(title.begin(), title.end());
+  ImVec2 textSize = ImGui::CalcTextSize(title.data(), title.data() + title.size());
   ImRect textRect;
   textRect.Min = ImGui::GetCursorScreenPos();
   if (flags & ItemLabelFlag::Right) textRect.Min.x = textRect.Min.x + itemWidth;
@@ -210,9 +282,9 @@ void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
   ImGui::ItemSize(textRect);
   if (ImGui::ItemAdd(
           textRect, window->GetID(title.data(), title.data() + title.size()))) {
-    ImGui::RenderTextEllipsis(
-        ImGui::GetWindowDrawList(), textRect.Min, textRect.Max, textRect.Max.x,
-        textRect.Max.x, title.data(), title.data() + title.size(), &textSize);
+    ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(), textRect.Min,
+                              textRect.Max, textRect.Max.x, title.data(),
+                              title.data() + title.size(), &textSize);
 
     if (textRect.GetWidth() < textSize.x && ImGui::IsItemHovered())
       ImGui::SetTooltip("%.*s", (int)title.size(), title.data());
@@ -256,13 +328,78 @@ bool InputTileInfo(const char* label, gfx::TileInfo* tile_info) {
 
 ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
 
-void AddTableColumn(Table &table, const std::string &label, GuiElement element) {
+ImGuiKey MapKeyToImGuiKey(char key) {
+  switch (key) {
+    case 'A':
+      return ImGuiKey_A;
+    case 'B':
+      return ImGuiKey_B;
+    case 'C':
+      return ImGuiKey_C;
+    case 'D':
+      return ImGuiKey_D;
+    case 'E':
+      return ImGuiKey_E;
+    case 'F':
+      return ImGuiKey_F;
+    case 'G':
+      return ImGuiKey_G;
+    case 'H':
+      return ImGuiKey_H;
+    case 'I':
+      return ImGuiKey_I;
+    case 'J':
+      return ImGuiKey_J;
+    case 'K':
+      return ImGuiKey_K;
+    case 'L':
+      return ImGuiKey_L;
+    case 'M':
+      return ImGuiKey_M;
+    case 'N':
+      return ImGuiKey_N;
+    case 'O':
+      return ImGuiKey_O;
+    case 'P':
+      return ImGuiKey_P;
+    case 'Q':
+      return ImGuiKey_Q;
+    case 'R':
+      return ImGuiKey_R;
+    case 'S':
+      return ImGuiKey_S;
+    case 'T':
+      return ImGuiKey_T;
+    case 'U':
+      return ImGuiKey_U;
+    case 'V':
+      return ImGuiKey_V;
+    case 'W':
+      return ImGuiKey_W;
+    case 'X':
+      return ImGuiKey_X;
+    case 'Y':
+      return ImGuiKey_Y;
+    case 'Z':
+      return ImGuiKey_Z;
+    case '/':
+      return ImGuiKey_Slash;
+    case '-':
+      return ImGuiKey_Minus;
+    default:
+      return ImGuiKey_COUNT;
+  }
+}
+
+void AddTableColumn(Table& table, const std::string& label,
+                    GuiElement element) {
   table.column_labels.push_back(label);
   table.column_contents.push_back(element);
 }
 
 void DrawTable(Table& params) {
-  if (ImGui::BeginTable(params.id, params.num_columns, params.flags, params.size)) {
+  if (ImGui::BeginTable(params.id, params.num_columns, params.flags,
+                        params.size)) {
     for (int i = 0; i < params.num_columns; ++i)
       ImGui::TableSetupColumn(params.column_labels[i].c_str());
 
@@ -279,6 +416,116 @@ void DrawTable(Table& params) {
     }
     ImGui::EndTable();
   }
+}
+
+void DrawMenu(Menu& menu) {
+  for (const auto& each_menu : menu) {
+    if (ImGui::BeginMenu(each_menu.name.c_str())) {
+      for (const auto& each_item : each_menu.subitems) {
+        if (!each_item.subitems.empty()) {
+          if (ImGui::BeginMenu(each_item.name.c_str())) {
+            for (const auto& each_subitem : each_item.subitems) {
+              if (each_subitem.name == kSeparator) {
+                ImGui::Separator();
+              } else if (ImGui::MenuItem(each_subitem.name.c_str(),
+                                         each_subitem.shortcut.c_str())) {
+                if (each_subitem.callback) each_subitem.callback();
+              }
+            }
+            ImGui::EndMenu();
+          }
+        } else {
+          if (each_item.name == kSeparator) {
+            ImGui::Separator();
+          } else if (ImGui::MenuItem(each_item.name.c_str(),
+                              each_item.shortcut.c_str(),
+                              each_item.enabled_condition())) {
+            if (each_item.callback) each_item.callback();
+          }
+        }
+      }
+      ImGui::EndMenu();
+    }
+  }
+}
+
+bool OpenUrl(const std::string& url) {
+  // Open the url in the default browser
+  return system(("open " + url).c_str()) == 0;
+}
+
+void RenderLayout(const Layout& layout) {
+  for (const auto& element : layout.elements) {
+    std::visit(overloaded{[](const Text& text) {
+                            ImGui::Text("%s", text.content.c_str());
+                          },
+                          [](const Button& button) {
+                            if (ImGui::Button(button.label.c_str())) {
+                              button.callback();
+                            }
+                          }},
+               element);
+  }
+}
+
+void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory) {
+  static bool open = false;
+  static MemoryEditor editor;
+  if (ImGui::Button("View Data")) {
+    open = true;
+  }
+  if (open) {
+    ImGui::Begin(label.c_str(), &open);
+    editor.DrawContents(memory.data(), memory.size());
+    ImGui::End();
+  }
+}
+
+// Custom hex input functions that properly respect width
+bool InputHexByteCustom(const char* label, uint8_t* data, float input_width) {
+  ImGui::PushID(label);
+
+  // Create a simple hex input that respects width
+  char buf[8];
+  snprintf(buf, sizeof(buf), "%02X", *data);
+
+  ImGui::SetNextItemWidth(input_width);
+  bool changed = ImGui::InputText(
+      label, buf, sizeof(buf),
+      ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_AutoSelectAll);
+
+  if (changed) {
+    unsigned int temp;
+    if (sscanf(buf, "%X", &temp) == 1) {
+      *data = static_cast<uint8_t>(temp & 0xFF);
+    }
+  }
+
+  ImGui::PopID();
+  return changed;
+}
+
+bool InputHexWordCustom(const char* label, uint16_t* data, float input_width) {
+  ImGui::PushID(label);
+
+  // Create a simple hex input that respects width
+  char buf[8];
+  snprintf(buf, sizeof(buf), "%04X", *data);
+
+  ImGui::SetNextItemWidth(input_width);
+  bool changed = ImGui::InputText(
+      label, buf, sizeof(buf),
+      ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_AutoSelectAll);
+
+  if (changed) {
+    unsigned int temp;
+    if (sscanf(buf, "%X", &temp) == 1) {
+      *data = static_cast<uint16_t>(temp & 0xFFFF);
+    }
+  }
+
+  ImGui::PopID();
+  return changed;
 }
 
 }  // namespace gui

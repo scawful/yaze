@@ -1,0 +1,53 @@
+# YAZE clang-tidy configuration
+# More lenient configuration for easier compliance
+
+Checks: >
+  -*-,
+  clang-analyzer-*,
+  -clang-analyzer-alpha*,
+  performance-*,
+  -performance-unnecessary-value-param,
+  readability-*,
+  -readability-magic-numbers,
+  -readability-braces-around-statements,
+  -readability-named-parameter,
+  -readability-function-cognitive-complexity,
+  -readability-avoid-const-params-in-decls,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-use-auto,
+  -modernize-avoid-c-arrays,
+  -modernize-use-default-member-init,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  -bugprone-narrowing-conversions,
+  -bugprone-implicit-widening-of-multiplication-result,
+  misc-*,
+  -misc-no-recursion,
+  -misc-non-private-member-variables-in-classes,
+  -misc-const-correctness
+
+CheckOptions:
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.FunctionCase  
+    value: lower_case
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.MacroCase
+    value: UPPER_CASE
+  - key: readability-function-size.LineThreshold
+    value: 150
+  - key: readability-function-size.StatementThreshold
+    value: 100
+  - key: performance-unnecessary-value-param.AllowedTypes
+    value: 'std::function;std::unique_ptr;std::shared_ptr'
+
+WarningsAsErrors: ''
+HeaderFilterRegex: '(src|test)\/.*\.(h|hpp|hxx)$'
+FormatStyle: google

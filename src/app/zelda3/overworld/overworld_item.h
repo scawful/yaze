@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_ZELDA3_OVERWORLD_ITEM_H_
 #define YAZE_APP_ZELDA3_OVERWORLD_ITEM_H_
 
+#include <algorithm>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
@@ -12,6 +13,7 @@
 namespace yaze {
 namespace zelda3 {
 
+constexpr int kNumOverworldMapItemPointers = 0x80;
 constexpr int kOverworldItemsPointers = 0xDC2F9;
 constexpr int kOverworldItemsAddress = 0xDC8B9;  // 1BC2F9
 constexpr int kOverworldItemsBank = 0xDC8BF;
@@ -63,6 +65,25 @@ class OverworldItem : public GameEntity {
   int unique_id = 0;
   bool deleted = false;
 };
+
+inline bool CompareOverworldItems(const std::vector<OverworldItem>& items1,
+                                  const std::vector<OverworldItem>& items2) {
+  if (items1.size() != items2.size()) {
+    return false;
+  }
+
+  const auto is_same_item = [](const OverworldItem& a, const OverworldItem& b) {
+    return a.x_ == b.x_ && a.y_ == b.y_ && a.id_ == b.id_;
+  };
+
+  return std::all_of(items1.begin(), items1.end(),
+                     [&](const OverworldItem& it) {
+                       return std::any_of(items2.begin(), items2.end(),
+                                          [&](const OverworldItem& other) {
+                                            return is_same_item(it, other);
+                                          });
+                     });
+}
 
 const std::vector<std::string> kSecretItemNames = {
     "Nothing",        // 0

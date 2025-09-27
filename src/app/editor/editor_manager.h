@@ -3,6 +3,9 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
+#include <deque>
+#include <vector>
+
 #include "absl/status/status.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
@@ -15,14 +18,55 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/system/popup_manager.h"
+#include "app/editor/system/toast_manager.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/emu/emulator.h"
-#include "app/gui/input.h"
+#include "app/core/features.h"
 #include "app/rom.h"
 #include "yaze_config.h"
 
 namespace yaze {
 namespace editor {
+
+/**
+ * @class EditorSet
+ * @brief Contains a complete set of editors for a single ROM instance
+ */
+class EditorSet {
+ public:
+  explicit EditorSet(Rom* rom = nullptr)
+      : assembly_editor_(rom),
+        dungeon_editor_(rom),
+        graphics_editor_(rom),
+        music_editor_(rom),
+        overworld_editor_(rom),
+        palette_editor_(rom),
+        screen_editor_(rom),
+        sprite_editor_(rom),
+        settings_editor_(rom),
+        message_editor_(rom),
+        memory_editor_(rom) {
+    active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
+                       &palette_editor_,   &sprite_editor_,  &message_editor_,
+                       &music_editor_,     &screen_editor_,  &settings_editor_,
+                       &assembly_editor_};
+  }
+
+  AssemblyEditor assembly_editor_;
+  DungeonEditor dungeon_editor_;
+  GraphicsEditor graphics_editor_;
+  MusicEditor music_editor_;
+  OverworldEditor overworld_editor_;
+  PaletteEditor palette_editor_;
+  ScreenEditor screen_editor_;
+  SpriteEditor sprite_editor_;
+  SettingsEditor settings_editor_;
+  MessageEditor message_editor_;
+  MemoryEditorWithDiffChecker memory_editor_;
+
+  std::vector<Editor*> active_editors_;
+};
 
 /**
  * @class EditorManager
@@ -35,75 +79,174 @@ namespace editor {
  * variable points to the currently active editor in the tab view.
  *
  */
-class EditorManager : public SharedRom {
+class EditorManager {
  public:
   EditorManager() {
-    current_editor_ = &overworld_editor_;
-    active_editors_.push_back(&overworld_editor_);
-    active_editors_.push_back(&dungeon_editor_);
-    active_editors_.push_back(&graphics_editor_);
-    active_editors_.push_back(&palette_editor_);
-    active_editors_.push_back(&sprite_editor_);
-    active_editors_.push_back(&message_editor_);
-    active_editors_.push_back(&screen_editor_);
     std::stringstream ss;
     ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
        << YAZE_VERSION_PATCH;
     ss >> version_;
+    context_.popup_manager = popup_manager_.get();
   }
 
-  void Initialize(std::string filename = "");
+  void Initialize(const std::string& filename = "");
   absl::Status Update();
+  void DrawMenuBar();
 
-  auto emulator() -> emu::Emulator & { return emulator_; }
-  auto quit() { return quit_; }
+  auto emulator() -> emu::Emulator& { return emulator_; }
+  auto quit() const { return quit_; }
+  auto version() const { return version_; }
+
+  absl::Status SetCurrentRom(Rom* rom);
+  auto GetCurrentRom() -> Rom* { return current_rom_; }
+  auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
+  
+  // Get current session's feature flags (falls back to global if no session)
+  core::FeatureFlags::Flags* GetCurrentFeatureFlags() {
+    size_t current_index = GetCurrentSessionIndex();
+    if (current_index < sessions_.size()) {
+      return &sessions_[current_index].feature_flags;
+    }
+    return &core::FeatureFlags::get(); // Fallback to global
+  }
 
  private:
-  void ManageActiveEditors();
-  void ManageKeyboardShortcuts();
-
-  void DrawStatusPopup();
-  void DrawAboutPopup();
-  void DrawInfoPopup();
-
-  void DrawYazeMenu();
-  void DrawYazeMenuBar();
-
-  void LoadRom();
-  void SaveRom();
-
-  void OpenRomOrProject(const std::string &filename);
+  void DrawHomepage();
+  void DrawWelcomeScreen();
+  absl::Status DrawRomSelector();
+  absl::Status LoadRom();
+  absl::Status LoadAssets();
+  absl::Status SaveRom();
+  absl::Status OpenRomOrProject(const std::string& filename);
+  
+  // Enhanced project management
+  absl::Status CreateNewProject(const std::string& template_name = "Basic ROM Hack");
   absl::Status OpenProject();
+  absl::Status SaveProject();
+  absl::Status SaveProjectAs();
+  absl::Status ImportProject(const std::string& project_path);
+  absl::Status RepairCurrentProject();
+  void ShowProjectHelp();
+  
+  // Testing system
+  void InitializeTestSuites();
 
   bool quit_ = false;
-  bool about_ = false;
-  bool rom_info_ = false;
   bool backup_rom_ = false;
   bool save_new_auto_ = true;
-  bool show_status_ = false;
-  bool rom_assets_loaded_ = false;
+  bool autosave_enabled_ = false;
+  float autosave_interval_secs_ = 120.0f;
+  float autosave_timer_ = 0.0f;
+  bool new_project_menu = false;
+
+  bool show_emulator_ = false;
+  bool show_memory_editor_ = false;
+  bool show_asm_editor_ = false;
+  bool show_imgui_metrics_ = false;
+  bool show_imgui_demo_ = false;
+  bool show_palette_editor_ = false;
+  bool show_resource_label_manager = false;
+  bool show_workspace_layout = false;
+  bool show_save_workspace_preset_ = false;
+  bool show_load_workspace_preset_ = false;
+  bool show_session_switcher_ = false;
+  bool show_session_manager_ = false;
+  bool show_layout_presets_ = false;
+  bool show_homepage_ = true;
+  bool show_command_palette_ = false;
+  bool show_global_search_ = false;
+  bool show_session_rename_dialog_ = false;
+  bool show_welcome_screen_ = false;
+  size_t session_to_rename_ = 0;
+  char session_rename_buffer_[256] = {};
+  
+  // Testing interface
+  bool show_test_dashboard_ = false;
 
   std::string version_ = "";
+  std::string settings_filename_ = "settings.ini";
+  float font_global_scale_ = 1.0f;
+  std::vector<std::string> workspace_presets_;
+  std::string last_workspace_preset_ = "";
+  std::string status_message_ = "";
+  bool workspace_presets_loaded_ = false;
 
   absl::Status status_;
   emu::Emulator emulator_;
-  std::vector<Editor *> active_editors_;
 
-  Project current_project_;
-  EditorContext editor_context_;
+  struct RomSession {
+    Rom rom;
+    EditorSet editors;
+    std::string custom_name; // User-defined session name
+    std::string filepath;    // ROM filepath for duplicate detection
+    core::FeatureFlags::Flags feature_flags; // Per-session feature flags
 
-  Editor *current_editor_ = nullptr;
-  AssemblyEditor assembly_editor_;
-  DungeonEditor dungeon_editor_;
-  GraphicsEditor graphics_editor_;
-  MusicEditor music_editor_;
-  OverworldEditor overworld_editor_{*rom()};
-  PaletteEditor palette_editor_;
-  ScreenEditor screen_editor_;
-  SpriteEditor sprite_editor_;
-  SettingsEditor settings_editor_;
-  MessageEditor message_editor_;
-  MemoryEditorWithDiffChecker memory_editor_;
+    RomSession() = default;
+    explicit RomSession(Rom&& r)
+        : rom(std::move(r)), editors(&rom) {
+      filepath = rom.filename();
+      // Initialize with default feature flags
+      feature_flags = core::FeatureFlags::Flags{};
+    }
+    
+    // Get display name (custom name or ROM title)
+    std::string GetDisplayName() const {
+      if (!custom_name.empty()) {
+        return custom_name;
+      }
+      return rom.title().empty() ? "Untitled Session" : rom.title();
+    }
+  };
+
+  std::deque<RomSession> sessions_;
+  Rom* current_rom_ = nullptr;
+  EditorSet* current_editor_set_ = nullptr;
+  Editor* current_editor_ = nullptr;
+  EditorSet blank_editor_set_{};
+
+  core::YazeProject current_project_;
+  EditorContext context_;
+  std::unique_ptr<PopupManager> popup_manager_;
+  ToastManager toast_manager_;
+
+  // Settings helpers
+  void LoadUserSettings();
+  void SaveUserSettings();
+  void RefreshWorkspacePresets();
+  void SaveWorkspacePreset(const std::string& name);
+  void LoadWorkspacePreset(const std::string& name);
+  
+  // Workspace management
+  void CreateNewSession();
+  void DuplicateCurrentSession();
+  void CloseCurrentSession();
+  void SwitchToSession(size_t index);
+  size_t GetCurrentSessionIndex() const;
+  void ResetWorkspaceLayout();
+  
+  // Multi-session editor management
+  std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index) const;
+  void SaveWorkspaceLayout();
+  void LoadWorkspaceLayout();
+  void ShowAllWindows();
+  void HideAllWindows();
+  void MaximizeCurrentWindow();
+  void RestoreAllWindows();
+  void CloseAllFloatingWindows();
+  void LoadDeveloperLayout();
+  void LoadDesignerLayout();
+  void LoadModderLayout();
+  
+  // Session management helpers
+  bool HasDuplicateSession(const std::string& filepath);
+  void RenameSession(size_t index, const std::string& new_name);
+  std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index);
+  
+  // UI drawing helpers
+  void DrawSessionSwitcher();
+  void DrawSessionManager();
+  void DrawLayoutPresets();
+  void DrawSessionRenameDialog();
 };
 
 }  // namespace editor

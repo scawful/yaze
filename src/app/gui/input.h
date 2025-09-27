@@ -3,10 +3,10 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
+#include <cctype>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -36,6 +36,16 @@ IMGUI_API bool InputHexByte(const char *label, uint8_t *data,
 IMGUI_API bool InputHexByte(const char *label, uint8_t *data, uint8_t max_value,
                             float input_width = 50.f, bool no_step = false);
 
+// Custom hex input functions that properly respect width
+IMGUI_API bool InputHexByteCustom(const char *label, uint8_t *data,
+                                  float input_width = 50.f);
+IMGUI_API bool InputHexWordCustom(const char *label, uint16_t *data,
+                                  float input_width = 70.f);
+
+IMGUI_API void Paragraph(const std::string &text);
+
+IMGUI_API bool ClickableText(const std::string &text);
+
 IMGUI_API bool ListBox(const char *label, int *current_item,
                        const std::vector<std::string> &items,
                        int height_in_items = -1);
@@ -52,6 +62,8 @@ IMGUI_API void ItemLabel(absl::string_view title, ItemLabelFlags flags);
 
 IMGUI_API ImGuiID GetID(const std::string &id);
 
+ImGuiKey MapKeyToImGuiKey(char key);
+
 using GuiElement = std::variant<std::function<void()>, std::string>;
 
 struct Table {
@@ -67,7 +79,64 @@ void AddTableColumn(Table &table, const std::string &label, GuiElement element);
 
 void DrawTable(Table &params);
 
-} // namespace gui
-} // namespace yaze
+static std::function<bool()> kDefaultEnabledCondition = []() { return false; };
+
+struct MenuItem {
+  std::string name;
+  std::string shortcut;
+  std::function<void()> callback;
+  std::function<bool()> enabled_condition = kDefaultEnabledCondition;
+  std::vector<MenuItem> subitems;
+
+  // Default constructor
+  MenuItem() = default;
+  
+  // Constructor for basic menu items
+  MenuItem(const std::string& name, const std::string& shortcut, 
+           std::function<void()> callback)
+      : name(name), shortcut(shortcut), callback(callback) {}
+  
+  // Constructor for menu items with enabled condition
+  MenuItem(const std::string& name, const std::string& shortcut, 
+           std::function<void()> callback, std::function<bool()> enabled_condition)
+      : name(name), shortcut(shortcut), callback(callback), 
+        enabled_condition(enabled_condition) {}
+  
+  // Constructor for menu items with subitems
+  MenuItem(const std::string& name, const std::string& shortcut, 
+           std::function<void()> callback, std::function<bool()> enabled_condition,
+           std::vector<MenuItem> subitems)
+      : name(name), shortcut(shortcut), callback(callback), 
+        enabled_condition(enabled_condition), subitems(std::move(subitems)) {}
+};
+using Menu = std::vector<MenuItem>;
+
+void DrawMenu(Menu &params);
+
+static Menu kMainMenu;
+
+const std::string kSeparator = "-";
+
+IMGUI_API bool OpenUrl(const std::string &url);
+
+struct Text {
+  std::string content;
+};
+
+struct Button {
+  std::string label;
+  std::function<void()> callback;
+};
+
+struct Layout {
+  std::vector<std::variant<Text, Button>> elements;
+};
+
+void RenderLayout(const Layout &layout);
+
+void MemoryEditorPopup(const std::string &label, std::span<uint8_t> memory);
+
+}  // namespace gui
+}  // namespace yaze
 
 #endif

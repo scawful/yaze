@@ -2,11 +2,7 @@
 #define YAZE_APP_EMU_AUDIO_S_DSP_H
 
 #include <cstdint>
-#include <functional>
 #include <vector>
-
-#include "app/emu/audio/spc700.h"
-#include "app/emu/memory/memory.h"
 
 namespace yaze {
 namespace emu {

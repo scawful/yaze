@@ -1,14 +1,14 @@
 #ifndef YAZE_APP_GUI_ZEML_H
 #define YAZE_APP_GUI_ZEML_H
 
-#include "imgui/imgui.h"
-
 #include <cctype>
 #include <functional>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace gui {
@@ -163,12 +163,6 @@ void BindSelectable(Node* node, bool* selected, std::function<void()> callback);
  */
 WidgetType MapType(const std::string& type);
 
-/**
- * @brief Parse a zeml definition
- */
-void ParseDefinitions(const std::vector<Token>& tokens, size_t& index,
-                      std::map<std::string, Node>& definitions);
-
 void ParseFlags(const WidgetType& type, const std::string& flags,
                 WidgetAttributes& flags_ptr);
 
@@ -206,7 +200,6 @@ std::string LoadFile(const std::string& filename);
 
 }  // namespace zeml
 }  // namespace gui
-
 }  // namespace yaze
 
-#endif  // YAZE_APP_GUI_YAZON_H_
+#endif  // YAZE_APP_GUI_ZEML_H

@@ -7,7 +7,7 @@
 #include "app/editor/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/tilesheet.h"
+#include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "app/zelda3/screen/dungeon_map.h"
@@ -28,26 +28,28 @@ namespace editor {
  *
  * The screens that can be edited include the title screen, naming screen,
  * overworld map, inventory menu, and more.
- *
- * The class inherits from the SharedRom class.
  */
-class ScreenEditor : public SharedRom, public Editor {
+class ScreenEditor : public Editor {
  public:
-  ScreenEditor() {
+  explicit ScreenEditor(Rom* rom = nullptr) : rom_(rom) {
     screen_canvas_.SetCanvasSize(ImVec2(512, 512));
     type_ = EditorType::kScreen;
   }
 
+  void Initialize() override;
+  absl::Status Load() override;
   absl::Status Update() override;
-
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  void set_rom(Rom* rom) { rom_ = rom; }
+  Rom* rom() const { return rom_; }
 
-  absl::Status SaveDungeonMaps();
+  std::vector<zelda3::DungeonMap> dungeon_maps_;
 
  private:
   void DrawTitleScreenEditor();
@@ -58,12 +60,14 @@ class ScreenEditor : public SharedRom, public Editor {
   void DrawToolset();
   void DrawInventoryToolset();
 
-  absl::Status LoadDungeonMaps();
-  absl::Status LoadDungeonMapTile16(const std::vector<uint8_t> &gfx_data,
+  absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data,
                                     bool bin_mode = false);
   absl::Status SaveDungeonMapTile16();
+
+  void DrawDungeonMapScreen(int i);
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
+  void DrawDungeonMapsRoomGfx();
 
   void LoadBinaryGfx();
 
@@ -71,11 +75,9 @@ class ScreenEditor : public SharedRom, public Editor {
 
   EditingMode current_mode_ = EditingMode::DRAW;
 
-  bool dungeon_maps_loaded_ = false;
   bool binary_gfx_loaded_ = false;
 
   uint8_t selected_room = 0;
-  uint8_t boss_room = 0;
 
   int selected_tile16_ = 0;
   int selected_tile8_ = 0;
@@ -85,20 +87,13 @@ class ScreenEditor : public SharedRom, public Editor {
   bool copy_button_pressed = false;
   bool paste_button_pressed = false;
 
-  std::array<uint16_t, 4> current_tile16_data_;
-  std::unordered_map<int, gfx::Bitmap> tile16_individual_;
   std::vector<gfx::Bitmap> tile8_individual_;
-  std::vector<uint8_t> all_gfx_;
-  std::vector<uint8_t> gfx_bin_data_;
-  std::vector<zelda3::screen::DungeonMap> dungeon_maps_;
-  std::vector<std::vector<std::array<std::string, 25>>> dungeon_map_labels_;
-
-  absl::Status status_;
+  zelda3::DungeonMapLabels dungeon_map_labels_;
 
   gfx::SnesPalette palette_;
   gfx::BitmapTable sheets_;
-  gfx::Tilesheet tile16_sheet_;
-  gfx::InternalTile16 current_tile16_info;
+  gfx::Tilemap tile16_blockset_;
+  std::array<gfx::TileInfo, 4> current_tile16_info;
 
   gui::Canvas current_tile_canvas_{"##CurrentTileCanvas", ImVec2(32, 32),
                                    gui::CanvasGridSize::k16x16, 2.0f};
@@ -107,7 +102,9 @@ class ScreenEditor : public SharedRom, public Editor {
   gui::Canvas tilemap_canvas_{"##TilemapCanvas", ImVec2(128 + 2, (192) + 4),
                               gui::CanvasGridSize::k8x8, 2.f};
 
-  zelda3::screen::Inventory inventory_;
+  zelda3::Inventory inventory_;
+  Rom* rom_;
+  absl::Status status_;
 };
 
 }  // namespace editor

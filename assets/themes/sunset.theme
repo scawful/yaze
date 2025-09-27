@@ -1,0 +1,62 @@
+# Sunset Theme
+# Warm orange and purple sunset theme
+name=Sunset
+description=Warm orange and purple sunset theme
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors (sunset)
+primary=255,140,60,255
+secondary=200,100,150,255
+accent=255,180,100,255
+background=30,20,35,255
+surface=40,30,45,255
+
+# Status colors
+error=255,100,120,255
+warning=255,200,100,255
+success=150,255,150,255
+info=150,200,255,255
+
+# Text colors
+text_primary=255,245,235,255
+text_secondary=220,200,180,255
+text_disabled=150,130,120,255
+
+# Window colors
+window_bg=35,25,40,240
+child_bg=30,20,35,200
+popup_bg=40,30,45,250
+
+# Interactive elements
+button=60,40,70,255
+button_hovered=120,80,100,255
+button_active=150,100,120,255
+frame_bg=45,35,50,255
+frame_bg_hovered=55,45,60,255
+frame_bg_active=80,60,90,255
+
+# Navigation
+header=50,35,60,255
+header_hovered=100,70,90,255
+header_active=130,90,110,255
+tab=40,30,50,255
+tab_hovered=70,50,70,255
+tab_active=100,70,90,255
+menu_bar_bg=35,25,45,255
+title_bg=40,30,50,255
+title_bg_active=50,35,60,255
+title_bg_collapsed=40,30,50,255
+
+[style]
+window_rounding=12.0
+frame_rounding=8.0
+scrollbar_rounding=12.0
+grab_rounding=6.0
+tab_rounding=8.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0

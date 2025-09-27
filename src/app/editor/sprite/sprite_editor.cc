@@ -2,9 +2,11 @@
 
 #include "app/core/platform/file_dialog.h"
 #include "app/editor/sprite/zsprite.h"
+#include "app/gfx/arena.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/zelda3/sprite/sprite.h"
+#include "util/hex.h"
 
 namespace yaze {
 namespace editor {
@@ -19,6 +21,10 @@ using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
 using ImGui::Text;
+
+void SpriteEditor::Initialize() {}
+
+absl::Status SpriteEditor::Load() { return absl::OkStatus(); }
 
 absl::Status SpriteEditor::Update() {
   if (rom()->is_loaded() && !sheets_loaded_) {
@@ -175,12 +181,13 @@ void SpriteEditor::DrawCurrentSheets() {
     graphics_sheet_canvas_.DrawTileSelector(32);
     for (int i = 0; i < 8; i++) {
       graphics_sheet_canvas_.DrawBitmap(
-          rom()->gfx_sheets().at(current_sheets_[i]), 1, (i * 0x40) + 1, 2);
+          gfx::Arena::Get().gfx_sheets().at(current_sheets_[i]), 1,
+          (i * 0x40) + 1, 2);
     }
     graphics_sheet_canvas_.DrawGrid();
     graphics_sheet_canvas_.DrawOverlay();
-    ImGui::EndChild();
   }
+  ImGui::EndChild();
 }
 
 void SpriteEditor::DrawSpritesList() {
@@ -190,7 +197,7 @@ void SpriteEditor::DrawSpritesList() {
     int i = 0;
     for (const auto each_sprite_name : zelda3::kSpriteDefaultNames) {
       rom()->resource_label()->SelectableLabelWithNameEdit(
-          current_sprite_id_ == i, "Sprite Names", core::HexByte(i),
+          current_sprite_id_ == i, "Sprite Names", util::HexByte(i),
           zelda3::kSpriteDefaultNames[i].data());
       if (ImGui::IsItemClicked()) {
         current_sprite_id_ = i;

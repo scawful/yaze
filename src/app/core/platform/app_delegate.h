@@ -51,7 +51,7 @@ void yaze_initialize_cocoa();
 /**
  * @brief Run the Cocoa application delegate.
  */
-void yaze_run_cocoa_app_delegate(const char *filename);
+int yaze_run_cocoa_app_delegate(const char *filename);
 
 #ifdef __cplusplus
 }  // extern "C"

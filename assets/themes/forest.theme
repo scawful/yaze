@@ -1,0 +1,73 @@
+# Forest Theme
+# Enhanced forest theme with better readability
+name=Forest
+description=Deep forest theme with enhanced readability
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors (enhanced forest with better contrast)
+primary=100,180,120,255         # Brighter forest green
+secondary=70,130,85,255         # Mid forest green
+accent=130,220,150,255          # Light accent green
+background=15,25,15,255         # Darker background for contrast
+surface=25,35,25,255
+
+# Status colors
+error=255,120,120,255
+warning=255,220,120,255
+success=100,180,120,255
+info=120,200,180,255
+
+# Text colors (enhanced for readability)
+text_primary=250,255,250,255    # Very light for contrast
+text_secondary=220,240,220,255  # Light green tint
+text_disabled=150,170,150,255   # Brighter disabled text
+
+# Window colors (better contrast)
+window_bg=20,30,20,240
+child_bg=15,25,15,200
+popup_bg=25,35,25,250
+
+# Interactive elements (better visibility)
+button=70,110,80,255
+button_hovered=100,150,115,255
+button_active=130,180,145,255
+frame_bg=40,60,45,200
+frame_bg_hovered=55,80,60,220
+frame_bg_active=70,110,80,240
+
+# Navigation (better contrast)
+header=55,85,60,255
+header_hovered=100,150,115,255
+header_active=130,180,145,255
+tab=45,75,50,255
+tab_hovered=70,110,80,255
+tab_active=100,150,115,255
+menu_bar_bg=40,70,45,255
+title_bg=50,80,55,255
+title_bg_active=55,85,60,255
+title_bg_collapsed=45,75,50,255
+
+# Separators (better visibility)
+separator=120,160,130,180
+separator_hovered=150,200,160,220
+separator_active=180,240,190,255
+
+# Scrollbars (better visibility)
+scrollbar_bg=40,60,45,180
+scrollbar_grab=80,120,90,200
+scrollbar_grab_hovered=100,150,115,230
+scrollbar_grab_active=130,180,145,255
+
+[style]
+window_rounding=6.0
+frame_rounding=4.0
+scrollbar_rounding=6.0
+grab_rounding=3.0
+tab_rounding=3.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0

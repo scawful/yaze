@@ -2,9 +2,10 @@
 #define YAZE_APP_EMU_SNES_H
 
 #include <cstdint>
+#include <functional>
+#include <memory>
 
 #include "app/emu/audio/apu.h"
-#include "app/emu/cpu/clock.h"
 #include "app/emu/cpu/cpu.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
@@ -22,21 +23,18 @@ struct Input {
 
 class Snes {
  public:
-  Snes() = default;
+  Snes() {
+    cpu_.callbacks().read_byte = [this](uint32_t adr) { return CpuRead(adr); };
+    cpu_.callbacks().write_byte = [this](uint32_t adr, uint8_t val) { CpuWrite(adr, val); };
+    cpu_.callbacks().idle = [this](bool waiting) { CpuIdle(waiting); };
+  }
   ~Snes() = default;
 
-  // Initialization
   void Init(std::vector<uint8_t>& rom_data);
   void Reset(bool hard = false);
-
-  // Emulation
   void RunFrame();
   void CatchUpApu();
-
-  // Controller input handling
   void HandleInput();
-
-  // Clock cycling and synchronization
   void RunCycle();
   void RunCycles(int cycles);
   void SyncCycles(bool start, int sync_cycles);
@@ -54,39 +52,31 @@ class Snes {
   uint8_t CpuRead(uint32_t adr);
   void CpuWrite(uint32_t adr, uint8_t val);
   void CpuIdle(bool waiting);
+  void InitAccessTime(bool recalc);
+  std::vector<uint8_t> access_time;
 
   void SetSamples(int16_t* sample_data, int wanted_samples);
   void SetPixels(uint8_t* pixel_data);
   void SetButtonState(int player, int button, bool pressed);
+
   bool running() const { return running_; }
   auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> Ppu& { return ppu_; }
   auto apu() -> Apu& { return apu_; }
-  auto Memory() -> MemoryImpl& { return memory_; }
+  auto memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
-  void InitAccessTime(bool recalc);
 
-  std::vector<uint8_t> access_time;
+  bool fast_mem_ = false;
 
  private:
-  // Components of the SNES
-  ClockImpl clock_;
   MemoryImpl memory_;
-
-  CpuCallbacks cpu_callbacks_ = {
-      [&](uint32_t adr) { return CpuRead(adr); },
-      [&](uint32_t adr, uint8_t val) { CpuWrite(adr, val); },
-      [&](bool waiting) { CpuIdle(waiting); },
-  };
-  Cpu cpu_{memory_, clock_, cpu_callbacks_};
-  Ppu ppu_{memory_, clock_};
+  Cpu cpu_{memory_};
+  Ppu ppu_{memory_};
   Apu apu_{memory_};
 
-  // Currently loaded ROM
   std::vector<uint8_t> rom_data;
 
-  // Emulation state
   bool running_ = false;
 
   // ram
@@ -124,12 +114,9 @@ class Snes {
   bool auto_joy_read_ = false;
   uint16_t auto_joy_timer_ = 0;
   bool ppu_latch_;
-
-  bool fast_mem_ = false;
 };
 
 }  // namespace emu
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_SNES_H

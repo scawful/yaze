@@ -36,7 +36,7 @@ struct EmulatorKeybindings {
  * @class Emulator
  * @brief A class for emulating and debugging SNES games.
  */
-class Emulator : public SharedRom {
+class Emulator {
  public:
   Emulator() {
     std::string emulator_layout = R"(
@@ -92,7 +92,7 @@ class Emulator : public SharedRom {
         {"cpu.PC", &snes_.cpu().PC},
         {"cpu.status", &snes_.cpu().status},
         {"snes.cycle_count", &snes_.mutable_cycles()},
-        {"cpu.SP", &snes_.Memory().mutable_sp()},
+        {"cpu.SP", &snes_.memory().mutable_sp()},
         {"spc.A", &snes_.apu().spc700().A},
         {"spc.X", &snes_.apu().spc700().X},
         {"spc.Y", &snes_.apu().spc700().Y},
@@ -115,6 +115,8 @@ class Emulator : public SharedRom {
     audio_device_ = audio_device;
   }
   auto wanted_samples() const -> int { return wanted_samples_; }
+  auto rom() { return rom_; }
+  auto mutable_rom() { return rom_; }
 
  private:
   void RenderNavBar();
@@ -153,6 +155,7 @@ class Emulator : public SharedRom {
   int16_t* audio_buffer_;
   SDL_AudioDeviceID audio_device_;
 
+  Rom* rom_;
   Snes snes_;
   SDL_Texture* ppu_texture_;
 

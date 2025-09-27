@@ -185,5 +185,4 @@ uint16_t Cpu::StackRelative() {
 }
 
 }  // namespace emu
-
 }  // namespace yaze

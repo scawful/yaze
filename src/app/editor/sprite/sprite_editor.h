@@ -1,9 +1,12 @@
 #ifndef YAZE_APP_EDITOR_SPRITE_EDITOR_H
 #define YAZE_APP_EDITOR_SPRITE_EDITOR_H
 
+#include <cstdint>
+#include <vector>
+
 #include "absl/status/status.h"
-#include "app/editor/sprite/zsprite.h"
 #include "app/editor/editor.h"
+#include "app/editor/sprite/zsprite.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 
@@ -30,23 +33,28 @@ constexpr ImGuiTableFlags kSpriteTableFlags =
  * This class provides functionality for updating the sprite editor, drawing the
  * editor table, drawing the sprite canvas, and drawing the current sheets.
  */
-class SpriteEditor : public SharedRom, public Editor {
+class SpriteEditor : public Editor {
  public:
-  SpriteEditor() { type_ = EditorType::kSprite; }
+  explicit SpriteEditor(Rom* rom = nullptr) : rom_(rom) { 
+    type_ = EditorType::kSprite; 
+  }
 
-  /**
-   * @brief Updates the sprite editor.
-   *
-   * @return An absl::Status indicating the success or failure of the update.
-   */
+  void Initialize() override;
+  absl::Status Load() override;
   absl::Status Update() override;
-
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+  
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
 
  private:
   void DrawVanillaSpriteEditor();
@@ -65,9 +73,7 @@ class SpriteEditor : public SharedRom, public Editor {
    * @brief Draws the current sheets.
    */
   void DrawCurrentSheets();
-
   void DrawCustomSprites();
-
   void DrawCustomSpritesMetadata();
 
   /**
@@ -107,6 +113,8 @@ class SpriteEditor : public SharedRom, public Editor {
   std::vector<zsprite::ZSprite> custom_sprites_; /**< Sprites. */
 
   absl::Status status_; /**< Status. */
+
+  Rom* rom_;
 };
 
 }  // namespace editor

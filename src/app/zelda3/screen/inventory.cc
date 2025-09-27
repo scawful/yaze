@@ -1,14 +1,12 @@
 #include "inventory.h"
 
-#include "app/core/platform/renderer.h"
+#include "app/core/window.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
-#include "app/gui/canvas.h"
 #include "app/rom.h"
 
 namespace yaze {
 namespace zelda3 {
-namespace screen {
 
 using core::Renderer;
 
@@ -19,10 +17,14 @@ absl::Status Inventory::Create() {
   }
   RETURN_IF_ERROR(BuildTileset())
   for (int i = 0; i < 0x500; i += 0x08) {
-    tiles_.push_back(gfx::GetTilesInfo(rom()->toint16(i + kBowItemPos)));
-    tiles_.push_back(gfx::GetTilesInfo(rom()->toint16(i + kBowItemPos + 0x02)));
-    tiles_.push_back(gfx::GetTilesInfo(rom()->toint16(i + kBowItemPos + 0x04)));
-    tiles_.push_back(gfx::GetTilesInfo(rom()->toint16(i + kBowItemPos + 0x08)));
+    ASSIGN_OR_RETURN(auto t1, rom()->ReadWord(i + kBowItemPos));
+    ASSIGN_OR_RETURN(auto t2, rom()->ReadWord(i + kBowItemPos + 0x02));
+    ASSIGN_OR_RETURN(auto t3, rom()->ReadWord(i + kBowItemPos + 0x04));
+    ASSIGN_OR_RETURN(auto t4, rom()->ReadWord(i + kBowItemPos + 0x06));
+    tiles_.push_back(gfx::GetTilesInfo(t1));
+    tiles_.push_back(gfx::GetTilesInfo(t2));
+    tiles_.push_back(gfx::GetTilesInfo(t3));
+    tiles_.push_back(gfx::GetTilesInfo(t4));
   }
   const int offsets[] = {0x00, 0x08, 0x800, 0x808};
   auto xx = 0;
@@ -66,15 +68,15 @@ absl::Status Inventory::Create() {
   }
 
   bitmap_.Create(256, 256, 8, data_);
-  RETURN_IF_ERROR(bitmap_.ApplyPalette(palette_));
-  Renderer::GetInstance().RenderBitmap(&bitmap_);
+  bitmap_.SetPalette(palette_);
+  Renderer::Get().RenderBitmap(&bitmap_);
   return absl::OkStatus();
 }
 
 absl::Status Inventory::BuildTileset() {
   tilesheets_.reserve(6 * 0x2000);
   for (int i = 0; i < 6 * 0x2000; i++) tilesheets_.push_back(0xFF);
-  ASSIGN_OR_RETURN(tilesheets_, Load2BppGraphics(*rom()))
+  ASSIGN_OR_RETURN(tilesheets_, Load2BppGraphics(*rom()));
   std::vector<uint8_t> test;
   for (int i = 0; i < 0x4000; i++) {
     test_.push_back(tilesheets_[i]);
@@ -85,12 +87,10 @@ absl::Status Inventory::BuildTileset() {
   tilesheets_bmp_.Create(128, 0x130, 64, test_);
   auto hud_pal_group = rom()->palette_group().hud;
   palette_ = hud_pal_group[0];
-  RETURN_IF_ERROR(tilesheets_bmp_.ApplyPalette(palette_))
-  Renderer::GetInstance().RenderBitmap(&tilesheets_bmp_);
+  tilesheets_bmp_.SetPalette(palette_);
+  Renderer::Get().RenderBitmap(&tilesheets_bmp_);
   return absl::OkStatus();
 }
 
-}  // namespace screen
 }  // namespace zelda3
-
 }  // namespace yaze

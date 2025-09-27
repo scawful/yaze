@@ -5,9 +5,11 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
-#include "app/editor/graphics/tile16_editor.h"
+#include "app/editor/overworld/tile16_editor.h"
+#include "app/editor/overworld/map_properties.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/gui/zeml.h"
@@ -18,13 +20,11 @@
 namespace yaze {
 namespace editor {
 
-constexpr uint k4BPP = 4;
-constexpr uint kByteSize = 3;
-constexpr uint kMessageIdSize = 5;
-constexpr uint kNumSheetsToLoad = 223;
-constexpr uint kTile8DisplayHeight = 64;
-constexpr uint kOverworldMapSize = 0x200;
-constexpr float kInputFieldSize = 30.f;
+constexpr unsigned int k4BPP = 4;
+constexpr unsigned int kByteSize = 3;
+constexpr unsigned int kMessageIdSize = 5;
+constexpr unsigned int kNumSheetsToLoad = 223;
+constexpr unsigned int kOverworldMapSize = 0x200;
 constexpr ImVec2 kOverworldCanvasSize(kOverworldMapSize * 8,
                                       kOverworldMapSize * 8);
 constexpr ImVec2 kCurrentGfxCanvasSize(0x100 + 1, 0x10 * 0x40 + 1);
@@ -32,7 +32,8 @@ constexpr ImVec2 kBlocksetCanvasSize(0x100 + 1, 0x4000 + 1);
 constexpr ImVec2 kGraphicsBinCanvasSize(0x100 + 1, kNumSheetsToLoad * 0x40 + 1);
 
 constexpr ImGuiTableFlags kOWMapFlags =
-    ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable;
+    ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
+    ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp;
 constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
 constexpr ImGuiTableFlags kOWEditFlags =
     ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
@@ -74,25 +75,44 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
  */
 class OverworldEditor : public Editor, public gfx::GfxContext {
  public:
-  OverworldEditor(Rom& rom) : rom_(rom) { type_ = EditorType::kOverworld; }
+  explicit OverworldEditor(Rom* rom) : rom_(rom) {
+    type_ = EditorType::kOverworld;
+    gfx_group_editor_.set_rom(rom);
+    // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are ready
+  }
 
-  void Initialize();
-
+  void Initialize() override;
+  absl::Status Load() override;
   absl::Status Update() final;
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
-  absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
-  absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
-  absl::Status Find() override {
-    return absl::UnimplementedError("Find Unused Tiles");
-  }
-  absl::Status Save();
+  absl::Status Copy() override;
+  absl::Status Paste() override;
+  absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  absl::Status Save() override;
+  absl::Status Clear() override;
+  
+  /**
+   * @brief Apply ZSCustomOverworld ASM patch to upgrade ROM version
+   */
+  absl::Status ApplyZSCustomOverworldASM(int target_version);
 
-  auto overworld() { return &overworld_; }
+  /**
+   * @brief Update ROM version markers and feature flags after ASM patching
+   */
+  absl::Status UpdateROMVersionMarkers(int target_version);
 
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
+
+  // ROM state methods (from Editor base class)
+  bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
+  std::string GetRomStatus() const override {
+    if (!rom_) return "No ROM loaded";
+    if (!rom_->is_loaded()) return "ROM failed to load";
+    return absl::StrFormat("ROM loaded: %s", rom_->title());
+  }
 
   /**
    * @brief Load the Bitmap objects for each OverworldMap.
@@ -104,24 +124,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status LoadGraphics();
 
  private:
-  /**
-   * @brief Draws the canvas, tile16 selector, and toolset in fullscreen
-   */
   void DrawFullscreenCanvas();
-
-  /**
-   * @brief Toolset for entrances, exits, items, sprites, and transports.
-   */
   void DrawToolset();
-
-  /**
-   * @brief Draws the overworld map settings. Graphics, palettes, etc.
-   */
   void DrawOverworldMapSettings();
-
-  /**
-   * @brief Draw the overworld settings for ZSCustomOverworld.
-   */
   void DrawCustomOverworldMapSettings();
 
   void RefreshChildMap(int i);
@@ -163,10 +168,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    */
   absl::Status CheckForCurrentMap();
   void CheckForMousePan();
-
-  /**
-   * @brief Allows the user to make changes to the overworld map.
-   */
   void DrawOverworldCanvas();
 
   absl::Status DrawTile16Selector();
@@ -177,6 +178,16 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status LoadSpriteGraphics();
 
   void DrawOverworldProperties();
+  void DrawCustomBackgroundColorEditor();
+  void DrawOverlayEditor();
+  void DrawMapLockControls();
+  void DrawOverlayPreview();
+  void DrawOverlayPreviewOnMap();
+  void DrawOverworldContextMenu();
+  void DrawSimplifiedMapSettings();
+  void DrawMapPropertiesPanel();
+  void HandleMapInteraction();
+  void SetupOverworldCanvasContextMenu();
 
   absl::Status UpdateUsageStats();
   void DrawUsageGrid();
@@ -228,20 +239,26 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool map_blockset_loaded_ = false;
   bool selected_tile_loaded_ = false;
   bool show_tile16_editor_ = false;
+  bool show_gfx_group_editor_ = false;
+  bool show_properties_editor_ = false;
   bool overworld_canvas_fullscreen_ = false;
   bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;
+  bool current_map_lock_ = false;
+  bool show_custom_bg_color_editor_ = false;
+  bool show_overlay_editor_ = false;
+  bool use_area_specific_bg_color_ = false;
+  bool show_map_properties_panel_ = false;
+  bool show_overlay_preview_ = false;
 
-  std::vector<uint8_t> selected_tile_data_;
-  std::vector<std::vector<uint8_t>> tile16_individual_data_;
-  std::vector<gfx::Bitmap> tile16_individual_;
+  // Map properties system for UI organization
+  std::unique_ptr<MapPropertiesSystem> map_properties_system_;
 
-  std::vector<std::vector<uint8_t>> tile8_individual_data_;
-  std::vector<gfx::Bitmap> tile8_individual_;
+  gfx::Tilemap tile16_blockset_;
 
-  Rom& rom_;
+  Rom* rom_;
 
-  Tile16Editor tile16_editor_;
+  Tile16Editor tile16_editor_{rom_, &tile16_blockset_};
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;
 
@@ -252,11 +269,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gfx::Bitmap current_gfx_bmp_;
   gfx::Bitmap all_gfx_bmp;
 
-  gfx::BitmapTable maps_bmp_;
+  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> maps_bmp_;
   gfx::BitmapTable current_graphics_set_;
-  gfx::BitmapTable sprite_previews_;
+  std::vector<gfx::Bitmap> sprite_previews_;
 
-  zelda3::Overworld overworld_;
+  zelda3::Overworld overworld_{rom_};
   zelda3::OverworldBlockset refresh_blockset_;
 
   zelda3::Sprite current_sprite_;
@@ -264,10 +281,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   zelda3::OverworldEntrance current_entrance_;
   zelda3::OverworldExit current_exit_;
   zelda3::OverworldItem current_item_;
-  zelda3::OverworldEntranceTileTypes entrance_tiletypes_;
+  zelda3::OverworldEntranceTileTypes entrance_tiletypes_ = {};
 
-  zelda3::GameEntity* current_entity_;
-  zelda3::GameEntity* dragged_entity_;
+  zelda3::GameEntity* current_entity_ = nullptr;
+  zelda3::GameEntity* dragged_entity_ = nullptr;
 
   gui::Canvas ow_map_canvas_{"OwMap", kOverworldCanvasSize,
                              gui::CanvasGridSize::k64x64};
@@ -279,7 +296,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
 
-  gui::Table toolset_table_{"##ToolsetTable0", 22, kToolsetTableFlags};
+  gui::Table toolset_table_{"##ToolsetTable0", 12, kToolsetTableFlags};
   gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags,
                                  ImVec2(0, 0)};
 

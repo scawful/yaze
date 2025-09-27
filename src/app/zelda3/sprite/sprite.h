@@ -279,7 +279,7 @@ static const std::string kSpriteDefaultNames[]{
 class Sprite : public GameEntity {
  public:
   Sprite() = default;
-  Sprite(std::vector<uint8_t> src, uint8_t overworld_map_id, uint8_t id,
+  Sprite(const std::vector<uint8_t>& src, uint8_t overworld_map_id, uint8_t id,
          uint8_t x, uint8_t y, int map_x, int map_y)
       : map_id_(static_cast<int>(overworld_map_id)),
         id_(id),
@@ -308,7 +308,7 @@ class Sprite : public GameEntity {
     }
   }
 
-  void InitSprite(const std::vector<uint8_t> &src, uint8_t overworld_map_id,
+  void InitSprite(const std::vector<uint8_t>& src, uint8_t overworld_map_id,
                   uint8_t id, uint8_t x, uint8_t y, int map_x, int map_y) {
     current_gfx_ = src;
     overworld_ = true;
@@ -325,7 +325,6 @@ class Sprite : public GameEntity {
     map_y_ = map_y;
     preview_gfx_.resize(64 * 64, 0xFF);
   }
-  void UpdateBoundaryBox();
 
   void Draw();
   void DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
@@ -333,11 +332,9 @@ class Sprite : public GameEntity {
                       int sizex = 2, int sizey = 2);
 
   void UpdateMapProperties(uint16_t map_id) override;
-
-  // New methods
   void UpdateCoordinates(int map_x, int map_y);
 
-  auto PreviewGraphics() const { return preview_gfx_; }
+  auto preview_graphics() const { return &preview_gfx_; }
   auto id() const { return id_; }
   auto set_id(uint8_t id) { id_ = id; }
   auto x() const { return x_; }
@@ -352,8 +349,8 @@ class Sprite : public GameEntity {
   auto layer() const { return layer_; }
   auto subtype() const { return subtype_; }
 
-  auto width() const { return bounding_box_.w; }
-  auto height() const { return bounding_box_.h; }
+  auto width() const { return width_; }
+  auto height() const { return height_; }
   auto name() { return name_; }
   auto deleted() const { return deleted_; }
   auto set_deleted(bool deleted) { deleted_ = deleted; }

@@ -8,12 +8,11 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/core/constants.h"
 #include "app/gfx/snes_tile.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace gfx {
-namespace scad_format {
 
 void FindMetastamp() {
   int matching_position = -1;
@@ -90,11 +89,11 @@ absl::Status LoadScr(std::string_view filename, uint8_t input_value,
          i += 2) {
       auto b1_pos = (i - (input_value * 0x400));
       map_data[b1_pos] = gfx::TileInfoToShort(
-          gfx::GetTilesInfo((ushort)scr_data[md + (i * 2)]));
+          gfx::GetTilesInfo((uint16_t)scr_data[md + (i * 2)]));
 
       auto b2_pos = (i - (input_value * 0x400) + 1);
       map_data[b2_pos] = gfx::TileInfoToShort(
-          gfx::GetTilesInfo((ushort)scr_data[md + (i * 2) + 2]));
+          gfx::GetTilesInfo((uint16_t)scr_data[md + (i * 2) + 2]));
     }
     // 0x900
 
@@ -111,7 +110,7 @@ absl::Status LoadScr(std::string_view filename, uint8_t input_value,
 
     for (int i = 0; i < 0x1000 - offset; i++) {
       map_data[i] = gfx::TileInfoToShort(
-          gfx::GetTilesInfo((ushort)scr_data[((i + offset) * 2)]));
+          gfx::GetTilesInfo((uint16_t)scr_data[((i + offset) * 2)]));
     }
   }
   return absl::OkStatus();
@@ -144,9 +143,9 @@ absl::Status DrawScrWithCgx(uint8_t bpp, std::vector<uint8_t>& map_data,
 
             if (bpp != 8) {
               map_bitmap_data[index] =
-                  (uchar)((pixel & 0xFF) + t.palette_ * 16);
+                  (uint8_t)((pixel & 0xFF) + t.palette_ * 16);
             } else {
-              map_bitmap_data[index] = (uchar)(pixel & 0xFF);
+              map_bitmap_data[index] = (uint8_t)(pixel & 0xFF);
             }
           }
         }
@@ -275,6 +274,5 @@ absl::Status DecodeObjFile(
   return absl::OkStatus();
 }
 
-}  // namespace scad_format
 }  // namespace gfx
 }  // namespace yaze

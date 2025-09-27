@@ -46,7 +46,17 @@
     abort();
   }
 
-  _controller = new yaze::app::core::Controller();
+  _controller = new yaze::core::Controller();
+
+  // Setup Dear ImGui context
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+  yaze::gui::ColorsYaze();
 
   SDL_SetMainReady();
   SDL_iOSSetEventPump(SDL_TRUE);
@@ -67,32 +77,14 @@
 
   // Enable native IME.
   SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
-  if (!_controller->CreateWindow().ok()) {
-    printf("Error creating window: %s\n", SDL_GetError());
+
+  ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(),
+                                    yaze::core::Renderer::Get().renderer());
+  ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::Get().renderer());
+
+  if (!LoadPackageFonts().ok()) {
     abort();
   }
-  if (!_controller->CreateRenderer().ok()) {
-    printf("Error creating renderer: %s\n", SDL_GetError());
-    abort();
-  }
-
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
-  (void)io;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-
-  yaze::app::gui::ColorsYaze();
-
-  ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(), _controller->renderer());
-  ImGui_ImplSDLRenderer2_Init(_controller->renderer());
-
-  if (!_controller->LoadFontFamilies().ok()) {
-    abort();
-  }
-  _controller->SetupScreen(rom_filename);
   _controller->set_active(true);
 
   _hoverGestureRecognizer =
@@ -136,6 +128,8 @@
 }
 
 - (void)drawInMTKView:(MTKView *)view {
+  if (!_controller->active()) return;
+
   ImGuiIO &io = ImGui::GetIO();
   io.DisplaySize.x = view.bounds.size.width;
   io.DisplaySize.y = view.bounds.size.height;
@@ -166,8 +160,8 @@
     if (!controller_status.ok()) {
       abort();
     }
-    ImGui::End();
   }
+  ImGui::End();
   _controller->DoRender();
 }
 
@@ -243,6 +237,9 @@
   ImGuiIO &io = ImGui::GetIO();
   io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
   io.AddMouseWheelEvent(0.0f, gesture.scale);
+  UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
+  io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
+                      [gestureRecognizer locationInView:self.view].y);
 }
 
 - (void)HandleSwipe:(UISwipeGestureRecognizer *)gesture {
@@ -253,12 +250,18 @@
   } else if (gesture.direction == UISwipeGestureRecognizerDirectionLeft) {
     io.AddMouseWheelEvent(-1.0f, 0.0f);  // Swipe Left
   }
+  UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
+  io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
+                      [gestureRecognizer locationInView:self.view].y);
 }
 
 - (void)handleLongPress:(UILongPressGestureRecognizer *)gesture {
   ImGuiIO &io = ImGui::GetIO();
   io.AddMouseSourceEvent(ImGuiMouseSource_TouchScreen);
   io.AddMouseButtonEvent(1, gesture.state == UIGestureRecognizerStateBegan);
+  UIGestureRecognizer *gestureRecognizer = (UIGestureRecognizer *)gesture;
+  io.AddMousePosEvent([gestureRecognizer locationInView:self.view].x,
+                      [gestureRecognizer locationInView:self.view].y);
 }
 
 #endif
@@ -348,13 +351,18 @@
 
       auto data = [NSData dataWithContentsOfURL:selectedFileURL];
       // Cast NSData* to uint8_t*
-      uchar *bytes = (uchar *)[data bytes];
+      uint8_t *bytes = (uint8_t *)[data bytes];
       // Size of the data
       size_t size = [data length];
 
-      PRINT_IF_ERROR(yaze::SharedRom::shared_rom_->LoadFromPointer(bytes, size));
+      std::vector<uint8_t> rom_data;
+      rom_data.resize(size);
+      std::copy(bytes, bytes + size, rom_data.begin());
+
+      // TODO: Re-implmenent this without the SharedRom singleton 
+      // PRINT_IF_ERROR(yaze::SharedRom::shared_rom_->LoadFromData(rom_data));
       std::string filename = std::string([selectedFileURL.path UTF8String]);
-      yaze::SharedRom::shared_rom_->set_filename(filename);
+      // yaze::SharedRom::shared_rom_->set_filename(filename);
       [selectedFileURL stopAccessingSecurityScopedResource];
 
     } else {

@@ -2,13 +2,17 @@
 #define YAZE_APP_CORE_EDITOR_H
 
 #include <array>
+#include <vector>
+#include <functional>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/system/command_manager.h"
-#include "app/editor/system/constant_manager.h"
 #include "app/editor/system/extension_manager.h"
 #include "app/editor/system/history_manager.h"
-#include "app/editor/system/resource_manager.h"
+#include "app/editor/system/popup_manager.h"
+#include "app/editor/system/shortcut_manager.h"
 
 namespace yaze {
 
@@ -19,11 +23,26 @@ namespace yaze {
 namespace editor {
 
 struct EditorContext {
-  ConstantManager constant_manager;
   CommandManager command_manager;
   ExtensionManager extension_manager;
   HistoryManager history_manager;
-  ResourceManager resource_manager;
+  PopupManager* popup_manager = nullptr;
+  ShortcutManager shortcut_manager;
+  // Cross-session shared clipboard for editor data transfers
+  struct SharedClipboard {
+    // Overworld tile16 selection payload
+    bool has_overworld_tile16 = false;
+    std::vector<int> overworld_tile16_ids;
+    int overworld_width = 0;   // in tile16 units
+    int overworld_height = 0;  // in tile16 units
+
+    void Clear() {
+      has_overworld_tile16 = false;
+      overworld_tile16_ids.clear();
+      overworld_width = 0;
+      overworld_height = 0;
+    }
+  } shared_clipboard;
 };
 
 enum class EditorType {
@@ -39,7 +58,7 @@ enum class EditorType {
   kSettings,
 };
 
-constexpr std::array<const char *, 10> kEditorNames = {
+constexpr std::array<const char*, 10> kEditorNames = {
     "Assembly", "Dungeon", "Graphics", "Music",   "Overworld",
     "Palette",  "Screen",  "Sprite",   "Message", "Settings",
 };
@@ -55,6 +74,18 @@ class Editor {
   Editor() = default;
   virtual ~Editor() = default;
 
+  // Initialization of the editor, no ROM assets.
+  virtual void Initialize() = 0;
+
+  // Initialization of ROM assets.
+  virtual absl::Status Load() = 0;
+
+  // Save the editor state.
+  virtual absl::Status Save() = 0;
+
+  // Update the editor state, ran every frame.
+  virtual absl::Status Update() = 0;
+
   virtual absl::Status Cut() = 0;
   virtual absl::Status Copy() = 0;
   virtual absl::Status Paste() = 0;
@@ -62,15 +93,41 @@ class Editor {
   virtual absl::Status Undo() = 0;
   virtual absl::Status Redo() = 0;
 
-  virtual absl::Status Update() = 0;
-
   virtual absl::Status Find() = 0;
+
+  virtual absl::Status Clear() { return absl::OkStatus(); }
 
   EditorType type() const { return type_; }
 
+  void set_context(EditorContext* context) { context_ = context; }
+
+  bool* active() { return &active_; }
+  void set_active(bool active) { active_ = active; }
+
+  // ROM loading state helpers (default implementations)
+  virtual bool IsRomLoaded() const { return false; }
+  virtual std::string GetRomStatus() const { return "ROM state not implemented"; }
+
  protected:
+  bool active_ = false;
   EditorType type_;
-  EditorContext context_;
+  EditorContext* context_ = nullptr;
+
+  // Helper method for ROM access with safety check
+  template<typename T>
+  absl::StatusOr<T> SafeRomAccess(std::function<T()> accessor, const std::string& operation = "") const {
+    if (!IsRomLoaded()) {
+      return absl::FailedPreconditionError(
+          operation.empty() ? "ROM not loaded" : 
+          absl::StrFormat("%s: ROM not loaded", operation));
+    }
+    try {
+      return accessor();
+    } catch (const std::exception& e) {
+      return absl::InternalError(absl::StrFormat(
+          "%s: %s", operation.empty() ? "ROM access failed" : operation, e.what()));
+    }
+  }
 };
 
 }  // namespace editor

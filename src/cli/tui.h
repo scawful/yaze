@@ -4,22 +4,64 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
+#include <string>
+#include <vector>
 
 #include "app/rom.h"
 
 namespace yaze {
+/**
+ * @namespace yaze::cli
+ * @brief Namespace for the command line interface.
+ */
 namespace cli {
-
-struct Context {
-  bool is_loaded = false;
-
-  ftxui::Component layout;
-  ftxui::Component main_component;
+const std::vector<std::string> kMainMenuEntries = {
+    "Load ROM",
+    "Apply Asar Patch",
+    "Apply BPS Patch", 
+    "Extract Symbols",
+    "Validate Assembly",
+    "Generate Save File",
+    "Palette Editor",
+    "Help",
+    "Exit",
 };
 
-void ShowMain();
+enum class MainMenuEntry {
+  kLoadRom,
+  kApplyAsarPatch,
+  kApplyBpsPatch,
+  kExtractSymbols,
+  kValidateAssembly,
+  kGenerateSaveFile,
+  kPaletteEditor,
+  kHelp,
+  kExit,
+};
 
-void DrawPaletteEditor(Rom *rom);
+enum LayoutID {
+  kLoadRom,
+  kApplyAsarPatch,
+  kApplyBpsPatch,
+  kExtractSymbols,
+  kValidateAssembly,
+  kGenerateSaveFile,
+  kPaletteEditor,
+  kHelp,
+  kExit,
+  kMainMenu,
+  kError,
+};
+
+struct Context {
+  Rom rom;
+  LayoutID current_layout = LayoutID::kMainMenu;
+  std::string error_message;
+};
+
+static Context app_context;
+
+void ShowMain();
 
 }  // namespace cli
 }  // namespace yaze

@@ -30,27 +30,27 @@ typedef struct DmaChannel {
   uint8_t b_addr;
   uint16_t a_addr;
   uint8_t a_bank;
-  uint16_t size;       // also indirect hdma adr
-  uint8_t ind_bank;    // hdma
-  uint16_t table_addr; // hdma
-  uint8_t rep_count;   // hdma
+  uint16_t size;        // also indirect hdma adr
+  uint8_t ind_bank;     // hdma
+  uint16_t table_addr;  // hdma
+  uint8_t rep_count;    // hdma
   uint8_t unusedByte;
   bool dma_active;
   bool hdma_active;
   uint8_t mode;
   bool fixed;
   bool decrement;
-  bool indirect; // hdma
+  bool indirect;  // hdma
   bool from_b;
   bool unusedBit;
-  bool do_transfer; // hdma
-  bool terminated;  // hdma
+  bool do_transfer;  // hdma
+  bool terminated;   // hdma
 } DmaChannel;
 
 typedef struct CpuCallbacks {
-  std::function<uint8_t(uint32_t)> read_byte;
-  std::function<void(uint32_t, uint8_t)> write_byte;
-  std::function<void(bool waiting)> idle;
+  std::function<uint8_t(uint32_t)> read_byte = nullptr;
+  std::function<void(uint32_t, uint8_t)> write_byte = nullptr;
+  std::function<void(bool waiting)> idle = nullptr;
 } CpuCallbacks;
 
 constexpr uint32_t kROMStart = 0x008000;
@@ -62,7 +62,7 @@ constexpr uint32_t kRAMSize = 0x20000;
  * @brief Memory interface
  */
 class Memory {
-public:
+ public:
   virtual ~Memory() = default;
   virtual uint8_t ReadByte(uint32_t address) const = 0;
   virtual uint16_t ReadWord(uint32_t address) const = 0;
@@ -116,25 +116,25 @@ public:
  *
  */
 class MemoryImpl : public Memory {
-public:
+ public:
   void Initialize(const std::vector<uint8_t> &romData, bool verbose = false);
 
   uint16_t GetHeaderOffset() {
     uint16_t offset;
     switch (memory_[(0x00 << 16) + 0xFFD5] & 0x07) {
-    case 0: // LoROM
-      offset = 0x7FC0;
-      break;
-    case 1: // HiROM
-      offset = 0xFFC0;
-      break;
-    case 5: // ExHiROM
-      offset = 0x40;
-      break;
-    default:
-      throw std::invalid_argument(
-          "Unable to locate supported ROM mapping mode in the provided ROM "
-          "file. Please try another ROM file.");
+      case 0:  // LoROM
+        offset = 0x7FC0;
+        break;
+      case 1:  // HiROM
+        offset = 0xFFC0;
+        break;
+      case 5:  // ExHiROM
+        offset = 0x40;
+        break;
+      default:
+        throw std::invalid_argument(
+            "Unable to locate supported ROM mapping mode in the provided ROM "
+            "file. Please try another ROM file.");
     }
 
     return offset;
@@ -285,7 +285,7 @@ public:
   std::vector<uint8_t> rom_;
   std::vector<uint8_t> ram_;
 
-private:
+ private:
   uint32_t GetMappedAddress(uint32_t address) const;
 
   bool verbose_ = false;
@@ -323,7 +323,7 @@ private:
   std::vector<uint8_t> memory_;
 };
 
-} // namespace emu
-} // namespace yaze
+}  // namespace emu
+}  // namespace yaze
 
-#endif // YAZE_APP_EMU_MEMORY_H
+#endif  // YAZE_APP_EMU_MEMORY_H

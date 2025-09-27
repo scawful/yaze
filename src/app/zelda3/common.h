@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <string>
-#include <string_view>
 
 namespace yaze {
 
@@ -30,12 +29,12 @@ class GameEntity {
     kProperties = 7,
     kDungeonSprite = 8,
   } entity_type_;
-  int x_;
-  int y_;
-  int game_x_;
-  int game_y_;
-  int entity_id_;
-  uint16_t map_id_;
+  int x_ = 0;
+  int y_ = 0;
+  int game_x_ = 0;
+  int game_y_ = 0;
+  int entity_id_ = 0;
+  uint16_t map_id_ = 0;
 
   auto set_x(int x) { x_ = x; }
   auto set_y(int y) { y_ = y; }
@@ -45,7 +44,7 @@ class GameEntity {
   virtual void UpdateMapProperties(uint16_t map_id) = 0;
 };
 
-constexpr std::string_view kEntranceNames[] = {
+constexpr const char* kEntranceNames[] = {
     "Link's House Intro",
     "Link's House Post-intro",
     "Sanctuary",

@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_GFX_SNES_COLOR_H_
 #define YAZE_APP_GFX_SNES_COLOR_H_
 
-#include <snes_color.h>
+#include <yaze.h>
 
 #include <cstdint>
 #include <vector>
@@ -37,18 +37,22 @@ constexpr float kColorByteMaxF = 255.f;
  */
 class SnesColor {
  public:
-  SnesColor() : rgb_(0.f, 0.f, 0.f, 0.f), snes_(0), rom_color_({0, 0, 0}) {}
+  constexpr SnesColor()
+      : rgb_({0.f, 0.f, 0.f, 0.f}), snes_(0), rom_color_({0, 0, 0}) {}
+
   explicit SnesColor(const ImVec4 val) : rgb_(val) {
     snes_color color;
-    color.red = val.x / kColorByteMax;
-    color.green = val.y / kColorByteMax;
-    color.blue = val.z / kColorByteMax;
+    color.red = static_cast<uint16_t>(val.x * kColorByteMax);
+    color.green = static_cast<uint16_t>(val.y * kColorByteMax);
+    color.blue = static_cast<uint16_t>(val.z * kColorByteMax);
     snes_ = ConvertRgbToSnes(color);
   }
+
   explicit SnesColor(const uint16_t val) : snes_(val) {
     snes_color color = ConvertSnesToRgb(val);
     rgb_ = ImVec4(color.red, color.green, color.blue, 0.f);
   }
+
   explicit SnesColor(const snes_color val)
       : rgb_(val.red, val.green, val.blue, kColorByteMaxF),
         snes_(ConvertRgbToSnes(val)),
@@ -64,34 +68,16 @@ class SnesColor {
     rom_color_ = color;
   }
 
-  ImVec4 rgb() const { return rgb_; }
+  void set_rgb(const ImVec4 val);
+  void set_snes(uint16_t val);
 
-  void set_rgb(const ImVec4 val) {
-    rgb_.x = val.x / kColorByteMax;
-    rgb_.y = val.y / kColorByteMax;
-    rgb_.z = val.z / kColorByteMax;
-    snes_color color;
-    color.red = val.x;
-    color.green = val.y;
-    color.blue = val.z;
-    rom_color_ = color;
-    snes_ = ConvertRgbToSnes(color);
-    modified = true;
-  }
-
-  void set_snes(uint16_t val) {
-    snes_ = val;
-    snes_color col = ConvertSnesToRgb(val);
-    rgb_ = ImVec4(col.red, col.green, col.blue, 0.f);
-    modified = true;
-  }
-
-  snes_color rom_color() const { return rom_color_; }
-  uint16_t snes() const { return snes_; }
-  bool is_modified() const { return modified; }
-  bool is_transparent() const { return transparent; }
-  void set_transparent(bool t) { transparent = t; }
-  void set_modified(bool m) { modified = m; }
+  constexpr ImVec4 rgb() const { return rgb_; }
+  constexpr snes_color rom_color() const { return rom_color_; }
+  constexpr uint16_t snes() const { return snes_; }
+  constexpr bool is_modified() const { return modified; }
+  constexpr bool is_transparent() const { return transparent; }
+  constexpr void set_transparent(bool t) { transparent = t; }
+  constexpr void set_modified(bool m) { modified = m; }
 
  private:
   ImVec4 rgb_;

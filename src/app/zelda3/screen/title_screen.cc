@@ -3,12 +3,11 @@
 #include <cstdint>
 
 #include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
 #include "app/rom.h"
+#include "app/snes.h"
 
 namespace yaze {
 namespace zelda3 {
-namespace screen {
 
 void TitleScreen::Create() {
   tiles8Bitmap.Create(128, 512, 8, std::vector<uint8_t>(0x20000));
@@ -20,7 +19,7 @@ void TitleScreen::Create() {
 }
 
 void TitleScreen::BuildTileset() {
-  uchar staticgfx[16] = {0};
+  uint8_t staticgfx[16] = {0};
 
   // Main Blocksets
 
@@ -39,13 +38,13 @@ void TitleScreen::BuildTileset() {
   staticgfx[15] = 112;
 
   // Loaded gfx for the current screen (empty at this point)
-  uchar* currentmapgfx8Data = tiles8Bitmap.mutable_data().data();
+  uint8_t* currentmapgfx8Data = tiles8Bitmap.mutable_data().data();
 
   // All gfx of the game pack of 2048 bytes (4bpp)
-  uchar* allgfxData = nullptr;
+  uint8_t* allgfxData = nullptr;
   for (int i = 0; i < 16; i++) {
     for (int j = 0; j < 2048; j++) {
-      uchar mapByte = allgfxData[j + (staticgfx[i] * 2048)];
+      uint8_t mapByte = allgfxData[j + (staticgfx[i] * 2048)];
       switch (i) {
         case 0:
         case 3:
@@ -69,7 +68,7 @@ void TitleScreen::LoadTitleScreen() {
     tilesBG2Buffer[i] = 492;
   }
 
-  pos = core::SnesToPc(pos);
+  pos = SnesToPc(pos);
 
   while ((rom_[pos] & 0x80) != 0x80) {
     int dest_addr = pos;  // $03 and $04
@@ -85,7 +84,7 @@ void TitleScreen::LoadTitleScreen() {
     int jj = 0;
     int posB = pos;
     while (j < (length / 2) + 1) {
-      ushort tiledata = (ushort)pos;
+      uint16_t tiledata = (uint16_t)pos;
       if (dest_addr >= 0x1000) {
         // destAddr -= 0x1000;
         if (dest_addr < 0x2000) {
@@ -121,7 +120,5 @@ void TitleScreen::LoadTitleScreen() {
   pal_selected_ = 2;
 }
 
-}  // namespace screen
 }  // namespace zelda3
-
 }  // namespace yaze

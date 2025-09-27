@@ -1,15 +1,12 @@
 #ifndef YAZE_APP_DATA_OVERWORLD_H
 #define YAZE_APP_DATA_OVERWORLD_H
 
+#include <array>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
-#include "app/core/common.h"
-#include "app/core/constants.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/common.h"
 #include "app/zelda3/overworld/overworld_entrance.h"
 #include "app/zelda3/overworld/overworld_exit.h"
 #include "app/zelda3/overworld/overworld_item.h"
@@ -103,6 +100,7 @@ constexpr int NumberOfMap16Ex = 4096;  // 4096
 constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
+constexpr int kNumMapsPerWorld = 0x40;
 
 /**
  * @brief Represents the full Overworld data, light and dark world.
@@ -110,20 +108,23 @@ constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
  * This class is responsible for loading and saving the overworld data,
  * as well as creating the tilesets and tilemaps for the overworld.
  */
-class Overworld : public SharedRom {
+class Overworld {
  public:
-  absl::Status Load(Rom &rom);
+  Overworld(Rom *rom) : rom_(rom) {}
+
+  absl::Status Load(Rom *rom);
   absl::Status LoadOverworldMaps();
   void LoadTileTypes();
-  void LoadEntrances();
+  absl::Status LoadEntrances();
+  absl::Status LoadHoles();
 
   absl::Status LoadExits();
   absl::Status LoadItems();
   absl::Status LoadSprites();
-  absl::Status LoadSpritesFromMap(int spriteStart, int spriteCount,
-                                  int spriteIndex);
+  absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
+                                  int sprite_index);
 
-  absl::Status Save(Rom &rom);
+  absl::Status Save(Rom *rom);
   absl::Status SaveOverworldMaps();
   absl::Status SaveLargeMaps();
   absl::Status SaveEntrances();
@@ -137,6 +138,10 @@ class Overworld : public SharedRom {
   absl::Status SaveMap32Tiles();
 
   absl::Status SaveMapProperties();
+  absl::Status SaveAreaSizes();
+
+  auto rom() const { return rom_; }
+  auto mutable_rom() { return rom_; }
 
   void Destroy() {
     for (auto &map : overworld_maps_) {
@@ -146,7 +151,12 @@ class Overworld : public SharedRom {
     all_entrances_.clear();
     all_exits_.clear();
     all_items_.clear();
-    all_sprites_.clear();
+    for (auto &sprites : all_sprites_) {
+      sprites.clear();
+    }
+    tiles16_.clear();
+    tiles32_.clear();
+    tiles32_unique_.clear();
     is_loaded_ = false;
   }
 
@@ -222,15 +232,15 @@ class Overworld : public SharedRom {
                                               int dimension,
                                               const uint32_t *map32address);
   absl::Status AssembleMap32Tiles();
-  void AssembleMap16Tiles();
+  absl::Status AssembleMap16Tiles();
   void AssignWorldTiles(int x, int y, int sx, int sy, int tpos,
                         OverworldBlockset &world);
   void OrganizeMapTiles(std::vector<uint8_t> &bytes,
                         std::vector<uint8_t> &bytes2, int i, int sx, int sy,
                         int &ttpos);
-  absl::Status DecompressAllMapTiles();
+  void DecompressAllMapTiles();
 
-  Rom rom_;
+  Rom *rom_;
 
   bool is_loaded_ = false;
   bool expanded_tile16_ = false;
@@ -243,30 +253,28 @@ class Overworld : public SharedRom {
 
   OverworldMapTiles map_tiles_;
 
-  std::array<uint8_t, kNumOverworldMaps> map_parent_;
-  std::array<uint8_t, kNumTileTypes> all_tiles_types_;
-  std::vector<gfx::Tile16> tiles16_;
-  std::vector<gfx::Tile32> tiles32_;
-  std::vector<uint16_t> tiles32_list_;
-  std::vector<gfx::Tile32> tiles32_unique_;
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;
   std::vector<OverworldEntrance> all_holes_;
   std::vector<OverworldExit> all_exits_;
   std::vector<OverworldItem> all_items_;
-  std::vector<std::vector<Sprite>> all_sprites_;
+
+  std::vector<gfx::Tile16> tiles16_;
+  std::vector<gfx::Tile32> tiles32_;
+  std::vector<gfx::Tile32> tiles32_unique_;
+
+  std::vector<uint16_t> tiles32_list_;
   std::vector<uint64_t> deleted_entrances_;
-  std::vector<std::vector<uint8_t>> map_data_p1 =
-      std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
-  std::vector<std::vector<uint8_t>> map_data_p2 =
-      std::vector<std::vector<uint8_t>>(kNumOverworldMaps);
 
-  std::vector<int> map_pointers1_id = std::vector<int>(kNumOverworldMaps);
-  std::vector<int> map_pointers2_id = std::vector<int>(kNumOverworldMaps);
-  std::vector<int> map_pointers1 = std::vector<int>(kNumOverworldMaps);
-  std::vector<int> map_pointers2 = std::vector<int>(kNumOverworldMaps);
-
-  std::vector<absl::flat_hash_map<uint16_t, int>> usage_stats_;
+  std::array<uint8_t, kNumOverworldMaps> map_parent_ = {0};
+  std::array<uint8_t, kNumTileTypes> all_tiles_types_ = {0};
+  std::array<std::vector<Sprite>, 3> all_sprites_;
+  std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p1;
+  std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p2;
+  std::array<int, kNumOverworldMaps> map_pointers1_id;
+  std::array<int, kNumOverworldMaps> map_pointers2_id;
+  std::array<int, kNumOverworldMaps> map_pointers1;
+  std::array<int, kNumOverworldMaps> map_pointers2;
 };
 
 }  // namespace zelda3

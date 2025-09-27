@@ -3,12 +3,43 @@
 
 #include <cstdint>
 
-#include "app/core/constants.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {
+
+// EXPANDED to 0x78000 to 0x7A000
+constexpr int kEntranceRoomEXP = 0x078000;
+constexpr int kEntranceScrollEdgeEXP = 0x078200;
+constexpr int kEntranceCameraYEXP = 0x078A00;
+constexpr int kEntranceCameraXEXP = 0x078C00;
+constexpr int kEntranceYPositionEXP = 0x078E00;
+constexpr int kEntranceXPositionEXP = 0x079000;
+constexpr int kEntranceCameraYTriggerEXP = 0x079200;
+constexpr int kEntranceCameraXTriggerEXP = 0x079400;
+constexpr int kEntranceBlocksetEXP = 0x079600;
+constexpr int kEntranceFloorEXP = 0x079700;
+constexpr int kEntranceDungeonEXP = 0x079800;
+constexpr int kEntranceDoorEXP = 0x079900;
+constexpr int kEntranceLadderBgEXP = 0x079A00;
+constexpr int kEntranceScrollingEXP = 0x079B00;
+constexpr int kEntranceScrollQuadrantEXP = 0x079C00;
+constexpr int kEntranceExitEXP = 0x079D00;
+constexpr int kEntranceMusicEXP = 0x079F00;
+constexpr int kEntranceExtraEXP = 0x07A000;
+constexpr int kEntranceTotalEXP = 0xFF;
+constexpr int kEntranceTotal = 0x84;
+constexpr int kEntranceLinkSpawn = 0x00;
+constexpr int kEntranceNorthTavern = 0x43;
+constexpr int kEntranceEXP = 0x07F000;
+
+constexpr int kEntranceCameraY = 0x014D45;  // 0x14AA9 // 2bytes each room
+constexpr int kEntranceCameraX = 0x014E4F;  // 0x14BB3 // 2bytes
+
+constexpr int kNumOverworldEntrances = 129;
+constexpr int kNumOverworldHoles = 0x13;
 
 constexpr int kOverworldEntranceMap = 0xDB96F;
 constexpr int kOverworldEntrancePos = 0xDBA71;
@@ -46,14 +77,14 @@ constexpr int kOverworldHoleEntrance = 0xDB84C;
 class OverworldEntrance : public GameEntity {
  public:
   uint16_t map_pos_;
-  uchar entrance_id_;
-  uchar area_x_;
-  uchar area_y_;
+  uint8_t entrance_id_;
+  uint8_t area_x_;
+  uint8_t area_y_;
   bool is_hole_ = false;
   bool deleted = false;
 
   OverworldEntrance() = default;
-  OverworldEntrance(int x, int y, uchar entrance_id, short map_id,
+  OverworldEntrance(int x, int y, uint8_t entrance_id, short map_id,
                     uint16_t map_pos, bool hole)
       : map_pos_(map_pos), entrance_id_(entrance_id), is_hole_(hole) {
     x_ = x;
@@ -64,8 +95,8 @@ class OverworldEntrance : public GameEntity {
 
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
-    area_x_ = (uchar)((std::abs(x - (mapX * 512)) / 16));
-    area_y_ = (uchar)((std::abs(y - (mapY * 512)) / 16));
+    area_x_ = (uint8_t)((std::abs(x - (mapX * 512)) / 16));
+    area_y_ = (uint8_t)((std::abs(y - (mapY * 512)) / 16));
   }
 
   void UpdateMapProperties(uint16_t map_id) override {
@@ -78,8 +109,8 @@ class OverworldEntrance : public GameEntity {
     int mapX = (map_id_ - ((map_id_ / 8) * 8));
     int mapY = (map_id_ / 8);
 
-    area_x_ = (uchar)((std::abs(x_ - (mapX * 512)) / 16));
-    area_y_ = (uchar)((std::abs(y_ - (mapY * 512)) / 16));
+    area_x_ = (uint8_t)((std::abs(x_ - (mapX * 512)) / 16));
+    area_y_ = (uint8_t)((std::abs(y_ - (mapY * 512)) / 16));
 
     map_pos_ = (uint16_t)((((area_y_) << 6) | (area_x_ & 0x3F)) << 1);
   }
@@ -94,13 +125,14 @@ struct OverworldEntranceTileTypes {
 };
 
 inline absl::StatusOr<OverworldEntranceTileTypes> LoadEntranceTileTypes(
-    Rom &rom) {
+    Rom *rom) {
   OverworldEntranceTileTypes tiletypes;
   for (int i = 0; i < kNumEntranceTileTypes; i++) {
-    ASSIGN_OR_RETURN(auto value_low, rom.ReadWord(kEntranceTileTypePtrLow + i));
+    ASSIGN_OR_RETURN(auto value_low,
+                     rom->ReadWord(kEntranceTileTypePtrLow + i));
     tiletypes.low[i] = value_low;
     ASSIGN_OR_RETURN(auto value_high,
-                     rom.ReadWord(kEntranceTileTypePtrHigh + i));
+                     rom->ReadWord(kEntranceTileTypePtrHigh + i));
     tiletypes.high[i] = value_high;
   }
   return tiletypes;

@@ -1,0 +1,416 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 16,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default Config",
+      "description": "Default build configuration",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_BUILD_APP": "ON",
+        "YAZE_BUILD_LIB": "ON",
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_Z3ED": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Debug build with full debugging symbols",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS_DEBUG": "-g -O0 -DDEBUG",
+        "CMAKE_C_FLAGS_DEBUG": "-g -O0 -DDEBUG",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "description": "Optimized release build",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "YAZE_BUILD_TESTS": "OFF"
+      }
+    },
+    {
+      "name": "dev",
+      "displayName": "Development",
+      "description": "Development build with ROM testing enabled",
+      "inherits": "debug",
+      "cacheVariables": {
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/build/bin/zelda3.sfc"
+      }
+    },
+    {
+      "name": "macos-dev",
+      "displayName": "macOS Development (ARM64)",
+      "description": "macOS ARM64 development build with ROM testing",
+      "inherits": "macos-debug",
+      "cacheVariables": {
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/build/bin/zelda3.sfc"
+      }
+    },
+    {
+      "name": "ci",
+      "displayName": "Continuous Integration",
+      "description": "CI build without ROM-dependent tests",
+      "inherits": "default",
+      "cacheVariables": {
+        "YAZE_ENABLE_ROM_TESTS": "OFF",
+        "YAZE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "macOS Debug (ARM64)",
+      "description": "macOS ARM64-specific debug configuration",
+      "inherits": "debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
+        "CMAKE_OSX_ARCHITECTURES": "arm64"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macOS Release (ARM64)",
+      "description": "macOS ARM64-specific release configuration",
+      "inherits": "release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
+        "CMAKE_OSX_ARCHITECTURES": "arm64"
+      }
+    },
+    {
+      "name": "macos-debug-universal",
+      "displayName": "macOS Debug (Universal)",
+      "description": "macOS universal binary debug configuration",
+      "inherits": "debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "10.15",
+        "CMAKE_OSX_ARCHITECTURES": "x86_64;arm64"
+      }
+    },
+    {
+      "name": "macos-release-universal",
+      "displayName": "macOS Release (Universal)",
+      "description": "macOS universal binary release configuration",
+      "inherits": "release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      },
+      "cacheVariables": {
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "10.15",
+        "CMAKE_OSX_ARCHITECTURES": "x86_64;arm64"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug",
+      "description": "Linux-specific debug configuration",
+      "inherits": "debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_C_COMPILER": "gcc"
+      }
+    },
+    {
+      "name": "linux-clang",
+      "displayName": "Linux Clang",
+      "description": "Linux build with Clang",
+      "inherits": "debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_C_COMPILER": "clang"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows Debug",
+      "description": "Windows-specific debug configuration",
+      "inherits": "debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    },
+    {
+      "name": "asan",
+      "displayName": "AddressSanitizer",
+      "description": "Debug build with AddressSanitizer",
+      "inherits": "debug",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g",
+        "CMAKE_C_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=address"
+      }
+    },
+    {
+      "name": "coverage",
+      "displayName": "Code Coverage",
+      "description": "Debug build with code coverage",
+      "inherits": "debug",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "--coverage -g -O0",
+        "CMAKE_C_FLAGS": "--coverage -g -O0",
+        "CMAKE_EXE_LINKER_FLAGS": "--coverage"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "displayName": "Default Build"
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "displayName": "Debug Build"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "displayName": "Release Build"
+    },
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "displayName": "Development Build"
+    },
+    {
+      "name": "macos-dev",
+      "configurePreset": "macos-dev",
+      "displayName": "macOS Development Build (ARM64)"
+    },
+    {
+      "name": "ci",
+      "configurePreset": "ci",
+      "displayName": "CI Build"
+    },
+    {
+      "name": "macos-debug",
+      "configurePreset": "macos-debug",
+      "displayName": "macOS Debug Build"
+    },
+    {
+      "name": "macos-release",
+      "configurePreset": "macos-release",
+      "displayName": "macOS Release Build (ARM64)"
+    },
+    {
+      "name": "macos-debug-universal",
+      "configurePreset": "macos-debug-universal",
+      "displayName": "macOS Debug Build (Universal)"
+    },
+    {
+      "name": "macos-release-universal",
+      "configurePreset": "macos-release-universal",
+      "displayName": "macOS Release Build (Universal)"
+    },
+    {
+      "name": "fast",
+      "configurePreset": "debug",
+      "displayName": "Fast Debug Build",
+      "jobs": 0
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "stable",
+      "configurePreset": "default",
+      "displayName": "Stable Tests (Release Ready)",
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "label": "STABLE"
+        }
+      }
+    },
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "displayName": "Development Tests (with ROM)",
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      },
+      "filter": {
+        "exclude": {
+          "label": "EXPERIMENTAL"
+        }
+      }
+    },
+    {
+      "name": "ci",
+      "configurePreset": "ci",
+      "displayName": "CI Tests (stable only)",
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "label": "STABLE"
+        }
+      }
+    },
+    {
+      "name": "experimental",
+      "configurePreset": "debug",
+      "displayName": "Experimental Tests",
+      "execution": {
+        "noTestsAction": "ignore",
+        "stopOnFailure": false
+      },
+      "filter": {
+        "include": {
+          "label": "EXPERIMENTAL"
+        }
+      }
+    },
+    {
+      "name": "asar-only",
+      "configurePreset": "default",
+      "displayName": "Asar Tests Only",
+      "filter": {
+        "include": {
+          "name": "*Asar*"
+        }
+      }
+    },
+    {
+      "name": "unit-only",
+      "configurePreset": "default",
+      "displayName": "Unit Tests Only",
+      "filter": {
+        "include": {
+          "label": "UNIT_TEST"
+        }
+      }
+    }
+  ],
+  "packagePresets": [
+    {
+      "name": "default",
+      "configurePreset": "release",
+      "displayName": "Default Package"
+    },
+    {
+      "name": "macos",
+      "configurePreset": "macos-release",
+      "displayName": "macOS Package (ARM64)"
+    },
+    {
+      "name": "macos-universal",
+      "configurePreset": "macos-release-universal",
+      "displayName": "macOS Package (Universal)"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "dev-workflow",
+      "displayName": "Development Workflow",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "dev"
+        },
+        {
+          "type": "build",
+          "name": "dev"
+        },
+        {
+          "type": "test",
+          "name": "dev"
+        }
+      ]
+    },
+    {
+      "name": "ci-workflow",
+      "displayName": "CI Workflow",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "ci"
+        },
+        {
+          "type": "build",
+          "name": "ci"
+        },
+        {
+          "type": "test",
+          "name": "ci"
+        }
+      ]
+    },
+    {
+      "name": "release-workflow",
+      "displayName": "Release Workflow",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "macos-release"
+        },
+        {
+          "type": "build",
+          "name": "macos-release"
+        },
+        {
+          "type": "package",
+          "name": "macos"
+        }
+      ]
+    }
+  ]
+}

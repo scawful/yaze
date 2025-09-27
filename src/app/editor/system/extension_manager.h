@@ -15,7 +15,6 @@ class ExtensionManager {
   void RegisterExtension(yaze_extension* extension);
   void InitializeExtensions(yaze_editor_context* context);
   void ShutdownExtensions();
-  void ExecuteExtensionUI(yaze_editor_context* context);
 
  private:
   std::vector<yaze_extension*> extensions_;

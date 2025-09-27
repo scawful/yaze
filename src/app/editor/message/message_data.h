@@ -1,11 +1,12 @@
 #ifndef YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H
 #define YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H
 
+#include <optional>
 #include <regex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
-#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
 #include "app/rom.h"
@@ -13,10 +14,11 @@
 namespace yaze {
 namespace editor {
 
-const uint8_t kMessageTerminator = 0x7F;
-const std::string BANKToken = "BANK";
+const std::string kBankToken = "BANK";
 const std::string DICTIONARYTOKEN = "D";
+constexpr uint8_t kMessageTerminator = 0x7F;
 constexpr uint8_t DICTOFF = 0x88;
+constexpr uint8_t kWidthArraySize = 100;
 
 static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
     {0x00, 'A'},  {0x01, 'B'},  {0x02, 'C'},  {0x03, 'D'},  {0x04, 'E'},
@@ -39,55 +41,59 @@ static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
 };
 
 uint8_t FindMatchingCharacter(char value);
-uint8_t FindDictionaryEntry(uint8_t value);
-
+int8_t FindDictionaryEntry(uint8_t value);
 std::vector<uint8_t> ParseMessageToData(std::string str);
 
 struct DictionaryEntry {
-  uint8_t ID;
-  std::string Contents;
+  uint8_t ID = 0;
+  std::string Contents = "";
   std::vector<uint8_t> Data;
-  int Length;
-  std::string Token;
+  int Length = 0;
+  std::string Token = "";
 
   DictionaryEntry() = default;
-  DictionaryEntry(uint8_t i, std::string s)
-      : Contents(s), ID(i), Length(s.length()) {
-    Token = absl::StrFormat("[%s:%00X]", DICTIONARYTOKEN, ID);
+  DictionaryEntry(uint8_t i, std::string_view s)
+      : ID(i), Contents(s), Length(s.length()) {
+    Token = absl::StrFormat("[%s:%02X]", DICTIONARYTOKEN, ID);
     Data = ParseMessageToData(Contents);
   }
 
-  bool ContainedInString(std::string s) {
-    return s.find(Contents) != std::string::npos;
+  bool ContainedInString(std::string_view s) const {
+    return s.contains(Contents);
   }
 
-  std::string ReplaceInstancesOfIn(std::string s) {
-    std::string replacedString = s;
-    size_t pos = replacedString.find(Contents);
+  std::string ReplaceInstancesOfIn(std::string_view s) const {
+    auto replaced_string = std::string(s);
+    size_t pos = replaced_string.find(Contents);
     while (pos != std::string::npos) {
-      replacedString.replace(pos, Contents.length(), Token);
-      pos = replacedString.find(Contents, pos + Token.length());
+      replaced_string.replace(pos, Contents.length(), Token);
+      pos = replaced_string.find(Contents, pos + Token.length());
     }
-    return replacedString;
+    return replaced_string;
   }
 };
 
 constexpr int kTextData = 0xE0000;
 constexpr int kTextDataEnd = 0xE7FFF;
-constexpr int kNumDictionaryEntries = 97;
+constexpr int kNumDictionaryEntries = 0x61;
 constexpr int kPointersDictionaries = 0x74703;
+constexpr uint8_t kScrollVertical = 0x73;
+constexpr uint8_t kLine1 = 0x74;
+constexpr uint8_t kLine2 = 0x75;
+constexpr uint8_t kLine3 = 0x76;
 
 std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom);
-
 std::string ReplaceAllDictionaryWords(std::string str,
                                       std::vector<DictionaryEntry> dictionary);
+DictionaryEntry FindRealDictionaryEntry(
+    uint8_t value, std::vector<DictionaryEntry> dictionary);
 
 // Inserted into commands to protect them from dictionary replacements.
 const std::string CHEESE = "\uBEBE";
 
 struct MessageData {
-  int ID;
-  int Address;
+  int ID = 0;
+  int Address = 0;
   std::string RawString;
   std::string ContentsParsed;
   std::vector<uint8_t> Data;
@@ -101,9 +107,9 @@ struct MessageData {
       : ID(id),
         Address(address),
         RawString(rawString),
+        ContentsParsed(parsedString),
         Data(rawData),
-        DataParsed(parsedData),
-        ContentsParsed(parsedString) {}
+        DataParsed(parsedData) {}
 
   // Copy constructor
   MessageData(const MessageData& other) {
@@ -115,16 +121,12 @@ struct MessageData {
     ContentsParsed = other.ContentsParsed;
   }
 
-  std::string ToString() {
-    return absl::StrFormat("%0X - %s", ID, ContentsParsed);
-  }
-
   std::string OptimizeMessageForDictionary(
-      std::string messageString,
+      std::string_view message_string,
       const std::vector<DictionaryEntry>& dictionary) {
     std::stringstream protons;
     bool command = false;
-    for (const auto& c : messageString) {
+    for (const auto& c : message_string) {
       if (c == '[') {
         command = true;
       } else if (c == ']') {
@@ -137,13 +139,13 @@ struct MessageData {
       }
     }
 
-    std::string protonsString = protons.str();
-    std::string replacedString =
-        ReplaceAllDictionaryWords(protonsString, dictionary);
-    std::string finalString =
-        absl::StrReplaceAll(replacedString, {{CHEESE, ""}});
+    std::string protons_string = protons.str();
+    std::string replaced_string =
+        ReplaceAllDictionaryWords(protons_string, dictionary);
+    std::string final_string =
+        absl::StrReplaceAll(replaced_string, {{CHEESE, ""}});
 
-    return finalString;
+    return final_string;
   }
 
   void SetMessage(const std::string& message,
@@ -163,8 +165,8 @@ struct TextElement {
   bool HasArgument;
 
   TextElement() = default;
-  TextElement(uint8_t id, std::string token, bool arg,
-              std::string description) {
+  TextElement(uint8_t id, const std::string& token, bool arg,
+              const std::string& description) {
     ID = id;
     Token = token;
     if (arg) {
@@ -174,23 +176,23 @@ struct TextElement {
     }
     HasArgument = arg;
     Description = description;
-    Pattern =
-        arg ? "\\[" + Token + ":?([0-9A-F]{1,2})\\]" : "\\[" + Token + "\\]";
-    Pattern = absl::StrReplaceAll(Pattern, {{"[", "\\["}, {"]", "\\]"}});
-    StrictPattern = absl::StrCat("^", Pattern, "$");
-    StrictPattern = "^" + Pattern + "$";
+    if (arg) {
+      Pattern = absl::StrFormat(
+          "\\[%s(:[0-9A-F]{1,2})?\\]",
+          absl::StrReplaceAll(Token, {{"[", "\\["}, {"]", "\\]"}}));
+    } else {
+      Pattern = absl::StrFormat(
+          "\\[%s\\]", absl::StrReplaceAll(Token, {{"[", "\\["}, {"]", "\\]"}}));
+    }
+    StrictPattern = absl::StrFormat("^%s$", Pattern);
   }
 
-  std::string GetParameterizedToken(uint8_t value = 0) {
+  std::string GetParamToken(uint8_t value = 0) const {
     if (HasArgument) {
       return absl::StrFormat("[%s:%02X]", Token, value);
     } else {
       return absl::StrFormat("[%s]", Token);
     }
-  }
-
-  std::string ToString() {
-    return absl::StrFormat("%s %s", GenericToken, Description);
   }
 
   std::smatch MatchMe(std::string dfrag) const {
@@ -200,38 +202,61 @@ struct TextElement {
     return match;
   }
 
-  bool Empty() { return ID == 0; }
+  bool Empty() const { return ID == 0; }
 
   // Comparison operator
   bool operator==(const TextElement& other) const { return ID == other.ID; }
 };
 
+const static std::string kWindowBorder = "Window border";
+const static std::string kWindowPosition = "Window position";
+const static std::string kScrollSpeed = "Scroll speed";
+const static std::string kTextDrawSpeed = "Text draw speed";
+const static std::string kTextColor = "Text color";
+const static std::string kPlayerName = "Player name";
+const static std::string kLine1Str = "Line 1";
+const static std::string kLine2Str = "Line 2";
+const static std::string kLine3Str = "Line 3";
+const static std::string kWaitForKey = "Wait for key";
+const static std::string kScrollText = "Scroll text";
+const static std::string kDelayX = "Delay X";
+const static std::string kBCDNumber = "BCD number";
+const static std::string kSoundEffect = "Sound effect";
+const static std::string kChoose3 = "Choose 3";
+const static std::string kChoose2High = "Choose 2 high";
+const static std::string kChoose2Low = "Choose 2 low";
+const static std::string kChoose2Indented = "Choose 2 indented";
+const static std::string kChooseItem = "Choose item";
+const static std::string kNextAttractImage = "Next attract image";
+const static std::string kBankMarker = "Bank marker (automatic)";
+const static std::string kCrash = "Crash";
+
 static const std::vector<TextElement> TextCommands = {
-    TextElement(0x6B, "W", true, "Window border"),
-    TextElement(0x6D, "P", true, "Window position"),
-    TextElement(0x6E, "SPD", true, "Scroll speed"),
-    TextElement(0x7A, "S", true, "Text draw speed"),
-    TextElement(0x77, "C", true, "Text color"),
-    TextElement(0x6A, "L", false, "Player name"),
-    TextElement(0x74, "1", false, "Line 1"),
-    TextElement(0x75, "2", false, "Line 2"),
-    TextElement(0x76, "3", false, "Line 3"),
-    TextElement(0x7E, "K", false, "Wait for key"),
-    TextElement(0x73, "V", false, "Scroll text"),
-    TextElement(0x78, "WT", true, "Delay X"),
-    TextElement(0x6C, "N", true, "BCD number"),
-    TextElement(0x79, "SFX", true, "Sound effect"),
-    TextElement(0x71, "CH3", false, "Choose 3"),
-    TextElement(0x72, "CH2", false, "Choose 2 high"),
-    TextElement(0x6F, "CH2L", false, "Choose 2 low"),
-    TextElement(0x68, "CH2I", false, "Choose 2 indented"),
-    TextElement(0x69, "CHI", false, "Choose item"),
-    TextElement(0x67, "IMG", false, "Next attract image"),
-    TextElement(0x80, BANKToken, false, "Bank marker (automatic)"),
-    TextElement(0x70, "NONO", false, "Crash"),
+    TextElement(0x6B, "W", true, kWindowBorder),
+    TextElement(0x6D, "P", true, kWindowPosition),
+    TextElement(0x6E, "SPD", true, kScrollSpeed),
+    TextElement(0x7A, "S", true, kTextDrawSpeed),
+    TextElement(0x77, "C", true, kTextColor),
+    TextElement(0x6A, "L", false, kPlayerName),
+    TextElement(0x74, "1", false, kLine1Str),
+    TextElement(0x75, "2", false, kLine2Str),
+    TextElement(0x76, "3", false, kLine3Str),
+    TextElement(0x7E, "K", false, kWaitForKey),
+    TextElement(0x73, "V", false, kScrollText),
+    TextElement(0x78, "WT", true, kDelayX),
+    TextElement(0x6C, "N", true, kBCDNumber),
+    TextElement(0x79, "SFX", true, kSoundEffect),
+    TextElement(0x71, "CH3", false, kChoose3),
+    TextElement(0x72, "CH2", false, kChoose2High),
+    TextElement(0x6F, "CH2L", false, kChoose2Low),
+    TextElement(0x68, "CH2I", false, kChoose2Indented),
+    TextElement(0x69, "CHI", false, kChooseItem),
+    TextElement(0x67, "IMG", false, kNextAttractImage),
+    TextElement(0x80, kBankToken, false, kBankMarker),
+    TextElement(0x70, "NONO", false, kCrash),
 };
 
-TextElement FindMatchingCommand(uint8_t b);
+std::optional<TextElement> FindMatchingCommand(uint8_t b);
 
 static const std::vector<TextElement> SpecialChars = {
     TextElement(0x43, "...", false, "Ellipsis …"),
@@ -257,7 +282,7 @@ static const std::vector<TextElement> SpecialChars = {
     TextElement(0x4B, "LFR", false, "Link face right"),
 };
 
-TextElement FindMatchingSpecial(uint8_t b);
+std::optional<TextElement> FindMatchingSpecial(uint8_t b);
 
 struct ParsedElement {
   TextElement Parent;
@@ -265,16 +290,32 @@ struct ParsedElement {
   bool Active = false;
 
   ParsedElement() = default;
-  ParsedElement(TextElement textElement, uint8_t value) {
-    Parent = textElement;
-    Value = value;
-    Active = true;
-  }
+  ParsedElement(const TextElement& textElement, uint8_t value)
+      : Parent(textElement), Value(value), Active(true) {}
 };
 
 ParsedElement FindMatchingElement(const std::string& str);
 
 std::string ParseTextDataByte(uint8_t value);
+
+absl::StatusOr<MessageData> ParseSingleMessage(
+    const std::vector<uint8_t>& rom_data, int* current_pos);
+
+std::vector<std::string> ParseMessageData(
+    std::vector<MessageData>& message_data,
+    const std::vector<DictionaryEntry>& dictionary_entries);
+
+constexpr int kTextData2 = 0x75F40;
+constexpr int kTextData2End = 0x773FF;
+
+// Reads all text data from the ROM and returns a vector of MessageData objects.
+std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos = kTextData);
+
+// Calls the file dialog and loads expanded messages from a BIN file.
+absl::Status LoadExpandedMessages(std::string& expanded_message_path,
+                                  std::vector<std::string>& parsed_messages,
+                                  std::vector<MessageData>& expanded_messages,
+                                  std::vector<DictionaryEntry>& dictionary);
 
 }  // namespace editor
 }  // namespace yaze

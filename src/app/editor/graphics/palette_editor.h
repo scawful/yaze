@@ -6,10 +6,10 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/editor.h"
-#include "app/gfx/snes_palette.h"
+#include "app/editor/graphics/gfx_group_editor.h"
 #include "app/gfx/snes_color.h"
+#include "app/gfx/snes_palette.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 
@@ -17,6 +17,7 @@ namespace yaze {
 namespace editor {
 
 namespace palette_internal {
+
 struct PaletteChange {
   std::string group_name;
   size_t palette_index;
@@ -76,32 +77,36 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded);
  * @class PaletteEditor
  * @brief Allows the user to view and edit in game palettes.
  */
-class PaletteEditor : public SharedRom, public Editor {
+class PaletteEditor : public Editor {
  public:
-  PaletteEditor() {
+  explicit PaletteEditor(Rom* rom = nullptr) : rom_(rom) {
     type_ = EditorType::kPalette;
     custom_palette_.push_back(gfx::SnesColor(0x7FFF));
   }
 
+  void Initialize() override;
+  absl::Status Load() override;
   absl::Status Update() override;
-
   absl::Status Cut() override { return absl::OkStatus(); }
   absl::Status Copy() override { return absl::OkStatus(); }
   absl::Status Paste() override { return absl::OkStatus(); }
   absl::Status Undo() override { return absl::OkStatus(); }
   absl::Status Redo() override { return absl::OkStatus(); }
   absl::Status Find() override { return absl::OkStatus(); }
+  absl::Status Save() override { return absl::UnimplementedError("Save"); }
 
-  void DisplayCategoryTable();
+  void DrawQuickAccessTab();
 
+  void DrawCustomPalette();
+  absl::Status DrawPaletteGroup(int category, bool right_side = false);
   absl::Status EditColorInPalette(gfx::SnesPalette& palette, int index);
   absl::Status ResetColorToOriginal(gfx::SnesPalette& palette, int index,
                                     const gfx::SnesPalette& originalPalette);
-  absl::Status DrawPaletteGroup(int category, bool right_side = false);
 
-  void DrawCustomPalette();
+  void AddRecentlyUsedColor(const gfx::SnesColor& color);
 
-  void DrawModifiedColors();
+  void set_rom(Rom* rom) { rom_ = rom; }
+  Rom* rom() const { return rom_; }
 
  private:
   absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
@@ -112,10 +117,15 @@ class PaletteEditor : public SharedRom, public Editor {
   GfxGroupEditor gfx_group_editor_;
 
   std::vector<gfx::SnesColor> custom_palette_;
+  std::vector<gfx::SnesColor> recently_used_colors_;
+
+  int edit_palette_index_ = -1;
 
   ImVec4 saved_palette_[256] = {};
 
   palette_internal::PaletteEditorHistory history_;
+
+  Rom* rom_;
 };
 
 }  // namespace editor

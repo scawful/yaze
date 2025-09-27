@@ -1,16 +1,12 @@
 #ifndef YAZE_APP_ZELDA3_SCREEN_H
 #define YAZE_APP_ZELDA3_SCREEN_H
 
-#include <cstdint>
-
-
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
 
 namespace yaze {
 namespace zelda3 {
-namespace screen {
 
 class TitleScreen {
  public:
@@ -47,12 +43,12 @@ class TitleScreen {
   int addressesgfx[7] = {0x53ee0, 0x53f04, 0x53ef2, 0x53f16,
                          0x53f28, 0x53f3a, 0x53f4c};
 
-  ushort bossRoom = 0x000F;
-  ushort selected_tile = 0;
-  ushort tilesBG1Buffer[0x1000];  // 0x1000
-  ushort tilesBG2Buffer[0x1000];  // 0x1000
-  uchar mapdata;                  // 64 * 64
-  uchar dwmapdata;                // 64 * 64
+  uint16_t bossRoom = 0x000F;
+  uint16_t selected_tile = 0;
+  uint16_t tilesBG1Buffer[0x1000];  // 0x1000
+  uint16_t tilesBG2Buffer[0x1000];  // 0x1000
+  uint8_t mapdata;                  // 64 * 64
+  uint8_t dwmapdata;                // 64 * 64
 
   bool mDown = false;
   bool swordSelected = false;
@@ -74,9 +70,7 @@ class TitleScreen {
   gfx::Bitmap tiles8Bitmap;    // 0x20000
 };
 
-}  // namespace screen
 }  // namespace zelda3
-
 }  // namespace yaze
 
 #endif  // YAZE_APP_ZELDA3_SCREEN_H

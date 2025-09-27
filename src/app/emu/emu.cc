@@ -11,7 +11,7 @@
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
 #include "absl/status/status.h"
-#include "app/core/utils/sdl_deleter.h"
+#include "app/core/platform/sdl_deleter.h"
 #include "app/emu/snes.h"
 #include "app/rom.h"
 
@@ -22,7 +22,11 @@ int main(int argc, char **argv) {
 
   absl::FailureSignalHandlerOptions options;
   options.symbolize_stacktrace = true;
-  options.alarm_on_failure_secs = true;
+  options.use_alternate_stack =
+      false;  // Disable alternate stack to avoid shutdown conflicts
+  options.alarm_on_failure_secs =
+      false;  // Disable alarm to avoid false positives during SDL cleanup
+  options.call_previous_handler = true;
   absl::InstallFailureSignalHandler(options);
 
   SDL_SetMainReady();
@@ -105,8 +109,8 @@ int main(int argc, char **argv) {
   if (rom_.is_loaded()) {
     rom_data_ = rom_.vector();
     snes_.Init(rom_data_);
-    wanted_frames_ = 1.0 / (snes_.Memory().pal_timing() ? 50.0 : 60.0);
-    wanted_samples_ = 48000 / (snes_.Memory().pal_timing() ? 50 : 60);
+    wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
+    wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
     loaded = true;
   }
 
@@ -118,8 +122,8 @@ int main(int argc, char **argv) {
           if (rom_.is_loaded()) {
             rom_data_ = rom_.vector();
             snes_.Init(rom_data_);
-            wanted_frames_ = 1.0 / (snes_.Memory().pal_timing() ? 50.0 : 60.0);
-            wanted_samples_ = 48000 / (snes_.Memory().pal_timing() ? 50 : 60);
+            wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
+            wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
             loaded = true;
           }
           SDL_free(event.drop.file);
@@ -181,9 +185,9 @@ int main(int argc, char **argv) {
   SDL_PauseAudioDevice(audio_device_, 1);
   SDL_CloseAudioDevice(audio_device_);
   delete[] audio_buffer_;
-  //ImGui_ImplSDLRenderer2_Shutdown();
-  //ImGui_ImplSDL2_Shutdown();
-  //ImGui::DestroyContext();
+  // ImGui_ImplSDLRenderer2_Shutdown();
+  // ImGui_ImplSDL2_Shutdown();
+  // ImGui::DestroyContext();
   SDL_Quit();
 
   return EXIT_SUCCESS;
