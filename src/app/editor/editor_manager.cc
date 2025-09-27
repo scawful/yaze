@@ -753,16 +753,20 @@ absl::Status EditorManager::Update() {
 
   // Check if ROM is loaded before allowing editor updates
   if (!current_editor_set_) {
-    // Show welcome screen when no session is active
-    if (sessions_.empty()) {
-      DrawWelcomeScreen();
+    // Show welcome screen when no session is active, but only if not manually closed
+    if (sessions_.empty() && !welcome_screen_manually_closed_) {
+      show_welcome_screen_ = true;
     }
+    // Don't auto-show here, let the manual control handle it
     return absl::OkStatus();
   }
   
   // Check if current ROM is valid
   if (!current_rom_) {
-    DrawWelcomeScreen();
+    // Only auto-show welcome screen if it hasn't been manually closed
+    if (!welcome_screen_manually_closed_) {
+      show_welcome_screen_ = true;
+    }
     return absl::OkStatus();
   }
   
@@ -779,11 +783,9 @@ absl::Status EditorManager::Update() {
     if (any_editor_active) break;
   }
   
-  // Show welcome screen if no editors are active (ROM loaded but editors not opened)
-  // Only show if explicitly requested to avoid stacking with manual welcome screen
-  if (!any_editor_active && !show_welcome_screen_) {
-    DrawWelcomeScreen();
-    return absl::OkStatus();
+  // Only auto-show welcome screen if no editors are active AND it hasn't been manually closed
+  if (!any_editor_active && !welcome_screen_manually_closed_) {
+    show_welcome_screen_ = true;
   }
   
   // Iterate through ALL sessions to support multi-session docking
@@ -1512,6 +1514,9 @@ absl::Status EditorManager::LoadRom() {
   manager.Save();
   RETURN_IF_ERROR(LoadAssets());
 
+  // Reset welcome screen state when ROM is loaded
+  welcome_screen_manually_closed_ = false;
+
   return absl::OkStatus();
 }
 
@@ -1630,6 +1635,9 @@ absl::Status EditorManager::OpenRomOrProject(const std::string &filename) {
     current_rom_ = &session.rom;
     current_editor_set_ = &session.editors;
     RETURN_IF_ERROR(LoadAssets());
+    
+    // Reset welcome screen state when ROM is loaded
+    welcome_screen_manually_closed_ = false;
   }
   return absl::OkStatus();
 }
@@ -2576,6 +2584,7 @@ void EditorManager::DrawWelcomeScreen() {
   static int welcome_window_id = 0;
   std::string window_name = absl::StrFormat("Welcome to YAZE##welcome_%d", welcome_window_id);
   
+  bool welcome_was_open = show_welcome_screen_;
   if (ImGui::Begin(window_name.c_str(), &show_welcome_screen_, flags)) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 window_pos = ImGui::GetWindowPos();
@@ -2863,6 +2872,11 @@ void EditorManager::DrawWelcomeScreen() {
     }
   }
   ImGui::End();
+  
+  // Check if the welcome screen was manually closed via the close button
+  if (welcome_was_open && !show_welcome_screen_) {
+    welcome_screen_manually_closed_ = true;
+  }
 }
 
 
