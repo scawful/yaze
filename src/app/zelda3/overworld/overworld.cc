@@ -39,7 +39,12 @@ absl::Status Overworld::Load(Rom* rom) {
     map_parent_[map_index] = overworld_maps_[map_index].parent();
   }
 
-  FetchLargeMaps();
+  uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  if (asm_version >= 3) {
+    AssignMapSizes(overworld_maps_);
+  } else {
+    FetchLargeMaps();
+  }
   LoadTileTypes();
   RETURN_IF_ERROR(LoadEntrances());
   RETURN_IF_ERROR(LoadHoles());
@@ -100,6 +105,90 @@ void Overworld::FetchLargeMaps() {
       yy += 1;
       if (yy >= 8) {
         break;
+      }
+    }
+  }
+}
+
+/**
+ * @brief Loads all maps from ROM to see what size they are.
+ * @param maps The maps to update (passed by reference)
+ */
+void Overworld::AssignMapSizes(std::vector<OverworldMap>& maps) {
+  std::vector<bool> map_checked(kNumOverworldMaps, false);
+
+  int xx = 0;
+  int yy = 0;
+  int world = 0;
+
+  while (true) {
+    int i = world + xx + (yy * 8);
+
+    if (i >= static_cast<int>(map_checked.size())) {
+      break;
+    }
+
+    if (!map_checked[i]) {
+      switch (maps[i].area_size()) {
+        case AreaSizeEnum::SmallArea:
+          map_checked[i] = true;
+          maps[i].SetAreaSize(AreaSizeEnum::SmallArea);
+          break;
+
+        case AreaSizeEnum::LargeArea:
+          map_checked[i] = true;
+          maps[i].SetAsLargeMap(i, 0);
+
+          if (i + 1 < static_cast<int>(maps.size())) {
+            map_checked[i + 1] = true;
+            maps[i + 1].SetAsLargeMap(i, 1);
+          }
+
+          if (i + 8 < static_cast<int>(maps.size())) {
+            map_checked[i + 8] = true;
+            maps[i + 8].SetAsLargeMap(i, 2);
+          }
+
+          if (i + 9 < static_cast<int>(maps.size())) {
+            map_checked[i + 9] = true;
+            maps[i + 9].SetAsLargeMap(i, 3);
+          }
+
+          xx++;
+          break;
+
+        case AreaSizeEnum::WideArea:
+          map_checked[i] = true;
+          maps[i].SetAreaSize(AreaSizeEnum::WideArea);
+
+          if (i + 1 < static_cast<int>(maps.size())) {
+            map_checked[i + 1] = true;
+            maps[i + 1].SetAreaSize(AreaSizeEnum::WideArea);
+          }
+
+          xx++;
+          break;
+
+        case AreaSizeEnum::TallArea:
+          map_checked[i] = true;
+          maps[i].SetAreaSize(AreaSizeEnum::TallArea);
+
+          if (i + 8 < static_cast<int>(maps.size())) {
+            map_checked[i + 8] = true;
+            maps[i + 8].SetAreaSize(AreaSizeEnum::TallArea);
+          }
+          break;
+      }
+    }
+
+    xx++;
+    if (xx >= 8) {
+      xx = 0;
+      yy += 1;
+
+      if (yy >= 8) {
+        yy = 0;
+        world += 0x40;
       }
     }
   }
@@ -443,7 +532,8 @@ absl::Status Overworld::LoadItems() {
 
   // Determine max number of overworld maps based on actual ASM version
   // Only use expanded maps (0xA0) if v3+ ASM is actually applied
-  int max_ow = (asm_version >= 0x03 && asm_version != 0xFF) ? kNumOverworldMaps : 0x80;
+  int max_ow =
+      (asm_version >= 0x03 && asm_version != 0xFF) ? kNumOverworldMaps : 0x80;
 
   ASSIGN_OR_RETURN(uint32_t pointer_snes,
                    rom()->ReadLong(zelda3::overworldItemsAddress));
@@ -745,16 +835,16 @@ absl::Status Overworld::SaveOverworldMaps() {
 
 absl::Status Overworld::SaveLargeMaps() {
   util::logf("Saving Large Maps");
-  
+
   // Check if this is a v3+ ROM to use expanded transition system
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   bool use_expanded_transitions = (asm_version >= 3 && asm_version != 0xFF);
-  
+
   if (use_expanded_transitions) {
     // Use new v3+ complex transition system with neighbor awareness
     return SaveLargeMapsExpanded();
   }
-  
+
   // Original vanilla/v2 logic preserved
   std::vector<uint8_t> checked_map;
 
@@ -1073,123 +1163,143 @@ absl::Status Overworld::SaveLargeMaps() {
   return absl::OkStatus();
 }
 
-absl::Status Overworld::SaveSmallAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
-                                                 int transition_target_north, int transition_target_west,
-                                                 int transition_pos_x, int transition_pos_y,
-                                                 int screen_change_1, int screen_change_2,
-                                                 int screen_change_3, int screen_change_4) {
+absl::Status Overworld::SaveSmallAreaTransitions(
+    int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
+    int transition_target_west, int transition_pos_x, int transition_pos_y,
+    int screen_change_1, int screen_change_2, int screen_change_3,
+    int screen_change_4) {
   // Set basic transition targets
-  RETURN_IF_ERROR(rom()->WriteShort(transition_target_north + (i * 2),
-                                   (uint16_t)((parent_y_pos * 0x0200) - 0x00E0)));
-  RETURN_IF_ERROR(rom()->WriteShort(transition_target_west + (i * 2),
-                                   (uint16_t)((parent_x_pos * 0x0200) - 0x0100)));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(transition_target_north + (i * 2),
+                        (uint16_t)((parent_y_pos * 0x0200) - 0x00E0)));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(transition_target_west + (i * 2),
+                        (uint16_t)((parent_x_pos * 0x0200) - 0x0100)));
 
-  RETURN_IF_ERROR(rom()->WriteShort(transition_pos_x + (i * 2), parent_x_pos * 0x0200));
-  RETURN_IF_ERROR(rom()->WriteShort(transition_pos_y + (i * 2), parent_y_pos * 0x0200));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(transition_pos_x + (i * 2), parent_x_pos * 0x0200));
+  RETURN_IF_ERROR(
+      rom()->WriteShort(transition_pos_y + (i * 2), parent_y_pos * 0x0200));
 
   // byScreen1 = Transitioning right
   uint16_t by_screen1_small = 0x0060;
-  
+
   // Check west neighbor for transition adjustments
   if ((i % 0x40) - 1 >= 0) {
     auto& west_neighbor = overworld_maps_[i - 1];
-    
+
     // Transition from bottom right quadrant of large area to small area
-    if (west_neighbor.area_size() == AreaSizeEnum::LargeArea && west_neighbor.large_index() == 3) {
+    if (west_neighbor.area_size() == AreaSizeEnum::LargeArea &&
+        west_neighbor.large_index() == 3) {
       by_screen1_small = 0xF060;
     }
-    // Transition from bottom quadrant of tall area to small area  
-    else if (west_neighbor.area_size() == AreaSizeEnum::TallArea && west_neighbor.large_index() == 2) {
+    // Transition from bottom quadrant of tall area to small area
+    else if (west_neighbor.area_size() == AreaSizeEnum::TallArea &&
+             west_neighbor.large_index() == 2) {
       by_screen1_small = 0xF060;
     }
   }
-  
-  RETURN_IF_ERROR(rom()->WriteShort(screen_change_1 + (i * 2), by_screen1_small));
+
+  RETURN_IF_ERROR(
+      rom()->WriteShort(screen_change_1 + (i * 2), by_screen1_small));
 
   // byScreen2 = Transitioning left
   uint16_t by_screen2_small = 0x0040;
-  
+
   // Check east neighbor for transition adjustments
   if ((i % 0x40) + 1 < 0x40 && i + 1 < kNumOverworldMaps) {
     auto& east_neighbor = overworld_maps_[i + 1];
-    
+
     // Transition from bottom left quadrant of large area to small area
-    if (east_neighbor.area_size() == AreaSizeEnum::LargeArea && east_neighbor.large_index() == 2) {
+    if (east_neighbor.area_size() == AreaSizeEnum::LargeArea &&
+        east_neighbor.large_index() == 2) {
       by_screen2_small = 0xF040;
     }
     // Transition from bottom quadrant of tall area to small area
-    else if (east_neighbor.area_size() == AreaSizeEnum::TallArea && east_neighbor.large_index() == 2) {
+    else if (east_neighbor.area_size() == AreaSizeEnum::TallArea &&
+             east_neighbor.large_index() == 2) {
       by_screen2_small = 0xF040;
     }
   }
-  
-  RETURN_IF_ERROR(rom()->WriteShort(screen_change_2 + (i * 2), by_screen2_small));
+
+  RETURN_IF_ERROR(
+      rom()->WriteShort(screen_change_2 + (i * 2), by_screen2_small));
 
   // byScreen3 = Transitioning down
   uint16_t by_screen3_small = 0x1800;
-  
+
   // Check north neighbor for transition adjustments
   if ((i % 0x40) - 8 >= 0) {
     auto& north_neighbor = overworld_maps_[i - 8];
-    
+
     // Transition from bottom right quadrant of large area to small area
-    if (north_neighbor.area_size() == AreaSizeEnum::LargeArea && north_neighbor.large_index() == 3) {
+    if (north_neighbor.area_size() == AreaSizeEnum::LargeArea &&
+        north_neighbor.large_index() == 3) {
       by_screen3_small = 0x17C0;
     }
     // Transition from right quadrant of wide area to small area
-    else if (north_neighbor.area_size() == AreaSizeEnum::WideArea && north_neighbor.large_index() == 1) {
+    else if (north_neighbor.area_size() == AreaSizeEnum::WideArea &&
+             north_neighbor.large_index() == 1) {
       by_screen3_small = 0x17C0;
     }
   }
-  
-  RETURN_IF_ERROR(rom()->WriteShort(screen_change_3 + (i * 2), by_screen3_small));
+
+  RETURN_IF_ERROR(
+      rom()->WriteShort(screen_change_3 + (i * 2), by_screen3_small));
 
   // byScreen4 = Transitioning up
   uint16_t by_screen4_small = 0x1000;
-  
+
   // Check south neighbor for transition adjustments
   if ((i % 0x40) + 8 < 0x40 && i + 8 < kNumOverworldMaps) {
     auto& south_neighbor = overworld_maps_[i + 8];
-    
+
     // Transition from top right quadrant of large area to small area
-    if (south_neighbor.area_size() == AreaSizeEnum::LargeArea && south_neighbor.large_index() == 1) {
+    if (south_neighbor.area_size() == AreaSizeEnum::LargeArea &&
+        south_neighbor.large_index() == 1) {
       by_screen4_small = 0x0FC0;
     }
     // Transition from right quadrant of wide area to small area
-    else if (south_neighbor.area_size() == AreaSizeEnum::WideArea && south_neighbor.large_index() == 1) {
+    else if (south_neighbor.area_size() == AreaSizeEnum::WideArea &&
+             south_neighbor.large_index() == 1) {
       by_screen4_small = 0x0FC0;
     }
   }
-  
-  RETURN_IF_ERROR(rom()->WriteShort(screen_change_4 + (i * 2), by_screen4_small));
+
+  RETURN_IF_ERROR(
+      rom()->WriteShort(screen_change_4 + (i * 2), by_screen4_small));
 
   return absl::OkStatus();
 }
 
-absl::Status Overworld::SaveLargeAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
-                                                 int transition_target_north, int transition_target_west,
-                                                 int transition_pos_x, int transition_pos_y,
-                                                 int screen_change_1, int screen_change_2,
-                                                 int screen_change_3, int screen_change_4) {
+absl::Status Overworld::SaveLargeAreaTransitions(
+    int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
+    int transition_target_west, int transition_pos_x, int transition_pos_y,
+    int screen_change_1, int screen_change_2, int screen_change_3,
+    int screen_change_4) {
   // Set transition targets for all 4 quadrants
   const uint16_t offsets[] = {0, 2, 16, 18};
   for (auto offset : offsets) {
-    RETURN_IF_ERROR(rom()->WriteShort(transition_target_north + (i * 2) + offset,
-                                     (uint16_t)((parent_y_pos * 0x0200) - 0x00E0)));
-    RETURN_IF_ERROR(rom()->WriteShort(transition_target_west + (i * 2) + offset,
-                                     (uint16_t)((parent_x_pos * 0x0200) - 0x0100)));
-    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_x + (i * 2) + offset, parent_x_pos * 0x0200));
-    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_y + (i * 2) + offset, parent_y_pos * 0x0200));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(transition_target_north + (i * 2) + offset,
+                          (uint16_t)((parent_y_pos * 0x0200) - 0x00E0)));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(transition_target_west + (i * 2) + offset,
+                          (uint16_t)((parent_x_pos * 0x0200) - 0x0100)));
+    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_x + (i * 2) + offset,
+                                      parent_x_pos * 0x0200));
+    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_y + (i * 2) + offset,
+                                      parent_y_pos * 0x0200));
   }
 
   // Complex neighbor-aware transition calculations for large areas
   // byScreen1 = Transitioning right
   std::array<uint16_t, 4> by_screen1_large = {0x0060, 0x0060, 0x1060, 0x1060};
-  
+
   // Check west neighbor
   if ((i % 0x40) - 1 >= 0) {
     auto& west_neighbor = overworld_maps_[i - 1];
-    
+
     if (west_neighbor.area_size() == AreaSizeEnum::LargeArea) {
       switch (west_neighbor.large_index()) {
         case 1:  // From bottom right to bottom left of large area
@@ -1210,18 +1320,19 @@ absl::Status Overworld::SaveLargeAreaTransitions(int i, int parent_x_pos, int pa
       }
     }
   }
-  
+
   for (int j = 0; j < 4; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_1 + (i * 2) + offsets[j], by_screen1_large[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_1 + (i * 2) + offsets[j],
+                                      by_screen1_large[j]));
   }
 
   // byScreen2 = Transitioning left
   std::array<uint16_t, 4> by_screen2_large = {0x0080, 0x0080, 0x1080, 0x1080};
-  
+
   // Check east neighbor
   if ((i % 0x40) + 2 < 0x40 && i + 2 < kNumOverworldMaps) {
     auto& east_neighbor = overworld_maps_[i + 2];
-    
+
     if (east_neighbor.area_size() == AreaSizeEnum::LargeArea) {
       switch (east_neighbor.large_index()) {
         case 0:  // From bottom left to bottom right of large area
@@ -1242,18 +1353,19 @@ absl::Status Overworld::SaveLargeAreaTransitions(int i, int parent_x_pos, int pa
       }
     }
   }
-  
+
   for (int j = 0; j < 4; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_2 + (i * 2) + offsets[j], by_screen2_large[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_2 + (i * 2) + offsets[j],
+                                      by_screen2_large[j]));
   }
 
   // byScreen3 = Transitioning down
   std::array<uint16_t, 4> by_screen3_large = {0x1800, 0x1840, 0x1800, 0x1840};
-  
+
   // Check north neighbor
   if ((i % 0x40) - 8 >= 0) {
     auto& north_neighbor = overworld_maps_[i - 8];
-    
+
     if (north_neighbor.area_size() == AreaSizeEnum::LargeArea) {
       switch (north_neighbor.large_index()) {
         case 2:  // From bottom right to top right of large area
@@ -1274,18 +1386,19 @@ absl::Status Overworld::SaveLargeAreaTransitions(int i, int parent_x_pos, int pa
       }
     }
   }
-  
+
   for (int j = 0; j < 4; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_3 + (i * 2) + offsets[j], by_screen3_large[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_3 + (i * 2) + offsets[j],
+                                      by_screen3_large[j]));
   }
 
   // byScreen4 = Transitioning up
   std::array<uint16_t, 4> by_screen4_large = {0x2000, 0x2040, 0x2000, 0x2040};
-  
+
   // Check south neighbor
   if ((i % 0x40) + 16 < 0x40 && i + 16 < kNumOverworldMaps) {
     auto& south_neighbor = overworld_maps_[i + 16];
-    
+
     if (south_neighbor.area_size() == AreaSizeEnum::LargeArea) {
       switch (south_neighbor.large_index()) {
         case 0:  // From top right to bottom right of large area
@@ -1306,79 +1419,90 @@ absl::Status Overworld::SaveLargeAreaTransitions(int i, int parent_x_pos, int pa
       }
     }
   }
-  
+
   for (int j = 0; j < 4; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_4 + (i * 2) + offsets[j], by_screen4_large[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_4 + (i * 2) + offsets[j],
+                                      by_screen4_large[j]));
   }
 
   return absl::OkStatus();
 }
 
-absl::Status Overworld::SaveWideAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
-                                               int transition_target_north, int transition_target_west,
-                                               int transition_pos_x, int transition_pos_y,
-                                               int screen_change_1, int screen_change_2,
-                                               int screen_change_3, int screen_change_4) {
+absl::Status Overworld::SaveWideAreaTransitions(
+    int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
+    int transition_target_west, int transition_pos_x, int transition_pos_y,
+    int screen_change_1, int screen_change_2, int screen_change_3,
+    int screen_change_4) {
   // Set transition targets for both quadrants
   const uint16_t offsets[] = {0, 2};
   for (auto offset : offsets) {
-    RETURN_IF_ERROR(rom()->WriteShort(transition_target_north + (i * 2) + offset,
-                                     (uint16_t)((parent_y_pos * 0x0200) - 0x00E0)));
-    RETURN_IF_ERROR(rom()->WriteShort(transition_target_west + (i * 2) + offset,
-                                     (uint16_t)((parent_x_pos * 0x0200) - 0x0100)));
-    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_x + (i * 2) + offset, parent_x_pos * 0x0200));
-    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_y + (i * 2) + offset, parent_y_pos * 0x0200));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(transition_target_north + (i * 2) + offset,
+                          (uint16_t)((parent_y_pos * 0x0200) - 0x00E0)));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(transition_target_west + (i * 2) + offset,
+                          (uint16_t)((parent_x_pos * 0x0200) - 0x0100)));
+    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_x + (i * 2) + offset,
+                                      parent_x_pos * 0x0200));
+    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_y + (i * 2) + offset,
+                                      parent_y_pos * 0x0200));
   }
 
   // byScreen1 = Transitioning right
   std::array<uint16_t, 2> by_screen1_wide = {0x0060, 0x0060};
-  
+
   // Check west neighbor
   if ((i % 0x40) - 1 >= 0) {
     auto& west_neighbor = overworld_maps_[i - 1];
-    
+
     // From bottom right of large to left of wide
-    if (west_neighbor.area_size() == AreaSizeEnum::LargeArea && west_neighbor.large_index() == 3) {
+    if (west_neighbor.area_size() == AreaSizeEnum::LargeArea &&
+        west_neighbor.large_index() == 3) {
       by_screen1_wide[0] = 0xF060;
     }
     // From bottom of tall to left of wide
-    else if (west_neighbor.area_size() == AreaSizeEnum::TallArea && west_neighbor.large_index() == 2) {
+    else if (west_neighbor.area_size() == AreaSizeEnum::TallArea &&
+             west_neighbor.large_index() == 2) {
       by_screen1_wide[0] = 0xF060;
     }
   }
-  
+
   for (int j = 0; j < 2; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_1 + (i * 2) + offsets[j], by_screen1_wide[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_1 + (i * 2) + offsets[j],
+                                      by_screen1_wide[j]));
   }
 
   // byScreen2 = Transitioning left
   std::array<uint16_t, 2> by_screen2_wide = {0x0080, 0x0080};
-  
+
   // Check east neighbor
   if ((i % 0x40) + 2 < 0x40 && i + 2 < kNumOverworldMaps) {
     auto& east_neighbor = overworld_maps_[i + 2];
-    
+
     // From bottom left of large to right of wide
-    if (east_neighbor.area_size() == AreaSizeEnum::LargeArea && east_neighbor.large_index() == 2) {
+    if (east_neighbor.area_size() == AreaSizeEnum::LargeArea &&
+        east_neighbor.large_index() == 2) {
       by_screen2_wide[1] = 0xF080;
     }
     // From bottom of tall to right of wide
-    else if (east_neighbor.area_size() == AreaSizeEnum::TallArea && east_neighbor.large_index() == 2) {
+    else if (east_neighbor.area_size() == AreaSizeEnum::TallArea &&
+             east_neighbor.large_index() == 2) {
       by_screen2_wide[1] = 0xF080;
     }
   }
-  
+
   for (int j = 0; j < 2; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_2 + (i * 2) + offsets[j], by_screen2_wide[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_2 + (i * 2) + offsets[j],
+                                      by_screen2_wide[j]));
   }
 
-  // byScreen3 = Transitioning down  
+  // byScreen3 = Transitioning down
   std::array<uint16_t, 2> by_screen3_wide = {0x1800, 0x1840};
-  
+
   // Check north neighbor
   if ((i % 0x40) - 8 >= 0) {
     auto& north_neighbor = overworld_maps_[i - 8];
-    
+
     if (north_neighbor.area_size() == AreaSizeEnum::LargeArea) {
       switch (north_neighbor.large_index()) {
         case 2:  // From bottom right of large to right of wide
@@ -1399,18 +1523,19 @@ absl::Status Overworld::SaveWideAreaTransitions(int i, int parent_x_pos, int par
       }
     }
   }
-  
+
   for (int j = 0; j < 2; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_3 + (i * 2) + offsets[j], by_screen3_wide[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_3 + (i * 2) + offsets[j],
+                                      by_screen3_wide[j]));
   }
 
   // byScreen4 = Transitioning up
   std::array<uint16_t, 2> by_screen4_wide = {0x1000, 0x1040};
-  
+
   // Check south neighbor
   if ((i % 0x40) + 8 < 0x40 && i + 8 < kNumOverworldMaps) {
     auto& south_neighbor = overworld_maps_[i + 8];
-    
+
     if (south_neighbor.area_size() == AreaSizeEnum::LargeArea) {
       switch (south_neighbor.large_index()) {
         case 0:  // From top right of large to right of wide
@@ -1434,37 +1559,42 @@ absl::Status Overworld::SaveWideAreaTransitions(int i, int parent_x_pos, int par
       }
     }
   }
-  
+
   for (int j = 0; j < 2; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_4 + (i * 2) + offsets[j], by_screen4_wide[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_4 + (i * 2) + offsets[j],
+                                      by_screen4_wide[j]));
   }
 
   return absl::OkStatus();
 }
 
-absl::Status Overworld::SaveTallAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
-                                               int transition_target_north, int transition_target_west,
-                                               int transition_pos_x, int transition_pos_y,
-                                               int screen_change_1, int screen_change_2,
-                                               int screen_change_3, int screen_change_4) {
+absl::Status Overworld::SaveTallAreaTransitions(
+    int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
+    int transition_target_west, int transition_pos_x, int transition_pos_y,
+    int screen_change_1, int screen_change_2, int screen_change_3,
+    int screen_change_4) {
   // Set transition targets for both quadrants
   const uint16_t offsets[] = {0, 16};
   for (auto offset : offsets) {
-    RETURN_IF_ERROR(rom()->WriteShort(transition_target_north + (i * 2) + offset,
-                                     (uint16_t)((parent_y_pos * 0x0200) - 0x00E0)));
-    RETURN_IF_ERROR(rom()->WriteShort(transition_target_west + (i * 2) + offset,
-                                     (uint16_t)((parent_x_pos * 0x0200) - 0x0100)));
-    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_x + (i * 2) + offset, parent_x_pos * 0x0200));
-    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_y + (i * 2) + offset, parent_y_pos * 0x0200));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(transition_target_north + (i * 2) + offset,
+                          (uint16_t)((parent_y_pos * 0x0200) - 0x00E0)));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(transition_target_west + (i * 2) + offset,
+                          (uint16_t)((parent_x_pos * 0x0200) - 0x0100)));
+    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_x + (i * 2) + offset,
+                                      parent_x_pos * 0x0200));
+    RETURN_IF_ERROR(rom()->WriteShort(transition_pos_y + (i * 2) + offset,
+                                      parent_y_pos * 0x0200));
   }
 
   // byScreen1 = Transitioning right
   std::array<uint16_t, 2> by_screen1_tall = {0x0060, 0x1060};
-  
+
   // Check west neighbor
   if ((i % 0x40) - 1 >= 0) {
     auto& west_neighbor = overworld_maps_[i - 1];
-    
+
     if (west_neighbor.area_size() == AreaSizeEnum::LargeArea) {
       switch (west_neighbor.large_index()) {
         case 1:  // From bottom right of large to bottom of tall
@@ -1485,18 +1615,19 @@ absl::Status Overworld::SaveTallAreaTransitions(int i, int parent_x_pos, int par
       }
     }
   }
-  
+
   for (int j = 0; j < 2; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_1 + (i * 2) + offsets[j], by_screen1_tall[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_1 + (i * 2) + offsets[j],
+                                      by_screen1_tall[j]));
   }
 
   // byScreen2 = Transitioning left
   std::array<uint16_t, 2> by_screen2_tall = {0x0040, 0x1040};
-  
+
   // Check east neighbor
   if ((i % 0x40) + 1 < 0x40 && i + 1 < kNumOverworldMaps) {
     auto& east_neighbor = overworld_maps_[i + 1];
-    
+
     if (east_neighbor.area_size() == AreaSizeEnum::LargeArea) {
       switch (east_neighbor.large_index()) {
         case 0:  // From bottom left of large to bottom of tall
@@ -1517,51 +1648,58 @@ absl::Status Overworld::SaveTallAreaTransitions(int i, int parent_x_pos, int par
       }
     }
   }
-  
+
   for (int j = 0; j < 2; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_2 + (i * 2) + offsets[j], by_screen2_tall[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_2 + (i * 2) + offsets[j],
+                                      by_screen2_tall[j]));
   }
 
   // byScreen3 = Transitioning down
   std::array<uint16_t, 2> by_screen3_tall = {0x1800, 0x1800};
-  
+
   // Check north neighbor
   if ((i % 0x40) - 8 >= 0) {
     auto& north_neighbor = overworld_maps_[i - 8];
-    
+
     // From bottom right of large to top of tall
-    if (north_neighbor.area_size() == AreaSizeEnum::LargeArea && north_neighbor.large_index() == 3) {
+    if (north_neighbor.area_size() == AreaSizeEnum::LargeArea &&
+        north_neighbor.large_index() == 3) {
       by_screen3_tall[0] = 0x17C0;
     }
     // From right of wide to top of tall
-    else if (north_neighbor.area_size() == AreaSizeEnum::WideArea && north_neighbor.large_index() == 1) {
+    else if (north_neighbor.area_size() == AreaSizeEnum::WideArea &&
+             north_neighbor.large_index() == 1) {
       by_screen3_tall[0] = 0x17C0;
     }
   }
-  
+
   for (int j = 0; j < 2; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_3 + (i * 2) + offsets[j], by_screen3_tall[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_3 + (i * 2) + offsets[j],
+                                      by_screen3_tall[j]));
   }
 
   // byScreen4 = Transitioning up
   std::array<uint16_t, 2> by_screen4_tall = {0x2000, 0x2000};
-  
+
   // Check south neighbor
   if ((i % 0x40) + 16 < 0x40 && i + 16 < kNumOverworldMaps) {
     auto& south_neighbor = overworld_maps_[i + 16];
-    
+
     // From top right of large to bottom of tall
-    if (south_neighbor.area_size() == AreaSizeEnum::LargeArea && south_neighbor.large_index() == 1) {
+    if (south_neighbor.area_size() == AreaSizeEnum::LargeArea &&
+        south_neighbor.large_index() == 1) {
       by_screen4_tall[1] = 0x1FC0;
     }
     // From right of wide to bottom of tall
-    else if (south_neighbor.area_size() == AreaSizeEnum::WideArea && south_neighbor.large_index() == 1) {
+    else if (south_neighbor.area_size() == AreaSizeEnum::WideArea &&
+             south_neighbor.large_index() == 1) {
       by_screen4_tall[1] = 0x1FC0;
     }
   }
-  
+
   for (int j = 0; j < 2; j++) {
-    RETURN_IF_ERROR(rom()->WriteShort(screen_change_4 + (i * 2) + offsets[j], by_screen4_tall[j]));
+    RETURN_IF_ERROR(rom()->WriteShort(screen_change_4 + (i * 2) + offsets[j],
+                                      by_screen4_tall[j]));
   }
 
   return absl::OkStatus();
@@ -1569,7 +1707,7 @@ absl::Status Overworld::SaveTallAreaTransitions(int i, int parent_x_pos, int par
 
 absl::Status Overworld::SaveLargeMapsExpanded() {
   util::logf("Saving Large Maps (v3+ Expanded)");
-  
+
   // Use expanded memory locations for v3+
   int transition_target_north = zelda3::transition_target_northExpanded;
   int transition_target_west = zelda3::transition_target_westExpanded;
@@ -1585,7 +1723,8 @@ absl::Status Overworld::SaveLargeMapsExpanded() {
   // Process all overworld maps (0xA0 for v3)
   for (int i = 0; i < kNumOverworldMaps; ++i) {
     // Skip if this map was already processed as part of a multi-area structure
-    if (std::find(checked_map.begin(), checked_map.end(), i) != checked_map.end()) {
+    if (std::find(checked_map.begin(), checked_map.end(), i) !=
+        checked_map.end()) {
       continue;
     }
 
@@ -1599,20 +1738,20 @@ absl::Status Overworld::SaveLargeMapsExpanded() {
     // Handle transitions based on area size
     switch (overworld_maps_[i].area_size()) {
       case AreaSizeEnum::SmallArea:
-        RETURN_IF_ERROR(SaveSmallAreaTransitions(i, parent_x_pos, parent_y_pos, 
-                                                transition_target_north, transition_target_west,
-                                                transition_pos_x, transition_pos_y,
-                                                screen_change_1, screen_change_2, 
-                                                screen_change_3, screen_change_4));
+        RETURN_IF_ERROR(SaveSmallAreaTransitions(
+            i, parent_x_pos, parent_y_pos, transition_target_north,
+            transition_target_west, transition_pos_x, transition_pos_y,
+            screen_change_1, screen_change_2, screen_change_3,
+            screen_change_4));
         checked_map.emplace_back(i);
         break;
 
       case AreaSizeEnum::LargeArea:
-        RETURN_IF_ERROR(SaveLargeAreaTransitions(i, parent_x_pos, parent_y_pos,
-                                                transition_target_north, transition_target_west,
-                                                transition_pos_x, transition_pos_y,
-                                                screen_change_1, screen_change_2,
-                                                screen_change_3, screen_change_4));
+        RETURN_IF_ERROR(SaveLargeAreaTransitions(
+            i, parent_x_pos, parent_y_pos, transition_target_north,
+            transition_target_west, transition_pos_x, transition_pos_y,
+            screen_change_1, screen_change_2, screen_change_3,
+            screen_change_4));
         // Mark all 4 quadrants as processed
         checked_map.emplace_back(i);
         checked_map.emplace_back(i + 1);
@@ -1621,22 +1760,22 @@ absl::Status Overworld::SaveLargeMapsExpanded() {
         break;
 
       case AreaSizeEnum::WideArea:
-        RETURN_IF_ERROR(SaveWideAreaTransitions(i, parent_x_pos, parent_y_pos,
-                                               transition_target_north, transition_target_west,
-                                               transition_pos_x, transition_pos_y,
-                                               screen_change_1, screen_change_2,
-                                               screen_change_3, screen_change_4));
+        RETURN_IF_ERROR(SaveWideAreaTransitions(
+            i, parent_x_pos, parent_y_pos, transition_target_north,
+            transition_target_west, transition_pos_x, transition_pos_y,
+            screen_change_1, screen_change_2, screen_change_3,
+            screen_change_4));
         // Mark both horizontal quadrants as processed
         checked_map.emplace_back(i);
         checked_map.emplace_back(i + 1);
         break;
 
       case AreaSizeEnum::TallArea:
-        RETURN_IF_ERROR(SaveTallAreaTransitions(i, parent_x_pos, parent_y_pos,
-                                               transition_target_north, transition_target_west,
-                                               transition_pos_x, transition_pos_y,
-                                               screen_change_1, screen_change_2,
-                                               screen_change_3, screen_change_4));
+        RETURN_IF_ERROR(SaveTallAreaTransitions(
+            i, parent_x_pos, parent_y_pos, transition_target_north,
+            transition_target_west, transition_pos_x, transition_pos_y,
+            screen_change_1, screen_change_2, screen_change_3,
+            screen_change_4));
         // Mark both vertical quadrants as processed
         checked_map.emplace_back(i);
         checked_map.emplace_back(i + 8);
@@ -2170,7 +2309,7 @@ absl::Status Overworld::SaveMap16Tiles() {
 
 absl::Status Overworld::SaveEntrances() {
   util::logf("Saving Entrances");
-  
+
   // Use expanded entrance tables if available
   if (expanded_entrances_) {
     for (int i = 0; i < kNumOverworldEntrances; i++) {
@@ -2206,10 +2345,10 @@ absl::Status Overworld::SaveEntrances() {
 
 absl::Status Overworld::SaveExits() {
   util::logf("Saving Exits");
-  
-  // ASM version 0x03 added SW support and the exit leading to Zora's Domain specifically 
+
+  // ASM version 0x03 added SW support and the exit leading to Zora's Domain specifically
   // needs to be updated because its camera values are incorrect.
-  // We only update it if it was a vanilla ROM though because we don't know if the 
+  // We only update it if it was a vanilla ROM though because we don't know if the
   // user has already adjusted it or not.
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
   if (asm_version == 0x00) {
@@ -2219,7 +2358,7 @@ absl::Status Overworld::SaveExits() {
     //   all_exits_[0x4D].SpecialUpdatePosition();
     // }
   }
-  
+
   for (int i = 0; i < kNumOverworldExits; i++) {
     RETURN_IF_ERROR(
         rom()->WriteShort(OWExitRoomId + (i * 2), all_exits_[i].room_id_));
@@ -2360,24 +2499,24 @@ absl::Status Overworld::SaveItems() {
 
 absl::Status Overworld::SaveMapOverlays() {
   util::logf("Saving Map Overlays");
-  
+
   // Generate the new overlay code that handles interactive overlays
   std::vector<uint8_t> new_overlay_code = {
-    0xC2, 0x30,         // REP #$30
-    0xA5, 0x8A,         // LDA $8A
-    0x0A, 0x18,         // ASL : CLC
-    0x65, 0x8A,         // ADC $8A
-    0xAA,               // TAX
-    0xBF, 0x00, 0x00, 0x00,  // LDA, X
-    0x85, 0x00,         // STA $00
-    0xBF, 0x00, 0x00, 0x00,  // LDA, X +2
-    0x85, 0x02,         // STA $02
-    0x4B,               // PHK
-    0xF4, 0x00, 0x00,   // This position +3 ?
-    0xDC, 0x00, 0x00,   // JML [$00 00]
-    0xE2, 0x30,         // SEP #$30
-    0xAB,               // PLB
-    0x6B,               // RTL
+      0xC2, 0x30,              // REP #$30
+      0xA5, 0x8A,              // LDA $8A
+      0x0A, 0x18,              // ASL : CLC
+      0x65, 0x8A,              // ADC $8A
+      0xAA,                    // TAX
+      0xBF, 0x00, 0x00, 0x00,  // LDA, X
+      0x85, 0x00,              // STA $00
+      0xBF, 0x00, 0x00, 0x00,  // LDA, X +2
+      0x85, 0x02,              // STA $02
+      0x4B,                    // PHK
+      0xF4, 0x00, 0x00,        // This position +3 ?
+      0xDC, 0x00, 0x00,        // JML [$00 00]
+      0xE2, 0x30,              // SEP #$30
+      0xAB,                    // PLB
+      0x6B,                    // RTL
   };
 
   // Write overlay code to ROM
@@ -2399,7 +2538,7 @@ absl::Status Overworld::SaveMapOverlays() {
   constexpr int kExpandedOverlaySpace = 0x120000;
   int pos = kExpandedOverlaySpace;
   int ptr_pos = kOverlayCodeStart + 32;
-  
+
   for (int i = 0; i < kNumOverworldMaps; i++) {
     int snes_addr = PcToSnes(pos);
     RETURN_IF_ERROR(rom()->WriteLong(ptr_pos, snes_addr & 0xFFFFFF));
@@ -2412,7 +2551,8 @@ absl::Status Overworld::SaveMapOverlays() {
         if (t + 2 < overlay_data.size()) {
           // Generate LDA/STA sequence for each overlay tile
           RETURN_IF_ERROR(rom()->WriteByte(pos, 0xA9));  // LDA #$
-          RETURN_IF_ERROR(rom()->WriteShort(pos + 1, overlay_data[t] | (overlay_data[t + 1] << 8)));
+          RETURN_IF_ERROR(rom()->WriteShort(
+              pos + 1, overlay_data[t] | (overlay_data[t + 1] << 8)));
           pos += 3;
 
           RETURN_IF_ERROR(rom()->WriteByte(pos, 0x8D));  // STA $xxxx
@@ -2431,37 +2571,46 @@ absl::Status Overworld::SaveMapOverlays() {
 
 absl::Status Overworld::SaveOverworldTilesType() {
   util::logf("Saving Overworld Tiles Types");
-  
+
   for (int i = 0; i < kNumTileTypes; i++) {
-    RETURN_IF_ERROR(rom()->WriteByte(overworldTilesType + i, all_tiles_types_[i]));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(overworldTilesType + i, all_tiles_types_[i]));
   }
 
   return absl::OkStatus();
 }
 
-absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color, bool enable_main_palette,
-                                               bool enable_mosaic, bool enable_gfx_groups,
-                                               bool enable_subscreen_overlay, bool enable_animated) {
+absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color,
+                                               bool enable_main_palette,
+                                               bool enable_mosaic,
+                                               bool enable_gfx_groups,
+                                               bool enable_subscreen_overlay,
+                                               bool enable_animated) {
   util::logf("Applying Custom Overworld ASM");
 
   // Set the enable/disable settings
   uint8_t enable_value = enable_bg_color ? 0xFF : 0x00;
-  RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomAreaSpecificBGEnabled, enable_value));
+  RETURN_IF_ERROR(
+      rom()->WriteByte(OverworldCustomAreaSpecificBGEnabled, enable_value));
 
   enable_value = enable_main_palette ? 0xFF : 0x00;
-  RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomMainPaletteEnabled, enable_value));
+  RETURN_IF_ERROR(
+      rom()->WriteByte(OverworldCustomMainPaletteEnabled, enable_value));
 
   enable_value = enable_mosaic ? 0xFF : 0x00;
   RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomMosaicEnabled, enable_value));
 
   enable_value = enable_gfx_groups ? 0xFF : 0x00;
-  RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomTileGFXGroupEnabled, enable_value));
+  RETURN_IF_ERROR(
+      rom()->WriteByte(OverworldCustomTileGFXGroupEnabled, enable_value));
 
   enable_value = enable_animated ? 0xFF : 0x00;
-  RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomAnimatedGFXEnabled, enable_value));
+  RETURN_IF_ERROR(
+      rom()->WriteByte(OverworldCustomAnimatedGFXEnabled, enable_value));
 
   enable_value = enable_subscreen_overlay ? 0xFF : 0x00;
-  RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomSubscreenOverlayEnabled, enable_value));
+  RETURN_IF_ERROR(
+      rom()->WriteByte(OverworldCustomSubscreenOverlayEnabled, enable_value));
 
   // Write the main palette table
   for (int i = 0; i < kNumOverworldMaps; i++) {
@@ -2474,18 +2623,20 @@ absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color, bool enable
     const auto& mosaic = overworld_maps_[i].mosaic_expanded();
     // .... udlr bit format
     uint8_t mosaic_byte = (mosaic[0] ? 0x08 : 0x00) |  // up
-                          (mosaic[1] ? 0x04 : 0x00) |  // down  
+                          (mosaic[1] ? 0x04 : 0x00) |  // down
                           (mosaic[2] ? 0x02 : 0x00) |  // left
                           (mosaic[3] ? 0x01 : 0x00);   // right
 
-    RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomMosaicArray + i, mosaic_byte));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(OverworldCustomMosaicArray + i, mosaic_byte));
   }
 
   // Write the main and animated gfx tiles table
   for (int i = 0; i < kNumOverworldMaps; i++) {
     for (int j = 0; j < 8; j++) {
-      RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomTileGFXGroupArray + (i * 8) + j,
-                                       overworld_maps_[i].custom_tileset(j)));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(OverworldCustomTileGFXGroupArray + (i * 8) + j,
+                           overworld_maps_[i].custom_tileset(j)));
     }
     RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomAnimatedGFXArray + i,
                                      overworld_maps_[i].animated_gfx()));
@@ -2493,8 +2644,9 @@ absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color, bool enable
 
   // Write the subscreen overlay table
   for (int i = 0; i < kNumOverworldMaps; i++) {
-    RETURN_IF_ERROR(rom()->WriteShort(OverworldCustomSubscreenOverlayArray + (i * 2),
-                                      overworld_maps_[i].subscreen_overlay()));
+    RETURN_IF_ERROR(
+        rom()->WriteShort(OverworldCustomSubscreenOverlayArray + (i * 2),
+                          overworld_maps_[i].subscreen_overlay()));
   }
 
   return absl::OkStatus();
@@ -2502,11 +2654,12 @@ absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color, bool enable
 
 absl::Status Overworld::SaveAreaSpecificBGColors() {
   util::logf("Saving Area Specific Background Colors");
-  
+
   // Write area-specific background colors if enabled
   for (int i = 0; i < kNumOverworldMaps; i++) {
     uint16_t bg_color = overworld_maps_[i].area_specific_bg_color();
-    RETURN_IF_ERROR(rom()->WriteShort(OverworldCustomAreaSpecificBGPalette + (i * 2), bg_color));
+    RETURN_IF_ERROR(rom()->WriteShort(
+        OverworldCustomAreaSpecificBGPalette + (i * 2), bg_color));
   }
 
   return absl::OkStatus();
