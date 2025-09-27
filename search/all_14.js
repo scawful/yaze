@@ -3,7 +3,7 @@ var searchData=
   ['k0x_0',['k0x',['../structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589da54cea239898fec36fe728dcb8de71694',1,'yaze::util::HexStringParams']]],
   ['k16x16_1',['k16x16',['../namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a10ba45e967f3108e10ed4e3288e6208a',1,'yaze::gui']]],
   ['k32x32_2',['k32x32',['../namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a20e39deb41b95e8150718fbb7ce02774',1,'yaze::gui']]],
-  ['k4bpp_3',['k4bpp',['../namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baae51d9a2bf06ec9c737a060897ea2b165',1,'yaze::gfx::k4bpp'],['../namespaceyaze_1_1editor.html#aed55578af70cce23ebf4e0846aba9f05',1,'yaze::editor::k4BPP']]],
+  ['k4bpp_3',['k4bpp',['../namespaceyaze_1_1editor.html#aed55578af70cce23ebf4e0846aba9f05',1,'yaze::editor::k4BPP'],['../namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baae51d9a2bf06ec9c737a060897ea2b165',1,'yaze::gfx::k4bpp']]],
   ['k64x64_4',['k64x64',['../namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a9420cc1a73b8e176c1b22cf835b3e9f7',1,'yaze::gui']]],
   ['k8bpp_5',['k8bpp',['../namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa826db0251f792f5763b484b7abb96fbb',1,'yaze::gfx']]],
   ['k8x8_6',['k8x8',['../namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9',1,'yaze::gui']]],

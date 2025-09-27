@@ -105,9 +105,9 @@ $(document).ready(function(){initNavTree('todo.html',''); initResizable(); });
 <dt>Member <a class="el" href="classyaze_1_1app_1_1core_1_1AsarWrapper.html#ab2583f55b85ce00f473fbff231e94c4b">yaze::app::core::AsarWrapper::ApplyPatch</a>  (const std::string &amp;patch_path, std::vector&lt; uint8_t &gt; &amp;rom_data, const std::vector&lt; std::string &gt; &amp;include_paths={})</dt>
 <dd><a class="anchor" id="_todo000001"></a>Implement CRC32 calculation  </dd>
 <dt>{<a class="el" href="tui_8cc.html">tui.cc</a>} Member <a class="el" href="namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2d7b3c2328f2fcab44ddbe20d7df3c32">yaze::cli::anonymous_namespace{tui.cc}::LoadRomComponent</a>  (ftxui::ScreenInteractive &amp;screen)</dt>
-<dd><a class="anchor" id="_todo000074"></a>Implement file dialog  </dd>
+<dd><a class="anchor" id="_todo000072"></a>Implement file dialog  </dd>
 <dt>Member <a class="el" href="classyaze_1_1cli_1_1ModernCLI.html#a58347189909aa35e0fcb87ea080e9407">yaze::cli::ModernCLI::HandleConvertCommand</a>  (const std::vector&lt; std::string &gt; &amp;args)</dt>
-<dd><a class="anchor" id="_todo000073"></a>Implement address conversion  </dd>
+<dd><a class="anchor" id="_todo000071"></a>Implement address conversion  </dd>
 <dt>Member <a class="el" href="structyaze_1_1core_1_1YazeProject.html#aa254bb42ffd51d5e0f2527549835912f">yaze::core::YazeProject::Create</a>  (const std::string &amp;project_name, const std::string &amp;base_path)</dt>
 <dd><a class="anchor" id="_todo000002"></a>Get from version header  </dd>
 <dt>Member <a class="el" href="structyaze_1_1core_1_1YazeProject.html#a9cedeb1f86793da04e75760036a8c119">yaze::core::YazeProject::ImportFromZScreamFormat</a>  (const std::string &amp;project_path)</dt>
@@ -119,7 +119,7 @@ $(document).ready(function(){initNavTree('todo.html',''); initResizable(); });
 <dt>Member <a class="el" href="classyaze_1_1editor_1_1AssemblyEditor.html#a71ee09ea0c2d2cb3769a4cca58808d0c">yaze::editor::AssemblyEditor::DrawFileMenu</a>  ()</dt>
 <dd><a class="anchor" id="_todo000005"></a>Implement this  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1editor.html#a8a6a91874dd1ed2bf561ad8dae3a41e5">yaze::editor::DrawItemEditorPopup</a>  (<a class="el" href="classyaze_1_1zelda3_1_1OverworldItem.html">zelda3::OverworldItem</a> &amp;item)</dt>
-<dd><a class="anchor" id="_todo000019"></a>Implement deleting OverworldItem objects, currently only hides them  </dd>
+<dd><a class="anchor" id="_todo000017"></a>Implement deleting OverworldItem objects, currently only hides them  </dd>
 <dt>Member <a class="el" href="classyaze_1_1editor_1_1DungeonObjectInteraction.html#a7d9fe343820bf406e93444f541a5ff66">yaze::editor::DungeonObjectInteraction::DrawDragPreview</a>  ()</dt>
 <dd><a class="anchor" id="_todo000008"></a>Draw preview of object at new position  </dd>
 <dt>Member <a class="el" href="classyaze_1_1editor_1_1DungeonObjectInteraction.html#a21ecd59f78b6096db20bc16a7870f0b8">yaze::editor::DungeonObjectInteraction::HandleCanvasMouseInput</a>  ()</dt>
@@ -130,165 +130,161 @@ $(document).ready(function(){initNavTree('todo.html',''); initResizable(); });
 <dd><a class="anchor" id="_todo000010"></a>Implement usage grid visualization  </dd>
 <dt>Member <a class="el" href="classyaze_1_1editor_1_1DungeonUsageTracker.html#ab738ca434269bf7783ffa955789cb688">yaze::editor::DungeonUsageTracker::RenderSetUsage</a>  (const absl::flat_hash_map&lt; uint16_t, int &gt; &amp;usage_map, uint16_t &amp;selected_set, int spriteset_offset=0x00)</dt>
 <dd><a class="anchor" id="_todo000011"></a>Implement set usage rendering  </dd>
-<dt>Member <a class="el" href="classyaze_1_1editor_1_1EditorManager.html#a315fa46b85ff922c2f72c2c5eaa80229">yaze::editor::EditorManager::CloseCurrentSession</a>  ()</dt>
-<dd><a class="anchor" id="_todo000013"></a>Implement proper session removal when <a class="el" href="structyaze_1_1editor_1_1EditorManager_1_1RomSession.html">RomSession</a> becomes movable  </dd>
-<dt>Member <a class="el" href="classyaze_1_1editor_1_1EditorManager.html#a902617e9614e66a57100c119e2fcfa66">yaze::editor::EditorManager::DrawSessionManager</a>  ()</dt>
-<dd><a class="anchor" id="_todo000014"></a>Implement proper session removal when <a class="el" href="structyaze_1_1editor_1_1EditorManager_1_1RomSession.html">RomSession</a> becomes movable  </dd>
-<dt>Member <a class="el" href="classyaze_1_1editor_1_1EditorManager.html#a0a9f53c412bac5b451782f43f16c6f75">yaze::editor::EditorManager::InitializeTestSuites</a>  ()</dt>
-<dd><a class="anchor" id="_todo000012"></a>Implement ArenaTestSuite  </dd>
+<dt>Member <a class="el" href="classyaze_1_1editor_1_1EditorManager.html#ae448b3e7dc437de89e7cb27be808a80a">yaze::editor::EditorManager::RemoveSession</a>  (size_t index)</dt>
+<dd><a class="anchor" id="_todo000012"></a>Implement proper session removal when <a class="el" href="classyaze_1_1editor_1_1EditorSet.html" title="Contains a complete set of editors for a single ROM instance.">EditorSet</a> becomes movable  </dd>
 <dt>Member <a class="el" href="classyaze_1_1editor_1_1GraphicsEditor.html#a50dfe7911a1504dfc01de5d05771e4d3">yaze::editor::GraphicsEditor::UpdateGfxSheetList</a>  ()</dt>
-<dd><a class="anchor" id="_todo000015"></a>Update the interaction for multi select on sheets  </dd>
+<dd><a class="anchor" id="_todo000013"></a>Update the interaction for multi select on sheets  </dd>
 <dt>Member <a class="el" href="classyaze_1_1editor_1_1GraphicsEditor.html#ab4d25d9b1d89b8fdeacde5ab989a4923">yaze::editor::GraphicsEditor::UpdateScadView</a>  ()</dt>
-<dd><a class="anchor" id="_todo000016"></a>Implement the Super Donkey 1 graphics decompression  </dd>
+<dd><a class="anchor" id="_todo000014"></a>Implement the Super Donkey 1 graphics decompression  </dd>
 <dt>Member <a class="el" href="classyaze_1_1editor_1_1MessageEditor.html#a1ea594cd4681c4d66b833ec242bbbc70">yaze::editor::MessageEditor::Find</a>  () override</dt>
-<dd><a class="anchor" id="_todo000018"></a>Implement replace functionality  </dd>
+<dd><a class="anchor" id="_todo000016"></a>Implement replace functionality  </dd>
 <dt>Member <a class="el" href="classyaze_1_1editor_1_1ScreenEditor.html#a4e81ecd1bdb86bf3c615a4b680ca8aa6">yaze::editor::ScreenEditor::Load</a>  () override</dt>
-<dd><a class="anchor" id="_todo000017"></a>Load roomset gfx based on dungeon ID  </dd>
+<dd><a class="anchor" id="_todo000015"></a>Load roomset gfx based on dungeon ID  </dd>
 <dt>Member <a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#a277c8c075ae907886686d6d17e8f3028">yaze::editor::Tile16Editor::UpdateTransferTileCanvas</a>  ()</dt>
-<dd><a class="anchor" id="_todo000020"></a>Implement tile16 transfer  </dd>
+<dd><a class="anchor" id="_todo000018"></a>Implement tile16 transfer  </dd>
 <dt>Member <a class="el" href="classyaze_1_1emu_1_1Ppu.html#a103cb68f436444a281f274dcdd2ade8f">yaze::emu::Ppu::EvaluateSprites</a>  (int line)</dt>
-<dd><a class="anchor" id="_todo000027"></a>rectangular sprites, wierdness with sprites at -256  </dd>
+<dd><a class="anchor" id="_todo000025"></a>rectangular sprites, wierdness with sprites at -256  </dd>
 <dt>Member <a class="el" href="classyaze_1_1emu_1_1Ppu.html#a0c38d2d95f87fe21faeb9fb2339011fc">yaze::emu::Ppu::HandleOPT</a>  (int layer, int *lx, int *ly)</dt>
-<dd><p class="startdd"><a class="anchor" id="_todo000025"></a>not sure if correct </p>
-<p class="enddd"><a class="anchor" id="_todo000026"></a>not sure if correct for interlace  </p>
+<dd><p class="startdd"><a class="anchor" id="_todo000023"></a>not sure if correct </p>
+<p class="enddd"><a class="anchor" id="_todo000024"></a>not sure if correct for interlace  </p>
 </dd>
 <dt>Member <a class="el" href="classyaze_1_1emu_1_1Ppu.html#a0f7dc2daaf65918bc6b57560b80fb489">yaze::emu::Ppu::HandlePixel</a>  (int x, int y)</dt>
-<dd><p class="startdd"><a class="anchor" id="_todo000022"></a>subscreen pixels can be clipped to black as well </p>
-<p class="interdd"><a class="anchor" id="_todo000023"></a></p>
-<p class="enddd"><a class="anchor" id="_todo000024"></a>math for subscreen pixels (add/sub sub to main)  </p>
+<dd><p class="startdd"><a class="anchor" id="_todo000022"></a>math for subscreen pixels (add/sub sub to main) </p>
+<p class="interdd"><a class="anchor" id="_todo000021"></a></p>
+<p class="enddd"><a class="anchor" id="_todo000020"></a>subscreen pixels can be clipped to black as well  </p>
 </dd>
 <dt>Member <a class="el" href="classyaze_1_1emu_1_1Ppu.html#a7149f31700fc8f8389de97a6d4e61b2e">yaze::emu::Ppu::Read</a>  (uint8_t adr, bool latch)</dt>
-<dd><a class="anchor" id="_todo000028"></a>only when ppulatch is set  </dd>
+<dd><a class="anchor" id="_todo000026"></a>only when ppulatch is set  </dd>
 <dt>Member <a class="el" href="classyaze_1_1emu_1_1Ppu.html#a56f77293fba171cd9c1eb84ce7ad7c5c">yaze::emu::Ppu::Write</a>  (uint8_t adr, uint8_t val)</dt>
-<dd><p class="startdd"><a class="anchor" id="_todo000031"></a>vram access during rendering (also cgram and oam) </p>
-<p class="interdd"><a class="anchor" id="_todo000030"></a>mosaic line reset specifics </p>
-<p class="enddd"><a class="anchor" id="_todo000029"></a>oam address reset when written on first line of vblank, (and when  </p>
+<dd><p class="startdd"><a class="anchor" id="_todo000028"></a>mosaic line reset specifics </p>
+<p class="interdd"><a class="anchor" id="_todo000027"></a>oam address reset when written on first line of vblank, (and when </p>
+<p class="enddd"><a class="anchor" id="_todo000029"></a>vram access during rendering (also cgram and oam)  </p>
 </dd>
 <dt>Member <a class="el" href="classyaze_1_1emu_1_1Snes.html#af7584e6c050e654612f0dad1b36c5546">yaze::emu::Snes::RunCycle</a>  ()</dt>
-<dd><a class="anchor" id="_todo000021"></a>this starts a little after start of vblank  </dd>
+<dd><a class="anchor" id="_todo000019"></a>this starts a little after start of vblank  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1gfx.html#acb08518117f632fe321cc8191defe210">yaze::gfx::LoadAllPalettes</a>  (const std::vector&lt; uint8_t &gt; &amp;rom_data, <a class="el" href="structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups.">PaletteGroupMap</a> &amp;groups)</dt>
-<dd><a class="anchor" id="_todo000032"></a>Refactor LoadAllPalettes to use group names, move to <a class="el" href="namespaceyaze_1_1zelda3.html" title="Zelda 3 specific classes and functions.">zelda3</a> namespace  </dd>
+<dd><a class="anchor" id="_todo000030"></a>Refactor LoadAllPalettes to use group names, move to <a class="el" href="namespaceyaze_1_1zelda3.html" title="Zelda 3 specific classes and functions.">zelda3</a> namespace  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1gui.html#acffe7391ebbf95b3313a697bcb629ab3">yaze::gui::BeginWindowWithDisplaySettings</a>  (const char *id, bool *active, const ImVec2 &amp;size, ImGuiWindowFlags flags)</dt>
-<dd><a class="anchor" id="_todo000036"></a>Add more display settings to popup windows.  </dd>
+<dd><a class="anchor" id="_todo000034"></a>Add more display settings to popup windows.  </dd>
 <dt>Member <a class="el" href="classyaze_1_1gui_1_1Canvas.html#ad7081d52f5a736dde87a62caf2ce63dc">yaze::gui::Canvas::DrawBitmapTable</a>  (const BitmapTable &amp;gfx_bin)</dt>
-<dd><a class="anchor" id="_todo000034"></a>Add parameters for sizing and positioning  </dd>
+<dd><a class="anchor" id="_todo000032"></a>Add parameters for sizing and positioning  </dd>
 <dt>Member <a class="el" href="classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab">yaze::gui::Canvas::DrawContextMenu</a>  ()</dt>
-<dd><a class="anchor" id="_todo000033"></a>Get ROM data for change palette  </dd>
+<dd><a class="anchor" id="_todo000031"></a>Get ROM data for change palette  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1gui.html#a0fd30b00c2e36f50139ddf4980e72633">yaze::gui::ClickableText</a>  (const std::string &amp;text)</dt>
-<dd><a class="anchor" id="_todo000035"></a>Setup themes and text/clickable colors  </dd>
+<dd><a class="anchor" id="_todo000033"></a>Setup themes and text/clickable colors  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1test.html#a1641768a13910eb529e97ac3a66b7162">yaze::test::RunIntegrationTest</a>  ()</dt>
-<dd><a class="anchor" id="_todo000081"></a>Fix the window/controller management  </dd>
+<dd><a class="anchor" id="_todo000079"></a>Fix the window/controller management  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1test.html#acc77db7170c43fcdb3afc011685f371e">yaze::test::TEST</a>  (LC_LZ2_CompressionTest, CompressionSingleSet)</dt>
-<dd><a class="anchor" id="_todo000080"></a>Check why header built is off by one  </dd>
+<dd><a class="anchor" id="_todo000078"></a>Check why header built is off by one  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1test.html#ab603cf5245798eb805b8c7680ffdbd00">yaze::test::TEST_F</a>  (<a class="el" href="classyaze_1_1test_1_1CpuTest.html">CpuTest</a>, COP)</dt>
-<dd><a class="anchor" id="_todo000079"></a>FIX COP TEST  </dd>
+<dd><a class="anchor" id="_todo000077"></a>FIX COP TEST  </dd>
 <dt>Member <a class="el" href="classyaze_1_1test_1_1TestManager.html#aaf111c1c6d69869fefd7c079ec5ea98d">yaze::test::TestManager::DrawTestDashboard</a>  (bool *show_dashboard=nullptr)</dt>
-<dd><p class="startdd"><a class="anchor" id="_todo000037"></a>Implement result export </p>
-<p class="interdd"><a class="anchor" id="_todo000038"></a>Implement file dialog to load ROM specifically for testing </p>
-<p class="enddd"><a class="anchor" id="_todo000039"></a>This would need access to EditorManager to create a new session  </p>
+<dd><p class="startdd"><a class="anchor" id="_todo000037"></a>This would need access to EditorManager to create a new session </p>
+<p class="interdd"><a class="anchor" id="_todo000036"></a>Implement file dialog to load ROM specifically for testing </p>
+<p class="enddd"><a class="anchor" id="_todo000035"></a>Implement result export  </p>
 </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html#a7851ba04dfbea9647e0ec9394eba1451">yaze::zelda3::ComprehensiveIntegrationTest::SetUp</a>  () override</dt>
-<dd><p class="startdd"><a class="anchor" id="_todo000082"></a>Load graphics data when gfx system is available </p>
-<p class="enddd"><a class="anchor" id="_todo000083"></a>Load graphics data when gfx system is available  </p>
+<dd><p class="startdd"><a class="anchor" id="_todo000081"></a>Load graphics data when gfx system is available </p>
+<p class="enddd"><a class="anchor" id="_todo000080"></a>Load graphics data when gfx system is available  </p>
 </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html#ab337e539b5137855a0c76e121ad20c8a">yaze::zelda3::ComprehensiveIntegrationTest::TearDown</a>  () override</dt>
-<dd><a class="anchor" id="_todo000084"></a>Destroy graphics data when gfx system is available  </dd>
+<dd><a class="anchor" id="_todo000082"></a>Destroy graphics data when gfx system is available  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#af1c968bb0f9a8c8660e79fd0eba080d2">yaze::zelda3::DungeonEditorSystem::CreateRoom</a>  (int room_id, const std::string &amp;name="")</dt>
-<dd><a class="anchor" id="_todo000045"></a>Implement room creation  </dd>
+<dd><a class="anchor" id="_todo000043"></a>Implement room creation  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a80887e0e38111dab119a82a75a92e204">yaze::zelda3::DungeonEditorSystem::DeleteRoom</a>  (int room_id)</dt>
-<dd><a class="anchor" id="_todo000046"></a>Implement room deletion  </dd>
+<dd><a class="anchor" id="_todo000044"></a>Implement room deletion  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a0a40ae03bcfe1a31962b7f868be9f75d">yaze::zelda3::DungeonEditorSystem::DuplicateRoom</a>  (int source_room_id, int target_room_id)</dt>
-<dd><a class="anchor" id="_todo000047"></a>Implement room duplication  </dd>
+<dd><a class="anchor" id="_todo000045"></a>Implement room duplication  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ac39aca2c991a12ba457342b7fd697f6a">yaze::zelda3::DungeonEditorSystem::ExportDungeonToFile</a>  (const std::string &amp;file_path)</dt>
-<dd><a class="anchor" id="_todo000058"></a>Implement dungeon export  </dd>
+<dd><a class="anchor" id="_todo000056"></a>Implement dungeon export  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a1756ac575fd0e32d73620f33a95192e1">yaze::zelda3::DungeonEditorSystem::ExportRoomToFile</a>  (int room_id, const std::string &amp;file_path)</dt>
-<dd><a class="anchor" id="_todo000056"></a>Implement room export  </dd>
+<dd><a class="anchor" id="_todo000054"></a>Implement room export  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a8dbcec3b2908b764be1f21d6aae207cb">yaze::zelda3::DungeonEditorSystem::GetDungeonValidationErrors</a>  ()</dt>
-<dd><a class="anchor" id="_todo000051"></a>Implement dungeon validation error collection  </dd>
+<dd><a class="anchor" id="_todo000049"></a>Implement dungeon validation error collection  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#afa68742946eb3a83d0d05b8ebb55fb79">yaze::zelda3::DungeonEditorSystem::GetRoom</a>  (int room_id)</dt>
-<dd><a class="anchor" id="_todo000044"></a>Load room from ROM or return cached room  </dd>
+<dd><a class="anchor" id="_todo000042"></a>Load room from ROM or return cached room  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a5c39add2a8c489c7f5fdc6862ae7bcc2">yaze::zelda3::DungeonEditorSystem::GetValidationErrors</a>  (int room_id)</dt>
-<dd><a class="anchor" id="_todo000050"></a>Implement validation error collection  </dd>
+<dd><a class="anchor" id="_todo000048"></a>Implement validation error collection  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#aa9463275bb8d61d39c645f2055cfb893">yaze::zelda3::DungeonEditorSystem::ImportDungeonFromFile</a>  (const std::string &amp;file_path)</dt>
-<dd><a class="anchor" id="_todo000057"></a>Implement dungeon import  </dd>
+<dd><a class="anchor" id="_todo000055"></a>Implement dungeon import  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#af4595858ea3a9b3776846ce8361f879e">yaze::zelda3::DungeonEditorSystem::ImportRoomFromFile</a>  (const std::string &amp;file_path, int room_id)</dt>
-<dd><a class="anchor" id="_todo000055"></a>Implement room import  </dd>
+<dd><a class="anchor" id="_todo000053"></a>Implement room import  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ad92f8ab42cfcb4eb6b057e2b827056f7">yaze::zelda3::DungeonEditorSystem::LoadDungeon</a>  (int dungeon_id)</dt>
-<dd><a class="anchor" id="_todo000040"></a>Implement actual dungeon loading from ROM  </dd>
+<dd><a class="anchor" id="_todo000038"></a>Implement actual dungeon loading from ROM  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#abfbe429af6ad9b563a05b97cf39feaac">yaze::zelda3::DungeonEditorSystem::Redo</a>  ()</dt>
-<dd><a class="anchor" id="_todo000060"></a>Implement redo functionality  </dd>
+<dd><a class="anchor" id="_todo000058"></a>Implement redo functionality  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ad4eb4a76ad7270c5eecb268f7f4f007d">yaze::zelda3::DungeonEditorSystem::ReloadRoom</a>  (int room_id)</dt>
-<dd><a class="anchor" id="_todo000043"></a>Implement actual room reloading from ROM  </dd>
+<dd><a class="anchor" id="_todo000041"></a>Implement actual room reloading from ROM  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ab4ccaa18551da5058606f15855fd0e5b">yaze::zelda3::DungeonEditorSystem::RenderDungeonMap</a>  ()</dt>
-<dd><a class="anchor" id="_todo000054"></a>Implement dungeon map rendering  </dd>
+<dd><a class="anchor" id="_todo000052"></a>Implement dungeon map rendering  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#aa9c7bef11e2a2f37d3c4bd6b3a7bc31b">yaze::zelda3::DungeonEditorSystem::RenderRoom</a>  (int room_id)</dt>
-<dd><a class="anchor" id="_todo000052"></a>Implement room rendering  </dd>
+<dd><a class="anchor" id="_todo000050"></a>Implement room rendering  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a78636bc5b08246d514589cd5ad5833b0">yaze::zelda3::DungeonEditorSystem::RenderRoomPreview</a>  (int room_id, EditorMode mode)</dt>
-<dd><a class="anchor" id="_todo000053"></a>Implement room preview rendering  </dd>
+<dd><a class="anchor" id="_todo000051"></a>Implement room preview rendering  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a2d4a14d11dd5edd43772fe385fd88991">yaze::zelda3::DungeonEditorSystem::SaveDungeon</a>  ()</dt>
-<dd><a class="anchor" id="_todo000041"></a>Implement actual dungeon saving to ROM  </dd>
+<dd><a class="anchor" id="_todo000039"></a>Implement actual dungeon saving to ROM  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a1496152628034c3d6c1adb121efa0d59">yaze::zelda3::DungeonEditorSystem::SaveRoom</a>  (int room_id)</dt>
-<dd><a class="anchor" id="_todo000042"></a>Implement actual room saving to ROM  </dd>
+<dd><a class="anchor" id="_todo000040"></a>Implement actual room saving to ROM  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a0a515684a8ed1e148ee2579feee89f23">yaze::zelda3::DungeonEditorSystem::Undo</a>  ()</dt>
-<dd><a class="anchor" id="_todo000059"></a>Implement undo functionality  </dd>
+<dd><a class="anchor" id="_todo000057"></a>Implement undo functionality  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a77b36bdce436d988f9f856012e74b83a">yaze::zelda3::DungeonEditorSystem::ValidateDungeon</a>  ()</dt>
-<dd><a class="anchor" id="_todo000049"></a>Implement dungeon validation  </dd>
+<dd><a class="anchor" id="_todo000047"></a>Implement dungeon validation  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a23aac418cf78f71aaa096b4df8773ef9">yaze::zelda3::DungeonEditorSystem::ValidateRoom</a>  (int room_id)</dt>
-<dd><a class="anchor" id="_todo000048"></a>Implement room validation  </dd>
+<dd><a class="anchor" id="_todo000046"></a>Implement room validation  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonIntegrationTest.html#a8f9c0ff086e8b06c2873b8dcf9ae142f">yaze::zelda3::DungeonIntegrationTest::SetUp</a>  () override</dt>
-<dd><a class="anchor" id="_todo000095"></a>Load graphics data when gfx system is available  </dd>
+<dd><a class="anchor" id="_todo000093"></a>Load graphics data when gfx system is available  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonIntegrationTest.html#abce2483b5d13d5fdcb00b470b1c4e6f7">yaze::zelda3::DungeonIntegrationTest::TearDown</a>  () override</dt>
-<dd><a class="anchor" id="_todo000096"></a>Destroy graphics data when gfx system is available  </dd>
+<dd><a class="anchor" id="_todo000094"></a>Destroy graphics data when gfx system is available  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonObjectEditor.html#aedc584a6f2fe8a7bce5fc437945a6ba2">yaze::zelda3::DungeonObjectEditor::HandleMouseClick</a>  (int x, int y, bool left_button, bool right_button, bool shift_pressed)</dt>
-<dd><a class="anchor" id="_todo000062"></a>Show context menu  </dd>
+<dd><a class="anchor" id="_todo000060"></a>Show context menu  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1DungeonObjectEditor.html#ade8af405cc35ad2cbc11e29522005b87">yaze::zelda3::DungeonObjectEditor::SaveRoom</a>  ()</dt>
-<dd><a class="anchor" id="_todo000061"></a>Implement actual room saving to ROM  </dd>
+<dd><a class="anchor" id="_todo000059"></a>Implement actual room saving to ROM  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1zelda3.html#abfbe2444d2fac0e5cce5c8368a329835">yaze::zelda3::FetchSubtypeInfo</a>  (uint16_t object_id)</dt>
-<dd><a class="anchor" id="_todo000068"></a>Determine the subtype based on object_id  </dd>
+<dd><a class="anchor" id="_todo000066"></a>Determine the subtype based on object_id  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1OverworldMap.html#aecfb0779072d30e1be7594a2d1d58437">yaze::zelda3::OverworldMap::LoadCustomOverworldData</a>  ()</dt>
-<dd><a class="anchor" id="_todo000069"></a>Might need this one too "index == 0x1B"  </dd>
+<dd><a class="anchor" id="_todo000067"></a>Might need this one too "index == 0x1B"  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1OverworldMap.html#a879fb9353f241b17c00916c238a00860">yaze::zelda3::OverworldMap::LoadDeathMountainGFX</a>  ()</dt>
-<dd><a class="anchor" id="_todo000070"></a>Change the conditions for death mountain gfx  </dd>
+<dd><a class="anchor" id="_todo000068"></a>Change the conditions for death mountain gfx  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1Room.html#a5402d6db43d831803d969e7562655979">yaze::zelda3::Room::LoadBlocks</a>  ()</dt>
-<dd><a class="anchor" id="_todo000065"></a>Implement full block loading from ROM data  </dd>
+<dd><a class="anchor" id="_todo000063"></a>Implement full block loading from ROM data  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1Room.html#a5e4be6dff5369be8773c5168382fac77">yaze::zelda3::Room::LoadDoors</a>  ()</dt>
-<dd><a class="anchor" id="_todo000063"></a>Implement full door loading from ROM data  </dd>
+<dd><a class="anchor" id="_todo000061"></a>Implement full door loading from ROM data  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1Room.html#aab9a396704825c2d0ef21a5539d14935">yaze::zelda3::Room::LoadPits</a>  ()</dt>
-<dd><a class="anchor" id="_todo000066"></a>Implement full pit loading from ROM data  </dd>
+<dd><a class="anchor" id="_todo000064"></a>Implement full pit loading from ROM data  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1Room.html#a6f422cb5a4d82765f9aba638e9f647d5">yaze::zelda3::Room::LoadTorches</a>  ()</dt>
-<dd><a class="anchor" id="_todo000064"></a>Implement full torch loading from ROM data  </dd>
+<dd><a class="anchor" id="_todo000062"></a>Implement full torch loading from ROM data  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1Room.html#a276273318785da9006ca84280a9c4610">yaze::zelda3::Room::sprites_</a>  </dt>
-<dd><a class="anchor" id="_todo000067"></a>add separate door objects list when door section (F0 FF) is parsed  </dd>
+<dd><a class="anchor" id="_todo000065"></a>add separate door objects list when door section (F0 FF) is parsed  </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1Sprite.html#a3070422abb2ea9f2b0ba795e36aeec9b">yaze::zelda3::Sprite::Draw</a>  ()</dt>
-<dd><a class="anchor" id="_todo000072"></a>Add something here?  </dd>
+<dd><a class="anchor" id="_todo000070"></a>Add something here?  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1zelda3.html#a4e15773c35a20e09441652c3a7ecd2a2">yaze::zelda3::TEST_F</a>  (<a class="el" href="classyaze_1_1zelda3_1_1DungeonIntegrationTest.html">DungeonIntegrationTest</a>, DungeonObjectParsing)</dt>
-<dd><a class="anchor" id="_todo000088"></a>Create <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a> and <a class="el" href="classyaze_1_1zelda3_1_1ObjectParser.html" title="Direct ROM parser for dungeon objects.">ObjectParser</a> instances  </dd>
+<dd><a class="anchor" id="_todo000086"></a>Create <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a> and <a class="el" href="classyaze_1_1zelda3_1_1ObjectParser.html" title="Direct ROM parser for dungeon objects.">ObjectParser</a> instances  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1zelda3.html#abdf58b4793a727d6bbb4b28a1d109f3f">yaze::zelda3::TEST_F</a>  (<a class="el" href="classyaze_1_1zelda3_1_1DungeonIntegrationTest.html">DungeonIntegrationTest</a>, DungeonErrorHandling)</dt>
-<dd><a class="anchor" id="_todo000094"></a>Implement dungeon error handling tests when <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a> class is available  </dd>
+<dd><a class="anchor" id="_todo000092"></a>Implement dungeon error handling tests when <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a> class is available  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1zelda3.html#a5718a1e859e3ed345ad6a5fda4ed9a0e">yaze::zelda3::TEST_F</a>  (<a class="el" href="classyaze_1_1zelda3_1_1DungeonIntegrationTest.html">DungeonIntegrationTest</a>, DungeonSaveLoad)</dt>
-<dd><a class="anchor" id="_todo000093"></a>Implement dungeon save/load tests when dungeon classes are available  </dd>
+<dd><a class="anchor" id="_todo000091"></a>Implement dungeon save/load tests when dungeon classes are available  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1zelda3.html#ae5315c9c221d6f951660fad9faefa87a">yaze::zelda3::TEST_F</a>  (<a class="el" href="classyaze_1_1zelda3_1_1DungeonIntegrationTest.html">DungeonIntegrationTest</a>, DungeonPerformanceTest)</dt>
-<dd><p class="startdd"><a class="anchor" id="_todo000092"></a>Create <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a> and <a class="el" href="classyaze_1_1zelda3_1_1ObjectParser.html" title="Direct ROM parser for dungeon objects.">ObjectParser</a> instances for performance testing </p>
-<p class="enddd"><a class="anchor" id="_todo000091"></a>Implement dungeon performance tests when dungeon classes are available  </p>
+<dd><p class="startdd"><a class="anchor" id="_todo000090"></a>Create <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a> and <a class="el" href="classyaze_1_1zelda3_1_1ObjectParser.html" title="Direct ROM parser for dungeon objects.">ObjectParser</a> instances for performance testing </p>
+<p class="enddd"><a class="anchor" id="_todo000089"></a>Implement dungeon performance tests when dungeon classes are available  </p>
 </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1zelda3.html#a229b7604226b368a0f36f46adf59a3fc">yaze::zelda3::TEST_F</a>  (<a class="el" href="classyaze_1_1zelda3_1_1DungeonIntegrationTest.html">DungeonIntegrationTest</a>, DungeonObjectRendering)</dt>
-<dd><p class="startdd"><a class="anchor" id="_todo000090"></a>Create <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a>, <a class="el" href="classyaze_1_1zelda3_1_1ObjectParser.html" title="Direct ROM parser for dungeon objects.">ObjectParser</a>, and <a class="el" href="classyaze_1_1zelda3_1_1ObjectRenderer.html" title="Unified ObjectRenderer combining all optimizations and enhancements.">ObjectRenderer</a> instances </p>
-<p class="enddd"><a class="anchor" id="_todo000089"></a>Implement dungeon object rendering tests when <a class="el" href="classyaze_1_1zelda3_1_1ObjectRenderer.html" title="Unified ObjectRenderer combining all optimizations and enhancements.">ObjectRenderer</a> is available  </p>
+<dd><p class="startdd"><a class="anchor" id="_todo000088"></a>Create <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a>, <a class="el" href="classyaze_1_1zelda3_1_1ObjectParser.html" title="Direct ROM parser for dungeon objects.">ObjectParser</a>, and <a class="el" href="classyaze_1_1zelda3_1_1ObjectRenderer.html" title="Unified ObjectRenderer combining all optimizations and enhancements.">ObjectRenderer</a> instances </p>
+<p class="enddd"><a class="anchor" id="_todo000087"></a>Implement dungeon object rendering tests when <a class="el" href="classyaze_1_1zelda3_1_1ObjectRenderer.html" title="Unified ObjectRenderer combining all optimizations and enhancements.">ObjectRenderer</a> is available  </p>
 </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1zelda3.html#a4e15773c35a20e09441652c3a7ecd2a2">yaze::zelda3::TEST_F</a>  (<a class="el" href="classyaze_1_1zelda3_1_1DungeonIntegrationTest.html">DungeonIntegrationTest</a>, DungeonObjectParsing)</dt>
-<dd><a class="anchor" id="_todo000087"></a>Implement dungeon object parsing tests when <a class="el" href="classyaze_1_1zelda3_1_1ObjectParser.html" title="Direct ROM parser for dungeon objects.">ObjectParser</a> is available  </dd>
+<dd><a class="anchor" id="_todo000085"></a>Implement dungeon object parsing tests when <a class="el" href="classyaze_1_1zelda3_1_1ObjectParser.html" title="Direct ROM parser for dungeon objects.">ObjectParser</a> is available  </dd>
 <dt>Member <a class="el" href="namespaceyaze_1_1zelda3.html#ac675b9ed8677f547afafd53dbc7b6902">yaze::zelda3::TEST_F</a>  (<a class="el" href="classyaze_1_1zelda3_1_1DungeonIntegrationTest.html">DungeonIntegrationTest</a>, DungeonRoomLoading)</dt>
-<dd><p class="startdd"><a class="anchor" id="_todo000086"></a>Create <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a> instance and test basic properties </p>
-<p class="enddd"><a class="anchor" id="_todo000085"></a>Implement dungeon room loading tests when <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a> class is available  </p>
+<dd><p class="startdd"><a class="anchor" id="_todo000084"></a>Create <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a> instance and test basic properties </p>
+<p class="enddd"><a class="anchor" id="_todo000083"></a>Implement dungeon room loading tests when <a class="el" href="classyaze_1_1zelda3_1_1Room.html">Room</a> class is available  </p>
 </dd>
 <dt>Member <a class="el" href="classyaze_1_1zelda3_1_1TitleScreen.html#aa861c4906dc82355d614ecc5b994c0c1">yaze::zelda3::TitleScreen::BuildTileset</a>  ()</dt>
-<dd><a class="anchor" id="_todo000071"></a>get the gfx from the GFX class rather than the rom.  </dd>
+<dd><a class="anchor" id="_todo000069"></a>get the gfx from the GFX class rather than the rom.  </dd>
 <dt>Member <a class="el" href="group__messages.html#gae9cee5b729c44372ec848a10c6e6d836">yaze_load_messages</a>  (const <a class="el" href="structzelda3__rom.html" title="ROM data structure.">zelda3_rom</a> *rom, <a class="el" href="structzelda3__message.html" title="In-game text message data.">zelda3_message</a> **messages, int *message_count)</dt>
-<dd><p class="startdd"><a class="anchor" id="_todo000076"></a>Detect compression </p>
-<p class="enddd"><a class="anchor" id="_todo000077"></a>Detect encoding  </p>
+<dd><p class="startdd"><a class="anchor" id="_todo000075"></a>Detect encoding </p>
+<p class="enddd"><a class="anchor" id="_todo000074"></a>Detect compression  </p>
 </dd>
 <dt>Member <a class="el" href="group__rom__types.html#gaf5b2c3a3e9423689a6b85f9d7cda121e">zelda3_detect_version</a>  (const uint8_t *rom_data, size_t size)</dt>
-<dd><a class="anchor" id="_todo000078"></a>Implement proper version detection based on ROM header </dd>
+<dd><a class="anchor" id="_todo000076"></a>Implement proper version detection based on ROM header </dd>
 </dl>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

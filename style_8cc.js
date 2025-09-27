@@ -16,7 +16,12 @@ var style_8cc =
     [ "EndNoPadding", "style_8cc.html#a59476f506247500392e1f7512924649a", null ],
     [ "BeginChildWithScrollbar", "style_8cc.html#ade93c7dcd1ffbb9d83002534f950c8bc", null ],
     [ "BeginChildBothScrollbars", "style_8cc.html#a28dd8b4161ca3d4103b8285519a4871a", null ],
+    [ "BeginTableCanvas", "style_8cc.html#a0d2c0f31de8344832a398ba2d7c8ea86", null ],
+    [ "EndTableCanvas", "style_8cc.html#ab76a8001af04a4afe36359b5b62f8f20", null ],
+    [ "SetupCanvasTableColumn", "style_8cc.html#a96948e55f3d549bc0b88765fced3725f", null ],
+    [ "BeginCanvasTableCell", "style_8cc.html#a049491d51a47ad0ae0b74ea1856a30e3", null ],
     [ "DrawDisplaySettings", "style_8cc.html#a6fe06700256942a0b651ee6086ef590d", null ],
+    [ "DrawDisplaySettingsForPopup", "style_8cc.html#aadfe0d76b4a2120edab22b39fdd7409c", null ],
     [ "TextWithSeparators", "style_8cc.html#addaa747c1d46d2433b56c2386260d979", null ],
     [ "DrawFontManager", "style_8cc.html#a1c69fb98d01063e11dbbce71acf2eacc", null ]
 ];

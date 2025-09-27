@@ -111,6 +111,7 @@ $(document).ready(function(){initNavTree('style_8cc.html',''); initResizable(); 
 <code>#include &quot;<a class="el" href="background__renderer_8h_source.html">app/gui/background_renderer.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="font__loader_8h_source.html">core/platform/font_loader.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="color_8h_source.html">gui/color.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="icons_8h_source.html">gui/icons.h</a>&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
 <code>#include &quot;imgui/imgui_internal.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="log_8h_source.html">util/log.h</a>&quot;</code><br />
@@ -162,8 +163,18 @@ Functions</h2></td></tr>
 <tr class="separator:ade93c7dcd1ffbb9d83002534f950c8bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28dd8b4161ca3d4103b8285519a4871a" id="r_a28dd8b4161ca3d4103b8285519a4871a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a28dd8b4161ca3d4103b8285519a4871a">yaze::gui::BeginChildBothScrollbars</a> (int id)</td></tr>
 <tr class="separator:a28dd8b4161ca3d4103b8285519a4871a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d2c0f31de8344832a398ba2d7c8ea86" id="r_a0d2c0f31de8344832a398ba2d7c8ea86"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a0d2c0f31de8344832a398ba2d7c8ea86">yaze::gui::BeginTableCanvas</a> (const char *table_id, int columns, ImVec2 canvas_size)</td></tr>
+<tr class="separator:a0d2c0f31de8344832a398ba2d7c8ea86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab76a8001af04a4afe36359b5b62f8f20" id="r_ab76a8001af04a4afe36359b5b62f8f20"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#ab76a8001af04a4afe36359b5b62f8f20">yaze::gui::EndTableCanvas</a> ()</td></tr>
+<tr class="separator:ab76a8001af04a4afe36359b5b62f8f20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96948e55f3d549bc0b88765fced3725f" id="r_a96948e55f3d549bc0b88765fced3725f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a96948e55f3d549bc0b88765fced3725f">yaze::gui::SetupCanvasTableColumn</a> (const char *label, float width_ratio)</td></tr>
+<tr class="separator:a96948e55f3d549bc0b88765fced3725f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a049491d51a47ad0ae0b74ea1856a30e3" id="r_a049491d51a47ad0ae0b74ea1856a30e3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a049491d51a47ad0ae0b74ea1856a30e3">yaze::gui::BeginCanvasTableCell</a> (ImVec2 min_size)</td></tr>
+<tr class="separator:a049491d51a47ad0ae0b74ea1856a30e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6fe06700256942a0b651ee6086ef590d" id="r_a6fe06700256942a0b651ee6086ef590d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a6fe06700256942a0b651ee6086ef590d">yaze::gui::DrawDisplaySettings</a> (ImGuiStyle *ref)</td></tr>
 <tr class="separator:a6fe06700256942a0b651ee6086ef590d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadfe0d76b4a2120edab22b39fdd7409c" id="r_aadfe0d76b4a2120edab22b39fdd7409c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#aadfe0d76b4a2120edab22b39fdd7409c">yaze::gui::DrawDisplaySettingsForPopup</a> (ImGuiStyle *ref)</td></tr>
+<tr class="separator:aadfe0d76b4a2120edab22b39fdd7409c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:addaa747c1d46d2433b56c2386260d979" id="r_addaa747c1d46d2433b56c2386260d979"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#addaa747c1d46d2433b56c2386260d979">yaze::gui::TextWithSeparators</a> (const absl::string_view &amp;text)</td></tr>
 <tr class="separator:addaa747c1d46d2433b56c2386260d979"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c69fb98d01063e11dbbce71acf2eacc" id="r_a1c69fb98d01063e11dbbce71acf2eacc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gui.html#a1c69fb98d01063e11dbbce71acf2eacc">yaze::gui::DrawFontManager</a> ()</td></tr>

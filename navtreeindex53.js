@@ -1,5 +1,13 @@
 var NAVTREEINDEX53 =
 {
+"namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a4aa601cf14d34696e777daadac4d992e":[23,0,3,4,113,24],
+"namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a4fb43c0a77502c0cd46f01c14787fa75":[23,0,3,4,113,25],
+"namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a51aba12b39be2f7ed6bace42c077184f":[23,0,3,4,113,18],
+"namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a584a5c33178ee320c2cf6328acc4ee82":[23,0,3,4,113,3],
+"namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a5f4930a7bc3cf140a4d53f44f47ed789":[23,0,3,4,113,26],
+"namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a6437ad76ebbb0d4b37fba17038144b56":[23,0,3,4,113,12],
+"namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a66a9ac70decf5309e8706a0dedc4c3c8":[23,0,3,4,113,20],
+"namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a6880f138a8145739ce9e9d5b2094d476":[23,0,3,4,113,4],
 "namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a71b09cdcff04b4aee920d11304a35d6d":[23,0,3,4,113,5],
 "namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a843f1f4d2c53a5041922ffb5cfd68e33":[23,0,3,4,113,21],
 "namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a850b00e69e8676a29001df09f13d7d32":[23,0,3,4,113,15],
@@ -241,13 +249,5 @@ var NAVTREEINDEX53 =
 "namespaceyaze_1_1gfx.html#ae3e101d19e3d8139f0d0aac4e9e53827":[23,0,3,5,39],
 "namespaceyaze_1_1gfx.html#aeccc5ded5a311afcdf70cb43e466c220":[23,0,3,5,45],
 "namespaceyaze_1_1gfx.html#af530065a154701f94a0a96f72d05c057":[23,0,3,5,44],
-"namespaceyaze_1_1gfx.html#af64c2db0348f9d69a13b2cd77ef9ac1d":[23,0,3,5,65],
-"namespaceyaze_1_1gfx.html#af8fed1cb0f0baca7110e27e8594da601":[23,0,3,5,40],
-"namespaceyaze_1_1gfx.html#afe60ec3ca1f7cc03b5ca2cc3eb0073aa":[23,0,3,5,112],
-"namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html":[23,0,3,5,0],
-"namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#a508f2b61283381bc576c808d12a96454":[23,0,3,5,0,2],
-"namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#aa54837539667fc48e7f09f3f23971240":[23,0,3,5,0,0],
-"namespaceyaze_1_1gfx_1_1anonymous__namespace_02tilemap_8cc_03.html#ae2e81f1fdd4afb1968f8fb7de6ac74fa":[23,0,3,5,0,1],
-"namespaceyaze_1_1gfx_1_1lc__lz2.html":[23,0,3,5,1],
-"namespaceyaze_1_1gfx_1_1lc__lz2.html#a0398b778599d757fe88c75fc87a2e112":[23,0,3,5,1,58]
+"namespaceyaze_1_1gfx.html#af64c2db0348f9d69a13b2cd77ef9ac1d":[23,0,3,5,65]
 };

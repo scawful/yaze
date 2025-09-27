@@ -57,7 +57,7 @@ var searchData=
   ['objects_5f_54',['objects_',['../classyaze_1_1zelda3_1_1RoomLayout.html#a19e578b4e312eaad190f14a02a761f15',1,'yaze::zelda3::RoomLayout']]],
   ['objects_5frendered_55',['objects_rendered',['../structyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest_1_1PerformanceMetrics.html#a03cc41ed0ff5d79ab478a0206502daae',1,'yaze::zelda3::DungeonObjectRendererIntegrationTest::PerformanceMetrics::objects_rendered'],['../structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html#a8ab46865968d16e54eddc343f01dac40',1,'yaze::zelda3::ObjectRenderer::PerformanceStats::objects_rendered']]],
   ['objsel_56',['OBJSEL',['../namespaceyaze_1_1emu.html#aba117e7a9e91c7ac66256b429fb135ec',1,'yaze::emu']]],
-  ['offset_57',['offset',['../structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo::Offset'],['../structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister::offset']]],
+  ['offset_57',['offset',['../structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister::offset'],['../structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo::Offset']]],
   ['offset_5fx_5f_58',['offset_x_',['../classyaze_1_1zelda3_1_1RoomObject.html#a7af011bcb00c9cbbe365526b13cf19ac',1,'yaze::zelda3::RoomObject']]],
   ['offset_5fy_5f_59',['offset_y_',['../classyaze_1_1zelda3_1_1RoomObject.html#ab51d96a171361d176bdae4770ff723a3',1,'yaze::zelda3::RoomObject']]],
   ['oldstylejoypadregisters_60',['oldStyleJoypadRegisters',['../structyaze_1_1emu_1_1JoypadRegisters.html#a43f8e4495bda50e6c5788ebff2fcaf35',1,'yaze::emu::JoypadRegisters']]],

@@ -103,7 +103,7 @@ var searchData=
   ['of_20refactoring_100',['Benefits of Refactoring',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md319',1,'']]],
   ['off_101',['Off',['../group__dungeon.html#gadcf43c7a0c40bed25771dcd055a2e565',1,'zelda.h']]],
   ['offertestsessioncreation_102',['OfferTestSessionCreation',['../classyaze_1_1test_1_1TestManager.html#ac0e33eba8ade56271b4c15d82fad122f',1,'yaze::test::TestManager']]],
-  ['offset_103',['offset',['../structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister::offset'],['../structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo::Offset']]],
+  ['offset_103',['offset',['../structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo::Offset'],['../structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister::offset']]],
   ['offset_5fx_5f_104',['offset_x_',['../classyaze_1_1zelda3_1_1RoomObject.html#a7af011bcb00c9cbbe365526b13cf19ac',1,'yaze::zelda3::RoomObject']]],
   ['offset_5fy_5f_105',['offset_y_',['../classyaze_1_1zelda3_1_1RoomObject.html#ab51d96a171361d176bdae4770ff723a3',1,'yaze::zelda3::RoomObject']]],
   ['oldstylejoypadregisters_106',['oldStyleJoypadRegisters',['../structyaze_1_1emu_1_1JoypadRegisters.html#a43f8e4495bda50e6c5788ebff2fcaf35',1,'yaze::emu::JoypadRegisters']]],

@@ -27,6 +27,7 @@ var classyaze_1_1editor_1_1PopupManager =
     [ "DrawWorkspaceHelpPopup", "classyaze_1_1editor_1_1PopupManager.html#afec47f6e7a9914cbba89ad2b136c93e3", null ],
     [ "DrawSessionLimitWarningPopup", "classyaze_1_1editor_1_1PopupManager.html#a42541bde6107651524b9807ff5f9b7c6", null ],
     [ "DrawLayoutResetConfirmPopup", "classyaze_1_1editor_1_1PopupManager.html#ae30738cc7b46998aeeb31866a4a350e5", null ],
+    [ "DrawDisplaySettingsPopup", "classyaze_1_1editor_1_1PopupManager.html#a7c0f2b50dd38c1dece3e741f8888e487", null ],
     [ "editor_manager_", "classyaze_1_1editor_1_1PopupManager.html#a715dd04b044514b20ed7412f900ad4cf", null ],
     [ "popups_", "classyaze_1_1editor_1_1PopupManager.html#a6d5c87c37c995b6c20be3716afed3153", null ],
     [ "status_", "classyaze_1_1editor_1_1PopupManager.html#aa2795d1c987f13149b1a5f58c0d532c4", null ],
