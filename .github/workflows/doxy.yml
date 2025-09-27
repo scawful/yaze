@@ -1,45 +1,81 @@
-name: Doxygen Action
+name: Doxygen Documentation
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
+# Only run when documentation-related files are modified
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'src/**/*.h'
+      - 'src/**/*.cc'
+      - 'src/**/*.cpp'
+      - 'docs/**'
+      - 'Doxyfile'
+      - '.github/workflows/doxy.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'src/**/*.h'
+      - 'src/**/*.cc'
+      - 'src/**/*.cpp'
+      - 'docs/**'
+      - 'Doxyfile'
+      - '.github/workflows/doxy.yml'
 
 
   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  generate-docs:
+    name: Generate Documentation
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-    # Delete the html directory if it exists
-    - name: Delete html directory
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen graphviz
+
+    - name: Check if documentation build is needed
+      id: changes
+      run: |
+        # Check if this is the first commit or if docs-related files changed
+        if git show --name-only HEAD | grep -E '\.(h|cc|cpp|md)$|Doxyfile'; then
+          echo "docs_changed=true" >> $GITHUB_OUTPUT
+          echo "📝 Documentation-related files have changed"
+        else
+          echo "docs_changed=false" >> $GITHUB_OUTPUT
+          echo "ℹ️ No documentation changes detected"
+        fi
+
+    - name: Clean previous build
+      if: steps.changes.outputs.docs_changed == 'true'
       run: rm -rf html
 
-    # Installs graphviz for DOT graphs
-    - name: Install graphviz
-      run: sudo apt-get install graphviz
-        
-    - name: Doxygen Action
-      uses: mattnotmitt/doxygen-action@v1.1.0
+    - name: Generate Doxygen documentation
+      if: steps.changes.outputs.docs_changed == 'true'
+      uses: mattnotmitt/doxygen-action@v1.9.8
       with:
-        # Path to Doxyfile
-        doxyfile-path: "./Doxyfile" # default is ./Doxyfile
-        # Working directory
-        working-directory: "." # default is .
-    
-    - name: Deploy
+        doxyfile-path: "./Doxyfile"
+        working-directory: "."
+
+    - name: Deploy to GitHub Pages
+      if: steps.changes.outputs.docs_changed == 'true'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        # Default Doxyfile build documentation to html directory. 
-        # Change the directory if changes in Doxyfile
         publish_dir: ./html
+        commit_message: 'docs: update API documentation'
+        
+    - name: Summary
+      run: |
+        if [[ "${{ steps.changes.outputs.docs_changed }}" == "true" ]]; then
+          echo "✅ Documentation generated and deployed successfully"
+          echo "📖 View at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+        else
+          echo "⏭️ Documentation build skipped - no relevant changes detected"
+        fi
