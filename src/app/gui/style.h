@@ -14,35 +14,6 @@
 namespace yaze {
 namespace gui {
 
-struct Theme {
-  std::string name;
-
-  Color menu_bar_bg;
-  Color title_bar_bg;
-
-  Color header;
-  Color header_hovered;
-  Color header_active;
-
-  Color title_bg_active;
-  Color title_bg_collapsed;
-
-  Color tab;
-  Color tab_hovered;
-  Color tab_active;
-
-  Color button;
-  Color button_hovered;
-  Color button_active;
-
-  Color clickable_text;
-  Color clickable_text_hovered;
-};
-
-absl::StatusOr<Theme> LoadTheme(const std::string &filename);
-absl::Status SaveTheme(const Theme &theme);
-void ApplyTheme(const Theme &theme);
-
 void ColorsYaze();
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef();
