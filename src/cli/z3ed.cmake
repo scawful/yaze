@@ -11,6 +11,13 @@ if(NOT ftxui_POPULATED)
   add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
+# Platform-specific file dialog sources
+if(APPLE)
+  set(FILE_DIALOG_SRC app/core/platform/file_dialog.mm)
+else()
+  set(FILE_DIALOG_SRC app/core/platform/file_dialog.cc)
+endif()
+
 add_executable(
   z3ed
   cli/cli_main.cc
@@ -21,8 +28,7 @@ add_executable(
   app/rom.cc
   app/core/project.cc
   app/core/asar_wrapper.cc
-  app/core/platform/file_dialog.mm
-  app/core/platform/file_dialog.cc
+  ${FILE_DIALOG_SRC}
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}
   ${YAZE_APP_ZELDA3_SRC}
