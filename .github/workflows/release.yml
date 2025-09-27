@@ -209,11 +209,12 @@ jobs:
         # Install Homebrew dependencies needed for UI tests and full builds
         brew install pkg-config libpng boost abseil ninja
 
-    - name: Setup Windows build environment
-      if: runner.os == 'Windows'
+    - name: Setup build environment
       run: |
-        echo "Using minimal build approach to avoid vcpkg dependency issues"
-        echo "This disables optional PNG/ZLIB features but ensures reliable builds"
+        echo "Using streamlined release build configuration for all platforms"
+        echo "Linux/macOS: UI tests enabled with full dependency support"
+        echo "Windows: Minimal build to avoid vcpkg issues, UI tests disabled"
+        echo "All platforms: Emulator and developer tools disabled for clean releases"
 
     # Configure CMake
     - name: Configure CMake (Linux/macOS)
@@ -224,9 +225,11 @@ jobs:
           -DCMAKE_POLICY_VERSION_MINIMUM=3.16 \
           -DYAZE_BUILD_TESTS=OFF \
           -DYAZE_BUILD_EMU=OFF \
+          -DYAZE_BUILD_Z3ED=OFF \
           -DYAZE_ENABLE_UI_TESTS=ON \
           -DYAZE_ENABLE_ROM_TESTS=OFF \
           -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
+          -DYAZE_INSTALL_LIB=OFF \
           -GNinja
 
     - name: Configure CMake (Windows)
@@ -238,9 +241,10 @@ jobs:
           -DCMAKE_POLICY_VERSION_MINIMUM=3.16 ^
           -DYAZE_BUILD_TESTS=OFF ^
           -DYAZE_BUILD_EMU=OFF ^
-          -DYAZE_ENABLE_UI_TESTS=ON ^
+          -DYAZE_BUILD_Z3ED=OFF ^
           -DYAZE_ENABLE_ROM_TESTS=OFF ^
           -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF ^
+          -DYAZE_INSTALL_LIB=OFF ^
           -DYAZE_MINIMAL_BUILD=ON ^
           -G "${{ matrix.cmake_generator }}" ^
           -A ${{ matrix.cmake_generator_platform }}
