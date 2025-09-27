@@ -1,5 +1,15 @@
 var NAVTREEINDEX61 =
 {
+"namespaceyaze_1_1zelda3.html#ae41b8d95ba7392e9b2f8873f2cfd4480":[23,0,3,9,163],
+"namespaceyaze_1_1zelda3.html#ae5315c9c221d6f951660fad9faefa87a":[23,0,3,9,123],
+"namespaceyaze_1_1zelda3.html#ae553b04402f4fae6b1151c68e6e05685":[23,0,3,9,101],
+"namespaceyaze_1_1zelda3.html#ae6c7595a64ce4a9a54a80f931ea00346":[23,0,3,9,272],
+"namespaceyaze_1_1zelda3.html#ae6cd3b84406ea0d63138846e2e6eff29":[23,0,3,9,335],
+"namespaceyaze_1_1zelda3.html#ae6f627e71fbda277307e13468b073d31":[23,0,3,9,131],
+"namespaceyaze_1_1zelda3.html#ae743dd23bb238d5aa19fc3a8ac1aabbb":[23,0,3,9,223],
+"namespaceyaze_1_1zelda3.html#ae80104301f390026b742af74cdefce92":[23,0,3,9,156],
+"namespaceyaze_1_1zelda3.html#ae846e6b0bf54733432b57adb6bd05cac":[23,0,3,9,96],
+"namespaceyaze_1_1zelda3.html#ae8774726107ee54506f56490cf949e88":[23,0,3,9,157],
 "namespaceyaze_1_1zelda3.html#ae8d02f19ff85d107d6b057bdae07f6c4":[23,0,3,9,348],
 "namespaceyaze_1_1zelda3.html#ae951cf53c23877c9e91f0ca1c089921d":[23,0,3,9,365],
 "namespaceyaze_1_1zelda3.html#ae9e347d90839ccbaeff8d377c9ca7e2a":[23,0,3,9,265],
@@ -239,15 +249,5 @@ var NAVTREEINDEX61 =
 "overworld__editor_8cc_source.html":[25,0,3,0,1,5,4],
 "overworld__editor_8h.html":[25,0,3,0,1,5,5],
 "overworld__editor_8h.html#a090fa407d64c5928169ffda52eaa3829":[25,0,3,0,1,5,5,2],
-"overworld__editor_8h.html#a1d8e24b671e1338c02fbe726de12a0a3":[25,0,3,0,1,5,5,18],
-"overworld__editor_8h.html#a21a3ee57d060881f0c1f7e062418a71f":[25,0,3,0,1,5,5,11],
-"overworld__editor_8h.html#a32e9005b4f1ea1908b9fac631338f632":[25,0,3,0,1,5,5,10],
-"overworld__editor_8h.html#a509c76430fe7bd64995ca4c2a0004443":[25,0,3,0,1,5,5,14],
-"overworld__editor_8h.html#a547f59f67b587aa557ea5c83a29ca4f9":[25,0,3,0,1,5,5,15],
-"overworld__editor_8h.html#a615aec1dbd7a854131aa04103e8ea5b6":[25,0,3,0,1,5,5,12],
-"overworld__editor_8h.html#a6b56576c02ee38f7f1eecd135aa1f43c":[25,0,3,0,1,5,5,9],
-"overworld__editor_8h.html#a6c5b2de380ffaaff96b0f397b6530509":[25,0,3,0,1,5,5,3],
-"overworld__editor_8h.html#a9642f410bca21770ba2cc03f59921fe6":[25,0,3,0,1,5,5,4],
-"overworld__editor_8h.html#a991b0440a29e613a11cc075bc576adbf":[25,0,3,0,1,5,5,5],
-"overworld__editor_8h.html#aa19b000d1fccab47624593821858eac0":[25,0,3,0,1,5,5,7]
+"overworld__editor_8h.html#a1d8e24b671e1338c02fbe726de12a0a3":[25,0,3,0,1,5,5,18]
 };

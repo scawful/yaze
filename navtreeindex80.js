@@ -1,5 +1,15 @@
 var NAVTREEINDEX80 =
 {
+"tilemap_8cc.html#a397e84472b7ae0309b3e692909c0f30b":[25,0,3,0,3,16,9],
+"tilemap_8cc.html#a3e6fa2a2909d5dd9dfe748dbc691aa06":[25,0,3,0,3,16,4],
+"tilemap_8cc.html#a508f2b61283381bc576c808d12a96454":[25,0,3,0,3,16,8],
+"tilemap_8cc.html#a65d6ace8b115cdcc7607e60dc744b309":[25,0,3,0,3,16,3],
+"tilemap_8cc.html#a85cdb560638714d7afc71b20b1b8526c":[25,0,3,0,3,16,11],
+"tilemap_8cc.html#aa54837539667fc48e7f09f3f23971240":[25,0,3,0,3,16,6],
+"tilemap_8cc.html#ab1a956018883111c3a96be7777cb86d6":[25,0,3,0,3,16,5],
+"tilemap_8cc.html#add7dbc57103fdc10e6abf710863e940d":[25,0,3,0,3,16,2],
+"tilemap_8cc.html#ae2e81f1fdd4afb1968f8fb7de6ac74fa":[25,0,3,0,3,16,7],
+"tilemap_8cc.html#af64c2db0348f9d69a13b2cd77ef9ac1d":[25,0,3,0,3,16,10],
 "tilemap_8cc_source.html":[25,0,3,0,3,16],
 "tilemap_8h.html":[25,0,3,0,3,17],
 "tilemap_8h.html#a2064ed9f541dd72deb72f78523e006c4":[25,0,3,0,3,17,3],

@@ -1,5 +1,15 @@
 var NAVTREEINDEX52 =
 {
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md239":[12,6,2],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md240":[12,7],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md241":[12,7,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md242":[12,7,1],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md243":[12,7,2],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md244":[12,8],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md245":[12,8,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md246":[12,8,1],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md247":[12,9],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md248":[12,9,0],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md249":[12,9,1],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md250":[12,10],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md251":[12,10,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX52 =
 "message__data_8h.html#a508cbba41214d784ba112a4c3f14ec78":[25,0,3,0,1,3,1,9],
 "message__data_8h.html#a59d4c715a567f35b7d9423174b899067":[25,0,3,0,1,3,1,32],
 "message__data_8h.html#a6e03f0e92717101837c29f9cc3bf172f":[25,0,3,0,1,3,1,29],
-"message__data_8h.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f":[25,0,3,0,1,3,1,8],
-"message__data_8h.html#a70cc399beb413359a70ca254b143d6ec":[25,0,3,0,1,3,1,26],
-"message__data_8h.html#a7da8c45c704303a76331eaade35bc5da":[25,0,3,0,1,3,1,25],
-"message__data_8h.html#a7f9b61eee2bb838f10efe0d1062c8990":[25,0,3,0,1,3,1,14],
-"message__data_8h.html#a91359909a674306622aa5a533e0c2377":[25,0,3,0,1,3,1,15],
-"message__data_8h.html#a95bb92d26041cf1e3a0b332290bdea54":[25,0,3,0,1,3,1,11],
-"message__data_8h.html#a970a41369e67a459e17900d310274650":[25,0,3,0,1,3,1,20],
-"message__data_8h.html#aa1be5ac0e95732fd100052c1e380608f":[25,0,3,0,1,3,1,33],
-"message__data_8h.html#aa29017b4244db6fa3e3a6fbcb33142b0":[25,0,3,0,1,3,1,7],
-"message__data_8h.html#ab631002fa2510fae663f6347362ba82d":[25,0,3,0,1,3,1,6],
-"message__data_8h.html#ab8dad615541a554df4446d604e0bc187":[25,0,3,0,1,3,1,22]
+"message__data_8h.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f":[25,0,3,0,1,3,1,8]
 };

@@ -1,5 +1,15 @@
 var NAVTREEINDEX63 =
 {
+"ppu__registers_8h.html#a7c572f7c1b771b95b0040c733cf93cd0":[25,0,3,0,2,3,2,66],
+"ppu__registers_8h.html#a7ee6d65c178e28558735b7004a10939f":[25,0,3,0,2,3,2,110],
+"ppu__registers_8h.html#a8ffb499695abe870b61d949824e25ec9":[25,0,3,0,2,3,2,74],
+"ppu__registers_8h.html#a933c50d4498c28549fae0ffcae745a4e":[25,0,3,0,2,3,2,81],
+"ppu__registers_8h.html#a94d706c48c89c62f4e4e90800713efc7":[25,0,3,0,2,3,2,94],
+"ppu__registers_8h.html#a974daf65d141915c648ccb83aa84a72a":[25,0,3,0,2,3,2,116],
+"ppu__registers_8h.html#a979a2640bb3cf6137e0a2805ffaf67e1":[25,0,3,0,2,3,2,115],
+"ppu__registers_8h.html#a9f4f926d76a4f9d96f03b79f7e47a40c":[25,0,3,0,2,3,2,107],
+"ppu__registers_8h.html#aaa27643e56c9546c09d625282f69c2b9":[25,0,3,0,2,3,2,58],
+"ppu__registers_8h.html#aab58d1e2bf7b5bf1cce5edc4277a2b91":[25,0,3,0,2,3,2,53],
 "ppu__registers_8h.html#ab000d06262864a0e9d9781bf2b6ac13e":[25,0,3,0,2,3,2,86],
 "ppu__registers_8h.html#ab655fe1af711141e82907eb47ff96809":[25,0,3,0,2,3,2,62],
 "ppu__registers_8h.html#ab67de6eb9f0879a795852bbbed6d401d":[25,0,3,0,2,3,2,57],
@@ -239,15 +249,5 @@ var NAVTREEINDEX63 =
 "room__entrance_8h.html#a1accbf4fe50512baf98b6a3d3e9c92e7":[25,0,3,0,6,0,10,8],
 "room__entrance_8h.html#a26495cd86a21e1780a9f4483b5049575":[25,0,3,0,6,0,10,1],
 "room__entrance_8h.html#a2da013fe0766dd24e24e03dbeecf73e6":[25,0,3,0,6,0,10,48],
-"room__entrance_8h.html#a300fc4221ec3783817047de4087bbf08":[25,0,3,0,6,0,10,21],
-"room__entrance_8h.html#a41b024d5268925b29530eae41d1bc6ae":[25,0,3,0,6,0,10,12],
-"room__entrance_8h.html#a42f1e1ec9f5414b4bc0d7e1886cd5f6b":[25,0,3,0,6,0,10,4],
-"room__entrance_8h.html#a44894e51c91f101d7c132bb1a19b4bb3":[25,0,3,0,6,0,10,54],
-"room__entrance_8h.html#a49fa3f33b28a6c28efe18b254fc94c4e":[25,0,3,0,6,0,10,36],
-"room__entrance_8h.html#a4c7010a0a0b5ba2dd1a532d68f2f969a":[25,0,3,0,6,0,10,56],
-"room__entrance_8h.html#a4d8deafb7b25555b8d65f860b8face7d":[25,0,3,0,6,0,10,35],
-"room__entrance_8h.html#a509ea7e55d813d6e70cca5e3c3d1877a":[25,0,3,0,6,0,10,55],
-"room__entrance_8h.html#a6086ef3cff89c45f1671001bbe5193ad":[25,0,3,0,6,0,10,32],
-"room__entrance_8h.html#a6114cd105a40b8d3549ce5be17703f8d":[25,0,3,0,6,0,10,52],
-"room__entrance_8h.html#a6270b8fc739701253bb074324c836b01":[25,0,3,0,6,0,10,31]
+"room__entrance_8h.html#a300fc4221ec3783817047de4087bbf08":[25,0,3,0,6,0,10,21]
 };

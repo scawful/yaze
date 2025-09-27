@@ -1,5 +1,15 @@
 var NAVTREEINDEX79 =
 {
+"structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c":[22,7,0,0],
+"structzelda3__dungeon__room.html":[24,0,21],
+"structzelda3__dungeon__room.html#a22aab9efb3c4bc0c4b1bbf5354e78d10":[24,0,21,4],
+"structzelda3__dungeon__room.html#a234565451209a33c7710e0f33e226663":[24,0,21,13],
+"structzelda3__dungeon__room.html#a23d11d15de835636309f62cb4b813c82":[24,0,21,1],
+"structzelda3__dungeon__room.html#a3e4378ef2ad1ec373971935881247a30":[24,0,21,11],
+"structzelda3__dungeon__room.html#a42678ea7c1ec348ce2fda7a594f6ba90":[24,0,21,15],
+"structzelda3__dungeon__room.html#a4473c6659b4ed289cbdc446fb3190288":[24,0,21,16],
+"structzelda3__dungeon__room.html#a5e8e0ebe5c97e584d49b312aeb6dffb6":[24,0,21,17],
+"structzelda3__dungeon__room.html#a646ef3c5d1408d9e1ab7d9fd045e76e9":[24,0,21,5],
 "structzelda3__dungeon__room.html#a6b06cd9b012c9983d3f5c5e2302134e1":[24,0,21,7],
 "structzelda3__dungeon__room.html#a71d06943f28f6fb29ca61efa49a937b5":[24,0,21,12],
 "structzelda3__dungeon__room.html#abe1933825d1e89747eb0b659498e1225":[24,0,21,10],
@@ -239,15 +249,5 @@ var NAVTREEINDEX79 =
 "tile16__transfer_8cc_source.html":[25,0,3,1,0,2],
 "tilemap_8cc.html":[25,0,3,0,3,16],
 "tilemap_8cc.html#a2064ed9f541dd72deb72f78523e006c4":[25,0,3,0,3,16,0],
-"tilemap_8cc.html#a2ceb066551815eb3f3473a316fe8827d":[25,0,3,0,3,16,1],
-"tilemap_8cc.html#a397e84472b7ae0309b3e692909c0f30b":[25,0,3,0,3,16,9],
-"tilemap_8cc.html#a3e6fa2a2909d5dd9dfe748dbc691aa06":[25,0,3,0,3,16,4],
-"tilemap_8cc.html#a508f2b61283381bc576c808d12a96454":[25,0,3,0,3,16,8],
-"tilemap_8cc.html#a65d6ace8b115cdcc7607e60dc744b309":[25,0,3,0,3,16,3],
-"tilemap_8cc.html#a85cdb560638714d7afc71b20b1b8526c":[25,0,3,0,3,16,11],
-"tilemap_8cc.html#aa54837539667fc48e7f09f3f23971240":[25,0,3,0,3,16,6],
-"tilemap_8cc.html#ab1a956018883111c3a96be7777cb86d6":[25,0,3,0,3,16,5],
-"tilemap_8cc.html#add7dbc57103fdc10e6abf710863e940d":[25,0,3,0,3,16,2],
-"tilemap_8cc.html#ae2e81f1fdd4afb1968f8fb7de6ac74fa":[25,0,3,0,3,16,7],
-"tilemap_8cc.html#af64c2db0348f9d69a13b2cd77ef9ac1d":[25,0,3,0,3,16,10]
+"tilemap_8cc.html#a2ceb066551815eb3f3473a316fe8827d":[25,0,3,0,3,16,1]
 };
