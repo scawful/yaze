@@ -142,12 +142,30 @@ jobs:
             artifact_name: "yaze-macos"
             artifact_path: "build/bin/"
             package_cmd: |
-              # Create macOS app bundle and DMG
-              mkdir -p "Yaze.app/Contents/MacOS"
-              mkdir -p "Yaze.app/Contents/Resources"
-              cp build/bin/yaze "Yaze.app/Contents/MacOS/"
-              cp -r assets "Yaze.app/Contents/Resources/"
-              cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
+              # Debug: List what was actually built
+              echo "Contents of build/bin/:"
+              ls -la build/bin/ || echo "build/bin/ does not exist"
+              
+              # Check if we have a bundle or standalone executable
+              if [ -d "build/bin/yaze.app" ]; then
+                echo "Found macOS bundle, using it directly"
+                # Use the existing bundle and just update it
+                cp -r build/bin/yaze.app ./Yaze.app
+                # Add additional resources to the bundle
+                cp -r assets "Yaze.app/Contents/Resources/"
+                # Update Info.plist if needed
+                if [ -f "cmake/yaze.plist.in" ]; then
+                  cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
+                fi
+              else
+                echo "No bundle found, creating manual bundle"
+                # Create bundle structure manually
+                mkdir -p "Yaze.app/Contents/MacOS"
+                mkdir -p "Yaze.app/Contents/Resources"
+                cp build/bin/yaze "Yaze.app/Contents/MacOS/"
+                cp -r assets "Yaze.app/Contents/Resources/"
+                cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
+              fi
               
               # Create DMG
               mkdir dmg_staging
