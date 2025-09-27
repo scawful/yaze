@@ -559,8 +559,22 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   const float scaled_size = tile_size * scale;
   static bool dragging = false;
   constexpr int small_map_size = 0x200;
-  int superY = current_map / 8;
-  int superX = current_map % 8;
+  
+  // Calculate superX and superY accounting for world offset
+  int superY, superX;
+  if (current_map < 0x40) {
+    // Light World
+    superY = current_map / 8;
+    superX = current_map % 8;
+  } else if (current_map < 0x80) {
+    // Dark World
+    superY = (current_map - 0x40) / 8;
+    superX = (current_map - 0x40) % 8;
+  } else {
+    // Special World
+    superY = (current_map - 0x80) / 8;
+    superX = (current_map - 0x80) % 8;
+  }
 
   // Handle right click for single tile selection
   if (IsMouseClicked(ImGuiMouseButton_Right)) {
@@ -758,6 +772,11 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
   int i = 0;
   for (int y = 0; y < tiles_per_col + 1; ++y) {
     for (int x = 0; x < tiles_per_row + 1; ++x) {
+      // Check bounds to prevent access violations
+      if (i >= static_cast<int>(group.size())) {
+        break;
+      }
+      
       int tile_id = group[i];
 
       // Check if tile_id is within the range of tile16_individual_
@@ -770,10 +789,15 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
 
         // Draw the tile bitmap at the calculated position
         gfx::RenderTile(tilemap, tile_id);
-        DrawBitmap(tilemap.tile_bitmaps[tile_id], tile_pos_x, tile_pos_y, scale,
-                   150.0f);
-        i++;
+        if (tilemap.tile_bitmaps.find(tile_id) != tilemap.tile_bitmaps.end()) {
+          DrawBitmap(tilemap.tile_bitmaps[tile_id], tile_pos_x, tile_pos_y, scale, 150);
+        }
       }
+      i++;
+    }
+    // Break outer loop if we've run out of tiles
+    if (i >= static_cast<int>(group.size())) {
+      break;
     }
   }
 

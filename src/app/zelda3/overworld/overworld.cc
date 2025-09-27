@@ -120,8 +120,12 @@ absl::Status Overworld::AssembleMap32Tiles() {
                               rom()->version_constants().kMap32TileTR,
                               rom()->version_constants().kMap32TileBL,
                               rom()->version_constants().kMap32TileBR};
-  if (rom()->data()[kMap32ExpandedFlagPos] != 0x04 &&
-      core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
+  
+  // Use ASM version to determine expanded tile32 support, with flag as override
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  bool use_custom_overworld = (asm_version != 0xFF) || 
+                              core::FeatureFlags::get().overworld.kLoadCustomOverworld;
+  if (rom()->data()[kMap32ExpandedFlagPos] != 0x04 && use_custom_overworld) {
     map32address[0] = rom()->version_constants().kMap32TileTL;
     map32address[1] = kMap32TileTRExpanded;
     map32address[2] = kMap32TileBLExpanded;
@@ -169,8 +173,12 @@ absl::Status Overworld::AssembleMap32Tiles() {
 absl::Status Overworld::AssembleMap16Tiles() {
   int tpos = kMap16Tiles;
   int num_tile16 = kNumTile16Individual;
-  if (rom()->data()[kMap16ExpandedFlagPos] != 0x0F &&
-      core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
+  
+  // Use ASM version to determine expanded tile16 support, with flag as override
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  bool use_custom_overworld = (asm_version != 0xFF) || 
+                              core::FeatureFlags::get().overworld.kLoadCustomOverworld;
+  if (rom()->data()[kMap16ExpandedFlagPos] != 0x0F && use_custom_overworld) {
     tpos = kMap16TilesExpanded;
     num_tile16 = NumberOfMap16Ex;
     expanded_tile16_ = true;
@@ -313,12 +321,17 @@ absl::Status Overworld::LoadEntrances() {
   int ow_entrance_pos_ptr = kOverworldEntrancePos;
   int ow_entrance_id_ptr = kOverworldEntranceEntranceId;
   int num_entrances = 129;
-  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8 &&
-      core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
+  
+  // Use ASM version to determine expanded entrance support, with flag as override
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  bool use_custom_overworld = (asm_version != 0xFF) || 
+                              core::FeatureFlags::get().overworld.kLoadCustomOverworld;
+  if (rom()->data()[kOverworldEntranceExpandedFlagPos] != 0xB8 && use_custom_overworld) {
     ow_entrance_map_ptr = kOverworldEntranceMapExpanded;
     ow_entrance_pos_ptr = kOverworldEntrancePosExpanded;
     ow_entrance_id_ptr = kOverworldEntranceEntranceIdExpanded;
     expanded_entrances_ = true;
+    num_entrances = 256;  // Expanded entrance count
   }
 
   for (int i = 0; i < num_entrances; i++) {
@@ -416,16 +429,38 @@ absl::Status Overworld::LoadExits() {
 }
 
 absl::Status Overworld::LoadItems() {
-  ASSIGN_OR_RETURN(uint32_t pointer,
-                   rom()->ReadLong(zelda3::kOverworldItemsAddress));
-  uint32_t pointer_pc = SnesToPc(pointer);  // 1BC2F9 -> 0DC2F9
-  for (int i = 0; i < 128; i++) {
-    ASSIGN_OR_RETURN(uint16_t word_address,
-                     rom()->ReadWord(pointer_pc + i * 2));
-    uint32_t addr = (pointer & 0xFF0000) | word_address;  // 1B F9  3C
+  // byte asmVersion = ROM.DATA[Constants.OverworldCustomASMHasBeenApplied];
+
+  //           // Version 0x03 of the OW ASM added item support for the SW.
+  //           int maxOW = asmVersion >= 0x03 && asmVersion != 0xFF ? Constants.NumberOfOWMaps : 0x80;
+
+  //           int pointerSNES = ROM.ReadLong(Constants.overworldItemsAddress);
+  //           this.ItemPointerAddress = Utils.SnesToPc(pointerSNES); // 0x1BC2F9 -> 0x0DC2F9
+
+  // Version 0x03 of the OW ASM added item support for the SW.
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  
+  // Determine max number of overworld maps based on ASM version
+  int max_ow = (asm_version >= 0x03 && asm_version != 0xFF) ? kNumOverworldMaps : 0x80;
+  
+  ASSIGN_OR_RETURN(uint32_t pointer_snes, 
+                   rom()->ReadLong(zelda3::overworldItemsAddress));
+  uint32_t item_pointer_address = SnesToPc(pointer_snes);  // 0x1BC2F9 -> 0x0DC2F9
+  
+  for (int i = 0; i < max_ow; i++) {
+    ASSIGN_OR_RETURN(uint8_t bank_byte, rom()->ReadByte(zelda3::overworldItemsAddressBank));
+    int bank = bank_byte & 0x7F;
+    
+    ASSIGN_OR_RETURN(uint8_t addr_low, rom()->ReadByte(item_pointer_address + (i * 2)));
+    ASSIGN_OR_RETURN(uint8_t addr_high, rom()->ReadByte(item_pointer_address + (i * 2) + 1));
+    
+    uint32_t addr = (bank << 16) +     // 1B
+                    (addr_high << 8) + // F9  
+                    addr_low;          // 3C
     addr = SnesToPc(addr);
 
-    if (overworld_maps_[i].is_large_map()) {
+    // Check if this is a large map and skip if not the parent
+    if (overworld_maps_[i].area_size() != zelda3::AreaSizeEnum::SmallArea) {
       if (overworld_maps_[i].parent() != (uint8_t)i) {
         continue;
       }
@@ -442,13 +477,10 @@ absl::Status Overworld::LoadItems() {
 
       int p = (((b2 & 0x1F) << 8) + b1) >> 1;
 
-      int x = p % 64;
+      int x = p % 0x40;  // Use 0x40 instead of 64 to match ZS
       int y = p >> 6;
 
-      int fakeID = i;
-      if (fakeID >= 64) {
-        fakeID -= 64;
-      }
+      int fakeID = i % 0x40;  // Use modulo 0x40 to match ZS
 
       int sy = fakeID / 8;
       int sx = fakeID - (sy * 8);
@@ -467,15 +499,35 @@ absl::Status Overworld::LoadItems() {
 
 absl::Status Overworld::LoadSprites() {
   std::vector<std::future<absl::Status>> futures;
-  futures.emplace_back(std::async(std::launch::async, [this]() {
-    return LoadSpritesFromMap(kOverworldSpritesBeginning, 64, 0);
-  }));
-  futures.emplace_back(std::async(std::launch::async, [this]() {
-    return LoadSpritesFromMap(kOverworldSpritesZelda, 144, 1);
-  }));
-  futures.emplace_back(std::async(std::launch::async, [this]() {
-    return LoadSpritesFromMap(kOverworldSpritesAgahnim, 144, 2);
-  }));
+  
+  // Use ASM version to determine sprite table locations, with flag as override
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  bool use_custom_overworld = (asm_version != 0xFF) || 
+                              core::FeatureFlags::get().overworld.kLoadCustomOverworld;
+  
+  if (use_custom_overworld && asm_version >= 3 && asm_version != 0xFF) {
+    // v3: Use expanded sprite tables
+    futures.emplace_back(std::async(std::launch::async, [this]() {
+      return LoadSpritesFromMap(overworldSpritesBeginingExpanded, 64, 0);
+    }));
+    futures.emplace_back(std::async(std::launch::async, [this]() {
+      return LoadSpritesFromMap(overworldSpritesZeldaExpanded, 144, 1);
+    }));
+    futures.emplace_back(std::async(std::launch::async, [this]() {
+      return LoadSpritesFromMap(overworldSpritesAgahnimExpanded, 144, 2);
+    }));
+  } else {
+    // Vanilla/v2: Use original sprite tables
+    futures.emplace_back(std::async(std::launch::async, [this]() {
+      return LoadSpritesFromMap(kOverworldSpritesBeginning, 64, 0);
+    }));
+    futures.emplace_back(std::async(std::launch::async, [this]() {
+      return LoadSpritesFromMap(kOverworldSpritesZelda, 144, 1);
+    }));
+    futures.emplace_back(std::async(std::launch::async, [this]() {
+      return LoadSpritesFromMap(kOverworldSpritesAgahnim, 144, 2);
+    }));
+  }
 
   for (auto &future : futures) {
     future.wait();
@@ -532,6 +584,7 @@ absl::Status Overworld::Save(Rom *rom) {
   RETURN_IF_ERROR(SaveOverworldMaps())
   RETURN_IF_ERROR(SaveEntrances())
   RETURN_IF_ERROR(SaveExits())
+  RETURN_IF_ERROR(SaveMusic())
   RETURN_IF_ERROR(SaveAreaSizes())
   return absl::OkStatus();
 }
@@ -1597,6 +1650,30 @@ absl::Status Overworld::SaveMapProperties() {
         overworld_maps_[i].sprite_palette(1)));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpritePaletteIds + 192 + i,
                                      overworld_maps_[i].sprite_palette(2)));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::SaveMusic() {
+  util::logf("Saving Music Data");
+  
+  // Save music data for Light World maps
+  for (int i = 0; i < kDarkWorldMapIdStart; i++) {
+    RETURN_IF_ERROR(rom()->WriteByte(kOverworldMusicBeginning + i,
+                                     overworld_maps_[i].area_music(0)));
+    RETURN_IF_ERROR(rom()->WriteByte(kOverworldMusicZelda + i,
+                                     overworld_maps_[i].area_music(1)));
+    RETURN_IF_ERROR(rom()->WriteByte(kOverworldMusicMasterSword + i,
+                                     overworld_maps_[i].area_music(2)));
+    RETURN_IF_ERROR(rom()->WriteByte(kOverworldMusicAgahnim + i,
+                                     overworld_maps_[i].area_music(3)));
+  }
+
+  // Save music data for Dark World maps
+  for (int i = kDarkWorldMapIdStart; i < kSpecialWorldMapIdStart; i++) {
+    RETURN_IF_ERROR(rom()->WriteByte(kOverworldMusicDarkWorld + (i - kDarkWorldMapIdStart),
+                                     overworld_maps_[i].area_music(0)));
   }
 
   return absl::OkStatus();

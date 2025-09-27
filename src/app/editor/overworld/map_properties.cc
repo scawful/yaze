@@ -155,6 +155,12 @@ void MapPropertiesSystem::DrawMapPropertiesPanel(int current_map, bool& show_map
       ImGui::EndTabItem();
     }
     
+    // Music Tab
+    if (ImGui::BeginTabItem("Music")) {
+      DrawMusicTab(current_map);
+      ImGui::EndTabItem();
+    }
+    
     ImGui::EndTabBar();
   }
 }
@@ -521,6 +527,43 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
     }
     HOVER_HINT("Enable Mosaic effect for the current map");
     
+    // Add music editing controls
+    TableNextColumn(); ImGui::Text("Music (Beginning)");
+    TableNextColumn();
+    if (gui::InputHexByte("##Music0", 
+                          overworld_->mutable_overworld_map(current_map)->mutable_area_music(0),
+                          kInputFieldSize)) {
+      RefreshMapProperties();
+    }
+    HOVER_HINT("Music track for game beginning state");
+    
+    TableNextColumn(); ImGui::Text("Music (Zelda)");
+    TableNextColumn();
+    if (gui::InputHexByte("##Music1", 
+                          overworld_->mutable_overworld_map(current_map)->mutable_area_music(1),
+                          kInputFieldSize)) {
+      RefreshMapProperties();
+    }
+    HOVER_HINT("Music track for Zelda rescued state");
+    
+    TableNextColumn(); ImGui::Text("Music (Master Sword)");
+    TableNextColumn();
+    if (gui::InputHexByte("##Music2", 
+                          overworld_->mutable_overworld_map(current_map)->mutable_area_music(2),
+                          kInputFieldSize)) {
+      RefreshMapProperties();
+    }
+    HOVER_HINT("Music track for Master Sword obtained state");
+    
+    TableNextColumn(); ImGui::Text("Music (Agahnim)");
+    TableNextColumn();
+    if (gui::InputHexByte("##Music3", 
+                          overworld_->mutable_overworld_map(current_map)->mutable_area_music(3),
+                          kInputFieldSize)) {
+      RefreshMapProperties();
+    }
+    HOVER_HINT("Music track for Agahnim defeated state");
+    
     ImGui::EndTable();
   }
 }
@@ -665,6 +708,74 @@ void MapPropertiesSystem::DrawTileGraphicsTab(int current_map) {
     
     ImGui::EndTable();
   }
+}
+
+void MapPropertiesSystem::DrawMusicTab(int current_map) {
+  ImGui::Text("Music Settings for Different Game States:");
+  Separator();
+  
+  if (BeginTable("MusicSettings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
+    ImGui::TableSetupColumn("Game State", ImGuiTableColumnFlags_WidthFixed, 150);
+    ImGui::TableSetupColumn("Music Track ID", ImGuiTableColumnFlags_WidthStretch);
+    
+    const char* music_state_names[] = {
+      "Beginning (Pre-Zelda)",
+      "Zelda Rescued", 
+      "Master Sword Obtained",
+      "Agahnim Defeated"
+    };
+    
+    const char* music_descriptions[] = {
+      "Music before rescuing Zelda",
+      "Music after rescuing Zelda from Hyrule Castle",
+      "Music after obtaining the Master Sword",
+      "Music after defeating Agahnim (Dark World)"
+    };
+    
+    for (int i = 0; i < 4; i++) {
+      TableNextColumn();
+      ImGui::Text("%s", music_state_names[i]);
+      
+      TableNextColumn();
+      if (gui::InputHexByte(absl::StrFormat("##Music%d", i).c_str(),
+                            overworld_->mutable_overworld_map(current_map)->mutable_area_music(i),
+                            kInputFieldSize)) {
+        RefreshMapProperties();
+        
+        // Update the ROM directly since music is not automatically saved
+        int music_address = 0;
+        switch (i) {
+          case 0: music_address = zelda3::kOverworldMusicBeginning + current_map; break;
+          case 1: music_address = zelda3::kOverworldMusicZelda + current_map; break;
+          case 2: music_address = zelda3::kOverworldMusicMasterSword + current_map; break;
+          case 3: music_address = zelda3::kOverworldMusicAgahnim + current_map; break;
+        }
+        
+        if (music_address > 0) {
+          (*rom_)[music_address] = *overworld_->mutable_overworld_map(current_map)->mutable_area_music(i);
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", music_descriptions[i]);
+      }
+    }
+    
+    ImGui::EndTable();
+  }
+  
+  Separator();
+  ImGui::Text("Music tracks control the background music for different");
+  ImGui::Text("game progression states on this overworld map.");
+  
+  // Show common music track IDs for reference
+  Separator();
+  ImGui::Text("Common Music Track IDs:");
+  ImGui::BulletText("0x02 - Overworld Theme");
+  ImGui::BulletText("0x05 - Kakariko Village");
+  ImGui::BulletText("0x07 - Lost Woods");
+  ImGui::BulletText("0x09 - Dark World Theme");
+  ImGui::BulletText("0x0F - Ganon's Tower");
+  ImGui::BulletText("0x11 - Death Mountain");
 }
 
 void MapPropertiesSystem::RefreshMapProperties() {
