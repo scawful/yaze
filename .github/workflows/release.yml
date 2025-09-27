@@ -19,8 +19,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      release_id: ${{ steps.create_release.outputs.id }}
+      tag_name: ${{ github.ref_name || github.event.inputs.tag }}
     
     steps:
     - name: Checkout code
@@ -36,19 +35,28 @@ jobs:
         VERSION_NUM=$(echo "$VERSION" | sed 's/^v//')
         
         # Generate release notes using the dedicated script
-        python3 scripts/extract_changelog.py "$VERSION_NUM" > release_notes.md
+        echo "Extracting changelog for version: $VERSION_NUM"
+        if python3 scripts/extract_changelog.py "$VERSION_NUM" > release_notes.md; then
+          echo "Changelog extracted successfully"
+          echo "Release notes content:"
+          cat release_notes.md
+        else
+          echo "Failed to extract changelog, creating default release notes"
+          echo "# Yaze $VERSION Release Notes\n\nPlease see the full changelog at docs/C1-changelog.md" > release_notes.md
+        fi
 
     - name: Create Release
       id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref_name || github.event.inputs.tag }}
-        release_name: Yaze ${{ github.ref_name || github.event.inputs.tag }}
+        name: Yaze ${{ github.ref_name || github.event.inputs.tag }}
         body_path: release_notes.md
         draft: false
         prerelease: ${{ contains(github.ref_name || github.event.inputs.tag, 'beta') || contains(github.ref_name || github.event.inputs.tag, 'alpha') || contains(github.ref_name || github.event.inputs.tag, 'rc') }}
+        generate_release_notes: true
 
   build-release:
     name: Build Release
@@ -66,7 +74,7 @@ jobs:
             package_cmd: |
               mkdir package
               cp -r build/bin/Release/* package/
-              cp assets/yaze.png package/
+              cp -r assets package/
               cp LICENSE package/
               cp README.md package/
               cd package && 7z a ../yaze-windows-x64.zip *
@@ -81,7 +89,7 @@ jobs:
             package_cmd: |
               mkdir package
               cp -r build/bin/Release/* package/
-              cp assets/yaze.png package/
+              cp -r assets package/
               cp LICENSE package/
               cp README.md package/
               cd package && 7z a ../yaze-windows-x86.zip *
@@ -96,7 +104,7 @@ jobs:
               mkdir -p "Yaze.app/Contents/MacOS"
               mkdir -p "Yaze.app/Contents/Resources"
               cp build/bin/yaze "Yaze.app/Contents/MacOS/"
-              cp assets/yaze.png "Yaze.app/Contents/Resources/"
+              cp -r assets "Yaze.app/Contents/Resources/"
               cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
               
               # Create DMG
@@ -104,6 +112,7 @@ jobs:
               cp -r Yaze.app dmg_staging/
               cp LICENSE dmg_staging/
               cp README.md dmg_staging/
+              cp -r docs dmg_staging/
               hdiutil create -srcfolder dmg_staging -format UDZO -volname "Yaze v0.3.0" yaze-macos.dmg
             
           - name: "Linux x64"
@@ -114,6 +123,7 @@ jobs:
               mkdir package
               cp build/bin/yaze package/
               cp -r assets package/
+              cp -r docs package/
               cp LICENSE package/
               cp README.md package/
               tar -czf yaze-linux-x64.tar.gz -C package .
@@ -151,6 +161,12 @@ jobs:
           libxinerama-dev \
           libxi-dev
 
+    - name: Install macOS dependencies
+      if: runner.os == 'macOS'
+      run: |
+        # Install Homebrew dependencies needed for UI tests and full builds
+        brew install pkg-config libpng boost abseil ninja
+
     - name: Set up vcpkg (Windows)
       if: runner.os == 'Windows'
       uses: lukka/run-vcpkg@v11
@@ -163,7 +179,12 @@ jobs:
       run: |
         cmake -B build \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.16 \
           -DYAZE_BUILD_TESTS=OFF \
+          -DYAZE_BUILD_EMU=OFF \
+          -DYAZE_ENABLE_UI_TESTS=ON \
+          -DYAZE_ENABLE_ROM_TESTS=OFF \
+          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
           -GNinja
 
     - name: Configure CMake (Windows)
@@ -171,7 +192,12 @@ jobs:
       run: |
         cmake -B build ^
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.16 ^
           -DYAZE_BUILD_TESTS=OFF ^
+          -DYAZE_BUILD_EMU=OFF ^
+          -DYAZE_ENABLE_UI_TESTS=ON ^
+          -DYAZE_ENABLE_ROM_TESTS=OFF ^
+          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF ^
           -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake ^
           -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} ^
           -G "${{ matrix.cmake_generator }}" ^
@@ -188,14 +214,13 @@ jobs:
 
     # Upload to release
     - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./${{ matrix.artifact_name }}.*
-        asset_name: ${{ matrix.artifact_name }}.${{ runner.os == 'Windows' && 'zip' || (runner.os == 'macOS' && 'dmg' || 'tar.gz') }}
-        asset_content_type: application/octet-stream
+        tag_name: ${{ github.ref_name || github.event.inputs.tag }}
+        files: |
+          ${{ matrix.artifact_name }}.*
 
   publish-packages:
     name: Publish Packages
@@ -205,15 +230,9 @@ jobs:
     
     steps:
     - name: Update release status
-      uses: actions/github-script@v7
-      with:
-        script: |
-          github.rest.repos.updateRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            release_id: ${{ needs.create-release.outputs.release_id }},
-            draft: false
-          });
+      run: |
+        echo "Release has been published successfully"
+        echo "All build artifacts have been uploaded"
 
     - name: Announce release
       run: |
