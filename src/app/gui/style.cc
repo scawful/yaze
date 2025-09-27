@@ -398,6 +398,50 @@ void BeginChildBothScrollbars(int id) {
                         ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 }
 
+// Helper functions for table canvas management
+void BeginTableCanvas(const char* table_id, int columns, ImVec2 canvas_size) {
+  // Use proper sizing for tables containing canvas elements
+  ImGuiTableFlags flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingStretchProp;
+  
+  // If canvas size is specified, use it as minimum size
+  ImVec2 outer_size = ImVec2(0, 0);
+  if (canvas_size.x > 0 || canvas_size.y > 0) {
+    outer_size = canvas_size;
+    flags |= ImGuiTableFlags_NoHostExtendY; // Prevent auto-extending past canvas size
+  }
+  
+  ImGui::BeginTable(table_id, columns, flags, outer_size);
+}
+
+void EndTableCanvas() {
+  ImGui::EndTable();
+}
+
+void SetupCanvasTableColumn(const char* label, float width_ratio) {
+  if (width_ratio > 0) {
+    ImGui::TableSetupColumn(label, ImGuiTableColumnFlags_WidthStretch, width_ratio);
+  } else {
+    ImGui::TableSetupColumn(label, ImGuiTableColumnFlags_WidthStretch);
+  }
+}
+
+void BeginCanvasTableCell(ImVec2 min_size) {
+  ImGui::TableNextColumn();
+  
+  // Ensure minimum size for canvas cells
+  if (min_size.x > 0 || min_size.y > 0) {
+    ImVec2 avail = ImGui::GetContentRegionAvail();
+    ImVec2 actual_size = ImVec2(
+      std::max(avail.x, min_size.x),
+      std::max(avail.y, min_size.y)
+    );
+    
+    // Reserve space for the canvas
+    ImGui::Dummy(actual_size);
+    ImGui::SetCursorPos(ImGui::GetCursorPos() - actual_size); // Reset cursor for drawing
+  }
+}
+
 void DrawDisplaySettings(ImGuiStyle *ref) {
   // You can pass in a reference ImGuiStyle structure to compare to, revert to
   // and save to (without a reference style pointer, we will use one compared
@@ -413,66 +457,121 @@ void DrawDisplaySettings(ImGuiStyle *ref) {
 
   ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
 
-  // Enhanced theme selector
-  auto& theme_manager = ThemeManager::Get();
-  static bool show_theme_selector = false;
-  
-  ImGui::Text("Theme Selection:");
-  
-  // Classic YAZE button
-  std::string current_theme_name = theme_manager.GetCurrentThemeName();
-  bool is_classic_active = (current_theme_name == "Classic YAZE");
-  
-  if (is_classic_active) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
-  }
-  
-  if (ImGui::Button("Classic YAZE")) {
-    theme_manager.ApplyClassicYazeTheme();
-    ref_saved_style = style;
-  }
-
-  if (ImGui::Button("ColorsYaze")) {
-    gui::ColorsYaze();
-  }
-  
-  if (is_classic_active) {
-    ImGui::PopStyleColor();
-  }
-  
-  ImGui::SameLine();
-  ImGui::Text(" | ");
-  ImGui::SameLine();
-  
-  // File themes dropdown - just the raw list, no sorting
-  auto available_themes = theme_manager.GetAvailableThemes();
-  const char* current_file_theme = "";
-  
-  // Find current file theme for display
-  for (const auto& theme_name : available_themes) {
-    if (theme_name == current_theme_name) {
-      current_file_theme = theme_name.c_str();
-      break;
+  // Enhanced theme management section
+  if (ImGui::CollapsingHeader("Theme Management", ImGuiTreeNodeFlags_DefaultOpen)) {
+    auto& theme_manager = ThemeManager::Get();
+    static bool show_theme_selector = false;
+    static bool show_theme_editor = false;
+    
+    ImGui::Text("%s Current Theme:", ICON_MD_PALETTE);
+    ImGui::SameLine();
+    
+    std::string current_theme_name = theme_manager.GetCurrentThemeName();
+    bool is_classic_active = (current_theme_name == "Classic YAZE");
+    
+    // Current theme display with color preview
+    if (is_classic_active) {
+      ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s", current_theme_name.c_str());
+    } else {
+      ImGui::Text("%s", current_theme_name.c_str());
     }
-  }
-  
-  if (ImGui::BeginCombo("File Themes", current_file_theme)) {
-    for (const auto& theme_name : available_themes) {
-      if (ImGui::Selectable(theme_name.c_str())) {
-        theme_manager.LoadTheme(theme_name);
+    
+    // Theme color preview
+    auto current_theme = theme_manager.GetCurrentTheme();
+    ImGui::SameLine();
+    ImGui::ColorButton("##primary_preview", gui::ConvertColorToImVec4(current_theme.primary), 
+                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+    ImGui::SameLine();
+    ImGui::ColorButton("##secondary_preview", gui::ConvertColorToImVec4(current_theme.secondary), 
+                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+    ImGui::SameLine();
+    ImGui::ColorButton("##accent_preview", gui::ConvertColorToImVec4(current_theme.accent), 
+                      ImGuiColorEditFlags_NoTooltip, ImVec2(20, 20));
+    
+    ImGui::Spacing();
+    
+    // Theme selection table for better organization
+    if (ImGui::BeginTable("ThemeSelectionTable", 3, 
+                         ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoHostExtendY,
+                         ImVec2(0, 80))) {
+      
+      ImGui::TableSetupColumn("Built-in", ImGuiTableColumnFlags_WidthStretch, 0.3f);
+      ImGui::TableSetupColumn("File Themes", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch, 0.3f);
+      ImGui::TableHeadersRow();
+      
+      ImGui::TableNextRow();
+      
+      // Built-in themes column
+      ImGui::TableNextColumn();
+      if (is_classic_active) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+      }
+      
+      if (ImGui::Button("Classic YAZE", ImVec2(-1, 30))) {
+        theme_manager.ApplyClassicYazeTheme();
         ref_saved_style = style;
       }
+      
+      if (is_classic_active) {
+        ImGui::PopStyleColor();
+      }
+      
+      if (ImGui::Button("Reset ColorsYaze", ImVec2(-1, 30))) {
+        gui::ColorsYaze();
+        ref_saved_style = style;
+      }
+      
+      // File themes column
+      ImGui::TableNextColumn();
+      auto available_themes = theme_manager.GetAvailableThemes();
+      const char* current_file_theme = "";
+      
+      // Find current file theme for display
+      for (const auto& theme_name : available_themes) {
+        if (theme_name == current_theme_name) {
+          current_file_theme = theme_name.c_str();
+          break;
+        }
+      }
+      
+      ImGui::SetNextItemWidth(-1);
+      if (ImGui::BeginCombo("##FileThemes", current_file_theme)) {
+        for (const auto& theme_name : available_themes) {
+          bool is_selected = (theme_name == current_theme_name);
+          if (ImGui::Selectable(theme_name.c_str(), is_selected)) {
+            theme_manager.LoadTheme(theme_name);
+            ref_saved_style = style;
+          }
+        }
+        ImGui::EndCombo();
+      }
+      
+      if (ImGui::Button("Refresh Themes", ImVec2(-1, 30))) {
+        theme_manager.RefreshAvailableThemes();
+      }
+      
+      // Actions column
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Theme Selector", ImVec2(-1, 30))) {
+        show_theme_selector = true;
+      }
+      
+      if (ImGui::Button("Theme Editor", ImVec2(-1, 30))) {
+        show_theme_editor = true;
+      }
+      
+      ImGui::EndTable();
     }
-    ImGui::EndCombo();
-  }
-  
-  ImGui::SameLine();
-  if (ImGui::Button("Theme Settings")) {
-    show_theme_selector = true;
-  }
-  
-  if (show_theme_selector) {
-    theme_manager.ShowThemeSelector(&show_theme_selector);
+    
+    // Show theme dialogs
+    if (show_theme_selector) {
+      theme_manager.ShowThemeSelector(&show_theme_selector);
+    }
+    
+    if (show_theme_editor) {
+      theme_manager.ShowSimpleThemeEditor(&show_theme_editor);
+    }
   }
   
   ImGui::Separator();

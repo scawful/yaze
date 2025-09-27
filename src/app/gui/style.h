@@ -66,6 +66,12 @@ void BeginChildWithScrollbar(const char *str_id);
 
 void BeginChildBothScrollbars(int id);
 
+// Table canvas management helpers for GUI elements that need proper sizing
+void BeginTableCanvas(const char* table_id, int columns, ImVec2 canvas_size = ImVec2(0, 0));
+void EndTableCanvas();
+void SetupCanvasTableColumn(const char* label, float width_ratio = 0.0f);
+void BeginCanvasTableCell(ImVec2 min_size = ImVec2(0, 0));
+
 void DrawDisplaySettings(ImGuiStyle *ref = nullptr);
 
 void TextWithSeparators(const absl::string_view &text);

@@ -88,6 +88,13 @@ void EnhancedTheme::ApplyToImGui() const {
   colors[ImGuiCol_PlotLinesHovered] = ConvertColorToImVec4(plot_lines_hovered);
   colors[ImGuiCol_PlotHistogram] = ConvertColorToImVec4(plot_histogram);
   colors[ImGuiCol_PlotHistogramHovered] = ConvertColorToImVec4(plot_histogram_hovered);
+  colors[ImGuiCol_TreeLines] = ConvertColorToImVec4(tree_lines);
+  
+  // Additional ImGui colors for complete coverage
+  colors[ImGuiCol_TabDimmed] = ConvertColorToImVec4(tab_dimmed);
+  colors[ImGuiCol_TabDimmedSelected] = ConvertColorToImVec4(tab_dimmed_selected);
+  colors[ImGuiCol_TabDimmedSelectedOverline] = ConvertColorToImVec4(tab_dimmed_selected_overline);
+  colors[ImGuiCol_TabSelectedOverline] = ConvertColorToImVec4(tab_selected_overline);
   
   // Apply style parameters
   style->WindowRounding = window_rounding;
@@ -165,6 +172,15 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.title_bg = RGBA(71, 92, 71);          // alttpMidGreen
   theme.title_bg_active = RGBA(46, 66, 46);   // alttpDarkGreen
   theme.title_bg_collapsed = RGBA(71, 92, 71); // alttpMidGreen
+  
+  // Initialize missing fields that were added to the struct
+  theme.surface = theme.background;
+  theme.error = RGBA(220, 50, 50);
+  theme.warning = RGBA(255, 200, 50);
+  theme.success = theme.primary;
+  theme.info = RGBA(70, 170, 255);
+  theme.text_secondary = RGBA(200, 200, 200);
+  theme.modal_bg = theme.popup_bg;
   
   // Borders and separators
   theme.border = RGBA(92, 115, 92);           // allttpLightGreen
@@ -537,8 +553,33 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content, EnhancedTh
       else if (key == "resize_grip") theme.resize_grip = color;
       else if (key == "resize_grip_hovered") theme.resize_grip_hovered = color;
       else if (key == "resize_grip_active") theme.resize_grip_active = color;
-      // Note: Additional colors like check_mark, slider_grab, table colors
-      // are handled by the fallback or can be added to EnhancedTheme struct as needed
+      else if (key == "check_mark") theme.check_mark = color;
+      else if (key == "slider_grab") theme.slider_grab = color;
+      else if (key == "slider_grab_active") theme.slider_grab_active = color;
+      else if (key == "input_text_cursor") theme.input_text_cursor = color;
+      else if (key == "nav_cursor") theme.nav_cursor = color;
+      else if (key == "nav_windowing_highlight") theme.nav_windowing_highlight = color;
+      else if (key == "nav_windowing_dim_bg") theme.nav_windowing_dim_bg = color;
+      else if (key == "modal_window_dim_bg") theme.modal_window_dim_bg = color;
+      else if (key == "text_selected_bg") theme.text_selected_bg = color;
+      else if (key == "drag_drop_target") theme.drag_drop_target = color;
+      else if (key == "table_header_bg") theme.table_header_bg = color;
+      else if (key == "table_border_strong") theme.table_border_strong = color;
+      else if (key == "table_border_light") theme.table_border_light = color;
+      else if (key == "table_row_bg") theme.table_row_bg = color;
+      else if (key == "table_row_bg_alt") theme.table_row_bg_alt = color;
+      else if (key == "text_link") theme.text_link = color;
+      else if (key == "plot_lines") theme.plot_lines = color;
+      else if (key == "plot_lines_hovered") theme.plot_lines_hovered = color;
+      else if (key == "plot_histogram") theme.plot_histogram = color;
+      else if (key == "plot_histogram_hovered") theme.plot_histogram_hovered = color;
+      else if (key == "tree_lines") theme.tree_lines = color;
+      else if (key == "tab_dimmed") theme.tab_dimmed = color;
+      else if (key == "tab_dimmed_selected") theme.tab_dimmed_selected = color;
+      else if (key == "tab_dimmed_selected_overline") theme.tab_dimmed_selected_overline = color;
+      else if (key == "tab_selected_overline") theme.tab_selected_overline = color;
+      else if (key == "docking_preview") theme.docking_preview = color;
+      else if (key == "docking_empty_bg") theme.docking_empty_bg = color;
     }
     else if (current_section == "style") {
       if (key == "window_rounding") theme.window_rounding = std::stof(value);
@@ -664,12 +705,58 @@ std::string ThemeManager::SerializeTheme(const EnhancedTheme& theme) const {
   ss << "separator_active=" << colorToString(theme.separator_active) << "\n";
   ss << "\n";
   
-  // Scrollbars
-  ss << "# Scrollbars\n";
+  // Scrollbars and controls
+  ss << "# Scrollbars and controls\n";
   ss << "scrollbar_bg=" << colorToString(theme.scrollbar_bg) << "\n";
   ss << "scrollbar_grab=" << colorToString(theme.scrollbar_grab) << "\n";
   ss << "scrollbar_grab_hovered=" << colorToString(theme.scrollbar_grab_hovered) << "\n";
   ss << "scrollbar_grab_active=" << colorToString(theme.scrollbar_grab_active) << "\n";
+  ss << "resize_grip=" << colorToString(theme.resize_grip) << "\n";
+  ss << "resize_grip_hovered=" << colorToString(theme.resize_grip_hovered) << "\n";
+  ss << "resize_grip_active=" << colorToString(theme.resize_grip_active) << "\n";
+  ss << "check_mark=" << colorToString(theme.check_mark) << "\n";
+  ss << "slider_grab=" << colorToString(theme.slider_grab) << "\n";
+  ss << "slider_grab_active=" << colorToString(theme.slider_grab_active) << "\n";
+  ss << "\n";
+  
+  // Navigation and special elements
+  ss << "# Navigation and special elements\n";
+  ss << "input_text_cursor=" << colorToString(theme.input_text_cursor) << "\n";
+  ss << "nav_cursor=" << colorToString(theme.nav_cursor) << "\n";
+  ss << "nav_windowing_highlight=" << colorToString(theme.nav_windowing_highlight) << "\n";
+  ss << "nav_windowing_dim_bg=" << colorToString(theme.nav_windowing_dim_bg) << "\n";
+  ss << "modal_window_dim_bg=" << colorToString(theme.modal_window_dim_bg) << "\n";
+  ss << "text_selected_bg=" << colorToString(theme.text_selected_bg) << "\n";
+  ss << "drag_drop_target=" << colorToString(theme.drag_drop_target) << "\n";
+  ss << "docking_preview=" << colorToString(theme.docking_preview) << "\n";
+  ss << "docking_empty_bg=" << colorToString(theme.docking_empty_bg) << "\n";
+  ss << "\n";
+  
+  // Table colors
+  ss << "# Table colors\n";
+  ss << "table_header_bg=" << colorToString(theme.table_header_bg) << "\n";
+  ss << "table_border_strong=" << colorToString(theme.table_border_strong) << "\n";
+  ss << "table_border_light=" << colorToString(theme.table_border_light) << "\n";
+  ss << "table_row_bg=" << colorToString(theme.table_row_bg) << "\n";
+  ss << "table_row_bg_alt=" << colorToString(theme.table_row_bg_alt) << "\n";
+  ss << "\n";
+  
+  // Links and plots
+  ss << "# Links and plots\n";
+  ss << "text_link=" << colorToString(theme.text_link) << "\n";
+  ss << "plot_lines=" << colorToString(theme.plot_lines) << "\n";
+  ss << "plot_lines_hovered=" << colorToString(theme.plot_lines_hovered) << "\n";
+  ss << "plot_histogram=" << colorToString(theme.plot_histogram) << "\n";
+  ss << "plot_histogram_hovered=" << colorToString(theme.plot_histogram_hovered) << "\n";
+  ss << "tree_lines=" << colorToString(theme.tree_lines) << "\n";
+  ss << "\n";
+  
+  // Tab variations
+  ss << "# Tab variations\n";
+  ss << "tab_dimmed=" << colorToString(theme.tab_dimmed) << "\n";
+  ss << "tab_dimmed_selected=" << colorToString(theme.tab_dimmed_selected) << "\n";
+  ss << "tab_dimmed_selected_overline=" << colorToString(theme.tab_dimmed_selected_overline) << "\n";
+  ss << "tab_selected_overline=" << colorToString(theme.tab_selected_overline) << "\n";
   ss << "\n";
   
   // Style settings
@@ -786,6 +873,13 @@ void ThemeManager::ApplyClassicYazeTheme() {
   classic_theme.plot_histogram_hovered = RGBA(255, 153, 0);
   classic_theme.docking_preview = RGBA(92, 115, 92, 180);
   classic_theme.docking_empty_bg = RGBA(46, 66, 46, 255);
+  classic_theme.tree_lines = classic_theme.separator; // Use separator color for tree lines
+  
+  // Tab dimmed colors (for unfocused tabs)
+  classic_theme.tab_dimmed = RGBA(37, 52, 37);           // Darker version of tab
+  classic_theme.tab_dimmed_selected = RGBA(62, 83, 62); // Darker version of tab_active
+  classic_theme.tab_dimmed_selected_overline = classic_theme.accent;
+  classic_theme.tab_selected_overline = classic_theme.accent;
   
   // Apply original style settings
   classic_theme.window_rounding = 0.0f;

@@ -82,6 +82,26 @@ table_row_bg_alt=255,255,255,25 # Slightly more visible alternating rows
 # Link colors (high contrast for better visibility)
 text_link=120,200,255,255       # Bright blue for links - high contrast against dark backgrounds
 
+# Navigation and special elements
+input_text_cursor=245,245,245,255
+nav_cursor=110,145,110,255
+nav_windowing_highlight=110,145,110,255
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,89
+text_selected_bg=89,119,89,89
+drag_drop_target=110,145,110,255
+docking_preview=92,115,92,180
+docking_empty_bg=46,66,46,255
+
+# Tree lines
+tree_lines=127,127,127,153
+
+# Tab variations for unfocused windows
+tab_dimmed=37,52,37,255
+tab_dimmed_selected=62,83,62,255
+tab_dimmed_selected_overline=110,145,110,255
+tab_selected_overline=110,145,110,255
+
 [style]
 window_rounding=0.0
 frame_rounding=5.0
