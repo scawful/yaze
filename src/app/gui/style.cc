@@ -7,6 +7,7 @@
 #include "app/gui/background_renderer.h"
 #include "core/platform/font_loader.h"
 #include "gui/color.h"
+#include "gui/icons.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/log.h"
@@ -438,7 +439,7 @@ void BeginCanvasTableCell(ImVec2 min_size) {
     
     // Reserve space for the canvas
     ImGui::Dummy(actual_size);
-    ImGui::SetCursorPos(ImGui::GetCursorPos() - actual_size); // Reset cursor for drawing
+    // ImGui::SetCursorPos(ImGui::GetCursorPos() - actual_size); // Reset cursor for drawing
   }
 }
 
