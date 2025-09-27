@@ -300,7 +300,7 @@ var searchData=
   ['drawwelcomescreen_297',['DrawWelcomeScreen',['../classyaze_1_1editor_1_1EditorManager.html#aa1e288deb163d1a710c61e7125fbd487',1,'yaze::editor::EditorManager']]],
   ['drawwhatsnewpopup_298',['DrawWhatsNewPopup',['../classyaze_1_1editor_1_1PopupManager.html#ac03fbdd917e0cf583ae642cc292699e7',1,'yaze::editor::PopupManager']]],
   ['drawworkspacehelppopup_299',['DrawWorkspaceHelpPopup',['../classyaze_1_1editor_1_1PopupManager.html#afec47f6e7a9914cbba89ad2b136c93e3',1,'yaze::editor::PopupManager']]],
-  ['dsp_300',['dsp',['../classyaze_1_1emu_1_1Dsp.html#acf9d5b3f122a8e054c1d77dff0a65f47',1,'yaze::emu::Dsp::Dsp()'],['../classyaze_1_1emu_1_1Apu.html#a2764ac75dec1c12445109690f73ec509',1,'yaze::emu::Apu::dsp()']]],
+  ['dsp_300',['dsp',['../classyaze_1_1emu_1_1Apu.html#a2764ac75dec1c12445109690f73ec509',1,'yaze::emu::Apu::dsp()'],['../classyaze_1_1emu_1_1Dsp.html#acf9d5b3f122a8e054c1d77dff0a65f47',1,'yaze::emu::Dsp::Dsp()']]],
   ['dungeon_5fpalette_301',['dungeon_palette',['../classyaze_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117',1,'yaze::Rom']]],
   ['dungeonasset_302',['DungeonAsset',['../structyaze_1_1gui_1_1DungeonAsset.html#a206502db76dc8bd6490c6c3384d8e4bf',1,'yaze::gui::DungeonAsset']]],
   ['dungeoncanvasviewer_303',['DungeonCanvasViewer',['../classyaze_1_1editor_1_1DungeonCanvasViewer.html#a7542b525ceda3c877c9f190b1a829ca1',1,'yaze::editor::DungeonCanvasViewer']]],

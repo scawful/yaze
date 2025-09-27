@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['z_0',['z',['../structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a33e014ab838b89ea762c90f773c0a25b',1,'yaze::editor::zsprite::OamTile::z'],['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#a0b394943bb22ebf53fdf050477da8256',1,'yaze::emu::Spc700::Flags::Z']]],
+  ['z_0',['z',['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#a0b394943bb22ebf53fdf050477da8256',1,'yaze::emu::Spc700::Flags::Z'],['../structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a33e014ab838b89ea762c90f773c0a25b',1,'yaze::editor::zsprite::OamTile::z']]],
   ['z3_5from_5fpalette_5f_1',['z3_rom_palette_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a957769c1d2dddfe413ec84c2eed50d08',1,'yaze::editor::GraphicsEditor']]],
   ['z3_5fsave_2',['z3_save',['../structyaze_1_1Rom_1_1SaveSettings.html#a1e3bfc53479ab1000ea5cbd679c519ab',1,'yaze::Rom::SaveSettings']]],
   ['z3_5fstaircases_5f_3',['z3_staircases_',['../classyaze_1_1zelda3_1_1Room.html#ae3bb036eadb188accb603d3bdf0f0789',1,'yaze::zelda3::Room']]],

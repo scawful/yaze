@@ -1,5 +1,7 @@
 var NAVTREEINDEX63 =
 {
+"ppu__registers_8h.html#a77a08eed064fb779b108b1874a136f0f":[25,0,3,0,2,3,2,98],
+"ppu__registers_8h.html#a7a0ddab1f520f694d9b745feaada86e4":[25,0,3,0,2,3,2,83],
 "ppu__registers_8h.html#a7c572f7c1b771b95b0040c733cf93cd0":[25,0,3,0,2,3,2,66],
 "ppu__registers_8h.html#a7ee6d65c178e28558735b7004a10939f":[25,0,3,0,2,3,2,110],
 "ppu__registers_8h.html#a8ffb499695abe870b61d949824e25ec9":[25,0,3,0,2,3,2,74],
@@ -247,7 +249,5 @@ var NAVTREEINDEX63 =
 "room__entrance_8h.html#a130a7ad742b81ddae5894bd7be7db3a9":[25,0,3,0,6,0,10,30],
 "room__entrance_8h.html#a1a8a0281f0521a72f9b9b777c4cfb80c":[25,0,3,0,6,0,10,57],
 "room__entrance_8h.html#a1accbf4fe50512baf98b6a3d3e9c92e7":[25,0,3,0,6,0,10,8],
-"room__entrance_8h.html#a26495cd86a21e1780a9f4483b5049575":[25,0,3,0,6,0,10,1],
-"room__entrance_8h.html#a2da013fe0766dd24e24e03dbeecf73e6":[25,0,3,0,6,0,10,48],
-"room__entrance_8h.html#a300fc4221ec3783817047de4087bbf08":[25,0,3,0,6,0,10,21]
+"room__entrance_8h.html#a26495cd86a21e1780a9f4483b5049575":[25,0,3,0,6,0,10,1]
 };

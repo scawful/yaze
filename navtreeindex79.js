@@ -1,5 +1,7 @@
 var NAVTREEINDEX79 =
 {
+"structyaze__extension.html#a93cdd908fb3c54b68fa54307fcf3a090":[22,7,0,4],
+"structyaze__extension.html#aab3644cf16c4a7db79229ad20118d9f5":[22,7,0,5],
 "structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c":[22,7,0,0],
 "structzelda3__dungeon__room.html":[24,0,21],
 "structzelda3__dungeon__room.html#a22aab9efb3c4bc0c4b1bbf5354e78d10":[24,0,21,4],
@@ -247,7 +249,5 @@ var NAVTREEINDEX79 =
 "tile16__editor__test_8cc_source.html":[25,0,4,1,2],
 "tile16__transfer_8cc.html":[25,0,3,1,0,2],
 "tile16__transfer_8cc_source.html":[25,0,3,1,0,2],
-"tilemap_8cc.html":[25,0,3,0,3,16],
-"tilemap_8cc.html#a2064ed9f541dd72deb72f78523e006c4":[25,0,3,0,3,16,0],
-"tilemap_8cc.html#a2ceb066551815eb3f3473a316fe8827d":[25,0,3,0,3,16,1]
+"tilemap_8cc.html":[25,0,3,0,3,16]
 };

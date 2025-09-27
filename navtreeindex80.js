@@ -1,5 +1,7 @@
 var NAVTREEINDEX80 =
 {
+"tilemap_8cc.html#a2064ed9f541dd72deb72f78523e006c4":[25,0,3,0,3,16,0],
+"tilemap_8cc.html#a2ceb066551815eb3f3473a316fe8827d":[25,0,3,0,3,16,1],
 "tilemap_8cc.html#a397e84472b7ae0309b3e692909c0f30b":[25,0,3,0,3,16,9],
 "tilemap_8cc.html#a3e6fa2a2909d5dd9dfe748dbc691aa06":[25,0,3,0,3,16,4],
 "tilemap_8cc.html#a508f2b61283381bc576c808d12a96454":[25,0,3,0,3,16,8],

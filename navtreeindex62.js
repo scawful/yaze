@@ -1,5 +1,7 @@
 var NAVTREEINDEX62 =
 {
+"overworld__editor_8h.html#a090fa407d64c5928169ffda52eaa3829":[25,0,3,0,1,5,5,2],
+"overworld__editor_8h.html#a1d8e24b671e1338c02fbe726de12a0a3":[25,0,3,0,1,5,5,18],
 "overworld__editor_8h.html#a21a3ee57d060881f0c1f7e062418a71f":[25,0,3,0,1,5,5,11],
 "overworld__editor_8h.html#a32e9005b4f1ea1908b9fac631338f632":[25,0,3,0,1,5,5,10],
 "overworld__editor_8h.html#a509c76430fe7bd64995ca4c2a0004443":[25,0,3,0,1,5,5,14],
@@ -247,7 +249,5 @@ var NAVTREEINDEX62 =
 "ppu__registers_8h.html#a5da036c77baa6b69891876c48cfdb708":[25,0,3,0,2,3,2,102],
 "ppu__registers_8h.html#a5dabed6db44c210f17a47d2882627f1e":[25,0,3,0,2,3,2,97],
 "ppu__registers_8h.html#a63d1e4343b820f6cfa9ba22f1b34fd38":[25,0,3,0,2,3,2,85],
-"ppu__registers_8h.html#a772fadf5798cfc161447ebca880612b3":[25,0,3,0,2,3,2,103],
-"ppu__registers_8h.html#a77a08eed064fb779b108b1874a136f0f":[25,0,3,0,2,3,2,98],
-"ppu__registers_8h.html#a7a0ddab1f520f694d9b745feaada86e4":[25,0,3,0,2,3,2,83]
+"ppu__registers_8h.html#a772fadf5798cfc161447ebca880612b3":[25,0,3,0,2,3,2,103]
 };

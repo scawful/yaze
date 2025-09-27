@@ -1,5 +1,7 @@
 var NAVTREEINDEX65 =
 {
+"snes__palette_8h.html#a8d9c974b77e4bd4095035386cddb3d40":[25,0,3,0,3,13,40],
+"snes__palette_8h.html#a8fa1d7a0e91bdb5c2bf93844bdaa2e15":[25,0,3,0,3,13,8],
 "snes__palette_8h.html#a8fa421151c7f6d22cdda51ff316a53c0":[25,0,3,0,3,13,12],
 "snes__palette_8h.html#a96590a99c73838604ae8ef112dec16c7":[25,0,3,0,3,13,37],
 "snes__palette_8h.html#aa0514e66ae6b467b232b79c690b90125":[25,0,3,0,3,13,18],
@@ -246,8 +248,6 @@ var NAVTREEINDEX65 =
 "structstaircase.html#a270d19c429618770fbb39e7e268bfa5d":[22,5,2,2],
 "structstaircase.html#aaeb97732cd0085d59c457345cd4add3b":[22,5,2,1],
 "structstaircase.html#aeb7b32de30b679d5d1664a6d9a0dde85":[22,5,2,0],
-"structyaze_1_1Rom_1_1SaveSettings.html":[24,0,0,10,0],
 "structyaze_1_1Rom_1_1SaveSettings.html":[23,0,3,10,0],
-"structyaze_1_1Rom_1_1SaveSettings.html#a1e3bfc53479ab1000ea5cbd679c519ab":[23,0,3,10,0,2],
-"structyaze_1_1Rom_1_1SaveSettings.html#a1e3bfc53479ab1000ea5cbd679c519ab":[24,0,0,10,0,2]
+"structyaze_1_1Rom_1_1SaveSettings.html":[24,0,0,10,0]
 };
