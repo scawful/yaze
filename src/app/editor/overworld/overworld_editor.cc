@@ -46,7 +46,8 @@ void OverworldEditor::Initialize() {
       &overworld_, rom_, &maps_bmp_, &ow_map_canvas_);
 
   // Initialize OverworldEditorManager for v3 features
-  overworld_manager_ = std::make_unique<OverworldEditorManager>(&overworld_, rom_);
+  overworld_manager_ =
+      std::make_unique<OverworldEditorManager>(&overworld_, rom_, this);
 
   // Setup overworld canvas context menu
   SetupOverworldCanvasContextMenu();
@@ -100,11 +101,13 @@ void OverworldEditor::Initialize() {
 
   // View controls
   gui::AddTableColumn(toolset_table_, "##ZoomOut", [&]() {
-    if (Button(ICON_MD_ZOOM_OUT)) ow_map_canvas_.ZoomOut();
+    if (Button(ICON_MD_ZOOM_OUT))
+      ow_map_canvas_.ZoomOut();
     HOVER_HINT("Zoom Out");
   });
   gui::AddTableColumn(toolset_table_, "##ZoomIn", [&]() {
-    if (Button(ICON_MD_ZOOM_IN)) ow_map_canvas_.ZoomIn();
+    if (Button(ICON_MD_ZOOM_IN))
+      ow_map_canvas_.ZoomIn();
     HOVER_HINT("Zoom In");
   });
   gui::AddTableColumn(toolset_table_, "##Fullscreen", [&]() {
@@ -115,7 +118,8 @@ void OverworldEditor::Initialize() {
 
   // Quick access tools
   gui::AddTableColumn(toolset_table_, "##Tile16Editor", [&]() {
-    if (Button(ICON_MD_GRID_VIEW)) show_tile16_editor_ = !show_tile16_editor_;
+    if (Button(ICON_MD_GRID_VIEW))
+      show_tile16_editor_ = !show_tile16_editor_;
     HOVER_HINT("Tile16 Editor (Ctrl+T)");
   });
   gui::AddTableColumn(toolset_table_, "##CopyMap", [&]() {
@@ -134,14 +138,13 @@ void OverworldEditor::Initialize() {
     }
     HOVER_HINT("Copy Map to Clipboard");
   });
-  
 }
 
 absl::Status OverworldEditor::Load() {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
-  
+
   RETURN_IF_ERROR(LoadGraphics());
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
@@ -162,56 +165,58 @@ absl::Status OverworldEditor::Update() {
   if (ImGui::BeginTabBar("##OwEditorTabBar")) {
     if (ImGui::BeginTabItem("Map Editor")) {
       DrawToolset();
-      
-      if (ImGui::BeginTable("##owEditTable", 2, 
-                           ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-                           ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
-                           ImGuiTableFlags_BordersV)) {
+
+      if (ImGui::BeginTable(
+              "##owEditTable", 2,
+              ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+                  ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+                  ImGuiTableFlags_BordersV)) {
         ImGui::TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Tile Selector", ImGuiTableColumnFlags_WidthFixed, 256.0f);
+        ImGui::TableSetupColumn("Tile Selector",
+                                ImGuiTableColumnFlags_WidthFixed, 256.0f);
         ImGui::TableHeadersRow();
-        
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         DrawOverworldCanvas();
-        
+
         ImGui::TableNextColumn();
         status_ = DrawTileSelector();
-        
+
         ImGui::EndTable();
       }
       ImGui::EndTabItem();
     }
-    
+
     if (ImGui::BeginTabItem("Tile16 Editor")) {
       if (rom_->is_loaded()) {
         status_ = tile16_editor_.Update();
       }
       ImGui::EndTabItem();
     }
-    
+
     if (ImGui::BeginTabItem("Graphics Group Editor")) {
       if (rom_->is_loaded()) {
         status_ = gfx_group_editor_.Update();
       }
       ImGui::EndTabItem();
     }
-    
+
     if (ImGui::BeginTabItem("Usage Statistics")) {
       if (rom_->is_loaded()) {
         status_ = UpdateUsageStats();
       }
       ImGui::EndTabItem();
     }
-    
+
     // Add v3 settings tab
     if (rom_->is_loaded()) {
       status_ = overworld_manager_->DrawV3SettingsPanel();
     }
-    
+
     ImGui::EndTabBar();
   }
-  
+
   return status_;
 }
 
@@ -220,7 +225,7 @@ void OverworldEditor::DrawFullscreenCanvas() {
   static ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration |
                                   ImGuiWindowFlags_NoMove |
                                   ImGuiWindowFlags_NoSavedSettings;
-  const ImGuiViewport *viewport = ImGui::GetMainViewport();
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
   ImGui::SetNextWindowPos(use_work_area ? viewport->WorkPos : viewport->Pos);
   ImGui::SetNextWindowSize(use_work_area ? viewport->WorkSize : viewport->Size);
   if (ImGui::Begin("Fullscreen Overworld Editor", &overworld_canvas_fullscreen_,
@@ -314,14 +319,14 @@ void OverworldEditor::DrawToolset() {
 }
 
 // Column names for different ROM versions
-constexpr std::array<const char *, 6> kVanillaMapSettingsColumnNames = {
+constexpr std::array<const char*, 6> kVanillaMapSettingsColumnNames = {
     "##WorldId", "##GfxId", "##PalId", "##SprGfxId", "##SprPalId", "##MsgId"};
 
-constexpr std::array<const char *, 7> kV2MapSettingsColumnNames = {
+constexpr std::array<const char*, 7> kV2MapSettingsColumnNames = {
     "##WorldId",  "##GfxId",    "##PalId", "##MainPalId",
     "##SprGfxId", "##SprPalId", "##MsgId"};
 
-constexpr std::array<const char *, 9> kV3MapSettingsColumnNames = {
+constexpr std::array<const char*, 9> kV3MapSettingsColumnNames = {
     "##WorldId",  "##GfxId", "##PalId",   "##MainPalId", "##SprGfxId",
     "##SprPalId", "##MsgId", "##AnimGfx", "##AreaSize"};
 
@@ -330,24 +335,26 @@ void OverworldEditor::DrawOverworldMapSettings() {
       (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
 
   // Determine column count and names based on ROM version
-  int column_count = 6;                                           // Vanilla
-  if (asm_version >= 2 && asm_version != 0xFF) column_count = 7;  // v2
-  if (asm_version >= 3 && asm_version != 0xFF) column_count = 9;  // v3
+  int column_count = 6;  // Vanilla
+  if (asm_version >= 2 && asm_version != 0xFF)
+    column_count = 7;  // v2
+  if (asm_version >= 3 && asm_version != 0xFF)
+    column_count = 9;  // v3
 
   if (BeginTable(kOWMapTable.data(), column_count, kOWMapFlags, ImVec2(0, 0),
                  -1)) {
     // Setup columns based on version
     if (asm_version == 0xFF) {
       // Vanilla ROM
-      for (const auto &name : kVanillaMapSettingsColumnNames)
+      for (const auto& name : kVanillaMapSettingsColumnNames)
         ImGui::TableSetupColumn(name);
     } else if (asm_version >= 3) {
       // v3+ ROM
-      for (const auto &name : kV3MapSettingsColumnNames)
+      for (const auto& name : kV3MapSettingsColumnNames)
         ImGui::TableSetupColumn(name);
     } else if (asm_version >= 2) {
       // v2 ROM
-      for (const auto &name : kV2MapSettingsColumnNames)
+      for (const auto& name : kV2MapSettingsColumnNames)
         ImGui::TableSetupColumn(name);
     }
 
@@ -521,7 +528,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
       // Area Size (v3+ only)
       TableNextColumn();
       ImGui::BeginGroup();
-      static const char *area_size_names[] = {"Small", "Large", "Wide", "Tall"};
+      static const char* area_size_names[] = {"Small", "Large", "Wide", "Tall"};
       int current_area_size =
           static_cast<int>(overworld_.overworld_map(current_map_)->area_size());
       ImGui::SetNextItemWidth(80.f);
@@ -560,7 +567,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
 
 void OverworldEditor::DrawCustomOverworldMapSettings() {
   if (BeginTable(kOWMapTable.data(), 9, kOWMapFlags, ImVec2(0, 0), -1)) {
-    for (const auto &name : kV3MapSettingsColumnNames)
+    for (const auto& name : kV3MapSettingsColumnNames)
       ImGui::TableSetupColumn(name);
 
     TableNextColumn();
@@ -649,7 +656,7 @@ void OverworldEditor::DrawCustomOverworldMapSettings() {
         Text("Area Size");
 
         TableNextColumn();
-        static const char *area_size_names[] = {"Small (1x1)", "Large (2x2)",
+        static const char* area_size_names[] = {"Small (1x1)", "Large (2x2)",
                                                 "Wide (2x1)", "Tall (1x2)"};
         int current_area_size = static_cast<int>(
             overworld_.overworld_map(current_map_)->area_size());
@@ -747,7 +754,7 @@ void OverworldEditor::DrawOverworldEdits() {
   int tile16_y = (mouse_y % kOverworldMapSize) / (kOverworldMapSize / 32);
 
   // Update the overworld_.map_tiles() based on tile16 ID and current world
-  auto &selected_world =
+  auto& selected_world =
       (current_world_ == 0)   ? overworld_.mutable_map_tiles()->light_world
       : (current_world_ == 1) ? overworld_.mutable_map_tiles()->dark_world
                               : overworld_.mutable_map_tiles()->special_world;
@@ -759,7 +766,7 @@ void OverworldEditor::DrawOverworldEdits() {
 }
 
 void OverworldEditor::RenderUpdatedMapBitmap(
-    const ImVec2 &click_position, const std::vector<uint8_t> &tile_data) {
+    const ImVec2& click_position, const std::vector<uint8_t>& tile_data) {
   // Calculate the tile index for x and y based on the click_position
   int tile_index_x =
       (static_cast<int>(click_position.x) % kOverworldMapSize) / kTile16Size;
@@ -772,7 +779,7 @@ void OverworldEditor::RenderUpdatedMapBitmap(
   start_position.y = static_cast<float>(tile_index_y * kTile16Size);
 
   // Update the bitmap's pixel data based on the start_position and tile_data
-  gfx::Bitmap &current_bitmap = maps_bmp_[current_map_];
+  gfx::Bitmap& current_bitmap = maps_bmp_[current_map_];
   for (int y = 0; y < kTile16Size; ++y) {
     for (int x = 0; x < kTile16Size; ++x) {
       int pixel_index =
@@ -798,7 +805,7 @@ void OverworldEditor::CheckForOverworldEdits() {
   if (ow_map_canvas_.select_rect_active()) {
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-      auto &selected_world =
+      auto& selected_world =
           (current_world_ == 0) ? overworld_.mutable_map_tiles()->light_world
           : (current_world_ == 1)
               ? overworld_.mutable_map_tiles()->dark_world
@@ -813,8 +820,10 @@ void OverworldEditor::CheckForOverworldEdits() {
       int end_x = std::floor(end.x / kTile16Size) * kTile16Size;
       int end_y = std::floor(end.y / kTile16Size) * kTile16Size;
 
-      if (start_x > end_x) std::swap(start_x, end_x);
-      if (start_y > end_y) std::swap(start_y, end_y);
+      if (start_x > end_x)
+        std::swap(start_x, end_x);
+      if (start_y > end_y)
+        std::swap(start_y, end_y);
 
       constexpr int local_map_size = 512;  // Size of each local map
       // Number of tiles per local map (since each tile is 16x16)
@@ -851,8 +860,6 @@ void OverworldEditor::CheckForSelectRectangle() {
 
   // Single tile case
   if (ow_map_canvas_.selected_tile_pos().x != -1) {
-    overworld_.set_current_world(current_world_);
-    overworld_.set_current_map(current_map_);
     current_tile16_ =
         overworld_.GetTileFromPosition(ow_map_canvas_.selected_tile_pos());
     ow_map_canvas_.set_selected_tile_pos(ImVec2(-1, -1));
@@ -869,22 +876,19 @@ void OverworldEditor::CheckForSelectRectangle() {
       // Set the current world and map in overworld for proper tile lookup
       overworld_.set_current_world(current_world_);
       overworld_.set_current_map(current_map_);
-      for (auto &each : ow_map_canvas_.selected_tiles()) {
+      for (auto& each : ow_map_canvas_.selected_tiles()) {
         tile16_ids.push_back(overworld_.GetTileFromPosition(each));
       }
     }
   }
   // Create a composite image of all the tile16s selected
-  if (!tile16_ids.empty() && map_blockset_loaded_) {
-    // Ensure the tilemap is ready before drawing
-    if (tile16_blockset_.atlas.is_active()) {
-      ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_blockset_, 0x10, ow_map_canvas_.global_scale());
-    }
-  }
+  ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_blockset_, 0x10,
+                                 ow_map_canvas_.global_scale());
 }
 
 absl::Status OverworldEditor::Copy() {
-  if (!context_) return absl::FailedPreconditionError("No editor context");
+  if (!context_)
+    return absl::FailedPreconditionError("No editor context");
   // If a rectangle selection exists, copy its tile16 IDs into shared clipboard
   if (ow_map_canvas_.select_rect_active() &&
       !ow_map_canvas_.selected_tiles().empty()) {
@@ -892,7 +896,7 @@ absl::Status OverworldEditor::Copy() {
     ids.reserve(ow_map_canvas_.selected_tiles().size());
     overworld_.set_current_world(current_world_);
     overworld_.set_current_map(current_map_);
-    for (const auto &pos : ow_map_canvas_.selected_tiles()) {
+    for (const auto& pos : ow_map_canvas_.selected_tiles()) {
       ids.push_back(overworld_.GetTileFromPosition(pos));
     }
     // Determine width/height in tile16 based on selection bounds
@@ -927,7 +931,8 @@ absl::Status OverworldEditor::Copy() {
 }
 
 absl::Status OverworldEditor::Paste() {
-  if (!context_) return absl::FailedPreconditionError("No editor context");
+  if (!context_)
+    return absl::FailedPreconditionError("No editor context");
   if (!context_->shared_clipboard.has_overworld_tile16) {
     return absl::FailedPreconditionError("Clipboard empty");
   }
@@ -945,7 +950,7 @@ absl::Status OverworldEditor::Paste() {
   const int tile16_y =
       (static_cast<int>(anchor.y) % kOverworldMapSize) / kTile16Size;
 
-  auto &selected_world =
+  auto& selected_world =
       (current_world_ == 0)   ? overworld_.mutable_map_tiles()->light_world
       : (current_world_ == 1) ? overworld_.mutable_map_tiles()->dark_world
                               : overworld_.mutable_map_tiles()->special_world;
@@ -956,7 +961,7 @@ absl::Status OverworldEditor::Paste() {
 
   const int width = context_->shared_clipboard.overworld_width;
   const int height = context_->shared_clipboard.overworld_height;
-  const auto &ids = context_->shared_clipboard.overworld_tile16_ids;
+  const auto& ids = context_->shared_clipboard.overworld_tile16_ids;
 
   // Guard
   if (width * height != static_cast<int>(ids.size())) {
@@ -986,9 +991,6 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
   const auto mouse_position = ImGui::GetIO().MousePos;
   const int large_map_size = 1024;
   const auto canvas_zero_point = ow_map_canvas_.zero_point();
-
-  // Check if the mouse is over the canvas
-  
 
   // Calculate which small map the mouse is currently over
   int map_x = (mouse_position.x - canvas_zero_point.x) / kOverworldMapSize;
@@ -1045,15 +1047,15 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
       ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     RefreshOverworldMap();
     RETURN_IF_ERROR(RefreshTile16Blockset());
-    
+
     // Ensure tile16 blockset is fully updated before rendering
     if (tile16_blockset_.atlas.is_active()) {
       Renderer::Get().UpdateBitmap(&tile16_blockset_.atlas);
-      
+
       // Clear any cached tile bitmaps to force re-rendering
       tile16_blockset_.tile_bitmaps.clear();
     }
-    
+
     Renderer::Get().UpdateBitmap(&maps_bmp_[current_map_]);
     maps_bmp_[current_map_].set_modified(false);
   }
@@ -1085,15 +1087,16 @@ void OverworldEditor::DrawOverworldCanvas() {
   if (all_gfx_loaded_) {
     // Use ASM version with flag as override to determine UI
     uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-    bool use_custom_overworld = (asm_version != 0xFF) || 
-                                core::FeatureFlags::get().overworld.kLoadCustomOverworld;
-    
+    bool use_custom_overworld =
+        (asm_version != 0xFF) ||
+        core::FeatureFlags::get().overworld.kLoadCustomOverworld;
+
     if (use_custom_overworld) {
       map_properties_system_->DrawSimplifiedMapSettings(
           current_world_, current_map_, current_map_lock_,
           show_map_properties_panel_, show_custom_bg_color_editor_,
           show_overlay_editor_, show_overlay_preview_, game_state_,
-          reinterpret_cast<int &>(current_mode));
+          reinterpret_cast<int&>(current_mode));
     } else {
       DrawOverworldMapSettings();
     }
@@ -1128,11 +1131,11 @@ void OverworldEditor::DrawOverworldCanvas() {
           current_map_, current_world_, show_overlay_preview_);
     }
 
-    if (current_mode == EditingMode::DRAW_TILE && ow_map_canvas_.IsMouseHovering()) {
-      // Only allow overworld edits when mouse is actually over the main overworld canvas
+    if (current_mode == EditingMode::DRAW_TILE) {
       CheckForOverworldEdits();
     }
-    if (IsItemHovered()) status_ = CheckForCurrentMap();
+    if (IsItemHovered())
+      status_ = CheckForCurrentMap();
   }
 
   ow_map_canvas_.DrawGrid();
@@ -1152,8 +1155,8 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   ImGui::BeginGroup();
   gui::BeginChildWithScrollbar("##Tile16SelectorScrollRegion");
   blockset_canvas_.DrawBackground();
-  gui::EndPadding();  // Fixed: was EndNoPadding() 
-  
+  gui::EndPadding();  // Fixed: was EndNoPadding()
+
   blockset_canvas_.DrawContextMenu();
   blockset_canvas_.DrawBitmap(tile16_blockset_.atlas, /*border_offset=*/2,
                               map_blockset_loaded_, /*scale=*/2);
@@ -1162,17 +1165,18 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   bool tile_selected = false;
   if (blockset_canvas_.DrawTileSelector(32.0f)) {
     tile_selected = true;
-  } else if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && blockset_canvas_.IsMouseHovering()) {
+  } else if (ImGui::IsItemClicked(ImGuiMouseButton_Left) &&
+             blockset_canvas_.IsMouseHovering()) {
     // Secondary detection for direct clicks
     tile_selected = true;
   }
-  
+
   if (tile_selected && blockset_canvas_.HasValidSelection()) {
     auto tile_pos = blockset_canvas_.GetLastClickPosition();
     int grid_x = static_cast<int>(tile_pos.x / 32);
     int grid_y = static_cast<int>(tile_pos.y / 32);
     int id = grid_x + grid_y * 8;
-    
+
     if (id != current_tile16_ && id >= 0 && id < 512) {
       current_tile16_ = id;
       RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(id));
@@ -1183,7 +1187,7 @@ absl::Status OverworldEditor::DrawTile16Selector() {
 
   blockset_canvas_.DrawGrid();
   blockset_canvas_.DrawOverlay();
-  
+
   EndChild();
   ImGui::EndGroup();
   return absl::OkStatus();
@@ -1194,7 +1198,7 @@ void OverworldEditor::DrawTile8Selector() {
   graphics_bin_canvas_.DrawContextMenu();
   if (all_gfx_loaded_) {
     int key = 0;
-    for (auto &value : gfx::Arena::Get().gfx_sheets()) {
+    for (auto& value : gfx::Arena::Get().gfx_sheets()) {
       int offset = 0x40 * (key + 1);
       int top_left_y = graphics_bin_canvas_.zero_point().y + 2;
       if (key >= 1) {
@@ -1234,8 +1238,10 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
   gui::EndPadding();
   {
     current_gfx_canvas_.DrawContextMenu();
-    if (current_graphics_set_.contains(current_map_) && current_graphics_set_[current_map_].is_active()) {
-      current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_], 2, 2, 2.0f);
+    if (current_graphics_set_.contains(current_map_) &&
+        current_graphics_set_[current_map_].is_active()) {
+      current_gfx_canvas_.DrawBitmap(current_graphics_set_[current_map_], 2, 2,
+                                     2.0f);
     }
     current_gfx_canvas_.DrawTileSelector(32.0f);
     current_gfx_canvas_.DrawGrid();
@@ -1277,7 +1283,7 @@ absl::Status OverworldEditor::DrawTileSelector() {
 void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
                                              bool holes) {
   int i = 0;
-  for (auto &each : overworld_.entrances()) {
+  for (auto& each : overworld_.entrances()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40) && !each.deleted) {
       auto color = ImVec4(255, 0, 255, 100);
@@ -1312,7 +1318,7 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
     // Get the deleted entrance ID and insert it at the mouse position
     auto deleted_entrance_id = overworld_.deleted_entrances().back();
     overworld_.deleted_entrances().pop_back();
-    auto &entrance = overworld_.entrances()[deleted_entrance_id];
+    auto& entrance = overworld_.entrances()[deleted_entrance_id];
     entrance.map_id_ = current_map_;
     entrance.entrance_id_ = deleted_entrance_id;
     entrance.x_ = ow_map_canvas_.hover_mouse_pos().x;
@@ -1342,7 +1348,7 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
 
 void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
   int i = 0;
-  for (auto &each : *overworld_.mutable_exits()) {
+  for (auto& each : *overworld_.mutable_exits()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40) && !each.deleted_) {
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
@@ -1393,7 +1399,7 @@ void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
 
 void OverworldEditor::DrawOverworldItems() {
   int i = 0;
-  for (auto &item : *overworld_.mutable_all_items()) {
+  for (auto& item : *overworld_.mutable_all_items()) {
     // Get the item's bitmap and real X and Y positions
     if (item.room_map_id_ < 0x40 + (current_world_ * 0x40) &&
         item.room_map_id_ >= (current_world_ * 0x40) && !item.deleted) {
@@ -1443,7 +1449,7 @@ void OverworldEditor::DrawOverworldItems() {
 
 void OverworldEditor::DrawOverworldSprites() {
   int i = 0;
-  for (auto &sprite : *overworld_.mutable_sprites(game_state_)) {
+  for (auto& sprite : *overworld_.mutable_sprites(game_state_)) {
     // Filter sprites by current world - only show sprites for the current world
     if (!sprite.deleted() && sprite.map_id() < 0x40 + (current_world_ * 0x40) &&
         sprite.map_id() >= (current_world_ * 0x40)) {
@@ -1563,7 +1569,7 @@ absl::Status OverworldEditor::LoadGraphics() {
       Renderer::Get().CreateAndRenderBitmap(
           kOverworldMapSize, kOverworldMapSize, 0x80,
           overworld_.current_map_bitmap_data(), maps_bmp_[i], palette);
-    } catch (const std::bad_alloc &e) {
+    } catch (const std::bad_alloc& e) {
       std::cout << "Error: " << e.what() << std::endl;
       continue;
     }
@@ -1580,7 +1586,7 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
   // Render the sprites for each Overworld map
   const int depth = 0x10;
   for (int i = 0; i < 3; i++)
-    for (auto const &sprite : *overworld_.mutable_sprites(i)) {
+    for (auto const& sprite : *overworld_.mutable_sprites(i)) {
       int width = sprite.width();
       int height = sprite.height();
       if (width == 0 || height == 0) {
@@ -1627,7 +1633,8 @@ void OverworldEditor::RefreshOverworldMap() {
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
       int sibling_index = overworld_.overworld_map(source_map_id)->parent() + i;
-      if (i >= 2) sibling_index += 6;
+      if (i >= 2)
+        sibling_index += 6;
       futures.push_back(
           std::async(std::launch::async, refresh_map_async, sibling_index));
       indices[i] = sibling_index;
@@ -1637,7 +1644,7 @@ void OverworldEditor::RefreshOverworldMap() {
   futures.push_back(
       std::async(std::launch::async, refresh_map_async, source_map_id));
 
-  for (auto &each : futures) {
+  for (auto& each : futures) {
     each.wait();
     each.get();
   }
@@ -1657,7 +1664,8 @@ absl::Status OverworldEditor::RefreshMapPalette() {
     // We need to update the map and its siblings if it's a large map
     for (int i = 1; i < 4; i++) {
       int sibling_index = overworld_.overworld_map(current_map_)->parent() + i;
-      if (i >= 2) sibling_index += 6;
+      if (i >= 2)
+        sibling_index += 6;
       RETURN_IF_ERROR(
           overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
       maps_bmp_[sibling_index].SetPalette(current_map_palette);
@@ -1669,7 +1677,7 @@ absl::Status OverworldEditor::RefreshMapPalette() {
 }
 
 void OverworldEditor::RefreshMapProperties() {
-  const auto &current_ow_map = *overworld_.mutable_overworld_map(current_map_);
+  const auto& current_ow_map = *overworld_.mutable_overworld_map(current_map_);
   if (current_ow_map.is_large_map()) {
     // We need to copy the properties from the parent map to the children
     for (int i = 1; i < 4; i++) {
@@ -1677,7 +1685,7 @@ void OverworldEditor::RefreshMapProperties() {
       if (i >= 2) {
         sibling_index += 6;
       }
-      auto &map = *overworld_.mutable_overworld_map(sibling_index);
+      auto& map = *overworld_.mutable_overworld_map(sibling_index);
       map.set_area_graphics(current_ow_map.area_graphics());
       map.set_area_palette(current_ow_map.area_palette());
       map.set_sprite_graphics(game_state_,
@@ -1750,7 +1758,7 @@ void OverworldEditor::DrawCustomBackgroundColorEditor() {
 
   // Color picker
   if (ColorPicker4(
-          "Background Color", (float *)&current_color,
+          "Background Color", (float*)&current_color,
           ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB)) {
     // Convert ImVec4 back to SNES color
     uint16_t new_color =
@@ -1893,7 +1901,8 @@ void OverworldEditor::DrawOverlayEditor() {
 }
 
 void OverworldEditor::DrawOverlayPreview() {
-  if (!show_overlay_preview_) return;
+  if (!show_overlay_preview_)
+    return;
 
   Text("Subscreen Overlay Preview:");
   Separator();
@@ -1945,7 +1954,7 @@ void OverworldEditor::DrawOverlayPreview() {
          overlay_map_index);
 
     // Get the subscreen overlay map's bitmap
-    const auto &overlay_bitmap = maps_bmp_[overlay_map_index];
+    const auto& overlay_bitmap = maps_bmp_[overlay_map_index];
 
     if (overlay_bitmap.is_active()) {
       // Display the subscreen overlay map bitmap
@@ -2293,7 +2302,7 @@ void OverworldEditor::DrawMapPropertiesPanel() {
         TableNextColumn();
         Text("Area Size");
         TableNextColumn();
-        static const char *area_size_names[] = {"Small (1x1)", "Large (2x2)",
+        static const char* area_size_names[] = {"Small (1x1)", "Large (2x2)",
                                                 "Wide (2x1)", "Tall (1x2)"};
         int current_area_size = static_cast<int>(
             overworld_.overworld_map(current_map_)->area_size());
@@ -2441,7 +2450,9 @@ void OverworldEditor::SetupOverworldCanvasContextMenu() {
   // Map Properties
   gui::Canvas::ContextMenuItem properties_item;
   properties_item.label = "Map Properties";
-  properties_item.callback = [this]() { show_map_properties_panel_ = true; };
+  properties_item.callback = [this]() {
+    show_map_properties_panel_ = true;
+  };
   ow_map_canvas_.AddContextMenuItem(properties_item);
 
   // Custom overworld features (only show if v3+)
@@ -2451,13 +2462,17 @@ void OverworldEditor::SetupOverworldCanvasContextMenu() {
     // Custom Background Color
     gui::Canvas::ContextMenuItem bg_color_item;
     bg_color_item.label = "Custom Background Color";
-    bg_color_item.callback = [this]() { show_custom_bg_color_editor_ = true; };
+    bg_color_item.callback = [this]() {
+      show_custom_bg_color_editor_ = true;
+    };
     ow_map_canvas_.AddContextMenuItem(bg_color_item);
 
     // Overlay Settings
     gui::Canvas::ContextMenuItem overlay_item;
     overlay_item.label = "Overlay Settings";
-    overlay_item.callback = [this]() { show_overlay_editor_ = true; };
+    overlay_item.callback = [this]() {
+      show_overlay_editor_ = true;
+    };
     ow_map_canvas_.AddContextMenuItem(overlay_item);
   }
 
@@ -2728,15 +2743,15 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
 
   // Validate target version
   if (target_version < 2 || target_version > 3) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Invalid target version: %d. Must be 2 or 3.", target_version));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Invalid target version: %d. Must be 2 or 3.", target_version));
   }
 
   // Check current ROM version
   uint8_t current_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   if (current_version != 0xFF && current_version >= target_version) {
-    return absl::AlreadyExistsError(
-        absl::StrFormat("ROM is already version %d or higher", current_version));
+    return absl::AlreadyExistsError(absl::StrFormat(
+        "ROM is already version %d or higher", current_version));
   }
 
   util::logf("Applying ZSCustomOverworld ASM v%d to ROM...", target_version);
@@ -2765,10 +2780,11 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
     }
 
     // Apply the ASM patch
-    auto patch_result = asar_wrapper->ApplyPatch(asm_file_path, working_rom_data);
+    auto patch_result =
+        asar_wrapper->ApplyPatch(asm_file_path, working_rom_data);
     if (!patch_result.ok()) {
-      return absl::InternalError(
-          absl::StrFormat("Failed to apply ASM patch: %s", patch_result.status().message()));
+      return absl::InternalError(absl::StrFormat(
+          "Failed to apply ASM patch: %s", patch_result.status().message()));
     }
 
     const auto& result = patch_result.value();
@@ -2793,7 +2809,8 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
     RETURN_IF_ERROR(UpdateROMVersionMarkers(target_version));
 
     // Log symbols found during patching
-    util::logf("ASM patch applied successfully. Found %zu symbols:", result.symbols.size());
+    util::logf("ASM patch applied successfully. Found %zu symbols:",
+               result.symbols.size());
     for (const auto& symbol : result.symbols) {
       util::logf("  %s @ $%06X", symbol.name.c_str(), symbol.address);
     }
@@ -2801,14 +2818,16 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
     // Refresh overworld data to reflect changes
     RETURN_IF_ERROR(overworld_.Load(rom_));
 
-    util::logf("ZSCustomOverworld v%d successfully applied to ROM", target_version);
+    util::logf("ZSCustomOverworld v%d successfully applied to ROM",
+               target_version);
     return absl::OkStatus();
 
   } catch (const std::exception& e) {
     // Restore original ROM data on any exception
     auto restore_result = rom_->LoadFromData(original_rom_data, false);
     if (!restore_result.ok()) {
-      util::logf("Failed to restore ROM data: %s", restore_result.message().data());
+      util::logf("Failed to restore ROM data: %s",
+                 restore_result.message().data());
     }
     return absl::InternalError(
         absl::StrFormat("Exception during ASM application: %s", e.what()));
@@ -2817,14 +2836,15 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
 
 absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
   // Set the main version marker
-  (*rom_)[zelda3::OverworldCustomASMHasBeenApplied] = static_cast<uint8_t>(target_version);
+  (*rom_)[zelda3::OverworldCustomASMHasBeenApplied] =
+      static_cast<uint8_t>(target_version);
 
   // Enable feature flags based on target version
   if (target_version >= 2) {
     // v2+ features
     (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] = 0x01;
     (*rom_)[zelda3::OverworldCustomMainPaletteEnabled] = 0x01;
-    
+
     util::logf("Enabled v2+ features: Custom BG colors, Main palettes");
   }
 
@@ -2834,27 +2854,31 @@ absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
     (*rom_)[zelda3::OverworldCustomAnimatedGFXEnabled] = 0x01;
     (*rom_)[zelda3::OverworldCustomTileGFXGroupEnabled] = 0x01;
     (*rom_)[zelda3::OverworldCustomMosaicEnabled] = 0x01;
-    
-    util::logf("Enabled v3+ features: Subscreen overlays, Animated GFX, Tile GFX groups, Mosaic");
-    
+
+    util::logf(
+        "Enabled v3+ features: Subscreen overlays, Animated GFX, Tile GFX "
+        "groups, Mosaic");
+
     // Initialize area size data for v3 (set all areas to small by default)
     for (int i = 0; i < 0xA0; i++) {
-      (*rom_)[zelda3::kOverworldScreenSize + i] = static_cast<uint8_t>(zelda3::AreaSizeEnum::SmallArea);
+      (*rom_)[zelda3::kOverworldScreenSize + i] =
+          static_cast<uint8_t>(zelda3::AreaSizeEnum::SmallArea);
     }
-    
+
     // Set appropriate sizes for known large areas
     const std::vector<int> large_areas = {
-      0x00, 0x02, 0x05, 0x07, 0x0A, 0x0B, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15,
-      0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1D, 0x1E, 0x25, 0x28, 0x29, 0x2A, 0x2B,
-      0x2C, 0x2E, 0x2F, 0x30, 0x32, 0x33, 0x34, 0x35, 0x37, 0x3A, 0x3B, 0x3C, 0x3F
-    };
-    
+        0x00, 0x02, 0x05, 0x07, 0x0A, 0x0B, 0x0F, 0x10, 0x11, 0x12,
+        0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1D,
+        0x1E, 0x25, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x30,
+        0x32, 0x33, 0x34, 0x35, 0x37, 0x3A, 0x3B, 0x3C, 0x3F};
+
     for (int area_id : large_areas) {
       if (area_id < 0xA0) {
-        (*rom_)[zelda3::kOverworldScreenSize + area_id] = static_cast<uint8_t>(zelda3::AreaSizeEnum::LargeArea);
+        (*rom_)[zelda3::kOverworldScreenSize + area_id] =
+            static_cast<uint8_t>(zelda3::AreaSizeEnum::LargeArea);
       }
     }
-    
+
     util::logf("Initialized area size data for %zu areas", large_areas.size());
   }
 
@@ -2867,15 +2891,18 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   // Slot selector
   Text("Scratch Space Slot:");
   for (int i = 0; i < 4; i++) {
-    if (i > 0) SameLine();
+    if (i > 0)
+      SameLine();
     bool is_current = (current_scratch_slot_ == i);
-    if (is_current) PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.7f, 0.4f, 1.0f));
+    if (is_current)
+      PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.7f, 0.4f, 1.0f));
     if (Button(std::to_string(i + 1).c_str(), ImVec2(25, 25))) {
       current_scratch_slot_ = i;
     }
-    if (is_current) PopStyleColor();
+    if (is_current)
+      PopStyleColor();
   }
-  
+
   SameLine();
   if (Button("Save Selection")) {
     RETURN_IF_ERROR(SaveCurrentSelectionToScratch(current_scratch_slot_));
@@ -2888,13 +2915,63 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   if (Button("Clear")) {
     RETURN_IF_ERROR(ClearScratchSpace(current_scratch_slot_));
   }
-  
-  Text("Slot %d: %s (%dx%d)", current_scratch_slot_ + 1, 
-       scratch_spaces_[current_scratch_slot_].name.c_str(), 
-       scratch_spaces_[current_scratch_slot_].width, 
+
+  // Selection transfer buttons
+  Separator();
+  Text("Selection Transfer:");
+  if (Button(ICON_MD_DOWNLOAD " From Overworld")) {
+    // Transfer current overworld selection to scratch space
+    if (ow_map_canvas_.select_rect_active() &&
+        !ow_map_canvas_.selected_tiles().empty()) {
+      RETURN_IF_ERROR(SaveCurrentSelectionToScratch(current_scratch_slot_));
+    }
+  }
+  HOVER_HINT("Copy current overworld selection to this scratch slot");
+
+  SameLine();
+  if (Button(ICON_MD_UPLOAD " To Clipboard")) {
+    // Copy scratch selection to clipboard for pasting in overworld
+    if (scratch_canvas_.select_rect_active() &&
+        !scratch_canvas_.selected_tiles().empty()) {
+      // Copy scratch selection to clipboard
+      std::vector<int> scratch_tile_ids;
+      for (const auto& tile_pos : scratch_canvas_.selected_tiles()) {
+        int tile_x = static_cast<int>(tile_pos.x) / 32;
+        int tile_y = static_cast<int>(tile_pos.y) / 32;
+        if (tile_x >= 0 && tile_x < 32 && tile_y >= 0 && tile_y < 32) {
+          scratch_tile_ids.push_back(
+              scratch_spaces_[current_scratch_slot_].tile_data[tile_x][tile_y]);
+        }
+      }
+      if (!scratch_tile_ids.empty() && context_) {
+        const auto& points = scratch_canvas_.selected_points();
+        int width =
+            std::abs(static_cast<int>((points[1].x - points[0].x) / 32)) + 1;
+        int height =
+            std::abs(static_cast<int>((points[1].y - points[0].y) / 32)) + 1;
+        context_->shared_clipboard.overworld_tile16_ids =
+            std::move(scratch_tile_ids);
+        context_->shared_clipboard.overworld_width = width;
+        context_->shared_clipboard.overworld_height = height;
+        context_->shared_clipboard.has_overworld_tile16 = true;
+      }
+    }
+  }
+  HOVER_HINT("Copy scratch selection to clipboard for pasting in overworld");
+
+  if (context_ && context_->shared_clipboard.has_overworld_tile16) {
+    Text(ICON_MD_CONTENT_PASTE
+         " Pattern ready! Use Shift+Click to stamp, or paste in overworld");
+  }
+
+  Text("Slot %d: %s (%dx%d)", current_scratch_slot_ + 1,
+       scratch_spaces_[current_scratch_slot_].name.c_str(),
+       scratch_spaces_[current_scratch_slot_].width,
        scratch_spaces_[current_scratch_slot_].height);
-  Text("Select tiles from Tile16 tab or make selections in overworld, then draw here!");
-  
+  Text(
+      "Select tiles from Tile16 tab or make selections in overworld, then draw "
+      "here!");
+
   // Initialize scratch bitmap with proper size based on scratch space dimensions
   auto& current_slot = scratch_spaces_[current_scratch_slot_];
   if (!current_slot.scratch_bitmap.is_active()) {
@@ -2902,96 +2979,82 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     int bitmap_width = current_slot.width * 16;
     int bitmap_height = current_slot.height * 16;
     std::vector<uint8_t> empty_data(bitmap_width * bitmap_height, 0);
-    current_slot.scratch_bitmap.Create(bitmap_width, bitmap_height, 8, empty_data);
+    current_slot.scratch_bitmap.Create(bitmap_width, bitmap_height, 8,
+                                       empty_data);
     if (all_gfx_loaded_) {
       palette_ = overworld_.current_area_palette();
       current_slot.scratch_bitmap.SetPalette(palette_);
       core::Renderer::Get().RenderBitmap(&current_slot.scratch_bitmap);
     }
   }
-  
+
   // Draw the scratch space canvas with dynamic sizing
   gui::BeginPadding(3);
   ImGui::BeginGroup();
-  
+
   // Set proper content size for scrolling based on scratch space dimensions
-  ImVec2 scratch_content_size(current_slot.width * 16 + 4, current_slot.height * 16 + 4);
-  gui::BeginChildWithScrollbar("##ScratchSpaceScrollRegion", scratch_content_size);
+  ImVec2 scratch_content_size(current_slot.width * 16 + 4,
+                              current_slot.height * 16 + 4);
+  gui::BeginChildWithScrollbar("##ScratchSpaceScrollRegion",
+                               scratch_content_size);
   scratch_canvas_.DrawBackground();
   gui::EndPadding();
-  
+
   // Disable context menu for scratch space to allow right-click selection
   scratch_canvas_.SetContextMenuEnabled(false);
-  
+
   // Draw the scratch bitmap with proper scaling
   if (current_slot.scratch_bitmap.is_active()) {
     scratch_canvas_.DrawBitmap(current_slot.scratch_bitmap, 2, 2, 1.0f);
   }
-  
-  // Handle independent scratch space selection system
-  DrawScratchSpaceSelection();
-  
-  // Handle drawing in scratch space - independent of main overworld
-  // Use the currently selected tile from blockset for painting
-  if (!blockset_canvas_.points().empty() && map_blockset_loaded_) {
-    // DrawTilemapPainter provides hover preview and painting functionality
-    if (scratch_canvas_.DrawTilemapPainter(tile16_blockset_, current_tile16_)) {
-      DrawScratchSpaceEdits();
-    }
+
+  // Simplified scratch space - just basic tile drawing like the original
+  if (map_blockset_loaded_) {
+    scratch_canvas_.DrawTileSelector(32.0f);
   }
-  
-  // Handle rectangle selection patterns from main overworld as preview/stamp tool
-  if (ow_map_canvas_.select_rect_active() && !ow_map_canvas_.selected_tiles().empty()) {
-    // Create tile IDs from the selection
-    std::vector<int> selected_tile_ids;
-    overworld_.set_current_world(current_world_);
-    overworld_.set_current_map(current_map_);
-    
-    for (const auto& pos : ow_map_canvas_.selected_tiles()) {
-      selected_tile_ids.push_back(overworld_.GetTileFromPosition(pos));
-    }
-    
-    // Show the pattern as a preview that can be stamped
-    std::vector<int> tile_ids_copy = selected_tile_ids; // Make a copy for DrawBitmapGroup
-    scratch_canvas_.DrawBitmapGroup(tile_ids_copy, tile16_blockset_, 16, 1.0f);
-    
-    // Allow stamping the pattern with left click
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && scratch_canvas_.IsMouseHovering()) {
-      DrawScratchSpacePattern();
-    }
-  }
-  
+
   scratch_canvas_.DrawGrid();
   scratch_canvas_.DrawOverlay();
-  
+
   EndChild();
   ImGui::EndGroup();
-  
+
   return absl::OkStatus();
 }
 
 void OverworldEditor::DrawScratchSpaceEdits() {
   // Handle painting like the main overworld - continuous drawing
   auto mouse_position = scratch_canvas_.drawn_tile_position();
-  
-  // Calculate tile position accounting for padding and 1:1 scale (16px per tile)
-  int tile_x = static_cast<int>(mouse_position.x - 2) / 16; // 16px per tile at 1x scale
-  int tile_y = static_cast<int>(mouse_position.y - 2) / 16;
-  
-  // Bounds check for 20x30 scratch space (320x480 pixels / 16 = 20x30 tiles)
-  if (tile_x >= 0 && tile_x < 20 && tile_y >= 0 && tile_y < 30) {
-    // Update the scratch space with the currently selected tile
-    if (tile_x < 32 && tile_y < 32) { // Bounds check for our tile_data array
-      scratch_spaces_[current_scratch_slot_].tile_data[tile_x][tile_y] = current_tile16_;
+
+  // Use the scratch canvas scale and grid settings
+  float canvas_scale = scratch_canvas_.global_scale();
+  int grid_size =
+      32;  // 32x32 grid for scratch space (matches kOverworldCanvasSize)
+
+  // Calculate tile position using proper canvas scaling
+  int tile_x = static_cast<int>(mouse_position.x) / grid_size;
+  int tile_y = static_cast<int>(mouse_position.y) / grid_size;
+
+  // Get current scratch slot dimensions
+  auto& current_slot = scratch_spaces_[current_scratch_slot_];
+  int max_width = current_slot.width > 0 ? current_slot.width : 20;
+  int max_height = current_slot.height > 0 ? current_slot.height : 30;
+
+  // Bounds check for current scratch space dimensions
+  if (tile_x >= 0 && tile_x < max_width && tile_y >= 0 && tile_y < max_height) {
+    // Bounds check for our tile_data array (always 32x32 max)
+    if (tile_x < 32 && tile_y < 32) {
+      current_slot.tile_data[tile_x][tile_y] = current_tile16_;
     }
-    
+
     // Update the bitmap immediately for visual feedback
     UpdateScratchBitmapTile(tile_x, tile_y, current_tile16_);
-    
+
     // Mark this scratch space as in use
-    if (!scratch_spaces_[current_scratch_slot_].in_use) {
-      scratch_spaces_[current_scratch_slot_].in_use = true;
-      scratch_spaces_[current_scratch_slot_].name = absl::StrFormat("Layout %d", current_scratch_slot_ + 1);
+    if (!current_slot.in_use) {
+      current_slot.in_use = true;
+      current_slot.name =
+          absl::StrFormat("Layout %d", current_scratch_slot_ + 1);
     }
   }
 }
@@ -2999,76 +3062,102 @@ void OverworldEditor::DrawScratchSpaceEdits() {
 void OverworldEditor::DrawScratchSpacePattern() {
   // Handle drawing patterns from overworld selections
   auto mouse_position = scratch_canvas_.drawn_tile_position();
-  int start_tile_x = static_cast<int>(mouse_position.x - 2) / 16;
-  int start_tile_y = static_cast<int>(mouse_position.y - 2) / 16;
-  
-  // Get the selected tiles from overworld
-  overworld_.set_current_world(current_world_);
-  overworld_.set_current_map(current_map_);
-  
-  // Calculate pattern dimensions
-  const auto& selected_tiles = ow_map_canvas_.selected_tiles();
-  if (selected_tiles.empty()) return;
-  
-  // Determine pattern size (assume rectangular selection)
-  int pattern_width = 1;
-  int pattern_height = static_cast<int>(selected_tiles.size());
-  
-  // For rectangular selections, try to determine width/height
-  if (selected_tiles.size() > 1) {
-    // Simple heuristic - assume square or common rectangular patterns
-    pattern_width = static_cast<int>(std::sqrt(selected_tiles.size()));
-    pattern_height = static_cast<int>(selected_tiles.size()) / pattern_width;
+
+  // Use 32x32 grid size (same as scratch canvas grid)
+  int start_tile_x = static_cast<int>(mouse_position.x) / 32;
+  int start_tile_y = static_cast<int>(mouse_position.y) / 32;
+
+  // Get the selected tiles from overworld via clipboard
+  if (!context_ || !context_->shared_clipboard.has_overworld_tile16) {
+    return;
   }
-  
-  // Draw the pattern to scratch space (bounds updated for 20x30)
+
+  const auto& tile_ids = context_->shared_clipboard.overworld_tile16_ids;
+  int pattern_width = context_->shared_clipboard.overworld_width;
+  int pattern_height = context_->shared_clipboard.overworld_height;
+
+  if (tile_ids.empty())
+    return;
+
+  auto& current_slot = scratch_spaces_[current_scratch_slot_];
+  int max_width = current_slot.width > 0 ? current_slot.width : 20;
+  int max_height = current_slot.height > 0 ? current_slot.height : 30;
+
+  // Draw the pattern to scratch space
   int idx = 0;
-  for (int py = 0; py < pattern_height && (start_tile_y + py) < 30; ++py) {
-    for (int px = 0; px < pattern_width && (start_tile_x + px) < 20; ++px) {
-      if (idx < static_cast<int>(selected_tiles.size())) {
-        int tile_id = overworld_.GetTileFromPosition(selected_tiles[idx]);
+  for (int py = 0; py < pattern_height && (start_tile_y + py) < max_height;
+       ++py) {
+    for (int px = 0; px < pattern_width && (start_tile_x + px) < max_width;
+         ++px) {
+      if (idx < static_cast<int>(tile_ids.size())) {
+        int tile_id = tile_ids[idx];
         int scratch_x = start_tile_x + px;
         int scratch_y = start_tile_y + py;
-        
+
         // Bounds check for tile_data array
-        if (scratch_x < 32 && scratch_y < 32) {
-          scratch_spaces_[current_scratch_slot_].tile_data[scratch_x][scratch_y] = tile_id;
+        if (scratch_x >= 0 && scratch_x < 32 && scratch_y >= 0 &&
+            scratch_y < 32) {
+          current_slot.tile_data[scratch_x][scratch_y] = tile_id;
+          UpdateScratchBitmapTile(scratch_x, scratch_y, tile_id);
         }
-        UpdateScratchBitmapTile(scratch_x, scratch_y, tile_id);
         idx++;
       }
     }
   }
+
+  // Mark scratch space as modified
+  current_slot.in_use = true;
+  if (current_slot.name == "Empty") {
+    current_slot.name =
+        absl::StrFormat("Pattern %dx%d", pattern_width, pattern_height);
+  }
 }
 
-void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y, int tile_id, int slot) {
+void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
+                                              int tile_id, int slot) {
   // Use current slot if not specified
-  if (slot == -1) slot = current_scratch_slot_;
-  
+  if (slot == -1)
+    slot = current_scratch_slot_;
+
   // Get the tile data from the tile16 blockset
   auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile_id);
-  if (tile_data.empty()) return;
-  
+  if (tile_data.empty())
+    return;
+
   auto& scratch_slot = scratch_spaces_[slot];
-  
-  // Update the scratch bitmap with the new tile (dimensions based on scratch space size)
-  int scratch_bitmap_width = scratch_slot.width * 16;
-  
+
+  // Use canvas grid size (32x32) for consistent scaling
+  const int grid_size = 32;
+  int scratch_bitmap_width = scratch_slot.scratch_bitmap.width();
+  int scratch_bitmap_height = scratch_slot.scratch_bitmap.height();
+
+  // Calculate pixel position in scratch bitmap
   for (int y = 0; y < 16; ++y) {
     for (int x = 0; x < 16; ++x) {
       int src_index = y * 16 + x;
-      int dst_x = tile_x * 16 + x;
-      int dst_y = tile_y * 16 + y;
-      int dst_index = dst_y * scratch_bitmap_width + dst_x;
-      
-      if (src_index < static_cast<int>(tile_data.size()) && 
-          dst_index < static_cast<int>(scratch_slot.scratch_bitmap.size()) &&
-          dst_x < scratch_bitmap_width) {
-        scratch_slot.scratch_bitmap.WriteToPixel(dst_index, tile_data[src_index]);
+
+      // Scale to grid size - each tile takes up grid_size x grid_size pixels
+      int dst_x = tile_x * grid_size + x + x;  // Double scaling for 32x32 grid
+      int dst_y = tile_y * grid_size + y + y;
+
+      // Bounds check for scratch bitmap
+      if (dst_x >= 0 && dst_x < scratch_bitmap_width && dst_y >= 0 &&
+          dst_y < scratch_bitmap_height &&
+          src_index < static_cast<int>(tile_data.size())) {
+
+        // Write 2x2 pixel blocks to fill the 32x32 grid space
+        for (int py = 0; py < 2 && (dst_y + py) < scratch_bitmap_height; ++py) {
+          for (int px = 0; px < 2 && (dst_x + px) < scratch_bitmap_width;
+               ++px) {
+            int dst_index = (dst_y + py) * scratch_bitmap_width + (dst_x + px);
+            scratch_slot.scratch_bitmap.WriteToPixel(dst_index,
+                                                     tile_data[src_index]);
+          }
+        }
       }
     }
   }
-  
+
   scratch_slot.scratch_bitmap.set_modified(true);
   core::Renderer::Get().UpdateBitmap(&scratch_slot.scratch_bitmap);
   scratch_slot.in_use = true;
@@ -3078,46 +3167,59 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch(int slot) {
   if (slot < 0 || slot >= 4) {
     return absl::InvalidArgumentError("Invalid scratch slot");
   }
-  
-  if (ow_map_canvas_.select_rect_active() && !ow_map_canvas_.selected_tiles().empty()) {
+
+  if (ow_map_canvas_.select_rect_active() &&
+      !ow_map_canvas_.selected_tiles().empty()) {
     // Calculate actual selection dimensions from overworld rectangle
     const auto& selected_points = ow_map_canvas_.selected_points();
     if (selected_points.size() >= 2) {
       const auto start = selected_points[0];
       const auto end = selected_points[1];
-      
+
       // Calculate width and height in tiles
-      int selection_width = std::abs(static_cast<int>((end.x - start.x) / 16)) + 1;
-      int selection_height = std::abs(static_cast<int>((end.y - start.y) / 16)) + 1;
-      
+      int selection_width =
+          std::abs(static_cast<int>((end.x - start.x) / 16)) + 1;
+      int selection_height =
+          std::abs(static_cast<int>((end.y - start.y) / 16)) + 1;
+
       // Update scratch space dimensions to match selection
       scratch_spaces_[slot].width = std::max(1, std::min(selection_width, 32));
-      scratch_spaces_[slot].height = std::max(1, std::min(selection_height, 32));
+      scratch_spaces_[slot].height =
+          std::max(1, std::min(selection_height, 32));
       scratch_spaces_[slot].in_use = true;
-      scratch_spaces_[slot].name = absl::StrFormat("Selection %dx%d", 
-                                                   scratch_spaces_[slot].width,
-                                                   scratch_spaces_[slot].height);
-      
+      scratch_spaces_[slot].name =
+          absl::StrFormat("Selection %dx%d", scratch_spaces_[slot].width,
+                          scratch_spaces_[slot].height);
+
       // Recreate bitmap with new dimensions
       int bitmap_width = scratch_spaces_[slot].width * 16;
       int bitmap_height = scratch_spaces_[slot].height * 16;
       std::vector<uint8_t> empty_data(bitmap_width * bitmap_height, 0);
-      scratch_spaces_[slot].scratch_bitmap.Create(bitmap_width, bitmap_height, 8, empty_data);
+      scratch_spaces_[slot].scratch_bitmap.Create(bitmap_width, bitmap_height,
+                                                  8, empty_data);
       if (all_gfx_loaded_) {
         palette_ = overworld_.current_area_palette();
         scratch_spaces_[slot].scratch_bitmap.SetPalette(palette_);
-        core::Renderer::Get().RenderBitmap(&scratch_spaces_[slot].scratch_bitmap);
+        core::Renderer::Get().RenderBitmap(
+            &scratch_spaces_[slot].scratch_bitmap);
       }
-      
+
       // Save selected tiles to scratch data with proper layout
       overworld_.set_current_world(current_world_);
       overworld_.set_current_map(current_map_);
-      
+
       int idx = 0;
-      for (int y = 0; y < scratch_spaces_[slot].height && idx < static_cast<int>(ow_map_canvas_.selected_tiles().size()); ++y) {
-        for (int x = 0; x < scratch_spaces_[slot].width && idx < static_cast<int>(ow_map_canvas_.selected_tiles().size()); ++x) {
+      for (int y = 0;
+           y < scratch_spaces_[slot].height &&
+           idx < static_cast<int>(ow_map_canvas_.selected_tiles().size());
+           ++y) {
+        for (int x = 0;
+             x < scratch_spaces_[slot].width &&
+             idx < static_cast<int>(ow_map_canvas_.selected_tiles().size());
+             ++x) {
           if (idx < static_cast<int>(ow_map_canvas_.selected_tiles().size())) {
-            int tile_id = overworld_.GetTileFromPosition(ow_map_canvas_.selected_tiles()[idx]);
+            int tile_id = overworld_.GetTileFromPosition(
+                ow_map_canvas_.selected_tiles()[idx]);
             if (x < 32 && y < 32) {
               scratch_spaces_[slot].tile_data[x][y] = tile_id;
             }
@@ -3135,7 +3237,7 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch(int slot) {
     scratch_spaces_[slot].name = absl::StrFormat("Map %d Area", current_map_);
     scratch_spaces_[slot].in_use = true;
   }
-  
+
   return absl::OkStatus();
 }
 
@@ -3143,14 +3245,15 @@ absl::Status OverworldEditor::LoadScratchToSelection(int slot) {
   if (slot < 0 || slot >= 4) {
     return absl::InvalidArgumentError("Invalid scratch slot");
   }
-  
+
   if (!scratch_spaces_[slot].in_use) {
     return absl::FailedPreconditionError("Scratch slot is empty");
   }
-  
+
   // Placeholder - could restore tiles to current map position
-  util::logf("Loading scratch slot %d: %s", slot, scratch_spaces_[slot].name.c_str());
-  
+  util::logf("Loading scratch slot %d: %s", slot,
+             scratch_spaces_[slot].name.c_str());
+
   return absl::OkStatus();
 }
 
@@ -3158,10 +3261,10 @@ absl::Status OverworldEditor::ClearScratchSpace(int slot) {
   if (slot < 0 || slot >= 4) {
     return absl::InvalidArgumentError("Invalid scratch slot");
   }
-  
+
   scratch_spaces_[slot].in_use = false;
   scratch_spaces_[slot].name = "Empty";
-  
+
   // Clear the bitmap
   if (scratch_spaces_[slot].scratch_bitmap.is_active()) {
     auto& data = scratch_spaces_[slot].scratch_bitmap.mutable_data();
@@ -3169,119 +3272,10 @@ absl::Status OverworldEditor::ClearScratchSpace(int slot) {
     scratch_spaces_[slot].scratch_bitmap.set_modified(true);
     core::Renderer::Get().UpdateBitmap(&scratch_spaces_[slot].scratch_bitmap);
   }
-  
+
   return absl::OkStatus();
 }
 
-void OverworldEditor::DrawScratchSpaceSelection() {
-  const ImGuiIO &io = ImGui::GetIO();
-  const ImVec2 origin(scratch_canvas_.zero_point().x + scratch_canvas_.scrolling().x, 
-                      scratch_canvas_.zero_point().y + scratch_canvas_.scrolling().y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-  static ImVec2 drag_start_pos;
-  static bool dragging = false;
-  const float tile_size = 16.0f; // 16px per tile at 1x scale
-  
-  auto& current_slot = scratch_spaces_[current_scratch_slot_];
-  
-  // Handle right click for scratch space selection (completely independent)
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && scratch_canvas_.IsMouseHovering()) {
-    // Clear any existing selection
-    current_slot.selected_tiles.clear();
-    current_slot.selected_points.clear();
-    current_slot.select_rect_active = false;
-    
-    // Start new selection
-    ImVec2 aligned_pos;
-    aligned_pos.x = std::floor((mouse_pos.x - 2.0f) / tile_size) * tile_size; // Account for padding
-    aligned_pos.y = std::floor((mouse_pos.y - 2.0f) / tile_size) * tile_size;
-    drag_start_pos = aligned_pos;
-  }
-  
-  // Handle drag for rectangle selection
-  if (ImGui::IsMouseDragging(ImGuiMouseButton_Right) && scratch_canvas_.IsMouseHovering()) {
-    ImVec2 drag_end_pos;
-    drag_end_pos.x = std::floor((mouse_pos.x - 2.0f) / tile_size) * tile_size;
-    drag_end_pos.y = std::floor((mouse_pos.y - 2.0f) / tile_size) * tile_size;
-    
-    // Draw selection rectangle
-    auto start = ImVec2(scratch_canvas_.zero_point().x + drag_start_pos.x + 2.0f,
-                        scratch_canvas_.zero_point().y + drag_start_pos.y + 2.0f);
-    auto end = ImVec2(scratch_canvas_.zero_point().x + drag_end_pos.x + tile_size + 2.0f,
-                      scratch_canvas_.zero_point().y + drag_end_pos.y + tile_size + 2.0f);
-    ImGui::GetWindowDrawList()->AddRect(start, end, IM_COL32(255, 255, 255, 255));
-    dragging = true;
-  }
-  
-  // Handle release to finalize selection
-  if (dragging && !ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
-    dragging = false;
-    
-    ImVec2 drag_end_pos;
-    drag_end_pos.x = std::floor((mouse_pos.x - 2.0f) / tile_size) * tile_size;
-    drag_end_pos.y = std::floor((mouse_pos.y - 2.0f) / tile_size) * tile_size;
-    
-    // Ensure proper ordering
-    ImVec2 selection_start = drag_start_pos;
-    ImVec2 selection_end = drag_end_pos;
-    if (selection_start.x > selection_end.x) std::swap(selection_start.x, selection_end.x);
-    if (selection_start.y > selection_end.y) std::swap(selection_start.y, selection_end.y);
-    
-    // Convert to tile coordinates
-    int start_tile_x = static_cast<int>(selection_start.x) / static_cast<int>(tile_size);
-    int start_tile_y = static_cast<int>(selection_start.y) / static_cast<int>(tile_size);
-    int end_tile_x = static_cast<int>(selection_end.x) / static_cast<int>(tile_size);
-    int end_tile_y = static_cast<int>(selection_end.y) / static_cast<int>(tile_size);
-    
-    // Store selection data in scratch space
-    current_slot.selected_tiles.clear();
-    current_slot.selected_points.clear();
-    current_slot.selected_points.push_back(selection_start);
-    current_slot.selected_points.push_back(selection_end);
-    
-    // Collect tile positions
-    for (int y = start_tile_y; y <= end_tile_y; ++y) {
-      for (int x = start_tile_x; x <= end_tile_x; ++x) {
-        if (x >= 0 && x < 20 && y >= 0 && y < 30) { // Bounds check for 20x30 scratch space
-          current_slot.selected_tiles.push_back(ImVec2(x, y));
-        }
-      }
-    }
-    
-    current_slot.select_rect_active = !current_slot.selected_tiles.empty();
-    
-    // Copy selected tiles to shared clipboard for use in main overworld
-    if (current_slot.select_rect_active && context_) {
-      std::vector<int> scratch_tile_ids;
-      for (const auto& tile_pos : current_slot.selected_tiles) {
-        int x = static_cast<int>(tile_pos.x);
-        int y = static_cast<int>(tile_pos.y);
-        if (x < 32 && y < 32) { // Bounds check for tile_data array
-          int tile_id = current_slot.tile_data[x][y];
-          scratch_tile_ids.push_back(tile_id);
-        }
-      }
-      
-      int width = end_tile_x - start_tile_x + 1;
-      int height = end_tile_y - start_tile_y + 1;
-      
-      context_->shared_clipboard.overworld_tile16_ids = std::move(scratch_tile_ids);
-      context_->shared_clipboard.overworld_width = width;
-      context_->shared_clipboard.overworld_height = height;
-      context_->shared_clipboard.has_overworld_tile16 = true;
-    }
-  }
-  
-  // Draw scratch space selection overlay (independent)
-  if (current_slot.select_rect_active && current_slot.selected_points.size() >= 2) {
-    ImVec2 start = current_slot.selected_points[0];
-    ImVec2 end = current_slot.selected_points[1];
-    
-    // Draw selection rectangle on scratch canvas
-    auto rect_start = ImVec2(origin.x + start.x + 2.0f, origin.y + start.y + 2.0f);
-    auto rect_end = ImVec2(origin.x + end.x + tile_size + 2.0f, origin.y + end.y + tile_size + 2.0f);
-    ImGui::GetWindowDrawList()->AddRect(rect_start, rect_end, IM_COL32(255, 255, 255, 200), 0.0f, 0, 2.0f);
-  }
-}
+// Removed DrawScratchSpaceSelection - now using canvas built-in system
 
 }  // namespace yaze::editor

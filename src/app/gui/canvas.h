@@ -225,10 +225,10 @@ class Canvas {
   void set_draggable(bool draggable) { draggable_ = draggable; }
   
   // Modern accessors using modular structure
-  bool IsSelectRectActive() const { return selection_.select_rect_active; }
-  const std::vector<ImVec2>& GetSelectedTiles() const { return selection_.selected_tiles; }
-  ImVec2 GetSelectedTilePos() const { return selection_.selected_tile_pos; }
-  void SetSelectedTilePos(ImVec2 pos) { selection_.selected_tile_pos = pos; }
+  bool IsSelectRectActive() const { return select_rect_active_; }
+  const std::vector<ImVec2>& GetSelectedTiles() const { return selected_tiles_; }
+  ImVec2 GetSelectedTilePos() const { return selected_tile_pos_; }
+  void SetSelectedTilePos(ImVec2 pos) { selected_tile_pos_ = pos; }
   
   // Configuration accessors  
   void SetCanvasSize(ImVec2 canvas_size) { 
@@ -243,10 +243,10 @@ class Canvas {
   float GetCanvasHeight() const { return config_.canvas_size.y; }
   
   // Legacy compatibility accessors
-  auto select_rect_active() const { return selection_.select_rect_active; }
-  auto selected_tiles() const { return selection_.selected_tiles; }
-  auto selected_tile_pos() const { return selection_.selected_tile_pos; }
-  void set_selected_tile_pos(ImVec2 pos) { selection_.selected_tile_pos = pos; }
+  auto select_rect_active() const { return select_rect_active_; }
+  auto selected_tiles() const { return selected_tiles_; }
+  auto selected_tile_pos() const { return selected_tile_pos_; }
+  void set_selected_tile_pos(ImVec2 pos) { selected_tile_pos_ = pos; }
   auto global_scale() const { return config_.global_scale; }
   auto custom_labels_enabled() { return &config_.enable_custom_labels; }
   auto custom_step() const { return config_.grid_step; }

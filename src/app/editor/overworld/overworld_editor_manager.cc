@@ -280,5 +280,144 @@ absl::Status OverworldEditorManager::DrawGfxGroupSetting(const char* label, uint
   return absl::OkStatus();
 }
 
+absl::Status OverworldEditorManager::DrawUnifiedSettingsTable() {
+  // Create a comprehensive settings table that combines toolset and properties
+  if (BeginTable("##UnifiedOverworldSettings", 6, 
+                 ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter | 
+                 ImGuiTableFlags_BordersV | ImGuiTableFlags_SizingFixedFit)) {
+    
+    // Setup columns with proper widths
+    TableSetupColumn(ICON_MD_BUILD " Tools", ImGuiTableColumnFlags_WidthFixed, 120);
+    TableSetupColumn(ICON_MD_MAP " World", ImGuiTableColumnFlags_WidthFixed, 100);
+    TableSetupColumn(ICON_MD_IMAGE " Graphics", ImGuiTableColumnFlags_WidthFixed, 100);
+    TableSetupColumn(ICON_MD_PALETTE " Palette", ImGuiTableColumnFlags_WidthFixed, 100);
+    TableSetupColumn(ICON_MD_SETTINGS " Properties", ImGuiTableColumnFlags_WidthStretch);
+    TableSetupColumn(ICON_MD_EXTENSION " v3 Features", ImGuiTableColumnFlags_WidthFixed, 120);
+    TableHeadersRow();
+    
+    TableNextRow();
+    
+    // Tools column
+    TableNextColumn();
+    RETURN_IF_ERROR(DrawToolsetInSettings());
+    
+    // World column  
+    TableNextColumn();
+    Text(ICON_MD_PUBLIC " Current World");
+    SetNextItemWidth(80.f);
+    // if (Combo("##world", &current_world_, kWorldList.data(), 3)) {
+    //   // World change logic would go here
+    // }
+    
+    // Graphics column
+    TableNextColumn();
+    Text(ICON_MD_IMAGE " Area Graphics");
+    // Graphics controls would go here
+    
+    // Palette column
+    TableNextColumn();
+    Text(ICON_MD_PALETTE " Area Palette");
+    // Palette controls would go here
+    
+    // Properties column
+    TableNextColumn();
+    Text(ICON_MD_SETTINGS " Map Properties");
+    // Map properties would go here
+    
+    // v3 Features column
+    TableNextColumn();
+    uint8_t asm_version = GetCustomASMVersion();
+    if (asm_version >= 3 && asm_version != 0xFF) {
+      TextColored(ImVec4(0, 1, 0, 1), ICON_MD_NEW_RELEASES " v3 Active");
+      if (Button(ICON_MD_TUNE " Settings")) {
+        // Open v3 settings
+      }
+    } else {
+      TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1), ICON_MD_UPGRADE " v3 Available");
+      if (Button(ICON_MD_UPGRADE " Upgrade")) {
+        // Trigger upgrade
+      }
+    }
+    
+    EndTable();
+  }
+  
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditorManager::DrawToolsetInSettings() {
+  // Compact toolset layout within the settings table
+  BeginGroup();
+  
+  // Core editing tools in a compact grid
+  if (Button(ICON_MD_PAN_TOOL_ALT, ImVec2(25, 25))) {
+    // Set PAN mode
+  }
+  HOVER_HINT("Pan (1)");
+  
+  SameLine();
+  if (Button(ICON_MD_DRAW, ImVec2(25, 25))) {
+    // Set DRAW_TILE mode
+  }
+  HOVER_HINT("Draw Tile (2)");
+  
+  SameLine();
+  if (Button(ICON_MD_DOOR_FRONT, ImVec2(25, 25))) {
+    // Set ENTRANCES mode
+  }
+  HOVER_HINT("Entrances (3)");
+  
+  SameLine();
+  if (Button(ICON_MD_DOOR_BACK, ImVec2(25, 25))) {
+    // Set EXITS mode
+  }
+  HOVER_HINT("Exits (4)");
+  
+  // Second row
+  if (Button(ICON_MD_GRASS, ImVec2(25, 25))) {
+    // Set ITEMS mode
+  }
+  HOVER_HINT("Items (5)");
+  
+  SameLine();
+  if (Button(ICON_MD_PEST_CONTROL_RODENT, ImVec2(25, 25))) {
+    // Set SPRITES mode
+  }
+  HOVER_HINT("Sprites (6)");
+  
+  SameLine();
+  if (Button(ICON_MD_ADD_LOCATION, ImVec2(25, 25))) {
+    // Set TRANSPORTS mode
+  }
+  HOVER_HINT("Transports (7)");
+  
+  SameLine();
+  if (Button(ICON_MD_MUSIC_NOTE, ImVec2(25, 25))) {
+    // Set MUSIC mode
+  }
+  HOVER_HINT("Music (8)");
+  
+  EndGroup();
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditorManager::HandleCanvasSelectionTransfer() {
+  // This could be called to manage bidirectional selection transfer
+  // For now, it's a placeholder for future canvas interaction management
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditorManager::TransferOverworldSelectionToScratch() {
+  // Transfer logic would go here to copy selections from overworld to scratch
+  // This could be integrated with the editor's context system
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditorManager::TransferScratchSelectionToOverworld() {
+  // Transfer logic would go here to copy selections from scratch to overworld
+  // This could be integrated with the editor's context system
+  return absl::OkStatus();
+}
+
 }  // namespace editor
 }  // namespace yaze

@@ -6,9 +6,15 @@
 #include "absl/status/status.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "app/gui/canvas.h"
+#include "app/gui/input.h"
 
 namespace yaze {
 namespace editor {
+
+// Forward declarations
+enum class EditingMode;
+class OverworldEditor;
 
 /**
  * @class OverworldEditorManager
@@ -20,8 +26,12 @@ namespace editor {
  */
 class OverworldEditorManager {
  public:
-  OverworldEditorManager(zelda3::Overworld* overworld, Rom* rom)
-      : overworld_(overworld), rom_(rom) {}
+  OverworldEditorManager(zelda3::Overworld* overworld, Rom* rom, 
+                        OverworldEditor* editor = nullptr)
+      : overworld_(overworld), rom_(rom), editor_(editor) {}
+      
+  // Set editor context for mode changes
+  void SetEditorContext(OverworldEditor* editor) { editor_ = editor; }
 
   // v3 Feature Management
   absl::Status DrawV3SettingsPanel();
@@ -32,6 +42,8 @@ class OverworldEditorManager {
   
   // Map Properties Management
   absl::Status DrawMapPropertiesTable();
+  absl::Status DrawUnifiedSettingsTable();
+  absl::Status DrawToolsetInSettings();
   absl::Status DrawAreaSizeControls();
   absl::Status DrawMosaicControls();
   absl::Status DrawPaletteControls();
@@ -41,6 +53,11 @@ class OverworldEditorManager {
   absl::Status SaveCustomOverworldData();
   absl::Status LoadCustomOverworldData();
   absl::Status ApplyCustomOverworldASM();
+  
+  // Canvas Interaction Management
+  absl::Status HandleCanvasSelectionTransfer();
+  absl::Status TransferOverworldSelectionToScratch();
+  absl::Status TransferScratchSelectionToOverworld();
   
   // Validation and Checks
   bool ValidateV3Compatibility();
@@ -65,6 +82,7 @@ class OverworldEditorManager {
  private:
   zelda3::Overworld* overworld_;
   Rom* rom_;
+  OverworldEditor* editor_;
   
   // v3 Feature flags
   bool enable_area_specific_bg_ = false;
