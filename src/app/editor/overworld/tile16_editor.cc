@@ -277,20 +277,14 @@ absl::Status Tile16Editor::UpdateBlockset() {
   gui::EndPadding();
 
   blockset_canvas_.DrawContextMenu();
-  blockset_canvas_.DrawTileSelector(32);
-  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, true, 2.0f);
-  blockset_canvas_.DrawGrid();
-  blockset_canvas_.DrawOverlay();
-  EndChild();
-
-  // Improved blockset tile selection detection
-  if (blockset_canvas_.WasClicked() || blockset_canvas_.WasDoubleClicked()) {
+  if (blockset_canvas_.DrawTileSelector(32)) {
     auto tile_pos = blockset_canvas_.GetLastClickPosition();
-    int clicked_x = static_cast<int>(tile_pos.x / 32);
-    int clicked_y = static_cast<int>(tile_pos.y / 32);
+    int clicked_x =
+        static_cast<int>(tile_pos.x / blockset_canvas_.GetGridStep());
+    int clicked_y =
+        static_cast<int>(tile_pos.y / blockset_canvas_.GetGridStep());
     int selected_tile =
         clicked_x + (clicked_y * 8);  // 8 tiles per row in blockset
-
     if (selected_tile != current_tile16_ && selected_tile >= 0 &&
         selected_tile < 512) {
       RETURN_IF_ERROR(SetCurrentTile(selected_tile));
@@ -298,6 +292,10 @@ absl::Status Tile16Editor::UpdateBlockset() {
                  selected_tile, clicked_x, clicked_y);
     }
   }
+  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, true, 2.0f);
+  blockset_canvas_.DrawGrid();
+  blockset_canvas_.DrawOverlay();
+  EndChild();
 
   return absl::OkStatus();
 }
