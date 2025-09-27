@@ -13,8 +13,8 @@ namespace gui {
 
 struct Color {
   float red;
-  float blue;
   float green;
+  float blue;
   float alpha;
 };
 

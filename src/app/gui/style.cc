@@ -29,31 +29,6 @@ Color ParseColor(const std::string &color) {
 }
 }  // namespace
 
-void ApplyTheme(const Theme &theme) {
-  ImGuiStyle *style = &ImGui::GetStyle();
-  ImVec4 *colors = style->Colors;
-
-  colors[ImGuiCol_MenuBarBg] = gui::ConvertColorToImVec4(theme.menu_bar_bg);
-  colors[ImGuiCol_TitleBg] = gui::ConvertColorToImVec4(theme.title_bar_bg);
-  colors[ImGuiCol_Header] = gui::ConvertColorToImVec4(theme.header);
-  colors[ImGuiCol_HeaderHovered] =
-      gui::ConvertColorToImVec4(theme.header_hovered);
-  colors[ImGuiCol_HeaderActive] =
-      gui::ConvertColorToImVec4(theme.header_active);
-  colors[ImGuiCol_TitleBgActive] =
-      gui::ConvertColorToImVec4(theme.title_bg_active);
-  colors[ImGuiCol_TitleBgCollapsed] =
-      gui::ConvertColorToImVec4(theme.title_bg_collapsed);
-  colors[ImGuiCol_Tab] = gui::ConvertColorToImVec4(theme.tab);
-  colors[ImGuiCol_TabHovered] = gui::ConvertColorToImVec4(theme.tab_hovered);
-  colors[ImGuiCol_TabActive] = gui::ConvertColorToImVec4(theme.tab_active);
-  colors[ImGuiCol_Button] = gui::ConvertColorToImVec4(theme.button);
-  colors[ImGuiCol_ButtonHovered] =
-      gui::ConvertColorToImVec4(theme.button_hovered);
-  colors[ImGuiCol_ButtonActive] =
-      gui::ConvertColorToImVec4(theme.button_active);
-}
-
 void ColorsYaze() {
   ImGuiStyle *style = &ImGui::GetStyle();
   ImVec4 *colors = style->Colors;
