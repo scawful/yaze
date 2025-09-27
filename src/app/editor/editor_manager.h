@@ -117,6 +117,7 @@ class EditorManager {
   absl::Status LoadRom();
   absl::Status LoadAssets();
   absl::Status SaveRom();
+  absl::Status SaveRomAs(const std::string& filename);
   absl::Status OpenRomOrProject(const std::string& filename);
   
   // Enhanced project management
@@ -220,8 +221,10 @@ class EditorManager {
   void CreateNewSession();
   void DuplicateCurrentSession();
   void CloseCurrentSession();
+  void RemoveSession(size_t index);
   void SwitchToSession(size_t index);
   size_t GetCurrentSessionIndex() const;
+  size_t GetActiveSessionCount() const;
   void ResetWorkspaceLayout();
   
   // Multi-session editor management
