@@ -444,10 +444,7 @@ void OverworldEditor::DrawOverworldMapSettings() {
     // World selector (always present)
     TableNextColumn();
     ImGui::SetNextItemWidth(120.f);
-    if (ImGui::Combo("##world", &current_world_, kWorldList.data(), 3)) {
-      // Update current map when world changes
-      RefreshOverworldMap();
-    }
+    ImGui::Combo("##world", &current_world_, kWorldList.data(), 3);
 
     // Area Graphics (always present)
     TableNextColumn();
@@ -2170,18 +2167,7 @@ void OverworldEditor::DrawMapPropertiesPanel() {
         Text("World");
         TableNextColumn();
         ImGui::SetNextItemWidth(100.f);
-        if (ImGui::Combo("##world", &current_world_, kWorldList.data(), 3)) {
-          // Update current map based on world change
-          if (current_map_ >= 0x40 && current_world_ == 0) {
-            current_map_ -= 0x40;
-          } else if (current_map_ < 0x40 && current_world_ == 1) {
-            current_map_ += 0x40;
-          } else if (current_map_ < 0x80 && current_world_ == 2) {
-            current_map_ += 0x80;
-          } else if (current_map_ >= 0x80 && current_world_ != 2) {
-            current_map_ -= 0x80;
-          }
-        }
+        ImGui::Combo("##world", &current_world_, kWorldList.data(), 3);
 
         TableNextColumn();
         Text("Area Graphics");

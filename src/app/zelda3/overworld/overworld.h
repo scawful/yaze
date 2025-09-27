@@ -190,6 +190,7 @@ class Overworld {
   absl::Status SaveMapProperties();
   absl::Status SaveMusic();
   absl::Status SaveAreaSizes();
+  void AssignMapSizes(std::vector<OverworldMap>& maps);
 
   auto rom() const { return rom_; }
   auto mutable_rom() { return rom_; }
