@@ -54,7 +54,7 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status SaveLayoutToScratch(int slot);
   absl::Status LoadLayoutFromScratch(int slot);
 
-  absl::Status DrawToCurrentTile16(ImVec2 pos);
+  absl::Status DrawToCurrentTile16(ImVec2 pos, const gfx::Bitmap* source_tile = nullptr);
 
   absl::Status UpdateTile16Edit();
 
