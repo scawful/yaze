@@ -22,7 +22,6 @@ set(
 )
 
 set(YAZE_RESOURCE_FILES
-  ${CMAKE_SOURCE_DIR}/assets/layouts/overworld.zeml
   ${CMAKE_SOURCE_DIR}/assets/font/Karla-Regular.ttf
   ${CMAKE_SOURCE_DIR}/assets/font/Roboto-Medium.ttf
   ${CMAKE_SOURCE_DIR}/assets/font/Cousine-Regular.ttf

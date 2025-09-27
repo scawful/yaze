@@ -23,7 +23,6 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
-#include "app/gui/zeml.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
 #include "app/zelda3/overworld/overworld.h"
@@ -42,40 +41,15 @@ using namespace ImGui;
 constexpr float kInputFieldSize = 30.f;
 
 void OverworldEditor::Initialize() {
-  layout_node_ = gui::zeml::Parse(gui::zeml::LoadFile("overworld.zeml"));
-
   // Initialize MapPropertiesSystem with canvas and bitmap data
   map_properties_system_ = std::make_unique<MapPropertiesSystem>(
       &overworld_, rom_, &maps_bmp_, &ow_map_canvas_);
 
-  gui::zeml::Bind(std::to_address(layout_node_.GetNode("OverworldCanvas")),
-                  [this]() { DrawOverworldCanvas(); });
+  // Initialize OverworldEditorManager for v3 features
+  overworld_manager_ = std::make_unique<OverworldEditorManager>(&overworld_, rom_);
 
   // Setup overworld canvas context menu
   SetupOverworldCanvasContextMenu();
-  gui::zeml::Bind(
-      std::to_address(layout_node_.GetNode("OverworldTileSelector")),
-      [this]() { status_ = DrawTileSelector(); });
-  gui::zeml::Bind(std::to_address(layout_node_.GetNode("OwUsageStats")),
-                  [this]() {
-                    if (rom_->is_loaded()) {
-                      status_ = UpdateUsageStats();
-                    }
-                  });
-  gui::zeml::Bind(std::to_address(layout_node_.GetNode("owToolset")),
-                  [this]() { DrawToolset(); });
-  gui::zeml::Bind(std::to_address(layout_node_.GetNode("OwTile16Editor")),
-                  [this]() {
-                    if (rom_->is_loaded()) {
-                      status_ = tile16_editor_.Update();
-                    }
-                  });
-  gui::zeml::Bind(std::to_address(layout_node_.GetNode("OwGfxGroupEditor")),
-                  [this]() {
-                    if (rom_->is_loaded()) {
-                      status_ = gfx_group_editor_.Update();
-                    }
-                  });
 
   // Core editing tools
   gui::AddTableColumn(toolset_table_, "##Pan", [&]() {
@@ -179,8 +153,65 @@ absl::Status OverworldEditor::Load() {
 
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
-  if (overworld_canvas_fullscreen_) DrawFullscreenCanvas();
-  gui::zeml::Render(layout_node_);
+  if (overworld_canvas_fullscreen_) {
+    DrawFullscreenCanvas();
+    return status_;
+  }
+
+  // Replace ZEML with pure ImGui layout
+  if (ImGui::BeginTabBar("##OwEditorTabBar")) {
+    if (ImGui::BeginTabItem("Map Editor")) {
+      DrawToolset();
+      
+      if (ImGui::BeginTable("##owEditTable", 2, 
+                           ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
+                           ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
+                           ImGuiTableFlags_BordersV)) {
+        ImGui::TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Tile Selector", ImGuiTableColumnFlags_WidthFixed, 256.0f);
+        ImGui::TableHeadersRow();
+        
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        DrawOverworldCanvas();
+        
+        ImGui::TableNextColumn();
+        status_ = DrawTileSelector();
+        
+        ImGui::EndTable();
+      }
+      ImGui::EndTabItem();
+    }
+    
+    if (ImGui::BeginTabItem("Tile16 Editor")) {
+      if (rom_->is_loaded()) {
+        status_ = tile16_editor_.Update();
+      }
+      ImGui::EndTabItem();
+    }
+    
+    if (ImGui::BeginTabItem("Graphics Group Editor")) {
+      if (rom_->is_loaded()) {
+        status_ = gfx_group_editor_.Update();
+      }
+      ImGui::EndTabItem();
+    }
+    
+    if (ImGui::BeginTabItem("Usage Statistics")) {
+      if (rom_->is_loaded()) {
+        status_ = UpdateUsageStats();
+      }
+      ImGui::EndTabItem();
+    }
+    
+    // Add v3 settings tab
+    if (rom_->is_loaded()) {
+      status_ = overworld_manager_->DrawV3SettingsPanel();
+    }
+    
+    ImGui::EndTabBar();
+  }
+  
   return status_;
 }
 
@@ -1249,9 +1280,9 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
   for (auto &each : overworld_.entrances()) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40) && !each.deleted) {
-      auto color = ImVec4(255, 255, 0, 100);
+      auto color = ImVec4(255, 0, 255, 100);
       if (each.is_hole_) {
-        color = ImVec4(255, 255, 255, 200);
+        color = ImVec4(255, 255, 0, 200);
       }
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16, color);
       std::string str = util::HexByte(each.entrance_id_);

@@ -162,7 +162,6 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
     PATTERN "*.png"
     PATTERN "*.ttf"
     PATTERN "*.asm"
-    PATTERN "*.zeml"
 )
 
 # Install documentation

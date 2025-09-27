@@ -28,3 +28,8 @@ Diagnostics:
     Remove:
       - modernize-use-trailing-return-type
       - readability-braces-around-statements
+      - readability-magic-numbers
+      - readability-implicit-bool-conversion
+      - readability-identifier-naming
+      - readability-function-cognitive-complexity
+      - readability-function-size
