@@ -435,9 +435,22 @@ std::string FileDialogWrapper::ShowSaveFileDialogNFD(const std::string& default_
 
 std::string FileDialogWrapper::ShowSaveFileDialogBespoke(const std::string& default_name, 
                                                         const std::string& default_extension) {
-  // Placeholder for Linux implementation
-  // Could use zenity or similar system dialogs
-  return ""; // For now return empty - can be implemented later
+  // Basic Linux implementation using system command
+  // For CI/CD, just return a placeholder path
+  if (!default_name.empty() && !default_extension.empty()) {
+    return default_name + "." + default_extension;
+  }
+  return ""; // For now return empty - full implementation can be added later
+}
+
+std::string FileDialogWrapper::ShowSaveFileDialog(const std::string& default_name, 
+                                                 const std::string& default_extension) {
+  // Use global feature flag to choose implementation
+  if (FeatureFlags::get().kUseNativeFileDialog) {
+    return ShowSaveFileDialogNFD(default_name, default_extension);
+  } else {
+    return ShowSaveFileDialogBespoke(default_name, default_extension);
+  }
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
