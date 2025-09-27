@@ -213,35 +213,11 @@ jobs:
         # Install Homebrew dependencies needed for UI tests and full builds
         brew install pkg-config libpng boost abseil ninja
 
-    - name: Set up vcpkg cache (Windows)
-      if: runner.os == 'Windows'
-      uses: actions/cache@v4
-      with:
-        path: |
-          ${{ github.workspace }}/vcpkg
-          ${{ github.workspace }}/vcpkg_installed
-        key: vcpkg-${{ matrix.vcpkg_triplet }}-${{ hashFiles('vcpkg.json') }}
-        restore-keys: |
-          vcpkg-${{ matrix.vcpkg_triplet }}-
-
-    - name: Set up vcpkg (Windows)
-      if: runner.os == 'Windows'
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
-        runVcpkgInstall: true
-        vcpkgJsonGlob: '**/vcpkg.json'
-        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-
-    - name: Verify vcpkg dependencies (Windows)
+    - name: Setup Windows build environment
       if: runner.os == 'Windows'
       run: |
-        echo "Checking installed vcpkg packages..."
-        ${{ github.workspace }}/vcpkg/vcpkg.exe list
-        echo "Checking for zlib specifically..."
-        ${{ github.workspace }}/vcpkg/vcpkg.exe list | findstr zlib || echo "zlib not found!"
-        echo "vcpkg integration status:"
-        ${{ github.workspace }}/vcpkg/vcpkg.exe integrate install
+        echo "Using minimal build approach to avoid vcpkg dependency issues"
+        echo "This disables optional PNG/ZLIB features but ensures reliable builds"
 
     # Configure CMake
     - name: Configure CMake (Linux/macOS)
@@ -268,8 +244,7 @@ jobs:
           -DYAZE_ENABLE_UI_TESTS=ON ^
           -DYAZE_ENABLE_ROM_TESTS=OFF ^
           -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF ^
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake ^
-          -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }} ^
+          -DYAZE_MINIMAL_BUILD=ON ^
           -G "${{ matrix.cmake_generator }}" ^
           -A ${{ matrix.cmake_generator_platform }}
 
