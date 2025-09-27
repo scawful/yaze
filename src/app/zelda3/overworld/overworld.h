@@ -87,6 +87,29 @@ constexpr int kMap32ExpandedFlagPos = 0x01772E;              // 0x04
 constexpr int kMap16ExpandedFlagPos = 0x02FD28;              // 0x0F
 constexpr int kOverworldEntranceExpandedFlagPos = 0x0DB895;  // 0xB8
 
+constexpr int overworldSpritesBeginingExpanded = 0x141438;
+constexpr int overworldSpritesZeldaExpanded = 0x141578;
+constexpr int overworldSpritesAgahnimExpanded = 0x1416B8;
+constexpr int overworldSpritesDataStartExpanded = 0x04C881;
+
+constexpr int overworldSpecialSpriteGFXGroupExpandedTemp = 0x0166E1;
+constexpr int overworldSpecialSpritePaletteExpandedTemp = 0x016701;
+
+constexpr int ExpandedOverlaySpace = 0x120000;
+
+constexpr int overworldTilesType = 0x071459;
+constexpr int overworldMessages = 0x03F51D;
+constexpr int overworldMessagesExpanded = 0x1417F8;
+
+constexpr int overworldItemsPointers = 0x0DC2F9;
+constexpr int overworldItemsAddress = 0x0DC8B9; // 1BC2F9
+constexpr int overworldItemsAddressBank = 0x0DC8BF;
+constexpr int overworldItemsEndData = 0x0DC89C; // 0DC89E
+
+constexpr int overworldBombDoorItemLocationsNew = 0x012644;
+constexpr int overworldItemsPointersNew = 0x012784;
+constexpr int overworldItemsStartDataNew = 0x0DC2F9;
+
 constexpr int kOverworldCompressedMapPos = 0x058000;
 constexpr int kOverworldCompressedOverflowPos = 0x137FFF;
 
@@ -138,6 +161,7 @@ class Overworld {
   absl::Status SaveMap32Tiles();
 
   absl::Status SaveMapProperties();
+  absl::Status SaveMusic();
   absl::Status SaveAreaSizes();
 
   auto rom() const { return rom_; }
@@ -212,6 +236,7 @@ class Overworld {
   }
   auto is_loaded() const { return is_loaded_; }
   void set_current_map(int i) { current_map_ = i; }
+  void set_current_world(int world) { current_world_ = world; }
   auto map_tiles() const { return map_tiles_; }
   auto mutable_map_tiles() { return &map_tiles_; }
   auto all_items() const { return all_items_; }

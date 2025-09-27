@@ -19,6 +19,10 @@ constexpr int kOverworldItemsAddress = 0xDC8B9;  // 1BC2F9
 constexpr int kOverworldItemsBank = 0xDC8BF;
 constexpr int kOverworldItemsEndData = 0xDC89C;  // 0DC89E
 
+constexpr int kOverworldBombDoorItemLocationsNew = 0x012644;
+constexpr int kOverworldItemsPointersNew = 0x012784;
+constexpr int kOverworldItemsStartDataNew = 0x0DC2F9;
+
 class OverworldItem : public GameEntity {
  public:
   OverworldItem() = default;

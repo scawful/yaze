@@ -67,6 +67,9 @@ constexpr int kOverworldPalettesScreenToSetNew = 0x4C635;
 constexpr int kOverworldSpecialSpriteGfxGroupExpandedTemp = 0x0166E1;
 constexpr int kOverworldSpecialSpritePaletteExpandedTemp = 0x016701;
 
+constexpr int transition_target_northExpanded = 0x1411B8;
+constexpr int transition_target_westExpanded = 0x1412F8;
+
 constexpr int kDarkWorldMapIdStart = 0x40;
 constexpr int kSpecialWorldMapIdStart = 0x80;
 

@@ -802,6 +802,8 @@ void OverworldEditor::CheckForOverworldEdits() {
           // Calculate the index within the overall map structure
           int index_x = local_map_x * tiles_per_local_map + tile16_x;
           int index_y = local_map_y * tiles_per_local_map + tile16_y;
+          overworld_.set_current_world(current_world_);
+          overworld_.set_current_map(current_map_);
           int tile16_id = overworld_.GetTileFromPosition(
               ow_map_canvas_.selected_tiles()[i]);
           selected_world[index_x][index_y] = tile16_id;
@@ -818,6 +820,8 @@ void OverworldEditor::CheckForSelectRectangle() {
 
   // Single tile case
   if (ow_map_canvas_.selected_tile_pos().x != -1) {
+    overworld_.set_current_world(current_world_);
+    overworld_.set_current_map(current_map_);
     current_tile16_ =
         overworld_.GetTileFromPosition(ow_map_canvas_.selected_tile_pos());
     ow_map_canvas_.set_selected_tile_pos(ImVec2(-1, -1));
@@ -831,13 +835,18 @@ void OverworldEditor::CheckForSelectRectangle() {
     }
 
     if (ow_map_canvas_.selected_tiles().size() > 0) {
+      // Set the current world and map in overworld for proper tile lookup
+      overworld_.set_current_world(current_world_);
+      overworld_.set_current_map(current_map_);
       for (auto &each : ow_map_canvas_.selected_tiles()) {
         tile16_ids.push_back(overworld_.GetTileFromPosition(each));
       }
     }
   }
   // Create a composite image of all the tile16s selected
-  ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_blockset_, 0x10);
+  if (!tile16_ids.empty()) {
+    ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_blockset_, 0x10, ow_map_canvas_.global_scale());
+  }
 }
 
 absl::Status OverworldEditor::Copy() {
@@ -847,6 +856,8 @@ absl::Status OverworldEditor::Copy() {
       !ow_map_canvas_.selected_tiles().empty()) {
     std::vector<int> ids;
     ids.reserve(ow_map_canvas_.selected_tiles().size());
+    overworld_.set_current_world(current_world_);
+    overworld_.set_current_map(current_map_);
     for (const auto &pos : ow_map_canvas_.selected_tiles()) {
       ids.push_back(overworld_.GetTileFromPosition(pos));
     }
@@ -972,8 +983,22 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
                                parent_map_y * kOverworldMapSize, large_map_size,
                                large_map_size);
   } else {
-    const int current_map_x = current_highlighted_map % 8;
-    const int current_map_y = current_highlighted_map / 8;
+    // Calculate map coordinates accounting for world offset
+    int current_map_x, current_map_y;
+    if (current_world_ == 0) {
+      // Light World (0x00-0x3F)
+      current_map_x = current_highlighted_map % 8;
+      current_map_y = current_highlighted_map / 8;
+    } else if (current_world_ == 1) {
+      // Dark World (0x40-0x7F)
+      current_map_x = (current_highlighted_map - 0x40) % 8;
+      current_map_y = (current_highlighted_map - 0x40) / 8;
+    } else {
+      // Special World (0x80-0x9F) - use display coordinates based on current_world_
+      // The special world maps are displayed in the same 8x8 grid as LW/DW
+      current_map_x = (current_highlighted_map - 0x80) % 8;
+      current_map_y = (current_highlighted_map - 0x80) / 8;
+    }
     ow_map_canvas_.DrawOutline(current_map_x * kOverworldMapSize,
                                current_map_y * kOverworldMapSize,
                                kOverworldMapSize, kOverworldMapSize);
@@ -1012,7 +1037,12 @@ void OverworldEditor::CheckForMousePan() {
 
 void OverworldEditor::DrawOverworldCanvas() {
   if (all_gfx_loaded_) {
-    if (core::FeatureFlags::get().overworld.kLoadCustomOverworld) {
+    // Use ASM version with flag as override to determine UI
+    uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+    bool use_custom_overworld = (asm_version != 0xFF) || 
+                                core::FeatureFlags::get().overworld.kLoadCustomOverworld;
+    
+    if (use_custom_overworld) {
       map_properties_system_->DrawSimplifiedMapSettings(
           current_world_, current_map_, current_map_lock_,
           show_map_properties_panel_, show_custom_bg_color_editor_,
@@ -1434,6 +1464,7 @@ absl::Status OverworldEditor::Save() {
   }
   if (core::FeatureFlags::get().overworld.kSaveOverworldProperties) {
     RETURN_IF_ERROR(overworld_.SaveMapProperties());
+    RETURN_IF_ERROR(overworld_.SaveMusic());
   }
   return absl::OkStatus();
 }
