@@ -8,7 +8,7 @@
  * This header defines data structures and constants specific to
  * The Legend of Zelda: A Link to the Past ROM format and game data.
  * 
- * @version 0.3.0
+ * @version 0.3.1
  * @author YAZE Team
  */
 

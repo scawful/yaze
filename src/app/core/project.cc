@@ -77,7 +77,7 @@ absl::Status YazeProject::Create(const std::string& project_name, const std::str
   
   metadata.created_date = ss.str();
   metadata.last_modified = ss.str();
-  metadata.yaze_version = "0.3.0"; // TODO: Get from version header
+  metadata.yaze_version = "0.3.1"; // TODO: Get from version header
   metadata.version = "2.0";
   metadata.created_by = "YAZE";
   

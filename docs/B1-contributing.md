@@ -228,7 +228,7 @@ absl::StatusOr<AsarPatchResult> ApplyPatch(
 
 ### Version Numbering
 - **Semantic Versioning**: MAJOR.MINOR.PATCH
-- **v0.3.0**: Current stable release
+- **v0.3.1**: Current stable release
 - **Pre-release**: v0.4.0-alpha, v0.4.0-beta
 
 ### Release Checklist

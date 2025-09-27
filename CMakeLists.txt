@@ -7,14 +7,14 @@ if(POLICY CMP0091)
   cmake_policy(SET CMP0091 NEW)
 endif()
 
-project(yaze VERSION 0.3.0
+project(yaze VERSION 0.3.1
              DESCRIPTION "Yet Another Zelda3 Editor"
              LANGUAGES CXX C)
 
 # Set project metadata
 set(YAZE_VERSION_MAJOR 0)
 set(YAZE_VERSION_MINOR 3)
-set(YAZE_VERSION_PATCH 0)
+set(YAZE_VERSION_PATCH 1)
 
 configure_file(src/yaze_config.h.in yaze_config.h @ONLY)
 

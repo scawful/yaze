@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 
+
+- Minor bug fixes for color themes, ZSCustomOverworld v3 item loading, and Tile16 selection.
+
 ## 0.3.0 (September 2025)
 
 ### Major Features
