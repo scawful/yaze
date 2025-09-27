@@ -1186,15 +1186,39 @@ void EditorManager::DrawMenuBar() {
   }
 
   if (save_as_menu) {
+    Begin("Save ROM As", &save_as_menu, ImGuiWindowFlags_AlwaysAutoResize);
+    
+    ImGui::Text("%s Save ROM to new location", ICON_MD_SAVE_AS);
+    ImGui::Separator();
+    
     static std::string save_as_filename = "";
-    Begin("Save As..", &save_as_menu, ImGuiWindowFlags_AlwaysAutoResize);
-    InputText("Filename", &save_as_filename);
-    if (Button("Save", gui::kDefaultModalSize)) {
-      status_ = SaveRom();
-      save_as_menu = false;
+    if (current_rom_ && save_as_filename.empty()) {
+      save_as_filename = current_rom_->title();
     }
-    SameLine();
-    if (Button("Cancel", gui::kDefaultModalSize)) {
+    
+    ImGui::InputText("Filename", &save_as_filename);
+    
+    ImGui::Separator();
+    
+    if (Button(absl::StrFormat("%s Browse...", ICON_MD_FOLDER_OPEN).c_str(), gui::kDefaultModalSize)) {
+      // Use save file dialog for ROM files
+      auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(save_as_filename, "sfc");
+      if (!file_path.empty()) {
+        save_as_filename = file_path;
+      }
+    }
+    
+    ImGui::SameLine();
+    if (Button(absl::StrFormat("%s Save", ICON_MD_SAVE).c_str(), gui::kDefaultModalSize)) {
+      if (!save_as_filename.empty()) {
+        // TODO: Implement SaveRomAs functionality with the specified filename
+        status_ = SaveRom(); // For now, use existing save functionality
+        save_as_menu = false;
+      }
+    }
+    
+    ImGui::SameLine();
+    if (Button(absl::StrFormat("%s Cancel", ICON_MD_CANCEL).c_str(), gui::kDefaultModalSize)) {
       save_as_menu = false;
     }
     End();
@@ -1204,34 +1228,61 @@ void EditorManager::DrawMenuBar() {
     Begin("New Project", &new_project_menu, ImGuiWindowFlags_AlwaysAutoResize);
     static std::string save_as_filename = "";
     InputText("Project Name", &save_as_filename);
-    if (Button("Destination Filepath", gui::kDefaultModalSize)) {
+    if (Button(absl::StrFormat("%s Destination Folder", ICON_MD_FOLDER).c_str(), gui::kDefaultModalSize)) {
       current_project_.filepath = FileDialogWrapper::ShowOpenFolderDialog();
     }
     SameLine();
     Text("%s", current_project_.filepath.c_str());
-    if (Button("ROM File", gui::kDefaultModalSize)) {
+    
+    if (Button(absl::StrFormat("%s ROM File", ICON_MD_VIDEOGAME_ASSET).c_str(), gui::kDefaultModalSize)) {
       current_project_.rom_filename = FileDialogWrapper::ShowOpenFileDialog();
     }
     SameLine();
     Text("%s", current_project_.rom_filename.c_str());
-    if (Button("Labels File", gui::kDefaultModalSize)) {
-      current_project_.labels_filename =
-          FileDialogWrapper::ShowOpenFileDialog();
+    
+    if (Button(absl::StrFormat("%s Labels File", ICON_MD_LABEL).c_str(), gui::kDefaultModalSize)) {
+      current_project_.labels_filename = FileDialogWrapper::ShowOpenFileDialog();
     }
     SameLine();
     Text("%s", current_project_.labels_filename.c_str());
-    if (Button("Code Folder", gui::kDefaultModalSize)) {
+    
+    if (Button(absl::StrFormat("%s Code Folder", ICON_MD_CODE).c_str(), gui::kDefaultModalSize)) {
       current_project_.code_folder = FileDialogWrapper::ShowOpenFolderDialog();
     }
     SameLine();
     Text("%s", current_project_.code_folder.c_str());
 
     Separator();
-    if (Button("Create", gui::kDefaultModalSize)) {
-      new_project_menu = false;
-      status_ = current_project_.Create(save_as_filename, current_project_.filepath);
-      if (status_.ok()) {
-        status_ = current_project_.Save();
+    
+    if (Button(absl::StrFormat("%s Choose Project File Location", ICON_MD_SAVE).c_str(), gui::kDefaultModalSize)) {
+      auto project_file_path = core::FileDialogWrapper::ShowSaveFileDialog(save_as_filename, "yaze");
+      if (!project_file_path.empty()) {
+        // Ensure .yaze extension
+        if (project_file_path.find(".yaze") == std::string::npos) {
+          project_file_path += ".yaze";
+        }
+        
+        // Update project filepath to the chosen location
+        current_project_.filepath = project_file_path;
+        
+        // Also set the project directory to the parent directory
+        size_t last_slash = project_file_path.find_last_of("/\\");
+        if (last_slash != std::string::npos) {
+          std::string project_dir = project_file_path.substr(0, last_slash);
+          Text("Project will be saved to: %s", project_dir.c_str());
+        }
+      }
+    }
+    
+    if (Button(absl::StrFormat("%s Create Project", ICON_MD_ADD).c_str(), gui::kDefaultModalSize)) {
+      if (!current_project_.filepath.empty()) {
+        new_project_menu = false;
+        status_ = current_project_.Create(save_as_filename, current_project_.filepath);
+        if (status_.ok()) {
+          status_ = current_project_.Save();
+        }
+      } else {
+        toast_manager_.Show("Please choose a project file location first", editor::ToastType::kWarning);
       }
     }
     SameLine();
@@ -1412,9 +1463,6 @@ absl::Status EditorManager::OpenRomOrProject(const std::string &filename) {
   return absl::OkStatus();
 }
 
-
-// Enhanced Project Management Implementation
-
 absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
   auto dialog_path = core::FileDialogWrapper::ShowOpenFolderDialog();
   if (dialog_path.empty()) {
@@ -1591,7 +1639,6 @@ absl::Status EditorManager::SetCurrentRom(Rom *rom) {
   return absl::NotFoundError("ROM not found in existing sessions");
 }
 
-// Session Management Functions
 void EditorManager::CreateNewSession() {
   // Check session limit
   if (sessions_.size() >= 8) {
@@ -1709,7 +1756,6 @@ std::string EditorManager::GenerateUniqueEditorTitle(EditorType type, size_t ses
   return absl::StrFormat("%s - %s##session_%zu", base_name, session_name, session_index);
 }
 
-// Layout Management Functions
 void EditorManager::ResetWorkspaceLayout() {
   // Show confirmation popup first
   popup_manager_->Show("Layout Reset Confirm");
@@ -1725,7 +1771,6 @@ void EditorManager::LoadWorkspaceLayout() {
   toast_manager_.Show("Workspace layout loaded", editor::ToastType::kSuccess);
 }
 
-// Window Management Functions
 void EditorManager::ShowAllWindows() {
   if (!current_editor_set_) return;
   
@@ -1768,7 +1813,6 @@ void EditorManager::CloseAllFloatingWindows() {
   toast_manager_.Show("All floating windows closed", editor::ToastType::kInfo);
 }
 
-// Preset Layout Functions
 void EditorManager::LoadDeveloperLayout() {
   if (!current_editor_set_) return;
   
@@ -1821,12 +1865,11 @@ void EditorManager::LoadModderLayout() {
   toast_manager_.Show("Modder layout loaded", editor::ToastType::kSuccess);
 }
 
-// UI Drawing Functions
 void EditorManager::DrawSessionSwitcher() {
   if (!show_session_switcher_) return;
   
   ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-  ImGui::SetNextWindowSize(ImVec2(500, 350), ImGuiCond_Appearing);
+  ImGui::SetNextWindowSize(ImVec2(700, 450), ImGuiCond_Appearing);
   
   if (ImGui::Begin(absl::StrFormat("%s Session Switcher", ICON_MD_SWITCH_ACCOUNT).c_str(), 
                    &show_session_switcher_, ImGuiWindowFlags_NoCollapse)) {
@@ -1844,101 +1887,118 @@ void EditorManager::DrawSessionSwitcher() {
     
     ImGui::Separator();
     
-    // Enhanced session list with metadata
-    for (size_t i = 0; i < sessions_.size(); ++i) {
-      auto& session = sessions_[i];
-      bool is_current = (&session.rom == current_rom_);
+    // Enhanced session list using table for better layout
+    const float TABLE_HEIGHT = ImGui::GetContentRegionAvail().y - 50; // Reserve space for close button
+    
+    if (ImGui::BeginTable("SessionSwitcherTable", 4, 
+                         ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | 
+                         ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY |
+                         ImGuiTableFlags_Resizable,
+                         ImVec2(0, TABLE_HEIGHT))) {
       
-      ImGui::PushID(static_cast<int>(i));
+      // Setup columns with proper sizing weights
+      ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch, 0.3f);
+      ImGui::TableSetupColumn("ROM Info", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 90.0f);
+      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+      ImGui::TableHeadersRow();
       
-      // Session card with background
-      ImVec2 button_size = ImVec2(-1, 70);
-      if (is_current) {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.3f, 0.3f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.7f, 0.3f, 0.4f));
-      } else {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.1f, 0.1f, 0.2f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 0.3f));
-      }
-      
-      if (ImGui::Button("##session_card", button_size)) {
+      for (size_t i = 0; i < sessions_.size(); ++i) {
+        auto& session = sessions_[i];
+        bool is_current = (&session.rom == current_rom_);
+        
+        ImGui::PushID(static_cast<int>(i));
+        ImGui::TableNextRow(ImGuiTableRowFlags_None, 55.0f); // Consistent row height
+        
+        // Session name column with better styling
+        ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
+        
+        if (is_current) {
+          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
+          ImGui::Text("%s %s", ICON_MD_STAR, session.GetDisplayName().c_str());
+          ImGui::PopStyleColor();
+        } else {
+          ImGui::Text("%s %s", ICON_MD_TAB, session.GetDisplayName().c_str());
+        }
+        
+        // ROM info column with better information layout
+        ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
+        
+        if (session.rom.is_loaded()) {
+          ImGui::Text("%s %s", ICON_MD_VIDEOGAME_ASSET, session.rom.title().c_str());
+          ImGui::Text("%.1f MB | %s", 
+                     session.rom.size() / 1048576.0f,
+                     session.rom.dirty() ? "Modified" : "Clean");
+        } else {
+          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s No ROM loaded", ICON_MD_WARNING);
+        }
+        
+        // Status column with better visual indicators
+        ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
+        
+        if (session.rom.is_loaded()) {
+          if (session.rom.dirty()) {
+            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s", ICON_MD_EDIT);
+          } else {
+            ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s", ICON_MD_CHECK_CIRCLE);
+          }
+        } else {
+          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s", ICON_MD_RADIO_BUTTON_UNCHECKED);
+        }
+        
+        // Actions column with improved button layout
+        ImGui::TableNextColumn();
+        
+        // Create button group for better alignment
+        ImGui::BeginGroup();
+        
         if (!is_current) {
-          SwitchToSession(i);
-          show_session_switcher_ = false;
+          if (ImGui::Button("Switch")) {
+            SwitchToSession(i);
+            show_session_switcher_ = false;
+          }
+        } else {
+          ImGui::BeginDisabled();
+          ImGui::Button("Current");
+          ImGui::EndDisabled();
         }
-      }
-      ImGui::PopStyleColor(2);
-      
-      // Session content overlay
-      ImVec2 button_min = ImGui::GetItemRectMin();
-      ImVec2 button_max = ImGui::GetItemRectMax();
-      ImDrawList* draw_list = ImGui::GetWindowDrawList();
-      
-      // Session icon and name
-      ImVec2 text_pos = ImVec2(button_min.x + 10, button_min.y + 8);
-      std::string session_display = session.GetDisplayName();
-      if (session_display.length() > 25) {
-        session_display = session_display.substr(0, 22) + "...";
-      }
-      
-      ImU32 text_color = is_current ? IM_COL32(255, 255, 255, 255) : IM_COL32(220, 220, 220, 255);
-      draw_list->AddText(text_pos, text_color, 
-                        absl::StrFormat("%s %s %s", 
-                                       ICON_MD_STORAGE, 
-                                       session_display.c_str(),
-                                       is_current ? "(Current)" : "").c_str());
-      
-      // ROM metadata
-      if (session.rom.is_loaded()) {
-        ImVec2 metadata_pos = ImVec2(button_min.x + 10, button_min.y + 28);
-        std::string rom_info = absl::StrFormat("%s %s | %.1f MB | %s", 
-                                              ICON_MD_VIDEOGAME_ASSET,
-                                              session.rom.title().c_str(),
-                                              session.rom.size() / 1048576.0f,
-                                              session.rom.dirty() ? "Modified" : "Clean");
-        if (rom_info.length() > 40) {
-          rom_info = rom_info.substr(0, 37) + "...";
+        
+        ImGui::SameLine();
+        if (ImGui::Button("Rename")) {
+          session_to_rename_ = i;
+          strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
+          show_session_rename_dialog_ = true;
         }
-        draw_list->AddText(metadata_pos, IM_COL32(180, 180, 180, 255), rom_info.c_str());
-      } else {
-        ImVec2 metadata_pos = ImVec2(button_min.x + 10, button_min.y + 28);
-        draw_list->AddText(metadata_pos, IM_COL32(150, 150, 150, 255), 
-                          absl::StrFormat("%s No ROM loaded", ICON_MD_WARNING).c_str());
-      }
-      
-      // Action buttons on the right
-      ImVec2 rename_pos = ImVec2(button_max.x - 90, button_min.y + 5);
-      ImVec2 close_pos = ImVec2(button_max.x - 45, button_min.y + 5);
-      
-      ImGui::SetCursorScreenPos(rename_pos);
-      if (ImGui::SmallButton(absl::StrFormat("%s##rename_%zu", ICON_MD_EDIT, i).c_str())) {
-        session_to_rename_ = i;
-        strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
-        show_session_rename_dialog_ = true;
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Rename Session");
-      }
-      
-      ImGui::SetCursorScreenPos(close_pos);
-      if (sessions_.size() > 1) {
-        if (ImGui::SmallButton(absl::StrFormat("%s##close_%zu", ICON_MD_CLOSE, i).c_str())) {
+        
+        ImGui::SameLine();
+        
+        // Close button logic
+        bool can_close = sessions_.size() > 1;
+        if (!can_close) {
+          ImGui::BeginDisabled();
+        }
+        
+        if (ImGui::Button("Close")) {
           if (is_current) {
             CloseCurrentSession();
           } else {
-            // Switch to this session first, then close it
-            SwitchToSession(i);
-            CloseCurrentSession();
+            toast_manager_.Show("Session removal temporarily disabled", editor::ToastType::kWarning);
           }
-          break; // Exit the loop since session structure changed
         }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Close Session");
+        
+        if (!can_close) {
+          ImGui::EndDisabled();
         }
+        
+        ImGui::EndGroup();
+        
+        ImGui::PopID();
       }
       
-      ImGui::PopID();
-      ImGui::Spacing();
+      ImGui::EndTable();
     }
     
     ImGui::Separator();
@@ -1968,63 +2028,88 @@ void EditorManager::DrawSessionManager() {
     ImGui::Separator();
     ImGui::Text("%s Active Sessions (%zu)", ICON_MD_TAB, sessions_.size());
     
-    // Session list with controls (wider table for better readability)
-    if (ImGui::BeginTable("SessionTable", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | 
-                         ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ScrollY)) {
-      ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch, 120.0f);
-      ImGui::TableSetupColumn("ROM", ImGuiTableColumnFlags_WidthStretch, 250.0f);
-      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 100.0f);
-      ImGui::TableSetupColumn("Custom OW", ImGuiTableColumnFlags_WidthFixed, 110.0f);
-      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 220.0f);
+    // Enhanced session management table with proper sizing
+    const float AVAILABLE_HEIGHT = ImGui::GetContentRegionAvail().y;
+    
+    if (ImGui::BeginTable("SessionTable", 6, 
+                         ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | 
+                         ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY |
+                         ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_ContextMenuInBody, 
+                         ImVec2(0, AVAILABLE_HEIGHT))) {
+      
+      // Setup columns with explicit sizing for better control
+      ImGui::TableSetupColumn("Session", ImGuiTableColumnFlags_WidthStretch, 0.15f);
+      ImGui::TableSetupColumn("ROM Title", ImGuiTableColumnFlags_WidthStretch, 0.3f);
+      ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+      ImGui::TableSetupColumn("Custom OW", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch, 0.25f);
       ImGui::TableHeadersRow();
       
       for (size_t i = 0; i < sessions_.size(); ++i) {
         auto& session = sessions_[i];
         bool is_current = (&session.rom == current_rom_);
         
-        ImGui::TableNextRow(ImGuiTableRowFlags_None, 45.0f); // Increase row height for better spacing
+        ImGui::TableNextRow(ImGuiTableRowFlags_None, 50.0f); // Consistent row height
+        ImGui::PushID(static_cast<int>(i));
+        
+        // Session name column
         ImGui::TableNextColumn();
-        
-        // Add vertical centering for text
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f);
-        
+        ImGui::AlignTextToFramePadding();
         if (is_current) {
-          ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), 
+          ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), 
                             "%s Session %zu", ICON_MD_STAR, i + 1);
         } else {
           ImGui::Text("%s Session %zu", ICON_MD_TAB, i + 1);
         }
         
+        // ROM title column
         ImGui::TableNextColumn();
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f); // Vertical centering
+        ImGui::AlignTextToFramePadding();
         std::string display_name = session.GetDisplayName();
         if (!session.custom_name.empty()) {
           ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f), "%s %s", ICON_MD_EDIT, display_name.c_str());
         } else {
+          // Use TextWrapped for long ROM titles
+          ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + ImGui::GetColumnWidth());
           ImGui::Text("%s", display_name.c_str());
+          ImGui::PopTextWrapPos();
         }
         
+        // File size column
         ImGui::TableNextColumn();
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f); // Vertical centering
+        ImGui::AlignTextToFramePadding();
+        if (session.rom.is_loaded()) {
+          ImGui::Text("%.1f MB", session.rom.size() / 1048576.0f);
+        } else {
+          ImGui::TextDisabled("N/A");
+        }
+        
+        // Status column
+        ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         if (session.rom.is_loaded()) {
           if (session.rom.dirty()) {
-            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s Modified", ICON_MD_EDIT);
+            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "%s", ICON_MD_EDIT);
           } else {
-            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s Loaded", ICON_MD_CHECK_CIRCLE);
+            ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s", ICON_MD_CHECK_CIRCLE);
           }
         } else {
-          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s Empty", ICON_MD_RADIO_BUTTON_UNCHECKED);
+          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s", ICON_MD_RADIO_BUTTON_UNCHECKED);
         }
         
+        // Custom Overworld checkbox column
         ImGui::TableNextColumn();
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f); // Vertical centering
-        // Custom Overworld flag (per-session)
+        
+        // Center the checkbox vertically
+        float checkbox_offset = (ImGui::GetFrameHeight() - ImGui::GetTextLineHeight()) * 0.5f;
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + checkbox_offset);
+        
         ImGui::PushID(static_cast<int>(i + 100)); // Different ID to avoid conflicts
         bool custom_ow_enabled = session.feature_flags.overworld.kLoadCustomOverworld;
         if (ImGui::Checkbox("##CustomOW", &custom_ow_enabled)) {
           session.feature_flags.overworld.kLoadCustomOverworld = custom_ow_enabled;
           if (is_current) {
-            // Update global flags if this is the current session
             core::FeatureFlags::get().overworld.kLoadCustomOverworld = custom_ow_enabled;
           }
           toast_manager_.Show(absl::StrFormat("Session %zu: Custom Overworld %s", 
@@ -2032,44 +2117,54 @@ void EditorManager::DrawSessionManager() {
                              editor::ToastType::kInfo);
         }
         ImGui::PopID();
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Enable/disable custom overworld features for this session");
-        }
         
+        // Actions column with better button layout
         ImGui::TableNextColumn();
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f); // Slightly less offset for buttons
-        ImGui::PushID(static_cast<int>(i));
         
-        if (!is_current && ImGui::Button(absl::StrCat(ICON_MD_SWITCH_ACCESS_SHORTCUT, " Switch").c_str())) {
-          SwitchToSession(i);
+        // Create button group for better alignment
+        ImGui::BeginGroup();
+        
+        if (!is_current) {
+          if (ImGui::Button("Switch")) {
+            SwitchToSession(i);
+          }
+        } else {
+          ImGui::BeginDisabled();
+          ImGui::Button("Current");
+          ImGui::EndDisabled();
         }
         
         ImGui::SameLine();
-        if (ImGui::Button(absl::StrCat(ICON_MD_EDIT, " Rename").c_str())) {
+        if (ImGui::Button("Rename")) {
           session_to_rename_ = i;
           strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
           show_session_rename_dialog_ = true;
         }
         
-        if (is_current) {
+        ImGui::SameLine();
+        
+        // Close button logic
+        bool can_close = sessions_.size() > 1;
+        if (!can_close || is_current) {
           ImGui::BeginDisabled();
         }
-        ImGui::SameLine();
-        if (sessions_.size() > 1 && ImGui::Button(absl::StrCat(ICON_MD_CLOSE, " Close").c_str())) {
+        
+        if (ImGui::Button("Close")) {
           if (is_current) {
             CloseCurrentSession();
             break; // Exit loop since current session was closed
           } else {
-            // TODO: Implement proper session removal when RomSession becomes movable
-            toast_manager_.Show("Session management temporarily disabled due to technical constraints", 
+            toast_manager_.Show("Session removal temporarily disabled due to technical constraints", 
                                editor::ToastType::kWarning);
             break;
           }
         }
         
-        if (is_current) {
+        if (!can_close || is_current) {
           ImGui::EndDisabled();
         }
+        
+        ImGui::EndGroup();
         
         ImGui::PopID();
       }
@@ -2217,7 +2312,7 @@ void EditorManager::DrawWelcomeScreen() {
                           ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar |
                           ImGuiWindowFlags_NoBackground;
   
-  if (ImGui::Begin("Welcome to Yaze", &show_welcome_screen_, flags)) {
+  if (ImGui::Begin("Welcome to Yaze", nullptr, flags)) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 window_pos = ImGui::GetWindowPos();
     ImVec2 window_size = ImGui::GetWindowSize();
@@ -2453,6 +2548,17 @@ void EditorManager::DrawWelcomeScreen() {
     // Show tip about drag and drop
     ImGui::Spacing();
     ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), ICON_MD_TIPS_AND_UPDATES " Tip: Drag and drop ROM files onto the window");
+    
+    // Add close button in the bottom right corner
+    ImGui::Spacing();
+    ImGui::Separator();
+    float close_button_width = 100.0f;
+    float offset = ImGui::GetContentRegionAvail().x - close_button_width;
+    if (offset > 0) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
+    
+    if (ImGui::Button(absl::StrFormat("%s Close Welcome", ICON_MD_CLOSE).c_str(), ImVec2(close_button_width, 0))) {
+      show_welcome_screen_ = false;
+    }
   }
   ImGui::End();
 }

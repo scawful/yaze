@@ -173,16 +173,90 @@ std::string ShowOpenFileDialogImpl() {
   return file_path_windows;
 }
 
-// Forward declaration for folder dialog implementation
+// Forward declarations for dialog implementations
 std::string ShowOpenFolderDialogImpl();
+std::string ShowSaveFileDialogImpl(const std::string& default_name, const std::string& default_extension);
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
   return ShowOpenFolderDialogImpl();
 }
 
+std::string FileDialogWrapper::ShowSaveFileDialog(const std::string& default_name, 
+                                                  const std::string& default_extension) {
+  if (FeatureFlags::get().kUseNativeFileDialog) {
+    return ShowSaveFileDialogNFD(default_name, default_extension);
+  } else {
+    return ShowSaveFileDialogBespoke(default_name, default_extension);
+  }
+}
+
 std::string FileDialogWrapper::ShowOpenFolderDialogNFD() {
   // Windows doesn't use NFD in this implementation, fallback to bespoke
   return ShowOpenFolderDialogBespoke();
+}
+
+std::string FileDialogWrapper::ShowSaveFileDialogNFD(const std::string& default_name, 
+                                                     const std::string& default_extension) {
+  // Windows doesn't use NFD in this implementation, fallback to bespoke
+  return ShowSaveFileDialogBespoke(default_name, default_extension);
+}
+
+std::string FileDialogWrapper::ShowSaveFileDialogBespoke(const std::string& default_name, 
+                                                        const std::string& default_extension) {
+  return ShowSaveFileDialogImpl(default_name, default_extension);
+}
+
+std::string ShowSaveFileDialogImpl(const std::string& default_name, 
+                                  const std::string& default_extension) {
+  CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
+  IFileSaveDialog *pfd = NULL;
+  HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL, IID_IFileSaveDialog,
+                               reinterpret_cast<void **>(&pfd));
+  std::string file_path_windows;
+  
+  if (SUCCEEDED(hr)) {
+    // Set default filename if provided
+    if (!default_name.empty()) {
+      std::wstring wide_name(default_name.begin(), default_name.end());
+      pfd->SetFileName(wide_name.c_str());
+    }
+    
+    // Set file type filters if extension provided
+    if (!default_extension.empty()) {
+      if (default_extension == "theme") {
+        COMDLG_FILTERSPEC filters[] = { {L"Theme Files", L"*.theme"}, {L"All Files", L"*.*"} };
+        pfd->SetFileTypes(2, filters);
+      } else if (default_extension == "yaze") {
+        COMDLG_FILTERSPEC filters[] = { {L"YAZE Project Files", L"*.yaze"}, {L"All Files", L"*.*"} };
+        pfd->SetFileTypes(2, filters);
+      } else if (default_extension == "sfc" || default_extension == "smc") {
+        COMDLG_FILTERSPEC filters[] = { {L"ROM Files", L"*.sfc;*.smc"}, {L"All Files", L"*.*"} };
+        pfd->SetFileTypes(2, filters);
+      }
+    }
+    
+    // Show the dialog
+    hr = pfd->Show(NULL);
+    if (SUCCEEDED(hr)) {
+      IShellItem *psiResult;
+      hr = pfd->GetResult(&psiResult);
+      if (SUCCEEDED(hr)) {
+        // Get the file path
+        PWSTR pszFilePath;
+        psiResult->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+        char str[512];
+        wcstombs(str, pszFilePath, 512);
+        file_path_windows = str;
+        psiResult->Release();
+        CoTaskMemFree(pszFilePath);
+      }
+    }
+    pfd->Release();
+  }
+
+  CoUninitialize();
+  return file_path_windows;
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialogBespoke() {
@@ -306,8 +380,64 @@ std::string FileDialogWrapper::ShowOpenFileDialogNFD() {
 
 std::string FileDialogWrapper::ShowOpenFileDialogBespoke() {
   // Implement bespoke file dialog or return placeholder
-  // This would contain the custom macOS implementation
+  // This would contain the custom Linux implementation
   return ""; // Placeholder for bespoke implementation
+}
+
+std::string FileDialogWrapper::ShowSaveFileDialogNFD(const std::string& default_name, 
+                                                     const std::string& default_extension) {
+#if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
+  NFD_Init();
+  nfdu8char_t *out_path = NULL;
+  
+  nfdsavedialogu8args_t args = {0};
+  if (!default_extension.empty()) {
+    // Create filter for the save dialog
+    static nfdu8filteritem_t filters[3] = {
+      {"Theme File", "theme"},
+      {"Project File", "yaze"},
+      {"ROM File", "sfc,smc"}
+    };
+    
+    if (default_extension == "theme") {
+      args.filterList = &filters[0];
+      args.filterCount = 1;
+    } else if (default_extension == "yaze") {
+      args.filterList = &filters[1]; 
+      args.filterCount = 1;
+    } else if (default_extension == "sfc" || default_extension == "smc") {
+      args.filterList = &filters[2];
+      args.filterCount = 1;
+    }
+  }
+  
+  if (!default_name.empty()) {
+    args.defaultName = default_name.c_str();
+  }
+  
+  nfdresult_t result = NFD_SaveDialogU8_With(&out_path, &args);
+  if (result == NFD_OKAY) {
+    std::string file_path(out_path);
+    NFD_FreePath(out_path);
+    NFD_Quit();
+    return file_path;
+  } else if (result == NFD_CANCEL) {
+    NFD_Quit();
+    return "";
+  }
+  NFD_Quit();
+  return "";
+#else
+  // NFD not available - fallback to bespoke
+  return ShowSaveFileDialogBespoke(default_name, default_extension);
+#endif
+}
+
+std::string FileDialogWrapper::ShowSaveFileDialogBespoke(const std::string& default_name, 
+                                                        const std::string& default_extension) {
+  // Placeholder for Linux implementation
+  // Could use zenity or similar system dialogs
+  return ""; // For now return empty - can be implemented later
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {

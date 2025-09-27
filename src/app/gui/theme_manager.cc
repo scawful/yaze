@@ -896,99 +896,323 @@ void ThemeManager::ApplyClassicYazeTheme() {
 void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
   if (!p_open || !*p_open) return;
   
-  if (ImGui::Begin(absl::StrFormat("%s Simple Theme Editor", ICON_MD_PALETTE).c_str(), p_open)) {
-    ImGui::Text("%s Create or modify themes with basic controls", ICON_MD_EDIT);
+  ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+  
+  if (ImGui::Begin(absl::StrFormat("%s Theme Editor", ICON_MD_PALETTE).c_str(), p_open, 
+                   ImGuiWindowFlags_MenuBar)) {
+    
+    // Menu bar for theme operations
+    if (ImGui::BeginMenuBar()) {
+      if (ImGui::BeginMenu("File")) {
+        if (ImGui::MenuItem(absl::StrFormat("%s New Theme", ICON_MD_ADD).c_str())) {
+          // Reset to default theme
+          ApplyClassicYazeTheme();
+        }
+        if (ImGui::MenuItem(absl::StrFormat("%s Load Theme", ICON_MD_FOLDER_OPEN).c_str())) {
+          auto file_path = core::FileDialogWrapper::ShowOpenFileDialog();
+          if (!file_path.empty()) {
+            LoadThemeFromFile(file_path);
+          }
+        }
     ImGui::Separator();
+          if (ImGui::MenuItem(absl::StrFormat("%s Save Theme", ICON_MD_SAVE).c_str())) {
+            // Save current theme to its existing file
+            std::string current_file_path = GetCurrentThemeFilePath();
+            if (!current_file_path.empty()) {
+              auto status = SaveThemeToFile(current_theme_, current_file_path);
+              if (!status.ok()) {
+                util::logf("Failed to save theme: %s", status.message().data());
+              }
+            } else {
+              // No existing file, prompt for new location
+              auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(current_theme_.name, "theme");
+              if (!file_path.empty()) {
+                auto status = SaveThemeToFile(current_theme_, file_path);
+                if (!status.ok()) {
+                  util::logf("Failed to save theme: %s", status.message().data());
+                }
+              }
+            }
+          }
+          if (ImGui::MenuItem(absl::StrFormat("%s Save As...", ICON_MD_SAVE_AS).c_str())) {
+            // Save theme to new file
+            auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(current_theme_.name, "theme");
+            if (!file_path.empty()) {
+              auto status = SaveThemeToFile(current_theme_, file_path);
+              if (!status.ok()) {
+                util::logf("Failed to save theme: %s", status.message().data());
+              }
+            }
+          }
+        ImGui::EndMenu();
+      }
+      
+      if (ImGui::BeginMenu("Presets")) {
+        if (ImGui::MenuItem("YAZE Classic")) {
+          ApplyClassicYazeTheme();
+        }
+        
+        auto available_themes = GetAvailableThemes();
+        if (!available_themes.empty()) {
+          ImGui::Separator();
+          for (const auto& theme_name : available_themes) {
+            if (ImGui::MenuItem(theme_name.c_str())) {
+              LoadTheme(theme_name);
+            }
+          }
+        }
+        ImGui::EndMenu();
+      }
+      
+      ImGui::EndMenuBar();
+    }
     
     static EnhancedTheme edit_theme = current_theme_;
     static char theme_name[128];
     static char theme_description[256];
     static char theme_author[128];
+    static bool live_preview = true;
     
-    // Basic theme info
-    ImGui::InputText("Theme Name", theme_name, sizeof(theme_name));
-    ImGui::InputText("Description", theme_description, sizeof(theme_description));
-    ImGui::InputText("Author", theme_author, sizeof(theme_author));
+    // Live preview toggle
+    ImGui::Checkbox("Live Preview", &live_preview);
+    ImGui::SameLine();
+    ImGui::Text("| Changes apply immediately when enabled");
     
     ImGui::Separator();
     
-    // Primary Colors
-    if (ImGui::CollapsingHeader("Primary Colors", ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImVec4 primary = ConvertColorToImVec4(edit_theme.primary);
-      ImVec4 secondary = ConvertColorToImVec4(edit_theme.secondary);
-      ImVec4 accent = ConvertColorToImVec4(edit_theme.accent);
-      ImVec4 background = ConvertColorToImVec4(edit_theme.background);
+    // Theme metadata in a table for better layout
+    if (ImGui::BeginTable("ThemeMetadata", 2, ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableSetupColumn("Field", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
       
-      if (ImGui::ColorEdit3("Primary", &primary.x)) {
-        edit_theme.primary = {primary.x, primary.y, primary.z, primary.w};
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Name:");
+      ImGui::TableNextColumn();
+      if (ImGui::InputText("##theme_name", theme_name, sizeof(theme_name))) {
+        edit_theme.name = std::string(theme_name);
       }
-      if (ImGui::ColorEdit3("Secondary", &secondary.x)) {
-        edit_theme.secondary = {secondary.x, secondary.y, secondary.z, secondary.w};
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Description:");
+      ImGui::TableNextColumn();
+      if (ImGui::InputText("##theme_description", theme_description, sizeof(theme_description))) {
+        edit_theme.description = std::string(theme_description);
       }
-      if (ImGui::ColorEdit3("Accent", &accent.x)) {
-        edit_theme.accent = {accent.x, accent.y, accent.z, accent.w};
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Author:");
+      ImGui::TableNextColumn();
+      if (ImGui::InputText("##theme_author", theme_author, sizeof(theme_author))) {
+        edit_theme.author = std::string(theme_author);
       }
-      if (ImGui::ColorEdit3("Background", &background.x)) {
-        edit_theme.background = {background.x, background.y, background.z, background.w};
-      }
+      
+      ImGui::EndTable();
     }
     
-    // Text Colors
-    if (ImGui::CollapsingHeader("Text Colors")) {
-      ImVec4 text_primary = ConvertColorToImVec4(edit_theme.text_primary);
-      ImVec4 text_secondary = ConvertColorToImVec4(edit_theme.text_secondary);
-      ImVec4 text_disabled = ConvertColorToImVec4(edit_theme.text_disabled);
-      ImVec4 text_link = ConvertColorToImVec4(edit_theme.text_link);
+    ImGui::Separator();
+    
+    // Enhanced theme editing with tabs for better organization
+    if (ImGui::BeginTabBar("ThemeEditorTabs", ImGuiTabBarFlags_None)) {
       
-      if (ImGui::ColorEdit3("Primary Text", &text_primary.x)) {
-        edit_theme.text_primary = {text_primary.x, text_primary.y, text_primary.z, text_primary.w};
-      }
-      if (ImGui::ColorEdit3("Secondary Text", &text_secondary.x)) {
-        edit_theme.text_secondary = {text_secondary.x, text_secondary.y, text_secondary.z, text_secondary.w};
-      }
-      if (ImGui::ColorEdit3("Disabled Text", &text_disabled.x)) {
-        edit_theme.text_disabled = {text_disabled.x, text_disabled.y, text_disabled.z, text_disabled.w};
-      }
-      if (ImGui::ColorEdit3("Link Text", &text_link.x)) {
-        edit_theme.text_link = {text_link.x, text_link.y, text_link.z, text_link.w};
+      // Primary Colors Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Primary", ICON_MD_COLOR_LENS).c_str())) {
+        if (ImGui::BeginTable("PrimaryColorsTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+          ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+          ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+          ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+          ImGui::TableHeadersRow();
+          
+          // Primary color
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Primary:");
+          ImGui::TableNextColumn();
+          ImVec4 primary = ConvertColorToImVec4(edit_theme.primary);
+          if (ImGui::ColorEdit3("##primary", &primary.x)) {
+        edit_theme.primary = {primary.x, primary.y, primary.z, primary.w};
+            if (live_preview) ApplyTheme(edit_theme);
+          }
+          ImGui::TableNextColumn();
+          ImGui::Button("Primary Preview", ImVec2(-1, 30));
+          
+          // Secondary color
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Secondary:");
+          ImGui::TableNextColumn();
+          ImVec4 secondary = ConvertColorToImVec4(edit_theme.secondary);
+          if (ImGui::ColorEdit3("##secondary", &secondary.x)) {
+        edit_theme.secondary = {secondary.x, secondary.y, secondary.z, secondary.w};
+            if (live_preview) ApplyTheme(edit_theme);
+          }
+          ImGui::TableNextColumn();
+          ImGui::PushStyleColor(ImGuiCol_Button, secondary);
+          ImGui::Button("Secondary Preview", ImVec2(-1, 30));
+          ImGui::PopStyleColor();
+          
+          // Accent color
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Accent:");
+          ImGui::TableNextColumn();
+          ImVec4 accent = ConvertColorToImVec4(edit_theme.accent);
+          if (ImGui::ColorEdit3("##accent", &accent.x)) {
+        edit_theme.accent = {accent.x, accent.y, accent.z, accent.w};
+            if (live_preview) ApplyTheme(edit_theme);
+          }
+          ImGui::TableNextColumn();
+          ImGui::PushStyleColor(ImGuiCol_Button, accent);
+          ImGui::Button("Accent Preview", ImVec2(-1, 30));
+          ImGui::PopStyleColor();
+          
+          // Background color
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Background:");
+          ImGui::TableNextColumn();
+          ImVec4 background = ConvertColorToImVec4(edit_theme.background);
+          if (ImGui::ColorEdit4("##background", &background.x)) {
+        edit_theme.background = {background.x, background.y, background.z, background.w};
+            if (live_preview) ApplyTheme(edit_theme);
+          }
+          ImGui::TableNextColumn();
+          ImGui::Text("Background preview shown in window");
+          
+          ImGui::EndTable();
+        }
+        ImGui::EndTabItem();
       }
       
-      // Show contrast preview against current background
-      ImGui::Text("Link Preview:");
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_Text, text_link);
-      ImGui::Text("Sample clickable link");
+      // Text Colors Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Text", ICON_MD_TEXT_FIELDS).c_str())) {
+        if (ImGui::BeginTable("TextColorsTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+          ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+          ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+          ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+          ImGui::TableHeadersRow();
+          
+          // Text colors with live preview
+          auto text_colors = std::vector<std::pair<const char*, Color*>>{
+            {"Primary Text", &edit_theme.text_primary},
+            {"Secondary Text", &edit_theme.text_secondary},
+            {"Disabled Text", &edit_theme.text_disabled},
+            {"Link Text", &edit_theme.text_link}
+          };
+          
+          for (auto& [label, color_ptr] : text_colors) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("%s:", label);
+            
+            ImGui::TableNextColumn();
+            ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+            std::string id = absl::StrFormat("##%s", label);
+            if (ImGui::ColorEdit3(id.c_str(), &color_vec.x)) {
+              *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+              if (live_preview) ApplyTheme(edit_theme);
+            }
+            
+            ImGui::TableNextColumn();
+            ImGui::PushStyleColor(ImGuiCol_Text, color_vec);
+            ImGui::Text("Sample %s", label);
+            ImGui::PopStyleColor();
+          }
+          
+          ImGui::EndTable();
+        }
+        ImGui::EndTabItem();
+      }
+      
+      // Interactive Elements Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Interactive", ICON_MD_TOUCH_APP).c_str())) {
+        if (ImGui::BeginTable("InteractiveColorsTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+          ImGui::TableSetupColumn("Element", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+          ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+          ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+          ImGui::TableHeadersRow();
+          
+          // Button colors
+          auto button_colors = std::vector<std::tuple<const char*, Color*, ImGuiCol>>{
+            {"Button", &edit_theme.button, ImGuiCol_Button},
+            {"Button Hovered", &edit_theme.button_hovered, ImGuiCol_ButtonHovered},
+            {"Button Active", &edit_theme.button_active, ImGuiCol_ButtonActive}
+          };
+          
+          for (auto& [label, color_ptr, imgui_col] : button_colors) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("%s:", label);
+            
+            ImGui::TableNextColumn();
+            ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+            std::string id = absl::StrFormat("##%s", label);
+            if (ImGui::ColorEdit3(id.c_str(), &color_vec.x)) {
+              *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+              if (live_preview) ApplyTheme(edit_theme);
+            }
+            
+            ImGui::TableNextColumn();
+            ImGui::PushStyleColor(imgui_col, color_vec);
+            ImGui::Button(absl::StrFormat("Preview %s", label).c_str(), ImVec2(-1, 30));
       ImGui::PopStyleColor();
     }
     
-    // Window Colors
-    if (ImGui::CollapsingHeader("Window Colors")) {
-      ImVec4 window_bg = ConvertColorToImVec4(edit_theme.window_bg);
-      ImVec4 popup_bg = ConvertColorToImVec4(edit_theme.popup_bg);
+          ImGui::EndTable();
+        }
+        ImGui::EndTabItem();
+      }
       
-      if (ImGui::ColorEdit4("Window Background", &window_bg.x)) {
-        edit_theme.window_bg = {window_bg.x, window_bg.y, window_bg.z, window_bg.w};
+      // Style Parameters Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Style", ICON_MD_TUNE).c_str())) {
+        ImGui::Text("Rounding and Border Settings:");
+        
+        if (ImGui::SliderFloat("Window Rounding", &edit_theme.window_rounding, 0.0f, 20.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (ImGui::SliderFloat("Frame Rounding", &edit_theme.frame_rounding, 0.0f, 20.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (ImGui::SliderFloat("Scrollbar Rounding", &edit_theme.scrollbar_rounding, 0.0f, 20.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (ImGui::SliderFloat("Tab Rounding", &edit_theme.tab_rounding, 0.0f, 20.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        
+        ImGui::Separator();
+        
+        if (ImGui::SliderFloat("Window Border Size", &edit_theme.window_border_size, 0.0f, 3.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (ImGui::SliderFloat("Frame Border Size", &edit_theme.frame_border_size, 0.0f, 3.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        
+        ImGui::Separator();
+        
+        if (ImGui::Checkbox("Enable Animations", &edit_theme.enable_animations)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (ImGui::Checkbox("Enable Glow Effects", &edit_theme.enable_glow_effects)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        
+        ImGui::EndTabItem();
       }
-      if (ImGui::ColorEdit4("Popup Background", &popup_bg.x)) {
-        edit_theme.popup_bg = {popup_bg.x, popup_bg.y, popup_bg.z, popup_bg.w};
-      }
-    }
-    
-    // Interactive Elements
-    if (ImGui::CollapsingHeader("Interactive Elements")) {
-      ImVec4 button = ConvertColorToImVec4(edit_theme.button);
-      ImVec4 button_hovered = ConvertColorToImVec4(edit_theme.button_hovered);
-      ImVec4 button_active = ConvertColorToImVec4(edit_theme.button_active);
       
-      if (ImGui::ColorEdit3("Button", &button.x)) {
-        edit_theme.button = {button.x, button.y, button.z, button.w};
-      }
-      if (ImGui::ColorEdit3("Button Hovered", &button_hovered.x)) {
-        edit_theme.button_hovered = {button_hovered.x, button_hovered.y, button_hovered.z, button_hovered.w};
-      }
-      if (ImGui::ColorEdit3("Button Active", &button_active.x)) {
-        edit_theme.button_active = {button_active.x, button_active.y, button_active.z, button_active.w};
-      }
+      ImGui::EndTabBar();
     }
     
     ImGui::Separator();
@@ -1064,19 +1288,15 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       edit_theme.description = std::string(theme_description);
       edit_theme.author = std::string(theme_author);
       
-      // Use folder dialog to choose save location
-      auto folder_path = core::FileDialogWrapper::ShowOpenFolderDialog();
-      if (!folder_path.empty()) {
-        // Create filename from theme name (sanitize it)
-        std::string safe_name = edit_theme.name;
-        // Replace spaces and special chars with underscores
-        for (char& c : safe_name) {
-          if (!std::isalnum(c)) {
-            c = '_';
-          }
+      // Use save file dialog with proper defaults
+      std::string safe_name = edit_theme.name.empty() ? "custom_theme" : edit_theme.name;
+      auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(safe_name, "theme");
+      
+      if (!file_path.empty()) {
+        // Ensure .theme extension
+        if (file_path.find(".theme") == std::string::npos) {
+          file_path += ".theme";
         }
-        
-        std::string file_path = folder_path + "/" + safe_name + ".theme";
         
         auto status = SaveThemeToFile(edit_theme, file_path);
         if (status.ok()) {

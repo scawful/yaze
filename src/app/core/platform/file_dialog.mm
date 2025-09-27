@@ -88,6 +88,28 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogBespoke() {
   return "";
 }
 
+std::string yaze::core::FileDialogWrapper::ShowSaveFileDialogBespoke(const std::string& default_name, 
+                                                                    const std::string& default_extension) {
+  NSSavePanel* savePanel = [NSSavePanel savePanel];
+  
+  if (!default_name.empty()) {
+    [savePanel setNameFieldStringValue:[NSString stringWithUTF8String:default_name.c_str()]];
+  }
+  
+  if (!default_extension.empty()) {
+    NSString* ext = [NSString stringWithUTF8String:default_extension.c_str()];
+    [savePanel setAllowedFileTypes:@[ext]];
+  }
+  
+  if ([savePanel runModal] == NSModalResponseOK) {
+    NSURL* url = [savePanel URL];
+    NSString* path = [url path];
+    return std::string([path UTF8String]);
+  }
+
+  return "";
+}
+
 // Global feature flag-based dispatch methods
 std::string yaze::core::FileDialogWrapper::ShowOpenFileDialog() {
   if (FeatureFlags::get().kUseNativeFileDialog) {
@@ -102,6 +124,15 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialog() {
     return ShowOpenFolderDialogNFD();
   } else {
     return ShowOpenFolderDialogBespoke();
+  }
+}
+
+std::string yaze::core::FileDialogWrapper::ShowSaveFileDialog(const std::string& default_name, 
+                                                             const std::string& default_extension) {
+  if (FeatureFlags::get().kUseNativeFileDialog) {
+    return ShowSaveFileDialogNFD(default_name, default_extension);
+  } else {
+    return ShowSaveFileDialogBespoke(default_name, default_extension);
   }
 }
 
@@ -153,6 +184,55 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialogNFD() {
 #else
   // NFD not compiled in, use bespoke
   return ShowOpenFolderDialogBespoke();
+#endif
+}
+
+std::string yaze::core::FileDialogWrapper::ShowSaveFileDialogNFD(const std::string& default_name, 
+                                                                const std::string& default_extension) {
+#if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
+  NFD_Init();
+  nfdu8char_t *out_path = NULL;
+  
+  nfdsavedialogu8args_t args = {0};
+  if (!default_extension.empty()) {
+    // Create filter for the save dialog
+    static nfdu8filteritem_t filters[3] = {
+      {"Theme File", "theme"},
+      {"Project File", "yaze"},
+      {"ROM File", "sfc,smc"}
+    };
+    
+    if (default_extension == "theme") {
+      args.filterList = &filters[0];
+      args.filterCount = 1;
+    } else if (default_extension == "yaze") {
+      args.filterList = &filters[1]; 
+      args.filterCount = 1;
+    } else if (default_extension == "sfc" || default_extension == "smc") {
+      args.filterList = &filters[2];
+      args.filterCount = 1;
+    }
+  }
+  
+  if (!default_name.empty()) {
+    args.defaultName = default_name.c_str();
+  }
+  
+  nfdresult_t result = NFD_SaveDialogU8_With(&out_path, &args);
+  if (result == NFD_OKAY) {
+    std::string file_path(out_path);
+    NFD_FreePath(out_path);
+    NFD_Quit();
+    return file_path;
+  } else if (result == NFD_CANCEL) {
+    NFD_Quit();
+    return "";
+  }
+  NFD_Quit();
+  return "";
+#else
+  // NFD not compiled in, use bespoke
+  return ShowSaveFileDialogBespoke(default_name, default_extension);
 #endif
 }
 
