@@ -150,9 +150,36 @@ class Overworld {
   absl::Status Save(Rom *rom);
   absl::Status SaveOverworldMaps();
   absl::Status SaveLargeMaps();
+  absl::Status SaveLargeMapsExpanded();
+  absl::Status SaveSmallAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
+                                       int transition_target_north, int transition_target_west,
+                                       int transition_pos_x, int transition_pos_y,
+                                       int screen_change_1, int screen_change_2,
+                                       int screen_change_3, int screen_change_4);
+  absl::Status SaveLargeAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
+                                       int transition_target_north, int transition_target_west,
+                                       int transition_pos_x, int transition_pos_y,
+                                       int screen_change_1, int screen_change_2,
+                                       int screen_change_3, int screen_change_4);
+  absl::Status SaveWideAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
+                                      int transition_target_north, int transition_target_west,
+                                      int transition_pos_x, int transition_pos_y,
+                                      int screen_change_1, int screen_change_2,
+                                      int screen_change_3, int screen_change_4);
+  absl::Status SaveTallAreaTransitions(int i, int parent_x_pos, int parent_y_pos,
+                                      int transition_target_north, int transition_target_west,
+                                      int transition_pos_x, int transition_pos_y,
+                                      int screen_change_1, int screen_change_2,
+                                      int screen_change_3, int screen_change_4);
   absl::Status SaveEntrances();
   absl::Status SaveExits();
   absl::Status SaveItems();
+  absl::Status SaveMapOverlays();
+  absl::Status SaveOverworldTilesType();
+  absl::Status SaveCustomOverworldASM(bool enable_bg_color, bool enable_main_palette,
+                                     bool enable_mosaic, bool enable_gfx_groups,
+                                     bool enable_subscreen_overlay, bool enable_animated);
+  absl::Status SaveAreaSpecificBGColors();
 
   absl::Status CreateTile32Tilemap();
   absl::Status SaveMap16Expanded();

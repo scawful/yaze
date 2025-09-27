@@ -12,9 +12,9 @@
 #include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
-#include "app/gui/zeml.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "app/editor/overworld/overworld_editor_manager.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -263,6 +263,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Map properties system for UI organization
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
+  std::unique_ptr<OverworldEditorManager> overworld_manager_;
   
   // Scratch space for large layouts
   // Scratch space canvas for tile16 drawing (like a mini overworld)
@@ -328,7 +329,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags,
                                  ImVec2(0, 0)};
 
-  gui::zeml::Node layout_node_;
   absl::Status status_;
 };
 }  // namespace editor

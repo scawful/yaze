@@ -11,6 +11,7 @@ set(
   app/editor/dungeon/dungeon_room_loader.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
   app/editor/overworld/overworld_editor.cc
+  app/editor/overworld/overworld_editor_manager.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/music/music_editor.cc
   app/editor/message/message_editor.cc

@@ -471,14 +471,12 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position) {
 absl::Status Tile16Editor::UpdateTile16Edit() {
   static bool show_tile8_selector = true;
   static bool show_tile16_editor = true;
-  static bool show_controls = true;
 
   // View controls
   if (BeginMenuBar()) {
     if (BeginMenu("View")) {
       Checkbox("Tile8 Selector", &show_tile8_selector);
       Checkbox("Tile16 Editor", &show_tile16_editor);
-      Checkbox("Controls", &show_controls);
       EndMenu();
     }
     EndMenuBar();
@@ -552,6 +550,32 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       tile8_source_canvas_.DrawOverlay();
 
       EndChild();
+
+      Separator();
+      Text("Palette: %d (Group: %d)", current_palette_, current_palette_group_);
+      if (Button("Pal -", ImVec2(40, 0)))
+        RETURN_IF_ERROR(CyclePalette(false));
+      SameLine();
+      if (Button("Pal +", ImVec2(40, 0)))
+        RETURN_IF_ERROR(CyclePalette(true));
+
+      // Quick palette grid
+      for (int i = 0; i < 8; ++i) {
+        if (i > 0 && i % 4 != 0)
+          SameLine();
+        bool is_current = (current_palette_ == i);
+        if (is_current)
+          PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.7f, 0.4f, 1.0f));
+        if (Button(std::to_string(i).c_str(), ImVec2(20, 20))) {
+          current_palette_ = i;
+          RETURN_IF_ERROR(RefreshAllPalettes());
+        }
+        if (is_current)
+          PopStyleColor();
+        if (i == 3) { /* New line */
+        }
+      }
+
       ImGui::EndGroup();
     }
 
@@ -674,132 +698,98 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           }
         }
       }
-
-      // Compact controls section directly below
-      if (show_controls) {
-        if (BeginTable("##Tile16CompactControls", 3,
-                       ImGuiTableFlags_Resizable |
-                           ImGuiTableFlags_BordersInnerV)) {
-          TableSetupColumn("Info & Palette", ImGuiTableColumnFlags_WidthFixed,
-                           280);
-          TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 200);
-          TableSetupColumn("Advanced", ImGuiTableColumnFlags_WidthStretch);
-
-          TableNextRow();
-
-          // Info and palette column
-          TableNextColumn();
-          if (BeginChild("InfoPaletteChild", ImVec2(270, 120), true)) {
-            gui::DrawTable(tile_edit_table_);
-
-            Separator();
-            Text("Palette: %d (Group: %d)", current_palette_,
-                 current_palette_group_);
-            if (Button("Pal -", ImVec2(35, 0)))
-              RETURN_IF_ERROR(CyclePalette(false));
-            SameLine();
-            if (Button("Pal +", ImVec2(35, 0)))
-              RETURN_IF_ERROR(CyclePalette(true));
-
-            // Quick palette grid
-            for (int i = 0; i < 8; ++i) {
-              if (i > 0 && i % 4 != 0)
-                SameLine();
-              bool is_current = (current_palette_ == i);
-              if (is_current)
-                PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.7f, 0.4f, 1.0f));
-              if (Button(std::to_string(i).c_str(), ImVec2(16, 16))) {
-                current_palette_ = i;
-                RETURN_IF_ERROR(RefreshAllPalettes());
-              }
-              if (is_current)
-                PopStyleColor();
-              if (i == 3) { /* New line */
-              }
-            }
-          }
-          EndChild();
-
-          // Actions column
-          TableNextColumn();
-          if (BeginChild("ActionsChild", ImVec2(190, 120), true)) {
-            if (Button("Clear Tile16", ImVec2(80, 0)))
-              RETURN_IF_ERROR(ClearTile16());
-            if (Button("Copy", ImVec2(80, 0)))
-              RETURN_IF_ERROR(CopyTile16ToClipboard(current_tile16_));
-            if (Button("Paste", ImVec2(80, 0)))
-              RETURN_IF_ERROR(PasteTile16FromClipboard());
-
-            Separator();
-
-            bool can_undo = !undo_stack_.empty();
-            bool can_redo = !redo_stack_.empty();
-
-            if (!can_undo)
-              BeginDisabled();
-            if (Button("Undo", ImVec2(80, 0)))
-              RETURN_IF_ERROR(Undo());
-            if (!can_undo)
-              EndDisabled();
-
-            if (!can_redo)
-              BeginDisabled();
-            if (Button("Redo", ImVec2(80, 0)))
-              RETURN_IF_ERROR(Redo());
-            if (!can_redo)
-              EndDisabled();
-
-            Separator();
-            DrawScratchSpace();
-          }
-          EndChild();
-
-          // Advanced settings column
-          TableNextColumn();
-          if (BeginChild("AdvancedChild", ImVec2(0, 120), true)) {
-            if (Button("Palette Settings")) {
-              show_palette_settings_ = !show_palette_settings_;
-            }
-
-            if (Button("Manual Tile8 Inputs")) {
-              ImGui::OpenPopup("ManualTile8Editor");
-            }
-            HOVER_HINT("Edit tile8 IDs and properties directly");
-
-            if (Button("Refresh Blockset")) {
-              RETURN_IF_ERROR(RefreshTile16Blockset());
-            }
-            HOVER_HINT("Regenerate tile16 blockset from ROM data");
-
-            Text("Advanced Palette:");
-            const char* palette_group_names[] = {
-                "OW Main", "OW Aux", "OW Anim", "Dungeon",
-                "Sprites", "Armor",  "Sword"};
-            if (Combo("##AdvPaletteGroup", &current_palette_group_,
-                      palette_group_names, 7)) {
-              RETURN_IF_ERROR(RefreshAllPalettes());
-            }
-
-            Text("Normalization:");
-            int mask_value = static_cast<int>(palette_normalization_mask_);
-            if (SliderInt("##NormMask", &mask_value, 1, 255, "0x%02X")) {
-              palette_normalization_mask_ = static_cast<uint8_t>(mask_value);
-              RETURN_IF_ERROR(LoadTile8());  // Reload with new mask
-            }
-
-            Checkbox("Auto Normalize", &auto_normalize_pixels_);
-          }
-          EndChild();
-
-          // Manual tile8 editor popup
-          DrawManualTile8Inputs();
-
-          EndTable();
-        }
-
-        // Close the tile16 editor scroll region
-        EndChild();
+      if (BeginChild("InfoPaletteChild", ImVec2(270, 120), true)) {
+        gui::DrawTable(tile_edit_table_);
       }
+      EndChild();
+      // Compact controls section directly below
+      if (BeginTable(
+              "##Tile16CompactControls", 2,
+              ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+        TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 100);
+        TableSetupColumn("Advanced", ImGuiTableColumnFlags_WidthStretch);
+
+        TableNextRow();
+
+        // Actions column
+        TableNextColumn();
+        if (BeginChild("ActionsChild", ImVec2(190, 120), true)) {
+          if (Button("Clear Tile16", ImVec2(80, 0)))
+            RETURN_IF_ERROR(ClearTile16());
+          if (Button("Copy", ImVec2(80, 0)))
+            RETURN_IF_ERROR(CopyTile16ToClipboard(current_tile16_));
+          if (Button("Paste", ImVec2(80, 0)))
+            RETURN_IF_ERROR(PasteTile16FromClipboard());
+
+          Separator();
+
+          bool can_undo = !undo_stack_.empty();
+          bool can_redo = !redo_stack_.empty();
+
+          if (!can_undo)
+            BeginDisabled();
+          if (Button("Undo", ImVec2(80, 0)))
+            RETURN_IF_ERROR(Undo());
+          if (!can_undo)
+            EndDisabled();
+
+          if (!can_redo)
+            BeginDisabled();
+          if (Button("Redo", ImVec2(80, 0)))
+            RETURN_IF_ERROR(Redo());
+          if (!can_redo)
+            EndDisabled();
+
+          Separator();
+          DrawScratchSpace();
+        }
+        EndChild();
+
+        // Advanced settings column
+        TableNextColumn();
+        if (BeginChild("AdvancedChild", ImVec2(0, 120), true)) {
+          if (Button("Palette Settings")) {
+            show_palette_settings_ = !show_palette_settings_;
+          }
+
+          if (Button("Manual Tile8 Inputs")) {
+            ImGui::OpenPopup("ManualTile8Editor");
+          }
+          HOVER_HINT("Edit tile8 IDs and properties directly");
+
+          if (Button("Refresh Blockset")) {
+            RETURN_IF_ERROR(RefreshTile16Blockset());
+          }
+          HOVER_HINT("Regenerate tile16 blockset from ROM data");
+
+          Text("Advanced Palette:");
+          const char* palette_group_names[] = {"OW Main", "OW Aux",  "OW Anim",
+                                               "Dungeon", "Sprites", "Armor",
+                                               "Sword"};
+          if (Combo("##AdvPaletteGroup", &current_palette_group_,
+                    palette_group_names, 7)) {
+            RETURN_IF_ERROR(RefreshAllPalettes());
+          }
+
+          Text("Normalization:");
+          int mask_value = static_cast<int>(palette_normalization_mask_);
+          if (SliderInt("##NormMask", &mask_value, 1, 255, "0x%02X")) {
+            palette_normalization_mask_ = static_cast<uint8_t>(mask_value);
+            RETURN_IF_ERROR(LoadTile8());  // Reload with new mask
+          }
+
+          Checkbox("Auto Normalize", &auto_normalize_pixels_);
+        }
+        EndChild();
+
+        // Manual tile8 editor popup
+        DrawManualTile8Inputs();
+
+        EndTable();
+      }
+
+      // Close the tile16 editor scroll region
+      EndChild();
 
       EndTable();
     }

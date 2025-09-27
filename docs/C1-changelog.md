@@ -2,7 +2,40 @@
 
 ## 0.3.1 
 
-- Minor bug fixes for color themes, ZSCustomOverworld v3 item loading, and Tile16 selection.
+### Major Features
+- **Complete Tile16 Editor Overhaul**: Professional-grade tile editing with modern UI and advanced capabilities
+- **Advanced Palette Management**: Full access to all SNES palette groups with configurable normalization
+- **Comprehensive Undo/Redo System**: 50-state history with intelligent time-based throttling
+- **Scratch Space for Overworld**: Not yet compatible with ZScream
+
+### Tile16 Editor Enhancements
+- **Modern UI Layout**: Fully resizable 3-column interface (Tile8 Source, Editor, Preview & Controls)
+- **Multi-Palette Group Support**: Access to Overworld Main/Aux1/Aux2, Dungeon Main, Global Sprites, Armors, and Swords palettes
+- **Advanced Transform Operations**: Flip horizontal/vertical, rotate 90°, fill with tile8, clear operations
+- **Professional Workflow**: Copy/paste, 4-slot scratch space, live preview with auto-commit
+- **Pixel Normalization Settings**: Configurable pixel value masks (0x01-0xFF) for handling corrupted graphics sheets
+
+### Technical Improvements
+- **SNES Data Accuracy**: Proper 4-bit palette index handling with configurable normalization
+- **Bitmap Pipeline Fixes**: Corrected tile16 extraction using `GetTilemapData()` with manual fallback
+- **Real-time Updates**: Immediate visual feedback for all editing operations
+- **Memory Safety**: Enhanced bounds checking and error handling throughout
+
+### User Interface
+- **Keyboard Shortcuts**: Comprehensive shortcuts for all operations (H/V/R for transforms, Q/E for palette cycling, 1-8 for direct palette selection)
+- **Visual Feedback**: Hover preview restoration, current palette highlighting, texture status indicators
+- **Compact Controls**: Streamlined property panel with essential tools easily accessible
+- **Settings Dialog**: Advanced palette normalization controls with real-time application
+
+### Bug Fixes
+- **Tile16 Bitmap Display**: Fixed blank/white tile issue caused by unnormalized pixel values
+- **Hover Preview**: Restored tile8 preview when hovering over tile16 canvas
+- **Canvas Scaling**: Corrected coordinate scaling for 8x magnification factor
+- **Palette Corruption**: Fixed high-bit contamination in graphics sheets
+- **UI Layout**: Proper column sizing and resizing behavior
+- **Linux CI/CD Build**: Fixed undefined reference errors for `ShowSaveFileDialog` method
+
+- Minor bug fixes for color themes and ZSCustomOverworld v3 item loading.
 
 ## 0.3.0 (September 2025)
 
