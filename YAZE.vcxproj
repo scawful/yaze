@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</ProjectGuid>
+    <RootNamespace>YAZE</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;absl_base.lib;absl_strings.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;absl_base.lib;absl_strings.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;absl_base.lib;absl_strings.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;absl_base.lib;absl_strings.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;absl_base.lib;absl_strings.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;absl_base.lib;absl_strings.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="incl\yaze.h" />
+    <ClInclude Include="incl\zelda.h" />
+    <ClInclude Include="src\app\rom.h" />
+    <ClInclude Include="src\app\snes.h" />
+    <ClInclude Include="src\app\transaction.h" />
+    <ClInclude Include="src\app\core\asar_wrapper.h" />
+    <ClInclude Include="src\app\core\controller.h" />
+    <ClInclude Include="src\app\core\features.h" />
+    <ClInclude Include="src\app\core\project.h" />
+    <ClInclude Include="src\app\core\window.h" />
+    <ClInclude Include="src\app\core\platform\clipboard.h" />
+    <ClInclude Include="src\app\gfx\arena.h" />
+    <ClInclude Include="src\app\gfx\background_buffer.h" />
+    <ClInclude Include="src\app\gfx\bitmap.h" />
+    <ClInclude Include="src\app\gfx\compression.h" />
+    <ClInclude Include="src\app\gfx\scad_format.h" />
+    <ClInclude Include="src\app\gfx\snes_color.h" />
+    <ClInclude Include="src\app\gfx\snes_palette.h" />
+    <ClInclude Include="src\app\gfx\snes_tile.h" />
+    <ClInclude Include="src\app\gfx\tilemap.h" />
+    <ClInclude Include="src\app\editor\editor.h" />
+    <ClInclude Include="src\app\editor\editor_manager.h" />
+    <ClInclude Include="src\app\editor\editor_safeguards.h" />
+    <ClInclude Include="src\app\editor\overworld\overworld_editor.h" />
+    <ClInclude Include="src\app\editor\overworld\overworld_editor_manager.h" />
+    <ClInclude Include="src\app\editor\overworld\map_properties.h" />
+    <ClInclude Include="src\app\editor\overworld\tile16_editor.h" />
+    <ClInclude Include="src\app\editor\graphics\gfx_group_editor.h" />
+    <ClInclude Include="src\app\editor\graphics\graphics_editor.h" />
+    <ClInclude Include="src\app\editor\graphics\palette_editor.h" />
+    <ClInclude Include="src\app\editor\dungeon\dungeon_editor.h" />
+    <ClInclude Include="src\app\editor\sprite\sprite_editor.h" />
+    <ClInclude Include="src\app\editor\music\music_editor.h" />
+    <ClInclude Include="src\app\editor\message\message_editor.h" />
+    <ClInclude Include="src\app\editor\system\system_editor.h" />
+    <ClInclude Include="src\app\editor\code\code_editor.h" />
+    <ClInclude Include="src\app\gui\canvas.h" />
+    <ClInclude Include="src\app\gui\canvas_utils.h" />
+    <ClInclude Include="src\app\gui\color.h" />
+    <ClInclude Include="src\app\gui\enhanced_palette_editor.h" />
+    <ClInclude Include="src\app\gui\icons.h" />
+    <ClInclude Include="src\app\gui\input.h" />
+    <ClInclude Include="src\app\gui\style.h" />
+    <ClInclude Include="src\app\gui\theme_manager.h" />
+    <ClInclude Include="src\app\gui\zeml.h" />
+    <ClInclude Include="src\app\gui\background_renderer.h" />
+    <ClInclude Include="src\app\gui\modules\module_manager.h" />
+    <ClInclude Include="src\app\emu\emulator.h" />
+    <ClInclude Include="src\app\emu\snes.h" />
+    <ClInclude Include="src\app\emu\audio\apu.h" />
+    <ClInclude Include="src\app\emu\audio\dsp.h" />
+    <ClInclude Include="src\app\emu\audio\spc700.h" />
+    <ClInclude Include="src\app\emu\cpu\cpu.h" />
+    <ClInclude Include="src\app\emu\memory\memory.h" />
+    <ClInclude Include="src\app\emu\memory\dma.h" />
+    <ClInclude Include="src\app\emu\video\ppu.h" />
+    <ClInclude Include="src\app\zelda3\common.h" />
+    <ClInclude Include="src\app\zelda3\hyrule_magic.h" />
+    <ClInclude Include="src\app\zelda3\overworld\overworld.h" />
+    <ClInclude Include="src\app\zelda3\dungeon\dungeon.h" />
+    <ClInclude Include="src\app\zelda3\sprite\sprite.h" />
+    <ClInclude Include="src\app\zelda3\screen\screen.h" />
+    <ClInclude Include="src\app\zelda3\music\music.h" />
+    <ClInclude Include="src\util\bps.h" />
+    <ClInclude Include="src\util\flag.h" />
+    <ClInclude Include="src\util\hex.h" />
+    <ClInclude Include="src\util\log.h" />
+    <ClInclude Include="src\util\macro.h" />
+    <ClInclude Include="src\util\notify.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\yaze.cc" />
+    <ClCompile Include="src\app\rom.cc" />
+    <ClCompile Include="src\app\main.cc" />
+    <ClCompile Include="src\app\core\asar_wrapper.cc" />
+    <ClCompile Include="src\app\core\controller.cc" />
+    <ClCompile Include="src\app\core\project.cc" />
+    <ClCompile Include="src\app\core\window.cc" />
+    <ClCompile Include="src\app\core\platform\clipboard.cc" />
+    <ClCompile Include="src\app\gfx\arena.cc" />
+    <ClCompile Include="src\app\gfx\background_buffer.cc" />
+    <ClCompile Include="src\app\gfx\bitmap.cc" />
+    <ClCompile Include="src\app\gfx\compression.cc" />
+    <ClCompile Include="src\app\gfx\scad_format.cc" />
+    <ClCompile Include="src\app\gfx\snes_color.cc" />
+    <ClCompile Include="src\app\gfx\snes_palette.cc" />
+    <ClCompile Include="src\app\gfx\snes_tile.cc" />
+    <ClCompile Include="src\app\gfx\tilemap.cc" />
+    <ClCompile Include="src\app\editor\editor.cc" />
+    <ClCompile Include="src\app\editor\editor_manager.cc" />
+    <ClCompile Include="src\app\editor\overworld\overworld_editor.cc" />
+    <ClCompile Include="src\app\editor\overworld\overworld_editor_manager.cc" />
+    <ClCompile Include="src\app\editor\overworld\map_properties.cc" />
+    <ClCompile Include="src\app\editor\overworld\tile16_editor.cc" />
+    <ClCompile Include="src\app\editor\graphics\gfx_group_editor.cc" />
+    <ClCompile Include="src\app\editor\graphics\graphics_editor.cc" />
+    <ClCompile Include="src\app\editor\graphics\palette_editor.cc" />
+    <ClCompile Include="src\app\editor\dungeon\dungeon_editor.cc" />
+    <ClCompile Include="src\app\editor\sprite\sprite_editor.cc" />
+    <ClCompile Include="src\app\editor\music\music_editor.cc" />
+    <ClCompile Include="src\app\editor\message\message_editor.cc" />
+    <ClCompile Include="src\app\editor\system\system_editor.cc" />
+    <ClCompile Include="src\app\editor\code\code_editor.cc" />
+    <ClCompile Include="src\app\gui\canvas.cc" />
+    <ClCompile Include="src\app\gui\canvas_utils.cc" />
+    <ClCompile Include="src\app\gui\color.cc" />
+    <ClCompile Include="src\app\gui\enhanced_palette_editor.cc" />
+    <ClCompile Include="src\app\gui\input.cc" />
+    <ClCompile Include="src\app\gui\style.cc" />
+    <ClCompile Include="src\app\gui\theme_manager.cc" />
+    <ClCompile Include="src\app\gui\zeml.cc" />
+    <ClCompile Include="src\app\gui\background_renderer.cc" />
+    <ClCompile Include="src\app\gui\modules\module_manager.cc" />
+    <ClCompile Include="src\app\emu\emu.cc" />
+    <ClCompile Include="src\app\emu\emulator.cc" />
+    <ClCompile Include="src\app\emu\snes.cc" />
+    <ClCompile Include="src\app\emu\audio\apu.cc" />
+    <ClCompile Include="src\app\emu\audio\dsp.cc" />
+    <ClCompile Include="src\app\emu\audio\spc700.cc" />
+    <ClCompile Include="src\app\emu\cpu\cpu.cc" />
+    <ClCompile Include="src\app\emu\memory\memory.cc" />
+    <ClCompile Include="src\app\emu\memory\dma.cc" />
+    <ClCompile Include="src\app\emu\video\ppu.cc" />
+    <ClCompile Include="src\app\zelda3\hyrule_magic.cc" />
+    <ClCompile Include="src\app\zelda3\overworld\overworld.cc" />
+    <ClCompile Include="src\app\zelda3\dungeon\dungeon.cc" />
+    <ClCompile Include="src\app\zelda3\sprite\sprite.cc" />
+    <ClCompile Include="src\app\zelda3\screen\screen.cc" />
+    <ClCompile Include="src\app\zelda3\music\music.cc" />
+    <ClCompile Include="src\util\bps.cc" />
+    <ClCompile Include="src\util\flag.cc" />
+    <ClCompile Include="src\util\hex.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vcpkg.json" />
+    <None Include="CMakeLists.txt" />
+    <None Include="README.md" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
