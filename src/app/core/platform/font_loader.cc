@@ -101,13 +101,13 @@ absl::Status AddJapaneseFont(const FontConfig& /*config*/) {
 
 absl::Status LoadPackageFonts() {
   if (font_registry.fonts.empty()) {
-    // Initialize the font names and sizes
+    // Initialize the font names and sizes with proper ImFontConfig initialization
     font_registry.fonts = {
-        FontConfig{KARLA_REGULAR, FONT_SIZE_DEFAULT},
-        FontConfig{ROBOTO_MEDIUM, FONT_SIZE_DEFAULT},
-        FontConfig{COUSINE_REGULAR, FONT_SIZE_DEFAULT},
-        FontConfig{IBM_PLEX_JP, FONT_SIZE_DEFAULT},
-        FontConfig{DROID_SANS, FONT_SIZE_DROID_SANS},
+        FontConfig{KARLA_REGULAR, FONT_SIZE_DEFAULT, {}, {}},
+        FontConfig{ROBOTO_MEDIUM, FONT_SIZE_DEFAULT, {}, {}},
+        FontConfig{COUSINE_REGULAR, FONT_SIZE_DEFAULT, {}, {}},
+        FontConfig{IBM_PLEX_JP, FONT_SIZE_DEFAULT, {}, {}},
+        FontConfig{DROID_SANS, FONT_SIZE_DROID_SANS, {}, {}},
     };
   }
 
