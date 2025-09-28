@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: test/gfx/snes_tile_test.cc Source File</title>
+<title>yaze: test/unit/gfx/snes_tile_test.cc Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="jquery.js"></script>
@@ -114,7 +114,7 @@ $(document).ready(function(){initNavTree('snes__tile__test_8cc_source.html','');
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>using ::testing::Eq;</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="foldopen" id="foldopen00013" data-start="{" data-end="}">
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a12c69443b0f80ade46e466ae9ccf0789">   13</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesTileTest, UnpackBppTile) {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a12c69443b0f80ade46e466ae9ccf0789">   13</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesTileTest, UnpackBppTile) {</div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  <span class="comment">// Test 1bpp tile unpacking</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  std::vector&lt;uint8_t&gt; data1bpp = {0x80, 0x40, 0x20, 0x10,</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>                                   0x08, 0x04, 0x02, 0x01};</div>
@@ -178,7 +178,7 @@ $(document).ready(function(){initNavTree('snes__tile__test_8cc_source.html','');
 </div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
 <div class="foldopen" id="foldopen00075" data-start="{" data-end="}">
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a73ba9aabf99a18d02273510bf2c93fda">   75</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesTileTest, PackBppTile) {</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a73ba9aabf99a18d02273510bf2c93fda">   75</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesTileTest, PackBppTile) {</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  <span class="comment">// Test 1bpp tile packing</span></div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  <a class="code hl_struct" href="structsnes__tile8.html">snes_tile8</a> tile1bpp;</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  std::fill(tile1bpp.<a class="code hl_variable" href="structsnes__tile8.html#ab4471447241bf1409ab7d127473e99bf">data</a>, tile1bpp.<a class="code hl_variable" href="structsnes__tile8.html#ab4471447241bf1409ab7d127473e99bf">data</a> + 64, 0);</div>
@@ -204,7 +204,7 @@ $(document).ready(function(){initNavTree('snes__tile__test_8cc_source.html','');
 </div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
 <div class="foldopen" id="foldopen00099" data-start="{" data-end="}">
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a2bc40237272e2d4fb9d31f8dc475c210">   99</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesTileTest, ConvertBpp) {</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a2bc40237272e2d4fb9d31f8dc475c210">   99</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesTileTest, ConvertBpp) {</div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  <span class="comment">// Test 2bpp to 4bpp conversion</span></div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  std::vector&lt;uint8_t&gt; data2bpp = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04,</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                                   0x02, 0x01, 0x01, 0x02, 0x04, 0x08,</div>
@@ -227,7 +227,7 @@ $(document).ready(function(){initNavTree('snes__tile__test_8cc_source.html','');
 </div>
 <div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span> </div>
 <div class="foldopen" id="foldopen00120" data-start="{" data-end="}">
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a09d506bccffd0952de360a353439505c">  120</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesTileTest, TileInfo) {</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a09d506bccffd0952de360a353439505c">  120</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesTileTest, TileInfo) {</div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  <span class="comment">// Test TileInfo construction and bit manipulation</span></div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1TileInfo.html">gfx::TileInfo</a> info(0x123, 3, <span class="keyword">true</span>, <span class="keyword">true</span>, <span class="keyword">true</span>);</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  EXPECT_EQ(info.<a class="code hl_variable" href="classyaze_1_1gfx_1_1TileInfo.html#a1f25958d86007fecd8c79ff7ce5f8dd5">id_</a>, 0x123);</div>
@@ -250,7 +250,7 @@ $(document).ready(function(){initNavTree('snes__tile__test_8cc_source.html','');
 </div>
 <div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span> </div>
 <div class="foldopen" id="foldopen00141" data-start="{" data-end="}">
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a3ede561396ab6f4cb081a1031b530a01">  141</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesTileTest, TileInfoToWord) {</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a3ede561396ab6f4cb081a1031b530a01">  141</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesTileTest, TileInfoToWord) {</div>
 <div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1TileInfo.html">gfx::TileInfo</a> info(0x123, 3, <span class="keyword">true</span>, <span class="keyword">true</span>, <span class="keyword">true</span>);</div>
 <div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  uint16_t word = <a class="code hl_function" href="namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892">gfx::TileInfoToWord</a>(info);</div>
 <div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
@@ -265,7 +265,7 @@ $(document).ready(function(){initNavTree('snes__tile__test_8cc_source.html','');
 </div>
 <div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span> </div>
 <div class="foldopen" id="foldopen00154" data-start="{" data-end="}">
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ac85b0ba6e31027bf957b676c7bb85023">  154</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesTileTest, WordToTileInfo) {</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ac85b0ba6e31027bf957b676c7bb85023">  154</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesTileTest, WordToTileInfo) {</div>
 <div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  uint16_t word = 0xED23;  <span class="comment">// v=1, h=1, o=1, p=3, id=0x123</span></div>
 <div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1TileInfo.html">gfx::TileInfo</a> info = <a class="code hl_function" href="namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317">gfx::WordToTileInfo</a>(word);</div>
 <div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
@@ -278,7 +278,7 @@ $(document).ready(function(){initNavTree('snes__tile__test_8cc_source.html','');
 </div>
 <div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span> </div>
 <div class="foldopen" id="foldopen00165" data-start="{" data-end="}">
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a5c60f302c079313566ff8033e7ef275c">  165</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesTileTest, Tile32) {</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a5c60f302c079313566ff8033e7ef275c">  165</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesTileTest, Tile32) {</div>
 <div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>  <span class="comment">// Test Tile32 construction and operations</span></div>
 <div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1Tile32.html">gfx::Tile32</a> tile32(0x1234, 0x5678, 0x9ABC, 0xDEF0);</div>
 <div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  EXPECT_EQ(tile32.<a class="code hl_variable" href="classyaze_1_1gfx_1_1Tile32.html#a6d0d5ca55dbda26fe0740d6a4cb3be8d">tile0_</a>, 0x1234);</div>
@@ -303,7 +303,7 @@ $(document).ready(function(){initNavTree('snes__tile__test_8cc_source.html','');
 </div>
 <div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span> </div>
 <div class="foldopen" id="foldopen00188" data-start="{" data-end="}">
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aa8ab4700d4baef93e459b9ec69728f1d">  188</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesTileTest, Tile16) {</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aa8ab4700d4baef93e459b9ec69728f1d">  188</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesTileTest, Tile16) {</div>
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>  <span class="comment">// Test Tile16 construction and operations</span></div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1TileInfo.html">gfx::TileInfo</a> info0(0x123, 3, <span class="keyword">true</span>, <span class="keyword">true</span>, <span class="keyword">true</span>);</div>
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1TileInfo.html">gfx::TileInfo</a> info1(0x456, 2, <span class="keyword">false</span>, <span class="keyword">true</span>, <span class="keyword">false</span>);</div>
@@ -349,7 +349,7 @@ $(document).ready(function(){initNavTree('snes__tile__test_8cc_source.html','');
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_aa50c94ff8a438c8d1f9d8a74115c5304"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#aa50c94ff8a438c8d1f9d8a74115c5304">yaze::gfx::UnpackBppTile</a></div><div class="ttdeci">snes_tile8 UnpackBppTile(std::span&lt; uint8_t &gt; data, const uint32_t offset, const uint32_t bpp)</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8cc_source.html#l00023">snes_tile.cc:23</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_abddef303b6a036e2cbce669f424f7317"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#abddef303b6a036e2cbce669f424f7317">yaze::gfx::WordToTileInfo</a></div><div class="ttdeci">TileInfo WordToTileInfo(uint16_t word)</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8cc_source.html#l00308">snes_tile.cc:308</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_aca0ab154feaf9fd61510d5f26832e054"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#aca0ab154feaf9fd61510d5f26832e054">yaze::gfx::ConvertBpp</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; ConvertBpp(std::span&lt; uint8_t &gt; tiles, uint32_t from_bpp, uint32_t to_bpp)</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8cc_source.html#l00115">snes_tile.cc:115</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html_a813539b1c7d4e3cacc6da29c89b45b31"><div class="ttname"><a href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">yaze::test::TEST</a></div><div class="ttdeci">TEST(DungeonToolsetTest, BasicFunctionality)</div><div class="ttdoc">Unit tests for individual dungeon components.</div><div class="ttdef"><b>Definition</b> <a href="dungeon__component__unit__test_8cc_source.html#l00019">dungeon_component_unit_test.cc:19</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1test_html_a09f2d8355187bb6132009137446b2b08"><div class="ttname"><a href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">yaze::test::TEST</a></div><div class="ttdeci">TEST(HexTest, HexByte)</div><div class="ttdef"><b>Definition</b> <a href="hex__test_8cc_source.html#l00010">hex_test.cc:10</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="asnes__tile_8h_html"><div class="ttname"><a href="snes__tile_8h.html">snes_tile.h</a></div></div>
 <div class="ttc" id="astructsnes__tile8_html"><div class="ttname"><a href="structsnes__tile8.html">snes_tile8</a></div><div class="ttdoc">8x8 SNES tile data</div><div class="ttdef"><b>Definition</b> <a href="yaze_8h_source.html#l00284">yaze.h:284</a></div></div>
@@ -360,7 +360,7 @@ $(document).ready(function(){initNavTree('snes__tile__test_8cc_source.html','');
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="dir_47c4e98413e453c7bbaeb742d0253c57.html">gfx</a></li><li class="navelem"><a class="el" href="snes__tile__test_8cc.html">snes_tile_test.cc</a></li>
+    <li class="navelem"><a class="el" href="dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="dir_6a07fdbc4b50e86806a88566ca8f66e4.html">unit</a></li><li class="navelem"><a class="el" href="dir_b1d1af1f4982b49b56b14eaa0176ca82.html">gfx</a></li><li class="navelem"><a class="el" href="snes__tile__test_8cc.html">snes_tile_test.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

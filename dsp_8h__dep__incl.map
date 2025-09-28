@@ -4,8 +4,8 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,41,141,58,118,81,108,99,101,118,94,153,89,152,95,117,103,96,114,77,138,54,165,36"/>
 <area shape="rect" id="Node000003" href="$apu_8h.html" title=" " alt="" coords="128,79,291,105"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="212,46,212,79,207,79,207,46"/>
-<area shape="rect" id="Node000025" href="$dsp_8cc.html" title=" " alt="" coords="315,79,485,105"/>
-<area shape="poly" id="edge5_Node000001_Node000025" title=" " alt="" coords="256,34,368,76,366,81,255,39"/>
+<area shape="rect" id="Node000022" href="$dsp_8cc.html" title=" " alt="" coords="315,79,485,105"/>
+<area shape="poly" id="edge5_Node000001_Node000022" title=" " alt="" coords="256,34,368,76,366,81,255,39"/>
 <area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="178,115,112,154,109,150,175,111"/>
 <area shape="rect" id="Node000004" href="$snes_8cc.html" title=" " alt="" coords="199,153,342,178"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="231,115,262,150,258,154,227,118"/>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: test/gfx/snes_palette_test.cc Source File</title>
+<title>yaze: test/unit/gfx/snes_palette_test.cc Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="jquery.js"></script>
@@ -132,7 +132,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="comment">// SnesColor Tests</span></div>
 <div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a80602f6022a8cdc65847436d595ce33b">   27</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesColorTest, DefaultConstructor) {</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a80602f6022a8cdc65847436d595ce33b">   27</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesColorTest, DefaultConstructor) {</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color;</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  EXPECT_EQ(color.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2">rgb</a>().x, 0.0f);</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  EXPECT_EQ(color.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2">rgb</a>().y, 0.0f);</div>
@@ -143,7 +143,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
 <div class="foldopen" id="foldopen00036" data-start="{" data-end="}">
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a80857317f2ce99f0bf3cfb386c7cd028">   36</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesColorTest, RGBConstructor) {</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a80857317f2ce99f0bf3cfb386c7cd028">   36</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesColorTest, RGBConstructor) {</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  ImVec4 rgb(1.0f, 0.5f, 0.25f, 1.0f);</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color(rgb);</div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  EXPECT_EQ(color.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2">rgb</a>().x, rgb.x);</div>
@@ -154,7 +154,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
 <div class="foldopen" id="foldopen00045" data-start="{" data-end="}">
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ac34af2a9dcd2c9731511ebc3ea8c369a">   45</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesColorTest, SNESConstructor) {</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ac34af2a9dcd2c9731511ebc3ea8c369a">   45</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesColorTest, SNESConstructor) {</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  uint16_t snes = 0x4210;</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color(snes);</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  EXPECT_EQ(color.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesColor.html#ade9df7154cb3707cffe5e644c995f090">snes</a>(), snes);</div>
@@ -162,7 +162,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
 <div class="foldopen" id="foldopen00051" data-start="{" data-end="}">
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a9e0f22ebd3d07f33fab2115e5f2d5111">   51</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesColorTest, ConvertRgbToSnes) {</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a9e0f22ebd3d07f33fab2115e5f2d5111">   51</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesColorTest, ConvertRgbToSnes) {</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <a class="code hl_struct" href="structsnes__color.html">snes_color</a> color = {132, 132, 132};</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  uint16_t snes = ConvertRgbToSnes(color);</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  ASSERT_EQ(snes, 0x4210);</div>
@@ -170,7 +170,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
 <div class="foldopen" id="foldopen00057" data-start="{" data-end="}">
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#accde1cc1e268583c589cf5eb583c37e8">   57</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesColorTest, ConvertSnestoRGB) {</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#accde1cc1e268583c589cf5eb583c37e8">   57</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesColorTest, ConvertSnestoRGB) {</div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  uint16_t snes = 0x4210;</div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  <a class="code hl_struct" href="structsnes__color.html">snes_color</a> color = ConvertSnesToRgb(snes);</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  ASSERT_EQ(color.<a class="code hl_variable" href="structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">red</a>, 132);</div>
@@ -180,7 +180,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
 <div class="foldopen" id="foldopen00065" data-start="{" data-end="}">
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ade6cb56b0f8515c3db987edd11483707">   65</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesColorTest, ConvertSnesToRGB_Binary) {</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ade6cb56b0f8515c3db987edd11483707">   65</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesColorTest, ConvertSnesToRGB_Binary) {</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  uint16_t red = 0b0000000000011111;</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  uint16_t blue = 0b0111110000000000;</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  uint16_t green = 0b0000001111100000;</div>
@@ -199,7 +199,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
 <div class="foldopen" id="foldopen00082" data-start="{" data-end="}">
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#af5371068c21237dfb8cde90a97b01d99">   82</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesColorTest, Extraction) {</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#af5371068c21237dfb8cde90a97b01d99">   82</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesColorTest, Extraction) {</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  <span class="comment">// red, blue, green, purple</span></div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  <span class="keywordtype">char</span> data[8] = {0x1F, 0x00, 0x00, 0x7C, <span class="keyword">static_cast&lt;</span><span class="keywordtype">char</span><span class="keyword">&gt;</span>(0xE0),</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>                  0x03, 0x1F, 0x7C};</div>
@@ -213,7 +213,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
 <div class="foldopen" id="foldopen00094" data-start="{" data-end="}">
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ae4cfe01deb24e697a4f9e36f79132676">   94</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesColorTest, Convert) {</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ae4cfe01deb24e697a4f9e36f79132676">   94</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesColorTest, Convert) {</div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  <span class="comment">// red, blue, green, purple white</span></div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  <span class="keywordtype">char</span> data[10] = {0x1F,</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>                   0x00,</div>
@@ -234,7 +234,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
 <div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span><span class="comment">// SnesPalette Tests</span></div>
 <div class="foldopen" id="foldopen00113" data-start="{" data-end="}">
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a8e2a3082c4d6d384aebc9f247444aeaa">  113</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesPaletteTest, DefaultConstructor) {</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a8e2a3082c4d6d384aebc9f247444aeaa">  113</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesPaletteTest, DefaultConstructor) {</div>
 <div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">yaze::gfx::SnesPalette</a> palette;</div>
 <div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  EXPECT_TRUE(palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#aeb01c20c88b1ad90bff7289f1b5c8205">empty</a>());</div>
 <div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  EXPECT_EQ(palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda">size</a>(), 0);</div>
@@ -242,7 +242,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
 <div class="foldopen" id="foldopen00119" data-start="{" data-end="}">
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aa4190497f642202f0b9c8f0191cfbae5">  119</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesPaletteTest, AddColor) {</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aa4190497f642202f0b9c8f0191cfbae5">  119</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesPaletteTest, AddColor) {</div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">yaze::gfx::SnesPalette</a> palette;</div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color;</div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2">AddColor</a>(color);</div>
@@ -251,7 +251,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span> </div>
 <div class="foldopen" id="foldopen00126" data-start="{" data-end="}">
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a59cb47d2f18f4b1dc308ed2071ad7fd3">  126</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesPaletteTest, AddMultipleColors) {</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a59cb47d2f18f4b1dc308ed2071ad7fd3">  126</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesPaletteTest, AddMultipleColors) {</div>
 <div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">yaze::gfx::SnesPalette</a> palette;</div>
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color1(0x4210);</div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color2(0x7FFF);</div>
@@ -262,7 +262,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
 <div class="foldopen" id="foldopen00135" data-start="{" data-end="}">
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a9f59bed1b816f85813cf37fc5285aab2">  135</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesPaletteTest, UpdateColor) {</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a9f59bed1b816f85813cf37fc5285aab2">  135</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesPaletteTest, UpdateColor) {</div>
 <div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">yaze::gfx::SnesPalette</a> palette;</div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color1(0x4210);</div>
 <div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color2(0x7FFF);</div>
@@ -274,7 +274,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
 <div class="foldopen" id="foldopen00145" data-start="{" data-end="}">
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ad208ad22e785b5f6f0016e6566570ab1">  145</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesPaletteTest, SubPalette) {</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ad208ad22e785b5f6f0016e6566570ab1">  145</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesPaletteTest, SubPalette) {</div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">yaze::gfx::SnesPalette</a> palette;</div>
 <div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color1(0x4210);</div>
 <div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color2(0x7FFF);</div>
@@ -291,7 +291,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span> </div>
 <div class="foldopen" id="foldopen00160" data-start="{" data-end="}">
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a407e0ca5626547aa057c267463d58161">  160</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesPaletteTest, VectorConstructor) {</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a407e0ca5626547aa057c267463d58161">  160</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesPaletteTest, VectorConstructor) {</div>
 <div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  std::vector&lt;yaze::gfx::SnesColor&gt; colors = {<a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a>(0x4210),</div>
 <div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>                                              <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a>(0x7FFF)};</div>
 <div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">yaze::gfx::SnesPalette</a> palette(colors);</div>
@@ -300,7 +300,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span> </div>
 <div class="foldopen" id="foldopen00167" data-start="{" data-end="}">
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a4a56cf754ff9aed906396a174caa31d3">  167</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesPaletteTest, Clear) {</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a4a56cf754ff9aed906396a174caa31d3">  167</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesPaletteTest, Clear) {</div>
 <div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">yaze::gfx::SnesPalette</a> palette;</div>
 <div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color(0x4210);</div>
 <div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2">AddColor</a>(color);</div>
@@ -311,7 +311,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span> </div>
 <div class="foldopen" id="foldopen00176" data-start="{" data-end="}">
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a6d50e0e2af68ecf311a2206d7aacfb7a">  176</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesPaletteTest, Iterator) {</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a6d50e0e2af68ecf311a2206d7aacfb7a">  176</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesPaletteTest, Iterator) {</div>
 <div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">yaze::gfx::SnesPalette</a> palette;</div>
 <div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color1(0x4210);</div>
 <div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color2(0x7FFF);</div>
@@ -328,7 +328,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 </div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span> </div>
 <div class="foldopen" id="foldopen00191" data-start="{" data-end="}">
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a1ec8eb5e2d7546d162986e9abb9b8457">  191</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">TEST</a>(SnesPaletteTest, OperatorAccess) {</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a1ec8eb5e2d7546d162986e9abb9b8457">  191</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">TEST</a>(SnesPaletteTest, OperatorAccess) {</div>
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesPalette.html">yaze::gfx::SnesPalette</a> palette;</div>
 <div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  <a class="code hl_class" href="classyaze_1_1gfx_1_1SnesColor.html">yaze::gfx::SnesColor</a> color(0x4210);</div>
 <div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>  palette.<a class="code hl_function" href="classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2">AddColor</a>(color);</div>
@@ -353,7 +353,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a58538e81c6b1b5c0d28310f84eced8b7"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a58538e81c6b1b5c0d28310f84eced8b7">yaze::gfx::Convert</a></div><div class="ttdeci">std::vector&lt; char &gt; Convert(const std::vector&lt; snes_color &gt; &amp;palette)</div><div class="ttdef"><b>Definition</b> <a href="snes__color_8cc_source.html#l00069">snes_color.cc:69</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a893d31b6aeb9a3df9754b9def778b458"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a893d31b6aeb9a3df9754b9def778b458">yaze::gfx::ConvertSnesToRgb</a></div><div class="ttdeci">snes_color ConvertSnesToRgb(uint16_t color_snes)</div><div class="ttdef"><b>Definition</b> <a href="snes__color_8cc_source.html#l00019">snes_color.cc:19</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03_html_a0492926f27e09c79e929ad1165ae19a5"><div class="ttname"><a href="namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#a0492926f27e09c79e929ad1165ae19a5">yaze::test::anonymous_namespace{snes_palette_test.cc}::test_convert</a></div><div class="ttdeci">unsigned int test_convert(snes_color col)</div><div class="ttdef"><b>Definition</b> <a href="snes__palette__test_8cc_source.html#l00017">snes_palette_test.cc:17</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html_a813539b1c7d4e3cacc6da29c89b45b31"><div class="ttname"><a href="namespaceyaze_1_1test.html#a813539b1c7d4e3cacc6da29c89b45b31">yaze::test::TEST</a></div><div class="ttdeci">TEST(DungeonToolsetTest, BasicFunctionality)</div><div class="ttdoc">Unit tests for individual dungeon components.</div><div class="ttdef"><b>Definition</b> <a href="dungeon__component__unit__test_8cc_source.html#l00019">dungeon_component_unit_test.cc:19</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1test_html_a09f2d8355187bb6132009137446b2b08"><div class="ttname"><a href="namespaceyaze_1_1test.html#a09f2d8355187bb6132009137446b2b08">yaze::test::TEST</a></div><div class="ttdeci">TEST(HexTest, HexByte)</div><div class="ttdef"><b>Definition</b> <a href="hex__test_8cc_source.html#l00010">hex_test.cc:10</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="asnes__color_8h_html"><div class="ttname"><a href="snes__color_8h.html">snes_color.h</a></div></div>
 <div class="ttc" id="asnes__palette_8h_html"><div class="ttname"><a href="snes__palette_8h.html">snes_palette.h</a></div></div>
@@ -366,7 +366,7 @@ $(document).ready(function(){initNavTree('snes__palette__test_8cc_source.html','
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="dir_47c4e98413e453c7bbaeb742d0253c57.html">gfx</a></li><li class="navelem"><a class="el" href="snes__palette__test_8cc.html">snes_palette_test.cc</a></li>
+    <li class="navelem"><a class="el" href="dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="dir_6a07fdbc4b50e86806a88566ca8f66e4.html">unit</a></li><li class="navelem"><a class="el" href="dir_b1d1af1f4982b49b56b14eaa0176ca82.html">gfx</a></li><li class="navelem"><a class="el" href="snes__palette__test_8cc.html">snes_palette_test.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

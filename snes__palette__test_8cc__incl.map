@@ -1,5 +1,5 @@
-<map id="test/gfx/snes_palette_test.cc" name="test/gfx/snes_palette_test.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="170,5,312,46"/>
+<map id="test/unit/gfx/snes_palette_test.cc" name="test/unit/gfx/snes_palette_test.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="180,5,302,46"/>
 <area shape="rect" id="Node000002" href="$snes__palette_8h.html" title=" " alt="" coords="5,94,157,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,49,120,89,118,84,200,44"/>
 <area shape="rect" id="Node000012" href="$snes__color_8h.html" title=" " alt="" coords="67,168,207,193"/>

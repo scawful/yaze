@@ -17,7 +17,7 @@ var searchData=
   ['chest_5fdata_14',['chest_data',['../structchest__data.html',1,'']]],
   ['chestdata_15',['ChestData',['../structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ChestData.html',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['coldata_16',['COLDATA',['../structyaze_1_1emu_1_1COLDATA.html',1,'yaze::emu']]],
-  ['color_17',['color',['../structyaze_1_1emu_1_1Color.html',1,'yaze::emu::Color'],['../structyaze_1_1gui_1_1Color.html',1,'yaze::gui::Color']]],
+  ['color_17',['color',['../structyaze_1_1gui_1_1Color.html',1,'yaze::gui::Color'],['../structyaze_1_1emu_1_1Color.html',1,'yaze::emu::Color']]],
   ['commandgroup_18',['CommandGroup',['../structyaze_1_1editor_1_1CommandManager_1_1CommandGroup.html',1,'yaze::editor::CommandManager']]],
   ['commandhandler_19',['CommandHandler',['../classyaze_1_1cli_1_1CommandHandler.html',1,'yaze::cli']]],
   ['commandinfo_20',['commandinfo',['../structyaze_1_1cli_1_1CommandInfo.html',1,'yaze::cli::CommandInfo'],['../structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html',1,'yaze::editor::CommandManager::CommandInfo']]],
@@ -34,6 +34,5 @@ var searchData=
   ['counterirqnmiregisters_31',['CounterIrqNmiRegisters',['../structyaze_1_1emu_1_1CounterIrqNmiRegisters.html',1,'yaze::emu']]],
   ['cpu_32',['Cpu',['../classyaze_1_1emu_1_1Cpu.html',1,'yaze::emu']]],
   ['cpucallbacks_33',['CpuCallbacks',['../structyaze_1_1emu_1_1CpuCallbacks.html',1,'yaze::emu']]],
-  ['cputest_34',['CpuTest',['../classyaze_1_1test_1_1CpuTest.html',1,'yaze::test']]],
-  ['createpatch_35',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
+  ['createpatch_34',['CreatePatch',['../classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
 ];

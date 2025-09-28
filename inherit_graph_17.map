@@ -1,59 +1,53 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,740,98,766"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,667,98,693"/>
 <area shape="rect" id="Node000001" href="$classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html" title=" " alt="" coords="178,5,356,61"/>
-<area shape="poly" id="edge3_Node000000_Node000001" title=" " alt="" coords="50,724,53,588,65,393,77,293,93,201,115,125,128,95,144,71,158,58,176,47,178,52,162,62,148,75,133,97,120,126,98,202,82,294,71,393,58,588,56,724"/>
+<area shape="poly" id="edge3_Node000000_Node000001" title=" " alt="" coords="51,651,56,528,70,355,81,267,97,185,118,118,130,92,144,71,159,58,176,48,179,52,162,62,148,75,135,95,123,120,102,187,87,267,75,356,61,528,56,652"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1test_1_1Tile16EditorIntegrationTest.html" title=" " alt="" coords="176,85,358,126"/>
-<area shape="poly" id="edge4_Node000000_Node000002" title=" " alt="" coords="50,725,55,599,68,423,79,333,95,250,117,182,129,156,144,135,158,123,174,114,176,119,161,128,148,139,134,158,122,184,101,252,85,334,73,423,60,599,56,725"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1ApuTest.html" title=" " alt="" coords="202,150,332,175"/>
-<area shape="poly" id="edge5_Node000000_Node000003" title=" " alt="" coords="51,725,56,608,69,446,81,364,97,288,118,227,130,203,144,185,170,167,201,159,202,164,172,172,147,188,134,206,123,229,102,290,87,365,75,447,61,609,56,725"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1CpuTest.html" title=" " alt="" coords="202,199,332,225"/>
-<area shape="poly" id="edge6_Node000000_Node000004" title=" " alt="" coords="51,725,58,618,73,471,85,397,100,329,120,273,144,235,170,218,201,209,202,214,172,222,148,239,125,276,106,330,90,398,78,472,63,618,57,725"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1test_1_1DungeonEditorIntegrationTest.html" title="Integration test framework for dungeon editor components." alt="" coords="184,249,350,290"/>
-<area shape="poly" id="edge7_Node000000_Node000005" title=" " alt="" coords="52,725,61,630,78,503,91,439,105,381,123,334,144,301,162,286,183,276,185,281,165,291,148,304,128,336,110,383,96,441,84,504,66,630,58,725"/>
-<area shape="rect" id="Node000006" href="$classyaze_1_1test_1_1DungeonObjectRenderingTests.html" title="Advanced tests for actual dungeon object rendering scenarios." alt="" coords="182,314,352,355"/>
-<area shape="poly" id="edge8_Node000000_Node000006" title=" " alt="" coords="53,724,64,642,83,534,109,432,125,392,144,365,161,351,180,342,182,347,164,356,148,368,130,395,114,434,88,536,69,643,59,725"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1test_1_1DungeonRoomTest.html" title=" " alt="" coords="171,379,363,405"/>
-<area shape="poly" id="edge9_Node000000_Node000007" title=" " alt="" coords="54,724,66,651,85,558,111,471,127,437,144,414,169,398,172,403,147,418,131,440,116,473,91,560,71,652,59,725"/>
-<area shape="rect" id="Node000008" href="$classyaze_1_1test_1_1IplHandshakeTest.html" title=" " alt="" coords="173,428,361,454"/>
-<area shape="poly" id="edge10_Node000000_Node000008" title=" " alt="" coords="50,724,55,669,69,598,81,561,97,525,118,492,144,463,172,447,174,451,147,467,122,495,101,528,86,563,74,599,60,669,56,725"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1test_1_1MessageTest.html" title=" " alt="" coords="187,478,347,503"/>
-<area shape="poly" id="edge11_Node000000_Node000009" title=" " alt="" coords="53,725,60,678,76,621,103,563,122,537,144,514,164,501,185,493,187,498,166,506,147,518,126,540,108,566,81,623,66,680,58,726"/>
-<area shape="rect" id="Node000010" href="$classyaze_1_1test_1_1ObjectParserStructsTest.html" title=" " alt="" coords="188,528,346,568"/>
-<area shape="poly" id="edge12_Node000000_Node000010" title=" " alt="" coords="58,725,69,691,87,651,112,612,144,578,164,565,187,556,189,561,167,570,147,582,116,615,92,654,74,693,63,726"/>
-<area shape="rect" id="Node000011" href="$classyaze_1_1test_1_1ObjectParserTest.html" title=" " alt="" coords="175,592,359,618"/>
-<area shape="poly" id="edge13_Node000000_Node000011" title=" " alt="" coords="63,725,95,674,118,648,144,627,174,613,176,618,147,631,121,652,99,677,68,728"/>
-<area shape="rect" id="Node000012" href="$classyaze_1_1test_1_1PpuTest.html" title=" " alt="" coords="202,642,332,667"/>
-<area shape="poly" id="edge14_Node000000_Node000012" title=" " alt="" coords="74,727,106,700,144,676,172,666,201,659,202,664,174,671,147,681,109,704,78,731"/>
-<area shape="rect" id="Node000013" href="$classyaze_1_1test_1_1RomDependentTest.html" title="Test fixture for ROM&#45;dependent tests." alt="" coords="169,691,365,717"/>
-<area shape="poly" id="edge15_Node000000_Node000013" title=" " alt="" coords="112,734,145,725,194,715,195,720,146,730,113,739"/>
-<area shape="rect" id="Node000015" href="$classyaze_1_1test_1_1RomTest.html" title=" " alt="" coords="200,740,334,766"/>
-<area shape="poly" id="edge17_Node000000_Node000015" title=" " alt="" coords="113,751,199,751,199,756,113,756"/>
-<area shape="rect" id="Node000016" href="$classyaze_1_1test_1_1Spc700Test.html" title=" " alt="" coords="191,790,343,815"/>
-<area shape="poly" id="edge18_Node000000_Node000016" title=" " alt="" coords="113,768,146,776,195,786,194,792,145,781,112,773"/>
-<area shape="rect" id="Node000017" href="$classyaze_1_1test_1_1SpriteBuilderTest.html" title=" " alt="" coords="176,839,358,865"/>
-<area shape="poly" id="edge19_Node000000_Node000017" title=" " alt="" coords="78,775,109,802,147,825,177,836,175,841,145,830,106,806,74,779"/>
-<area shape="rect" id="Node000018" href="$classyaze_1_1test_1_1TestDungeonObjects.html" title="Simplified test framework for dungeon object rendering." alt="" coords="165,888,369,914"/>
-<area shape="poly" id="edge20_Node000000_Node000018" title=" " alt="" coords="68,779,99,829,121,854,147,875,168,885,166,890,144,879,118,858,95,832,63,781"/>
-<area shape="rect" id="Node000019" href="$classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html" title=" " alt="" coords="196,938,338,979"/>
-<area shape="poly" id="edge21_Node000000_Node000019" title=" " alt="" coords="63,780,74,814,92,853,116,892,147,924,171,938,197,947,195,952,168,943,144,929,112,895,87,855,69,815,58,782"/>
-<area shape="rect" id="Node000020" href="$classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html" title=" " alt="" coords="174,1004,360,1044"/>
-<area shape="poly" id="edge22_Node000000_Node000020" title=" " alt="" coords="58,781,66,827,82,883,109,940,126,966,147,988,175,1006,172,1010,144,993,122,969,104,942,77,884,61,828,53,782"/>
-<area shape="rect" id="Node000021" href="$classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html" title=" " alt="" coords="177,1069,357,1110"/>
-<area shape="poly" id="edge23_Node000000_Node000021" title=" " alt="" coords="56,781,60,838,73,912,85,951,101,988,122,1023,147,1054,178,1073,175,1078,144,1058,117,1026,96,991,80,952,68,913,55,839,50,782"/>
-<area shape="rect" id="Node000022" href="$classyaze_1_1zelda3_1_1DungeonIntegrationTest.html" title=" " alt="" coords="150,1134,384,1159"/>
-<area shape="poly" id="edge24_Node000000_Node000022" title=" " alt="" coords="59,781,70,860,88,962,115,1058,130,1095,148,1119,164,1131,161,1135,144,1123,126,1097,110,1060,83,963,65,861,53,782"/>
-<area shape="rect" id="Node000023" href="$classyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest.html" title=" " alt="" coords="174,1184,360,1224"/>
-<area shape="poly" id="edge25_Node000000_Node000023" title=" " alt="" coords="58,781,68,870,86,987,112,1098,129,1141,148,1170,175,1189,172,1193,144,1174,124,1143,107,1100,80,988,63,871,53,782"/>
-<area shape="rect" id="Node000024" href="$classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html" title=" " alt="" coords="174,1249,360,1290"/>
-<area shape="poly" id="edge26_Node000000_Node000024" title=" " alt="" coords="57,781,65,882,82,1018,94,1087,109,1149,127,1200,148,1234,175,1253,172,1258,144,1238,122,1202,104,1150,88,1088,76,1019,60,883,52,782"/>
-<area shape="rect" id="Node000025" href="$classyaze_1_1zelda3_1_1OverworldIntegrationTest.html" title=" " alt="" coords="146,1314,388,1339"/>
-<area shape="poly" id="edge27_Node000000_Node000025" title=" " alt="" coords="56,781,62,895,76,1051,88,1130,104,1202,123,1260,135,1283,148,1299,163,1311,159,1315,144,1303,130,1285,119,1262,99,1203,83,1131,71,1051,56,895,51,782"/>
-<area shape="rect" id="Node000026" href="$classyaze_1_1zelda3_1_1OverworldTest.html" title=" " alt="" coords="176,1363,358,1389"/>
-<area shape="poly" id="edge28_Node000000_Node000026" title=" " alt="" coords="56,781,60,904,73,1075,84,1163,100,1242,121,1307,134,1331,148,1350,161,1361,177,1368,175,1373,158,1365,144,1354,129,1334,116,1309,95,1243,79,1163,67,1076,54,904,50,782"/>
-<area shape="rect" id="Node000027" href="$classyaze_1_1zelda3_1_1OverworldV3IntegrationTest.html" title=" " alt="" coords="181,1413,353,1454"/>
-<area shape="poly" id="edge29_Node000000_Node000027" title=" " alt="" coords="56,782,59,913,71,1098,83,1193,99,1280,120,1351,133,1379,148,1399,163,1412,182,1422,180,1426,160,1417,144,1403,129,1381,115,1353,94,1281,77,1194,66,1099,53,913,50,782"/>
-<area shape="rect" id="Node000028" href="$classyaze_1_1zelda3_1_1SpritePositionTest.html" title=" " alt="" coords="165,1478,369,1503"/>
-<area shape="poly" id="edge30_Node000000_Node000028" title=" " alt="" coords="55,781,56,924,66,1129,77,1235,94,1331,117,1410,131,1441,148,1463,166,1477,163,1482,144,1467,127,1443,112,1412,89,1333,72,1236,61,1130,50,924,50,781"/>
-<area shape="rect" id="Node000014" href="$classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html" title="Test class for Asar integration with real ROM files These tests are only run when ROM testing is enab..." alt="" coords="436,684,604,724"/>
-<area shape="poly" id="edge16_Node000013_Node000014" title=" " alt="" coords="381,701,435,701,435,707,381,707"/>
+<area shape="poly" id="edge4_Node000000_Node000002" title=" " alt="" coords="51,652,57,540,73,386,84,308,100,236,120,177,144,137,158,125,174,116,176,120,161,129,148,140,124,180,105,238,90,309,78,387,63,541,56,652"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1DungeonEditorIntegrationTest.html" title="Integration test framework for dungeon editor components." alt="" coords="184,150,350,191"/>
+<area shape="poly" id="edge5_Node000000_Node000003" title=" " alt="" coords="52,652,60,552,77,418,89,350,104,288,122,237,144,202,162,187,183,178,185,183,165,192,148,206,127,240,109,290,94,351,82,419,65,553,57,652"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1DungeonObjectRenderingTests.html" title="Advanced tests for actual dungeon object rendering scenarios." alt="" coords="182,216,352,256"/>
+<area shape="poly" id="edge6_Node000000_Node000004" title=" " alt="" coords="53,651,63,564,81,449,108,339,124,296,144,266,161,253,180,243,182,248,163,257,148,270,129,298,113,340,86,450,68,565,58,652"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1test_1_1DungeonRoomTest.html" title=" " alt="" coords="171,280,363,306"/>
+<area shape="poly" id="edge7_Node000000_Node000005" title=" " alt="" coords="54,651,65,573,84,472,110,377,126,340,144,315,169,299,172,304,148,319,130,343,115,379,89,474,70,574,59,652"/>
+<area shape="rect" id="Node000006" href="$classyaze_1_1test_1_1E2ERomDependentTest.html" title="Comprehensive End&#45;to&#45;End ROM testing suite." alt="" coords="157,330,377,355"/>
+<area shape="poly" id="edge8_Node000000_Node000006" title=" " alt="" coords="50,651,53,591,65,514,77,473,94,433,116,396,144,365,159,354,162,358,147,368,120,400,98,436,82,475,70,515,58,592,55,651"/>
+<area shape="rect" id="Node000007" href="$classyaze_1_1test_1_1MessageTest.html" title=" " alt="" coords="187,379,347,405"/>
+<area shape="poly" id="edge9_Node000000_Node000007" title=" " alt="" coords="52,651,58,600,73,536,84,503,100,471,120,441,144,415,164,402,186,394,188,399,166,407,147,419,124,444,105,473,89,505,78,538,63,601,57,652"/>
+<area shape="rect" id="Node000008" href="$classyaze_1_1test_1_1ObjectParserStructsTest.html" title=" " alt="" coords="188,429,346,470"/>
+<area shape="poly" id="edge10_Node000000_Node000008" title=" " alt="" coords="56,651,66,612,83,566,109,519,144,479,164,466,187,457,189,462,167,471,147,483,113,522,88,568,71,614,61,652"/>
+<area shape="rect" id="Node000009" href="$classyaze_1_1test_1_1ObjectParserTest.html" title=" " alt="" coords="175,494,359,519"/>
+<area shape="poly" id="edge11_Node000000_Node000009" title=" " alt="" coords="60,651,90,588,114,556,144,528,173,514,176,519,147,533,118,559,95,591,65,653"/>
+<area shape="rect" id="Node000010" href="$classyaze_1_1test_1_1RomDependentTest.html" title="Test fixture for ROM&#45;dependent tests." alt="" coords="169,543,365,569"/>
+<area shape="poly" id="edge12_Node000000_Node000010" title=" " alt="" coords="67,653,100,613,121,594,144,578,169,567,171,572,147,582,124,598,104,617,71,656"/>
+<area shape="rect" id="Node000012" href="$classyaze_1_1test_1_1RomTest.html" title=" " alt="" coords="200,592,334,618"/>
+<area shape="poly" id="edge14_Node000000_Node000012" title=" " alt="" coords="85,656,145,627,199,612,200,617,147,632,87,661"/>
+<area shape="rect" id="Node000013" href="$classyaze_1_1test_1_1SpriteBuilderTest.html" title=" " alt="" coords="176,642,358,667"/>
+<area shape="poly" id="edge15_Node000000_Node000013" title=" " alt="" coords="113,670,175,663,176,668,113,675"/>
+<area shape="rect" id="Node000014" href="$classyaze_1_1test_1_1TestDungeonObjects.html" title="Simplified test framework for dungeon object rendering." alt="" coords="165,691,369,717"/>
+<area shape="poly" id="edge16_Node000000_Node000014" title=" " alt="" coords="113,684,165,690,165,695,113,689"/>
+<area shape="rect" id="Node000015" href="$classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest.html" title="ZSCustomOverworld upgrade testing suite." alt="" coords="166,741,368,782"/>
+<area shape="poly" id="edge17_Node000000_Node000015" title=" " alt="" coords="89,699,147,727,179,738,177,743,145,732,87,703"/>
+<area shape="rect" id="Node000016" href="$classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html" title=" " alt="" coords="196,806,338,847"/>
+<area shape="poly" id="edge18_Node000000_Node000016" title=" " alt="" coords="70,705,102,749,123,772,147,791,171,803,197,812,195,817,169,808,144,795,120,776,98,753,66,708"/>
+<area shape="rect" id="Node000017" href="$classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html" title=" " alt="" coords="174,872,360,912"/>
+<area shape="poly" id="edge19_Node000000_Node000017" title=" " alt="" coords="62,707,74,741,91,782,115,822,147,856,175,872,172,877,144,861,111,825,86,784,69,743,57,708"/>
+<area shape="rect" id="Node000018" href="$classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html" title=" " alt="" coords="177,937,357,978"/>
+<area shape="poly" id="edge20_Node000000_Node000018" title=" " alt="" coords="58,708,66,755,81,812,108,871,126,898,147,922,178,940,175,945,144,926,122,902,103,874,76,814,61,756,53,709"/>
+<area shape="rect" id="Node000019" href="$classyaze_1_1zelda3_1_1DungeonIntegrationTest.html" title=" " alt="" coords="150,1002,384,1027"/>
+<area shape="poly" id="edge21_Node000000_Node000019" title=" " alt="" coords="55,708,58,767,71,842,83,882,99,921,120,956,147,987,164,999,161,1003,144,991,116,959,94,923,78,884,66,844,53,767,50,708"/>
+<area shape="rect" id="Node000020" href="$classyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest.html" title=" " alt="" coords="174,1052,360,1092"/>
+<area shape="poly" id="edge22_Node000000_Node000020" title=" " alt="" coords="59,708,71,785,90,884,116,978,131,1014,148,1038,175,1056,172,1061,144,1042,126,1016,111,980,85,885,65,786,54,709"/>
+<area shape="rect" id="Node000021" href="$classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html" title=" " alt="" coords="174,1117,360,1158"/>
+<area shape="poly" id="edge23_Node000000_Node000021" title=" " alt="" coords="58,708,68,797,85,916,112,1029,129,1072,148,1102,175,1121,172,1125,144,1106,124,1075,107,1030,80,917,62,798,53,708"/>
+<area shape="rect" id="Node000022" href="$classyaze_1_1zelda3_1_1OverworldIntegrationTest.html" title=" " alt="" coords="146,1182,388,1207"/>
+<area shape="poly" id="edge24_Node000000_Node000022" title=" " alt="" coords="57,708,64,810,80,949,92,1018,107,1082,126,1133,148,1167,163,1179,160,1183,144,1171,121,1135,102,1083,87,1019,75,949,59,811,52,708"/>
+<area shape="rect" id="Node000023" href="$classyaze_1_1zelda3_1_1OverworldTest.html" title=" " alt="" coords="176,1231,358,1257"/>
+<area shape="poly" id="edge25_Node000000_Node000023" title=" " alt="" coords="56,708,62,819,77,973,88,1051,104,1122,124,1180,135,1202,148,1218,161,1228,177,1236,174,1241,158,1233,144,1222,131,1204,119,1182,99,1123,83,1052,71,974,57,820,51,708"/>
+<area shape="rect" id="Node000024" href="$classyaze_1_1zelda3_1_1OverworldV3IntegrationTest.html" title=" " alt="" coords="181,1281,353,1322"/>
+<area shape="poly" id="edge26_Node000000_Node000024" title=" " alt="" coords="56,708,61,829,75,997,86,1082,102,1160,123,1224,134,1249,148,1267,163,1280,182,1289,179,1294,160,1285,144,1271,130,1252,118,1226,97,1162,81,1083,69,997,55,829,51,708"/>
+<area shape="rect" id="Node000025" href="$classyaze_1_1zelda3_1_1SpritePositionTest.html" title=" " alt="" coords="165,1346,369,1371"/>
+<area shape="poly" id="edge27_Node000000_Node000025" title=" " alt="" coords="55,708,58,840,69,1028,81,1124,97,1212,119,1283,133,1311,148,1331,166,1345,163,1350,144,1335,128,1314,114,1285,92,1213,76,1125,64,1029,52,841,50,708"/>
+<area shape="rect" id="Node000011" href="$classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html" title="Test class for Asar integration with real ROM files These tests are only run when ROM testing is enab..." alt="" coords="436,536,604,576"/>
+<area shape="poly" id="edge13_Node000010_Node000011" title=" " alt="" coords="381,553,435,553,435,559,381,559"/>
 </map>

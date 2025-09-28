@@ -1,7 +1,0 @@
-<map id="test/mocks/mock_memory.h" name="test/mocks/mock_memory.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="68,5,254,31"/>
-<area shape="rect" id="Node000002" href="$cpu__test_8cc.html" title=" " alt="" coords="5,79,149,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,43,93,81,89,77,134,39"/>
-<area shape="rect" id="Node000003" href="$ppu__test_8cc.html" title=" " alt="" coords="173,79,317,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,39,233,77,229,81,185,43"/>
-</map>

@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="287,5,447,46"/>
 <area shape="rect" id="Node000002" href="$overworld__editor_8h.html" title=" " alt="" coords="5,94,166,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="289,54,150,96,149,91,287,48"/>
-<area shape="rect" id="Node000017" href="$tile16__editor_8cc.html" title=" " alt="" coords="189,94,350,135"/>
-<area shape="poly" id="edge2_Node000001_Node000017" title=" " alt="" coords="335,58,293,96,290,92,332,54"/>
-<area shape="rect" id="Node000018" href="$rom__dependent__test__suite_8h.html" title=" " alt="" coords="374,94,557,135"/>
-<area shape="poly" id="edge3_Node000001_Node000018" title=" " alt="" coords="402,54,445,92,441,96,399,58"/>
-<area shape="rect" id="Node000019" href="$tile16__editor__test_8cc.html" title=" " alt="" coords="582,94,696,135"/>
-<area shape="poly" id="edge4_Node000001_Node000019" title=" " alt="" coords="444,49,582,92,580,97,443,54"/>
+<area shape="rect" id="Node000016" href="$tile16__editor_8cc.html" title=" " alt="" coords="189,94,350,135"/>
+<area shape="poly" id="edge2_Node000001_Node000016" title=" " alt="" coords="335,58,293,96,290,92,332,54"/>
+<area shape="rect" id="Node000017" href="$rom__dependent__test__suite_8h.html" title=" " alt="" coords="374,94,557,135"/>
+<area shape="poly" id="edge3_Node000001_Node000017" title=" " alt="" coords="402,54,445,92,441,96,399,58"/>
+<area shape="rect" id="Node000018" href="$tile16__editor__test_8cc.html" title=" " alt="" coords="582,94,725,135"/>
+<area shape="poly" id="edge4_Node000001_Node000018" title=" " alt="" coords="447,48,589,91,588,96,446,53"/>
 </map>

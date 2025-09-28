@@ -1,7 +1,5 @@
 var dir_53e6fa9553ac22a5646d2a2b2d7b97a1 =
 [
     [ "extract_changelog.py", "extract__changelog_8py.html", "extract__changelog_8py" ],
-    [ "generate-vs-projects-simple.py", "generate-vs-projects-simple_8py.html", "generate-vs-projects-simple_8py" ],
-    [ "generate-vs-projects.py", "generate-vs-projects_8py.html", "generate-vs-projects_8py" ],
-    [ "test_asar_integration.py", "test__asar__integration_8py.html", "test__asar__integration_8py" ]
+    [ "generate-vs-projects.py", "generate-vs-projects_8py.html", "generate-vs-projects_8py" ]
 ];

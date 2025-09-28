@@ -99,26 +99,70 @@ $(document).ready(function(){initNavTree('yaze__test_8cc.html',''); initResizabl
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
 <a href="#define-members">Macros</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">yaze_test.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;gtest/gtest.h&gt;</code><br />
 <code>#include &lt;SDL.h&gt;</code><br />
+<code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/debugging/failure_signal_handler.h&quot;</code><br />
 <code>#include &quot;absl/debugging/symbolize.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="test__editor_8h_source.html">test_editor.h</a>&quot;</code><br />
 </div>
 <p><a href="yaze__test_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1test_1_1TestConfig.html">yaze::test::TestConfig</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespaceyaze" id="r_namespaceyaze"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze.html">yaze</a></td></tr>
+<tr class="memdesc:namespaceyaze"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main namespace for the application. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespaceyaze_1_1test" id="r_namespaceyaze_1_1test"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html">yaze::test</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:a51f528deaaeb973f417b46a2ec36f850" id="r_a51f528deaaeb973f417b46a2ec36f850"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="yaze__test_8cc.html#a51f528deaaeb973f417b46a2ec36f850">SDL_MAIN_HANDLED</a></td></tr>
 <tr class="separator:a51f528deaaeb973f417b46a2ec36f850"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a48974bc37811e72ae810e23d0f38b817" id="r_a48974bc37811e72ae810e23d0f38b817"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817">yaze::test::TestMode</a> { <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a34bdbffdb1c0e1b603f58fc0d49548b6">yaze::test::kAll</a>
+, <a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a4383f9f429063405fc69bdc8ff4b7ee8">yaze::test::kUnit</a>
+, <a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a5fd47ec26e3287ea852c40bdb687b01d">yaze::test::kIntegration</a>
+, <a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3613c598b00bb1746fa91f6365c4653a">yaze::test::kE2E</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ac2df65ec0e2a97c5419517b7e4ef2717">yaze::test::kRomDependent</a>
+, <a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a1380dbb4ecfcd48e89208415584470b7">yaze::test::kZSCustomOverworld</a>
+, <a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ade8900e4c323b0c667bfd5ca5ecf9e5c">yaze::test::kCore</a>
+, <a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3e1c9b3724e1f17fea630f35337bc792">yaze::test::kGraphics</a>
+, <br />
+&#160;&#160;<a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3c2601c340c7c05be7f863cddf388436">yaze::test::kEditor</a>
+, <a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ae9162756281c259180411c1041b39a1f">yaze::test::kDeprecated</a>
+, <a class="el" href="namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a9f2d923af819cb4370597b632b0b153a">yaze::test::kSpecific</a>
+<br />
+ }</td></tr>
+<tr class="separator:a48974bc37811e72ae810e23d0f38b817"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a89f3ce180b0caab4565cd5b2c8315951" id="r_a89f3ce180b0caab4565cd5b2c8315951"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1test_1_1TestConfig.html">TestConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951">yaze::test::ParseArguments</a> (int argc, char *argv[])</td></tr>
+<tr class="separator:a89f3ce180b0caab4565cd5b2c8315951"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adfd638eba01ac6c99c48c3aae7d8a7a2" id="r_adfd638eba01ac6c99c48c3aae7d8a7a2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2">yaze::test::SetupTestEnvironment</a> (const <a class="el" href="structyaze_1_1test_1_1TestConfig.html">TestConfig</a> &amp;config)</td></tr>
+<tr class="separator:adfd638eba01ac6c99c48c3aae7d8a7a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76748b4fd1d8105313f78a75a8e321a8" id="r_a76748b4fd1d8105313f78a75a8e321a8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8">yaze::test::ConfigureTestFilters</a> (const <a class="el" href="structyaze_1_1test_1_1TestConfig.html">TestConfig</a> &amp;config)</td></tr>
+<tr class="separator:a76748b4fd1d8105313f78a75a8e321a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97" id="r_a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">main</a> (int argc, char *argv[])</td></tr>
 <tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -166,24 +210,21 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="yaze__test_8cc_source.html#l00010">10</a> of file <a class="el" href="yaze__test_8cc_source.html">yaze_test.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="yaze__test_8cc_source.html#l00196">196</a> of file <a class="el" href="yaze__test_8cc_source.html">yaze_test.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>.</p>
+<p class="reference">References <a class="el" href="yaze__test_8cc_source.html#l00131">yaze::test::ConfigureTestFilters()</a>, <a class="el" href="yaze__test_8cc_source.html#l00041">yaze::test::ParseArguments()</a>, and <a class="el" href="yaze__test_8cc_source.html#l00111">yaze::test::SetupTestEnvironment()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="yaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph.png" border="0" usemap="#ayaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph" alt=""/></div>
 <map name="ayaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph" id="ayaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph">
-<area shape="rect" title=" " alt="" coords="5,31,55,56"/>
-<area shape="rect" href="namespaceyaze_1_1test.html#a1641768a13910eb529e97ac3a66b7162" title=" " alt="" coords="103,31,294,56"/>
-<area shape="poly" title=" " alt="" coords="55,41,87,41,87,46,55,46"/>
-<area shape="rect" href="namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad" title=" " alt="" coords="558,5,701,31"/>
-<area shape="poly" title=" " alt="" coords="261,27,342,16,446,11,543,12,543,17,446,16,342,21,262,33"/>
-<area shape="rect" href="namespaceyaze_1_1core.html#a14f2050902009800d7995d94a8c169fc" title=" " alt="" coords="342,31,510,56"/>
-<area shape="poly" title=" " alt="" coords="295,41,326,41,326,46,295,46"/>
-<area shape="rect" href="classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af" title=" " alt="" coords="357,81,496,121"/>
-<area shape="poly" title=" " alt="" coords="253,54,342,77,341,82,252,60"/>
-<area shape="poly" title=" " alt="" coords="511,30,543,26,544,32,511,36"/>
+<area shape="rect" title=" " alt="" coords="5,70,55,96"/>
+<area shape="rect" href="namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8" title=" " alt="" coords="129,5,290,46"/>
+<area shape="poly" title=" " alt="" coords="54,72,102,55,122,48,124,54,104,60,56,77"/>
+<area shape="rect" href="namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951" title=" " alt="" coords="120,70,299,96"/>
+<area shape="poly" title=" " alt="" coords="55,80,105,80,105,86,55,86"/>
+<area shape="rect" href="namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2" title=" " alt="" coords="103,120,316,145"/>
+<area shape="poly" title=" " alt="" coords="56,90,103,106,129,113,128,118,102,111,54,95"/>
 </map>
 </div>
 

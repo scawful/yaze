@@ -1,5 +1,5 @@
-<map id="test/gfx/snes_tile_test.cc" name="test/gfx/snes_tile_test.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="149,5,269,46"/>
+<map id="test/unit/gfx/snes_tile_test.cc" name="test/unit/gfx/snes_tile_test.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="148,5,269,46"/>
 <area shape="rect" id="Node000002" href="$snes__tile_8h.html" title=" " alt="" coords="5,94,135,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,49,106,88,103,84,173,44"/>
 <area shape="rect" id="Node000014" title=" " alt="" coords="124,168,237,193"/>

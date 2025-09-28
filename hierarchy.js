@@ -18,8 +18,7 @@ var hierarchy =
       [ "yaze::gui::UnsortedAsset", "structyaze_1_1gui_1_1UnsortedAsset.html", null ]
     ] ],
     [ "yaze::emu::AudioRam", "classyaze_1_1emu_1_1AudioRam.html", [
-      [ "yaze::emu::AudioRamImpl", "classyaze_1_1emu_1_1AudioRamImpl.html", null ],
-      [ "yaze::test::MockAudioRam", "classyaze_1_1test_1_1MockAudioRam.html", null ]
+      [ "yaze::emu::AudioRamImpl", "classyaze_1_1emu_1_1AudioRamImpl.html", null ]
     ] ],
     [ "yaze::gfx::BackgroundBuffer", "classyaze_1_1gfx_1_1BackgroundBuffer.html", null ],
     [ "yaze::emu::BackgroundLayer", "structyaze_1_1emu_1_1BackgroundLayer.html", null ],
@@ -259,9 +258,7 @@ var hierarchy =
     [ "yaze::editor::PopupManager", "classyaze_1_1editor_1_1PopupManager.html", null ],
     [ "yaze::editor::PopupParams", "structyaze_1_1editor_1_1PopupParams.html", null ],
     [ "yaze::emu::Ppu", "classyaze_1_1emu_1_1Ppu.html", null ],
-    [ "yaze::emu::PpuInterface", "classyaze_1_1emu_1_1PpuInterface.html", [
-      [ "yaze::test::MockPpu", "classyaze_1_1test_1_1MockPpu.html", null ]
-    ] ],
+    [ "yaze::emu::PpuInterface", "classyaze_1_1emu_1_1PpuInterface.html", null ],
     [ "yaze::core::ProjectManager", "classyaze_1_1core_1_1ProjectManager.html", null ],
     [ "yaze::core::ProjectMetadata", "structyaze_1_1core_1_1ProjectMetadata.html", null ],
     [ "yaze::core::ProjectManager::ProjectTemplate", "structyaze_1_1core_1_1ProjectManager_1_1ProjectTemplate.html", null ],
@@ -340,23 +337,20 @@ var hierarchy =
     [ "testing::Test", null, [
       [ "yaze::app::core::anonymous_namespace{asar_wrapper_test.cc}::AsarWrapperTest", "classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html", null ],
       [ "yaze::editor::test::Tile16EditorIntegrationTest", "classyaze_1_1editor_1_1test_1_1Tile16EditorIntegrationTest.html", null ],
-      [ "yaze::test::ApuTest", "classyaze_1_1test_1_1ApuTest.html", null ],
-      [ "yaze::test::CpuTest", "classyaze_1_1test_1_1CpuTest.html", null ],
       [ "yaze::test::DungeonEditorIntegrationTest", "classyaze_1_1test_1_1DungeonEditorIntegrationTest.html", null ],
       [ "yaze::test::DungeonObjectRenderingTests", "classyaze_1_1test_1_1DungeonObjectRenderingTests.html", null ],
       [ "yaze::test::DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", null ],
-      [ "yaze::test::IplHandshakeTest", "classyaze_1_1test_1_1IplHandshakeTest.html", null ],
+      [ "yaze::test::E2ERomDependentTest", "classyaze_1_1test_1_1E2ERomDependentTest.html", null ],
       [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
       [ "yaze::test::ObjectParserStructsTest", "classyaze_1_1test_1_1ObjectParserStructsTest.html", null ],
       [ "yaze::test::ObjectParserTest", "classyaze_1_1test_1_1ObjectParserTest.html", null ],
-      [ "yaze::test::PpuTest", "classyaze_1_1test_1_1PpuTest.html", null ],
       [ "yaze::test::RomDependentTest", "classyaze_1_1test_1_1RomDependentTest.html", [
         [ "yaze::test::integration::AsarRomIntegrationTest", "classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html", null ]
       ] ],
       [ "yaze::test::RomTest", "classyaze_1_1test_1_1RomTest.html", null ],
-      [ "yaze::test::Spc700Test", "classyaze_1_1test_1_1Spc700Test.html", null ],
       [ "yaze::test::SpriteBuilderTest", "classyaze_1_1test_1_1SpriteBuilderTest.html", null ],
       [ "yaze::test::TestDungeonObjects", "classyaze_1_1test_1_1TestDungeonObjects.html", null ],
+      [ "yaze::test::ZSCustomOverworldUpgradeTest", "classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest.html", null ],
       [ "yaze::test::integration::AsarIntegrationTest", "classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html", null ],
       [ "yaze::zelda3::ComprehensiveIntegrationTest", "classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html", null ],
       [ "yaze::zelda3::DungeonEditorSystemIntegrationTest", "classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html", null ],
@@ -368,17 +362,20 @@ var hierarchy =
       [ "yaze::zelda3::OverworldV3IntegrationTest", "classyaze_1_1zelda3_1_1OverworldV3IntegrationTest.html", null ],
       [ "yaze::zelda3::SpritePositionTest", "classyaze_1_1zelda3_1_1SpritePositionTest.html", null ]
     ] ],
+    [ "yaze::test::TestConfig", "structyaze_1_1test_1_1TestConfig.html", null ],
     [ "yaze::test::TestManager", "classyaze_1_1test_1_1TestManager.html", null ],
     [ "yaze::test::TestResult", "structyaze_1_1test_1_1TestResult.html", null ],
     [ "yaze::test::TestResults", "structyaze_1_1test_1_1TestResults.html", null ],
     [ "yaze::test::TestRomManager", "classyaze_1_1test_1_1TestRomManager.html", null ],
     [ "yaze::test::TestSuite", "classyaze_1_1test_1_1TestSuite.html", [
       [ "yaze::test::ArenaTestSuite", "classyaze_1_1test_1_1ArenaTestSuite.html", null ],
+      [ "yaze::test::E2ETestSuite", "classyaze_1_1test_1_1E2ETestSuite.html", null ],
       [ "yaze::test::IntegratedTestSuite", "classyaze_1_1test_1_1IntegratedTestSuite.html", null ],
       [ "yaze::test::PerformanceTestSuite", "classyaze_1_1test_1_1PerformanceTestSuite.html", null ],
       [ "yaze::test::RomDependentTestSuite", "classyaze_1_1test_1_1RomDependentTestSuite.html", null ],
       [ "yaze::test::UITestSuite", "classyaze_1_1test_1_1UITestSuite.html", null ],
-      [ "yaze::test::UnitTestSuite", "classyaze_1_1test_1_1UnitTestSuite.html", null ]
+      [ "yaze::test::UnitTestSuite", "classyaze_1_1test_1_1UnitTestSuite.html", null ],
+      [ "yaze::test::ZSCustomOverworldTestSuite", "classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html", null ]
     ] ],
     [ "yaze::gui::Text", "structyaze_1_1gui_1_1Text.html", null ],
     [ "yaze::gui::TextBox", "structyaze_1_1gui_1_1TextBox.html", null ],

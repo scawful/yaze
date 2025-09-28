@@ -7,6 +7,5 @@ var searchData=
   ['instructions_2ecc_4',['instructions.cc',['../audio_2internal_2instructions_8cc.html',1,'(Global Namespace)'],['../cpu_2internal_2instructions_8cc.html',1,'(Global Namespace)']]],
   ['integrated_5ftest_5fsuite_2eh_5',['integrated_test_suite.h',['../integrated__test__suite_8h.html',1,'']]],
   ['inventory_2ecc_6',['inventory.cc',['../inventory_8cc.html',1,'']]],
-  ['inventory_2eh_7',['inventory.h',['../inventory_8h.html',1,'']]],
-  ['ipl_5fhandshake_5ftest_2ecc_8',['ipl_handshake_test.cc',['../ipl__handshake__test_8cc.html',1,'']]]
+  ['inventory_2eh_7',['inventory.h',['../inventory_8h.html',1,'']]]
 ];

@@ -22,6 +22,5 @@ var searchData=
   ['controller_2ecc_19',['controller.cc',['../controller_8cc.html',1,'']]],
   ['controller_2eh_20',['controller.h',['../controller_8h.html',1,'']]],
   ['cpu_2ecc_21',['cpu.cc',['../cpu_8cc.html',1,'']]],
-  ['cpu_2eh_22',['cpu.h',['../cpu_8h.html',1,'']]],
-  ['cpu_5ftest_2ecc_23',['cpu_test.cc',['../cpu__test_8cc.html',1,'']]]
+  ['cpu_2eh_22',['cpu.h',['../cpu_8h.html',1,'']]]
 ];

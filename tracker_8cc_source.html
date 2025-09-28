@@ -956,7 +956,7 @@ $(document).ready(function(){initNavTree('tracker_8cc_source.html',''); initResi
 <div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span> </div>
 <div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html">ZeldaInstrument</a> *zi;</div>
 <div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span> </div>
-<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SampleEdit.html">SampleEdit</a> *sed;</div>
+<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SampleEdit.html">SampleEdit</a> *sed = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a id="l00843" name="l00843"></a><span class="lineno">  843</span> </div>
 <div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>  <span class="keywordtype">short</span> wtbl[128];</div>
 <div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span>  <span class="keywordtype">short</span> x[16];</div>
@@ -1133,11 +1133,11 @@ $(document).ready(function(){initNavTree('tracker_8cc_source.html',''); initResi
 <div class="line"><a id="l01016" name="l01016"></a><span class="lineno"> 1016</span>              zi-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#aa3032c2a22dcfb0517fb6213eecdb6e4">multlo</a> = o;</div>
 <div class="line"><a id="l01017" name="l01017"></a><span class="lineno"> 1017</span>              zi-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a626b8dbaf4d8c3c51eee8f358c70dff6">multhi</a> = o &gt;&gt; 8;</div>
 <div class="line"><a id="l01018" name="l01018"></a><span class="lineno"> 1018</span> </div>
-<div class="line"><a id="l01019" name="l01019"></a><span class="lineno"> 1019</span>              <span class="keywordflow">if</span> (sed &amp;&amp; sed-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a067bebc95f001cc77e7d289411a36a04">editinst</a> == m) {</div>
-<div class="line"><a id="l01020" name="l01020"></a><span class="lineno"> 1020</span>                sed-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#ad4833f91e44fc5412ffd1f0dab2e8e36">init</a> = 1;</div>
-<div class="line"><a id="l01021" name="l01021"></a><span class="lineno"> 1021</span>                <span class="comment">// SetDlgItemInt(sed-&gt;dlg, 3014, o, 0);</span></div>
-<div class="line"><a id="l01022" name="l01022"></a><span class="lineno"> 1022</span>                sed-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#ad4833f91e44fc5412ffd1f0dab2e8e36">init</a> = 0;</div>
-<div class="line"><a id="l01023" name="l01023"></a><span class="lineno"> 1023</span>              }</div>
+<div class="line"><a id="l01019" name="l01019"></a><span class="lineno"> 1019</span>              <span class="comment">// if (sed &amp;&amp; sed-&gt;editinst == m) {</span></div>
+<div class="line"><a id="l01020" name="l01020"></a><span class="lineno"> 1020</span>              <span class="comment">//   sed-&gt;init = 1;</span></div>
+<div class="line"><a id="l01021" name="l01021"></a><span class="lineno"> 1021</span>              <span class="comment">//   // SetDlgItemInt(sed-&gt;dlg, 3014, o, 0);</span></div>
+<div class="line"><a id="l01022" name="l01022"></a><span class="lineno"> 1022</span>              <span class="comment">//   sed-&gt;init = 0;</span></div>
+<div class="line"><a id="l01023" name="l01023"></a><span class="lineno"> 1023</span>              <span class="comment">// }</span></div>
 <div class="line"><a id="l01024" name="l01024"></a><span class="lineno"> 1024</span>            }</div>
 <div class="line"><a id="l01025" name="l01025"></a><span class="lineno"> 1025</span> </div>
 <div class="line"><a id="l01026" name="l01026"></a><span class="lineno"> 1026</span>            zi++;</div>
@@ -1500,8 +1500,6 @@ $(document).ready(function(){initNavTree('tracker_8cc_source.html',''); initResi
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="arom_8h_html"><div class="ttname"><a href="rom_8h.html">rom.h</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SampleEdit_html"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SampleEdit.html">yaze::zelda3::music::SampleEdit</a></div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00088">tracker.h:88</a></div></div>
-<div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SampleEdit_html_a067bebc95f001cc77e7d289411a36a04"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a067bebc95f001cc77e7d289411a36a04">yaze::zelda3::music::SampleEdit::editinst</a></div><div class="ttdeci">int editinst</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00106">tracker.h:106</a></div></div>
-<div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SampleEdit_html_ad4833f91e44fc5412ffd1f0dab2e8e36"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#ad4833f91e44fc5412ffd1f0dab2e8e36">yaze::zelda3::music::SampleEdit::init</a></div><div class="ttdeci">unsigned short init</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00090">tracker.h:90</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongPart_html"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongPart.html">yaze::zelda3::music::SongPart</a></div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00063">tracker.h:63</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongPart_html_a059a2853417c6c91157bc09f87a1d43f"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a059a2853417c6c91157bc09f87a1d43f">yaze::zelda3::music::SongPart::addr</a></div><div class="ttdeci">unsigned short addr</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00067">tracker.h:67</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongPart_html_a73c346e7f5491b9bbce4364a7b461b4c"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a73c346e7f5491b9bbce4364a7b461b4c">yaze::zelda3::music::SongPart::flag</a></div><div class="ttdeci">uint8_t flag</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00064">tracker.h:64</a></div></div>

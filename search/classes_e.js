@@ -17,8 +17,7 @@ var searchData=
   ['popupparams_14',['PopupParams',['../structyaze_1_1editor_1_1PopupParams.html',1,'yaze::editor']]],
   ['ppu_15',['Ppu',['../classyaze_1_1emu_1_1Ppu.html',1,'yaze::emu']]],
   ['ppuinterface_16',['PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html',1,'yaze::emu']]],
-  ['pputest_17',['PpuTest',['../classyaze_1_1test_1_1PpuTest.html',1,'yaze::test']]],
-  ['projectmanager_18',['ProjectManager',['../classyaze_1_1core_1_1ProjectManager.html',1,'yaze::core']]],
-  ['projectmetadata_19',['ProjectMetadata',['../structyaze_1_1core_1_1ProjectMetadata.html',1,'yaze::core']]],
-  ['projecttemplate_20',['ProjectTemplate',['../structyaze_1_1core_1_1ProjectManager_1_1ProjectTemplate.html',1,'yaze::core::ProjectManager']]]
+  ['projectmanager_17',['ProjectManager',['../classyaze_1_1core_1_1ProjectManager.html',1,'yaze::core']]],
+  ['projectmetadata_18',['ProjectMetadata',['../structyaze_1_1core_1_1ProjectMetadata.html',1,'yaze::core']]],
+  ['projecttemplate_19',['ProjectTemplate',['../structyaze_1_1core_1_1ProjectManager_1_1ProjectTemplate.html',1,'yaze::core::ProjectManager']]]
 ];

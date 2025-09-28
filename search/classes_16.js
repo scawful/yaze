@@ -9,5 +9,7 @@ var searchData=
   ['zeldainstrument_6',['ZeldaInstrument',['../structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html',1,'yaze::zelda3::music']]],
   ['zeldasfxinstrument_7',['ZeldaSfxInstrument',['../structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html',1,'yaze::zelda3::music']]],
   ['zeldawave_8',['ZeldaWave',['../structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html',1,'yaze::zelda3::music']]],
-  ['zsprite_9',['ZSprite',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html',1,'yaze::editor::zsprite']]]
+  ['zscustomoverworldtestsuite_9',['ZSCustomOverworldTestSuite',['../classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html',1,'yaze::test']]],
+  ['zscustomoverworldupgradetest_10',['ZSCustomOverworldUpgradeTest',['../classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest.html',1,'yaze::test']]],
+  ['zsprite_11',['ZSprite',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html',1,'yaze::editor::zsprite']]]
 ];

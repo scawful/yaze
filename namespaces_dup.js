@@ -10,17 +10,8 @@ var namespaces_dup =
       [ "generate_solution", "namespacegenerate-vs-projects.html#a9b384549e5680f6ced62a03a4ded51e8", null ],
       [ "main", "namespacegenerate-vs-projects.html#a2f204ee926c3399ff7f7093febdb2d4e", null ]
     ] ],
-    [ "generate-vs-projects-simple", "namespacegenerate-vs-projects-simple.html", [
-      [ "generate_vcxproj", "namespacegenerate-vs-projects-simple.html#ac961c55b4b63193037889aca2fe9710f", null ],
-      [ "generate_solution", "namespacegenerate-vs-projects-simple.html#a2a233fc48a19b75ce613cfb7dea79b14", null ],
-      [ "main", "namespacegenerate-vs-projects-simple.html#a3ff8f947f8711ebbe8c25ecce1757f34", null ]
-    ] ],
     [ "ImGui", "namespaceImGui.html", [
       [ "InputScalarLeft", "namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d", null ]
-    ] ],
-    [ "test_asar_integration", "namespacetest__asar__integration.html", [
-      [ "find_project_root", "namespacetest__asar__integration.html#aa2d523299f0d45624966851cf2791f38", null ],
-      [ "main", "namespacetest__asar__integration.html#aa3586f9fd78e331f30831393badf7d84", null ]
     ] ],
     [ "yaze", "namespaceyaze.html", "namespaceyaze" ]
 ];

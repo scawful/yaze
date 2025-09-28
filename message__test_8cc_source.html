@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: test/zelda3/message_test.cc Source File</title>
+<title>yaze: test/unit/zelda3/message_test.cc Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="jquery.js"></script>
@@ -131,7 +131,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
 <div class="foldopen" id="foldopen00026" data-start="{" data-end="}">
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a2ed46ebdb3a4bbcf96e201c813d70453">   26</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_CommandParsing) {</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a2ed46ebdb3a4bbcf96e201c813d70453">   26</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_CommandParsing) {</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  std::vector&lt;uint8_t&gt; mock_data = {0x6A, 0x7F, 0x00};</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keywordtype">int</span> pos = 0;</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
@@ -146,7 +146,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
 <div class="foldopen" id="foldopen00039" data-start="{" data-end="}">
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a0fe26efa6fcbc692d5e3fa82bf518d5a">   39</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_BasicAscii) {</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a0fe26efa6fcbc692d5e3fa82bf518d5a">   39</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_BasicAscii) {</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="comment">// A, B, C, terminator</span></div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  std::vector&lt;uint8_t&gt; mock_data = {0x00, 0x01, 0x02, 0x7F, 0x00};</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keywordtype">int</span> pos = 0;</div>
@@ -164,7 +164,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
 <div class="foldopen" id="foldopen00055" data-start="{" data-end="}">
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ad08085947feb6be2f75f9832cb4d1e41">   55</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindMatchingCharacter_Success) {</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ad08085947feb6be2f75f9832cb4d1e41">   55</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindMatchingCharacter_Success) {</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;A&#39;</span>), 0x00);</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;Z&#39;</span>), 0x19);</div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;a&#39;</span>), 0x1A);</div>
@@ -173,28 +173,28 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
 <div class="foldopen" id="foldopen00062" data-start="{" data-end="}">
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a6d71d9de972061c7d1161f2fe211f268">   62</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindMatchingCharacter_Failure) {</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a6d71d9de972061c7d1161f2fe211f268">   62</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindMatchingCharacter_Failure) {</div>
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;@&#39;</span>), 0xFF);</div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c">editor::FindMatchingCharacter</a>(<span class="charliteral">&#39;#&#39;</span>), 0xFF);</div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>}</div>
 </div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
 <div class="foldopen" id="foldopen00067" data-start="{" data-end="}">
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a68342f10b6a597bcc152ef67b3f7c548">   67</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindDictionaryEntry_Success) {</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a68342f10b6a597bcc152ef67b3f7c548">   67</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindDictionaryEntry_Success) {</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">editor::FindDictionaryEntry</a>(0x88), 0x00);</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">editor::FindDictionaryEntry</a>(0x90), 0x08);</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>}</div>
 </div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
 <div class="foldopen" id="foldopen00072" data-start="{" data-end="}">
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a574bb6c2e1acc97ed1b2add19d60d123">   72</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindDictionaryEntry_Failure) {</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a574bb6c2e1acc97ed1b2add19d60d123">   72</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindDictionaryEntry_Failure) {</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">editor::FindDictionaryEntry</a>(0x00), -1);</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">editor::FindDictionaryEntry</a>(0xFF), -1);</div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>}</div>
 </div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
 <div class="foldopen" id="foldopen00077" data-start="{" data-end="}">
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aeb84cae388e8a1d7d54b91782553c90e">   77</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseMessageToData_Basic) {</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aeb84cae388e8a1d7d54b91782553c90e">   77</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseMessageToData_Basic) {</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  std::string input = <span class="stringliteral">&quot;[L][C:01]ABC&quot;</span>;</div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d">editor::ParseMessageToData</a>(input);</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  std::vector&lt;uint8_t&gt; expected = {0x6A, 0x77, 0x01, 0x00, 0x01, 0x02};</div>
@@ -203,7 +203,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
 <div class="foldopen" id="foldopen00084" data-start="{" data-end="}">
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a1f1bc159085d062904110f638cb9cc5b">   84</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ReplaceAllDictionaryWords_Success) {</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a1f1bc159085d062904110f638cb9cc5b">   84</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ReplaceAllDictionaryWords_Success) {</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  std::vector&lt;editor::DictionaryEntry&gt; mock_dict = {</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">editor::DictionaryEntry</a>(0x00, <span class="stringliteral">&quot;test&quot;</span>),</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>      <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">editor::DictionaryEntry</a>(0x01, <span class="stringliteral">&quot;message&quot;</span>)};</div>
@@ -214,7 +214,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
 <div class="foldopen" id="foldopen00093" data-start="{" data-end="}">
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#afa0d4ec9b35ca1be7f5d4fd460f88d76">   93</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ReplaceAllDictionaryWords_NoMatch) {</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#afa0d4ec9b35ca1be7f5d4fd460f88d76">   93</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ReplaceAllDictionaryWords_NoMatch) {</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  std::vector&lt;editor::DictionaryEntry&gt; mock_dict = {</div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>      <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">editor::DictionaryEntry</a>(0x00, <span class="stringliteral">&quot;hello&quot;</span>)};</div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  std::string input = <span class="stringliteral">&quot;No matching words.&quot;</span>;</div>
@@ -224,7 +224,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
 <div class="foldopen" id="foldopen00101" data-start="{" data-end="}">
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#acd9cda0b3fc7f3f6dcf21822e6e7826d">  101</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseTextDataByte_Success) {</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#acd9cda0b3fc7f3f6dcf21822e6e7826d">  101</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseTextDataByte_Success) {</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">editor::ParseTextDataByte</a>(0x00), <span class="stringliteral">&quot;A&quot;</span>);</div>
 <div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">editor::ParseTextDataByte</a>(0x74), <span class="stringliteral">&quot;[1]&quot;</span>);</div>
 <div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">editor::ParseTextDataByte</a>(0x88), <span class="stringliteral">&quot;[D:00]&quot;</span>);</div>
@@ -232,13 +232,13 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
 <div class="foldopen" id="foldopen00107" data-start="{" data-end="}">
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a4f57f70714745d0f0a6fdc4892ff92a5">  107</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseTextDataByte_Failure) {</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a4f57f70714745d0f0a6fdc4892ff92a5">  107</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseTextDataByte_Failure) {</div>
 <div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  EXPECT_EQ(<a class="code hl_function" href="namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442">editor::ParseTextDataByte</a>(0xFF), <span class="stringliteral">&quot;&quot;</span>);</div>
 <div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>}</div>
 </div>
 <div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span> </div>
 <div class="foldopen" id="foldopen00111" data-start="{" data-end="}">
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a4883cba1d8cbaade1fd020b5f71f807c">  111</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_SpecialCharacters) {</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a4883cba1d8cbaade1fd020b5f71f807c">  111</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_SpecialCharacters) {</div>
 <div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  std::vector&lt;uint8_t&gt; mock_data = {0x4D, 0x4E, 0x4F, 0x50, 0x7F};</div>
 <div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>  <span class="keywordtype">int</span> pos = 0;</div>
 <div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
@@ -252,7 +252,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span> </div>
 <div class="foldopen" id="foldopen00123" data-start="{" data-end="}">
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#af9be0d77be5606f7ad68042ec5b84ec4">  123</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_DictionaryReference) {</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#af9be0d77be5606f7ad68042ec5b84ec4">  123</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_DictionaryReference) {</div>
 <div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  std::vector&lt;uint8_t&gt; mock_data = {0x88, 0x89, 0x7F};</div>
 <div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>  <span class="keywordtype">int</span> pos = 0;</div>
 <div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
@@ -266,7 +266,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
 <div class="foldopen" id="foldopen00135" data-start="{" data-end="}">
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a6617f39d3e025ff4550f1072286ebaad">  135</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_InvalidTerminator) {</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a6617f39d3e025ff4550f1072286ebaad">  135</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_InvalidTerminator) {</div>
 <div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  std::vector&lt;uint8_t&gt; mock_data = {0x00, 0x01, 0x02};  <span class="comment">// No terminator</span></div>
 <div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  <span class="keywordtype">int</span> pos = 0;</div>
 <div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
@@ -276,7 +276,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> </div>
 <div class="foldopen" id="foldopen00143" data-start="{" data-end="}">
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a3b8a50ab3d18e2b3229b5ee9d1101ff4">  143</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_EmptyData) {</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a3b8a50ab3d18e2b3229b5ee9d1101ff4">  143</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, ParseSingleMessage_EmptyData) {</div>
 <div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  std::vector&lt;uint8_t&gt; mock_data = {0x7F};</div>
 <div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  <span class="keywordtype">int</span> pos = 0;</div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span> </div>
@@ -290,7 +290,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span> </div>
 <div class="foldopen" id="foldopen00155" data-start="{" data-end="}">
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aa20071949623c16da824515c716f8fcf">  155</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, OptimizeMessageForDictionary_Basic) {</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aa20071949623c16da824515c716f8fcf">  155</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, OptimizeMessageForDictionary_Basic) {</div>
 <div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  std::vector&lt;editor::DictionaryEntry&gt; mock_dict = {</div>
 <div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>      <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">editor::DictionaryEntry</a>(0x00, <span class="stringliteral">&quot;Link&quot;</span>),</div>
 <div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>      <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">editor::DictionaryEntry</a>(0x01, <span class="stringliteral">&quot;Zelda&quot;</span>)};</div>
@@ -305,7 +305,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span> </div>
 <div class="foldopen" id="foldopen00168" data-start="{" data-end="}">
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a2dc2ff8ddebe8cb1171db15e23cf4b89">  168</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, SetMessage_Success) {</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a2dc2ff8ddebe8cb1171db15e23cf4b89">  168</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, SetMessage_Success) {</div>
 <div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  std::vector&lt;editor::DictionaryEntry&gt; mock_dict = {</div>
 <div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>      <a class="code hl_struct" href="structyaze_1_1editor_1_1DictionaryEntry.html">editor::DictionaryEntry</a>(0x00, <span class="stringliteral">&quot;item&quot;</span>)};</div>
 <div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  <a class="code hl_struct" href="structyaze_1_1editor_1_1MessageData.html">editor::MessageData</a> message_data;</div>
@@ -319,7 +319,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
 <div class="foldopen" id="foldopen00180" data-start="{" data-end="}">
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#af9ad35af036fcf828cc3830771811fc8">  180</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindMatchingElement_CommandWithArgument) {</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#af9ad35af036fcf828cc3830771811fc8">  180</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindMatchingElement_CommandWithArgument) {</div>
 <div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>  std::string input = <span class="stringliteral">&quot;[W:02]&quot;</span>;</div>
 <div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">editor::ParsedElement</a> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d">editor::FindMatchingElement</a>(input);</div>
 <div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span> </div>
@@ -330,7 +330,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span> </div>
 <div class="foldopen" id="foldopen00189" data-start="{" data-end="}">
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ab97cbc6f032f002b260a9d5c72dee16e">  189</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindMatchingElement_InvalidCommand) {</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ab97cbc6f032f002b260a9d5c72dee16e">  189</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, FindMatchingElement_InvalidCommand) {</div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  std::string input = <span class="stringliteral">&quot;[INVALID]&quot;</span>;</div>
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>  <a class="code hl_struct" href="structyaze_1_1editor_1_1ParsedElement.html">editor::ParsedElement</a> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d">editor::FindMatchingElement</a>(input);</div>
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span> </div>
@@ -339,7 +339,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 </div>
 <div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span> </div>
 <div class="foldopen" id="foldopen00196" data-start="{" data-end="}">
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aaeee4eb798e2e4de8881645d21aee952">  196</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, BuildDictionaryEntries_CorrectSize) {</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#aaeee4eb798e2e4de8881645d21aee952">  196</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1MessageTest.html">MessageTest</a>, BuildDictionaryEntries_CorrectSize) {</div>
 <div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">editor::BuildDictionaryEntries</a>(&amp;rom_);</div>
 <div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  EXPECT_EQ(result.size(), <a class="code hl_variable" href="namespaceyaze_1_1editor.html#a7da8c45c704303a76331eaade35bc5da">editor::kNumDictionaryEntries</a>);</div>
 <div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>  EXPECT_FALSE(result.empty());</div>
@@ -369,7 +369,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 <div class="ttc" id="anamespaceyaze_1_1editor_html_ab631002fa2510fae663f6347362ba82d"><div class="ttname"><a href="namespaceyaze_1_1editor.html#ab631002fa2510fae663f6347362ba82d">yaze::editor::ParseMessageToData</a></div><div class="ttdeci">std::vector&lt; uint8_t &gt; ParseMessageToData(std::string str)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00106">message_data.cc:106</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_ad840a81ab7030a220a019f79fbbabb6d"><div class="ttname"><a href="namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d">yaze::editor::FindMatchingElement</a></div><div class="ttdeci">ParsedElement FindMatchingElement(const std::string &amp;str)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00049">message_data.cc:49</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_af2bcfdac4bd90975500b37f854728a4d"><div class="ttname"><a href="namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d">yaze::editor::FindDictionaryEntry</a></div><div class="ttdeci">int8_t FindDictionaryEntry(uint8_t value)</div><div class="ttdef"><b>Definition</b> <a href="message__data_8cc_source.html#l00022">message_data.cc:22</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html_a7c8a03b1e43883e1b442460e5180fec3"><div class="ttname"><a href="namespaceyaze_1_1test.html#a7c8a03b1e43883e1b442460e5180fec3">yaze::test::TEST_F</a></div><div class="ttdeci">TEST_F(ApuTest, IplRomHandshakeTiming)</div><div class="ttdef"><b>Definition</b> <a href="apu__test_8cc_source.html#l00029">apu_test.cc:29</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1test_html_a2a5754a75fc0064e1c85a6406b8940d8"><div class="ttname"><a href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">yaze::test::TEST_F</a></div><div class="ttdeci">TEST_F(E2ERomDependentTest, BasicROMLoadSave)</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00128">e2e_rom_test.cc:128</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="astructyaze_1_1editor_1_1DictionaryEntry_html"><div class="ttname"><a href="structyaze_1_1editor_1_1DictionaryEntry.html">yaze::editor::DictionaryEntry</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00047">message_data.h:47</a></div></div>
 <div class="ttc" id="astructyaze_1_1editor_1_1MessageData_html"><div class="ttname"><a href="structyaze_1_1editor_1_1MessageData.html">yaze::editor::MessageData</a></div><div class="ttdef"><b>Definition</b> <a href="message__data_8h_source.html#l00094">message_data.h:94</a></div></div>
@@ -389,7 +389,7 @@ $(document).ready(function(){initNavTree('message__test_8cc_source.html',''); in
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="dir_eaa1b733378fb3b1395357d81d39f62b.html">zelda3</a></li><li class="navelem"><a class="el" href="message__test_8cc.html">message_test.cc</a></li>
+    <li class="navelem"><a class="el" href="dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="dir_6a07fdbc4b50e86806a88566ca8f66e4.html">unit</a></li><li class="navelem"><a class="el" href="dir_9965619be4639aeb71151b78c570bcd6.html">zelda3</a></li><li class="navelem"><a class="el" href="message__test_8cc.html">message_test.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>
