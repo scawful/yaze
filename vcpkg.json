@@ -15,15 +15,6 @@
       "name": "sdl2",
       "platform": "!uwp",
       "features": ["vulkan"]
-    },
-    {
-      "name": "abseil",
-      "platform": "!uwp"
-    },
-    {
-      "name": "gtest",
-      "platform": "!uwp",
-      "features": ["gmock"]
     }
   ],
   "builtin-baseline": "c8696863d371ab7f46e213d8f5ca923c4aef2a00",
