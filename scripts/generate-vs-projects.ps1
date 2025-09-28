@@ -138,14 +138,52 @@ if (-not (Test-Path $BuildDir)) {
     New-Item -ItemType Directory -Path $BuildDir | Out-Null
 }
 
-# Check if vcpkg is available
+# Check if vcpkg is available and properly configured
 $VcpkgPath = Join-Path $SourceDir "vcpkg\scripts\buildsystems\vcpkg.cmake"
-$UseVcpkg = Test-Path $VcpkgPath
+$VcpkgInstalled = Join-Path $SourceDir "vcpkg\installed"
+
+# Check for vcpkg in common locations
+$VcpkgPaths = @(
+    Join-Path $SourceDir "vcpkg\scripts\buildsystems\vcpkg.cmake",
+    "$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake",
+    "$env:ProgramFiles\vcpkg\scripts\buildsystems\vcpkg.cmake",
+    "$env:ProgramFiles(x86)\vcpkg\scripts\buildsystems\vcpkg.cmake"
+)
+
+$UseVcpkg = $false
+foreach ($path in $VcpkgPaths) {
+    if (Test-Path $path) {
+        $VcpkgPath = $path
+        $UseVcpkg = $true
+        break
+    }
+}
 
 if ($UseVcpkg) {
     Write-Host "Using vcpkg toolchain: $VcpkgPath" -ForegroundColor Green
+    
+    # Check if vcpkg is properly installed with required packages
+    if (Test-Path $VcpkgInstalled) {
+        Write-Host "vcpkg packages directory found: $VcpkgInstalled" -ForegroundColor Green
+    } else {
+        Write-Host "vcpkg packages not installed. Installing dependencies..." -ForegroundColor Yellow
+        
+        # Try to install vcpkg dependencies
+        $VcpkgExe = Join-Path (Split-Path $VcpkgPath -Parent -Parent) "vcpkg.exe"
+        if (Test-Path $VcpkgExe) {
+            Write-Host "Installing vcpkg dependencies..." -ForegroundColor Yellow
+            & $VcpkgExe install --triplet $Architecture-windows
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "Failed to install vcpkg dependencies" -ForegroundColor Red
+                Write-Host "Please run: vcpkg install --triplet $Architecture-windows" -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "vcpkg.exe not found. Please install dependencies manually." -ForegroundColor Yellow
+        }
+    }
 } else {
     Write-Host "vcpkg not found, using system libraries" -ForegroundColor Yellow
+    Write-Host "Note: This may cause missing dependency issues. Consider installing vcpkg." -ForegroundColor Yellow
 }
 
 # Determine generator and architecture
@@ -171,7 +209,9 @@ $CmakeArgs = @(
     "-DYAZE_ENABLE_ROM_TESTS=OFF",
     "-DYAZE_ENABLE_EXPERIMENTAL_TESTS=ON",
     "-DYAZE_ENABLE_UI_TESTS=ON",
-    "-DYAZE_INSTALL_LIB=OFF"
+    "-DYAZE_INSTALL_LIB=OFF",
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+    "-DCMAKE_VERBOSE_MAKEFILE=ON"
 )
 
 if ($UseVcpkg) {
@@ -182,8 +222,8 @@ if ($UseVcpkg) {
     )
 }
 
-# Configure CMake to generate build files (but don't overwrite existing project files)
-Write-Host "Configuring CMake for build system..." -ForegroundColor Yellow
+# Configure CMake to generate Visual Studio project files
+Write-Host "Configuring CMake to generate Visual Studio project files..." -ForegroundColor Yellow
 Write-Host "Command: cmake $($CmakeArgs -join ' ')" -ForegroundColor Gray
 
 & cmake @CmakeArgs $SourceDir
@@ -193,13 +233,18 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# Check if the existing solution file is present and valid
-$ExistingSolutionFile = Join-Path $SourceDir "YAZE.sln"
-if (Test-Path $ExistingSolutionFile) {
-    Write-Host "✅ Using existing Visual Studio solution: $ExistingSolutionFile" -ForegroundColor Green
+# Check if CMake generated the solution file in the build directory
+$GeneratedSolutionFile = Join-Path $BuildDir "YAZE.sln"
+if (Test-Path $GeneratedSolutionFile) {
+    Write-Host "✅ CMake generated Visual Studio solution: $GeneratedSolutionFile" -ForegroundColor Green
+    
+    # Copy the generated solution to the source directory for convenience
+    $SourceSolutionFile = Join-Path $SourceDir "YAZE.sln"
+    Copy-Item $GeneratedSolutionFile $SourceSolutionFile -Force
+    Write-Host "✅ Copied solution file to project root: $SourceSolutionFile" -ForegroundColor Green
     
     # Verify the solution file is properly structured
-    $SolutionContent = Get-Content $ExistingSolutionFile -Raw
+    $SolutionContent = Get-Content $GeneratedSolutionFile -Raw
     if ($SolutionContent -match "YAZE\.vcxproj") {
         Write-Host "✅ Solution file references YAZE.vcxproj correctly" -ForegroundColor Green
         
@@ -211,23 +256,88 @@ if (Test-Path $ExistingSolutionFile) {
         }
     } else {
         Write-Host "❌ Solution file does not reference YAZE.vcxproj" -ForegroundColor Red
-        Write-Host "Please ensure the solution file includes the YAZE project" -ForegroundColor Yellow
+        Write-Host "Please check CMake configuration" -ForegroundColor Yellow
+    }
+    
+    # Check if the project file exists and has proper include paths
+    $ProjectFile = Join-Path $BuildDir "YAZE.vcxproj"
+    if (Test-Path $ProjectFile) {
+        Write-Host "✅ Project file generated: $ProjectFile" -ForegroundColor Green
+        
+        # Check for common include paths in the project file
+        $ProjectContent = Get-Content $ProjectFile -Raw
+        $IncludePaths = @(
+            "src/lib/",
+            "src/app/",
+            "src/lib/asar/src",
+            "src/lib/imgui",
+            "incl/"
+        )
+        
+        $MissingIncludes = @()
+        foreach ($include in $IncludePaths) {
+            if ($ProjectContent -notmatch [regex]::Escape($include)) {
+                $MissingIncludes += $include
+            }
+        }
+        
+        if ($MissingIncludes.Count -eq 0) {
+            Write-Host "✅ All required include paths found in project file" -ForegroundColor Green
+        } else {
+            Write-Host "⚠️  Warning: Missing include paths in project file:" -ForegroundColor Yellow
+            foreach ($missing in $MissingIncludes) {
+                Write-Host "    - $missing" -ForegroundColor Yellow
+            }
+        }
+        
+        # Check for SDL2 include paths
+        if ($ProjectContent -match "SDL2" -or $ProjectContent -match "sdl2") {
+            Write-Host "✅ SDL2 include paths found in project file" -ForegroundColor Green
+        } else {
+            Write-Host "⚠️  Warning: SDL2 include paths not found in project file" -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "❌ Project file not found: $ProjectFile" -ForegroundColor Red
     }
     
     # Open solution in Visual Studio if available
     if (Get-Command "devenv" -ErrorAction SilentlyContinue) {
         Write-Host "Opening solution in Visual Studio..." -ForegroundColor Yellow
-        & devenv $ExistingSolutionFile
+        & devenv $SourceSolutionFile
     } elseif (Get-Command "code" -ErrorAction SilentlyContinue) {
         Write-Host "Opening solution in VS Code..." -ForegroundColor Yellow
-        & code $ExistingSolutionFile
+        & code $SourceSolutionFile
     } else {
-        Write-Host "Visual Studio solution ready: $ExistingSolutionFile" -ForegroundColor Cyan
+        Write-Host "Visual Studio solution ready: $SourceSolutionFile" -ForegroundColor Cyan
     }
 } else {
-    Write-Host "❌ Existing solution file not found: $ExistingSolutionFile" -ForegroundColor Red
-    Write-Host "Please ensure YAZE.sln exists in the project root" -ForegroundColor Yellow
+    Write-Host "❌ CMake failed to generate solution file: $GeneratedSolutionFile" -ForegroundColor Red
+    Write-Host "Please check CMake configuration and dependencies" -ForegroundColor Yellow
     exit 1
+}
+
+# Test build to verify the project can compile
+Write-Host ""
+Write-Host "Testing build to verify project configuration..." -ForegroundColor Yellow
+
+$TestBuildArgs = @(
+    "--build", $BuildDir,
+    "--config", $Configuration,
+    "--target", "yaze"
+)
+
+Write-Host "Running test build: cmake $($TestBuildArgs -join ' ')" -ForegroundColor Gray
+& cmake @TestBuildArgs
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "✅ Test build successful! Project is properly configured." -ForegroundColor Green
+} else {
+    Write-Host "❌ Test build failed. There may be configuration issues." -ForegroundColor Red
+    Write-Host "Please check the build output above for specific errors." -ForegroundColor Yellow
+    Write-Host "Common issues:" -ForegroundColor Yellow
+    Write-Host "  - Missing vcpkg dependencies" -ForegroundColor Gray
+    Write-Host "  - Incorrect include paths" -ForegroundColor Gray
+    Write-Host "  - Missing library dependencies" -ForegroundColor Gray
 }
 
 Write-Host ""
@@ -249,3 +359,8 @@ Write-Host "Available architectures:" -ForegroundColor Cyan
 Write-Host "  - x64 (64-bit Intel/AMD)" -ForegroundColor Gray
 Write-Host "  - x86 (32-bit Intel/AMD)" -ForegroundColor Gray
 Write-Host "  - ARM64 (64-bit ARM)" -ForegroundColor Gray
+Write-Host ""
+Write-Host "Troubleshooting:" -ForegroundColor Cyan
+Write-Host "  - If you get missing include errors, ensure vcpkg is properly installed" -ForegroundColor Gray
+Write-Host "  - Run: vcpkg install --triplet $Architecture-windows" -ForegroundColor Gray
+Write-Host "  - Check that all dependencies are available in your environment" -ForegroundColor Gray

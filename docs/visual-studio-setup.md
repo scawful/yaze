@@ -53,28 +53,38 @@ vcpkg install abseil:x64-windows
 vcpkg install gtest:x64-windows
 ```
 
-### 3. Configure Build System
+### 3. Generate Visual Studio Project Files
 
-#### Option A: Using Visual Studio Project File (Easiest)
-1. Open Visual Studio 2022
-2. Select "Open a project or solution"
-3. Navigate to the yaze project folder and open `yaze.sln`
-4. The project is pre-configured with vcpkg integration and proper dependencies
+#### Option A: Using the Project Generation Script (Recommended)
+1. Open PowerShell in the yaze project directory
+2. Run the project generation script:
+   ```powershell
+   .\scripts\generate-vs-projects.ps1
+   ```
+3. The script will:
+   - Check for CMake and Visual Studio installation
+   - Configure vcpkg integration
+   - Generate proper Visual Studio project files with all include paths
+   - Test the build to ensure everything works
+4. Open the generated `YAZE.sln` in Visual Studio
 5. Select your desired build configuration (Debug/Release) and platform (x64/x86)
 6. Press F5 to build and run, or Ctrl+Shift+B to build only
 
-#### Option B: Using CMake with Visual Studio (Recommended for developers)
+#### Option B: Manual CMake Configuration
+1. Open PowerShell in the yaze project directory
+2. Create build directory and configure:
+   ```powershell
+   mkdir build-vs
+   cd build-vs
+   cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake
+   ```
+3. Open the generated `YAZE.sln` in Visual Studio
+
+#### Option C: Using CMake with Visual Studio (For advanced users)
 1. Open Visual Studio 2022
 2. Select "Open a local folder" and navigate to the yaze project folder
 3. Visual Studio will automatically detect the CMake project
 4. Wait for CMake configuration to complete (check Output window)
-
-#### Option C: Using Command Line
-```cmd
-mkdir build
-cd build
-cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake
-```
 
 ### 4. Build Configuration
 
@@ -95,9 +105,63 @@ cmake --build . --config Release --target yaze
 cmake --build . --config Debug --target yaze_test
 ```
 
+## Project Generation Script
+
+The `generate-vs-projects.ps1` script automates the Visual Studio project setup process:
+
+### Script Features
+- **Automatic CMake Detection:** Finds and configures CMake installation
+- **Visual Studio Integration:** Detects Visual Studio 2022 installation
+- **vcpkg Configuration:** Automatically configures vcpkg toolchain
+- **Dependency Installation:** Installs required packages via vcpkg
+- **Project Validation:** Tests the generated project to ensure it builds
+- **Include Path Verification:** Checks that all required include paths are present
+
+### Script Usage
+```powershell
+# Basic usage (Debug x64)
+.\scripts\generate-vs-projects.ps1
+
+# Release build
+.\scripts\generate-vs-projects.ps1 -Configuration Release
+
+# x86 build
+.\scripts\generate-vs-projects.ps1 -Architecture x86
+
+# Clean build
+.\scripts\generate-vs-projects.ps1 -Clean
+
+# With vcpkg
+.\scripts\generate-vs-projects.ps1 -UseVcpkg
+
+# Show help
+.\scripts\generate-vs-projects.ps1 -Help
+```
+
+### Testing the Setup
+Use the test script to verify the project generation works:
+```powershell
+.\scripts\test-vs-generation.ps1
+```
+
 ## Common Issues and Solutions
 
-### Issue 1: zlib Import Errors
+### Issue 1: Missing Include Files (SDL.h, etc.)
+**Problem:** `fatal error C1083: Cannot open include file: 'SDL.h'` or similar
+
+**Solution:**
+1. Use the project generation script: `.\scripts\generate-vs-projects.ps1`
+2. Ensure vcpkg is properly installed and configured
+3. Check that dependencies are installed:
+   ```cmd
+   vcpkg list
+   ```
+4. If using manual setup, ensure the vcpkg toolchain file is set:
+   ```cmd
+   cmake .. -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake
+   ```
+
+### Issue 2: zlib Import Errors
 **Problem:** `fatal error C1083: Cannot open include file: 'zlib.h'`
 
 **Solution:**
@@ -111,12 +175,12 @@ cmake --build . --config Debug --target yaze_test
    vcpkg list zlib
    ```
 
-### Issue 2: Executable Runs Tests Instead of Main App
+### Issue 3: Executable Runs Tests Instead of Main App
 **Problem:** Running `yaze.exe` starts the test framework instead of the application
 
 **Solution:** This has been fixed in the latest version. The issue was caused by linking `gtest_main` to the main executable. The fix removes `gtest_main` from the main application while keeping `gtest` for testing capabilities.
 
-### Issue 3: SDL2 Configuration Issues
+### Issue 4: SDL2 Configuration Issues
 **Problem:** SDL2 not found or linking errors
 
 **Solution:**
@@ -126,7 +190,7 @@ cmake --build . --config Debug --target yaze_test
    ```
 2. Ensure the project uses the vcpkg toolchain file
 
-### Issue 4: Build Errors with Abseil
+### Issue 5: Build Errors with Abseil
 **Problem:** Missing Abseil symbols or linking issues
 
 **Solution:**
