@@ -194,6 +194,125 @@ cmake --preset release  # macOS
 cmake -B build -DCMAKE_BUILD_TYPE=Release  # All platforms
 ```
 
+## Testing System
+
+YAZE includes a comprehensive testing system with different test categories designed for various use cases:
+
+### Test Categories
+
+#### Unit Tests
+- **Core functionality**: AsarWrapper, ROM operations, SNES tiles, palettes
+- **Graphics**: Compression, tile unpacking, color conversion
+- **Zelda3 components**: Message system, overworld, object parsing
+- **Location**: `test/unit/`
+
+#### Integration Tests
+- **ASAR integration**: Assembly compilation and ROM patching
+- **Editor integration**: Tile16 editor, dungeon editor
+- **Location**: `test/integration/`
+
+#### End-to-End (E2E) Tests
+- **ROM-dependent tests**: Load, edit, save, reload, verify integrity
+- **ZSCustomOverworld upgrade tests**: Vanilla → v2 → v3 upgrade paths
+- **Location**: `test/e2e/`
+
+### Running Tests
+
+#### Local Development
+```bash
+# Run all tests
+./build/test/yaze_test
+
+# Run specific test categories
+./build/test/yaze_test --unit
+./build/test/yaze_test --integration
+./build/test/yaze_test --e2e --rom-path zelda3.sfc
+
+# Run with verbose output
+./build/test/yaze_test --verbose
+
+# Get help
+./build/test/yaze_test --help
+```
+
+#### CI/CD Environment
+The CI builds use a simplified test executable (`yaze_test_ci.cc`) that:
+- Excludes ROM-dependent tests (no ROM files available)
+- Excludes E2E tests (require actual ROM files)
+- Focuses on unit tests and core functionality
+- Uses minimal configuration for reliability
+
+#### ROM-Dependent Tests
+These tests require actual ROM files and are only available in local development:
+
+```bash
+# E2E ROM tests (requires zelda3.sfc)
+./build/test/yaze_test --e2e --rom-path zelda3.sfc
+
+# ZSCustomOverworld upgrade tests
+./build/test/yaze_test --zscustomoverworld --rom-path zelda3.sfc
+```
+
+**Note**: ROM-dependent tests are automatically skipped in CI builds and minimal builds.
+
+### Test Organization
+
+```
+test/
+├── unit/                    # Unit tests (CI-safe)
+│   ├── core/               # Core functionality tests
+│   ├── gfx/                # Graphics tests
+│   └── zelda3/             # Zelda3-specific tests
+├── integration/            # Integration tests (CI-safe)
+├── e2e/                    # End-to-end tests (ROM-dependent)
+│   ├── rom_dependent/      # ROM load/save/edit tests
+│   └── zscustomoverworld/  # Upgrade path tests
+├── mocks/                  # Mock objects for testing
+├── assets/                 # Test assets and ROMs
+└── deprecated/             # Outdated tests (moved from emu/)
+```
+
+### Test Executables
+
+#### Development Build (`yaze_test.cc`)
+- Full argument parsing for AI agents
+- SDL initialization for graphics tests
+- Support for all test categories
+- ROM path configuration
+- Verbose output options
+
+#### CI Build (`yaze_test_ci.cc`)
+- Simplified main function
+- No SDL initialization
+- Automatic exclusion of ROM-dependent tests
+- Minimal configuration for reliability
+- Used when `YAZE_MINIMAL_BUILD=ON`
+
+### Test Configuration
+
+#### CMake Options
+```bash
+# Enable/disable test categories
+-DYAZE_ENABLE_ROM_TESTS=ON          # Enable ROM-dependent tests
+-DYAZE_ENABLE_UI_TESTS=ON           # Enable ImGui Test Engine
+-DYAZE_ENABLE_EXPERIMENTAL_TESTS=ON # Enable experimental tests
+-DYAZE_MINIMAL_BUILD=ON             # Use CI test executable
+```
+
+#### Test Filters
+The test system supports Google Test filters for selective execution:
+
+```bash
+# Run only core tests
+./build/test/yaze_test --gtest_filter="*Core*"
+
+# Exclude ROM tests
+./build/test/yaze_test --gtest_filter="-*RomTest*"
+
+# Run specific test suite
+./build/test/yaze_test --gtest_filter="AsarWrapperTest.*"
+```
+
 ## IDE Integration
 
 ### Visual Studio (Windows)
@@ -284,6 +403,7 @@ The project includes several PowerShell and Batch scripts to streamline Windows 
 | CLI Tools | ✅ | ✅ | ❌ |
 | Test Suite | ✅ | ❌ | ✅ (limited) |
 | UI Testing | ✅ | ❌ | ❌ |
+| ROM Tests | ✅ | ❌ | ❌ |
 
 ## CMake Compatibility
 
@@ -312,11 +432,27 @@ cmake -B build \
 
 ### GitHub Actions Workflows
 
-The project includes three release workflows with different levels of complexity:
+The project includes comprehensive CI/CD workflows:
 
-- **`release-simplified.yml`**: Fast, basic release builds
-- **`release.yml`**: Standard release builds with fallback mechanisms
-- **`release-complex.yml`**: Comprehensive release builds with multiple fallback strategies
+- **`ci.yml`**: Multi-platform CI with test execution
+- **`release.yml`**: Automated release builds with packaging
+
+### Test Execution in CI
+
+**CI Test Strategy:**
+- **Core Tests**: Always run (AsarWrapper, SnesTile, Compression, SnesPalette, Hex, Message)
+- **Unit Tests**: Run with `continue-on-error=true` for information
+- **ROM Tests**: Automatically excluded (no ROM files available)
+- **E2E Tests**: Automatically excluded (require ROM files)
+
+**Test Filters in CI:**
+```bash
+# Core tests (must pass)
+ctest -R "AsarWrapperTest|SnesTileTest|CompressionTest|SnesPaletteTest|HexTest|MessageTest"
+
+# Additional unit tests (informational)
+ctest -R ".*Test" -E ".*RomTest.*|.*E2E.*|.*ZSCustomOverworld.*|.*IntegrationTest.*"
+```
 
 ### vcpkg Fallback Mechanisms
 
@@ -414,6 +550,32 @@ python scripts/generate-vs-projects.py
 .\scripts\setup-windows-dev.ps1
 ```
 
+### Test Issues
+
+**Test Discovery Failures:**
+```bash
+# Use CI test executable for minimal builds
+cmake -B build -DYAZE_MINIMAL_BUILD=ON
+cmake --build build
+
+# Check test executable
+./build/test/yaze_test --help
+```
+
+**ROM Test Failures:**
+```bash
+# Ensure ROM file exists
+ls -la zelda3.sfc
+
+# Run with explicit ROM path
+./build/test/yaze_test --e2e --rom-path zelda3.sfc
+```
+
+**SDL Initialization Errors:**
+- These are expected in CI builds
+- Use minimal build configuration for CI compatibility
+- For local development, ensure SDL2 is properly installed
+
 ### Architecture Errors (macOS)
 ```bash
 # Clean and use ARM64-only preset
@@ -458,3 +620,8 @@ cmake --build build
 - Check if vcpkg download failed (network issues)
 - The workflows automatically fall back to minimal builds
 - For persistent issues, check the workflow logs for specific error messages
+
+**Test Executable Issues:**
+- Ensure the correct test executable is being used (CI vs development)
+- Check that test filters are properly configured
+- Verify that ROM-dependent tests are excluded in CI builds
