@@ -93,12 +93,22 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(YAZE_PLATFORM_WINDOWS ON)
     # Enable vcpkg integration for Windows builds
-    if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
-            CACHE STRING "Vcpkg toolchain file")
-    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-        set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-            CACHE STRING "Vcpkg toolchain file")
+    # Check if CMAKE_TOOLCHAIN_FILE is set but the file doesn't exist
+    if(DEFINED CMAKE_TOOLCHAIN_FILE AND NOT EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+        message(WARNING "vcpkg toolchain file specified but not found: ${CMAKE_TOOLCHAIN_FILE}")
+        message(WARNING "Disabling vcpkg integration. Install vcpkg or set VCPKG_ROOT environment variable.")
+        unset(CMAKE_TOOLCHAIN_FILE CACHE)
+    endif()
+    
+    # Set vcpkg toolchain file if not already set or if the previous one was invalid
+    if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+        if(DEFINED ENV{VCPKG_ROOT})
+            set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+                CACHE STRING "Vcpkg toolchain file")
+        elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
+            set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+                CACHE STRING "Vcpkg toolchain file")
+        endif()
     endif()
     # Setup yaze_config include directories
 
@@ -115,7 +125,13 @@ elseif(YAZE_PLATFORM_MACOS)
     set(CMAKE_INSTALL_PREFIX /usr/local)
     target_compile_definitions(yaze_common INTERFACE MACOS)
 elseif(YAZE_PLATFORM_WINDOWS)
-    include(cmake/vcpkg.cmake)
+    # Only include vcpkg configuration if vcpkg toolchain is available
+    if(DEFINED CMAKE_TOOLCHAIN_FILE AND EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+        include(cmake/vcpkg.cmake)
+        message(STATUS "Using vcpkg integration")
+    else()
+        message(STATUS "vcpkg not available - using system packages")
+    endif()
     target_compile_definitions(yaze_common INTERFACE WINDOWS)
     
     # Windows-specific architecture detection and configuration
