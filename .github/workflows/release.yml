@@ -172,7 +172,7 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
       with:
-        vcpkgGitCommitId: '2024.12.18'
+        vcpkgGitCommitId: 'd18b2e4129c1ff667b1e660528d6d2678f38c6fc'
         runVcpkgInstall: true
         vcpkgJsonGlob: '**/vcpkg.json'
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
