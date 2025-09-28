@@ -148,6 +148,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build-$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -164,6 +165,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build-$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -180,6 +182,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build-$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -196,6 +199,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build-$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -212,6 +216,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build-$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -228,6 +233,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build-$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
