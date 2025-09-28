@@ -1617,11 +1617,12 @@ void Tile16Editor::DrawPaletteSettings() {
 
       Separator();
       Text("Current State:");
+      static const char* palette_group_names[] = {
+          "OW Main", "OW Aux", "OW Anim", "Dungeon", "Sprites", "Armor", "Sword"
+      };
       Text("Palette Group: %d (%s)", current_palette_group_,
            (current_palette_group_ < 7)
-               ? (const char*[]){"OW Main", "OW Aux", "OW Anim", "Dungeon",
-                                 "Sprites", "Armor",
-                                 "Sword"}[current_palette_group_]
+               ? palette_group_names[current_palette_group_]
                : "Unknown");
       Text("Current Palette: %d", current_palette_);
 
