@@ -671,189 +671,191 @@ var NAVTREE =
       [ "Features", "md_docs_2vcpkg-integration.html#autotoc_md517", null ],
       [ "Quick Start", "md_docs_2vcpkg-integration.html#autotoc_md518", [
         [ "1. Setup vcpkg", "md_docs_2vcpkg-integration.html#autotoc_md519", null ],
-        [ "2. Build with vcpkg", "md_docs_2vcpkg-integration.html#autotoc_md520", null ]
+        [ "2. Build with Visual Studio", "md_docs_2vcpkg-integration.html#autotoc_md520", null ],
+        [ "3. Alternative: Build with CMake", "md_docs_2vcpkg-integration.html#autotoc_md521", null ]
       ] ],
-      [ "Configuration Details", "md_docs_2vcpkg-integration.html#autotoc_md521", [
-        [ "vcpkg.json Manifest", "md_docs_2vcpkg-integration.html#autotoc_md522", null ],
-        [ "CMake Configuration", "md_docs_2vcpkg-integration.html#autotoc_md523", null ],
-        [ "Build Presets", "md_docs_2vcpkg-integration.html#autotoc_md524", null ]
+      [ "Configuration Details", "md_docs_2vcpkg-integration.html#autotoc_md522", [
+        [ "vcpkg.json Manifest", "md_docs_2vcpkg-integration.html#autotoc_md523", null ],
+        [ "CMake Configuration", "md_docs_2vcpkg-integration.html#autotoc_md524", null ],
+        [ "Build Presets", "md_docs_2vcpkg-integration.html#autotoc_md525", null ]
       ] ],
-      [ "Dependencies", "md_docs_2vcpkg-integration.html#autotoc_md525", null ],
-      [ "Environment Variables", "md_docs_2vcpkg-integration.html#autotoc_md526", null ],
-      [ "Troubleshooting", "md_docs_2vcpkg-integration.html#autotoc_md527", [
-        [ "Common Issues", "md_docs_2vcpkg-integration.html#autotoc_md528", null ],
-        [ "Manual Setup", "md_docs_2vcpkg-integration.html#autotoc_md529", null ]
+      [ "Dependencies", "md_docs_2vcpkg-integration.html#autotoc_md526", null ],
+      [ "Environment Variables", "md_docs_2vcpkg-integration.html#autotoc_md527", null ],
+      [ "Troubleshooting", "md_docs_2vcpkg-integration.html#autotoc_md528", [
+        [ "Common Issues", "md_docs_2vcpkg-integration.html#autotoc_md529", null ],
+        [ "Manual Setup", "md_docs_2vcpkg-integration.html#autotoc_md530", null ]
       ] ],
-      [ "Benefits", "md_docs_2vcpkg-integration.html#autotoc_md530", null ],
-      [ "Advanced Usage", "md_docs_2vcpkg-integration.html#autotoc_md531", [
-        [ "Custom Triplets", "md_docs_2vcpkg-integration.html#autotoc_md532", null ],
-        [ "Static Linking", "md_docs_2vcpkg-integration.html#autotoc_md533", null ]
+      [ "Benefits", "md_docs_2vcpkg-integration.html#autotoc_md531", null ],
+      [ "Advanced Usage", "md_docs_2vcpkg-integration.html#autotoc_md532", [
+        [ "Custom Triplets", "md_docs_2vcpkg-integration.html#autotoc_md533", null ],
+        [ "Static Linking", "md_docs_2vcpkg-integration.html#autotoc_md534", null ]
       ] ]
     ] ],
     [ "Installing vcpkg Triplets for Windows", "md_docs_2vcpkg-triplet-setup.html", [
-      [ "What is a vcpkg Triplet?", "md_docs_2vcpkg-triplet-setup.html#autotoc_md535", null ],
-      [ "Method 1: Install via Package (Recommended)", "md_docs_2vcpkg-triplet-setup.html#autotoc_md536", null ],
-      [ "Method 2: Create Triplet File Manually", "md_docs_2vcpkg-triplet-setup.html#autotoc_md537", null ],
-      [ "Method 3: Check Available Triplets", "md_docs_2vcpkg-triplet-setup.html#autotoc_md538", null ],
-      [ "Method 4: Install YAZE Dependencies", "md_docs_2vcpkg-triplet-setup.html#autotoc_md539", null ],
-      [ "Common Issues and Solutions", "md_docs_2vcpkg-triplet-setup.html#autotoc_md540", [
-        [ "Issue: \"Invalid triplet\"", "md_docs_2vcpkg-triplet-setup.html#autotoc_md541", null ],
-        [ "Issue: \"Triplet not found\"", "md_docs_2vcpkg-triplet-setup.html#autotoc_md542", null ],
-        [ "Issue: \"Permission denied\"", "md_docs_2vcpkg-triplet-setup.html#autotoc_md543", null ]
+      [ "What is a vcpkg Triplet?", "md_docs_2vcpkg-triplet-setup.html#autotoc_md536", null ],
+      [ "Method 1: Install via Package (Recommended)", "md_docs_2vcpkg-triplet-setup.html#autotoc_md537", null ],
+      [ "Method 2: Create Triplet File Manually", "md_docs_2vcpkg-triplet-setup.html#autotoc_md538", null ],
+      [ "Method 3: Check Available Triplets", "md_docs_2vcpkg-triplet-setup.html#autotoc_md539", null ],
+      [ "Method 4: Install YAZE Dependencies", "md_docs_2vcpkg-triplet-setup.html#autotoc_md540", null ],
+      [ "Common Issues and Solutions", "md_docs_2vcpkg-triplet-setup.html#autotoc_md541", [
+        [ "Issue: \"Invalid triplet\"", "md_docs_2vcpkg-triplet-setup.html#autotoc_md542", null ],
+        [ "Issue: \"Triplet not found\"", "md_docs_2vcpkg-triplet-setup.html#autotoc_md543", null ],
+        [ "Issue: \"Permission denied\"", "md_docs_2vcpkg-triplet-setup.html#autotoc_md544", null ]
       ] ],
-      [ "Alternative Triplets", "md_docs_2vcpkg-triplet-setup.html#autotoc_md544", null ],
-      [ "Verification", "md_docs_2vcpkg-triplet-setup.html#autotoc_md545", null ],
-      [ "For YAZE Build", "md_docs_2vcpkg-triplet-setup.html#autotoc_md546", null ]
+      [ "Alternative Triplets", "md_docs_2vcpkg-triplet-setup.html#autotoc_md545", null ],
+      [ "Verification", "md_docs_2vcpkg-triplet-setup.html#autotoc_md546", null ],
+      [ "For YAZE Build", "md_docs_2vcpkg-triplet-setup.html#autotoc_md547", null ]
     ] ],
     [ "Visual Studio Setup Guide", "md_docs_2visual-studio-setup.html", [
-      [ "Prerequisites", "md_docs_2visual-studio-setup.html#autotoc_md548", [
-        [ "Required Software", "md_docs_2visual-studio-setup.html#autotoc_md549", null ],
-        [ "Environment Setup", "md_docs_2visual-studio-setup.html#autotoc_md550", null ]
+      [ "Prerequisites", "md_docs_2visual-studio-setup.html#autotoc_md549", [
+        [ "Required Software", "md_docs_2visual-studio-setup.html#autotoc_md550", null ],
+        [ "Environment Setup", "md_docs_2visual-studio-setup.html#autotoc_md551", null ]
       ] ],
-      [ "Project Setup", "md_docs_2visual-studio-setup.html#autotoc_md551", [
-        [ "1. Clone the Repository", "md_docs_2visual-studio-setup.html#autotoc_md552", null ],
-        [ "2. Install Dependencies via vcpkg", "md_docs_2visual-studio-setup.html#autotoc_md553", null ],
-        [ "3. Configure Build System", "md_docs_2visual-studio-setup.html#autotoc_md554", [
-          [ "Option A: Using Visual Studio Project File (Easiest)", "md_docs_2visual-studio-setup.html#autotoc_md555", null ],
-          [ "Option B: Using CMake with Visual Studio (Recommended for developers)", "md_docs_2visual-studio-setup.html#autotoc_md556", null ],
-          [ "Option C: Using Command Line", "md_docs_2visual-studio-setup.html#autotoc_md557", null ]
+      [ "Project Setup", "md_docs_2visual-studio-setup.html#autotoc_md552", [
+        [ "1. Clone the Repository", "md_docs_2visual-studio-setup.html#autotoc_md553", null ],
+        [ "2. Install Dependencies via vcpkg", "md_docs_2visual-studio-setup.html#autotoc_md554", null ],
+        [ "3. Configure Build System", "md_docs_2visual-studio-setup.html#autotoc_md555", [
+          [ "Option A: Using Visual Studio Project File (Easiest)", "md_docs_2visual-studio-setup.html#autotoc_md556", null ],
+          [ "Option B: Using CMake with Visual Studio (Recommended for developers)", "md_docs_2visual-studio-setup.html#autotoc_md557", null ],
+          [ "Option C: Using Command Line", "md_docs_2visual-studio-setup.html#autotoc_md558", null ]
         ] ],
-        [ "4. Build Configuration", "md_docs_2visual-studio-setup.html#autotoc_md558", [
-          [ "Using Visual Studio Project File (.vcxproj)", "md_docs_2visual-studio-setup.html#autotoc_md559", null ],
-          [ "Using CMake (Command Line)", "md_docs_2visual-studio-setup.html#autotoc_md560", null ]
+        [ "4. Build Configuration", "md_docs_2visual-studio-setup.html#autotoc_md559", [
+          [ "Using Visual Studio Project File (.vcxproj)", "md_docs_2visual-studio-setup.html#autotoc_md560", null ],
+          [ "Using CMake (Command Line)", "md_docs_2visual-studio-setup.html#autotoc_md561", null ]
         ] ]
       ] ],
-      [ "Common Issues and Solutions", "md_docs_2visual-studio-setup.html#autotoc_md561", [
-        [ "Issue 1: zlib Import Errors", "md_docs_2visual-studio-setup.html#autotoc_md562", null ],
-        [ "Issue 2: Executable Runs Tests Instead of Main App", "md_docs_2visual-studio-setup.html#autotoc_md563", null ],
-        [ "Issue 3: SDL2 Configuration Issues", "md_docs_2visual-studio-setup.html#autotoc_md564", null ],
-        [ "Issue 4: Build Errors with Abseil", "md_docs_2visual-studio-setup.html#autotoc_md565", null ]
+      [ "Common Issues and Solutions", "md_docs_2visual-studio-setup.html#autotoc_md562", [
+        [ "Issue 1: zlib Import Errors", "md_docs_2visual-studio-setup.html#autotoc_md563", null ],
+        [ "Issue 2: Executable Runs Tests Instead of Main App", "md_docs_2visual-studio-setup.html#autotoc_md564", null ],
+        [ "Issue 3: SDL2 Configuration Issues", "md_docs_2visual-studio-setup.html#autotoc_md565", null ],
+        [ "Issue 4: Build Errors with Abseil", "md_docs_2visual-studio-setup.html#autotoc_md566", null ]
       ] ],
-      [ "Visual Studio Configuration", "md_docs_2visual-studio-setup.html#autotoc_md566", [
-        [ "CMake Settings", "md_docs_2visual-studio-setup.html#autotoc_md567", null ],
-        [ "Build Presets", "md_docs_2visual-studio-setup.html#autotoc_md568", null ]
+      [ "Visual Studio Configuration", "md_docs_2visual-studio-setup.html#autotoc_md567", [
+        [ "CMake Settings", "md_docs_2visual-studio-setup.html#autotoc_md568", null ],
+        [ "Build Presets", "md_docs_2visual-studio-setup.html#autotoc_md569", null ]
       ] ],
-      [ "Running the Application", "md_docs_2visual-studio-setup.html#autotoc_md569", [
-        [ "Using Visual Studio Project File", "md_docs_2visual-studio-setup.html#autotoc_md570", null ],
-        [ "Command Line", "md_docs_2visual-studio-setup.html#autotoc_md571", null ],
-        [ "Visual Studio (CMake)", "md_docs_2visual-studio-setup.html#autotoc_md572", null ]
+      [ "Running the Application", "md_docs_2visual-studio-setup.html#autotoc_md570", [
+        [ "Using Visual Studio Project File", "md_docs_2visual-studio-setup.html#autotoc_md571", null ],
+        [ "Command Line", "md_docs_2visual-studio-setup.html#autotoc_md572", null ],
+        [ "Visual Studio (CMake)", "md_docs_2visual-studio-setup.html#autotoc_md573", null ]
       ] ],
-      [ "Testing", "md_docs_2visual-studio-setup.html#autotoc_md573", [
-        [ "Run Unit Tests", "md_docs_2visual-studio-setup.html#autotoc_md574", null ],
-        [ "Run Specific Test Suite", "md_docs_2visual-studio-setup.html#autotoc_md575", null ]
+      [ "Testing", "md_docs_2visual-studio-setup.html#autotoc_md574", [
+        [ "Run Unit Tests", "md_docs_2visual-studio-setup.html#autotoc_md575", null ],
+        [ "Run Specific Test Suite", "md_docs_2visual-studio-setup.html#autotoc_md576", null ]
       ] ],
-      [ "Troubleshooting", "md_docs_2visual-studio-setup.html#autotoc_md576", [
-        [ "Clean Build", "md_docs_2visual-studio-setup.html#autotoc_md577", null ],
-        [ "Check Dependencies", "md_docs_2visual-studio-setup.html#autotoc_md578", null ],
-        [ "CMake Cache Issues", "md_docs_2visual-studio-setup.html#autotoc_md579", null ]
+      [ "Troubleshooting", "md_docs_2visual-studio-setup.html#autotoc_md577", [
+        [ "Clean Build", "md_docs_2visual-studio-setup.html#autotoc_md578", null ],
+        [ "Check Dependencies", "md_docs_2visual-studio-setup.html#autotoc_md579", null ],
+        [ "CMake Cache Issues", "md_docs_2visual-studio-setup.html#autotoc_md580", null ]
       ] ],
-      [ "Visual Studio Project File Features", "md_docs_2visual-studio-setup.html#autotoc_md580", [
-        [ "<strong>Automatic Dependency Management</strong>", "md_docs_2visual-studio-setup.html#autotoc_md581", null ],
-        [ "<strong>Build Configuration</strong>", "md_docs_2visual-studio-setup.html#autotoc_md582", null ],
-        [ "<strong>Asset Management</strong>", "md_docs_2visual-studio-setup.html#autotoc_md583", null ],
-        [ "<strong>Development Features</strong>", "md_docs_2visual-studio-setup.html#autotoc_md584", null ]
+      [ "Visual Studio Project File Features", "md_docs_2visual-studio-setup.html#autotoc_md581", [
+        [ "<strong>Automatic Dependency Management</strong>", "md_docs_2visual-studio-setup.html#autotoc_md582", null ],
+        [ "<strong>Build Configuration</strong>", "md_docs_2visual-studio-setup.html#autotoc_md583", null ],
+        [ "<strong>Asset Management</strong>", "md_docs_2visual-studio-setup.html#autotoc_md584", null ],
+        [ "<strong>Development Features</strong>", "md_docs_2visual-studio-setup.html#autotoc_md585", null ]
       ] ],
-      [ "CI/CD Integration", "md_docs_2visual-studio-setup.html#autotoc_md585", [
-        [ "<strong>Automated Validation</strong>", "md_docs_2visual-studio-setup.html#autotoc_md586", null ],
-        [ "<strong>Build Matrix</strong>", "md_docs_2visual-studio-setup.html#autotoc_md587", null ],
-        [ "<strong>Quality Assurance</strong>", "md_docs_2visual-studio-setup.html#autotoc_md588", null ]
+      [ "CI/CD Integration", "md_docs_2visual-studio-setup.html#autotoc_md586", [
+        [ "<strong>Automated Validation</strong>", "md_docs_2visual-studio-setup.html#autotoc_md587", null ],
+        [ "<strong>Build Matrix</strong>", "md_docs_2visual-studio-setup.html#autotoc_md588", null ],
+        [ "<strong>Quality Assurance</strong>", "md_docs_2visual-studio-setup.html#autotoc_md589", null ]
       ] ],
-      [ "Additional Notes", "md_docs_2visual-studio-setup.html#autotoc_md589", null ],
-      [ "Support", "md_docs_2visual-studio-setup.html#autotoc_md590", null ]
+      [ "Additional Notes", "md_docs_2visual-studio-setup.html#autotoc_md590", null ],
+      [ "Support", "md_docs_2visual-studio-setup.html#autotoc_md591", null ]
     ] ],
     [ "Windows Development Guide for YAZE", "md_docs_2windows-development-guide.html", [
-      [ "Prerequisites", "md_docs_2windows-development-guide.html#autotoc_md592", [
-        [ "Required Software", "md_docs_2windows-development-guide.html#autotoc_md593", null ],
-        [ "Optional Software", "md_docs_2windows-development-guide.html#autotoc_md594", null ]
+      [ "Prerequisites", "md_docs_2windows-development-guide.html#autotoc_md593", [
+        [ "Required Software", "md_docs_2windows-development-guide.html#autotoc_md594", null ],
+        [ "Optional Software", "md_docs_2windows-development-guide.html#autotoc_md595", null ]
       ] ],
-      [ "Quick Setup", "md_docs_2windows-development-guide.html#autotoc_md595", [
-        [ "Automated Setup", "md_docs_2windows-development-guide.html#autotoc_md596", null ],
-        [ "Manual Setup", "md_docs_2windows-development-guide.html#autotoc_md597", [
-          [ "1. Clone the Repository", "md_docs_2windows-development-guide.html#autotoc_md598", null ],
-          [ "2. Set up vcpkg", "md_docs_2windows-development-guide.html#autotoc_md599", null ],
-          [ "3. Generate Visual Studio Project Files", "md_docs_2windows-development-guide.html#autotoc_md600", null ],
-          [ "4. Build the Project", "md_docs_2windows-development-guide.html#autotoc_md601", null ]
+      [ "Quick Setup", "md_docs_2windows-development-guide.html#autotoc_md596", [
+        [ "Automated Setup", "md_docs_2windows-development-guide.html#autotoc_md597", null ],
+        [ "Manual Setup", "md_docs_2windows-development-guide.html#autotoc_md598", [
+          [ "1. Clone the Repository", "md_docs_2windows-development-guide.html#autotoc_md599", null ],
+          [ "2. Set up vcpkg", "md_docs_2windows-development-guide.html#autotoc_md600", null ],
+          [ "3. Generate Visual Studio Project Files", "md_docs_2windows-development-guide.html#autotoc_md601", null ],
+          [ "4. Build the Project", "md_docs_2windows-development-guide.html#autotoc_md602", null ]
         ] ]
       ] ],
-      [ "Building the Project", "md_docs_2windows-development-guide.html#autotoc_md602", [
-        [ "Using Visual Studio", "md_docs_2windows-development-guide.html#autotoc_md603", null ],
-        [ "Using Command Line", "md_docs_2windows-development-guide.html#autotoc_md604", [
-          [ "PowerShell Script (Recommended)", "md_docs_2windows-development-guide.html#autotoc_md605", null ],
-          [ "Batch Script", "md_docs_2windows-development-guide.html#autotoc_md606", null ],
-          [ "Direct MSBuild", "md_docs_2windows-development-guide.html#autotoc_md607", null ]
+      [ "Building the Project", "md_docs_2windows-development-guide.html#autotoc_md603", [
+        [ "Using Visual Studio", "md_docs_2windows-development-guide.html#autotoc_md604", null ],
+        [ "Using Command Line", "md_docs_2windows-development-guide.html#autotoc_md605", [
+          [ "PowerShell Script (Recommended)", "md_docs_2windows-development-guide.html#autotoc_md606", null ],
+          [ "Batch Script", "md_docs_2windows-development-guide.html#autotoc_md607", null ],
+          [ "Direct MSBuild", "md_docs_2windows-development-guide.html#autotoc_md608", null ]
         ] ]
       ] ],
-      [ "Project Structure", "md_docs_2windows-development-guide.html#autotoc_md608", null ],
-      [ "Troubleshooting", "md_docs_2windows-development-guide.html#autotoc_md609", [
-        [ "Common Issues", "md_docs_2windows-development-guide.html#autotoc_md610", [
-          [ "1. MSBuild Not Found", "md_docs_2windows-development-guide.html#autotoc_md611", null ],
-          [ "2. vcpkg Integration Issues", "md_docs_2windows-development-guide.html#autotoc_md612", null ],
-          [ "3. Python Script Execution Policy", "md_docs_2windows-development-guide.html#autotoc_md613", null ],
-          [ "4. Missing Dependencies", "md_docs_2windows-development-guide.html#autotoc_md614", null ],
-          [ "5. Build Failures", "md_docs_2windows-development-guide.html#autotoc_md615", null ]
+      [ "Project Structure", "md_docs_2windows-development-guide.html#autotoc_md609", null ],
+      [ "Troubleshooting", "md_docs_2windows-development-guide.html#autotoc_md610", [
+        [ "Common Issues", "md_docs_2windows-development-guide.html#autotoc_md611", [
+          [ "1. MSBuild Not Found", "md_docs_2windows-development-guide.html#autotoc_md612", null ],
+          [ "2. vcpkg Integration Issues", "md_docs_2windows-development-guide.html#autotoc_md613", null ],
+          [ "3. ZLIB or Other Dependencies Not Found", "md_docs_2windows-development-guide.html#autotoc_md614", null ],
+          [ "4. Python Script Execution Policy", "md_docs_2windows-development-guide.html#autotoc_md615", null ],
+          [ "5. Missing Dependencies", "md_docs_2windows-development-guide.html#autotoc_md616", null ],
+          [ "6. Build Failures", "md_docs_2windows-development-guide.html#autotoc_md617", null ]
         ] ],
-        [ "Getting Help", "md_docs_2windows-development-guide.html#autotoc_md616", null ]
+        [ "Getting Help", "md_docs_2windows-development-guide.html#autotoc_md618", null ]
       ] ],
-      [ "Development Workflow", "md_docs_2windows-development-guide.html#autotoc_md617", [
-        [ "Making Changes", "md_docs_2windows-development-guide.html#autotoc_md618", null ],
-        [ "Debugging", "md_docs_2windows-development-guide.html#autotoc_md619", null ],
-        [ "Testing", "md_docs_2windows-development-guide.html#autotoc_md620", null ]
+      [ "Development Workflow", "md_docs_2windows-development-guide.html#autotoc_md619", [
+        [ "Making Changes", "md_docs_2windows-development-guide.html#autotoc_md620", null ],
+        [ "Debugging", "md_docs_2windows-development-guide.html#autotoc_md621", null ],
+        [ "Testing", "md_docs_2windows-development-guide.html#autotoc_md622", null ]
       ] ],
-      [ "Performance Tips", "md_docs_2windows-development-guide.html#autotoc_md621", [
-        [ "Build Performance", "md_docs_2windows-development-guide.html#autotoc_md622", null ],
-        [ "Development Performance", "md_docs_2windows-development-guide.html#autotoc_md623", null ]
+      [ "Performance Tips", "md_docs_2windows-development-guide.html#autotoc_md623", [
+        [ "Build Performance", "md_docs_2windows-development-guide.html#autotoc_md624", null ],
+        [ "Development Performance", "md_docs_2windows-development-guide.html#autotoc_md625", null ]
       ] ],
-      [ "Advanced Configuration", "md_docs_2windows-development-guide.html#autotoc_md624", [
-        [ "Custom Build Configurations", "md_docs_2windows-development-guide.html#autotoc_md625", null ],
-        [ "Cross-Platform Development", "md_docs_2windows-development-guide.html#autotoc_md626", null ]
+      [ "Advanced Configuration", "md_docs_2windows-development-guide.html#autotoc_md626", [
+        [ "Custom Build Configurations", "md_docs_2windows-development-guide.html#autotoc_md627", null ],
+        [ "Cross-Platform Development", "md_docs_2windows-development-guide.html#autotoc_md628", null ]
       ] ],
-      [ "Contributing", "md_docs_2windows-development-guide.html#autotoc_md627", null ],
-      [ "Additional Resources", "md_docs_2windows-development-guide.html#autotoc_md628", null ]
+      [ "Contributing", "md_docs_2windows-development-guide.html#autotoc_md629", null ],
+      [ "Additional Resources", "md_docs_2windows-development-guide.html#autotoc_md630", null ]
     ] ],
     [ "YAZE - Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Version 0.3.1 - Release", "md_README.html#autotoc_md630", [
-        [ "🛠️ Technical Improvements", "md_README.html#autotoc_md634", null ]
+      [ "Version 0.3.1 - Release", "md_README.html#autotoc_md632", [
+        [ "🛠️ Technical Improvements", "md_README.html#autotoc_md636", null ]
       ] ],
-      [ "Quick Start", "md_README.html#autotoc_md635", [
-        [ "Build", "md_README.html#autotoc_md636", null ],
-        [ "Applications", "md_README.html#autotoc_md637", null ]
+      [ "Quick Start", "md_README.html#autotoc_md637", [
+        [ "Build", "md_README.html#autotoc_md638", null ],
+        [ "Applications", "md_README.html#autotoc_md639", null ]
       ] ],
-      [ "Usage", "md_README.html#autotoc_md638", [
-        [ "GUI Editor", "md_README.html#autotoc_md639", null ],
-        [ "Command Line Tool", "md_README.html#autotoc_md640", null ],
-        [ "C++ API", "md_README.html#autotoc_md641", null ]
+      [ "Usage", "md_README.html#autotoc_md640", [
+        [ "GUI Editor", "md_README.html#autotoc_md641", null ],
+        [ "Command Line Tool", "md_README.html#autotoc_md642", null ],
+        [ "C++ API", "md_README.html#autotoc_md643", null ]
       ] ],
-      [ "Documentation", "md_README.html#autotoc_md642", null ],
-      [ "Supported Platforms", "md_README.html#autotoc_md643", null ],
-      [ "ROM Compatibility", "md_README.html#autotoc_md644", null ],
-      [ "Contributing", "md_README.html#autotoc_md645", null ],
-      [ "License", "md_README.html#autotoc_md646", null ],
-      [ "🙏 Acknowledgments", "md_README.html#autotoc_md647", null ],
-      [ "📸 Screenshots", "md_README.html#autotoc_md648", null ]
+      [ "Documentation", "md_README.html#autotoc_md644", null ],
+      [ "Supported Platforms", "md_README.html#autotoc_md645", null ],
+      [ "ROM Compatibility", "md_README.html#autotoc_md646", null ],
+      [ "Contributing", "md_README.html#autotoc_md647", null ],
+      [ "License", "md_README.html#autotoc_md648", null ],
+      [ "🙏 Acknowledgments", "md_README.html#autotoc_md649", null ],
+      [ "📸 Screenshots", "md_README.html#autotoc_md650", null ]
     ] ],
     [ "YAZE Build Scripts", "md_scripts_2README.html", [
-      [ "Windows Scripts", "md_scripts_2README.html#autotoc_md651", [
-        [ "Setup Scripts", "md_scripts_2README.html#autotoc_md652", null ],
-        [ "Build Scripts", "md_scripts_2README.html#autotoc_md653", null ],
-        [ "Validation Scripts", "md_scripts_2README.html#autotoc_md654", null ],
-        [ "Project Generation", "md_scripts_2README.html#autotoc_md655", null ]
+      [ "Windows Scripts", "md_scripts_2README.html#autotoc_md653", [
+        [ "Setup Scripts", "md_scripts_2README.html#autotoc_md654", null ],
+        [ "Build Scripts", "md_scripts_2README.html#autotoc_md655", null ],
+        [ "Validation Scripts", "md_scripts_2README.html#autotoc_md656", null ],
+        [ "Project Generation", "md_scripts_2README.html#autotoc_md657", null ]
       ] ],
-      [ "Quick Start (Windows)", "md_scripts_2README.html#autotoc_md656", [
-        [ "Option 1: Automated Setup (Recommended)", "md_scripts_2README.html#autotoc_md657", null ],
-        [ "Option 2: Manual Setup", "md_scripts_2README.html#autotoc_md658", null ],
-        [ "Option 3: Using Batch Scripts", "md_scripts_2README.html#autotoc_md659", null ]
+      [ "Quick Start (Windows)", "md_scripts_2README.html#autotoc_md658", [
+        [ "Option 1: Automated Setup (Recommended)", "md_scripts_2README.html#autotoc_md659", null ],
+        [ "Option 2: Manual Setup", "md_scripts_2README.html#autotoc_md660", null ],
+        [ "Option 3: Using Batch Scripts", "md_scripts_2README.html#autotoc_md661", null ]
       ] ],
-      [ "Script Options", "md_scripts_2README.html#autotoc_md660", [
-        [ "setup-windows-dev.ps1", "md_scripts_2README.html#autotoc_md661", null ],
-        [ "build-windows.ps1", "md_scripts_2README.html#autotoc_md662", null ],
-        [ "build-windows.bat", "md_scripts_2README.html#autotoc_md663", null ]
+      [ "Script Options", "md_scripts_2README.html#autotoc_md662", [
+        [ "setup-windows-dev.ps1", "md_scripts_2README.html#autotoc_md663", null ],
+        [ "build-windows.ps1", "md_scripts_2README.html#autotoc_md664", null ],
+        [ "build-windows.bat", "md_scripts_2README.html#autotoc_md665", null ]
       ] ],
-      [ "Examples", "md_scripts_2README.html#autotoc_md664", null ],
-      [ "Troubleshooting", "md_scripts_2README.html#autotoc_md665", [
-        [ "Common Issues", "md_scripts_2README.html#autotoc_md666", null ],
-        [ "Getting Help", "md_scripts_2README.html#autotoc_md667", null ]
+      [ "Examples", "md_scripts_2README.html#autotoc_md666", null ],
+      [ "Troubleshooting", "md_scripts_2README.html#autotoc_md667", [
+        [ "Common Issues", "md_scripts_2README.html#autotoc_md668", null ],
+        [ "Getting Help", "md_scripts_2README.html#autotoc_md669", null ]
       ] ],
-      [ "Other Scripts", "md_scripts_2README.html#autotoc_md668", null ]
+      [ "Other Scripts", "md_scripts_2README.html#autotoc_md670", null ]
     ] ],
     [ "Deprecated List", "deprecated.html", null ],
     [ "Todo List", "todo.html", null ],
@@ -954,34 +956,34 @@ var NAVTREEINDEX =
 "main_8mm.html#a0ddf1224851353fc92bfbff6f499fa97",
 "md_docs_2C1-changelog.html#autotoc_md238",
 "md_docs_2F1-overworld-loading.html#autotoc_md488",
-"message__test_8cc.html#a6d71d9de972061c7d1161f2fe211f268",
-"namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa29f266fe9c0da014314bf7c6a9b2a7a6",
-"namespaceyaze_1_1emu.html#a7ee6d65c178e28558735b7004a10939f",
-"namespaceyaze_1_1gfx_1_1lc__lz2.html#aca073ea2dad8ca6982fc1f2c5f0087fa",
-"namespaceyaze_1_1test.html#a1d4f52d80655b1676331942aa4bfdb5e",
-"namespaceyaze_1_1test.html#aa4190497f642202f0b9c8f0191cfbae5",
-"namespaceyaze_1_1zelda3.html#a128cf7051a6ae5627ee49c88d6ecce26",
-"namespaceyaze_1_1zelda3.html#a708ddae39f56af4b374bac3b0e381078",
-"namespaceyaze_1_1zelda3.html#afa5b4d1cfe21749d9483f75ea0f530e5",
-"overworld__entrance_8h.html#a878727135e8e89c736977b9433e14d12",
-"project_8cc.html#ab275661a03c76657529623faa3f23c55",
-"room__entrance_8h.html#ad635e10bd8849bafaffb6b341a6b6868",
-"snes__tile_8cc.html#a2ac2c8b176a65259c394aac54d1e69b1",
-"structyaze_1_1app_1_1core_1_1AsarSymbol.html#a0d2f2b5564d4d5644708d239684f070f",
-"structyaze_1_1core_1_1YazeProject.html#a786bb2bd1ffba5f39ed8dcf67a78edd5",
-"structyaze_1_1editor_1_1MessagePreview.html#a0a9cceefe41e29be6083eed6cbd52806",
-"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a34b5603a8f27d08f4dd8d18bc2be8621",
-"structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458",
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a71343a7192fd3c98f9d702b0fbe75297",
-"structyaze_1_1emu_1_1TilemapEntry.html#aeaae6fd5cdc2906a4c8d3ac7f23047b3",
-"structyaze_1_1gfx_1_1PaletteGroupMap.html#a0307804b9ad3b7056d9ca4244c2ca89e",
-"structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html",
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a4af4ab559e54c07bb957760c3db317ec",
-"structyaze_1_1util_1_1HexStringParams.html#a3a2cdc8be447566a12b848f9c9f57004",
-"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#af73446fd5f2f4a239c05b0be50ac5938",
-"structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html#a183949f4ac149aba3fb13cace719a684",
-"structzelda3__overworld__map.html#a267d4b76724ef6d176ea3ec868bf3ae8",
-"tracker_8h.html#a032e72a0b674908fa76224e18868bc8b"
+"message__test_8cc.html#a6617f39d3e025ff4550f1072286ebaad",
+"namespaceyaze_1_1editor.html#a28e182935875ab860647de94276b9fdb",
+"namespaceyaze_1_1emu.html#a7a0ddab1f520f694d9b745feaada86e4",
+"namespaceyaze_1_1gfx_1_1lc__lz2.html#ac48322089225baf0b427da97593ad539",
+"namespaceyaze_1_1test.html#a1b3b5588dd1335cf22507e4a13545bf9",
+"namespaceyaze_1_1test.html#aa388d5cbc46233de740a2b0854d712dc",
+"namespaceyaze_1_1zelda3.html#a0f5bf8e13693931a0bd0e77f373168e3",
+"namespaceyaze_1_1zelda3.html#a7075b3151832c9db6534ea1829693f0c",
+"namespaceyaze_1_1zelda3.html#af812072de350961507c459417f9080e0",
+"overworld__entrance_8h.html#a68adf6fe4308d3ef799a9c5f67b170ea",
+"project_8cc.html#a0369272ce2752af89286d11b1477d29c",
+"room__entrance_8h.html#aca63e600c9d70992849bc376f7502c93",
+"snes__tile_8cc.html",
+"structyaze_1_1app_1_1core_1_1AsarSymbol.html",
+"structyaze_1_1core_1_1YazeProject.html#a75ceba7f6ff22f2b3b2148ab1eb08925",
+"structyaze_1_1editor_1_1MessagePreview.html",
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a32432d22b18af188414e828c430dad5b",
+"structyaze_1_1emu_1_1CpuCallbacks.html#a43f692c1bc53c498e49d4d81a75bdb29",
+"structyaze_1_1emu_1_1MaskLogicSettings.html#a2e5c57c40b3a1ac4ea80bc085268a720",
+"structyaze_1_1emu_1_1TilemapEntry.html#ad026284453b5909eb3899f838003a1eb",
+"structyaze_1_1gfx_1_1PaletteGroupMap.html",
+"structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html#ae2308236555ca37cd645dc7518d18ace",
+"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a3fddd2aa7a671a19ee13b8a08e8aed22",
+"structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157",
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a9edc834870f6ee5ccdf8024aee8ee5f4",
+"structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html",
+"structzelda3__overworld__map.html#a115a98fc6233b0159962ae4dcaced330",
+"tracker_8cc_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

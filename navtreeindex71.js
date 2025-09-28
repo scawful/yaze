@@ -1,5 +1,7 @@
 var NAVTREEINDEX71 =
 {
+"structyaze_1_1emu_1_1CpuCallbacks.html#a43f692c1bc53c498e49d4d81a75bdb29":[28,0,6,4,24,0],
+"structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458":[28,0,6,4,24,1],
 "structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458":[29,0,0,4,22,1],
 "structyaze_1_1emu_1_1DmaChannel.html":[29,0,0,4,23],
 "structyaze_1_1emu_1_1DmaChannel.html":[28,0,6,4,25],
@@ -247,7 +249,5 @@ var NAVTREEINDEX71 =
 "structyaze_1_1emu_1_1MainSubScreenDesignation.html#aeecf10d7c491e3936bd881fdd9ba623a":[28,0,6,4,43,0],
 "structyaze_1_1emu_1_1MaskLogicSettings.html":[29,0,0,4,42],
 "structyaze_1_1emu_1_1MaskLogicSettings.html":[28,0,6,4,44],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a2e5c57c40b3a1ac4ea80bc085268a720":[29,0,0,4,42,1],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a2e5c57c40b3a1ac4ea80bc085268a720":[28,0,6,4,44,1],
-"structyaze_1_1emu_1_1MaskLogicSettings.html#a71343a7192fd3c98f9d702b0fbe75297":[29,0,0,4,42,0]
+"structyaze_1_1emu_1_1MaskLogicSettings.html#a2e5c57c40b3a1ac4ea80bc085268a720":[29,0,0,4,42,1]
 };

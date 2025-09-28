@@ -1,5 +1,7 @@
 var NAVTREEINDEX77 =
 {
+"structyaze_1_1util_1_1HexStringParams.html#a086adb2b974d1169bf92573083d7d157":[28,0,6,8,5,2],
+"structyaze_1_1util_1_1HexStringParams.html#a3a2cdc8be447566a12b848f9c9f57004":[29,0,0,8,3,1],
 "structyaze_1_1util_1_1HexStringParams.html#a3a2cdc8be447566a12b848f9c9f57004":[28,0,6,8,5,1],
 "structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589d":[29,0,0,8,3,0],
 "structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589d":[28,0,6,8,5,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX77 =
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a85361e55d816db5c7705a5c8df303a6c":[29,0,0,9,11,1,6],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a8ee7e8acc7d686d2d9f8928dfb55cc55":[28,0,6,9,16,1,4],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a8ee7e8acc7d686d2d9f8928dfb55cc55":[29,0,0,9,11,1,4],
-"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a9edc834870f6ee5ccdf8024aee8ee5f4":[28,0,6,9,16,1,2],
-"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a9edc834870f6ee5ccdf8024aee8ee5f4":[29,0,0,9,11,1,2],
-"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#af73446fd5f2f4a239c05b0be50ac5938":[28,0,6,9,16,1,1]
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a9edc834870f6ee5ccdf8024aee8ee5f4":[28,0,6,9,16,1,2]
 };

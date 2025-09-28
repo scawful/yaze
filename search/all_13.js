@@ -8,7 +8,7 @@ var searchData=
   ['jp_5',['JP',['../group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561',1,'zelda.h']]],
   ['jp_5fconf_5fconfig_6',['jp_conf_config',['../structyaze_1_1core_1_1FontConfig.html#a08be7958e34ba664879229db15a29d31',1,'yaze::core::FontConfig']]],
   ['jsl_7',['JSL',['../classyaze_1_1emu_1_1Cpu.html#aeb2f8f2dbdca99dc8e45058571cabdb8',1,'yaze::emu::Cpu']]],
-  ['json_20manifest_8',['vcpkg.json Manifest',['../md_docs_2vcpkg-integration.html#autotoc_md522',1,'']]],
+  ['json_20manifest_8',['vcpkg.json Manifest',['../md_docs_2vcpkg-integration.html#autotoc_md523',1,'']]],
   ['jsr_9',['JSR',['../classyaze_1_1emu_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::emu::Cpu']]],
   ['july_202024_10',['0.2.0 (July 2024)',['../md_docs_2C1-changelog.html#autotoc_md242',1,'']]],
   ['jump_5fto_5ftab_11',['jump_to_tab',['../classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9',1,'yaze::editor::OverworldEditor']]],

@@ -1,5 +1,7 @@
 var NAVTREEINDEX70 =
 {
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a32432d22b18af188414e828c430dad5b":[28,0,6,3,8,5,27],
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a34b5603a8f27d08f4dd8d18bc2be8621":[28,0,6,3,8,5,16],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a34b5603a8f27d08f4dd8d18bc2be8621":[29,0,0,3,2,5,16],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e5876e61573a96c1028a15774cdc906":[28,0,6,3,8,5,22],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e5876e61573a96c1028a15774cdc906":[29,0,0,3,2,5,22],
@@ -247,7 +249,5 @@ var NAVTREEINDEX70 =
 "structyaze_1_1emu_1_1CpuCallbacks.html":[28,0,6,4,24],
 "structyaze_1_1emu_1_1CpuCallbacks.html#a15ff9a76d86b1e0faa561539b0aa6e5f":[28,0,6,4,24,2],
 "structyaze_1_1emu_1_1CpuCallbacks.html#a15ff9a76d86b1e0faa561539b0aa6e5f":[29,0,0,4,22,2],
-"structyaze_1_1emu_1_1CpuCallbacks.html#a43f692c1bc53c498e49d4d81a75bdb29":[29,0,0,4,22,0],
-"structyaze_1_1emu_1_1CpuCallbacks.html#a43f692c1bc53c498e49d4d81a75bdb29":[28,0,6,4,24,0],
-"structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458":[28,0,6,4,24,1]
+"structyaze_1_1emu_1_1CpuCallbacks.html#a43f692c1bc53c498e49d4d81a75bdb29":[29,0,0,4,22,0]
 };

@@ -273,8 +273,8 @@ Visual Studio (Windows)</h2>
 <p><b>Recommended approach:</b> </p><div class="fragment"><div class="line"># Setup development environment</div>
 <div class="line">.\scripts\setup-windows-dev.ps1</div>
 <div class="line"> </div>
-<div class="line"># Generate Visual Studio project files</div>
-<div class="line">.\scripts\generate-vs-projects.ps1</div>
+<div class="line"># Generate Visual Studio project files (with proper vcpkg integration)</div>
+<div class="line">python scripts/generate-vs-projects.py</div>
 <div class="line"> </div>
 <div class="line"># Open YAZE.sln in Visual Studio 2022</div>
 <div class="line"># Select configuration (Debug/Release) and platform (x64/x86/ARM64)</div>
@@ -282,9 +282,10 @@ Visual Studio (Windows)</h2>
 </div><!-- fragment --><p><b>Features:</b></p><ul>
 <li>Full IntelliSense support</li>
 <li>Integrated debugging</li>
-<li>vcpkg dependency management</li>
+<li>Automatic vcpkg dependency management (zlib, libpng, SDL2)</li>
 <li>Multi-platform support (x64, x86, ARM64)</li>
 <li>Automatic asset copying</li>
+<li>Generated project files stay in sync with CMake configuration</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md33"></a>
 VS Code</h2>
@@ -321,7 +322,7 @@ Setup Scripts</h2>
 <h2><a class="anchor" id="autotoc_md38"></a>
 Project Generation Scripts</h2>
 <ul>
-<li>**<code>generate-vs-projects.ps1</code>**: Generate Visual Studio project files</li>
+<li>**<code><a class="el" href="generate-vs-projects_8py.html">generate-vs-projects.py</a></code>**: Generate Visual Studio project files with proper vcpkg integration</li>
 <li>**<code>generate-vs-projects.bat</code>**: Batch version of project generation</li>
 </ul>
 <p><b>Features:</b></p><ul>

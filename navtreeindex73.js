@@ -1,5 +1,7 @@
 var NAVTREEINDEX73 =
 {
+"structyaze_1_1emu_1_1TilemapEntry.html#ad026284453b5909eb3899f838003a1eb":[29,0,0,4,75,1],
+"structyaze_1_1emu_1_1TilemapEntry.html#aeaae6fd5cdc2906a4c8d3ac7f23047b3":[29,0,0,4,75,3],
 "structyaze_1_1emu_1_1TilemapEntry.html#aeaae6fd5cdc2906a4c8d3ac7f23047b3":[28,0,6,4,77,3],
 "structyaze_1_1emu_1_1Timer.html":[28,0,6,4,79],
 "structyaze_1_1emu_1_1Timer.html":[29,0,0,4,77],
@@ -247,7 +249,5 @@ var NAVTREEINDEX73 =
 "structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb":[29,0,0,5,10,2],
 "structyaze_1_1gfx_1_1PaletteGroup.html#afa676ebbdcba9304ec77b572a2a218c4":[28,0,6,5,12,1],
 "structyaze_1_1gfx_1_1PaletteGroup.html#afa676ebbdcba9304ec77b572a2a218c4":[29,0,0,5,10,1],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html":[28,0,6,5,13],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html":[29,0,0,5,11],
-"structyaze_1_1gfx_1_1PaletteGroupMap.html#a0307804b9ad3b7056d9ca4244c2ca89e":[28,0,6,5,13,4]
+"structyaze_1_1gfx_1_1PaletteGroupMap.html":[28,0,6,5,13]
 };

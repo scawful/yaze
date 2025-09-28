@@ -1,5 +1,7 @@
 var NAVTREEINDEX80 =
 {
+"structzelda3__overworld__map.html#a115a98fc6233b0159962ae4dcaced330":[27,4,0,13],
+"structzelda3__overworld__map.html#a139cda4f68e55f501035760a6d0e001f":[27,4,0,6],
 "structzelda3__overworld__map.html#a267d4b76724ef6d176ea3ec868bf3ae8":[27,4,0,10],
 "structzelda3__overworld__map.html#a4767b0adf8082eae18947b1cdebc49d8":[27,4,0,1],
 "structzelda3__overworld__map.html#a4f9c9b7dc820bcafe8d864e809678ff4":[27,4,0,7],
@@ -247,7 +249,5 @@ var NAVTREEINDEX80 =
 "todo.html":[25],
 "topics.html":[27],
 "tracker_8cc.html":[30,0,3,0,6,1,0],
-"tracker_8cc.html#a57c95bb79e56737d2e3e30296e409617":[30,0,3,0,6,1,0,0],
-"tracker_8cc_source.html":[30,0,3,0,6,1,0],
-"tracker_8h.html":[30,0,3,0,6,1,1]
+"tracker_8cc.html#a57c95bb79e56737d2e3e30296e409617":[30,0,3,0,6,1,0,0]
 };

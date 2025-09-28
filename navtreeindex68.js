@@ -1,5 +1,7 @@
 var NAVTREEINDEX68 =
 {
+"structyaze_1_1core_1_1YazeProject.html#a75ceba7f6ff22f2b3b2148ab1eb08925":[29,0,0,2,16,38],
+"structyaze_1_1core_1_1YazeProject.html#a786bb2bd1ffba5f39ed8dcf67a78edd5":[28,0,6,2,18,40],
 "structyaze_1_1core_1_1YazeProject.html#a786bb2bd1ffba5f39ed8dcf67a78edd5":[29,0,0,2,16,40],
 "structyaze_1_1core_1_1YazeProject.html#a7afa65e90c74ab2130c27795c506af2b":[28,0,6,2,18,11],
 "structyaze_1_1core_1_1YazeProject.html#a7afa65e90c74ab2130c27795c506af2b":[29,0,0,2,16,11],
@@ -247,7 +249,5 @@ var NAVTREEINDEX68 =
 "structyaze_1_1editor_1_1MessageData.html#adfcb89fbcb52ef8138a3c2a85d953b28":[29,0,0,3,29,4],
 "structyaze_1_1editor_1_1MessageData.html#ae25062204179c0fc1e800dbe98ef60d0":[29,0,0,3,29,1],
 "structyaze_1_1editor_1_1MessageData.html#ae25062204179c0fc1e800dbe98ef60d0":[28,0,6,3,35,1],
-"structyaze_1_1editor_1_1MessagePreview.html":[29,0,0,3,31],
-"structyaze_1_1editor_1_1MessagePreview.html":[28,0,6,3,37],
-"structyaze_1_1editor_1_1MessagePreview.html#a0a9cceefe41e29be6083eed6cbd52806":[29,0,0,3,31,13]
+"structyaze_1_1editor_1_1MessagePreview.html":[29,0,0,3,31]
 };

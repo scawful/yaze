@@ -112,7 +112,8 @@ Overview</h1>
 Features</h1>
 <ul>
 <li><b>Manifest Mode</b>: Dependencies are automatically managed via <code>vcpkg.json</code></li>
-<li><b>Visual Studio Integration</b>: Seamless integration with Visual Studio 2019+</li>
+<li><b>Visual Studio Integration</b>: Seamless integration with Visual Studio 2022</li>
+<li><b>Generated Project Files</b>: Visual Studio project files with proper vcpkg integration</li>
 <li><b>CMake Presets</b>: Pre-configured build presets for Windows</li>
 <li><b>Automatic Setup</b>: Setup scripts for easy vcpkg installation</li>
 </ul>
@@ -120,13 +121,22 @@ Features</h1>
 Quick Start</h1>
 <h2><a class="anchor" id="autotoc_md519"></a>
 1. Setup vcpkg</h2>
-<p>Run the automated setup script: </p><div class="fragment"><div class="line"># Command Prompt</div>
-<div class="line">scripts\setup-vcpkg-windows.bat</div>
+<p>Run the automated setup script: </p><div class="fragment"><div class="line"># PowerShell (recommended)</div>
+<div class="line">.\scripts\setup-windows-dev.ps1</div>
+</div><!-- fragment --><p>This will:</p><ul>
+<li>Set up vcpkg</li>
+<li>Install dependencies (zlib, libpng, SDL2)</li>
+<li>Generate Visual Studio project files with proper vcpkg integration</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md520"></a>
+2. Build with Visual Studio</h2>
+<div class="fragment"><div class="line"># Generate project files (if not already done)</div>
+<div class="line">python scripts/generate-vs-projects.py</div>
 <div class="line"> </div>
-<div class="line"># PowerShell</div>
-<div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md520"></a>
-2. Build with vcpkg</h2>
+<div class="line"># Open YAZE.sln in Visual Studio 2022</div>
+<div class="line"># Select configuration and platform, then build</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md521"></a>
+3. Alternative: Build with CMake</h2>
 <p>Use the Windows presets in CMakePresets.json:</p>
 <div class="fragment"><div class="line"># Debug build</div>
 <div class="line">cmake --preset windows-debug</div>
@@ -135,23 +145,33 @@ Quick Start</h1>
 <div class="line"># Release build</div>
 <div class="line">cmake --preset windows-release</div>
 <div class="line">cmake --build build --preset windows-release</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md521"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md522"></a>
 Configuration Details</h1>
-<h2><a class="anchor" id="autotoc_md522"></a>
+<h2><a class="anchor" id="autotoc_md523"></a>
 vcpkg.json Manifest</h2>
 <p>The <code>vcpkg.json</code> file defines all dependencies:</p>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;name&quot;: &quot;yaze&quot;,</div>
 <div class="line">  &quot;version&quot;: &quot;0.3.1&quot;,</div>
+<div class="line">  &quot;description&quot;: &quot;Yet Another Zelda3 Editor&quot;,</div>
 <div class="line">  &quot;dependencies&quot;: [</div>
-<div class="line">    &quot;zlib&quot;,</div>
-<div class="line">    &quot;libpng&quot;, </div>
-<div class="line">    &quot;sdl2&quot;,</div>
-<div class="line">    &quot;abseil&quot;,</div>
-<div class="line">    &quot;gtest&quot;</div>
-<div class="line">  ]</div>
+<div class="line">    {</div>
+<div class="line">      &quot;name&quot;: &quot;zlib&quot;,</div>
+<div class="line">      &quot;platform&quot;: &quot;!uwp&quot;</div>
+<div class="line">    },</div>
+<div class="line">    {</div>
+<div class="line">      &quot;name&quot;: &quot;libpng&quot;,</div>
+<div class="line">      &quot;platform&quot;: &quot;!uwp&quot;</div>
+<div class="line">    },</div>
+<div class="line">    {</div>
+<div class="line">      &quot;name&quot;: &quot;sdl2&quot;,</div>
+<div class="line">      &quot;platform&quot;: &quot;!uwp&quot;,</div>
+<div class="line">      &quot;features&quot;: [&quot;vulkan&quot;]</div>
+<div class="line">    }</div>
+<div class="line">  ],</div>
+<div class="line">  &quot;builtin-baseline&quot;: &quot;2024.12.12&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md523"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md524"></a>
 CMake Configuration</h2>
 <p>vcpkg integration is handled in several files:</p>
 <ul>
@@ -159,44 +179,44 @@ CMake Configuration</h2>
 <li><b>cmake/vcpkg.cmake</b>: vcpkg-specific settings</li>
 <li><b>CMakePresets.json</b>: Windows build presets</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md524"></a>
+<h2><a class="anchor" id="autotoc_md525"></a>
 Build Presets</h2>
 <p>Available Windows presets:</p>
 <ul>
 <li><code>windows-debug</code>: Debug build with vcpkg</li>
 <li><code>windows-release</code>: Release build with vcpkg</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md525"></a>
+<h1><a class="anchor" id="autotoc_md526"></a>
 Dependencies</h1>
 <p>vcpkg automatically installs these dependencies:</p>
 <ul>
 <li><b>zlib</b>: Compression library</li>
-<li><b>libpng</b>: PNG image support</li>
-<li><b>sdl2</b>: Graphics and input handling</li>
-<li><b>abseil</b>: Google's C++ common libraries</li>
-<li><b>gtest</b>: Google Test framework (with gmock)</li>
+<li><b>libpng</b>: PNG image support <br  />
+</li>
+<li><b>sdl2</b>: Graphics and input handling (with Vulkan support)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md526"></a>
+<p><b>Note</b>: Abseil and gtest are now built from source via CMake rather than through vcpkg to avoid compatibility issues.</p>
+<h1><a class="anchor" id="autotoc_md527"></a>
 Environment Variables</h1>
 <p>Set <code>VCPKG_ROOT</code> to point to your vcpkg installation:</p>
 <div class="fragment"><div class="line">set VCPKG_ROOT=C:\path\to\vcpkg</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md527"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md528"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md528"></a>
+<h2><a class="anchor" id="autotoc_md529"></a>
 Common Issues</h2>
 <ol type="1">
 <li><b>vcpkg not found</b>: Ensure <code>VCPKG_ROOT</code> is set or vcpkg is in the project directory</li>
 <li><b>Dependencies not installing</b>: Check internet connection and vcpkg bootstrap</li>
 <li><b>Visual Studio integration</b>: Run <code>vcpkg integrate install</code> from vcpkg directory</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md529"></a>
+<h2><a class="anchor" id="autotoc_md530"></a>
 Manual Setup</h2>
 <p>If automated setup fails:</p>
 <div class="fragment"><div class="line">git clone https://github.com/Microsoft/vcpkg.git</div>
 <div class="line">cd vcpkg</div>
 <div class="line">.\bootstrap-vcpkg.bat</div>
 <div class="line">.\vcpkg.exe integrate install</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md530"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md531"></a>
 Benefits</h1>
 <ul>
 <li><b>Consistent Dependencies</b>: Same versions across development environments</li>
@@ -205,13 +225,13 @@ Benefits</h1>
 <li><b>Visual Studio Integration</b>: Native IntelliSense support</li>
 <li><b>No Manual Downloads</b>: Automatic dependency resolution</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md531"></a>
+<h1><a class="anchor" id="autotoc_md532"></a>
 Advanced Usage</h1>
-<h2><a class="anchor" id="autotoc_md532"></a>
+<h2><a class="anchor" id="autotoc_md533"></a>
 Custom Triplets</h2>
 <p>Override the default x64-windows triplet:</p>
 <div class="fragment"><div class="line">cmake --preset windows-debug -DVCPKG_TARGET_TRIPLET=x86-windows</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md533"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md534"></a>
 Static Linking</h2>
 <p>For static builds, modify <code>cmake/vcpkg.cmake</code>:</p>
 <div class="fragment"><div class="line">set(VCPKG_LIBRARY_LINKAGE static)</div>

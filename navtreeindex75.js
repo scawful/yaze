@@ -1,5 +1,7 @@
 var NAVTREEINDEX75 =
 {
+"structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html#ae2308236555ca37cd645dc7518d18ace":[29,0,0,6,0,0,6],
+"structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html":[29,0,0,6,5,0],
 "structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html":[28,0,6,6,7,0],
 "structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html#a4a78d793fbcc90a00a7c86062d596ddc":[28,0,6,6,7,0,2],
 "structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html#a4a78d793fbcc90a00a7c86062d596ddc":[29,0,0,6,5,0,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX75 =
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a26f6e0257c247faeba68a113d1406514":[28,0,6,6,18,20],
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a3dd4034a7413ec8239c99bcd96a770e6":[29,0,0,6,16,21],
 "structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a3dd4034a7413ec8239c99bcd96a770e6":[28,0,6,6,18,21],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a3fddd2aa7a671a19ee13b8a08e8aed22":[28,0,6,6,18,23],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a3fddd2aa7a671a19ee13b8a08e8aed22":[29,0,0,6,16,23],
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a4af4ab559e54c07bb957760c3db317ec":[28,0,6,6,18,10]
+"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a3fddd2aa7a671a19ee13b8a08e8aed22":[28,0,6,6,18,23]
 };

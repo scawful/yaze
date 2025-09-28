@@ -1,5 +1,7 @@
 var NAVTREEINDEX79 =
 {
+"structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html":[29,0,0,9,5,0],
+"structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html#a183949f4ac149aba3fb13cace719a684":[28,0,6,9,10,0,3],
 "structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html#a183949f4ac149aba3fb13cace719a684":[29,0,0,9,5,0,3],
 "structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html#a1ad0b4ba07184694611dded029bbc802":[29,0,0,9,5,0,2],
 "structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html#a1ad0b4ba07184694611dded029bbc802":[28,0,6,9,10,0,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX79 =
 "structzelda3__overworld.html#ac42571b5a8703b39deeb00f6d9f043c2":[27,4,1,3],
 "structzelda3__overworld.html#adea43a2d4d987e4e9c742b68f1df487b":[27,4,1,1],
 "structzelda3__overworld__map.html":[27,4,0],
-"structzelda3__overworld__map.html#a0db023b5c0dbeff379f067af37616380":[27,4,0,14],
-"structzelda3__overworld__map.html#a115a98fc6233b0159962ae4dcaced330":[27,4,0,13],
-"structzelda3__overworld__map.html#a139cda4f68e55f501035760a6d0e001f":[27,4,0,6]
+"structzelda3__overworld__map.html#a0db023b5c0dbeff379f067af37616380":[27,4,0,14]
 };

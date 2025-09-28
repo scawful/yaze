@@ -1,5 +1,7 @@
 var NAVTREEINDEX62 =
 {
+"namespaceyaze_1_1zelda3.html#af812072de350961507c459417f9080e0":[28,0,6,9,97],
+"namespaceyaze_1_1zelda3.html#afa47b9b687860f758b9b7b9c1acb91f6":[28,0,6,9,252],
 "namespaceyaze_1_1zelda3.html#afa5b4d1cfe21749d9483f75ea0f530e5":[28,0,6,9,448],
 "namespaceyaze_1_1zelda3.html#afa92b4b6666248e89fc92e119fa91647":[28,0,6,9,322],
 "namespaceyaze_1_1zelda3.html#afadca5ab4c613870ade817abe2b4970d":[28,0,6,9,304],
@@ -247,7 +249,5 @@ var NAVTREEINDEX62 =
 "overworld__entrance_8h.html#a4e561e2b049765cf7ae2b321a7d6a45a":[30,0,3,0,6,2,2,30],
 "overworld__entrance_8h.html#a4f471073984401fbe8803ccfa38e8b52":[30,0,3,0,6,2,2,15],
 "overworld__entrance_8h.html#a5f1a2aadc67e77512147eed8d2c7081a":[30,0,3,0,6,2,2,8],
-"overworld__entrance_8h.html#a619256c4d4c99314410810075c2451d0":[30,0,3,0,6,2,2,41],
-"overworld__entrance_8h.html#a68adf6fe4308d3ef799a9c5f67b170ea":[30,0,3,0,6,2,2,24],
-"overworld__entrance_8h.html#a7c7f8613eefb3d91b45e9e05f25c2ccd":[30,0,3,0,6,2,2,5]
+"overworld__entrance_8h.html#a619256c4d4c99314410810075c2451d0":[30,0,3,0,6,2,2,41]
 };

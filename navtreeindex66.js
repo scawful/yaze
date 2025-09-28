@@ -1,5 +1,7 @@
 var NAVTREEINDEX66 =
 {
+"snes__tile_8cc.html":[30,0,3,0,3,14],
+"snes__tile_8cc.html#a14d88ea53c85352a630e25486a7f2661":[30,0,3,0,3,14,10],
 "snes__tile_8cc.html#a2ac2c8b176a65259c394aac54d1e69b1":[30,0,3,0,3,14,14],
 "snes__tile_8cc.html#a2c16b75ec37361c49e2e651554e44fdb":[30,0,3,0,3,14,13],
 "snes__tile_8cc.html#a3d42dbaf6fa57c5ad4da5b02154ce7c9":[30,0,3,0,3,14,9],
@@ -247,7 +249,5 @@ var NAVTREEINDEX66 =
 "structyaze_1_1app_1_1core_1_1AsarPatchResult.html#adeb84f515f3c79886fe4101515562132":[28,0,6,0,0,1,3],
 "structyaze_1_1app_1_1core_1_1AsarPatchResult.html#afc5edf72774c8587087c727414fcaeda":[29,0,0,0,0,1,1],
 "structyaze_1_1app_1_1core_1_1AsarPatchResult.html#afc5edf72774c8587087c727414fcaeda":[28,0,6,0,0,1,1],
-"structyaze_1_1app_1_1core_1_1AsarSymbol.html":[29,0,0,0,0,2],
-"structyaze_1_1app_1_1core_1_1AsarSymbol.html":[28,0,6,0,0,2],
-"structyaze_1_1app_1_1core_1_1AsarSymbol.html#a0d2f2b5564d4d5644708d239684f070f":[28,0,6,0,0,2,4]
+"structyaze_1_1app_1_1core_1_1AsarSymbol.html":[29,0,0,0,0,2]
 };

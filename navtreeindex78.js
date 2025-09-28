@@ -1,5 +1,7 @@
 var NAVTREEINDEX78 =
 {
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a9edc834870f6ee5ccdf8024aee8ee5f4":[29,0,0,9,11,1,2],
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#af73446fd5f2f4a239c05b0be50ac5938":[28,0,6,9,16,1,1],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#af73446fd5f2f4a239c05b0be50ac5938":[29,0,0,9,11,1,1],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState.html":[29,0,0,9,11,2],
 "structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState.html":[28,0,6,9,16,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX78 =
 "structyaze_1_1zelda3_1_1ScrollWheelConfig.html#ae15e006a690553dd7a49b722ebd0e012":[28,0,6,9,46,0],
 "structyaze_1_1zelda3_1_1ScrollWheelConfig.html#afc7c627198cfc9edb9718ca22fb4ec35":[28,0,6,9,46,3],
 "structyaze_1_1zelda3_1_1ScrollWheelConfig.html#afc7c627198cfc9edb9718ca22fb4ec35":[29,0,0,9,41,3],
-"structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html":[28,0,6,9,10,0],
-"structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html":[29,0,0,9,5,0],
-"structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html#a183949f4ac149aba3fb13cace719a684":[28,0,6,9,10,0,3]
+"structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html":[28,0,6,9,10,0]
 };
