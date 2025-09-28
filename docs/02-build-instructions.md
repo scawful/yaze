@@ -21,8 +21,8 @@ cmake --build build
 # Automated setup (first time only)
 .\scripts\setup-windows-dev.ps1
 
-# Generate Visual Studio projects
-.\scripts\generate-vs-projects.ps1
+# Generate Visual Studio projects (with proper vcpkg integration)
+python scripts/generate-vs-projects.py
 
 # Or use CMake directly
 cmake --preset windows-debug
@@ -74,8 +74,8 @@ The project includes comprehensive setup scripts for Windows development:
 # Complete development environment setup
 .\scripts\setup-windows-dev.ps1
 
-# Generate Visual Studio project files
-.\scripts\generate-vs-projects.ps1
+# Generate Visual Studio project files (with proper vcpkg integration)
+python scripts/generate-vs-projects.py
 
 # Test CMake configuration
 .\scripts\test-cmake-config.ps1
@@ -120,9 +120,9 @@ set VCPKG_ROOT=%CD%
 **Dependencies (vcpkg.json):**
 - zlib (compression)
 - libpng (PNG support)
-- sdl2 (graphics/input)
-- abseil (Google C++ libraries)
-- gtest (testing framework)
+- sdl2 (graphics/input with Vulkan support)
+
+**Note**: Abseil and gtest are built from source via CMake rather than through vcpkg to avoid compatibility issues.
 
 #### Windows Build Commands
 
@@ -143,8 +143,8 @@ cmake --build build --preset windows-release
 
 **Using Visual Studio Projects:**
 ```powershell
-# Generate project files
-.\scripts\generate-vs-projects.ps1
+# Generate project files (with proper vcpkg integration)
+python scripts/generate-vs-projects.py
 
 # Open YAZE.sln in Visual Studio
 # Select configuration (Debug/Release) and platform (x64/x86/ARM64)
@@ -213,7 +213,7 @@ python scripts/generate-vs-projects.py
 - Full IntelliSense support
 - Integrated debugging
 - Automatic vcpkg dependency management (zlib, libpng, SDL2)
-- Multi-platform support (x64, x86, ARM64)
+- Multi-platform support (x64, ARM64)
 - Automatic asset copying
 - Generated project files stay in sync with CMake configuration
 
@@ -253,7 +253,7 @@ The project includes several PowerShell and Batch scripts to streamline Windows 
 **Features:**
 - Automatic CMake detection and installation
 - Visual Studio 2022 detection
-- Multi-architecture support (x64, x86, ARM64)
+- Multi-architecture support (x64, ARM64)
 - vcpkg integration
 - CMake compatibility fixes
 
@@ -307,6 +307,41 @@ cmake -B build \
   -DCMAKE_BUILD_TYPE=Debug
 ```
 
+## CI/CD and Release Builds
+
+### GitHub Actions Workflows
+
+The project includes three release workflows with different levels of complexity:
+
+- **`release-simplified.yml`**: Fast, basic release builds
+- **`release.yml`**: Standard release builds with fallback mechanisms
+- **`release-complex.yml`**: Comprehensive release builds with multiple fallback strategies
+
+### vcpkg Fallback Mechanisms
+
+All Windows CI/CD builds include automatic fallback mechanisms:
+
+**When vcpkg succeeds:**
+- Full build with all dependencies (zlib, libpng, SDL2)
+- Complete feature set available
+
+**When vcpkg fails (network issues):**
+- Automatic fallback to minimal build configuration
+- Uses source-built dependencies (Abseil, etc.)
+- Still produces functional executables
+
+### Supported Architectures
+
+**Windows:**
+- x64 (64-bit) - Primary target for modern systems
+- ARM64 - For ARM-based Windows devices (Surface Pro X, etc.)
+
+**macOS:**
+- Universal binary (Apple Silicon + Intel)
+
+**Linux:**
+- x64 (64-bit)
+
 ## Troubleshooting
 
 ### Windows CMake Issues
@@ -348,17 +383,34 @@ cmake --preset windows-debug
 vcpkg version
 
 # Reinstall dependencies
-vcpkg install --triplet x64-windows zlib libpng sdl2 abseil gtest
+vcpkg install --triplet x64-windows zlib libpng sdl2
 
 # Check installed packages
 vcpkg list
 ```
+
+**Network/Download Failures:**
+- The CI/CD workflows automatically fall back to minimal builds
+- For local development, ensure stable internet connection
+- If vcpkg consistently fails, use minimal build mode:
+  ```bash
+  cmake -B build -DYAZE_MINIMAL_BUILD=ON
+  ```
 
 **Visual Studio Integration:**
 ```cmd
 # Re-integrate vcpkg
 cd C:\vcpkg
 .\vcpkg.exe integrate install
+```
+
+**ZLIB or Other Dependencies Not Found:**
+```bash
+# Regenerate project files with proper vcpkg integration
+python scripts/generate-vs-projects.py
+
+# Ensure vcpkg is properly set up
+.\scripts\setup-windows-dev.ps1
 ```
 
 ### Architecture Errors (macOS)
@@ -398,5 +450,10 @@ cmake --build build
 - Ensures proper C++ standard handling
 
 **Visual Studio "file not found" errors:**
-- Run `.\scripts\generate-vs-projects.ps1` to regenerate project files
+- Run `python scripts/generate-vs-projects.py` to regenerate project files
 - Ensure CMake configuration completed successfully first
+
+**CI/CD Build Failures:**
+- Check if vcpkg download failed (network issues)
+- The workflows automatically fall back to minimal builds
+- For persistent issues, check the workflow logs for specific error messages
