@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.1 
+## 0.3.1 (September 2025)
 
 ### Major Features
 - **Complete Tile16 Editor Overhaul**: Professional-grade tile editing with modern UI and advanced capabilities
