@@ -280,9 +280,6 @@
     <ClInclude Include="src\app\editor\system\shortcut_manager.h">
       <Filter>App\Editor\System</Filter>
     </ClInclude>
-    <ClInclude Include="src\app\editor\system\system_editor.h">
-      <Filter>App\Editor\System</Filter>
-    </ClInclude>
     <ClInclude Include="src\app\editor\system\toast_manager.h">
       <Filter>App\Editor\System</Filter>
     </ClInclude>
@@ -579,9 +576,6 @@
       <Filter>App\Editor\System</Filter>
     </ClCompile>
     <ClCompile Include="src\app\editor\system\shortcut_manager.cc">
-      <Filter>App\Editor\System</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\system\system_editor.cc">
       <Filter>App\Editor\System</Filter>
     </ClCompile>
     <ClCompile Include="src\app\gui\canvas.cc">

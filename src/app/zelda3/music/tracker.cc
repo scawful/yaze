@@ -839,7 +839,7 @@ void Tracker::SaveSongs(Rom &rom) {
 
   ZeldaInstrument *zi;
 
-  SampleEdit *sed;
+  SampleEdit *sed = nullptr;
 
   short wtbl[128];
   short x[16];
@@ -1016,11 +1016,11 @@ void Tracker::SaveSongs(Rom &rom) {
               zi->multlo = o;
               zi->multhi = o >> 8;
 
-              if (sed && sed->editinst == m) {
-                sed->init = 1;
-                // SetDlgItemInt(sed->dlg, 3014, o, 0);
-                sed->init = 0;
-              }
+              // if (sed && sed->editinst == m) {
+              //   sed->init = 1;
+              //   // SetDlgItemInt(sed->dlg, 3014, o, 0);
+              //   sed->init = 0;
+              // }
             }
 
             zi++;

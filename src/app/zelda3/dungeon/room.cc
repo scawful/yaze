@@ -681,7 +681,7 @@ void Room::LoadPits() {
   auto rom_data = rom()->vector();
   
   // Load pit data from pit_pointer
-  int pit_count = rom_data[pit_count + 1] << 8 | rom_data[pit_count];
+  // int pit_count = rom_data[pit_count + 1] << 8 | rom_data[pit_count];
   
   // For now, create placeholder pit objects
   // TODO: Implement full pit loading from ROM data
