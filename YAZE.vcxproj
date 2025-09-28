@@ -164,6 +164,31 @@ echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)build-$(Platform)\lib;$(ProjectDir)build-$(Platform)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+        asar-static.lib;
+        absl_strings.lib;
+        absl_base.lib;
+        absl_throw_delegate.lib;
+        absl_raw_logging_internal.lib;
+        absl_log_severity.lib;
+        absl_civil_time.lib;
+        absl_time_zone.lib;
+        SDL2.lib;
+        SDL2main.lib;
+        ImGui.lib;
+        kernel32.lib;
+        user32.lib;
+        gdi32.lib;
+        winspool.lib;
+        shell32.lib;
+        ole32.lib;
+        oleaut32.lib;
+        uuid.lib;
+        comdlg32.lib;
+        advapi32.lib;
+        %(AdditionalDependencies)
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -183,6 +208,31 @@ echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)build-$(Platform)\lib;$(ProjectDir)build-$(Platform)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+        asar-static.lib;
+        absl_strings.lib;
+        absl_base.lib;
+        absl_throw_delegate.lib;
+        absl_raw_logging_internal.lib;
+        absl_log_severity.lib;
+        absl_civil_time.lib;
+        absl_time_zone.lib;
+        SDL2.lib;
+        SDL2main.lib;
+        ImGui.lib;
+        kernel32.lib;
+        user32.lib;
+        gdi32.lib;
+        winspool.lib;
+        shell32.lib;
+        ole32.lib;
+        oleaut32.lib;
+        uuid.lib;
+        comdlg32.lib;
+        advapi32.lib;
+        %(AdditionalDependencies)
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -198,6 +248,31 @@ echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)build-$(Platform)\lib;$(ProjectDir)build-$(Platform)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+        asar-static.lib;
+        absl_strings.lib;
+        absl_base.lib;
+        absl_throw_delegate.lib;
+        absl_raw_logging_internal.lib;
+        absl_log_severity.lib;
+        absl_civil_time.lib;
+        absl_time_zone.lib;
+        SDL2.lib;
+        SDL2main.lib;
+        ImGui.lib;
+        kernel32.lib;
+        user32.lib;
+        gdi32.lib;
+        winspool.lib;
+        shell32.lib;
+        ole32.lib;
+        oleaut32.lib;
+        uuid.lib;
+        comdlg32.lib;
+        advapi32.lib;
+        %(AdditionalDependencies)
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -217,6 +292,31 @@ echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)build-$(Platform)\lib;$(ProjectDir)build-$(Platform)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+        asar-static.lib;
+        absl_strings.lib;
+        absl_base.lib;
+        absl_throw_delegate.lib;
+        absl_raw_logging_internal.lib;
+        absl_log_severity.lib;
+        absl_civil_time.lib;
+        absl_time_zone.lib;
+        SDL2.lib;
+        SDL2main.lib;
+        ImGui.lib;
+        kernel32.lib;
+        user32.lib;
+        gdi32.lib;
+        winspool.lib;
+        shell32.lib;
+        ole32.lib;
+        oleaut32.lib;
+        uuid.lib;
+        comdlg32.lib;
+        advapi32.lib;
+        %(AdditionalDependencies)
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -232,6 +332,31 @@ echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)build-$(Platform)\lib;$(ProjectDir)build-$(Platform)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+        asar-static.lib;
+        absl_strings.lib;
+        absl_base.lib;
+        absl_throw_delegate.lib;
+        absl_raw_logging_internal.lib;
+        absl_log_severity.lib;
+        absl_civil_time.lib;
+        absl_time_zone.lib;
+        SDL2.lib;
+        SDL2main.lib;
+        ImGui.lib;
+        kernel32.lib;
+        user32.lib;
+        gdi32.lib;
+        winspool.lib;
+        shell32.lib;
+        ole32.lib;
+        oleaut32.lib;
+        uuid.lib;
+        comdlg32.lib;
+        advapi32.lib;
+        %(AdditionalDependencies)
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -251,12 +376,37 @@ echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)build-$(Platform)\lib;$(ProjectDir)build-$(Platform)\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+        asar-static.lib;
+        absl_strings.lib;
+        absl_base.lib;
+        absl_throw_delegate.lib;
+        absl_raw_logging_internal.lib;
+        absl_log_severity.lib;
+        absl_civil_time.lib;
+        absl_time_zone.lib;
+        SDL2.lib;
+        SDL2main.lib;
+        ImGui.lib;
+        kernel32.lib;
+        user32.lib;
+        gdi32.lib;
+        winspool.lib;
+        shell32.lib;
+        ole32.lib;
+        oleaut32.lib;
+        uuid.lib;
+        comdlg32.lib;
+        advapi32.lib;
+        %(AdditionalDependencies)
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   
   <!-- CMake Build Target -->
   <Target Name="Build" BeforeTargets="Build">
-    <Exec Command="cmake --build &quot;$(ProjectDir)build-$(Platform)&quot; --config $(Configuration) --target yaze" 
+    <Exec Command="cmake --build &quot;$(ProjectDir)build-$(Platform)&quot; --config $(Configuration) --target asar-static absl_strings absl_base absl_throw_delegate absl_raw_logging_internal absl_log_severity absl_civil_time absl_time_zone SDL2 ImGui" 
           ContinueOnError="false" 
           WorkingDirectory="$(ProjectDir)" />
   </Target>
