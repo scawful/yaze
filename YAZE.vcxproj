@@ -148,7 +148,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -169,7 +169,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -186,7 +186,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -207,7 +207,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -224,7 +224,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -245,7 +245,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -1055,4 +1055,7 @@
   <Import Project="$(VcpkgRoot)\scripts\buildsystems\vcpkg.targets" Condition="Exists('$(VcpkgRoot)\scripts\buildsystems\vcpkg.targets')" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ItemGroup>
+    <PackageReference Include="sdl2" Version="2.28.5" />
+  </ItemGroup>
 </Project>
