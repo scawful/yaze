@@ -2,20 +2,127 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{FOLDER-GUID-SRC}"
+	ProjectSection(SolutionItems) = preProject
+		src\CMakeLists.txt = src\CMakeLists.txt
+		src\yaze.cc = src\yaze.cc
+		src\yaze_config.h.in = src\yaze_config.h.in
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{FOLDER-GUID-APP}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{FOLDER-GUID-API}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cli", "cli", "{FOLDER-GUID-CLI}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{FOLDER-GUID-LIB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "util", "util", "{FOLDER-GUID-UTIL}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "win32", "win32", "{FOLDER-GUID-WIN32}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ios", "ios", "{FOLDER-GUID-IOS}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{FOLDER-GUID-TEST}"
+	ProjectSection(SolutionItems) = preProject
+		test\CMakeLists.txt = test\CMakeLists.txt
+		test\yaze_test.cc = test\yaze_test.cc
+		test\test_utils.h = test\test_utils.h
+		test\testing.h = test\testing.h
+		test\rom_test.cc = test\rom_test.cc
+		test\hex_test.cc = test\hex_test.cc
+		test\test_editor.cc = test\test_editor.cc
+		test\test_editor.h = test\test_editor.h
+		test\dungeon_component_unit_test.cc = test\dungeon_component_unit_test.cc
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cmake", "cmake", "{FOLDER-GUID-CMAKE}"
+	ProjectSection(SolutionItems) = preProject
+		cmake\absl.cmake = cmake\absl.cmake
+		cmake\asar.cmake = cmake\asar.cmake
+		cmake\grpc.cmake = cmake\grpc.cmake
+		cmake\gtest.cmake = cmake\gtest.cmake
+		cmake\imgui.cmake = cmake\imgui.cmake
+		cmake\mingw64.cmake = cmake\mingw64.cmake
+		cmake\packaging.cmake = cmake\packaging.cmake
+		cmake\sdl2.cmake = cmake\sdl2.cmake
+		cmake\vcpkg.cmake = cmake\vcpkg.cmake
+		cmake\yaze.desktop.in = cmake\yaze.desktop.in
+		cmake\yaze.plist.in = cmake\yaze.plist.in
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{FOLDER-GUID-DOCS}"
+	ProjectSection(SolutionItems) = preProject
+		docs\01-getting-started.md = docs\01-getting-started.md
+		docs\02-build-instructions.md = docs\02-build-instructions.md
+		docs\03-asar-integration.md = docs\03-asar-integration.md
+		docs\04-api-reference.md = docs\04-api-reference.md
+		docs\A1-testing-guide.md = docs\A1-testing-guide.md
+		docs\B1-contributing.md = docs\B1-contributing.md
+		docs\B2-platform-compatibility.md = docs\B2-platform-compatibility.md
+		docs\B3-build-presets.md = docs\B3-build-presets.md
+		docs\C1-changelog.md = docs\C1-changelog.md
+		docs\D1-roadmap.md = docs\D1-roadmap.md
+		docs\E1-asm-style-guide.md = docs\E1-asm-style-guide.md
+		docs\E2-dungeon-editor-guide.md = docs\E2-dungeon-editor-guide.md
+		docs\E3-dungeon-editor-design.md = docs\E3-dungeon-editor-design.md
+		docs\E4-dungeon-editor-refactoring.md = docs\E4-dungeon-editor-refactoring.md
+		docs\E5-dungeon-object-system.md = docs\E5-dungeon-object-system.md
+		docs\F1-overworld-loading.md = docs\F1-overworld-loading.md
+		docs\index.md = docs\index.md
+		docs\README.md = docs\README.md
+		docs\vcpkg-integration.md = docs\vcpkg-integration.md
+		docs\vcpkg-triplet-setup.md = docs\vcpkg-triplet-setup.md
+		docs\visual-studio-setup.md = docs\visual-studio-setup.md
+		docs\yaze.org = docs\yaze.org
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{FOLDER-GUID-ASSETS}"
+	ProjectSection(SolutionItems) = preProject
+		assets\yaze.png = assets\yaze.png
+		assets\yaze.icns = assets\yaze.icns
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{FOLDER-GUID-SCRIPTS}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\agent.sh = scripts\agent.sh
+		scripts\create_release.sh = scripts\create_release.sh
+		scripts\extract_changelog.py = scripts\extract_changelog.py
+		scripts\quality_check.sh = scripts\quality_check.sh
+		scripts\setup-vcpkg-windows.bat = scripts\setup-vcpkg-windows.bat
+		scripts\setup-vcpkg-windows.ps1 = scripts\setup-vcpkg-windows.ps1
+		scripts\test_asar_integration.py = scripts\test_asar_integration.py
+		scripts\validate-vs-build.ps1 = scripts\validate-vs-build.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "incl", "incl", "{FOLDER-GUID-INCL}"
+	ProjectSection(SolutionItems) = preProject
+		incl\yaze.h = incl\yaze.h
+		incl\zelda.h = incl\zelda.h
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YAZE", "YAZE.vcxproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM64 = Debug|ARM64
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release|ARM64 = Release|ARM64
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|ARM64.Build.0 = Debug|ARM64
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x64.ActiveCfg = Debug|x64
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x64.Build.0 = Debug|x64
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x86.ActiveCfg = Debug|x86
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|x86.Build.0 = Debug|x86
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|ARM64.ActiveCfg = Release|ARM64
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|ARM64.Build.0 = Release|ARM64
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x64.ActiveCfg = Release|x64
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x64.Build.0 = Release|x64
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|x86.ActiveCfg = Release|x86
@@ -23,6 +130,15 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FOLDER-GUID-APP} = {FOLDER-GUID-SRC}
+		{FOLDER-GUID-API} = {FOLDER-GUID-SRC}
+		{FOLDER-GUID-CLI} = {FOLDER-GUID-SRC}
+		{FOLDER-GUID-LIB} = {FOLDER-GUID-SRC}
+		{FOLDER-GUID-UTIL} = {FOLDER-GUID-SRC}
+		{FOLDER-GUID-WIN32} = {FOLDER-GUID-SRC}
+		{FOLDER-GUID-IOS} = {FOLDER-GUID-SRC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {12345678-1234-5678-9ABC-DEF123456789}
