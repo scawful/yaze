@@ -134,7 +134,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,7 +151,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -168,7 +168,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -185,7 +185,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -202,7 +202,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -219,7 +219,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -230,143 +230,783 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="incl\yaze.h" />
-    <ClInclude Include="incl\zelda.h" />
-    <ClInclude Include="src\app\rom.h" />
-    <ClInclude Include="src\app\snes.h" />
-    <ClInclude Include="src\app\transaction.h" />
-    <ClInclude Include="src\app\core\asar_wrapper.h" />
-    <ClInclude Include="src\app\core\controller.h" />
-    <ClInclude Include="src\app\core\features.h" />
-    <ClInclude Include="src\app\core\project.h" />
-    <ClInclude Include="src\app\core\window.h" />
-    <ClInclude Include="src\app\core\platform\clipboard.h" />
-    <ClInclude Include="src\app\gfx\arena.h" />
-    <ClInclude Include="src\app\gfx\background_buffer.h" />
-    <ClInclude Include="src\app\gfx\bitmap.h" />
-    <ClInclude Include="src\app\gfx\compression.h" />
-    <ClInclude Include="src\app\gfx\scad_format.h" />
-    <ClInclude Include="src\app\gfx\snes_color.h" />
-    <ClInclude Include="src\app\gfx\snes_palette.h" />
-    <ClInclude Include="src\app\gfx\snes_tile.h" />
-    <ClInclude Include="src\app\gfx\tilemap.h" />
-    <ClInclude Include="src\app\editor\editor.h" />
-    <ClInclude Include="src\app\editor\editor_manager.h" />
-    <ClInclude Include="src\app\editor\editor_safeguards.h" />
-    <ClInclude Include="src\app\editor\overworld\overworld_editor.h" />
-    <ClInclude Include="src\app\editor\overworld\overworld_editor_manager.h" />
-    <ClInclude Include="src\app\editor\overworld\map_properties.h" />
-    <ClInclude Include="src\app\editor\overworld\tile16_editor.h" />
-    <ClInclude Include="src\app\editor\graphics\gfx_group_editor.h" />
-    <ClInclude Include="src\app\editor\graphics\graphics_editor.h" />
-    <ClInclude Include="src\app\editor\graphics\palette_editor.h" />
-    <ClInclude Include="src\app\editor\dungeon\dungeon_editor.h" />
-    <ClInclude Include="src\app\editor\sprite\sprite_editor.h" />
-    <ClInclude Include="src\app\editor\music\music_editor.h" />
-    <ClInclude Include="src\app\editor\message\message_editor.h" />
-    <ClInclude Include="src\app\editor\system\system_editor.h" />
-    <ClInclude Include="src\app\editor\code\code_editor.h" />
-    <ClInclude Include="src\app\gui\canvas.h" />
-    <ClInclude Include="src\app\gui\canvas_utils.h" />
-    <ClInclude Include="src\app\gui\color.h" />
-    <ClInclude Include="src\app\gui\enhanced_palette_editor.h" />
-    <ClInclude Include="src\app\gui\icons.h" />
-    <ClInclude Include="src\app\gui\input.h" />
-    <ClInclude Include="src\app\gui\style.h" />
-    <ClInclude Include="src\app\gui\theme_manager.h" />
-    <ClInclude Include="src\app\gui\zeml.h" />
-    <ClInclude Include="src\app\gui\background_renderer.h" />
-    <ClInclude Include="src\app\gui\modules\module_manager.h" />
-    <ClInclude Include="src\app\emu\emulator.h" />
-    <ClInclude Include="src\app\emu\snes.h" />
-    <ClInclude Include="src\app\emu\audio\apu.h" />
-    <ClInclude Include="src\app\emu\audio\dsp.h" />
-    <ClInclude Include="src\app\emu\audio\spc700.h" />
-    <ClInclude Include="src\app\emu\cpu\cpu.h" />
-    <ClInclude Include="src\app\emu\memory\memory.h" />
-    <ClInclude Include="src\app\emu\memory\dma.h" />
-    <ClInclude Include="src\app\emu\video\ppu.h" />
-    <ClInclude Include="src\app\zelda3\common.h" />
-    <ClInclude Include="src\app\zelda3\hyrule_magic.h" />
-    <ClInclude Include="src\app\zelda3\overworld\overworld.h" />
-    <ClInclude Include="src\app\zelda3\dungeon\dungeon.h" />
-    <ClInclude Include="src\app\zelda3\sprite\sprite.h" />
-    <ClInclude Include="src\app\zelda3\screen\screen.h" />
-    <ClInclude Include="src\app\zelda3\music\music.h" />
-    <ClInclude Include="src\util\bps.h" />
-    <ClInclude Include="src\util\flag.h" />
-    <ClInclude Include="src\util\hex.h" />
-    <ClInclude Include="src\util\log.h" />
-    <ClInclude Include="src\util\macro.h" />
-    <ClInclude Include="src\util\notify.h" />
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D38A0280}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Public Headers">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Core">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Core\Platform">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\GFX">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Editor">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Editor\Overworld">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Editor\Graphics">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Editor\Dungeon">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Editor\Sprite">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Editor\Music">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Editor\Message">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Editor\System">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Editor\Code">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\GUI">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\GUI\Modules">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\EMU">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\EMU\Audio">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\EMU\CPU">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\EMU\Memory">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\EMU\Video">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Zelda3">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Zelda3\Overworld">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Zelda3\Dungeon">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Zelda3\Sprite">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Zelda3\Screen">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Zelda3\Music">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Fonts">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Themes">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Layouts">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Lib">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD34}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\yaze.cc" />
-    <ClCompile Include="src\app\rom.cc" />
-    <ClCompile Include="src\app\main.cc" />
-    <ClCompile Include="src\app\core\asar_wrapper.cc" />
-    <ClCompile Include="src\app\core\controller.cc" />
-    <ClCompile Include="src\app\core\project.cc" />
-    <ClCompile Include="src\app\core\window.cc" />
-    <ClCompile Include="src\app\core\platform\clipboard.cc" />
-    <ClCompile Include="src\app\gfx\arena.cc" />
-    <ClCompile Include="src\app\gfx\background_buffer.cc" />
-    <ClCompile Include="src\app\gfx\bitmap.cc" />
-    <ClCompile Include="src\app\gfx\compression.cc" />
-    <ClCompile Include="src\app\gfx\scad_format.cc" />
-    <ClCompile Include="src\app\gfx\snes_color.cc" />
-    <ClCompile Include="src\app\gfx\snes_palette.cc" />
-    <ClCompile Include="src\app\gfx\snes_tile.cc" />
-    <ClCompile Include="src\app\gfx\tilemap.cc" />
-    <ClCompile Include="src\app\editor\editor.cc" />
-    <ClCompile Include="src\app\editor\editor_manager.cc" />
-    <ClCompile Include="src\app\editor\overworld\overworld_editor.cc" />
-    <ClCompile Include="src\app\editor\overworld\overworld_editor_manager.cc" />
-    <ClCompile Include="src\app\editor\overworld\map_properties.cc" />
-    <ClCompile Include="src\app\editor\overworld\tile16_editor.cc" />
-    <ClCompile Include="src\app\editor\graphics\gfx_group_editor.cc" />
-    <ClCompile Include="src\app\editor\graphics\graphics_editor.cc" />
-    <ClCompile Include="src\app\editor\graphics\palette_editor.cc" />
-    <ClCompile Include="src\app\editor\dungeon\dungeon_editor.cc" />
-    <ClCompile Include="src\app\editor\sprite\sprite_editor.cc" />
-    <ClCompile Include="src\app\editor\music\music_editor.cc" />
-    <ClCompile Include="src\app\editor\message\message_editor.cc" />
-    <ClCompile Include="src\app\editor\system\system_editor.cc" />
-    <ClCompile Include="src\app\editor\code\code_editor.cc" />
-    <ClCompile Include="src\app\gui\canvas.cc" />
-    <ClCompile Include="src\app\gui\canvas_utils.cc" />
-    <ClCompile Include="src\app\gui\color.cc" />
-    <ClCompile Include="src\app\gui\enhanced_palette_editor.cc" />
-    <ClCompile Include="src\app\gui\input.cc" />
-    <ClCompile Include="src\app\gui\style.cc" />
-    <ClCompile Include="src\app\gui\theme_manager.cc" />
-    <ClCompile Include="src\app\gui\zeml.cc" />
-    <ClCompile Include="src\app\gui\background_renderer.cc" />
-    <ClCompile Include="src\app\gui\modules\module_manager.cc" />
-    <ClCompile Include="src\app\emu\emu.cc" />
-    <ClCompile Include="src\app\emu\emulator.cc" />
-    <ClCompile Include="src\app\emu\snes.cc" />
-    <ClCompile Include="src\app\emu\audio\apu.cc" />
-    <ClCompile Include="src\app\emu\audio\dsp.cc" />
-    <ClCompile Include="src\app\emu\audio\spc700.cc" />
-    <ClCompile Include="src\app\emu\cpu\cpu.cc" />
-    <ClCompile Include="src\app\emu\memory\memory.cc" />
-    <ClCompile Include="src\app\emu\memory\dma.cc" />
-    <ClCompile Include="src\app\emu\video\ppu.cc" />
-    <ClCompile Include="src\app\zelda3\hyrule_magic.cc" />
-    <ClCompile Include="src\app\zelda3\overworld\overworld.cc" />
-    <ClCompile Include="src\app\zelda3\dungeon\dungeon.cc" />
-    <ClCompile Include="src\app\zelda3\sprite\sprite.cc" />
-    <ClCompile Include="src\app\zelda3\screen\screen.cc" />
-    <ClCompile Include="src\app\zelda3\music\music.cc" />
-    <ClCompile Include="src\util\bps.cc" />
-    <ClCompile Include="src\util\flag.cc" />
-    <ClCompile Include="src\util\hex.cc" />
+    <ClInclude Include="incl\yaze.h">
+      <Filter>Public Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="incl\zelda.h">
+      <Filter>Public Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\rom.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\snes.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\transaction.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\core\asar_wrapper.h">
+      <Filter>App\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\core\controller.h">
+      <Filter>App\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\core\features.h">
+      <Filter>App\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\core\project.h">
+      <Filter>App\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\core\window.h">
+      <Filter>App\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\core\platform\clipboard.h">
+      <Filter>App\Core\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gfx\arena.h">
+      <Filter>App\GFX</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gfx\background_buffer.h">
+      <Filter>App\GFX</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gfx\bitmap.h">
+      <Filter>App\GFX</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gfx\compression.h">
+      <Filter>App\GFX</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gfx\scad_format.h">
+      <Filter>App\GFX</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gfx\snes_color.h">
+      <Filter>App\GFX</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gfx\snes_palette.h">
+      <Filter>App\GFX</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gfx\snes_tile.h">
+      <Filter>App\GFX</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gfx\tilemap.h">
+      <Filter>App\GFX</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\editor.h">
+      <Filter>App\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\editor_manager.h">
+      <Filter>App\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\editor_safeguards.h">
+      <Filter>App\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\overworld\overworld_editor.h">
+      <Filter>App\Editor\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\overworld\overworld_editor_manager.h">
+      <Filter>App\Editor\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\overworld\map_properties.h">
+      <Filter>App\Editor\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\overworld\entity.h">
+      <Filter>App\Editor\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\overworld\tile16_editor.h">
+      <Filter>App\Editor\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\overworld\ui_constants.h">
+      <Filter>App\Editor\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\graphics\gfx_group_editor.h">
+      <Filter>App\Editor\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\graphics\graphics_editor.h">
+      <Filter>App\Editor\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\graphics\palette_editor.h">
+      <Filter>App\Editor\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\graphics\screen_editor.h">
+      <Filter>App\Editor\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\dungeon\dungeon_canvas_viewer.h">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\dungeon\dungeon_editor.h">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\dungeon\dungeon_object_interaction.h">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\dungeon\dungeon_object_selector.h">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\dungeon\dungeon_renderer.h">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\dungeon\dungeon_room_loader.h">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\dungeon\dungeon_room_selector.h">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\dungeon\dungeon_toolset.h">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\dungeon\dungeon_usage_tracker.h">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\sprite\sprite_editor.h">
+      <Filter>App\Editor\Sprite</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\sprite\zsprite.h">
+      <Filter>App\Editor\Sprite</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\music\music_editor.h">
+      <Filter>App\Editor\Music</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\message\message_data.h">
+      <Filter>App\Editor\Message</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\message\message_editor.h">
+      <Filter>App\Editor\Message</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\message\message_preview.h">
+      <Filter>App\Editor\Message</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\system\command_manager.h">
+      <Filter>App\Editor\System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\system\extension_manager.h">
+      <Filter>App\Editor\System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\system\history_manager.h">
+      <Filter>App\Editor\System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\system\popup_manager.h">
+      <Filter>App\Editor\System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\system\settings_editor.h">
+      <Filter>App\Editor\System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\system\shortcut_manager.h">
+      <Filter>App\Editor\System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\system\system_editor.h">
+      <Filter>App\Editor\System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\system\toast_manager.h">
+      <Filter>App\Editor\System</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\code\assembly_editor.h">
+      <Filter>App\Editor\Code</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\editor\code\memory_editor.h">
+      <Filter>App\Editor\Code</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\canvas.h">
+      <Filter>App\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\canvas_utils.h">
+      <Filter>App\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\color.h">
+      <Filter>App\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\enhanced_palette_editor.h">
+      <Filter>App\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\icons.h">
+      <Filter>App\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\input.h">
+      <Filter>App\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\style.h">
+      <Filter>App\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\theme_manager.h">
+      <Filter>App\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\zeml.h">
+      <Filter>App\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\background_renderer.h">
+      <Filter>App\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\modules\module_manager.h">
+      <Filter>App\GUI\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\emu\emulator.h">
+      <Filter>App\EMU</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\emu\snes.h">
+      <Filter>App\EMU</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\emu\audio\apu.h">
+      <Filter>App\EMU\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\emu\audio\dsp.h">
+      <Filter>App\EMU\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\emu\audio\spc700.h">
+      <Filter>App\EMU\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\emu\cpu\cpu.h">
+      <Filter>App\EMU\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\emu\memory\memory.h">
+      <Filter>App\EMU\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\emu\memory\dma.h">
+      <Filter>App\EMU\Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\emu\video\ppu.h">
+      <Filter>App\EMU\Video</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\common.h">
+      <Filter>App\Zelda3</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\hyrule_magic.h">
+      <Filter>App\Zelda3</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\overworld\overworld_entrance.h">
+      <Filter>App\Zelda3\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\overworld\overworld_exit.h">
+      <Filter>App\Zelda3\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\overworld\overworld_item.h">
+      <Filter>App\Zelda3\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\overworld\overworld_map.h">
+      <Filter>App\Zelda3\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\overworld\overworld.h">
+      <Filter>App\Zelda3\Overworld</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\dungeon\dungeon_editor_system.h">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\dungeon\dungeon_object_editor.h">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\dungeon\object_parser.h">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\dungeon\object_renderer.h">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\dungeon\room_entrance.h">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\dungeon\room_layout.h">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\dungeon\room_object.h">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\dungeon\room.h">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\sprite\overlord.h">
+      <Filter>App\Zelda3\Sprite</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\sprite\sprite_builder.h">
+      <Filter>App\Zelda3\Sprite</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\sprite\sprite.h">
+      <Filter>App\Zelda3\Sprite</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\screen\dungeon_map.h">
+      <Filter>App\Zelda3\Screen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\screen\inventory.h">
+      <Filter>App\Zelda3\Screen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\screen\title_screen.h">
+      <Filter>App\Zelda3\Screen</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\zelda3\music\tracker.h">
+      <Filter>App\Zelda3\Music</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\bps.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\flag.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\hex.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\log.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\macro.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\util\notify.h">
+      <Filter>Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="vcpkg.json" />
-    <None Include="CMakeLists.txt" />
-    <None Include="README.md" />
+    <ClCompile Include="src\yaze.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\rom.cc">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\main.cc">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\core\asar_wrapper.cc">
+      <Filter>App\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\core\controller.cc">
+      <Filter>App\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\core\project.cc">
+      <Filter>App\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\core\window.cc">
+      <Filter>App\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\core\platform\clipboard.cc">
+      <Filter>App\Core\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gfx\arena.cc">
+      <Filter>App\GFX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gfx\background_buffer.cc">
+      <Filter>App\GFX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gfx\bitmap.cc">
+      <Filter>App\GFX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gfx\compression.cc">
+      <Filter>App\GFX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gfx\scad_format.cc">
+      <Filter>App\GFX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gfx\snes_color.cc">
+      <Filter>App\GFX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gfx\snes_palette.cc">
+      <Filter>App\GFX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gfx\snes_tile.cc">
+      <Filter>App\GFX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gfx\tilemap.cc">
+      <Filter>App\GFX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\editor.cc">
+      <Filter>App\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\editor_manager.cc">
+      <Filter>App\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\overworld\overworld_editor.cc">
+      <Filter>App\Editor\Overworld</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\overworld\overworld_editor_manager.cc" >
+      <Filter>App\Editor\Overworld</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\overworld\map_properties.cc">
+      <Filter>App\Editor\Overworld</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\overworld\entity.cc">
+      <Filter>App\Editor\Overworld</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\overworld\tile16_editor.cc">
+      <Filter>App\Editor\Overworld</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\graphics\gfx_group_editor.cc">
+      <Filter>App\Editor\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\graphics\graphics_editor.cc">
+      <Filter>App\Editor\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\graphics\palette_editor.cc">
+      <Filter>App\Editor\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\graphics\screen_editor.cc">
+      <Filter>App\Editor\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\dungeon\dungeon_canvas_viewer.cc">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\dungeon\dungeon_editor.cc">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\dungeon\dungeon_object_interaction.cc">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\dungeon\dungeon_object_selector.cc">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\dungeon\dungeon_renderer.cc">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\dungeon\dungeon_room_loader.cc">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\dungeon\dungeon_room_selector.cc">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\dungeon\dungeon_toolset.cc">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\dungeon\dungeon_usage_tracker.cc">
+      <Filter>App\Editor\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\sprite\sprite_editor.cc">
+      <Filter>App\Editor\Sprite</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\music\music_editor.cc">
+      <Filter>App\Editor\Music</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\message\message_data.cc">
+      <Filter>App\Editor\Message</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\message\message_editor.cc">
+      <Filter>App\Editor\Message</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\message\message_preview.cc">
+      <Filter>App\Editor\Message</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\system\command_manager.cc">
+      <Filter>App\Editor\System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\system\extension_manager.cc">
+      <Filter>App\Editor\System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\system\popup_manager.cc">
+      <Filter>App\Editor\System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\system\settings_editor.cc">
+      <Filter>App\Editor\System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\system\shortcut_manager.cc">
+      <Filter>App\Editor\System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\system\system_editor.cc">
+      <Filter>App\Editor\System</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\editor\code\assembly_editor.cc">
+      <Filter>App\Editor\Code</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\canvas.cc">
+      <Filter>App\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\canvas_utils.cc">
+      <Filter>App\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\color.cc">
+      <Filter>App\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\enhanced_palette_editor.cc">
+      <Filter>App\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\input.cc">
+      <Filter>App\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\style.cc">
+      <Filter>App\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\theme_manager.cc">
+      <Filter>App\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\zeml.cc">
+      <Filter>App\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\background_renderer.cc">
+      <Filter>App\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\modules\module_manager.cc">
+      <Filter>App\GUI\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\emu\emu.cc">
+      <Filter>App\EMU</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\emu\emulator.cc">
+      <Filter>App\EMU</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\emu\snes.cc">
+      <Filter>App\EMU</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\emu\audio\apu.cc">
+      <Filter>App\EMU\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\emu\audio\dsp.cc">
+      <Filter>App\EMU\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\emu\audio\spc700.cc">
+      <Filter>App\EMU\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\emu\cpu\cpu.cc">
+      <Filter>App\EMU\CPU</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\emu\memory\memory.cc">
+      <Filter>App\EMU\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\emu\memory\dma.cc">
+      <Filter>App\EMU\Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\emu\video\ppu.cc">
+      <Filter>App\EMU\Video</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\hyrule_magic.cc">
+      <Filter>App\Zelda3</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\overworld\overworld_map.cc">
+      <Filter>App\Zelda3\Overworld</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\overworld\overworld.cc">
+      <Filter>App\Zelda3\Overworld</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\dungeon\dungeon_editor_system.cc">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\dungeon\dungeon_object_editor.cc">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\dungeon\object_parser.cc">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\dungeon\object_renderer.cc">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\dungeon\room_layout.cc">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\dungeon\room_object.cc">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\dungeon\room.cc">
+      <Filter>App\Zelda3\Dungeon</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\sprite\sprite_builder.cc">
+      <Filter>App\Zelda3\Sprite</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\sprite\sprite.cc">
+      <Filter>App\Zelda3\Sprite</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\screen\dungeon_map.cc">
+      <Filter>App\Zelda3\Screen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\screen\inventory.cc">
+      <Filter>App\Zelda3\Screen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\screen\title_screen.cc">
+      <Filter>App\Zelda3\Screen</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\zelda3\music\tracker.cc">
+      <Filter>App\Zelda3\Music</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\bps.cc">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\flag.cc">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\util\hex.cc">
+      <Filter>Util</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\win32\yaze.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\win32\yaze.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\yaze.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\yaze.icns">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="assets\font\Cousine-Regular.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\DroidSans.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\IBMPlexSansJP-Bold.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\Karla-Regular.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\MaterialIcons-Regular.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\NotoSansJP.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\Roboto-Medium.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="assets\themes\cyberpunk.theme">
+      <Filter>Assets\Themes</Filter>
+    </Content>
+    <Content Include="assets\themes\forest.theme">
+      <Filter>Assets\Themes</Filter>
+    </Content>
+    <Content Include="assets\themes\midnight.theme">
+      <Filter>Assets\Themes</Filter>
+    </Content>
+    <Content Include="assets\themes\sunset.theme">
+      <Filter>Assets\Themes</Filter>
+    </Content>
+    <Content Include="assets\themes\yaze_tre.theme">
+      <Filter>Assets\Themes</Filter>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="assets\layouts\ow_toolset.zeml">
+      <Filter>Assets\Layouts</Filter>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="assets\lib\libasar.dll">
+      <Filter>Assets\Lib</Filter>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vcpkg.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="CMakeLists.txt">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="README.md">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="zelda3.sfc">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
