@@ -725,49 +725,169 @@ if exist "$(ProjectDir)zelda3.sfc" copy /Y "$(ProjectDir)zelda3.sfc" "$(OutDir)"
   </ItemGroup>
   
   <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC943}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Platform">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC944}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC945}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Dungeon">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC946}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Overworld">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC947}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Graphics">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC948}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Sprite">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC949}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Music">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Message">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Code">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\System">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Testing">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphics">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC950}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zelda3">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC951}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zelda3\Overworld">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC952}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zelda3\Screen">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC953}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zelda3\Sprite">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC954}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zelda3\Music">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC955}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Zelda3\Dungeon">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC956}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Emulator">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC957}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Emulator\Audio">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC958}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Emulator\CPU">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC959}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Emulator\Video">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Emulator\Memory">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Fonts">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Themes">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC960}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Assembly">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC961}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Layouts">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC962}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Libraries">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC963}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets\Misc">
+      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC964}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  
+  <ItemGroup>
     <None Include="vcpkg.json" />
     <None Include="CMakeLists.txt" />
     <None Include="README.md" />
   </ItemGroup>
   
   <ItemGroup>
-    <Content Include="assets\yaze.icns" />
-    <Content Include="assets\yaze.png" />
-    
-    <!-- Font Assets -->
-    <Content Include="assets\font\Karla-Regular.ttf" />
-    <Content Include="assets\font\Roboto-Medium.ttf" />
-    <Content Include="assets\font\Cousine-Regular.ttf" />
-    <Content Include="assets\font\DroidSans.ttf" />
-    <Content Include="assets\font\NotoSansJP.ttf" />
-    <Content Include="assets\font\IBMPlexSansJP-Bold.ttf" />
-    <Content Include="assets\font\MaterialIcons-Regular.ttf" />
-    
-    <!-- Theme Assets -->
+    <Content Include="assets\yaze.icns">
+      <Filter>Assets</Filter>
+    </Content>
+    <Content Include="assets\yaze.png">
+      <Filter>Assets</Filter>
+    </Content>
+    <Content Include="assets\font\Karla-Regular.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\Roboto-Medium.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\Cousine-Regular.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\DroidSans.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\NotoSansJP.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\IBMPlexSansJP-Bold.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
+    <Content Include="assets\font\MaterialIcons-Regular.ttf">
+      <Filter>Assets\Fonts</Filter>
+    </Content>
     <Content Include="assets\themes\*.theme">
+      <Filter>Assets\Themes</Filter>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    
-    <!-- Assembly Assets -->
     <Content Include="assets\asm\*.asm">
+      <Filter>Assets\Assembly</Filter>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="assets\asm\*.txt">
+      <Filter>Assets\Assembly</Filter>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    
-    <!-- Layout Assets -->
     <Content Include="assets\layouts\*">
+      <Filter>Assets\Layouts</Filter>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    
-    <!-- Library Assets -->
     <Content Include="assets\lib\*">
+      <Filter>Assets\Libraries</Filter>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    
-    <!-- Additional Assets -->
     <Content Include="assets\etc\*">
+      <Filter>Assets\Misc</Filter>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
