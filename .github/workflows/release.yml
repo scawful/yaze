@@ -325,6 +325,16 @@ jobs:
       run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
     # Validate Visual Studio project builds (Windows only)
+    # Generate yaze_config.h for Visual Studio builds
+    - name: Generate yaze_config.h
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        copy src\yaze_config.h.in yaze_config.h
+        powershell -Command "(Get-Content 'yaze_config.h') -replace '@yaze_VERSION_MAJOR@', '0' -replace '@yaze_VERSION_MINOR@', '3' -replace '@yaze_VERSION_PATCH@', '1' | Set-Content 'yaze_config.h'"
+        echo Generated yaze_config.h:
+        type yaze_config.h
+
     - name: Validate Visual Studio Project Build
       if: runner.os == 'Windows'
       shell: pwsh
