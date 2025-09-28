@@ -1,5 +1,64 @@
 # Changelog
 
+## 0.3.1 
+
+### Major Features
+- **Complete Tile16 Editor Overhaul**: Professional-grade tile editing with modern UI and advanced capabilities
+- **Advanced Palette Management**: Full access to all SNES palette groups with configurable normalization
+- **Comprehensive Undo/Redo System**: 50-state history with intelligent time-based throttling
+- **ZSCustomOverworld v3 Full Support**: Complete implementation of ZScream Save.cs functionality with complex transition calculations
+- **ZEML System Removal**: Converted overworld editor from markup to pure ImGui for better performance and maintainability
+- **OverworldEditorManager**: New management system to handle complex v3 overworld features
+
+### Tile16 Editor Enhancements
+- **Modern UI Layout**: Fully resizable 3-column interface (Tile8 Source, Editor, Preview & Controls)
+- **Multi-Palette Group Support**: Access to Overworld Main/Aux1/Aux2, Dungeon Main, Global Sprites, Armors, and Swords palettes
+- **Advanced Transform Operations**: Flip horizontal/vertical, rotate 90°, fill with tile8, clear operations
+- **Professional Workflow**: Copy/paste, 4-slot scratch space, live preview with auto-commit
+- **Pixel Normalization Settings**: Configurable pixel value masks (0x01-0xFF) for handling corrupted graphics sheets
+
+### ZSCustomOverworld v3 Implementation
+- **SaveLargeMapsExpanded()**: Complex neighbor-aware transition calculations for all area sizes (Small, Large, Wide, Tall)
+- **Interactive Overlay System**: Full `SaveMapOverlays()` with ASM code generation for revealing holes and changing map elements
+- **SaveCustomOverworldASM()**: Complete custom overworld ASM application with feature toggles and data tables
+- **Expanded Memory Support**: Automatic detection and use of v3 expanded memory locations (0x140xxx)
+- **Area-Specific Features**: Background colors, main palettes, mosaic transitions, GFX groups, subscreen overlays, animated tiles
+- **Transition Logic**: Sophisticated camera transition calculations based on neighboring area types and quadrants
+- **Version Compatibility**: Maintains vanilla/v2 compatibility while adding full v3+ feature support
+
+### Technical Improvements
+- **SNES Data Accuracy**: Proper 4-bit palette index handling with configurable normalization
+- **Bitmap Pipeline Fixes**: Corrected tile16 extraction using `GetTilemapData()` with manual fallback
+- **Real-time Updates**: Immediate visual feedback for all editing operations
+- **Memory Safety**: Enhanced bounds checking and error handling throughout
+- **ASM Version Detection**: Automatic detection of custom overworld ASM version for feature availability
+- **Conditional Save Logic**: Different save paths for vanilla, v2, and v3+ ROMs
+
+### User Interface
+- **Keyboard Shortcuts**: Comprehensive shortcuts for all operations (H/V/R for transforms, Q/E for palette cycling, 1-8 for direct palette selection)
+- **Visual Feedback**: Hover preview restoration, current palette highlighting, texture status indicators
+- **Compact Controls**: Streamlined property panel with essential tools easily accessible
+- **Settings Dialog**: Advanced palette normalization controls with real-time application
+- **Pure ImGui Layout**: Removed ZEML markup system in favor of native ImGui tabs and tables for better performance
+- **v3 Settings Panel**: Dedicated UI for ZSCustomOverworld v3 features with ASM version detection and feature toggles
+
+### Bug Fixes
+- **Tile16 Bitmap Display**: Fixed blank/white tile issue caused by unnormalized pixel values
+- **Hover Preview**: Restored tile8 preview when hovering over tile16 canvas
+- **Canvas Scaling**: Corrected coordinate scaling for 8x magnification factor
+- **Palette Corruption**: Fixed high-bit contamination in graphics sheets
+- **UI Layout**: Proper column sizing and resizing behavior
+- **Linux CI/CD Build**: Fixed undefined reference errors for `ShowSaveFileDialog` method
+- **ZSCustomOverworld v3**: Fixed complex area transition calculations and neighbor-aware tilemap adjustments
+- **ZEML Performance**: Eliminated markup parsing overhead by converting to native ImGui components
+
+### ZScream Compatibility Improvements
+- **Complete Save.cs Implementation**: All major methods from ZScream's Save.cs now implemented in YAZE
+- **Area Size Support**: Full support for Small, Large, Wide, and Tall area types with proper transitions
+- **Interactive Overlays**: Complete overlay save system matching ZScream's functionality  
+- **Custom ASM Integration**: Proper handling of ZSCustomOverworld ASM versions 1-3+
+- **Memory Layout**: Correct usage of expanded vs vanilla memory locations based on ROM type
+
 ## 0.3.0 (September 2025)
 
 ### Major Features

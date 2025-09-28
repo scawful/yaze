@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/core/features.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
@@ -19,10 +20,9 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/popup_manager.h"
-#include "app/editor/system/toast_manager.h"
 #include "app/editor/system/settings_editor.h"
+#include "app/editor/system/toast_manager.h"
 #include "app/emu/emulator.h"
-#include "app/core/features.h"
 #include "app/rom.h"
 #include "yaze_config.h"
 
@@ -100,34 +100,41 @@ class EditorManager {
   absl::Status SetCurrentRom(Rom* rom);
   auto GetCurrentRom() -> Rom* { return current_rom_; }
   auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
-  
+
   // Get current session's feature flags (falls back to global if no session)
   core::FeatureFlags::Flags* GetCurrentFeatureFlags() {
     size_t current_index = GetCurrentSessionIndex();
     if (current_index < sessions_.size()) {
       return &sessions_[current_index].feature_flags;
     }
-    return &core::FeatureFlags::get(); // Fallback to global
+    return &core::FeatureFlags::get();  // Fallback to global
+  }
+
+  void SetFontGlobalScale(float scale) {
+    font_global_scale_ = scale;
+    ImGui::GetIO().FontGlobalScale = scale;
+    SaveUserSettings();
   }
 
  private:
-  void DrawHomepage();
   void DrawWelcomeScreen();
   absl::Status DrawRomSelector();
   absl::Status LoadRom();
   absl::Status LoadAssets();
   absl::Status SaveRom();
+  absl::Status SaveRomAs(const std::string& filename);
   absl::Status OpenRomOrProject(const std::string& filename);
-  
+
   // Enhanced project management
-  absl::Status CreateNewProject(const std::string& template_name = "Basic ROM Hack");
+  absl::Status CreateNewProject(
+      const std::string& template_name = "Basic ROM Hack");
   absl::Status OpenProject();
   absl::Status SaveProject();
   absl::Status SaveProjectAs();
   absl::Status ImportProject(const std::string& project_path);
   absl::Status RepairCurrentProject();
   void ShowProjectHelp();
-  
+
   // Testing system
   void InitializeTestSuites();
 
@@ -157,9 +164,10 @@ class EditorManager {
   bool show_global_search_ = false;
   bool show_session_rename_dialog_ = false;
   bool show_welcome_screen_ = false;
+  bool welcome_screen_manually_closed_ = false;
   size_t session_to_rename_ = 0;
   char session_rename_buffer_[256] = {};
-  
+
   // Testing interface
   bool show_test_dashboard_ = false;
 
@@ -177,18 +185,17 @@ class EditorManager {
   struct RomSession {
     Rom rom;
     EditorSet editors;
-    std::string custom_name; // User-defined session name
-    std::string filepath;    // ROM filepath for duplicate detection
-    core::FeatureFlags::Flags feature_flags; // Per-session feature flags
+    std::string custom_name;  // User-defined session name
+    std::string filepath;     // ROM filepath for duplicate detection
+    core::FeatureFlags::Flags feature_flags;  // Per-session feature flags
 
     RomSession() = default;
-    explicit RomSession(Rom&& r)
-        : rom(std::move(r)), editors(&rom) {
+    explicit RomSession(Rom&& r) : rom(std::move(r)), editors(&rom) {
       filepath = rom.filename();
       // Initialize with default feature flags
       feature_flags = core::FeatureFlags::Flags{};
     }
-    
+
     // Get display name (custom name or ROM title)
     std::string GetDisplayName() const {
       if (!custom_name.empty()) {
@@ -212,20 +219,24 @@ class EditorManager {
   // Settings helpers
   void LoadUserSettings();
   void SaveUserSettings();
+
   void RefreshWorkspacePresets();
   void SaveWorkspacePreset(const std::string& name);
   void LoadWorkspacePreset(const std::string& name);
-  
+
   // Workspace management
   void CreateNewSession();
   void DuplicateCurrentSession();
   void CloseCurrentSession();
+  void RemoveSession(size_t index);
   void SwitchToSession(size_t index);
   size_t GetCurrentSessionIndex() const;
+  size_t GetActiveSessionCount() const;
   void ResetWorkspaceLayout();
-  
+
   // Multi-session editor management
-  std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index) const;
+  std::string GenerateUniqueEditorTitle(EditorType type,
+                                        size_t session_index) const;
   void SaveWorkspaceLayout();
   void LoadWorkspaceLayout();
   void ShowAllWindows();
@@ -236,12 +247,12 @@ class EditorManager {
   void LoadDeveloperLayout();
   void LoadDesignerLayout();
   void LoadModderLayout();
-  
+
   // Session management helpers
   bool HasDuplicateSession(const std::string& filepath);
   void RenameSession(size_t index, const std::string& new_name);
   std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index);
-  
+
   // UI drawing helpers
   void DrawSessionSwitcher();
   void DrawSessionManager();

@@ -704,7 +704,7 @@ void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
 
 void HelpComponent(ftxui::ScreenInteractive &screen) {
   auto help_text = vbox({
-      text("z3ed v0.3.0") | bold | color(Color::Yellow),
+      text("z3ed v0.3.1") | bold | color(Color::Yellow),
       text("by scawful") | color(Color::Magenta),
       text("The Legend of Zelda: A Link to the Past Hacking Tool") |
           color(Color::Red),
@@ -866,7 +866,7 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
   auto title = border(hbox({
       text("z3ed") | bold | color(Color::Blue1),
       separator(),
-      text("v0.3.0") | bold | color(Color::Green1),
+      text("v0.3.1") | bold | color(Color::Green1),
       separator(),
       text(rom_information) | bold | color(Color::Red1),
   }));

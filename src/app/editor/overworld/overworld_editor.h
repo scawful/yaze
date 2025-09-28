@@ -12,9 +12,9 @@
 #include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
-#include "app/gui/zeml.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "app/editor/overworld/overworld_editor_manager.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -188,6 +188,16 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawMapPropertiesPanel();
   void HandleMapInteraction();
   void SetupOverworldCanvasContextMenu();
+  
+  // Scratch space canvas methods
+  absl::Status DrawScratchSpace();
+  absl::Status SaveCurrentSelectionToScratch(int slot);
+  absl::Status LoadScratchToSelection(int slot);
+  absl::Status ClearScratchSpace(int slot);
+  void DrawScratchSpaceEdits();
+  void DrawScratchSpacePattern();
+  void DrawScratchSpaceSelection();
+  void UpdateScratchBitmapTile(int tile_x, int tile_y, int tile_id, int slot = -1);
 
   absl::Status UpdateUsageStats();
   void DrawUsageGrid();
@@ -253,6 +263,24 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Map properties system for UI organization
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
+  std::unique_ptr<OverworldEditorManager> overworld_manager_;
+  
+  // Scratch space for large layouts
+  // Scratch space canvas for tile16 drawing (like a mini overworld)
+  struct ScratchSpaceSlot {
+    gfx::Bitmap scratch_bitmap;
+    std::array<std::array<int, 32>, 32> tile_data; // 32x32 grid of tile16 IDs  
+    bool in_use = false;
+    std::string name = "Empty";
+    int width = 16;  // Default 16x16 tiles
+    int height = 16;
+    // Independent selection system for scratch space
+    std::vector<ImVec2> selected_tiles;
+    std::vector<ImVec2> selected_points;
+    bool select_rect_active = false;
+  };
+  std::array<ScratchSpaceSlot, 4> scratch_spaces_;
+  int current_scratch_slot_ = 0;
 
   gfx::Tilemap tile16_blockset_;
 
@@ -295,12 +323,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gui::Canvas graphics_bin_canvas_{"GraphicsBin", kGraphicsBinCanvasSize,
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;
+  gui::Canvas scratch_canvas_{"ScratchSpace", ImVec2(320, 480), gui::CanvasGridSize::k32x32};
 
   gui::Table toolset_table_{"##ToolsetTable0", 12, kToolsetTableFlags};
   gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags,
                                  ImVec2(0, 0)};
 
-  gui::zeml::Node layout_node_;
   absl::Status status_;
 };
 }  // namespace editor

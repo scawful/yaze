@@ -65,7 +65,8 @@ class FeatureFlags {
       // Save overworld properties to the Rom.
       bool kSaveOverworldProperties = true;
 
-      // Load custom overworld data from the ROM and enable UI.
+      // Enable custom overworld features for vanilla ROMs or override detection.
+      // If ZSCustomOverworld ASM is already applied, features are auto-enabled.
       bool kLoadCustomOverworld = false;
       
       // Apply ZSCustomOverworld ASM patches when upgrading ROM versions.
@@ -134,8 +135,19 @@ struct FlagsMenu {
              &FeatureFlags::get().overworld.kSaveOverworldItems);
     Checkbox("Save Overworld Properties",
              &FeatureFlags::get().overworld.kSaveOverworldProperties);
-    Checkbox("Load Custom Overworld",
+    Checkbox("Enable Custom Overworld Features",
              &FeatureFlags::get().overworld.kLoadCustomOverworld);
+    ImGui::SameLine();
+    if (ImGui::Button("?")) {
+      ImGui::OpenPopup("CustomOverworldHelp");
+    }
+    if (ImGui::BeginPopup("CustomOverworldHelp")) {
+      ImGui::Text("This flag enables ZSCustomOverworld features.");
+      ImGui::Text("If ZSCustomOverworld ASM is already applied to the ROM,");
+      ImGui::Text("features are auto-enabled regardless of this flag.");
+      ImGui::Text("For vanilla ROMs, enable this to use custom features.");
+      ImGui::EndPopup();
+    }
     Checkbox("Apply ZSCustomOverworld ASM",
              &FeatureFlags::get().overworld.kApplyZSCustomOverworldASM);
   }

@@ -14,35 +14,6 @@
 namespace yaze {
 namespace gui {
 
-struct Theme {
-  std::string name;
-
-  Color menu_bar_bg;
-  Color title_bar_bg;
-
-  Color header;
-  Color header_hovered;
-  Color header_active;
-
-  Color title_bg_active;
-  Color title_bg_collapsed;
-
-  Color tab;
-  Color tab_hovered;
-  Color tab_active;
-
-  Color button;
-  Color button_hovered;
-  Color button_active;
-
-  Color clickable_text;
-  Color clickable_text_hovered;
-};
-
-absl::StatusOr<Theme> LoadTheme(const std::string &filename);
-absl::Status SaveTheme(const Theme &theme);
-void ApplyTheme(const Theme &theme);
-
 void ColorsYaze();
 
 TextEditor::LanguageDefinition GetAssemblyLanguageDef();
@@ -63,10 +34,18 @@ void BeginNoPadding();
 void EndNoPadding();
 
 void BeginChildWithScrollbar(const char *str_id);
+void BeginChildWithScrollbar(const char *str_id, ImVec2 content_size);
 
 void BeginChildBothScrollbars(int id);
 
+// Table canvas management helpers for GUI elements that need proper sizing
+void BeginTableCanvas(const char* table_id, int columns, ImVec2 canvas_size = ImVec2(0, 0));
+void EndTableCanvas();
+void SetupCanvasTableColumn(const char* label, float width_ratio = 0.0f);
+void BeginCanvasTableCell(ImVec2 min_size = ImVec2(0, 0));
+
 void DrawDisplaySettings(ImGuiStyle *ref = nullptr);
+void DrawDisplaySettingsForPopup(ImGuiStyle *ref = nullptr); // Popup-safe version
 
 void TextWithSeparators(const absl::string_view &text);
 

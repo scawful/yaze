@@ -105,6 +105,34 @@ struct EnhancedTheme {
   Color plot_lines_hovered;
   Color plot_histogram;
   Color plot_histogram_hovered;
+  Color tree_lines;
+  
+  // Additional ImGui colors for complete coverage
+  Color tab_dimmed;
+  Color tab_dimmed_selected;
+  Color tab_dimmed_selected_overline;
+  Color tab_selected_overline;
+  
+  // Enhanced theme system - semantic colors
+  Color text_highlight;     // For selected text, highlighted items
+  Color link_hover;        // For hover state of links 
+  Color code_background;   // For code blocks, monospace text backgrounds
+  Color success_light;     // Lighter variant of success color
+  Color warning_light;     // Lighter variant of warning color  
+  Color error_light;       // Lighter variant of error color
+  Color info_light;        // Lighter variant of info color
+  
+  // UI state colors
+  Color active_selection;  // For active/selected UI elements
+  Color hover_highlight;   // General hover state
+  Color focus_border;      // For focused input elements
+  Color disabled_overlay;  // Semi-transparent overlay for disabled elements
+  
+  // Editor-specific colors
+  Color editor_background; // Main editor canvas background
+  Color editor_grid;       // Grid lines in editors
+  Color editor_cursor;     // Cursor/selection in editors
+  Color editor_selection;  // Selected area in editors
   
   // Style parameters
   float window_rounding = 0.0f;

@@ -1,6 +1,8 @@
 #include "dungeon_object_selector.h"
 
+#include <algorithm>
 #include <iterator>
+#include <cstring>
 
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
@@ -1045,7 +1047,10 @@ void DungeonObjectSelector::DrawCompactPropertiesEditor() {
     static int music_id = 0;
 
     // Copy current values
-    strncpy(room_name, properties.name.c_str(), sizeof(room_name) - 1);
+    // Safe string copy with bounds checking
+    size_t name_len = std::min(properties.name.length(), sizeof(room_name) - 1);
+    std::memcpy(room_name, properties.name.c_str(), name_len);
+    room_name[name_len] = '\0';
     dungeon_id = properties.dungeon_id;
     floor_level = properties.floor_level;
     is_boss_room = properties.is_boss_room;

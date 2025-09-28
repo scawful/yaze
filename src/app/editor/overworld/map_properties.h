@@ -64,6 +64,7 @@ class MapPropertiesSystem {
   void DrawSpritePropertiesTab(int current_map);
   void DrawCustomFeaturesTab(int current_map);
   void DrawTileGraphicsTab(int current_map);
+  void DrawMusicTab(int current_map);
   
   // Utility methods
   void RefreshMapProperties();

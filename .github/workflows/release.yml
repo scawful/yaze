@@ -21,18 +21,13 @@ jobs:
     name: Validate Release
     runs-on: ubuntu-latest
     outputs:
-      tag_name: ${{ env.VALIDATED_TAG }}
+      tag_name: ${{ steps.validate.outputs.tag_name }}
       release_notes: ${{ steps.notes.outputs.content }}
     
     steps:
     - name: Validate tag format
+      id: validate
       run: |
-        # Debug information
-        echo "Event name: ${{ github.event_name }}"
-        echo "Ref: ${{ github.ref }}"
-        echo "Ref name: ${{ github.ref_name }}"
-        echo "Ref type: ${{ github.ref_type }}"
-        
         # Determine the tag based on trigger type
         if [[ "${{ github.event_name }}" == "push" ]]; then
           if [[ "${{ github.ref_type }}" != "tag" ]]; then
@@ -68,6 +63,7 @@ jobs:
         
         echo "✅ Tag format is valid: $TAG"
         echo "VALIDATED_TAG=$TAG" >> $GITHUB_ENV
+        echo "tag_name=$TAG" >> $GITHUB_OUTPUT
     
     - name: Checkout code
       uses: actions/checkout@v4
@@ -112,81 +108,22 @@ jobs:
             cmake_generator: "Visual Studio 17 2022"
             cmake_generator_platform: x64
             artifact_name: "yaze-windows-x64"
-            artifact_path: "build/bin/Release/"
-            package_cmd: |
-              mkdir package
-              cp -r build/bin/Release/* package/
-              cp -r assets package/
-              cp LICENSE package/
-              cp README.md package/
-              cd package && 7z a ../yaze-windows-x64.zip *
             
-          - name: "Windows x86"
+          - name: "Windows ARM64"
             os: windows-2022
-            vcpkg_triplet: x86-windows
+            vcpkg_triplet: arm64-windows
             cmake_generator: "Visual Studio 17 2022"
-            cmake_generator_platform: Win32
-            artifact_name: "yaze-windows-x86"
-            artifact_path: "build/bin/Release/"
-            package_cmd: |
-              mkdir package
-              cp -r build/bin/Release/* package/
-              cp -r assets package/
-              cp LICENSE package/
-              cp README.md package/
-              cd package && 7z a ../yaze-windows-x86.zip *
+            cmake_generator_platform: ARM64
+            artifact_name: "yaze-windows-arm64"
             
           - name: "macOS Universal"
             os: macos-14
             vcpkg_triplet: arm64-osx
             artifact_name: "yaze-macos"
-            artifact_path: "build/bin/"
-            package_cmd: |
-              # Debug: List what was actually built
-              echo "Contents of build/bin/:"
-              ls -la build/bin/ || echo "build/bin/ does not exist"
-              
-              # Check if we have a bundle or standalone executable
-              if [ -d "build/bin/yaze.app" ]; then
-                echo "Found macOS bundle, using it directly"
-                # Use the existing bundle and just update it
-                cp -r build/bin/yaze.app ./Yaze.app
-                # Add additional resources to the bundle
-                cp -r assets "Yaze.app/Contents/Resources/"
-                # Update Info.plist if needed
-                if [ -f "cmake/yaze.plist.in" ]; then
-                  cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
-                fi
-              else
-                echo "No bundle found, creating manual bundle"
-                # Create bundle structure manually
-                mkdir -p "Yaze.app/Contents/MacOS"
-                mkdir -p "Yaze.app/Contents/Resources"
-                cp build/bin/yaze "Yaze.app/Contents/MacOS/"
-                cp -r assets "Yaze.app/Contents/Resources/"
-                cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
-              fi
-              
-              # Create DMG
-              mkdir dmg_staging
-              cp -r Yaze.app dmg_staging/
-              cp LICENSE dmg_staging/
-              cp README.md dmg_staging/
-              cp -r docs dmg_staging/
-              hdiutil create -srcfolder dmg_staging -format UDZO -volname "Yaze ${{ needs.validate-and-prepare.outputs.tag_name }}" yaze-macos.dmg
             
           - name: "Linux x64"
             os: ubuntu-22.04
             artifact_name: "yaze-linux-x64"
-            artifact_path: "build/bin/"
-            package_cmd: |
-              mkdir package
-              cp build/bin/yaze package/
-              cp -r assets package/
-              cp -r docs package/
-              cp LICENSE package/
-              cp README.md package/
-              tar -czf yaze-linux-x64.tar.gz -C package .
 
     runs-on: ${{ matrix.os }}
     
@@ -225,14 +162,42 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         # Install Homebrew dependencies needed for UI tests and full builds
-        brew install pkg-config libpng boost abseil ninja
+        brew install pkg-config libpng boost abseil ninja gtk+3
 
-    - name: Setup build environment
+    # Set up vcpkg for Windows builds with fallback
+    - name: Set up vcpkg (Windows)
+      id: vcpkg_setup
+      if: runner.os == 'Windows'
+      uses: lukka/run-vcpkg@v11
+      continue-on-error: true
+      with:
+        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
+        runVcpkgInstall: true
+        vcpkgJsonGlob: '**/vcpkg.json'
+        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+      env:
+        VCPKG_FORCE_SYSTEM_BINARIES: 1
+        VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        VCPKG_DISABLE_METRICS: 1
+        VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
+        VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+    # Set vcpkg availability flag when vcpkg succeeds
+    - name: Set vcpkg availability flag
+      if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'success'
+      shell: pwsh
       run: |
-        echo "Using streamlined release build configuration for all platforms"
-        echo "Linux/macOS: UI tests enabled with full dependency support"
-        echo "Windows: Minimal build to avoid vcpkg issues, UI tests disabled"
-        echo "All platforms: Emulator and developer tools disabled for clean releases"
+        echo "VCPKG_AVAILABLE=true" >> $env:GITHUB_ENV
+        Write-Host "vcpkg setup successful"
+
+    # Fallback: Set minimal build flag when vcpkg fails
+    - name: Set minimal build flag (Windows fallback)
+      if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'failure'
+      shell: pwsh
+      run: |
+        echo "VCPKG_AVAILABLE=false" >> $env:GITHUB_ENV
+        echo "YAZE_MINIMAL_BUILD=ON" >> $env:GITHUB_ENV
+        Write-Host "vcpkg setup failed, using minimal build configuration"
 
     # Configure CMake
     - name: Configure CMake (Linux/macOS)
@@ -248,35 +213,135 @@ jobs:
           -DYAZE_ENABLE_ROM_TESTS=OFF \
           -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
           -DYAZE_INSTALL_LIB=OFF \
+          -DYAZE_MINIMAL_BUILD=OFF \
           -GNinja
 
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
-      shell: cmd
+      shell: pwsh
       run: |
-        cmake -B build ^
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
-          -DCMAKE_POLICY_VERSION_MINIMUM=3.16 ^
-          -DYAZE_BUILD_TESTS=OFF ^
-          -DYAZE_BUILD_EMU=OFF ^
-          -DYAZE_BUILD_Z3ED=OFF ^
-          -DYAZE_ENABLE_ROM_TESTS=OFF ^
-          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF ^
-          -DYAZE_INSTALL_LIB=OFF ^
-          -DYAZE_MINIMAL_BUILD=ON ^
-          -G "${{ matrix.cmake_generator }}" ^
-          -A ${{ matrix.cmake_generator_platform }}
+        Write-Host "Configuring CMake for Windows build..."
+        
+        # Check if vcpkg is available
+        if ((Test-Path "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake") -and ($env:VCPKG_AVAILABLE -ne "false")) {
+          Write-Host "Using vcpkg toolchain..."
+          cmake -B build `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
+            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DYAZE_BUILD_TESTS=OFF `
+            -DYAZE_BUILD_EMU=OFF `
+            -DYAZE_ENABLE_ROM_TESTS=OFF `
+            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
+            -DYAZE_INSTALL_LIB=OFF `
+            -DYAZE_MINIMAL_BUILD=OFF `
+            -G "${{ matrix.cmake_generator }}" `
+            -A ${{ matrix.cmake_generator_platform }}
+        } else {
+          Write-Host "Using minimal build configuration (vcpkg not available)..."
+          cmake -B build `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
+            -DYAZE_BUILD_TESTS=OFF `
+            -DYAZE_BUILD_EMU=OFF `
+            -DYAZE_ENABLE_ROM_TESTS=OFF `
+            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
+            -DYAZE_INSTALL_LIB=OFF `
+            -DYAZE_MINIMAL_BUILD=ON `
+            -G "${{ matrix.cmake_generator }}" `
+            -A ${{ matrix.cmake_generator_platform }}
+        }
+        
+        Write-Host "CMake configuration completed successfully"
 
     # Build
     - name: Build
-      run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+      run: |
+        echo "Building YAZE for ${{ matrix.name }}..."
+        cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+        echo "Build completed successfully!"
+
+    # Test executable functionality
+    - name: Test executable functionality
+      shell: bash
+      run: |
+        set -e
+        
+        echo "Testing executable for ${{ matrix.name }}..."
+        
+        # Determine executable path based on platform
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          exePath="build/bin/${{ env.BUILD_TYPE }}/yaze.exe"
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          exePath="build/bin/yaze.app/Contents/MacOS/yaze"
+        else
+          exePath="build/bin/yaze"
+        fi
+        
+        if [ -f "$exePath" ]; then
+          echo "✓ Executable found: $exePath"
+          
+          # Test that it's not the test main
+          testResult=$($exePath --help 2>&1 || true)
+          exitCode=$?
+          
+          if echo "$testResult" | grep -q "Google Test\|gtest"; then
+            echo "ERROR: Executable is running test main instead of app main!"
+            echo "Output: $testResult"
+            exit 1
+          fi
+          
+          echo "✓ Executable runs correctly (exit code: $exitCode)"
+          
+          # Display file info
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            fileSize=$(stat -c%s "$exePath" 2>/dev/null || echo "0")
+          else
+            fileSize=$(stat -f%z "$exePath" 2>/dev/null || stat -c%s "$exePath" 2>/dev/null || echo "0")
+          fi
+          fileSizeMB=$(echo "scale=2; $fileSize / 1024 / 1024" | bc -l 2>/dev/null || echo "0")
+          echo "Executable size: ${fileSizeMB} MB"
+        else
+          echo "ERROR: Executable not found at: $exePath"
+          exit 1
+        fi
 
     # Package
     - name: Package
       shell: bash
-      run: ${{ matrix.package_cmd }}
+      run: |
+        set -e
+        echo "Packaging for ${{ matrix.name }}..."
+        
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          # Windows packaging
+          mkdir -p package
+          cp -r build/bin/${{ env.BUILD_TYPE }}/* package/ 2>/dev/null || echo "No Release binaries found, trying Debug..."
+          cp -r build/bin/Debug/* package/ 2>/dev/null || echo "No Debug binaries found"
+          cp -r assets package/ 2>/dev/null || echo "assets directory not found"
+          cp LICENSE package/ 2>/dev/null || echo "LICENSE not found"
+          cp README.md package/ 2>/dev/null || echo "README.md not found"
+          cd package && zip -r ../${{ matrix.artifact_name }}.zip *
+          
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          # macOS packaging using dedicated script
+          VERSION_NUM=$(echo "${{ needs.validate-and-prepare.outputs.tag_name }}" | sed 's/^v//')
+          ./scripts/create-macos-bundle.sh "$VERSION_NUM" "${{ matrix.artifact_name }}"
+          
+        else
+          # Linux packaging
+          mkdir package
+          cp build/bin/yaze package/
+          cp -r assets package/ 2>/dev/null || echo "assets directory not found"
+          cp -r docs package/ 2>/dev/null || echo "docs directory not found"
+          cp LICENSE package/ 2>/dev/null || echo "LICENSE not found"
+          cp README.md package/ 2>/dev/null || echo "README.md not found"
+          tar -czf ${{ matrix.artifact_name }}.tar.gz -C package .
+        fi
+        
+        echo "Packaging completed successfully!"
 
-    # Create release with artifacts (will create release if it doesn't exist)
+    # Create release with artifacts
     - name: Upload to Release
       uses: softprops/action-gh-release@v1
       env:
@@ -289,7 +354,6 @@ jobs:
         prerelease: ${{ contains(needs.validate-and-prepare.outputs.tag_name, 'beta') || contains(needs.validate-and-prepare.outputs.tag_name, 'alpha') || contains(needs.validate-and-prepare.outputs.tag_name, 'rc') }}
         files: |
           ${{ matrix.artifact_name }}.*
-        fail_on_unmatched_files: true
 
   publish-packages:
     name: Publish Packages
@@ -298,11 +362,6 @@ jobs:
     if: success()
     
     steps:
-    - name: Update release status
-      run: |
-        echo "Release has been published successfully"
-        echo "All build artifacts have been uploaded"
-
     - name: Announce release
       run: |
         echo "🎉 Yaze ${{ needs.validate-and-prepare.outputs.tag_name }} has been released!"

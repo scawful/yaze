@@ -1,9 +1,11 @@
 #include "theme_manager.h"
 
+#include <algorithm>
 #include <cctype>
 #include <fstream>
 #include <set>
 #include <sstream>
+#include <cstring>
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
@@ -88,6 +90,13 @@ void EnhancedTheme::ApplyToImGui() const {
   colors[ImGuiCol_PlotLinesHovered] = ConvertColorToImVec4(plot_lines_hovered);
   colors[ImGuiCol_PlotHistogram] = ConvertColorToImVec4(plot_histogram);
   colors[ImGuiCol_PlotHistogramHovered] = ConvertColorToImVec4(plot_histogram_hovered);
+  colors[ImGuiCol_TreeLines] = ConvertColorToImVec4(tree_lines);
+  
+  // Additional ImGui colors for complete coverage
+  colors[ImGuiCol_TabDimmed] = ConvertColorToImVec4(tab_dimmed);
+  colors[ImGuiCol_TabDimmedSelected] = ConvertColorToImVec4(tab_dimmed_selected);
+  colors[ImGuiCol_TabDimmedSelectedOverline] = ConvertColorToImVec4(tab_dimmed_selected_overline);
+  colors[ImGuiCol_TabSelectedOverline] = ConvertColorToImVec4(tab_selected_overline);
   
   // Apply style parameters
   style->WindowRounding = window_rounding;
@@ -165,6 +174,15 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.title_bg = RGBA(71, 92, 71);          // alttpMidGreen
   theme.title_bg_active = RGBA(46, 66, 46);   // alttpDarkGreen
   theme.title_bg_collapsed = RGBA(71, 92, 71); // alttpMidGreen
+  
+  // Initialize missing fields that were added to the struct
+  theme.surface = theme.background;
+  theme.error = RGBA(220, 50, 50);
+  theme.warning = RGBA(255, 200, 50);
+  theme.success = theme.primary;
+  theme.info = RGBA(70, 170, 255);
+  theme.text_secondary = RGBA(200, 200, 200);
+  theme.modal_bg = theme.popup_bg;
   
   // Borders and separators
   theme.border = RGBA(92, 115, 92);           // allttpLightGreen
@@ -340,6 +358,29 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
   if (!p_open || !*p_open) return;
   
   if (ImGui::Begin(absl::StrFormat("%s Theme Selector", ICON_MD_PALETTE).c_str(), p_open)) {
+    
+    // Add subtle particle effects to theme selector
+    static float theme_animation_time = 0.0f;
+    theme_animation_time += ImGui::GetIO().DeltaTime;
+    
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 window_pos = ImGui::GetWindowPos();
+    ImVec2 window_size = ImGui::GetWindowSize();
+    
+    // Subtle corner particles for theme selector
+    for (int i = 0; i < 4; ++i) {
+      float corner_offset = i * 1.57f; // 90 degrees apart
+      float x = window_pos.x + window_size.x * 0.5f + cosf(theme_animation_time * 0.8f + corner_offset) * (window_size.x * 0.4f);
+      float y = window_pos.y + window_size.y * 0.5f + sinf(theme_animation_time * 0.8f + corner_offset) * (window_size.y * 0.4f);
+      
+      float alpha = 0.1f + 0.1f * sinf(theme_animation_time * 1.2f + corner_offset);
+      auto current_theme = GetCurrentTheme();
+      ImU32 particle_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
+          current_theme.accent.red, current_theme.accent.green, current_theme.accent.blue, alpha));
+      
+      draw_list->AddCircleFilled(ImVec2(x, y), 3.0f, particle_color);
+    }
+    
     ImGui::Text("%s Available Themes", ICON_MD_COLOR_LENS);
     ImGui::Separator();
     
@@ -537,8 +578,33 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content, EnhancedTh
       else if (key == "resize_grip") theme.resize_grip = color;
       else if (key == "resize_grip_hovered") theme.resize_grip_hovered = color;
       else if (key == "resize_grip_active") theme.resize_grip_active = color;
-      // Note: Additional colors like check_mark, slider_grab, table colors
-      // are handled by the fallback or can be added to EnhancedTheme struct as needed
+      else if (key == "check_mark") theme.check_mark = color;
+      else if (key == "slider_grab") theme.slider_grab = color;
+      else if (key == "slider_grab_active") theme.slider_grab_active = color;
+      else if (key == "input_text_cursor") theme.input_text_cursor = color;
+      else if (key == "nav_cursor") theme.nav_cursor = color;
+      else if (key == "nav_windowing_highlight") theme.nav_windowing_highlight = color;
+      else if (key == "nav_windowing_dim_bg") theme.nav_windowing_dim_bg = color;
+      else if (key == "modal_window_dim_bg") theme.modal_window_dim_bg = color;
+      else if (key == "text_selected_bg") theme.text_selected_bg = color;
+      else if (key == "drag_drop_target") theme.drag_drop_target = color;
+      else if (key == "table_header_bg") theme.table_header_bg = color;
+      else if (key == "table_border_strong") theme.table_border_strong = color;
+      else if (key == "table_border_light") theme.table_border_light = color;
+      else if (key == "table_row_bg") theme.table_row_bg = color;
+      else if (key == "table_row_bg_alt") theme.table_row_bg_alt = color;
+      else if (key == "text_link") theme.text_link = color;
+      else if (key == "plot_lines") theme.plot_lines = color;
+      else if (key == "plot_lines_hovered") theme.plot_lines_hovered = color;
+      else if (key == "plot_histogram") theme.plot_histogram = color;
+      else if (key == "plot_histogram_hovered") theme.plot_histogram_hovered = color;
+      else if (key == "tree_lines") theme.tree_lines = color;
+      else if (key == "tab_dimmed") theme.tab_dimmed = color;
+      else if (key == "tab_dimmed_selected") theme.tab_dimmed_selected = color;
+      else if (key == "tab_dimmed_selected_overline") theme.tab_dimmed_selected_overline = color;
+      else if (key == "tab_selected_overline") theme.tab_selected_overline = color;
+      else if (key == "docking_preview") theme.docking_preview = color;
+      else if (key == "docking_empty_bg") theme.docking_empty_bg = color;
     }
     else if (current_section == "style") {
       if (key == "window_rounding") theme.window_rounding = std::stof(value);
@@ -664,12 +730,85 @@ std::string ThemeManager::SerializeTheme(const EnhancedTheme& theme) const {
   ss << "separator_active=" << colorToString(theme.separator_active) << "\n";
   ss << "\n";
   
-  // Scrollbars
-  ss << "# Scrollbars\n";
+  // Scrollbars and controls
+  ss << "# Scrollbars and controls\n";
   ss << "scrollbar_bg=" << colorToString(theme.scrollbar_bg) << "\n";
   ss << "scrollbar_grab=" << colorToString(theme.scrollbar_grab) << "\n";
   ss << "scrollbar_grab_hovered=" << colorToString(theme.scrollbar_grab_hovered) << "\n";
   ss << "scrollbar_grab_active=" << colorToString(theme.scrollbar_grab_active) << "\n";
+  ss << "resize_grip=" << colorToString(theme.resize_grip) << "\n";
+  ss << "resize_grip_hovered=" << colorToString(theme.resize_grip_hovered) << "\n";
+  ss << "resize_grip_active=" << colorToString(theme.resize_grip_active) << "\n";
+  ss << "check_mark=" << colorToString(theme.check_mark) << "\n";
+  ss << "slider_grab=" << colorToString(theme.slider_grab) << "\n";
+  ss << "slider_grab_active=" << colorToString(theme.slider_grab_active) << "\n";
+  ss << "\n";
+  
+  // Navigation and special elements
+  ss << "# Navigation and special elements\n";
+  ss << "input_text_cursor=" << colorToString(theme.input_text_cursor) << "\n";
+  ss << "nav_cursor=" << colorToString(theme.nav_cursor) << "\n";
+  ss << "nav_windowing_highlight=" << colorToString(theme.nav_windowing_highlight) << "\n";
+  ss << "nav_windowing_dim_bg=" << colorToString(theme.nav_windowing_dim_bg) << "\n";
+  ss << "modal_window_dim_bg=" << colorToString(theme.modal_window_dim_bg) << "\n";
+  ss << "text_selected_bg=" << colorToString(theme.text_selected_bg) << "\n";
+  ss << "drag_drop_target=" << colorToString(theme.drag_drop_target) << "\n";
+  ss << "docking_preview=" << colorToString(theme.docking_preview) << "\n";
+  ss << "docking_empty_bg=" << colorToString(theme.docking_empty_bg) << "\n";
+  ss << "\n";
+  
+  // Table colors
+  ss << "# Table colors\n";
+  ss << "table_header_bg=" << colorToString(theme.table_header_bg) << "\n";
+  ss << "table_border_strong=" << colorToString(theme.table_border_strong) << "\n";
+  ss << "table_border_light=" << colorToString(theme.table_border_light) << "\n";
+  ss << "table_row_bg=" << colorToString(theme.table_row_bg) << "\n";
+  ss << "table_row_bg_alt=" << colorToString(theme.table_row_bg_alt) << "\n";
+  ss << "\n";
+  
+  // Links and plots
+  ss << "# Links and plots\n";
+  ss << "text_link=" << colorToString(theme.text_link) << "\n";
+  ss << "plot_lines=" << colorToString(theme.plot_lines) << "\n";
+  ss << "plot_lines_hovered=" << colorToString(theme.plot_lines_hovered) << "\n";
+  ss << "plot_histogram=" << colorToString(theme.plot_histogram) << "\n";
+  ss << "plot_histogram_hovered=" << colorToString(theme.plot_histogram_hovered) << "\n";
+  ss << "tree_lines=" << colorToString(theme.tree_lines) << "\n";
+  ss << "\n";
+  
+  // Tab variations
+  ss << "# Tab variations\n";
+  ss << "tab_dimmed=" << colorToString(theme.tab_dimmed) << "\n";
+  ss << "tab_dimmed_selected=" << colorToString(theme.tab_dimmed_selected) << "\n";
+  ss << "tab_dimmed_selected_overline=" << colorToString(theme.tab_dimmed_selected_overline) << "\n";
+  ss << "tab_selected_overline=" << colorToString(theme.tab_selected_overline) << "\n";
+  ss << "\n";
+  
+  // Enhanced semantic colors
+  ss << "# Enhanced semantic colors\n";
+  ss << "text_highlight=" << colorToString(theme.text_highlight) << "\n";
+  ss << "link_hover=" << colorToString(theme.link_hover) << "\n";
+  ss << "code_background=" << colorToString(theme.code_background) << "\n";
+  ss << "success_light=" << colorToString(theme.success_light) << "\n";
+  ss << "warning_light=" << colorToString(theme.warning_light) << "\n";
+  ss << "error_light=" << colorToString(theme.error_light) << "\n";
+  ss << "info_light=" << colorToString(theme.info_light) << "\n";
+  ss << "\n";
+  
+  // UI state colors
+  ss << "# UI state colors\n";
+  ss << "active_selection=" << colorToString(theme.active_selection) << "\n";
+  ss << "hover_highlight=" << colorToString(theme.hover_highlight) << "\n";
+  ss << "focus_border=" << colorToString(theme.focus_border) << "\n";
+  ss << "disabled_overlay=" << colorToString(theme.disabled_overlay) << "\n";
+  ss << "\n";
+  
+  // Editor-specific colors
+  ss << "# Editor-specific colors\n";
+  ss << "editor_background=" << colorToString(theme.editor_background) << "\n";
+  ss << "editor_grid=" << colorToString(theme.editor_grid) << "\n";
+  ss << "editor_cursor=" << colorToString(theme.editor_cursor) << "\n";
+  ss << "editor_selection=" << colorToString(theme.editor_selection) << "\n";
   ss << "\n";
   
   // Style settings
@@ -786,6 +925,34 @@ void ThemeManager::ApplyClassicYazeTheme() {
   classic_theme.plot_histogram_hovered = RGBA(255, 153, 0);
   classic_theme.docking_preview = RGBA(92, 115, 92, 180);
   classic_theme.docking_empty_bg = RGBA(46, 66, 46, 255);
+  classic_theme.tree_lines = classic_theme.separator; // Use separator color for tree lines
+  
+  // Tab dimmed colors (for unfocused tabs)
+  classic_theme.tab_dimmed = RGBA(37, 52, 37);           // Darker version of tab
+  classic_theme.tab_dimmed_selected = RGBA(62, 83, 62); // Darker version of tab_active
+  classic_theme.tab_dimmed_selected_overline = classic_theme.accent;
+  classic_theme.tab_selected_overline = classic_theme.accent;
+  
+  // Enhanced semantic colors for better theming
+  classic_theme.text_highlight = RGBA(255, 255, 150);     // Light yellow for highlights
+  classic_theme.link_hover = RGBA(140, 220, 255);         // Brighter blue for link hover
+  classic_theme.code_background = RGBA(40, 60, 40);       // Slightly darker green for code
+  classic_theme.success_light = RGBA(140, 195, 140);      // Light green
+  classic_theme.warning_light = RGBA(255, 220, 100);      // Light yellow
+  classic_theme.error_light = RGBA(255, 150, 150);        // Light red
+  classic_theme.info_light = RGBA(150, 200, 255);         // Light blue
+  
+  // UI state colors
+  classic_theme.active_selection = classic_theme.accent;   // Use accent color for active selection
+  classic_theme.hover_highlight = RGBA(92, 115, 92, 100);  // Semi-transparent green
+  classic_theme.focus_border = classic_theme.primary;      // Use primary for focus
+  classic_theme.disabled_overlay = RGBA(50, 50, 50, 128);  // Gray overlay
+  
+  // Editor-specific colors
+  classic_theme.editor_background = RGBA(30, 45, 30);      // Dark green background
+  classic_theme.editor_grid = RGBA(80, 100, 80, 100);      // Subtle grid lines
+  classic_theme.editor_cursor = RGBA(255, 255, 255);       // White cursor
+  classic_theme.editor_selection = RGBA(110, 145, 110, 100); // Semi-transparent selection
   
   // Apply original style settings
   classic_theme.window_rounding = 0.0f;
@@ -802,99 +969,805 @@ void ThemeManager::ApplyClassicYazeTheme() {
 void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
   if (!p_open || !*p_open) return;
   
-  if (ImGui::Begin(absl::StrFormat("%s Simple Theme Editor", ICON_MD_PALETTE).c_str(), p_open)) {
-    ImGui::Text("%s Create or modify themes with basic controls", ICON_MD_EDIT);
+  ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+  
+  if (ImGui::Begin(absl::StrFormat("%s Theme Editor", ICON_MD_PALETTE).c_str(), p_open, 
+                   ImGuiWindowFlags_MenuBar)) {
+    
+    // Add gentle particle effects to theme editor background
+    static float editor_animation_time = 0.0f;
+    editor_animation_time += ImGui::GetIO().DeltaTime;
+    
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 window_pos = ImGui::GetWindowPos();
+    ImVec2 window_size = ImGui::GetWindowSize();
+    
+    // Floating color orbs representing different color categories
+    auto current_theme = GetCurrentTheme();
+    std::vector<gui::Color> theme_colors = {
+      current_theme.primary, current_theme.secondary, current_theme.accent,
+      current_theme.success, current_theme.warning, current_theme.error
+    };
+    
+    for (size_t i = 0; i < theme_colors.size(); ++i) {
+      float time_offset = i * 1.0f;
+      float orbit_radius = 60.0f + i * 8.0f;
+      float x = window_pos.x + window_size.x * 0.8f + cosf(editor_animation_time * 0.3f + time_offset) * orbit_radius;
+      float y = window_pos.y + window_size.y * 0.3f + sinf(editor_animation_time * 0.3f + time_offset) * orbit_radius;
+      
+      float alpha = 0.15f + 0.1f * sinf(editor_animation_time * 1.5f + time_offset);
+      ImU32 orb_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
+          theme_colors[i].red, theme_colors[i].green, theme_colors[i].blue, alpha));
+      
+      float radius = 4.0f + sinf(editor_animation_time * 2.0f + time_offset) * 1.0f;
+      draw_list->AddCircleFilled(ImVec2(x, y), radius, orb_color);
+    }
+    
+    // Menu bar for theme operations
+    if (ImGui::BeginMenuBar()) {
+      if (ImGui::BeginMenu("File")) {
+        if (ImGui::MenuItem(absl::StrFormat("%s New Theme", ICON_MD_ADD).c_str())) {
+          // Reset to default theme
+          ApplyClassicYazeTheme();
+        }
+        if (ImGui::MenuItem(absl::StrFormat("%s Load Theme", ICON_MD_FOLDER_OPEN).c_str())) {
+          auto file_path = core::FileDialogWrapper::ShowOpenFileDialog();
+          if (!file_path.empty()) {
+            LoadThemeFromFile(file_path);
+          }
+        }
     ImGui::Separator();
+          if (ImGui::MenuItem(absl::StrFormat("%s Save Theme", ICON_MD_SAVE).c_str())) {
+            // Save current theme to its existing file
+            std::string current_file_path = GetCurrentThemeFilePath();
+            if (!current_file_path.empty()) {
+              auto status = SaveThemeToFile(current_theme_, current_file_path);
+              if (!status.ok()) {
+                util::logf("Failed to save theme: %s", status.message().data());
+              }
+            } else {
+              // No existing file, prompt for new location
+              auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(current_theme_.name, "theme");
+              if (!file_path.empty()) {
+                auto status = SaveThemeToFile(current_theme_, file_path);
+                if (!status.ok()) {
+                  util::logf("Failed to save theme: %s", status.message().data());
+                }
+              }
+            }
+          }
+          if (ImGui::MenuItem(absl::StrFormat("%s Save As...", ICON_MD_SAVE_AS).c_str())) {
+            // Save theme to new file
+            auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(current_theme_.name, "theme");
+            if (!file_path.empty()) {
+              auto status = SaveThemeToFile(current_theme_, file_path);
+              if (!status.ok()) {
+                util::logf("Failed to save theme: %s", status.message().data());
+              }
+            }
+          }
+        ImGui::EndMenu();
+      }
+      
+      if (ImGui::BeginMenu("Presets")) {
+        if (ImGui::MenuItem("YAZE Classic")) {
+          ApplyClassicYazeTheme();
+        }
+        
+        auto available_themes = GetAvailableThemes();
+        if (!available_themes.empty()) {
+          ImGui::Separator();
+          for (const auto& theme_name : available_themes) {
+            if (ImGui::MenuItem(theme_name.c_str())) {
+              LoadTheme(theme_name);
+            }
+          }
+        }
+        ImGui::EndMenu();
+      }
+      
+      ImGui::EndMenuBar();
+    }
     
     static EnhancedTheme edit_theme = current_theme_;
     static char theme_name[128];
     static char theme_description[256];
     static char theme_author[128];
+    static bool live_preview = true;
+    static EnhancedTheme original_theme; // Store original theme for restoration
+    static bool theme_backup_made = false;
     
-    // Basic theme info
-    ImGui::InputText("Theme Name", theme_name, sizeof(theme_name));
-    ImGui::InputText("Description", theme_description, sizeof(theme_description));
-    ImGui::InputText("Author", theme_author, sizeof(theme_author));
+    // Helper lambda for live preview application
+    auto apply_live_preview = [&]() {
+      if (live_preview) {
+        if (!theme_backup_made) {
+          original_theme = current_theme_;
+          theme_backup_made = true;
+        }
+        // Apply the edit theme directly to ImGui without changing theme manager state
+        edit_theme.ApplyToImGui();
+      }
+    };
+    
+    // Live preview toggle
+    ImGui::Checkbox("Live Preview", &live_preview);
+    ImGui::SameLine();
+    ImGui::Text("| Changes apply immediately when enabled");
+    
+    // If live preview was just disabled, restore original theme
+    static bool prev_live_preview = live_preview;
+    if (prev_live_preview && !live_preview && theme_backup_made) {
+      ApplyTheme(original_theme);
+      theme_backup_made = false;
+    }
+    prev_live_preview = live_preview;
     
     ImGui::Separator();
     
-    // Primary Colors
-    if (ImGui::CollapsingHeader("Primary Colors", ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImVec4 primary = ConvertColorToImVec4(edit_theme.primary);
-      ImVec4 secondary = ConvertColorToImVec4(edit_theme.secondary);
-      ImVec4 accent = ConvertColorToImVec4(edit_theme.accent);
-      ImVec4 background = ConvertColorToImVec4(edit_theme.background);
+    // Theme metadata in a table for better layout
+    if (ImGui::BeginTable("ThemeMetadata", 2, ImGuiTableFlags_SizingStretchProp)) {
+      ImGui::TableSetupColumn("Field", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
       
-      if (ImGui::ColorEdit3("Primary", &primary.x)) {
-        edit_theme.primary = {primary.x, primary.y, primary.z, primary.w};
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Name:");
+      ImGui::TableNextColumn();
+      if (ImGui::InputText("##theme_name", theme_name, sizeof(theme_name))) {
+        edit_theme.name = std::string(theme_name);
       }
-      if (ImGui::ColorEdit3("Secondary", &secondary.x)) {
-        edit_theme.secondary = {secondary.x, secondary.y, secondary.z, secondary.w};
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Description:");
+      ImGui::TableNextColumn();
+      if (ImGui::InputText("##theme_description", theme_description, sizeof(theme_description))) {
+        edit_theme.description = std::string(theme_description);
       }
-      if (ImGui::ColorEdit3("Accent", &accent.x)) {
-        edit_theme.accent = {accent.x, accent.y, accent.z, accent.w};
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Author:");
+      ImGui::TableNextColumn();
+      if (ImGui::InputText("##theme_author", theme_author, sizeof(theme_author))) {
+        edit_theme.author = std::string(theme_author);
       }
-      if (ImGui::ColorEdit3("Background", &background.x)) {
-        edit_theme.background = {background.x, background.y, background.z, background.w};
-      }
+      
+      ImGui::EndTable();
     }
     
-    // Text Colors
-    if (ImGui::CollapsingHeader("Text Colors")) {
-      ImVec4 text_primary = ConvertColorToImVec4(edit_theme.text_primary);
-      ImVec4 text_secondary = ConvertColorToImVec4(edit_theme.text_secondary);
-      ImVec4 text_disabled = ConvertColorToImVec4(edit_theme.text_disabled);
-      ImVec4 text_link = ConvertColorToImVec4(edit_theme.text_link);
+    ImGui::Separator();
+    
+    // Enhanced theme editing with tabs for better organization
+    if (ImGui::BeginTabBar("ThemeEditorTabs", ImGuiTabBarFlags_None)) {
       
-      if (ImGui::ColorEdit3("Primary Text", &text_primary.x)) {
-        edit_theme.text_primary = {text_primary.x, text_primary.y, text_primary.z, text_primary.w};
-      }
-      if (ImGui::ColorEdit3("Secondary Text", &text_secondary.x)) {
-        edit_theme.text_secondary = {text_secondary.x, text_secondary.y, text_secondary.z, text_secondary.w};
-      }
-      if (ImGui::ColorEdit3("Disabled Text", &text_disabled.x)) {
-        edit_theme.text_disabled = {text_disabled.x, text_disabled.y, text_disabled.z, text_disabled.w};
-      }
-      if (ImGui::ColorEdit3("Link Text", &text_link.x)) {
-        edit_theme.text_link = {text_link.x, text_link.y, text_link.z, text_link.w};
+      // Apply live preview on first frame if enabled
+      static bool first_frame = true;
+      if (first_frame && live_preview) {
+        apply_live_preview();
+        first_frame = false;
       }
       
-      // Show contrast preview against current background
-      ImGui::Text("Link Preview:");
-      ImGui::SameLine();
-      ImGui::PushStyleColor(ImGuiCol_Text, text_link);
-      ImGui::Text("Sample clickable link");
+      // Primary Colors Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Primary", ICON_MD_COLOR_LENS).c_str())) {
+        if (ImGui::BeginTable("PrimaryColorsTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+          ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+          ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+          ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+          ImGui::TableHeadersRow();
+          
+          // Primary color
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Primary:");
+          ImGui::TableNextColumn();
+          ImVec4 primary = ConvertColorToImVec4(edit_theme.primary);
+          if (ImGui::ColorEdit3("##primary", &primary.x)) {
+        edit_theme.primary = {primary.x, primary.y, primary.z, primary.w};
+            apply_live_preview();
+          }
+          ImGui::TableNextColumn();
+          ImGui::Button("Primary Preview", ImVec2(-1, 30));
+          
+          // Secondary color
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Secondary:");
+          ImGui::TableNextColumn();
+          ImVec4 secondary = ConvertColorToImVec4(edit_theme.secondary);
+          if (ImGui::ColorEdit3("##secondary", &secondary.x)) {
+        edit_theme.secondary = {secondary.x, secondary.y, secondary.z, secondary.w};
+            apply_live_preview();
+          }
+          ImGui::TableNextColumn();
+          ImGui::PushStyleColor(ImGuiCol_Button, secondary);
+          ImGui::Button("Secondary Preview", ImVec2(-1, 30));
+          ImGui::PopStyleColor();
+          
+          // Accent color
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Accent:");
+          ImGui::TableNextColumn();
+          ImVec4 accent = ConvertColorToImVec4(edit_theme.accent);
+          if (ImGui::ColorEdit3("##accent", &accent.x)) {
+        edit_theme.accent = {accent.x, accent.y, accent.z, accent.w};
+            apply_live_preview();
+          }
+          ImGui::TableNextColumn();
+          ImGui::PushStyleColor(ImGuiCol_Button, accent);
+          ImGui::Button("Accent Preview", ImVec2(-1, 30));
+          ImGui::PopStyleColor();
+          
+          // Background color
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("Background:");
+          ImGui::TableNextColumn();
+          ImVec4 background = ConvertColorToImVec4(edit_theme.background);
+          if (ImGui::ColorEdit4("##background", &background.x)) {
+        edit_theme.background = {background.x, background.y, background.z, background.w};
+            apply_live_preview();
+          }
+          ImGui::TableNextColumn();
+          ImGui::Text("Background preview shown in window");
+          
+          ImGui::EndTable();
+        }
+        ImGui::EndTabItem();
+      }
+      
+      // Text Colors Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Text", ICON_MD_TEXT_FIELDS).c_str())) {
+        if (ImGui::BeginTable("TextColorsTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+          ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+          ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+          ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+          ImGui::TableHeadersRow();
+          
+          // Text colors with live preview
+          auto text_colors = std::vector<std::pair<const char*, Color*>>{
+            {"Primary Text", &edit_theme.text_primary},
+            {"Secondary Text", &edit_theme.text_secondary},
+            {"Disabled Text", &edit_theme.text_disabled},
+            {"Link Text", &edit_theme.text_link},
+            {"Text Highlight", &edit_theme.text_highlight},
+            {"Link Hover", &edit_theme.link_hover},
+            {"Text Selected BG", &edit_theme.text_selected_bg},
+            {"Input Text Cursor", &edit_theme.input_text_cursor}
+          };
+          
+          for (auto& [label, color_ptr] : text_colors) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("%s:", label);
+            
+            ImGui::TableNextColumn();
+            ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+            std::string id = absl::StrFormat("##%s", label);
+            if (ImGui::ColorEdit3(id.c_str(), &color_vec.x)) {
+              *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+              apply_live_preview();
+            }
+            
+            ImGui::TableNextColumn();
+            ImGui::PushStyleColor(ImGuiCol_Text, color_vec);
+            ImGui::Text("Sample %s", label);
+            ImGui::PopStyleColor();
+          }
+          
+          ImGui::EndTable();
+        }
+        ImGui::EndTabItem();
+      }
+      
+      // Interactive Elements Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Interactive", ICON_MD_TOUCH_APP).c_str())) {
+        if (ImGui::BeginTable("InteractiveColorsTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+          ImGui::TableSetupColumn("Element", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+          ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+          ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+          ImGui::TableHeadersRow();
+          
+          // Interactive element colors
+          auto interactive_colors = std::vector<std::tuple<const char*, Color*, ImGuiCol>>{
+            {"Button", &edit_theme.button, ImGuiCol_Button},
+            {"Button Hovered", &edit_theme.button_hovered, ImGuiCol_ButtonHovered},
+            {"Button Active", &edit_theme.button_active, ImGuiCol_ButtonActive},
+            {"Frame Background", &edit_theme.frame_bg, ImGuiCol_FrameBg},
+            {"Frame BG Hovered", &edit_theme.frame_bg_hovered, ImGuiCol_FrameBgHovered},
+            {"Frame BG Active", &edit_theme.frame_bg_active, ImGuiCol_FrameBgActive},
+            {"Check Mark", &edit_theme.check_mark, ImGuiCol_CheckMark},
+            {"Slider Grab", &edit_theme.slider_grab, ImGuiCol_SliderGrab},
+            {"Slider Grab Active", &edit_theme.slider_grab_active, ImGuiCol_SliderGrabActive}
+          };
+          
+          for (auto& [label, color_ptr, imgui_col] : interactive_colors) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("%s:", label);
+            
+            ImGui::TableNextColumn();
+            ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+            std::string id = absl::StrFormat("##%s", label);
+            if (ImGui::ColorEdit3(id.c_str(), &color_vec.x)) {
+              *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+              apply_live_preview();
+            }
+            
+            ImGui::TableNextColumn();
+            ImGui::PushStyleColor(imgui_col, color_vec);
+            ImGui::Button(absl::StrFormat("Preview %s", label).c_str(), ImVec2(-1, 30));
       ImGui::PopStyleColor();
     }
     
-    // Window Colors
-    if (ImGui::CollapsingHeader("Window Colors")) {
-      ImVec4 window_bg = ConvertColorToImVec4(edit_theme.window_bg);
-      ImVec4 popup_bg = ConvertColorToImVec4(edit_theme.popup_bg);
+          ImGui::EndTable();
+        }
+        ImGui::EndTabItem();
+      }
       
-      if (ImGui::ColorEdit4("Window Background", &window_bg.x)) {
-        edit_theme.window_bg = {window_bg.x, window_bg.y, window_bg.z, window_bg.w};
+      // Style Parameters Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Style", ICON_MD_TUNE).c_str())) {
+        ImGui::Text("Rounding and Border Settings:");
+        
+        if (ImGui::SliderFloat("Window Rounding", &edit_theme.window_rounding, 0.0f, 20.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (ImGui::SliderFloat("Frame Rounding", &edit_theme.frame_rounding, 0.0f, 20.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (ImGui::SliderFloat("Scrollbar Rounding", &edit_theme.scrollbar_rounding, 0.0f, 20.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (ImGui::SliderFloat("Tab Rounding", &edit_theme.tab_rounding, 0.0f, 20.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (ImGui::SliderFloat("Grab Rounding", &edit_theme.grab_rounding, 0.0f, 20.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        
+        ImGui::Separator();
+        ImGui::Text("Border Sizes:");
+        
+        if (ImGui::SliderFloat("Window Border Size", &edit_theme.window_border_size, 0.0f, 3.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (ImGui::SliderFloat("Frame Border Size", &edit_theme.frame_border_size, 0.0f, 3.0f)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        
+        ImGui::Separator();
+        ImGui::Text("Animation & Effects:");
+        
+        if (ImGui::Checkbox("Enable Animations", &edit_theme.enable_animations)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        if (edit_theme.enable_animations) {
+          if (ImGui::SliderFloat("Animation Speed", &edit_theme.animation_speed, 0.1f, 3.0f)) {
+            apply_live_preview();
+          }
+        }
+        if (ImGui::Checkbox("Enable Glow Effects", &edit_theme.enable_glow_effects)) {
+          if (live_preview) ApplyTheme(edit_theme);
+        }
+        
+        ImGui::EndTabItem();
       }
-      if (ImGui::ColorEdit4("Popup Background", &popup_bg.x)) {
-        edit_theme.popup_bg = {popup_bg.x, popup_bg.y, popup_bg.z, popup_bg.w};
-      }
-    }
-    
-    // Interactive Elements
-    if (ImGui::CollapsingHeader("Interactive Elements")) {
-      ImVec4 button = ConvertColorToImVec4(edit_theme.button);
-      ImVec4 button_hovered = ConvertColorToImVec4(edit_theme.button_hovered);
-      ImVec4 button_active = ConvertColorToImVec4(edit_theme.button_active);
       
-      if (ImGui::ColorEdit3("Button", &button.x)) {
-        edit_theme.button = {button.x, button.y, button.z, button.w};
+      // Navigation & Windows Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Navigation", ICON_MD_NAVIGATION).c_str())) {
+        if (ImGui::BeginTable("NavigationTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+          ImGui::TableSetupColumn("Element", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+          ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+          ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+          ImGui::TableHeadersRow();
+          
+          // Window colors
+          auto window_colors = std::vector<std::tuple<const char*, Color*, const char*>>{
+            {"Window Background", &edit_theme.window_bg, "Main window background"},
+            {"Child Background", &edit_theme.child_bg, "Child window background"},
+            {"Popup Background", &edit_theme.popup_bg, "Popup window background"},
+            {"Modal Background", &edit_theme.modal_bg, "Modal window background"},
+            {"Menu Bar BG", &edit_theme.menu_bar_bg, "Menu bar background"}
+          };
+          
+          for (auto& [label, color_ptr, description] : window_colors) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("%s:", label);
+            
+            ImGui::TableNextColumn();
+            ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+            std::string id = absl::StrFormat("##window_%s", label);
+            if (ImGui::ColorEdit4(id.c_str(), &color_vec.x)) {
+              *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+              apply_live_preview();
+            }
+            
+            ImGui::TableNextColumn();
+            ImGui::TextWrapped("%s", description);
+          }
+          
+          ImGui::EndTable();
+        }
+        
+        ImGui::Separator();
+        
+        // Header and Tab colors
+        if (ImGui::CollapsingHeader("Headers & Tabs", ImGuiTreeNodeFlags_DefaultOpen)) {
+          if (ImGui::BeginTable("HeaderTabTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+            ImGui::TableSetupColumn("Element", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+            ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+            ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+            ImGui::TableHeadersRow();
+            
+            auto header_tab_colors = std::vector<std::pair<const char*, Color*>>{
+              {"Header", &edit_theme.header},
+              {"Header Hovered", &edit_theme.header_hovered},
+              {"Header Active", &edit_theme.header_active},
+              {"Tab", &edit_theme.tab},
+              {"Tab Hovered", &edit_theme.tab_hovered},
+              {"Tab Active", &edit_theme.tab_active},
+              {"Tab Dimmed", &edit_theme.tab_dimmed},
+              {"Tab Dimmed Selected", &edit_theme.tab_dimmed_selected},
+              {"Title Background", &edit_theme.title_bg},
+              {"Title BG Active", &edit_theme.title_bg_active},
+              {"Title BG Collapsed", &edit_theme.title_bg_collapsed}
+            };
+            
+            for (auto& [label, color_ptr] : header_tab_colors) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
+              ImGui::Text("%s:", label);
+              
+              ImGui::TableNextColumn();
+              ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+              std::string id = absl::StrFormat("##header_%s", label);
+              if (ImGui::ColorEdit3(id.c_str(), &color_vec.x)) {
+                *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+                apply_live_preview();
+              }
+              
+              ImGui::TableNextColumn();
+              ImGui::PushStyleColor(ImGuiCol_Button, color_vec);
+              ImGui::Button(absl::StrFormat("Preview %s", label).c_str(), ImVec2(-1, 25));
+              ImGui::PopStyleColor();
+            }
+            
+            ImGui::EndTable();
+          }
+        }
+        
+        // Navigation and Special Elements
+        if (ImGui::CollapsingHeader("Navigation & Special")) {
+          if (ImGui::BeginTable("NavSpecialTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+            ImGui::TableSetupColumn("Element", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+            ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+            ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+            ImGui::TableHeadersRow();
+            
+            auto nav_special_colors = std::vector<std::tuple<const char*, Color*, const char*>>{
+              {"Nav Cursor", &edit_theme.nav_cursor, "Navigation cursor color"},
+              {"Nav Win Highlight", &edit_theme.nav_windowing_highlight, "Window selection highlight"},
+              {"Nav Win Dim BG", &edit_theme.nav_windowing_dim_bg, "Background dimming for navigation"},
+              {"Modal Win Dim BG", &edit_theme.modal_window_dim_bg, "Background dimming for modals"},
+              {"Drag Drop Target", &edit_theme.drag_drop_target, "Drag and drop target highlight"},
+              {"Docking Preview", &edit_theme.docking_preview, "Docking area preview"},
+              {"Docking Empty BG", &edit_theme.docking_empty_bg, "Empty docking space background"}
+            };
+            
+            for (auto& [label, color_ptr, description] : nav_special_colors) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
+              ImGui::Text("%s:", label);
+              
+              ImGui::TableNextColumn();
+              ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+              std::string id = absl::StrFormat("##nav_%s", label);
+              if (ImGui::ColorEdit4(id.c_str(), &color_vec.x)) {
+                *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+                apply_live_preview();
+              }
+              
+              ImGui::TableNextColumn();
+              ImGui::TextWrapped("%s", description);
+            }
+            
+            ImGui::EndTable();
+          }
+        }
+        
+        ImGui::EndTabItem();
       }
-      if (ImGui::ColorEdit3("Button Hovered", &button_hovered.x)) {
-        edit_theme.button_hovered = {button_hovered.x, button_hovered.y, button_hovered.z, button_hovered.w};
+      
+      // Tables & Data Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Tables", ICON_MD_TABLE_CHART).c_str())) {
+        if (ImGui::BeginTable("TablesDataTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+          ImGui::TableSetupColumn("Element", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+          ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+          ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+          ImGui::TableHeadersRow();
+          
+          auto table_colors = std::vector<std::tuple<const char*, Color*, const char*>>{
+            {"Table Header BG", &edit_theme.table_header_bg, "Table column headers"},
+            {"Table Border Strong", &edit_theme.table_border_strong, "Outer table borders"},
+            {"Table Border Light", &edit_theme.table_border_light, "Inner table borders"},
+            {"Table Row BG", &edit_theme.table_row_bg, "Normal table rows"},
+            {"Table Row BG Alt", &edit_theme.table_row_bg_alt, "Alternating table rows"},
+            {"Tree Lines", &edit_theme.tree_lines, "Tree view connection lines"}
+          };
+          
+          for (auto& [label, color_ptr, description] : table_colors) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("%s:", label);
+            
+            ImGui::TableNextColumn();
+            ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+            std::string id = absl::StrFormat("##table_%s", label);
+            if (ImGui::ColorEdit4(id.c_str(), &color_vec.x)) {
+              *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+              apply_live_preview();
+            }
+            
+            ImGui::TableNextColumn();
+            ImGui::TextWrapped("%s", description);
+          }
+          
+          ImGui::EndTable();
+        }
+        
+        ImGui::Separator();
+        
+        // Plots and Graphs
+        if (ImGui::CollapsingHeader("Plots & Graphs")) {
+          if (ImGui::BeginTable("PlotsTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+            ImGui::TableSetupColumn("Element", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+            ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+            ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+            ImGui::TableHeadersRow();
+            
+            auto plot_colors = std::vector<std::tuple<const char*, Color*, const char*>>{
+              {"Plot Lines", &edit_theme.plot_lines, "Line plot color"},
+              {"Plot Lines Hovered", &edit_theme.plot_lines_hovered, "Line plot hover color"},
+              {"Plot Histogram", &edit_theme.plot_histogram, "Histogram fill color"},
+              {"Plot Histogram Hovered", &edit_theme.plot_histogram_hovered, "Histogram hover color"}
+            };
+            
+            for (auto& [label, color_ptr, description] : plot_colors) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
+              ImGui::Text("%s:", label);
+              
+              ImGui::TableNextColumn();
+              ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+              std::string id = absl::StrFormat("##plot_%s", label);
+              if (ImGui::ColorEdit3(id.c_str(), &color_vec.x)) {
+                *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+                apply_live_preview();
+              }
+              
+              ImGui::TableNextColumn();
+              ImGui::TextWrapped("%s", description);
+            }
+            
+            ImGui::EndTable();
+          }
+        }
+        
+        ImGui::EndTabItem();
       }
-      if (ImGui::ColorEdit3("Button Active", &button_active.x)) {
-        edit_theme.button_active = {button_active.x, button_active.y, button_active.z, button_active.w};
+      
+      // Borders & Controls Tab  
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Borders", ICON_MD_BORDER_ALL).c_str())) {
+        if (ImGui::BeginTable("BordersControlsTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+          ImGui::TableSetupColumn("Element", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+          ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+          ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+          ImGui::TableHeadersRow();
+          
+          auto border_control_colors = std::vector<std::tuple<const char*, Color*, const char*>>{
+            {"Border", &edit_theme.border, "General border color"},
+            {"Border Shadow", &edit_theme.border_shadow, "Border shadow/depth"},
+            {"Separator", &edit_theme.separator, "Horizontal/vertical separators"},
+            {"Separator Hovered", &edit_theme.separator_hovered, "Separator hover state"},
+            {"Separator Active", &edit_theme.separator_active, "Separator active/dragged state"},
+            {"Scrollbar BG", &edit_theme.scrollbar_bg, "Scrollbar track background"},
+            {"Scrollbar Grab", &edit_theme.scrollbar_grab, "Scrollbar handle"},
+            {"Scrollbar Grab Hovered", &edit_theme.scrollbar_grab_hovered, "Scrollbar handle hover"},
+            {"Scrollbar Grab Active", &edit_theme.scrollbar_grab_active, "Scrollbar handle active"},
+            {"Resize Grip", &edit_theme.resize_grip, "Window resize grip"},
+            {"Resize Grip Hovered", &edit_theme.resize_grip_hovered, "Resize grip hover"},
+            {"Resize Grip Active", &edit_theme.resize_grip_active, "Resize grip active"}
+          };
+          
+          for (auto& [label, color_ptr, description] : border_control_colors) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("%s:", label);
+            
+            ImGui::TableNextColumn();
+            ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+            std::string id = absl::StrFormat("##border_%s", label);
+            if (ImGui::ColorEdit4(id.c_str(), &color_vec.x)) {
+              *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+              apply_live_preview();
+            }
+            
+            ImGui::TableNextColumn();
+            ImGui::TextWrapped("%s", description);
+          }
+          
+          ImGui::EndTable();
+        }
+        
+        ImGui::EndTabItem();
       }
+      
+      // Enhanced Colors Tab
+      if (ImGui::BeginTabItem(absl::StrFormat("%s Enhanced", ICON_MD_AUTO_AWESOME).c_str())) {
+        ImGui::Text("Enhanced semantic colors and editor-specific customization");
+        ImGui::Separator();
+        
+        // Enhanced semantic colors section
+        if (ImGui::CollapsingHeader("Enhanced Semantic Colors", ImGuiTreeNodeFlags_DefaultOpen)) {
+          if (ImGui::BeginTable("EnhancedSemanticTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+            ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+            ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+            ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+            ImGui::TableHeadersRow();
+            
+            auto enhanced_colors = std::vector<std::tuple<const char*, Color*, const char*>>{
+              {"Code Background", &edit_theme.code_background, "Code blocks background"},
+              {"Success Light", &edit_theme.success_light, "Light success variant"},
+              {"Warning Light", &edit_theme.warning_light, "Light warning variant"},
+              {"Error Light", &edit_theme.error_light, "Light error variant"},
+              {"Info Light", &edit_theme.info_light, "Light info variant"}
+            };
+            
+            for (auto& [label, color_ptr, description] : enhanced_colors) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
+              ImGui::Text("%s:", label);
+              
+              ImGui::TableNextColumn();
+              ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+              std::string id = absl::StrFormat("##enhanced_%s", label);
+              if (ImGui::ColorEdit3(id.c_str(), &color_vec.x)) {
+                *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+                apply_live_preview();
+              }
+              
+              ImGui::TableNextColumn();
+              ImGui::TextWrapped("%s", description);
+            }
+            
+            ImGui::EndTable();
+          }
+        }
+        
+        // UI State colors section
+        if (ImGui::CollapsingHeader("UI State Colors")) {
+          if (ImGui::BeginTable("UIStateTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+            ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+            ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+            ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+            ImGui::TableHeadersRow();
+            
+            // UI state colors with alpha support where needed
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Active Selection:");
+            ImGui::TableNextColumn();
+            ImVec4 active_selection = ConvertColorToImVec4(edit_theme.active_selection);
+            if (ImGui::ColorEdit4("##active_selection", &active_selection.x)) {
+              edit_theme.active_selection = {active_selection.x, active_selection.y, active_selection.z, active_selection.w};
+              apply_live_preview();
+            }
+            ImGui::TableNextColumn();
+            ImGui::TextWrapped("Active/selected UI elements");
+            
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Hover Highlight:");
+            ImGui::TableNextColumn();
+            ImVec4 hover_highlight = ConvertColorToImVec4(edit_theme.hover_highlight);
+            if (ImGui::ColorEdit4("##hover_highlight", &hover_highlight.x)) {
+              edit_theme.hover_highlight = {hover_highlight.x, hover_highlight.y, hover_highlight.z, hover_highlight.w};
+              apply_live_preview();
+            }
+            ImGui::TableNextColumn();
+            ImGui::TextWrapped("General hover state highlighting");
+            
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Focus Border:");
+            ImGui::TableNextColumn();
+            ImVec4 focus_border = ConvertColorToImVec4(edit_theme.focus_border);
+            if (ImGui::ColorEdit3("##focus_border", &focus_border.x)) {
+              edit_theme.focus_border = {focus_border.x, focus_border.y, focus_border.z, focus_border.w};
+              apply_live_preview();
+            }
+            ImGui::TableNextColumn();
+            ImGui::TextWrapped("Border for focused input elements");
+            
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Disabled Overlay:");
+            ImGui::TableNextColumn();
+            ImVec4 disabled_overlay = ConvertColorToImVec4(edit_theme.disabled_overlay);
+            if (ImGui::ColorEdit4("##disabled_overlay", &disabled_overlay.x)) {
+              edit_theme.disabled_overlay = {disabled_overlay.x, disabled_overlay.y, disabled_overlay.z, disabled_overlay.w};
+              apply_live_preview();
+            }
+            ImGui::TableNextColumn();
+            ImGui::TextWrapped("Semi-transparent overlay for disabled elements");
+            
+            ImGui::EndTable();
+          }
+        }
+        
+        // Editor-specific colors section
+        if (ImGui::CollapsingHeader("Editor-Specific Colors")) {
+          if (ImGui::BeginTable("EditorColorsTable", 3, ImGuiTableFlags_SizingStretchProp)) {
+            ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+            ImGui::TableSetupColumn("Picker", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+            ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+            ImGui::TableHeadersRow();
+            
+            auto editor_colors = std::vector<std::tuple<const char*, Color*, const char*, bool>>{
+              {"Editor Background", &edit_theme.editor_background, "Main editor canvas background", false},
+              {"Editor Grid", &edit_theme.editor_grid, "Grid lines in map/graphics editors", true},
+              {"Editor Cursor", &edit_theme.editor_cursor, "Cursor color in editors", false},
+              {"Editor Selection", &edit_theme.editor_selection, "Selection highlight in editors", true}
+            };
+            
+            for (auto& [label, color_ptr, description, use_alpha] : editor_colors) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
+              ImGui::Text("%s:", label);
+              
+              ImGui::TableNextColumn();
+              ImVec4 color_vec = ConvertColorToImVec4(*color_ptr);
+              std::string id = absl::StrFormat("##editor_%s", label);
+              if (use_alpha ? ImGui::ColorEdit4(id.c_str(), &color_vec.x) : ImGui::ColorEdit3(id.c_str(), &color_vec.x)) {
+                *color_ptr = {color_vec.x, color_vec.y, color_vec.z, color_vec.w};
+                apply_live_preview();
+              }
+              
+              ImGui::TableNextColumn();
+              ImGui::TextWrapped("%s", description);
+            }
+            
+            ImGui::EndTable();
+          }
+        }
+        
+        ImGui::EndTabItem();
+      }
+      
+      ImGui::EndTabBar();
     }
     
     ImGui::Separator();
@@ -906,9 +1779,24 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
     ImGui::SameLine();
     if (ImGui::Button("Reset to Current")) {
       edit_theme = current_theme_;
-      strncpy(theme_name, current_theme_.name.c_str(), sizeof(theme_name));
-      strncpy(theme_description, current_theme_.description.c_str(), sizeof(theme_description));
-      strncpy(theme_author, current_theme_.author.c_str(), sizeof(theme_author));
+      // Safe string copy with bounds checking
+      size_t name_len = std::min(current_theme_.name.length(), sizeof(theme_name) - 1);
+      std::memcpy(theme_name, current_theme_.name.c_str(), name_len);
+      theme_name[name_len] = '\0';
+      
+      size_t desc_len = std::min(current_theme_.description.length(), sizeof(theme_description) - 1);
+      std::memcpy(theme_description, current_theme_.description.c_str(), desc_len);
+      theme_description[desc_len] = '\0';
+      
+      size_t author_len = std::min(current_theme_.author.length(), sizeof(theme_author) - 1);
+      std::memcpy(theme_author, current_theme_.author.c_str(), author_len);
+      theme_author[author_len] = '\0';
+      
+      // Reset backup state since we're back to current theme
+      if (theme_backup_made) {
+        theme_backup_made = false;
+        current_theme_.ApplyToImGui(); // Apply current theme to clear any preview changes
+      }
     }
     
     ImGui::SameLine();
@@ -920,6 +1808,9 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       // Add to themes map and apply
       themes_[edit_theme.name] = edit_theme;
       ApplyTheme(edit_theme);
+      
+      // Reset backup state since theme is now applied
+      theme_backup_made = false;
     }
     
     ImGui::SameLine();
@@ -942,6 +1833,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         // Update themes map and apply
         themes_[edit_theme.name] = edit_theme;
         ApplyTheme(edit_theme);
+        theme_backup_made = false; // Reset backup state since theme is now applied
         util::logf("Theme saved over current file: %s", current_file_path.c_str());
       } else {
         util::logf("Failed to save over current theme: %s", status.message().data());
@@ -970,19 +1862,15 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       edit_theme.description = std::string(theme_description);
       edit_theme.author = std::string(theme_author);
       
-      // Use folder dialog to choose save location
-      auto folder_path = core::FileDialogWrapper::ShowOpenFolderDialog();
-      if (!folder_path.empty()) {
-        // Create filename from theme name (sanitize it)
-        std::string safe_name = edit_theme.name;
-        // Replace spaces and special chars with underscores
-        for (char& c : safe_name) {
-          if (!std::isalnum(c)) {
-            c = '_';
-          }
+      // Use save file dialog with proper defaults
+      std::string safe_name = edit_theme.name.empty() ? "custom_theme" : edit_theme.name;
+      auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(safe_name, "theme");
+      
+      if (!file_path.empty()) {
+        // Ensure .theme extension
+        if (file_path.find(".theme") == std::string::npos) {
+          file_path += ".theme";
         }
-        
-        std::string file_path = folder_path + "/" + safe_name + ".theme";
         
         auto status = SaveThemeToFile(edit_theme, file_path);
         if (status.ok()) {

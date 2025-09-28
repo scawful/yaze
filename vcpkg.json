@@ -1,11 +1,28 @@
 {
   "name": "yaze",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Yet Another Zelda3 Editor",
   "dependencies": [
-    "zlib",
-    "libpng",
-    "sdl2"
+    {
+      "name": "zlib",
+      "platform": "!uwp"
+    },
+    {
+      "name": "libpng",
+      "platform": "!uwp"
+    },
+    {
+      "name": "sdl2",
+      "platform": "!uwp",
+      "features": ["vulkan"]
+    }
   ],
-  "builtin-baseline": "c8696863d371ab7f46e213d8f5ca923c4aef2a00"
+  "builtin-baseline": "c8696863d371ab7f46e213d8f5ca923c4aef2a00",
+  "overrides": [],
+  "features": {
+    "pkg-config": {
+      "description": "Use pkg-config for dependency detection",
+      "dependencies": []
+    }
+  }
 }

@@ -122,7 +122,7 @@ class ModernCLI {
   }
 
   void ShowVersion() {
-    std::cout << "z3ed v0.3.0 - Yet Another Zelda3 Editor CLI" << std::endl;
+    std::cout << "z3ed v0.3.1 - Yet Another Zelda3 Editor CLI" << std::endl;
     std::cout << "Built with Asar integration" << std::endl;
     std::cout << "Copyright (c) 2025 scawful" << std::endl;
   }
@@ -434,7 +434,11 @@ class ModernCLI {
 }  // namespace cli
 }  // namespace yaze
 
+#ifdef _WIN32
+extern "C" int SDL_main(int argc, char* argv[]) {
+#else
 int main(int argc, char* argv[]) {
+#endif
   absl::SetProgramUsageMessage(
     "z3ed - Yet Another Zelda3 Editor CLI Tool\n"
     "\n"

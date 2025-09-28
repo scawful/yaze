@@ -15,6 +15,7 @@ Yet Another Zelda3 Editor - A comprehensive ROM editor for The Legend of Zelda: 
 - [Contributing](B1-contributing.md) - Development guidelines and standards  
 - [Platform Compatibility](B2-platform-compatibility.md) - Cross-platform support details
 - [Build Presets](B3-build-presets.md) - CMake preset usage guide
+- [Release Workflows](B4-release-workflows.md) - GitHub Actions release pipeline documentation
 
 ## Technical Documentation
 
@@ -37,6 +38,8 @@ Yet Another Zelda3 Editor - A comprehensive ROM editor for The Legend of Zelda: 
 - ZSCustomOverworld v3 support for enhanced overworld editing
 - Cross-platform support (Windows, macOS, Linux)
 - Modern C++23 codebase with comprehensive testing
+- **Windows Development**: Automated setup scripts, Visual Studio integration, vcpkg package management
+- **CMake Compatibility**: Automatic handling of submodule compatibility issues (abseil-cpp, SDL)
 
 ---
 

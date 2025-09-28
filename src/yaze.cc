@@ -1,9 +1,10 @@
 #include "yaze.h"
 
+#include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <sstream>
-#include <cstring>
 #include <stdexcept>
 
 #include "app/core/controller.h"
@@ -21,7 +22,7 @@ DEFINE_FLAG(std::string, rom_file, "",
 // Static variables for library state
 static bool g_library_initialized = false;
 
-int yaze_app_main(int argc, char **argv) {
+int yaze_app_main(int argc, char** argv) {
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
   RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
   std::string rom_filename = "";
@@ -52,7 +53,7 @@ yaze_status yaze_library_init() {
   if (g_library_initialized) {
     return YAZE_OK;
   }
-  
+
   // Initialize SDL and other subsystems if needed
   g_library_initialized = true;
   return YAZE_OK;
@@ -62,7 +63,7 @@ void yaze_library_shutdown() {
   if (!g_library_initialized) {
     return;
   }
-  
+
   // Cleanup subsystems
   g_library_initialized = false;
 
@@ -111,17 +112,17 @@ yaze_status yaze_init(yaze_editor_context* context, const char* rom_filename) {
   if (context == nullptr) {
     return YAZE_ERROR_INVALID_ARG;
   }
-  
+
   if (!g_library_initialized) {
     yaze_status init_status = yaze_library_init();
     if (init_status != YAZE_OK) {
       return init_status;
     }
   }
-  
+
   context->rom = nullptr;
   context->error_message = nullptr;
-  
+
   if (rom_filename != nullptr && strlen(rom_filename) > 0) {
     context->rom = yaze_load_rom(rom_filename);
     if (context->rom == nullptr) {
@@ -137,12 +138,12 @@ yaze_status yaze_shutdown(yaze_editor_context* context) {
   if (context == nullptr) {
     return YAZE_ERROR_INVALID_ARG;
   }
-  
+
   if (context->rom != nullptr) {
     yaze_unload_rom(context->rom);
     context->rom = nullptr;
   }
-  
+
   context->error_message = nullptr;
   return YAZE_OK;
 }
@@ -151,7 +152,7 @@ zelda3_rom* yaze_load_rom(const char* filename) {
   if (filename == nullptr || strlen(filename) == 0) {
     return nullptr;
   }
-  
+
   auto internal_rom = std::make_unique<yaze::Rom>();
   if (!internal_rom->LoadFromFile(filename).ok()) {
     return nullptr;
@@ -171,7 +172,7 @@ void yaze_unload_rom(zelda3_rom* rom) {
   if (rom == nullptr) {
     return;
   }
-  
+
   if (rom->impl != nullptr) {
     delete static_cast<yaze::Rom*>(rom->impl);
     rom->impl = nullptr;
@@ -184,27 +185,24 @@ int yaze_save_rom(zelda3_rom* rom, const char* filename) {
   if (rom == nullptr || filename == nullptr) {
     return YAZE_ERROR_INVALID_ARG;
   }
-  
+
   if (rom->impl == nullptr) {
     return YAZE_ERROR_NOT_INITIALIZED;
   }
-  
+
   auto* internal_rom = static_cast<yaze::Rom*>(rom->impl);
   auto status = internal_rom->SaveToFile(yaze::Rom::SaveSettings{
-      .backup = true, 
-      .save_new = false, 
-      .filename = filename
-  });
-  
+      .backup = true, .save_new = false, .filename = filename});
+
   if (!status.ok()) {
     return YAZE_ERROR_IO;
   }
-  
+
   rom->is_modified = false;
   return YAZE_OK;
 }
 
-yaze_bitmap yaze_load_bitmap(const char *filename) {
+yaze_bitmap yaze_load_bitmap(const char* filename) {
   yaze_bitmap bitmap;
   bitmap.width = 0;
   bitmap.height = 0;
@@ -213,7 +211,7 @@ yaze_bitmap yaze_load_bitmap(const char *filename) {
   return bitmap;
 }
 
-snes_color yaze_get_color_from_paletteset(const zelda3_rom *rom,
+snes_color yaze_get_color_from_paletteset(const zelda3_rom* rom,
                                           int palette_set, int palette,
                                           int color) {
   snes_color color_struct;
@@ -222,7 +220,7 @@ snes_color yaze_get_color_from_paletteset(const zelda3_rom *rom,
   color_struct.blue = 0;
 
   if (rom->impl) {
-    yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
+    yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
     auto get_color =
         internal_rom->palette_group()
             .get_group(yaze::gfx::kPaletteGroupAddressesKeys[palette_set])
@@ -235,21 +233,21 @@ snes_color yaze_get_color_from_paletteset(const zelda3_rom *rom,
   return color_struct;
 }
 
-zelda3_overworld *yaze_load_overworld(const zelda3_rom *rom) {
+zelda3_overworld* yaze_load_overworld(const zelda3_rom* rom) {
   if (rom->impl == nullptr) {
     return nullptr;
   }
 
-  yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
+  yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
   auto internal_overworld = new yaze::zelda3::Overworld(internal_rom);
   if (!internal_overworld->Load(internal_rom).ok()) {
     return nullptr;
   }
 
-  zelda3_overworld *overworld = new zelda3_overworld();
+  zelda3_overworld* overworld = new zelda3_overworld();
   overworld->impl = internal_overworld;
   int map_id = 0;
-  for (const auto &ow_map : internal_overworld->overworld_maps()) {
+  for (const auto& ow_map : internal_overworld->overworld_maps()) {
     overworld->maps[map_id] = new zelda3_overworld_map();
     overworld->maps[map_id]->id = map_id;
     map_id++;
@@ -257,20 +255,21 @@ zelda3_overworld *yaze_load_overworld(const zelda3_rom *rom) {
   return overworld;
 }
 
-zelda3_dungeon_room *yaze_load_all_rooms(const zelda3_rom *rom) {
+zelda3_dungeon_room* yaze_load_all_rooms(const zelda3_rom* rom) {
   if (rom->impl == nullptr) {
     return nullptr;
   }
-  yaze::Rom *internal_rom = static_cast<yaze::Rom *>(rom->impl);
-  zelda3_dungeon_room *rooms = new zelda3_dungeon_room[256];
+  yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
+  zelda3_dungeon_room* rooms = new zelda3_dungeon_room[256];
   return rooms;
 }
 
-yaze_status yaze_load_messages(const zelda3_rom* rom, zelda3_message** messages, int* message_count) {
+yaze_status yaze_load_messages(const zelda3_rom* rom, zelda3_message** messages,
+                               int* message_count) {
   if (rom == nullptr || messages == nullptr || message_count == nullptr) {
     return YAZE_ERROR_INVALID_ARG;
   }
-  
+
   if (rom->impl == nullptr) {
     return YAZE_ERROR_NOT_INITIALIZED;
   }
@@ -279,23 +278,25 @@ yaze_status yaze_load_messages(const zelda3_rom* rom, zelda3_message** messages,
     // Use LoadAllTextData from message_data.h
     std::vector<yaze::editor::MessageData> message_data =
         yaze::editor::ReadAllTextData(rom->data, 0);
-    
+
     *message_count = static_cast<int>(message_data.size());
     *messages = new zelda3_message[*message_count];
-    
+
     for (size_t i = 0; i < message_data.size(); ++i) {
       const auto& msg = message_data[i];
       (*messages)[i].id = msg.ID;
       (*messages)[i].rom_address = msg.Address;
       (*messages)[i].length = static_cast<uint16_t>(msg.RawString.length());
-      
+
       // Allocate and copy string data
       (*messages)[i].raw_data = new uint8_t[msg.Data.size()];
       std::memcpy((*messages)[i].raw_data, msg.Data.data(), msg.Data.size());
-      
+
       (*messages)[i].parsed_text = new char[msg.ContentsParsed.length() + 1];
-      std::strcpy((*messages)[i].parsed_text, msg.ContentsParsed.c_str());
-      
+      // Safe string copy with bounds checking
+      std::memcpy((*messages)[i].parsed_text, msg.ContentsParsed.c_str(), msg.ContentsParsed.length());
+      (*messages)[i].parsed_text[msg.ContentsParsed.length()] = '\0';
+
       (*messages)[i].is_compressed = false;  // TODO: Detect compression
       (*messages)[i].encoding_type = 0;      // TODO: Detect encoding
     }
@@ -321,31 +322,36 @@ void yaze_free_bitmap(yaze_bitmap* bitmap) {
 
 yaze_bitmap yaze_create_bitmap(int width, int height, uint8_t bpp) {
   yaze_bitmap bitmap = {};
-  
-  if (width <= 0 || height <= 0 || (bpp != 1 && bpp != 2 && bpp != 4 && bpp != 8)) {
+
+  if (width <= 0 || height <= 0 ||
+      (bpp != 1 && bpp != 2 && bpp != 4 && bpp != 8)) {
     return bitmap;  // Return empty bitmap on invalid args
   }
-  
+
   bitmap.width = width;
   bitmap.height = height;
   bitmap.bpp = bpp;
   bitmap.data = new uint8_t[width * height]();
-  
+
   return bitmap;
 }
 
 snes_color yaze_rgb_to_snes_color(uint8_t r, uint8_t g, uint8_t b) {
   snes_color color = {};
-  color.red = r;    // Store full 8-bit values (existing code expects this)
+  color.red = r;  // Store full 8-bit values (existing code expects this)
   color.green = g;
   color.blue = b;
   return color;
 }
 
-void yaze_snes_color_to_rgb(snes_color color, uint8_t* r, uint8_t* g, uint8_t* b) {
-  if (r != nullptr) *r = static_cast<uint8_t>(color.red);
-  if (g != nullptr) *g = static_cast<uint8_t>(color.green);
-  if (b != nullptr) *b = static_cast<uint8_t>(color.blue);
+void yaze_snes_color_to_rgb(snes_color color, uint8_t* r, uint8_t* g,
+                            uint8_t* b) {
+  if (r != nullptr)
+    *r = static_cast<uint8_t>(color.red);
+  if (g != nullptr)
+    *g = static_cast<uint8_t>(color.green);
+  if (b != nullptr)
+    *b = static_cast<uint8_t>(color.blue);
 }
 
 // Version detection functions
@@ -353,7 +359,7 @@ zelda3_version zelda3_detect_version(const uint8_t* rom_data, size_t size) {
   if (rom_data == nullptr || size < 0x100000) {
     return ZELDA3_VERSION_UNKNOWN;
   }
-  
+
   // TODO: Implement proper version detection based on ROM header
   return ZELDA3_VERSION_US;  // Default assumption
 }
@@ -375,7 +381,8 @@ const char* zelda3_version_to_string(zelda3_version version) {
   }
 }
 
-const zelda3_version_pointers* zelda3_get_version_pointers(zelda3_version version) {
+const zelda3_version_pointers* zelda3_get_version_pointers(
+    zelda3_version version) {
   switch (version) {
     case ZELDA3_VERSION_US:
       return &zelda3_us_pointers;

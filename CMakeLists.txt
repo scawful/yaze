@@ -7,14 +7,33 @@ if(POLICY CMP0091)
   cmake_policy(SET CMP0091 NEW)
 endif()
 
-project(yaze VERSION 0.3.0
+# Set additional policies to handle submodule compatibility
+if(POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+endif()
+if(POLICY CMP0077)
+  cmake_policy(SET CMP0077 NEW)
+endif()
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif()
+
+# Suppress deprecation warnings from submodules
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress deprecation warnings")
+
+# Handle pthread issues on Windows
+if(WIN32)
+    set(THREADS_PREFER_PTHREAD_FLAG OFF)
+endif()
+
+project(yaze VERSION 0.3.1
              DESCRIPTION "Yet Another Zelda3 Editor"
              LANGUAGES CXX C)
 
 # Set project metadata
 set(YAZE_VERSION_MAJOR 0)
 set(YAZE_VERSION_MINOR 3)
-set(YAZE_VERSION_PATCH 0)
+set(YAZE_VERSION_PATCH 1)
 
 configure_file(src/yaze_config.h.in yaze_config.h @ONLY)
 
@@ -75,6 +94,14 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
     set(YAZE_PLATFORM_LINUX ON)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(YAZE_PLATFORM_WINDOWS ON)
+    # Enable vcpkg integration for Windows builds
+    if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+        set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            CACHE STRING "Vcpkg toolchain file")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+        set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            CACHE STRING "Vcpkg toolchain file")
+    endif()
 endif()
 
 # Create a common interface target for shared settings
@@ -90,19 +117,52 @@ elseif(YAZE_PLATFORM_MACOS)
 elseif(YAZE_PLATFORM_WINDOWS)
     include(cmake/vcpkg.cmake)
     target_compile_definitions(yaze_common INTERFACE WINDOWS)
+    
+    # Windows-specific architecture detection and configuration
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
+        target_compile_definitions(yaze_common INTERFACE YAZE_ARCH_ARM64)
+        message(STATUS "Building for Windows ARM64")
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|x86_64")
+        target_compile_definitions(yaze_common INTERFACE YAZE_ARCH_X64)
+        message(STATUS "Building for Windows x64")
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "i386|i686|x86")
+        target_compile_definitions(yaze_common INTERFACE YAZE_ARCH_X86)
+        message(STATUS "Building for Windows x86")
+    else()
+        message(WARNING "Unknown Windows architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
 endif()
 
 # Compiler-specific settings
 if(MSVC)
-    target_compile_options(yaze_common INTERFACE /W4 /permissive-)
+    target_compile_options(yaze_common INTERFACE 
+        /W4 /permissive-
+        /bigobj  # Support large object files
+        /utf-8   # Use UTF-8 encoding
+    )
     target_compile_definitions(yaze_common INTERFACE 
         _CRT_SECURE_NO_WARNINGS
         _CRT_NONSTDC_NO_WARNINGS
+        SILENCE_CXX23_DEPRECATIONS
+        _SILENCE_CXX23_DEPRECATION_WARNING
+        _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS
+        NOMINMAX  # Disable min/max macros
+        WIN32_LEAN_AND_MEAN  # Reduce Windows header bloat
         strncasecmp=_strnicmp
         strcasecmp=_stricmp
     )
 else()
-    target_compile_options(yaze_common INTERFACE -Wall -Wextra -Wpedantic)
+    target_compile_options(yaze_common INTERFACE 
+        -Wall -Wextra -Wpedantic
+        -Wno-deprecated-declarations  # Silence deprecation warnings
+        -Wno-c++23-compat             # Silence C++23 compatibility warnings
+    )
+    # Add C++23 deprecation silencing for GCC/Clang
+    target_compile_definitions(yaze_common INTERFACE 
+        _SILENCE_CXX23_DEPRECATION_WARNING
+        _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS
+        ABSL_HAVE_INTRINSIC_INT128=1  # Enable intrinsic int128 support
+    )
 endif()
 
 # Abseil Standard Specifications
