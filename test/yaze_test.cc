@@ -110,21 +110,21 @@ TestConfig ParseArguments(int argc, char* argv[]) {
 
 // Set up test environment based on configuration
 void SetupTestEnvironment(const TestConfig& config) {
-  // Set environment variables for tests
+  // Set environment variables for tests using SDL's cross-platform function
   if (!config.rom_path.empty()) {
-    setenv("YAZE_TEST_ROM_PATH", config.rom_path.c_str(), 1);
+    SDL_setenv("YAZE_TEST_ROM_PATH", config.rom_path.c_str(), 1);
   }
   
   if (config.skip_rom_tests) {
-    setenv("YAZE_SKIP_ROM_TESTS", "1", 1);
+    SDL_setenv("YAZE_SKIP_ROM_TESTS", "1", 1);
   }
   
   if (config.enable_ui_tests) {
-    setenv("YAZE_ENABLE_UI_TESTS", "1", 1);
+    SDL_setenv("YAZE_ENABLE_UI_TESTS", "1", 1);
   }
   
   if (config.verbose) {
-    setenv("YAZE_VERBOSE_TESTS", "1", 1);
+    SDL_setenv("YAZE_VERBOSE_TESTS", "1", 1);
   }
 }
 
