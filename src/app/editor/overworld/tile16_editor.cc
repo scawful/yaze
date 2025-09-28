@@ -1,5 +1,6 @@
 #include "tile16_editor.h"
 
+#include <array>
 #include <set>
 
 #include "absl/status/status.h"
@@ -1617,7 +1618,7 @@ void Tile16Editor::DrawPaletteSettings() {
 
       Separator();
       Text("Current State:");
-      static const char* palette_group_names[] = {
+      static constexpr std::array<const char*, 7> palette_group_names = {
           "OW Main", "OW Aux", "OW Anim", "Dungeon", "Sprites", "Armor", "Sword"
       };
       Text("Palette Group: %d (%s)", current_palette_group_,
