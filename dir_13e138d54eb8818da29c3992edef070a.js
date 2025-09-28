@@ -8,5 +8,6 @@ var dir_13e138d54eb8818da29c3992edef070a =
     [ "test_editor.h", "test__editor_8h.html", "test__editor_8h" ],
     [ "test_utils.h", "test__utils_8h.html", "test__utils_8h" ],
     [ "testing.h", "testing_8h.html", "testing_8h" ],
-    [ "yaze_test.cc", "yaze__test_8cc.html", "yaze__test_8cc" ]
+    [ "yaze_test.cc", "yaze__test_8cc.html", "yaze__test_8cc" ],
+    [ "yaze_test_ci.cc", "yaze__test__ci_8cc.html", "yaze__test__ci_8cc" ]
 ];

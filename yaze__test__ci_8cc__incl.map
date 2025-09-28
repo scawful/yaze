@@ -1,0 +1,11 @@
+<map id="test/yaze_test_ci.cc" name="test/yaze_test_ci.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="157,5,294,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,87,99,112"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,34,93,82,91,77,198,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="123,87,194,112"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="217,33,181,76,177,73,213,30"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="218,79,366,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="237,30,268,65,264,69,233,33"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="390,87,570,112"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="265,29,427,79,426,84,264,34"/>
+</map>

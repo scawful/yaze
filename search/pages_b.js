@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['plan_0',['plan',['../md_docs_2E3-dungeon-editor-design.html',1,'Dungeon Editor Design Plan'],['../md_docs_2E4-dungeon-editor-refactoring.html',1,'DungeonEditor Refactoring Plan']]],
-  ['platform_20compatibility_20improvements_1',['Platform Compatibility Improvements',['../md_docs_2B2-platform-compatibility.html',1,'']]],
-  ['presets_20guide_2',['Build Presets Guide',['../md_docs_2B3-build-presets.html',1,'']]]
+  ['refactoring_20plan_0',['DungeonEditor Refactoring Plan',['../md_docs_2E4-dungeon-editor-refactoring.html',1,'']]],
+  ['reference_1',['API Reference',['../md_docs_204-api-reference.html',1,'']]],
+  ['release_20workflows_20documentation_2',['Release Workflows Documentation',['../md_docs_2B4-release-workflows.html',1,'']]],
+  ['roadmap_3',['Roadmap',['../md_docs_2D1-roadmap.html',1,'']]]
 ];
