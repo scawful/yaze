@@ -199,6 +199,9 @@ def generate_vcxproj():
     <ProjectName>YAZE</ProjectName>
     <VcpkgEnabled>true</VcpkgEnabled>
     <VcpkgManifestInstall>true</VcpkgManifestInstall>
+    <VcpkgTriplet Condition="'$(Platform)'=='Win32'">x86-windows</VcpkgTriplet>
+    <VcpkgTriplet Condition="'$(Platform)'=='x64'">x64-windows</VcpkgTriplet>
+    <VcpkgTriplet Condition="'$(Platform)'=='ARM64'">arm64-windows</VcpkgTriplet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

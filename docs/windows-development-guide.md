@@ -37,11 +37,10 @@ The easiest way to get started is to use our automated setup script:
 ```
 
 This script will:
-- Check for required software
-- Set up vcpkg
-- Install dependencies
-- Generate Visual Studio project files
-- Perform a test build
+- Check for required software (Visual Studio 2022, Git, Python)
+- Set up vcpkg and install dependencies (zlib, libpng, SDL2)
+- Generate Visual Studio project files with proper vcpkg integration
+- Perform a test build to verify everything works
 
 ### Manual Setup
 
@@ -71,9 +70,16 @@ cd ..
 
 #### 3. Generate Visual Studio Project Files
 
+The generation script creates project files with proper vcpkg integration:
+
 ```bash
 python scripts/generate-vs-projects.py
 ```
+
+This creates:
+- `YAZE.sln` - Visual Studio solution file
+- `YAZE.vcxproj` - Visual Studio project file with vcpkg integration
+- Proper vcpkg triplet settings for all platforms (x86, x64, ARM64)
 
 #### 4. Build the Project
 
@@ -152,19 +158,21 @@ msbuild YAZE.sln /p:Configuration=Debug /p:Platform=x64 /p:VcpkgEnabled=true /p:
 
 ```
 yaze/
-├── YAZE.sln              # Visual Studio solution file
-├── YAZE.vcxproj          # Visual Studio project file
+├── YAZE.sln              # Visual Studio solution file (generated)
+├── YAZE.vcxproj          # Visual Studio project file (generated)
 ├── vcpkg.json            # vcpkg dependencies
 ├── scripts/              # Build and setup scripts
 │   ├── build-windows.ps1 # PowerShell build script
 │   ├── build-windows.bat # Batch build script
-│   ├── setup-windows-dev.ps1 # Setup script
-│   └── generate-vs-projects.py # Project generator
+│   ├── setup-windows-dev.ps1 # Automated setup script
+│   └── generate-vs-projects.py # Project file generator
 ├── src/                  # Source code
 ├── incl/                 # Public headers
 ├── assets/               # Game assets
 └── docs/                 # Documentation
 ```
+
+**Note**: The Visual Studio project files (`YAZE.sln`, `YAZE.vcxproj`) are generated automatically and should not be edited manually. If you need to modify project settings, update the generation script instead.
 
 ## Troubleshooting
 
@@ -193,7 +201,22 @@ yaze/
   ```
 - Or manually set up vcpkg as described in the manual setup section
 
-#### 3. Python Script Execution Policy
+#### 3. ZLIB or Other Dependencies Not Found
+
+**Error**: `Could NOT find ZLIB (missing: ZLIB_LIBRARY ZLIB_INCLUDE_DIR)`
+
+**Solution**:
+- This usually means vcpkg integration isn't working properly
+- Regenerate project files with proper vcpkg integration:
+  ```bash
+  python scripts/generate-vs-projects.py
+  ```
+- Ensure vcpkg is installed and dependencies are available:
+  ```bash
+  .\vcpkg\vcpkg.exe install --triplet x64-windows
+  ```
+
+#### 4. Python Script Execution Policy
 
 **Error**: `execution of scripts is disabled on this system`
 
@@ -203,7 +226,7 @@ yaze/
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-#### 4. Missing Dependencies
+#### 5. Missing Dependencies
 
 **Error**: Linker errors about missing libraries
 
@@ -217,7 +240,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
   python scripts/generate-vs-projects.py
   ```
 
-#### 5. Build Failures
+#### 6. Build Failures
 
 **Error**: Compilation or linking errors
 
@@ -247,15 +270,15 @@ If you encounter issues not covered here:
 ### Making Changes
 
 1. Make your changes to the source code
-2. Build the project:
-   ```powershell
-   .\scripts\build-windows.ps1 -Configuration Debug -Platform x64
-   ```
-3. Test your changes
-4. If adding new source files, regenerate project files:
+2. If you added new source files, regenerate project files:
    ```bash
    python scripts/generate-vs-projects.py
    ```
+3. Build the project:
+   ```powershell
+   .\scripts\build-windows.ps1 -Configuration Debug -Platform x64
+   ```
+4. Test your changes
 
 ### Debugging
 

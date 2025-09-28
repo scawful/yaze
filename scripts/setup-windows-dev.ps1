@@ -15,11 +15,11 @@ Write-Host "========================================" -ForegroundColor Cyan
 
 # Step 1: Check project directory
 Write-Host "Step 1: Checking project directory..." -ForegroundColor Yellow
-$projectValid = Test-Path "YAZE.sln"
+$projectValid = Test-Path "CMakeLists.txt"
 switch ($projectValid) {
-    $true { Write-Host "✓ YAZE.sln found" -ForegroundColor Green }
+    $true { Write-Host "✓ CMakeLists.txt found" -ForegroundColor Green }
     $false { 
-        Write-Host "✗ YAZE.sln not found" -ForegroundColor Red
+        Write-Host "✗ CMakeLists.txt not found" -ForegroundColor Red
         Write-Host "Please run this script from the YAZE project root directory" -ForegroundColor Yellow
         exit 1
     }
@@ -208,9 +208,10 @@ Write-Host "✓ YAZE Windows development setup complete!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
-Write-Host "1. Open YAZE.sln in Visual Studio 2022" -ForegroundColor White
-Write-Host "2. Select configuration (Debug/Release) and platform (x64/x86/ARM64)" -ForegroundColor White
-Write-Host "3. Build the solution (Ctrl+Shift+B)" -ForegroundColor White
+Write-Host "1. Visual Studio project files have been generated" -ForegroundColor White
+Write-Host "2. Open YAZE.sln in Visual Studio 2022" -ForegroundColor White
+Write-Host "3. Select configuration (Debug/Release) and platform (x64/x86/ARM64)" -ForegroundColor White
+Write-Host "4. Build the solution (Ctrl+Shift+B)" -ForegroundColor White
 Write-Host ""
 Write-Host "Or use command line:" -ForegroundColor Yellow
 Write-Host "  .\scripts\build-windows.ps1 -Configuration Release -Platform x64" -ForegroundColor White
