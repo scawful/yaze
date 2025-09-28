@@ -136,6 +136,21 @@ jobs:
               copy README.md package\
               cd package && 7z a ..\yaze-windows-x86.zip *
             
+          - name: "Windows ARM64"
+            os: windows-2022
+            vcpkg_triplet: arm64-windows
+            cmake_generator: "Visual Studio 17 2022"
+            cmake_generator_platform: ARM64
+            artifact_name: "yaze-windows-arm64"
+            artifact_path: "build/bin/Release/"
+            package_cmd: |
+              mkdir package
+              xcopy /E /I build\bin\Release\* package\
+              xcopy /E /I assets package\assets
+              copy LICENSE package\
+              copy README.md package\
+              cd package && 7z a ..\yaze-windows-arm64.zip *
+            
           - name: "macOS Universal"
             os: macos-14
             vcpkg_triplet: arm64-osx
