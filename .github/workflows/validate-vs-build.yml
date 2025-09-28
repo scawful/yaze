@@ -61,7 +61,9 @@ jobs:
         runVcpkgInstall: true
         vcpkgJsonGlob: '**/vcpkg.json'
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        vcpkgTriplet: '${{ matrix.platform }}-windows'
+      env:
+        VCPKG_FORCE_SYSTEM_BINARIES: 1
+        VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
     - name: Validate Visual Studio Build
       shell: pwsh
