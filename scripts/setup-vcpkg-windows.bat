@@ -1,54 +1,68 @@
 @echo off
-REM Setup script for vcpkg on Windows
-REM This script helps set up vcpkg for YAZE Windows builds
+echo ========================================
+echo yaze Visual Studio Setup Script
+echo ========================================
+echo.
 
-echo Setting up vcpkg for YAZE Windows builds...
-
-REM Check if vcpkg directory exists
-if not exist "vcpkg" (
-    echo Cloning vcpkg...
-    git clone https://github.com/Microsoft/vcpkg.git
-    if errorlevel 1 (
-        echo Error: Failed to clone vcpkg repository
-        pause
-        exit /b 1
-    )
+REM Check if vcpkg is installed
+if not exist "%VCPKG_ROOT%" (
+    echo ERROR: VCPKG_ROOT environment variable is not set!
+    echo Please install vcpkg and set the VCPKG_ROOT environment variable.
+    echo Example: set VCPKG_ROOT=C:\vcpkg
+    echo.
+    echo Download vcpkg from: https://github.com/Microsoft/vcpkg
+    echo After installation, run: .\vcpkg integrate install
+    pause
+    exit /b 1
 )
 
-REM Bootstrap vcpkg
-cd vcpkg
-if not exist "vcpkg.exe" (
-    echo Bootstrapping vcpkg...
-    call bootstrap-vcpkg.bat
-    if errorlevel 1 (
-        echo Error: Failed to bootstrap vcpkg
-        pause
-        exit /b 1
-    )
+echo VCPKG_ROOT is set to: %VCPKG_ROOT%
+echo.
+
+REM Check if vcpkg.exe exists
+if not exist "%VCPKG_ROOT%\vcpkg.exe" (
+    echo ERROR: vcpkg.exe not found at %VCPKG_ROOT%\vcpkg.exe
+    echo Please verify your vcpkg installation.
+    pause
+    exit /b 1
 )
 
-REM Integrate vcpkg with Visual Studio (optional)
+echo Installing dependencies via vcpkg...
+echo This may take several minutes on first run.
+echo.
+
+REM Install dependencies for x64-windows
+echo Installing x64-windows dependencies...
+"%VCPKG_ROOT%\vcpkg.exe" install zlib:x64-windows
+"%VCPKG_ROOT%\vcpkg.exe" install libpng:x64-windows
+"%VCPKG_ROOT%\vcpkg.exe" install sdl2[vulkan]:x64-windows
+"%VCPKG_ROOT%\vcpkg.exe" install abseil:x64-windows
+"%VCPKG_ROOT%\vcpkg.exe" install gtest:x64-windows
+
+echo.
+echo Installing x86-windows dependencies...
+"%VCPKG_ROOT%\vcpkg.exe" install zlib:x86-windows
+"%VCPKG_ROOT%\vcpkg.exe" install libpng:x86-windows
+"%VCPKG_ROOT%\vcpkg.exe" install sdl2[vulkan]:x86-windows
+"%VCPKG_ROOT%\vcpkg.exe" install abseil:x86-windows
+"%VCPKG_ROOT%\vcpkg.exe" install gtest:x86-windows
+
+echo.
 echo Integrating vcpkg with Visual Studio...
-vcpkg integrate install
-
-REM Set environment variable for this session
-set VCPKG_ROOT=%CD%
-echo VCPKG_ROOT set to: %VCPKG_ROOT%
-
-cd ..
+"%VCPKG_ROOT%\vcpkg.exe" integrate install
 
 echo.
-echo vcpkg setup complete!
+echo ========================================
+echo Setup Complete!
+echo ========================================
 echo.
-echo To use vcpkg with YAZE:
-echo 1. Use the Windows presets in CMakePresets.json:
-echo    - windows-debug (Debug build)
-echo    - windows-release (Release build)
+echo You can now:
+echo 1. Open yaze.sln in Visual Studio 2022
+echo 2. Select Debug or Release configuration
+echo 3. Choose x64 or x86 platform
+echo 4. Press F5 to build and run
 echo.
-echo 2. Or set VCPKG_ROOT environment variable:
-echo    set VCPKG_ROOT=%CD%\vcpkg
+echo If you have a Zelda 3 ROM file, place it in the project root
+echo and name it 'zelda3.sfc' for automatic copying.
 echo.
-echo 3. Dependencies will be automatically installed via vcpkg manifest mode
-echo.
-
 pause

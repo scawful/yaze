@@ -1,6 +1,6 @@
-# Visual Studio Setup Guide for YAZE
+# Visual Studio Setup Guide
 
-This guide will help Visual Studio users set up and build the YAZE project on Windows.
+This guide will help Visual Studio users set up and build the yaze project on Windows.
 
 ## Prerequisites
 
@@ -51,15 +51,23 @@ vcpkg install abseil:x64-windows
 vcpkg install gtest:x64-windows
 ```
 
-### 3. Configure CMake
+### 3. Configure Build System
 
-#### Option A: Using Visual Studio (Recommended)
+#### Option A: Using Visual Studio Project File (Easiest)
 1. Open Visual Studio 2022
-2. Select "Open a local folder" and navigate to the YAZE project folder
+2. Select "Open a project or solution"
+3. Navigate to the yaze project folder and open `yaze.sln`
+4. The project is pre-configured with vcpkg integration and proper dependencies
+5. Select your desired build configuration (Debug/Release) and platform (x64/x86)
+6. Press F5 to build and run, or Ctrl+Shift+B to build only
+
+#### Option B: Using CMake with Visual Studio (Recommended for developers)
+1. Open Visual Studio 2022
+2. Select "Open a local folder" and navigate to the yaze project folder
 3. Visual Studio will automatically detect the CMake project
 4. Wait for CMake configuration to complete (check Output window)
 
-#### Option B: Using Command Line
+#### Option C: Using Command Line
 ```cmd
 mkdir build
 cd build
@@ -68,18 +76,20 @@ cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/s
 
 ### 4. Build Configuration
 
-#### For Development (Debug Build)
+#### Using Visual Studio Project File (.vcxproj)
+- **Debug Build:** Select "Debug" configuration and press F5 or Ctrl+Shift+B
+- **Release Build:** Select "Release" configuration and press F5 or Ctrl+Shift+B
+- **Platform:** Choose x64 (recommended) or x86 from the platform dropdown
+
+#### Using CMake (Command Line)
 ```cmd
+# For Development (Debug Build)
 cmake --build . --config Debug --target yaze
-```
 
-#### For Release Build
-```cmd
+# For Release Build
 cmake --build . --config Release --target yaze
-```
 
-#### For Testing (Optional)
-```cmd
+# For Testing (Optional)
 cmake --build . --config Debug --target yaze_test
 ```
 
@@ -133,9 +143,9 @@ Create or modify `.vscode/settings.json` or use Visual Studio's CMake settings:
 {
     "cmake.configureArgs": [
         "-DCMAKE_TOOLCHAIN_FILE=${env:VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "-DYAZE_BUILD_TESTS=ON",
-        "-DYAZE_BUILD_APP=ON",
-        "-DYAZE_BUILD_LIB=ON"
+        "-Dyaze_BUILD_TESTS=ON",
+        "-Dyaze_BUILD_APP=ON",
+        "-Dyaze_BUILD_LIB=ON"
     ],
     "cmake.buildDirectory": "${workspaceFolder}/build"
 }
@@ -150,13 +160,20 @@ The project includes CMake presets in `CMakePresets.json`. Use these in Visual S
 
 ## Running the Application
 
+### Using Visual Studio Project File
+1. Open `yaze.sln` in Visual Studio
+2. Set `yaze` as the startup project (should be default)
+3. Configure command line arguments in Project Properties > Debugging > Command Arguments
+   - Example: `--rom_file=C:\path\to\your\zelda3.sfc`
+4. Press F5 to build and run, or Ctrl+F5 to run without debugging
+
 ### Command Line
 ```cmd
 cd build/bin/Debug  # or Release
 yaze.exe --rom_file=path/to/your/zelda3.sfc
 ```
 
-### Visual Studio
+### Visual Studio (CMake)
 1. Set `yaze` as the startup project
 2. Configure command line arguments in Project Properties > Debugging
 3. Press F5 to run
@@ -200,12 +217,37 @@ del CMakeCache.txt
 cmake .. -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake
 ```
 
+## Visual Studio Project File Features
+
+The included `yaze.vcxproj` and `yaze.sln` files provide:
+
+### **Automatic Dependency Management**
+- **vcpkg Integration:** Automatically installs and links dependencies from `vcpkg.json`
+- **Platform Support:** Pre-configured for both x64 and x86 builds
+- **Library Linking:** Automatically links SDL2, zlib, libpng, and system libraries
+
+### **Build Configuration**
+- **Debug Configuration:** Includes debugging symbols and runtime checks
+- **Release Configuration:** Optimized for performance with full optimizations
+- **C++23 Standard:** Uses modern C++ features and standard library
+
+### **Asset Management**
+- **Automatic Asset Copying:** Post-build events copy themes and assets to output directory
+- **ROM File Handling:** Automatically copies `zelda3.sfc` if present in project root
+- **Resource Organization:** Properly structures output directory for distribution
+
+### **Development Features**
+- **IntelliSense Support:** Full code completion and error detection
+- **Debugging Integration:** Native Visual Studio debugging support
+- **Project Properties:** Easy access to compiler and linker settings
+
 ## Additional Notes
 
 - The project supports both x64 and x86 builds (use appropriate vcpkg triplets)
 - For ARM64 Windows builds, use `arm64-windows` triplet
 - The CI/CD pipeline uses minimal builds to avoid dependency issues
 - Development builds include additional debugging features and ROM testing capabilities
+- The `.vcxproj` file provides the easiest setup for Visual Studio users who prefer traditional project files over CMake
 
 ## Support
 
