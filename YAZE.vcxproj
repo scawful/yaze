@@ -140,8 +140,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2-static.lib;SDL2main.lib;asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_flags_commandlineflag.lib;absl_flags_marshalling.lib;absl_flags_private_handle_accessor.lib;absl_flags_program_name.lib;absl_flags_config.lib;absl_flags_reflection.lib;absl_status.lib;absl_statusor.lib;absl_examine_stack.lib;absl_stacktrace.lib;absl_base.lib;absl_config.lib;absl_core_headers.lib;absl_failure_signal_handler.lib;absl_flat_hash_map.lib;absl_cord.lib;absl_hash.lib;absl_synchronization.lib;absl_time.lib;absl_symbolize.lib;absl_container_memory.lib;absl_memory.lib;absl_utility.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -161,8 +161,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2-static.lib;SDL2main.lib;asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_flags_commandlineflag.lib;absl_flags_marshalling.lib;absl_flags_private_handle_accessor.lib;absl_flags_program_name.lib;absl_flags_config.lib;absl_flags_reflection.lib;absl_status.lib;absl_statusor.lib;absl_examine_stack.lib;absl_stacktrace.lib;absl_base.lib;absl_config.lib;absl_core_headers.lib;absl_failure_signal_handler.lib;absl_flat_hash_map.lib;absl_cord.lib;absl_hash.lib;absl_synchronization.lib;absl_time.lib;absl_symbolize.lib;absl_container_memory.lib;absl_memory.lib;absl_utility.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -178,8 +178,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2-static.lib;SDL2main.lib;asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_flags_commandlineflag.lib;absl_flags_marshalling.lib;absl_flags_private_handle_accessor.lib;absl_flags_program_name.lib;absl_flags_config.lib;absl_flags_reflection.lib;absl_status.lib;absl_statusor.lib;absl_examine_stack.lib;absl_stacktrace.lib;absl_base.lib;absl_config.lib;absl_core_headers.lib;absl_failure_signal_handler.lib;absl_flat_hash_map.lib;absl_cord.lib;absl_hash.lib;absl_synchronization.lib;absl_time.lib;absl_symbolize.lib;absl_container_memory.lib;absl_memory.lib;absl_utility.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -199,8 +199,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2-static.lib;SDL2main.lib;asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_flags_commandlineflag.lib;absl_flags_marshalling.lib;absl_flags_private_handle_accessor.lib;absl_flags_program_name.lib;absl_flags_config.lib;absl_flags_reflection.lib;absl_status.lib;absl_statusor.lib;absl_examine_stack.lib;absl_stacktrace.lib;absl_base.lib;absl_config.lib;absl_core_headers.lib;absl_failure_signal_handler.lib;absl_flat_hash_map.lib;absl_cord.lib;absl_hash.lib;absl_synchronization.lib;absl_time.lib;absl_symbolize.lib;absl_container_memory.lib;absl_memory.lib;absl_utility.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -216,8 +216,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2-static.lib;SDL2main.lib;asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_flags_commandlineflag.lib;absl_flags_marshalling.lib;absl_flags_private_handle_accessor.lib;absl_flags_program_name.lib;absl_flags_config.lib;absl_flags_reflection.lib;absl_status.lib;absl_statusor.lib;absl_examine_stack.lib;absl_stacktrace.lib;absl_base.lib;absl_config.lib;absl_core_headers.lib;absl_failure_signal_handler.lib;absl_flat_hash_map.lib;absl_cord.lib;absl_hash.lib;absl_synchronization.lib;absl_time.lib;absl_symbolize.lib;absl_container_memory.lib;absl_memory.lib;absl_utility.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -237,8 +237,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2-static.lib;SDL2main.lib;asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_flags_commandlineflag.lib;absl_flags_marshalling.lib;absl_flags_private_handle_accessor.lib;absl_flags_program_name.lib;absl_flags_config.lib;absl_flags_reflection.lib;absl_status.lib;absl_statusor.lib;absl_examine_stack.lib;absl_stacktrace.lib;absl_base.lib;absl_config.lib;absl_core_headers.lib;absl_failure_signal_handler.lib;absl_flat_hash_map.lib;absl_cord.lib;absl_hash.lib;absl_synchronization.lib;absl_time.lib;absl_symbolize.lib;absl_container_memory.lib;absl_memory.lib;absl_utility.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
