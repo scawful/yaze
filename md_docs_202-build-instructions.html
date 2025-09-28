@@ -101,10 +101,7 @@ $(document).ready(function(){initNavTree('md_docs_202-build-instructions.html','
   <div class="headertitle"><div class="title">Build Instructions</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md6"></a> YAZE uses CMake 3.16+ with modern target-based configuration. For VSCode users, install the CMake extensions:</p><ul>
-<li><a href="https://marketplace.visualstudio.com/items?itemName=twxs.cmake">https://marketplace.visualstudio.com/items?itemName=twxs.cmake</a></li>
-<li><a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools">https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools</a></li>
-</ul>
+<div class="textblock"><p><a class="anchor" id="autotoc_md6"></a> YAZE uses CMake 3.16+ with modern target-based configuration. The project includes comprehensive Windows support with Visual Studio integration, vcpkg package management, and automated setup scripts.</p>
 <h1><a class="anchor" id="autotoc_md7"></a>
 Quick Start</h1>
 <h2><a class="anchor" id="autotoc_md8"></a>
@@ -112,140 +109,242 @@ macOS (Apple Silicon)</h2>
 <div class="fragment"><div class="line">cmake --preset debug</div>
 <div class="line">cmake --build build</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md9"></a>
-Linux / Windows</h2>
+Linux</h2>
 <div class="fragment"><div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
 <div class="line">cmake --build build</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md10"></a>
-Minimal Build</h2>
+Windows (Recommended)</h2>
+<div class="fragment"><div class="line"># Automated setup (first time only)</div>
+<div class="line">.\scripts\setup-windows-dev.ps1</div>
+<div class="line"> </div>
+<div class="line"># Generate Visual Studio projects</div>
+<div class="line">.\scripts\generate-vs-projects.ps1</div>
+<div class="line"> </div>
+<div class="line"># Or use CMake directly</div>
+<div class="line">cmake --preset windows-debug</div>
+<div class="line">cmake --build build --preset windows-debug</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md11"></a>
+Minimal Build (CI/Fast)</h2>
 <div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
 <div class="line">cmake --build build</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md12"></a>
 Dependencies</h1>
-<h2><a class="anchor" id="autotoc_md12"></a>
+<h2><a class="anchor" id="autotoc_md13"></a>
 Required</h2>
 <ul>
 <li>CMake 3.16+</li>
 <li>C++23 compiler (GCC 13+, Clang 16+, MSVC 2019+)</li>
 <li>Git with submodule support</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md13"></a>
+<h2><a class="anchor" id="autotoc_md14"></a>
 Bundled Libraries</h2>
 <ul>
 <li>SDL2, <a class="el" href="namespaceImGui.html">ImGui</a>, Abseil, Asar, GoogleTest</li>
 <li>Native File Dialog Extended (NFD)</li>
 <li>All dependencies included in repository</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md14"></a>
+<h1><a class="anchor" id="autotoc_md15"></a>
 Platform Setup</h1>
-<h2><a class="anchor" id="autotoc_md15"></a>
+<h2><a class="anchor" id="autotoc_md16"></a>
 macOS</h2>
 <div class="fragment"><div class="line"># Install Xcode Command Line Tools</div>
 <div class="line">xcode-select --install</div>
 <div class="line"> </div>
 <div class="line"># Optional: Install Homebrew dependencies (auto-detected)</div>
 <div class="line">brew install cmake pkg-config</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md16"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md17"></a>
 Linux (Ubuntu/Debian)</h2>
 <div class="fragment"><div class="line">sudo apt-get update</div>
 <div class="line">sudo apt-get install -y build-essential cmake ninja-build pkg-config \</div>
 <div class="line">  libgtk-3-dev libdbus-1-dev</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md17"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md18"></a>
 Windows</h2>
-<p><b>Option 1 - Minimal (Recommended for CI):</b></p><ul>
+<h3><a class="anchor" id="autotoc_md19"></a>
+Automated Setup (Recommended)</h3>
+<p>The project includes comprehensive setup scripts for Windows development:</p>
+<div class="fragment"><div class="line"># Complete development environment setup</div>
+<div class="line">.\scripts\setup-windows-dev.ps1</div>
+<div class="line"> </div>
+<div class="line"># Generate Visual Studio project files</div>
+<div class="line">.\scripts\generate-vs-projects.ps1</div>
+<div class="line"> </div>
+<div class="line"># Test CMake configuration</div>
+<div class="line">.\scripts\test-cmake-config.ps1</div>
+</div><!-- fragment --><p><b>What the setup script installs:</b></p><ul>
+<li>Chocolatey package manager</li>
+<li>CMake 3.16+</li>
+<li>Git, Ninja, Python 3</li>
+<li>Visual Studio 2022 detection and verification</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md20"></a>
+Manual Setup Options</h3>
+<p><b>Option 1 - Minimal (CI/Fast Builds):</b></p><ul>
 <li>Visual Studio 2019+ with C++ CMake tools</li>
 <li>No additional dependencies needed (all bundled)</li>
 </ul>
-<p><b>Option 2 - Full Development with vcpkg (Recommended):</b></p><ul>
+<p><b>Option 2 - Full Development with vcpkg:</b></p><ul>
 <li>Visual Studio 2019+ with C++ CMake tools</li>
-<li>Install vcpkg and dependencies from <code>vcpkg.json</code></li>
+<li>vcpkg package manager for dependency management</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md18"></a>
-vcpkg Setup (Option 2)</h3>
-<p>Run the setup script to automatically configure vcpkg: </p><div class="fragment"><div class="line"># Command Prompt</div>
-<div class="line">scripts\setup-vcpkg-windows.bat</div>
+<h3><a class="anchor" id="autotoc_md21"></a>
+vcpkg Integration</h3>
+<p><b>Automatic Setup:</b> </p><div class="fragment"><div class="line"># PowerShell</div>
+<div class="line">.\scripts\setup-windows-dev.ps1</div>
 <div class="line"> </div>
-<div class="line"># PowerShell</div>
-<div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
-</div><!-- fragment --><p>Or manually: </p><div class="fragment"><div class="line">git clone https://github.com/Microsoft/vcpkg.git</div>
+<div class="line"># Command Prompt</div>
+<div class="line">scripts\setup-windows-dev.bat</div>
+</div><!-- fragment --><p><b>Manual vcpkg Setup:</b> </p><div class="fragment"><div class="line">git clone https://github.com/Microsoft/vcpkg.git</div>
 <div class="line">cd vcpkg</div>
 <div class="line">.\bootstrap-vcpkg.bat</div>
 <div class="line">.\vcpkg.exe integrate install</div>
 <div class="line">set VCPKG_ROOT=%CD%</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md19"></a>
+</div><!-- fragment --><p><b>Dependencies (vcpkg.json):</b></p><ul>
+<li>zlib (compression)</li>
+<li>libpng (PNG support)</li>
+<li>sdl2 (graphics/input)</li>
+<li>abseil (Google C++ libraries)</li>
+<li>gtest (testing framework)</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md22"></a>
 Windows Build Commands</h3>
-<div class="fragment"><div class="line"># Debug build with vcpkg (minimal, no tests)</div>
+<p><b>Using CMake Presets:</b> </p><div class="fragment"><div class="line"># Debug build (minimal, no tests)</div>
 <div class="line">cmake --preset windows-debug</div>
 <div class="line">cmake --build build --preset windows-debug</div>
 <div class="line"> </div>
-<div class="line"># Development build with vcpkg (includes Google Test)</div>
+<div class="line"># Development build (includes Google Test)</div>
 <div class="line">cmake --preset windows-dev</div>
 <div class="line">cmake --build build --preset windows-dev</div>
 <div class="line"> </div>
-<div class="line"># Release build with vcpkg (optimized, no tests)</div>
+<div class="line"># Release build (optimized, no tests)</div>
 <div class="line">cmake --preset windows-release</div>
 <div class="line">cmake --build build --preset windows-release</div>
+</div><!-- fragment --><p><b>Using Visual Studio Projects:</b> </p><div class="fragment"><div class="line"># Generate project files</div>
+<div class="line">.\scripts\generate-vs-projects.ps1</div>
+<div class="line"> </div>
+<div class="line"># Open YAZE.sln in Visual Studio</div>
+<div class="line"># Select configuration (Debug/Release) and platform (x64/x86/ARM64)</div>
+<div class="line"># Press F5 to build and run</div>
 </div><!-- fragment --><p><b>Build Types:</b></p><ul>
 <li><b>windows-debug</b>: Minimal debug build, no Google Test</li>
 <li><b>windows-dev</b>: Development build with Google Test and ROM testing</li>
 <li><b>windows-release</b>: Optimized release build, no Google Test</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md20"></a>
+<h1><a class="anchor" id="autotoc_md23"></a>
 Build Targets</h1>
-<h2><a class="anchor" id="autotoc_md21"></a>
+<h2><a class="anchor" id="autotoc_md24"></a>
 Applications</h2>
 <ul>
 <li><b>yaze</b>: Main GUI editor application</li>
 <li><b>z3ed</b>: Command-line interface tool</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md22"></a>
+<h2><a class="anchor" id="autotoc_md25"></a>
 Libraries</h2>
 <ul>
 <li><b>yaze_c</b>: C API library for extensions</li>
 <li><b>asar-static</b>: 65816 assembler library</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md23"></a>
+<h2><a class="anchor" id="autotoc_md26"></a>
 Development (Debug Builds Only)</h2>
 <ul>
 <li><b>yaze_emu</b>: Standalone SNES emulator</li>
 <li><b>yaze_test</b>: Comprehensive test suite</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md24"></a>
+<h1><a class="anchor" id="autotoc_md27"></a>
 Build Configurations</h1>
-<h2><a class="anchor" id="autotoc_md25"></a>
+<h2><a class="anchor" id="autotoc_md28"></a>
 Debug (Full Features)</h2>
 <div class="fragment"><div class="line">cmake --preset debug  # macOS</div>
 <div class="line"># OR</div>
 <div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug  # All platforms</div>
 </div><!-- fragment --><p> <b>Includes</b>: NFD, ImGuiTestEngine, PNG support, emulator, all tools</p>
-<h2><a class="anchor" id="autotoc_md26"></a>
+<h2><a class="anchor" id="autotoc_md29"></a>
 Minimal (CI/Fast Builds)</h2>
 <div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
 </div><!-- fragment --><p> <b>Excludes</b>: Emulator, CLI tools, UI tests, optional dependencies</p>
-<h2><a class="anchor" id="autotoc_md27"></a>
+<h2><a class="anchor" id="autotoc_md30"></a>
 Release</h2>
 <div class="fragment"><div class="line">cmake --preset release  # macOS</div>
 <div class="line"># OR  </div>
 <div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Release  # All platforms</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md28"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md31"></a>
 IDE Integration</h1>
-<h2><a class="anchor" id="autotoc_md29"></a>
+<h2><a class="anchor" id="autotoc_md32"></a>
+Visual Studio (Windows)</h2>
+<p><b>Recommended approach:</b> </p><div class="fragment"><div class="line"># Setup development environment</div>
+<div class="line">.\scripts\setup-windows-dev.ps1</div>
+<div class="line"> </div>
+<div class="line"># Generate Visual Studio project files</div>
+<div class="line">.\scripts\generate-vs-projects.ps1</div>
+<div class="line"> </div>
+<div class="line"># Open YAZE.sln in Visual Studio 2022</div>
+<div class="line"># Select configuration (Debug/Release) and platform (x64/x86/ARM64)</div>
+<div class="line"># Press F5 to build and run</div>
+</div><!-- fragment --><p><b>Features:</b></p><ul>
+<li>Full IntelliSense support</li>
+<li>Integrated debugging</li>
+<li>vcpkg dependency management</li>
+<li>Multi-platform support (x64, x86, ARM64)</li>
+<li>Automatic asset copying</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md33"></a>
 VS Code</h2>
 <ol type="1">
 <li>Install CMake Tools extension</li>
 <li>Open project, select "Debug" preset</li>
 <li>Language server uses <code>compile_commands.json</code> automatically</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md30"></a>
+<h2><a class="anchor" id="autotoc_md34"></a>
 CLion</h2>
 <ul>
 <li>Opens CMake projects directly</li>
 <li>Select Debug configuration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md31"></a>
+<h2><a class="anchor" id="autotoc_md35"></a>
 Xcode (macOS)</h2>
 <div class="fragment"><div class="line">cmake --preset debug -G Xcode</div>
 <div class="line">open build/yaze.xcodeproj</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md32"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md36"></a>
+Windows Development Scripts</h1>
+<p>The project includes several PowerShell and Batch scripts to streamline Windows development:</p>
+<h2><a class="anchor" id="autotoc_md37"></a>
+Setup Scripts</h2>
+<ul>
+<li>**<code>setup-windows-dev.ps1</code>**: Complete development environment setup</li>
+<li>**<code>setup-windows-dev.bat</code>**: Batch version of setup script</li>
+</ul>
+<p><b>What they install:</b></p><ul>
+<li>Chocolatey package manager</li>
+<li>CMake 3.16+</li>
+<li>Git, Ninja, Python 3</li>
+<li>Visual Studio 2022 detection</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md38"></a>
+Project Generation Scripts</h2>
+<ul>
+<li>**<code>generate-vs-projects.ps1</code>**: Generate Visual Studio project files</li>
+<li>**<code>generate-vs-projects.bat</code>**: Batch version of project generation</li>
+</ul>
+<p><b>Features:</b></p><ul>
+<li>Automatic CMake detection and installation</li>
+<li>Visual Studio 2022 detection</li>
+<li>Multi-architecture support (x64, x86, ARM64)</li>
+<li>vcpkg integration</li>
+<li>CMake compatibility fixes</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md39"></a>
+Testing Scripts</h2>
+<ul>
+<li>**<code>test-cmake-config.ps1</code>**: Test CMake configuration without full build</li>
+</ul>
+<p><b>Usage:</b> </p><div class="fragment"><div class="line"># Test configuration</div>
+<div class="line">.\scripts\test-cmake-config.ps1</div>
+<div class="line"> </div>
+<div class="line"># Test with specific architecture</div>
+<div class="line">.\scripts\test-cmake-config.ps1 -Architecture x86</div>
+<div class="line"> </div>
+<div class="line"># Clean test build</div>
+<div class="line">.\scripts\test-cmake-config.ps1 -Clean</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md40"></a>
 Features by Build Type</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -265,24 +364,93 @@ Features by Build Type</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">UI Testing   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">❌   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md33"></a>
+<h1><a class="anchor" id="autotoc_md41"></a>
+CMake Compatibility</h1>
+<h2><a class="anchor" id="autotoc_md42"></a>
+Submodule Compatibility Issues</h2>
+<p>YAZE includes several submodules (abseil-cpp, SDL) that may have CMake compatibility issues. The project automatically handles these with:</p>
+<p><b>Automatic Policy Management:</b></p><ul>
+<li><code>CMAKE_POLICY_VERSION_MINIMUM=3.5</code> (handles SDL requirements)</li>
+<li><code>CMAKE_POLICY_VERSION_MAXIMUM=3.28</code> (prevents future issues)</li>
+<li><code>CMAKE_WARN_DEPRECATED=OFF</code> (suppresses submodule warnings)</li>
+<li><code>ABSL_PROPAGATE_CXX_STD=ON</code> (handles Abseil C++ standard propagation)</li>
+<li><code>THREADS_PREFER_PTHREAD_FLAG=OFF</code> (fixes Windows pthread issues)</li>
+</ul>
+<p><b>Manual Configuration (if needed):</b> </p><div class="fragment"><div class="line">cmake -B build \</div>
+<div class="line">  -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \</div>
+<div class="line">  -DCMAKE_POLICY_VERSION_MAXIMUM=3.28 \</div>
+<div class="line">  -DCMAKE_WARN_DEPRECATED=OFF \</div>
+<div class="line">  -DABSL_PROPAGATE_CXX_STD=ON \</div>
+<div class="line">  -DTHREADS_PREFER_PTHREAD_FLAG=OFF \</div>
+<div class="line">  -DCMAKE_BUILD_TYPE=Debug</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md43"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md34"></a>
+<h2><a class="anchor" id="autotoc_md44"></a>
+Windows CMake Issues</h2>
+<p><b>CMake Not Found:</b> </p><div class="fragment"><div class="line"># Run the setup script</div>
+<div class="line">.\scripts\setup-windows-dev.ps1</div>
+<div class="line"> </div>
+<div class="line"># Or install manually via Chocolatey</div>
+<div class="line">choco install cmake</div>
+</div><!-- fragment --><p><b>Submodule Compatibility Errors:</b> </p><div class="fragment"><div class="line"># Test CMake configuration</div>
+<div class="line">.\scripts\test-cmake-config.ps1</div>
+<div class="line"> </div>
+<div class="line"># Clean build with compatibility flags</div>
+<div class="line">Remove-Item -Recurse -Force build</div>
+<div class="line">cmake -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_WARN_DEPRECATED=OFF</div>
+</div><!-- fragment --><p><b>Visual Studio Project Issues:</b> </p><div class="fragment"><div class="line"># Regenerate project files</div>
+<div class="line">.\scripts\generate-vs-projects.ps1</div>
+<div class="line"> </div>
+<div class="line"># Clean and rebuild</div>
+<div class="line">Remove-Item -Recurse -Force build</div>
+<div class="line">cmake --preset windows-debug</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md45"></a>
+vcpkg Issues</h2>
+<p><b>Dependencies Not Installing:</b> </p><div class="fragment"><div class="line"># Check vcpkg installation</div>
+<div class="line">vcpkg version</div>
+<div class="line"> </div>
+<div class="line"># Reinstall dependencies</div>
+<div class="line">vcpkg install --triplet x64-windows zlib libpng sdl2 abseil gtest</div>
+<div class="line"> </div>
+<div class="line"># Check installed packages</div>
+<div class="line">vcpkg list</div>
+</div><!-- fragment --><p><b>Visual Studio Integration:</b> </p><div class="fragment"><div class="line"># Re-integrate vcpkg</div>
+<div class="line">cd C:\vcpkg</div>
+<div class="line">.\vcpkg.exe integrate install</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md46"></a>
 Architecture Errors (macOS)</h2>
 <div class="fragment"><div class="line"># Clean and use ARM64-only preset</div>
 <div class="line">rm -rf build</div>
 <div class="line">cmake --preset debug  # Uses arm64 only</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md35"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md47"></a>
 Missing Headers (Language Server)</h2>
 <div class="fragment"><div class="line"># Regenerate compile commands</div>
 <div class="line">cmake --preset debug</div>
 <div class="line">cp build/compile_commands.json .</div>
 <div class="line"># Restart VS Code</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md36"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md48"></a>
 CI Build Failures</h2>
 <p>Use minimal build configuration that matches CI: </p><div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_UI_TESTS=OFF</div>
 <div class="line">cmake --build build</div>
-</div><!-- fragment --> </div></div><!-- contents -->
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md49"></a>
+Common Error Solutions</h2>
+<p>**"CMake Deprecation Warning" from submodules:**</p><ul>
+<li>This is automatically handled by the project's CMake configuration</li>
+<li>If you see these warnings, they can be safely ignored</li>
+</ul>
+<p>**"pthread_create not found" on Windows:**</p><ul>
+<li>The project automatically sets <code>THREADS_PREFER_PTHREAD_FLAG=OFF</code></li>
+<li>This is normal for Windows builds</li>
+</ul>
+<p>**"Abseil C++ std propagation" warnings:**</p><ul>
+<li>Automatically handled with <code>ABSL_PROPAGATE_CXX_STD=ON</code></li>
+<li>Ensures proper C++ standard handling</li>
+</ul>
+<p><b>Visual Studio "file not found" errors:</b></p><ul>
+<li>Run <code>.\scripts\generate-vs-projects.ps1</code> to regenerate project files</li>
+<li>Ensure CMake configuration completed successfully first </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->
