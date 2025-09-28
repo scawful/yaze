@@ -172,7 +172,6 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
       with:
-        vcpkgGitCommitId: '2024.09.12'
         runVcpkgInstall: true
         vcpkgJsonGlob: '**/vcpkg.json'
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
@@ -184,6 +183,8 @@ jobs:
         VCPKG_ROOT: ${{ github.workspace }}/vcpkg
         VCPKG_USE_SYSTEM_BINARIES: 1
         VCPKG_DOWNLOADS: ${{ github.workspace }}/vcpkg_downloads
+        VCPKG_DEFAULT_HOST_TRIPLET: x64-windows
+        VCPKG_FEATURE_FLAGS: versions
 
     # Set vcpkg availability flag when vcpkg succeeds
     - name: Set vcpkg availability flag
