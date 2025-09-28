@@ -251,14 +251,17 @@ void LoadSystemFonts() {
     
     if (result == ERROR_SUCCESS && valueCount > 0) {
       // Allocate buffers with proper size limits
-      const size_t maxNameSize = (std::min)(static_cast<size_t>(maxValueNameSize) + 1, size_t(1024));
-      const size_t maxDataSize = (std::min)(static_cast<size_t>(maxValueDataSize) + 1, size_t(4096));
-      
+      size_t maxNameSize = maxValueNameSize + 1;
+      if (maxNameSize > 1024) maxNameSize = 1024;
+      size_t maxDataSize = maxValueDataSize + 1;
+      if (maxDataSize > 4096) maxDataSize = 4096;
+
       std::vector<char> valueName(maxNameSize);
       std::vector<BYTE> valueData(maxDataSize);
-      
+
       // Enumerate font entries (limit to prevent excessive loading)
-      const DWORD maxFontsToLoad = (std::min)(valueCount, DWORD(50));
+      DWORD maxFontsToLoad = valueCount;
+      if (maxFontsToLoad > 50) maxFontsToLoad = 50;
       
       for (DWORD i = 0; i < maxFontsToLoad; i++) {
         DWORD valueNameSize = static_cast<DWORD>(maxNameSize);
