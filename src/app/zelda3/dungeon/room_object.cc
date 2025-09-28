@@ -85,7 +85,7 @@ void RoomObject::DrawTile(gfx::Tile16 t, int xx, int yy,
   }
   if (preview) {
     if (xx < 0x39 && yy < 0x39 && xx >= 0 && yy >= 0) {
-      gfx::TileInfo ti;  // t.GetTileInfo();
+      gfx::TileInfo ti = t.tile0_; // t.GetTileInfo();
       for (auto yl = 0; yl < 8; yl++) {
         for (auto xl = 0; xl < 4; xl++) {
           int mx = xl;

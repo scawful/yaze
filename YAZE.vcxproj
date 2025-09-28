@@ -813,9 +813,6 @@
     <ClCompile Include="src\app\editor\system\shortcut_manager.cc">
       <Filter>App\Editor\System</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\editor\system\system_editor.cc">
-      <Filter>App\Editor\System</Filter>
-    </ClCompile>
     <ClCompile Include="src\app\editor\code\assembly_editor.cc">
       <Filter>App\Editor\Code</Filter>
     </ClCompile>
