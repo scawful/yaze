@@ -364,21 +364,33 @@ jobs:
         
         # Install basic build tools and dependencies
         Write-Host "Installing build tools and dependencies..."
-        choco install -y cmake ninja git
+        try {
+            choco install -y cmake ninja git python3
+            Write-Host "Successfully installed build tools via Chocolatey"
+        } catch {
+            Write-Host "Chocolatey installation failed, trying individual packages..."
+            choco install -y cmake || Write-Host "CMake installation failed"
+            choco install -y ninja || Write-Host "Ninja installation failed" 
+            choco install -y git || Write-Host "Git installation failed"
+            choco install -y python3 || Write-Host "Python3 installation failed"
+        }
         
-        # Install some basic libraries that might be needed for minimal build
-        Write-Host "Installing basic libraries..."
-        choco install -y vcpkg --source=chocolatey 2>$null || Write-Host "vcpkg not available via chocolatey, continuing..."
-        
-        # Try to install some basic dependencies manually
+        # Set up basic development environment
         Write-Host "Setting up basic development environment..."
         $env:Path += ";C:\Program Files\Git\bin"
+        
+        # Verify installations
+        Write-Host "Verifying installations..."
+        cmake --version
+        ninja --version
+        git --version
         
         # Set environment variable to indicate minimal build
         echo "YAZE_MINIMAL_BUILD=ON" >> $env:GITHUB_ENV
         echo "VCPKG_AVAILABLE=false" >> $env:GITHUB_ENV
         
         Write-Host "Manual dependency installation completed"
+        Write-Host "Build will proceed with minimal configuration (no vcpkg dependencies)"
 
     # Set vcpkg availability flag when vcpkg succeeds
     - name: Set vcpkg availability flag
