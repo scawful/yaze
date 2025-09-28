@@ -200,6 +200,26 @@
       }
     },
     {
+      "name": "windows-dev",
+      "displayName": "Windows Development",
+      "description": "Windows development build with vcpkg and testing enabled",
+      "inherits": "debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_MODE": "ON",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON"
+      }
+    },
+    {
       "name": "asan",
       "displayName": "AddressSanitizer",
       "description": "Debug build with AddressSanitizer",
@@ -289,6 +309,11 @@
       "name": "windows-release",
       "configurePreset": "windows-release",
       "displayName": "Windows Release Build"
+    },
+    {
+      "name": "windows-dev",
+      "configurePreset": "windows-dev",
+      "displayName": "Windows Development Build"
     }
   ],
   "testPresets": [

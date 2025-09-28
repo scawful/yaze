@@ -3,9 +3,34 @@
   "version": "0.3.1",
   "description": "Yet Another Zelda3 Editor",
   "dependencies": [
-    "zlib",
-    "libpng",
-    "sdl2"
+    {
+      "name": "zlib",
+      "platform": "!uwp"
+    },
+    {
+      "name": "libpng",
+      "platform": "!uwp"
+    },
+    {
+      "name": "sdl2",
+      "platform": "!uwp",
+      "features": ["vulkan"]
+    },
+    {
+      "name": "abseil",
+      "platform": "!uwp"
+    },
+    {
+      "name": "gtest",
+      "platform": "!uwp",
+      "features": ["gmock"]
+    }
   ],
-  "builtin-baseline": "c8696863d371ab7f46e213d8f5ca923c4aef2a00"
+  "builtin-baseline": "c8696863d371ab7f46e213d8f5ca923c4aef2a00",
+  "overrides": [
+    {
+      "name": "abseil",
+      "version": "20240116.2"
+    }
+  ]
 }
