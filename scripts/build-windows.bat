@@ -1,8 +1,30 @@
 @echo off
-REM Simple Windows build script for YAZE
-REM This script sets up the environment and builds the project using Visual Studio
+REM YAZE Windows Build Script (Batch Version)
+REM This script builds the YAZE project on Windows using MSBuild
 
 setlocal enabledelayedexpansion
+
+REM Parse command line arguments
+set BUILD_CONFIG=Release
+set BUILD_PLATFORM=x64
+set CLEAN_BUILD=0
+set VERBOSE=0
+
+:parse_args
+if "%~1"=="" goto :args_done
+if /i "%~1"=="Debug" set BUILD_CONFIG=Debug
+if /i "%~1"=="Release" set BUILD_CONFIG=Release
+if /i "%~1"=="RelWithDebInfo" set BUILD_CONFIG=RelWithDebInfo
+if /i "%~1"=="MinSizeRel" set BUILD_CONFIG=MinSizeRel
+if /i "%~1"=="x64" set BUILD_PLATFORM=x64
+if /i "%~1"=="x86" set BUILD_PLATFORM=x86
+if /i "%~1"=="ARM64" set BUILD_PLATFORM=ARM64
+if /i "%~1"=="clean" set CLEAN_BUILD=1
+if /i "%~1"=="verbose" set VERBOSE=1
+shift
+goto :parse_args
+
+:args_done
 
 echo ========================================
 echo YAZE Windows Build Script
@@ -17,8 +39,7 @@ if not exist "YAZE.sln" (
 
 echo ✓ YAZE.sln found
 
-REM Check for Visual Studio
-echo Checking for Visual Studio...
+REM Check for MSBuild
 where msbuild >nul 2>&1
 if %errorlevel% neq 0 (
     echo ERROR: MSBuild not found. Please install Visual Studio 2022 or later.
@@ -30,23 +51,9 @@ if %errorlevel% neq 0 (
 echo ✓ MSBuild found
 
 REM Check for vcpkg
-echo Checking for vcpkg...
 if not exist "vcpkg.json" (
-    echo ERROR: vcpkg.json not found. Please ensure vcpkg is properly configured.
-    pause
-    exit /b 1
+    echo WARNING: vcpkg.json not found. vcpkg integration may not work properly.
 )
-
-echo ✓ vcpkg.json found
-
-REM Set up environment variables
-echo Setting up build environment...
-set BUILD_CONFIG=Release
-set BUILD_PLATFORM=x64
-
-REM Allow user to override configuration
-if "%1" neq "" set BUILD_CONFIG=%1
-if "%2" neq "" set BUILD_PLATFORM=%2
 
 echo Build Configuration: %BUILD_CONFIG%
 echo Build Platform: %BUILD_PLATFORM%
@@ -57,19 +64,46 @@ if not exist "build" mkdir build
 if not exist "build\bin" mkdir build\bin
 if not exist "build\obj" mkdir build\obj
 
+REM Clean build if requested
+if %CLEAN_BUILD%==1 (
+    echo Cleaning build directories...
+    if exist "build\bin" rmdir /s /q "build\bin" 2>nul
+    if exist "build\obj" rmdir /s /q "build\obj" 2>nul
+    if not exist "build\bin" mkdir build\bin
+    if not exist "build\obj" mkdir build\obj
+    echo ✓ Build directories cleaned
+)
+
 REM Generate yaze_config.h if it doesn't exist
 if not exist "yaze_config.h" (
     echo Generating yaze_config.h...
-    copy "src\yaze_config.h.in" "yaze_config.h" >nul
-    powershell -Command "(Get-Content 'yaze_config.h') -replace '@yaze_VERSION_MAJOR@', '0' -replace '@yaze_VERSION_MINOR@', '3' -replace '@yaze_VERSION_PATCH@', '1' | Set-Content 'yaze_config.h'"
-    echo ✓ Generated yaze_config.h
+    if exist "src\yaze_config.h.in" (
+        copy "src\yaze_config.h.in" "yaze_config.h" >nul
+        powershell -Command "(Get-Content 'yaze_config.h') -replace '@yaze_VERSION_MAJOR@', '0' -replace '@yaze_VERSION_MINOR@', '3' -replace '@yaze_VERSION_PATCH@', '1' | Set-Content 'yaze_config.h'"
+        echo ✓ Generated yaze_config.h
+    ) else (
+        echo WARNING: yaze_config.h.in not found, creating basic config
+        echo // yaze config file > yaze_config.h
+        echo #define YAZE_VERSION_MAJOR 0 >> yaze_config.h
+        echo #define YAZE_VERSION_MINOR 3 >> yaze_config.h
+        echo #define YAZE_VERSION_PATCH 1 >> yaze_config.h
+    )
 )
 
 REM Build using MSBuild
 echo Building with MSBuild...
-echo Command: msbuild YAZE.sln /p:Configuration=%BUILD_CONFIG% /p:Platform=%BUILD_PLATFORM% /p:VcpkgEnabled=true /p:VcpkgManifestInstall=true /m /verbosity:minimal
 
-msbuild YAZE.sln /p:Configuration=%BUILD_CONFIG% /p:Platform=%BUILD_PLATFORM% /p:VcpkgEnabled=true /p:VcpkgManifestInstall=true /m /verbosity:minimal
+set MSBUILD_ARGS=YAZE.sln /p:Configuration=%BUILD_CONFIG% /p:Platform=%BUILD_PLATFORM% /p:VcpkgEnabled=true /p:VcpkgManifestInstall=true /m
+
+if %VERBOSE%==1 (
+    set MSBUILD_ARGS=%MSBUILD_ARGS% /verbosity:detailed
+) else (
+    set MSBUILD_ARGS=%MSBUILD_ARGS% /verbosity:minimal
+)
+
+echo Command: msbuild %MSBUILD_ARGS%
+
+msbuild %MSBUILD_ARGS%
 
 if %errorlevel% neq 0 (
     echo ERROR: Build failed with exit code %errorlevel%
@@ -124,6 +158,7 @@ echo To build other configurations:
 echo   %~nx0 Debug x64
 echo   %~nx0 Release x86
 echo   %~nx0 RelWithDebInfo ARM64
+echo   %~nx0 clean
 echo.
 
 pause

@@ -1,68 +1,81 @@
 @echo off
-echo ========================================
-echo yaze Visual Studio Setup Script
-echo ========================================
-echo.
+REM YAZE vcpkg Setup Script (Batch Version)
+REM This script sets up vcpkg for YAZE development on Windows
 
-REM Check if vcpkg is installed
-if not exist "%VCPKG_ROOT%" (
-    echo ERROR: VCPKG_ROOT environment variable is not set!
-    echo Please install vcpkg and set the VCPKG_ROOT environment variable.
-    echo Example: set VCPKG_ROOT=C:\vcpkg
-    echo.
-    echo Download vcpkg from: https://github.com/Microsoft/vcpkg
-    echo After installation, run: .\vcpkg integrate install
+setlocal enabledelayedexpansion
+
+echo ========================================
+echo YAZE vcpkg Setup Script
+echo ========================================
+
+REM Check if we're in the right directory
+if not exist "vcpkg.json" (
+    echo ERROR: vcpkg.json not found. Please run this script from the project root directory.
     pause
     exit /b 1
 )
 
-echo VCPKG_ROOT is set to: %VCPKG_ROOT%
-echo.
+echo ✓ vcpkg.json found
 
-REM Check if vcpkg.exe exists
-if not exist "%VCPKG_ROOT%\vcpkg.exe" (
-    echo ERROR: vcpkg.exe not found at %VCPKG_ROOT%\vcpkg.exe
-    echo Please verify your vcpkg installation.
+REM Check for Git
+where git >nul 2>&1
+if %errorlevel% neq 0 (
+    echo ERROR: Git not found. Please install Git for Windows.
+    echo Download from: https://git-scm.com/download/win
     pause
     exit /b 1
 )
 
-echo Installing dependencies via vcpkg...
-echo This may take several minutes on first run.
-echo.
+echo ✓ Git found
 
-REM Install dependencies for x64-windows
-echo Installing x64-windows dependencies...
-"%VCPKG_ROOT%\vcpkg.exe" install zlib:x64-windows
-"%VCPKG_ROOT%\vcpkg.exe" install libpng:x64-windows
-"%VCPKG_ROOT%\vcpkg.exe" install sdl2[vulkan]:x64-windows
-"%VCPKG_ROOT%\vcpkg.exe" install abseil:x64-windows
-"%VCPKG_ROOT%\vcpkg.exe" install gtest:x64-windows
+REM Clone vcpkg if needed
+if not exist "vcpkg" (
+    echo Cloning vcpkg...
+    git clone https://github.com/Microsoft/vcpkg.git vcpkg
+    if %errorlevel% neq 0 (
+        echo ERROR: Failed to clone vcpkg
+        pause
+        exit /b 1
+    )
+    echo ✓ vcpkg cloned successfully
+) else (
+    echo ✓ vcpkg directory already exists
+)
 
-echo.
-echo Installing x86-windows dependencies...
-"%VCPKG_ROOT%\vcpkg.exe" install zlib:x86-windows
-"%VCPKG_ROOT%\vcpkg.exe" install libpng:x86-windows
-"%VCPKG_ROOT%\vcpkg.exe" install sdl2[vulkan]:x86-windows
-"%VCPKG_ROOT%\vcpkg.exe" install abseil:x86-windows
-"%VCPKG_ROOT%\vcpkg.exe" install gtest:x86-windows
+REM Bootstrap vcpkg
+if not exist "vcpkg\vcpkg.exe" (
+    echo Bootstrapping vcpkg...
+    cd vcpkg
+    call bootstrap-vcpkg.bat
+    if %errorlevel% neq 0 (
+        echo ERROR: Failed to bootstrap vcpkg
+        cd ..
+        pause
+        exit /b 1
+    )
+    cd ..
+    echo ✓ vcpkg bootstrapped successfully
+) else (
+    echo ✓ vcpkg already bootstrapped
+)
 
-echo.
-echo Integrating vcpkg with Visual Studio...
-"%VCPKG_ROOT%\vcpkg.exe" integrate install
+REM Install dependencies
+echo Installing dependencies...
+vcpkg\vcpkg.exe install --triplet x64-windows
+if %errorlevel% neq 0 (
+    echo WARNING: Some dependencies may not have installed correctly
+) else (
+    echo ✓ Dependencies installed successfully
+)
 
-echo.
 echo ========================================
-echo Setup Complete!
+echo ✓ vcpkg setup complete!
 echo ========================================
 echo.
-echo You can now:
-echo 1. Open yaze.sln in Visual Studio 2022
-echo 2. Select Debug or Release configuration
-echo 3. Choose x64 or x86 platform
-echo 4. Press F5 to build and run
+echo You can now build YAZE using:
+echo   .\scripts\build-windows.ps1
+echo   or
+echo   .\scripts\build-windows.bat
 echo.
-echo If you have a Zelda 3 ROM file, place it in the project root
-echo and name it 'zelda3.sfc' for automatic copying.
-echo.
+
 pause

@@ -1,54 +1,106 @@
-# Setup script for vcpkg on Windows (PowerShell)
-# This script helps set up vcpkg for YAZE Windows builds
+# YAZE vcpkg Setup Script
+# This script sets up vcpkg for YAZE development on Windows
 
-Write-Host "Setting up vcpkg for YAZE Windows builds..." -ForegroundColor Green
+param(
+    [string]$Triplet = "x64-windows"
+)
 
-# Check if vcpkg directory exists
+# Set error handling
+$ErrorActionPreference = "Continue"
+
+# Colors for output
+$Colors = @{
+    Success = "Green"
+    Warning = "Yellow"
+    Error = "Red"
+    Info = "Cyan"
+    White = "White"
+}
+
+function Write-Status {
+    param([string]$Message, [string]$Color = "White")
+    Write-Host $Message -ForegroundColor $Colors[$Color]
+}
+
+function Test-Command {
+    param([string]$Command)
+    try {
+        $null = Get-Command $Command -ErrorAction Stop
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+# Main script
+Write-Status "========================================" "Info"
+Write-Status "YAZE vcpkg Setup Script" "Info"
+Write-Status "========================================" "Info"
+
+Write-Status "Target triplet: $Triplet" "Warning"
+
+# Check if we're in the right directory
+if (-not (Test-Path "vcpkg.json")) {
+    Write-Status "ERROR: vcpkg.json not found. Please run this script from the project root directory." "Error"
+    exit 1
+}
+
+Write-Status "✓ Found vcpkg.json" "Success"
+
+# Check for Git
+if (-not (Test-Command "git")) {
+    Write-Status "ERROR: Git not found. Please install Git for Windows." "Error"
+    Write-Status "Download from: https://git-scm.com/download/win" "Info"
+    exit 1
+}
+
+Write-Status "✓ Git found" "Success"
+
+# Clone vcpkg if needed
 if (-not (Test-Path "vcpkg")) {
-    Write-Host "Cloning vcpkg..." -ForegroundColor Yellow
-    git clone https://github.com/Microsoft/vcpkg.git
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Error: Failed to clone vcpkg repository" -ForegroundColor Red
-        Read-Host "Press Enter to continue"
+    Write-Status "Cloning vcpkg..." "Warning"
+    & git clone https://github.com/Microsoft/vcpkg.git vcpkg
+    if ($LASTEXITCODE -eq 0) {
+        Write-Status "✓ vcpkg cloned successfully" "Success"
+    } else {
+        Write-Status "✗ Failed to clone vcpkg" "Error"
         exit 1
     }
+} else {
+    Write-Status "✓ vcpkg directory already exists" "Success"
 }
 
 # Bootstrap vcpkg
-Set-Location vcpkg
-if (-not (Test-Path "vcpkg.exe")) {
-    Write-Host "Bootstrapping vcpkg..." -ForegroundColor Yellow
+$vcpkgExe = "vcpkg\vcpkg.exe"
+if (-not (Test-Path $vcpkgExe)) {
+    Write-Status "Bootstrapping vcpkg..." "Warning"
+    Push-Location vcpkg
     & .\bootstrap-vcpkg.bat
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Error: Failed to bootstrap vcpkg" -ForegroundColor Red
-        Read-Host "Press Enter to continue"
+    if ($LASTEXITCODE -eq 0) {
+        Write-Status "✓ vcpkg bootstrapped successfully" "Success"
+    } else {
+        Write-Status "✗ Failed to bootstrap vcpkg" "Error"
+        Pop-Location
         exit 1
     }
+    Pop-Location
+} else {
+    Write-Status "✓ vcpkg already bootstrapped" "Success"
 }
 
-# Integrate vcpkg with Visual Studio (optional)
-Write-Host "Integrating vcpkg with Visual Studio..." -ForegroundColor Yellow
-& .\vcpkg.exe integrate install
+# Install dependencies
+Write-Status "Installing dependencies for triplet: $Triplet" "Warning"
+& $vcpkgExe install --triplet $Triplet
+if ($LASTEXITCODE -eq 0) {
+    Write-Status "✓ Dependencies installed successfully" "Success"
+} else {
+    Write-Status "⚠ Some dependencies may not have installed correctly" "Warning"
+}
 
-# Set environment variable for this session
-$vcpkgRoot = Get-Location
-$env:VCPKG_ROOT = $vcpkgRoot.Path
-Write-Host "VCPKG_ROOT set to: $($env:VCPKG_ROOT)" -ForegroundColor Green
-
-Set-Location ..
-
-Write-Host ""
-Write-Host "vcpkg setup complete!" -ForegroundColor Green
-Write-Host ""
-Write-Host "To use vcpkg with YAZE:" -ForegroundColor Cyan
-Write-Host "1. Use the Windows presets in CMakePresets.json:" -ForegroundColor White
-Write-Host "   - windows-debug (Debug build)" -ForegroundColor Gray
-Write-Host "   - windows-release (Release build)" -ForegroundColor Gray
-Write-Host ""
-Write-Host "2. Or set VCPKG_ROOT environment variable:" -ForegroundColor White
-Write-Host "   `$env:VCPKG_ROOT = `"$vcpkgRoot`"" -ForegroundColor Gray
-Write-Host ""
-Write-Host "3. Dependencies will be automatically installed via vcpkg manifest mode" -ForegroundColor White
-Write-Host ""
-
-Read-Host "Press Enter to continue"
+Write-Status "========================================" "Info"
+Write-Status "✓ vcpkg setup complete!" "Success"
+Write-Status "========================================" "Info"
+Write-Status ""
+Write-Status "You can now build YAZE using:" "Warning"
+Write-Status "  .\scripts\build-windows.ps1" "White"
+Write-Status ""
