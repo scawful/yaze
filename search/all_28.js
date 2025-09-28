@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['🍎_20macos_20arm64_20presets_20recommended_20for_20apple_20silicon_0',['🍎 macOS ARM64 Presets (Recommended for Apple Silicon)',['../md_docs_2B3-build-presets.html#autotoc_md153',1,'']]]
+  ['✅_0',['Phase 1: Create Components ✅',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md410',1,'']]],
+  ['✅_20completed_1',['✅ Completed',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md406',1,'']]],
+  ['✅_20created_20components_2',['✅ Created Components',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md378',1,'']]]
 ];

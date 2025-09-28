@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['🛠️_20ide_20integration_0',['🛠️ IDE Integration',['../md_docs_2B3-build-presets.html#autotoc_md159',1,'']]],
-  ['🛠️_20technical_20improvements_1',['🛠️ Technical Improvements',['../md_README.html#autotoc_md645',1,'']]]
+  ['🚀_20quick_20start_0',['🚀 Quick Start',['../md_docs_2B3-build-presets.html#autotoc_md158',1,'']]]
 ];

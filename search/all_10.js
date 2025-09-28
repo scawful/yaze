@@ -278,7 +278,7 @@ var searchData=
   ['gettileobjects_275',['gettileobjects',['../classyaze_1_1zelda3_1_1Room.html#a9bb6616345b1ae34ea5fdb9e78ecb985',1,'yaze::zelda3::Room::GetTileObjects()'],['../classyaze_1_1zelda3_1_1Room.html#ab7b4c76096de98200c784a447d2051e6',1,'yaze::zelda3::Room::GetTileObjects() const']]],
   ['gettiles_276',['GetTiles',['../classyaze_1_1zelda3_1_1RoomObject.html#a92aa9f4912f5360f5ca7038bc0a6daac',1,'yaze::zelda3::RoomObject']]],
   ['gettilesinfo_277',['GetTilesInfo',['../namespaceyaze_1_1gfx.html#aa5ae49b02472150a2ad972abf1f7d35a',1,'yaze::gfx']]],
-  ['getting_20help_278',['getting help',['../md_docs_2windows-development-guide.html#autotoc_md627',1,'Getting Help'],['../md_docs_2B1-contributing.html#autotoc_md137',1,'Getting Help'],['../md_scripts_2README.html#autotoc_md678',1,'Getting Help']]],
+  ['getting_20help_278',['getting help',['../md_docs_2windows-development-guide.html#autotoc_md627',1,'Getting Help'],['../md_docs_2B1-contributing.html#autotoc_md137',1,'Getting Help'],['../md_scripts_2README.html#autotoc_md685',1,'Getting Help']]],
   ['getting_20started_279',['Getting Started',['../md_docs_201-getting-started.html',1,'']]],
   ['gettotallines_280',['GetTotalLines',['../classTextEditor.html#a5f18c920c40b861c757d96ed78e95d57',1,'TextEditor']]],
   ['gettotalroomsize_281',['GetTotalRoomSize',['../classyaze_1_1editor_1_1DungeonRoomLoader.html#ada77eca73b51ba4d4648488ffaac0aff',1,'yaze::editor::DungeonRoomLoader']]],

@@ -97,7 +97,7 @@ var searchData=
   ['userroutine_94',['userroutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine::UserRoutine()'],['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::editor::zsprite::UserRoutine']]],
   ['userroutines_95',['userRoutines',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]],
   ['users_96',['Option C: Using CMake with Visual Studio (For advanced users)',['../md_docs_2visual-studio-setup.html#autotoc_md562',1,'']]],
-  ['using_20batch_20scripts_97',['Option 3: Using Batch Scripts',['../md_scripts_2README.html#autotoc_md670',1,'']]],
+  ['using_20batch_20scripts_97',['Option 3: Using Batch Scripts',['../md_scripts_2README.html#autotoc_md677',1,'']]],
   ['using_20cmake_20command_20line_98',['Using CMake (Command Line)',['../md_docs_2visual-studio-setup.html#autotoc_md565',1,'']]],
   ['using_20cmake_20with_20visual_20studio_20for_20advanced_20users_99',['Option C: Using CMake with Visual Studio (For advanced users)',['../md_docs_2visual-studio-setup.html#autotoc_md562',1,'']]],
   ['using_20command_20line_100',['Using Command Line',['../md_docs_2windows-development-guide.html#autotoc_md614',1,'']]],

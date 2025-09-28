@@ -3,7 +3,7 @@ var searchData=
   ['1_200_200_0',['1.0.0',['../md_docs_2D1-roadmap.html#autotoc_md267',1,'']]],
   ['1_200_20may_202024_1',['0.1.0 (May 2024)',['../md_docs_2C1-changelog.html#autotoc_md247',1,'']]],
   ['1_20august_202024_2',['0.2.1 (August 2024)',['../md_docs_2C1-changelog.html#autotoc_md245',1,'']]],
-  ['1_20clone_20the_20repository_3',['1 clone the repository',['../md_docs_2windows-development-guide.html#autotoc_md608',1,'1. Clone the Repository'],['../md_docs_2visual-studio-setup.html#autotoc_md557',1,'1. Clone the Repository']]],
+  ['1_20clone_20the_20repository_3',['1 clone the repository',['../md_docs_2visual-studio-setup.html#autotoc_md557',1,'1. Clone the Repository'],['../md_docs_2windows-development-guide.html#autotoc_md608',1,'1. Clone the Repository']]],
   ['1_20dungeoneditor_20tt_20src_20app_20editor_20dungeon_20dungeon_5feditor_20h_20tt_4',['1. DungeonEditor (&lt;tt&gt;src/app/editor/dungeon/dungeon_editor.h&lt;/tt&gt;)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md418',1,'']]],
   ['1_20dungeoneditorsystem_5',['1. DungeonEditorSystem',['../md_docs_2E2-dungeon-editor-guide.html#autotoc_md287',1,'']]],
   ['1_20dungeontoolset_20tt_20dungeon_5ftoolset_20h_20cc_20tt_6',['1. DungeonToolset (&lt;tt&gt;dungeon_toolset.h/cc&lt;/tt&gt;)',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md379',1,'']]],
@@ -19,9 +19,10 @@ var searchData=
   ['1_20version_20detection_20issues_16',['1. Version Detection Issues',['../md_docs_2F1-overworld-loading.html#autotoc_md498',1,'']]],
   ['1_20version_20specific_20code_17',['1. Version-Specific Code',['../md_docs_2F1-overworld-loading.html#autotoc_md505',1,'']]],
   ['1444_20lines_18',['Before Refactoring: 1444 lines',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md385',1,'']]],
-  ['1_3a_20automated_20setup_20recommended_19',['Option 1: Automated Setup (Recommended)',['../md_scripts_2README.html#autotoc_md668',1,'']]],
-  ['1_3a_20create_20components_20✅_20',['Phase 1: Create Components ✅',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md410',1,'']]],
-  ['1_3a_20install_20via_20package_20recommended_21',['Method 1: Install via Package (Recommended)',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md541',1,'']]],
-  ['1_3a_20missing_20include_20files_20sdl_20h_20etc_22',['Issue 1: Missing Include Files (SDL.h, etc.)',['../md_docs_2visual-studio-setup.html#autotoc_md571',1,'']]],
-  ['1_3a_20room_20control_20panel_20280px_20fixed_23',['Column 1: Room Control Panel (280px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md437',1,'']]]
+  ['1_3a_20automated_20setup_20recommended_19',['Option 1: Automated Setup (Recommended)',['../md_scripts_2README.html#autotoc_md675',1,'']]],
+  ['1_3a_20clang_20recommended_20',['Option 1: Clang (Recommended)',['../md_scripts_2README.html#autotoc_md672',1,'']]],
+  ['1_3a_20create_20components_20✅_21',['Phase 1: Create Components ✅',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md410',1,'']]],
+  ['1_3a_20install_20via_20package_20recommended_22',['Method 1: Install via Package (Recommended)',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md541',1,'']]],
+  ['1_3a_20missing_20include_20files_20sdl_20h_20etc_23',['Issue 1: Missing Include Files (SDL.h, etc.)',['../md_docs_2visual-studio-setup.html#autotoc_md571',1,'']]],
+  ['1_3a_20room_20control_20panel_20280px_20fixed_24',['Column 1: Room Control Panel (280px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md437',1,'']]]
 ];

@@ -199,7 +199,7 @@ var searchData=
   ['evictleastrecentlyused_196',['EvictLeastRecentlyUsed',['../classyaze_1_1zelda3_1_1ObjectRenderer_1_1GraphicsCache.html#a29fdaadcfe405a9a1f4e5c37f39192d1',1,'yaze::zelda3::ObjectRenderer::GraphicsCache']]],
   ['exampleapppropertyeditor_197',['ExampleAppPropertyEditor',['../structyaze_1_1editor_1_1ExampleAppPropertyEditor.html',1,'yaze::editor']]],
   ['examplememberinfo_198',['ExampleMemberInfo',['../structyaze_1_1editor_1_1ExampleMemberInfo.html',1,'yaze::editor']]],
-  ['examples_199',['examples',['../md_docs_203-asar-integration.html#autotoc_md58',1,'Assembly Patch Examples'],['../md_docs_2B4-release-workflows.html#autotoc_md204',1,'Configuration Examples'],['../md_scripts_2README.html#autotoc_md675',1,'Examples'],['../md_docs_203-asar-integration.html#autotoc_md55',1,'Quick Examples'],['../md_docs_2E2-dungeon-editor-guide.html#autotoc_md312',1,'Usage Examples']]],
+  ['examples_199',['examples',['../md_docs_203-asar-integration.html#autotoc_md58',1,'Assembly Patch Examples'],['../md_docs_2B4-release-workflows.html#autotoc_md204',1,'Configuration Examples'],['../md_scripts_2README.html#autotoc_md682',1,'Examples'],['../md_docs_203-asar-integration.html#autotoc_md55',1,'Quick Examples'],['../md_docs_2E2-dungeon-editor-guide.html#autotoc_md312',1,'Usage Examples']]],
   ['exampleselectionwithdeletion_200',['ExampleSelectionWithDeletion',['../structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html',1,'yaze::gui']]],
   ['exampletreenode_201',['ExampleTreeNode',['../structyaze_1_1editor_1_1ExampleTreeNode.html',1,'yaze::editor']]],
   ['executable_20runs_20tests_20instead_20of_20main_20app_202',['Issue 3: Executable Runs Tests Instead of Main App',['../md_docs_2visual-studio-setup.html#autotoc_md573',1,'']]],

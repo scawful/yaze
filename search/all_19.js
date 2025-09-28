@@ -308,7 +308,7 @@ var searchData=
   ['property_5fstatis_305',['property_statis',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#adbb9974bc55d1861414580356643d408',1,'yaze::editor::zsprite::ZSprite']]],
   ['property_5fstatue_306',['property_statue',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#aa37b19672c4ed7d9fccc4b8cc84dc0ba',1,'yaze::editor::zsprite::ZSprite']]],
   ['property_5fwatersprite_307',['property_watersprite',['../structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a8385512be9230231f899f9546bc4fb6a',1,'yaze::editor::zsprite::ZSprite']]],
-  ['ps1_308',['ps1',['../md_scripts_2README.html#autotoc_md673',1,'build-windows.ps1'],['../md_scripts_2README.html#autotoc_md672',1,'setup-windows-dev.ps1']]],
+  ['ps1_308',['ps1',['../md_scripts_2README.html#autotoc_md680',1,'build-windows.ps1'],['../md_scripts_2README.html#autotoc_md679',1,'setup-windows-dev.ps1']]],
   ['pseudo_5fhires_5f_309',['pseudo_hires_',['../classyaze_1_1emu_1_1Ppu.html#a318b6ee2772331b0a089a92bec7ee9a0',1,'yaze::emu::Ppu']]],
   ['psw_310',['PSW',['../classyaze_1_1emu_1_1Spc700.html#a41e989acb02f3a7e2c4a8658bdd08ab1',1,'yaze::emu::Spc700']]],
   ['pull_20request_20process_311',['Pull Request Process',['../md_docs_2B1-contributing.html#autotoc_md121',1,'']]],

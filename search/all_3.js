@@ -22,5 +22,5 @@ var searchData=
   ['3_3a_20executable_20runs_20tests_20instead_20of_20main_20app_19',['Issue 3: Executable Runs Tests Instead of Main App',['../md_docs_2visual-studio-setup.html#autotoc_md573',1,'']]],
   ['3_3a_20move_20methods_20',['Phase 3: Move Methods',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md412',1,'']]],
   ['3_3a_20object_20selector_20editor_20stretch_21',['Column 3: Object Selector/Editor (stretch)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md439',1,'']]],
-  ['3_3a_20using_20batch_20scripts_22',['Option 3: Using Batch Scripts',['../md_scripts_2README.html#autotoc_md670',1,'']]]
+  ['3_3a_20using_20batch_20scripts_22',['Option 3: Using Batch Scripts',['../md_scripts_2README.html#autotoc_md677',1,'']]]
 ];

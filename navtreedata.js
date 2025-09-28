@@ -851,22 +851,32 @@ var NAVTREE =
         [ "Validation Scripts", "md_scripts_2README.html#autotoc_md665", null ],
         [ "Project Generation", "md_scripts_2README.html#autotoc_md666", null ]
       ] ],
-      [ "Quick Start (Windows)", "md_scripts_2README.html#autotoc_md667", [
-        [ "Option 1: Automated Setup (Recommended)", "md_scripts_2README.html#autotoc_md668", null ],
-        [ "Option 2: Manual Setup", "md_scripts_2README.html#autotoc_md669", null ],
-        [ "Option 3: Using Batch Scripts", "md_scripts_2README.html#autotoc_md670", null ]
+      [ "Windows Compiler Recommendations", "md_scripts_2README.html#autotoc_md667", [
+        [ "⚠️ Important: MSVC vs Clang on Windows", "md_scripts_2README.html#autotoc_md668", [
+          [ "Why Clang is Recommended:", "md_scripts_2README.html#autotoc_md669", null ],
+          [ "MSVC Issues:", "md_scripts_2README.html#autotoc_md670", null ]
+        ] ],
+        [ "Compiler Setup Options", "md_scripts_2README.html#autotoc_md671", [
+          [ "Option 1: Clang (Recommended)", "md_scripts_2README.html#autotoc_md672", null ],
+          [ "Option 2: MSVC with Workarounds", "md_scripts_2README.html#autotoc_md673", null ]
+        ] ]
       ] ],
-      [ "Script Options", "md_scripts_2README.html#autotoc_md671", [
-        [ "setup-windows-dev.ps1", "md_scripts_2README.html#autotoc_md672", null ],
-        [ "build-windows.ps1", "md_scripts_2README.html#autotoc_md673", null ],
-        [ "build-windows.bat", "md_scripts_2README.html#autotoc_md674", null ]
+      [ "Quick Start (Windows)", "md_scripts_2README.html#autotoc_md674", [
+        [ "Option 1: Automated Setup (Recommended)", "md_scripts_2README.html#autotoc_md675", null ],
+        [ "Option 2: Manual Setup", "md_scripts_2README.html#autotoc_md676", null ],
+        [ "Option 3: Using Batch Scripts", "md_scripts_2README.html#autotoc_md677", null ]
       ] ],
-      [ "Examples", "md_scripts_2README.html#autotoc_md675", null ],
-      [ "Troubleshooting", "md_scripts_2README.html#autotoc_md676", [
-        [ "Common Issues", "md_scripts_2README.html#autotoc_md677", null ],
-        [ "Getting Help", "md_scripts_2README.html#autotoc_md678", null ]
+      [ "Script Options", "md_scripts_2README.html#autotoc_md678", [
+        [ "setup-windows-dev.ps1", "md_scripts_2README.html#autotoc_md679", null ],
+        [ "build-windows.ps1", "md_scripts_2README.html#autotoc_md680", null ],
+        [ "build-windows.bat", "md_scripts_2README.html#autotoc_md681", null ]
       ] ],
-      [ "Other Scripts", "md_scripts_2README.html#autotoc_md679", null ]
+      [ "Examples", "md_scripts_2README.html#autotoc_md682", null ],
+      [ "Troubleshooting", "md_scripts_2README.html#autotoc_md683", [
+        [ "Common Issues", "md_scripts_2README.html#autotoc_md684", null ],
+        [ "Getting Help", "md_scripts_2README.html#autotoc_md685", null ]
+      ] ],
+      [ "Other Scripts", "md_scripts_2README.html#autotoc_md686", null ]
     ] ],
     [ "Deprecated List", "deprecated.html", null ],
     [ "Todo List", "todo.html", null ],
@@ -967,34 +977,34 @@ var NAVTREEINDEX =
 "main_8mm.html#a0ddf1224851353fc92bfbff6f499fa97",
 "md_docs_2C1-changelog.html#autotoc_md238",
 "md_docs_2F1-overworld-loading.html#autotoc_md488",
-"message__test_8cc.html",
-"namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342",
-"namespaceyaze_1_1emu.html#a5da036c77baa6b69891876c48cfdb708",
-"namespaceyaze_1_1gfx_1_1lc__lz2.html#a9f9585e104565c6688541c1454569d85",
-"namespaceyaze_1_1test.html#a1641768a13910eb529e97ac3a66b7162",
-"namespaceyaze_1_1test.html#a9d34ba2fcd6d9a4edf763cb7d960a0c3",
-"namespaceyaze_1_1zelda3.html#a0abca0cc171078bf217aac524303dbad",
-"namespaceyaze_1_1zelda3.html#a6ad5f0a9ef45edbbc2a8ac4ae5ababa8",
-"namespaceyaze_1_1zelda3.html#af2353873362052aac0583f2e63f7ad54",
-"overworld__entrance_8h.html#a26e5a7b9e91ebbb569929295138dbc33",
-"ppu__registers_8h.html#aece6aec9450537dcd2ea81691385889e",
-"room__entrance_8h.html#aa306772ed6de1e7dc9f2f791d2e1c20b",
-"snes__palette__test_8cc.html#a9f59bed1b816f85813cf37fc5285aab2",
-"structyaze_1_1app_1_1core_1_1AsarPatchResult.html#acf51f29f4f7d1b5ff83732ea926d144e",
-"structyaze_1_1core_1_1YazeProject.html#a4c747a2234bc731a78e332128948b39b",
-"structyaze_1_1editor_1_1MessageData.html#ad3e91f53998bea4cf7566f2a2a1bf773",
-"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a1b72f929a206d4b1241c1c7d9a68094c",
-"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a8871ea62a527891f33ef8702807a7ec6",
-"structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae2ecbcfd6c66116a666479887d24e5af",
-"structyaze_1_1emu_1_1TilemapEntry.html",
-"structyaze_1_1gfx_1_1PaletteGroup.html#af3d5e4db785c3074593c43448153f109",
-"structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html#a80643d38a43be74523168ec0d256b9cc",
-"structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a1bc315383911d41eb8273076e9747441",
-"structyaze_1_1test_1_1TestResults.html#ad2633be017b0b229aff6039c48041353",
-"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a7c0c6a7f32455bb3da77cd8b0c885501",
-"structyaze_1_1zelda3_1_1ScrollWheelConfig.html#ab71b601ea82a6bacf56c5d153ed848f2",
-"structzelda3__message.html#af5bf5fe89e44f0cdc289dd77dda0fef4",
-"toast__manager_8h.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf"
+"message__editor_8h_source.html",
+"namespaceyaze_1_1editor.html#a090fa407d64c5928169ffda52eaa3829",
+"namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382ba5baea5488eacdf0684fbad674206d40d",
+"namespaceyaze_1_1gfx_1_1lc__lz2.html#a8dcf1b557b4aac854914fdca347252cc",
+"namespaceyaze_1_1test.html#a133541ce48bc235998bf42f760a71f11",
+"namespaceyaze_1_1test.html#a9a13f9d65b1defc019920565c2dfd20e",
+"namespaceyaze_1_1zelda3.html#a068dcc38f6b086ddb7a4c9681f26d968",
+"namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468af3cba258bf89286ce2067121c55e3651",
+"namespaceyaze_1_1zelda3.html#aed68d4661d50e76f2427c17e991216ea",
+"overworld__entrance_8h.html#a07733b1877e42f53cff11a648c2b4ab5",
+"ppu__registers_8h.html#add231dcfd8ea590a1a6081bfa05c380a",
+"room__entrance_8h.html#a8bc817b0e8b24c82ab302d82a0eff5e9",
+"snes__palette__test_8cc.html#a4a56cf754ff9aed906396a174caa31d3",
+"structyaze_1_1Transaction_1_1Operation.html#ad558ad85e7b21d3ab19b3ca20d2975eb",
+"structyaze_1_1core_1_1YazeProject.html#a23d14dfef0d0804dfa8745d24dd00527",
+"structyaze_1_1editor_1_1MessageData.html#a4a22ce91a8141b3744ca0ce73a5d9f4d",
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html",
+"structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a4e6f27c03bc0f6dbe3cafd59346cc3fc",
+"structyaze_1_1emu_1_1MainSubScreenDesignation.html",
+"structyaze_1_1emu_1_1TileMapLocation.html#a78af862105448b7e1090f52be74f043c",
+"structyaze_1_1gfx_1_1PaletteGroup.html#ac2f1743a209c415c37c5c9041586b805",
+"structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html",
+"structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html#afc719c78a285e4f75f6777137401c4a5",
+"structyaze_1_1test_1_1TestResults.html#a265fb9025adc5687e633fd67776c43b7",
+"structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#aeaffb4bbe3f7ea925c09bc9bb4871c19",
+"structyaze_1_1zelda3_1_1ScrollWheelConfig.html",
+"structzelda3__message.html",
+"tilemap_8h_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

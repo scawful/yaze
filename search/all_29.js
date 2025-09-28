@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['📋_20available_20presets_0',['📋 Available Presets',['../md_docs_2B3-build-presets.html#autotoc_md157',1,'']]]
+  ['🍎_20macos_20arm64_20presets_20recommended_20for_20apple_20silicon_0',['🍎 macOS ARM64 Presets (Recommended for Apple Silicon)',['../md_docs_2B3-build-presets.html#autotoc_md153',1,'']]]
 ];

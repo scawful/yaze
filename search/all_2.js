@@ -23,7 +23,8 @@ var searchData=
   ['280px_20fixed_20',['Column 1: Room Control Panel (280px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md437',1,'']]],
   ['2_3a_20create_20triplet_20file_20manually_21',['Method 2: Create Triplet File Manually',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md542',1,'']]],
   ['2_3a_20integrate_20components_20🔄_22',['Phase 2: Integrate Components 🔄',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md411',1,'']]],
-  ['2_3a_20manual_20setup_23',['Option 2: Manual Setup',['../md_scripts_2README.html#autotoc_md669',1,'']]],
-  ['2_3a_20windowed_20canvas_20800px_20fixed_24',['Column 2: Windowed Canvas (800px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md438',1,'']]],
-  ['2_3a_20zlib_20import_20errors_25',['Issue 2: zlib Import Errors',['../md_docs_2visual-studio-setup.html#autotoc_md572',1,'']]]
+  ['2_3a_20manual_20setup_23',['Option 2: Manual Setup',['../md_scripts_2README.html#autotoc_md676',1,'']]],
+  ['2_3a_20msvc_20with_20workarounds_24',['Option 2: MSVC with Workarounds',['../md_scripts_2README.html#autotoc_md673',1,'']]],
+  ['2_3a_20windowed_20canvas_20800px_20fixed_25',['Column 2: Windowed Canvas (800px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md438',1,'']]],
+  ['2_3a_20zlib_20import_20errors_26',['Issue 2: zlib Import Errors',['../md_docs_2visual-studio-setup.html#autotoc_md572',1,'']]]
 ];

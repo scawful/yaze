@@ -1,5 +1,12 @@
 var NAVTREEINDEX81 =
 {
+"tilemap_8h_source.html":[30,0,3,0,3,17],
+"title__screen_8cc.html":[30,0,3,0,6,3,4],
+"title__screen_8cc_source.html":[30,0,3,0,6,3,4],
+"title__screen_8h.html":[30,0,3,0,6,3,5],
+"title__screen_8h_source.html":[30,0,3,0,6,3,5],
+"toast__manager_8h.html":[30,0,3,0,1,7,11],
+"toast__manager_8h.html#a6b8cab865089eface70ba97013bc8bc7":[30,0,3,0,1,7,11,2],
 "toast__manager_8h.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf":[30,0,3,0,1,7,11,2,0],
 "toast__manager_8h.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782":[30,0,3,0,1,7,11,2,1],
 "toast__manager_8h.html#a6b8cab865089eface70ba97013bc8bc7ae3587c730cc1aa530fa4ddc9c4204e97":[30,0,3,0,1,7,11,2,3],

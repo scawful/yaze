@@ -329,7 +329,7 @@ var searchData=
   ['auto_5fsave_5finterval_326',['auto_save_interval',['../structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a7bef637d97d73fefb94d94f533de9f74',1,'yaze::zelda3::DungeonObjectEditor::EditorConfig']]],
   ['auto_5ftile_5fmode_5f_327',['auto_tile_mode_',['../classyaze_1_1editor_1_1Tile16Editor.html#a817d9b9d4899880a807a285c0b8b306f',1,'yaze::editor::Tile16Editor']]],
   ['automated_20setup_328',['Automated Setup',['../md_docs_2windows-development-guide.html#autotoc_md606',1,'']]],
-  ['automated_20setup_20recommended_329',['automated setup recommended',['../md_docs_202-build-instructions.html#autotoc_md19',1,'Automated Setup (Recommended)'],['../md_scripts_2README.html#autotoc_md668',1,'Option 1: Automated Setup (Recommended)']]],
+  ['automated_20setup_20recommended_329',['automated setup recommended',['../md_docs_202-build-instructions.html#autotoc_md19',1,'Automated Setup (Recommended)'],['../md_scripts_2README.html#autotoc_md675',1,'Option 1: Automated Setup (Recommended)']]],
   ['automated_20validation_20strong_330',['&lt;strong&gt;Automated Validation&lt;/strong&gt;',['../md_docs_2visual-studio-setup.html#autotoc_md596',1,'']]],
   ['automatic_20dependency_20management_20strong_331',['&lt;strong&gt;Automatic Dependency Management&lt;/strong&gt;',['../md_docs_2visual-studio-setup.html#autotoc_md591',1,'']]],
   ['automatic_20release_20tag_20push_332',['Automatic Release (Tag Push)',['../md_docs_2B4-release-workflows.html#autotoc_md207',1,'']]],

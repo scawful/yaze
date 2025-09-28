@@ -130,11 +130,53 @@ Project Generation</h2>
 <li>**<code>generate-vs-projects.bat</code>** - Generate Visual Studio project files (Batch)</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md667"></a>
-Quick Start (Windows)</h1>
+Windows Compiler Recommendations</h1>
 <h2><a class="anchor" id="autotoc_md668"></a>
+⚠️ Important: MSVC vs Clang on Windows</h2>
+<p><b>We strongly recommend using Clang on Windows</b> due to compatibility issues with MSVC and Abseil's int128 and type_traits features:</p>
+<h3><a class="anchor" id="autotoc_md669"></a>
+Why Clang is Recommended:</h3>
+<ul>
+<li>✅ <b>Better C++23 Support</b>: Full support for modern C++23 features</li>
+<li>✅ <b>Abseil Compatibility</b>: No issues with <code>absl::int128</code> and type traits</li>
+<li>✅ <b>Cross-Platform Consistency</b>: Same compiler across all platforms</li>
+<li>✅ <b>Better Error Messages</b>: More helpful diagnostic messages</li>
+<li>✅ <b>Faster Compilation</b>: Generally faster than MSVC</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md670"></a>
+MSVC Issues:</h3>
+<ul>
+<li>❌ <b>C++23 Deprecation Warnings</b>: Abseil int128 triggers numerous deprecation warnings</li>
+<li>❌ <b>Type Traits Problems</b>: Some Abseil type traits don't work correctly with MSVC</li>
+<li>❌ <b>Int128 Limitations</b>: MSVC's int128 support is incomplete</li>
+<li>❌ <b>Build Complexity</b>: Requires additional workarounds and flags</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md671"></a>
+Compiler Setup Options</h2>
+<h3><a class="anchor" id="autotoc_md672"></a>
+Option 1: Clang (Recommended)</h3>
+<div class="fragment"><div class="line"># Install LLVM/Clang via winget</div>
+<div class="line">winget install LLVM.LLVM</div>
+<div class="line"> </div>
+<div class="line"># Or download from: https://releases.llvm.org/</div>
+<div class="line"># Make sure to add Clang to PATH during installation</div>
+<div class="line"> </div>
+<div class="line"># Verify installation</div>
+<div class="line">clang --version</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md673"></a>
+Option 2: MSVC with Workarounds</h3>
+<p>If you must use MSVC, the build system includes workarounds:</p><ul>
+<li>Abseil int128 is automatically disabled on Windows</li>
+<li>C++23 deprecation warnings are silenced</li>
+<li>Additional compatibility flags are applied</li>
+</ul>
+<p>However, you may still encounter issues with some Abseil features.</p>
+<h1><a class="anchor" id="autotoc_md674"></a>
+Quick Start (Windows)</h1>
+<h2><a class="anchor" id="autotoc_md675"></a>
 Option 1: Automated Setup (Recommended)</h2>
 <div class="fragment"><div class="line">.\scripts\setup-windows-dev.ps1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md669"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md676"></a>
 Option 2: Manual Setup</h2>
 <div class="fragment"><div class="line"># 1. Setup vcpkg</div>
 <div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
@@ -144,7 +186,7 @@ Option 2: Manual Setup</h2>
 <div class="line"> </div>
 <div class="line"># 3. Build</div>
 <div class="line">.\scripts\build-windows.ps1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md670"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md677"></a>
 Option 3: Using Batch Scripts</h2>
 <div class="fragment"><div class="line">REM Setup vcpkg</div>
 <div class="line">.\scripts\setup-vcpkg-windows.bat</div>
@@ -154,64 +196,69 @@ Option 3: Using Batch Scripts</h2>
 <div class="line"> </div>
 <div class="line">REM Build</div>
 <div class="line">.\scripts\build-windows.bat</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md671"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md678"></a>
 Script Options</h1>
-<h2><a class="anchor" id="autotoc_md672"></a>
+<h2><a class="anchor" id="autotoc_md679"></a>
 setup-windows-dev.ps1</h2>
 <ul>
 <li><code>-SkipVcpkg</code> - Skip vcpkg setup</li>
 <li><code>-SkipVS</code> - Skip Visual Studio check</li>
 <li><code>-SkipBuild</code> - Skip test build</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md673"></a>
+<h2><a class="anchor" id="autotoc_md680"></a>
 build-windows.ps1</h2>
 <ul>
 <li><code>-Configuration</code> - Build configuration (Debug, Release, RelWithDebInfo, MinSizeRel)</li>
 <li><code>-Platform</code> - Target platform (x64, x86, ARM64)</li>
+<li><code>-Compiler</code> - Compiler to use (clang, msvc, auto)</li>
 <li><code>-Clean</code> - Clean build directories before building</li>
 <li><code>-Verbose</code> - Verbose build output</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md674"></a>
+<h2><a class="anchor" id="autotoc_md681"></a>
 build-windows.bat</h2>
 <ul>
 <li>First argument: Configuration (Debug, Release, RelWithDebInfo, MinSizeRel)</li>
 <li>Second argument: Platform (x64, x86, ARM64)</li>
+<li>Third argument: Compiler (clang, msvc, auto)</li>
 <li><code>clean</code> - Clean build directories</li>
 <li><code>verbose</code> - Verbose build output</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md675"></a>
+<h1><a class="anchor" id="autotoc_md682"></a>
 Examples</h1>
-<div class="fragment"><div class="line"># Build Release x64 (default)</div>
-<div class="line">.\scripts\build-windows.ps1</div>
+<div class="fragment"><div class="line"># Build Release x64 with Clang (recommended)</div>
+<div class="line">.\scripts\build-windows.ps1 -Compiler clang</div>
 <div class="line"> </div>
-<div class="line"># Build Debug x64</div>
-<div class="line">.\scripts\build-windows.ps1 -Configuration Debug -Platform x64</div>
+<div class="line"># Build Release x64 with MSVC (with workarounds)</div>
+<div class="line">.\scripts\build-windows.ps1 -Compiler msvc</div>
 <div class="line"> </div>
-<div class="line"># Build Release x86</div>
-<div class="line">.\scripts\build-windows.ps1 -Configuration Release -Platform x86</div>
+<div class="line"># Build Debug x64 with Clang</div>
+<div class="line">.\scripts\build-windows.ps1 -Configuration Debug -Platform x64 -Compiler clang</div>
 <div class="line"> </div>
-<div class="line"># Clean build</div>
-<div class="line">.\scripts\build-windows.ps1 -Clean</div>
+<div class="line"># Build Release x86 with auto-detection</div>
+<div class="line">.\scripts\build-windows.ps1 -Configuration Release -Platform x86 -Compiler auto</div>
 <div class="line"> </div>
-<div class="line"># Verbose build</div>
-<div class="line">.\scripts\build-windows.ps1 -Verbose</div>
+<div class="line"># Clean build with Clang</div>
+<div class="line">.\scripts\build-windows.ps1 -Clean -Compiler clang</div>
+<div class="line"> </div>
+<div class="line"># Verbose build with MSVC</div>
+<div class="line">.\scripts\build-windows.ps1 -Verbose -Compiler msvc</div>
 <div class="line"> </div>
 <div class="line"># Validate environment</div>
 <div class="line">.\scripts\validate-windows-build.ps1</div>
-</div><!-- fragment --><div class="fragment"><div class="line">REM Build Release x64 (default)</div>
-<div class="line">.\scripts\build-windows.bat</div>
+</div><!-- fragment --><div class="fragment"><div class="line">REM Build Release x64 with Clang (recommended)</div>
+<div class="line">.\scripts\build-windows.bat Release x64 clang</div>
 <div class="line"> </div>
-<div class="line">REM Build Debug x64</div>
-<div class="line">.\scripts\build-windows.bat Debug x64</div>
+<div class="line">REM Build Debug x64 with MSVC</div>
+<div class="line">.\scripts\build-windows.bat Debug x64 msvc</div>
 <div class="line"> </div>
-<div class="line">REM Build Release x86</div>
-<div class="line">.\scripts\build-windows.bat Release x86</div>
+<div class="line">REM Build Release x86 with auto-detection</div>
+<div class="line">.\scripts\build-windows.bat Release x86 auto</div>
 <div class="line"> </div>
-<div class="line">REM Clean build</div>
-<div class="line">.\scripts\build-windows.bat clean</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md676"></a>
+<div class="line">REM Clean build with Clang</div>
+<div class="line">.\scripts\build-windows.bat clean clang</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md683"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md677"></a>
+<h2><a class="anchor" id="autotoc_md684"></a>
 Common Issues</h2>
 <ol type="1">
 <li><b>PowerShell Execution Policy</b> <div class="fragment"><div class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</div>
@@ -231,15 +278,33 @@ Common Issues</h2>
 <li>Make sure Python is in PATH</li>
 </ul>
 </li>
+<li><b>MSVC Compilation Errors</b><ul>
+<li><b>Abseil int128 errors</b>: Use Clang instead (<code>-Compiler clang</code>)</li>
+<li><b>C++23 deprecation warnings</b>: These are silenced automatically, but Clang is cleaner</li>
+<li><b>Type traits issues</b>: Switch to Clang for better compatibility</li>
+<li><b>Solution</b>: Install Clang and use <code>.\scripts\build-windows.ps1 -Compiler clang</code></li>
+</ul>
+</li>
+<li><b>Clang Not Found</b><ul>
+<li>Install LLVM/Clang: <code>winget install LLVM.LLVM</code></li>
+<li>Or download from: <a href="https://releases.llvm.org/">https://releases.llvm.org/</a></li>
+<li>Make sure Clang is in PATH: <code>clang --version</code></li>
+</ul>
+</li>
+<li><b>Compiler Detection Issues</b><ul>
+<li>Use explicit compiler selection: <code>-Compiler clang</code> or <code>-Compiler msvc</code></li>
+<li>Check available compilers: <code>where clang</code> and <code>where cl</code></li>
+</ul>
+</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md678"></a>
+<h2><a class="anchor" id="autotoc_md685"></a>
 Getting Help</h2>
 <ol type="1">
 <li>Run validation script: <code>.\scripts\validate-windows-build.ps1</code></li>
 <li>Check the <a class="el" href="md_docs_2windows-development-guide.html">Windows Development Guide</a></li>
 <li>Review build output for specific error messages</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md679"></a>
+<h1><a class="anchor" id="autotoc_md686"></a>
 Other Scripts</h1>
 <ul>
 <li>**<code>create_release.sh</code>** - Create GitHub releases (Linux/macOS)</li>

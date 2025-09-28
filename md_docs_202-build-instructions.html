@@ -120,9 +120,12 @@ Windows (Recommended)</h2>
 <div class="line"># Generate Visual Studio projects (with proper vcpkg integration)</div>
 <div class="line">python scripts/generate-vs-projects.py</div>
 <div class="line"> </div>
-<div class="line"># Or use CMake directly</div>
-<div class="line">cmake --preset windows-debug</div>
-<div class="line">cmake --build build --preset windows-debug</div>
+<div class="line"># Build with Clang (recommended for better Abseil compatibility)</div>
+<div class="line">.\scripts\build-windows.ps1 -Compiler clang</div>
+<div class="line"> </div>
+<div class="line"># Or use CMake directly with Clang</div>
+<div class="line">cmake -B build -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang</div>
+<div class="line">cmake --build build</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md11"></a>
 Minimal Build (CI/Fast)</h2>
 <div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>

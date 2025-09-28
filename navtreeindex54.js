@@ -1,5 +1,12 @@
 var NAVTREEINDEX54 =
 {
+"message__editor_8h_source.html":[30,0,3,0,1,3,3],
+"message__preview_8cc.html":[30,0,3,0,1,3,4],
+"message__preview_8cc_source.html":[30,0,3,0,1,3,4],
+"message__preview_8h.html":[30,0,3,0,1,3,5],
+"message__preview_8h.html#a535b91e8e4763aae7ebbe04fe29d3724":[30,0,3,0,1,3,5,1],
+"message__preview_8h.html#a6046df06ec51f812f3c1d365b7c6045a":[30,0,3,0,1,3,5,2],
+"message__preview_8h_source.html":[30,0,3,0,1,3,5],
 "message__test_8cc.html":[30,0,4,6,8],
 "message__test_8cc.html#a0fe26efa6fcbc692d5e3fa82bf518d5a":[30,0,4,6,8,2],
 "message__test_8cc.html#a1f1bc159085d062904110f638cb9cc5b":[30,0,4,6,8,8],
@@ -46,8 +53,8 @@ var NAVTREEINDEX54 =
 "namespacegenerate-vs-projects.html#a9b384549e5680f6ced62a03a4ded51e8":[28,0,2,1],
 "namespacegenerate-vs-projects.html#abf660c65b4fc91324594a75d532092d8":[28,0,2,0],
 "namespacegenerate.html":[28,0,1],
-"namespacemembers.html":[28,1,0,0],
 "namespacemembers.html":[28,1,0],
+"namespacemembers.html":[28,1,0,0],
 "namespacemembers_b.html":[28,1,0,1],
 "namespacemembers_c.html":[28,1,0,2],
 "namespacemembers_d.html":[28,1,0,3],
@@ -242,12 +249,5 @@ var NAVTREEINDEX54 =
 "namespaceyaze_1_1editor.html#a03f8004d70cacf7268d75bf8f8cbc933":[28,0,6,3,172],
 "namespaceyaze_1_1editor.html#a068e18c7e1f5b249c88204686e8bfafe":[28,0,6,3,80],
 "namespaceyaze_1_1editor.html#a06ac44536e73112b10156d6ea830d66c":[28,0,6,3,76],
-"namespaceyaze_1_1editor.html#a072e6c59403d75837f1ad24ffd787184":[28,0,6,3,130],
-"namespaceyaze_1_1editor.html#a090fa407d64c5928169ffda52eaa3829":[28,0,6,3,87],
-"namespaceyaze_1_1editor.html#a09e3eaa0655502231991af8156e1fd60":[28,0,6,3,58],
-"namespaceyaze_1_1editor.html#a0c6c7a73544930a4412ec23b51c20e6b":[28,0,6,3,98],
-"namespaceyaze_1_1editor.html#a0ebfdf6b643e1c843a888aa1910c72dc":[28,0,6,3,171],
-"namespaceyaze_1_1editor.html#a1188682b4736f2d9244023ed720ba1c8":[28,0,6,3,145],
-"namespaceyaze_1_1editor.html#a123bba914e43372d79b22898fe0901e0":[28,0,6,3,182],
-"namespaceyaze_1_1editor.html#a146db12b58f4cfdeb2113c7f744e4641":[28,0,6,3,175]
+"namespaceyaze_1_1editor.html#a072e6c59403d75837f1ad24ffd787184":[28,0,6,3,130]
 };

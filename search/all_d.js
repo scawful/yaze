@@ -107,7 +107,7 @@ var searchData=
   ['determinebestcompression_104',['DetermineBestCompression',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#aeab3533c41cb40119b84e3cdeaf095af',1,'yaze::gfx::lc_lz2']]],
   ['determinemode_105',['DetermineMode',['../classyaze_1_1emu_1_1AsmParser.html#a826ce44be5245502e1e82febf2fce29e',1,'yaze::emu::AsmParser']]],
   ['determinesubtype_106',['DetermineSubtype',['../classyaze_1_1zelda3_1_1ObjectParser.html#af7be6d73b4620312b5731976b5c6baa1',1,'yaze::zelda3::ObjectParser']]],
-  ['dev_20ps1_107',['setup-windows-dev.ps1',['../md_scripts_2README.html#autotoc_md672',1,'']]],
+  ['dev_20ps1_107',['setup-windows-dev.ps1',['../md_scripts_2README.html#autotoc_md679',1,'']]],
   ['development_108',['development',['../md_docs_2windows-development-guide.html#autotoc_md637',1,'Cross-Platform Development'],['../md_docs_2index.html#autotoc_md512',1,'Development'],['../md_docs_2B2-platform-compatibility.html#autotoc_md145',1,'Full Build (Development)']]],
   ['development_20debug_20builds_20only_109',['Development (Debug Builds Only)',['../md_docs_202-build-instructions.html#autotoc_md26',1,'']]],
   ['development_20features_20strong_110',['&lt;strong&gt;Development Features&lt;/strong&gt;',['../md_docs_2visual-studio-setup.html#autotoc_md594',1,'']]],
