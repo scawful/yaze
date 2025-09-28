@@ -9,22 +9,32 @@
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
+
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_imconfig.h"
 #include "imgui_test_engine/imgui_te_ui.h"
+#endif
 
 namespace yaze {
 namespace test {
 
 EditorIntegrationTest::EditorIntegrationTest() 
-    : engine_(nullptr), show_demo_window_(true) {}
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
+    : engine_(nullptr), show_demo_window_(true) 
+#else
+    
+#endif
+{}
 
 EditorIntegrationTest::~EditorIntegrationTest() {
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   if (engine_) {
     ImGuiTestEngine_Stop(engine_);
     ImGuiTestEngine_DestroyContext(engine_);
   }
+#endif
 }
 
 absl::Status EditorIntegrationTest::Initialize() {
@@ -33,11 +43,13 @@ absl::Status EditorIntegrationTest::Initialize() {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
 
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   // Initialize Test Engine
   engine_ = ImGuiTestEngine_CreateContext();
   ImGuiTestEngineIO& test_io = ImGuiTestEngine_GetIO(engine_);
   test_io.ConfigVerboseLevel = ImGuiTestVerboseLevel_Info;
   test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;
+#endif
 
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -47,9 +59,11 @@ absl::Status EditorIntegrationTest::Initialize() {
       controller_.window(), yaze::core::Renderer::Get().renderer());
   ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::Get().renderer());
 
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   // Register tests
   RegisterTests(engine_);
   ImGuiTestEngine_Start(engine_, ImGui::GetCurrentContext());
+#endif
   controller_.set_active(true);
 
   // Set the default style
@@ -83,8 +97,10 @@ int EditorIntegrationTest::RunTest() {
 absl::Status EditorIntegrationTest::Update() {
   ImGui::NewFrame();
   
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   // Show test engine windows
   ImGuiTestEngine_ShowTestEngineWindows(engine_, &show_demo_window_);
+#endif
   
   return absl::OkStatus();
 }

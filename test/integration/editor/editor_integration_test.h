@@ -7,8 +7,11 @@
 #include "app/rom.h"
 #include "app/core/controller.h"
 #include "app/core/window.h"
+
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
+#endif
 
 namespace yaze {
 namespace test {
@@ -39,8 +42,13 @@ class EditorIntegrationTest {
   // Run the test
   int RunTest();
   
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   // Register tests for a specific editor
   virtual void RegisterTests(ImGuiTestEngine* engine) = 0;
+#else
+  // Default implementation when ImGui Test Engine is disabled
+  virtual void RegisterTests(void* engine) {}
+#endif
   
   // Update the test environment
   virtual absl::Status Update();
@@ -66,9 +74,11 @@ class EditorIntegrationTest {
 
  private:
   core::Controller controller_;
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* engine_;
-  std::unique_ptr<Rom> test_rom_;
   bool show_demo_window_;
+#endif
+  std::unique_ptr<Rom> test_rom_;
   core::Window window_;
 };
 
