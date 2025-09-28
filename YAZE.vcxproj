@@ -1059,7 +1059,7 @@
     <PackageReference Include="sdl2" Version="2.28.5" />
   </ItemGroup>
   <Target Name="ConfigureCMake" BeforeTargets="BuildDependencies">
-    <Exec Command="cmake -B &quot;$(ProjectDir)build&quot; -G &quot;Visual Studio 17 2022&quot; -A $(Platform) -DCMAKE_POLICY_VERSION_MINIMUM=3.5" 
+    <Exec Command="cmake -B &quot;$(ProjectDir)build&quot; -G &quot;Visual Studio 17 2022&quot; -A $(Platform) -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DASAR_GEN_LIB=ON -DASAR_GEN_DLL=OFF -DASAR_GEN_EXE=OFF" 
           ContinueOnError="false" 
           WorkingDirectory="$(ProjectDir)" />
   </Target>
