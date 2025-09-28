@@ -797,11 +797,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="CMakeLists.txt">
-      <Filter>Dependencies\Build Steps</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="sdl2">
       <Filter>Dependencies</Filter>
     </PackageReference>

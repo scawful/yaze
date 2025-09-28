@@ -1058,26 +1058,6 @@
   <ItemGroup>
     <PackageReference Include="sdl2" Version="2.28.5" />
   </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="CMakeLists.txt">
-      <Message>Configuring CMake and building asar-static library...</Message>
-      <Command>cmake -B "$(ProjectDir)build" -G "Visual Studio 17 2022" -A $(Platform) -DCMAKE_POLICY_VERSION_MINIMUM=3.5 &amp;&amp; cmake --build "$(ProjectDir)build" --target asar-static --config $(Configuration)</Command>
-      <Outputs>$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration)\asar-static.lib</Outputs>
-      <AdditionalInputs>$(ProjectDir)CMakeLists.txt;$(ProjectDir)src\lib\asar\CMakeLists.txt</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="CMakeLists.txt">
-      <Message>Configuring CMake and building ImGui library...</Message>
-      <Command>cmake -B "$(ProjectDir)build" -G "Visual Studio 17 2022" -A $(Platform) -DCMAKE_POLICY_VERSION_MINIMUM=3.5 &amp;&amp; cmake --build "$(ProjectDir)build" --target ImGui --config $(Configuration)</Command>
-      <Outputs>$(ProjectDir)build\lib\$(Configuration)\ImGui.lib</Outputs>
-      <AdditionalInputs>$(ProjectDir)CMakeLists.txt;$(ProjectDir)cmake\imgui.cmake</AdditionalInputs>
-    </CustomBuild>
-    <CustomBuild Include="CMakeLists.txt">
-      <Message>Configuring CMake and building Abseil libraries...</Message>
-      <Command>cmake -B "$(ProjectDir)build" -G "Visual Studio 17 2022" -A $(Platform) -DCMAKE_POLICY_VERSION_MINIMUM=3.5 &amp;&amp; cmake --build "$(ProjectDir)build" --target absl_strings --config $(Configuration)</Command>
-      <Outputs>$(ProjectDir)build\src\lib\abseil-cpp\absl\strings\lib\$(Configuration)\absl_strings.lib</Outputs>
-      <AdditionalInputs>$(ProjectDir)CMakeLists.txt;$(ProjectDir)cmake\absl.cmake</AdditionalInputs>
-    </CustomBuild>
-  </ItemGroup>
   <Target Name="ConfigureCMake" BeforeTargets="BuildDependencies">
     <Exec Command="cmake -B &quot;$(ProjectDir)build&quot; -G &quot;Visual Studio 17 2022&quot; -A $(Platform) -DCMAKE_POLICY_VERSION_MINIMUM=3.5" 
           ContinueOnError="false" 
