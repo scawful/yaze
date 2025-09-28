@@ -1,6 +1,6 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 
-#include "test/editor/editor_integration_test.h"
+#include "integration/editor/editor_integration_test.h"
 
 #include <SDL.h>
 

@@ -798,451 +798,451 @@ int Tracker::WriteSpcData(Rom &rom, void *buf, int len, int addr, int spc,
 }
 
 void Tracker::SaveSongs(Rom &rom) {
-  int i;
-  int j;
-  int k;
-  int l = 0;
-  int m;
-  int n;
-  int o;
-  int p;
-  int q;
-  int r;
-  int t;
-  int u;
-  int v;
-  int w;
-  int a;
-  int e;
-  int f;
-  int g;
-  unsigned short bank_next[4];
-  unsigned short bank_lwr[4];
-  short *c;
-  short *d;
-  unsigned char *rom_data;
-  unsigned char *b;
+  // int i;
+  // int j;
+  // int k;
+  // int l = 0;
+  // int m;
+  // int n;
+  // int o;
+  // int p;
+  // int q;
+  // int r;
+  // int t;
+  // int u;
+  // int v;
+  // int w;
+  // int a;
+  // int e;
+  // int f;
+  // int g;
+  // unsigned short bank_next[4];
+  // unsigned short bank_lwr[4];
+  // short *c;
+  // short *d;
+  // unsigned char *rom_data;
+  // unsigned char *b;
 
-  Song song;
+  // Song song;
 
-  SpcCommand *spc_command;
+  // SpcCommand *spc_command;
 
-  SongPart *sp;
+  // SongPart *sp;
 
-  SongSpcBlock *stbl;
-  SongSpcBlock *sptbl;
-  SongSpcBlock *trtbl;
-  SongSpcBlock *pstbl;
+  // SongSpcBlock *stbl;
+  // SongSpcBlock *sptbl;
+  // SongSpcBlock *trtbl;
+  // SongSpcBlock *pstbl;
 
-  ZeldaWave *zelda_wave;
-  ZeldaWave *zelda_wave2;
+  // ZeldaWave *zelda_wave;
+  // ZeldaWave *zelda_wave2;
 
-  ZeldaInstrument *zi;
+  // ZeldaInstrument *zi;
 
-  SampleEdit *sed = nullptr;
+  // SampleEdit *sed = nullptr;
 
-  short wtbl[128];
-  short x[16];
-  short y[18];
-  unsigned char z[64];
+  // short wtbl[128];
+  // short x[16];
+  // short y[18];
+  // unsigned char z[64];
 
-  ss_num = 0;
-  ss_size = 512;
-  ss_next = 0;
+  // ss_num = 0;
+  // ss_size = 512;
+  // ss_next = 0;
 
-  // if the music has not been modified, return.
-  if (!(m_modf)) return;
+  // // if the music has not been modified, return.
+  // if (!(m_modf)) return;
 
-  ssblt = (SongSpcBlock **)malloc(512 * sizeof(SongSpcBlock));
+  // ssblt = (SongSpcBlock **)malloc(512 * sizeof(SongSpcBlock));
 
-  // set it so the music has not been modified. (reset the status)
-  m_modf = 0;
-  rom_data = rom.mutable_data();
+  // // set it so the music has not been modified. (reset the status)
+  // m_modf = 0;
+  // rom_data = rom.mutable_data();
 
-  // SetCursor(wait_cursor);
+  // // SetCursor(wait_cursor);
 
-  for (i = 0; i < 3; i++) {
-    k = numsong[i];
+  // for (i = 0; i < 3; i++) {
+  //   k = numsong[i];
 
-    for (j = 0; j < k; j++) {
-      song = songs[l++];
+  //   for (j = 0; j < k; j++) {
+  //     song = songs[l++];
 
-      if (!song.in_use) continue;
+  //     if (!song.in_use) continue;
 
-      song.flag &= -5;
+  //     song.flag &= -5;
 
-      for (m = 0; m < song.numparts; m++) {
-        sp = song.tbl[m];
-        sp->flag &= -3;
-      }
-    }
-  }
+  //     for (m = 0; m < song.numparts; m++) {
+  //       sp = song.tbl[m];
+  //       sp->flag &= -3;
+  //     }
+  //   }
+  // }
 
-  j = m_size;
-  spc_command = current_spc_command_;
+  // j = m_size;
+  // spc_command = current_spc_command_;
 
-  for (i = 0; i < j; i++) {
-    spc_command->flag &= -13;
-    spc_command++;
-  }
+  // for (i = 0; i < j; i++) {
+  //   spc_command->flag &= -13;
+  //   spc_command++;
+  // }
 
-  l = 0;
+  // l = 0;
 
-  for (i = 0; i < 3; i++) {
-    k = numsong[i];
-    stbl = AllocSpcBlock(k << 1, i + 1);
+  // for (i = 0; i < 3; i++) {
+  //   k = numsong[i];
+  //   stbl = AllocSpcBlock(k << 1, i + 1);
 
-    for (j = 0; j < k; j++) {
-      song = songs[l++];
+  //   for (j = 0; j < k; j++) {
+  //     song = songs[l++];
 
-      if (!song.in_use) {
-        ((short *)(stbl->buf))[j] = 0;
+  //     if (!song.in_use) {
+  //       ((short *)(stbl->buf))[j] = 0;
 
-        continue;
-      }
+  //       continue;
+  //     }
 
-      if (song.flag & 4) goto alreadysaved;
+  //     if (song.flag & 4) goto alreadysaved;
 
-      sptbl = AllocSpcBlock(((song.numparts + 1) << 1) + (song.flag & 2),
-                            (song.flag & 1) ? 0 : (i + 1));
+  //     sptbl = AllocSpcBlock(((song.numparts + 1) << 1) + (song.flag & 2),
+  //                           (song.flag & 1) ? 0 : (i + 1));
 
-      for (m = 0; m < song.numparts; m++) {
-        sp = song.tbl[m];
+  //     for (m = 0; m < song.numparts; m++) {
+  //       sp = song.tbl[m];
 
-        if (sp->flag & 2) goto spsaved;
+  //       if (sp->flag & 2) goto spsaved;
 
-        trtbl = AllocSpcBlock(16, (sp->flag & 1) ? 0 : (i + 1));
+  //       trtbl = AllocSpcBlock(16, (sp->flag & 1) ? 0 : (i + 1));
 
-        p = 0;
+  //       p = 0;
 
-        for (n = 0; n < 8; n++) {
-          o = GetBlockTime(rom, sp->tbl[n], 0);
+  //       for (n = 0; n < 8; n++) {
+  //         o = GetBlockTime(rom, sp->tbl[n], 0);
 
-          if (o > p) p = o;
-        }
+  //         if (o > p) p = o;
+  //       }
 
-        q = 1;
+  //       q = 1;
 
-        for (n = 0; n < 8; n++) {
-          stle16b_i(trtbl->buf, n, SaveSpcCommand(rom, sp->tbl[n], p, q));
+  //       for (n = 0; n < 8; n++) {
+  //         stle16b_i(trtbl->buf, n, SaveSpcCommand(rom, sp->tbl[n], p, q));
 
-          if (ldle16b_i(trtbl->buf, n)) AddSpcReloc(trtbl, n << 1), q = 0;
-        }
+  //         if (ldle16b_i(trtbl->buf, n)) AddSpcReloc(trtbl, n << 1), q = 0;
+  //       }
 
-        sp->addr = trtbl->start;
-        sp->flag |= 2;
-      spsaved:
-        ((short *)(sptbl->buf))[m] = sp->addr;
+  //       sp->addr = trtbl->start;
+  //       sp->flag |= 2;
+  //     spsaved:
+  //       ((short *)(sptbl->buf))[m] = sp->addr;
 
-        AddSpcReloc(sptbl, m << 1);
-      }
+  //       AddSpcReloc(sptbl, m << 1);
+  //     }
 
-      if (song.flag & 2) {
-        ((short *)(sptbl->buf))[m++] = 255;
-        ((short *)(sptbl->buf))[m] = sptbl->start + (song.lopst << 1);
+  //     if (song.flag & 2) {
+  //       ((short *)(sptbl->buf))[m++] = 255;
+  //       ((short *)(sptbl->buf))[m] = sptbl->start + (song.lopst << 1);
 
-        AddSpcReloc(sptbl, m << 1);
-      } else
-        ((short *)(sptbl->buf))[m++] = 0;
+  //       AddSpcReloc(sptbl, m << 1);
+  //     } else
+  //       ((short *)(sptbl->buf))[m++] = 0;
 
-      song.addr = sptbl->start;
-      song.flag |= 4;
-    alreadysaved:
-      ((short *)(stbl->buf))[j] = song.addr;
+  //     song.addr = sptbl->start;
+  //     song.flag |= 4;
+  //   alreadysaved:
+  //     ((short *)(stbl->buf))[j] = song.addr;
 
-      AddSpcReloc(stbl, j << 1);
-    }
-  }
+  //     AddSpcReloc(stbl, j << 1);
+  //   }
+  // }
 
-  if (w_modf) {
-    b = (uint8_t *)malloc(0xc000);
-    j = 0;
-
-    zelda_wave = waves;
-
-    // if (mbanks[3])
-    //   sed = (SampleEdit *)GetWindowLongPtr(mbanks[3], GWLP_USERDATA);
-    // else
-    //   sed = 0;
-
-    for (i = 0; i < numwave; i++, zelda_wave++) {
-      if (zelda_wave->copy != -1) continue;
-
-      wtbl[i << 1] = j + 0x4000;
-
-      if (zelda_wave->lflag) {
-        l = zelda_wave->end - zelda_wave->lopst;
-
-        if (l & 15) {
-          k = (l << 15) / ((l + 15) & -16);
-          p = (zelda_wave->end << 15) / k;
-          c = (short *)malloc(p << 1);
-          n = 0;
-          d = zelda_wave->buf;
-
-          for (m = 0;;) {
-            c[n++] = (d[m >> 15] * ((m & 32767) ^ 32767) +
-                      d[(m >> 15) + 1] * (m & 32767)) /
-                     32767;
-
-            m += k;
-
-            if (n >= p) break;
-          }
-
-          zelda_wave->lopst = (zelda_wave->lopst << 15) / k;
-          zelda_wave->end = p;
-          zelda_wave->buf =
-              (short *)realloc(zelda_wave->buf, (zelda_wave->end + 1) << 1);
-          memcpy(zelda_wave->buf, c, zelda_wave->end << 1);
-          free(c);
-          zelda_wave->buf[zelda_wave->end] = zelda_wave->buf[zelda_wave->lopst];
-          zelda_wave2 = waves;
-
-          for (m = 0; m < numwave; m++, zelda_wave2++)
-            if (zelda_wave2->copy == i)
-              zelda_wave2->lopst = zelda_wave2->lopst << 15 / k;
-
-          zi = insts;
-
-          for (m = 0; m < numinst; m++) {
-            n = zi->samp;
-
-            if (n >= numwave) continue;
-
-            if (n == i || waves[n].copy == i) {
-              o = (zi->multhi << 8) + zi->multlo;
-              o = (o << 15) / k;
-              zi->multlo = o;
-              zi->multhi = o >> 8;
-
-              // if (sed && sed->editinst == m) {
-              //   sed->init = 1;
-              //   // SetDlgItemInt(sed->dlg, 3014, o, 0);
-              //   sed->init = 0;
-              // }
-            }
-
-            zi++;
-          }
-
-          // Modifywaves(rom, i);
-        }
-      }
-
-      k = (-zelda_wave->end) & 15;
-      d = zelda_wave->buf;
-      n = 0;
-      wtbl[(i << 1) + 1] = ((zelda_wave->lopst + k) >> 4) * 9 + wtbl[i << 1];
-      y[0] = y[1] = 0;
-      u = 4;
-
-      for (;;) {
-        for (o = 0; o < 16; o++) {
-          if (k)
-            k--, x[o] = 0;
-          else
-            x[o] = d[n++];
-        }
-        p = 0x7fffffff;
-        a = 0;
-
-        for (t = 0; t < 4; t++) {
-          r = 0;
-          for (o = 0; o < 16; o++) {
-            l = x[o];
-            y[o + 2] = l;
-            l += (y[o] * fil3[t] >> 4) - (y[o + 1] * fil1[t] >> fil2[t]);
-            if (l > r)
-              r = l;
-            else if (-l > r)
-              r = -l;
-          }
-          r <<= 1;
-          if (t)
-            m = 14;
-          else
-            m = 15;
-          for (q = 0; q < 12; q++, m += m)
-            if (m >= r) break;
-        tryagain:
-          if (q && (q < 12 || m == r))
-            v = (1 << (q - 1)) - 1;
-          else
-            v = 0;
-          m = 0;
-          for (o = 0; o < 16; o++) {
-            l = (y[o + 1] * fil1[t] >> fil2[t]) - (y[o] * fil3[t] >> 4);
-            w = x[o];
-            r = (w - l + v) >> q;
-            if ((r + 8) & 0xfff0) {
-              q++;
-              a -= o;
-              goto tryagain;
-            }
-            z[a++] = r;
-            l = (r << q) + l;
-            y[o + 2] = l;
-            l -= w;
-            m += l * l;
-          }
-          if (u == 4) {
-            u = 0, e = q, f = y[16], g = y[17];
-            break;
-          }
-          if (m < p) p = m, u = t, e = q, f = y[16], g = y[17];
-        }
-        m = (e << 4) | (u << 2);
-        if (n == zelda_wave->end) m |= 1;
-        if (zelda_wave->lflag) m |= 2;
-        b[j++] = m;
-        m = 0;
-        a = u << 4;
-        for (o = 0; o < 16; o++) {
-          m |= z[a++] & 15;
-          if (o & 1)
-            b[j++] = m, m = 0;
-          else
-            m <<= 4;
-        }
-        if (n == zelda_wave->end) break;
-        y[0] = f;
-        y[1] = g;
-      }
-    }
-
-    // if (sed) {
-    //   SetDlgItemInt(sed->dlg, ID_Samp_SampleLengthEdit, sed->zelda_wave->end,
-    //   0); SetDlgItemInt(sed->dlg, ID_Samp_LoopPointEdit,
-    //   sed->zelda_wave->lopst, 0);
-
-    //   InvalidateRect(GetDlgItem(sed->dlg, ID_Samp_Display), 0, 1);
-    // }
-
-    zelda_wave = waves;
-
-    for (i = 0; i < numwave; i++, zelda_wave++) {
-      if (zelda_wave->copy != -1) {
-        wtbl[i << 1] = wtbl[zelda_wave->copy << 1];
-        wtbl[(i << 1) + 1] = (zelda_wave->lopst >> 4) * 9 + wtbl[i << 1];
-      }
-    }
-
-    m = WriteSpcData(rom, wtbl, numwave << 2, 0xc8000, 0x3c00, 0xd74fc);
-    m = WriteSpcData(rom, b, j, m, 0x4000, 0xd74fc);
-
-    free(b);
-    m = WriteSpcData(rom, insts, numinst * 6, m, 0x3d00, 0xd74fc);
-    m = WriteSpcData(rom, snddat1, sndlen1, m, 0x800, 0xd74fc);
-    m = WriteSpcData(rom, snddat2, sndlen2, m, 0x17c0, 0xd74fc);
-    m = WriteSpcData(rom, sndinsts, numsndinst * 9, m, 0x3e00, 0xd74fc);
-    m_ofs = m;
-  } else {
-    m = m_ofs;
-  }
-
-  bank_next[0] = 0x2880;
-  bank_next[1] = 0xd000;
-  bank_next[2] = 0xd000;
-  bank_next[3] = 0xd000;
-  bank_lwr[0] = 0x2880;
-
-  for (k = 0; k < 4; k++) {
-    pstbl = 0;
-    for (i = 0; i < ss_num; i++) {
-      stbl = ssblt[i];
-      if (stbl->bank != k) continue;
-      j = bank_next[k];
-      if (j + stbl->len > 0xffc0) {
-        if (k == 3)
-          j = 0x2880;
-        else
-          j = bank_next[0];
-        bank_lwr[k] = j;
-        pstbl = 0;
-      }
-      if (j + stbl->len > 0x3c00 && j < 0xd000) {
-        printf("Not enough space for music bank %d", k);
-        m_modf = 1;
-        return;
-      }
-      if (pstbl && (pstbl->flag & 1) && (stbl->flag & 2)) j--, pstbl->len--;
-      stbl->addr = j;
-      pstbl = stbl;
-      bank_next[k] = j + stbl->len;
-    }
-  }
-  for (i = 0; i < ss_num; i++) {
-    stbl = ssblt[i];
-    for (j = stbl->relnum - 1; j >= 0; j--) {
-      k = *(unsigned short *)(stbl->buf + stbl->relocs[j]);
-      for (l = 0; l < ss_num; l++) {
-        sptbl = ssblt[l];
-        if (sptbl->start <= k && sptbl->len > k - sptbl->start) goto noerror;
-      }
-      printf("Internal error");
-      m_modf = 1;
-      return;
-    noerror:
-
-      if (((!sptbl->bank) && stbl->bank < 3) || (sptbl->bank == stbl->bank)) {
-        *(unsigned short *)(stbl->buf + stbl->relocs[j]) =
-            sptbl->addr + k - sptbl->start;
-      } else {
-        printf("An address outside the bank was referenced.\n");
-        m_modf = 1;
-        return;
-      }
-    }
-  }
-  l = m;
-  for (k = 0; k < 4; k++) {
-    switch (k) {
-      case 1:
-        rom[0x914] = l;
-        rom[0x918] = (l >> 8) | 128;
-        rom[0x91c] = l >> 15;
-        break;
-      case 2:
-        l = 0xd8000;
-        break;
-      case 3:
-        l = m;
-        rom[0x932] = l;
-        rom[0x936] = (l >> 8) | 128;
-        rom[0x93a] = l >> 15;
-        break;
-    }
-    for (o = 0; o < 2; o++) {
-      n = l + 4;
-      for (i = 0; i < ss_num; i++) {
-        stbl = ssblt[i];
-        if (!stbl) continue;
-        if ((stbl->addr < 0xd000) ^ o) continue;
-        if (stbl->bank != k) continue;
-        if (n + stbl->len > ((k == 2) ? 0xdb7fc : 0xd74fc)) {
-          printf("Not enough space for music");
-          m_modf = 1;
-          return;
-        }
-        memcpy(rom.mutable_data() + n, stbl->buf, stbl->len);
-        n += stbl->len;
-        free(stbl->relocs);
-        free(stbl->buf);
-        free(stbl);
-        ssblt[i] = 0;
-      }
-      if (n > l + 4) {
-        *(short *)(rom.mutable_data() + l) = n - l - 4;
-        *(short *)(rom.mutable_data() + l + 2) = o ? bank_lwr[k] : 0xd000;
-        l = n;
-      }
-    }
-    *(short *)(rom.mutable_data() + l) = 0;
-    *(short *)(rom.mutable_data() + l + 2) = 0x800;
-    if (k == 1) m = l + 4;
-  }
-  free(ssblt);
+  // if (w_modf) {
+  //   b = (uint8_t *)malloc(0xc000);
+  //   j = 0;
+
+  //   zelda_wave = waves;
+
+  //   // if (mbanks[3])
+  //   //   sed = (SampleEdit *)GetWindowLongPtr(mbanks[3], GWLP_USERDATA);
+  //   // else
+  //   //   sed = 0;
+
+  //   for (i = 0; i < numwave; i++, zelda_wave++) {
+  //     if (zelda_wave->copy != -1) continue;
+
+  //     wtbl[i << 1] = j + 0x4000;
+
+  //     if (zelda_wave->lflag) {
+  //       l = zelda_wave->end - zelda_wave->lopst;
+
+  //       if (l & 15) {
+  //         k = (l << 15) / ((l + 15) & -16);
+  //         p = (zelda_wave->end << 15) / k;
+  //         c = (short *)malloc(p << 1);
+  //         n = 0;
+  //         d = zelda_wave->buf;
+
+  //         for (m = 0;;) {
+  //           c[n++] = (d[m >> 15] * ((m & 32767) ^ 32767) +
+  //                     d[(m >> 15) + 1] * (m & 32767)) /
+  //                    32767;
+
+  //           m += k;
+
+  //           if (n >= p) break;
+  //         }
+
+  //         zelda_wave->lopst = (zelda_wave->lopst << 15) / k;
+  //         zelda_wave->end = p;
+  //         zelda_wave->buf =
+  //             (short *)realloc(zelda_wave->buf, (zelda_wave->end + 1) << 1);
+  //         memcpy(zelda_wave->buf, c, zelda_wave->end << 1);
+  //         free(c);
+  //         zelda_wave->buf[zelda_wave->end] = zelda_wave->buf[zelda_wave->lopst];
+  //         zelda_wave2 = waves;
+
+  //         for (m = 0; m < numwave; m++, zelda_wave2++)
+  //           if (zelda_wave2->copy == i)
+  //             zelda_wave2->lopst = zelda_wave2->lopst << 15 / k;
+
+  //         zi = insts;
+
+  //         for (m = 0; m < numinst; m++) {
+  //           n = zi->samp;
+
+  //           if (n >= numwave) continue;
+
+  //           if (n == i || waves[n].copy == i) {
+  //             o = (zi->multhi << 8) + zi->multlo;
+  //             o = (o << 15) / k;
+  //             zi->multlo = o;
+  //             zi->multhi = o >> 8;
+
+  //             // if (sed && sed->editinst == m) {
+  //             //   sed->init = 1;
+  //             //   // SetDlgItemInt(sed->dlg, 3014, o, 0);
+  //             //   sed->init = 0;
+  //             // }
+  //           }
+
+  //           zi++;
+  //         }
+
+  //         // Modifywaves(rom, i);
+  //       }
+  //     }
+
+  //     k = (-zelda_wave->end) & 15;
+  //     d = zelda_wave->buf;
+  //     n = 0;
+  //     wtbl[(i << 1) + 1] = ((zelda_wave->lopst + k) >> 4) * 9 + wtbl[i << 1];
+  //     y[0] = y[1] = 0;
+  //     u = 4;
+
+  //     for (;;) {
+  //       for (o = 0; o < 16; o++) {
+  //         if (k)
+  //           k--, x[o] = 0;
+  //         else
+  //           x[o] = d[n++];
+  //       }
+  //       p = 0x7fffffff;
+  //       a = 0;
+
+  //       for (t = 0; t < 4; t++) {
+  //         r = 0;
+  //         for (o = 0; o < 16; o++) {
+  //           l = x[o];
+  //           y[o + 2] = l;
+  //           l += (y[o] * fil3[t] >> 4) - (y[o + 1] * fil1[t] >> fil2[t]);
+  //           if (l > r)
+  //             r = l;
+  //           else if (-l > r)
+  //             r = -l;
+  //         }
+  //         r <<= 1;
+  //         if (t)
+  //           m = 14;
+  //         else
+  //           m = 15;
+  //         for (q = 0; q < 12; q++, m += m)
+  //           if (m >= r) break;
+  //       tryagain:
+  //         if (q && (q < 12 || m == r))
+  //           v = (1 << (q - 1)) - 1;
+  //         else
+  //           v = 0;
+  //         m = 0;
+  //         for (o = 0; o < 16; o++) {
+  //           l = (y[o + 1] * fil1[t] >> fil2[t]) - (y[o] * fil3[t] >> 4);
+  //           w = x[o];
+  //           r = (w - l + v) >> q;
+  //           if ((r + 8) & 0xfff0) {
+  //             q++;
+  //             a -= o;
+  //             goto tryagain;
+  //           }
+  //           z[a++] = r;
+  //           l = (r << q) + l;
+  //           y[o + 2] = l;
+  //           l -= w;
+  //           m += l * l;
+  //         }
+  //         if (u == 4) {
+  //           u = 0, e = q, f = y[16], g = y[17];
+  //           break;
+  //         }
+  //         if (m < p) p = m, u = t, e = q, f = y[16], g = y[17];
+  //       }
+  //       m = (e << 4) | (u << 2);
+  //       if (n == zelda_wave->end) m |= 1;
+  //       if (zelda_wave->lflag) m |= 2;
+  //       b[j++] = m;
+  //       m = 0;
+  //       a = u << 4;
+  //       for (o = 0; o < 16; o++) {
+  //         m |= z[a++] & 15;
+  //         if (o & 1)
+  //           b[j++] = m, m = 0;
+  //         else
+  //           m <<= 4;
+  //       }
+  //       if (n == zelda_wave->end) break;
+  //       y[0] = f;
+  //       y[1] = g;
+  //     }
+  //   }
+
+  //   // if (sed) {
+  //   //   SetDlgItemInt(sed->dlg, ID_Samp_SampleLengthEdit, sed->zelda_wave->end,
+  //   //   0); SetDlgItemInt(sed->dlg, ID_Samp_LoopPointEdit,
+  //   //   sed->zelda_wave->lopst, 0);
+
+  //   //   InvalidateRect(GetDlgItem(sed->dlg, ID_Samp_Display), 0, 1);
+  //   // }
+
+  //   zelda_wave = waves;
+
+  //   for (i = 0; i < numwave; i++, zelda_wave++) {
+  //     if (zelda_wave->copy != -1) {
+  //       wtbl[i << 1] = wtbl[zelda_wave->copy << 1];
+  //       wtbl[(i << 1) + 1] = (zelda_wave->lopst >> 4) * 9 + wtbl[i << 1];
+  //     }
+  //   }
+
+  //   m = WriteSpcData(rom, wtbl, numwave << 2, 0xc8000, 0x3c00, 0xd74fc);
+  //   m = WriteSpcData(rom, b, j, m, 0x4000, 0xd74fc);
+
+  //   free(b);
+  //   m = WriteSpcData(rom, insts, numinst * 6, m, 0x3d00, 0xd74fc);
+  //   m = WriteSpcData(rom, snddat1, sndlen1, m, 0x800, 0xd74fc);
+  //   m = WriteSpcData(rom, snddat2, sndlen2, m, 0x17c0, 0xd74fc);
+  //   m = WriteSpcData(rom, sndinsts, numsndinst * 9, m, 0x3e00, 0xd74fc);
+  //   m_ofs = m;
+  // } else {
+  //   m = m_ofs;
+  // }
+
+  // bank_next[0] = 0x2880;
+  // bank_next[1] = 0xd000;
+  // bank_next[2] = 0xd000;
+  // bank_next[3] = 0xd000;
+  // bank_lwr[0] = 0x2880;
+
+  // for (k = 0; k < 4; k++) {
+  //   pstbl = 0;
+  //   for (i = 0; i < ss_num; i++) {
+  //     stbl = ssblt[i];
+  //     if (stbl->bank != k) continue;
+  //     j = bank_next[k];
+  //     if (j + stbl->len > 0xffc0) {
+  //       if (k == 3)
+  //         j = 0x2880;
+  //       else
+  //         j = bank_next[0];
+  //       bank_lwr[k] = j;
+  //       pstbl = 0;
+  //     }
+  //     if (j + stbl->len > 0x3c00 && j < 0xd000) {
+  //       printf("Not enough space for music bank %d", k);
+  //       m_modf = 1;
+  //       return;
+  //     }
+  //     if (pstbl && (pstbl->flag & 1) && (stbl->flag & 2)) j--, pstbl->len--;
+  //     stbl->addr = j;
+  //     pstbl = stbl;
+  //     bank_next[k] = j + stbl->len;
+  //   }
+  // }
+  // for (i = 0; i < ss_num; i++) {
+  //   stbl = ssblt[i];
+  //   for (j = stbl->relnum - 1; j >= 0; j--) {
+  //     k = *(unsigned short *)(stbl->buf + stbl->relocs[j]);
+  //     for (l = 0; l < ss_num; l++) {
+  //       sptbl = ssblt[l];
+  //       if (sptbl->start <= k && sptbl->len > k - sptbl->start) goto noerror;
+  //     }
+  //     printf("Internal error");
+  //     m_modf = 1;
+  //     return;
+  //   noerror:
+
+  //     if (((!sptbl->bank) && stbl->bank < 3) || (sptbl->bank == stbl->bank)) {
+  //       *(unsigned short *)(stbl->buf + stbl->relocs[j]) =
+  //           sptbl->addr + k - sptbl->start;
+  //     } else {
+  //       printf("An address outside the bank was referenced.\n");
+  //       m_modf = 1;
+  //       return;
+  //     }
+  //   }
+  // }
+  // l = m;
+  // for (k = 0; k < 4; k++) {
+  //   switch (k) {
+  //     case 1:
+  //       rom[0x914] = l;
+  //       rom[0x918] = (l >> 8) | 128;
+  //       rom[0x91c] = l >> 15;
+  //       break;
+  //     case 2:
+  //       l = 0xd8000;
+  //       break;
+  //     case 3:
+  //       l = m;
+  //       rom[0x932] = l;
+  //       rom[0x936] = (l >> 8) | 128;
+  //       rom[0x93a] = l >> 15;
+  //       break;
+  //   }
+  //   for (o = 0; o < 2; o++) {
+  //     n = l + 4;
+  //     for (i = 0; i < ss_num; i++) {
+  //       stbl = ssblt[i];
+  //       if (!stbl) continue;
+  //       if ((stbl->addr < 0xd000) ^ o) continue;
+  //       if (stbl->bank != k) continue;
+  //       if (n + stbl->len > ((k == 2) ? 0xdb7fc : 0xd74fc)) {
+  //         printf("Not enough space for music");
+  //         m_modf = 1;
+  //         return;
+  //       }
+  //       memcpy(rom.mutable_data() + n, stbl->buf, stbl->len);
+  //       n += stbl->len;
+  //       free(stbl->relocs);
+  //       free(stbl->buf);
+  //       free(stbl);
+  //       ssblt[i] = 0;
+  //     }
+  //     if (n > l + 4) {
+  //       *(short *)(rom.mutable_data() + l) = n - l - 4;
+  //       *(short *)(rom.mutable_data() + l + 2) = o ? bank_lwr[k] : 0xd000;
+  //       l = n;
+  //     }
+  //   }
+  //   *(short *)(rom.mutable_data() + l) = 0;
+  //   *(short *)(rom.mutable_data() + l + 2) = 0x800;
+  //   if (k == 1) m = l + 4;
+  // }
+  // free(ssblt);
 }
 
 void Tracker::EditTrack(Rom &rom, short i) {
