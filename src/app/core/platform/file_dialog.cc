@@ -276,7 +276,7 @@ std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(
       if (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
         if (strcmp(findFileData.cFileName, ".") != 0 &&
             strcmp(findFileData.cFileName, "..") != 0) {
-          subdirectories.push_back(findFileData.cFileName);
+          subdirectories.emplace_back(findFileData.cFileName);
         }
       }
     } while (FindNextFile(hFind, &findFileData) != 0);
@@ -293,7 +293,7 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
   if (hFind != INVALID_HANDLE_VALUE) {
     do {
       if (!(findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-        files.push_back(findFileData.cFileName);
+        files.emplace_back(findFileData.cFileName);
       }
     } while (FindNextFile(hFind, &findFileData) != 0);
     FindClose(hFind);
