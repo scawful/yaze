@@ -4,7 +4,7 @@ add_definitions("-DMICROSOFT_WINDOWS_WINBASE_H_DEFINE_INTERLOCKED_CPLUSPLUS_OVER
 
 # vcpkg settings
 set(VCPKG_CRT_LINKAGE dynamic)
-set(VCPKG_LIBRARY_LINKAGE static)
+set(VCPKG_LIBRARY_LINKAGE dynamic)
 
 # Enable vcpkg manifest mode for automatic dependency management
 set(VCPKG_MANIFEST_MODE ON)
