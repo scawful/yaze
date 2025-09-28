@@ -341,6 +341,9 @@
     <Filter Include="Assets\Lib">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD34}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="incl\yaze.h">
@@ -348,6 +351,9 @@
     </ClInclude>
     <ClInclude Include="incl\zelda.h">
       <Filter>Public Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="build\yaze_config.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="src\app\rom.h">
       <Filter>App</Filter>
@@ -503,9 +509,6 @@
       <Filter>App\Editor\System</Filter>
     </ClInclude>
     <ClInclude Include="src\app\editor\system\shortcut_manager.h">
-      <Filter>App\Editor\System</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\editor\system\system_editor.h">
       <Filter>App\Editor\System</Filter>
     </ClInclude>
     <ClInclude Include="src\app\editor\system\toast_manager.h">
@@ -1011,6 +1014,27 @@
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="src\yaze_config.h.in">
+      <Filter>Generated Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemDefinitionGroup>
+    <CustomBuild>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)build\yaze_config.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)build\yaze_config.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)build\yaze_config.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)build\yaze_config.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)build\yaze_config.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)build\yaze_config.h</Outputs>
+    </CustomBuild>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
