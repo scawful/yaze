@@ -59,8 +59,39 @@ sudo apt-get install -y build-essential cmake ninja-build pkg-config \
 - Visual Studio 2019+ with C++ CMake tools
 - No additional dependencies needed (all bundled)
 
-**Option 2 - Full Development:**
+**Option 2 - Full Development with vcpkg (Recommended):**
+- Visual Studio 2019+ with C++ CMake tools
 - Install vcpkg and dependencies from `vcpkg.json`
+
+#### vcpkg Setup (Option 2)
+Run the setup script to automatically configure vcpkg:
+```cmd
+# Command Prompt
+scripts\setup-vcpkg-windows.bat
+
+# PowerShell
+.\scripts\setup-vcpkg-windows.ps1
+```
+
+Or manually:
+```cmd
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg
+.\bootstrap-vcpkg.bat
+.\vcpkg.exe integrate install
+set VCPKG_ROOT=%CD%
+```
+
+#### Windows Build Commands
+```cmd
+# Debug build with vcpkg
+cmake --preset windows-debug
+cmake --build build --preset windows-debug
+
+# Release build with vcpkg  
+cmake --preset windows-release
+cmake --build build --preset windows-release
+```
 
 ## Build Targets
 

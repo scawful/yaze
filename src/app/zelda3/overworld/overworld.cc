@@ -216,7 +216,9 @@ absl::Status Overworld::AssembleMap32Tiles() {
   // Check if expanded tile32 data is actually present in ROM
   // The flag position should contain 0x04 for vanilla, something else for expanded
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
-  if (rom()->data()[kMap32ExpandedFlagPos] != 0x04 || asm_version >= 3) {
+  uint8_t expanded_flag = rom()->data()[kMap32ExpandedFlagPos];
+  util::logf("Expanded tile32 flag: %d", expanded_flag);
+  if (expanded_flag != 0x04 || asm_version >= 3) {
     // ROM has expanded tile32 data - use expanded addresses
     map32address[0] = rom()->version_constants().kMap32TileTL;
     map32address[1] = kMap32TileTRExpanded;
@@ -270,6 +272,8 @@ absl::Status Overworld::AssembleMap16Tiles() {
   // Check if expanded tile16 data is actually present in ROM
   // The flag position should contain 0x0F for vanilla, something else for expanded
   uint8_t asm_version = (*rom_)[OverworldCustomASMHasBeenApplied];
+  uint8_t expanded_flag = rom()->data()[kMap16ExpandedFlagPos];
+  util::logf("Expanded tile16 flag: %d", expanded_flag);
   if (rom()->data()[kMap16ExpandedFlagPos] == 0x0F || asm_version >= 3) {
     // ROM has expanded tile16 data - use expanded addresses
     tpos = kMap16TilesExpanded;
