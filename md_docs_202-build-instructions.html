@@ -173,14 +173,23 @@ vcpkg Setup (Option 2)</h3>
 <div class="line">set VCPKG_ROOT=%CD%</div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md19"></a>
 Windows Build Commands</h3>
-<div class="fragment"><div class="line"># Debug build with vcpkg</div>
+<div class="fragment"><div class="line"># Debug build with vcpkg (minimal, no tests)</div>
 <div class="line">cmake --preset windows-debug</div>
 <div class="line">cmake --build build --preset windows-debug</div>
 <div class="line"> </div>
-<div class="line"># Release build with vcpkg  </div>
+<div class="line"># Development build with vcpkg (includes Google Test)</div>
+<div class="line">cmake --preset windows-dev</div>
+<div class="line">cmake --build build --preset windows-dev</div>
+<div class="line"> </div>
+<div class="line"># Release build with vcpkg (optimized, no tests)</div>
 <div class="line">cmake --preset windows-release</div>
 <div class="line">cmake --build build --preset windows-release</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md20"></a>
+</div><!-- fragment --><p><b>Build Types:</b></p><ul>
+<li><b>windows-debug</b>: Minimal debug build, no Google Test</li>
+<li><b>windows-dev</b>: Development build with Google Test and ROM testing</li>
+<li><b>windows-release</b>: Optimized release build, no Google Test</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md20"></a>
 Build Targets</h1>
 <h2><a class="anchor" id="autotoc_md21"></a>
 Applications</h2>
