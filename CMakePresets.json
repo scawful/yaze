@@ -166,7 +166,7 @@
     {
       "name": "windows-debug",
       "displayName": "Windows Debug",
-      "description": "Windows-specific debug configuration",
+      "description": "Windows-specific debug configuration with vcpkg",
       "inherits": "debug",
       "condition": {
         "type": "equals",
@@ -177,7 +177,26 @@
       "architecture": "x64",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_MODE": "ON"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release",
+      "description": "Windows-specific release configuration with vcpkg",
+      "inherits": "release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_MODE": "ON"
       }
     },
     {
@@ -260,6 +279,16 @@
       "configurePreset": "debug",
       "displayName": "Fast Debug Build",
       "jobs": 0
+    },
+    {
+      "name": "windows-debug",
+      "configurePreset": "windows-debug",
+      "displayName": "Windows Debug Build"
+    },
+    {
+      "name": "windows-release",
+      "configurePreset": "windows-release",
+      "displayName": "Windows Release Build"
     }
   ],
   "testPresets": [

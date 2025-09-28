@@ -75,6 +75,14 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
     set(YAZE_PLATFORM_LINUX ON)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(YAZE_PLATFORM_WINDOWS ON)
+    # Enable vcpkg integration for Windows builds
+    if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+        set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            CACHE STRING "Vcpkg toolchain file")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+        set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            CACHE STRING "Vcpkg toolchain file")
+    endif()
 endif()
 
 # Create a common interface target for shared settings
