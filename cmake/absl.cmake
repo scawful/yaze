@@ -22,6 +22,7 @@ if(MSVC)
 else()
     add_definitions(-D_SILENCE_CXX23_DEPRECATION_WARNING)
 endif()
+# Define base Abseil targets
 set(
   ABSL_TARGETS
   absl::strings
@@ -50,5 +51,12 @@ set(
   absl::container_memory
   absl::memory
   absl::utility
-  absl::int128
 )
+
+# Add int128 only on non-Windows platforms to avoid C++23 deprecation issues
+if(NOT WIN32)
+  list(APPEND ABSL_TARGETS absl::int128)
+  message(STATUS "Including absl::int128 (non-Windows platform)")
+else()
+  message(STATUS "Excluding absl::int128 on Windows to avoid C++23 deprecation issues")
+endif()

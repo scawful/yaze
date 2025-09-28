@@ -112,6 +112,7 @@ if(MSVC)
         _CRT_NONSTDC_NO_WARNINGS
         SILENCE_CXX23_DEPRECATIONS
         _SILENCE_CXX23_DEPRECATION_WARNING
+        _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS
         NOMINMAX  # Disable min/max macros
         WIN32_LEAN_AND_MEAN  # Reduce Windows header bloat
         strncasecmp=_strnicmp
@@ -126,6 +127,7 @@ else()
     # Add C++23 deprecation silencing for GCC/Clang
     target_compile_definitions(yaze_common INTERFACE 
         _SILENCE_CXX23_DEPRECATION_WARNING
+        _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS
         ABSL_HAVE_INTRINSIC_INT128=1  # Enable intrinsic int128 support
     )
 endif()
