@@ -5,6 +5,7 @@
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "app/zelda3/overworld/overworld_map.h"
+#include "testing.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -52,7 +53,7 @@ class OverworldIntegrationTest : public ::testing::Test {
     rom_data[0x3F51F] = 0x01; // Map 1 message ID (low byte)
     rom_data[0x3F520] = 0x00; // Map 1 message ID (high byte)
     
-    rom_->LoadFromData(rom_data);
+    ASSERT_OK(rom_->LoadFromData(rom_data));
   }
 
   std::unique_ptr<Rom> rom_;
@@ -151,7 +152,7 @@ class OverworldV3IntegrationTest : public ::testing::Test {
       rom_data[0x140488 + i] = i + 10; // Map 1 custom tiles
     }
     
-    rom_->LoadFromData(rom_data);
+    ASSERT_OK(rom_->LoadFromData(rom_data));
   }
 
   std::unique_ptr<Rom> rom_;
