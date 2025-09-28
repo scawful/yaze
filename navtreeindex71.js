@@ -1,5 +1,6 @@
 var NAVTREEINDEX71 =
 {
+"structyaze_1_1emu_1_1DmaRegisters.html#af3b03c67fdac997691ee8b1506e115a4":[27,0,6,4,26,2],
 "structyaze_1_1emu_1_1DmaRegisters.html#afc38aeb6a727eb4c58f3a3353eb1169d":[27,0,6,4,26,1],
 "structyaze_1_1emu_1_1DmaRegisters.html#afc38aeb6a727eb4c58f3a3353eb1169d":[28,0,0,4,24,1],
 "structyaze_1_1emu_1_1DmaRegisters.html#afe66f46601ee9112ab22ef8d45ca92d4":[27,0,6,4,26,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX71 =
 "structyaze_1_1emu_1_1OAMDATA.html#a67cb8f0bc668c5b51dfdf7e5c27f50d8":[27,0,6,4,57,0],
 "structyaze_1_1emu_1_1OAMDATAREAD.html":[27,0,6,4,58],
 "structyaze_1_1emu_1_1OAMDATAREAD.html":[28,0,0,4,56],
-"structyaze_1_1emu_1_1OAMDATAREAD.html#a58cf0314b098cb08efafbe5a3587eddb":[28,0,0,4,56,0],
-"structyaze_1_1emu_1_1OAMDATAREAD.html#a58cf0314b098cb08efafbe5a3587eddb":[27,0,6,4,58,0]
+"structyaze_1_1emu_1_1OAMDATAREAD.html#a58cf0314b098cb08efafbe5a3587eddb":[28,0,0,4,56,0]
 };

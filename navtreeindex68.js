@@ -1,5 +1,6 @@
 var NAVTREEINDEX68 =
 {
+"structyaze_1_1editor_1_1CommandManager_1_1CommandGroup.html#a53a16b5c2ccdd787e12ccc908ca91f47":[27,0,6,3,10,0,1],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandGroup.html#a8af1ff170ba833c0ce348e94ccd34b48":[28,0,0,3,4,0,0],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandGroup.html#a8af1ff170ba833c0ce348e94ccd34b48":[27,0,6,3,10,0,0],
 "structyaze_1_1editor_1_1CommandManager_1_1CommandGroup.html#ad322d149bde4124e3babae25b0894019":[27,0,6,3,10,0,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX68 =
 "structyaze_1_1editor_1_1OverworldEditor_1_1ScratchSpaceSlot.html#ae938d3d2380f522197f0b8bf2943570d":[27,0,6,3,39,0,7],
 "structyaze_1_1editor_1_1ParsedElement.html":[28,0,0,3,36],
 "structyaze_1_1editor_1_1ParsedElement.html":[27,0,6,3,42],
-"structyaze_1_1editor_1_1ParsedElement.html#a108e9b0f4de5545af00de36e6297ca69":[27,0,6,3,42,1],
-"structyaze_1_1editor_1_1ParsedElement.html#a108e9b0f4de5545af00de36e6297ca69":[28,0,0,3,36,1]
+"structyaze_1_1editor_1_1ParsedElement.html#a108e9b0f4de5545af00de36e6297ca69":[27,0,6,3,42,1]
 };

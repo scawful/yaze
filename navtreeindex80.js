@@ -1,5 +1,6 @@
 var NAVTREEINDEX80 =
 {
+"structzelda3__version__pointers.html#ac4db3570985f2b2972628d43ed1ff500":[26,8,0,16],
 "structzelda3__version__pointers.html#ac575800b4b96e830766b13702762f46d":[26,8,0,3],
 "structzelda3__version__pointers.html#ac9f61656c6617eb4b078ef159ee32dc4":[26,8,0,22],
 "structzelda3__version__pointers.html#ada0d386fc03a9b0d519e8dc09028fa0d":[26,8,0,8],
@@ -248,6 +249,5 @@ var NAVTREEINDEX80 =
 "tui_8h.html#ab3acc1b59e84abb18e2d438f7ed2ad33ae7717093a3034b8bfe24213aaa3736fe":[29,0,3,1,3,2,8],
 "tui_8h.html#ab3acc1b59e84abb18e2d438f7ed2ad33af6aa4f00977101448893001bd7e064da":[29,0,3,1,3,2,0],
 "tui_8h.html#ab3acc1b59e84abb18e2d438f7ed2ad33afb1cff8d82fb71fbc9b02d9168c0d1e3":[29,0,3,1,3,2,2],
-"tui_8h_source.html":[29,0,3,1,3],
-"ui__constants_8h.html":[29,0,3,0,1,5,10]
+"tui_8h_source.html":[29,0,3,1,3]
 };

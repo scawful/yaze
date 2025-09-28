@@ -1,5 +1,6 @@
 var NAVTREEINDEX53 =
 {
+"md_docs_2vcpkg-triplet-setup.html#autotoc_md477":[18,5,0],
 "md_docs_2vcpkg-triplet-setup.html#autotoc_md478":[18,5,1],
 "md_docs_2vcpkg-triplet-setup.html#autotoc_md479":[18,5,2],
 "md_docs_2vcpkg-triplet-setup.html#autotoc_md480":[18,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX53 =
 "namespacemembers_func_d.html":[27,1,1,3],
 "namespacemembers_func_e.html":[27,1,1,4],
 "namespacemembers_func_f.html":[27,1,1,5],
-"namespacemembers_func_g.html":[27,1,1,6],
-"namespacemembers_func_h.html":[27,1,1,7]
+"namespacemembers_func_g.html":[27,1,1,6]
 };

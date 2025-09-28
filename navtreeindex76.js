@@ -1,5 +1,6 @@
 var NAVTREEINDEX76 =
 {
+"structyaze_1_1gui_1_1MenuItem.html#a4f3ed7378de06004f40b246873cd4244":[27,0,6,6,20,7],
 "structyaze_1_1gui_1_1MenuItem.html#a80ecd231e66eab7dc8816de6b0d2295e":[28,0,0,6,18,8],
 "structyaze_1_1gui_1_1MenuItem.html#a80ecd231e66eab7dc8816de6b0d2295e":[27,0,6,6,20,8],
 "structyaze_1_1gui_1_1MenuItem.html#aaad6a7b050c0b8459aeb656b4aeeea0e":[28,0,0,6,18,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX76 =
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#a95e6f142f520b3b787842f1f2c1c03fa":[28,0,0,9,7,1,5],
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#aa80ff717e134d9c001b95e6e1b88d186":[27,0,6,9,12,1,7],
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#aa80ff717e134d9c001b95e6e1b88d186":[28,0,0,9,7,1,7],
-"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#acb62be8cc66f01138d93ac037aded49f":[28,0,0,9,7,1,10],
-"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#acb62be8cc66f01138d93ac037aded49f":[27,0,6,9,12,1,10]
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#acb62be8cc66f01138d93ac037aded49f":[28,0,0,9,7,1,10]
 };
