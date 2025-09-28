@@ -505,6 +505,31 @@
     <None Include="zelda3.sfc" />
   </ItemGroup>
 
+  <!-- Custom Build for yaze_config.h generation -->
+  <ItemGroup>
+    <CustomBuild Include="src\yaze_config.h.in">
+      <FileType>Document</FileType>
+    </CustomBuild>
+  </ItemGroup>
+
+  <!-- Custom Build Step for yaze_config.h -->
+  <ItemDefinitionGroup>
+    <CustomBuild>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)build-$(Platform)\yaze_config.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)build-$(Platform)\yaze_config.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)build-$(Platform)\yaze_config.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)build-$(Platform)\yaze_config.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)build-$(Platform)\yaze_config.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config.h"</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)build-$(Platform)\yaze_config.h</Outputs>
+    </CustomBuild>
+  </ItemDefinitionGroup>
+
   <ItemGroup>
     <PackageReference Include="sdl2" Version="2.28.5" />
   </ItemGroup>
