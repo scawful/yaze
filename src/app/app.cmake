@@ -66,8 +66,21 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}/src/
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
   ${SDL2_INCLUDE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
   ${PROJECT_BINARY_DIR}
 )
+
+target_sources(yaze PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/yaze_config.h)
+
+# 4) Tell the IDE it’s generated
+set_source_files_properties(
+  ${CMAKE_CURRENT_BINARY_DIR}/yaze_config.h
+  PROPERTIES GENERATED TRUE
+)
+
+# (Optional) put it under a neat filter in VS Solution Explorer
+source_group(TREE ${CMAKE_CURRENT_BINARY_DIR}
+             FILES ${CMAKE_CURRENT_BINARY_DIR}/yaze_config.h)
 
 # Conditionally add PNG include dirs if available
 if(PNG_FOUND)

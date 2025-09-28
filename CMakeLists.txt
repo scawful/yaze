@@ -35,7 +35,11 @@ set(YAZE_VERSION_MAJOR 0)
 set(YAZE_VERSION_MINOR 3)
 set(YAZE_VERSION_PATCH 1)
 
-configure_file(src/yaze_config.h.in yaze_config.h @ONLY)
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/yaze_config.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/yaze_config.h
+  @ONLY
+)
 
 # Build Flags
 set(YAZE_BUILD_APP ON)
@@ -96,6 +100,8 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
         set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
             CACHE STRING "Vcpkg toolchain file")
     endif()
+    # Setup yaze_config include directories
+
 endif()
 
 # Create a common interface target for shared settings
