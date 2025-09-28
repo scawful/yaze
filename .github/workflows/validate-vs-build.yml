@@ -4,19 +4,17 @@ on:
   push:
     branches: [ "master", "develop" ]
     paths:
-      - 'yaze.vcxproj'
-      - 'yaze.sln'
       - 'vcpkg.json'
       - 'src/**'
+      - 'scripts/generate-vs-projects.py'
       - 'scripts/validate-vs-build.ps1'
       - '.github/workflows/validate-vs-build.yml'
   pull_request:
     branches: [ "master", "develop" ]
     paths:
-      - 'yaze.vcxproj'
-      - 'yaze.sln'
       - 'vcpkg.json'
       - 'src/**'
+      - 'scripts/generate-vs-projects.py'
       - 'scripts/validate-vs-build.ps1'
       - '.github/workflows/validate-vs-build.yml'
 
@@ -37,13 +35,6 @@ jobs:
             platform: x64
             configuration: Release
             
-          - name: "Windows x86 Debug"
-            platform: x86
-            configuration: Debug
-            
-          - name: "Windows x86 Release"
-            platform: x86
-            configuration: Release
 
     name: ${{ matrix.name }}
     runs-on: windows-2022

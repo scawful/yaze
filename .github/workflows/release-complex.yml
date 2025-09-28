@@ -124,22 +124,6 @@ jobs:
               cp README.md package/ 2>/dev/null || echo "README.md not found"
               cd package && zip -r ../yaze-windows-x64.zip *
             
-          - name: "Windows x86"
-            os: windows-2022
-            vcpkg_triplet: x86-windows
-            cmake_generator: "Visual Studio 17 2022"
-            cmake_generator_platform: Win32
-            artifact_name: "yaze-windows-x86"
-            artifact_path: "build/bin/Release/"
-            package_cmd: |
-              mkdir -p package
-              cp -r build/bin/Release/* package/ 2>/dev/null || echo "No Release binaries found, trying Debug..."
-              cp -r build/bin/Debug/* package/ 2>/dev/null || echo "No Debug binaries found"
-              cp -r assets package/ 2>/dev/null || echo "assets directory not found"
-              cp LICENSE package/ 2>/dev/null || echo "LICENSE not found"
-              cp README.md package/ 2>/dev/null || echo "README.md not found"
-              cd package && zip -r ../yaze-windows-x86.zip *
-            
           - name: "Windows ARM64"
             os: windows-2022
             vcpkg_triplet: arm64-windows
@@ -320,7 +304,7 @@ jobs:
       uses: lukka/run-vcpkg@v11
       continue-on-error: true
       with:
-        vcpkgGitCommitId: '2024.12.12'
+        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
         runVcpkgInstall: true
         vcpkgJsonGlob: '**/vcpkg.json'
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
