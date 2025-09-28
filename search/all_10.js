@@ -348,8 +348,8 @@ var searchData=
   ['grid_5fstep_345',['grid_step',['../structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html#a173729c7376c00a0b037c9faf9d8a9c8',1,'yaze::gui::CanvasUtils::CanvasRenderContext::grid_step'],['../structyaze_1_1gui_1_1CanvasConfig.html#ac8a7f9b47209ff6e332933b4bfed0624',1,'yaze::gui::CanvasConfig::grid_step']]],
   ['gridsettings_346',['GridSettings',['../structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html',1,'yaze::gui::BackgroundRenderer']]],
   ['group_5fname_347',['group_name',['../structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a320ea66f9d77d77ad1397920fe67e0c2',1,'yaze::editor::palette_internal::PaletteChange']]],
-  ['gui_20editor_348',['GUI Editor',['../md_README.html#autotoc_md478',1,'']]],
-  ['guide_349',['guide',['../md_docs_2E1-asm-style-guide.html',1,'Asm Style Guide'],['../md_docs_2B3-build-presets.html',1,'Build Presets Guide'],['../md_docs_2E2-dungeon-editor-guide.html',1,'Dungeon Editor Guide'],['../md_docs_2F1-overworld-loading.html',1,'Overworld Loading Guide'],['../md_docs_2A1-testing-guide.html',1,'Testing Guide']]],
+  ['gui_20editor_348',['GUI Editor',['../md_README.html#autotoc_md518',1,'']]],
+  ['guide_349',['guide',['../md_docs_2E1-asm-style-guide.html',1,'Asm Style Guide'],['../md_docs_2B3-build-presets.html',1,'Build Presets Guide'],['../md_docs_2E2-dungeon-editor-guide.html',1,'Dungeon Editor Guide'],['../md_docs_2F1-overworld-loading.html',1,'Overworld Loading Guide'],['../md_docs_2A1-testing-guide.html',1,'Testing Guide'],['../md_docs_2visual-studio-setup.html',1,'Visual Studio Setup Guide']]],
   ['guidelines_350',['guidelines',['../md_docs_2B1-contributing.html#autotoc_md111',1,'Architecture Guidelines'],['../md_docs_2B1-contributing.html#autotoc_md118',1,'Community Guidelines'],['../md_docs_2E3-dungeon-editor-design.html#autotoc_md288',1,'Future Development Guidelines'],['../md_docs_2A1-testing-guide.html#autotoc_md85',1,'Test Development Guidelines']]],
   ['guielement_351',['GuiElement',['../namespaceyaze_1_1gui.html#a9c01b6181e4e5b36a4c62bb82a7cc931',1,'yaze::gui']]]
 ];

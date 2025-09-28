@@ -622,26 +622,77 @@ var NAVTREE =
         [ "Static Linking", "md_docs_2vcpkg-integration.html#autotoc_md467", null ]
       ] ]
     ] ],
+    [ "Visual Studio Setup Guide", "md_docs_2visual-studio-setup.html", [
+      [ "Prerequisites", "md_docs_2visual-studio-setup.html#autotoc_md469", [
+        [ "Required Software", "md_docs_2visual-studio-setup.html#autotoc_md470", null ],
+        [ "Environment Setup", "md_docs_2visual-studio-setup.html#autotoc_md471", null ]
+      ] ],
+      [ "Project Setup", "md_docs_2visual-studio-setup.html#autotoc_md472", [
+        [ "1. Clone the Repository", "md_docs_2visual-studio-setup.html#autotoc_md473", null ],
+        [ "2. Install Dependencies via vcpkg", "md_docs_2visual-studio-setup.html#autotoc_md474", null ],
+        [ "3. Configure Build System", "md_docs_2visual-studio-setup.html#autotoc_md475", [
+          [ "Option A: Using Visual Studio Project File (Easiest)", "md_docs_2visual-studio-setup.html#autotoc_md476", null ],
+          [ "Option B: Using CMake with Visual Studio (Recommended for developers)", "md_docs_2visual-studio-setup.html#autotoc_md477", null ],
+          [ "Option C: Using Command Line", "md_docs_2visual-studio-setup.html#autotoc_md478", null ]
+        ] ],
+        [ "4. Build Configuration", "md_docs_2visual-studio-setup.html#autotoc_md479", [
+          [ "Using Visual Studio Project File (.vcxproj)", "md_docs_2visual-studio-setup.html#autotoc_md480", null ],
+          [ "Using CMake (Command Line)", "md_docs_2visual-studio-setup.html#autotoc_md481", null ]
+        ] ]
+      ] ],
+      [ "Common Issues and Solutions", "md_docs_2visual-studio-setup.html#autotoc_md482", [
+        [ "Issue 1: zlib Import Errors", "md_docs_2visual-studio-setup.html#autotoc_md483", null ],
+        [ "Issue 2: Executable Runs Tests Instead of Main App", "md_docs_2visual-studio-setup.html#autotoc_md484", null ],
+        [ "Issue 3: SDL2 Configuration Issues", "md_docs_2visual-studio-setup.html#autotoc_md485", null ],
+        [ "Issue 4: Build Errors with Abseil", "md_docs_2visual-studio-setup.html#autotoc_md486", null ]
+      ] ],
+      [ "Visual Studio Configuration", "md_docs_2visual-studio-setup.html#autotoc_md487", [
+        [ "CMake Settings", "md_docs_2visual-studio-setup.html#autotoc_md488", null ],
+        [ "Build Presets", "md_docs_2visual-studio-setup.html#autotoc_md489", null ]
+      ] ],
+      [ "Running the Application", "md_docs_2visual-studio-setup.html#autotoc_md490", [
+        [ "Using Visual Studio Project File", "md_docs_2visual-studio-setup.html#autotoc_md491", null ],
+        [ "Command Line", "md_docs_2visual-studio-setup.html#autotoc_md492", null ],
+        [ "Visual Studio (CMake)", "md_docs_2visual-studio-setup.html#autotoc_md493", null ]
+      ] ],
+      [ "Testing", "md_docs_2visual-studio-setup.html#autotoc_md494", [
+        [ "Run Unit Tests", "md_docs_2visual-studio-setup.html#autotoc_md495", null ],
+        [ "Run Specific Test Suite", "md_docs_2visual-studio-setup.html#autotoc_md496", null ]
+      ] ],
+      [ "Troubleshooting", "md_docs_2visual-studio-setup.html#autotoc_md497", [
+        [ "Clean Build", "md_docs_2visual-studio-setup.html#autotoc_md498", null ],
+        [ "Check Dependencies", "md_docs_2visual-studio-setup.html#autotoc_md499", null ],
+        [ "CMake Cache Issues", "md_docs_2visual-studio-setup.html#autotoc_md500", null ]
+      ] ],
+      [ "Visual Studio Project File Features", "md_docs_2visual-studio-setup.html#autotoc_md501", [
+        [ "<strong>Automatic Dependency Management</strong>", "md_docs_2visual-studio-setup.html#autotoc_md502", null ],
+        [ "<strong>Build Configuration</strong>", "md_docs_2visual-studio-setup.html#autotoc_md503", null ],
+        [ "<strong>Asset Management</strong>", "md_docs_2visual-studio-setup.html#autotoc_md504", null ],
+        [ "<strong>Development Features</strong>", "md_docs_2visual-studio-setup.html#autotoc_md505", null ]
+      ] ],
+      [ "Additional Notes", "md_docs_2visual-studio-setup.html#autotoc_md506", null ],
+      [ "Support", "md_docs_2visual-studio-setup.html#autotoc_md507", null ]
+    ] ],
     [ "YAZE - Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Version 0.3.1 - Release", "md_README.html#autotoc_md469", [
-        [ "🛠️ Technical Improvements", "md_README.html#autotoc_md473", null ]
+      [ "Version 0.3.1 - Release", "md_README.html#autotoc_md509", [
+        [ "🛠️ Technical Improvements", "md_README.html#autotoc_md513", null ]
       ] ],
-      [ "Quick Start", "md_README.html#autotoc_md474", [
-        [ "Build", "md_README.html#autotoc_md475", null ],
-        [ "Applications", "md_README.html#autotoc_md476", null ]
+      [ "Quick Start", "md_README.html#autotoc_md514", [
+        [ "Build", "md_README.html#autotoc_md515", null ],
+        [ "Applications", "md_README.html#autotoc_md516", null ]
       ] ],
-      [ "Usage", "md_README.html#autotoc_md477", [
-        [ "GUI Editor", "md_README.html#autotoc_md478", null ],
-        [ "Command Line Tool", "md_README.html#autotoc_md479", null ],
-        [ "C++ API", "md_README.html#autotoc_md480", null ]
+      [ "Usage", "md_README.html#autotoc_md517", [
+        [ "GUI Editor", "md_README.html#autotoc_md518", null ],
+        [ "Command Line Tool", "md_README.html#autotoc_md519", null ],
+        [ "C++ API", "md_README.html#autotoc_md520", null ]
       ] ],
-      [ "Documentation", "md_README.html#autotoc_md481", null ],
-      [ "Supported Platforms", "md_README.html#autotoc_md482", null ],
-      [ "ROM Compatibility", "md_README.html#autotoc_md483", null ],
-      [ "Contributing", "md_README.html#autotoc_md484", null ],
-      [ "License", "md_README.html#autotoc_md485", null ],
-      [ "🙏 Acknowledgments", "md_README.html#autotoc_md486", null ],
-      [ "📸 Screenshots", "md_README.html#autotoc_md487", null ]
+      [ "Documentation", "md_README.html#autotoc_md521", null ],
+      [ "Supported Platforms", "md_README.html#autotoc_md522", null ],
+      [ "ROM Compatibility", "md_README.html#autotoc_md523", null ],
+      [ "Contributing", "md_README.html#autotoc_md524", null ],
+      [ "License", "md_README.html#autotoc_md525", null ],
+      [ "🙏 Acknowledgments", "md_README.html#autotoc_md526", null ],
+      [ "📸 Screenshots", "md_README.html#autotoc_md527", null ]
     ] ],
     [ "Deprecated List", "deprecated.html", null ],
     [ "Todo List", "todo.html", null ],
@@ -739,37 +790,37 @@ var NAVTREEINDEX =
 "icons_8h.html#abb1bcd7da06919dbccf12b80ca47fa8c",
 "icons_8h.html#ad72e403d6a92a9e78caec7314bb6e83c",
 "icons_8h.html#af1ef63534e3604d08be6fdf93ffd0f4a",
-"md_README.html#autotoc_md475",
+"md_README.html#autotoc_md515",
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md237",
-"message__data_8cc.html#a91359909a674306622aa5a533e0c2377",
-"namespaceyaze_1_1core.html",
-"namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a71b09cdcff04b4aee920d11304a35d6d",
-"namespaceyaze_1_1gfx_1_1lc__lz2.html#a06931d5beec878518bd57c8f6ea65086",
-"namespaceyaze_1_1gui_1_1zeml.html#adca1275b21eaf72b35e5e3a29bc38ca7",
-"namespaceyaze_1_1test.html#a8264dbff44bc450c046929320f5b8202",
-"namespaceyaze_1_1test_1_1anonymous__namespace_02compression__test_8cc_03.html#a9ceacaaa96ef2d18ba0ce84eb6751d3b",
-"namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a65ecc6bb8c038327b3d25cca07575c8f",
-"namespaceyaze_1_1zelda3.html#ad4150202e700fdd531d83924bc702860",
-"overworld_8h.html#ad58b3a6c51485f0b88e6a99a6d60ce83",
-"ppu__registers_8h.html#a3066e8372f79de79216a7a2d75aee05e",
-"room_8h.html#ad692d84b2e058eaed67c214cc6e2b031",
-"snes__palette_8h.html#a7894b061b9f2f6302a6ae6e6a1dc21e5",
-"structsnes__tile32.html",
-"structyaze_1_1core_1_1WorkspaceSettings.html#a595e0de56c585c05af42f06850c95cd3",
-"structyaze_1_1editor_1_1ExampleTreeNode.html#a06b0eeb1373a61f25e1cc38d54e9f93b",
-"structyaze_1_1editor_1_1zsprite_1_1OamTile.html",
-"structyaze_1_1emu_1_1CGWSEL.html#a0925fdb61d2617feda44714c3151a5aa",
-"structyaze_1_1emu_1_1M7C.html",
-"structyaze_1_1emu_1_1SpriteAttributes.html#aac8fc7bf7ab208c5ecdbd45bd22531b1",
-"structyaze_1_1emu_1_1WramAccessRegisters.html",
-"structyaze_1_1gui_1_1CanvasConfig.html#af6da88072f9e940d3067be25dae94f2d",
-"structyaze_1_1gui_1_1EnhancedTheme.html#ac13e444ad84757b1828a420d24cc2e17",
-"structyaze_1_1test_1_1DungeonObjectRenderingTests_1_1DungeonScenario.html#a69ecf86cf60b15a276eeb7c7644880f7",
-"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1UndoPoint.html#a7b6875ca95b9b132007c3c27520f58ad",
-"structyaze_1_1zelda3_1_1ObjectSizeInfo.html#a1f8a36507812bb58f2a61022436b7032",
-"structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072",
-"tile16__editor_8h.html#a7e496b12910031cfaa4fb492c4af0ae4",
-"zeml_8h.html#ad9746eb1ca28a26c12e4a1d6b0be24bda316853cc3718335f11c048e33b9be98a"
+"md_docs_2visual-studio-setup.html#autotoc_md488",
+"namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03.html#add4f5bec67ff111b1941292d53a832a3",
+"namespaceyaze_1_1editor_1_1anonymous__namespace_02gfx__group__editor_8cc_03.html",
+"namespaceyaze_1_1gfx.html#a96590a99c73838604ae8ef112dec16c7",
+"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a2d9b9a764fb0be4be10e1b2fce63f561",
+"namespaceyaze_1_1test.html#a6c30c6c6539e1e05a197b4ca82a2be99",
+"namespaceyaze_1_1test.html#aead86ea69deaa0d685524e243693c7f3",
+"namespaceyaze_1_1zelda3.html#a6086ef3cff89c45f1671001bbe5193ad",
+"namespaceyaze_1_1zelda3.html#abdf58b4793a727d6bbb4b28a1d109f3f",
+"overworld_8h.html#a45fdc1e0186598f0b52125907fbb1e2f",
+"palette__editor_8cc_source.html",
+"room_8h.html#a693df677b1b2754452c8b8b4c4a98468ab8e6bc6b7107d01264c838d2279b6fd6",
+"snes__palette_8cc.html#a8b13b3e6d824b6d2e9aa81f1831cf08c",
+"structchest.html#a37c32cbb2947c91cad90723538e7b559",
+"structyaze_1_1core_1_1ResourceLabelManager_1_1ResourceType.html",
+"structyaze_1_1editor_1_1EditorContext_1_1SharedClipboard.html#aeb23ff5e20c0b94908297124719c8804",
+"structyaze_1_1editor_1_1Tile16Editor_1_1UndoState.html#addb39b4b1d0e49c42ad9ee1d82e196db",
+"structyaze_1_1emu_1_1BgLayer.html#a73569847028bd08b274259f388ca8db3",
+"structyaze_1_1emu_1_1INIDISP.html#aa99311599b01e6928c55ae8c11a107d2",
+"structyaze_1_1emu_1_1ScreenMode.html#acc93f6148e8954d6034442ae0f0b6596",
+"structyaze_1_1emu_1_1WindowLayer.html#ab2b1f7c3b68e7418207dc423f1ac79a6",
+"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#a6cc4c2931c8e6e4faaed4106e0ccfb09",
+"structyaze_1_1gui_1_1EnhancedTheme.html#a7905a15204d8d29dcbd9dcf1ec7c5b37",
+"structyaze_1_1gui_1_1zeml_1_1Node.html#ae2db32d5969054c0cd5136c23181ffcb",
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a84d5d08cd803fc056be0009b97b8cbdb",
+"structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html#a40756c3b49b60aecafb3edc82c9a451b",
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac68a57b9e3b1359935c1cc6bf92d513b",
+"test__manager_8h.html#a24fd08ea41d8314e6fccdb0fdcd9f072a2fc7fbf0d19294f85dd3880460dd3c0a",
+"zeml_8h.html#a708445e8c69e412cd00547fc713a5e43a04b2e4188d4ef8051e4699da8af01335"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
