@@ -5,6 +5,15 @@ param(
     [string]$Triplet = "x64-windows"
 )
 
+# Auto-detect architecture if not specified
+if ($Triplet -eq "x64-windows") {
+    $Architecture = $env:PROCESSOR_ARCHITECTURE
+    if ($Architecture -eq "ARM64") {
+        $Triplet = "arm64-windows"
+        Write-Host "Auto-detected ARM64 architecture, using arm64-windows triplet" -ForegroundColor Yellow
+    }
+}
+
 # Set error handling
 $ErrorActionPreference = "Continue"
 

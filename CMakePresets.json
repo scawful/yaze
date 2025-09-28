@@ -220,6 +220,62 @@
       }
     },
     {
+      "name": "windows-arm64-debug",
+      "displayName": "Windows ARM64 Debug",
+      "description": "Windows ARM64-specific debug configuration with vcpkg",
+      "inherits": "debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "arm64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "arm64-windows",
+        "VCPKG_MANIFEST_MODE": "ON"
+      }
+    },
+    {
+      "name": "windows-arm64-release",
+      "displayName": "Windows ARM64 Release",
+      "description": "Windows ARM64-specific release configuration with vcpkg",
+      "inherits": "release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "arm64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "arm64-windows",
+        "VCPKG_MANIFEST_MODE": "ON"
+      }
+    },
+    {
+      "name": "windows-arm64-dev",
+      "displayName": "Windows ARM64 Development",
+      "description": "Windows ARM64 development build with vcpkg and testing enabled",
+      "inherits": "debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Visual Studio 17 2022",
+      "architecture": "arm64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "arm64-windows",
+        "VCPKG_MANIFEST_MODE": "ON",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON"
+      }
+    },
+    {
       "name": "asan",
       "displayName": "AddressSanitizer",
       "description": "Debug build with AddressSanitizer",
@@ -314,6 +370,21 @@
       "name": "windows-dev",
       "configurePreset": "windows-dev",
       "displayName": "Windows Development Build"
+    },
+    {
+      "name": "windows-arm64-debug",
+      "configurePreset": "windows-arm64-debug",
+      "displayName": "Windows ARM64 Debug Build"
+    },
+    {
+      "name": "windows-arm64-release",
+      "configurePreset": "windows-arm64-release",
+      "displayName": "Windows ARM64 Release Build"
+    },
+    {
+      "name": "windows-arm64-dev",
+      "configurePreset": "windows-arm64-dev",
+      "displayName": "Windows ARM64 Development Build"
     }
   ],
   "testPresets": [
