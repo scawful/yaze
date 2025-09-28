@@ -164,10 +164,12 @@ jobs:
         # Install Homebrew dependencies needed for UI tests and full builds
         brew install pkg-config libpng boost abseil ninja gtk+3
 
-    # Set up vcpkg for Windows builds
+    # Set up vcpkg for Windows builds with fallback
     - name: Set up vcpkg (Windows)
+      id: vcpkg_setup
       if: runner.os == 'Windows'
       uses: lukka/run-vcpkg@v11
+      continue-on-error: true
       with:
         vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
         runVcpkgInstall: true
@@ -179,6 +181,23 @@ jobs:
         VCPKG_DISABLE_METRICS: 1
         VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
         VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+    # Set vcpkg availability flag when vcpkg succeeds
+    - name: Set vcpkg availability flag
+      if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'success'
+      shell: pwsh
+      run: |
+        echo "VCPKG_AVAILABLE=true" >> $env:GITHUB_ENV
+        Write-Host "vcpkg setup successful"
+
+    # Fallback: Set minimal build flag when vcpkg fails
+    - name: Set minimal build flag (Windows fallback)
+      if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'failure'
+      shell: pwsh
+      run: |
+        echo "VCPKG_AVAILABLE=false" >> $env:GITHUB_ENV
+        echo "YAZE_MINIMAL_BUILD=ON" >> $env:GITHUB_ENV
+        Write-Host "vcpkg setup failed, using minimal build configuration"
 
     # Configure CMake
     - name: Configure CMake (Linux/macOS)
@@ -203,20 +222,37 @@ jobs:
       run: |
         Write-Host "Configuring CMake for Windows build..."
         
-        # Use vcpkg toolchain
-        cmake -B build `
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
-          -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
-          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
-          -DYAZE_BUILD_TESTS=OFF `
-          -DYAZE_BUILD_EMU=OFF `
-          -DYAZE_BUILD_Z3ED=OFF `
-          -DYAZE_ENABLE_ROM_TESTS=OFF `
-          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
-          -DYAZE_INSTALL_LIB=OFF `
-          -DYAZE_MINIMAL_BUILD=OFF `
-          -G "${{ matrix.cmake_generator }}" `
-          -A ${{ matrix.cmake_generator_platform }}
+        # Check if vcpkg is available
+        if (Test-Path "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -and $env:VCPKG_AVAILABLE -ne "false") {
+          Write-Host "Using vcpkg toolchain..."
+          cmake -B build `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
+            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DYAZE_BUILD_TESTS=OFF `
+            -DYAZE_BUILD_EMU=OFF `
+            -DYAZE_BUILD_Z3ED=OFF `
+            -DYAZE_ENABLE_ROM_TESTS=OFF `
+            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
+            -DYAZE_INSTALL_LIB=OFF `
+            -DYAZE_MINIMAL_BUILD=OFF `
+            -G "${{ matrix.cmake_generator }}" `
+            -A ${{ matrix.cmake_generator_platform }}
+        } else {
+          Write-Host "Using minimal build configuration (vcpkg not available)..."
+          cmake -B build `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
+            -DYAZE_BUILD_TESTS=OFF `
+            -DYAZE_BUILD_EMU=OFF `
+            -DYAZE_BUILD_Z3ED=OFF `
+            -DYAZE_ENABLE_ROM_TESTS=OFF `
+            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
+            -DYAZE_INSTALL_LIB=OFF `
+            -DYAZE_MINIMAL_BUILD=ON `
+            -G "${{ matrix.cmake_generator }}" `
+            -A ${{ matrix.cmake_generator_platform }}
+        }
         
         Write-Host "CMake configuration completed successfully"
 
