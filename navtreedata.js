@@ -656,29 +656,34 @@ var NAVTREE =
         [ "<strong>Asset Management</strong>", "md_docs_2visual-studio-setup.html#autotoc_md493", null ],
         [ "<strong>Development Features</strong>", "md_docs_2visual-studio-setup.html#autotoc_md494", null ]
       ] ],
-      [ "Additional Notes", "md_docs_2visual-studio-setup.html#autotoc_md495", null ],
-      [ "Support", "md_docs_2visual-studio-setup.html#autotoc_md496", null ]
+      [ "CI/CD Integration", "md_docs_2visual-studio-setup.html#autotoc_md495", [
+        [ "<strong>Automated Validation</strong>", "md_docs_2visual-studio-setup.html#autotoc_md496", null ],
+        [ "<strong>Build Matrix</strong>", "md_docs_2visual-studio-setup.html#autotoc_md497", null ],
+        [ "<strong>Quality Assurance</strong>", "md_docs_2visual-studio-setup.html#autotoc_md498", null ]
+      ] ],
+      [ "Additional Notes", "md_docs_2visual-studio-setup.html#autotoc_md499", null ],
+      [ "Support", "md_docs_2visual-studio-setup.html#autotoc_md500", null ]
     ] ],
     [ "YAZE - Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Version 0.3.1 - Release", "md_README.html#autotoc_md498", [
-        [ "🛠️ Technical Improvements", "md_README.html#autotoc_md502", null ]
+      [ "Version 0.3.1 - Release", "md_README.html#autotoc_md502", [
+        [ "🛠️ Technical Improvements", "md_README.html#autotoc_md506", null ]
       ] ],
-      [ "Quick Start", "md_README.html#autotoc_md503", [
-        [ "Build", "md_README.html#autotoc_md504", null ],
-        [ "Applications", "md_README.html#autotoc_md505", null ]
+      [ "Quick Start", "md_README.html#autotoc_md507", [
+        [ "Build", "md_README.html#autotoc_md508", null ],
+        [ "Applications", "md_README.html#autotoc_md509", null ]
       ] ],
-      [ "Usage", "md_README.html#autotoc_md506", [
-        [ "GUI Editor", "md_README.html#autotoc_md507", null ],
-        [ "Command Line Tool", "md_README.html#autotoc_md508", null ],
-        [ "C++ API", "md_README.html#autotoc_md509", null ]
+      [ "Usage", "md_README.html#autotoc_md510", [
+        [ "GUI Editor", "md_README.html#autotoc_md511", null ],
+        [ "Command Line Tool", "md_README.html#autotoc_md512", null ],
+        [ "C++ API", "md_README.html#autotoc_md513", null ]
       ] ],
-      [ "Documentation", "md_README.html#autotoc_md510", null ],
-      [ "Supported Platforms", "md_README.html#autotoc_md511", null ],
-      [ "ROM Compatibility", "md_README.html#autotoc_md512", null ],
-      [ "Contributing", "md_README.html#autotoc_md513", null ],
-      [ "License", "md_README.html#autotoc_md514", null ],
-      [ "🙏 Acknowledgments", "md_README.html#autotoc_md515", null ],
-      [ "📸 Screenshots", "md_README.html#autotoc_md516", null ]
+      [ "Documentation", "md_README.html#autotoc_md514", null ],
+      [ "Supported Platforms", "md_README.html#autotoc_md515", null ],
+      [ "ROM Compatibility", "md_README.html#autotoc_md516", null ],
+      [ "Contributing", "md_README.html#autotoc_md517", null ],
+      [ "License", "md_README.html#autotoc_md518", null ],
+      [ "🙏 Acknowledgments", "md_README.html#autotoc_md519", null ],
+      [ "📸 Screenshots", "md_README.html#autotoc_md520", null ]
     ] ],
     [ "Deprecated List", "deprecated.html", null ],
     [ "Todo List", "todo.html", null ],
@@ -732,7 +737,7 @@ var NAVTREEINDEX =
 "classyaze_1_1editor_1_1DungeonEditor.html#a0fb4f2c30d76ea757405184e34a64ea8",
 "classyaze_1_1editor_1_1DungeonObjectSelector.html#a5746705743ba7eb0cf8a85bc8546f9fe",
 "classyaze_1_1editor_1_1DungeonToolset.html#aecd873aed56e896f55c1fac226de9c27",
-"classyaze_1_1editor_1_1EditorManager.html#ab94ca6087a88974e0714cc2a696a3408",
+"classyaze_1_1editor_1_1EditorManager.html#ab5f55dd56fa4e0d77ae0080f02762a8f",
 "classyaze_1_1editor_1_1GraphicsEditor.html#a86ceabbcde6cc1cd4ef2bf4f601b1f8a",
 "classyaze_1_1editor_1_1MessageEditor.html#abfd9f8d6a94a14cbbd9d7196a9aa8438",
 "classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560",
@@ -776,37 +781,37 @@ var NAVTREEINDEX =
 "icons_8h.html#abb1bcd7da06919dbccf12b80ca47fa8c",
 "icons_8h.html#ad72e403d6a92a9e78caec7314bb6e83c",
 "icons_8h.html#af1ef63534e3604d08be6fdf93ffd0f4a",
-"md_README.html#autotoc_md504",
+"md_README.html#autotoc_md508",
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md237",
 "md_docs_2visual-studio-setup.html#autotoc_md488",
-"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395ac2477f77de6d38233af46d78ec777846",
-"namespaceyaze_1_1editor_1_1test.html#a1259a90e3b420c56d5305796aa99b10a",
-"namespaceyaze_1_1gfx.html#ab1a956018883111c3a96be7777cb86d6",
-"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a86408593c34af77fdd90df932f8b5261",
-"namespaceyaze_1_1test.html#a71b1a357ed57d0f4085d6affe4d4cbcb",
-"namespaceyaze_1_1test.html#af3005defc83190d728d018695f20b0b3",
-"namespaceyaze_1_1zelda3.html#a63a7a84ef2976550183756b472e39165",
-"namespaceyaze_1_1zelda3.html#ac43baaf06960b7d372d8b22f0c5d6cac",
-"overworld_8h.html#a742393eee38937a1b6a35b7e57bda06c",
-"ppu_8cc_source.html",
-"room_8h.html#a693df677b1b2754452c8b8b4c4a98468ada24c387898e858cb179df810b04154f",
-"snes__palette_8cc.html#aeccc5ded5a311afcdf70cb43e466c220",
-"structdestination.html#ad9349e1271695276c0a2cae38a73a00e",
-"structyaze_1_1core_1_1SDL__Surface__Deleter.html",
-"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a95f78a95520642e93dd30532046092bb",
-"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html",
-"structyaze_1_1emu_1_1BgLayer.html#ae8d2f6d520cdc9abe0754aedf96609b5",
-"structyaze_1_1emu_1_1Input.html#a6266b3d0433e50188db60e41b1ff5c33",
-"structyaze_1_1emu_1_1Spc700_1_1Flags.html#a0b394943bb22ebf53fdf050477da8256",
-"structyaze_1_1emu_1_1WindowMaskSettings.html#a89fdccbe33cc749addc27a39c6e065a1",
-"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#afcf502b809de27032f74ec71eabdfe90",
-"structyaze_1_1gui_1_1EnhancedTheme.html#a88cc3580a243bb99908842606c341de0",
-"structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#a37857232448027524749a7c314051adc",
-"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#adb2317ab9c6eae338098bc207cf2aafe",
-"structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html#af875e1325b77d0866b13a93ca1d26f9f",
-"structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a7d854a930f079ad18ef4c44a216b3f6c",
-"testing_8h.html#a70903ac3af545551a14f38d650109ecb",
-"zeml_8h.html#a708445e8c69e412cd00547fc713a5e43a6ea5359e01a41842884943125518289b"
+"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a57e5a4c1d9b0cbe935452dfae44794f5",
+"namespaceyaze_1_1editor_1_1anonymous__namespace_02shortcut__manager_8cc_03.html#a2c9e59c481faf2614bea832ae9d19df0",
+"namespaceyaze_1_1gfx.html#aa5ae49b02472150a2ad972abf1f7d35a",
+"namespaceyaze_1_1gui_1_1zeml.html#a708445e8c69e412cd00547fc713a5e43a69dcc768794fdfb13377f8734cfc3505",
+"namespaceyaze_1_1test.html#a6f7689271fefcb6b0dcf8595aadeed0d",
+"namespaceyaze_1_1test.html#aee4b0b368f28a5f96eb37ecba7924928",
+"namespaceyaze_1_1zelda3.html#a62286f1cb2eebc9d5834551ead453371",
+"namespaceyaze_1_1zelda3.html#ac0ef12936001b8daaf166ca667a105af",
+"overworld_8h.html#a6b8b9e441ebcc50d03ff0cd7addea5a0",
+"popup__manager_8cc_source.html",
+"room_8h.html#a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0",
+"snes__palette_8cc.html#ab33662ca6a270d3c533b2f9d22137f3f",
+"structchest__data.html#a6ee5a3261f6a8c7fc0dec547e92c7860",
+"structyaze_1_1core_1_1SDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999",
+"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a4a80bf45ce713399815fe1bf62c9e14d",
+"structyaze_1_1editor_1_1Toast.html#afa57d86496bc0c0cfcb53e8d16280c51",
+"structyaze_1_1emu_1_1BgLayer.html#aa6810a0dfbb99424f2546f5804889106",
+"structyaze_1_1emu_1_1Input.html#a0d7e970633bf5d0490e8b6dc3c2b401e",
+"structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de",
+"structyaze_1_1emu_1_1WindowMaskSettings.html#a2061aac7af9a7f812653a9feed043c5e",
+"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#aeff91aa3063d050000380e5225569168",
+"structyaze_1_1gui_1_1EnhancedTheme.html#a83706de2bd75738dd62192f75b20d3ae",
+"structyaze_1_1gui_1_1zeml_1_1Token.html#aefb3d2d91447274963f74b4fbd19c64f",
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#abe4fe44da9f6791ccf58b552d87b9a4b",
+"structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html#ac4905d65414c97bec66c218ca2f34b66",
+"structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a602a9f18ae32914ad5fb4f2dcc5e0f17",
+"test__utils_8h.html",
+"zeml_8h.html#a708445e8c69e412cd00547fc713a5e43a51c45b795d5d18a3e4e0c37e8b20a141"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

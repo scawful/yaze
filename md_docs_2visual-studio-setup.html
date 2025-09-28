@@ -328,15 +328,43 @@ Visual Studio Project File Features</h1>
 <li><b>Project Properties:</b> Easy access to compiler and linker settings</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md495"></a>
+CI/CD Integration</h1>
+<p>The Visual Studio project files are fully integrated into the CI/CD pipeline:</p>
+<h2><a class="anchor" id="autotoc_md496"></a>
+&lt;strong&gt;Automated Validation&lt;/strong&gt;</h2>
+<ul>
+<li><b>Pre-commit checks:</b> Visual Studio builds are validated on every pull request</li>
+<li><b>Release validation:</b> Both CMake and Visual Studio builds are tested before release</li>
+<li><b>Multi-platform testing:</b> x64 and x86 builds are validated on Windows</li>
+<li><b>Dependency verification:</b> vcpkg integration is tested automatically</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md497"></a>
+&lt;strong&gt;Build Matrix&lt;/strong&gt;</h2>
+<p>The CI/CD pipeline tests:</p><ul>
+<li><b>Windows x64 Debug/Release</b> using Visual Studio 2022</li>
+<li><b>Windows x86 Debug/Release</b> using Visual Studio 2022</li>
+<li><b>CMake builds</b> alongside Visual Studio builds for compatibility</li>
+<li><b>Asset copying</b> and executable functionality</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md498"></a>
+&lt;strong&gt;Quality Assurance&lt;/strong&gt;</h2>
+<ul>
+<li><b>Test main detection:</b> Prevents the test framework from hijacking the main application</li>
+<li><b>Asset validation:</b> Ensures themes and resources are properly copied</li>
+<li><b>Executable testing:</b> Verifies the application starts correctly</li>
+<li><b>Dependency checking:</b> Validates all required libraries are properly linked</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md499"></a>
 Additional Notes</h1>
 <ul>
 <li>The project supports both x64 and x86 builds (use appropriate vcpkg triplets)</li>
 <li>For ARM64 Windows builds, use <code>arm64-windows</code> triplet</li>
-<li>The CI/CD pipeline uses minimal builds to avoid dependency issues</li>
+<li>The CI/CD pipeline validates both CMake and Visual Studio builds</li>
 <li>Development builds include additional debugging features and ROM testing capabilities</li>
 <li>The <code>.vcxproj</code> file provides the easiest setup for Visual Studio users who prefer traditional project files over CMake</li>
+<li>All builds are automatically validated to ensure they produce working executables</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md496"></a>
+<h1><a class="anchor" id="autotoc_md500"></a>
 Support</h1>
 <p>If you encounter issues not covered in this guide:</p><ol type="1">
 <li>Check the project's GitHub issues</li>

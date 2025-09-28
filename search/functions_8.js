@@ -9,7 +9,7 @@ var searchData=
   ['immediate_6',['immediate',['../classyaze_1_1emu_1_1Cpu.html#a29a27106e6bc198c9915581d694113ad',1,'yaze::emu::Cpu::Immediate(uint32_t *low, bool xFlag)'],['../classyaze_1_1emu_1_1Cpu.html#a963eda16cd5114edd53f263ead4e8c8e',1,'yaze::emu::Cpu::Immediate(bool index_size=false)']]],
   ['importdungeonfromfile_7',['ImportDungeonFromFile',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#aa9463275bb8d61d39c645f2055cfb893',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['importfromzscreamformat_8',['ImportFromZScreamFormat',['../structyaze_1_1core_1_1YazeProject.html#a9cedeb1f86793da04e75760036a8c119',1,'yaze::core::YazeProject']]],
-  ['importproject_9',['ImportProject',['../classyaze_1_1editor_1_1EditorManager.html#a7c93fd9a0800de3092337c688fbc2107',1,'yaze::editor::EditorManager']]],
+  ['importproject_9',['ImportProject',['../classyaze_1_1editor_1_1EditorManager.html#ab7f4fd225c1a35cd28b5aefaea76d351',1,'yaze::editor::EditorManager']]],
   ['importroomfromfile_10',['ImportRoomFromFile',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#af4595858ea3a9b3776846ce8361f879e',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['importzscreamproject_11',['ImportZScreamProject',['../structyaze_1_1core_1_1YazeProject.html#ae6d05e1352d9df96299771de0b660354',1,'yaze::core::YazeProject']]],
   ['inc_12',['inc',['../classyaze_1_1emu_1_1Spc700.html#a93ad4667f8bc88db40d3ce7239dbab28',1,'yaze::emu::Spc700::INC()'],['../classyaze_1_1emu_1_1Cpu.html#a5ff004f6dc9c13a762b1744133014883',1,'yaze::emu::Cpu::INC(uint32_t address, bool accumulator=false)'],['../classyaze_1_1emu_1_1Cpu.html#a1c6dccaa40e0f7664270e2f0d04706c2',1,'yaze::emu::Cpu::Inc(uint32_t low, uint32_t high)']]],

@@ -10,7 +10,7 @@ var searchData=
   ['1_20dungeontoolset_20tt_20dungeon_5ftoolset_20h_20cc_20tt_7',['1. DungeonToolset (&lt;tt&gt;dungeon_toolset.h/cc&lt;/tt&gt;)',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md298',1,'']]],
   ['1_20language_20and_20architecture_8',['1. Language and Architecture',['../md_docs_2F1-overworld-loading.html#autotoc_md412',1,'']]],
   ['1_20objects_200x00_200xff_9',['Type 1 Objects (0x00-0xFF)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md343',1,'']]],
-  ['1_20release_10',['Version 0.3.1 - Release',['../md_README.html#autotoc_md498',1,'']]],
+  ['1_20release_10',['Version 0.3.1 - Release',['../md_README.html#autotoc_md502',1,'']]],
   ['1_20setup_20vcpkg_11',['1. Setup vcpkg',['../md_docs_2vcpkg-integration.html#autotoc_md442',1,'']]],
   ['1_20strong_20reduced_20complexity_20strong_12',['1. &lt;strong&gt;Reduced Complexity&lt;/strong&gt;',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md319',1,'']]],
   ['1_20version_20detection_13',['1. Version Detection',['../md_docs_2F1-overworld-loading.html#autotoc_md398',1,'']]],

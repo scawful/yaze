@@ -2,7 +2,7 @@ var searchData=
 [
   ['3_200_20september_202025_0',['0.3.0 (September 2025)',['../md_docs_2C1-changelog.html#autotoc_md157',1,'']]],
   ['3_201_1',['0.3.1',['../md_docs_2C1-changelog.html#autotoc_md149',1,'']]],
-  ['3_201_20release_2',['Version 0.3.1 - Release',['../md_README.html#autotoc_md498',1,'']]],
+  ['3_201_20release_2',['Version 0.3.1 - Release',['../md_README.html#autotoc_md502',1,'']]],
   ['3_20column_20layout_3',['3-Column Layout',['../md_docs_2E3-dungeon-editor-design.html#autotoc_md263',1,'']]],
   ['3_20configure_20build_20system_4',['3. Configure Build System',['../md_docs_2visual-studio-setup.html#autotoc_md464',1,'']]],
   ['3_20dungeoncanvasviewer_20tt_20src_20app_20editor_20dungeon_20dungeon_5fcanvas_5fviewer_20h_20tt_5',['3. DungeonCanvasViewer (&lt;tt&gt;src/app/editor/dungeon/dungeon_canvas_viewer.h&lt;/tt&gt;)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md339',1,'']]],

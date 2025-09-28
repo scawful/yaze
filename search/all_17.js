@@ -47,7 +47,7 @@ var searchData=
   ['not_20loading_44',['3. Graphics Not Loading',['../md_docs_2F1-overworld-loading.html#autotoc_md419',1,'']]],
   ['not1_45',['NOT1',['../classyaze_1_1emu_1_1Spc700.html#a16b76a437f9574f5981f4c46d907ee96',1,'yaze::emu::Spc700']]],
   ['notc_46',['NOTC',['../classyaze_1_1emu_1_1Spc700.html#a920808e5ffd0598476d16861729fd4bd',1,'yaze::emu::Spc700']]],
-  ['notes_47',['notes',['../md_docs_2B3-build-presets.html#autotoc_md147',1,'📝 Notes'],['../md_docs_2visual-studio-setup.html#autotoc_md495',1,'Additional Notes']]],
+  ['notes_47',['notes',['../md_docs_2B3-build-presets.html#autotoc_md147',1,'📝 Notes'],['../md_docs_2visual-studio-setup.html#autotoc_md499',1,'Additional Notes']]],
   ['nothing_48',['nothing',['../namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8af80a4ad87fee7c9fdc19b7769495fdb5',1,'yaze::zelda3::Nothing'],['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac87d5992d6bc96c5f44239d9ec324db1',1,'yaze::zelda3::Nothing']]],
   ['notify_2eh_49',['notify.h',['../notify_8h.html',1,'']]],
   ['notify_5fpalette_50',['notify_palette',['../classyaze_1_1editor_1_1Tile16Editor.html#afa5fcd27fc80ad06e13f729e7f7fb716',1,'yaze::editor::Tile16Editor']]],

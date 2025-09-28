@@ -8,7 +8,11 @@ var NAVTREEINDEX53 =
 "md_docs_2visual-studio-setup.html#autotoc_md493":[18,7,2],
 "md_docs_2visual-studio-setup.html#autotoc_md494":[18,7,3],
 "md_docs_2visual-studio-setup.html#autotoc_md495":[18,8],
-"md_docs_2visual-studio-setup.html#autotoc_md496":[18,9],
+"md_docs_2visual-studio-setup.html#autotoc_md496":[18,8,0],
+"md_docs_2visual-studio-setup.html#autotoc_md497":[18,8,1],
+"md_docs_2visual-studio-setup.html#autotoc_md498":[18,8,2],
+"md_docs_2visual-studio-setup.html#autotoc_md499":[18,9],
+"md_docs_2visual-studio-setup.html#autotoc_md500":[18,10],
 "memory_8cc.html":[26,0,3,0,2,2,3],
 "memory_8cc_source.html":[26,0,3,0,2,2,3],
 "memory_8h.html":[26,0,3,0,2,2,4],
@@ -171,8 +175,8 @@ var NAVTREEINDEX53 =
 "namespacemembers_type.html":[24,1,3],
 "namespacemembers_u.html":[24,1,0,18],
 "namespacemembers_v.html":[24,1,0,19],
-"namespacemembers_vars.html":[24,1,2],
 "namespacemembers_vars.html":[24,1,2,0],
+"namespacemembers_vars.html":[24,1,2],
 "namespacemembers_vars_b.html":[24,1,2,1],
 "namespacemembers_vars_c.html":[24,1,2,2],
 "namespacemembers_vars_d.html":[24,1,2,3],
@@ -245,9 +249,5 @@ var NAVTREEINDEX53 =
 "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395":[24,0,3,1,17],
 "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a0904aa5cd86ead4695a80b68d96d331b":[24,0,3,1,17,0],
 "namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a244ce4b6c7f56eaa446d64fc2d068bbb":[24,0,3,1,17,7],
-"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a32e58e3f081d3cf47b399dbfea2604c1":[24,0,3,1,17,5],
-"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a57e5a4c1d9b0cbe935452dfae44794f5":[24,0,3,1,17,2],
-"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a7de855edff8ee04ef9420ce89aa94a79":[24,0,3,1,17,3],
-"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a9978b1e85e90363034e4108b61d4bd8c":[24,0,3,1,17,1],
-"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a9ee5f942b6e88db1636d50d9d14f6246":[24,0,3,1,17,4]
+"namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a32e58e3f081d3cf47b399dbfea2604c1":[24,0,3,1,17,5]
 };

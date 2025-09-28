@@ -1,5 +1,9 @@
 var NAVTREEINDEX62 =
 {
+"overworld_8h.html#a6b8b9e441ebcc50d03ff0cd7addea5a0":[26,0,3,0,6,2,1,56],
+"overworld_8h.html#a6ba229cf50f70b0903defb08d5291416":[26,0,3,0,6,2,1,15],
+"overworld_8h.html#a7075b3151832c9db6534ea1829693f0c":[26,0,3,0,6,2,1,34],
+"overworld_8h.html#a70c6666dde2ca529f626d335716d2e7e":[26,0,3,0,6,2,1,11],
 "overworld_8h.html#a742393eee38937a1b6a35b7e57bda06c":[26,0,3,0,6,2,1,59],
 "overworld_8h.html#a74cb33c6b3fbad72452e9b418ef67073":[26,0,3,0,6,2,1,63],
 "overworld_8h.html#a7b3fef27d6130dc2c34910603eeaa9f8":[26,0,3,0,6,2,1,47],
@@ -245,9 +249,5 @@ var NAVTREEINDEX62 =
 "palette__editor_8h_source.html":[26,0,3,0,1,2,5],
 "patch_8cc.html":[26,0,3,1,0,1],
 "patch_8cc_source.html":[26,0,3,1,0,1],
-"popup__manager_8cc.html":[26,0,3,0,1,7,5],
-"popup__manager_8cc_source.html":[26,0,3,0,1,7,5],
-"popup__manager_8h.html":[26,0,3,0,1,7,6],
-"popup__manager_8h_source.html":[26,0,3,0,1,7,6],
-"ppu_8cc.html":[26,0,3,0,2,3,0]
+"popup__manager_8cc.html":[26,0,3,0,1,7,5]
 };

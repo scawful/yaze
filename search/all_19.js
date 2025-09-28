@@ -155,7 +155,7 @@ var searchData=
   ['platform_20integration_152',['Platform &amp; Integration',['../md_docs_2D1-roadmap.html#autotoc_md181',1,'']]],
   ['platform_20setup_153',['Platform Setup',['../md_docs_202-build-instructions.html#autotoc_md14',1,'']]],
   ['platform_20specific_20adaptations_154',['Platform-Specific Adaptations',['../md_docs_2B2-platform-compatibility.html#autotoc_md131',1,'']]],
-  ['platforms_155',['Supported Platforms',['../md_README.html#autotoc_md511',1,'']]],
+  ['platforms_155',['Supported Platforms',['../md_README.html#autotoc_md515',1,'']]],
   ['playanimation_156',['PlayAnimation',['../classyaze_1_1zelda3_1_1SpriteInstruction.html#ae4a7349c84b31277c47798a7781456e1',1,'yaze::zelda3::SpriteInstruction']]],
   ['plb_157',['PLB',['../classyaze_1_1emu_1_1Cpu.html#a354deac30e3c97e2c031378bc0a5be86',1,'yaze::emu::Cpu']]],
   ['pld_158',['PLD',['../classyaze_1_1emu_1_1Cpu.html#a267c2dfd356173921d5f9550bbe4c917',1,'yaze::emu::Cpu']]],
