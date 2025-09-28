@@ -15,6 +15,13 @@ set(ABSL_PROPAGATE_CXX_STD ON)
 set(ABSL_CXX_STANDARD 23)
 set(ABSL_USE_GOOGLETEST_HEAD ON)
 set(ABSL_ENABLE_INSTALL ON)
+
+# Silence C++23 deprecation warnings for Abseil int128
+if(MSVC)
+    add_definitions(-DSILENCE_CXX23_DEPRECATIONS)
+else()
+    add_definitions(-D_SILENCE_CXX23_DEPRECATION_WARNING)
+endif()
 set(
   ABSL_TARGETS
   absl::strings

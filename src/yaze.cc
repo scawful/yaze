@@ -1,5 +1,6 @@
 #include "yaze.h"
 
+#include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <memory>
@@ -292,8 +293,8 @@ yaze_status yaze_load_messages(const zelda3_rom* rom, zelda3_message** messages,
       std::memcpy((*messages)[i].raw_data, msg.Data.data(), msg.Data.size());
 
       (*messages)[i].parsed_text = new char[msg.ContentsParsed.length() + 1];
-      std::strncpy((*messages)[i].parsed_text, msg.ContentsParsed.c_str(),
-                   msg.ContentsParsed.length());
+      // Safe string copy with bounds checking
+      std::memcpy((*messages)[i].parsed_text, msg.ContentsParsed.c_str(), msg.ContentsParsed.length());
       (*messages)[i].parsed_text[msg.ContentsParsed.length()] = '\0';
 
       (*messages)[i].is_compressed = false;  // TODO: Detect compression

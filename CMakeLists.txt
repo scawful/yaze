@@ -111,13 +111,23 @@ if(MSVC)
         _CRT_SECURE_NO_WARNINGS
         _CRT_NONSTDC_NO_WARNINGS
         SILENCE_CXX23_DEPRECATIONS
+        _SILENCE_CXX23_DEPRECATION_WARNING
         NOMINMAX  # Disable min/max macros
         WIN32_LEAN_AND_MEAN  # Reduce Windows header bloat
         strncasecmp=_strnicmp
         strcasecmp=_stricmp
     )
 else()
-    target_compile_options(yaze_common INTERFACE -Wall -Wextra -Wpedantic)
+    target_compile_options(yaze_common INTERFACE 
+        -Wall -Wextra -Wpedantic
+        -Wno-deprecated-declarations  # Silence deprecation warnings
+        -Wno-c++23-compat             # Silence C++23 compatibility warnings
+    )
+    # Add C++23 deprecation silencing for GCC/Clang
+    target_compile_definitions(yaze_common INTERFACE 
+        _SILENCE_CXX23_DEPRECATION_WARNING
+        ABSL_HAVE_INTRINSIC_INT128=1  # Enable intrinsic int128 support
+    )
 endif()
 
 # Abseil Standard Specifications
