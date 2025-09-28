@@ -199,8 +199,10 @@ void EditorManager::Initialize(const std::string &filename) {
   // Defer workspace presets loading to avoid initialization crashes
   // This will be called lazily when workspace features are accessed
   
-  // Initialize testing system (lightweight)
+  // Initialize testing system only when tests are enabled
+#ifdef YAZE_ENABLE_TESTING
   InitializeTestSuites();
+#endif
   
   // TestManager will be updated when ROMs are loaded via SetCurrentRom calls
 
@@ -255,10 +257,12 @@ void EditorManager::Initialize(const std::string &filename) {
   context_.shortcut_manager.RegisterShortcut(
       "F1", ImGuiKey_F1, [this]() { popup_manager_->Show("About"); });
   
-  // Testing shortcuts
+  // Testing shortcuts (only when tests are enabled)
+#ifdef YAZE_ENABLE_TESTING
   context_.shortcut_manager.RegisterShortcut(
       "Test Dashboard", {ImGuiKey_T, ImGuiMod_Ctrl}, 
       [this]() { show_test_dashboard_ = true; });
+#endif
   
   // Workspace shortcuts
   context_.shortcut_manager.RegisterShortcut(
@@ -537,8 +541,9 @@ void EditorManager::Initialize(const std::string &filename) {
        {},
        {},
        {},
+#ifdef YAZE_ENABLE_TESTING
        {
-           // Testing and Validation
+           // Testing and Validation (only when tests are enabled)
            {absl::StrCat(ICON_MD_SCIENCE, " Test Dashboard"), "Ctrl+T",
             [&]() { show_test_dashboard_ = true; }},
            {absl::StrCat(ICON_MD_PLAY_ARROW, " Run All Tests"), "",
@@ -549,6 +554,7 @@ void EditorManager::Initialize(const std::string &filename) {
             [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kIntegration); }},
            {absl::StrCat(ICON_MD_CLEAR_ALL, " Clear Test Results"), "",
             [&]() { test::TestManager::Get().ClearResults(); }},
+#endif
            
            {gui::kSeparator, "", nullptr, []() { return true; }},
            
@@ -1019,12 +1025,14 @@ void EditorManager::DrawMenuBar() {
     current_editor_set_->assembly_editor_.Update(show_asm_editor_);
   }
   
-  // Testing interface
+  // Testing interface (only when tests are enabled)
+#ifdef YAZE_ENABLE_TESTING
   if (show_test_dashboard_) {
     auto& test_manager = test::TestManager::Get();
     test_manager.UpdateResourceStats(); // Update monitoring data
     test_manager.DrawTestDashboard(&show_test_dashboard_);
   }
+#endif
   
   // Welcome screen (accessible from View menu)
   if (show_welcome_screen_) {
@@ -1510,10 +1518,12 @@ absl::Status EditorManager::LoadRom() {
     current_editor_set_ = &session.editors;
   }
   
-  // Update test manager with current ROM for ROM-dependent tests
+  // Update test manager with current ROM for ROM-dependent tests (only when tests are enabled)
+#ifdef YAZE_ENABLE_TESTING
   util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
              (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
   test::TestManager::Get().SetCurrentRom(current_rom_);
+#endif
 
   static core::RecentFilesManager manager("recent_files.txt");
   manager.Load();
@@ -1705,10 +1715,12 @@ absl::Status EditorManager::OpenProject() {
     // Apply project feature flags to the session
     session.feature_flags = current_project_.feature_flags;
     
-    // Update test manager with current ROM for ROM-dependent tests
+    // Update test manager with current ROM for ROM-dependent tests (only when tests are enabled)
+#ifdef YAZE_ENABLE_TESTING
     util::logf("EditorManager: Setting ROM in TestManager - %p ('%s')", 
                (void*)current_rom_, current_rom_ ? current_rom_->title().c_str() : "null");
     test::TestManager::Get().SetCurrentRom(current_rom_);
+#endif
 
     if (current_editor_set_ && !current_project_.code_folder.empty()) {
       current_editor_set_->assembly_editor_.OpenFolder(current_project_.code_folder);
@@ -2040,7 +2052,9 @@ void EditorManager::ShowAllWindows() {
   }
   show_imgui_demo_ = true;
   show_imgui_metrics_ = true;
+#ifdef YAZE_ENABLE_TESTING
   show_test_dashboard_ = true;
+#endif
   
   toast_manager_.Show("All windows shown", editor::ToastType::kInfo);
 }
@@ -2053,7 +2067,9 @@ void EditorManager::HideAllWindows() {
   }
   show_imgui_demo_ = false;
   show_imgui_metrics_ = false;
+#ifdef YAZE_ENABLE_TESTING
   show_test_dashboard_ = false;
+#endif
   
   toast_manager_.Show("All windows hidden", editor::ToastType::kInfo);
 }
@@ -2079,7 +2095,9 @@ void EditorManager::LoadDeveloperLayout() {
   
   // Developer layout: Code editor, assembly editor, test dashboard
   current_editor_set_->assembly_editor_.set_active(true);
+#ifdef YAZE_ENABLE_TESTING
   show_test_dashboard_ = true;
+#endif
   show_imgui_metrics_ = true;
   
   // Hide non-dev windows
@@ -2101,7 +2119,9 @@ void EditorManager::LoadDesignerLayout() {
   
   // Hide non-design windows
   current_editor_set_->assembly_editor_.set_active(false);
+#ifdef YAZE_ENABLE_TESTING
   show_test_dashboard_ = false;
+#endif
   show_imgui_metrics_ = false;
   
   toast_manager_.Show("Designer layout loaded", editor::ToastType::kSuccess);

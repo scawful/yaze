@@ -110,8 +110,10 @@ endif()
 if(YAZE_BUILD_TESTS AND TARGET gtest AND TARGET gtest_main)
   target_link_libraries(yaze PRIVATE gtest gtest_main)
   target_compile_definitions(yaze PRIVATE YAZE_ENABLE_GTEST=1)
+  target_compile_definitions(yaze PRIVATE YAZE_ENABLE_TESTING=1)
 else()
   target_compile_definitions(yaze PRIVATE YAZE_ENABLE_GTEST=0)
+  target_compile_definitions(yaze PRIVATE YAZE_ENABLE_TESTING=0)
 endif()
 
 # Conditionally link PNG if available
