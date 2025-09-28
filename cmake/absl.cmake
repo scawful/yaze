@@ -53,10 +53,6 @@ set(
   absl::container_memory
   absl::memory
   absl::utility
-  absl::strings_internal
-  absl::str_format_internal
-  absl::flags_internal
-  absl::container_internal
 )
 
 # Add int128 only on non-Windows platforms to avoid C++23 deprecation issues
