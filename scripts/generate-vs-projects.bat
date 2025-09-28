@@ -150,8 +150,17 @@ if exist "%EXISTING_SOLUTION_FILE%" (
     findstr /C:"YAZE.vcxproj" "%EXISTING_SOLUTION_FILE%" >nul
     if not errorlevel 1 (
         echo ✅ Solution file references YAZE.vcxproj correctly
+        
+        REM Check if project configurations are set up
+        findstr /C:"ProjectConfigurationPlatforms" "%EXISTING_SOLUTION_FILE%" >nul
+        if not errorlevel 1 (
+            echo ✅ Project configurations are properly set up
+        ) else (
+            echo ⚠️  Warning: Project configurations may not be set up
+        )
     ) else (
-        echo ⚠️  Warning: Solution file may not reference YAZE.vcxproj properly
+        echo ❌ Solution file does not reference YAZE.vcxproj
+        echo Please ensure the solution file includes the YAZE project
     )
     
     REM Try to open solution in Visual Studio
