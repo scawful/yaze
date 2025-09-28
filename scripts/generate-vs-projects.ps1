@@ -202,8 +202,16 @@ if (Test-Path $ExistingSolutionFile) {
     $SolutionContent = Get-Content $ExistingSolutionFile -Raw
     if ($SolutionContent -match "YAZE\.vcxproj") {
         Write-Host "✅ Solution file references YAZE.vcxproj correctly" -ForegroundColor Green
+        
+        # Check if project configurations are set up
+        if ($SolutionContent -match "ProjectConfigurationPlatforms") {
+            Write-Host "✅ Project configurations are properly set up" -ForegroundColor Green
+        } else {
+            Write-Host "⚠️  Warning: Project configurations may not be set up" -ForegroundColor Yellow
+        }
     } else {
-        Write-Host "⚠️  Warning: Solution file may not reference YAZE.vcxproj properly" -ForegroundColor Yellow
+        Write-Host "❌ Solution file does not reference YAZE.vcxproj" -ForegroundColor Red
+        Write-Host "Please ensure the solution file includes the YAZE project" -ForegroundColor Yellow
     }
     
     # Open solution in Visual Studio if available
