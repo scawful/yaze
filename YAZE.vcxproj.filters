@@ -797,10 +797,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="build\src\lib\asar\src\asar\asar.vcxproj">
-      <Filter>Dependencies\Build Steps</Filter>
-    </CustomBuild>
-    <CustomBuild Include="build\src\lib\imgui\ImGui.vcxproj">
+    <CustomBuild Include="CMakeLists.txt">
       <Filter>Dependencies\Build Steps</Filter>
     </CustomBuild>
   </ItemGroup>

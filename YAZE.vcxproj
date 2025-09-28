@@ -1059,17 +1059,17 @@
     <PackageReference Include="sdl2" Version="2.28.5" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="build\src\lib\asar\src\asar\asar.vcxproj">
-      <Message>Building asar library...</Message>
+    <CustomBuild Include="CMakeLists.txt">
+      <Message>Building asar-static library...</Message>
       <Command>cmake --build "$(ProjectDir)build" --target asar-static --config $(Configuration)</Command>
       <Outputs>$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration)\asar-static.lib</Outputs>
-      <AdditionalInputs>$(ProjectDir)CMakeLists.txt</AdditionalInputs>
+      <AdditionalInputs>$(ProjectDir)CMakeLists.txt;$(ProjectDir)src\lib\asar\CMakeLists.txt</AdditionalInputs>
     </CustomBuild>
-    <CustomBuild Include="build\src\lib\imgui\ImGui.vcxproj">
+    <CustomBuild Include="CMakeLists.txt">
       <Message>Building ImGui library...</Message>
       <Command>cmake --build "$(ProjectDir)build" --target ImGui --config $(Configuration)</Command>
       <Outputs>$(ProjectDir)build\lib\$(Configuration)\ImGui.lib</Outputs>
-      <AdditionalInputs>$(ProjectDir)CMakeLists.txt</AdditionalInputs>
+      <AdditionalInputs>$(ProjectDir)CMakeLists.txt;$(ProjectDir)cmake\imgui.cmake</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
 </Project>
