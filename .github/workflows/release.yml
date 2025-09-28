@@ -200,6 +200,15 @@ jobs:
         Write-Host "vcpkg setup failed, using minimal build configuration"
 
     # Configure CMake
+    # Clean build directory to avoid cache issues
+    - name: Clean build directory (Linux/macOS)
+      if: runner.os != 'Windows'
+      run: |
+        echo "Cleaning build directory to ensure fresh configuration..."
+        rm -rf build
+        mkdir -p build
+        echo "Build directory cleaned successfully"
+
     - name: Configure CMake (Linux/macOS)
       if: runner.os != 'Windows'
       run: |
@@ -215,6 +224,18 @@ jobs:
           -DYAZE_INSTALL_LIB=OFF \
           -DYAZE_MINIMAL_BUILD=OFF \
           -GNinja
+
+    # Clean build directory to avoid cache issues
+    - name: Clean build directory (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Write-Host "Cleaning build directory to ensure fresh configuration..."
+        if (Test-Path "build") {
+          Remove-Item -Recurse -Force "build"
+        }
+        New-Item -ItemType Directory -Path "build" | Out-Null
+        Write-Host "Build directory cleaned successfully"
 
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
