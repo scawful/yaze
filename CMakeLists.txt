@@ -7,6 +7,25 @@ if(POLICY CMP0091)
   cmake_policy(SET CMP0091 NEW)
 endif()
 
+# Set additional policies to handle submodule compatibility
+if(POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+endif()
+if(POLICY CMP0077)
+  cmake_policy(SET CMP0077 NEW)
+endif()
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif()
+
+# Suppress deprecation warnings from submodules
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "Suppress deprecation warnings")
+
+# Handle pthread issues on Windows
+if(WIN32)
+    set(THREADS_PREFER_PTHREAD_FLAG OFF)
+endif()
+
 project(yaze VERSION 0.3.1
              DESCRIPTION "Yet Another Zelda3 Editor"
              LANGUAGES CXX C)
