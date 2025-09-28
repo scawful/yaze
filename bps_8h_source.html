@@ -107,23 +107,25 @@ $(document).ready(function(){initNavTree('bps_8h_source.html',''); initResizable
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span>util {</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">CreateBpsPatch</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;source,</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>                    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;target,</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>                    std::vector&lt;uint8_t&gt; &amp;patch);</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1util.html#abbe25f414b138eba0da9a3ec31592f51">ApplyBpsPatch</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;source,</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>                   <span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;patch,</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>                   std::vector&lt;uint8_t&gt; &amp;target);</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>}  <span class="comment">// namespace util</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_UTIL_BPS_H</span></div>
-<div class="ttc" id="anamespaceyaze_1_1util_html_a3eadcc44d8287dad5ea9d6dbd25bd44d"><div class="ttname"><a href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">yaze::util::CreateBpsPatch</a></div><div class="ttdeci">absl::Status CreateBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</div><div class="ttdef"><b>Definition</b> <a href="bps_8cc_source.html#l00085">bps.cc:85</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1util_html_abbe25f414b138eba0da9a3ec31592f51"><div class="ttname"><a href="namespaceyaze_1_1util.html#abbe25f414b138eba0da9a3ec31592f51">yaze::util::ApplyBpsPatch</a></div><div class="ttdeci">absl::Status ApplyBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;output)</div><div class="ttdef"><b>Definition</b> <a href="bps_8cc_source.html#l00079">bps.cc:79</a></div></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span>util {</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>absl::Status <a class="code hl_function" href="namespaceyaze_1_1util.html#a0524682c7b6587c8f16ff285da129f01">CreateBpsPatch</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;source,</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>                    <span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;target,</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>                    std::vector&lt;uint8_t&gt; &amp;patch);</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>absl::Status <a class="code hl_function" href="namespaceyaze_1_1util.html#a02f0b319c52c7737a993173bb2a6a435">ApplyBpsPatch</a>(<span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;source,</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>                   <span class="keyword">const</span> std::vector&lt;uint8_t&gt; &amp;patch,</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>                   std::vector&lt;uint8_t&gt; &amp;target);</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>}  <span class="comment">// namespace util</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_UTIL_BPS_H</span></div>
+<div class="ttc" id="anamespaceyaze_1_1util_html_a02f0b319c52c7737a993173bb2a6a435"><div class="ttname"><a href="namespaceyaze_1_1util.html#a02f0b319c52c7737a993173bb2a6a435">yaze::util::ApplyBpsPatch</a></div><div class="ttdeci">absl::Status ApplyBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;output)</div><div class="ttdef"><b>Definition</b> <a href="bps_8cc_source.html#l00079">bps.cc:79</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1util_html_a0524682c7b6587c8f16ff285da129f01"><div class="ttname"><a href="namespaceyaze_1_1util.html#a0524682c7b6587c8f16ff285da129f01">yaze::util::CreateBpsPatch</a></div><div class="ttdeci">absl::Status CreateBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</div><div class="ttdef"><b>Definition</b> <a href="bps_8cc_source.html#l00085">bps.cc:85</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

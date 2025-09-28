@@ -153,7 +153,7 @@ var searchData=
   ['createbitmap_150',['CreateBitmap',['../classyaze_1_1zelda3_1_1ObjectRenderer.html#ae0992d00edc9798efc3fc102f698fda1',1,'yaze::zelda3::ObjectRenderer']]],
   ['createbossroompalette_151',['CreateBossRoomPalette',['../classyaze_1_1test_1_1DungeonObjectRenderingTests.html#aa0a1829f6622f3fdae9e8b80d66c3073',1,'yaze::test::DungeonObjectRenderingTests']]],
   ['createbossroomscenario_152',['CreateBossRoomScenario',['../classyaze_1_1test_1_1DungeonObjectRenderingTests.html#abb1750391b036a2f8d65cbb27f592828',1,'yaze::test::DungeonObjectRenderingTests']]],
-  ['createbpspatch_153',['CreateBpsPatch',['../namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d',1,'yaze::util']]],
+  ['createbpspatch_153',['CreateBpsPatch',['../namespaceyaze_1_1util.html#a0524682c7b6587c8f16ff285da129f01',1,'yaze::util']]],
   ['createcomplexroomscenario_154',['CreateComplexRoomScenario',['../classyaze_1_1test_1_1DungeonObjectRenderingTests.html#aaeadb4cf712364576ef625f8f675cde4',1,'yaze::test::DungeonObjectRenderingTests']]],
   ['createcompressionstring_155',['CreateCompressionString',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a8d462af8b98a9ecee8f91c524fc1ed2e',1,'yaze::gfx::lc_lz2']]],
   ['createcustomtheme_156',['CreateCustomTheme',['../classyaze_1_1gui_1_1ThemeManager.html#aa1d7d9c474aaf5f426fe7aacf1c32de2',1,'yaze::gui::ThemeManager']]],

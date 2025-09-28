@@ -1,5 +1,5 @@
 var bps_8h =
 [
-    [ "CreateBpsPatch", "bps_8h.html#a3eadcc44d8287dad5ea9d6dbd25bd44d", null ],
-    [ "ApplyBpsPatch", "bps_8h.html#abbe25f414b138eba0da9a3ec31592f51", null ]
+    [ "CreateBpsPatch", "bps_8h.html#a0524682c7b6587c8f16ff285da129f01", null ],
+    [ "ApplyBpsPatch", "bps_8h.html#a02f0b319c52c7737a993173bb2a6a435", null ]
 ];

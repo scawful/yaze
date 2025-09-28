@@ -197,7 +197,7 @@ var searchData=
   ['application_194',['Running the Application',['../md_docs_2visual-studio-setup.html#autotoc_md579',1,'']]],
   ['applications_195',['applications',['../md_docs_202-build-instructions.html#autotoc_md24',1,'Applications'],['../md_README.html#autotoc_md648',1,'Applications']]],
   ['applyasarpatchcomponent_196',['ApplyAsarPatchComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a5071629fc6cbcafef9c3efa6c851f536',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
-  ['applybpspatch_197',['ApplyBpsPatch',['../namespaceyaze_1_1util.html#abbe25f414b138eba0da9a3ec31592f51',1,'yaze::util']]],
+  ['applybpspatch_197',['ApplyBpsPatch',['../namespaceyaze_1_1util.html#a02f0b319c52c7737a993173bb2a6a435',1,'yaze::util']]],
   ['applybpspatchcomponent_198',['ApplyBpsPatchComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a6588526a2719d947bb19f4ad714989a6',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
   ['applyclassicyazetheme_199',['ApplyClassicYazeTheme',['../classyaze_1_1gui_1_1ThemeManager.html#af6d205f94a3158450cd1d13874582288',1,'yaze::gui::ThemeManager']]],
   ['applycustomoverworldasm_200',['ApplyCustomOverworldASM',['../classyaze_1_1editor_1_1OverworldEditorManager.html#af626291a78dbd86e331f54bcd5de6d96',1,'yaze::editor::OverworldEditorManager']]],
