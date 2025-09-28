@@ -4,14 +4,16 @@
 #include <cstdint>
 #include <vector>
 
+#include "absl/status/status.h"
+
 namespace yaze {
 namespace util {
 
-void CreateBpsPatch(const std::vector<uint8_t> &source,
+absl::Status CreateBpsPatch(const std::vector<uint8_t> &source,
                     const std::vector<uint8_t> &target,
                     std::vector<uint8_t> &patch);
 
-void ApplyBpsPatch(const std::vector<uint8_t> &source,
+absl::Status ApplyBpsPatch(const std::vector<uint8_t> &source,
                    const std::vector<uint8_t> &patch,
                    std::vector<uint8_t> &target);
 
