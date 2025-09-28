@@ -172,7 +172,7 @@ jobs:
       continue-on-error: true
       timeout-minutes: 10
       with:
-        vcpkgGitCommitId: '4bee3f5aae7aefbc129ca81c33d6a062b02fcf3b'
+        vcpkgGitCommitId: '2024.01.12'
         runVcpkgInstall: true
         vcpkgJsonGlob: '**/vcpkg.json'
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
@@ -248,95 +248,93 @@ jobs:
       run: |
         Write-Host "Configuring CMake for Windows build..."
         Write-Host "Build type: ${{ env.BUILD_TYPE }}"
-        Write-Host "YAZE_BUILD_TESTS will be set to OFF"
+        Write-Host "Platform: ${{ matrix.cmake_generator_platform }}"
         
-        # Check if vcpkg is available
+        # Build configuration parameters
+        $cmakeArgs = @(
+          "-B", "build",
+          "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}",
+          "-DCMAKE_POLICY_VERSION_MINIMUM=3.16",
+          "-DYAZE_BUILD_TESTS=OFF",
+          "-DYAZE_BUILD_EMU=OFF", 
+          "-DYAZE_ENABLE_ROM_TESTS=OFF",
+          "-DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF",
+          "-DYAZE_INSTALL_LIB=OFF",
+          "-G", "${{ matrix.cmake_generator }}",
+          "-A", "${{ matrix.cmake_generator_platform }}"
+        )
+        
+        # Add vcpkg toolchain if available
         if ((Test-Path "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake") -and ($env:VCPKG_AVAILABLE -ne "false")) {
           Write-Host "Using vcpkg toolchain..."
-          cmake -B build `
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
-            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
-            -DYAZE_BUILD_TESTS=OFF `
-            -DYAZE_BUILD_EMU=OFF `
-            -DYAZE_ENABLE_ROM_TESTS=OFF `
-            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
-            -DYAZE_INSTALL_LIB=OFF `
-            -DYAZE_MINIMAL_BUILD=OFF `
-            -G "${{ matrix.cmake_generator }}" `
-            -A ${{ matrix.cmake_generator_platform }}
+          $cmakeArgs += "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          $cmakeArgs += "-DYAZE_MINIMAL_BUILD=OFF"
         } else {
           Write-Host "Using minimal build configuration (vcpkg not available)..."
-          cmake -B build `
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
-            -DYAZE_BUILD_TESTS=OFF `
-            -DYAZE_BUILD_EMU=OFF `
-            -DYAZE_ENABLE_ROM_TESTS=OFF `
-            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
-            -DYAZE_INSTALL_LIB=OFF `
-            -DYAZE_MINIMAL_BUILD=ON `
-            -G "${{ matrix.cmake_generator }}" `
-            -A ${{ matrix.cmake_generator_platform }}
+          $cmakeArgs += "-DYAZE_MINIMAL_BUILD=ON"
+        }
+        
+        # Run CMake configuration
+        & cmake @cmakeArgs
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "CMake configuration failed!"
+          exit 1
         }
         
         Write-Host "CMake configuration completed successfully"
-        
-        # Verify the configuration
-        Write-Host "Verifying CMake configuration..."
-        Write-Host "Checking if test targets are present..."
-        cmake --build build --target help 2>&1 | findstr "yaze_test" || echo "yaze_test target not found (good!)"
-        Write-Host "Configuration verification completed"
 
     # Build
     - name: Build
-      shell: bash
+      shell: pwsh
       run: |
-        echo "Building YAZE for ${{ matrix.name }}..."
+        Write-Host "Building YAZE for ${{ matrix.name }}..."
         cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
-        echo "Build completed successfully!"
+        Write-Host "Build completed successfully!"
         
         # For Windows, also create a package using CMake's packaging system
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          echo "Creating Windows package using CMake..."
+        if ("${{ runner.os }}" -eq "Windows") {
+          Write-Host "Creating Windows package using CMake..."
           cmake --build build --config ${{ env.BUILD_TYPE }} --target package
-          echo "CMake package created successfully!"
-        fi
+          Write-Host "CMake package created successfully!"
+        }
 
     # Test executable functionality
     - name: Test executable functionality
-      shell: bash
+      shell: pwsh
       run: |
-        set -e
-        
-        echo "Testing executable for ${{ matrix.name }}..."
+        Write-Host "Testing executable for ${{ matrix.name }}..."
         
         # Determine executable path based on platform
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          exePath="build/bin/${{ env.BUILD_TYPE }}/yaze.exe"
-        elif [[ "${{ runner.os }}" == "macOS" ]]; then
-          exePath="build/bin/yaze.app/Contents/MacOS/yaze"
-        else
-          exePath="build/bin/yaze"
-        fi
+        if ("${{ runner.os }}" -eq "Windows") {
+          $exePath = "build\bin\${{ env.BUILD_TYPE }}\yaze.exe"
+        } elseif ("${{ runner.os }}" -eq "macOS") {
+          $exePath = "build/bin/yaze.app/Contents/MacOS/yaze"
+        } else {
+          $exePath = "build/bin/yaze"
+        }
         
-        if [ -f "$exePath" ]; then
-          echo "✓ Executable found: $exePath"
+        if (Test-Path $exePath) {
+          Write-Host "✓ Executable found: $exePath"
           
           # Test that it's not the test main
-          testResult=$($exePath --help 2>&1 || true)
-          exitCode=$?
+          try {
+            $testResult = & $exePath --help 2>&1
+            $exitCode = $LASTEXITCODE
+          } catch {
+            $testResult = $_.Exception.Message
+            $exitCode = 1
+          }
           
-          if echo "$testResult" | grep -q "Google Test\|gtest"; then
-            echo "ERROR: Executable is running test main instead of app main!"
-            echo "Output: $testResult"
+          if ($testResult -match "Google Test|gtest") {
+            Write-Host "ERROR: Executable is running test main instead of app main!"
+            Write-Host "Output: $testResult"
             exit 1
-          fi
+          }
           
-          echo "✓ Executable runs correctly (exit code: $exitCode)"
+          Write-Host "✓ Executable runs correctly (exit code: $exitCode)"
           
           # Display file info
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
+          if ("${{ runner.os }}" -eq "Windows") {
             fileSize=$(stat -c%s "$exePath" 2>/dev/null || echo "0")
           else
             fileSize=$(stat -f%z "$exePath" 2>/dev/null || stat -c%s "$exePath" 2>/dev/null || echo "0")
@@ -350,78 +348,82 @@ jobs:
 
     # Package
     - name: Package
-      shell: bash
+      shell: pwsh
       run: |
-        echo "Packaging for ${{ matrix.name }}..."
+        Write-Host "Packaging for ${{ matrix.name }}..."
         
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
+        if ("${{ runner.os }}" -eq "Windows") {
           # Windows packaging - prefer CMake package if available
-          echo "Creating Windows package..."
+          Write-Host "Creating Windows package..."
           
           # Check if CMake created a package
-          if [ -f "build/yaze-*.zip" ]; then
-            echo "Using CMake-generated package..."
-            cp build/yaze-*.zip ${{ matrix.artifact_name }}.zip
-            echo "CMake package copied successfully"
-          else
-            echo "CMake package not found, creating manual package..."
-            mkdir -p package
+          $cmakePackages = Get-ChildItem "build" -Filter "yaze-*.zip" -ErrorAction SilentlyContinue
+          if ($cmakePackages) {
+            Write-Host "Using CMake-generated package..."
+            Copy-Item $cmakePackages[0].FullName "${{ matrix.artifact_name }}.zip"
+            Write-Host "CMake package copied successfully"
+          } else {
+            Write-Host "CMake package not found, creating manual package..."
+            New-Item -ItemType Directory -Path "package" -Force | Out-Null
             
             # Copy main executable and DLLs
-            echo "Copying binaries..."
-            if [ -d "build/bin/${{ env.BUILD_TYPE }}" ]; then
-              cp -r build/bin/${{ env.BUILD_TYPE }}/* package/
-            elif [ -d "build/bin/Debug" ]; then
-              cp -r build/bin/Debug/* package/
-            else
-              echo "ERROR: No binaries found in build/bin/"
+            Write-Host "Copying binaries..."
+            $binPath = "build\bin\${{ env.BUILD_TYPE }}"
+            if (-not (Test-Path $binPath)) {
+              $binPath = "build\bin\Debug"
+            }
+            if (Test-Path $binPath) {
+              Copy-Item "$binPath\*" "package\" -Recurse -Force
+            } else {
+              Write-Host "ERROR: No binaries found in build/bin/"
               exit 1
-            fi
+            }
             
             # Copy assets
-            echo "Copying assets..."
-            if [ -d "assets" ]; then
-              cp -r assets package/
-            else
-              echo "WARNING: assets directory not found"
-            fi
+            Write-Host "Copying assets..."
+            if (Test-Path "assets") {
+              Copy-Item "assets" "package\" -Recurse -Force
+            } else {
+              Write-Host "WARNING: assets directory not found"
+            }
             
             # Copy documentation
-            echo "Copying documentation..."
-            cp LICENSE package/ 2>/dev/null || echo "LICENSE not found"
-            cp README.md package/ 2>/dev/null || echo "README.md not found"
+            Write-Host "Copying documentation..."
+            if (Test-Path "LICENSE") { Copy-Item "LICENSE" "package\" }
+            if (Test-Path "README.md") { Copy-Item "README.md" "package\" }
             
             # Copy vcpkg DLLs if available (for Windows builds with vcpkg)
-            if [ -d "vcpkg/installed/${{ matrix.vcpkg_triplet }}/bin" ]; then
-              echo "Copying vcpkg DLLs..."
-              cp vcpkg/installed/${{ matrix.vcpkg_triplet }}/bin/*.dll package/ 2>/dev/null || echo "No vcpkg DLLs found"
-            fi
+            $vcpkgBinPath = "vcpkg\installed\${{ matrix.vcpkg_triplet }}\bin"
+            if (Test-Path $vcpkgBinPath) {
+              Write-Host "Copying vcpkg DLLs..."
+              Copy-Item "$vcpkgBinPath\*.dll" "package\" -ErrorAction SilentlyContinue
+            }
             
             # List package contents for verification
-            echo "Package contents:"
-            ls -la package/
+            Write-Host "Package contents:"
+            Get-ChildItem "package" -Recurse
             
             # Use PowerShell Compress-Archive for Windows
-            powershell -Command "Compress-Archive -Path 'package\*' -DestinationPath '${{ matrix.artifact_name }}.zip' -Force"
-          fi
+            Compress-Archive -Path "package\*" -DestinationPath "${{ matrix.artifact_name }}.zip" -Force
+          }
           
-        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+        } elseif ("${{ runner.os }}" -eq "macOS") {
           # macOS packaging using dedicated script
-          VERSION_NUM=$(echo "${{ needs.validate-and-prepare.outputs.tag_name }}" | sed 's/^v//')
-          ./scripts/create-macos-bundle.sh "$VERSION_NUM" "${{ matrix.artifact_name }}"
+          $versionNum = "${{ needs.validate-and-prepare.outputs.tag_name }}" -replace "^v", ""
+          & ./scripts/create-macos-bundle.sh $versionNum "${{ matrix.artifact_name }}"
           
-        else
+        } else {
           # Linux packaging
-          mkdir package
-          cp build/bin/yaze package/
-          cp -r assets package/ 2>/dev/null || echo "assets directory not found"
-          cp -r docs package/ 2>/dev/null || echo "docs directory not found"
-          cp LICENSE package/ 2>/dev/null || echo "LICENSE not found"
-          cp README.md package/ 2>/dev/null || echo "README.md not found"
-          tar -czf ${{ matrix.artifact_name }}.tar.gz -C package .
-        fi
+          New-Item -ItemType Directory -Path "package" -Force | Out-Null
+          Copy-Item "build/bin/yaze" "package/"
+          if (Test-Path "assets") { Copy-Item "assets" "package/" -Recurse }
+          if (Test-Path "docs") { Copy-Item "docs" "package/" -Recurse }
+          if (Test-Path "LICENSE") { Copy-Item "LICENSE" "package/" }
+          if (Test-Path "README.md") { Copy-Item "README.md" "package/" }
+          & tar -czf "${{ matrix.artifact_name }}.tar.gz" -C package .
+        }
         
-        echo "Packaging completed successfully!"
+        Write-Host "Packaging completed successfully!"
 
     # Create release with artifacts
     - name: Upload to Release
