@@ -147,7 +147,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\strings\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\str_format\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\flags\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\status\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\base\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\hash\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\container\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\synchronization\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_status.lib;absl_statusor.lib;absl_base.lib;absl_hash.lib;absl_flat_hash_map.lib;absl_synchronization.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -168,7 +168,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\strings\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\str_format\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\flags\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\status\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\base\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\hash\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\container\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\synchronization\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_status.lib;absl_statusor.lib;absl_base.lib;absl_hash.lib;absl_flat_hash_map.lib;absl_synchronization.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -185,7 +185,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\strings\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\str_format\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\flags\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\status\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\base\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\hash\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\container\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\synchronization\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_status.lib;absl_statusor.lib;absl_base.lib;absl_hash.lib;absl_flat_hash_map.lib;absl_synchronization.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -206,7 +206,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\strings\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\str_format\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\flags\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\status\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\base\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\hash\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\container\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\synchronization\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_status.lib;absl_statusor.lib;absl_base.lib;absl_hash.lib;absl_flat_hash_map.lib;absl_synchronization.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -223,7 +223,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\strings\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\str_format\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\flags\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\status\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\base\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\hash\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\container\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\synchronization\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_status.lib;absl_statusor.lib;absl_base.lib;absl_hash.lib;absl_flat_hash_map.lib;absl_synchronization.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -244,7 +244,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\strings\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\str_format\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\flags\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\status\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\base\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\hash\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\container\$(Configuration);$(ProjectDir)build\src\lib\abseil-cpp\absl\synchronization\$(Configuration);$(ProjectDir)vcpkg_installed\$(Platform)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>asar-static.lib;ImGui.lib;absl_strings.lib;absl_str_format.lib;absl_flags.lib;absl_flags_parse.lib;absl_flags_usage.lib;absl_status.lib;absl_statusor.lib;absl_base.lib;absl_hash.lib;absl_flat_hash_map.lib;absl_synchronization.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
