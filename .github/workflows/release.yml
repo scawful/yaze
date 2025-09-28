@@ -171,7 +171,7 @@ jobs:
         # Install Homebrew dependencies needed for UI tests and full builds
         brew install pkg-config libpng boost abseil ninja gtk+3
 
-    # Set up vcpkg for Windows builds
+    # Set up vcpkg for Windows builds (Abseil removed from vcpkg.json to avoid MSYS2 issues)
     - name: Set up vcpkg (Windows)
       if: runner.os == 'Windows'
       uses: lukka/run-vcpkg@v11
@@ -209,15 +209,15 @@ jobs:
       shell: pwsh
       run: |
         Write-Host "Configuring CMake for Windows build..."
+        Write-Host "Note: Using source-built Abseil, vcpkg for other dependencies"
         
-        # Use vcpkg toolchain
+        # Use vcpkg toolchain (Abseil will be built from source via cmake/absl.cmake)
         cmake -B build `
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
           -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
           -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
           -DYAZE_BUILD_TESTS=OFF `
           -DYAZE_BUILD_EMU=OFF `
-          -DYAZE_BUILD_Z3ED=OFF `
           -DYAZE_ENABLE_ROM_TESTS=OFF `
           -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
           -DYAZE_INSTALL_LIB=OFF `
