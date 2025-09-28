@@ -129,11 +129,12 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;SILENCE_CXX23_DEPRECATIONS;_SILENCE_CXX23_DEPRECATION_WARNING;_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS;NOMINMAX;WIN32_LEAN_AND_MEAN;strncasecmp=_strnicmp;strcasecmp=_stricmp;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -144,13 +145,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;SILENCE_CXX23_DEPRECATIONS;_SILENCE_CXX23_DEPRECATION_WARNING;_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS;NOMINMAX;WIN32_LEAN_AND_MEAN;strncasecmp=_strnicmp;strcasecmp=_stricmp;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -163,11 +165,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;SILENCE_CXX23_DEPRECATIONS;_SILENCE_CXX23_DEPRECATION_WARNING;_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS;NOMINMAX;WIN32_LEAN_AND_MEAN;strncasecmp=_strnicmp;strcasecmp=_stricmp;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -178,13 +181,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;SILENCE_CXX23_DEPRECATIONS;_SILENCE_CXX23_DEPRECATION_WARNING;_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS;NOMINMAX;WIN32_LEAN_AND_MEAN;strncasecmp=_strnicmp;strcasecmp=_stricmp;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -197,11 +201,12 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;SILENCE_CXX23_DEPRECATIONS;_SILENCE_CXX23_DEPRECATION_WARNING;_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS;NOMINMAX;WIN32_LEAN_AND_MEAN;strncasecmp=_strnicmp;strcasecmp=_stricmp;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -212,13 +217,14 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;SILENCE_CXX23_DEPRECATIONS;_SILENCE_CXX23_DEPRECATION_WARNING;_SILENCE_ALL_CXX23_DEPRECATION_WARNINGS;NOMINMAX;WIN32_LEAN_AND_MEAN;strncasecmp=_strnicmp;strcasecmp=_stricmp;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalOptions>/permissive- /bigobj /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>src;src\app;src\lib;src\util;incl;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;src\lib\imgui;src\lib\imgui_test_engine;src\lib\abseil-cpp;src\lib\SDL\include;$(ProjectDir)build;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
