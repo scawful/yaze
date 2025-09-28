@@ -98,6 +98,20 @@ elseif(YAZE_PLATFORM_MACOS)
 elseif(YAZE_PLATFORM_WINDOWS)
     include(cmake/vcpkg.cmake)
     target_compile_definitions(yaze_common INTERFACE WINDOWS)
+    
+    # Windows-specific architecture detection and configuration
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
+        target_compile_definitions(yaze_common INTERFACE YAZE_ARCH_ARM64)
+        message(STATUS "Building for Windows ARM64")
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64|x86_64")
+        target_compile_definitions(yaze_common INTERFACE YAZE_ARCH_X64)
+        message(STATUS "Building for Windows x64")
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "i386|i686|x86")
+        target_compile_definitions(yaze_common INTERFACE YAZE_ARCH_X86)
+        message(STATUS "Building for Windows x86")
+    else()
+        message(WARNING "Unknown Windows architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
 endif()
 
 # Compiler-specific settings
