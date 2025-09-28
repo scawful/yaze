@@ -235,7 +235,6 @@ jobs:
             -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
             -DYAZE_INSTALL_LIB=OFF `
             -DYAZE_MINIMAL_BUILD=OFF `
-            -DGTEST_DISCOVER_TESTS_DISCOVERY_MODE=POST_BUILD `
             -G "${{ matrix.cmake_generator }}" `
             -A ${{ matrix.cmake_generator_platform }}
         } else {
@@ -249,7 +248,6 @@ jobs:
             -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
             -DYAZE_INSTALL_LIB=OFF `
             -DYAZE_MINIMAL_BUILD=ON `
-            -DGTEST_DISCOVER_TESTS_DISCOVERY_MODE=POST_BUILD `
             -G "${{ matrix.cmake_generator }}" `
             -A ${{ matrix.cmake_generator_platform }}
         }
