@@ -18,8 +18,9 @@ var searchData=
   ['1_20version_20detection_20issues_15',['1. Version Detection Issues',['../md_docs_2F1-overworld-loading.html#autotoc_md430',1,'']]],
   ['1_20version_20specific_20code_16',['1. Version-Specific Code',['../md_docs_2F1-overworld-loading.html#autotoc_md437',1,'']]],
   ['1444_20lines_17',['Before Refactoring: 1444 lines',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md317',1,'']]],
-  ['1_3a_20create_20components_20✅_18',['Phase 1: Create Components ✅',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md342',1,'']]],
-  ['1_3a_20install_20via_20package_20recommended_19',['Method 1: Install via Package (Recommended)',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md472',1,'']]],
-  ['1_3a_20room_20control_20panel_20280px_20fixed_20',['Column 1: Room Control Panel (280px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md369',1,'']]],
-  ['1_3a_20zlib_20import_20errors_21',['Issue 1: zlib Import Errors',['../md_docs_2visual-studio-setup.html#autotoc_md498',1,'']]]
+  ['1_3a_20automated_20setup_20recommended_18',['Option 1: Automated Setup (Recommended)',['../md_scripts_2README.html#autotoc_md593',1,'']]],
+  ['1_3a_20create_20components_20✅_19',['Phase 1: Create Components ✅',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md342',1,'']]],
+  ['1_3a_20install_20via_20package_20recommended_20',['Method 1: Install via Package (Recommended)',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md472',1,'']]],
+  ['1_3a_20room_20control_20panel_20280px_20fixed_21',['Column 1: Room Control Panel (280px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md369',1,'']]],
+  ['1_3a_20zlib_20import_20errors_22',['Issue 1: zlib Import Errors',['../md_docs_2visual-studio-setup.html#autotoc_md498',1,'']]]
 ];

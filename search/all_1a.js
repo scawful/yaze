@@ -5,6 +5,7 @@ var searchData=
   ['quick_20examples_2',['Quick Examples',['../md_docs_203-asar-integration.html#autotoc_md51',1,'']]],
   ['quick_20setup_3',['Quick Setup',['../md_docs_2windows-development-guide.html#autotoc_md531',1,'']]],
   ['quick_20start_4',['quick start',['../md_docs_2B3-build-presets.html#autotoc_md154',1,'🚀 Quick Start'],['../md_docs_201-getting-started.html#autotoc_md1',1,'Quick Start'],['../md_docs_202-build-instructions.html#autotoc_md7',1,'Quick Start'],['../md_docs_2B1-contributing.html#autotoc_md108',1,'Quick Start'],['../md_docs_2index.html#autotoc_md443',1,'Quick Start'],['../md_docs_2vcpkg-integration.html#autotoc_md454',1,'Quick Start'],['../md_README.html#autotoc_md571',1,'Quick Start']]],
-  ['quit_5',['quit',['../classyaze_1_1editor_1_1EditorManager.html#aa6c97335949b04ba51ae275497c11d30',1,'yaze::editor::EditorManager']]],
-  ['quit_5f_6',['quit_',['../classyaze_1_1editor_1_1EditorManager.html#a36209b8a5b17d613060c3d06f0359ad8',1,'yaze::editor::EditorManager']]]
+  ['quick_20start_20windows_5',['Quick Start (Windows)',['../md_scripts_2README.html#autotoc_md592',1,'']]],
+  ['quit_6',['quit',['../classyaze_1_1editor_1_1EditorManager.html#aa6c97335949b04ba51ae275497c11d30',1,'yaze::editor::EditorManager']]],
+  ['quit_5f_7',['quit_',['../classyaze_1_1editor_1_1EditorManager.html#a36209b8a5b17d613060c3d06f0359ad8',1,'yaze::editor::EditorManager']]]
 ];

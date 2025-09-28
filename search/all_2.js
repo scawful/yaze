@@ -23,5 +23,6 @@ var searchData=
   ['2_3a_20create_20triplet_20file_20manually_20',['Method 2: Create Triplet File Manually',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md473',1,'']]],
   ['2_3a_20executable_20runs_20tests_20instead_20of_20main_20app_21',['Issue 2: Executable Runs Tests Instead of Main App',['../md_docs_2visual-studio-setup.html#autotoc_md499',1,'']]],
   ['2_3a_20integrate_20components_20🔄_22',['Phase 2: Integrate Components 🔄',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md343',1,'']]],
-  ['2_3a_20windowed_20canvas_20800px_20fixed_23',['Column 2: Windowed Canvas (800px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md370',1,'']]]
+  ['2_3a_20manual_20setup_23',['Option 2: Manual Setup',['../md_scripts_2README.html#autotoc_md594',1,'']]],
+  ['2_3a_20windowed_20canvas_20800px_20fixed_24',['Column 2: Windowed Canvas (800px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md370',1,'']]]
 ];

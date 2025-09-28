@@ -1,5 +1,10 @@
 var NAVTREEINDEX52 =
 {
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md227":[11,3],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md228":[11,3,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md229":[11,3,1],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md230":[11,3,2],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md231":[11,4],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md232":[11,4,0],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md233":[11,4,0,0],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md234":[11,4,0,1],
@@ -244,10 +249,5 @@ var NAVTREEINDEX52 =
 "md_docs_2vcpkg-triplet-setup.html#autotoc_md474":[18,3],
 "md_docs_2vcpkg-triplet-setup.html#autotoc_md475":[18,4],
 "md_docs_2vcpkg-triplet-setup.html#autotoc_md476":[18,5],
-"md_docs_2vcpkg-triplet-setup.html#autotoc_md477":[18,5,0],
-"md_docs_2vcpkg-triplet-setup.html#autotoc_md478":[18,5,1],
-"md_docs_2vcpkg-triplet-setup.html#autotoc_md479":[18,5,2],
-"md_docs_2vcpkg-triplet-setup.html#autotoc_md480":[18,6],
-"md_docs_2vcpkg-triplet-setup.html#autotoc_md481":[18,7],
-"md_docs_2vcpkg-triplet-setup.html#autotoc_md482":[18,8]
+"md_docs_2vcpkg-triplet-setup.html#autotoc_md477":[18,5,0]
 };

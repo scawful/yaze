@@ -20,5 +20,6 @@ var searchData=
   ['3_3a_20check_20available_20triplets_17',['Method 3: Check Available Triplets',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md474',1,'']]],
   ['3_3a_20move_20methods_18',['Phase 3: Move Methods',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md344',1,'']]],
   ['3_3a_20object_20selector_20editor_20stretch_19',['Column 3: Object Selector/Editor (stretch)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md371',1,'']]],
-  ['3_3a_20sdl2_20configuration_20issues_20',['Issue 3: SDL2 Configuration Issues',['../md_docs_2visual-studio-setup.html#autotoc_md500',1,'']]]
+  ['3_3a_20sdl2_20configuration_20issues_20',['Issue 3: SDL2 Configuration Issues',['../md_docs_2visual-studio-setup.html#autotoc_md500',1,'']]],
+  ['3_3a_20using_20batch_20scripts_21',['Option 3: Using Batch Scripts',['../md_scripts_2README.html#autotoc_md595',1,'']]]
 ];

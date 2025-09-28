@@ -1,6 +1,11 @@
 var NAVTREEINDEX51 =
 {
-"map__properties_8h_source.html":[28,0,3,0,1,5,3],
+"main_8mm.html#a0ddf1224851353fc92bfbff6f499fa97":[29,0,3,2,0,0],
+"main_8mm_source.html":[29,0,3,2,0],
+"map__properties_8cc.html":[29,0,3,0,1,5,2],
+"map__properties_8cc_source.html":[29,0,3,0,1,5,2],
+"map__properties_8h.html":[29,0,3,0,1,5,3],
+"map__properties_8h_source.html":[29,0,3,0,1,5,3],
 "md_README.html":[21],
 "md_README.html#autotoc_md566":[21,0],
 "md_README.html#autotoc_md570":[21,0,0],
@@ -244,10 +249,5 @@ var NAVTREEINDEX51 =
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md223":[11,2],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md224":[11,2,0],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md225":[11,2,0,0],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md226":[11,2,1],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md227":[11,3],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md228":[11,3,0],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md229":[11,3,1],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md230":[11,3,2],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md231":[11,4]
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md226":[11,2,1]
 };
