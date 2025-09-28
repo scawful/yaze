@@ -434,7 +434,11 @@ class ModernCLI {
 }  // namespace cli
 }  // namespace yaze
 
+#ifdef _WIN32
+extern "C" int SDL_main(int argc, char* argv[]) {
+#else
 int main(int argc, char* argv[]) {
+#endif
   absl::SetProgramUsageMessage(
     "z3ed - Yet Another Zelda3 Editor CLI Tool\n"
     "\n"
