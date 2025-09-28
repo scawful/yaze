@@ -19,7 +19,7 @@ var searchData=
   ['2_20vcpkg_20integration_20issues_16',['2. vcpkg Integration Issues',['../md_docs_2windows-development-guide.html#autotoc_md617',1,'']]],
   ['2023_17',['2023',['../md_docs_2C1-changelog.html#autotoc_md254',1,'0.0.3 (October 2023)'],['../md_docs_2C1-changelog.html#autotoc_md253',1,'0.0.4 (November 2023)'],['../md_docs_2C1-changelog.html#autotoc_md252',1,'0.0.5 (November 2023)'],['../md_docs_2C1-changelog.html#autotoc_md251',1,'0.0.6 (November 2023)']]],
   ['2024_18',['2024',['../md_docs_2C1-changelog.html#autotoc_md250',1,'0.0.7 (January 2024)'],['../md_docs_2C1-changelog.html#autotoc_md249',1,'0.0.8 (February 2024)'],['../md_docs_2C1-changelog.html#autotoc_md248',1,'0.0.9 (April 2024)'],['../md_docs_2C1-changelog.html#autotoc_md247',1,'0.1.0 (May 2024)'],['../md_docs_2C1-changelog.html#autotoc_md246',1,'0.2.0 (July 2024)'],['../md_docs_2C1-changelog.html#autotoc_md245',1,'0.2.1 (August 2024)'],['../md_docs_2C1-changelog.html#autotoc_md244',1,'0.2.2 (December 2024)']]],
-  ['2025_19',['0.3.0 (September 2025)',['../md_docs_2C1-changelog.html#autotoc_md238',1,'']]],
+  ['2025_19',['2025',['../md_docs_2C1-changelog.html#autotoc_md238',1,'0.3.0 (September 2025)'],['../md_docs_2C1-changelog.html#autotoc_md230',1,'0.3.1 (September 2025)']]],
   ['280px_20fixed_20',['Column 1: Room Control Panel (280px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md437',1,'']]],
   ['2_3a_20create_20triplet_20file_20manually_21',['Method 2: Create Triplet File Manually',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md542',1,'']]],
   ['2_3a_20executable_20runs_20tests_20instead_20of_20main_20app_22',['Issue 2: Executable Runs Tests Instead of Main App',['../md_docs_2visual-studio-setup.html#autotoc_md568',1,'']]],

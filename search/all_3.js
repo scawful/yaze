@@ -1,8 +1,8 @@
 var searchData=
 [
   ['3_200_20september_202025_0',['0.3.0 (September 2025)',['../md_docs_2C1-changelog.html#autotoc_md238',1,'']]],
-  ['3_201_1',['0.3.1',['../md_docs_2C1-changelog.html#autotoc_md230',1,'']]],
-  ['3_201_20release_2',['Version 0.3.1 - Release',['../md_README.html#autotoc_md636',1,'']]],
+  ['3_201_20release_1',['Version 0.3.1 - Release',['../md_README.html#autotoc_md636',1,'']]],
+  ['3_201_20september_202025_2',['0.3.1 (September 2025)',['../md_docs_2C1-changelog.html#autotoc_md230',1,'']]],
   ['3_20alternative_3a_20build_20with_20cmake_3',['3. Alternative: Build with CMake',['../md_docs_2vcpkg-integration.html#autotoc_md525',1,'']]],
   ['3_20column_20layout_4',['3-Column Layout',['../md_docs_2E3-dungeon-editor-design.html#autotoc_md344',1,'']]],
   ['3_20configure_20build_20system_5',['3. Configure Build System',['../md_docs_2visual-studio-setup.html#autotoc_md559',1,'']]],

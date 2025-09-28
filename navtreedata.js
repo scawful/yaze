@@ -304,7 +304,7 @@ var NAVTREE =
       ] ]
     ] ],
     [ "Changelog", "md_docs_2C1-changelog.html", [
-      [ "0.3.1", "md_docs_2C1-changelog.html#autotoc_md230", [
+      [ "0.3.1 (September 2025)", "md_docs_2C1-changelog.html#autotoc_md230", [
         [ "Major Features", "md_docs_2C1-changelog.html#autotoc_md231", null ],
         [ "Tile16 Editor Enhancements", "md_docs_2C1-changelog.html#autotoc_md232", null ],
         [ "ZSCustomOverworld v3 Implementation", "md_docs_2C1-changelog.html#autotoc_md233", null ],
