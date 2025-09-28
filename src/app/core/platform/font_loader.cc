@@ -130,10 +130,13 @@ absl::Status ReloadPackageFont(const FontConfig& config) {
   return absl::OkStatus();
 }
 
+#ifdef __linux__
 void LoadSystemFonts() {
+  // Load Linux System Fonts into ImGui
   // System font loading is now handled by NFD (Native File Dialog)
   // This function is kept for compatibility but does nothing
 }
+#endif
 
 }  // namespace core
 }  // namespace yaze
