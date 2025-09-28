@@ -118,8 +118,6 @@ set VCPKG_ROOT=%CD%
 ```
 
 **Dependencies (vcpkg.json):**
-- zlib (compression)
-- libpng (PNG support)
 - sdl2 (graphics/input with Vulkan support)
 
 **Note**: Abseil and gtest are built from source via CMake rather than through vcpkg to avoid compatibility issues.
@@ -212,7 +210,7 @@ python scripts/generate-vs-projects.py
 **Features:**
 - Full IntelliSense support
 - Integrated debugging
-- Automatic vcpkg dependency management (zlib, libpng, SDL2)
+- Automatic vcpkg dependency management (SDL2)
 - Multi-platform support (x64, ARM64)
 - Automatic asset copying
 - Generated project files stay in sync with CMake configuration
@@ -322,7 +320,7 @@ The project includes three release workflows with different levels of complexity
 All Windows CI/CD builds include automatic fallback mechanisms:
 
 **When vcpkg succeeds:**
-- Full build with all dependencies (zlib, libpng, SDL2)
+- Full build with all dependencies (SDL2)
 - Complete feature set available
 
 **When vcpkg fails (network issues):**
@@ -383,7 +381,7 @@ cmake --preset windows-debug
 vcpkg version
 
 # Reinstall dependencies
-vcpkg install --triplet x64-windows zlib libpng sdl2
+vcpkg install --triplet x64-windows sdl2
 
 # Check installed packages
 vcpkg list

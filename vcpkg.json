@@ -4,14 +4,6 @@
   "description": "Yet Another Zelda3 Editor",
   "dependencies": [
     {
-      "name": "zlib",
-      "platform": "!uwp"
-    },
-    {
-      "name": "libpng",
-      "platform": "!uwp"
-    },
-    {
       "name": "sdl2",
       "platform": "!uwp",
       "features": ["vulkan"]

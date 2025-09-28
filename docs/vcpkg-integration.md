@@ -28,7 +28,7 @@ Run the automated setup script:
 
 This will:
 - Set up vcpkg
-- Install dependencies (zlib, libpng, SDL2)
+- Install dependencies (SDL2)
 - Generate Visual Studio project files with proper vcpkg integration
 
 ### 2. Build with Visual Studio
@@ -72,9 +72,6 @@ The `vcpkg.json` file defines all dependencies:
       "platform": "!uwp"
     },
     {
-      "name": "libpng",
-      "platform": "!uwp"
-    },
     {
       "name": "sdl2",
       "platform": "!uwp",
@@ -104,8 +101,6 @@ Available Windows presets:
 
 vcpkg automatically installs these dependencies:
 
-- **zlib**: Compression library
-- **libpng**: PNG image support  
 - **sdl2**: Graphics and input handling (with Vulkan support)
 
 **Note**: Abseil and gtest are now built from source via CMake rather than through vcpkg to avoid compatibility issues.

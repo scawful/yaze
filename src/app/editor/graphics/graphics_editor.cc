@@ -121,35 +121,13 @@ void GraphicsEditor::DrawGfxEditToolset() {
 
     TableNextColumn();
     if (Button(ICON_MD_CONTENT_COPY)) {
-#if YAZE_LIB_PNG == 1
-      std::vector<uint8_t> png_data =
-          gfx::Arena::Get().gfx_sheets().at(current_sheet_).GetPngData();
-      core::CopyImageToClipboard(png_data);
-#else
-      // PNG support disabled - show message or alternative action
-      status_ = absl::UnimplementedError("PNG export not available in this build");
-#endif
+      status_ = absl::UnimplementedError("PNG export functionality removed");
     }
     HOVER_HINT("Copy to Clipboard");
 
     TableNextColumn();
     if (Button(ICON_MD_CONTENT_PASTE)) {
-#if YAZE_LIB_PNG == 1
-      std::vector<uint8_t> png_data;
-      int width, height;
-      core::GetImageFromClipboard(png_data, width, height);
-      if (png_data.size() > 0) {
-        gfx::Arena::Get()
-            .mutable_gfx_sheets()
-            ->at(current_sheet_)
-            .Create(width, height, 8, png_data);
-        Renderer::Get().UpdateBitmap(
-            &gfx::Arena::Get().mutable_gfx_sheets()->at(current_sheet_));
-      }
-#else
-      // PNG support disabled - show message or alternative action
-      status_ = absl::UnimplementedError("PNG import not available in this build");
-#endif
+      status_ = absl::UnimplementedError("PNG import functionality removed");
     }
     HOVER_HINT("Paste from Clipboard");
 

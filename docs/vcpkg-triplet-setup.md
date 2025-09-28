@@ -63,7 +63,7 @@ Since YAZE uses several vcpkg packages, installing them will ensure the triplet 
 
 ```cmd
 # From the YAZE project root
-vcpkg install --triplet x64-windows sdl2 zlib libpng abseil
+vcpkg install --triplet x64-windows sdl2
 ```
 
 ## Common Issues and Solutions
