@@ -1,5 +1,6 @@
 #include "editor_manager.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cstring>
 
@@ -2254,8 +2255,11 @@ void EditorManager::DrawSessionSwitcher() {
         ImGui::SameLine();
         if (ImGui::Button("Rename")) {
           session_to_rename_ = i;
-          std::strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
-          session_rename_buffer_[sizeof(session_rename_buffer_) - 1] = '\0';
+          // Safe string copy with bounds checking
+          const std::string& name = session.GetDisplayName();
+          size_t copy_len = std::min(name.length(), sizeof(session_rename_buffer_) - 1);
+          std::memcpy(session_rename_buffer_, name.c_str(), copy_len);
+          session_rename_buffer_[copy_len] = '\0';
           show_session_rename_dialog_ = true;
         }
         
@@ -2431,8 +2435,11 @@ void EditorManager::DrawSessionManager() {
         ImGui::SameLine();
         if (ImGui::Button("Rename")) {
           session_to_rename_ = i;
-          std::strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
-          session_rename_buffer_[sizeof(session_rename_buffer_) - 1] = '\0';
+          // Safe string copy with bounds checking
+          const std::string& name = session.GetDisplayName();
+          size_t copy_len = std::min(name.length(), sizeof(session_rename_buffer_) - 1);
+          std::memcpy(session_rename_buffer_, name.c_str(), copy_len);
+          session_rename_buffer_[copy_len] = '\0';
           show_session_rename_dialog_ = true;
         }
         

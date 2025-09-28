@@ -1,5 +1,6 @@
 #include "theme_manager.h"
 
+#include <algorithm>
 #include <cctype>
 #include <fstream>
 #include <set>
@@ -1778,12 +1779,18 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
     ImGui::SameLine();
     if (ImGui::Button("Reset to Current")) {
       edit_theme = current_theme_;
-      std::strncpy(theme_name, current_theme_.name.c_str(), sizeof(theme_name) - 1);
-      theme_name[sizeof(theme_name) - 1] = '\0';
-      std::strncpy(theme_description, current_theme_.description.c_str(), sizeof(theme_description) - 1);
-      theme_description[sizeof(theme_description) - 1] = '\0';
-      std::strncpy(theme_author, current_theme_.author.c_str(), sizeof(theme_author) - 1);
-      theme_author[sizeof(theme_author) - 1] = '\0';
+      // Safe string copy with bounds checking
+      size_t name_len = std::min(current_theme_.name.length(), sizeof(theme_name) - 1);
+      std::memcpy(theme_name, current_theme_.name.c_str(), name_len);
+      theme_name[name_len] = '\0';
+      
+      size_t desc_len = std::min(current_theme_.description.length(), sizeof(theme_description) - 1);
+      std::memcpy(theme_description, current_theme_.description.c_str(), desc_len);
+      theme_description[desc_len] = '\0';
+      
+      size_t author_len = std::min(current_theme_.author.length(), sizeof(theme_author) - 1);
+      std::memcpy(theme_author, current_theme_.author.c_str(), author_len);
+      theme_author[author_len] = '\0';
       
       // Reset backup state since we're back to current theme
       if (theme_backup_made) {

@@ -152,10 +152,11 @@ jobs:
                 # Use the existing bundle and just update it
                 cp -r build/bin/yaze.app ./Yaze.app
                 # Add additional resources to the bundle
-                cp -r assets "Yaze.app/Contents/Resources/"
-                # Update Info.plist if needed
+                cp -r assets "Yaze.app/Contents/Resources/" 2>/dev/null || echo "assets directory not found"
+                # Update Info.plist with correct version
                 if [ -f "cmake/yaze.plist.in" ]; then
-                  cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
+                  VERSION_NUM=$(echo "${{ needs.validate-and-prepare.outputs.tag_name }}" | sed 's/^v//')
+                  sed "s/@yaze_VERSION@/$VERSION_NUM/g" cmake/yaze.plist.in > "Yaze.app/Contents/Info.plist"
                 fi
               else
                 echo "No bundle found, creating manual bundle"
@@ -163,8 +164,35 @@ jobs:
                 mkdir -p "Yaze.app/Contents/MacOS"
                 mkdir -p "Yaze.app/Contents/Resources"
                 cp build/bin/yaze "Yaze.app/Contents/MacOS/"
-                cp -r assets "Yaze.app/Contents/Resources/"
-                cp cmake/yaze.plist.in "Yaze.app/Contents/Info.plist"
+                cp -r assets "Yaze.app/Contents/Resources/" 2>/dev/null || echo "assets directory not found"
+                # Create Info.plist with correct version
+                if [ -f "cmake/yaze.plist.in" ]; then
+                  VERSION_NUM=$(echo "${{ needs.validate-and-prepare.outputs.tag_name }}" | sed 's/^v//')
+                  sed "s/@yaze_VERSION@/$VERSION_NUM/g" cmake/yaze.plist.in > "Yaze.app/Contents/Info.plist"
+                else
+                  # Create a basic Info.plist
+                  VERSION_NUM=$(echo "${{ needs.validate-and-prepare.outputs.tag_name }}" | sed 's/^v//')
+                  cat > "Yaze.app/Contents/Info.plist" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>yaze</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.yaze.editor</string>
+    <key>CFBundleName</key>
+    <string>Yaze</string>
+    <key>CFBundleVersion</key>
+    <string>$VERSION_NUM</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$VERSION_NUM</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+</dict>
+</plist>
+EOF
+                fi
               fi
               
               # Create DMG
@@ -225,7 +253,7 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         # Install Homebrew dependencies needed for UI tests and full builds
-        brew install pkg-config libpng boost abseil ninja
+        brew install pkg-config libpng boost abseil ninja gtk+3
 
     - name: Setup build environment
       run: |
@@ -248,6 +276,7 @@ jobs:
           -DYAZE_ENABLE_ROM_TESTS=OFF \
           -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
           -DYAZE_INSTALL_LIB=OFF \
+          -DYAZE_MINIMAL_BUILD=OFF \
           -GNinja
 
     # Set up vcpkg for Windows builds with fallback
@@ -411,10 +440,10 @@ jobs:
         $ErrorActionPreference = "Stop"
         
         # Determine executable path based on platform
-        if (${{ runner.os }} -eq "Windows") {
+        if ("${{ runner.os }}" -eq "Windows") {
             $exePath = "build\bin\${{ env.BUILD_TYPE }}\yaze.exe"
-        } elseif (${{ runner.os }} -eq "macOS") {
-            $exePath = "build/bin/yaze"
+        } elseif ("${{ runner.os }}" -eq "macOS") {
+            $exePath = "build/bin/yaze.app/Contents/MacOS/yaze"
         } else {
             $exePath = "build/bin/yaze"
         }
