@@ -140,7 +140,7 @@ var searchData=
   ['max_5fstack_5fsize_137',['max_stack_size',['../structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html#a84c38e55217d9ffbd1dffe0160a97460',1,'yaze::zelda3::ItemTypes::ItemInfo']]],
   ['max_5ftile_5fcount_138',['max_tile_count',['../structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html#a44e621f3ebbd70f94744243c7c2ecb56',1,'yaze::zelda3::ObjectSubtypeInfo']]],
   ['max_5fwin_139',['max_win',['../structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html#a7d80c094a3171ed968ac52eb0b9548b5',1,'yaze::gfx::lc_lz2::CompressionContext']]],
-  ['maximizecurrentwindow_140',['MaximizeCurrentWindow',['../classyaze_1_1editor_1_1EditorManager.html#a85198b73afea6af2f4d8816879841f1c',1,'yaze::editor::EditorManager']]],
+  ['maximizecurrentwindow_140',['MaximizeCurrentWindow',['../classyaze_1_1editor_1_1EditorManager.html#a2712eb18d6eff876771b1eb157182b20',1,'yaze::editor::EditorManager']]],
   ['may_202024_141',['0.1.0 (May 2024)',['../md_docs_2C1-changelog.html#autotoc_md177',1,'']]],
   ['mbefore_142',['mBefore',['../classTextEditor_1_1UndoRecord.html#a204927224acd0b00dfeab652322bedd4',1,'TextEditor::UndoRecord']]],
   ['mbreakpoints_143',['mBreakpoints',['../classTextEditor.html#a3cfea86490670c68f1344fb08b20984e',1,'TextEditor']]],

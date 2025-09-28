@@ -695,7 +695,7 @@ var NAVTREEINDEX =
 "classyaze_1_1editor_1_1DungeonEditor.html#a0fb4f2c30d76ea757405184e34a64ea8",
 "classyaze_1_1editor_1_1DungeonObjectSelector.html#a5746705743ba7eb0cf8a85bc8546f9fe",
 "classyaze_1_1editor_1_1DungeonToolset.html#aecd873aed56e896f55c1fac226de9c27",
-"classyaze_1_1editor_1_1EditorManager.html#ab5f55dd56fa4e0d77ae0080f02762a8f",
+"classyaze_1_1editor_1_1EditorManager.html#ab94ca6087a88974e0714cc2a696a3408",
 "classyaze_1_1editor_1_1GraphicsEditor.html#a86ceabbcde6cc1cd4ef2bf4f601b1f8a",
 "classyaze_1_1editor_1_1MessageEditor.html#abfd9f8d6a94a14cbbd9d7196a9aa8438",
 "classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560",

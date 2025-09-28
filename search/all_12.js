@@ -2218,7 +2218,7 @@ var searchData=
   ['import_5fdata_5f_2215',['import_data_',['../classyaze_1_1editor_1_1GraphicsEditor.html#a874cbb0d276ac4f2a9f28766a18925da',1,'yaze::editor::GraphicsEditor']]],
   ['importdungeonfromfile_2216',['ImportDungeonFromFile',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#aa9463275bb8d61d39c645f2055cfb893',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['importfromzscreamformat_2217',['ImportFromZScreamFormat',['../structyaze_1_1core_1_1YazeProject.html#a9cedeb1f86793da04e75760036a8c119',1,'yaze::core::YazeProject']]],
-  ['importproject_2218',['ImportProject',['../classyaze_1_1editor_1_1EditorManager.html#ab7f4fd225c1a35cd28b5aefaea76d351',1,'yaze::editor::EditorManager']]],
+  ['importproject_2218',['ImportProject',['../classyaze_1_1editor_1_1EditorManager.html#a7c93fd9a0800de3092337c688fbc2107',1,'yaze::editor::EditorManager']]],
   ['importroomfromfile_2219',['ImportRoomFromFile',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#af4595858ea3a9b3776846ce8361f879e',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['importzscreamproject_2220',['ImportZScreamProject',['../structyaze_1_1core_1_1YazeProject.html#ae6d05e1352d9df96299771de0b660354',1,'yaze::core::YazeProject']]],
   ['improved_20testability_20strong_2221',['2. &lt;strong&gt;Improved Testability&lt;/strong&gt;',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md331',1,'']]],

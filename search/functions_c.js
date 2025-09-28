@@ -15,7 +15,7 @@ var searchData=
   ['matcher_5fp_12',['matcher_p',['../namespaceyaze_1_1test.html#a966536ba60abd09d24a03d6824214d30',1,'yaze::test::MATCHER_P(StatusIs, status, &quot;&quot;)'],['../namespaceyaze_1_1test.html#a9a26abfe41bf9190bacbb085d2060936',1,'yaze::test::MATCHER_P(IsOkAndHolds, value, &quot;&quot;)'],['../namespaceyaze_1_1test.html#a70903ac3af545551a14f38d650109ecb',1,'yaze::test::MATCHER_P(StatusIsWithMessage, message, &quot;&quot;)'],['../namespaceyaze_1_1test.html#adba23b84f9c687f3bfc6ab54031830c7',1,'yaze::test::MATCHER_P(StatusIsWithCode, code, &quot;&quot;)']]],
   ['matchesobjectfilter_13',['MatchesObjectFilter',['../classyaze_1_1editor_1_1DungeonObjectSelector.html#ad83bc3244a690c151d05a9143a24a922',1,'yaze::editor::DungeonObjectSelector']]],
   ['matchme_14',['MatchMe',['../structyaze_1_1editor_1_1TextElement.html#adae4011df81ed55417977322553191b9',1,'yaze::editor::TextElement']]],
-  ['maximizecurrentwindow_15',['MaximizeCurrentWindow',['../classyaze_1_1editor_1_1EditorManager.html#a85198b73afea6af2f4d8816879841f1c',1,'yaze::editor::EditorManager']]],
+  ['maximizecurrentwindow_15',['MaximizeCurrentWindow',['../classyaze_1_1editor_1_1EditorManager.html#a2712eb18d6eff876771b1eb157182b20',1,'yaze::editor::EditorManager']]],
   ['measurerenderperformance_16',['MeasureRenderPerformance',['../classyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest.html#ab86570d6cc025293aa5cbba62e44861b',1,'yaze::zelda3::DungeonObjectRendererIntegrationTest']]],
   ['memfill_17',['memfill',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a1e7456c15a9ba70593eca2c16d3dd85e',1,'yaze::gfx::lc_lz2']]],
   ['memory_18',['memory',['../classyaze_1_1emu_1_1Snes.html#ae55211e6c9c0884f73b2890da336fe82',1,'yaze::emu::Snes']]],
