@@ -10,6 +10,12 @@ if (UNIX OR MINGW OR WIN32)
   )
   # Also set for consistency with bundled SDL
   set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
+  
+  # Add SDL2main for Windows builds when using bundled SDL
+  if(WIN32)
+    list(PREPEND SDL_TARGETS SDL2main ws2_32)
+    add_definitions("-DSDL_MAIN_HANDLED")
+  endif()
 else()
   find_package(SDL2)
   # When using system SDL, use the imported targets
