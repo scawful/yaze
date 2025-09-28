@@ -481,8 +481,8 @@ jobs:
 
     # Package
     - name: Package
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
       run: ${{ matrix.package_cmd }}
+      shell: bash
 
     # Create release with artifacts (will create release if it doesn't exist)
     - name: Upload to Release
