@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['📸_20screenshots_0',['📸 Screenshots',['../md_README.html#autotoc_md546',1,'']]]
+  ['📸_20screenshots_0',['📸 Screenshots',['../md_README.html#autotoc_md584',1,'']]]
 ];
