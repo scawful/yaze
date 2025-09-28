@@ -146,13 +146,14 @@ elseif(WIN32)
     target_compile_definitions(yaze_test PRIVATE "WINDOWS")
 endif()
 
-include(GoogleTest)
-
 # Configure test discovery with efficient labeling for CI/CD
-include(GoogleTest)
-
-# Discover all tests with default properties
-gtest_discover_tests(yaze_test)
+# Only discover tests if tests are enabled
+if(YAZE_BUILD_TESTS)
+  include(GoogleTest)
+  
+  # Discover all tests with default properties
+  gtest_discover_tests(yaze_test)
+endif()
 
 # Add test labels using a simpler approach
 # Note: Test names might have prefixes, we'll use regex patterns for CI

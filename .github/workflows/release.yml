@@ -235,6 +235,7 @@ jobs:
             -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
             -DYAZE_INSTALL_LIB=OFF `
             -DYAZE_MINIMAL_BUILD=OFF `
+            -DGTEST_DISCOVER_TESTS_DISCOVERY_MODE=POST_BUILD `
             -G "${{ matrix.cmake_generator }}" `
             -A ${{ matrix.cmake_generator_platform }}
         } else {
@@ -248,6 +249,7 @@ jobs:
             -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
             -DYAZE_INSTALL_LIB=OFF `
             -DYAZE_MINIMAL_BUILD=ON `
+            -DGTEST_DISCOVER_TESTS_DISCOVERY_MODE=POST_BUILD `
             -G "${{ matrix.cmake_generator }}" `
             -A ${{ matrix.cmake_generator_platform }}
         }
@@ -260,6 +262,13 @@ jobs:
         echo "Building YAZE for ${{ matrix.name }}..."
         cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
         echo "Build completed successfully!"
+        
+        # For Windows, also create a package using CMake's packaging system
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          echo "Creating Windows package using CMake..."
+          cmake --build build --config ${{ env.BUILD_TYPE }} --target package
+          echo "CMake package created successfully!"
+        fi
 
     # Test executable functionality
     - name: Test executable functionality
@@ -312,17 +321,55 @@ jobs:
         echo "Packaging for ${{ matrix.name }}..."
         
         if [[ "${{ runner.os }}" == "Windows" ]]; then
-          # Windows packaging using PowerShell
+          # Windows packaging - prefer CMake package if available
           echo "Creating Windows package..."
-          mkdir -p package
-          cp -r build/bin/${{ env.BUILD_TYPE }}/* package/ 2>/dev/null || echo "No Release binaries found, trying Debug..."
-          cp -r build/bin/Debug/* package/ 2>/dev/null || echo "No Debug binaries found"
-          cp -r assets package/ 2>/dev/null || echo "assets directory not found"
-          cp LICENSE package/ 2>/dev/null || echo "LICENSE not found"
-          cp README.md package/ 2>/dev/null || echo "README.md not found"
           
-          # Use PowerShell Compress-Archive for Windows
-          powershell -Command "Compress-Archive -Path 'package\*' -DestinationPath '${{ matrix.artifact_name }}.zip' -Force"
+          # Check if CMake created a package
+          if [ -f "build/yaze-*.zip" ]; then
+            echo "Using CMake-generated package..."
+            cp build/yaze-*.zip ${{ matrix.artifact_name }}.zip
+            echo "CMake package copied successfully"
+          else
+            echo "CMake package not found, creating manual package..."
+            mkdir -p package
+            
+            # Copy main executable and DLLs
+            echo "Copying binaries..."
+            if [ -d "build/bin/${{ env.BUILD_TYPE }}" ]; then
+              cp -r build/bin/${{ env.BUILD_TYPE }}/* package/
+            elif [ -d "build/bin/Debug" ]; then
+              cp -r build/bin/Debug/* package/
+            else
+              echo "ERROR: No binaries found in build/bin/"
+              exit 1
+            fi
+            
+            # Copy assets
+            echo "Copying assets..."
+            if [ -d "assets" ]; then
+              cp -r assets package/
+            else
+              echo "WARNING: assets directory not found"
+            fi
+            
+            # Copy documentation
+            echo "Copying documentation..."
+            cp LICENSE package/ 2>/dev/null || echo "LICENSE not found"
+            cp README.md package/ 2>/dev/null || echo "README.md not found"
+            
+            # Copy vcpkg DLLs if available (for Windows builds with vcpkg)
+            if [ -d "vcpkg/installed/${{ matrix.vcpkg_triplet }}/bin" ]; then
+              echo "Copying vcpkg DLLs..."
+              cp vcpkg/installed/${{ matrix.vcpkg_triplet }}/bin/*.dll package/ 2>/dev/null || echo "No vcpkg DLLs found"
+            fi
+            
+            # List package contents for verification
+            echo "Package contents:"
+            ls -la package/
+            
+            # Use PowerShell Compress-Archive for Windows
+            powershell -Command "Compress-Archive -Path 'package\*' -DestinationPath '${{ matrix.artifact_name }}.zip' -Force"
+          fi
           
         elif [[ "${{ runner.os }}" == "macOS" ]]; then
           # macOS packaging using dedicated script
