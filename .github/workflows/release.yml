@@ -575,7 +575,7 @@ jobs:
 
     # Package
     - name: Package
-      shell: ${{ runner.os == 'Windows' && 'cmd' || 'bash' }}
+      shell: bash
       run: ${{ matrix.package_cmd }}
 
     # Create release with artifacts (will create release if it doesn't exist)
