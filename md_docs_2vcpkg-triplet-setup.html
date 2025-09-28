@@ -101,11 +101,11 @@ $(document).ready(function(){initNavTree('md_docs_2vcpkg-triplet-setup.html','')
   <div class="headertitle"><div class="title">Installing vcpkg Triplets for Windows</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md470"></a> This guide explains how to install the <code>x64-windows</code> triplet that's required for building YAZE on Windows.</p>
-<h1><a class="anchor" id="autotoc_md471"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md534"></a> This guide explains how to install the <code>x64-windows</code> triplet that's required for building YAZE on Windows.</p>
+<h1><a class="anchor" id="autotoc_md535"></a>
 What is a vcpkg Triplet?</h1>
 <p>A triplet defines the target platform, architecture, and linking configuration for vcpkg packages. The <code>x64-windows</code> triplet is the most common one for 64-bit Windows development.</p>
-<h1><a class="anchor" id="autotoc_md472"></a>
+<h1><a class="anchor" id="autotoc_md536"></a>
 Method 1: Install via Package (Recommended)</h1>
 <p>The easiest way to ensure the triplet is available is to install any package with that triplet:</p>
 <div class="fragment"><div class="line"># Navigate to your vcpkg directory</div>
@@ -114,7 +114,7 @@ Method 1: Install via Package (Recommended)</h1>
 <div class="line"># Install a package with the x64-windows triplet</div>
 <div class="line">vcpkg install sdl2:x64-windows</div>
 </div><!-- fragment --><p>This will automatically create the triplet configuration if it doesn't exist.</p>
-<h1><a class="anchor" id="autotoc_md473"></a>
+<h1><a class="anchor" id="autotoc_md537"></a>
 Method 2: Create Triplet File Manually</h1>
 <p>If you need to create the triplet configuration manually:</p>
 <ol type="1">
@@ -129,29 +129,29 @@ Method 2: Create Triplet File Manually</h1>
 <div class="line">set(VCPKG_CMAKE_SYSTEM_NAME Windows)</div>
 </div><!-- fragment --></li>
 </ol>
-<h1><a class="anchor" id="autotoc_md474"></a>
+<h1><a class="anchor" id="autotoc_md538"></a>
 Method 3: Check Available Triplets</h1>
 <p>To see what triplets are currently available on your system:</p>
 <div class="fragment"><div class="line">vcpkg help triplet</div>
 </div><!-- fragment --><p>Or list all available triplet files:</p>
 <div class="fragment"><div class="line">vcpkg help triplet | findstr &quot;Available&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md475"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md539"></a>
 Method 4: Install YAZE Dependencies</h1>
 <p>Since YAZE uses several vcpkg packages, installing them will ensure the triplet is properly set up:</p>
 <div class="fragment"><div class="line"># From the YAZE project root</div>
 <div class="line">vcpkg install --triplet x64-windows sdl2 zlib libpng abseil</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md476"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md540"></a>
 Common Issues and Solutions</h1>
-<h2><a class="anchor" id="autotoc_md477"></a>
+<h2><a class="anchor" id="autotoc_md541"></a>
 Issue: "Invalid triplet"</h2>
 <p><b>Solution:</b> Make sure vcpkg is properly installed and in your PATH: </p><div class="fragment"><div class="line">vcpkg version</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md478"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md542"></a>
 Issue: "Triplet not found"</h2>
 <p><b>Solution:</b> Install a package with that triplet first: </p><div class="fragment"><div class="line">vcpkg install zlib:x64-windows</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md479"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md543"></a>
 Issue: "Permission denied"</h2>
 <p><b>Solution:</b> Run Command Prompt as Administrator, or install vcpkg in a user-writable location.</p>
-<h1><a class="anchor" id="autotoc_md480"></a>
+<h1><a class="anchor" id="autotoc_md544"></a>
 Alternative Triplets</h1>
 <p>If <code>x64-windows</code> doesn't work, you can try these alternatives:</p>
 <ul>
@@ -159,12 +159,12 @@ Alternative Triplets</h1>
 <li><code>x86-windows</code> - 32-bit Windows</li>
 <li><code>x64-windows-static-md</code> - Static runtime, dynamic CRT</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md481"></a>
+<h1><a class="anchor" id="autotoc_md545"></a>
 Verification</h1>
 <p>To verify the triplet is working:</p>
 <div class="fragment"><div class="line">vcpkg list --triplet x64-windows</div>
 </div><!-- fragment --><p>This should show installed packages for that triplet.</p>
-<h1><a class="anchor" id="autotoc_md482"></a>
+<h1><a class="anchor" id="autotoc_md546"></a>
 For YAZE Build</h1>
 <p>Once the triplet is installed, you can build YAZE using CMake presets:</p>
 <div class="fragment"><div class="line">cmake --preset=windows-release</div>

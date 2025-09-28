@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('md_docs_2windows-development-guide.htm
   <div class="headertitle"><div class="title">Windows Development Guide for YAZE</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md527"></a> This guide will help you set up a Windows development environment for YAZE and build the project successfully.</p>
-<h1><a class="anchor" id="autotoc_md528"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md591"></a> This guide will help you set up a Windows development environment for YAZE and build the project successfully.</p>
+<h1><a class="anchor" id="autotoc_md592"></a>
 Prerequisites</h1>
-<h2><a class="anchor" id="autotoc_md529"></a>
+<h2><a class="anchor" id="autotoc_md593"></a>
 Required Software</h2>
 <ol type="1">
 <li><b>Visual Studio 2022</b> (Community, Professional, or Enterprise)<ul>
@@ -127,15 +127,15 @@ Required Software</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md530"></a>
+<h2><a class="anchor" id="autotoc_md594"></a>
 Optional Software</h2>
 <ul>
 <li><b>PowerShell 7</b> (recommended for better script support)</li>
 <li><b>Windows Terminal</b> (for better terminal experience)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md531"></a>
+<h1><a class="anchor" id="autotoc_md595"></a>
 Quick Setup</h1>
-<h2><a class="anchor" id="autotoc_md532"></a>
+<h2><a class="anchor" id="autotoc_md596"></a>
 Automated Setup</h2>
 <p>The easiest way to get started is to use our automated setup script:</p>
 <div class="fragment"><div class="line"># Run from the YAZE project root directory</div>
@@ -147,14 +147,14 @@ Automated Setup</h2>
 <li>Generate Visual Studio project files</li>
 <li>Perform a test build</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md533"></a>
+<h2><a class="anchor" id="autotoc_md597"></a>
 Manual Setup</h2>
 <p>If you prefer to set up manually or the automated script fails:</p>
-<h3><a class="anchor" id="autotoc_md534"></a>
+<h3><a class="anchor" id="autotoc_md598"></a>
 1. Clone the Repository</h3>
 <div class="fragment"><div class="line">git clone https://github.com/your-username/yaze.git</div>
 <div class="line">cd yaze</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md535"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md599"></a>
 2. Set up vcpkg</h3>
 <div class="fragment"><div class="line"># Clone vcpkg</div>
 <div class="line">git clone https://github.com/Microsoft/vcpkg.git vcpkg</div>
@@ -166,10 +166,10 @@ Manual Setup</h2>
 <div class="line"> </div>
 <div class="line"># Install dependencies</div>
 <div class="line">.\vcpkg\vcpkg.exe install --triplet x64-windows</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md536"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md600"></a>
 3. Generate Visual Studio Project Files</h3>
 <div class="fragment"><div class="line">python scripts/generate-vs-projects.py</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md537"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md601"></a>
 4. Build the Project</h3>
 <div class="fragment"><div class="line"># Using PowerShell script (recommended)</div>
 <div class="line">.\scripts\build-windows.ps1 -Configuration Release -Platform x64</div>
@@ -179,9 +179,9 @@ Manual Setup</h2>
 <div class="line"> </div>
 <div class="line"># Or using Visual Studio</div>
 <div class="line"># Open YAZE.sln in Visual Studio 2022 and build</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md538"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md602"></a>
 Building the Project</h1>
-<h2><a class="anchor" id="autotoc_md539"></a>
+<h2><a class="anchor" id="autotoc_md603"></a>
 Using Visual Studio</h2>
 <ol type="1">
 <li>Open <code>YAZE.sln</code> in Visual Studio 2022</li>
@@ -200,9 +200,9 @@ Using Visual Studio</h2>
 </li>
 <li>Build the solution (Ctrl+Shift+B)</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md540"></a>
+<h2><a class="anchor" id="autotoc_md604"></a>
 Using Command Line</h2>
-<h3><a class="anchor" id="autotoc_md541"></a>
+<h3><a class="anchor" id="autotoc_md605"></a>
 PowerShell Script (Recommended)</h3>
 <div class="fragment"><div class="line"># Build Release x64 (default)</div>
 <div class="line">.\scripts\build-windows.ps1</div>
@@ -218,7 +218,7 @@ PowerShell Script (Recommended)</h3>
 <div class="line"> </div>
 <div class="line"># Verbose output</div>
 <div class="line">.\scripts\build-windows.ps1 -Verbose</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md542"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md606"></a>
 Batch Script</h3>
 <div class="fragment"><div class="line">REM Build Release x64 (default)</div>
 <div class="line">.\scripts\build-windows.bat</div>
@@ -228,14 +228,14 @@ Batch Script</h3>
 <div class="line"> </div>
 <div class="line">REM Build Release x86</div>
 <div class="line">.\scripts\build-windows.bat Release x86</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md543"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md607"></a>
 Direct MSBuild</h3>
 <div class="fragment"><div class="line"># Build Release x64</div>
 <div class="line">msbuild YAZE.sln /p:Configuration=Release /p:Platform=x64 /p:VcpkgEnabled=true /p:VcpkgManifestInstall=true /m</div>
 <div class="line"> </div>
 <div class="line"># Build Debug x64</div>
 <div class="line">msbuild YAZE.sln /p:Configuration=Debug /p:Platform=x64 /p:VcpkgEnabled=true /p:VcpkgManifestInstall=true /m</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md544"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md608"></a>
 Project Structure</h1>
 <div class="fragment"><div class="line">yaze/</div>
 <div class="line">├── YAZE.sln              # Visual Studio solution file</div>
@@ -250,11 +250,11 @@ Project Structure</h1>
 <div class="line">├── incl/                 # Public headers</div>
 <div class="line">├── assets/               # Game assets</div>
 <div class="line">└── docs/                 # Documentation</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md545"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md609"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md546"></a>
+<h2><a class="anchor" id="autotoc_md610"></a>
 Common Issues</h2>
-<h3><a class="anchor" id="autotoc_md547"></a>
+<h3><a class="anchor" id="autotoc_md611"></a>
 1. MSBuild Not Found</h3>
 <p><b>Error</b>: &lsquo;'msbuild&rsquo; is not recognized as an internal or external command`</p>
 <p><b>Solution</b>:</p><ul>
@@ -263,7 +263,7 @@ Common Issues</h2>
 <div class="line">C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin</div>
 </div><!-- fragment --></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md548"></a>
+<h3><a class="anchor" id="autotoc_md612"></a>
 2. vcpkg Integration Issues</h3>
 <p><b>Error</b>: <code>vcpkg.json not found</code> or dependency resolution fails</p>
 <p><b>Solution</b>:</p><ul>
@@ -271,12 +271,12 @@ Common Issues</h2>
 </div><!-- fragment --></li>
 <li>Or manually set up vcpkg as described in the manual setup section</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md549"></a>
+<h3><a class="anchor" id="autotoc_md613"></a>
 3. Python Script Execution Policy</h3>
 <p><b>Error</b>: <code>execution of scripts is disabled on this system</code></p>
 <p><b>Solution</b>: </p><div class="fragment"><div class="line"># Run as Administrator</div>
 <div class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md550"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md614"></a>
 4. Missing Dependencies</h3>
 <p><b>Error</b>: Linker errors about missing libraries</p>
 <p><b>Solution</b>:</p><ul>
@@ -285,7 +285,7 @@ Common Issues</h2>
 <li>Regenerate project files: <div class="fragment"><div class="line">python scripts/generate-vs-projects.py</div>
 </div><!-- fragment --></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md551"></a>
+<h3><a class="anchor" id="autotoc_md615"></a>
 5. Build Failures</h3>
 <p><b>Error</b>: Compilation or linking errors</p>
 <p><b>Solution</b>:</p><ul>
@@ -294,7 +294,7 @@ Common Issues</h2>
 <li>Check that all source files are included in the project</li>
 <li>Verify that include paths are correct</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md552"></a>
+<h2><a class="anchor" id="autotoc_md616"></a>
 Getting Help</h2>
 <p>If you encounter issues not covered here:</p>
 <ol type="1">
@@ -309,9 +309,9 @@ Getting Help</h2>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md553"></a>
+<h1><a class="anchor" id="autotoc_md617"></a>
 Development Workflow</h1>
-<h2><a class="anchor" id="autotoc_md554"></a>
+<h2><a class="anchor" id="autotoc_md618"></a>
 Making Changes</h2>
 <ol type="1">
 <li>Make your changes to the source code</li>
@@ -321,7 +321,7 @@ Making Changes</h2>
 <li>If adding new source files, regenerate project files: <div class="fragment"><div class="line">python scripts/generate-vs-projects.py</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md555"></a>
+<h2><a class="anchor" id="autotoc_md619"></a>
 Debugging</h2>
 <ol type="1">
 <li>Set breakpoints in Visual Studio</li>
@@ -329,7 +329,7 @@ Debugging</h2>
 <li>Run with debugger (F5)</li>
 <li>Use Visual Studio's debugging tools</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md556"></a>
+<h2><a class="anchor" id="autotoc_md620"></a>
 Testing</h2>
 <ol type="1">
 <li>Build the project</li>
@@ -338,9 +338,9 @@ Testing</h2>
 <li>Test with a ROM file: <div class="fragment"><div class="line">.\build\bin\Debug\yaze.exe --rom_file=path\to\your\rom.sfc</div>
 </div><!-- fragment --></li>
 </ol>
-<h1><a class="anchor" id="autotoc_md557"></a>
+<h1><a class="anchor" id="autotoc_md621"></a>
 Performance Tips</h1>
-<h2><a class="anchor" id="autotoc_md558"></a>
+<h2><a class="anchor" id="autotoc_md622"></a>
 Build Performance</h2>
 <ul>
 <li>Use the <code>/m</code> flag for parallel builds</li>
@@ -348,26 +348,26 @@ Build Performance</h2>
 <li>Exclude build directories from antivirus scanning</li>
 <li>Use Release configuration for final builds</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md559"></a>
+<h2><a class="anchor" id="autotoc_md623"></a>
 Development Performance</h2>
 <ul>
 <li>Use Debug configuration for development</li>
 <li>Use incremental builds (default in Visual Studio)</li>
 <li>Use RelWithDebInfo for performance testing with debug info</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md560"></a>
+<h1><a class="anchor" id="autotoc_md624"></a>
 Advanced Configuration</h1>
-<h2><a class="anchor" id="autotoc_md561"></a>
+<h2><a class="anchor" id="autotoc_md625"></a>
 Custom Build Configurations</h2>
 <p>You can create custom build configurations by modifying the Visual Studio project file or using CMake directly.</p>
-<h2><a class="anchor" id="autotoc_md562"></a>
+<h2><a class="anchor" id="autotoc_md626"></a>
 Cross-Platform Development</h2>
 <p>While this guide focuses on Windows, YAZE also supports:</p><ul>
 <li>Linux (Ubuntu/Debian)</li>
 <li>macOS</li>
 </ul>
 <p>See the main build instructions for other platforms.</p>
-<h1><a class="anchor" id="autotoc_md563"></a>
+<h1><a class="anchor" id="autotoc_md627"></a>
 Contributing</h1>
 <p>When contributing to YAZE on Windows:</p>
 <ol type="1">
@@ -377,7 +377,7 @@ Contributing</h1>
 <li>Update documentation if needed</li>
 <li>Submit a pull request</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md564"></a>
+<h1><a class="anchor" id="autotoc_md628"></a>
 Additional Resources</h1>
 <ul>
 <li><a href="https://docs.microsoft.com/en-us/visualstudio/">Visual Studio Documentation</a></li>

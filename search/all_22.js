@@ -11,12 +11,12 @@ var searchData=
   ['y_5fscroll_5f_8',['y_scroll_',['../classyaze_1_1zelda3_1_1OverworldExit.html#acb73f703e9748d95d1bdae60d31c2cf8',1,'yaze::zelda3::OverworldExit']]],
   ['ya_9',['YA',['../classyaze_1_1emu_1_1Spc700.html#ac9901ac685887d6b3e06bc1409e9e1ae',1,'yaze::emu::Spc700']]],
   ['yaze_10',['yaze',['../md_docs_2windows-development-guide.html',1,'Windows Development Guide for YAZE'],['../namespaceyaze.html',1,'yaze']]],
-  ['yaze_20build_11',['For YAZE Build',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md482',1,'']]],
+  ['yaze_20build_11',['For YAZE Build',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md546',1,'']]],
   ['yaze_20build_20scripts_12',['YAZE Build Scripts',['../md_scripts_2README.html',1,'']]],
-  ['yaze_20dependencies_13',['Method 4: Install YAZE Dependencies',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md475',1,'']]],
+  ['yaze_20dependencies_13',['Method 4: Install YAZE Dependencies',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md539',1,'']]],
   ['yaze_20documentation_14',['YAZE Documentation',['../md_docs_2index.html',1,'']]],
   ['yaze_20h_20tt_20tt_20incl_20zelda_20h_20tt_15',['C API (&lt;tt&gt;incl/yaze.h&lt;/tt&gt;, &lt;tt&gt;incl/zelda.h&lt;/tt&gt;)',['../md_docs_204-api-reference.html#autotoc_md65',1,'']]],
-  ['yaze_20implementation_16',['Yaze Implementation',['../md_docs_2F1-overworld-loading.html#autotoc_md420',1,'']]],
+  ['yaze_20implementation_16',['Yaze Implementation',['../md_docs_2F1-overworld-loading.html#autotoc_md484',1,'']]],
   ['yaze_20yet_20another_20zelda3_20editor_17',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
   ['yaze_2ecc_18',['yaze.cc',['../yaze_8cc.html',1,'']]],
   ['yaze_2eh_19',['yaze.h',['../yaze_8h.html',1,'']]],
@@ -136,5 +136,6 @@ var searchData=
   ['yaze_5fversion_5fpatch_133',['YAZE_VERSION_PATCH',['../group__version.html#ga1ef0890c21d5e052a03ace9b1f3d0e3c',1,'yaze.h']]],
   ['yaze_5fversion_5fstring_134',['YAZE_VERSION_STRING',['../group__version.html#gabc3b93252a656c28dee5ac55e492cc96',1,'yaze.h']]],
   ['yazeproject_135',['YazeProject',['../structyaze_1_1core_1_1YazeProject.html',1,'yaze::core']]],
-  ['yet_20another_20zelda3_20editor_136',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]]
+  ['yet_20another_20zelda3_20editor_136',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]],
+  ['yml_20tt_137',['yml tt',['../md_docs_2B4-release-workflows.html#autotoc_md164',1,'1. Release-Simplified (&lt;tt&gt;release-simplified.yml&lt;/tt&gt;)'],['../md_docs_2B4-release-workflows.html#autotoc_md171',1,'2. Release (&lt;tt&gt;release.yml&lt;/tt&gt;)'],['../md_docs_2B4-release-workflows.html#autotoc_md178',1,'3. Release-Complex (&lt;tt&gt;release-complex.yml&lt;/tt&gt;)']]]
 ];
