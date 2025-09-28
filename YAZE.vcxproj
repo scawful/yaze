@@ -84,6 +84,17 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+
+  <!-- Pre-build event to ensure yaze_config.h is generated -->
+  <PropertyGroup>
+    <PreBuildEvent>
+      <Command>if not exist "$(ProjectDir)build-$(Platform)" mkdir "$(ProjectDir)build-$(Platform)"
+echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build-$(Platform)\yaze_config.h"
+echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build-$(Platform)\yaze_config.h"
+echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config.h"</Command>
+      <Message>Generating yaze_config.h in build directory</Message>
+    </PreBuildEvent>
+  </PropertyGroup>
   
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings"></ImportGroup>
@@ -361,6 +372,9 @@
   <ItemGroup>
     <ClInclude Include="incl\yaze.h" />
     <ClInclude Include="incl\zelda.h" />
+    <ClInclude Include="build-$(Platform)\yaze_config.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\app\rom.h" />
     <ClInclude Include="src\app\snes.h" />
     <ClInclude Include="src\app\transaction.h" />
@@ -502,7 +516,6 @@
     <None Include="vcpkg.json" />
     <None Include="CMakeLists.txt" />
     <None Include="README.md" />
-    <None Include="zelda3.sfc" />
   </ItemGroup>
 
   <!-- Custom Build for yaze_config.h generation -->
@@ -527,6 +540,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">$(ProjectDir)build-$(Platform)\yaze_config.h</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">echo #define YAZE_VERSION_MAJOR 0 > "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_MINOR 3 >> "$(ProjectDir)build-$(Platform)\yaze_config.h" &amp; echo #define YAZE_VERSION_PATCH 1 >> "$(ProjectDir)build-$(Platform)\yaze_config.h"</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(ProjectDir)build-$(Platform)\yaze_config.h</Outputs>
+      <Message>Generating yaze_config.h</Message>
     </CustomBuild>
   </ItemDefinitionGroup>
 
