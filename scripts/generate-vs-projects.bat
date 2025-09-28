@@ -1,6 +1,6 @@
 @echo off
-REM Generate Visual Studio project files for YAZE
-REM This script creates proper Visual Studio solution and project files
+REM Configure Visual Studio project files for YAZE
+REM This script configures CMake build system to work with existing Visual Studio project files
 
 setlocal enabledelayedexpansion
 
@@ -141,31 +141,35 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Check if solution file was created
-set SOLUTION_FILE=%BUILD_DIR%\YAZE.sln
-if exist "%SOLUTION_FILE%" (
-    echo ✅ Visual Studio solution created: %SOLUTION_FILE%
+REM Check if the existing solution file is present and valid
+set EXISTING_SOLUTION_FILE=%SOURCE_DIR%\YAZE.sln
+if exist "%EXISTING_SOLUTION_FILE%" (
+    echo ✅ Using existing Visual Studio solution: %EXISTING_SOLUTION_FILE%
     
-    REM Copy solution file to root directory for convenience
-    set ROOT_SOLUTION_FILE=%SOURCE_DIR%\YAZE.sln
-    copy "%SOLUTION_FILE%" "%ROOT_SOLUTION_FILE%" >nul
-    echo ✅ Solution file copied to root directory
+    REM Verify the solution file references the project file
+    findstr /C:"YAZE.vcxproj" "%EXISTING_SOLUTION_FILE%" >nul
+    if not errorlevel 1 (
+        echo ✅ Solution file references YAZE.vcxproj correctly
+    ) else (
+        echo ⚠️  Warning: Solution file may not reference YAZE.vcxproj properly
+    )
     
     REM Try to open solution in Visual Studio
     where devenv >nul 2>&1
     if not errorlevel 1 (
         echo Opening solution in Visual Studio...
-        start "" devenv "%ROOT_SOLUTION_FILE%"
+        start "" devenv "%EXISTING_SOLUTION_FILE%"
     ) else (
-        echo Visual Studio solution ready: %ROOT_SOLUTION_FILE%
+        echo Visual Studio solution ready: %EXISTING_SOLUTION_FILE%
     )
 ) else (
-    echo ❌ Solution file not created. Check CMake output for errors.
+    echo ❌ Existing solution file not found: %EXISTING_SOLUTION_FILE%
+    echo Please ensure YAZE.sln exists in the project root
     exit /b 1
 )
 
 echo.
-echo 🎉 Visual Studio project generation complete!
+echo 🎉 Visual Studio project configuration complete!
 echo.
 echo Next steps:
 echo 1. Open YAZE.sln in Visual Studio

@@ -1,11 +1,33 @@
-# Generate Visual Studio project files for YAZE
-# This script creates proper Visual Studio solution and project files
+# Configure Visual Studio project files for YAZE
+# This script configures CMake build system to work with existing Visual Studio project files
 
 param(
     [string]$Configuration = "Debug",
     [string]$Architecture = "x64",
-    [switch]$Clean = $false
+    [switch]$Clean = $false,
+    [switch]$UseVcpkg = $false,
+    [switch]$Help = $false
 )
+
+# Show help if requested
+if ($Help) {
+    Write-Host "Usage: .\generate-vs-projects.ps1 [options]"
+    Write-Host ""
+    Write-Host "Options:"
+    Write-Host "  -Configuration <config>  Build configuration (Debug, Release, RelWithDebInfo, MinSizeRel)"
+    Write-Host "  -Architecture <arch>     Target architecture (x64, x86, ARM64)"
+    Write-Host "  -Clean                   Clean build directory before configuring"
+    Write-Host "  -UseVcpkg               Use vcpkg for dependency management"
+    Write-Host "  -Help                   Show this help message"
+    Write-Host ""
+    Write-Host "Examples:"
+    Write-Host "  .\generate-vs-projects.ps1                    # Default: Debug x64"
+    Write-Host "  .\generate-vs-projects.ps1 -Configuration Release -Architecture x86"
+    Write-Host "  .\generate-vs-projects.ps1 -Clean -UseVcpkg"
+    Write-Host ""
+    Write-Host "Note: This script configures CMake to work with existing YAZE.sln and YAZE.vcxproj files"
+    exit 0
+}
 
 # Validate architecture parameter
 $ValidArchitectures = @("x64", "x86", "ARM64")
@@ -160,8 +182,8 @@ if ($UseVcpkg) {
     )
 }
 
-# Run CMake configuration
-Write-Host "Configuring CMake..." -ForegroundColor Yellow
+# Configure CMake to generate build files (but don't overwrite existing project files)
+Write-Host "Configuring CMake for build system..." -ForegroundColor Yellow
 Write-Host "Command: cmake $($CmakeArgs -join ' ')" -ForegroundColor Gray
 
 & cmake @CmakeArgs $SourceDir
@@ -171,33 +193,37 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# Check if solution file was created
-$SolutionFile = Join-Path $BuildDir "YAZE.sln"
-if (Test-Path $SolutionFile) {
-    Write-Host "✅ Visual Studio solution created: $SolutionFile" -ForegroundColor Green
+# Check if the existing solution file is present and valid
+$ExistingSolutionFile = Join-Path $SourceDir "YAZE.sln"
+if (Test-Path $ExistingSolutionFile) {
+    Write-Host "✅ Using existing Visual Studio solution: $ExistingSolutionFile" -ForegroundColor Green
     
-    # Copy solution file to root directory for convenience
-    $RootSolutionFile = Join-Path $SourceDir "YAZE.sln"
-    Copy-Item $SolutionFile $RootSolutionFile -Force
-    Write-Host "✅ Solution file copied to root directory" -ForegroundColor Green
+    # Verify the solution file is properly structured
+    $SolutionContent = Get-Content $ExistingSolutionFile -Raw
+    if ($SolutionContent -match "YAZE\.vcxproj") {
+        Write-Host "✅ Solution file references YAZE.vcxproj correctly" -ForegroundColor Green
+    } else {
+        Write-Host "⚠️  Warning: Solution file may not reference YAZE.vcxproj properly" -ForegroundColor Yellow
+    }
     
     # Open solution in Visual Studio if available
     if (Get-Command "devenv" -ErrorAction SilentlyContinue) {
         Write-Host "Opening solution in Visual Studio..." -ForegroundColor Yellow
-        & devenv $RootSolutionFile
+        & devenv $ExistingSolutionFile
     } elseif (Get-Command "code" -ErrorAction SilentlyContinue) {
         Write-Host "Opening solution in VS Code..." -ForegroundColor Yellow
-        & code $RootSolutionFile
+        & code $ExistingSolutionFile
     } else {
-        Write-Host "Visual Studio solution ready: $RootSolutionFile" -ForegroundColor Cyan
+        Write-Host "Visual Studio solution ready: $ExistingSolutionFile" -ForegroundColor Cyan
     }
 } else {
-    Write-Host "❌ Solution file not created. Check CMake output for errors." -ForegroundColor Red
+    Write-Host "❌ Existing solution file not found: $ExistingSolutionFile" -ForegroundColor Red
+    Write-Host "Please ensure YAZE.sln exists in the project root" -ForegroundColor Yellow
     exit 1
 }
 
 Write-Host ""
-Write-Host "🎉 Visual Studio project generation complete!" -ForegroundColor Green
+Write-Host "🎉 Visual Studio project configuration complete!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Cyan
 Write-Host "1. Open YAZE.sln in Visual Studio" -ForegroundColor White
