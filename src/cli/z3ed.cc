@@ -24,7 +24,11 @@ DEFINE_FLAG(std::string, length, "", "The length of the data to read.");
 DEFINE_FLAG(std::string, file_size, "", "The size of the file to expand to.");
 DEFINE_FLAG(std::string, dest_rom, "", "The destination ROM file.");
 
+#ifdef _WIN32
+extern "C" int SDL_main(int argc, char *argv[]) {
+#else
 int main(int argc, char *argv[]) {
+#endif
   yaze::util::FlagParser flag_parser(yaze::util::global_flag_registry());
   RETURN_IF_EXCEPTION(flag_parser.Parse(argc, argv));
   yaze::cli::ShowMain();

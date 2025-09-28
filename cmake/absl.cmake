@@ -28,6 +28,14 @@ set(
   absl::strings
   absl::str_format
   absl::flags
+  absl::flags_parse
+  absl::flags_usage
+  absl::flags_commandlineflag
+  absl::flags_marshalling
+  absl::flags_private_handle_accessor
+  absl::flags_program_name
+  absl::flags_config
+  absl::flags_reflection
   absl::status
   absl::statusor
   absl::examine_stack
@@ -42,15 +50,13 @@ set(
   absl::synchronization
   absl::time
   absl::symbolize
-  absl::flags_commandlineflag
-  absl::flags_marshalling
-  absl::flags_private_handle_accessor
-  absl::flags_program_name
-  absl::flags_config
-  absl::flags_reflection
   absl::container_memory
   absl::memory
   absl::utility
+  absl::strings_internal
+  absl::str_format_internal
+  absl::flags_internal
+  absl::container_internal
 )
 
 # Add int128 only on non-Windows platforms to avoid C++23 deprecation issues

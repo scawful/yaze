@@ -4,9 +4,6 @@
 #include <string>
 #include <vector>
 #include <cstring>
-#include <algorithm>
-#include <cmath>
-#
 
 
 #include "absl/status/status.h"
@@ -134,8 +131,11 @@ absl::Status ReloadPackageFont(const FontConfig& config) {
 }
 
 #ifdef _WIN32
+// Include Windows headers first to avoid namespace conflicts
 #include <Windows.h>
 #include <ShlObj.h>
+#include <combaseapi.h>
+#include <shlobj_core.h>
 #include <algorithm>
 #include <cctype>
 
@@ -155,11 +155,11 @@ namespace {
   // Helper function to get Windows fonts directory
   std::string GetWindowsFontsDirectory() {
     wchar_t* fontsPath = nullptr;
-    HRESULT hr = SHGetKnownFolderPath(FOLDERID_Fonts, 0, NULL, &fontsPath);
+    ::HRESULT hr = ::SHGetKnownFolderPath(FOLDERID_Fonts, 0, NULL, &fontsPath);
     
-    if (SUCCEEDED(hr) && fontsPath) {
+    if (::SUCCEEDED(hr) && fontsPath) {
       std::string result = WideToUtf8(fontsPath) + "\\";
-      CoTaskMemFree(fontsPath);
+      ::CoTaskMemFree(fontsPath);
       return result;
     }
     
@@ -177,7 +177,7 @@ namespace {
 
   // Check if file exists and is accessible
   bool FontFileExists(const std::string& path) {
-    return GetFileAttributesA(path.c_str()) != INVALID_FILE_ATTRIBUTES;
+    return ::GetFileAttributesA(path.c_str()) != INVALID_FILE_ATTRIBUTES;
   }
 }
 
@@ -234,20 +234,20 @@ void LoadSystemFonts() {
   }
 
   // Try to load additional fonts from registry (safer approach)
-  HKEY hKey = nullptr;
-  LONG result = RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-                              "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts",
-                              0, KEY_READ, &hKey);
+  ::HKEY hKey = nullptr;
+  ::LONG result = ::RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+                                  "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts",
+                                  0, KEY_READ, &hKey);
   
   if (result == ERROR_SUCCESS && hKey) {
-    DWORD valueCount = 0;
-    DWORD maxValueNameSize = 0;
-    DWORD maxValueDataSize = 0;
+    ::DWORD valueCount = 0;
+    ::DWORD maxValueNameSize = 0;
+    ::DWORD maxValueDataSize = 0;
     
     // Get registry info
-    result = RegQueryInfoKeyA(hKey, nullptr, nullptr, nullptr, nullptr, nullptr,
-                              nullptr, &valueCount, &maxValueNameSize,
-                              &maxValueDataSize, nullptr, nullptr);
+    result = ::RegQueryInfoKeyA(hKey, nullptr, nullptr, nullptr, nullptr, nullptr,
+                                nullptr, &valueCount, &maxValueNameSize,
+                                &maxValueDataSize, nullptr, nullptr);
     
     if (result == ERROR_SUCCESS && valueCount > 0) {
       // Allocate buffers with proper size limits
@@ -257,21 +257,21 @@ void LoadSystemFonts() {
       if (maxDataSize > 4096) maxDataSize = 4096;
 
       std::vector<char> valueName(maxNameSize);
-      std::vector<BYTE> valueData(maxDataSize);
+      std::vector<::BYTE> valueData(maxDataSize);
 
       // Enumerate font entries (limit to prevent excessive loading)
-      DWORD maxFontsToLoad = valueCount;
+      ::DWORD maxFontsToLoad = valueCount;
       if (maxFontsToLoad > 50) maxFontsToLoad = 50;
       
-      for (DWORD i = 0; i < maxFontsToLoad; i++) {
-        DWORD valueNameSize = static_cast<DWORD>(maxNameSize);
-        DWORD valueDataSize = static_cast<DWORD>(maxDataSize);
-        DWORD valueType = 0;
+      for (::DWORD i = 0; i < maxFontsToLoad; i++) {
+        ::DWORD valueNameSize = static_cast<::DWORD>(maxNameSize);
+        ::DWORD valueDataSize = static_cast<::DWORD>(maxDataSize);
+        ::DWORD valueType = 0;
         
-        result = RegEnumValueA(hKey, i, valueName.data(), &valueNameSize,
-                               nullptr, &valueType, valueData.data(), &valueDataSize);
+        result = ::RegEnumValueA(hKey, i, valueName.data(), &valueNameSize,
+                                 nullptr, &valueType, valueData.data(), &valueDataSize);
         
-        if (result == ERROR_SUCCESS && valueType == REG_SZ && valueDataSize > 0) {
+        if (result == ERROR_SUCCESS && valueType == ::REG_SZ && valueDataSize > 0) {
           // Ensure null termination
           valueName[valueNameSize] = '\0';
           valueData[valueDataSize] = '\0';
@@ -304,7 +304,7 @@ void LoadSystemFonts() {
       }
     }
     
-    RegCloseKey(hKey);
+    ::RegCloseKey(hKey);
   }
 }
 
