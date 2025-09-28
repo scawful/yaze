@@ -261,6 +261,22 @@ jobs:
         cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
         echo "Build completed successfully!"
 
+    # Optional: Run tests for pre-release versions (non-blocking)
+    - name: Run tests (pre-release only, non-blocking)
+      if: contains(needs.validate-and-prepare.outputs.tag_name, 'beta') || contains(needs.validate-and-prepare.outputs.tag_name, 'alpha') || contains(needs.validate-and-prepare.outputs.tag_name, 'rc') || contains(needs.validate-and-prepare.outputs.tag_name, '0.3.')
+      run: |
+        echo "Running tests for pre-release version (non-blocking)..."
+        # Try to build and run tests, but don't fail the release if they fail
+        cmake --build build --config ${{ env.BUILD_TYPE }} --target yaze_test || echo "Test build failed, continuing with release"
+        if [ -f "build/bin/${{ env.BUILD_TYPE }}/yaze_test.exe" ] || [ -f "build/bin/yaze_test" ]; then
+          echo "Test executable found, running tests..."
+          # Run tests but don't fail the release
+          ./build/bin/${{ env.BUILD_TYPE }}/yaze_test.exe --gtest_output=xml:test_results.xml || echo "Tests failed, but continuing with release"
+        else
+          echo "Test executable not found, skipping tests"
+        fi
+      continue-on-error: true
+
     # Test executable functionality
     - name: Test executable functionality
       shell: bash
