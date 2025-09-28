@@ -166,202 +166,233 @@ $(document).ready(function(){initNavTree('e2e__rom__test_8cc_source.html',''); i
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    EXPECT_NE(rom-&gt;data(), <span class="keyword">nullptr</span>) &lt;&lt; <span class="stringliteral">&quot;ROM data should not be null&quot;</span>;</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    </div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="comment">// Check ROM header</span></div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    EXPECT_EQ(rom-&gt;ReadByte(0x7FC0), 0x21) &lt;&lt; <span class="stringliteral">&quot;ROM should be LoROM format&quot;</span>;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    </div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  }</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keyword">auto</span> header_byte = rom-&gt;ReadByte(0x7FC0);</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <a class="code hl_define" href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(header_byte.status());</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    EXPECT_EQ(*header_byte, 0x21) &lt;&lt; <span class="stringliteral">&quot;ROM should be LoROM format&quot;</span>;</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    </div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  }</div>
 </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  <span class="comment">// Helper to verify ROM data integrity by comparing checksums</span></div>
-<div class="foldopen" id="foldopen00076" data-start="{" data-end="}">
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a564e4c77f8f66c17a59f7040aff6ba16">   76</a></span>  <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a564e4c77f8f66c17a59f7040aff6ba16">VerifyROMIntegrity</a>(<span class="keyword">const</span> std::string&amp; path1, <span class="keyword">const</span> std::string&amp; path2, </div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>                         <span class="keyword">const</span> std::vector&lt;uint32_t&gt;&amp; exclude_ranges = {}) {</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    std::ifstream file1(path1, std::ios::binary);</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    std::ifstream file2(path2, std::ios::binary);</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    </div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    <span class="keywordflow">if</span> (!file1.is_open() || !file2.is_open()) {</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    }</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    </div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    file1.seekg(0, std::ios::end);</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    file2.seekg(0, std::ios::end);</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    </div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordtype">size_t</span> size1 = file1.tellg();</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    <span class="keywordtype">size_t</span> size2 = file2.tellg();</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    </div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keywordflow">if</span> (size1 != size2) {</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    }</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    </div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    file1.seekg(0);</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    file2.seekg(0);</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    </div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    std::vector&lt;char&gt; buffer1(size1);</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    std::vector&lt;char&gt; buffer2(size2);</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    </div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    file1.read(buffer1.data(), size1);</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    file2.read(buffer2.data(), size2);</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    </div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    <span class="comment">// Compare byte by byte, excluding specified ranges</span></div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; size1; i++) {</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>      <span class="keywordtype">bool</span> in_exclude_range = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; range : exclude_ranges) {</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        <span class="keywordflow">if</span> (i &gt;= (range &amp; 0xFFFFFF) &amp;&amp; i &lt; ((range &gt;&gt; 24) &amp; 0xFF)) {</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>          in_exclude_range = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>          <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>        }</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>      }</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>      </div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      <span class="keywordflow">if</span> (!in_exclude_range &amp;&amp; buffer1[i] != buffer2[i]) {</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      }</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    }</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    </div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  }</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  <span class="comment">// Helper to verify ROM data integrity by comparing checksums</span></div>
+<div class="foldopen" id="foldopen00078" data-start="{" data-end="}">
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a564e4c77f8f66c17a59f7040aff6ba16">   78</a></span>  <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a564e4c77f8f66c17a59f7040aff6ba16">VerifyROMIntegrity</a>(<span class="keyword">const</span> std::string&amp; path1, <span class="keyword">const</span> std::string&amp; path2, </div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>                         <span class="keyword">const</span> std::vector&lt;uint32_t&gt;&amp; exclude_ranges = {}) {</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    std::ifstream file1(path1, std::ios::binary);</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    std::ifstream file2(path2, std::ios::binary);</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    </div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="keywordflow">if</span> (!file1.is_open() || !file2.is_open()) {</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    }</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    </div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    file1.seekg(0, std::ios::end);</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    file2.seekg(0, std::ios::end);</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    </div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    <span class="keywordtype">size_t</span> size1 = file1.tellg();</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="keywordtype">size_t</span> size2 = file2.tellg();</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    </div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keywordflow">if</span> (size1 != size2) {</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    }</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    </div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    file1.seekg(0);</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    file2.seekg(0);</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    </div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    std::vector&lt;char&gt; buffer1(size1);</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    std::vector&lt;char&gt; buffer2(size2);</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    file1.read(buffer1.data(), size1);</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    file2.read(buffer2.data(), size2);</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    </div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="comment">// Compare byte by byte, excluding specified ranges</span></div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; size1; i++) {</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>      <span class="keywordtype">bool</span> in_exclude_range = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; range : exclude_ranges) {</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>        <span class="keywordflow">if</span> (i &gt;= (range &amp; 0xFFFFFF) &amp;&amp; i &lt; ((range &gt;&gt; 24) &amp; 0xFF)) {</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>          in_exclude_range = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>          <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        }</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      }</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>      </div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      <span class="keywordflow">if</span> (!in_exclude_range &amp;&amp; buffer1[i] != buffer2[i]) {</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>      }</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    }</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    </div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  }</div>
 </div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a4924d00fea7cc331fe75eaa49d827ca4">  122</a></span>  std::string <a class="code hl_variable" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a4924d00fea7cc331fe75eaa49d827ca4">vanilla_rom_path_</a>;</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a62e80e26c9c6eb15334b68102a1121b6">  123</a></span>  std::string <a class="code hl_variable" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a62e80e26c9c6eb15334b68102a1121b6">test_rom_path_</a>;</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a847106b3abd1aef361a6d789ddaeb430">  124</a></span>  std::string <a class="code hl_variable" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a847106b3abd1aef361a6d789ddaeb430">backup_rom_path_</a>;</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>};</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a4924d00fea7cc331fe75eaa49d827ca4">  124</a></span>  std::string <a class="code hl_variable" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a4924d00fea7cc331fe75eaa49d827ca4">vanilla_rom_path_</a>;</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a62e80e26c9c6eb15334b68102a1121b6">  125</a></span>  std::string <a class="code hl_variable" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a62e80e26c9c6eb15334b68102a1121b6">test_rom_path_</a>;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno"><a class="line" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a847106b3abd1aef361a6d789ddaeb430">  126</a></span>  std::string <a class="code hl_variable" href="classyaze_1_1test_1_1E2ERomDependentTest.html#a847106b3abd1aef361a6d789ddaeb430">backup_rom_path_</a>;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>};</div>
 </div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span><span class="comment">// Test basic ROM loading and saving</span></div>
-<div class="foldopen" id="foldopen00128" data-start="{" data-end="}">
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">  128</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1E2ERomDependentTest.html">E2ERomDependentTest</a>, BasicROMLoadSave) {</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  std::unique_ptr&lt;Rom&gt; rom;</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(vanilla_rom_path_, rom));</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  </div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  <span class="comment">// Save ROM to test path</span></div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;SaveToFile(<a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a>{.filename = test_rom_path_}));</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  </div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  <span class="comment">// Verify saved ROM matches original</span></div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  EXPECT_TRUE(VerifyROMIntegrity(vanilla_rom_path_, test_rom_path_));</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>}</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span> </div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="comment">// Test basic ROM loading and saving</span></div>
+<div class="foldopen" id="foldopen00130" data-start="{" data-end="}">
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">  130</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1E2ERomDependentTest.html">E2ERomDependentTest</a>, BasicROMLoadSave) {</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  std::unique_ptr&lt;Rom&gt; rom;</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(vanilla_rom_path_, rom));</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  </div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  <span class="comment">// Save ROM to test path</span></div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;SaveToFile(<a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a>{.filename = test_rom_path_}));</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  </div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  <span class="comment">// Verify saved ROM matches original</span></div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  EXPECT_TRUE(VerifyROMIntegrity(vanilla_rom_path_, test_rom_path_));</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>}</div>
 </div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span><span class="comment">// Test ROM data editing workflow</span></div>
-<div class="foldopen" id="foldopen00140" data-start="{" data-end="}">
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ad7905f1ab520c8cc670ac30dfaddb1db">  140</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1E2ERomDependentTest.html">E2ERomDependentTest</a>, ROMDataEditWorkflow) {</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>  std::unique_ptr&lt;Rom&gt; rom;</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(vanilla_rom_path_, rom));</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  </div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  <span class="comment">// Get initial state</span></div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  <span class="keyword">auto</span> initial_byte = rom-&gt;ReadByte(0x1000);</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  ASSERT_TRUE(initial_byte.ok());</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  </div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <span class="comment">// Make edits</span></div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x1000, 0xAA));</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x2000, 0xBB));</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteWord(0x3000, 0xCCDD));</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  </div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  <span class="comment">// Save changes</span></div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;SaveToFile(<a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a>{.filename = test_rom_path_}));</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  </div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  <span class="comment">// Reload and verify</span></div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  std::unique_ptr&lt;Rom&gt; reloaded_rom;</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(test_rom_path_, reloaded_rom));</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  </div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  EXPECT_EQ(reloaded_rom-&gt;ReadByte(0x1000), 0xAA);</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  EXPECT_EQ(reloaded_rom-&gt;ReadByte(0x2000), 0xBB);</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  EXPECT_EQ(reloaded_rom-&gt;ReadWord(0x3000), 0xCCDD);</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  </div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>  <span class="comment">// Verify other data wasn&#39;t corrupted</span></div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>  EXPECT_NE(reloaded_rom-&gt;ReadByte(0x1000), *initial_byte);</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>}</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span> </div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span><span class="comment">// Test ROM data editing workflow</span></div>
+<div class="foldopen" id="foldopen00142" data-start="{" data-end="}">
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#ad7905f1ab520c8cc670ac30dfaddb1db">  142</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1E2ERomDependentTest.html">E2ERomDependentTest</a>, ROMDataEditWorkflow) {</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  std::unique_ptr&lt;Rom&gt; rom;</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(vanilla_rom_path_, rom));</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  </div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  <span class="comment">// Get initial state</span></div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>  <span class="keyword">auto</span> initial_byte = rom-&gt;ReadByte(0x1000);</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  ASSERT_TRUE(initial_byte.ok());</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  </div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  <span class="comment">// Make edits</span></div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x1000, 0xAA));</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x2000, 0xBB));</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteWord(0x3000, 0xCCDD));</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>  </div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  <span class="comment">// Save changes</span></div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;SaveToFile(<a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a>{.filename = test_rom_path_}));</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  </div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>  <span class="comment">// Reload and verify</span></div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  std::unique_ptr&lt;Rom&gt; reloaded_rom;</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(test_rom_path_, reloaded_rom));</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  </div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  <span class="keyword">auto</span> byte1 = reloaded_rom-&gt;ReadByte(0x1000);</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(byte1.status());</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>  EXPECT_EQ(*byte1, 0xAA);</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>  </div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>  <span class="keyword">auto</span> byte2 = reloaded_rom-&gt;ReadByte(0x2000);</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(byte2.status());</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  EXPECT_EQ(*byte2, 0xBB);</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  </div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  <span class="keyword">auto</span> word1 = reloaded_rom-&gt;ReadWord(0x3000);</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(word1.status());</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  EXPECT_EQ(*word1, 0xCCDD);</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>  </div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  <span class="comment">// Verify other data wasn&#39;t corrupted</span></div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  EXPECT_NE(*byte1, *initial_byte);</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>}</div>
 </div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span> </div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span><span class="comment">// Test transaction system with multiple edits</span></div>
-<div class="foldopen" id="foldopen00169" data-start="{" data-end="}">
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a4a09274bb125dd00cf049b257adcc038">  169</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1E2ERomDependentTest.html">E2ERomDependentTest</a>, TransactionSystem) {</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  std::unique_ptr&lt;Rom&gt; rom;</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(vanilla_rom_path_, rom));</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  </div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>  <span class="comment">// Create transaction</span></div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  <span class="keyword">auto</span> transaction = std::make_unique&lt;yaze::Transaction&gt;(*rom);</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  </div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  <span class="comment">// Make multiple edits in transaction</span></div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(transaction-&gt;WriteByte(0x1000, 0xAA));</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(transaction-&gt;WriteByte(0x2000, 0xBB));</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(transaction-&gt;WriteWord(0x3000, 0xCCDD));</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  </div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>  <span class="comment">// Commit transaction</span></div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(transaction-&gt;Commit());</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>  </div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  <span class="comment">// Save ROM</span></div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;SaveToFile(<a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a>{.filename = test_rom_path_}));</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  </div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  <span class="comment">// Reload and verify all changes</span></div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>  std::unique_ptr&lt;Rom&gt; reloaded_rom;</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(test_rom_path_, reloaded_rom));</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span> </div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span><span class="comment">// Test transaction system with multiple edits</span></div>
+<div class="foldopen" id="foldopen00179" data-start="{" data-end="}">
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a4a09274bb125dd00cf049b257adcc038">  179</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1E2ERomDependentTest.html">E2ERomDependentTest</a>, TransactionSystem) {</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  std::unique_ptr&lt;Rom&gt; rom;</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(vanilla_rom_path_, rom));</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  </div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>  <span class="comment">// Create transaction</span></div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  <span class="keyword">auto</span> transaction = std::make_unique&lt;yaze::Transaction&gt;(*rom);</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>  </div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  <span class="comment">// Make multiple edits in transaction</span></div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  transaction-&gt;WriteByte(0x1000, 0xAA);</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>  transaction-&gt;WriteByte(0x2000, 0xBB);</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>  transaction-&gt;WriteWord(0x3000, 0xCCDD);</div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  </div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>  EXPECT_EQ(reloaded_rom-&gt;ReadByte(0x1000), 0xAA);</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>  EXPECT_EQ(reloaded_rom-&gt;ReadByte(0x2000), 0xBB);</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  EXPECT_EQ(reloaded_rom-&gt;ReadWord(0x3000), 0xCCDD);</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>}</div>
-</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span> </div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span><span class="comment">// Test ROM corruption detection</span></div>
-<div class="foldopen" id="foldopen00197" data-start="{" data-end="}">
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a79a556f5ba71450251a31739a1264d64">  197</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1E2ERomDependentTest.html">E2ERomDependentTest</a>, CorruptionDetection) {</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  std::unique_ptr&lt;Rom&gt; rom;</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(vanilla_rom_path_, rom));</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>  </div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>  <span class="comment">// Corrupt some data</span></div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x1000, 0xFF));  <span class="comment">// Corrupt some data</span></div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x2000, 0xAA));  <span class="comment">// Corrupt more data</span></div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  </div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  <span class="comment">// Save corrupted ROM</span></div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;SaveToFile(<a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a>{.filename = test_rom_path_}));</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>  <span class="comment">// Commit the transaction</span></div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(transaction-&gt;Commit());</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  </div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>  <span class="comment">// Commit transaction</span></div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(transaction-&gt;Commit());</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>  </div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>  <span class="comment">// Save ROM</span></div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;SaveToFile(<a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a>{.filename = test_rom_path_}));</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>  </div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>  <span class="comment">// Reload and verify all changes</span></div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>  std::unique_ptr&lt;Rom&gt; reloaded_rom;</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(test_rom_path_, reloaded_rom));</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>  </div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  <span class="keyword">auto</span> byte1 = reloaded_rom-&gt;ReadByte(0x1000);</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(byte1.status());</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  EXPECT_EQ(*byte1, 0xAA);</div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  </div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  <span class="comment">// Verify corruption is detected</span></div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  std::unique_ptr&lt;Rom&gt; reloaded_rom;</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(test_rom_path_, reloaded_rom));</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  <span class="keyword">auto</span> byte2 = reloaded_rom-&gt;ReadByte(0x2000);</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(byte2.status());</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  EXPECT_EQ(*byte2, 0xBB);</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  </div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  EXPECT_EQ(reloaded_rom-&gt;ReadByte(0x1000), 0xFF);</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  EXPECT_EQ(reloaded_rom-&gt;ReadByte(0x2000), 0xAA);</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>}</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  <span class="keyword">auto</span> word1 = reloaded_rom-&gt;ReadWord(0x3000);</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(word1.status());</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  EXPECT_EQ(*word1, 0xCCDD);</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>}</div>
 </div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span> </div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span><span class="comment">// Test large-scale editing without corruption</span></div>
-<div class="foldopen" id="foldopen00217" data-start="{" data-end="}">
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a442b00a5630d8b4af491acb963c79c25">  217</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1E2ERomDependentTest.html">E2ERomDependentTest</a>, LargeScaleEditing) {</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  std::unique_ptr&lt;Rom&gt; rom;</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(vanilla_rom_path_, rom));</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>  </div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>  <span class="comment">// Edit multiple areas</span></div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 10; i++) {</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x1000 + i, i % 16));</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x2000 + i, (i + 1) % 16));</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  }</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  </div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  <span class="comment">// Save and reload</span></div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;SaveToFile(<a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a>{.filename = test_rom_path_}));</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  </div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span> </div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span><span class="comment">// Test ROM corruption detection</span></div>
+<div class="foldopen" id="foldopen00218" data-start="{" data-end="}">
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a79a556f5ba71450251a31739a1264d64">  218</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1E2ERomDependentTest.html">E2ERomDependentTest</a>, CorruptionDetection) {</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  std::unique_ptr&lt;Rom&gt; rom;</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(vanilla_rom_path_, rom));</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>  </div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>  <span class="comment">// Corrupt some data</span></div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x1000, 0xFF));  <span class="comment">// Corrupt some data</span></div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x2000, 0xAA));  <span class="comment">// Corrupt more data</span></div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  </div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  <span class="comment">// Save corrupted ROM</span></div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;SaveToFile(<a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a>{.filename = test_rom_path_}));</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  </div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  <span class="comment">// Verify corruption is detected</span></div>
 <div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  std::unique_ptr&lt;Rom&gt; reloaded_rom;</div>
 <div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(test_rom_path_, reloaded_rom));</div>
 <div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  </div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  <span class="comment">// Verify all changes</span></div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 10; i++) {</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    EXPECT_EQ(reloaded_rom-&gt;ReadByte(0x1000 + i), i % 16);</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    EXPECT_EQ(reloaded_rom-&gt;ReadByte(0x2000 + i), (i + 1) % 16);</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  }</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>}</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  <span class="keyword">auto</span> corrupt_byte1 = reloaded_rom-&gt;ReadByte(0x1000);</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(corrupt_byte1.status());</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  EXPECT_EQ(*corrupt_byte1, 0xFF);</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>  </div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  <span class="keyword">auto</span> corrupt_byte2 = reloaded_rom-&gt;ReadByte(0x2000);</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(corrupt_byte2.status());</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  EXPECT_EQ(*corrupt_byte2, 0xAA);</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>}</div>
 </div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span> </div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>}  <span class="comment">// namespace test</span></div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span> </div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span><span class="comment">// Test large-scale editing without corruption</span></div>
+<div class="foldopen" id="foldopen00243" data-start="{" data-end="}">
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno"><a class="line" href="namespaceyaze_1_1test.html#a442b00a5630d8b4af491acb963c79c25">  243</a></span><a class="code hl_function" href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">TEST_F</a>(<a class="code hl_class" href="classyaze_1_1test_1_1E2ERomDependentTest.html">E2ERomDependentTest</a>, LargeScaleEditing) {</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  std::unique_ptr&lt;Rom&gt; rom;</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(vanilla_rom_path_, rom));</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  </div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>  <span class="comment">// Edit multiple areas</span></div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 10; i++) {</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x1000 + i, i % 16));</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;WriteByte(0x2000 + i, (i + 1) % 16));</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>  }</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>  </div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  <span class="comment">// Save and reload</span></div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(rom-&gt;SaveToFile(<a class="code hl_struct" href="structyaze_1_1Rom_1_1SaveSettings.html">Rom::SaveSettings</a>{.filename = test_rom_path_}));</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>  </div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  std::unique_ptr&lt;Rom&gt; reloaded_rom;</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(LoadAndVerifyROM(test_rom_path_, reloaded_rom));</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  </div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>  <span class="comment">// Verify all changes</span></div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 10; i++) {</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    <span class="keyword">auto</span> byte1 = reloaded_rom-&gt;ReadByte(0x1000 + i);</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>    <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(byte1.status());</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    EXPECT_EQ(*byte1, i % 16);</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    </div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <span class="keyword">auto</span> byte2 = reloaded_rom-&gt;ReadByte(0x2000 + i);</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    <a class="code hl_define" href="testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a>(byte2.status());</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    EXPECT_EQ(*byte2, (i + 1) % 16);</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>  }</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>}</div>
+</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span> </div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>}  <span class="comment">// namespace test</span></div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html">yaze::test::E2ERomDependentTest</a></div><div class="ttdoc">Comprehensive End-to-End ROM testing suite.</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00025">e2e_rom_test.cc:25</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a4924d00fea7cc331fe75eaa49d827ca4"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a4924d00fea7cc331fe75eaa49d827ca4">yaze::test::E2ERomDependentTest::vanilla_rom_path_</a></div><div class="ttdeci">std::string vanilla_rom_path_</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00122">e2e_rom_test.cc:122</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a564e4c77f8f66c17a59f7040aff6ba16"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a564e4c77f8f66c17a59f7040aff6ba16">yaze::test::E2ERomDependentTest::VerifyROMIntegrity</a></div><div class="ttdeci">static bool VerifyROMIntegrity(const std::string &amp;path1, const std::string &amp;path2, const std::vector&lt; uint32_t &gt; &amp;exclude_ranges={})</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00076">e2e_rom_test.cc:76</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a62e80e26c9c6eb15334b68102a1121b6"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a62e80e26c9c6eb15334b68102a1121b6">yaze::test::E2ERomDependentTest::test_rom_path_</a></div><div class="ttdeci">std::string test_rom_path_</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00123">e2e_rom_test.cc:123</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a4924d00fea7cc331fe75eaa49d827ca4"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a4924d00fea7cc331fe75eaa49d827ca4">yaze::test::E2ERomDependentTest::vanilla_rom_path_</a></div><div class="ttdeci">std::string vanilla_rom_path_</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00124">e2e_rom_test.cc:124</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a564e4c77f8f66c17a59f7040aff6ba16"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a564e4c77f8f66c17a59f7040aff6ba16">yaze::test::E2ERomDependentTest::VerifyROMIntegrity</a></div><div class="ttdeci">static bool VerifyROMIntegrity(const std::string &amp;path1, const std::string &amp;path2, const std::vector&lt; uint32_t &gt; &amp;exclude_ranges={})</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00078">e2e_rom_test.cc:78</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a62e80e26c9c6eb15334b68102a1121b6"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a62e80e26c9c6eb15334b68102a1121b6">yaze::test::E2ERomDependentTest::test_rom_path_</a></div><div class="ttdeci">std::string test_rom_path_</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00125">e2e_rom_test.cc:125</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a6a607435b7db1300a5289bcbf9c8f5f6"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a6a607435b7db1300a5289bcbf9c8f5f6">yaze::test::E2ERomDependentTest::SetUp</a></div><div class="ttdeci">void SetUp() override</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00027">e2e_rom_test.cc:27</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a6b6fcaec101f0a7c555277778290f53a"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a6b6fcaec101f0a7c555277778290f53a">yaze::test::E2ERomDependentTest::LoadAndVerifyROM</a></div><div class="ttdeci">static absl::Status LoadAndVerifyROM(const std::string &amp;path, std::unique_ptr&lt; Rom &gt; &amp;rom)</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00061">e2e_rom_test.cc:61</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a7a5d92bf79bd0662e360b1c0f32913bd"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a7a5d92bf79bd0662e360b1c0f32913bd">yaze::test::E2ERomDependentTest::TearDown</a></div><div class="ttdeci">void TearDown() override</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00050">e2e_rom_test.cc:50</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a847106b3abd1aef361a6d789ddaeb430"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a847106b3abd1aef361a6d789ddaeb430">yaze::test::E2ERomDependentTest::backup_rom_path_</a></div><div class="ttdeci">std::string backup_rom_path_</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00124">e2e_rom_test.cc:124</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1E2ERomDependentTest_html_a847106b3abd1aef361a6d789ddaeb430"><div class="ttname"><a href="classyaze_1_1test_1_1E2ERomDependentTest.html#a847106b3abd1aef361a6d789ddaeb430">yaze::test::E2ERomDependentTest::backup_rom_path_</a></div><div class="ttdeci">std::string backup_rom_path_</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00126">e2e_rom_test.cc:126</a></div></div>
 <div class="ttc" id="amacro_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="macro_8h_source.html#l00053">macro.h:53</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html_a2a5754a75fc0064e1c85a6406b8940d8"><div class="ttname"><a href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">yaze::test::TEST_F</a></div><div class="ttdeci">TEST_F(E2ERomDependentTest, BasicROMLoadSave)</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00128">e2e_rom_test.cc:128</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1test_html_a2a5754a75fc0064e1c85a6406b8940d8"><div class="ttname"><a href="namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8">yaze::test::TEST_F</a></div><div class="ttdeci">TEST_F(E2ERomDependentTest, BasicROMLoadSave)</div><div class="ttdef"><b>Definition</b> <a href="e2e__rom__test_8cc_source.html#l00130">e2e_rom_test.cc:130</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="arom_8h_html"><div class="ttname"><a href="rom_8h.html">rom.h</a></div></div>
 <div class="ttc" id="astructyaze_1_1Rom_1_1SaveSettings_html"><div class="ttname"><a href="structyaze_1_1Rom_1_1SaveSettings.html">yaze::Rom::SaveSettings</a></div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00059">rom.h:59</a></div></div>

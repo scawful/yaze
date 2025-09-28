@@ -915,451 +915,451 @@ $(document).ready(function(){initNavTree('tracker_8cc_source.html',''); initResi
 <div class="line"><a id="l00799" name="l00799"></a><span class="lineno">  799</span> </div>
 <div class="foldopen" id="foldopen00800" data-start="{" data-end="}">
 <div class="line"><a id="l00800" name="l00800"></a><span class="lineno"><a class="line" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a2e584b9fa722ea23a2b31d5ee213b73d">  800</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a2e584b9fa722ea23a2b31d5ee213b73d">Tracker::SaveSongs</a>(<a class="code hl_class" href="classyaze_1_1Rom.html">Rom</a> &amp;rom) {</div>
-<div class="line"><a id="l00801" name="l00801"></a><span class="lineno">  801</span>  <span class="keywordtype">int</span> i;</div>
-<div class="line"><a id="l00802" name="l00802"></a><span class="lineno">  802</span>  <span class="keywordtype">int</span> j;</div>
-<div class="line"><a id="l00803" name="l00803"></a><span class="lineno">  803</span>  <span class="keywordtype">int</span> k;</div>
-<div class="line"><a id="l00804" name="l00804"></a><span class="lineno">  804</span>  <span class="keywordtype">int</span> l = 0;</div>
-<div class="line"><a id="l00805" name="l00805"></a><span class="lineno">  805</span>  <span class="keywordtype">int</span> m;</div>
-<div class="line"><a id="l00806" name="l00806"></a><span class="lineno">  806</span>  <span class="keywordtype">int</span> n;</div>
-<div class="line"><a id="l00807" name="l00807"></a><span class="lineno">  807</span>  <span class="keywordtype">int</span> o;</div>
-<div class="line"><a id="l00808" name="l00808"></a><span class="lineno">  808</span>  <span class="keywordtype">int</span> p;</div>
-<div class="line"><a id="l00809" name="l00809"></a><span class="lineno">  809</span>  <span class="keywordtype">int</span> q;</div>
-<div class="line"><a id="l00810" name="l00810"></a><span class="lineno">  810</span>  <span class="keywordtype">int</span> r;</div>
-<div class="line"><a id="l00811" name="l00811"></a><span class="lineno">  811</span>  <span class="keywordtype">int</span> t;</div>
-<div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span>  <span class="keywordtype">int</span> u;</div>
-<div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span>  <span class="keywordtype">int</span> v;</div>
-<div class="line"><a id="l00814" name="l00814"></a><span class="lineno">  814</span>  <span class="keywordtype">int</span> w;</div>
-<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>  <span class="keywordtype">int</span> a;</div>
-<div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>  <span class="keywordtype">int</span> e;</div>
-<div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>  <span class="keywordtype">int</span> f;</div>
-<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>  <span class="keywordtype">int</span> g;</div>
-<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> bank_next[4];</div>
-<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> bank_lwr[4];</div>
-<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span>  <span class="keywordtype">short</span> *c;</div>
-<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span>  <span class="keywordtype">short</span> *d;</div>
-<div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *rom_data;</div>
-<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *b;</div>
+<div class="line"><a id="l00801" name="l00801"></a><span class="lineno">  801</span>  <span class="comment">// int i;</span></div>
+<div class="line"><a id="l00802" name="l00802"></a><span class="lineno">  802</span>  <span class="comment">// int j;</span></div>
+<div class="line"><a id="l00803" name="l00803"></a><span class="lineno">  803</span>  <span class="comment">// int k;</span></div>
+<div class="line"><a id="l00804" name="l00804"></a><span class="lineno">  804</span>  <span class="comment">// int l = 0;</span></div>
+<div class="line"><a id="l00805" name="l00805"></a><span class="lineno">  805</span>  <span class="comment">// int m;</span></div>
+<div class="line"><a id="l00806" name="l00806"></a><span class="lineno">  806</span>  <span class="comment">// int n;</span></div>
+<div class="line"><a id="l00807" name="l00807"></a><span class="lineno">  807</span>  <span class="comment">// int o;</span></div>
+<div class="line"><a id="l00808" name="l00808"></a><span class="lineno">  808</span>  <span class="comment">// int p;</span></div>
+<div class="line"><a id="l00809" name="l00809"></a><span class="lineno">  809</span>  <span class="comment">// int q;</span></div>
+<div class="line"><a id="l00810" name="l00810"></a><span class="lineno">  810</span>  <span class="comment">// int r;</span></div>
+<div class="line"><a id="l00811" name="l00811"></a><span class="lineno">  811</span>  <span class="comment">// int t;</span></div>
+<div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span>  <span class="comment">// int u;</span></div>
+<div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span>  <span class="comment">// int v;</span></div>
+<div class="line"><a id="l00814" name="l00814"></a><span class="lineno">  814</span>  <span class="comment">// int w;</span></div>
+<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>  <span class="comment">// int a;</span></div>
+<div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>  <span class="comment">// int e;</span></div>
+<div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>  <span class="comment">// int f;</span></div>
+<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>  <span class="comment">// int g;</span></div>
+<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>  <span class="comment">// unsigned short bank_next[4];</span></div>
+<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>  <span class="comment">// unsigned short bank_lwr[4];</span></div>
+<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span>  <span class="comment">// short *c;</span></div>
+<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span>  <span class="comment">// short *d;</span></div>
+<div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span>  <span class="comment">// unsigned char *rom_data;</span></div>
+<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span>  <span class="comment">// unsigned char *b;</span></div>
 <div class="line"><a id="l00825" name="l00825"></a><span class="lineno">  825</span> </div>
-<div class="line"><a id="l00826" name="l00826"></a><span class="lineno">  826</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1Song.html">Song</a> song;</div>
+<div class="line"><a id="l00826" name="l00826"></a><span class="lineno">  826</span>  <span class="comment">// Song song;</span></div>
 <div class="line"><a id="l00827" name="l00827"></a><span class="lineno">  827</span> </div>
-<div class="line"><a id="l00828" name="l00828"></a><span class="lineno">  828</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SpcCommand.html">SpcCommand</a> *spc_command;</div>
+<div class="line"><a id="l00828" name="l00828"></a><span class="lineno">  828</span>  <span class="comment">// SpcCommand *spc_command;</span></div>
 <div class="line"><a id="l00829" name="l00829"></a><span class="lineno">  829</span> </div>
-<div class="line"><a id="l00830" name="l00830"></a><span class="lineno">  830</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SongPart.html">SongPart</a> *sp;</div>
+<div class="line"><a id="l00830" name="l00830"></a><span class="lineno">  830</span>  <span class="comment">// SongPart *sp;</span></div>
 <div class="line"><a id="l00831" name="l00831"></a><span class="lineno">  831</span> </div>
-<div class="line"><a id="l00832" name="l00832"></a><span class="lineno">  832</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html">SongSpcBlock</a> *stbl;</div>
-<div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html">SongSpcBlock</a> *sptbl;</div>
-<div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html">SongSpcBlock</a> *trtbl;</div>
-<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html">SongSpcBlock</a> *pstbl;</div>
+<div class="line"><a id="l00832" name="l00832"></a><span class="lineno">  832</span>  <span class="comment">// SongSpcBlock *stbl;</span></div>
+<div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>  <span class="comment">// SongSpcBlock *sptbl;</span></div>
+<div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span>  <span class="comment">// SongSpcBlock *trtbl;</span></div>
+<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span>  <span class="comment">// SongSpcBlock *pstbl;</span></div>
 <div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span> </div>
-<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html">ZeldaWave</a> *zelda_wave;</div>
-<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html">ZeldaWave</a> *zelda_wave2;</div>
+<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>  <span class="comment">// ZeldaWave *zelda_wave;</span></div>
+<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>  <span class="comment">// ZeldaWave *zelda_wave2;</span></div>
 <div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span> </div>
-<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html">ZeldaInstrument</a> *zi;</div>
+<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>  <span class="comment">// ZeldaInstrument *zi;</span></div>
 <div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span> </div>
-<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>  <a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SampleEdit.html">SampleEdit</a> *sed = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>  <span class="comment">// SampleEdit *sed = nullptr;</span></div>
 <div class="line"><a id="l00843" name="l00843"></a><span class="lineno">  843</span> </div>
-<div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>  <span class="keywordtype">short</span> wtbl[128];</div>
-<div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span>  <span class="keywordtype">short</span> x[16];</div>
-<div class="line"><a id="l00846" name="l00846"></a><span class="lineno">  846</span>  <span class="keywordtype">short</span> y[18];</div>
-<div class="line"><a id="l00847" name="l00847"></a><span class="lineno">  847</span>  <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> z[64];</div>
+<div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>  <span class="comment">// short wtbl[128];</span></div>
+<div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span>  <span class="comment">// short x[16];</span></div>
+<div class="line"><a id="l00846" name="l00846"></a><span class="lineno">  846</span>  <span class="comment">// short y[18];</span></div>
+<div class="line"><a id="l00847" name="l00847"></a><span class="lineno">  847</span>  <span class="comment">// unsigned char z[64];</span></div>
 <div class="line"><a id="l00848" name="l00848"></a><span class="lineno">  848</span> </div>
-<div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span>  <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#acff537d05b8ee98b47233aa731e2a397">ss_num</a> = 0;</div>
-<div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>  <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#aa1740826fc7090f10766b6146170ade7">ss_size</a> = 512;</div>
-<div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span>  <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a7772ad9cd405e8b3eef22b0dbe0f8f5a">ss_next</a> = 0;</div>
+<div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span>  <span class="comment">// ss_num = 0;</span></div>
+<div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>  <span class="comment">// ss_size = 512;</span></div>
+<div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span>  <span class="comment">// ss_next = 0;</span></div>
 <div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span> </div>
-<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>  <span class="comment">// if the music has not been modified, return.</span></div>
-<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>  <span class="keywordflow">if</span> (!(<a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#aaeab97f71db095ac92ee724033381064">m_modf</a>)) <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>  <span class="comment">// // if the music has not been modified, return.</span></div>
+<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>  <span class="comment">// if (!(m_modf)) return;</span></div>
 <div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span> </div>
-<div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span>  <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#af100ca5f5cbbecd8b8b3d5e326c6f0a5">ssblt</a> = (<a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html">SongSpcBlock</a> **)malloc(512 * <span class="keyword">sizeof</span>(<a class="code hl_struct" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html">SongSpcBlock</a>));</div>
+<div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span>  <span class="comment">// ssblt = (SongSpcBlock **)malloc(512 * sizeof(SongSpcBlock));</span></div>
 <div class="line"><a id="l00857" name="l00857"></a><span class="lineno">  857</span> </div>
-<div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span>  <span class="comment">// set it so the music has not been modified. (reset the status)</span></div>
-<div class="line"><a id="l00859" name="l00859"></a><span class="lineno">  859</span>  <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#aaeab97f71db095ac92ee724033381064">m_modf</a> = 0;</div>
-<div class="line"><a id="l00860" name="l00860"></a><span class="lineno">  860</span>  rom_data = rom.<a class="code hl_function" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">mutable_data</a>();</div>
+<div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span>  <span class="comment">// // set it so the music has not been modified. (reset the status)</span></div>
+<div class="line"><a id="l00859" name="l00859"></a><span class="lineno">  859</span>  <span class="comment">// m_modf = 0;</span></div>
+<div class="line"><a id="l00860" name="l00860"></a><span class="lineno">  860</span>  <span class="comment">// rom_data = rom.mutable_data();</span></div>
 <div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span> </div>
-<div class="line"><a id="l00862" name="l00862"></a><span class="lineno">  862</span>  <span class="comment">// SetCursor(wait_cursor);</span></div>
+<div class="line"><a id="l00862" name="l00862"></a><span class="lineno">  862</span>  <span class="comment">// // SetCursor(wait_cursor);</span></div>
 <div class="line"><a id="l00863" name="l00863"></a><span class="lineno">  863</span> </div>
-<div class="line"><a id="l00864" name="l00864"></a><span class="lineno">  864</span>  <span class="keywordflow">for</span> (i = 0; i &lt; 3; i++) {</div>
-<div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span>    k = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#afb752a19bf6759d884ad42026de9a552">numsong</a>[i];</div>
+<div class="line"><a id="l00864" name="l00864"></a><span class="lineno">  864</span>  <span class="comment">// for (i = 0; i &lt; 3; i++) {</span></div>
+<div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span>  <span class="comment">//   k = numsong[i];</span></div>
 <div class="line"><a id="l00866" name="l00866"></a><span class="lineno">  866</span> </div>
-<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>    <span class="keywordflow">for</span> (j = 0; j &lt; k; j++) {</div>
-<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>      song = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab9b07fb505c9c24d92666cf1ab316ca9">songs</a>[l++];</div>
+<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>  <span class="comment">//   for (j = 0; j &lt; k; j++) {</span></div>
+<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>  <span class="comment">//     song = songs[l++];</span></div>
 <div class="line"><a id="l00869" name="l00869"></a><span class="lineno">  869</span> </div>
-<div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span>      <span class="keywordflow">if</span> (!song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#aa9955a44a5054b8f44fb50572d19f7a8">in_use</a>) <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span>  <span class="comment">//     if (!song.in_use) continue;</span></div>
 <div class="line"><a id="l00871" name="l00871"></a><span class="lineno">  871</span> </div>
-<div class="line"><a id="l00872" name="l00872"></a><span class="lineno">  872</span>      song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#ab0486f32fded23ea3644260b811ef286">flag</a> &amp;= -5;</div>
+<div class="line"><a id="l00872" name="l00872"></a><span class="lineno">  872</span>  <span class="comment">//     song.flag &amp;= -5;</span></div>
 <div class="line"><a id="l00873" name="l00873"></a><span class="lineno">  873</span> </div>
-<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>      <span class="keywordflow">for</span> (m = 0; m &lt; song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#ab24bf212639d288edea31f6565d8f84d">numparts</a>; m++) {</div>
-<div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span>        sp = song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#a3a728711fb900ba3f404b6a37cdf1484">tbl</a>[m];</div>
-<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>        sp-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a73c346e7f5491b9bbce4364a7b461b4c">flag</a> &amp;= -3;</div>
-<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>      }</div>
-<div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>    }</div>
-<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>  }</div>
+<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>  <span class="comment">//     for (m = 0; m &lt; song.numparts; m++) {</span></div>
+<div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span>  <span class="comment">//       sp = song.tbl[m];</span></div>
+<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>  <span class="comment">//       sp-&gt;flag &amp;= -3;</span></div>
+<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>  <span class="comment">//     }</span></div>
+<div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>  <span class="comment">//   }</span></div>
+<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>  <span class="comment">// }</span></div>
 <div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span> </div>
-<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>  j = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab772da37567b9724de46dbf7f8ad5d76">m_size</a>;</div>
-<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>  spc_command = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac0af97cd174a13fc865911c95d77d188">current_spc_command_</a>;</div>
+<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>  <span class="comment">// j = m_size;</span></div>
+<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>  <span class="comment">// spc_command = current_spc_command_;</span></div>
 <div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span> </div>
-<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>  <span class="keywordflow">for</span> (i = 0; i &lt; j; i++) {</div>
-<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>    spc_command-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a3590fb9bd84b5c0a0397764ee5a217d7">flag</a> &amp;= -13;</div>
-<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>    spc_command++;</div>
-<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>  }</div>
+<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>  <span class="comment">// for (i = 0; i &lt; j; i++) {</span></div>
+<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>  <span class="comment">//   spc_command-&gt;flag &amp;= -13;</span></div>
+<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>  <span class="comment">//   spc_command++;</span></div>
+<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>  <span class="comment">// }</span></div>
 <div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span> </div>
-<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>  l = 0;</div>
+<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>  <span class="comment">// l = 0;</span></div>
 <div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span> </div>
-<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>  <span class="keywordflow">for</span> (i = 0; i &lt; 3; i++) {</div>
-<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span>    k = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#afb752a19bf6759d884ad42026de9a552">numsong</a>[i];</div>
-<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span>    stbl = <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450">AllocSpcBlock</a>(k &lt;&lt; 1, i + 1);</div>
+<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>  <span class="comment">// for (i = 0; i &lt; 3; i++) {</span></div>
+<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span>  <span class="comment">//   k = numsong[i];</span></div>
+<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span>  <span class="comment">//   stbl = AllocSpcBlock(k &lt;&lt; 1, i + 1);</span></div>
 <div class="line"><a id="l00894" name="l00894"></a><span class="lineno">  894</span> </div>
-<div class="line"><a id="l00895" name="l00895"></a><span class="lineno">  895</span>    <span class="keywordflow">for</span> (j = 0; j &lt; k; j++) {</div>
-<div class="line"><a id="l00896" name="l00896"></a><span class="lineno">  896</span>      song = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab9b07fb505c9c24d92666cf1ab316ca9">songs</a>[l++];</div>
+<div class="line"><a id="l00895" name="l00895"></a><span class="lineno">  895</span>  <span class="comment">//   for (j = 0; j &lt; k; j++) {</span></div>
+<div class="line"><a id="l00896" name="l00896"></a><span class="lineno">  896</span>  <span class="comment">//     song = songs[l++];</span></div>
 <div class="line"><a id="l00897" name="l00897"></a><span class="lineno">  897</span> </div>
-<div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span>      <span class="keywordflow">if</span> (!song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#aa9955a44a5054b8f44fb50572d19f7a8">in_use</a>) {</div>
-<div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span>        ((<span class="keywordtype">short</span> *)(stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a>))[j] = 0;</div>
+<div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span>  <span class="comment">//     if (!song.in_use) {</span></div>
+<div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span>  <span class="comment">//       ((short *)(stbl-&gt;buf))[j] = 0;</span></div>
 <div class="line"><a id="l00900" name="l00900"></a><span class="lineno">  900</span> </div>
-<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>        <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>      }</div>
+<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>  <span class="comment">//       continue;</span></div>
+<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>  <span class="comment">//     }</span></div>
 <div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span> </div>
-<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>      <span class="keywordflow">if</span> (song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#ab0486f32fded23ea3644260b811ef286">flag</a> &amp; 4) <span class="keywordflow">goto</span> alreadysaved;</div>
+<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>  <span class="comment">//     if (song.flag &amp; 4) goto alreadysaved;</span></div>
 <div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span> </div>
-<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>      sptbl = <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450">AllocSpcBlock</a>(((song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#ab24bf212639d288edea31f6565d8f84d">numparts</a> + 1) &lt;&lt; 1) + (song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#ab0486f32fded23ea3644260b811ef286">flag</a> &amp; 2),</div>
-<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>                            (song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#ab0486f32fded23ea3644260b811ef286">flag</a> &amp; 1) ? 0 : (i + 1));</div>
+<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>  <span class="comment">//     sptbl = AllocSpcBlock(((song.numparts + 1) &lt;&lt; 1) + (song.flag &amp; 2),</span></div>
+<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>  <span class="comment">//                           (song.flag &amp; 1) ? 0 : (i + 1));</span></div>
 <div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span> </div>
-<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>      <span class="keywordflow">for</span> (m = 0; m &lt; song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#ab24bf212639d288edea31f6565d8f84d">numparts</a>; m++) {</div>
-<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>        sp = song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#a3a728711fb900ba3f404b6a37cdf1484">tbl</a>[m];</div>
+<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>  <span class="comment">//     for (m = 0; m &lt; song.numparts; m++) {</span></div>
+<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>  <span class="comment">//       sp = song.tbl[m];</span></div>
 <div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span> </div>
-<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span>        <span class="keywordflow">if</span> (sp-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a73c346e7f5491b9bbce4364a7b461b4c">flag</a> &amp; 2) <span class="keywordflow">goto</span> spsaved;</div>
+<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span>  <span class="comment">//       if (sp-&gt;flag &amp; 2) goto spsaved;</span></div>
 <div class="line"><a id="l00913" name="l00913"></a><span class="lineno">  913</span> </div>
-<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>        trtbl = <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450">AllocSpcBlock</a>(16, (sp-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a73c346e7f5491b9bbce4364a7b461b4c">flag</a> &amp; 1) ? 0 : (i + 1));</div>
+<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>  <span class="comment">//       trtbl = AllocSpcBlock(16, (sp-&gt;flag &amp; 1) ? 0 : (i + 1));</span></div>
 <div class="line"><a id="l00915" name="l00915"></a><span class="lineno">  915</span> </div>
-<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span>        p = 0;</div>
+<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span>  <span class="comment">//       p = 0;</span></div>
 <div class="line"><a id="l00917" name="l00917"></a><span class="lineno">  917</span> </div>
-<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span>        <span class="keywordflow">for</span> (n = 0; n &lt; 8; n++) {</div>
-<div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span>          o = <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a50fb8184fcc4ea30383988f55e39b9aa">GetBlockTime</a>(rom, sp-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a9014e4a87581bfd015b4bce2c200d2de">tbl</a>[n], 0);</div>
+<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span>  <span class="comment">//       for (n = 0; n &lt; 8; n++) {</span></div>
+<div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span>  <span class="comment">//         o = GetBlockTime(rom, sp-&gt;tbl[n], 0);</span></div>
 <div class="line"><a id="l00920" name="l00920"></a><span class="lineno">  920</span> </div>
-<div class="line"><a id="l00921" name="l00921"></a><span class="lineno">  921</span>          <span class="keywordflow">if</span> (o &gt; p) p = o;</div>
-<div class="line"><a id="l00922" name="l00922"></a><span class="lineno">  922</span>        }</div>
+<div class="line"><a id="l00921" name="l00921"></a><span class="lineno">  921</span>  <span class="comment">//         if (o &gt; p) p = o;</span></div>
+<div class="line"><a id="l00922" name="l00922"></a><span class="lineno">  922</span>  <span class="comment">//       }</span></div>
 <div class="line"><a id="l00923" name="l00923"></a><span class="lineno">  923</span> </div>
-<div class="line"><a id="l00924" name="l00924"></a><span class="lineno">  924</span>        q = 1;</div>
+<div class="line"><a id="l00924" name="l00924"></a><span class="lineno">  924</span>  <span class="comment">//       q = 1;</span></div>
 <div class="line"><a id="l00925" name="l00925"></a><span class="lineno">  925</span> </div>
-<div class="line"><a id="l00926" name="l00926"></a><span class="lineno">  926</span>        <span class="keywordflow">for</span> (n = 0; n &lt; 8; n++) {</div>
-<div class="line"><a id="l00927" name="l00927"></a><span class="lineno">  927</span>          <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a170971bb7a8dd89072c7180edc712057">stle16b_i</a>(trtbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a>, n, <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a9e8c49eed084c7790daf07995f5d4c08">SaveSpcCommand</a>(rom, sp-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a9014e4a87581bfd015b4bce2c200d2de">tbl</a>[n], p, q));</div>
+<div class="line"><a id="l00926" name="l00926"></a><span class="lineno">  926</span>  <span class="comment">//       for (n = 0; n &lt; 8; n++) {</span></div>
+<div class="line"><a id="l00927" name="l00927"></a><span class="lineno">  927</span>  <span class="comment">//         stle16b_i(trtbl-&gt;buf, n, SaveSpcCommand(rom, sp-&gt;tbl[n], p, q));</span></div>
 <div class="line"><a id="l00928" name="l00928"></a><span class="lineno">  928</span> </div>
-<div class="line"><a id="l00929" name="l00929"></a><span class="lineno">  929</span>          <span class="keywordflow">if</span> (<a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a197e8a71bbb281224f38410a3025804d">ldle16b_i</a>(trtbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a>, n)) AddSpcReloc(trtbl, n &lt;&lt; 1), q = 0;</div>
-<div class="line"><a id="l00930" name="l00930"></a><span class="lineno">  930</span>        }</div>
+<div class="line"><a id="l00929" name="l00929"></a><span class="lineno">  929</span>  <span class="comment">//         if (ldle16b_i(trtbl-&gt;buf, n)) AddSpcReloc(trtbl, n &lt;&lt; 1), q = 0;</span></div>
+<div class="line"><a id="l00930" name="l00930"></a><span class="lineno">  930</span>  <span class="comment">//       }</span></div>
 <div class="line"><a id="l00931" name="l00931"></a><span class="lineno">  931</span> </div>
-<div class="line"><a id="l00932" name="l00932"></a><span class="lineno">  932</span>        sp-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a059a2853417c6c91157bc09f87a1d43f">addr</a> = trtbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a13fcff9589dc845cb7b18b3380891a7e">start</a>;</div>
-<div class="line"><a id="l00933" name="l00933"></a><span class="lineno">  933</span>        sp-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a73c346e7f5491b9bbce4364a7b461b4c">flag</a> |= 2;</div>
-<div class="line"><a id="l00934" name="l00934"></a><span class="lineno">  934</span>      spsaved:</div>
-<div class="line"><a id="l00935" name="l00935"></a><span class="lineno">  935</span>        ((<span class="keywordtype">short</span> *)(sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a>))[m] = sp-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a059a2853417c6c91157bc09f87a1d43f">addr</a>;</div>
+<div class="line"><a id="l00932" name="l00932"></a><span class="lineno">  932</span>  <span class="comment">//       sp-&gt;addr = trtbl-&gt;start;</span></div>
+<div class="line"><a id="l00933" name="l00933"></a><span class="lineno">  933</span>  <span class="comment">//       sp-&gt;flag |= 2;</span></div>
+<div class="line"><a id="l00934" name="l00934"></a><span class="lineno">  934</span>  <span class="comment">//     spsaved:</span></div>
+<div class="line"><a id="l00935" name="l00935"></a><span class="lineno">  935</span>  <span class="comment">//       ((short *)(sptbl-&gt;buf))[m] = sp-&gt;addr;</span></div>
 <div class="line"><a id="l00936" name="l00936"></a><span class="lineno">  936</span> </div>
-<div class="line"><a id="l00937" name="l00937"></a><span class="lineno">  937</span>        AddSpcReloc(sptbl, m &lt;&lt; 1);</div>
-<div class="line"><a id="l00938" name="l00938"></a><span class="lineno">  938</span>      }</div>
+<div class="line"><a id="l00937" name="l00937"></a><span class="lineno">  937</span>  <span class="comment">//       AddSpcReloc(sptbl, m &lt;&lt; 1);</span></div>
+<div class="line"><a id="l00938" name="l00938"></a><span class="lineno">  938</span>  <span class="comment">//     }</span></div>
 <div class="line"><a id="l00939" name="l00939"></a><span class="lineno">  939</span> </div>
-<div class="line"><a id="l00940" name="l00940"></a><span class="lineno">  940</span>      <span class="keywordflow">if</span> (song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#ab0486f32fded23ea3644260b811ef286">flag</a> &amp; 2) {</div>
-<div class="line"><a id="l00941" name="l00941"></a><span class="lineno">  941</span>        ((<span class="keywordtype">short</span> *)(sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a>))[m++] = 255;</div>
-<div class="line"><a id="l00942" name="l00942"></a><span class="lineno">  942</span>        ((<span class="keywordtype">short</span> *)(sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a>))[m] = sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a13fcff9589dc845cb7b18b3380891a7e">start</a> + (song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#a18eb0584ad68f63525ac96a6bf9d752e">lopst</a> &lt;&lt; 1);</div>
+<div class="line"><a id="l00940" name="l00940"></a><span class="lineno">  940</span>  <span class="comment">//     if (song.flag &amp; 2) {</span></div>
+<div class="line"><a id="l00941" name="l00941"></a><span class="lineno">  941</span>  <span class="comment">//       ((short *)(sptbl-&gt;buf))[m++] = 255;</span></div>
+<div class="line"><a id="l00942" name="l00942"></a><span class="lineno">  942</span>  <span class="comment">//       ((short *)(sptbl-&gt;buf))[m] = sptbl-&gt;start + (song.lopst &lt;&lt; 1);</span></div>
 <div class="line"><a id="l00943" name="l00943"></a><span class="lineno">  943</span> </div>
-<div class="line"><a id="l00944" name="l00944"></a><span class="lineno">  944</span>        AddSpcReloc(sptbl, m &lt;&lt; 1);</div>
-<div class="line"><a id="l00945" name="l00945"></a><span class="lineno">  945</span>      } <span class="keywordflow">else</span></div>
-<div class="line"><a id="l00946" name="l00946"></a><span class="lineno">  946</span>        ((<span class="keywordtype">short</span> *)(sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a>))[m++] = 0;</div>
+<div class="line"><a id="l00944" name="l00944"></a><span class="lineno">  944</span>  <span class="comment">//       AddSpcReloc(sptbl, m &lt;&lt; 1);</span></div>
+<div class="line"><a id="l00945" name="l00945"></a><span class="lineno">  945</span>  <span class="comment">//     } else</span></div>
+<div class="line"><a id="l00946" name="l00946"></a><span class="lineno">  946</span>  <span class="comment">//       ((short *)(sptbl-&gt;buf))[m++] = 0;</span></div>
 <div class="line"><a id="l00947" name="l00947"></a><span class="lineno">  947</span> </div>
-<div class="line"><a id="l00948" name="l00948"></a><span class="lineno">  948</span>      song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#af89989b0a00f480c0e43e6bb7dd5ad34">addr</a> = sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a13fcff9589dc845cb7b18b3380891a7e">start</a>;</div>
-<div class="line"><a id="l00949" name="l00949"></a><span class="lineno">  949</span>      song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#ab0486f32fded23ea3644260b811ef286">flag</a> |= 4;</div>
-<div class="line"><a id="l00950" name="l00950"></a><span class="lineno">  950</span>    alreadysaved:</div>
-<div class="line"><a id="l00951" name="l00951"></a><span class="lineno">  951</span>      ((<span class="keywordtype">short</span> *)(stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a>))[j] = song.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1Song.html#af89989b0a00f480c0e43e6bb7dd5ad34">addr</a>;</div>
+<div class="line"><a id="l00948" name="l00948"></a><span class="lineno">  948</span>  <span class="comment">//     song.addr = sptbl-&gt;start;</span></div>
+<div class="line"><a id="l00949" name="l00949"></a><span class="lineno">  949</span>  <span class="comment">//     song.flag |= 4;</span></div>
+<div class="line"><a id="l00950" name="l00950"></a><span class="lineno">  950</span>  <span class="comment">//   alreadysaved:</span></div>
+<div class="line"><a id="l00951" name="l00951"></a><span class="lineno">  951</span>  <span class="comment">//     ((short *)(stbl-&gt;buf))[j] = song.addr;</span></div>
 <div class="line"><a id="l00952" name="l00952"></a><span class="lineno">  952</span> </div>
-<div class="line"><a id="l00953" name="l00953"></a><span class="lineno">  953</span>      AddSpcReloc(stbl, j &lt;&lt; 1);</div>
-<div class="line"><a id="l00954" name="l00954"></a><span class="lineno">  954</span>    }</div>
-<div class="line"><a id="l00955" name="l00955"></a><span class="lineno">  955</span>  }</div>
+<div class="line"><a id="l00953" name="l00953"></a><span class="lineno">  953</span>  <span class="comment">//     AddSpcReloc(stbl, j &lt;&lt; 1);</span></div>
+<div class="line"><a id="l00954" name="l00954"></a><span class="lineno">  954</span>  <span class="comment">//   }</span></div>
+<div class="line"><a id="l00955" name="l00955"></a><span class="lineno">  955</span>  <span class="comment">// }</span></div>
 <div class="line"><a id="l00956" name="l00956"></a><span class="lineno">  956</span> </div>
-<div class="line"><a id="l00957" name="l00957"></a><span class="lineno">  957</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad8c025ef207a8999d433e850b5237307">w_modf</a>) {</div>
-<div class="line"><a id="l00958" name="l00958"></a><span class="lineno">  958</span>    b = (uint8_t *)malloc(0xc000);</div>
-<div class="line"><a id="l00959" name="l00959"></a><span class="lineno">  959</span>    j = 0;</div>
+<div class="line"><a id="l00957" name="l00957"></a><span class="lineno">  957</span>  <span class="comment">// if (w_modf) {</span></div>
+<div class="line"><a id="l00958" name="l00958"></a><span class="lineno">  958</span>  <span class="comment">//   b = (uint8_t *)malloc(0xc000);</span></div>
+<div class="line"><a id="l00959" name="l00959"></a><span class="lineno">  959</span>  <span class="comment">//   j = 0;</span></div>
 <div class="line"><a id="l00960" name="l00960"></a><span class="lineno">  960</span> </div>
-<div class="line"><a id="l00961" name="l00961"></a><span class="lineno">  961</span>    zelda_wave = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a8ba403fed74c4d702c988d3e3d1d31c5">waves</a>;</div>
+<div class="line"><a id="l00961" name="l00961"></a><span class="lineno">  961</span>  <span class="comment">//   zelda_wave = waves;</span></div>
 <div class="line"><a id="l00962" name="l00962"></a><span class="lineno">  962</span> </div>
-<div class="line"><a id="l00963" name="l00963"></a><span class="lineno">  963</span>    <span class="comment">// if (mbanks[3])</span></div>
-<div class="line"><a id="l00964" name="l00964"></a><span class="lineno">  964</span>    <span class="comment">//   sed = (SampleEdit *)GetWindowLongPtr(mbanks[3], GWLP_USERDATA);</span></div>
-<div class="line"><a id="l00965" name="l00965"></a><span class="lineno">  965</span>    <span class="comment">// else</span></div>
-<div class="line"><a id="l00966" name="l00966"></a><span class="lineno">  966</span>    <span class="comment">//   sed = 0;</span></div>
+<div class="line"><a id="l00963" name="l00963"></a><span class="lineno">  963</span>  <span class="comment">//   // if (mbanks[3])</span></div>
+<div class="line"><a id="l00964" name="l00964"></a><span class="lineno">  964</span>  <span class="comment">//   //   sed = (SampleEdit *)GetWindowLongPtr(mbanks[3], GWLP_USERDATA);</span></div>
+<div class="line"><a id="l00965" name="l00965"></a><span class="lineno">  965</span>  <span class="comment">//   // else</span></div>
+<div class="line"><a id="l00966" name="l00966"></a><span class="lineno">  966</span>  <span class="comment">//   //   sed = 0;</span></div>
 <div class="line"><a id="l00967" name="l00967"></a><span class="lineno">  967</span> </div>
-<div class="line"><a id="l00968" name="l00968"></a><span class="lineno">  968</span>    <span class="keywordflow">for</span> (i = 0; i &lt; <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a95124598e7d42121420ca2acafa62c94">numwave</a>; i++, zelda_wave++) {</div>
-<div class="line"><a id="l00969" name="l00969"></a><span class="lineno">  969</span>      <span class="keywordflow">if</span> (zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9ad182a0c2d0af79ff188e6dcc2b0a65">copy</a> != -1) <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00968" name="l00968"></a><span class="lineno">  968</span>  <span class="comment">//   for (i = 0; i &lt; numwave; i++, zelda_wave++) {</span></div>
+<div class="line"><a id="l00969" name="l00969"></a><span class="lineno">  969</span>  <span class="comment">//     if (zelda_wave-&gt;copy != -1) continue;</span></div>
 <div class="line"><a id="l00970" name="l00970"></a><span class="lineno">  970</span> </div>
-<div class="line"><a id="l00971" name="l00971"></a><span class="lineno">  971</span>      wtbl[i &lt;&lt; 1] = j + 0x4000;</div>
+<div class="line"><a id="l00971" name="l00971"></a><span class="lineno">  971</span>  <span class="comment">//     wtbl[i &lt;&lt; 1] = j + 0x4000;</span></div>
 <div class="line"><a id="l00972" name="l00972"></a><span class="lineno">  972</span> </div>
-<div class="line"><a id="l00973" name="l00973"></a><span class="lineno">  973</span>      <span class="keywordflow">if</span> (zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a0d50beb4f54b170a57466174b9ff3695">lflag</a>) {</div>
-<div class="line"><a id="l00974" name="l00974"></a><span class="lineno">  974</span>        l = zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7">end</a> - zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072">lopst</a>;</div>
+<div class="line"><a id="l00973" name="l00973"></a><span class="lineno">  973</span>  <span class="comment">//     if (zelda_wave-&gt;lflag) {</span></div>
+<div class="line"><a id="l00974" name="l00974"></a><span class="lineno">  974</span>  <span class="comment">//       l = zelda_wave-&gt;end - zelda_wave-&gt;lopst;</span></div>
 <div class="line"><a id="l00975" name="l00975"></a><span class="lineno">  975</span> </div>
-<div class="line"><a id="l00976" name="l00976"></a><span class="lineno">  976</span>        <span class="keywordflow">if</span> (l &amp; 15) {</div>
-<div class="line"><a id="l00977" name="l00977"></a><span class="lineno">  977</span>          k = (l &lt;&lt; 15) / ((l + 15) &amp; -16);</div>
-<div class="line"><a id="l00978" name="l00978"></a><span class="lineno">  978</span>          p = (zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7">end</a> &lt;&lt; 15) / k;</div>
-<div class="line"><a id="l00979" name="l00979"></a><span class="lineno">  979</span>          c = (<span class="keywordtype">short</span> *)malloc(p &lt;&lt; 1);</div>
-<div class="line"><a id="l00980" name="l00980"></a><span class="lineno">  980</span>          n = 0;</div>
-<div class="line"><a id="l00981" name="l00981"></a><span class="lineno">  981</span>          d = zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160">buf</a>;</div>
+<div class="line"><a id="l00976" name="l00976"></a><span class="lineno">  976</span>  <span class="comment">//       if (l &amp; 15) {</span></div>
+<div class="line"><a id="l00977" name="l00977"></a><span class="lineno">  977</span>  <span class="comment">//         k = (l &lt;&lt; 15) / ((l + 15) &amp; -16);</span></div>
+<div class="line"><a id="l00978" name="l00978"></a><span class="lineno">  978</span>  <span class="comment">//         p = (zelda_wave-&gt;end &lt;&lt; 15) / k;</span></div>
+<div class="line"><a id="l00979" name="l00979"></a><span class="lineno">  979</span>  <span class="comment">//         c = (short *)malloc(p &lt;&lt; 1);</span></div>
+<div class="line"><a id="l00980" name="l00980"></a><span class="lineno">  980</span>  <span class="comment">//         n = 0;</span></div>
+<div class="line"><a id="l00981" name="l00981"></a><span class="lineno">  981</span>  <span class="comment">//         d = zelda_wave-&gt;buf;</span></div>
 <div class="line"><a id="l00982" name="l00982"></a><span class="lineno">  982</span> </div>
-<div class="line"><a id="l00983" name="l00983"></a><span class="lineno">  983</span>          <span class="keywordflow">for</span> (m = 0;;) {</div>
-<div class="line"><a id="l00984" name="l00984"></a><span class="lineno">  984</span>            c[n++] = (d[m &gt;&gt; 15] * ((m &amp; 32767) ^ 32767) +</div>
-<div class="line"><a id="l00985" name="l00985"></a><span class="lineno">  985</span>                      d[(m &gt;&gt; 15) + 1] * (m &amp; 32767)) /</div>
-<div class="line"><a id="l00986" name="l00986"></a><span class="lineno">  986</span>                     32767;</div>
+<div class="line"><a id="l00983" name="l00983"></a><span class="lineno">  983</span>  <span class="comment">//         for (m = 0;;) {</span></div>
+<div class="line"><a id="l00984" name="l00984"></a><span class="lineno">  984</span>  <span class="comment">//           c[n++] = (d[m &gt;&gt; 15] * ((m &amp; 32767) ^ 32767) +</span></div>
+<div class="line"><a id="l00985" name="l00985"></a><span class="lineno">  985</span>  <span class="comment">//                     d[(m &gt;&gt; 15) + 1] * (m &amp; 32767)) /</span></div>
+<div class="line"><a id="l00986" name="l00986"></a><span class="lineno">  986</span>  <span class="comment">//                    32767;</span></div>
 <div class="line"><a id="l00987" name="l00987"></a><span class="lineno">  987</span> </div>
-<div class="line"><a id="l00988" name="l00988"></a><span class="lineno">  988</span>            m += k;</div>
+<div class="line"><a id="l00988" name="l00988"></a><span class="lineno">  988</span>  <span class="comment">//           m += k;</span></div>
 <div class="line"><a id="l00989" name="l00989"></a><span class="lineno">  989</span> </div>
-<div class="line"><a id="l00990" name="l00990"></a><span class="lineno">  990</span>            <span class="keywordflow">if</span> (n &gt;= p) <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00991" name="l00991"></a><span class="lineno">  991</span>          }</div>
+<div class="line"><a id="l00990" name="l00990"></a><span class="lineno">  990</span>  <span class="comment">//           if (n &gt;= p) break;</span></div>
+<div class="line"><a id="l00991" name="l00991"></a><span class="lineno">  991</span>  <span class="comment">//         }</span></div>
 <div class="line"><a id="l00992" name="l00992"></a><span class="lineno">  992</span> </div>
-<div class="line"><a id="l00993" name="l00993"></a><span class="lineno">  993</span>          zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072">lopst</a> = (zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072">lopst</a> &lt;&lt; 15) / k;</div>
-<div class="line"><a id="l00994" name="l00994"></a><span class="lineno">  994</span>          zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7">end</a> = p;</div>
-<div class="line"><a id="l00995" name="l00995"></a><span class="lineno">  995</span>          zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160">buf</a> =</div>
-<div class="line"><a id="l00996" name="l00996"></a><span class="lineno">  996</span>              (<span class="keywordtype">short</span> *)realloc(zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160">buf</a>, (zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7">end</a> + 1) &lt;&lt; 1);</div>
-<div class="line"><a id="l00997" name="l00997"></a><span class="lineno">  997</span>          memcpy(zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160">buf</a>, c, zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7">end</a> &lt;&lt; 1);</div>
-<div class="line"><a id="l00998" name="l00998"></a><span class="lineno">  998</span>          free(c);</div>
-<div class="line"><a id="l00999" name="l00999"></a><span class="lineno">  999</span>          zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160">buf</a>[zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7">end</a>] = zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160">buf</a>[zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072">lopst</a>];</div>
-<div class="line"><a id="l01000" name="l01000"></a><span class="lineno"> 1000</span>          zelda_wave2 = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a8ba403fed74c4d702c988d3e3d1d31c5">waves</a>;</div>
+<div class="line"><a id="l00993" name="l00993"></a><span class="lineno">  993</span>  <span class="comment">//         zelda_wave-&gt;lopst = (zelda_wave-&gt;lopst &lt;&lt; 15) / k;</span></div>
+<div class="line"><a id="l00994" name="l00994"></a><span class="lineno">  994</span>  <span class="comment">//         zelda_wave-&gt;end = p;</span></div>
+<div class="line"><a id="l00995" name="l00995"></a><span class="lineno">  995</span>  <span class="comment">//         zelda_wave-&gt;buf =</span></div>
+<div class="line"><a id="l00996" name="l00996"></a><span class="lineno">  996</span>  <span class="comment">//             (short *)realloc(zelda_wave-&gt;buf, (zelda_wave-&gt;end + 1) &lt;&lt; 1);</span></div>
+<div class="line"><a id="l00997" name="l00997"></a><span class="lineno">  997</span>  <span class="comment">//         memcpy(zelda_wave-&gt;buf, c, zelda_wave-&gt;end &lt;&lt; 1);</span></div>
+<div class="line"><a id="l00998" name="l00998"></a><span class="lineno">  998</span>  <span class="comment">//         free(c);</span></div>
+<div class="line"><a id="l00999" name="l00999"></a><span class="lineno">  999</span>  <span class="comment">//         zelda_wave-&gt;buf[zelda_wave-&gt;end] = zelda_wave-&gt;buf[zelda_wave-&gt;lopst];</span></div>
+<div class="line"><a id="l01000" name="l01000"></a><span class="lineno"> 1000</span>  <span class="comment">//         zelda_wave2 = waves;</span></div>
 <div class="line"><a id="l01001" name="l01001"></a><span class="lineno"> 1001</span> </div>
-<div class="line"><a id="l01002" name="l01002"></a><span class="lineno"> 1002</span>          <span class="keywordflow">for</span> (m = 0; m &lt; <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a95124598e7d42121420ca2acafa62c94">numwave</a>; m++, zelda_wave2++)</div>
-<div class="line"><a id="l01003" name="l01003"></a><span class="lineno"> 1003</span>            <span class="keywordflow">if</span> (zelda_wave2-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9ad182a0c2d0af79ff188e6dcc2b0a65">copy</a> == i)</div>
-<div class="line"><a id="l01004" name="l01004"></a><span class="lineno"> 1004</span>              zelda_wave2-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072">lopst</a> = zelda_wave2-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072">lopst</a> &lt;&lt; 15 / k;</div>
+<div class="line"><a id="l01002" name="l01002"></a><span class="lineno"> 1002</span>  <span class="comment">//         for (m = 0; m &lt; numwave; m++, zelda_wave2++)</span></div>
+<div class="line"><a id="l01003" name="l01003"></a><span class="lineno"> 1003</span>  <span class="comment">//           if (zelda_wave2-&gt;copy == i)</span></div>
+<div class="line"><a id="l01004" name="l01004"></a><span class="lineno"> 1004</span>  <span class="comment">//             zelda_wave2-&gt;lopst = zelda_wave2-&gt;lopst &lt;&lt; 15 / k;</span></div>
 <div class="line"><a id="l01005" name="l01005"></a><span class="lineno"> 1005</span> </div>
-<div class="line"><a id="l01006" name="l01006"></a><span class="lineno"> 1006</span>          zi = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad1330ae293b5e6c8063b8b193a8057a5">insts</a>;</div>
+<div class="line"><a id="l01006" name="l01006"></a><span class="lineno"> 1006</span>  <span class="comment">//         zi = insts;</span></div>
 <div class="line"><a id="l01007" name="l01007"></a><span class="lineno"> 1007</span> </div>
-<div class="line"><a id="l01008" name="l01008"></a><span class="lineno"> 1008</span>          <span class="keywordflow">for</span> (m = 0; m &lt; <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a2ca4ab48915b102c1e984e1ce8436665">numinst</a>; m++) {</div>
-<div class="line"><a id="l01009" name="l01009"></a><span class="lineno"> 1009</span>            n = zi-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a2e5b766723489687bcdaa30bcaf71dcf">samp</a>;</div>
+<div class="line"><a id="l01008" name="l01008"></a><span class="lineno"> 1008</span>  <span class="comment">//         for (m = 0; m &lt; numinst; m++) {</span></div>
+<div class="line"><a id="l01009" name="l01009"></a><span class="lineno"> 1009</span>  <span class="comment">//           n = zi-&gt;samp;</span></div>
 <div class="line"><a id="l01010" name="l01010"></a><span class="lineno"> 1010</span> </div>
-<div class="line"><a id="l01011" name="l01011"></a><span class="lineno"> 1011</span>            <span class="keywordflow">if</span> (n &gt;= <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a95124598e7d42121420ca2acafa62c94">numwave</a>) <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l01011" name="l01011"></a><span class="lineno"> 1011</span>  <span class="comment">//           if (n &gt;= numwave) continue;</span></div>
 <div class="line"><a id="l01012" name="l01012"></a><span class="lineno"> 1012</span> </div>
-<div class="line"><a id="l01013" name="l01013"></a><span class="lineno"> 1013</span>            <span class="keywordflow">if</span> (n == i || <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a8ba403fed74c4d702c988d3e3d1d31c5">waves</a>[n].copy == i) {</div>
-<div class="line"><a id="l01014" name="l01014"></a><span class="lineno"> 1014</span>              o = (zi-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a626b8dbaf4d8c3c51eee8f358c70dff6">multhi</a> &lt;&lt; 8) + zi-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#aa3032c2a22dcfb0517fb6213eecdb6e4">multlo</a>;</div>
-<div class="line"><a id="l01015" name="l01015"></a><span class="lineno"> 1015</span>              o = (o &lt;&lt; 15) / k;</div>
-<div class="line"><a id="l01016" name="l01016"></a><span class="lineno"> 1016</span>              zi-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#aa3032c2a22dcfb0517fb6213eecdb6e4">multlo</a> = o;</div>
-<div class="line"><a id="l01017" name="l01017"></a><span class="lineno"> 1017</span>              zi-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a626b8dbaf4d8c3c51eee8f358c70dff6">multhi</a> = o &gt;&gt; 8;</div>
+<div class="line"><a id="l01013" name="l01013"></a><span class="lineno"> 1013</span>  <span class="comment">//           if (n == i || waves[n].copy == i) {</span></div>
+<div class="line"><a id="l01014" name="l01014"></a><span class="lineno"> 1014</span>  <span class="comment">//             o = (zi-&gt;multhi &lt;&lt; 8) + zi-&gt;multlo;</span></div>
+<div class="line"><a id="l01015" name="l01015"></a><span class="lineno"> 1015</span>  <span class="comment">//             o = (o &lt;&lt; 15) / k;</span></div>
+<div class="line"><a id="l01016" name="l01016"></a><span class="lineno"> 1016</span>  <span class="comment">//             zi-&gt;multlo = o;</span></div>
+<div class="line"><a id="l01017" name="l01017"></a><span class="lineno"> 1017</span>  <span class="comment">//             zi-&gt;multhi = o &gt;&gt; 8;</span></div>
 <div class="line"><a id="l01018" name="l01018"></a><span class="lineno"> 1018</span> </div>
-<div class="line"><a id="l01019" name="l01019"></a><span class="lineno"> 1019</span>              <span class="comment">// if (sed &amp;&amp; sed-&gt;editinst == m) {</span></div>
-<div class="line"><a id="l01020" name="l01020"></a><span class="lineno"> 1020</span>              <span class="comment">//   sed-&gt;init = 1;</span></div>
-<div class="line"><a id="l01021" name="l01021"></a><span class="lineno"> 1021</span>              <span class="comment">//   // SetDlgItemInt(sed-&gt;dlg, 3014, o, 0);</span></div>
-<div class="line"><a id="l01022" name="l01022"></a><span class="lineno"> 1022</span>              <span class="comment">//   sed-&gt;init = 0;</span></div>
-<div class="line"><a id="l01023" name="l01023"></a><span class="lineno"> 1023</span>              <span class="comment">// }</span></div>
-<div class="line"><a id="l01024" name="l01024"></a><span class="lineno"> 1024</span>            }</div>
+<div class="line"><a id="l01019" name="l01019"></a><span class="lineno"> 1019</span>  <span class="comment">//             // if (sed &amp;&amp; sed-&gt;editinst == m) {</span></div>
+<div class="line"><a id="l01020" name="l01020"></a><span class="lineno"> 1020</span>  <span class="comment">//             //   sed-&gt;init = 1;</span></div>
+<div class="line"><a id="l01021" name="l01021"></a><span class="lineno"> 1021</span>  <span class="comment">//             //   // SetDlgItemInt(sed-&gt;dlg, 3014, o, 0);</span></div>
+<div class="line"><a id="l01022" name="l01022"></a><span class="lineno"> 1022</span>  <span class="comment">//             //   sed-&gt;init = 0;</span></div>
+<div class="line"><a id="l01023" name="l01023"></a><span class="lineno"> 1023</span>  <span class="comment">//             // }</span></div>
+<div class="line"><a id="l01024" name="l01024"></a><span class="lineno"> 1024</span>  <span class="comment">//           }</span></div>
 <div class="line"><a id="l01025" name="l01025"></a><span class="lineno"> 1025</span> </div>
-<div class="line"><a id="l01026" name="l01026"></a><span class="lineno"> 1026</span>            zi++;</div>
-<div class="line"><a id="l01027" name="l01027"></a><span class="lineno"> 1027</span>          }</div>
+<div class="line"><a id="l01026" name="l01026"></a><span class="lineno"> 1026</span>  <span class="comment">//           zi++;</span></div>
+<div class="line"><a id="l01027" name="l01027"></a><span class="lineno"> 1027</span>  <span class="comment">//         }</span></div>
 <div class="line"><a id="l01028" name="l01028"></a><span class="lineno"> 1028</span> </div>
-<div class="line"><a id="l01029" name="l01029"></a><span class="lineno"> 1029</span>          <span class="comment">// Modifywaves(rom, i);</span></div>
-<div class="line"><a id="l01030" name="l01030"></a><span class="lineno"> 1030</span>        }</div>
-<div class="line"><a id="l01031" name="l01031"></a><span class="lineno"> 1031</span>      }</div>
+<div class="line"><a id="l01029" name="l01029"></a><span class="lineno"> 1029</span>  <span class="comment">//         // Modifywaves(rom, i);</span></div>
+<div class="line"><a id="l01030" name="l01030"></a><span class="lineno"> 1030</span>  <span class="comment">//       }</span></div>
+<div class="line"><a id="l01031" name="l01031"></a><span class="lineno"> 1031</span>  <span class="comment">//     }</span></div>
 <div class="line"><a id="l01032" name="l01032"></a><span class="lineno"> 1032</span> </div>
-<div class="line"><a id="l01033" name="l01033"></a><span class="lineno"> 1033</span>      k = (-zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7">end</a>) &amp; 15;</div>
-<div class="line"><a id="l01034" name="l01034"></a><span class="lineno"> 1034</span>      d = zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a98e8ad2d44b40c6437e4a8c5839ea160">buf</a>;</div>
-<div class="line"><a id="l01035" name="l01035"></a><span class="lineno"> 1035</span>      n = 0;</div>
-<div class="line"><a id="l01036" name="l01036"></a><span class="lineno"> 1036</span>      wtbl[(i &lt;&lt; 1) + 1] = ((zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072">lopst</a> + k) &gt;&gt; 4) * 9 + wtbl[i &lt;&lt; 1];</div>
-<div class="line"><a id="l01037" name="l01037"></a><span class="lineno"> 1037</span>      y[0] = y[1] = 0;</div>
-<div class="line"><a id="l01038" name="l01038"></a><span class="lineno"> 1038</span>      u = 4;</div>
+<div class="line"><a id="l01033" name="l01033"></a><span class="lineno"> 1033</span>  <span class="comment">//     k = (-zelda_wave-&gt;end) &amp; 15;</span></div>
+<div class="line"><a id="l01034" name="l01034"></a><span class="lineno"> 1034</span>  <span class="comment">//     d = zelda_wave-&gt;buf;</span></div>
+<div class="line"><a id="l01035" name="l01035"></a><span class="lineno"> 1035</span>  <span class="comment">//     n = 0;</span></div>
+<div class="line"><a id="l01036" name="l01036"></a><span class="lineno"> 1036</span>  <span class="comment">//     wtbl[(i &lt;&lt; 1) + 1] = ((zelda_wave-&gt;lopst + k) &gt;&gt; 4) * 9 + wtbl[i &lt;&lt; 1];</span></div>
+<div class="line"><a id="l01037" name="l01037"></a><span class="lineno"> 1037</span>  <span class="comment">//     y[0] = y[1] = 0;</span></div>
+<div class="line"><a id="l01038" name="l01038"></a><span class="lineno"> 1038</span>  <span class="comment">//     u = 4;</span></div>
 <div class="line"><a id="l01039" name="l01039"></a><span class="lineno"> 1039</span> </div>
-<div class="line"><a id="l01040" name="l01040"></a><span class="lineno"> 1040</span>      <span class="keywordflow">for</span> (;;) {</div>
-<div class="line"><a id="l01041" name="l01041"></a><span class="lineno"> 1041</span>        <span class="keywordflow">for</span> (o = 0; o &lt; 16; o++) {</div>
-<div class="line"><a id="l01042" name="l01042"></a><span class="lineno"> 1042</span>          <span class="keywordflow">if</span> (k)</div>
-<div class="line"><a id="l01043" name="l01043"></a><span class="lineno"> 1043</span>            k--, x[o] = 0;</div>
-<div class="line"><a id="l01044" name="l01044"></a><span class="lineno"> 1044</span>          <span class="keywordflow">else</span></div>
-<div class="line"><a id="l01045" name="l01045"></a><span class="lineno"> 1045</span>            x[o] = d[n++];</div>
-<div class="line"><a id="l01046" name="l01046"></a><span class="lineno"> 1046</span>        }</div>
-<div class="line"><a id="l01047" name="l01047"></a><span class="lineno"> 1047</span>        p = 0x7fffffff;</div>
-<div class="line"><a id="l01048" name="l01048"></a><span class="lineno"> 1048</span>        a = 0;</div>
+<div class="line"><a id="l01040" name="l01040"></a><span class="lineno"> 1040</span>  <span class="comment">//     for (;;) {</span></div>
+<div class="line"><a id="l01041" name="l01041"></a><span class="lineno"> 1041</span>  <span class="comment">//       for (o = 0; o &lt; 16; o++) {</span></div>
+<div class="line"><a id="l01042" name="l01042"></a><span class="lineno"> 1042</span>  <span class="comment">//         if (k)</span></div>
+<div class="line"><a id="l01043" name="l01043"></a><span class="lineno"> 1043</span>  <span class="comment">//           k--, x[o] = 0;</span></div>
+<div class="line"><a id="l01044" name="l01044"></a><span class="lineno"> 1044</span>  <span class="comment">//         else</span></div>
+<div class="line"><a id="l01045" name="l01045"></a><span class="lineno"> 1045</span>  <span class="comment">//           x[o] = d[n++];</span></div>
+<div class="line"><a id="l01046" name="l01046"></a><span class="lineno"> 1046</span>  <span class="comment">//       }</span></div>
+<div class="line"><a id="l01047" name="l01047"></a><span class="lineno"> 1047</span>  <span class="comment">//       p = 0x7fffffff;</span></div>
+<div class="line"><a id="l01048" name="l01048"></a><span class="lineno"> 1048</span>  <span class="comment">//       a = 0;</span></div>
 <div class="line"><a id="l01049" name="l01049"></a><span class="lineno"> 1049</span> </div>
-<div class="line"><a id="l01050" name="l01050"></a><span class="lineno"> 1050</span>        <span class="keywordflow">for</span> (t = 0; t &lt; 4; t++) {</div>
-<div class="line"><a id="l01051" name="l01051"></a><span class="lineno"> 1051</span>          r = 0;</div>
-<div class="line"><a id="l01052" name="l01052"></a><span class="lineno"> 1052</span>          <span class="keywordflow">for</span> (o = 0; o &lt; 16; o++) {</div>
-<div class="line"><a id="l01053" name="l01053"></a><span class="lineno"> 1053</span>            l = x[o];</div>
-<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span>            y[o + 2] = l;</div>
-<div class="line"><a id="l01055" name="l01055"></a><span class="lineno"> 1055</span>            l += (y[o] * <a class="code hl_variable" href="namespaceyaze_1_1zelda3_1_1music.html#a055b36c6d1e33bf6dd434636e811b7f1">fil3</a>[t] &gt;&gt; 4) - (y[o + 1] * <a class="code hl_variable" href="namespaceyaze_1_1zelda3_1_1music.html#a14cb98e5f9eacb05f5e56c05cab7ba8c">fil1</a>[t] &gt;&gt; <a class="code hl_variable" href="namespaceyaze_1_1zelda3_1_1music.html#a763e28f8ac2058f8fca36a359e5751ee">fil2</a>[t]);</div>
-<div class="line"><a id="l01056" name="l01056"></a><span class="lineno"> 1056</span>            <span class="keywordflow">if</span> (l &gt; r)</div>
-<div class="line"><a id="l01057" name="l01057"></a><span class="lineno"> 1057</span>              r = l;</div>
-<div class="line"><a id="l01058" name="l01058"></a><span class="lineno"> 1058</span>            <span class="keywordflow">else</span> <span class="keywordflow">if</span> (-l &gt; r)</div>
-<div class="line"><a id="l01059" name="l01059"></a><span class="lineno"> 1059</span>              r = -l;</div>
-<div class="line"><a id="l01060" name="l01060"></a><span class="lineno"> 1060</span>          }</div>
-<div class="line"><a id="l01061" name="l01061"></a><span class="lineno"> 1061</span>          r &lt;&lt;= 1;</div>
-<div class="line"><a id="l01062" name="l01062"></a><span class="lineno"> 1062</span>          <span class="keywordflow">if</span> (t)</div>
-<div class="line"><a id="l01063" name="l01063"></a><span class="lineno"> 1063</span>            m = 14;</div>
-<div class="line"><a id="l01064" name="l01064"></a><span class="lineno"> 1064</span>          <span class="keywordflow">else</span></div>
-<div class="line"><a id="l01065" name="l01065"></a><span class="lineno"> 1065</span>            m = 15;</div>
-<div class="line"><a id="l01066" name="l01066"></a><span class="lineno"> 1066</span>          <span class="keywordflow">for</span> (q = 0; q &lt; 12; q++, m += m)</div>
-<div class="line"><a id="l01067" name="l01067"></a><span class="lineno"> 1067</span>            <span class="keywordflow">if</span> (m &gt;= r) <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l01068" name="l01068"></a><span class="lineno"> 1068</span>        tryagain:</div>
-<div class="line"><a id="l01069" name="l01069"></a><span class="lineno"> 1069</span>          <span class="keywordflow">if</span> (q &amp;&amp; (q &lt; 12 || m == r))</div>
-<div class="line"><a id="l01070" name="l01070"></a><span class="lineno"> 1070</span>            v = (1 &lt;&lt; (q - 1)) - 1;</div>
-<div class="line"><a id="l01071" name="l01071"></a><span class="lineno"> 1071</span>          <span class="keywordflow">else</span></div>
-<div class="line"><a id="l01072" name="l01072"></a><span class="lineno"> 1072</span>            v = 0;</div>
-<div class="line"><a id="l01073" name="l01073"></a><span class="lineno"> 1073</span>          m = 0;</div>
-<div class="line"><a id="l01074" name="l01074"></a><span class="lineno"> 1074</span>          <span class="keywordflow">for</span> (o = 0; o &lt; 16; o++) {</div>
-<div class="line"><a id="l01075" name="l01075"></a><span class="lineno"> 1075</span>            l = (y[o + 1] * <a class="code hl_variable" href="namespaceyaze_1_1zelda3_1_1music.html#a14cb98e5f9eacb05f5e56c05cab7ba8c">fil1</a>[t] &gt;&gt; <a class="code hl_variable" href="namespaceyaze_1_1zelda3_1_1music.html#a763e28f8ac2058f8fca36a359e5751ee">fil2</a>[t]) - (y[o] * <a class="code hl_variable" href="namespaceyaze_1_1zelda3_1_1music.html#a055b36c6d1e33bf6dd434636e811b7f1">fil3</a>[t] &gt;&gt; 4);</div>
-<div class="line"><a id="l01076" name="l01076"></a><span class="lineno"> 1076</span>            w = x[o];</div>
-<div class="line"><a id="l01077" name="l01077"></a><span class="lineno"> 1077</span>            r = (w - l + v) &gt;&gt; q;</div>
-<div class="line"><a id="l01078" name="l01078"></a><span class="lineno"> 1078</span>            <span class="keywordflow">if</span> ((r + 8) &amp; 0xfff0) {</div>
-<div class="line"><a id="l01079" name="l01079"></a><span class="lineno"> 1079</span>              q++;</div>
-<div class="line"><a id="l01080" name="l01080"></a><span class="lineno"> 1080</span>              a -= o;</div>
-<div class="line"><a id="l01081" name="l01081"></a><span class="lineno"> 1081</span>              <span class="keywordflow">goto</span> tryagain;</div>
-<div class="line"><a id="l01082" name="l01082"></a><span class="lineno"> 1082</span>            }</div>
-<div class="line"><a id="l01083" name="l01083"></a><span class="lineno"> 1083</span>            z[a++] = r;</div>
-<div class="line"><a id="l01084" name="l01084"></a><span class="lineno"> 1084</span>            l = (r &lt;&lt; q) + l;</div>
-<div class="line"><a id="l01085" name="l01085"></a><span class="lineno"> 1085</span>            y[o + 2] = l;</div>
-<div class="line"><a id="l01086" name="l01086"></a><span class="lineno"> 1086</span>            l -= w;</div>
-<div class="line"><a id="l01087" name="l01087"></a><span class="lineno"> 1087</span>            m += l * l;</div>
-<div class="line"><a id="l01088" name="l01088"></a><span class="lineno"> 1088</span>          }</div>
-<div class="line"><a id="l01089" name="l01089"></a><span class="lineno"> 1089</span>          <span class="keywordflow">if</span> (u == 4) {</div>
-<div class="line"><a id="l01090" name="l01090"></a><span class="lineno"> 1090</span>            u = 0, e = q, f = y[16], g = y[17];</div>
-<div class="line"><a id="l01091" name="l01091"></a><span class="lineno"> 1091</span>            <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l01092" name="l01092"></a><span class="lineno"> 1092</span>          }</div>
-<div class="line"><a id="l01093" name="l01093"></a><span class="lineno"> 1093</span>          <span class="keywordflow">if</span> (m &lt; p) p = m, u = t, e = q, f = y[16], g = y[17];</div>
-<div class="line"><a id="l01094" name="l01094"></a><span class="lineno"> 1094</span>        }</div>
-<div class="line"><a id="l01095" name="l01095"></a><span class="lineno"> 1095</span>        m = (e &lt;&lt; 4) | (u &lt;&lt; 2);</div>
-<div class="line"><a id="l01096" name="l01096"></a><span class="lineno"> 1096</span>        <span class="keywordflow">if</span> (n == zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7">end</a>) m |= 1;</div>
-<div class="line"><a id="l01097" name="l01097"></a><span class="lineno"> 1097</span>        <span class="keywordflow">if</span> (zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a0d50beb4f54b170a57466174b9ff3695">lflag</a>) m |= 2;</div>
-<div class="line"><a id="l01098" name="l01098"></a><span class="lineno"> 1098</span>        b[j++] = m;</div>
-<div class="line"><a id="l01099" name="l01099"></a><span class="lineno"> 1099</span>        m = 0;</div>
-<div class="line"><a id="l01100" name="l01100"></a><span class="lineno"> 1100</span>        a = u &lt;&lt; 4;</div>
-<div class="line"><a id="l01101" name="l01101"></a><span class="lineno"> 1101</span>        <span class="keywordflow">for</span> (o = 0; o &lt; 16; o++) {</div>
-<div class="line"><a id="l01102" name="l01102"></a><span class="lineno"> 1102</span>          m |= z[a++] &amp; 15;</div>
-<div class="line"><a id="l01103" name="l01103"></a><span class="lineno"> 1103</span>          <span class="keywordflow">if</span> (o &amp; 1)</div>
-<div class="line"><a id="l01104" name="l01104"></a><span class="lineno"> 1104</span>            b[j++] = m, m = 0;</div>
-<div class="line"><a id="l01105" name="l01105"></a><span class="lineno"> 1105</span>          <span class="keywordflow">else</span></div>
-<div class="line"><a id="l01106" name="l01106"></a><span class="lineno"> 1106</span>            m &lt;&lt;= 4;</div>
-<div class="line"><a id="l01107" name="l01107"></a><span class="lineno"> 1107</span>        }</div>
-<div class="line"><a id="l01108" name="l01108"></a><span class="lineno"> 1108</span>        <span class="keywordflow">if</span> (n == zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7">end</a>) <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l01109" name="l01109"></a><span class="lineno"> 1109</span>        y[0] = f;</div>
-<div class="line"><a id="l01110" name="l01110"></a><span class="lineno"> 1110</span>        y[1] = g;</div>
-<div class="line"><a id="l01111" name="l01111"></a><span class="lineno"> 1111</span>      }</div>
-<div class="line"><a id="l01112" name="l01112"></a><span class="lineno"> 1112</span>    }</div>
+<div class="line"><a id="l01050" name="l01050"></a><span class="lineno"> 1050</span>  <span class="comment">//       for (t = 0; t &lt; 4; t++) {</span></div>
+<div class="line"><a id="l01051" name="l01051"></a><span class="lineno"> 1051</span>  <span class="comment">//         r = 0;</span></div>
+<div class="line"><a id="l01052" name="l01052"></a><span class="lineno"> 1052</span>  <span class="comment">//         for (o = 0; o &lt; 16; o++) {</span></div>
+<div class="line"><a id="l01053" name="l01053"></a><span class="lineno"> 1053</span>  <span class="comment">//           l = x[o];</span></div>
+<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span>  <span class="comment">//           y[o + 2] = l;</span></div>
+<div class="line"><a id="l01055" name="l01055"></a><span class="lineno"> 1055</span>  <span class="comment">//           l += (y[o] * fil3[t] &gt;&gt; 4) - (y[o + 1] * fil1[t] &gt;&gt; fil2[t]);</span></div>
+<div class="line"><a id="l01056" name="l01056"></a><span class="lineno"> 1056</span>  <span class="comment">//           if (l &gt; r)</span></div>
+<div class="line"><a id="l01057" name="l01057"></a><span class="lineno"> 1057</span>  <span class="comment">//             r = l;</span></div>
+<div class="line"><a id="l01058" name="l01058"></a><span class="lineno"> 1058</span>  <span class="comment">//           else if (-l &gt; r)</span></div>
+<div class="line"><a id="l01059" name="l01059"></a><span class="lineno"> 1059</span>  <span class="comment">//             r = -l;</span></div>
+<div class="line"><a id="l01060" name="l01060"></a><span class="lineno"> 1060</span>  <span class="comment">//         }</span></div>
+<div class="line"><a id="l01061" name="l01061"></a><span class="lineno"> 1061</span>  <span class="comment">//         r &lt;&lt;= 1;</span></div>
+<div class="line"><a id="l01062" name="l01062"></a><span class="lineno"> 1062</span>  <span class="comment">//         if (t)</span></div>
+<div class="line"><a id="l01063" name="l01063"></a><span class="lineno"> 1063</span>  <span class="comment">//           m = 14;</span></div>
+<div class="line"><a id="l01064" name="l01064"></a><span class="lineno"> 1064</span>  <span class="comment">//         else</span></div>
+<div class="line"><a id="l01065" name="l01065"></a><span class="lineno"> 1065</span>  <span class="comment">//           m = 15;</span></div>
+<div class="line"><a id="l01066" name="l01066"></a><span class="lineno"> 1066</span>  <span class="comment">//         for (q = 0; q &lt; 12; q++, m += m)</span></div>
+<div class="line"><a id="l01067" name="l01067"></a><span class="lineno"> 1067</span>  <span class="comment">//           if (m &gt;= r) break;</span></div>
+<div class="line"><a id="l01068" name="l01068"></a><span class="lineno"> 1068</span>  <span class="comment">//       tryagain:</span></div>
+<div class="line"><a id="l01069" name="l01069"></a><span class="lineno"> 1069</span>  <span class="comment">//         if (q &amp;&amp; (q &lt; 12 || m == r))</span></div>
+<div class="line"><a id="l01070" name="l01070"></a><span class="lineno"> 1070</span>  <span class="comment">//           v = (1 &lt;&lt; (q - 1)) - 1;</span></div>
+<div class="line"><a id="l01071" name="l01071"></a><span class="lineno"> 1071</span>  <span class="comment">//         else</span></div>
+<div class="line"><a id="l01072" name="l01072"></a><span class="lineno"> 1072</span>  <span class="comment">//           v = 0;</span></div>
+<div class="line"><a id="l01073" name="l01073"></a><span class="lineno"> 1073</span>  <span class="comment">//         m = 0;</span></div>
+<div class="line"><a id="l01074" name="l01074"></a><span class="lineno"> 1074</span>  <span class="comment">//         for (o = 0; o &lt; 16; o++) {</span></div>
+<div class="line"><a id="l01075" name="l01075"></a><span class="lineno"> 1075</span>  <span class="comment">//           l = (y[o + 1] * fil1[t] &gt;&gt; fil2[t]) - (y[o] * fil3[t] &gt;&gt; 4);</span></div>
+<div class="line"><a id="l01076" name="l01076"></a><span class="lineno"> 1076</span>  <span class="comment">//           w = x[o];</span></div>
+<div class="line"><a id="l01077" name="l01077"></a><span class="lineno"> 1077</span>  <span class="comment">//           r = (w - l + v) &gt;&gt; q;</span></div>
+<div class="line"><a id="l01078" name="l01078"></a><span class="lineno"> 1078</span>  <span class="comment">//           if ((r + 8) &amp; 0xfff0) {</span></div>
+<div class="line"><a id="l01079" name="l01079"></a><span class="lineno"> 1079</span>  <span class="comment">//             q++;</span></div>
+<div class="line"><a id="l01080" name="l01080"></a><span class="lineno"> 1080</span>  <span class="comment">//             a -= o;</span></div>
+<div class="line"><a id="l01081" name="l01081"></a><span class="lineno"> 1081</span>  <span class="comment">//             goto tryagain;</span></div>
+<div class="line"><a id="l01082" name="l01082"></a><span class="lineno"> 1082</span>  <span class="comment">//           }</span></div>
+<div class="line"><a id="l01083" name="l01083"></a><span class="lineno"> 1083</span>  <span class="comment">//           z[a++] = r;</span></div>
+<div class="line"><a id="l01084" name="l01084"></a><span class="lineno"> 1084</span>  <span class="comment">//           l = (r &lt;&lt; q) + l;</span></div>
+<div class="line"><a id="l01085" name="l01085"></a><span class="lineno"> 1085</span>  <span class="comment">//           y[o + 2] = l;</span></div>
+<div class="line"><a id="l01086" name="l01086"></a><span class="lineno"> 1086</span>  <span class="comment">//           l -= w;</span></div>
+<div class="line"><a id="l01087" name="l01087"></a><span class="lineno"> 1087</span>  <span class="comment">//           m += l * l;</span></div>
+<div class="line"><a id="l01088" name="l01088"></a><span class="lineno"> 1088</span>  <span class="comment">//         }</span></div>
+<div class="line"><a id="l01089" name="l01089"></a><span class="lineno"> 1089</span>  <span class="comment">//         if (u == 4) {</span></div>
+<div class="line"><a id="l01090" name="l01090"></a><span class="lineno"> 1090</span>  <span class="comment">//           u = 0, e = q, f = y[16], g = y[17];</span></div>
+<div class="line"><a id="l01091" name="l01091"></a><span class="lineno"> 1091</span>  <span class="comment">//           break;</span></div>
+<div class="line"><a id="l01092" name="l01092"></a><span class="lineno"> 1092</span>  <span class="comment">//         }</span></div>
+<div class="line"><a id="l01093" name="l01093"></a><span class="lineno"> 1093</span>  <span class="comment">//         if (m &lt; p) p = m, u = t, e = q, f = y[16], g = y[17];</span></div>
+<div class="line"><a id="l01094" name="l01094"></a><span class="lineno"> 1094</span>  <span class="comment">//       }</span></div>
+<div class="line"><a id="l01095" name="l01095"></a><span class="lineno"> 1095</span>  <span class="comment">//       m = (e &lt;&lt; 4) | (u &lt;&lt; 2);</span></div>
+<div class="line"><a id="l01096" name="l01096"></a><span class="lineno"> 1096</span>  <span class="comment">//       if (n == zelda_wave-&gt;end) m |= 1;</span></div>
+<div class="line"><a id="l01097" name="l01097"></a><span class="lineno"> 1097</span>  <span class="comment">//       if (zelda_wave-&gt;lflag) m |= 2;</span></div>
+<div class="line"><a id="l01098" name="l01098"></a><span class="lineno"> 1098</span>  <span class="comment">//       b[j++] = m;</span></div>
+<div class="line"><a id="l01099" name="l01099"></a><span class="lineno"> 1099</span>  <span class="comment">//       m = 0;</span></div>
+<div class="line"><a id="l01100" name="l01100"></a><span class="lineno"> 1100</span>  <span class="comment">//       a = u &lt;&lt; 4;</span></div>
+<div class="line"><a id="l01101" name="l01101"></a><span class="lineno"> 1101</span>  <span class="comment">//       for (o = 0; o &lt; 16; o++) {</span></div>
+<div class="line"><a id="l01102" name="l01102"></a><span class="lineno"> 1102</span>  <span class="comment">//         m |= z[a++] &amp; 15;</span></div>
+<div class="line"><a id="l01103" name="l01103"></a><span class="lineno"> 1103</span>  <span class="comment">//         if (o &amp; 1)</span></div>
+<div class="line"><a id="l01104" name="l01104"></a><span class="lineno"> 1104</span>  <span class="comment">//           b[j++] = m, m = 0;</span></div>
+<div class="line"><a id="l01105" name="l01105"></a><span class="lineno"> 1105</span>  <span class="comment">//         else</span></div>
+<div class="line"><a id="l01106" name="l01106"></a><span class="lineno"> 1106</span>  <span class="comment">//           m &lt;&lt;= 4;</span></div>
+<div class="line"><a id="l01107" name="l01107"></a><span class="lineno"> 1107</span>  <span class="comment">//       }</span></div>
+<div class="line"><a id="l01108" name="l01108"></a><span class="lineno"> 1108</span>  <span class="comment">//       if (n == zelda_wave-&gt;end) break;</span></div>
+<div class="line"><a id="l01109" name="l01109"></a><span class="lineno"> 1109</span>  <span class="comment">//       y[0] = f;</span></div>
+<div class="line"><a id="l01110" name="l01110"></a><span class="lineno"> 1110</span>  <span class="comment">//       y[1] = g;</span></div>
+<div class="line"><a id="l01111" name="l01111"></a><span class="lineno"> 1111</span>  <span class="comment">//     }</span></div>
+<div class="line"><a id="l01112" name="l01112"></a><span class="lineno"> 1112</span>  <span class="comment">//   }</span></div>
 <div class="line"><a id="l01113" name="l01113"></a><span class="lineno"> 1113</span> </div>
-<div class="line"><a id="l01114" name="l01114"></a><span class="lineno"> 1114</span>    <span class="comment">// if (sed) {</span></div>
-<div class="line"><a id="l01115" name="l01115"></a><span class="lineno"> 1115</span>    <span class="comment">//   SetDlgItemInt(sed-&gt;dlg, ID_Samp_SampleLengthEdit, sed-&gt;zelda_wave-&gt;end,</span></div>
-<div class="line"><a id="l01116" name="l01116"></a><span class="lineno"> 1116</span>    <span class="comment">//   0); SetDlgItemInt(sed-&gt;dlg, ID_Samp_LoopPointEdit,</span></div>
-<div class="line"><a id="l01117" name="l01117"></a><span class="lineno"> 1117</span>    <span class="comment">//   sed-&gt;zelda_wave-&gt;lopst, 0);</span></div>
+<div class="line"><a id="l01114" name="l01114"></a><span class="lineno"> 1114</span>  <span class="comment">//   // if (sed) {</span></div>
+<div class="line"><a id="l01115" name="l01115"></a><span class="lineno"> 1115</span>  <span class="comment">//   //   SetDlgItemInt(sed-&gt;dlg, ID_Samp_SampleLengthEdit, sed-&gt;zelda_wave-&gt;end,</span></div>
+<div class="line"><a id="l01116" name="l01116"></a><span class="lineno"> 1116</span>  <span class="comment">//   //   0); SetDlgItemInt(sed-&gt;dlg, ID_Samp_LoopPointEdit,</span></div>
+<div class="line"><a id="l01117" name="l01117"></a><span class="lineno"> 1117</span>  <span class="comment">//   //   sed-&gt;zelda_wave-&gt;lopst, 0);</span></div>
 <div class="line"><a id="l01118" name="l01118"></a><span class="lineno"> 1118</span> </div>
-<div class="line"><a id="l01119" name="l01119"></a><span class="lineno"> 1119</span>    <span class="comment">//   InvalidateRect(GetDlgItem(sed-&gt;dlg, ID_Samp_Display), 0, 1);</span></div>
-<div class="line"><a id="l01120" name="l01120"></a><span class="lineno"> 1120</span>    <span class="comment">// }</span></div>
+<div class="line"><a id="l01119" name="l01119"></a><span class="lineno"> 1119</span>  <span class="comment">//   //   InvalidateRect(GetDlgItem(sed-&gt;dlg, ID_Samp_Display), 0, 1);</span></div>
+<div class="line"><a id="l01120" name="l01120"></a><span class="lineno"> 1120</span>  <span class="comment">//   // }</span></div>
 <div class="line"><a id="l01121" name="l01121"></a><span class="lineno"> 1121</span> </div>
-<div class="line"><a id="l01122" name="l01122"></a><span class="lineno"> 1122</span>    zelda_wave = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a8ba403fed74c4d702c988d3e3d1d31c5">waves</a>;</div>
+<div class="line"><a id="l01122" name="l01122"></a><span class="lineno"> 1122</span>  <span class="comment">//   zelda_wave = waves;</span></div>
 <div class="line"><a id="l01123" name="l01123"></a><span class="lineno"> 1123</span> </div>
-<div class="line"><a id="l01124" name="l01124"></a><span class="lineno"> 1124</span>    <span class="keywordflow">for</span> (i = 0; i &lt; <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a95124598e7d42121420ca2acafa62c94">numwave</a>; i++, zelda_wave++) {</div>
-<div class="line"><a id="l01125" name="l01125"></a><span class="lineno"> 1125</span>      <span class="keywordflow">if</span> (zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9ad182a0c2d0af79ff188e6dcc2b0a65">copy</a> != -1) {</div>
-<div class="line"><a id="l01126" name="l01126"></a><span class="lineno"> 1126</span>        wtbl[i &lt;&lt; 1] = wtbl[zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9ad182a0c2d0af79ff188e6dcc2b0a65">copy</a> &lt;&lt; 1];</div>
-<div class="line"><a id="l01127" name="l01127"></a><span class="lineno"> 1127</span>        wtbl[(i &lt;&lt; 1) + 1] = (zelda_wave-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a7a5514ad6bb962060a0f354a258bc072">lopst</a> &gt;&gt; 4) * 9 + wtbl[i &lt;&lt; 1];</div>
-<div class="line"><a id="l01128" name="l01128"></a><span class="lineno"> 1128</span>      }</div>
-<div class="line"><a id="l01129" name="l01129"></a><span class="lineno"> 1129</span>    }</div>
+<div class="line"><a id="l01124" name="l01124"></a><span class="lineno"> 1124</span>  <span class="comment">//   for (i = 0; i &lt; numwave; i++, zelda_wave++) {</span></div>
+<div class="line"><a id="l01125" name="l01125"></a><span class="lineno"> 1125</span>  <span class="comment">//     if (zelda_wave-&gt;copy != -1) {</span></div>
+<div class="line"><a id="l01126" name="l01126"></a><span class="lineno"> 1126</span>  <span class="comment">//       wtbl[i &lt;&lt; 1] = wtbl[zelda_wave-&gt;copy &lt;&lt; 1];</span></div>
+<div class="line"><a id="l01127" name="l01127"></a><span class="lineno"> 1127</span>  <span class="comment">//       wtbl[(i &lt;&lt; 1) + 1] = (zelda_wave-&gt;lopst &gt;&gt; 4) * 9 + wtbl[i &lt;&lt; 1];</span></div>
+<div class="line"><a id="l01128" name="l01128"></a><span class="lineno"> 1128</span>  <span class="comment">//     }</span></div>
+<div class="line"><a id="l01129" name="l01129"></a><span class="lineno"> 1129</span>  <span class="comment">//   }</span></div>
 <div class="line"><a id="l01130" name="l01130"></a><span class="lineno"> 1130</span> </div>
-<div class="line"><a id="l01131" name="l01131"></a><span class="lineno"> 1131</span>    m = <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a6e425cf578c8769ae95e3b8e85f808a1">WriteSpcData</a>(rom, wtbl, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a95124598e7d42121420ca2acafa62c94">numwave</a> &lt;&lt; 2, 0xc8000, 0x3c00, 0xd74fc);</div>
-<div class="line"><a id="l01132" name="l01132"></a><span class="lineno"> 1132</span>    m = <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a6e425cf578c8769ae95e3b8e85f808a1">WriteSpcData</a>(rom, b, j, m, 0x4000, 0xd74fc);</div>
+<div class="line"><a id="l01131" name="l01131"></a><span class="lineno"> 1131</span>  <span class="comment">//   m = WriteSpcData(rom, wtbl, numwave &lt;&lt; 2, 0xc8000, 0x3c00, 0xd74fc);</span></div>
+<div class="line"><a id="l01132" name="l01132"></a><span class="lineno"> 1132</span>  <span class="comment">//   m = WriteSpcData(rom, b, j, m, 0x4000, 0xd74fc);</span></div>
 <div class="line"><a id="l01133" name="l01133"></a><span class="lineno"> 1133</span> </div>
-<div class="line"><a id="l01134" name="l01134"></a><span class="lineno"> 1134</span>    free(b);</div>
-<div class="line"><a id="l01135" name="l01135"></a><span class="lineno"> 1135</span>    m = <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a6e425cf578c8769ae95e3b8e85f808a1">WriteSpcData</a>(rom, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad1330ae293b5e6c8063b8b193a8057a5">insts</a>, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a2ca4ab48915b102c1e984e1ce8436665">numinst</a> * 6, m, 0x3d00, 0xd74fc);</div>
-<div class="line"><a id="l01136" name="l01136"></a><span class="lineno"> 1136</span>    m = <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a6e425cf578c8769ae95e3b8e85f808a1">WriteSpcData</a>(rom, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a5af5b28bea3eb3bca34a8e873982b876">snddat1</a>, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a05b3919cf07737c61990969931fce73d">sndlen1</a>, m, 0x800, 0xd74fc);</div>
-<div class="line"><a id="l01137" name="l01137"></a><span class="lineno"> 1137</span>    m = <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a6e425cf578c8769ae95e3b8e85f808a1">WriteSpcData</a>(rom, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab38a9c22dc870e872368ef7d05763350">snddat2</a>, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#ad873bf3329d36099ad3f69c06c4cf82a">sndlen2</a>, m, 0x17c0, 0xd74fc);</div>
-<div class="line"><a id="l01138" name="l01138"></a><span class="lineno"> 1138</span>    m = <a class="code hl_function" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a6e425cf578c8769ae95e3b8e85f808a1">WriteSpcData</a>(rom, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#ab10df3eb977949505a6aa463662066c3">sndinsts</a>, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#a674e57ad0e6fd80e56f1fde00d7c8d0f">numsndinst</a> * 9, m, 0x3e00, 0xd74fc);</div>
-<div class="line"><a id="l01139" name="l01139"></a><span class="lineno"> 1139</span>    <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#adc83f098d762b6c091bb827d371f3411">m_ofs</a> = m;</div>
-<div class="line"><a id="l01140" name="l01140"></a><span class="lineno"> 1140</span>  } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l01141" name="l01141"></a><span class="lineno"> 1141</span>    m = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#adc83f098d762b6c091bb827d371f3411">m_ofs</a>;</div>
-<div class="line"><a id="l01142" name="l01142"></a><span class="lineno"> 1142</span>  }</div>
+<div class="line"><a id="l01134" name="l01134"></a><span class="lineno"> 1134</span>  <span class="comment">//   free(b);</span></div>
+<div class="line"><a id="l01135" name="l01135"></a><span class="lineno"> 1135</span>  <span class="comment">//   m = WriteSpcData(rom, insts, numinst * 6, m, 0x3d00, 0xd74fc);</span></div>
+<div class="line"><a id="l01136" name="l01136"></a><span class="lineno"> 1136</span>  <span class="comment">//   m = WriteSpcData(rom, snddat1, sndlen1, m, 0x800, 0xd74fc);</span></div>
+<div class="line"><a id="l01137" name="l01137"></a><span class="lineno"> 1137</span>  <span class="comment">//   m = WriteSpcData(rom, snddat2, sndlen2, m, 0x17c0, 0xd74fc);</span></div>
+<div class="line"><a id="l01138" name="l01138"></a><span class="lineno"> 1138</span>  <span class="comment">//   m = WriteSpcData(rom, sndinsts, numsndinst * 9, m, 0x3e00, 0xd74fc);</span></div>
+<div class="line"><a id="l01139" name="l01139"></a><span class="lineno"> 1139</span>  <span class="comment">//   m_ofs = m;</span></div>
+<div class="line"><a id="l01140" name="l01140"></a><span class="lineno"> 1140</span>  <span class="comment">// } else {</span></div>
+<div class="line"><a id="l01141" name="l01141"></a><span class="lineno"> 1141</span>  <span class="comment">//   m = m_ofs;</span></div>
+<div class="line"><a id="l01142" name="l01142"></a><span class="lineno"> 1142</span>  <span class="comment">// }</span></div>
 <div class="line"><a id="l01143" name="l01143"></a><span class="lineno"> 1143</span> </div>
-<div class="line"><a id="l01144" name="l01144"></a><span class="lineno"> 1144</span>  bank_next[0] = 0x2880;</div>
-<div class="line"><a id="l01145" name="l01145"></a><span class="lineno"> 1145</span>  bank_next[1] = 0xd000;</div>
-<div class="line"><a id="l01146" name="l01146"></a><span class="lineno"> 1146</span>  bank_next[2] = 0xd000;</div>
-<div class="line"><a id="l01147" name="l01147"></a><span class="lineno"> 1147</span>  bank_next[3] = 0xd000;</div>
-<div class="line"><a id="l01148" name="l01148"></a><span class="lineno"> 1148</span>  bank_lwr[0] = 0x2880;</div>
+<div class="line"><a id="l01144" name="l01144"></a><span class="lineno"> 1144</span>  <span class="comment">// bank_next[0] = 0x2880;</span></div>
+<div class="line"><a id="l01145" name="l01145"></a><span class="lineno"> 1145</span>  <span class="comment">// bank_next[1] = 0xd000;</span></div>
+<div class="line"><a id="l01146" name="l01146"></a><span class="lineno"> 1146</span>  <span class="comment">// bank_next[2] = 0xd000;</span></div>
+<div class="line"><a id="l01147" name="l01147"></a><span class="lineno"> 1147</span>  <span class="comment">// bank_next[3] = 0xd000;</span></div>
+<div class="line"><a id="l01148" name="l01148"></a><span class="lineno"> 1148</span>  <span class="comment">// bank_lwr[0] = 0x2880;</span></div>
 <div class="line"><a id="l01149" name="l01149"></a><span class="lineno"> 1149</span> </div>
-<div class="line"><a id="l01150" name="l01150"></a><span class="lineno"> 1150</span>  <span class="keywordflow">for</span> (k = 0; k &lt; 4; k++) {</div>
-<div class="line"><a id="l01151" name="l01151"></a><span class="lineno"> 1151</span>    pstbl = 0;</div>
-<div class="line"><a id="l01152" name="l01152"></a><span class="lineno"> 1152</span>    <span class="keywordflow">for</span> (i = 0; i &lt; <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#acff537d05b8ee98b47233aa731e2a397">ss_num</a>; i++) {</div>
-<div class="line"><a id="l01153" name="l01153"></a><span class="lineno"> 1153</span>      stbl = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#af100ca5f5cbbecd8b8b3d5e326c6f0a5">ssblt</a>[i];</div>
-<div class="line"><a id="l01154" name="l01154"></a><span class="lineno"> 1154</span>      <span class="keywordflow">if</span> (stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a6b5d019d6089378da3bc1e5e04be3585">bank</a> != k) <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l01155" name="l01155"></a><span class="lineno"> 1155</span>      j = bank_next[k];</div>
-<div class="line"><a id="l01156" name="l01156"></a><span class="lineno"> 1156</span>      <span class="keywordflow">if</span> (j + stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0506ff7159f0799809374a06c6c6be26">len</a> &gt; 0xffc0) {</div>
-<div class="line"><a id="l01157" name="l01157"></a><span class="lineno"> 1157</span>        <span class="keywordflow">if</span> (k == 3)</div>
-<div class="line"><a id="l01158" name="l01158"></a><span class="lineno"> 1158</span>          j = 0x2880;</div>
-<div class="line"><a id="l01159" name="l01159"></a><span class="lineno"> 1159</span>        <span class="keywordflow">else</span></div>
-<div class="line"><a id="l01160" name="l01160"></a><span class="lineno"> 1160</span>          j = bank_next[0];</div>
-<div class="line"><a id="l01161" name="l01161"></a><span class="lineno"> 1161</span>        bank_lwr[k] = j;</div>
-<div class="line"><a id="l01162" name="l01162"></a><span class="lineno"> 1162</span>        pstbl = 0;</div>
-<div class="line"><a id="l01163" name="l01163"></a><span class="lineno"> 1163</span>      }</div>
-<div class="line"><a id="l01164" name="l01164"></a><span class="lineno"> 1164</span>      <span class="keywordflow">if</span> (j + stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0506ff7159f0799809374a06c6c6be26">len</a> &gt; 0x3c00 &amp;&amp; j &lt; 0xd000) {</div>
-<div class="line"><a id="l01165" name="l01165"></a><span class="lineno"> 1165</span>        printf(<span class="stringliteral">&quot;Not enough space for music bank %d&quot;</span>, k);</div>
-<div class="line"><a id="l01166" name="l01166"></a><span class="lineno"> 1166</span>        <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#aaeab97f71db095ac92ee724033381064">m_modf</a> = 1;</div>
-<div class="line"><a id="l01167" name="l01167"></a><span class="lineno"> 1167</span>        <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l01168" name="l01168"></a><span class="lineno"> 1168</span>      }</div>
-<div class="line"><a id="l01169" name="l01169"></a><span class="lineno"> 1169</span>      <span class="keywordflow">if</span> (pstbl &amp;&amp; (pstbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0958d2a773c085c7f1f8632c31002ddb">flag</a> &amp; 1) &amp;&amp; (stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0958d2a773c085c7f1f8632c31002ddb">flag</a> &amp; 2)) j--, pstbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0506ff7159f0799809374a06c6c6be26">len</a>--;</div>
-<div class="line"><a id="l01170" name="l01170"></a><span class="lineno"> 1170</span>      stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a5f07006af3730c2f934fae55d27021b2">addr</a> = j;</div>
-<div class="line"><a id="l01171" name="l01171"></a><span class="lineno"> 1171</span>      pstbl = stbl;</div>
-<div class="line"><a id="l01172" name="l01172"></a><span class="lineno"> 1172</span>      bank_next[k] = j + stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0506ff7159f0799809374a06c6c6be26">len</a>;</div>
-<div class="line"><a id="l01173" name="l01173"></a><span class="lineno"> 1173</span>    }</div>
-<div class="line"><a id="l01174" name="l01174"></a><span class="lineno"> 1174</span>  }</div>
-<div class="line"><a id="l01175" name="l01175"></a><span class="lineno"> 1175</span>  <span class="keywordflow">for</span> (i = 0; i &lt; <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#acff537d05b8ee98b47233aa731e2a397">ss_num</a>; i++) {</div>
-<div class="line"><a id="l01176" name="l01176"></a><span class="lineno"> 1176</span>    stbl = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#af100ca5f5cbbecd8b8b3d5e326c6f0a5">ssblt</a>[i];</div>
-<div class="line"><a id="l01177" name="l01177"></a><span class="lineno"> 1177</span>    <span class="keywordflow">for</span> (j = stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#ad4b5051168db7b55da986db9779b66e6">relnum</a> - 1; j &gt;= 0; j--) {</div>
-<div class="line"><a id="l01178" name="l01178"></a><span class="lineno"> 1178</span>      k = *(<span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> *)(stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a> + stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a466da56dfa0bf27eb612c66297187b05">relocs</a>[j]);</div>
-<div class="line"><a id="l01179" name="l01179"></a><span class="lineno"> 1179</span>      <span class="keywordflow">for</span> (l = 0; l &lt; <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#acff537d05b8ee98b47233aa731e2a397">ss_num</a>; l++) {</div>
-<div class="line"><a id="l01180" name="l01180"></a><span class="lineno"> 1180</span>        sptbl = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#af100ca5f5cbbecd8b8b3d5e326c6f0a5">ssblt</a>[l];</div>
-<div class="line"><a id="l01181" name="l01181"></a><span class="lineno"> 1181</span>        <span class="keywordflow">if</span> (sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a13fcff9589dc845cb7b18b3380891a7e">start</a> &lt;= k &amp;&amp; sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0506ff7159f0799809374a06c6c6be26">len</a> &gt; k - sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a13fcff9589dc845cb7b18b3380891a7e">start</a>) <span class="keywordflow">goto</span> noerror;</div>
-<div class="line"><a id="l01182" name="l01182"></a><span class="lineno"> 1182</span>      }</div>
-<div class="line"><a id="l01183" name="l01183"></a><span class="lineno"> 1183</span>      printf(<span class="stringliteral">&quot;Internal error&quot;</span>);</div>
-<div class="line"><a id="l01184" name="l01184"></a><span class="lineno"> 1184</span>      <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#aaeab97f71db095ac92ee724033381064">m_modf</a> = 1;</div>
-<div class="line"><a id="l01185" name="l01185"></a><span class="lineno"> 1185</span>      <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l01186" name="l01186"></a><span class="lineno"> 1186</span>    noerror:</div>
+<div class="line"><a id="l01150" name="l01150"></a><span class="lineno"> 1150</span>  <span class="comment">// for (k = 0; k &lt; 4; k++) {</span></div>
+<div class="line"><a id="l01151" name="l01151"></a><span class="lineno"> 1151</span>  <span class="comment">//   pstbl = 0;</span></div>
+<div class="line"><a id="l01152" name="l01152"></a><span class="lineno"> 1152</span>  <span class="comment">//   for (i = 0; i &lt; ss_num; i++) {</span></div>
+<div class="line"><a id="l01153" name="l01153"></a><span class="lineno"> 1153</span>  <span class="comment">//     stbl = ssblt[i];</span></div>
+<div class="line"><a id="l01154" name="l01154"></a><span class="lineno"> 1154</span>  <span class="comment">//     if (stbl-&gt;bank != k) continue;</span></div>
+<div class="line"><a id="l01155" name="l01155"></a><span class="lineno"> 1155</span>  <span class="comment">//     j = bank_next[k];</span></div>
+<div class="line"><a id="l01156" name="l01156"></a><span class="lineno"> 1156</span>  <span class="comment">//     if (j + stbl-&gt;len &gt; 0xffc0) {</span></div>
+<div class="line"><a id="l01157" name="l01157"></a><span class="lineno"> 1157</span>  <span class="comment">//       if (k == 3)</span></div>
+<div class="line"><a id="l01158" name="l01158"></a><span class="lineno"> 1158</span>  <span class="comment">//         j = 0x2880;</span></div>
+<div class="line"><a id="l01159" name="l01159"></a><span class="lineno"> 1159</span>  <span class="comment">//       else</span></div>
+<div class="line"><a id="l01160" name="l01160"></a><span class="lineno"> 1160</span>  <span class="comment">//         j = bank_next[0];</span></div>
+<div class="line"><a id="l01161" name="l01161"></a><span class="lineno"> 1161</span>  <span class="comment">//       bank_lwr[k] = j;</span></div>
+<div class="line"><a id="l01162" name="l01162"></a><span class="lineno"> 1162</span>  <span class="comment">//       pstbl = 0;</span></div>
+<div class="line"><a id="l01163" name="l01163"></a><span class="lineno"> 1163</span>  <span class="comment">//     }</span></div>
+<div class="line"><a id="l01164" name="l01164"></a><span class="lineno"> 1164</span>  <span class="comment">//     if (j + stbl-&gt;len &gt; 0x3c00 &amp;&amp; j &lt; 0xd000) {</span></div>
+<div class="line"><a id="l01165" name="l01165"></a><span class="lineno"> 1165</span>  <span class="comment">//       printf(&quot;Not enough space for music bank %d&quot;, k);</span></div>
+<div class="line"><a id="l01166" name="l01166"></a><span class="lineno"> 1166</span>  <span class="comment">//       m_modf = 1;</span></div>
+<div class="line"><a id="l01167" name="l01167"></a><span class="lineno"> 1167</span>  <span class="comment">//       return;</span></div>
+<div class="line"><a id="l01168" name="l01168"></a><span class="lineno"> 1168</span>  <span class="comment">//     }</span></div>
+<div class="line"><a id="l01169" name="l01169"></a><span class="lineno"> 1169</span>  <span class="comment">//     if (pstbl &amp;&amp; (pstbl-&gt;flag &amp; 1) &amp;&amp; (stbl-&gt;flag &amp; 2)) j--, pstbl-&gt;len--;</span></div>
+<div class="line"><a id="l01170" name="l01170"></a><span class="lineno"> 1170</span>  <span class="comment">//     stbl-&gt;addr = j;</span></div>
+<div class="line"><a id="l01171" name="l01171"></a><span class="lineno"> 1171</span>  <span class="comment">//     pstbl = stbl;</span></div>
+<div class="line"><a id="l01172" name="l01172"></a><span class="lineno"> 1172</span>  <span class="comment">//     bank_next[k] = j + stbl-&gt;len;</span></div>
+<div class="line"><a id="l01173" name="l01173"></a><span class="lineno"> 1173</span>  <span class="comment">//   }</span></div>
+<div class="line"><a id="l01174" name="l01174"></a><span class="lineno"> 1174</span>  <span class="comment">// }</span></div>
+<div class="line"><a id="l01175" name="l01175"></a><span class="lineno"> 1175</span>  <span class="comment">// for (i = 0; i &lt; ss_num; i++) {</span></div>
+<div class="line"><a id="l01176" name="l01176"></a><span class="lineno"> 1176</span>  <span class="comment">//   stbl = ssblt[i];</span></div>
+<div class="line"><a id="l01177" name="l01177"></a><span class="lineno"> 1177</span>  <span class="comment">//   for (j = stbl-&gt;relnum - 1; j &gt;= 0; j--) {</span></div>
+<div class="line"><a id="l01178" name="l01178"></a><span class="lineno"> 1178</span>  <span class="comment">//     k = *(unsigned short *)(stbl-&gt;buf + stbl-&gt;relocs[j]);</span></div>
+<div class="line"><a id="l01179" name="l01179"></a><span class="lineno"> 1179</span>  <span class="comment">//     for (l = 0; l &lt; ss_num; l++) {</span></div>
+<div class="line"><a id="l01180" name="l01180"></a><span class="lineno"> 1180</span>  <span class="comment">//       sptbl = ssblt[l];</span></div>
+<div class="line"><a id="l01181" name="l01181"></a><span class="lineno"> 1181</span>  <span class="comment">//       if (sptbl-&gt;start &lt;= k &amp;&amp; sptbl-&gt;len &gt; k - sptbl-&gt;start) goto noerror;</span></div>
+<div class="line"><a id="l01182" name="l01182"></a><span class="lineno"> 1182</span>  <span class="comment">//     }</span></div>
+<div class="line"><a id="l01183" name="l01183"></a><span class="lineno"> 1183</span>  <span class="comment">//     printf(&quot;Internal error&quot;);</span></div>
+<div class="line"><a id="l01184" name="l01184"></a><span class="lineno"> 1184</span>  <span class="comment">//     m_modf = 1;</span></div>
+<div class="line"><a id="l01185" name="l01185"></a><span class="lineno"> 1185</span>  <span class="comment">//     return;</span></div>
+<div class="line"><a id="l01186" name="l01186"></a><span class="lineno"> 1186</span>  <span class="comment">//   noerror:</span></div>
 <div class="line"><a id="l01187" name="l01187"></a><span class="lineno"> 1187</span> </div>
-<div class="line"><a id="l01188" name="l01188"></a><span class="lineno"> 1188</span>      <span class="keywordflow">if</span> (((!sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a6b5d019d6089378da3bc1e5e04be3585">bank</a>) &amp;&amp; stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a6b5d019d6089378da3bc1e5e04be3585">bank</a> &lt; 3) || (sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a6b5d019d6089378da3bc1e5e04be3585">bank</a> == stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a6b5d019d6089378da3bc1e5e04be3585">bank</a>)) {</div>
-<div class="line"><a id="l01189" name="l01189"></a><span class="lineno"> 1189</span>        *(<span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> *)(stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a> + stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a466da56dfa0bf27eb612c66297187b05">relocs</a>[j]) =</div>
-<div class="line"><a id="l01190" name="l01190"></a><span class="lineno"> 1190</span>            sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a5f07006af3730c2f934fae55d27021b2">addr</a> + k - sptbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a13fcff9589dc845cb7b18b3380891a7e">start</a>;</div>
-<div class="line"><a id="l01191" name="l01191"></a><span class="lineno"> 1191</span>      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l01192" name="l01192"></a><span class="lineno"> 1192</span>        printf(<span class="stringliteral">&quot;An address outside the bank was referenced.\n&quot;</span>);</div>
-<div class="line"><a id="l01193" name="l01193"></a><span class="lineno"> 1193</span>        <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#aaeab97f71db095ac92ee724033381064">m_modf</a> = 1;</div>
-<div class="line"><a id="l01194" name="l01194"></a><span class="lineno"> 1194</span>        <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l01195" name="l01195"></a><span class="lineno"> 1195</span>      }</div>
-<div class="line"><a id="l01196" name="l01196"></a><span class="lineno"> 1196</span>    }</div>
-<div class="line"><a id="l01197" name="l01197"></a><span class="lineno"> 1197</span>  }</div>
-<div class="line"><a id="l01198" name="l01198"></a><span class="lineno"> 1198</span>  l = m;</div>
-<div class="line"><a id="l01199" name="l01199"></a><span class="lineno"> 1199</span>  <span class="keywordflow">for</span> (k = 0; k &lt; 4; k++) {</div>
-<div class="line"><a id="l01200" name="l01200"></a><span class="lineno"> 1200</span>    <span class="keywordflow">switch</span> (k) {</div>
-<div class="line"><a id="l01201" name="l01201"></a><span class="lineno"> 1201</span>      <span class="keywordflow">case</span> 1:</div>
-<div class="line"><a id="l01202" name="l01202"></a><span class="lineno"> 1202</span>        rom[0x914] = l;</div>
-<div class="line"><a id="l01203" name="l01203"></a><span class="lineno"> 1203</span>        rom[0x918] = (l &gt;&gt; 8) | 128;</div>
-<div class="line"><a id="l01204" name="l01204"></a><span class="lineno"> 1204</span>        rom[0x91c] = l &gt;&gt; 15;</div>
-<div class="line"><a id="l01205" name="l01205"></a><span class="lineno"> 1205</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l01206" name="l01206"></a><span class="lineno"> 1206</span>      <span class="keywordflow">case</span> 2:</div>
-<div class="line"><a id="l01207" name="l01207"></a><span class="lineno"> 1207</span>        l = 0xd8000;</div>
-<div class="line"><a id="l01208" name="l01208"></a><span class="lineno"> 1208</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l01209" name="l01209"></a><span class="lineno"> 1209</span>      <span class="keywordflow">case</span> 3:</div>
-<div class="line"><a id="l01210" name="l01210"></a><span class="lineno"> 1210</span>        l = m;</div>
-<div class="line"><a id="l01211" name="l01211"></a><span class="lineno"> 1211</span>        rom[0x932] = l;</div>
-<div class="line"><a id="l01212" name="l01212"></a><span class="lineno"> 1212</span>        rom[0x936] = (l &gt;&gt; 8) | 128;</div>
-<div class="line"><a id="l01213" name="l01213"></a><span class="lineno"> 1213</span>        rom[0x93a] = l &gt;&gt; 15;</div>
-<div class="line"><a id="l01214" name="l01214"></a><span class="lineno"> 1214</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l01215" name="l01215"></a><span class="lineno"> 1215</span>    }</div>
-<div class="line"><a id="l01216" name="l01216"></a><span class="lineno"> 1216</span>    <span class="keywordflow">for</span> (o = 0; o &lt; 2; o++) {</div>
-<div class="line"><a id="l01217" name="l01217"></a><span class="lineno"> 1217</span>      n = l + 4;</div>
-<div class="line"><a id="l01218" name="l01218"></a><span class="lineno"> 1218</span>      <span class="keywordflow">for</span> (i = 0; i &lt; <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#acff537d05b8ee98b47233aa731e2a397">ss_num</a>; i++) {</div>
-<div class="line"><a id="l01219" name="l01219"></a><span class="lineno"> 1219</span>        stbl = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#af100ca5f5cbbecd8b8b3d5e326c6f0a5">ssblt</a>[i];</div>
-<div class="line"><a id="l01220" name="l01220"></a><span class="lineno"> 1220</span>        <span class="keywordflow">if</span> (!stbl) <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l01221" name="l01221"></a><span class="lineno"> 1221</span>        <span class="keywordflow">if</span> ((stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a5f07006af3730c2f934fae55d27021b2">addr</a> &lt; 0xd000) ^ o) <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l01222" name="l01222"></a><span class="lineno"> 1222</span>        <span class="keywordflow">if</span> (stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a6b5d019d6089378da3bc1e5e04be3585">bank</a> != k) <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l01223" name="l01223"></a><span class="lineno"> 1223</span>        <span class="keywordflow">if</span> (n + stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0506ff7159f0799809374a06c6c6be26">len</a> &gt; ((k == 2) ? 0xdb7fc : 0xd74fc)) {</div>
-<div class="line"><a id="l01224" name="l01224"></a><span class="lineno"> 1224</span>          printf(<span class="stringliteral">&quot;Not enough space for music&quot;</span>);</div>
-<div class="line"><a id="l01225" name="l01225"></a><span class="lineno"> 1225</span>          <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#aaeab97f71db095ac92ee724033381064">m_modf</a> = 1;</div>
-<div class="line"><a id="l01226" name="l01226"></a><span class="lineno"> 1226</span>          <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l01227" name="l01227"></a><span class="lineno"> 1227</span>        }</div>
-<div class="line"><a id="l01228" name="l01228"></a><span class="lineno"> 1228</span>        memcpy(rom.<a class="code hl_function" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">mutable_data</a>() + n, stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a>, stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0506ff7159f0799809374a06c6c6be26">len</a>);</div>
-<div class="line"><a id="l01229" name="l01229"></a><span class="lineno"> 1229</span>        n += stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0506ff7159f0799809374a06c6c6be26">len</a>;</div>
-<div class="line"><a id="l01230" name="l01230"></a><span class="lineno"> 1230</span>        free(stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a466da56dfa0bf27eb612c66297187b05">relocs</a>);</div>
-<div class="line"><a id="l01231" name="l01231"></a><span class="lineno"> 1231</span>        free(stbl-&gt;<a class="code hl_variable" href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">buf</a>);</div>
-<div class="line"><a id="l01232" name="l01232"></a><span class="lineno"> 1232</span>        free(stbl);</div>
-<div class="line"><a id="l01233" name="l01233"></a><span class="lineno"> 1233</span>        <a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#af100ca5f5cbbecd8b8b3d5e326c6f0a5">ssblt</a>[i] = 0;</div>
-<div class="line"><a id="l01234" name="l01234"></a><span class="lineno"> 1234</span>      }</div>
-<div class="line"><a id="l01235" name="l01235"></a><span class="lineno"> 1235</span>      <span class="keywordflow">if</span> (n &gt; l + 4) {</div>
-<div class="line"><a id="l01236" name="l01236"></a><span class="lineno"> 1236</span>        *(<span class="keywordtype">short</span> *)(rom.<a class="code hl_function" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">mutable_data</a>() + l) = n - l - 4;</div>
-<div class="line"><a id="l01237" name="l01237"></a><span class="lineno"> 1237</span>        *(<span class="keywordtype">short</span> *)(rom.<a class="code hl_function" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">mutable_data</a>() + l + 2) = o ? bank_lwr[k] : 0xd000;</div>
-<div class="line"><a id="l01238" name="l01238"></a><span class="lineno"> 1238</span>        l = n;</div>
-<div class="line"><a id="l01239" name="l01239"></a><span class="lineno"> 1239</span>      }</div>
-<div class="line"><a id="l01240" name="l01240"></a><span class="lineno"> 1240</span>    }</div>
-<div class="line"><a id="l01241" name="l01241"></a><span class="lineno"> 1241</span>    *(<span class="keywordtype">short</span> *)(rom.<a class="code hl_function" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">mutable_data</a>() + l) = 0;</div>
-<div class="line"><a id="l01242" name="l01242"></a><span class="lineno"> 1242</span>    *(<span class="keywordtype">short</span> *)(rom.<a class="code hl_function" href="classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6">mutable_data</a>() + l + 2) = 0x800;</div>
-<div class="line"><a id="l01243" name="l01243"></a><span class="lineno"> 1243</span>    <span class="keywordflow">if</span> (k == 1) m = l + 4;</div>
-<div class="line"><a id="l01244" name="l01244"></a><span class="lineno"> 1244</span>  }</div>
-<div class="line"><a id="l01245" name="l01245"></a><span class="lineno"> 1245</span>  free(<a class="code hl_variable" href="classyaze_1_1zelda3_1_1music_1_1Tracker.html#af100ca5f5cbbecd8b8b3d5e326c6f0a5">ssblt</a>);</div>
+<div class="line"><a id="l01188" name="l01188"></a><span class="lineno"> 1188</span>  <span class="comment">//     if (((!sptbl-&gt;bank) &amp;&amp; stbl-&gt;bank &lt; 3) || (sptbl-&gt;bank == stbl-&gt;bank)) {</span></div>
+<div class="line"><a id="l01189" name="l01189"></a><span class="lineno"> 1189</span>  <span class="comment">//       *(unsigned short *)(stbl-&gt;buf + stbl-&gt;relocs[j]) =</span></div>
+<div class="line"><a id="l01190" name="l01190"></a><span class="lineno"> 1190</span>  <span class="comment">//           sptbl-&gt;addr + k - sptbl-&gt;start;</span></div>
+<div class="line"><a id="l01191" name="l01191"></a><span class="lineno"> 1191</span>  <span class="comment">//     } else {</span></div>
+<div class="line"><a id="l01192" name="l01192"></a><span class="lineno"> 1192</span>  <span class="comment">//       printf(&quot;An address outside the bank was referenced.\n&quot;);</span></div>
+<div class="line"><a id="l01193" name="l01193"></a><span class="lineno"> 1193</span>  <span class="comment">//       m_modf = 1;</span></div>
+<div class="line"><a id="l01194" name="l01194"></a><span class="lineno"> 1194</span>  <span class="comment">//       return;</span></div>
+<div class="line"><a id="l01195" name="l01195"></a><span class="lineno"> 1195</span>  <span class="comment">//     }</span></div>
+<div class="line"><a id="l01196" name="l01196"></a><span class="lineno"> 1196</span>  <span class="comment">//   }</span></div>
+<div class="line"><a id="l01197" name="l01197"></a><span class="lineno"> 1197</span>  <span class="comment">// }</span></div>
+<div class="line"><a id="l01198" name="l01198"></a><span class="lineno"> 1198</span>  <span class="comment">// l = m;</span></div>
+<div class="line"><a id="l01199" name="l01199"></a><span class="lineno"> 1199</span>  <span class="comment">// for (k = 0; k &lt; 4; k++) {</span></div>
+<div class="line"><a id="l01200" name="l01200"></a><span class="lineno"> 1200</span>  <span class="comment">//   switch (k) {</span></div>
+<div class="line"><a id="l01201" name="l01201"></a><span class="lineno"> 1201</span>  <span class="comment">//     case 1:</span></div>
+<div class="line"><a id="l01202" name="l01202"></a><span class="lineno"> 1202</span>  <span class="comment">//       rom[0x914] = l;</span></div>
+<div class="line"><a id="l01203" name="l01203"></a><span class="lineno"> 1203</span>  <span class="comment">//       rom[0x918] = (l &gt;&gt; 8) | 128;</span></div>
+<div class="line"><a id="l01204" name="l01204"></a><span class="lineno"> 1204</span>  <span class="comment">//       rom[0x91c] = l &gt;&gt; 15;</span></div>
+<div class="line"><a id="l01205" name="l01205"></a><span class="lineno"> 1205</span>  <span class="comment">//       break;</span></div>
+<div class="line"><a id="l01206" name="l01206"></a><span class="lineno"> 1206</span>  <span class="comment">//     case 2:</span></div>
+<div class="line"><a id="l01207" name="l01207"></a><span class="lineno"> 1207</span>  <span class="comment">//       l = 0xd8000;</span></div>
+<div class="line"><a id="l01208" name="l01208"></a><span class="lineno"> 1208</span>  <span class="comment">//       break;</span></div>
+<div class="line"><a id="l01209" name="l01209"></a><span class="lineno"> 1209</span>  <span class="comment">//     case 3:</span></div>
+<div class="line"><a id="l01210" name="l01210"></a><span class="lineno"> 1210</span>  <span class="comment">//       l = m;</span></div>
+<div class="line"><a id="l01211" name="l01211"></a><span class="lineno"> 1211</span>  <span class="comment">//       rom[0x932] = l;</span></div>
+<div class="line"><a id="l01212" name="l01212"></a><span class="lineno"> 1212</span>  <span class="comment">//       rom[0x936] = (l &gt;&gt; 8) | 128;</span></div>
+<div class="line"><a id="l01213" name="l01213"></a><span class="lineno"> 1213</span>  <span class="comment">//       rom[0x93a] = l &gt;&gt; 15;</span></div>
+<div class="line"><a id="l01214" name="l01214"></a><span class="lineno"> 1214</span>  <span class="comment">//       break;</span></div>
+<div class="line"><a id="l01215" name="l01215"></a><span class="lineno"> 1215</span>  <span class="comment">//   }</span></div>
+<div class="line"><a id="l01216" name="l01216"></a><span class="lineno"> 1216</span>  <span class="comment">//   for (o = 0; o &lt; 2; o++) {</span></div>
+<div class="line"><a id="l01217" name="l01217"></a><span class="lineno"> 1217</span>  <span class="comment">//     n = l + 4;</span></div>
+<div class="line"><a id="l01218" name="l01218"></a><span class="lineno"> 1218</span>  <span class="comment">//     for (i = 0; i &lt; ss_num; i++) {</span></div>
+<div class="line"><a id="l01219" name="l01219"></a><span class="lineno"> 1219</span>  <span class="comment">//       stbl = ssblt[i];</span></div>
+<div class="line"><a id="l01220" name="l01220"></a><span class="lineno"> 1220</span>  <span class="comment">//       if (!stbl) continue;</span></div>
+<div class="line"><a id="l01221" name="l01221"></a><span class="lineno"> 1221</span>  <span class="comment">//       if ((stbl-&gt;addr &lt; 0xd000) ^ o) continue;</span></div>
+<div class="line"><a id="l01222" name="l01222"></a><span class="lineno"> 1222</span>  <span class="comment">//       if (stbl-&gt;bank != k) continue;</span></div>
+<div class="line"><a id="l01223" name="l01223"></a><span class="lineno"> 1223</span>  <span class="comment">//       if (n + stbl-&gt;len &gt; ((k == 2) ? 0xdb7fc : 0xd74fc)) {</span></div>
+<div class="line"><a id="l01224" name="l01224"></a><span class="lineno"> 1224</span>  <span class="comment">//         printf(&quot;Not enough space for music&quot;);</span></div>
+<div class="line"><a id="l01225" name="l01225"></a><span class="lineno"> 1225</span>  <span class="comment">//         m_modf = 1;</span></div>
+<div class="line"><a id="l01226" name="l01226"></a><span class="lineno"> 1226</span>  <span class="comment">//         return;</span></div>
+<div class="line"><a id="l01227" name="l01227"></a><span class="lineno"> 1227</span>  <span class="comment">//       }</span></div>
+<div class="line"><a id="l01228" name="l01228"></a><span class="lineno"> 1228</span>  <span class="comment">//       memcpy(rom.mutable_data() + n, stbl-&gt;buf, stbl-&gt;len);</span></div>
+<div class="line"><a id="l01229" name="l01229"></a><span class="lineno"> 1229</span>  <span class="comment">//       n += stbl-&gt;len;</span></div>
+<div class="line"><a id="l01230" name="l01230"></a><span class="lineno"> 1230</span>  <span class="comment">//       free(stbl-&gt;relocs);</span></div>
+<div class="line"><a id="l01231" name="l01231"></a><span class="lineno"> 1231</span>  <span class="comment">//       free(stbl-&gt;buf);</span></div>
+<div class="line"><a id="l01232" name="l01232"></a><span class="lineno"> 1232</span>  <span class="comment">//       free(stbl);</span></div>
+<div class="line"><a id="l01233" name="l01233"></a><span class="lineno"> 1233</span>  <span class="comment">//       ssblt[i] = 0;</span></div>
+<div class="line"><a id="l01234" name="l01234"></a><span class="lineno"> 1234</span>  <span class="comment">//     }</span></div>
+<div class="line"><a id="l01235" name="l01235"></a><span class="lineno"> 1235</span>  <span class="comment">//     if (n &gt; l + 4) {</span></div>
+<div class="line"><a id="l01236" name="l01236"></a><span class="lineno"> 1236</span>  <span class="comment">//       *(short *)(rom.mutable_data() + l) = n - l - 4;</span></div>
+<div class="line"><a id="l01237" name="l01237"></a><span class="lineno"> 1237</span>  <span class="comment">//       *(short *)(rom.mutable_data() + l + 2) = o ? bank_lwr[k] : 0xd000;</span></div>
+<div class="line"><a id="l01238" name="l01238"></a><span class="lineno"> 1238</span>  <span class="comment">//       l = n;</span></div>
+<div class="line"><a id="l01239" name="l01239"></a><span class="lineno"> 1239</span>  <span class="comment">//     }</span></div>
+<div class="line"><a id="l01240" name="l01240"></a><span class="lineno"> 1240</span>  <span class="comment">//   }</span></div>
+<div class="line"><a id="l01241" name="l01241"></a><span class="lineno"> 1241</span>  <span class="comment">//   *(short *)(rom.mutable_data() + l) = 0;</span></div>
+<div class="line"><a id="l01242" name="l01242"></a><span class="lineno"> 1242</span>  <span class="comment">//   *(short *)(rom.mutable_data() + l + 2) = 0x800;</span></div>
+<div class="line"><a id="l01243" name="l01243"></a><span class="lineno"> 1243</span>  <span class="comment">//   if (k == 1) m = l + 4;</span></div>
+<div class="line"><a id="l01244" name="l01244"></a><span class="lineno"> 1244</span>  <span class="comment">// }</span></div>
+<div class="line"><a id="l01245" name="l01245"></a><span class="lineno"> 1245</span>  <span class="comment">// free(ssblt);</span></div>
 <div class="line"><a id="l01246" name="l01246"></a><span class="lineno"> 1246</span>}</div>
 </div>
 <div class="line"><a id="l01247" name="l01247"></a><span class="lineno"> 1247</span> </div>
@@ -1495,11 +1495,8 @@ $(document).ready(function(){initNavTree('tracker_8cc_source.html',''); initResi
 <div class="ttc" id="anamespaceyaze_1_1zelda3_1_1music_html_a055b36c6d1e33bf6dd434636e811b7f1"><div class="ttname"><a href="namespaceyaze_1_1zelda3_1_1music.html#a055b36c6d1e33bf6dd434636e811b7f1">yaze::zelda3::music::fil3</a></div><div class="ttdeci">constexpr char fil3[4]</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00030">tracker.h:30</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_1_1music_html_a14cb98e5f9eacb05f5e56c05cab7ba8c"><div class="ttname"><a href="namespaceyaze_1_1zelda3_1_1music.html#a14cb98e5f9eacb05f5e56c05cab7ba8c">yaze::zelda3::music::fil1</a></div><div class="ttdeci">constexpr char fil1[4]</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00028">tracker.h:28</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_1_1music_html_a763e28f8ac2058f8fca36a359e5751ee"><div class="ttname"><a href="namespaceyaze_1_1zelda3_1_1music.html#a763e28f8ac2058f8fca36a359e5751ee">yaze::zelda3::music::fil2</a></div><div class="ttdeci">constexpr char fil2[4]</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00029">tracker.h:29</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1zelda3_html_a170971bb7a8dd89072c7180edc712057"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#a170971bb7a8dd89072c7180edc712057">yaze::zelda3::stle16b_i</a></div><div class="ttdeci">void stle16b_i(uint8_t *const p_arr, size_t const p_index, uint16_t const p_val)</div><div class="ttdoc">Store little endian 16-bit value using a byte pointer, offset by an index before dereferencing.</div><div class="ttdef"><b>Definition</b> <a href="hyrule__magic_8cc_source.html#l00051">hyrule_magic.cc:51</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1zelda3_html_a197e8a71bbb281224f38410a3025804d"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#a197e8a71bbb281224f38410a3025804d">yaze::zelda3::ldle16b_i</a></div><div class="ttdeci">uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index)</div><div class="ttdoc">Load little endian halfword (16-bit) dereferenced from an arrays of bytes. This version provides an i...</div><div class="ttdef"><b>Definition</b> <a href="hyrule__magic_8cc_source.html#l00067">hyrule_magic.cc:67</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="arom_8h_html"><div class="ttname"><a href="rom_8h.html">rom.h</a></div></div>
-<div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SampleEdit_html"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SampleEdit.html">yaze::zelda3::music::SampleEdit</a></div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00088">tracker.h:88</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongPart_html"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongPart.html">yaze::zelda3::music::SongPart</a></div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00063">tracker.h:63</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongPart_html_a059a2853417c6c91157bc09f87a1d43f"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a059a2853417c6c91157bc09f87a1d43f">yaze::zelda3::music::SongPart::addr</a></div><div class="ttdeci">unsigned short addr</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00067">tracker.h:67</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongPart_html_a73c346e7f5491b9bbce4364a7b461b4c"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongPart.html#a73c346e7f5491b9bbce4364a7b461b4c">yaze::zelda3::music::SongPart::flag</a></div><div class="ttdeci">uint8_t flag</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00064">tracker.h:64</a></div></div>
@@ -1518,7 +1515,6 @@ $(document).ready(function(){initNavTree('tracker_8cc_source.html',''); initResi
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongSpcBlock_html_a0958d2a773c085c7f1f8632c31002ddb"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a0958d2a773c085c7f1f8632c31002ddb">yaze::zelda3::music::SongSpcBlock::flag</a></div><div class="ttdeci">int flag</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00046">tracker.h:46</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongSpcBlock_html_a13fcff9589dc845cb7b18b3380891a7e"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a13fcff9589dc845cb7b18b3380891a7e">yaze::zelda3::music::SongSpcBlock::start</a></div><div class="ttdeci">unsigned short start</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00038">tracker.h:38</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongSpcBlock_html_a466da56dfa0bf27eb612c66297187b05"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a466da56dfa0bf27eb612c66297187b05">yaze::zelda3::music::SongSpcBlock::relocs</a></div><div class="ttdeci">unsigned short * relocs</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00042">tracker.h:42</a></div></div>
-<div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongSpcBlock_html_a5f07006af3730c2f934fae55d27021b2"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a5f07006af3730c2f934fae55d27021b2">yaze::zelda3::music::SongSpcBlock::addr</a></div><div class="ttdeci">unsigned short addr</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00044">tracker.h:44</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongSpcBlock_html_a6b5d019d6089378da3bc1e5e04be3585"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a6b5d019d6089378da3bc1e5e04be3585">yaze::zelda3::music::SongSpcBlock::bank</a></div><div class="ttdeci">unsigned short bank</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00043">tracker.h:43</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongSpcBlock_html_aadb07ef633b1216bcd884d207d9b43c4"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#aadb07ef633b1216bcd884d207d9b43c4">yaze::zelda3::music::SongSpcBlock::buf</a></div><div class="ttdeci">unsigned char * buf</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00045">tracker.h:45</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SongSpcBlock_html_abc05e343e213e23d11f0800fa554f7e5"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#abc05e343e213e23d11f0800fa554f7e5">yaze::zelda3::music::SongSpcBlock::relsz</a></div><div class="ttdeci">unsigned short relsz</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00041">tracker.h:41</a></div></div>
@@ -1545,9 +1541,6 @@ $(document).ready(function(){initNavTree('tracker_8cc_source.html',''); initResi
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SpcCommand_html_ac68a57b9e3b1359935c1cc6bf92d513b"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac68a57b9e3b1359935c1cc6bf92d513b">yaze::zelda3::music::SpcCommand::prev</a></div><div class="ttdeci">short prev</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00134">tracker.h:134</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1SpcCommand_html_ac77e1929cfdff13a3d3772b95b8270ed"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac77e1929cfdff13a3d3772b95b8270ed">yaze::zelda3::music::SpcCommand::p2</a></div><div class="ttdeci">unsigned char p2</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00138">tracker.h:138</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1ZeldaInstrument_html"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html">yaze::zelda3::music::ZeldaInstrument</a></div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00111">tracker.h:111</a></div></div>
-<div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1ZeldaInstrument_html_a2e5b766723489687bcdaa30bcaf71dcf"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a2e5b766723489687bcdaa30bcaf71dcf">yaze::zelda3::music::ZeldaInstrument::samp</a></div><div class="ttdeci">unsigned char samp</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00112">tracker.h:112</a></div></div>
-<div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1ZeldaInstrument_html_a626b8dbaf4d8c3c51eee8f358c70dff6"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#a626b8dbaf4d8c3c51eee8f358c70dff6">yaze::zelda3::music::ZeldaInstrument::multhi</a></div><div class="ttdeci">unsigned char multhi</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00116">tracker.h:116</a></div></div>
-<div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1ZeldaInstrument_html_aa3032c2a22dcfb0517fb6213eecdb6e4"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html#aa3032c2a22dcfb0517fb6213eecdb6e4">yaze::zelda3::music::ZeldaInstrument::multlo</a></div><div class="ttdeci">unsigned char multlo</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00117">tracker.h:117</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument_html"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html">yaze::zelda3::music::ZeldaSfxInstrument</a></div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00120">tracker.h:120</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1ZeldaWave_html"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html">yaze::zelda3::music::ZeldaWave</a></div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00080">tracker.h:80</a></div></div>
 <div class="ttc" id="astructyaze_1_1zelda3_1_1music_1_1ZeldaWave_html_a0d50beb4f54b170a57466174b9ff3695"><div class="ttname"><a href="structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a0d50beb4f54b170a57466174b9ff3695">yaze::zelda3::music::ZeldaWave::lflag</a></div><div class="ttdeci">short lflag</div><div class="ttdef"><b>Definition</b> <a href="tracker_8h_source.html#l00083">tracker.h:83</a></div></div>
