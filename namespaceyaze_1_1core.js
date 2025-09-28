@@ -3,8 +3,8 @@ var namespaceyaze_1_1core =
     [ "anonymous_namespace{font_loader.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html", [
       [ "SetFontPath", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1", null ],
       [ "LoadFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#aeb026c1f2d88cd2c2d4ac9a283861bbe", null ],
-      [ "AddIconFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a08b31e50b92a5dfc3a79a2910e83536c", null ],
-      [ "AddJapaneseFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#ac68b7980e16adf40118f3d3634b4a8cb", null ]
+      [ "AddIconFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a06b7a27a9a21374824b7a245f753e886", null ],
+      [ "AddJapaneseFont", "namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#af50562c29e14353a5e69a2cf5283f375", null ]
     ] ],
     [ "anonymous_namespace{project.cc}", "namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html", [
       [ "ParseKeyValue", "namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#ad27d05709b9eec1a229aab08f178575c", null ],
