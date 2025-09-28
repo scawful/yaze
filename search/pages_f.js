@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['zelda3_20editor_0',['YAZE - Yet Another Zelda3 Editor',['../md_README.html',1,'']]]
+  ['vcpkg_20integration_20for_20windows_20builds_0',['vcpkg Integration for Windows Builds',['../md_docs_2vcpkg-integration.html',1,'']]]
 ];

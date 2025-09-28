@@ -1,5 +1,6 @@
 var searchData=
 [
   ['build_20instructions_0',['Build Instructions',['../md_docs_202-build-instructions.html',1,'']]],
-  ['build_20presets_20guide_1',['Build Presets Guide',['../md_docs_2B3-build-presets.html',1,'']]]
+  ['build_20presets_20guide_1',['Build Presets Guide',['../md_docs_2B3-build-presets.html',1,'']]],
+  ['builds_2',['vcpkg Integration for Windows Builds',['../md_docs_2vcpkg-integration.html',1,'']]]
 ];

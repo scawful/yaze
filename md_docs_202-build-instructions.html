@@ -155,66 +155,88 @@ Windows</h2>
 <li>Visual Studio 2019+ with C++ CMake tools</li>
 <li>No additional dependencies needed (all bundled)</li>
 </ul>
-<p><b>Option 2 - Full Development:</b></p><ul>
+<p><b>Option 2 - Full Development with vcpkg (Recommended):</b></p><ul>
+<li>Visual Studio 2019+ with C++ CMake tools</li>
 <li>Install vcpkg and dependencies from <code>vcpkg.json</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md18"></a>
+<h3><a class="anchor" id="autotoc_md18"></a>
+vcpkg Setup (Option 2)</h3>
+<p>Run the setup script to automatically configure vcpkg: </p><div class="fragment"><div class="line"># Command Prompt</div>
+<div class="line">scripts\setup-vcpkg-windows.bat</div>
+<div class="line"> </div>
+<div class="line"># PowerShell</div>
+<div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
+</div><!-- fragment --><p>Or manually: </p><div class="fragment"><div class="line">git clone https://github.com/Microsoft/vcpkg.git</div>
+<div class="line">cd vcpkg</div>
+<div class="line">.\bootstrap-vcpkg.bat</div>
+<div class="line">.\vcpkg.exe integrate install</div>
+<div class="line">set VCPKG_ROOT=%CD%</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md19"></a>
+Windows Build Commands</h3>
+<div class="fragment"><div class="line"># Debug build with vcpkg</div>
+<div class="line">cmake --preset windows-debug</div>
+<div class="line">cmake --build build --preset windows-debug</div>
+<div class="line"> </div>
+<div class="line"># Release build with vcpkg  </div>
+<div class="line">cmake --preset windows-release</div>
+<div class="line">cmake --build build --preset windows-release</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md20"></a>
 Build Targets</h1>
-<h2><a class="anchor" id="autotoc_md19"></a>
+<h2><a class="anchor" id="autotoc_md21"></a>
 Applications</h2>
 <ul>
 <li><b>yaze</b>: Main GUI editor application</li>
 <li><b>z3ed</b>: Command-line interface tool</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md20"></a>
+<h2><a class="anchor" id="autotoc_md22"></a>
 Libraries</h2>
 <ul>
 <li><b>yaze_c</b>: C API library for extensions</li>
 <li><b>asar-static</b>: 65816 assembler library</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md21"></a>
+<h2><a class="anchor" id="autotoc_md23"></a>
 Development (Debug Builds Only)</h2>
 <ul>
 <li><b>yaze_emu</b>: Standalone SNES emulator</li>
 <li><b>yaze_test</b>: Comprehensive test suite</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md22"></a>
+<h1><a class="anchor" id="autotoc_md24"></a>
 Build Configurations</h1>
-<h2><a class="anchor" id="autotoc_md23"></a>
+<h2><a class="anchor" id="autotoc_md25"></a>
 Debug (Full Features)</h2>
 <div class="fragment"><div class="line">cmake --preset debug  # macOS</div>
 <div class="line"># OR</div>
 <div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug  # All platforms</div>
 </div><!-- fragment --><p> <b>Includes</b>: NFD, ImGuiTestEngine, PNG support, emulator, all tools</p>
-<h2><a class="anchor" id="autotoc_md24"></a>
+<h2><a class="anchor" id="autotoc_md26"></a>
 Minimal (CI/Fast Builds)</h2>
 <div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
 </div><!-- fragment --><p> <b>Excludes</b>: Emulator, CLI tools, UI tests, optional dependencies</p>
-<h2><a class="anchor" id="autotoc_md25"></a>
+<h2><a class="anchor" id="autotoc_md27"></a>
 Release</h2>
 <div class="fragment"><div class="line">cmake --preset release  # macOS</div>
 <div class="line"># OR  </div>
 <div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Release  # All platforms</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md26"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md28"></a>
 IDE Integration</h1>
-<h2><a class="anchor" id="autotoc_md27"></a>
+<h2><a class="anchor" id="autotoc_md29"></a>
 VS Code</h2>
 <ol type="1">
 <li>Install CMake Tools extension</li>
 <li>Open project, select "Debug" preset</li>
 <li>Language server uses <code>compile_commands.json</code> automatically</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md28"></a>
+<h2><a class="anchor" id="autotoc_md30"></a>
 CLion</h2>
 <ul>
 <li>Opens CMake projects directly</li>
 <li>Select Debug configuration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md29"></a>
+<h2><a class="anchor" id="autotoc_md31"></a>
 Xcode (macOS)</h2>
 <div class="fragment"><div class="line">cmake --preset debug -G Xcode</div>
 <div class="line">open build/yaze.xcodeproj</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md30"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md32"></a>
 Features by Build Type</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -234,20 +256,20 @@ Features by Build Type</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">UI Testing   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">❌   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md31"></a>
+<h1><a class="anchor" id="autotoc_md33"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md34"></a>
 Architecture Errors (macOS)</h2>
 <div class="fragment"><div class="line"># Clean and use ARM64-only preset</div>
 <div class="line">rm -rf build</div>
 <div class="line">cmake --preset debug  # Uses arm64 only</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md33"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md35"></a>
 Missing Headers (Language Server)</h2>
 <div class="fragment"><div class="line"># Regenerate compile commands</div>
 <div class="line">cmake --preset debug</div>
 <div class="line">cp build/compile_commands.json .</div>
 <div class="line"># Restart VS Code</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md34"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md36"></a>
 CI Build Failures</h2>
 <p>Use minimal build configuration that matches CI: </p><div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_UI_TESTS=OFF</div>
 <div class="line">cmake --build build</div>
