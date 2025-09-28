@@ -164,11 +164,19 @@ switch ($SkipVcpkg) {
 Write-Host "Step 6: Generating Visual Studio project files..." -ForegroundColor Yellow
 switch ($pythonFound) {
     $true {
-        & python scripts/generate-vs-projects.py
+        & python scripts/generate-vs-projects-simple.py
         $generateSuccess = ($LASTEXITCODE -eq 0)
         switch ($generateSuccess) {
             $true { Write-Host "✓ Project files generated successfully" -ForegroundColor Green }
-            $false { Write-Host "⚠ Failed to generate project files" -ForegroundColor Yellow }
+            $false { 
+                Write-Host "⚠ Failed to generate project files with simple generator, trying original..." -ForegroundColor Yellow
+                & python scripts/generate-vs-projects.py
+                $generateSuccess2 = ($LASTEXITCODE -eq 0)
+                switch ($generateSuccess2) {
+                    $true { Write-Host "✓ Project files generated successfully" -ForegroundColor Green }
+                    $false { Write-Host "⚠ Failed to generate project files" -ForegroundColor Yellow }
+                }
+            }
         }
     }
     $false { Write-Host "⚠ Python required to generate project files" -ForegroundColor Yellow }
