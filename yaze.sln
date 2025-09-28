@@ -2,88 +2,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FOLDER-GUID-ROOT}"
-	ProjectSection(SolutionItems) = preProject
-		CMakeLists.txt = CMakeLists.txt
-		CMakePresets.json = CMakePresets.json
-		vcpkg.json = vcpkg.json
-		README.md = README.md
-		LICENSE = LICENSE
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{FOLDER-GUID-DOCS}"
-	ProjectSection(SolutionItems) = preProject
-		docs\index.md = docs\index.md
-		docs\01-getting-started.md = docs\01-getting-started.md
-		docs\02-build-instructions.md = docs\02-build-instructions.md
-		docs\03-asar-integration.md = docs\03-asar-integration.md
-		docs\04-api-reference.md = docs\04-api-reference.md
-		docs\A1-testing-guide.md = docs\A1-testing-guide.md
-		docs\B1-contributing.md = docs\B1-contributing.md
-		docs\B2-platform-compatibility.md = docs\B2-platform-compatibility.md
-		docs\B3-build-presets.md = docs\B3-build-presets.md
-		docs\C1-changelog.md = docs\C1-changelog.md
-		docs\D1-roadmap.md = docs\D1-roadmap.md
-		docs\E1-asm-style-guide.md = docs\E1-asm-style-guide.md
-		docs\E2-dungeon-editor-guide.md = docs\E2-dungeon-editor-guide.md
-		docs\E3-dungeon-editor-design.md = docs\E3-dungeon-editor-design.md
-		docs\E4-dungeon-editor-refactoring.md = docs\E4-dungeon-editor-refactoring.md
-		docs\E5-dungeon-object-system.md = docs\E5-dungeon-object-system.md
-		docs\F1-overworld-loading.md = docs\F1-overworld-loading.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{FOLDER-GUID-SCRIPTS}"
-	ProjectSection(SolutionItems) = preProject
-		scripts\create_release.sh = scripts\create_release.sh
-		scripts\extract_changelog.py = scripts\extract_changelog.py
-		scripts\generate-vs-projects.ps1 = scripts\generate-vs-projects.ps1
-		scripts\generate-vs-projects.bat = scripts\generate-vs-projects.bat
-		scripts\setup-vcpkg-windows.ps1 = scripts\setup-vcpkg-windows.ps1
-		scripts\setup-vcpkg-windows.bat = scripts\setup-vcpkg-windows.bat
-		scripts\quality_check.sh = scripts\quality_check.sh
-		scripts\test_asar_integration.py = scripts\test_asar_integration.py
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Assets", "Assets", "{FOLDER-GUID-ASSETS}"
-	ProjectSection(SolutionItems) = preProject
-		assets\themes\yaze_classic.theme = assets\themes\yaze_classic.theme
-		assets\themes\cyberpunk.theme = assets\themes\cyberpunk.theme
-		assets\themes\sunset.theme = assets\themes\sunset.theme
-		assets\themes\forest.theme = assets\themes\forest.theme
-		assets\themes\midnight.theme = assets\themes\midnight.theme
-		assets\layouts\ow_toolset.zeml = assets\layouts\ow_toolset.zeml
-		assets\yaze.icns = assets\yaze.icns
-		assets\yaze.png = assets\yaze.png
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Headers", "Headers", "{FOLDER-GUID-HEADERS}"
-	ProjectSection(SolutionItems) = preProject
-		incl\yaze.h = incl\yaze.h
-		incl\zelda.h = incl\zelda.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CMake", "CMake", "{FOLDER-GUID-CMAKE}"
-	ProjectSection(SolutionItems) = preProject
-		cmake\absl.cmake = cmake\absl.cmake
-		cmake\asar.cmake = cmake\asar.cmake
-		cmake\grpc.cmake = cmake\grpc.cmake
-		cmake\gtest.cmake = cmake\gtest.cmake
-		cmake\imgui.cmake = cmake\imgui.cmake
-		cmake\mingw64.cmake = cmake\mingw64.cmake
-		cmake\packaging.cmake = cmake\packaging.cmake
-		cmake\sdl2.cmake = cmake\sdl2.cmake
-		cmake\vcpkg.cmake = cmake\vcpkg.cmake
-		cmake\yaze.desktop.in = cmake\yaze.desktop.in
-		cmake\yaze.plist.in = cmake\yaze.plist.in
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub Actions", "GitHub Actions", "{FOLDER-GUID-GITHUB}"
-	ProjectSection(SolutionItems) = preProject
-		.github\workflows\ci.yml = .github\workflows\ci.yml
-		.github\workflows\release.yml = .github\workflows\release.yml
-		.github\workflows\doxy.yml = .github\workflows\doxy.yml
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "YAZE", "YAZE.vcxproj", "{B2C3D4E5-F6G7-8901-BCDE-F23456789012}"
 EndProject
 Global
@@ -132,14 +50,5 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{B2C3D4E5-F6G7-8901-BCDE-F23456789012} = {FOLDER-GUID-ROOT}
-		{FOLDER-GUID-DOCS} = {FOLDER-GUID-ROOT}
-		{FOLDER-GUID-SCRIPTS} = {FOLDER-GUID-ROOT}
-		{FOLDER-GUID-ASSETS} = {FOLDER-GUID-ROOT}
-		{FOLDER-GUID-HEADERS} = {FOLDER-GUID-ROOT}
-		{FOLDER-GUID-CMAKE} = {FOLDER-GUID-ROOT}
-		{FOLDER-GUID-GITHUB} = {FOLDER-GUID-ROOT}
 	EndGlobalSection
 EndGlobal
