@@ -379,273 +379,273 @@ short Tracker::LoadSpcCommand(Rom &rom, unsigned short addr, short bank,
 }
 
 void Tracker::LoadSongs(Rom &rom) {
-  unsigned char *b;
-  unsigned char *c;
-  unsigned char *d;
-  short *e;
+  // unsigned char *b;
+  // unsigned char *c;
+  // unsigned char *d;
+  // short *e;
 
-  Song song;
-  Song song2;
-  SongPart *sp;
-  SpcCommand *spc_command;
-  ZeldaWave *zelda_wave;
+  // Song song;
+  // Song song2;
+  // SongPart *sp;
+  // SpcCommand *spc_command;
+  // ZeldaWave *zelda_wave;
 
-  int i;
-  int j;
-  int k;
-  int l = 0;
-  int m;
-  int n;
-  int o;
-  int p;
-  int q;
-  int r;
-  int t;
-  int u;
-  int range;
-  int filter;
+  // int i;
+  // int j;
+  // int k;
+  // int l = 0;
+  // int m;
+  // int n;
+  // int o;
+  // int p;
+  // int q;
+  // int r;
+  // int t;
+  // int u;
+  // int range;
+  // int filter;
 
-  spc_command = current_spc_command_ =
-      (SpcCommand *)malloc(1024 * sizeof(SpcCommand));
-  m_free = 0;
-  m_size = 1024;
-  srnum = 0;
-  srsize = 0;
-  song_range_ = 0;
-  sp_mark = 0;
-  b = rom.mutable_data();
+  // spc_command = current_spc_command_ =
+  //     (SpcCommand *)malloc(1024 * sizeof(SpcCommand));
+  // m_free = 0;
+  // m_size = 1024;
+  // srnum = 0;
+  // srsize = 0;
+  // song_range_ = 0;
+  // sp_mark = 0;
+  // b = rom.mutable_data();
 
-  sbank_ofs[1] = (b[0x91c] << 15) + ((b[0x918] & 127) << 8) + b[0x914];
-  sbank_ofs[3] = (b[0x93a] << 15) + ((b[0x936] & 127) << 8) + b[0x932];
+  // sbank_ofs[1] = (b[0x91c] << 15) + ((b[0x918] & 127) << 8) + b[0x914];
+  // sbank_ofs[3] = (b[0x93a] << 15) + ((b[0x936] & 127) << 8) + b[0x932];
 
-  for (i = 0; i < 1024; i++) {
-    spc_command[i].next = i + 1;
-    spc_command[i].prev = i - 1;
-  }
+  // for (i = 0; i < 1024; i++) {
+  //   spc_command[i].next = i + 1;
+  //   spc_command[i].prev = i - 1;
+  // }
 
-  // Init blank songs.
-  for (i = 0; i < 128; i++) {
-    Song new_song;
-    songs.emplace_back(new_song);
-  }
+  // // Init blank songs.
+  // for (i = 0; i < 128; i++) {
+  //   Song new_song;
+  //   songs.emplace_back(new_song);
+  // }
 
-  spc_command[1023].next = -1;
-  for (i = 0; i < 3; i++) {
-    // Extract the song banks.
-    b = GetSpcAddr(rom, 0xd000, i);
-    for (j = 0;; j++) {
-      if ((r = ((unsigned short *)b)[j]) >= 0xd000) {
-        r = (r - 0xd000) >> 1;
-        break;
-      }
-    }
+  // spc_command[1023].next = -1;
+  // for (i = 0; i < 3; i++) {
+  //   // Extract the song banks.
+  //   b = GetSpcAddr(rom, 0xd000, i);
+  //   for (j = 0;; j++) {
+  //     if ((r = ((unsigned short *)b)[j]) >= 0xd000) {
+  //       r = (r - 0xd000) >> 1;
+  //       break;
+  //     }
+  //   }
 
-    numsong[i] = r;
-    for (j = 0; j < r; j++) {
-      k = ((unsigned short *)b)[j];
-      if (!k)
-        songs[l].in_use = false;
-      else {
-        c = GetSpcAddr(rom, k, i);
+  //   numsong[i] = r;
+  //   for (j = 0; j < r; j++) {
+  //     k = ((unsigned short *)b)[j];
+  //     if (!k)
+  //       songs[l].in_use = false;
+  //     else {
+  //       c = GetSpcAddr(rom, k, i);
 
-        // Init the bank index we are current loading.
-        if (!spcbank)
-          m = 0;
-        else
-          m = l - j;
+  //       // Init the bank index we are current loading.
+  //       if (!spcbank)
+  //         m = 0;
+  //       else
+  //         m = l - j;
 
-        for (; m < l; m++)
-          if (songs[m].in_use && songs[m].addr == k) {
-            (songs[l] = songs[m]).inst++;
+  //       for (; m < l; m++)
+  //         if (songs[m].in_use && songs[m].addr == k) {
+  //           (songs[l] = songs[m]).inst++;
 
-            break;
-          }
+  //           break;
+  //         }
 
-        if (m == l) {
-          // create a new song (Song *)malloc(sizeof(Song));
-          songs[l] = song;
-          song.inst = 1;
-          song.addr = k;
-          song.flag = !spcbank;
+  //       if (m == l) {
+  //         // create a new song (Song *)malloc(sizeof(Song));
+  //         songs[l] = song;
+  //         song.inst = 1;
+  //         song.addr = k;
+  //         song.flag = !spcbank;
 
-          for (m = 0;; m++)
-            if ((n = ((unsigned short *)c)[m]) < 256) break;
+  //         for (m = 0;; m++)
+  //           if ((n = ((unsigned short *)c)[m]) < 256) break;
 
-          if (n > 0) {
-            song.flag |= 2;
-            song.lopst = (((unsigned short *)c)[m + 1] - k) >> 1;
-          }
+  //         if (n > 0) {
+  //           song.flag |= 2;
+  //           song.lopst = (((unsigned short *)c)[m + 1] - k) >> 1;
+  //         }
 
-          song.numparts = m;
-          song.tbl = (SongPart **)malloc(4 * m);
+  //         song.numparts = m;
+  //         song.tbl = (SongPart **)malloc(4 * m);
 
-          for (m = 0; m < song.numparts; m++) {
-            k = ((unsigned short *)c)[m];
-            d = GetSpcAddr(rom, k, i);
-            if (!spcbank)
-              n = 0;
-            else
-              n = l - j;
+  //         for (m = 0; m < song.numparts; m++) {
+  //           k = ((unsigned short *)c)[m];
+  //           d = GetSpcAddr(rom, k, i);
+  //           if (!spcbank)
+  //             n = 0;
+  //           else
+  //             n = l - j;
 
-            for (; n < l; n++) {
-              song2 = songs[n];
-              if (song2.in_use)
-                for (o = 0; o < song2.numparts; o++)
-                  if (song2.tbl[o]->addr == k) {
-                    (song.tbl[m] = song2.tbl[o])->inst++;
-                    goto foundpart;
-                  }
-            }
+  //           for (; n < l; n++) {
+  //             song2 = songs[n];
+  //             if (song2.in_use)
+  //               for (o = 0; o < song2.numparts; o++)
+  //                 if (song2.tbl[o]->addr == k) {
+  //                   (song.tbl[m] = song2.tbl[o])->inst++;
+  //                   goto foundpart;
+  //                 }
+  //           }
 
-            for (o = 0; o < m; o++)
-              if (song.tbl[o]->addr == k) {
-                (song.tbl[m] = song.tbl[o])->inst++;
-                goto foundpart;
-              }
+  //           for (o = 0; o < m; o++)
+  //             if (song.tbl[o]->addr == k) {
+  //               (song.tbl[m] = song.tbl[o])->inst++;
+  //               goto foundpart;
+  //             }
 
-            sp = song.tbl[m] = (SongPart *)malloc(sizeof(SongPart));
-            sp->flag = !spcbank;
-            sp->inst = 1;
-            sp->addr = k;
-            p = 50000;
-            for (o = 0; o < 8; o++) {
-              q = sp->tbl[o] =
-                  LoadSpcCommand(rom, ((unsigned short *)d)[o], i, p);
-              spc_command = current_spc_command_ + q;
-              if ((spc_command->flag & 4) && spc_command->tim < p)
-                p = spc_command->tim;
-            }
-          foundpart:;
-          }
-        }
-      }
-      l++;
-    }
-  }
+  //           sp = song.tbl[m] = (SongPart *)malloc(sizeof(SongPart));
+  //           sp->flag = !spcbank;
+  //           sp->inst = 1;
+  //           sp->addr = k;
+  //           p = 50000;
+  //           for (o = 0; o < 8; o++) {
+  //             q = sp->tbl[o] =
+  //                 LoadSpcCommand(rom, ((unsigned short *)d)[o], i, p);
+  //             spc_command = current_spc_command_ + q;
+  //             if ((spc_command->flag & 4) && spc_command->tim < p)
+  //               p = spc_command->tim;
+  //           }
+  //         foundpart:;
+  //         }
+  //       }
+  //     }
+  //     l++;
+  //   }
+  // }
 
-  b = GetSpcAddr(rom, 0x800, 0);
-  snddat1 = (char *)malloc(spclen);
-  sndlen1 = spclen;
-  memcpy(snddat1, b, spclen);
+  // b = GetSpcAddr(rom, 0x800, 0);
+  // snddat1 = (char *)malloc(spclen);
+  // sndlen1 = spclen;
+  // memcpy(snddat1, b, spclen);
 
-  b = GetSpcAddr(rom, 0x17c0, 0);
-  snddat2 = (char *)malloc(spclen);
-  sndlen2 = spclen;
-  memcpy(snddat2, b, spclen);
+  // b = GetSpcAddr(rom, 0x17c0, 0);
+  // snddat2 = (char *)malloc(spclen);
+  // sndlen2 = spclen;
+  // memcpy(snddat2, b, spclen);
 
-  b = GetSpcAddr(rom, 0x3d00, 0);
-  insts = (ZeldaInstrument *)malloc(spclen);
-  memcpy(insts, b, spclen);
-  numinst = spclen / 6;
+  // b = GetSpcAddr(rom, 0x3d00, 0);
+  // insts = (ZeldaInstrument *)malloc(spclen);
+  // memcpy(insts, b, spclen);
+  // numinst = spclen / 6;
 
-  b = GetSpcAddr(rom, 0x3e00, 0);
-  m_ofs = b - rom.mutable_data() + spclen;
-  sndinsts = (ZeldaSfxInstrument *)malloc(spclen);
-  memcpy(sndinsts, b, spclen);
-  numsndinst = spclen / 9;
+  // b = GetSpcAddr(rom, 0x3e00, 0);
+  // m_ofs = b - rom.mutable_data() + spclen;
+  // sndinsts = (ZeldaSfxInstrument *)malloc(spclen);
+  // memcpy(sndinsts, b, spclen);
+  // numsndinst = spclen / 9;
 
-  b = GetSpcAddr(rom, 0x3c00, 0);
-  zelda_wave = waves = (ZeldaWave *)malloc(sizeof(ZeldaWave) * (spclen >> 2));
-  p = spclen >> 1;
+  // b = GetSpcAddr(rom, 0x3c00, 0);
+  // zelda_wave = waves = (ZeldaWave *)malloc(sizeof(ZeldaWave) * (spclen >> 2));
+  // p = spclen >> 1;
 
-  for (i = 0; i < p; i += 2) {
-    j = ((unsigned short *)b)[i];
+  // for (i = 0; i < p; i += 2) {
+  //   j = ((unsigned short *)b)[i];
 
-    if (j == 65535) break;
+  //   if (j == 65535) break;
 
-    for (k = 0; k < i; k += 2) {
-      if (((unsigned short *)b)[k] == j) {
-        zelda_wave->copy = (short)(k >> 1);
-        goto foundwave;
-      }
-    }
+  //   for (k = 0; k < i; k += 2) {
+  //     if (((unsigned short *)b)[k] == j) {
+  //       zelda_wave->copy = (short)(k >> 1);
+  //       goto foundwave;
+  //     }
+  //   }
 
-    zelda_wave->copy = -1;
+  //   zelda_wave->copy = -1;
 
-  foundwave:
+  // foundwave:
 
-    d = GetSpcAddr(rom, j, 0);
-    e = (short *)malloc(2048);
+  //   d = GetSpcAddr(rom, j, 0);
+  //   e = (short *)malloc(2048);
 
-    k = 0;
-    l = 1024;
-    u = t = 0;
+  //   k = 0;
+  //   l = 1024;
+  //   u = t = 0;
 
-    for (;;) {
-      m = *(d++);
+  //   for (;;) {
+  //     m = *(d++);
 
-      range = (m >> 4) + 8;
-      filter = (m & 12) >> 2;
+  //     range = (m >> 4) + 8;
+  //     filter = (m & 12) >> 2;
 
-      for (n = 0; n < 8; n++) {
-        o = (*d) >> 4;
+  //     for (n = 0; n < 8; n++) {
+  //       o = (*d) >> 4;
 
-        if (o > 7) o -= 16;
+  //       if (o > 7) o -= 16;
 
-        o <<= range;
+  //       o <<= range;
 
-        if (filter)
-          o += (t * fil1[filter] >> fil2[filter]) -
-               ((u & -256) * fil3[filter] >> 4);
+  //       if (filter)
+  //         o += (t * fil1[filter] >> fil2[filter]) -
+  //              ((u & -256) * fil3[filter] >> 4);
 
-        if (o > 0x7fffff) o = 0x7fffff;
+  //       if (o > 0x7fffff) o = 0x7fffff;
 
-        if (o < -0x800000) o = -0x800000;
+  //       if (o < -0x800000) o = -0x800000;
 
-        u = o;
+  //       u = o;
 
-        // \code             if(t>0x7fffff) t=0x7fffff;
-        // \code              if(t < -0x800000) t=-0x800000;
+  //       // \code             if(t>0x7fffff) t=0x7fffff;
+  //       // \code              if(t < -0x800000) t=-0x800000;
 
-        e[k++] = o >> 8;
+  //       e[k++] = o >> 8;
 
-        o = *(d++) & 15;
+  //       o = *(d++) & 15;
 
-        if (o > 7) o -= 16;
+  //       if (o > 7) o -= 16;
 
-        o <<= range;
+  //       o <<= range;
 
-        if (filter)
-          o += (u * fil1[filter] >> fil2[filter]) -
-               ((t & -256) * fil3[filter] >> 4);
+  //       if (filter)
+  //         o += (u * fil1[filter] >> fil2[filter]) -
+  //              ((t & -256) * fil3[filter] >> 4);
 
-        if (o > 0x7fffff) o = 0x7fffff;
+  //       if (o > 0x7fffff) o = 0x7fffff;
 
-        if (o < -0x800000) o = -0x800000;
+  //       if (o < -0x800000) o = -0x800000;
 
-        t = o;
-        // \code             if(u>0x7fffff) u=0x7fffff;
-        // \code             if(u < -0x800000) u= -0x800000;
-        e[k++] = o >> 8;
-      }
+  //       t = o;
+  //       // \code             if(u>0x7fffff) u=0x7fffff;
+  //       // \code             if(u < -0x800000) u= -0x800000;
+  //       e[k++] = o >> 8;
+  //     }
 
-      if (m & 1) {
-        zelda_wave->lflag = (m & 2) >> 1;
-        break;
-      }
-      if (k == l) {
-        l += 1024;
-        e = (short *)realloc(e, l << 1);
-      }
-    }
+  //     if (m & 1) {
+  //       zelda_wave->lflag = (m & 2) >> 1;
+  //       break;
+  //     }
+  //     if (k == l) {
+  //       l += 1024;
+  //       e = (short *)realloc(e, l << 1);
+  //     }
+  //   }
 
-    e = zelda_wave->buf = (short *)realloc(e, (k + 1) << 1);
+  //   e = zelda_wave->buf = (short *)realloc(e, (k + 1) << 1);
 
-    zelda_wave->lopst = (((unsigned short *)b)[i + 1] - j) * 16 / 9;
+  //   zelda_wave->lopst = (((unsigned short *)b)[i + 1] - j) * 16 / 9;
 
-    if (zelda_wave->lflag)
-      e[k] = e[zelda_wave->lopst];
-    else
-      e[k] = 0;
+  //   if (zelda_wave->lflag)
+  //     e[k] = e[zelda_wave->lopst];
+  //   else
+  //     e[k] = 0;
 
-    zelda_wave->end = k;
+  //   zelda_wave->end = k;
 
-    zelda_wave++;
-  }
+  //   zelda_wave++;
+  // }
 
-  numwave = i >> 1;
-  m_loaded = 1;
-  w_modf = 0;
+  // numwave = i >> 1;
+  // m_loaded = 1;
+  // w_modf = 0;
 }
 
 short Tracker::SaveSpcCommand(Rom &rom, short num, short songtime,
