@@ -43,4 +43,5 @@ set(
   absl::container_memory
   absl::memory
   absl::utility
+  absl::int128
 )
