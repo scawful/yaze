@@ -1,5 +1,7 @@
 # Visual Studio Setup Guide
 
+> **Note**: This document provides detailed Visual Studio setup information. For the most up-to-date build instructions, see [Build Instructions](02-build-instructions.md).
+
 This guide will help Visual Studio users set up and build the yaze project on Windows.
 
 ## Prerequisites
