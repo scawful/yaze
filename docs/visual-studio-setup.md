@@ -47,7 +47,7 @@ The project uses `vcpkg.json` for automatic dependency management. Dependencies 
 Manual installation (if needed):
 ```cmd
 vcpkg install zlib:x64-windows
-vcpkg install libpng:x64-windows
+# PNG support removed
 vcpkg install sdl2[vulkan]:x64-windows
 vcpkg install abseil:x64-windows
 vcpkg install gtest:x64-windows
@@ -290,7 +290,7 @@ The included `yaze.vcxproj` and `yaze.sln` files provide:
 ### **Automatic Dependency Management**
 - **vcpkg Integration:** Automatically installs and links dependencies from `vcpkg.json`
 - **Platform Support:** Pre-configured for both x64 and x86 builds
-- **Library Linking:** Automatically links SDL2, zlib, libpng, and system libraries
+- **Library Linking:** Automatically links SDL2 and system libraries
 
 ### **Build Configuration**
 - **Debug Configuration:** Includes debugging symbols and runtime checks

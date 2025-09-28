@@ -62,13 +62,7 @@ if(YAZE_MINIMAL_BUILD)
 endif()
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
 
-# libpng features in bitmap.cc - conditional for minimal builds
-if(PNG_FOUND)
-    add_definitions("-DYAZE_LIB_PNG=1")
-else()
-    add_definitions("-DYAZE_LIB_PNG=0")
-    message(STATUS "Building without PNG support for minimal build")
-endif()
+# PNG support removed - no longer needed
 
 # Modern CMake standards
 set(CMAKE_CXX_STANDARD 23)

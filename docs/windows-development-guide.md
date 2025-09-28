@@ -38,7 +38,7 @@ The easiest way to get started is to use our automated setup script:
 
 This script will:
 - Check for required software (Visual Studio 2022, Git, Python)
-- Set up vcpkg and install dependencies (zlib, libpng, SDL2)
+- Set up vcpkg and install dependencies (SDL2)
 - Generate Visual Studio project files with proper vcpkg integration
 - Perform a test build to verify everything works
 

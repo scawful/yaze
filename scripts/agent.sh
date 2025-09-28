@@ -103,7 +103,7 @@ ubuntu_bootstrap() {
   if command -v apt-get >/dev/null 2>&1; then
     sudo apt-get update
     sudo apt-get install -y inotify-tools build-essential cmake ninja-build pkg-config \
-      libsdl2-dev libpng-dev libglew-dev libwavpack-dev libabsl-dev \
+      libsdl2-dev libglew-dev libwavpack-dev libabsl-dev \
       libboost-all-dev libboost-python-dev python3-dev libpython3-dev
   else
     echo "apt-get not found; skipping Ubuntu bootstrap" >&2
