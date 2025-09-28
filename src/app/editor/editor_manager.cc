@@ -1,6 +1,7 @@
 #include "editor_manager.h"
 
 #include <chrono>
+#include <cstring>
 
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
@@ -2253,7 +2254,8 @@ void EditorManager::DrawSessionSwitcher() {
         ImGui::SameLine();
         if (ImGui::Button("Rename")) {
           session_to_rename_ = i;
-          strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
+          std::strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
+          session_rename_buffer_[sizeof(session_rename_buffer_) - 1] = '\0';
           show_session_rename_dialog_ = true;
         }
         
@@ -2429,7 +2431,8 @@ void EditorManager::DrawSessionManager() {
         ImGui::SameLine();
         if (ImGui::Button("Rename")) {
           session_to_rename_ = i;
-          strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
+          std::strncpy(session_rename_buffer_, session.GetDisplayName().c_str(), sizeof(session_rename_buffer_) - 1);
+          session_rename_buffer_[sizeof(session_rename_buffer_) - 1] = '\0';
           show_session_rename_dialog_ = true;
         }
         

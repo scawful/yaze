@@ -146,7 +146,7 @@
       <AdditionalDependencies Condition="'$(VcpkgEnabled)' == 'true'">SDL2.lib;SDL2main.lib;zlibd.lib;libpng16d.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(VcpkgEnabled)' != 'true'">SDL2.lib;SDL2main.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' == 'true'">$(VcpkgRoot)installed\x64-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' != 'true'">src\lib\SDL\VisualC\SDL\$(PlatformName)\$(Configuration);src\lib\abseil-cpp\absl\base;src\lib\abseil-cpp\absl\strings;src\lib\abseil-cpp\absl\container;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' != 'true'">src\lib\SDL\VisualC\SDL\$(PlatformName)\$(Configuration);src\lib\abseil-cpp\absl\base;src\lib\abseil-cpp\absl\strings;src\lib\abseil-cpp\absl\container;src\lib\abseil-cpp\absl\numeric;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
       <Command>copy "$(ProjectDir)src\yaze_config.h.in" "$(ProjectDir)yaze_config.h"
@@ -182,7 +182,7 @@ if exist "$(ProjectDir)zelda3.sfc" copy /Y "$(ProjectDir)zelda3.sfc" "$(OutDir)"
       <AdditionalDependencies Condition="'$(VcpkgEnabled)' == 'true'">SDL2.lib;SDL2main.lib;zlib.lib;libpng16.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(VcpkgEnabled)' != 'true'">SDL2.lib;SDL2main.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' == 'true'">$(VcpkgRoot)installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' != 'true'">src\lib\SDL\VisualC\SDL\$(PlatformName)\$(Configuration);src\lib\abseil-cpp\absl\base;src\lib\abseil-cpp\absl\strings;src\lib\abseil-cpp\absl\container;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' != 'true'">src\lib\SDL\VisualC\SDL\$(PlatformName)\$(Configuration);src\lib\abseil-cpp\absl\base;src\lib\abseil-cpp\absl\strings;src\lib\abseil-cpp\absl\container;src\lib\abseil-cpp\absl\numeric;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
       <Command>copy "$(ProjectDir)src\yaze_config.h.in" "$(ProjectDir)yaze_config.h"

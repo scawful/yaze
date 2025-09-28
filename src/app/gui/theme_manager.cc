@@ -4,6 +4,7 @@
 #include <fstream>
 #include <set>
 #include <sstream>
+#include <cstring>
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
@@ -1777,9 +1778,12 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
     ImGui::SameLine();
     if (ImGui::Button("Reset to Current")) {
       edit_theme = current_theme_;
-      strncpy(theme_name, current_theme_.name.c_str(), sizeof(theme_name));
-      strncpy(theme_description, current_theme_.description.c_str(), sizeof(theme_description));
-      strncpy(theme_author, current_theme_.author.c_str(), sizeof(theme_author));
+      std::strncpy(theme_name, current_theme_.name.c_str(), sizeof(theme_name) - 1);
+      theme_name[sizeof(theme_name) - 1] = '\0';
+      std::strncpy(theme_description, current_theme_.description.c_str(), sizeof(theme_description) - 1);
+      theme_description[sizeof(theme_description) - 1] = '\0';
+      std::strncpy(theme_author, current_theme_.author.c_str(), sizeof(theme_author) - 1);
+      theme_author[sizeof(theme_author) - 1] = '\0';
       
       // Reset backup state since we're back to current theme
       if (theme_backup_made) {
