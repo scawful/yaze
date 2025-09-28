@@ -6,6 +6,7 @@
     <VcpkgTriplet Condition="'$(Platform)' == 'x64'">x64-windows</VcpkgTriplet>
     <VcpkgTriplet Condition="'$(Platform)' == 'ARM64'">arm64-windows</VcpkgTriplet>
   </PropertyGroup>
+  <Import Project="$(VcpkgRoot)\scripts\buildsystems\vcpkg.props" Condition="Exists('$(VcpkgRoot)\scripts\buildsystems\vcpkg.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -146,7 +147,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(VcpkgRoot)installed\$(VcpkgTriplet)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -167,7 +168,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(VcpkgRoot)installed\$(VcpkgTriplet)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -184,7 +185,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(VcpkgRoot)installed\$(VcpkgTriplet)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -205,7 +206,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(VcpkgRoot)installed\$(VcpkgTriplet)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -222,7 +223,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(VcpkgRoot)installed\$(VcpkgTriplet)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -243,7 +244,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)build\lib\$(Configuration);$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration);$(VcpkgRoot)installed\$(VcpkgTriplet)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;asar-static.lib;ImGui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -1051,6 +1052,7 @@
     </CustomBuild>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(VcpkgRoot)\scripts\buildsystems\vcpkg.targets" Condition="Exists('$(VcpkgRoot)\scripts\buildsystems\vcpkg.targets')" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
