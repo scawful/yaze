@@ -258,6 +258,7 @@ jobs:
 
     # Build
     - name: Build
+      shell: bash
       run: |
         echo "Building YAZE for ${{ matrix.name }}..."
         cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
@@ -317,6 +318,7 @@ jobs:
 
     # Package
     - name: Package
+      shell: bash
       run: |
         echo "Packaging for ${{ matrix.name }}..."
         
