@@ -223,7 +223,7 @@ jobs:
         Write-Host "Configuring CMake for Windows build..."
         
         # Check if vcpkg is available
-        if (Test-Path "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -and $env:VCPKG_AVAILABLE -ne "false") {
+        if ((Test-Path "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake") -and ($env:VCPKG_AVAILABLE -ne "false")) {
           Write-Host "Using vcpkg toolchain..."
           cmake -B build `
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
