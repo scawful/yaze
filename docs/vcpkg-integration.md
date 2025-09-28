@@ -11,7 +11,8 @@ vcpkg is Microsoft's C++ package manager that simplifies dependency management f
 ## Features
 
 - **Manifest Mode**: Dependencies are automatically managed via `vcpkg.json`
-- **Visual Studio Integration**: Seamless integration with Visual Studio 2019+
+- **Visual Studio Integration**: Seamless integration with Visual Studio 2022
+- **Generated Project Files**: Visual Studio project files with proper vcpkg integration
 - **CMake Presets**: Pre-configured build presets for Windows
 - **Automatic Setup**: Setup scripts for easy vcpkg installation
 
@@ -20,15 +21,27 @@ vcpkg is Microsoft's C++ package manager that simplifies dependency management f
 ### 1. Setup vcpkg
 
 Run the automated setup script:
-```cmd
-# Command Prompt
-scripts\setup-vcpkg-windows.bat
-
-# PowerShell
-.\scripts\setup-vcpkg-windows.ps1
+```powershell
+# PowerShell (recommended)
+.\scripts\setup-windows-dev.ps1
 ```
 
-### 2. Build with vcpkg
+This will:
+- Set up vcpkg
+- Install dependencies (zlib, libpng, SDL2)
+- Generate Visual Studio project files with proper vcpkg integration
+
+### 2. Build with Visual Studio
+
+```powershell
+# Generate project files (if not already done)
+python scripts/generate-vs-projects.py
+
+# Open YAZE.sln in Visual Studio 2022
+# Select configuration and platform, then build
+```
+
+### 3. Alternative: Build with CMake
 
 Use the Windows presets in CMakePresets.json:
 
@@ -52,13 +65,23 @@ The `vcpkg.json` file defines all dependencies:
 {
   "name": "yaze",
   "version": "0.3.1",
+  "description": "Yet Another Zelda3 Editor",
   "dependencies": [
-    "zlib",
-    "libpng", 
-    "sdl2",
-    "abseil",
-    "gtest"
-  ]
+    {
+      "name": "zlib",
+      "platform": "!uwp"
+    },
+    {
+      "name": "libpng",
+      "platform": "!uwp"
+    },
+    {
+      "name": "sdl2",
+      "platform": "!uwp",
+      "features": ["vulkan"]
+    }
+  ],
+  "builtin-baseline": "2024.12.12"
 }
 ```
 
@@ -82,10 +105,10 @@ Available Windows presets:
 vcpkg automatically installs these dependencies:
 
 - **zlib**: Compression library
-- **libpng**: PNG image support
-- **sdl2**: Graphics and input handling
-- **abseil**: Google's C++ common libraries
-- **gtest**: Google Test framework (with gmock)
+- **libpng**: PNG image support  
+- **sdl2**: Graphics and input handling (with Vulkan support)
+
+**Note**: Abseil and gtest are now built from source via CMake rather than through vcpkg to avoid compatibility issues.
 
 ## Environment Variables
 
