@@ -144,7 +144,7 @@ $VcpkgInstalled = Join-Path $SourceDir "vcpkg\installed"
 
 # Check for vcpkg in common locations
 $VcpkgPaths = @(
-    Join-Path $SourceDir "vcpkg\scripts\buildsystems\vcpkg.cmake",
+    (Join-Path $SourceDir "vcpkg\scripts\buildsystems\vcpkg.cmake"),
     "$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake",
     "$env:ProgramFiles\vcpkg\scripts\buildsystems\vcpkg.cmake",
     "$env:ProgramFiles(x86)\vcpkg\scripts\buildsystems\vcpkg.cmake"
