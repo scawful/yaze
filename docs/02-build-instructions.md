@@ -24,9 +24,12 @@ cmake --build build
 # Generate Visual Studio projects (with proper vcpkg integration)
 python scripts/generate-vs-projects.py
 
-# Or use CMake directly
-cmake --preset windows-debug
-cmake --build build --preset windows-debug
+# Build with Clang (recommended for better Abseil compatibility)
+.\scripts\build-windows.ps1 -Compiler clang
+
+# Or use CMake directly with Clang
+cmake -B build -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
+cmake --build build
 ```
 
 ### Minimal Build (CI/Fast)

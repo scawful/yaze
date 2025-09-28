@@ -21,6 +21,47 @@ This directory contains build and setup scripts for YAZE development on differen
 - **`generate-vs-projects.ps1`** - Generate Visual Studio project files (PowerShell)
 - **`generate-vs-projects.bat`** - Generate Visual Studio project files (Batch)
 
+## Windows Compiler Recommendations
+
+### ⚠️ Important: MSVC vs Clang on Windows
+
+**We strongly recommend using Clang on Windows** due to compatibility issues with MSVC and Abseil's int128 and type_traits features:
+
+#### Why Clang is Recommended:
+- ✅ **Better C++23 Support**: Full support for modern C++23 features
+- ✅ **Abseil Compatibility**: No issues with `absl::int128` and type traits
+- ✅ **Cross-Platform Consistency**: Same compiler across all platforms
+- ✅ **Better Error Messages**: More helpful diagnostic messages
+- ✅ **Faster Compilation**: Generally faster than MSVC
+
+#### MSVC Issues:
+- ❌ **C++23 Deprecation Warnings**: Abseil int128 triggers numerous deprecation warnings
+- ❌ **Type Traits Problems**: Some Abseil type traits don't work correctly with MSVC
+- ❌ **Int128 Limitations**: MSVC's int128 support is incomplete
+- ❌ **Build Complexity**: Requires additional workarounds and flags
+
+### Compiler Setup Options
+
+#### Option 1: Clang (Recommended)
+```powershell
+# Install LLVM/Clang via winget
+winget install LLVM.LLVM
+
+# Or download from: https://releases.llvm.org/
+# Make sure to add Clang to PATH during installation
+
+# Verify installation
+clang --version
+```
+
+#### Option 2: MSVC with Workarounds
+If you must use MSVC, the build system includes workarounds:
+- Abseil int128 is automatically disabled on Windows
+- C++23 deprecation warnings are silenced
+- Additional compatibility flags are applied
+
+However, you may still encounter issues with some Abseil features.
+
 ## Quick Start (Windows)
 
 ### Option 1: Automated Setup (Recommended)
@@ -62,49 +103,54 @@ REM Build
 ### build-windows.ps1
 - `-Configuration` - Build configuration (Debug, Release, RelWithDebInfo, MinSizeRel)
 - `-Platform` - Target platform (x64, x86, ARM64)
+- `-Compiler` - Compiler to use (clang, msvc, auto)
 - `-Clean` - Clean build directories before building
 - `-Verbose` - Verbose build output
 
 ### build-windows.bat
 - First argument: Configuration (Debug, Release, RelWithDebInfo, MinSizeRel)
 - Second argument: Platform (x64, x86, ARM64)
+- Third argument: Compiler (clang, msvc, auto)
 - `clean` - Clean build directories
 - `verbose` - Verbose build output
 
 ## Examples
 
 ```powershell
-# Build Release x64 (default)
-.\scripts\build-windows.ps1
+# Build Release x64 with Clang (recommended)
+.\scripts\build-windows.ps1 -Compiler clang
 
-# Build Debug x64
-.\scripts\build-windows.ps1 -Configuration Debug -Platform x64
+# Build Release x64 with MSVC (with workarounds)
+.\scripts\build-windows.ps1 -Compiler msvc
 
-# Build Release x86
-.\scripts\build-windows.ps1 -Configuration Release -Platform x86
+# Build Debug x64 with Clang
+.\scripts\build-windows.ps1 -Configuration Debug -Platform x64 -Compiler clang
 
-# Clean build
-.\scripts\build-windows.ps1 -Clean
+# Build Release x86 with auto-detection
+.\scripts\build-windows.ps1 -Configuration Release -Platform x86 -Compiler auto
 
-# Verbose build
-.\scripts\build-windows.ps1 -Verbose
+# Clean build with Clang
+.\scripts\build-windows.ps1 -Clean -Compiler clang
+
+# Verbose build with MSVC
+.\scripts\build-windows.ps1 -Verbose -Compiler msvc
 
 # Validate environment
 .\scripts\validate-windows-build.ps1
 ```
 
 ```batch
-REM Build Release x64 (default)
-.\scripts\build-windows.bat
+REM Build Release x64 with Clang (recommended)
+.\scripts\build-windows.bat Release x64 clang
 
-REM Build Debug x64
-.\scripts\build-windows.bat Debug x64
+REM Build Debug x64 with MSVC
+.\scripts\build-windows.bat Debug x64 msvc
 
-REM Build Release x86
-.\scripts\build-windows.bat Release x86
+REM Build Release x86 with auto-detection
+.\scripts\build-windows.bat Release x86 auto
 
-REM Clean build
-.\scripts\build-windows.bat clean
+REM Clean build with Clang
+.\scripts\build-windows.bat clean clang
 ```
 
 ## Troubleshooting
@@ -127,6 +173,21 @@ REM Clean build
 4. **Python Not Found**
    - Install Python 3.8+ from python.org
    - Make sure Python is in PATH
+
+5. **MSVC Compilation Errors**
+   - **Abseil int128 errors**: Use Clang instead (`-Compiler clang`)
+   - **C++23 deprecation warnings**: These are silenced automatically, but Clang is cleaner
+   - **Type traits issues**: Switch to Clang for better compatibility
+   - **Solution**: Install Clang and use `.\scripts\build-windows.ps1 -Compiler clang`
+
+6. **Clang Not Found**
+   - Install LLVM/Clang: `winget install LLVM.LLVM`
+   - Or download from: https://releases.llvm.org/
+   - Make sure Clang is in PATH: `clang --version`
+
+7. **Compiler Detection Issues**
+   - Use explicit compiler selection: `-Compiler clang` or `-Compiler msvc`
+   - Check available compilers: `where clang` and `where cl`
 
 ### Getting Help
 
