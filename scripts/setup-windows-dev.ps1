@@ -52,13 +52,12 @@ if (-not $SkipVS) {
 
 # Check for Git
 Write-Host "Checking for Git..." -ForegroundColor Yellow
+$gitFound = $false
 try {
-    $gitVersion = & git --version 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ Git found: $gitVersion" -ForegroundColor Green
-    } else {
-        throw "Git not found"
-    }
+    $null = Get-Command git -ErrorAction Stop
+    $gitVersion = & git --version
+    Write-Host "✓ Git found: $gitVersion" -ForegroundColor Green
+    $gitFound = $true
 } catch {
     Write-Warning "Git not found. Please install Git for Windows."
     Write-Host "Download from: https://git-scm.com/download/win" -ForegroundColor Yellow
@@ -66,13 +65,12 @@ try {
 
 # Check for Python
 Write-Host "Checking for Python..." -ForegroundColor Yellow
+$pythonFound = $false
 try {
-    $pythonVersion = & python --version 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ Python found: $pythonVersion" -ForegroundColor Green
-    } else {
-        throw "Python not found"
-    }
+    $null = Get-Command python -ErrorAction Stop
+    $pythonVersion = & python --version
+    Write-Host "✓ Python found: $pythonVersion" -ForegroundColor Green
+    $pythonFound = $true
 } catch {
     Write-Warning "Python not found. Please install Python 3.8 or later."
     Write-Host "Download from: https://www.python.org/downloads/" -ForegroundColor Yellow
@@ -84,15 +82,21 @@ if (-not $SkipVcpkg) {
     
     if (-not (Test-Path "vcpkg")) {
         Write-Host "Cloning vcpkg..." -ForegroundColor Yellow
-        try {
-            & git clone https://github.com/Microsoft/vcpkg.git vcpkg
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "✓ vcpkg cloned successfully" -ForegroundColor Green
-            } else {
-                throw "Failed to clone vcpkg"
+        if ($gitFound) {
+            try {
+                & git clone https://github.com/Microsoft/vcpkg.git vcpkg
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "✓ vcpkg cloned successfully" -ForegroundColor Green
+                } else {
+                    Write-Error "Failed to clone vcpkg"
+                    exit 1
+                }
+            } catch {
+                Write-Error "Failed to clone vcpkg: $_"
+                exit 1
             }
-        } catch {
-            Write-Error "Failed to clone vcpkg: $_"
+        } else {
+            Write-Error "Git is required to clone vcpkg. Please install Git first."
             exit 1
         }
     } else {
@@ -109,7 +113,9 @@ if (-not $SkipVcpkg) {
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "✓ vcpkg bootstrapped successfully" -ForegroundColor Green
             } else {
-                throw "Failed to bootstrap vcpkg"
+                Write-Error "Failed to bootstrap vcpkg"
+                Pop-Location
+                exit 1
             }
             Pop-Location
         } catch {
@@ -139,30 +145,39 @@ if (-not $SkipVcpkg) {
 
 # Generate Visual Studio project files
 Write-Host "Generating Visual Studio project files..." -ForegroundColor Yellow
-try {
-    & python scripts/generate-vs-projects.py
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ Visual Studio project files generated" -ForegroundColor Green
-    } else {
-        throw "Failed to generate project files"
+if ($pythonFound) {
+    try {
+        & python scripts/generate-vs-projects.py
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "✓ Visual Studio project files generated" -ForegroundColor Green
+        } else {
+            Write-Warning "Failed to generate project files"
+        }
+    } catch {
+        Write-Warning "Failed to generate project files: $_"
+        Write-Host "You can manually run: python scripts/generate-vs-projects.py" -ForegroundColor Yellow
     }
-} catch {
-    Write-Warning "Failed to generate project files: $_"
+} else {
+    Write-Warning "Python is required to generate project files. Please install Python first."
     Write-Host "You can manually run: python scripts/generate-vs-projects.py" -ForegroundColor Yellow
 }
 
 # Test build
 Write-Host "Testing build..." -ForegroundColor Yellow
-try {
-    & .\scripts\build-windows.ps1 -Configuration Release -Platform x64
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ Test build successful" -ForegroundColor Green
-    } else {
-        Write-Warning "Test build failed, but setup is complete"
+if (Test-Path "scripts\build-windows.ps1") {
+    try {
+        & .\scripts\build-windows.ps1 -Configuration Release -Platform x64
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "✓ Test build successful" -ForegroundColor Green
+        } else {
+            Write-Warning "Test build failed, but setup is complete"
+        }
+    } catch {
+        Write-Warning "Test build failed: $_"
+        Write-Host "You can manually run: .\scripts\build-windows.ps1" -ForegroundColor Yellow
     }
-} catch {
-    Write-Warning "Test build failed: $_"
-    Write-Host "You can manually run: .\scripts\build-windows.ps1" -ForegroundColor Yellow
+} else {
+    Write-Warning "Build script not found. You can manually build using Visual Studio."
 }
 
 Write-Host "========================================" -ForegroundColor Cyan
