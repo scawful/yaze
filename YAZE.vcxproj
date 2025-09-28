@@ -1060,16 +1060,29 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="CMakeLists.txt">
-      <Message>Building asar-static library...</Message>
-      <Command>cmake --build "$(ProjectDir)build" --target asar-static --config $(Configuration)</Command>
+      <Message>Configuring CMake and building asar-static library...</Message>
+      <Command>cmake -B "$(ProjectDir)build" -G "Visual Studio 17 2022" -A $(Platform) &amp;&amp; cmake --build "$(ProjectDir)build" --target asar-static --config $(Configuration)</Command>
       <Outputs>$(ProjectDir)build\src\lib\asar\src\asar\lib\$(Configuration)\asar-static.lib</Outputs>
       <AdditionalInputs>$(ProjectDir)CMakeLists.txt;$(ProjectDir)src\lib\asar\CMakeLists.txt</AdditionalInputs>
     </CustomBuild>
     <CustomBuild Include="CMakeLists.txt">
-      <Message>Building ImGui library...</Message>
-      <Command>cmake --build "$(ProjectDir)build" --target ImGui --config $(Configuration)</Command>
+      <Message>Configuring CMake and building ImGui library...</Message>
+      <Command>cmake -B "$(ProjectDir)build" -G "Visual Studio 17 2022" -A $(Platform) &amp;&amp; cmake --build "$(ProjectDir)build" --target ImGui --config $(Configuration)</Command>
       <Outputs>$(ProjectDir)build\lib\$(Configuration)\ImGui.lib</Outputs>
       <AdditionalInputs>$(ProjectDir)CMakeLists.txt;$(ProjectDir)cmake\imgui.cmake</AdditionalInputs>
     </CustomBuild>
   </ItemGroup>
+  <Target Name="ConfigureCMake" BeforeTargets="BuildDependencies">
+    <Exec Command="cmake -B &quot;$(ProjectDir)build&quot; -G &quot;Visual Studio 17 2022&quot; -A $(Platform)" 
+          ContinueOnError="false" 
+          WorkingDirectory="$(ProjectDir)" />
+  </Target>
+  <Target Name="BuildDependencies" BeforeTargets="Build" DependsOnTargets="ConfigureCMake">
+    <Exec Command="cmake --build &quot;$(ProjectDir)build&quot; --target asar-static --config $(Configuration)" 
+          ContinueOnError="false" 
+          WorkingDirectory="$(ProjectDir)" />
+    <Exec Command="cmake --build &quot;$(ProjectDir)build&quot; --target ImGui --config $(Configuration)" 
+          ContinueOnError="false" 
+          WorkingDirectory="$(ProjectDir)" />
+  </Target>
 </Project>
