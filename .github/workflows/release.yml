@@ -85,7 +85,7 @@ jobs:
           cat release_notes.md
         else
           echo "Failed to extract changelog, creating default release notes"
-          echo "# Yaze $VERSION Release Notes\n\nPlease see the full changelog at docs/C1-changelog.md" > release_notes.md
+          echo "# yaze $VERSION Release Notes\n\nPlease see the full changelog at docs/C1-changelog.md" > release_notes.md
         fi
 
     - name: Store release notes
@@ -349,7 +349,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ needs.validate-and-prepare.outputs.tag_name }}
-        name: Yaze ${{ needs.validate-and-prepare.outputs.tag_name }}
+        name: yaze ${{ needs.validate-and-prepare.outputs.tag_name }}
         body: ${{ needs.validate-and-prepare.outputs.release_notes }}
         draft: false
         prerelease: ${{ contains(needs.validate-and-prepare.outputs.tag_name, 'beta') || contains(needs.validate-and-prepare.outputs.tag_name, 'alpha') || contains(needs.validate-and-prepare.outputs.tag_name, 'rc') }}
@@ -365,6 +365,6 @@ jobs:
     steps:
     - name: Announce release
       run: |
-        echo "🎉 Yaze ${{ needs.validate-and-prepare.outputs.tag_name }} has been released!"
+        echo "🎉 yaze ${{ needs.validate-and-prepare.outputs.tag_name }} has been released!"
         echo "📦 Packages are now available for download"
         echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate-and-prepare.outputs.tag_name }}"
