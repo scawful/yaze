@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['4_20build_20configuration_0',['4. Build Configuration',['../md_docs_2visual-studio-setup.html#autotoc_md468',1,'']]],
+  ['4_20build_20configuration_0',['4. Build Configuration',['../md_docs_2visual-studio-setup.html#autotoc_md481',1,'']]],
   ['4_20custom_20data_20loading_1',['4. Custom Data Loading',['../md_docs_2F1-overworld-loading.html#autotoc_md403',1,'']]],
   ['4_20dungeoneditor_20ui_20layer_2',['4. DungeonEditor (UI Layer)',['../md_docs_2E2-dungeon-editor-guide.html#autotoc_md209',1,'']]],
   ['4_20dungeonroomloader_20tt_20dungeon_5froom_5floader_20h_20cc_20tt_3',['4. DungeonRoomLoader (&lt;tt&gt;dungeon_room_loader.h/cc&lt;/tt&gt;)',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md301',1,'']]],
@@ -13,6 +13,7 @@ var searchData=
   ['4_20x_10',['Immediate Priorities (v0.4.X)',['../md_docs_2D1-roadmap.html#autotoc_md189',1,'']]],
   ['4_20x_20next_20major_20release_11',['0.4.X (Next Major Release)',['../md_docs_2D1-roadmap.html#autotoc_md175',1,'']]],
   ['400_20lines_12',['After Refactoring: ~400 lines',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md305',1,'']]],
-  ['4_3a_20build_20errors_20with_20abseil_13',['Issue 4: Build Errors with Abseil',['../md_docs_2visual-studio-setup.html#autotoc_md475',1,'']]],
-  ['4_3a_20cleanup_14',['Phase 4: Cleanup',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md332',1,'']]]
+  ['4_3a_20build_20errors_20with_20abseil_13',['Issue 4: Build Errors with Abseil',['../md_docs_2visual-studio-setup.html#autotoc_md488',1,'']]],
+  ['4_3a_20cleanup_14',['Phase 4: Cleanup',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md332',1,'']]],
+  ['4_3a_20install_20yaze_20dependencies_15',['Method 4: Install YAZE Dependencies',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md462',1,'']]]
 ];

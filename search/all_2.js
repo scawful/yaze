@@ -10,7 +10,7 @@ var searchData=
   ['2_20dungeonobjectinteraction_20tt_20dungeon_5fobject_5finteraction_20h_20cc_20tt_7',['2. DungeonObjectInteraction (&lt;tt&gt;dungeon_object_interaction.h/cc&lt;/tt&gt;)',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md299',1,'']]],
   ['2_20dungeonobjectselector_20tt_20src_20app_20editor_20dungeon_20dungeon_5fobject_5fselector_20h_20tt_8',['2. DungeonObjectSelector (&lt;tt&gt;src/app/editor/dungeon/dungeon_object_selector.h&lt;/tt&gt;)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md338',1,'']]],
   ['2_20error_20handling_9',['2. Error Handling',['../md_docs_2F1-overworld-loading.html#autotoc_md425',1,'']]],
-  ['2_20install_20dependencies_20via_20vcpkg_10',['2. Install Dependencies via vcpkg',['../md_docs_2visual-studio-setup.html#autotoc_md463',1,'']]],
+  ['2_20install_20dependencies_20via_20vcpkg_10',['2. Install Dependencies via vcpkg',['../md_docs_2visual-studio-setup.html#autotoc_md476',1,'']]],
   ['2_20map_20initialization_11',['2. Map Initialization',['../md_docs_2F1-overworld-loading.html#autotoc_md399',1,'']]],
   ['2_20objects_200x100_200x1ff_12',['Type 2 Objects (0x100-0x1FF)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md344',1,'']]],
   ['2_20palette_20loading_20errors_13',['2. Palette Loading Errors',['../md_docs_2F1-overworld-loading.html#autotoc_md418',1,'']]],
@@ -19,7 +19,8 @@ var searchData=
   ['2024_16',['2024',['../md_docs_2C1-changelog.html#autotoc_md169',1,'0.0.7 (January 2024)'],['../md_docs_2C1-changelog.html#autotoc_md168',1,'0.0.8 (February 2024)'],['../md_docs_2C1-changelog.html#autotoc_md167',1,'0.0.9 (April 2024)'],['../md_docs_2C1-changelog.html#autotoc_md166',1,'0.1.0 (May 2024)'],['../md_docs_2C1-changelog.html#autotoc_md165',1,'0.2.0 (July 2024)'],['../md_docs_2C1-changelog.html#autotoc_md164',1,'0.2.1 (August 2024)'],['../md_docs_2C1-changelog.html#autotoc_md163',1,'0.2.2 (December 2024)']]],
   ['2025_17',['0.3.0 (September 2025)',['../md_docs_2C1-changelog.html#autotoc_md157',1,'']]],
   ['280px_20fixed_18',['Column 1: Room Control Panel (280px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md356',1,'']]],
-  ['2_3a_20executable_20runs_20tests_20instead_20of_20main_20app_19',['Issue 2: Executable Runs Tests Instead of Main App',['../md_docs_2visual-studio-setup.html#autotoc_md473',1,'']]],
-  ['2_3a_20integrate_20components_20🔄_20',['Phase 2: Integrate Components 🔄',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md330',1,'']]],
-  ['2_3a_20windowed_20canvas_20800px_20fixed_21',['Column 2: Windowed Canvas (800px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md357',1,'']]]
+  ['2_3a_20create_20triplet_20file_20manually_19',['Method 2: Create Triplet File Manually',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md460',1,'']]],
+  ['2_3a_20executable_20runs_20tests_20instead_20of_20main_20app_20',['Issue 2: Executable Runs Tests Instead of Main App',['../md_docs_2visual-studio-setup.html#autotoc_md486',1,'']]],
+  ['2_3a_20integrate_20components_20🔄_21',['Phase 2: Integrate Components 🔄',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md330',1,'']]],
+  ['2_3a_20windowed_20canvas_20800px_20fixed_22',['Column 2: Windowed Canvas (800px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md357',1,'']]]
 ];
