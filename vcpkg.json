@@ -9,7 +9,7 @@
       "features": ["vulkan"]
     }
   ],
-  "builtin-baseline": "d18b2e4129c1ff667b1e660528d6d2678f38c6fc",
+  "builtin-baseline": "4bee3f5aae7aefbc129ca81c33d6a062b02fcf3b",
   "overrides": [],
   "features": {
     "pkg-config": {
