@@ -184,13 +184,13 @@ jobs:
     # Test (stable core functionality only for CI)
     - name: Run Core Tests
       working-directory: ${{ github.workspace }}/build
-      run: ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure -j1 -R "AsarWrapperTest|SnesTileTest|CompressionTest|SnesPaletteTest|HexTest"
+      run: ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure -j1 -R "AsarWrapperTest|SnesTileTest|CompressionTest|SnesPaletteTest|HexTest|MessageTest"
       
-    # Run experimental tests separately (allowed to fail for information only)
-    - name: Run Additional Tests (Informational)
+    # Run additional unit tests (allowed to fail for information only)
+    - name: Run Additional Unit Tests (Informational)
       working-directory: ${{ github.workspace }}/build
       continue-on-error: true
-      run: ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure --parallel -E "AsarWrapperTest|SnesTileTest|CompressionTest|SnesPaletteTest|HexTest|CpuTest|Spc700Test|ApuTest|MessageTest|.*IntegrationTest"
+      run: ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure --parallel -R ".*Test" -E ".*RomTest.*|.*E2E.*|.*ZSCustomOverworld.*|.*IntegrationTest.*|CpuTest|Spc700Test|ApuTest"
 
     # Package (only on successful builds)
     - name: Package artifacts

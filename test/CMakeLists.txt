@@ -12,53 +12,106 @@ foreach (file
 endforeach()
 
 # Main test executable with enhanced argument handling for AI agents
-add_executable(
-  yaze_test
-  yaze_test.cc
-  test_editor.cc
-  test_editor.h
-  testing.h
-  test_utils.h
+# Use CI version for minimal builds, full version for development
+if(YAZE_MINIMAL_BUILD)
+  # CI/Minimal build: use simplified test executable
+  add_executable(
+    yaze_test
+    yaze_test_ci.cc
+    test_editor.cc
+    test_editor.h
+    testing.h
+    test_utils.h
   
-  # Unit Tests
-  unit/core/asar_wrapper_test.cc
-  unit/core/hex_test.cc
-  unit/rom/rom_test.cc
-  unit/gfx/snes_tile_test.cc
-  unit/gfx/compression_test.cc
-  unit/gfx/snes_palette_test.cc
-  unit/zelda3/message_test.cc
-  unit/zelda3/overworld_test.cc
-  unit/zelda3/object_parser_test.cc
-  unit/zelda3/object_parser_structs_test.cc
-  unit/zelda3/sprite_builder_test.cc
-  unit/zelda3/sprite_position_test.cc
-  unit/zelda3/test_dungeon_objects.cc
-  unit/zelda3/dungeon_component_unit_test.cc
-  
-  # Integration Tests
-  integration/asar_integration_test.cc
-  integration/asar_rom_test.cc
-  integration/dungeon_editor_test.cc
-  integration/dungeon_editor_test.h
-  integration/editor/tile16_editor_test.cc
-  integration/editor/editor_integration_test.cc
-  integration/editor/editor_integration_test.h
-  
-  # E2E Tests
-  e2e/rom_dependent/e2e_rom_test.cc
-  e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
-  
-  # Legacy Integration Tests (to be migrated)
-  unit/zelda3/comprehensive_integration_test.cc
-  unit/zelda3/overworld_integration_test.cc
-  unit/zelda3/dungeon_integration_test.cc
-  unit/zelda3/dungeon_editor_system_integration_test.cc
-  unit/zelda3/dungeon_object_renderer_integration_test.cc
-  unit/zelda3/dungeon_object_renderer_mock_test.cc
-  unit/zelda3/dungeon_object_rendering_tests.cc
-  unit/zelda3/dungeon_room_test.cc
-)
+    # Unit Tests
+    unit/core/asar_wrapper_test.cc
+    unit/core/hex_test.cc
+    unit/rom/rom_test.cc
+    unit/gfx/snes_tile_test.cc
+    unit/gfx/compression_test.cc
+    unit/gfx/snes_palette_test.cc
+    unit/zelda3/message_test.cc
+    unit/zelda3/overworld_test.cc
+    unit/zelda3/object_parser_test.cc
+    unit/zelda3/object_parser_structs_test.cc
+    unit/zelda3/sprite_builder_test.cc
+    unit/zelda3/sprite_position_test.cc
+    unit/zelda3/test_dungeon_objects.cc
+    unit/zelda3/dungeon_component_unit_test.cc
+    
+    # Integration Tests
+    integration/asar_integration_test.cc
+    integration/asar_rom_test.cc
+    integration/dungeon_editor_test.cc
+    integration/dungeon_editor_test.h
+    integration/editor/tile16_editor_test.cc
+    integration/editor/editor_integration_test.cc
+    integration/editor/editor_integration_test.h
+    
+    # E2E Tests (excluded in CI builds)
+    e2e/rom_dependent/e2e_rom_test.cc
+    e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
+    
+    # Legacy Integration Tests (to be migrated)
+    unit/zelda3/comprehensive_integration_test.cc
+    unit/zelda3/overworld_integration_test.cc
+    unit/zelda3/dungeon_integration_test.cc
+    unit/zelda3/dungeon_editor_system_integration_test.cc
+    unit/zelda3/dungeon_object_renderer_integration_test.cc
+    unit/zelda3/dungeon_object_renderer_mock_test.cc
+    unit/zelda3/dungeon_object_rendering_tests.cc
+    unit/zelda3/dungeon_room_test.cc
+  )
+else()
+  # Development build: use full-featured test executable
+  add_executable(
+    yaze_test
+    yaze_test.cc
+    test_editor.cc
+    test_editor.h
+    testing.h
+    test_utils.h
+    
+    # Unit Tests
+    unit/core/asar_wrapper_test.cc
+    unit/core/hex_test.cc
+    unit/rom/rom_test.cc
+    unit/gfx/snes_tile_test.cc
+    unit/gfx/compression_test.cc
+    unit/gfx/snes_palette_test.cc
+    unit/zelda3/message_test.cc
+    unit/zelda3/overworld_test.cc
+    unit/zelda3/object_parser_test.cc
+    unit/zelda3/object_parser_structs_test.cc
+    unit/zelda3/sprite_builder_test.cc
+    unit/zelda3/sprite_position_test.cc
+    unit/zelda3/test_dungeon_objects.cc
+    unit/zelda3/dungeon_component_unit_test.cc
+    
+    # Integration Tests
+    integration/asar_integration_test.cc
+    integration/asar_rom_test.cc
+    integration/dungeon_editor_test.cc
+    integration/dungeon_editor_test.h
+    integration/editor/tile16_editor_test.cc
+    integration/editor/editor_integration_test.cc
+    integration/editor/editor_integration_test.h
+    
+    # E2E Tests (included in development builds)
+    e2e/rom_dependent/e2e_rom_test.cc
+    e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
+    
+    # Legacy Integration Tests (to be migrated)
+    unit/zelda3/comprehensive_integration_test.cc
+    unit/zelda3/overworld_integration_test.cc
+    unit/zelda3/dungeon_integration_test.cc
+    unit/zelda3/dungeon_editor_system_integration_test.cc
+    unit/zelda3/dungeon_object_renderer_integration_test.cc
+    unit/zelda3/dungeon_object_renderer_mock_test.cc
+    unit/zelda3/dungeon_object_rendering_tests.cc
+    unit/zelda3/dungeon_room_test.cc
+  )
+endif()
 
 # Add vanilla value extraction utility (only for local development with ROM access)
 if(NOT YAZE_MINIMAL_BUILD AND YAZE_ENABLE_ROM_TESTS)
