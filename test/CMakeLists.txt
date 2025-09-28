@@ -238,3 +238,70 @@ endif()
 # ./yaze_test --unit --verbose
 # ./yaze_test --e2e --rom-path zelda3.sfc
 # ./yaze_test --zscustomoverworld --verbose
+
+# =============================================================================
+# Test Source Groups for Visual Studio Organization
+# =============================================================================
+
+# Test Framework
+source_group("Tests\\Framework" FILES
+  testing.h
+  yaze_test.cc
+  yaze_test_ci.cc
+)
+
+# Unit Tests
+source_group("Tests\\Unit" FILES
+  unit/test_asar_wrapper.cc
+  unit/test_rom_loading.cc
+  unit/test_snes_tiles.cc
+  unit/test_palettes.cc
+  unit/test_hex_utils.cc
+  unit/test_flag_utils.cc
+  unit/test_bps_utils.cc
+  unit/test_color_conversion.cc
+  unit/test_tile_compression.cc
+  unit/test_memory_management.cc
+  unit/test_project_structure.cc
+  unit/test_editor_basic.cc
+  unit/test_dungeon_data.cc
+  unit/test_overworld_data.cc
+  unit/test_sprite_data.cc
+  unit/test_music_data.cc
+  unit/test_graphics_rendering.cc
+  unit/test_gui_components.cc
+  unit/test_emulator_core.cc
+  unit/test_cpu_instructions.cc
+  unit/test_ppu_rendering.cc
+  unit/test_audio_processing.cc
+  unit/test_compression_algorithms.cc
+  unit/test_hex_editor.cc
+)
+
+# Integration Tests
+source_group("Tests\\Integration" FILES
+  integration/test_editor_integration.cc
+  integration/test_rom_integration.cc
+  integration/test_project_workflow.cc
+  integration/test_asar_integration.cc
+  integration/test_graphics_pipeline.cc
+  integration/test_emulator_integration.cc
+)
+
+# End-to-End Tests
+source_group("Tests\\E2E" FILES
+  e2e/test_full_workflow.cc
+  e2e/test_user_scenarios.cc
+)
+
+# Test Utilities and Mocks
+source_group("Tests\\Utilities" FILES
+  test_utils.h
+  mocks/mock_rom.h
+  mocks/mock_editor.h
+)
+
+# Test Assets
+source_group("Tests\\Assets" FILES
+  assets/test_rom.asm
+)

@@ -267,3 +267,407 @@ if (YAZE_BUILD_LIB)
     )
   endif()
 endif()
+
+# =============================================================================
+# Visual Studio Source Groups Organization
+# =============================================================================
+# These source groups will organize files in Visual Studio Solution Explorer
+# into logical, hierarchical folders for better navigation and development.
+
+# Core Application Structure
+source_group("Application\\Core" FILES
+  app/main.cc
+  app/rom.cc
+  app/rom.h
+  app/snes.h
+  app/transaction.h
+  yaze.cc
+)
+
+# App Core Components
+source_group("Application\\Core\\Controller" FILES
+  app/core/controller.cc
+  app/core/controller.h
+  app/core/window.cc
+  app/core/window.h
+)
+
+source_group("Application\\Core\\Project" FILES
+  app/core/project.cc
+  app/core/project.h
+  app/core/features.h
+)
+
+source_group("Application\\Core\\Asar" FILES
+  app/core/asar_wrapper.cc
+  app/core/asar_wrapper.h
+)
+
+# Platform-specific files
+source_group("Application\\Core\\Platform" FILES
+  app/core/platform/app_delegate.h
+  app/core/platform/app_delegate.mm
+  app/core/platform/clipboard.cc
+  app/core/platform/clipboard.h
+  app/core/platform/clipboard.mm
+  app/core/platform/file_dialog.cc
+  app/core/platform/file_dialog.h
+  app/core/platform/file_dialog.mm
+  app/core/platform/font_loader.cc
+  app/core/platform/font_loader.h
+  app/core/platform/font_loader.mm
+  app/core/platform/view_controller.h
+)
+
+# Editor System
+source_group("Application\\Editor" FILES
+  app/editor/editor_manager.cc
+  app/editor/editor_manager.h
+  app/editor/editor.h
+  app/editor/editor_safeguards.h
+)
+
+# Code Editor
+source_group("Application\\Editor\\Code" FILES
+  app/editor/code/assembly_editor.cc
+  app/editor/code/assembly_editor.h
+  app/editor/code/memory_editor.h
+)
+
+# Dungeon Editor
+source_group("Application\\Editor\\Dungeon" FILES
+  app/editor/dungeon/dungeon_editor.cc
+  app/editor/dungeon/dungeon_editor.h
+  app/editor/dungeon/dungeon_map_editor.cc
+  app/editor/dungeon/dungeon_map_editor.h
+  app/editor/dungeon/dungeon_room_editor.cc
+  app/editor/dungeon/dungeon_room_editor.h
+  app/editor/dungeon/dungeon_sprite_editor.cc
+  app/editor/dungeon/dungeon_sprite_editor.h
+  app/editor/dungeon/dungeon_tile_editor.cc
+  app/editor/dungeon/dungeon_tile_editor.h
+  app/editor/dungeon/room_data_editor.cc
+  app/editor/dungeon/room_data_editor.h
+  app/editor/dungeon/room_properties_editor.cc
+  app/editor/dungeon/room_properties_editor.h
+  app/editor/dungeon/room_sprite_editor.cc
+  app/editor/dungeon/room_sprite_editor.h
+  app/editor/dungeon/room_tile_editor.cc
+  app/editor/dungeon/room_tile_editor.h
+)
+
+# Graphics Editor
+source_group("Application\\Editor\\Graphics" FILES
+  app/editor/graphics/graphics_editor.cc
+  app/editor/graphics/graphics_editor.h
+  app/editor/graphics/palette_editor.cc
+  app/editor/graphics/palette_editor.h
+  app/editor/graphics/sprite_editor.cc
+  app/editor/graphics/sprite_editor.h
+  app/editor/graphics/tile_editor.cc
+  app/editor/graphics/tile_editor.h
+)
+
+# Message Editor
+source_group("Application\\Editor\\Message" FILES
+  app/editor/message/message_editor.cc
+  app/editor/message/message_editor.h
+  app/editor/message/text_editor.cc
+  app/editor/message/text_editor.h
+  app/editor/message/translation_editor.cc
+  app/editor/message/translation_editor.h
+)
+
+# Music Editor
+source_group("Application\\Editor\\Music" FILES
+  app/editor/music/music_editor.cc
+  app/editor/music/music_editor.h
+)
+
+# Overworld Editor
+source_group("Application\\Editor\\Overworld" FILES
+  app/editor/overworld/overworld_editor.cc
+  app/editor/overworld/overworld_editor.h
+  app/editor/overworld/overworld_map_editor.cc
+  app/editor/overworld/overworld_map_editor.h
+  app/editor/overworld/overworld_sprite_editor.cc
+  app/editor/overworld/overworld_sprite_editor.h
+  app/editor/overworld/overworld_tile_editor.cc
+  app/editor/overworld/overworld_tile_editor.h
+  app/editor/overworld/overworld_transport_editor.cc
+  app/editor/overworld/overworld_transport_editor.h
+  app/editor/overworld/overworld_entrance_editor.cc
+  app/editor/overworld/overworld_entrance_editor.h
+)
+
+# Sprite Editor
+source_group("Application\\Editor\\Sprite" FILES
+  app/editor/sprite/sprite_editor.cc
+  app/editor/sprite/sprite_editor.h
+  app/editor/sprite/sprite_properties_editor.cc
+  app/editor/sprite/sprite_properties_editor.h
+)
+
+# System Editor
+source_group("Application\\Editor\\System" FILES
+  app/editor/system/asm_editor.cc
+  app/editor/system/asm_editor.h
+  app/editor/system/config_editor.cc
+  app/editor/system/config_editor.h
+  app/editor/system/debug_console.cc
+  app/editor/system/debug_console.h
+  app/editor/system/hex_editor.cc
+  app/editor/system/hex_editor.h
+  app/editor/system/log_viewer.cc
+  app/editor/system/log_viewer.h
+  app/editor/system/memory_editor.cc
+  app/editor/system/memory_editor.h
+  app/editor/system/rom_analyzer.cc
+  app/editor/system/rom_analyzer.h
+)
+
+# Emulator
+source_group("Application\\Emulator" FILES
+  app/emu/emu.cc
+  app/emu/emulator.cc
+  app/emu/emulator.h
+  app/emu/snes.cc
+  app/emu/snes.h
+)
+
+# Audio System
+source_group("Application\\Emulator\\Audio" FILES
+  app/emu/audio/apu.cc
+  app/emu/audio/apu.h
+  app/emu/audio/spc700.cc
+  app/emu/audio/spc700.h
+  app/emu/audio/dsp.cc
+  app/emu/audio/dsp.h
+  app/emu/audio/internal/addressing.cc
+  app/emu/audio/internal/addressing.h
+  app/emu/audio/internal/instructions.cc
+  app/emu/audio/internal/instructions.h
+)
+
+# CPU System
+source_group("Application\\Emulator\\CPU" FILES
+  app/emu/cpu/cpu.cc
+  app/emu/cpu/cpu.h
+  app/emu/cpu/internal/addressing.cc
+  app/emu/cpu/internal/addressing.h
+  app/emu/cpu/internal/instructions.cc
+  app/emu/cpu/internal/instructions.h
+)
+
+# Memory System
+source_group("Application\\Emulator\\Memory" FILES
+  app/emu/memory/dma.cc
+  app/emu/memory/dma.h
+  app/emu/memory/memory.cc
+  app/emu/memory/memory.h
+  app/emu/memory/mock_memory.h
+)
+
+# Video System
+source_group("Application\\Emulator\\Video" FILES
+  app/emu/video/ppu.cc
+  app/emu/video/ppu.h
+  app/emu/video/ppu_registers.h
+)
+
+# Graphics System
+source_group("Application\\Graphics" FILES
+  app/gfx/arena.cc
+  app/gfx/arena.h
+  app/gfx/background_buffer.cc
+  app/gfx/background_buffer.h
+  app/gfx/bitmap.cc
+  app/gfx/bitmap.h
+  app/gfx/compression.cc
+  app/gfx/compression.h
+  app/gfx/scad_format.cc
+  app/gfx/scad_format.h
+  app/gfx/snes_color.cc
+  app/gfx/snes_color.h
+  app/gfx/snes_palette.cc
+  app/gfx/snes_palette.h
+  app/gfx/snes_tile.cc
+  app/gfx/snes_tile.h
+  app/gfx/tilemap.cc
+  app/gfx/tilemap.h
+)
+
+# GUI System
+source_group("Application\\GUI" FILES
+  app/gui/background_renderer.cc
+  app/gui/background_renderer.h
+  app/gui/canvas_utils.cc
+  app/gui/canvas_utils.h
+  app/gui/canvas.cc
+  app/gui/canvas.h
+  app/gui/color.cc
+  app/gui/color.h
+  app/gui/enhanced_palette_editor.cc
+  app/gui/enhanced_palette_editor.h
+  app/gui/icons.h
+  app/gui/input.cc
+  app/gui/input.h
+  app/gui/style.cc
+  app/gui/style.h
+  app/gui/theme_manager.cc
+  app/gui/theme_manager.h
+  app/gui/zeml.cc
+  app/gui/zeml.h
+)
+
+# GUI Modules
+source_group("Application\\GUI\\Modules" FILES
+  app/gui/modules/about_dialog.cc
+  app/gui/modules/about_dialog.h
+  app/gui/modules/preferences_dialog.cc
+  app/gui/modules/preferences_dialog.h
+  app/gui/modules/project_dialog.cc
+  app/gui/modules/project_dialog.h
+)
+
+# Zelda3 Specific
+source_group("Application\\Zelda3" FILES
+  app/zelda3/common.h
+  app/zelda3/hyrule_magic.cc
+  app/zelda3/hyrule_magic.h
+)
+
+# Zelda3 Dungeon
+source_group("Application\\Zelda3\\Dungeon" FILES
+  app/zelda3/dungeon/dungeon_data.cc
+  app/zelda3/dungeon/dungeon_data.h
+  app/zelda3/dungeon/dungeon_loader.cc
+  app/zelda3/dungeon/dungeon_loader.h
+  app/zelda3/dungeon/dungeon_room.cc
+  app/zelda3/dungeon/dungeon_room.h
+  app/zelda3/dungeon/dungeon_sprite.cc
+  app/zelda3/dungeon/dungeon_sprite.h
+  app/zelda3/dungeon/dungeon_tile.cc
+  app/zelda3/dungeon/dungeon_tile.h
+  app/zelda3/dungeon/room_data.cc
+  app/zelda3/dungeon/room_data.h
+  app/zelda3/dungeon/room_properties.cc
+  app/zelda3/dungeon/room_properties.h
+  app/zelda3/dungeon/room_sprite.cc
+  app/zelda3/dungeon/room_sprite.h
+  app/zelda3/dungeon/room_tile.cc
+  app/zelda3/dungeon/room_tile.h
+)
+
+# Zelda3 Music
+source_group("Application\\Zelda3\\Music" FILES
+  app/zelda3/music/music_data.cc
+  app/zelda3/music/music_data.h
+)
+
+# Zelda3 Overworld
+source_group("Application\\Zelda3\\Overworld" FILES
+  app/zelda3/overworld/overworld_data.cc
+  app/zelda3/overworld/overworld_data.h
+  app/zelda3/overworld/overworld_loader.cc
+  app/zelda3/overworld/overworld_loader.h
+  app/zelda3/overworld/overworld_sprite.cc
+  app/zelda3/overworld/overworld_sprite.h
+  app/zelda3/overworld/overworld_tile.cc
+  app/zelda3/overworld/overworld_tile.h
+  app/zelda3/overworld/overworld_transport.cc
+  app/zelda3/overworld/overworld_transport.h
+)
+
+# Zelda3 Screen
+source_group("Application\\Zelda3\\Screen" FILES
+  app/zelda3/screen/dungeon_map.cc
+  app/zelda3/screen/dungeon_map.h
+  app/zelda3/screen/inventory.cc
+  app/zelda3/screen/inventory.h
+  app/zelda3/screen/title_screen.cc
+  app/zelda3/screen/title_screen.h
+)
+
+# Zelda3 Sprite
+source_group("Application\\Zelda3\\Sprite" FILES
+  app/zelda3/sprite/sprite_data.cc
+  app/zelda3/sprite/sprite_data.h
+  app/zelda3/sprite/sprite_loader.cc
+  app/zelda3/sprite/sprite_loader.h
+  app/zelda3/sprite/sprite.cc
+  app/zelda3/sprite/sprite.h
+)
+
+# Testing
+source_group("Application\\Testing" FILES
+  app/test/test_manager.cc
+  app/test/test_manager.h
+  app/test/e2e_test_suite.h
+  app/test/integrated_test_suite.h
+  app/test/rom_dependent_test_suite.h
+  app/test/unit_test_suite.h
+  app/test/zscustomoverworld_test_suite.h
+)
+
+# CLI Tools
+source_group("CLI" FILES
+  cli/cli_main.cc
+  cli/tui.cc
+  cli/tui.h
+  cli/z3ed.cc
+  cli/z3ed.h
+)
+
+source_group("CLI\\Handlers" FILES
+  cli/handlers/compress.cc
+  cli/handlers/patch.cc
+  cli/handlers/tile16_transfer.cc
+)
+
+# Utilities
+source_group("Utilities" FILES
+  util/bps.cc
+  util/bps.h
+  util/flag.cc
+  util/flag.h
+  util/hex.cc
+  util/hex.h
+  util/log.h
+  util/macro.h
+  util/notify.h
+)
+
+# API
+source_group("API" FILES
+  api/service_handler.cc
+  api/yaze.proto
+)
+
+source_group("API\\Python" FILES
+  api/python/yaze_py.cc
+)
+
+# Platform-specific Resources
+source_group("Platform\\Windows" FILES
+  win32/yaze.ico
+  win32/yaze.rc
+  win32/yaze.res
+)
+
+source_group("Platform\\iOS" FILES
+  ios/main.mm
+  ios/iOS/Info-iOS.plist
+  ios/iOS/LaunchScreen.storyboard
+  ios/macOS/Info-macOS.plist
+  ios/macOS/MainMenu.storyboard
+)
+
+source_group("Platform\\iOS\\Assets" FILES
+  ios/Media.xcassets/Contents.json
+)
+
+# Configuration
+source_group("Configuration" FILES
+  yaze_config.h.in
+)
