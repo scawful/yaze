@@ -57,6 +57,8 @@
     <RootNamespace>YAZE</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>YAZE</ProjectName>
+    <VcpkgEnabled>true</VcpkgEnabled>
+    <VcpkgManifestInstall>true</VcpkgManifestInstall>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -248,11 +250,17 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
@@ -261,11 +269,17 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -274,173 +288,289 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x86'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|ARM64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x86'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|ARM64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;$(ProjectDir)src\lib\asar\src;$(ProjectDir)src\lib\asar\src\asar;$(ProjectDir)src\lib\asar\src\asar-dll-bindings\c;$(ProjectDir)src\lib\imgui;$(ProjectDir)src\lib\imgui_test_engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <BigObj>true</BigObj>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="incl\yaze.h" />
-    <ClInclude Include="incl\zelda.h" />
-    <ClInclude Include="src\yaze_config.h.in" />
+    <ClInclude Include="incl/yaze.h" />
+    <ClInclude Include="incl/zelda.h" />
+    <ClInclude Include="src/yaze_config.h.in" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\yaze.cc" />
+    <ClCompile Include="src\app/main.cc" />
+    <ClCompile Include="src\app/rom.cc" />
+    <ClCompile Include="src\app/core/controller.cc" />
+    <ClCompile Include="src\app/emu/emulator.cc" />
+    <ClCompile Include="src\app/core/project.cc" />
+    <ClCompile Include="src\app/core/window.cc" />
+    <ClCompile Include="src\app/core/asar_wrapper.cc" />
+    <ClCompile Include="src\app/core/platform/font_loader.cc" />
+    <ClCompile Include="src\app/core/platform/clipboard.cc" />
+    <ClCompile Include="src\app/core/platform/file_dialog.cc" />
+    <ClCompile Include="src\app/emu/audio/apu.cc" />
+    <ClCompile Include="src\app/emu/audio/spc700.cc" />
+    <ClCompile Include="src\app/emu/audio/dsp.cc" />
+    <ClCompile Include="src\app/emu/audio/internal/addressing.cc" />
+    <ClCompile Include="src\app/emu/audio/internal/instructions.cc" />
+    <ClCompile Include="src\app/emu/cpu/internal/addressing.cc" />
+    <ClCompile Include="src\app/emu/cpu/internal/instructions.cc" />
+    <ClCompile Include="src\app/emu/cpu/cpu.cc" />
+    <ClCompile Include="src\app/emu/video/ppu.cc" />
+    <ClCompile Include="src\app/emu/memory/dma.cc" />
+    <ClCompile Include="src\app/emu/memory/memory.cc" />
+    <ClCompile Include="src\app/emu/snes.cc" />
+    <ClCompile Include="src\app/editor/editor_manager.cc" />
+    <ClCompile Include="src\app/editor/dungeon/dungeon_editor.cc" />
+    <ClCompile Include="src\app/editor/dungeon/dungeon_room_selector.cc" />
+    <ClCompile Include="src\app/editor/dungeon/dungeon_canvas_viewer.cc" />
+    <ClCompile Include="src\app/editor/dungeon/dungeon_object_selector.cc" />
+    <ClCompile Include="src\app/editor/dungeon/dungeon_toolset.cc" />
+    <ClCompile Include="src\app/editor/dungeon/dungeon_object_interaction.cc" />
+    <ClCompile Include="src\app/editor/dungeon/dungeon_renderer.cc" />
+    <ClCompile Include="src\app/editor/dungeon/dungeon_room_loader.cc" />
+    <ClCompile Include="src\app/editor/dungeon/dungeon_usage_tracker.cc" />
+    <ClCompile Include="src\app/editor/overworld/overworld_editor.cc" />
+    <ClCompile Include="src\app/editor/overworld/overworld_editor_manager.cc" />
+    <ClCompile Include="src\app/editor/sprite/sprite_editor.cc" />
+    <ClCompile Include="src\app/editor/music/music_editor.cc" />
+    <ClCompile Include="src\app/editor/message/message_editor.cc" />
+    <ClCompile Include="src\app/editor/message/message_data.cc" />
+    <ClCompile Include="src\app/editor/message/message_preview.cc" />
+    <ClCompile Include="src\app/editor/code/assembly_editor.cc" />
+    <ClCompile Include="src\app/editor/graphics/screen_editor.cc" />
+    <ClCompile Include="src\app/editor/graphics/graphics_editor.cc" />
+    <ClCompile Include="src\app/editor/graphics/palette_editor.cc" />
+    <ClCompile Include="src\app/editor/overworld/tile16_editor.cc" />
+    <ClCompile Include="src\app/editor/overworld/map_properties.cc" />
+    <ClCompile Include="src\app/editor/graphics/gfx_group_editor.cc" />
+    <ClCompile Include="src\app/editor/overworld/entity.cc" />
+    <ClCompile Include="src\app/editor/system/settings_editor.cc" />
+    <ClCompile Include="src\app/editor/system/command_manager.cc" />
+    <ClCompile Include="src\app/editor/system/extension_manager.cc" />
+    <ClCompile Include="src\app/editor/system/shortcut_manager.cc" />
+    <ClCompile Include="src\app/editor/system/popup_manager.cc" />
+    <ClCompile Include="src\app/test/test_manager.cc" />
+    <ClCompile Include="src\app/gfx/arena.cc" />
+    <ClCompile Include="src\app/gfx/background_buffer.cc" />
+    <ClCompile Include="src\app/gfx/bitmap.cc" />
+    <ClCompile Include="src\app/gfx/compression.cc" />
+    <ClCompile Include="src\app/gfx/scad_format.cc" />
+    <ClCompile Include="src\app/gfx/snes_palette.cc" />
+    <ClCompile Include="src\app/gfx/snes_tile.cc" />
+    <ClCompile Include="src\app/gfx/snes_color.cc" />
+    <ClCompile Include="src\app/gfx/tilemap.cc" />
+    <ClCompile Include="src\app/zelda3/hyrule_magic.cc" />
+    <ClCompile Include="src\app/zelda3/overworld/overworld_map.cc" />
+    <ClCompile Include="src\app/zelda3/overworld/overworld.cc" />
+    <ClCompile Include="src\app/zelda3/screen/inventory.cc" />
+    <ClCompile Include="src\app/zelda3/screen/title_screen.cc" />
+    <ClCompile Include="src\app/zelda3/screen/dungeon_map.cc" />
+    <ClCompile Include="src\app/zelda3/sprite/sprite.cc" />
+    <ClCompile Include="src\app/zelda3/sprite/sprite_builder.cc" />
+    <ClCompile Include="src\app/zelda3/music/tracker.cc" />
+    <ClCompile Include="src\app/zelda3/dungeon/room.cc" />
+    <ClCompile Include="src\app/zelda3/dungeon/room_object.cc" />
+    <ClCompile Include="src\app/zelda3/dungeon/object_parser.cc" />
+    <ClCompile Include="src\app/zelda3/dungeon/object_renderer.cc" />
+    <ClCompile Include="src\app/zelda3/dungeon/room_layout.cc" />
+    <ClCompile Include="src\app/zelda3/dungeon/dungeon_editor_system.cc" />
+    <ClCompile Include="src\app/zelda3/dungeon/dungeon_object_editor.cc" />
+    <ClCompile Include="src\app/gui/modules/asset_browser.cc" />
+    <ClCompile Include="src\app/gui/modules/text_editor.cc" />
+    <ClCompile Include="src\app/gui/canvas.cc" />
+    <ClCompile Include="src\app/gui/canvas_utils.cc" />
+    <ClCompile Include="src\app/gui/enhanced_palette_editor.cc" />
+    <ClCompile Include="src\app/gui/input.cc" />
+    <ClCompile Include="src\app/gui/style.cc" />
+    <ClCompile Include="src\app/gui/color.cc" />
+    <ClCompile Include="src\app/gui/zeml.cc" />
+    <ClCompile Include="src\app/gui/theme_manager.cc" />
+    <ClCompile Include="src\app/gui/background_renderer.cc" />
+    <ClCompile Include="src\util/bps.cc" />
+    <ClCompile Include="src\util/flag.cc" />
+    <ClCompile Include="src\util/hex.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
@@ -448,63 +578,6 @@
     <None Include="vcpkg.json" />
     <None Include="README.md" />
     <None Include="LICENSE" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="docs\index.md" />
-    <Text Include="docs\01-getting-started.md" />
-    <Text Include="docs\02-build-instructions.md" />
-    <Text Include="docs\03-asar-integration.md" />
-    <Text Include="docs\04-api-reference.md" />
-    <Text Include="docs\A1-testing-guide.md" />
-    <Text Include="docs\B1-contributing.md" />
-    <Text Include="docs\B2-platform-compatibility.md" />
-    <Text Include="docs\B3-build-presets.md" />
-    <Text Include="docs\C1-changelog.md" />
-    <Text Include="docs\D1-roadmap.md" />
-    <Text Include="docs\E1-asm-style-guide.md" />
-    <Text Include="docs\E2-dungeon-editor-guide.md" />
-    <Text Include="docs\E3-dungeon-editor-design.md" />
-    <Text Include="docs\E4-dungeon-editor-refactoring.md" />
-    <Text Include="docs\E5-dungeon-object-system.md" />
-    <Text Include="docs\F1-overworld-loading.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="scripts\create_release.sh" />
-    <Text Include="scripts\extract_changelog.py" />
-    <Text Include="scripts\generate-vs-projects.ps1" />
-    <Text Include="scripts\generate-vs-projects.bat" />
-    <Text Include="scripts\setup-vcpkg-windows.ps1" />
-    <Text Include="scripts\setup-vs-windows.bat" />
-    <Text Include="scripts\quality_check.sh" />
-    <Text Include="scripts\test_asar_integration.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="assets\themes\yaze_classic.theme" />
-    <Text Include="assets\themes\cyberpunk.theme" />
-    <Text Include="assets\themes\sunset.theme" />
-    <Text Include="assets\themes\forest.theme" />
-    <Text Include="assets\themes\midnight.theme" />
-    <Text Include="assets\layouts\ow_toolset.zeml" />
-    <Text Include="assets\yaze.icns" />
-    <Text Include="assets\yaze.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="cmake\absl.cmake" />
-    <Text Include="cmake\asar.cmake" />
-    <Text Include="cmake\grpc.cmake" />
-    <Text Include="cmake\gtest.cmake" />
-    <Text Include="cmake\imgui.cmake" />
-    <Text Include="cmake\mingw64.cmake" />
-    <Text Include="cmake\packaging.cmake" />
-    <Text Include="cmake\sdl2.cmake" />
-    <Text Include="cmake\vcpkg.cmake" />
-    <Text Include="cmake\yaze.desktop.in" />
-    <Text Include="cmake\yaze.plist.in" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include=".github\workflows\ci.yml" />
-    <Text Include=".github\workflows\release.yml" />
-    <Text Include=".github\workflows\doxy.yml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
