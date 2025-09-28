@@ -125,7 +125,7 @@ Quick Start</h1>
 <div class="line">.\scripts\setup-windows-dev.ps1</div>
 </div><!-- fragment --><p>This will:</p><ul>
 <li>Set up vcpkg</li>
-<li>Install dependencies (zlib, libpng, SDL2)</li>
+<li>Install dependencies (SDL2)</li>
 <li>Generate Visual Studio project files with proper vcpkg integration</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md524"></a>
@@ -160,9 +160,6 @@ vcpkg.json Manifest</h2>
 <div class="line">      &quot;platform&quot;: &quot;!uwp&quot;</div>
 <div class="line">    },</div>
 <div class="line">    {</div>
-<div class="line">      &quot;name&quot;: &quot;libpng&quot;,</div>
-<div class="line">      &quot;platform&quot;: &quot;!uwp&quot;</div>
-<div class="line">    },</div>
 <div class="line">    {</div>
 <div class="line">      &quot;name&quot;: &quot;sdl2&quot;,</div>
 <div class="line">      &quot;platform&quot;: &quot;!uwp&quot;,</div>
@@ -190,9 +187,6 @@ Build Presets</h2>
 Dependencies</h1>
 <p>vcpkg automatically installs these dependencies:</p>
 <ul>
-<li><b>zlib</b>: Compression library</li>
-<li><b>libpng</b>: PNG image support <br  />
-</li>
 <li><b>sdl2</b>: Graphics and input handling (with Vulkan support)</li>
 </ul>
 <p><b>Note</b>: Abseil and gtest are now built from source via CMake rather than through vcpkg to avoid compatibility issues.</p>

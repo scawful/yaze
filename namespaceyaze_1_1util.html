@@ -131,10 +131,10 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a3eadcc44d8287dad5ea9d6dbd25bd44d" id="r_a3eadcc44d8287dad5ea9d6dbd25bd44d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">CreateBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</td></tr>
+<tr class="memitem:abbe25f414b138eba0da9a3ec31592f51" id="r_abbe25f414b138eba0da9a3ec31592f51"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util.html#abbe25f414b138eba0da9a3ec31592f51">ApplyBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;output)</td></tr>
+<tr class="separator:abbe25f414b138eba0da9a3ec31592f51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3eadcc44d8287dad5ea9d6dbd25bd44d" id="r_a3eadcc44d8287dad5ea9d6dbd25bd44d"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">CreateBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</td></tr>
 <tr class="separator:a3eadcc44d8287dad5ea9d6dbd25bd44d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a991030a6ecb07dd710fd4877b48cdcd8" id="r_a991030a6ecb07dd710fd4877b48cdcd8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8">ApplyBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</td></tr>
-<tr class="separator:a991030a6ecb07dd710fd4877b48cdcd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a60afeb1f1afc9e19c61b64749a219577" id="r_a60afeb1f1afc9e19c61b64749a219577"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1util_1_1FlagRegistry.html">FlagRegistry</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577">global_flag_registry</a> ()</td></tr>
 <tr class="separator:a60afeb1f1afc9e19c61b64749a219577"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f4d30bc153c6a955a8471f68c18aafd" id="r_a3f4d30bc153c6a955a8471f68c18aafd"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util.html#a3f4d30bc153c6a955a8471f68c18aafd">HexByte</a> (uint8_t byte, <a class="el" href="structyaze_1_1util_1_1HexStringParams.html">HexStringParams</a> params)</td></tr>
@@ -149,6 +149,44 @@ Functions</h2></td></tr>
 <tr class="separator:ae6bbc71a621ec673d0bcd37544c2318e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="abbe25f414b138eba0da9a3ec31592f51" name="abbe25f414b138eba0da9a3ec31592f51"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abbe25f414b138eba0da9a3ec31592f51">&#9670;&#160;</a></span>ApplyBpsPatch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::util::ApplyBpsPatch </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;&#160;</td>
+          <td class="paramname"><em>source</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;&#160;</td>
+          <td class="paramname"><em>patch</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;&#160;</td>
+          <td class="paramname"><em>output</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="bps_8cc_source.html#l00079">79</a> of file <a class="el" href="bps_8cc_source.html">bps.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="tui_8cc_source.html#l00054">yaze::cli::anonymous_namespace{tui.cc}::ApplyBpsPatchComponent()</a>, and <a class="el" href="patch_8cc_source.html#l00008">yaze::cli::ApplyPatch::Run()</a>.</p>
+
+</div>
+</div>
 <a id="a3eadcc44d8287dad5ea9d6dbd25bd44d" name="a3eadcc44d8287dad5ea9d6dbd25bd44d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3eadcc44d8287dad5ea9d6dbd25bd44d">&#9670;&#160;</a></span>CreateBpsPatch()</h2>
 
@@ -181,47 +219,9 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="bps_8cc_source.html#l00109">109</a> of file <a class="el" href="bps_8cc_source.html">bps.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="bps_8cc_source.html#l00085">85</a> of file <a class="el" href="bps_8cc_source.html">bps.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="patch_8cc_source.html#l00120">yaze::cli::CreatePatch::Run()</a>.</p>
-
-</div>
-</div>
-<a id="a991030a6ecb07dd710fd4877b48cdcd8" name="a991030a6ecb07dd710fd4877b48cdcd8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a991030a6ecb07dd710fd4877b48cdcd8">&#9670;&#160;</a></span>ApplyBpsPatch()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::util::ApplyBpsPatch </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;&#160;</td>
-          <td class="paramname"><em>source</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;&#160;</td>
-          <td class="paramname"><em>patch</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::vector&lt; uint8_t &gt; &amp;&#160;</td>
-          <td class="paramname"><em>target</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="bps_8cc_source.html#l00198">198</a> of file <a class="el" href="bps_8cc_source.html">bps.cc</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="tui_8cc_source.html#l00054">yaze::cli::anonymous_namespace{tui.cc}::ApplyBpsPatchComponent()</a>, and <a class="el" href="patch_8cc_source.html#l00008">yaze::cli::ApplyPatch::Run()</a>.</p>
 
 </div>
 </div>
@@ -284,7 +284,7 @@ Functions</h2></td></tr>
 
 <p class="reference">References <a class="el" href="hex_8h_source.html#l00012">yaze::util::HexStringParams::uppercase</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00162">yaze::editor::ScreenEditor::DrawDungeonMapScreen()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00058">yaze::editor::DungeonRoomSelector::DrawEntranceSelector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01293">yaze::editor::OverworldEditor::DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01359">yaze::editor::OverworldEditor::DrawOverworldExits()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00029">yaze::editor::DungeonRoomSelector::DrawRoomSelector()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00193">yaze::editor::SpriteEditor::DrawSpritesList()</a>, <a class="el" href="entity_8cc_source.html#l00056">yaze::editor::HandleEntityDragging()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">yaze::editor::Tile16Editor::Initialize()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00016">yaze::zelda3::LoadDungeonMaps()</a>, <a class="el" href="message__data_8cc_source.html#l00336">yaze::editor::ReadAllTextData()</a>, <a class="el" href="overworld_8cc_source.html#l00702">yaze::zelda3::Overworld::SaveOverworldMaps()</a>, <a class="el" href="hex__test_8cc_source.html#l00010">yaze::test::TEST()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l02600">yaze::editor::OverworldEditor::UpdateUsageStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="screen__editor_8cc_source.html#l00162">yaze::editor::ScreenEditor::DrawDungeonMapScreen()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00058">yaze::editor::DungeonRoomSelector::DrawEntranceSelector()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01283">yaze::editor::OverworldEditor::DrawOverworldEntrances()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01349">yaze::editor::OverworldEditor::DrawOverworldExits()</a>, <a class="el" href="dungeon__room__selector_8cc_source.html#l00029">yaze::editor::DungeonRoomSelector::DrawRoomSelector()</a>, <a class="el" href="sprite__editor_8cc_source.html#l00193">yaze::editor::SpriteEditor::DrawSpritesList()</a>, <a class="el" href="entity_8cc_source.html#l00056">yaze::editor::HandleEntityDragging()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">yaze::editor::Tile16Editor::Initialize()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00016">yaze::zelda3::LoadDungeonMaps()</a>, <a class="el" href="message__data_8cc_source.html#l00336">yaze::editor::ReadAllTextData()</a>, <a class="el" href="overworld_8cc_source.html#l00702">yaze::zelda3::Overworld::SaveOverworldMaps()</a>, <a class="el" href="hex__test_8cc_source.html#l00010">yaze::test::TEST()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l02590">yaze::editor::OverworldEditor::UpdateUsageStats()</a>.</p>
 
 </div>
 </div>

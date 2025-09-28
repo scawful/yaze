@@ -1,0 +1,11 @@
+<map id="yaze::editor::GraphicsEditor::DrawGfxEditToolset" name="yaze::editor::GraphicsEditor::DrawGfxEditToolset">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,182,96"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="238,5,376,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,52,241,33,242,38,172,57"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#abda8fe883e774ded3e618bb81dca3b74" title=" " alt="" coords="240,55,374,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,73,225,73,225,78,182,78"/>
+<area shape="rect" id="Node000004" href="$namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="230,120,384,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,94,242,113,241,118,171,99"/>
+<area shape="rect" id="Node000005" href="$namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="432,120,583,146"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="384,130,416,130,416,136,384,136"/>
+</map>

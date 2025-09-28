@@ -199,8 +199,6 @@ vcpkg Integration</h3>
 <div class="line">.\vcpkg.exe integrate install</div>
 <div class="line">set VCPKG_ROOT=%CD%</div>
 </div><!-- fragment --><p><b>Dependencies (vcpkg.json):</b></p><ul>
-<li>zlib (compression)</li>
-<li>libpng (PNG support)</li>
 <li>sdl2 (graphics/input with Vulkan support)</li>
 </ul>
 <p><b>Note</b>: Abseil and gtest are built from source via CMake rather than through vcpkg to avoid compatibility issues.</p>
@@ -281,7 +279,7 @@ Visual Studio (Windows)</h2>
 </div><!-- fragment --><p><b>Features:</b></p><ul>
 <li>Full IntelliSense support</li>
 <li>Integrated debugging</li>
-<li>Automatic vcpkg dependency management (zlib, libpng, SDL2)</li>
+<li>Automatic vcpkg dependency management (SDL2)</li>
 <li>Multi-platform support (x64, ARM64)</li>
 <li>Automatic asset copying</li>
 <li>Generated project files stay in sync with CMake configuration</li>
@@ -397,7 +395,7 @@ GitHub Actions Workflows</h2>
 vcpkg Fallback Mechanisms</h2>
 <p>All Windows CI/CD builds include automatic fallback mechanisms:</p>
 <p><b>When vcpkg succeeds:</b></p><ul>
-<li>Full build with all dependencies (zlib, libpng, SDL2)</li>
+<li>Full build with all dependencies (SDL2)</li>
 <li>Complete feature set available</li>
 </ul>
 <p><b>When vcpkg fails (network issues):</b></p><ul>
@@ -444,7 +442,7 @@ vcpkg Issues</h2>
 <div class="line">vcpkg version</div>
 <div class="line"> </div>
 <div class="line"># Reinstall dependencies</div>
-<div class="line">vcpkg install --triplet x64-windows zlib libpng sdl2</div>
+<div class="line">vcpkg install --triplet x64-windows sdl2</div>
 <div class="line"> </div>
 <div class="line"># Check installed packages</div>
 <div class="line">vcpkg list</div>

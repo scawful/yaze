@@ -146,7 +146,7 @@ Project Setup</h1>
 2. Install Dependencies via vcpkg</h2>
 <p>The project uses <code>vcpkg.json</code> for automatic dependency management. Dependencies will be installed automatically during CMake configuration.</p>
 <p>Manual installation (if needed): </p><div class="fragment"><div class="line">vcpkg install zlib:x64-windows</div>
-<div class="line">vcpkg install libpng:x64-windows</div>
+<div class="line"># PNG support removed</div>
 <div class="line">vcpkg install sdl2[vulkan]:x64-windows</div>
 <div class="line">vcpkg install abseil:x64-windows</div>
 <div class="line">vcpkg install gtest:x64-windows</div>
@@ -365,7 +365,7 @@ Visual Studio Project File Features</h1>
 <ul>
 <li><b>vcpkg Integration:</b> Automatically installs and links dependencies from <code>vcpkg.json</code></li>
 <li><b>Platform Support:</b> Pre-configured for both x64 and x86 builds</li>
-<li><b>Library Linking:</b> Automatically links SDL2, zlib, libpng, and system libraries</li>
+<li><b>Library Linking:</b> Automatically links SDL2 and system libraries</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md592"></a>
 &lt;strong&gt;Build Configuration&lt;/strong&gt;</h2>

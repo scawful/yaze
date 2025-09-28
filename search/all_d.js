@@ -48,7 +48,7 @@ var searchData=
   ['debugging_20tools_45',['Debugging Tools',['../md_docs_2E3-dungeon-editor-design.html#autotoc_md368',1,'']]],
   ['dec_46',['dec',['../classyaze_1_1emu_1_1Cpu.html#acaea1eee9868075c35fc6fc30472dd76',1,'yaze::emu::Cpu::DEC()'],['../classyaze_1_1emu_1_1Spc700.html#a3ddaff286c54024f24247e77f985160f',1,'yaze::emu::Spc700::DEC()'],['../classyaze_1_1emu_1_1Cpu.html#a83866cfec0d91b50bcd34b09789751e8',1,'yaze::emu::Cpu::Dec()']]],
   ['december_202024_47',['0.2.2 (December 2024)',['../md_docs_2C1-changelog.html#autotoc_md244',1,'']]],
-  ['decode_48',['decode',['../namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#ae89f272c2128a09aeede534ade2fd8e5',1,'yaze::util::anonymous_namespace{bps.cc}']]],
+  ['decode_48',['decode',['../namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a652836ac6c4cb09f3d59520fc9653a6f',1,'yaze::util::anonymous_namespace{bps.cc}']]],
   ['decodebrr_49',['DecodeBrr',['../classyaze_1_1emu_1_1Dsp.html#a2ad80635ab179c018b6aaf9593ada618',1,'yaze::emu::Dsp']]],
   ['decodebuffer_50',['decodeBuffer',['../structyaze_1_1emu_1_1DspChannel.html#aa15dc517e4513898951d0f72262b215a',1,'yaze::emu::DspChannel']]],
   ['decodecolfile_51',['DecodeColFile',['../namespaceyaze_1_1gfx.html#a2ea2124761ee1896a17e359c14320939',1,'yaze::gfx']]],

@@ -85,7 +85,7 @@ var searchData=
   ['animationgroup_82',['animationgroup',['../structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a86b02a8e35088a4a01aa87f81ee2c3d3',1,'yaze::editor::zsprite::AnimationGroup::AnimationGroup()=default'],['../structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#afa0f3ea57d1a2c693e1b1567c5498b89',1,'yaze::editor::zsprite::AnimationGroup::AnimationGroup(uint8_t fs, uint8_t fe, uint8_t fsp, std::string fn)']]],
   ['appendoperandbytes_83',['AppendOperandBytes',['../classyaze_1_1emu_1_1AsmParser.html#ad4e453afd4cb210ed42eb2cbff80198c',1,'yaze::emu::AsmParser']]],
   ['applyasarpatchcomponent_84',['ApplyAsarPatchComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a5071629fc6cbcafef9c3efa6c851f536',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
-  ['applybpspatch_85',['ApplyBpsPatch',['../namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8',1,'yaze::util']]],
+  ['applybpspatch_85',['ApplyBpsPatch',['../namespaceyaze_1_1util.html#abbe25f414b138eba0da9a3ec31592f51',1,'yaze::util']]],
   ['applybpspatchcomponent_86',['ApplyBpsPatchComponent',['../namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a6588526a2719d947bb19f4ad714989a6',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
   ['applyclassicyazetheme_87',['ApplyClassicYazeTheme',['../classyaze_1_1gui_1_1ThemeManager.html#af6d205f94a3158450cd1d13874582288',1,'yaze::gui::ThemeManager']]],
   ['applycustomoverworldasm_88',['ApplyCustomOverworldASM',['../classyaze_1_1editor_1_1OverworldEditorManager.html#af626291a78dbd86e331f54bcd5de6d96',1,'yaze::editor::OverworldEditorManager']]],

@@ -105,11 +105,26 @@ $(document).ready(function(){initNavTree('bps_8cc.html',''); initResizable(); })
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="bps_8h_source.html">bps.h</a>&quot;</code><br />
-<code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &lt;stdexcept&gt;</code><br />
-<code>#include &lt;cmath&gt;</code><br />
 <code>#include &lt;cstring&gt;</code><br />
+<code>#include &quot;absl/status/status.h&quot;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for bps.cc:</div>
+<div class="dyncontent">
+<div class="center"><img src="bps_8cc__incl.png" border="0" usemap="#asrc_2util_2bps_8cc" alt=""/></div>
+<map name="asrc_2util_2bps_8cc" id="asrc_2util_2bps_8cc">
+<area shape="rect" title=" " alt="" coords="78,5,180,31"/>
+<area shape="rect" href="bps_8h.html" title=" " alt="" coords="5,79,58,105"/>
+<area shape="poly" title=" " alt="" coords="114,34,61,72,58,68,111,29"/>
+<area shape="rect" title=" " alt="" coords="35,153,92,178"/>
+<area shape="poly" title=" " alt="" coords="126,32,77,140,73,137,121,30"/>
+<area shape="rect" title=" " alt="" coords="133,79,194,105"/>
+<area shape="poly" title=" " alt="" coords="137,30,153,64,149,66,132,32"/>
+<area shape="rect" title=" " alt="" coords="217,79,353,105"/>
+<area shape="poly" title=" " alt="" coords="156,29,246,70,243,75,154,34"/>
+<area shape="poly" title=" " alt="" coords="39,104,54,137,49,139,34,106"/>
+</map>
+</div>
 </div>
 <p><a href="bps_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -129,12 +144,12 @@ Functions</h2></td></tr>
 <tr class="separator:a7adb9c174735af33d844e4ee1e8e2ee0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af030929a88a229dd186c01330c979b6c" id="r_af030929a88a229dd186c01330c979b6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#af030929a88a229dd186c01330c979b6c">yaze::util::anonymous_namespace{bps.cc}::encode</a> (uint64_t data, std::vector&lt; uint8_t &gt; &amp;output)</td></tr>
 <tr class="separator:af030929a88a229dd186c01330c979b6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae89f272c2128a09aeede534ade2fd8e5" id="r_ae89f272c2128a09aeede534ade2fd8e5"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#ae89f272c2128a09aeede534ade2fd8e5">yaze::util::anonymous_namespace{bps.cc}::decode</a> (const std::vector&lt; uint8_t &gt; &amp;input, size_t &amp;offset)</td></tr>
-<tr class="separator:ae89f272c2128a09aeede534ade2fd8e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3eadcc44d8287dad5ea9d6dbd25bd44d" id="r_a3eadcc44d8287dad5ea9d6dbd25bd44d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">yaze::util::CreateBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</td></tr>
+<tr class="memitem:a652836ac6c4cb09f3d59520fc9653a6f" id="r_a652836ac6c4cb09f3d59520fc9653a6f"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a652836ac6c4cb09f3d59520fc9653a6f">yaze::util::anonymous_namespace{bps.cc}::decode</a> (const std::vector&lt; uint8_t &gt; &amp;data, size_t &amp;offset)</td></tr>
+<tr class="separator:a652836ac6c4cb09f3d59520fc9653a6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abbe25f414b138eba0da9a3ec31592f51" id="r_abbe25f414b138eba0da9a3ec31592f51"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util.html#abbe25f414b138eba0da9a3ec31592f51">yaze::util::ApplyBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;output)</td></tr>
+<tr class="separator:abbe25f414b138eba0da9a3ec31592f51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3eadcc44d8287dad5ea9d6dbd25bd44d" id="r_a3eadcc44d8287dad5ea9d6dbd25bd44d"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util.html#a3eadcc44d8287dad5ea9d6dbd25bd44d">yaze::util::CreateBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;target, std::vector&lt; uint8_t &gt; &amp;patch)</td></tr>
 <tr class="separator:a3eadcc44d8287dad5ea9d6dbd25bd44d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a991030a6ecb07dd710fd4877b48cdcd8" id="r_a991030a6ecb07dd710fd4877b48cdcd8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1util.html#a991030a6ecb07dd710fd4877b48cdcd8">yaze::util::ApplyBpsPatch</a> (const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;target)</td></tr>
-<tr class="separator:a991030a6ecb07dd710fd4877b48cdcd8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
