@@ -18,8 +18,6 @@ This directory contains build and setup scripts for YAZE development on differen
 
 ### Project Generation
 - **`generate-vs-projects.py`** - Generate Visual Studio project files (Cross-platform Python)
-- **`generate-vs-projects.ps1`** - Generate Visual Studio project files (PowerShell)
-- **`generate-vs-projects.bat`** - Generate Visual Studio project files (Batch)
 
 ## Windows Compiler Recommendations
 
@@ -200,5 +198,4 @@ REM Clean build with Clang
 - **`create_release.sh`** - Create GitHub releases (Linux/macOS)
 - **`extract_changelog.py`** - Extract changelog for releases
 - **`quality_check.sh`** - Code quality checks (Linux/macOS)
-- **`test_asar_integration.py`** - Test Asar integration
-- **`agent.sh`** - AI agent helper script (Linux/macOS)
+- **`create-macos-bundle.sh`** - Create macOS application bundle for releases
