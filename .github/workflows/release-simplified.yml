@@ -345,26 +345,24 @@ jobs:
             cp -r assets "Yaze.app/Contents/Resources/" 2>/dev/null || echo "assets directory not found"
             # Create Info.plist with correct version
             VERSION_NUM=$(echo "${{ needs.validate-and-prepare.outputs.tag_name }}" | sed 's/^v//')
-            cat > "Yaze.app/Contents/Info.plist" <<EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-          <key>CFBundleExecutable</key>
-          <string>yaze</string>
-          <key>CFBundleIdentifier</key>
-          <string>com.yaze.editor</string>
-          <key>CFBundleName</key>
-          <string>Yaze</string>
-          <key>CFBundleVersion</key>
-          <string>$VERSION_NUM</string>
-          <key>CFBundleShortVersionString</key>
-          <string>$VERSION_NUM</string>
-          <key>CFBundlePackageType</key>
-          <string>APPL</string>
-          </dict>
-          </plist>
-          EOF
+            echo '<?xml version="1.0" encoding="UTF-8"?>' > "Yaze.app/Contents/Info.plist"
+            echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> "Yaze.app/Contents/Info.plist"
+            echo '<plist version="1.0">' >> "Yaze.app/Contents/Info.plist"
+            echo '<dict>' >> "Yaze.app/Contents/Info.plist"
+            echo '<key>CFBundleExecutable</key>' >> "Yaze.app/Contents/Info.plist"
+            echo '<string>yaze</string>' >> "Yaze.app/Contents/Info.plist"
+            echo '<key>CFBundleIdentifier</key>' >> "Yaze.app/Contents/Info.plist"
+            echo '<string>com.yaze.editor</string>' >> "Yaze.app/Contents/Info.plist"
+            echo '<key>CFBundleName</key>' >> "Yaze.app/Contents/Info.plist"
+            echo '<string>Yaze</string>' >> "Yaze.app/Contents/Info.plist"
+            echo '<key>CFBundleVersion</key>' >> "Yaze.app/Contents/Info.plist"
+            echo "<string>$VERSION_NUM</string>" >> "Yaze.app/Contents/Info.plist"
+            echo '<key>CFBundleShortVersionString</key>' >> "Yaze.app/Contents/Info.plist"
+            echo "<string>$VERSION_NUM</string>" >> "Yaze.app/Contents/Info.plist"
+            echo '<key>CFBundlePackageType</key>' >> "Yaze.app/Contents/Info.plist"
+            echo '<string>APPL</string>' >> "Yaze.app/Contents/Info.plist"
+            echo '</dict>' >> "Yaze.app/Contents/Info.plist"
+            echo '</plist>' >> "Yaze.app/Contents/Info.plist"
           fi
           
           # Create DMG
