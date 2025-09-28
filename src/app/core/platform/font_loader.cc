@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -23,9 +22,9 @@ static const char* DROID_SANS = "DroidSans.ttf";
 static const char* NOTO_SANS_JP = "NotoSansJP.ttf";
 static const char* IBM_PLEX_JP = "IBMPlexSansJP-Bold.ttf";
 
-static const float FONT_SIZE_DEFAULT = 16.0f;
-static const float FONT_SIZE_DROID_SANS = 18.0f;
-static const float ICON_FONT_SIZE = 18.0f;
+static const float FONT_SIZE_DEFAULT = 16.0F;
+static const float FONT_SIZE_DROID_SANS = 18.0F;
+static const float ICON_FONT_SIZE = 18.0F;
 
 namespace {
 
@@ -44,7 +43,7 @@ std::string SetFontPath(const std::string& font_path) {
 }
 
 absl::Status LoadFont(const FontConfig& font_config) {
-  ImGuiIO& io = ImGui::GetIO();
+  ImGuiIO& imgui_io = ImGui::GetIO();
   std::string actual_font_path = SetFontPath(font_config.font_path);
   // Check if the file exists with std library first, since ImGui IO will assert
   // if the file does not exist
@@ -53,7 +52,7 @@ absl::Status LoadFont(const FontConfig& font_config) {
         absl::StrFormat("Font file %s does not exist", actual_font_path));
   }
 
-  if (!io.Fonts->AddFontFromFileTTF(actual_font_path.data(),
+  if (!imgui_io.Fonts->AddFontFromFileTTF(actual_font_path.data(),
                                     font_config.font_size)) {
     return absl::InternalError(
         absl::StrFormat("Failed to load font from %s", actual_font_path));
@@ -61,33 +60,33 @@ absl::Status LoadFont(const FontConfig& font_config) {
   return absl::OkStatus();
 }
 
-absl::Status AddIconFont(const FontConfig& config) {
+absl::Status AddIconFont(const FontConfig& /*config*/) {
   static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
-  ImFontConfig icons_config;
+  ImFontConfig icons_config{};
   icons_config.MergeMode = true;
-  icons_config.GlyphOffset.y = 5.0f;
-  icons_config.GlyphMinAdvanceX = 13.0f;
+  icons_config.GlyphOffset.y = 5.0F;
+  icons_config.GlyphMinAdvanceX = 13.0F;
   icons_config.PixelSnapH = true;
   std::string icon_font_path = SetFontPath(FONT_ICON_FILE_NAME_MD);
-  ImGuiIO& io = ImGui::GetIO();
-  if (!io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(), ICON_FONT_SIZE,
+  ImGuiIO& imgui_io = ImGui::GetIO();
+  if (!imgui_io.Fonts->AddFontFromFileTTF(icon_font_path.c_str(), ICON_FONT_SIZE,
                                     &icons_config, icons_ranges)) {
     return absl::InternalError("Failed to add icon fonts");
   }
   return absl::OkStatus();
 }
 
-absl::Status AddJapaneseFont(const FontConfig& config) {
-  ImFontConfig japanese_font_config;
+absl::Status AddJapaneseFont(const FontConfig& /*config*/) {
+  ImFontConfig japanese_font_config{};
   japanese_font_config.MergeMode = true;
-  japanese_font_config.GlyphOffset.y = 5.0f;
-  japanese_font_config.GlyphMinAdvanceX = 13.0f;
+  japanese_font_config.GlyphOffset.y = 5.0F;
+  japanese_font_config.GlyphMinAdvanceX = 13.0F;
   japanese_font_config.PixelSnapH = true;
   std::string japanese_font_path = SetFontPath(NOTO_SANS_JP);
-  ImGuiIO& io = ImGui::GetIO();
-  if (!io.Fonts->AddFontFromFileTTF(japanese_font_path.data(), ICON_FONT_SIZE,
+  ImGuiIO& imgui_io = ImGui::GetIO();
+  if (!imgui_io.Fonts->AddFontFromFileTTF(japanese_font_path.data(), ICON_FONT_SIZE,
                                     &japanese_font_config,
-                                    io.Fonts->GetGlyphRangesJapanese())) {
+                                    imgui_io.Fonts->GetGlyphRangesJapanese())) {
     return absl::InternalError("Failed to add Japanese fonts");
   }
   return absl::OkStatus();
@@ -117,9 +116,9 @@ absl::Status LoadPackageFonts() {
 }
 
 absl::Status ReloadPackageFont(const FontConfig& config) {
-  ImGuiIO& io = ImGui::GetIO();
+  ImGuiIO& imgui_io = ImGui::GetIO();
   std::string actual_font_path = SetFontPath(config.font_path);
-  if (!io.Fonts->AddFontFromFileTTF(actual_font_path.data(),
+  if (!imgui_io.Fonts->AddFontFromFileTTF(actual_font_path.data(),
                                     config.font_size)) {
     return absl::InternalError(
         absl::StrFormat("Failed to load font from %s", actual_font_path));
@@ -131,116 +130,173 @@ absl::Status ReloadPackageFont(const FontConfig& config) {
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <ShlObj.h>
+#include <algorithm>
+#include <cctype>
 
-int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme,
-                               DWORD FontType, LPARAM lParam) {
-  // Step 3: Load the font into ImGui
-  ImGuiIO& io = ImGui::GetIO();
-  io.Fonts->AddFontFromFileTTF(lpelfe->lfFaceName, 16.0f);
+namespace {
+  // Helper function to convert wide string to UTF-8
+  std::string WideToUtf8(const std::wstring& wstr) {
+    if (wstr.empty()) return std::string();
+    
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+    if (size_needed <= 0) return std::string();
+    
+    std::string result(size_needed, 0);
+    WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &result[0], size_needed, NULL, NULL);
+    return result;
+  }
 
-  return 1;
+  // Helper function to get Windows fonts directory
+  std::string GetWindowsFontsDirectory() {
+    wchar_t* fontsPath = nullptr;
+    HRESULT hr = SHGetKnownFolderPath(FOLDERID_Fonts, 0, NULL, &fontsPath);
+    
+    if (SUCCEEDED(hr) && fontsPath) {
+      std::string result = WideToUtf8(fontsPath) + "\\";
+      CoTaskMemFree(fontsPath);
+      return result;
+    }
+    
+    // Fallback to default path
+    return "C:\\Windows\\Fonts\\";
+  }
+
+  // Helper function to normalize font name (lowercase, remove spaces)
+  std::string NormalizeFontName(const std::string& name) {
+    std::string result = name;
+    std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+    result.erase(std::remove(result.begin(), result.end(), ' '), result.end());
+    return result;
+  }
+
+  // Check if file exists and is accessible
+  bool FontFileExists(const std::string& path) {
+    return GetFileAttributesA(path.c_str()) != INVALID_FILE_ATTRIBUTES;
+  }
 }
 
 void LoadSystemFonts() {
-  HKEY hKey;
-  std::vector<std::string> fontPaths;
+  ImGuiIO& imgui_io = ImGui::GetIO();
+  
+  // Get the Windows fonts directory
+  std::string fontsDir = GetWindowsFontsDirectory();
+  
+  // List of essential Windows fonts to load
+  static const std::vector<std::string> essentialFonts = {
+    "arial.ttf",
+    "arialbd.ttf", 
+    "times.ttf",
+    "timesbd.ttf",
+    "cour.ttf",
+    "courbd.ttf",
+    "verdana.ttf",
+    "verdanab.ttf",
+    "tahoma.ttf",
+    "tahomabd.ttf",
+    "segoeui.ttf",
+    "segoeuib.ttf"
+  };
 
-  // Open the registry key where fonts are listed
-  if (RegOpenKeyEx(
-          HKEY_LOCAL_MACHINE,
-          TEXT("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts"), 0,
-          KEY_READ, &hKey) == ERROR_SUCCESS) {
-    DWORD valueCount;
-    DWORD maxValueNameSize;
-    DWORD maxValueDataSize;
+  // Load essential fonts
+  for (const auto& fontName : essentialFonts) {
+    std::string fontPath = fontsDir + fontName;
+    
+    if (FontFileExists(fontPath)) {
+      try {
+        // Load the font
+        ImFont* font = imgui_io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 16.0F);
+        if (font) {
+          // Merge icon fonts if available
+          static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
+          ImFontConfig icons_config{};
+          icons_config.MergeMode = true;
+          icons_config.GlyphOffset.y = 5.0F;
+          icons_config.GlyphMinAdvanceX = 13.0F;
+          icons_config.PixelSnapH = true;
+          
+          std::string iconFontPath = SetFontPath(FONT_ICON_FILE_NAME_MD);
+          if (FontFileExists(iconFontPath)) {
+            imgui_io.Fonts->AddFontFromFileTTF(iconFontPath.c_str(), ICON_FONT_SIZE,
+                                         &icons_config, icons_ranges);
+          }
+        }
+      } catch (...) {
+        // Silently continue if font loading fails
+        continue;
+      }
+    }
+  }
 
-    // Query the number of entries and the maximum size of the names and values
-    RegQueryInfoKey(hKey, NULL, NULL, NULL, NULL, NULL, NULL, &valueCount,
-                    &maxValueNameSize, &maxValueDataSize, NULL, NULL);
-
-    char* valueName = new char[maxValueNameSize + 1];  // +1 for null terminator
-    BYTE* valueData = new BYTE[maxValueDataSize + 1];  // +1 for null terminator
-
-    // Enumerate all font entries
-    for (DWORD i = 0; i < valueCount; i++) {
-      DWORD valueNameSize = maxValueNameSize + 1;  // +1 for null terminator
-      DWORD valueDataSize = maxValueDataSize + 1;  // +1 for null terminator
-      DWORD valueType;
-
-      // Clear buffers
-      memset(valueName, 0, valueNameSize);
-      memset(valueData, 0, valueDataSize);
-
-      // Get the font name and file path
-      if (RegEnumValue(hKey, i, valueName, &valueNameSize, NULL, &valueType,
-                       valueData, &valueDataSize) == ERROR_SUCCESS) {
-        if (valueType == REG_SZ) {
-          // Add the font file path to the vector
-          std::string fontPath(reinterpret_cast<char*>(valueData),
-                               valueDataSize);
-
-          fontPaths.push_back(fontPath);
+  // Try to load additional fonts from registry (safer approach)
+  HKEY hKey = nullptr;
+  LONG result = RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+                              "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts",
+                              0, KEY_READ, &hKey);
+  
+  if (result == ERROR_SUCCESS && hKey) {
+    DWORD valueCount = 0;
+    DWORD maxValueNameSize = 0;
+    DWORD maxValueDataSize = 0;
+    
+    // Get registry info
+    result = RegQueryInfoKeyA(hKey, nullptr, nullptr, nullptr, nullptr, nullptr,
+                              nullptr, &valueCount, &maxValueNameSize,
+                              &maxValueDataSize, nullptr, nullptr);
+    
+    if (result == ERROR_SUCCESS && valueCount > 0) {
+      // Allocate buffers with proper size limits
+      const size_t maxNameSize = std::min(static_cast<size_t>(maxValueNameSize) + 1, size_t(1024));
+      const size_t maxDataSize = std::min(static_cast<size_t>(maxValueDataSize) + 1, size_t(4096));
+      
+      std::vector<char> valueName(maxNameSize);
+      std::vector<BYTE> valueData(maxDataSize);
+      
+      // Enumerate font entries (limit to prevent excessive loading)
+      const DWORD maxFontsToLoad = std::min(valueCount, DWORD(50));
+      
+      for (DWORD i = 0; i < maxFontsToLoad; i++) {
+        DWORD valueNameSize = static_cast<DWORD>(maxNameSize);
+        DWORD valueDataSize = static_cast<DWORD>(maxDataSize);
+        DWORD valueType = 0;
+        
+        result = RegEnumValueA(hKey, i, valueName.data(), &valueNameSize,
+                               nullptr, &valueType, valueData.data(), &valueDataSize);
+        
+        if (result == ERROR_SUCCESS && valueType == REG_SZ && valueDataSize > 0) {
+          // Ensure null termination
+          valueName[valueNameSize] = '\0';
+          valueData[valueDataSize] = '\0';
+          
+          std::string fontPath(reinterpret_cast<char*>(valueData.data()));
+          
+          // Normalize the font path
+          if (!fontPath.empty()) {
+            // If it's a relative path, prepend the fonts directory
+            if (fontPath.find(':') == std::string::npos) {
+              fontPath = fontsDir + fontPath;
+            }
+            
+            // Check if it's a TTF file and exists
+            std::string lowerPath = fontPath;
+            std::transform(lowerPath.begin(), lowerPath.end(), lowerPath.begin(), ::tolower);
+            
+            if ((lowerPath.find(".ttf") != std::string::npos ||
+                 lowerPath.find(".otf") != std::string::npos) &&
+                FontFileExists(fontPath)) {
+              try {
+                imgui_io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 16.0F);
+              } catch (...) {
+                // Continue if font loading fails
+                continue;
+              }
+            }
+          }
         }
       }
     }
-
-    delete[] valueName;
-    delete[] valueData;
-
+    
     RegCloseKey(hKey);
-  }
-
-  ImGuiIO& io = ImGui::GetIO();
-
-  // List of common font face names
-  static const std::unordered_set<std::string> commonFontFaceNames = {
-      "arial",
-      "times",
-      "cour",
-      "verdana",
-      "tahoma",
-      "comic",
-      "Impact",
-      "ariblk",
-      "Trebuchet MS",
-      "Georgia",
-      "Palatino Linotype",
-      "Lucida Sans Unicode",
-      "Tahoma",
-      "Lucida Console"};
-
-  for (auto& fontPath : fontPaths) {
-    // Check if the font path has a "C:\" prefix
-    if (fontPath.substr(0, 2) != "C:") {
-      // Add "C:\Windows\Fonts\" prefix to the font path
-      fontPath = absl::StrFormat("C:\\Windows\\Fonts\\%s", fontPath.c_str());
-    }
-
-    // Check if the font file has a .ttf or .TTF extension
-    std::string extension = fontPath.substr(fontPath.find_last_of(".") + 1);
-    if (extension == "ttf" || extension == "TTF") {
-      // Get the font face name from the font path
-      std::string fontFaceName =
-          fontPath.substr(fontPath.find_last_of("\\/") + 1);
-      fontFaceName = fontFaceName.substr(0, fontFaceName.find_last_of("."));
-
-      // Check if the font face name is in the common font face names list
-      if (commonFontFaceNames.find(fontFaceName) != commonFontFaceNames.end()) {
-        io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 16.0f);
-
-        // Merge icon set
-        // Icon configuration
-        static const ImWchar icons_ranges[] = {ICON_MIN_MD, 0xf900, 0};
-        ImFontConfig icons_config;
-        static const float ICON_FONT_SIZE = 18.0f;
-        icons_config.MergeMode = true;
-        icons_config.GlyphOffset.y = 5.0f;
-        icons_config.GlyphMinAdvanceX = 13.0f;
-        icons_config.PixelSnapH = true;
-        io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_MD, ICON_FONT_SIZE,
-                                     &icons_config, icons_ranges);
-      }
-    }
   }
 }
 
