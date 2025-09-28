@@ -201,8 +201,8 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release  # All platforms
 # Setup development environment
 .\scripts\setup-windows-dev.ps1
 
-# Generate Visual Studio project files
-.\scripts\generate-vs-projects.ps1
+# Generate Visual Studio project files (with proper vcpkg integration)
+python scripts/generate-vs-projects.py
 
 # Open YAZE.sln in Visual Studio 2022
 # Select configuration (Debug/Release) and platform (x64/x86/ARM64)
@@ -212,9 +212,10 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release  # All platforms
 **Features:**
 - Full IntelliSense support
 - Integrated debugging
-- vcpkg dependency management
+- Automatic vcpkg dependency management (zlib, libpng, SDL2)
 - Multi-platform support (x64, x86, ARM64)
 - Automatic asset copying
+- Generated project files stay in sync with CMake configuration
 
 ### VS Code
 1. Install CMake Tools extension
@@ -246,7 +247,7 @@ The project includes several PowerShell and Batch scripts to streamline Windows 
 - Visual Studio 2022 detection
 
 ### Project Generation Scripts
-- **`generate-vs-projects.ps1`**: Generate Visual Studio project files
+- **`generate-vs-projects.py`**: Generate Visual Studio project files with proper vcpkg integration
 - **`generate-vs-projects.bat`**: Batch version of project generation
 
 **Features:**
