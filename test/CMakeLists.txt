@@ -12,7 +12,8 @@ foreach (file
 endforeach()
 
 # Only build test executable if tests are enabled
-if(YAZE_BUILD_TESTS)
+# Double-check to ensure tests are actually enabled
+if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
   # Main test executable with enhanced argument handling for AI agents
   # Use CI version for minimal builds, full version for development
   if(YAZE_MINIMAL_BUILD)
@@ -218,7 +219,7 @@ endif()
 
 # Configure test discovery with efficient labeling for CI/CD
 # Only discover tests if tests are enabled
-if(YAZE_BUILD_TESTS)
+if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
   include(GoogleTest)
   
   # Discover all tests with default properties
