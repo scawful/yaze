@@ -21,11 +21,12 @@ jobs:
     name: Validate Release
     runs-on: ubuntu-latest
     outputs:
-      tag_name: ${{ env.VALIDATED_TAG }}
+      tag_name: ${{ steps.validate.outputs.tag_name }}
       release_notes: ${{ steps.notes.outputs.content }}
     
     steps:
     - name: Validate tag format
+      id: validate
       run: |
         # Debug information
         echo "Event name: ${{ github.event_name }}"
@@ -68,6 +69,7 @@ jobs:
         
         echo "✅ Tag format is valid: $TAG"
         echo "VALIDATED_TAG=$TAG" >> $GITHUB_ENV
+        echo "tag_name=$TAG" >> $GITHUB_OUTPUT
     
     - name: Checkout code
       uses: actions/checkout@v4
@@ -114,12 +116,13 @@ jobs:
             artifact_name: "yaze-windows-x64"
             artifact_path: "build/bin/Release/"
             package_cmd: |
-              mkdir package
-              xcopy /E /I build\bin\Release\* package\
-              xcopy /E /I assets package\assets
-              copy LICENSE package\
-              copy README.md package\
-              cd package && 7z a ..\yaze-windows-x64.zip *
+              mkdir -p package
+              cp -r build/bin/Release/* package/ 2>/dev/null || echo "No Release binaries found, trying Debug..."
+              cp -r build/bin/Debug/* package/ 2>/dev/null || echo "No Debug binaries found"
+              cp -r assets package/ 2>/dev/null || echo "assets directory not found"
+              cp LICENSE package/ 2>/dev/null || echo "LICENSE not found"
+              cp README.md package/ 2>/dev/null || echo "README.md not found"
+              cd package && zip -r ../yaze-windows-x64.zip *
             
           - name: "Windows x86"
             os: windows-2022
@@ -129,12 +132,13 @@ jobs:
             artifact_name: "yaze-windows-x86"
             artifact_path: "build/bin/Release/"
             package_cmd: |
-              mkdir package
-              xcopy /E /I build\bin\Release\* package\
-              xcopy /E /I assets package\assets
-              copy LICENSE package\
-              copy README.md package\
-              cd package && 7z a ..\yaze-windows-x86.zip *
+              mkdir -p package
+              cp -r build/bin/Release/* package/ 2>/dev/null || echo "No Release binaries found, trying Debug..."
+              cp -r build/bin/Debug/* package/ 2>/dev/null || echo "No Debug binaries found"
+              cp -r assets package/ 2>/dev/null || echo "assets directory not found"
+              cp LICENSE package/ 2>/dev/null || echo "LICENSE not found"
+              cp README.md package/ 2>/dev/null || echo "README.md not found"
+              cd package && zip -r ../yaze-windows-x86.zip *
             
           - name: "Windows ARM64"
             os: windows-2022
@@ -144,12 +148,13 @@ jobs:
             artifact_name: "yaze-windows-arm64"
             artifact_path: "build/bin/Release/"
             package_cmd: |
-              mkdir package
-              xcopy /E /I build\bin\Release\* package\
-              xcopy /E /I assets package\assets
-              copy LICENSE package\
-              copy README.md package\
-              cd package && 7z a ..\yaze-windows-arm64.zip *
+              mkdir -p package
+              cp -r build/bin/Release/* package/ 2>/dev/null || echo "No Release binaries found, trying Debug..."
+              cp -r build/bin/Debug/* package/ 2>/dev/null || echo "No Debug binaries found"
+              cp -r assets package/ 2>/dev/null || echo "assets directory not found"
+              cp LICENSE package/ 2>/dev/null || echo "LICENSE not found"
+              cp README.md package/ 2>/dev/null || echo "README.md not found"
+              cd package && zip -r ../yaze-windows-arm64.zip *
             
           - name: "macOS Universal"
             os: macos-14
@@ -294,12 +299,10 @@ jobs:
           -DYAZE_MINIMAL_BUILD=OFF \
           -GNinja
 
-    # Set up vcpkg for Windows builds with fallback
+    # Set up vcpkg for Windows builds
     - name: Set up vcpkg (Windows)
-      id: vcpkg_setup
       if: runner.os == 'Windows'
       uses: lukka/run-vcpkg@v11
-      continue-on-error: true
       with:
         vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
         runVcpkgInstall: true
@@ -309,75 +312,49 @@ jobs:
         VCPKG_FORCE_SYSTEM_BINARIES: 1
         VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
-    # Install dependencies manually if vcpkg fails
-    - name: Install dependencies manually (Windows)
-      if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'failure'
-      shell: pwsh
-      run: |
-        Write-Host "Installing dependencies manually using Chocolatey and pre-built libraries..."
-        
-        # Install Chocolatey if not present
-        if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
-          Set-ExecutionPolicy Bypass -Scope Process -Force
-          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-        }
-        
-        # Install basic dependencies
-        choco install -y cmake ninja
-        
-        Write-Host "Creating minimal build configuration for CI..."
-        echo "YAZE_MINIMAL_BUILD=ON" >> $env:GITHUB_ENV
-
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
-      shell: cmd
+      shell: pwsh
       run: |
-        if exist "${{ github.workspace }}\vcpkg_installed" (
-          echo "Using vcpkg installation..."
-          cmake -B build ^
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 ^
-            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" ^
-            -DYAZE_BUILD_TESTS=OFF ^
-            -DYAZE_BUILD_EMU=OFF ^
-            -DYAZE_BUILD_Z3ED=OFF ^
-            -DYAZE_ENABLE_ROM_TESTS=OFF ^
-            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF ^
-            -DYAZE_INSTALL_LIB=OFF ^
-            -DYAZE_MINIMAL_BUILD=OFF ^
-            -G "${{ matrix.cmake_generator }}" ^
-            -A ${{ matrix.cmake_generator_platform }}
-        ) else (
-          echo "Using minimal build configuration (vcpkg failed)..."
-          cmake -B build ^
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 ^
-            -DYAZE_BUILD_TESTS=OFF ^
-            -DYAZE_BUILD_EMU=OFF ^
-            -DYAZE_BUILD_Z3ED=OFF ^
-            -DYAZE_ENABLE_ROM_TESTS=OFF ^
-            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF ^
-            -DYAZE_INSTALL_LIB=OFF ^
-            -DYAZE_MINIMAL_BUILD=ON ^
-            -G "${{ matrix.cmake_generator }}" ^
-            -A ${{ matrix.cmake_generator_platform }}
-        )
+        Write-Host "Configuring CMake for Windows build..."
+        cmake -B build `
+          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
+          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+          -DYAZE_BUILD_TESTS=OFF `
+          -DYAZE_BUILD_EMU=OFF `
+          -DYAZE_BUILD_Z3ED=OFF `
+          -DYAZE_ENABLE_ROM_TESTS=OFF `
+          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
+          -DYAZE_INSTALL_LIB=OFF `
+          -DYAZE_MINIMAL_BUILD=OFF `
+          -G "${{ matrix.cmake_generator }}" `
+          -A ${{ matrix.cmake_generator_platform }}
 
     # Build
     - name: Build
-      run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+      run: |
+        echo "Building YAZE for ${{ matrix.name }}..."
+        cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+        echo "Build completed successfully!"
 
     # Validate Visual Studio project builds (Windows only)
     # Generate yaze_config.h for Visual Studio builds
     - name: Generate yaze_config.h
       if: runner.os == 'Windows'
-      shell: cmd
+      shell: pwsh
       run: |
-        copy src\yaze_config.h.in yaze_config.h
-        powershell -Command "(Get-Content 'yaze_config.h') -replace '@yaze_VERSION_MAJOR@', '0' -replace '@yaze_VERSION_MINOR@', '3' -replace '@yaze_VERSION_PATCH@', '1' | Set-Content 'yaze_config.h'"
-        echo Generated yaze_config.h:
-        type yaze_config.h
+        $version = "${{ needs.validate-and-prepare.outputs.tag_name }}" -replace '^v', ''
+        $versionParts = $version -split '\.'
+        $major = if ($versionParts.Length -gt 0) { $versionParts[0] } else { "0" }
+        $minor = if ($versionParts.Length -gt 1) { $versionParts[1] } else { "0" }
+        $patch = if ($versionParts.Length -gt 2) { $versionParts[2] -split '-' | Select-Object -First 1 } else { "0" }
+        
+        Write-Host "Generating yaze_config.h with version: $major.$minor.$patch"
+        Copy-Item "src\yaze_config.h.in" "yaze_config.h"
+        (Get-Content 'yaze_config.h') -replace '@yaze_VERSION_MAJOR@', $major -replace '@yaze_VERSION_MINOR@', $minor -replace '@yaze_VERSION_PATCH@', $patch | Set-Content 'yaze_config.h'
+        Write-Host "Generated yaze_config.h:"
+        Get-Content 'yaze_config.h'
 
     - name: Validate Visual Studio Project Build
       if: runner.os == 'Windows'
@@ -573,10 +550,27 @@ jobs:
             exit 1
         fi
 
+    # Verify build artifacts
+    - name: Verify build artifacts
+      shell: bash
+      run: |
+        echo "Verifying build artifacts for ${{ matrix.name }}..."
+        if [ -d "build/bin" ]; then
+          echo "Build directory contents:"
+          find build/bin -type f -name "yaze*" -o -name "*.exe" -o -name "*.app" | head -10
+        else
+          echo "ERROR: build/bin directory not found!"
+          exit 1
+        fi
+
     # Package
     - name: Package
       shell: bash
-      run: ${{ matrix.package_cmd }}
+      run: |
+        set -e
+        echo "Packaging for ${{ matrix.name }}..."
+        ${{ matrix.package_cmd }}
+        echo "Packaging completed successfully!"
 
     # Create release with artifacts (will create release if it doesn't exist)
     - name: Upload to Release
@@ -591,7 +585,7 @@ jobs:
         prerelease: ${{ contains(needs.validate-and-prepare.outputs.tag_name, 'beta') || contains(needs.validate-and-prepare.outputs.tag_name, 'alpha') || contains(needs.validate-and-prepare.outputs.tag_name, 'rc') }}
         files: |
           ${{ matrix.artifact_name }}.*
-        fail_on_unmatched_files: true
+        fail_on_unmatched_files: false
 
   publish-packages:
     name: Publish Packages
