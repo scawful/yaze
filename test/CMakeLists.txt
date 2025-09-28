@@ -1,4 +1,3 @@
-
 set(YAZE_SRC_FILES "")
 foreach (file 
   app/rom.cc
@@ -12,46 +11,61 @@ foreach (file
   list(APPEND YAZE_SRC_FILES ${CMAKE_SOURCE_DIR}/src/${file})
 endforeach()
 
+# Main test executable with enhanced argument handling for AI agents
 add_executable(
   yaze_test
   yaze_test.cc
-  rom_test.cc
   test_editor.cc
-  hex_test.cc
-  core/asar_wrapper_test.cc
-  gfx/snes_tile_test.cc
-  gfx/compression_test.cc
-  gfx/snes_palette_test.cc
-  zelda3/message_test.cc
-  zelda3/overworld_test.cc
-  zelda3/overworld_integration_test.cc
-  zelda3/comprehensive_integration_test.cc
-  zelda3/dungeon_integration_test.cc
-  zelda3/dungeon_object_renderer_integration_test.cc
-  zelda3/dungeon_object_renderer_mock_test.cc
-  zelda3/dungeon_editor_system_integration_test.cc
-  zelda3/sprite_builder_test.cc
-  zelda3/sprite_position_test.cc
-  emu/cpu_test.cc
-  emu/ppu_test.cc
-  emu/spc700_test.cc
-  emu/audio/apu_test.cc
-  emu/audio/ipl_handshake_test.cc
-  integration/dungeon_editor_test.cc
-  dungeon_component_unit_test.cc
+  test_editor.h
+  testing.h
+  test_utils.h
+  
+  # Unit Tests
+  unit/core/asar_wrapper_test.cc
+  unit/core/hex_test.cc
+  unit/rom/rom_test.cc
+  unit/gfx/snes_tile_test.cc
+  unit/gfx/compression_test.cc
+  unit/gfx/snes_palette_test.cc
+  unit/zelda3/message_test.cc
+  unit/zelda3/overworld_test.cc
+  unit/zelda3/object_parser_test.cc
+  unit/zelda3/object_parser_structs_test.cc
+  unit/zelda3/sprite_builder_test.cc
+  unit/zelda3/sprite_position_test.cc
+  unit/zelda3/test_dungeon_objects.cc
+  unit/zelda3/dungeon_component_unit_test.cc
+  
+  # Integration Tests
   integration/asar_integration_test.cc
   integration/asar_rom_test.cc
-  editor/tile16_editor_test.cc
-  zelda3/object_parser_test.cc
-  zelda3/object_parser_structs_test.cc
-  zelda3/test_dungeon_objects.cc
+  integration/dungeon_editor_test.cc
+  integration/dungeon_editor_test.h
+  integration/editor/tile16_editor_test.cc
+  integration/editor/editor_integration_test.cc
+  integration/editor/editor_integration_test.h
+  
+  # E2E Tests
+  e2e/rom_dependent/e2e_rom_test.cc
+  e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
+  
+  # Legacy Integration Tests (to be migrated)
+  unit/zelda3/comprehensive_integration_test.cc
+  unit/zelda3/overworld_integration_test.cc
+  unit/zelda3/dungeon_integration_test.cc
+  unit/zelda3/dungeon_editor_system_integration_test.cc
+  unit/zelda3/dungeon_object_renderer_integration_test.cc
+  unit/zelda3/dungeon_object_renderer_mock_test.cc
+  unit/zelda3/dungeon_object_rendering_tests.cc
+  unit/zelda3/dungeon_room_test.cc
 )
 
 # Add vanilla value extraction utility (only for local development with ROM access)
 if(NOT YAZE_MINIMAL_BUILD AND YAZE_ENABLE_ROM_TESTS)
   add_executable(
     extract_vanilla_values
-    zelda3/extract_vanilla_values.cc
+    unit/zelda3/extract_vanilla_values.cc
+    unit/zelda3/rom_patch_utility.cc
     ${YAZE_SRC_FILES}
   )
 
@@ -127,6 +141,7 @@ if(YAZE_ENABLE_UI_TESTS)
   target_link_libraries(yaze_test ${IMGUI_TEST_ENGINE_TARGET})
   target_compile_definitions(yaze_test PRIVATE ${IMGUI_TEST_ENGINE_DEFINITIONS})
 endif()
+
 # ROM Testing Configuration
 if(YAZE_ENABLE_ROM_TESTS)
     target_compile_definitions(yaze_test PRIVATE 
@@ -134,8 +149,6 @@ if(YAZE_ENABLE_ROM_TESTS)
         YAZE_TEST_ROM_PATH="${YAZE_TEST_ROM_PATH}"
     )
 endif()
-
-# ImGui Test Engine definitions are now handled conditionally above
 
 # Platform-specific definitions
 if(UNIX AND NOT APPLE)
@@ -155,5 +168,12 @@ if(YAZE_BUILD_TESTS)
   gtest_discover_tests(yaze_test)
 endif()
 
-# Add test labels using a simpler approach
-# Note: Test names might have prefixes, we'll use regex patterns for CI
+# Test organization and labeling for CI/CD
+# Note: Test labeling is handled through the enhanced yaze_test executable
+# which supports filtering by test categories using command line arguments:
+# --unit, --integration, --e2e, --rom-dependent, --zscustomoverworld, etc.
+#
+# For CI/CD, use the test runner with appropriate filters:
+# ./yaze_test --unit --verbose
+# ./yaze_test --e2e --rom-path zelda3.sfc
+# ./yaze_test --zscustomoverworld --verbose
