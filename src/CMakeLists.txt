@@ -121,8 +121,26 @@ else()
     )
     
     # Only use resource file for x64 Windows builds
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-      target_link_options(yaze PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/win32/yaze.res")
+    if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+      # Generate yaze.res from yaze.rc and yaze.ico for Windows x64 builds
+      set(YAZE_RC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/win32/yaze.rc")
+      set(YAZE_ICO_FILE "${CMAKE_CURRENT_SOURCE_DIR}/win32/yaze.ico")
+      set(YAZE_RES_FILE "${CMAKE_CURRENT_BINARY_DIR}/yaze.res")
+
+      # Add a custom command to generate the .res file from the .rc and .ico
+      add_custom_command(
+        OUTPUT ${YAZE_RES_FILE}
+        COMMAND ${CMAKE_RC_COMPILER} /fo ${YAZE_RES_FILE} ${YAZE_RC_FILE}
+        DEPENDS ${YAZE_RC_FILE} ${YAZE_ICO_FILE}
+        COMMENT "Generating yaze.res from yaze.rc and yaze.ico"
+        VERBATIM
+      )
+
+      # Make sure the resource file is built before linking
+      add_custom_target(yaze_res ALL DEPENDS ${YAZE_RES_FILE})
+
+      # Link the generated .res file to the yaze target
+      target_sources(yaze PRIVATE ${YAZE_RES_FILE})
     endif()
   endif()
 endif()
