@@ -101,40 +101,40 @@ $(document).ready(function(){initNavTree('md_scripts_2README.html',''); initResi
   <div class="headertitle"><div class="title">YAZE Build Scripts</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md652"></a> This directory contains build and setup scripts for YAZE development on different platforms.</p>
-<h1><a class="anchor" id="autotoc_md653"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md656"></a> This directory contains build and setup scripts for YAZE development on different platforms.</p>
+<h1><a class="anchor" id="autotoc_md657"></a>
 Windows Scripts</h1>
-<h2><a class="anchor" id="autotoc_md654"></a>
+<h2><a class="anchor" id="autotoc_md658"></a>
 Setup Scripts</h2>
 <ul>
 <li>**<code>setup-windows-dev.ps1</code>** - Complete Windows development environment setup (PowerShell)</li>
 <li>**<code>setup-vcpkg-windows.ps1</code>** - vcpkg setup only (PowerShell)</li>
 <li>**<code>setup-vcpkg-windows.bat</code>** - vcpkg setup only (Batch)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md655"></a>
+<h2><a class="anchor" id="autotoc_md659"></a>
 Build Scripts</h2>
 <ul>
 <li>**<code>build-windows.ps1</code>** - Build YAZE on Windows (PowerShell)</li>
 <li>**<code>build-windows.bat</code>** - Build YAZE on Windows (Batch)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md656"></a>
+<h2><a class="anchor" id="autotoc_md660"></a>
 Validation Scripts</h2>
 <ul>
 <li>**<code>validate-windows-build.ps1</code>** - Validate Windows build environment</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md657"></a>
+<h2><a class="anchor" id="autotoc_md661"></a>
 Project Generation</h2>
 <ul>
 <li>**<code><a class="el" href="generate-vs-projects_8py.html">generate-vs-projects.py</a></code>** - Generate Visual Studio project files (Cross-platform Python)</li>
 <li>**<code>generate-vs-projects.ps1</code>** - Generate Visual Studio project files (PowerShell)</li>
 <li>**<code>generate-vs-projects.bat</code>** - Generate Visual Studio project files (Batch)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md658"></a>
+<h1><a class="anchor" id="autotoc_md662"></a>
 Quick Start (Windows)</h1>
-<h2><a class="anchor" id="autotoc_md659"></a>
+<h2><a class="anchor" id="autotoc_md663"></a>
 Option 1: Automated Setup (Recommended)</h2>
 <div class="fragment"><div class="line">.\scripts\setup-windows-dev.ps1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md660"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md664"></a>
 Option 2: Manual Setup</h2>
 <div class="fragment"><div class="line"># 1. Setup vcpkg</div>
 <div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
@@ -144,7 +144,7 @@ Option 2: Manual Setup</h2>
 <div class="line"> </div>
 <div class="line"># 3. Build</div>
 <div class="line">.\scripts\build-windows.ps1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md661"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md665"></a>
 Option 3: Using Batch Scripts</h2>
 <div class="fragment"><div class="line">REM Setup vcpkg</div>
 <div class="line">.\scripts\setup-vcpkg-windows.bat</div>
@@ -154,16 +154,16 @@ Option 3: Using Batch Scripts</h2>
 <div class="line"> </div>
 <div class="line">REM Build</div>
 <div class="line">.\scripts\build-windows.bat</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md662"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md666"></a>
 Script Options</h1>
-<h2><a class="anchor" id="autotoc_md663"></a>
+<h2><a class="anchor" id="autotoc_md667"></a>
 setup-windows-dev.ps1</h2>
 <ul>
 <li><code>-SkipVcpkg</code> - Skip vcpkg setup</li>
 <li><code>-SkipVS</code> - Skip Visual Studio check</li>
 <li><code>-SkipBuild</code> - Skip test build</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md664"></a>
+<h2><a class="anchor" id="autotoc_md668"></a>
 build-windows.ps1</h2>
 <ul>
 <li><code>-Configuration</code> - Build configuration (Debug, Release, RelWithDebInfo, MinSizeRel)</li>
@@ -171,7 +171,7 @@ build-windows.ps1</h2>
 <li><code>-Clean</code> - Clean build directories before building</li>
 <li><code>-Verbose</code> - Verbose build output</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md665"></a>
+<h2><a class="anchor" id="autotoc_md669"></a>
 build-windows.bat</h2>
 <ul>
 <li>First argument: Configuration (Debug, Release, RelWithDebInfo, MinSizeRel)</li>
@@ -179,7 +179,7 @@ build-windows.bat</h2>
 <li><code>clean</code> - Clean build directories</li>
 <li><code>verbose</code> - Verbose build output</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md666"></a>
+<h1><a class="anchor" id="autotoc_md670"></a>
 Examples</h1>
 <div class="fragment"><div class="line"># Build Release x64 (default)</div>
 <div class="line">.\scripts\build-windows.ps1</div>
@@ -209,9 +209,9 @@ Examples</h1>
 <div class="line"> </div>
 <div class="line">REM Clean build</div>
 <div class="line">.\scripts\build-windows.bat clean</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md667"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md671"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md668"></a>
+<h2><a class="anchor" id="autotoc_md672"></a>
 Common Issues</h2>
 <ol type="1">
 <li><b>PowerShell Execution Policy</b> <div class="fragment"><div class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</div>
@@ -232,14 +232,14 @@ Common Issues</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md669"></a>
+<h2><a class="anchor" id="autotoc_md673"></a>
 Getting Help</h2>
 <ol type="1">
 <li>Run validation script: <code>.\scripts\validate-windows-build.ps1</code></li>
 <li>Check the <a class="el" href="md_docs_2windows-development-guide.html">Windows Development Guide</a></li>
 <li>Review build output for specific error messages</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md670"></a>
+<h1><a class="anchor" id="autotoc_md674"></a>
 Other Scripts</h1>
 <ul>
 <li>**<code>create_release.sh</code>** - Create GitHub releases (Linux/macOS)</li>

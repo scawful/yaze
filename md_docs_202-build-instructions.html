@@ -117,8 +117,8 @@ Windows (Recommended)</h2>
 <div class="fragment"><div class="line"># Automated setup (first time only)</div>
 <div class="line">.\scripts\setup-windows-dev.ps1</div>
 <div class="line"> </div>
-<div class="line"># Generate Visual Studio projects</div>
-<div class="line">.\scripts\generate-vs-projects.ps1</div>
+<div class="line"># Generate Visual Studio projects (with proper vcpkg integration)</div>
+<div class="line">python scripts/generate-vs-projects.py</div>
 <div class="line"> </div>
 <div class="line"># Or use CMake directly</div>
 <div class="line">cmake --preset windows-debug</div>
@@ -165,8 +165,8 @@ Automated Setup (Recommended)</h3>
 <div class="fragment"><div class="line"># Complete development environment setup</div>
 <div class="line">.\scripts\setup-windows-dev.ps1</div>
 <div class="line"> </div>
-<div class="line"># Generate Visual Studio project files</div>
-<div class="line">.\scripts\generate-vs-projects.ps1</div>
+<div class="line"># Generate Visual Studio project files (with proper vcpkg integration)</div>
+<div class="line">python scripts/generate-vs-projects.py</div>
 <div class="line"> </div>
 <div class="line"># Test CMake configuration</div>
 <div class="line">.\scripts\test-cmake-config.ps1</div>
@@ -201,10 +201,9 @@ vcpkg Integration</h3>
 </div><!-- fragment --><p><b>Dependencies (vcpkg.json):</b></p><ul>
 <li>zlib (compression)</li>
 <li>libpng (PNG support)</li>
-<li>sdl2 (graphics/input)</li>
-<li>abseil (Google C++ libraries)</li>
-<li>gtest (testing framework)</li>
+<li>sdl2 (graphics/input with Vulkan support)</li>
 </ul>
+<p><b>Note</b>: Abseil and gtest are built from source via CMake rather than through vcpkg to avoid compatibility issues.</p>
 <h3><a class="anchor" id="autotoc_md22"></a>
 Windows Build Commands</h3>
 <p><b>Using CMake Presets:</b> </p><div class="fragment"><div class="line"># Debug build (minimal, no tests)</div>
@@ -218,8 +217,8 @@ Windows Build Commands</h3>
 <div class="line"># Release build (optimized, no tests)</div>
 <div class="line">cmake --preset windows-release</div>
 <div class="line">cmake --build build --preset windows-release</div>
-</div><!-- fragment --><p><b>Using Visual Studio Projects:</b> </p><div class="fragment"><div class="line"># Generate project files</div>
-<div class="line">.\scripts\generate-vs-projects.ps1</div>
+</div><!-- fragment --><p><b>Using Visual Studio Projects:</b> </p><div class="fragment"><div class="line"># Generate project files (with proper vcpkg integration)</div>
+<div class="line">python scripts/generate-vs-projects.py</div>
 <div class="line"> </div>
 <div class="line"># Open YAZE.sln in Visual Studio</div>
 <div class="line"># Select configuration (Debug/Release) and platform (x64/x86/ARM64)</div>
@@ -283,7 +282,7 @@ Visual Studio (Windows)</h2>
 <li>Full IntelliSense support</li>
 <li>Integrated debugging</li>
 <li>Automatic vcpkg dependency management (zlib, libpng, SDL2)</li>
-<li>Multi-platform support (x64, x86, ARM64)</li>
+<li>Multi-platform support (x64, ARM64)</li>
 <li>Automatic asset copying</li>
 <li>Generated project files stay in sync with CMake configuration</li>
 </ul>
@@ -328,7 +327,7 @@ Project Generation Scripts</h2>
 <p><b>Features:</b></p><ul>
 <li>Automatic CMake detection and installation</li>
 <li>Visual Studio 2022 detection</li>
-<li>Multi-architecture support (x64, x86, ARM64)</li>
+<li>Multi-architecture support (x64, ARM64)</li>
 <li>vcpkg integration</li>
 <li>CMake compatibility fixes</li>
 </ul>
@@ -385,8 +384,42 @@ Submodule Compatibility Issues</h2>
 <div class="line">  -DTHREADS_PREFER_PTHREAD_FLAG=OFF \</div>
 <div class="line">  -DCMAKE_BUILD_TYPE=Debug</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md43"></a>
-Troubleshooting</h1>
+CI/CD and Release Builds</h1>
 <h2><a class="anchor" id="autotoc_md44"></a>
+GitHub Actions Workflows</h2>
+<p>The project includes three release workflows with different levels of complexity:</p>
+<ul>
+<li>**<code>release-simplified.yml</code>**: Fast, basic release builds</li>
+<li>**<code>release.yml</code>**: Standard release builds with fallback mechanisms</li>
+<li>**<code>release-complex.yml</code>**: Comprehensive release builds with multiple fallback strategies</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md45"></a>
+vcpkg Fallback Mechanisms</h2>
+<p>All Windows CI/CD builds include automatic fallback mechanisms:</p>
+<p><b>When vcpkg succeeds:</b></p><ul>
+<li>Full build with all dependencies (zlib, libpng, SDL2)</li>
+<li>Complete feature set available</li>
+</ul>
+<p><b>When vcpkg fails (network issues):</b></p><ul>
+<li>Automatic fallback to minimal build configuration</li>
+<li>Uses source-built dependencies (Abseil, etc.)</li>
+<li>Still produces functional executables</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md46"></a>
+Supported Architectures</h2>
+<p><b>Windows:</b></p><ul>
+<li>x64 (64-bit) - Primary target for modern systems</li>
+<li>ARM64 - For ARM-based Windows devices (Surface Pro X, etc.)</li>
+</ul>
+<p><b>macOS:</b></p><ul>
+<li>Universal binary (Apple Silicon + Intel)</li>
+</ul>
+<p><b>Linux:</b></p><ul>
+<li>x64 (64-bit)</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md47"></a>
+Troubleshooting</h1>
+<h2><a class="anchor" id="autotoc_md48"></a>
 Windows CMake Issues</h2>
 <p><b>CMake Not Found:</b> </p><div class="fragment"><div class="line"># Run the setup script</div>
 <div class="line">.\scripts\setup-windows-dev.ps1</div>
@@ -405,35 +438,46 @@ Windows CMake Issues</h2>
 <div class="line"># Clean and rebuild</div>
 <div class="line">Remove-Item -Recurse -Force build</div>
 <div class="line">cmake --preset windows-debug</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md45"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md49"></a>
 vcpkg Issues</h2>
 <p><b>Dependencies Not Installing:</b> </p><div class="fragment"><div class="line"># Check vcpkg installation</div>
 <div class="line">vcpkg version</div>
 <div class="line"> </div>
 <div class="line"># Reinstall dependencies</div>
-<div class="line">vcpkg install --triplet x64-windows zlib libpng sdl2 abseil gtest</div>
+<div class="line">vcpkg install --triplet x64-windows zlib libpng sdl2</div>
 <div class="line"> </div>
 <div class="line"># Check installed packages</div>
 <div class="line">vcpkg list</div>
-</div><!-- fragment --><p><b>Visual Studio Integration:</b> </p><div class="fragment"><div class="line"># Re-integrate vcpkg</div>
+</div><!-- fragment --><p><b>Network/Download Failures:</b></p><ul>
+<li>The CI/CD workflows automatically fall back to minimal builds</li>
+<li>For local development, ensure stable internet connection</li>
+<li>If vcpkg consistently fails, use minimal build mode: <div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
+</div><!-- fragment --></li>
+</ul>
+<p><b>Visual Studio Integration:</b> </p><div class="fragment"><div class="line"># Re-integrate vcpkg</div>
 <div class="line">cd C:\vcpkg</div>
 <div class="line">.\vcpkg.exe integrate install</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md46"></a>
+</div><!-- fragment --><p><b>ZLIB or Other Dependencies Not Found:</b> </p><div class="fragment"><div class="line"># Regenerate project files with proper vcpkg integration</div>
+<div class="line">python scripts/generate-vs-projects.py</div>
+<div class="line"> </div>
+<div class="line"># Ensure vcpkg is properly set up</div>
+<div class="line">.\scripts\setup-windows-dev.ps1</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md50"></a>
 Architecture Errors (macOS)</h2>
 <div class="fragment"><div class="line"># Clean and use ARM64-only preset</div>
 <div class="line">rm -rf build</div>
 <div class="line">cmake --preset debug  # Uses arm64 only</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md47"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md51"></a>
 Missing Headers (Language Server)</h2>
 <div class="fragment"><div class="line"># Regenerate compile commands</div>
 <div class="line">cmake --preset debug</div>
 <div class="line">cp build/compile_commands.json .</div>
 <div class="line"># Restart VS Code</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md48"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md52"></a>
 CI Build Failures</h2>
 <p>Use minimal build configuration that matches CI: </p><div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_UI_TESTS=OFF</div>
 <div class="line">cmake --build build</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md49"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md53"></a>
 Common Error Solutions</h2>
 <p>**"CMake Deprecation Warning" from submodules:**</p><ul>
 <li>This is automatically handled by the project's CMake configuration</li>
@@ -448,8 +492,13 @@ Common Error Solutions</h2>
 <li>Ensures proper C++ standard handling</li>
 </ul>
 <p><b>Visual Studio "file not found" errors:</b></p><ul>
-<li>Run <code>.\scripts\generate-vs-projects.ps1</code> to regenerate project files</li>
-<li>Ensure CMake configuration completed successfully first </li>
+<li>Run <code>python <a class="el" href="generate-vs-projects_8py.html">scripts/generate-vs-projects.py</a></code> to regenerate project files</li>
+<li>Ensure CMake configuration completed successfully first</li>
+</ul>
+<p><b>CI/CD Build Failures:</b></p><ul>
+<li>Check if vcpkg download failed (network issues)</li>
+<li>The workflows automatically fall back to minimal builds</li>
+<li>For persistent issues, check the workflow logs for specific error messages </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

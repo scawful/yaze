@@ -1,5 +1,9 @@
 var NAVTREEINDEX80 =
 {
+"structzelda3__overworld.html#ac42571b5a8703b39deeb00f6d9f043c2":[27,4,1,3],
+"structzelda3__overworld.html#adea43a2d4d987e4e9c742b68f1df487b":[27,4,1,1],
+"structzelda3__overworld__map.html":[27,4,0],
+"structzelda3__overworld__map.html#a0db023b5c0dbeff379f067af37616380":[27,4,0,14],
 "structzelda3__overworld__map.html#a115a98fc6233b0159962ae4dcaced330":[27,4,0,13],
 "structzelda3__overworld__map.html#a139cda4f68e55f501035760a6d0e001f":[27,4,0,6],
 "structzelda3__overworld__map.html#a267d4b76724ef6d176ea3ec868bf3ae8":[27,4,0,10],
@@ -245,9 +249,5 @@ var NAVTREEINDEX80 =
 "toast__manager_8h.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782":[30,0,3,0,1,7,11,2,1],
 "toast__manager_8h.html#a6b8cab865089eface70ba97013bc8bc7ae3587c730cc1aa530fa4ddc9c4204e97":[30,0,3,0,1,7,11,2,3],
 "toast__manager_8h.html#a6b8cab865089eface70ba97013bc8bc7aec0da41f4e48b52c362303eb27ed5dee":[30,0,3,0,1,7,11,2,2],
-"toast__manager_8h_source.html":[30,0,3,0,1,7,11],
-"todo.html":[25],
-"topics.html":[27],
-"tracker_8cc.html":[30,0,3,0,6,1,0],
-"tracker_8cc.html#a57c95bb79e56737d2e3e30296e409617":[30,0,3,0,6,1,0,0]
+"toast__manager_8h_source.html":[30,0,3,0,1,7,11]
 };
