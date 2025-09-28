@@ -102,10 +102,17 @@ endif()
 
 # Compiler-specific settings
 if(MSVC)
-    target_compile_options(yaze_common INTERFACE /W4 /permissive-)
+    target_compile_options(yaze_common INTERFACE 
+        /W4 /permissive-
+        /bigobj  # Support large object files
+        /utf-8   # Use UTF-8 encoding
+    )
     target_compile_definitions(yaze_common INTERFACE 
         _CRT_SECURE_NO_WARNINGS
         _CRT_NONSTDC_NO_WARNINGS
+        SILENCE_CXX23_DEPRECATIONS
+        NOMINMAX  # Disable min/max macros
+        WIN32_LEAN_AND_MEAN  # Reduce Windows header bloat
         strncasecmp=_strnicmp
         strcasecmp=_stricmp
     )
