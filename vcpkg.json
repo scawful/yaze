@@ -25,7 +25,7 @@
   "overrides": [
     {
       "name": "abseil",
-      "version": "20240116.2"
+      "version": "20220623.1"
     }
   ],
   "features": {
