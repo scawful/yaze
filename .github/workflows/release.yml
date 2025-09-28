@@ -265,20 +265,7 @@ jobs:
         VCPKG_FORCE_SYSTEM_BINARIES: 1
         VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
-    # Fallback to newer baseline if primary vcpkg fails
-    - name: Set up vcpkg (Fallback)
-      if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'failure'
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: '2024.01.12'
-        runVcpkgInstall: true
-        vcpkgJsonGlob: '**/vcpkg.json.backup'
-        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-      env:
-        VCPKG_FORCE_SYSTEM_BINARIES: 1
-        VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-
-    # Install dependencies manually if vcpkg fails completely
+    # Install dependencies manually if vcpkg fails
     - name: Install dependencies manually (Windows)
       if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'failure'
       shell: pwsh
