@@ -199,6 +199,7 @@ if (YAZE_BUILD_LIB)
     ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
     ${SDL2_INCLUDE_DIR}
     ${PROJECT_BINARY_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
   )
 
   target_link_libraries(
