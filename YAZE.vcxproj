@@ -547,7 +547,10 @@
     <ClInclude Include="src\app\gui\background_renderer.h">
       <Filter>App\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="src\app\gui\modules\module_manager.h">
+    <ClInclude Include="src\app\gui\modules\asset_browser.h">
+      <Filter>App\GUI\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\gui\modules\text_editor.h">
       <Filter>App\GUI\Modules</Filter>
     </ClInclude>
     <ClInclude Include="src\app\emu\emulator.h">
@@ -714,9 +717,6 @@
     <ClCompile Include="src\app\gfx\tilemap.cc">
       <Filter>App\GFX</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\editor\editor.cc">
-      <Filter>App\Editor</Filter>
-    </ClCompile>
     <ClCompile Include="src\app\editor\editor_manager.cc">
       <Filter>App\Editor</Filter>
     </ClCompile>
@@ -837,7 +837,10 @@
     <ClCompile Include="src\app\gui\background_renderer.cc">
       <Filter>App\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\gui\modules\module_manager.cc">
+    <ClCompile Include="src\app\gui\modules\asset_browser.cc">
+      <Filter>App\GUI\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\gui\modules\text_editor.cc">
       <Filter>App\GUI\Modules</Filter>
     </ClCompile>
     <ClCompile Include="src\app\emu\emu.cc">
