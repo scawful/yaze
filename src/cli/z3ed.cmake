@@ -52,7 +52,6 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
-  ${GLEW_INCLUDE_DIRS}
   ${PROJECT_BINARY_DIR}
 )
 
@@ -67,8 +66,6 @@ target_link_libraries(
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
   ${PNG_LIBRARIES}
-  ${GLEW_LIBRARIES}
-  ${OPENGL_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ImGuiTestEngine
   ImGui

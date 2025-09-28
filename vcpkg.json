@@ -15,13 +15,9 @@
       "name": "sdl2",
       "platform": "!uwp",
       "features": ["vulkan"]
-    },
-    {
-      "name": "glew",
-      "platform": "!uwp"
     }
   ],
-  "builtin-baseline": "c8696863d371ab7f46e213d8f5ca923c4aef2a00",
+  "builtin-baseline": "2024.12.12",
   "overrides": [],
   "features": {
     "pkg-config": {
