@@ -30,6 +30,8 @@
 #include "app/test/test_manager.h"
 #include "app/test/integrated_test_suite.h"
 #include "app/test/rom_dependent_test_suite.h"
+#include "app/test/e2e_test_suite.h"
+#include "app/test/zscustomoverworld_test_suite.h"
 #ifdef YAZE_ENABLE_GTEST
 #include "app/test/unit_test_suite.h"
 #endif
@@ -159,6 +161,10 @@ void EditorManager::InitializeTestSuites() {
   test_manager.RegisterTestSuite(std::make_unique<test::PerformanceTestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::UITestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::RomDependentTestSuite>());
+  
+  // Register new E2E and ZSCustomOverworld test suites
+  test_manager.RegisterTestSuite(std::make_unique<test::E2ETestSuite>());
+  test_manager.RegisterTestSuite(std::make_unique<test::ZSCustomOverworldTestSuite>());
   
   // Register Google Test suite if available
 #ifdef YAZE_ENABLE_GTEST
