@@ -22,16 +22,14 @@ endif()
 
 # libpng and ZLIB dependencies  
 if(WIN32)
-  # Windows builds with vcpkg (Abseil removed to avoid MSYS2 issues)
+  # Windows builds with vcpkg (OpenGL/GLEW removed to avoid MSYS2 issues)
   if(NOT YAZE_MINIMAL_BUILD)
     find_package(ZLIB REQUIRED)
     find_package(PNG REQUIRED)
-    find_package(GLEW REQUIRED)
   else()
     # For CI/minimal builds, try to find but don't require
     find_package(ZLIB QUIET)
     find_package(PNG QUIET)
-    find_package(GLEW QUIET)
     if(NOT ZLIB_FOUND OR NOT PNG_FOUND)
       message(STATUS "PNG/ZLIB not found in minimal build, some features may be disabled")
       set(PNG_FOUND FALSE)
