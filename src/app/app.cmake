@@ -106,9 +106,9 @@ else()
   target_compile_definitions(yaze PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
 endif()
 
-# Link Google Test if available for integrated testing
-if(YAZE_BUILD_TESTS AND TARGET gtest AND TARGET gtest_main)
-  target_link_libraries(yaze PRIVATE gtest gtest_main)
+# Link Google Test if available for integrated testing (but NOT gtest_main to avoid main() conflicts)
+if(YAZE_BUILD_TESTS AND TARGET gtest)
+  target_link_libraries(yaze PRIVATE gtest)
   target_compile_definitions(yaze PRIVATE YAZE_ENABLE_GTEST=1)
   target_compile_definitions(yaze PRIVATE YAZE_ENABLE_TESTING=1)
 else()

@@ -554,6 +554,8 @@ void EditorManager::Initialize(const std::string &filename) {
             [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kIntegration); }},
            {absl::StrCat(ICON_MD_CLEAR_ALL, " Clear Test Results"), "",
             [&]() { test::TestManager::Get().ClearResults(); }},
+#else 
+{},
 #endif
            
            {gui::kSeparator, "", nullptr, []() { return true; }},
