@@ -84,14 +84,23 @@ set VCPKG_ROOT=%CD%
 
 #### Windows Build Commands
 ```cmd
-# Debug build with vcpkg
+# Debug build with vcpkg (minimal, no tests)
 cmake --preset windows-debug
 cmake --build build --preset windows-debug
 
-# Release build with vcpkg  
+# Development build with vcpkg (includes Google Test)
+cmake --preset windows-dev
+cmake --build build --preset windows-dev
+
+# Release build with vcpkg (optimized, no tests)
 cmake --preset windows-release
 cmake --build build --preset windows-release
 ```
+
+**Build Types:**
+- **windows-debug**: Minimal debug build, no Google Test
+- **windows-dev**: Development build with Google Test and ROM testing
+- **windows-release**: Optimized release build, no Google Test
 
 ## Build Targets
 
