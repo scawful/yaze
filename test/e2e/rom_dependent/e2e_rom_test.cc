@@ -67,7 +67,9 @@ class E2ERomDependentTest : public ::testing::Test {
     EXPECT_NE(rom->data(), nullptr) << "ROM data should not be null";
     
     // Check ROM header
-    EXPECT_EQ(rom->ReadByte(0x7FC0), 0x21) << "ROM should be LoROM format";
+    auto header_byte = rom->ReadByte(0x7FC0);
+    RETURN_IF_ERROR(header_byte.status());
+    EXPECT_EQ(*header_byte, 0x21) << "ROM should be LoROM format";
     
     return absl::OkStatus();
   }
@@ -157,12 +159,20 @@ TEST_F(E2ERomDependentTest, ROMDataEditWorkflow) {
   std::unique_ptr<Rom> reloaded_rom;
   ASSERT_OK(LoadAndVerifyROM(test_rom_path_, reloaded_rom));
   
-  EXPECT_EQ(reloaded_rom->ReadByte(0x1000), 0xAA);
-  EXPECT_EQ(reloaded_rom->ReadByte(0x2000), 0xBB);
-  EXPECT_EQ(reloaded_rom->ReadWord(0x3000), 0xCCDD);
+  auto byte1 = reloaded_rom->ReadByte(0x1000);
+  ASSERT_OK(byte1.status());
+  EXPECT_EQ(*byte1, 0xAA);
+  
+  auto byte2 = reloaded_rom->ReadByte(0x2000);
+  ASSERT_OK(byte2.status());
+  EXPECT_EQ(*byte2, 0xBB);
+  
+  auto word1 = reloaded_rom->ReadWord(0x3000);
+  ASSERT_OK(word1.status());
+  EXPECT_EQ(*word1, 0xCCDD);
   
   // Verify other data wasn't corrupted
-  EXPECT_NE(reloaded_rom->ReadByte(0x1000), *initial_byte);
+  EXPECT_NE(*byte1, *initial_byte);
 }
 
 // Test transaction system with multiple edits
@@ -174,9 +184,12 @@ TEST_F(E2ERomDependentTest, TransactionSystem) {
   auto transaction = std::make_unique<yaze::Transaction>(*rom);
   
   // Make multiple edits in transaction
-  ASSERT_OK(transaction->WriteByte(0x1000, 0xAA));
-  ASSERT_OK(transaction->WriteByte(0x2000, 0xBB));
-  ASSERT_OK(transaction->WriteWord(0x3000, 0xCCDD));
+  transaction->WriteByte(0x1000, 0xAA);
+  transaction->WriteByte(0x2000, 0xBB);
+  transaction->WriteWord(0x3000, 0xCCDD);
+  
+  // Commit the transaction
+  ASSERT_OK(transaction->Commit());
   
   // Commit transaction
   ASSERT_OK(transaction->Commit());
@@ -188,9 +201,17 @@ TEST_F(E2ERomDependentTest, TransactionSystem) {
   std::unique_ptr<Rom> reloaded_rom;
   ASSERT_OK(LoadAndVerifyROM(test_rom_path_, reloaded_rom));
   
-  EXPECT_EQ(reloaded_rom->ReadByte(0x1000), 0xAA);
-  EXPECT_EQ(reloaded_rom->ReadByte(0x2000), 0xBB);
-  EXPECT_EQ(reloaded_rom->ReadWord(0x3000), 0xCCDD);
+  auto byte1 = reloaded_rom->ReadByte(0x1000);
+  ASSERT_OK(byte1.status());
+  EXPECT_EQ(*byte1, 0xAA);
+  
+  auto byte2 = reloaded_rom->ReadByte(0x2000);
+  ASSERT_OK(byte2.status());
+  EXPECT_EQ(*byte2, 0xBB);
+  
+  auto word1 = reloaded_rom->ReadWord(0x3000);
+  ASSERT_OK(word1.status());
+  EXPECT_EQ(*word1, 0xCCDD);
 }
 
 // Test ROM corruption detection
@@ -209,8 +230,13 @@ TEST_F(E2ERomDependentTest, CorruptionDetection) {
   std::unique_ptr<Rom> reloaded_rom;
   ASSERT_OK(LoadAndVerifyROM(test_rom_path_, reloaded_rom));
   
-  EXPECT_EQ(reloaded_rom->ReadByte(0x1000), 0xFF);
-  EXPECT_EQ(reloaded_rom->ReadByte(0x2000), 0xAA);
+  auto corrupt_byte1 = reloaded_rom->ReadByte(0x1000);
+  ASSERT_OK(corrupt_byte1.status());
+  EXPECT_EQ(*corrupt_byte1, 0xFF);
+  
+  auto corrupt_byte2 = reloaded_rom->ReadByte(0x2000);
+  ASSERT_OK(corrupt_byte2.status());
+  EXPECT_EQ(*corrupt_byte2, 0xAA);
 }
 
 // Test large-scale editing without corruption
@@ -232,8 +258,13 @@ TEST_F(E2ERomDependentTest, LargeScaleEditing) {
   
   // Verify all changes
   for (int i = 0; i < 10; i++) {
-    EXPECT_EQ(reloaded_rom->ReadByte(0x1000 + i), i % 16);
-    EXPECT_EQ(reloaded_rom->ReadByte(0x2000 + i), (i + 1) % 16);
+    auto byte1 = reloaded_rom->ReadByte(0x1000 + i);
+    ASSERT_OK(byte1.status());
+    EXPECT_EQ(*byte1, i % 16);
+    
+    auto byte2 = reloaded_rom->ReadByte(0x2000 + i);
+    ASSERT_OK(byte2.status());
+    EXPECT_EQ(*byte2, (i + 1) % 16);
   }
 }
 
