@@ -541,7 +541,6 @@ void EditorManager::Initialize(const std::string &filename) {
        {},
        {},
        {},
-#ifdef YAZE_ENABLE_TESTING
        {
            // Testing and Validation (only when tests are enabled)
            {absl::StrCat(ICON_MD_SCIENCE, " Test Dashboard"), "Ctrl+T",
@@ -553,11 +552,7 @@ void EditorManager::Initialize(const std::string &filename) {
            {absl::StrCat(ICON_MD_MEMORY, " Run Integration Tests"), "",
             [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kIntegration); }},
            {absl::StrCat(ICON_MD_CLEAR_ALL, " Clear Test Results"), "",
-            [&]() { test::TestManager::Get().ClearResults(); }},
-#else 
-{},
-#endif
-           
+            [&]() { test::TestManager::Get().ClearResults(); }},   
            {gui::kSeparator, "", nullptr, []() { return true; }},
            
            // ROM and ASM Management

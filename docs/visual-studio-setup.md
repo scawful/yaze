@@ -241,13 +241,37 @@ The included `yaze.vcxproj` and `yaze.sln` files provide:
 - **Debugging Integration:** Native Visual Studio debugging support
 - **Project Properties:** Easy access to compiler and linker settings
 
+## CI/CD Integration
+
+The Visual Studio project files are fully integrated into the CI/CD pipeline:
+
+### **Automated Validation**
+- **Pre-commit checks:** Visual Studio builds are validated on every pull request
+- **Release validation:** Both CMake and Visual Studio builds are tested before release
+- **Multi-platform testing:** x64 and x86 builds are validated on Windows
+- **Dependency verification:** vcpkg integration is tested automatically
+
+### **Build Matrix**
+The CI/CD pipeline tests:
+- **Windows x64 Debug/Release** using Visual Studio 2022
+- **Windows x86 Debug/Release** using Visual Studio 2022
+- **CMake builds** alongside Visual Studio builds for compatibility
+- **Asset copying** and executable functionality
+
+### **Quality Assurance**
+- **Test main detection:** Prevents the test framework from hijacking the main application
+- **Asset validation:** Ensures themes and resources are properly copied
+- **Executable testing:** Verifies the application starts correctly
+- **Dependency checking:** Validates all required libraries are properly linked
+
 ## Additional Notes
 
 - The project supports both x64 and x86 builds (use appropriate vcpkg triplets)
 - For ARM64 Windows builds, use `arm64-windows` triplet
-- The CI/CD pipeline uses minimal builds to avoid dependency issues
+- The CI/CD pipeline validates both CMake and Visual Studio builds
 - Development builds include additional debugging features and ROM testing capabilities
 - The `.vcxproj` file provides the easiest setup for Visual Studio users who prefer traditional project files over CMake
+- All builds are automatically validated to ensure they produce working executables
 
 ## Support
 
