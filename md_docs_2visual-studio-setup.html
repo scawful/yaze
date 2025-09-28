@@ -151,31 +151,43 @@ Project Setup</h1>
 <div class="line">vcpkg install abseil:x64-windows</div>
 <div class="line">vcpkg install gtest:x64-windows</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md559"></a>
-3. Configure Build System</h2>
+3. Generate Visual Studio Project Files</h2>
 <h3><a class="anchor" id="autotoc_md560"></a>
-Option A: Using Visual Studio Project File (Easiest)</h3>
+Option A: Using the Project Generation Script (Recommended)</h3>
 <ol type="1">
-<li>Open Visual Studio 2022</li>
-<li>Select "Open a project or solution"</li>
-<li>Navigate to the yaze project folder and open <code>yaze.sln</code></li>
-<li>The project is pre-configured with vcpkg integration and proper dependencies</li>
+<li>Open PowerShell in the yaze project directory</li>
+<li>Run the project generation script: <div class="fragment"><div class="line">.\scripts\generate-vs-projects.ps1</div>
+</div><!-- fragment --></li>
+<li>The script will:<ul>
+<li>Check for CMake and Visual Studio installation</li>
+<li>Configure vcpkg integration</li>
+<li>Generate proper Visual Studio project files with all include paths</li>
+<li>Test the build to ensure everything works</li>
+</ul>
+</li>
+<li>Open the generated <code>YAZE.sln</code> in Visual Studio</li>
 <li>Select your desired build configuration (Debug/Release) and platform (x64/x86)</li>
 <li>Press F5 to build and run, or Ctrl+Shift+B to build only</li>
 </ol>
 <h3><a class="anchor" id="autotoc_md561"></a>
-Option B: Using CMake with Visual Studio (Recommended for developers)</h3>
+Option B: Manual CMake Configuration</h3>
+<ol type="1">
+<li>Open PowerShell in the yaze project directory</li>
+<li>Create build directory and configure: <div class="fragment"><div class="line">mkdir build-vs</div>
+<div class="line">cd build-vs</div>
+<div class="line">cmake .. -G &quot;Visual Studio 17 2022&quot; -A x64 -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake</div>
+</div><!-- fragment --></li>
+<li>Open the generated <code>YAZE.sln</code> in Visual Studio</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md562"></a>
+Option C: Using CMake with Visual Studio (For advanced users)</h3>
 <ol type="1">
 <li>Open Visual Studio 2022</li>
 <li>Select "Open a local folder" and navigate to the yaze project folder</li>
 <li>Visual Studio will automatically detect the CMake project</li>
 <li>Wait for CMake configuration to complete (check Output window)</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md562"></a>
-Option C: Using Command Line</h3>
-<div class="fragment"><div class="line">mkdir build</div>
-<div class="line">cd build</div>
-<div class="line">cmake .. -G &quot;Visual Studio 17 2022&quot; -A x64 -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md563"></a>
+<h2><a class="anchor" id="autotoc_md563"></a>
 4. Build Configuration</h2>
 <h3><a class="anchor" id="autotoc_md564"></a>
 Using Visual Studio Project File (.vcxproj)</h3>
@@ -195,9 +207,55 @@ Using CMake (Command Line)</h3>
 <div class="line"># For Testing (Optional)</div>
 <div class="line">cmake --build . --config Debug --target yaze_test</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md566"></a>
-Common Issues and Solutions</h1>
+Project Generation Script</h1>
+<p>The <code>generate-vs-projects.ps1</code> script automates the Visual Studio project setup process:</p>
 <h2><a class="anchor" id="autotoc_md567"></a>
-Issue 1: zlib Import Errors</h2>
+Script Features</h2>
+<ul>
+<li><b>Automatic CMake Detection:</b> Finds and configures CMake installation</li>
+<li><b>Visual Studio Integration:</b> Detects Visual Studio 2022 installation</li>
+<li><b>vcpkg Configuration:</b> Automatically configures vcpkg toolchain</li>
+<li><b>Dependency Installation:</b> Installs required packages via vcpkg</li>
+<li><b>Project Validation:</b> Tests the generated project to ensure it builds</li>
+<li><b>Include Path Verification:</b> Checks that all required include paths are present</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md568"></a>
+Script Usage</h2>
+<div class="fragment"><div class="line"># Basic usage (Debug x64)</div>
+<div class="line">.\scripts\generate-vs-projects.ps1</div>
+<div class="line"> </div>
+<div class="line"># Release build</div>
+<div class="line">.\scripts\generate-vs-projects.ps1 -Configuration Release</div>
+<div class="line"> </div>
+<div class="line"># x86 build</div>
+<div class="line">.\scripts\generate-vs-projects.ps1 -Architecture x86</div>
+<div class="line"> </div>
+<div class="line"># Clean build</div>
+<div class="line">.\scripts\generate-vs-projects.ps1 -Clean</div>
+<div class="line"> </div>
+<div class="line"># With vcpkg</div>
+<div class="line">.\scripts\generate-vs-projects.ps1 -UseVcpkg</div>
+<div class="line"> </div>
+<div class="line"># Show help</div>
+<div class="line">.\scripts\generate-vs-projects.ps1 -Help</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md569"></a>
+Testing the Setup</h2>
+<p>Use the test script to verify the project generation works: </p><div class="fragment"><div class="line">.\scripts\test-vs-generation.ps1</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md570"></a>
+Common Issues and Solutions</h1>
+<h2><a class="anchor" id="autotoc_md571"></a>
+Issue 1: Missing Include Files (SDL.h, etc.)</h2>
+<p><b>Problem:</b> &lsquo;fatal error C1083: Cannot open include file: 'SDL.h&rsquo;` or similar</p>
+<p><b>Solution:</b></p><ol type="1">
+<li>Use the project generation script: <code>.\scripts\generate-vs-projects.ps1</code></li>
+<li>Ensure vcpkg is properly installed and configured</li>
+<li>Check that dependencies are installed: <div class="fragment"><div class="line">vcpkg list</div>
+</div><!-- fragment --></li>
+<li>If using manual setup, ensure the vcpkg toolchain file is set: <div class="fragment"><div class="line">cmake .. -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake</div>
+</div><!-- fragment --></li>
+</ol>
+<h2><a class="anchor" id="autotoc_md572"></a>
+Issue 2: zlib Import Errors</h2>
 <p><b>Problem:</b> &lsquo;fatal error C1083: Cannot open include file: 'zlib.h&rsquo;`</p>
 <p><b>Solution:</b></p><ol type="1">
 <li>Ensure vcpkg is properly integrated with Visual Studio</li>
@@ -206,29 +264,29 @@ Issue 1: zlib Import Errors</h2>
 <li>Check that zlib is installed: <div class="fragment"><div class="line">vcpkg list zlib</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md568"></a>
-Issue 2: Executable Runs Tests Instead of Main App</h2>
+<h2><a class="anchor" id="autotoc_md573"></a>
+Issue 3: Executable Runs Tests Instead of Main App</h2>
 <p><b>Problem:</b> Running <code>yaze.exe</code> starts the test framework instead of the application</p>
 <p><b>Solution:</b> This has been fixed in the latest version. The issue was caused by linking <code>gtest_main</code> to the main executable. The fix removes <code>gtest_main</code> from the main application while keeping <code>gtest</code> for testing capabilities.</p>
-<h2><a class="anchor" id="autotoc_md569"></a>
-Issue 3: SDL2 Configuration Issues</h2>
+<h2><a class="anchor" id="autotoc_md574"></a>
+Issue 4: SDL2 Configuration Issues</h2>
 <p><b>Problem:</b> SDL2 not found or linking errors</p>
 <p><b>Solution:</b></p><ol type="1">
 <li>Install SDL2 with vcpkg: <div class="fragment"><div class="line">vcpkg install sdl2[vulkan]:x64-windows</div>
 </div><!-- fragment --></li>
 <li>Ensure the project uses the vcpkg toolchain file</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md570"></a>
-Issue 4: Build Errors with Abseil</h2>
+<h2><a class="anchor" id="autotoc_md575"></a>
+Issue 5: Build Errors with Abseil</h2>
 <p><b>Problem:</b> Missing Abseil symbols or linking issues</p>
 <p><b>Solution:</b></p><ol type="1">
 <li>Install Abseil via vcpkg: <div class="fragment"><div class="line">vcpkg install abseil:x64-windows</div>
 </div><!-- fragment --></li>
 <li>The project is configured to use Abseil 20240116.2 (see vcpkg.json overrides)</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md571"></a>
+<h1><a class="anchor" id="autotoc_md576"></a>
 Visual Studio Configuration</h1>
-<h2><a class="anchor" id="autotoc_md572"></a>
+<h2><a class="anchor" id="autotoc_md577"></a>
 CMake Settings</h2>
 <p>Create or modify <code>.vscode/settings.json</code> or use Visual Studio's CMake settings:</p>
 <div class="fragment"><div class="line">{</div>
@@ -240,7 +298,7 @@ CMake Settings</h2>
 <div class="line">    ],</div>
 <div class="line">    &quot;cmake.buildDirectory&quot;: &quot;${workspaceFolder}/build&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md573"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md578"></a>
 Build Presets</h2>
 <p>The project includes CMake presets in <code>CMakePresets.json</code>. Use these in Visual Studio:</p>
 <ol type="1">
@@ -249,9 +307,9 @@ Build Presets</h2>
 </li>
 <li><b>Development Build:</b> <code>dev</code> preset (includes ROM testing)</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md574"></a>
+<h1><a class="anchor" id="autotoc_md579"></a>
 Running the Application</h1>
-<h2><a class="anchor" id="autotoc_md575"></a>
+<h2><a class="anchor" id="autotoc_md580"></a>
 Using Visual Studio Project File</h2>
 <ol type="1">
 <li>Open <code>yaze.sln</code> in Visual Studio</li>
@@ -262,78 +320,78 @@ Using Visual Studio Project File</h2>
 </li>
 <li>Press F5 to build and run, or Ctrl+F5 to run without debugging</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md576"></a>
+<h2><a class="anchor" id="autotoc_md581"></a>
 Command Line</h2>
 <div class="fragment"><div class="line">cd build/bin/Debug  # or Release</div>
 <div class="line">yaze.exe --rom_file=path/to/your/zelda3.sfc</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md577"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md582"></a>
 Visual Studio (CMake)</h2>
 <ol type="1">
 <li>Set <code>yaze</code> as the startup project</li>
 <li>Configure command line arguments in Project Properties &gt; Debugging</li>
 <li>Press F5 to run</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md578"></a>
+<h1><a class="anchor" id="autotoc_md583"></a>
 Testing</h1>
-<h2><a class="anchor" id="autotoc_md579"></a>
+<h2><a class="anchor" id="autotoc_md584"></a>
 Run Unit Tests</h2>
 <div class="fragment"><div class="line">cd build</div>
 <div class="line">ctest --build-config Debug</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md580"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md585"></a>
 Run Specific Test Suite</h2>
 <div class="fragment"><div class="line">cd build/bin/Debug</div>
 <div class="line">yaze_test.exe</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md581"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md586"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md582"></a>
+<h2><a class="anchor" id="autotoc_md587"></a>
 Clean Build</h2>
 <p>If you encounter persistent issues: </p><div class="fragment"><div class="line">rmdir /s build</div>
 <div class="line">mkdir build</div>
 <div class="line">cd build</div>
 <div class="line">cmake .. -G &quot;Visual Studio 17 2022&quot; -A x64 -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake</div>
 <div class="line">cmake --build . --config Debug</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md583"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md588"></a>
 Check Dependencies</h2>
 <p>Verify all dependencies are properly installed: </p><div class="fragment"><div class="line">vcpkg list</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md584"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md589"></a>
 CMake Cache Issues</h2>
 <p>Clear CMake cache: </p><div class="fragment"><div class="line">del CMakeCache.txt</div>
 <div class="line">cmake .. -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md585"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md590"></a>
 Visual Studio Project File Features</h1>
 <p>The included <code>yaze.vcxproj</code> and <code>yaze.sln</code> files provide:</p>
-<h2><a class="anchor" id="autotoc_md586"></a>
+<h2><a class="anchor" id="autotoc_md591"></a>
 &lt;strong&gt;Automatic Dependency Management&lt;/strong&gt;</h2>
 <ul>
 <li><b>vcpkg Integration:</b> Automatically installs and links dependencies from <code>vcpkg.json</code></li>
 <li><b>Platform Support:</b> Pre-configured for both x64 and x86 builds</li>
 <li><b>Library Linking:</b> Automatically links SDL2, zlib, libpng, and system libraries</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md587"></a>
+<h2><a class="anchor" id="autotoc_md592"></a>
 &lt;strong&gt;Build Configuration&lt;/strong&gt;</h2>
 <ul>
 <li><b>Debug Configuration:</b> Includes debugging symbols and runtime checks</li>
 <li><b>Release Configuration:</b> Optimized for performance with full optimizations</li>
 <li><b>C++23 Standard:</b> Uses modern C++ features and standard library</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md588"></a>
+<h2><a class="anchor" id="autotoc_md593"></a>
 &lt;strong&gt;Asset Management&lt;/strong&gt;</h2>
 <ul>
 <li><b>Automatic Asset Copying:</b> Post-build events copy themes and assets to output directory</li>
 <li><b>ROM File Handling:</b> Automatically copies <code>zelda3.sfc</code> if present in project root</li>
 <li><b>Resource Organization:</b> Properly structures output directory for distribution</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md589"></a>
+<h2><a class="anchor" id="autotoc_md594"></a>
 &lt;strong&gt;Development Features&lt;/strong&gt;</h2>
 <ul>
 <li><b>IntelliSense Support:</b> Full code completion and error detection</li>
 <li><b>Debugging Integration:</b> Native Visual Studio debugging support</li>
 <li><b>Project Properties:</b> Easy access to compiler and linker settings</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md590"></a>
+<h1><a class="anchor" id="autotoc_md595"></a>
 CI/CD Integration</h1>
 <p>The Visual Studio project files are fully integrated into the CI/CD pipeline:</p>
-<h2><a class="anchor" id="autotoc_md591"></a>
+<h2><a class="anchor" id="autotoc_md596"></a>
 &lt;strong&gt;Automated Validation&lt;/strong&gt;</h2>
 <ul>
 <li><b>Pre-commit checks:</b> Visual Studio builds are validated on every pull request</li>
@@ -341,7 +399,7 @@ CI/CD Integration</h1>
 <li><b>Multi-platform testing:</b> x64 and x86 builds are validated on Windows</li>
 <li><b>Dependency verification:</b> vcpkg integration is tested automatically</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md592"></a>
+<h2><a class="anchor" id="autotoc_md597"></a>
 &lt;strong&gt;Build Matrix&lt;/strong&gt;</h2>
 <p>The CI/CD pipeline tests:</p><ul>
 <li><b>Windows x64 Debug/Release</b> using Visual Studio 2022</li>
@@ -349,7 +407,7 @@ CI/CD Integration</h1>
 <li><b>CMake builds</b> alongside Visual Studio builds for compatibility</li>
 <li><b>Asset copying</b> and executable functionality</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md593"></a>
+<h2><a class="anchor" id="autotoc_md598"></a>
 &lt;strong&gt;Quality Assurance&lt;/strong&gt;</h2>
 <ul>
 <li><b>Test main detection:</b> Prevents the test framework from hijacking the main application</li>
@@ -357,7 +415,7 @@ CI/CD Integration</h1>
 <li><b>Executable testing:</b> Verifies the application starts correctly</li>
 <li><b>Dependency checking:</b> Validates all required libraries are properly linked</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md594"></a>
+<h1><a class="anchor" id="autotoc_md599"></a>
 Additional Notes</h1>
 <ul>
 <li>The project supports both x64 and x86 builds (use appropriate vcpkg triplets)</li>
@@ -367,7 +425,7 @@ Additional Notes</h1>
 <li>The <code>.vcxproj</code> file provides the easiest setup for Visual Studio users who prefer traditional project files over CMake</li>
 <li>All builds are automatically validated to ensure they produce working executables</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md595"></a>
+<h1><a class="anchor" id="autotoc_md600"></a>
 Support</h1>
 <p>If you encounter issues not covered in this guide:</p><ol type="1">
 <li>Check the project's GitHub issues</li>

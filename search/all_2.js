@@ -14,16 +14,16 @@ var searchData=
   ['2_20objects_200x100_200x1ff_11',['Type 2 Objects (0x100-0x1FF)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md425',1,'']]],
   ['2_20palette_20loading_20errors_12',['2. Palette Loading Errors',['../md_docs_2F1-overworld-loading.html#autotoc_md499',1,'']]],
   ['2_20release_20tt_20release_20yml_20tt_13',['2. Release (&lt;tt&gt;release.yml&lt;/tt&gt;)',['../md_docs_2B4-release-workflows.html#autotoc_md175',1,'']]],
-  ['2_20set_20up_20vcpkg_14',['2. Set up vcpkg',['../md_docs_2windows-development-guide.html#autotoc_md604',1,'']]],
+  ['2_20set_20up_20vcpkg_14',['2. Set up vcpkg',['../md_docs_2windows-development-guide.html#autotoc_md609',1,'']]],
   ['2_20strong_20improved_20testability_20strong_15',['2. &lt;strong&gt;Improved Testability&lt;/strong&gt;',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md401',1,'']]],
-  ['2_20vcpkg_20integration_20issues_16',['2. vcpkg Integration Issues',['../md_docs_2windows-development-guide.html#autotoc_md617',1,'']]],
+  ['2_20vcpkg_20integration_20issues_16',['2. vcpkg Integration Issues',['../md_docs_2windows-development-guide.html#autotoc_md622',1,'']]],
   ['2023_17',['2023',['../md_docs_2C1-changelog.html#autotoc_md254',1,'0.0.3 (October 2023)'],['../md_docs_2C1-changelog.html#autotoc_md253',1,'0.0.4 (November 2023)'],['../md_docs_2C1-changelog.html#autotoc_md252',1,'0.0.5 (November 2023)'],['../md_docs_2C1-changelog.html#autotoc_md251',1,'0.0.6 (November 2023)']]],
   ['2024_18',['2024',['../md_docs_2C1-changelog.html#autotoc_md250',1,'0.0.7 (January 2024)'],['../md_docs_2C1-changelog.html#autotoc_md249',1,'0.0.8 (February 2024)'],['../md_docs_2C1-changelog.html#autotoc_md248',1,'0.0.9 (April 2024)'],['../md_docs_2C1-changelog.html#autotoc_md247',1,'0.1.0 (May 2024)'],['../md_docs_2C1-changelog.html#autotoc_md246',1,'0.2.0 (July 2024)'],['../md_docs_2C1-changelog.html#autotoc_md245',1,'0.2.1 (August 2024)'],['../md_docs_2C1-changelog.html#autotoc_md244',1,'0.2.2 (December 2024)']]],
   ['2025_19',['2025',['../md_docs_2C1-changelog.html#autotoc_md238',1,'0.3.0 (September 2025)'],['../md_docs_2C1-changelog.html#autotoc_md230',1,'0.3.1 (September 2025)']]],
   ['280px_20fixed_20',['Column 1: Room Control Panel (280px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md437',1,'']]],
   ['2_3a_20create_20triplet_20file_20manually_21',['Method 2: Create Triplet File Manually',['../md_docs_2vcpkg-triplet-setup.html#autotoc_md542',1,'']]],
-  ['2_3a_20executable_20runs_20tests_20instead_20of_20main_20app_22',['Issue 2: Executable Runs Tests Instead of Main App',['../md_docs_2visual-studio-setup.html#autotoc_md568',1,'']]],
-  ['2_3a_20integrate_20components_20🔄_23',['Phase 2: Integrate Components 🔄',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md411',1,'']]],
-  ['2_3a_20manual_20setup_24',['Option 2: Manual Setup',['../md_scripts_2README.html#autotoc_md664',1,'']]],
-  ['2_3a_20windowed_20canvas_20800px_20fixed_25',['Column 2: Windowed Canvas (800px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md438',1,'']]]
+  ['2_3a_20integrate_20components_20🔄_22',['Phase 2: Integrate Components 🔄',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md411',1,'']]],
+  ['2_3a_20manual_20setup_23',['Option 2: Manual Setup',['../md_scripts_2README.html#autotoc_md669',1,'']]],
+  ['2_3a_20windowed_20canvas_20800px_20fixed_24',['Column 2: Windowed Canvas (800px fixed)',['../md_docs_2E5-dungeon-object-system.html#autotoc_md438',1,'']]],
+  ['2_3a_20zlib_20import_20errors_25',['Issue 2: zlib Import Errors',['../md_docs_2visual-studio-setup.html#autotoc_md572',1,'']]]
 ];
