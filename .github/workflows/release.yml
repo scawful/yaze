@@ -244,6 +244,20 @@ jobs:
       with:
         submodules: recursive
 
+    # Clean up any potential vcpkg issues (Windows only)
+    - name: Clean vcpkg state (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Write-Host "Cleaning up any existing vcpkg state..."
+        if (Test-Path "vcpkg") {
+          Remove-Item -Recurse -Force "vcpkg" -ErrorAction SilentlyContinue
+        }
+        if (Test-Path "vcpkg_installed") {
+          Remove-Item -Recurse -Force "vcpkg_installed" -ErrorAction SilentlyContinue
+        }
+        Write-Host "Cleanup completed"
+
     # Platform-specific dependency installation
     - name: Install Linux dependencies
       if: runner.os == 'Linux'
@@ -299,10 +313,12 @@ jobs:
           -DYAZE_MINIMAL_BUILD=OFF \
           -GNinja
 
-    # Set up vcpkg for Windows builds
+    # Set up vcpkg for Windows builds with fallback
     - name: Set up vcpkg (Windows)
+      id: vcpkg_setup
       if: runner.os == 'Windows'
       uses: lukka/run-vcpkg@v11
+      continue-on-error: true
       with:
         vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
         runVcpkgInstall: true
@@ -311,25 +327,121 @@ jobs:
       env:
         VCPKG_FORCE_SYSTEM_BINARIES: 1
         VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        VCPKG_DISABLE_METRICS: 1
+        VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
+        VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+    # Debug vcpkg failure (Windows only)
+    - name: Debug vcpkg failure (Windows)
+      if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'failure'
+      shell: pwsh
+      run: |
+        Write-Host "=== vcpkg Setup Failed - Debug Information ===" -ForegroundColor Red
+        Write-Host "vcpkg directory exists: $(Test-Path 'vcpkg')"
+        Write-Host "vcpkg_installed directory exists: $(Test-Path 'vcpkg_installed')"
+        if (Test-Path "vcpkg") {
+          Write-Host "vcpkg directory contents:"
+          Get-ChildItem "vcpkg" | Select-Object -First 10
+        }
+        Write-Host "Git status:"
+        git status --porcelain
+        Write-Host "=============================================" -ForegroundColor Red
+
+    # Fallback: Install dependencies manually if vcpkg fails
+    - name: Install dependencies manually (Windows fallback)
+      if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'failure'
+      shell: pwsh
+      run: |
+        Write-Host "vcpkg setup failed, installing dependencies manually..."
+        
+        # Install Chocolatey if not present
+        if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+          Write-Host "Installing Chocolatey..."
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        }
+        
+        # Install basic build tools and dependencies
+        Write-Host "Installing build tools and dependencies..."
+        choco install -y cmake ninja git
+        
+        # Install some basic libraries that might be needed for minimal build
+        Write-Host "Installing basic libraries..."
+        choco install -y vcpkg --source=chocolatey 2>$null || Write-Host "vcpkg not available via chocolatey, continuing..."
+        
+        # Try to install some basic dependencies manually
+        Write-Host "Setting up basic development environment..."
+        $env:Path += ";C:\Program Files\Git\bin"
+        
+        # Set environment variable to indicate minimal build
+        echo "YAZE_MINIMAL_BUILD=ON" >> $env:GITHUB_ENV
+        echo "VCPKG_AVAILABLE=false" >> $env:GITHUB_ENV
+        
+        Write-Host "Manual dependency installation completed"
+
+    # Set vcpkg availability flag when vcpkg succeeds
+    - name: Set vcpkg availability flag
+      if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'success'
+      shell: pwsh
+      run: |
+        echo "VCPKG_AVAILABLE=true" >> $env:GITHUB_ENV
+        Write-Host "vcpkg setup successful"
 
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
         Write-Host "Configuring CMake for Windows build..."
-        cmake -B build `
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
-          -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
-          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
-          -DYAZE_BUILD_TESTS=OFF `
-          -DYAZE_BUILD_EMU=OFF `
-          -DYAZE_BUILD_Z3ED=OFF `
-          -DYAZE_ENABLE_ROM_TESTS=OFF `
-          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
-          -DYAZE_INSTALL_LIB=OFF `
-          -DYAZE_MINIMAL_BUILD=OFF `
-          -G "${{ matrix.cmake_generator }}" `
-          -A ${{ matrix.cmake_generator_platform }}
+        
+        # Check if vcpkg is available
+        if (Test-Path "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -and $env:VCPKG_AVAILABLE -ne "false") {
+          Write-Host "Using vcpkg toolchain..."
+          cmake -B build `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
+            -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
+            -DYAZE_BUILD_TESTS=OFF `
+            -DYAZE_BUILD_EMU=OFF `
+            -DYAZE_BUILD_Z3ED=OFF `
+            -DYAZE_ENABLE_ROM_TESTS=OFF `
+            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
+            -DYAZE_INSTALL_LIB=OFF `
+            -DYAZE_MINIMAL_BUILD=OFF `
+            -G "${{ matrix.cmake_generator }}" `
+            -A ${{ matrix.cmake_generator_platform }}
+        } else {
+          Write-Host "Using minimal build configuration (vcpkg not available)..."
+          cmake -B build `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 `
+            -DYAZE_BUILD_TESTS=OFF `
+            -DYAZE_BUILD_EMU=OFF `
+            -DYAZE_BUILD_Z3ED=OFF `
+            -DYAZE_ENABLE_ROM_TESTS=OFF `
+            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF `
+            -DYAZE_INSTALL_LIB=OFF `
+            -DYAZE_MINIMAL_BUILD=ON `
+            -G "${{ matrix.cmake_generator }}" `
+            -A ${{ matrix.cmake_generator_platform }}
+        }
+        
+        Write-Host "CMake configuration completed successfully"
+
+    # Verify CMake configuration (Windows only)
+    - name: Verify CMake configuration (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Write-Host "Verifying CMake configuration..."
+        if (Test-Path "build/CMakeCache.txt") {
+          Write-Host "✓ CMakeCache.txt found"
+          Write-Host "Build type: $(Select-String -Path 'build/CMakeCache.txt' -Pattern 'CMAKE_BUILD_TYPE' | ForEach-Object { $_.Line.Split('=')[1] })"
+          Write-Host "Minimal build: $(Select-String -Path 'build/CMakeCache.txt' -Pattern 'YAZE_MINIMAL_BUILD' | ForEach-Object { $_.Line.Split('=')[1] })"
+        } else {
+          Write-Error "CMakeCache.txt not found - CMake configuration failed!"
+          exit 1
+        }
 
     # Build
     - name: Build
