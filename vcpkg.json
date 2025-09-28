@@ -9,6 +9,7 @@
       "features": ["vulkan"]
     }
   ],
+  "builtin-baseline": "2024.12.18",
   "overrides": [],
   "features": {
     "pkg-config": {
