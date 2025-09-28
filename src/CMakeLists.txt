@@ -112,13 +112,18 @@ else()
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
   else()
+    # Windows resource file - only for x64 architecture
     set_target_properties(yaze
       PROPERTIES
       ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
       LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-      LINK_FLAGS "${CMAKE_CURRENT_SOURCE_DIR}/win32/yaze.res"
     )
+    
+    # Only use resource file for x64 Windows builds
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+      target_link_options(yaze PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/win32/yaze.res")
+    endif()
   endif()
 endif()
 
