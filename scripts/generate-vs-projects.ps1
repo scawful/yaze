@@ -142,13 +142,17 @@ if (-not (Test-Path $BuildDir)) {
 $VcpkgPath = Join-Path $SourceDir "vcpkg\scripts\buildsystems\vcpkg.cmake"
 $VcpkgInstalled = Join-Path $SourceDir "vcpkg\installed"
 
-# Check for vcpkg in common locations
+# Check for vcpkg in common locations (including global installations)
 $VcpkgPaths = @(
     (Join-Path $SourceDir "vcpkg\scripts\buildsystems\vcpkg.cmake"),
     "$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake",
     "$env:ProgramFiles\vcpkg\scripts\buildsystems\vcpkg.cmake",
-    "$env:ProgramFiles(x86)\vcpkg\scripts\buildsystems\vcpkg.cmake"
+    "$env:ProgramFiles(x86)\vcpkg\scripts\buildsystems\vcpkg.cmake",
+    "$env:LOCALAPPDATA\vcpkg\scripts\buildsystems\vcpkg.cmake"
 )
+
+# Also check if vcpkg is available in PATH (for global installations)
+$VcpkgExe = Get-Command vcpkg -ErrorAction SilentlyContinue
 
 $UseVcpkg = $false
 foreach ($path in $VcpkgPaths) {
@@ -159,26 +163,53 @@ foreach ($path in $VcpkgPaths) {
     }
 }
 
+# If no local vcpkg found but vcpkg.exe is in PATH, check for manifest mode
+if (-not $UseVcpkg -and $VcpkgExe) {
+    # Check if we have a vcpkg.json manifest file (indicates manifest mode)
+    $VcpkgManifest = Join-Path $SourceDir "vcpkg.json"
+    if (Test-Path $VcpkgManifest) {
+        Write-Host "Found vcpkg.json manifest file, using vcpkg in manifest mode" -ForegroundColor Green
+        $UseVcpkg = $true
+        # For manifest mode, we don't need to specify the toolchain file explicitly
+        # CMake will automatically detect and use vcpkg
+    }
+}
+
 if ($UseVcpkg) {
-    Write-Host "Using vcpkg toolchain: $VcpkgPath" -ForegroundColor Green
-    
-    # Check if vcpkg is properly installed with required packages
-    if (Test-Path $VcpkgInstalled) {
-        Write-Host "vcpkg packages directory found: $VcpkgInstalled" -ForegroundColor Green
-    } else {
-        Write-Host "vcpkg packages not installed. Installing dependencies..." -ForegroundColor Yellow
+    # Check if we're using manifest mode
+    $VcpkgManifest = Join-Path $SourceDir "vcpkg.json"
+    if (Test-Path $VcpkgManifest) {
+        Write-Host "Using vcpkg in manifest mode" -ForegroundColor Green
+        Write-Host "vcpkg will automatically install dependencies from vcpkg.json" -ForegroundColor Green
         
-        # Try to install vcpkg dependencies
-        $VcpkgExe = Join-Path (Split-Path $VcpkgPath -Parent -Parent) "vcpkg.exe"
-        if (Test-Path $VcpkgExe) {
-            Write-Host "Installing vcpkg dependencies..." -ForegroundColor Yellow
-            & $VcpkgExe install --triplet $Architecture-windows
-            if ($LASTEXITCODE -ne 0) {
-                Write-Host "Failed to install vcpkg dependencies" -ForegroundColor Red
-                Write-Host "Please run: vcpkg install --triplet $Architecture-windows" -ForegroundColor Yellow
-            }
+        # Check if vcpkg is available in PATH
+        if ($VcpkgExe) {
+            Write-Host "vcpkg executable found: $($VcpkgExe.Source)" -ForegroundColor Green
         } else {
-            Write-Host "vcpkg.exe not found. Please install dependencies manually." -ForegroundColor Yellow
+            Write-Host "vcpkg not found in PATH. Please ensure vcpkg is installed and available." -ForegroundColor Yellow
+            Write-Host "You can install vcpkg from: https://github.com/Microsoft/vcpkg" -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "Using vcpkg toolchain: $VcpkgPath" -ForegroundColor Green
+        
+        # Check if vcpkg is properly installed with required packages
+        if (Test-Path $VcpkgInstalled) {
+            Write-Host "vcpkg packages directory found: $VcpkgInstalled" -ForegroundColor Green
+        } else {
+            Write-Host "vcpkg packages not installed. Installing dependencies..." -ForegroundColor Yellow
+            
+            # Try to install vcpkg dependencies
+            $VcpkgExe = Join-Path (Split-Path $VcpkgPath -Parent -Parent) "vcpkg.exe"
+            if (Test-Path $VcpkgExe) {
+                Write-Host "Installing vcpkg dependencies..." -ForegroundColor Yellow
+                & $VcpkgExe install --triplet $Architecture-windows
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "Failed to install vcpkg dependencies" -ForegroundColor Red
+                    Write-Host "Please run: vcpkg install --triplet $Architecture-windows" -ForegroundColor Yellow
+                }
+            } else {
+                Write-Host "vcpkg.exe not found. Please install dependencies manually." -ForegroundColor Yellow
+            }
         }
     }
 } else {
@@ -215,11 +246,23 @@ $CmakeArgs = @(
 )
 
 if ($UseVcpkg) {
-    $CmakeArgs += @(
-        "-DCMAKE_TOOLCHAIN_FILE=`"$VcpkgPath`"",
-        "-DVCPKG_TARGET_TRIPLET=$Architecture-windows",
-        "-DVCPKG_MANIFEST_MODE=ON"
-    )
+    # Check if we're using manifest mode (vcpkg.json present)
+    $VcpkgManifest = Join-Path $SourceDir "vcpkg.json"
+    if (Test-Path $VcpkgManifest) {
+        # Manifest mode - CMake will automatically detect vcpkg
+        Write-Host "Using vcpkg in manifest mode" -ForegroundColor Green
+        $CmakeArgs += @(
+            "-DVCPKG_TARGET_TRIPLET=$Architecture-windows",
+            "-DVCPKG_MANIFEST_MODE=ON"
+        )
+    } else {
+        # Classic mode - specify toolchain file
+        Write-Host "Using vcpkg in classic mode with toolchain: $VcpkgPath" -ForegroundColor Green
+        $CmakeArgs += @(
+            "-DCMAKE_TOOLCHAIN_FILE=`"$VcpkgPath`"",
+            "-DVCPKG_TARGET_TRIPLET=$Architecture-windows"
+        )
+    }
 }
 
 # Configure CMake to generate Visual Studio project files
