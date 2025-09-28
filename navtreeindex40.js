@@ -126,7 +126,6 @@ var NAVTREEINDEX40 =
 "font__loader_8cc.html#a0d62353b28e596070a67929b63594ce1":[29,0,3,0,0,0,8,0],
 "font__loader_8cc.html#a171a8a94e8642f977ca04cf54245cd13":[29,0,3,0,0,0,8,5],
 "font__loader_8cc.html#a1ebfa2ff985b2a41c726bfbaa9a868dd":[29,0,3,0,0,0,8,4],
-"font__loader_8cc.html#aa408d383ff33494e29ea06e0e6774f4c":[29,0,3,0,0,0,8,6],
 "font__loader_8cc.html#aeb026c1f2d88cd2c2d4ac9a283861bbe":[29,0,3,0,0,0,8,1],
 "font__loader_8cc.html#af50562c29e14353a5e69a2cf5283f375":[29,0,3,0,0,0,8,3],
 "font__loader_8cc_source.html":[29,0,3,0,0,0,8],
@@ -249,5 +248,6 @@ var NAVTREEINDEX40 =
 "globals_defs_d.html":[29,1,6,3],
 "globals_defs_e.html":[29,1,6,4],
 "globals_defs_f.html":[29,1,6,5],
-"globals_defs_h.html":[29,1,6,6]
+"globals_defs_h.html":[29,1,6,6],
+"globals_defs_i.html":[29,1,6,7]
 };

@@ -1,6 +1,5 @@
 var NAVTREEINDEX51 =
 {
-"main_8mm.html":[29,0,3,2,0],
 "main_8mm.html#a0ddf1224851353fc92bfbff6f499fa97":[29,0,3,2,0,0],
 "main_8mm_source.html":[29,0,3,2,0],
 "map__properties_8cc.html":[29,0,3,0,1,5,2],
@@ -249,5 +248,6 @@ var NAVTREEINDEX51 =
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md222":[11,1,0,3],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md223":[11,2],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md224":[11,2,0],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md225":[11,2,0,0]
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md225":[11,2,0,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md226":[11,2,1]
 };

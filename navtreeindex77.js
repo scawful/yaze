@@ -1,6 +1,5 @@
 var NAVTREEINDEX77 =
 {
-"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#acb62be8cc66f01138d93ac037aded49f":[27,0,6,9,12,1,10],
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#ad524902d84d800ba115790b25e8dbf5a":[28,0,0,9,7,1,1],
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#ad524902d84d800ba115790b25e8dbf5a":[27,0,6,9,12,1,1],
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#aed79348d00001751c87dfe9dc35e5b72":[27,0,6,9,12,1,8],
@@ -249,5 +248,6 @@ var NAVTREEINDEX77 =
 "structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#a882ec5cf1404d8d149b3e2416f6fca9b":[27,0,6,9,4,0,4],
 "structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#abf29a678db3372e8afd90815a422908d":[27,0,6,9,4,0,2],
 "structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#abf29a678db3372e8afd90815a422908d":[28,0,0,9,1,0,2],
-"structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#acc79fd82b8ade186989bf7ec015113c3":[27,0,6,9,4,0,5]
+"structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#acc79fd82b8ade186989bf7ec015113c3":[27,0,6,9,4,0,5],
+"structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#acc79fd82b8ade186989bf7ec015113c3":[28,0,0,9,1,0,5]
 };

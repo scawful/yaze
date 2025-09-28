@@ -1,6 +1,5 @@
 var NAVTREEINDEX56 =
 {
-"namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#ac647c716cf7e74b51fd5993fa6ff70fa":[27,0,6,4,1,1],
 "namespaceyaze_1_1gfx.html":[27,0,6,5],
 "namespaceyaze_1_1gfx.html#a01134351110b2ecaf4f31746465fcd89":[27,0,6,5,101],
 "namespaceyaze_1_1gfx.html#a0a340c4a6996bb676626082911f94815":[27,0,6,5,95],
@@ -249,5 +248,6 @@ var NAVTREEINDEX56 =
 "namespaceyaze_1_1gui.html#a28dd8b4161ca3d4103b8285519a4871a":[27,0,6,6,83],
 "namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237":[27,0,6,6,53],
 "namespaceyaze_1_1gui.html#a2fab6c87cc29a26e4b09632253507131":[27,0,6,6,68],
-"namespaceyaze_1_1gui.html#a329bfec318646ab338eae2167beee7a2":[27,0,6,6,35]
+"namespaceyaze_1_1gui.html#a329bfec318646ab338eae2167beee7a2":[27,0,6,6,35],
+"namespaceyaze_1_1gui.html#a359973f01787648b92a53d2aa84120a9":[27,0,6,6,37]
 };

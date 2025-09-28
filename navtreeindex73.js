@@ -1,6 +1,5 @@
 var NAVTREEINDEX73 =
 {
-"structyaze_1_1emu_1_1VideoPortControl.html#aef75cbc3964d5292fc5660da2edaaf10":[27,0,6,4,84,0],
 "structyaze_1_1emu_1_1W12SEL.html":[28,0,0,4,89],
 "structyaze_1_1emu_1_1W12SEL.html":[27,0,6,4,91],
 "structyaze_1_1emu_1_1W12SEL.html#a37bce5d1c79e2a2f2c49a6a7d257c100":[27,0,6,4,91,1],
@@ -249,5 +248,6 @@ var NAVTREEINDEX73 =
 "structyaze_1_1gfx_1_1Paletteset.html#a4bf955940f690d6bd49d239998580a77":[27,0,6,5,14,10],
 "structyaze_1_1gfx_1_1Paletteset.html#a4e691551109932639735b4390f69c98d":[28,0,0,5,12,7],
 "structyaze_1_1gfx_1_1Paletteset.html#a4e691551109932639735b4390f69c98d":[27,0,6,5,14,7],
-"structyaze_1_1gfx_1_1Paletteset.html#a72aadefb5901777ae333bbd37451f92e":[28,0,0,5,12,4]
+"structyaze_1_1gfx_1_1Paletteset.html#a72aadefb5901777ae333bbd37451f92e":[28,0,0,5,12,4],
+"structyaze_1_1gfx_1_1Paletteset.html#a72aadefb5901777ae333bbd37451f92e":[27,0,6,5,14,4]
 };

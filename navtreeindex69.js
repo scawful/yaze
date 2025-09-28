@@ -1,6 +1,5 @@
 var NAVTREEINDEX69 =
 {
-"structyaze_1_1editor_1_1ParsedElement.html#a108e9b0f4de5545af00de36e6297ca69":[28,0,0,3,36,1],
 "structyaze_1_1editor_1_1ParsedElement.html#a886d6e52ee31417037d6ed7b73c23b70":[27,0,6,3,42,2],
 "structyaze_1_1editor_1_1ParsedElement.html#a886d6e52ee31417037d6ed7b73c23b70":[28,0,0,3,36,2],
 "structyaze_1_1editor_1_1ParsedElement.html#aa82ec84f467e9f8e5577f1e0e35740d7":[28,0,0,3,36,4],
@@ -249,5 +248,6 @@ var NAVTREEINDEX69 =
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#af7231d238564bed64778df83045c5bfe":[27,0,6,3,8,5,5],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#afad32f6eac364443e37f4e32fcd88a24":[28,0,0,3,2,5,33],
 "structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#afad32f6eac364443e37f4e32fcd88a24":[27,0,6,3,8,5,33],
-"structyaze_1_1emu_1_1ApuCallbacks.html":[27,0,6,4,3]
+"structyaze_1_1emu_1_1ApuCallbacks.html":[27,0,6,4,3],
+"structyaze_1_1emu_1_1ApuCallbacks.html":[28,0,0,4,1]
 };
