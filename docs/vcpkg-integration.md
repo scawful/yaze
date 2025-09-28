@@ -1,5 +1,7 @@
 # vcpkg Integration for Windows Builds
 
+> **Note**: This document provides detailed vcpkg information. For the most up-to-date build instructions, see [Build Instructions](02-build-instructions.md).
+
 This document describes how to use vcpkg for Windows builds in Visual Studio with YAZE.
 
 ## Overview
