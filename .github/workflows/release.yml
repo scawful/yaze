@@ -231,7 +231,7 @@ jobs:
       run: |
         echo "Using streamlined release build configuration for all platforms"
         echo "Linux/macOS: UI tests enabled with full dependency support"
-        echo "Windows: Minimal build to avoid vcpkg issues, UI tests disabled"
+        echo "Windows: Full build with vcpkg integration for proper releases"
         echo "All platforms: Emulator and developer tools disabled for clean releases"
 
     # Configure CMake
@@ -250,6 +250,17 @@ jobs:
           -DYAZE_INSTALL_LIB=OFF \
           -GNinja
 
+    # Set up vcpkg for Windows builds
+    - name: Set up vcpkg (Windows)
+      if: runner.os == 'Windows'
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
+        runVcpkgInstall: true
+        vcpkgJsonGlob: '**/vcpkg.json'
+        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+        vcpkgTriplet: '${{ matrix.vcpkg_triplet }}'
+
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
       shell: cmd
@@ -257,19 +268,90 @@ jobs:
         cmake -B build ^
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} ^
           -DCMAKE_POLICY_VERSION_MINIMUM=3.16 ^
+          -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" ^
           -DYAZE_BUILD_TESTS=OFF ^
           -DYAZE_BUILD_EMU=OFF ^
           -DYAZE_BUILD_Z3ED=OFF ^
           -DYAZE_ENABLE_ROM_TESTS=OFF ^
           -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF ^
           -DYAZE_INSTALL_LIB=OFF ^
-          -DYAZE_MINIMAL_BUILD=ON ^
+          -DYAZE_MINIMAL_BUILD=OFF ^
           -G "${{ matrix.cmake_generator }}" ^
           -A ${{ matrix.cmake_generator_platform }}
 
     # Build
     - name: Build
       run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+    # Validate Visual Studio project builds (Windows only)
+    - name: Validate Visual Studio Project Build
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = "Stop"
+        
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "Validating Visual Studio Project Build" -ForegroundColor Cyan
+        Write-Host "Platform: ${{ matrix.cmake_generator_platform }}" -ForegroundColor Yellow
+        Write-Host "Configuration: ${{ env.BUILD_TYPE }}" -ForegroundColor Yellow
+        Write-Host "========================================" -ForegroundColor Cyan
+        
+        # Check if we're in the right directory
+        if (-not (Test-Path "yaze.sln")) {
+            Write-Error "yaze.sln not found. Please run this script from the project root directory."
+            exit 1
+        }
+        
+        Write-Host "✓ yaze.sln found" -ForegroundColor Green
+        
+        # Build using MSBuild
+        Write-Host "Building with MSBuild..." -ForegroundColor Yellow
+        $msbuildArgs = @(
+            "yaze.sln"
+            "/p:Configuration=${{ env.BUILD_TYPE }}"
+            "/p:Platform=${{ matrix.cmake_generator_platform }}"
+            "/p:VcpkgEnabled=true"
+            "/p:VcpkgManifestInstall=true"
+            "/m"  # Multi-processor build
+            "/verbosity:minimal"
+        )
+        
+        Write-Host "MSBuild command: msbuild $($msbuildArgs -join ' ')" -ForegroundColor Gray
+        & msbuild @msbuildArgs
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "MSBuild failed with exit code $LASTEXITCODE"
+            exit 1
+        }
+        
+        Write-Host "✓ Visual Studio build completed successfully" -ForegroundColor Green
+        
+        # Verify executable was created
+        $exePath = "build\bin\${{ env.BUILD_TYPE }}\yaze.exe"
+        if (-not (Test-Path $exePath)) {
+            Write-Error "Executable not found at expected path: $exePath"
+            exit 1
+        }
+        
+        Write-Host "✓ Executable created: $exePath" -ForegroundColor Green
+        
+        # Test that the executable runs (basic test)
+        Write-Host "Testing executable startup..." -ForegroundColor Yellow
+        $testResult = & $exePath --help 2>&1
+        $exitCode = $LASTEXITCODE
+        
+        # Check if it's the test main or app main
+        if ($testResult -match "Google Test" -or $testResult -match "gtest") {
+            Write-Error "Executable is running test main instead of app main!"
+            Write-Host "Output: $testResult" -ForegroundColor Red
+            exit 1
+        }
+        
+        Write-Host "✓ Executable runs correctly (exit code: $exitCode)" -ForegroundColor Green
+        
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "✓ Visual Studio build validation PASSED" -ForegroundColor Green
+        Write-Host "========================================" -ForegroundColor Cyan
 
     # Package
     - name: Package
