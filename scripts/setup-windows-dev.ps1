@@ -1,5 +1,5 @@
 # YAZE Windows Development Setup Script
-# This script sets up a complete Windows development environment for YAZE
+# Simple linear approach without complex if-else statements
 
 param(
     [switch]$SkipVcpkg,
@@ -7,187 +7,182 @@ param(
     [switch]$SkipBuild
 )
 
-# Set error handling
 $ErrorActionPreference = "Continue"
 
-# Colors for output
-$Colors = @{
-    Success = "Green"
-    Warning = "Yellow" 
-    Error = "Red"
-    Info = "Cyan"
-    White = "White"
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "YAZE Windows Development Setup" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+
+# Step 1: Check project directory
+Write-Host "Step 1: Checking project directory..." -ForegroundColor Yellow
+$projectValid = Test-Path "YAZE.sln"
+if ($projectValid) {
+    Write-Host "✓ YAZE.sln found" -ForegroundColor Green
+} else {
+    Write-Host "✗ YAZE.sln not found" -ForegroundColor Red
+    Write-Host "Please run this script from the YAZE project root directory" -ForegroundColor Yellow
+    exit 1
 }
 
-function Write-Status {
-    param([string]$Message, [string]$Color = "White")
-    Write-Host $Message -ForegroundColor $Colors[$Color]
-}
-
-function Test-Command {
-    param([string]$Command)
-    try {
-        $null = Get-Command $Command -ErrorAction Stop
-        return $true
-    } catch {
-        return $false
-    }
-}
-
-function Test-VisualStudio {
+# Step 2: Check Visual Studio
+Write-Host "Step 2: Checking Visual Studio..." -ForegroundColor Yellow
+if ($SkipVS) {
+    Write-Host "Skipping Visual Studio check" -ForegroundColor Yellow
+} else {
     $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    $vsFound = $false
     if (Test-Path $vsWhere) {
         $vsInstall = & $vsWhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
         if ($vsInstall) {
             $msbuildPath = Join-Path $vsInstall "MSBuild\Current\Bin\MSBuild.exe"
-            if (Test-Path $msbuildPath) {
-                return $true
-            }
+            $vsFound = Test-Path $msbuildPath
         }
     }
-    return $false
-}
-
-# Main script
-Write-Status "========================================" "Info"
-Write-Status "YAZE Windows Development Setup" "Info"
-Write-Status "========================================" "Info"
-
-# Check if we're in the right directory
-if (-not (Test-Path "YAZE.sln")) {
-    Write-Status "ERROR: YAZE.sln not found. Please run this script from the project root directory." "Error"
-    exit 1
-}
-
-Write-Status "✓ Found YAZE project files" "Success"
-
-# Check Visual Studio
-if (-not $SkipVS) {
-    Write-Status "Checking Visual Studio..." "Warning"
-    if (Test-VisualStudio) {
-        Write-Status "✓ Visual Studio 2022 with C++ workload found" "Success"
-    } else {
-        Write-Status "⚠ Visual Studio 2022 with C++ workload not found" "Warning"
-        Write-Status "Please install Visual Studio 2022 with 'Desktop development with C++' workload" "Info"
-    }
-} else {
-    Write-Status "Skipping Visual Studio check" "Warning"
-}
-
-# Check Git
-Write-Status "Checking Git..." "Warning"
-if (Test-Command "git") {
-    $gitVersion = & git --version
-    Write-Status "✓ Git found: $gitVersion" "Success"
-} else {
-    Write-Status "⚠ Git not found" "Warning"
-    Write-Status "Please install Git for Windows from: https://git-scm.com/download/win" "Info"
-}
-
-# Check Python
-Write-Status "Checking Python..." "Warning"
-if (Test-Command "python") {
-    $pythonVersion = & python --version
-    Write-Status "✓ Python found: $pythonVersion" "Success"
-} else {
-    Write-Status "⚠ Python not found" "Warning"
-    Write-Status "Please install Python 3.8+ from: https://www.python.org/downloads/" "Info"
-}
-
-# Setup vcpkg
-if (-not $SkipVcpkg) {
-    Write-Status "Setting up vcpkg..." "Warning"
     
-    # Clone vcpkg if needed
-    if (-not (Test-Path "vcpkg")) {
-        if (Test-Command "git") {
-            Write-Status "Cloning vcpkg..." "Warning"
+    if ($vsFound) {
+        Write-Host "✓ Visual Studio 2022 with C++ workload found" -ForegroundColor Green
+    } else {
+        Write-Host "⚠ Visual Studio 2022 with C++ workload not found" -ForegroundColor Yellow
+        Write-Host "Please install Visual Studio 2022 with 'Desktop development with C++' workload" -ForegroundColor White
+    }
+}
+
+# Step 3: Check Git
+Write-Host "Step 3: Checking Git..." -ForegroundColor Yellow
+$gitFound = $false
+try {
+    $null = Get-Command git -ErrorAction Stop
+    $gitFound = $true
+} catch {
+    $gitFound = $false
+}
+
+if ($gitFound) {
+    $gitVersion = & git --version
+    Write-Host "✓ Git found: $gitVersion" -ForegroundColor Green
+} else {
+    Write-Host "⚠ Git not found" -ForegroundColor Yellow
+    Write-Host "Please install Git for Windows from: https://git-scm.com/download/win" -ForegroundColor White
+}
+
+# Step 4: Check Python
+Write-Host "Step 4: Checking Python..." -ForegroundColor Yellow
+$pythonFound = $false
+try {
+    $null = Get-Command python -ErrorAction Stop
+    $pythonFound = $true
+} catch {
+    $pythonFound = $false
+}
+
+if ($pythonFound) {
+    $pythonVersion = & python --version
+    Write-Host "✓ Python found: $pythonVersion" -ForegroundColor Green
+} else {
+    Write-Host "⚠ Python not found" -ForegroundColor Yellow
+    Write-Host "Please install Python 3.8+ from: https://www.python.org/downloads/" -ForegroundColor White
+}
+
+# Step 5: Setup vcpkg
+Write-Host "Step 5: Setting up vcpkg..." -ForegroundColor Yellow
+if ($SkipVcpkg) {
+    Write-Host "Skipping vcpkg setup" -ForegroundColor Yellow
+} else {
+    # Clone vcpkg
+    $vcpkgExists = Test-Path "vcpkg"
+    if (-not $vcpkgExists) {
+        Write-Host "Cloning vcpkg..." -ForegroundColor Yellow
+        if ($gitFound) {
             & git clone https://github.com/Microsoft/vcpkg.git vcpkg
-            if ($LASTEXITCODE -eq 0) {
-                Write-Status "✓ vcpkg cloned successfully" "Success"
+            $cloneSuccess = ($LASTEXITCODE -eq 0)
+            if ($cloneSuccess) {
+                Write-Host "✓ vcpkg cloned successfully" -ForegroundColor Green
             } else {
-                Write-Status "✗ Failed to clone vcpkg" "Error"
+                Write-Host "✗ Failed to clone vcpkg" -ForegroundColor Red
                 exit 1
             }
         } else {
-            Write-Status "✗ Git is required to clone vcpkg" "Error"
+            Write-Host "✗ Git is required to clone vcpkg" -ForegroundColor Red
             exit 1
         }
     } else {
-        Write-Status "✓ vcpkg directory already exists" "Success"
+        Write-Host "✓ vcpkg directory already exists" -ForegroundColor Green
     }
     
     # Bootstrap vcpkg
     $vcpkgExe = "vcpkg\vcpkg.exe"
-    if (-not (Test-Path $vcpkgExe)) {
-        Write-Status "Bootstrapping vcpkg..." "Warning"
+    $vcpkgBootstrapped = Test-Path $vcpkgExe
+    if (-not $vcpkgBootstrapped) {
+        Write-Host "Bootstrapping vcpkg..." -ForegroundColor Yellow
         Push-Location vcpkg
         & .\bootstrap-vcpkg.bat
-        if ($LASTEXITCODE -eq 0) {
-            Write-Status "✓ vcpkg bootstrapped successfully" "Success"
+        $bootstrapSuccess = ($LASTEXITCODE -eq 0)
+        Pop-Location
+        if ($bootstrapSuccess) {
+            Write-Host "✓ vcpkg bootstrapped successfully" -ForegroundColor Green
         } else {
-            Write-Status "✗ Failed to bootstrap vcpkg" "Error"
-            Pop-Location
+            Write-Host "✗ Failed to bootstrap vcpkg" -ForegroundColor Red
             exit 1
         }
-        Pop-Location
     } else {
-        Write-Status "✓ vcpkg already bootstrapped" "Success"
+        Write-Host "✓ vcpkg already bootstrapped" -ForegroundColor Green
     }
     
     # Install dependencies
-    Write-Status "Installing dependencies..." "Warning"
+    Write-Host "Installing dependencies..." -ForegroundColor Yellow
     & $vcpkgExe install --triplet x64-windows
-    if ($LASTEXITCODE -eq 0) {
-        Write-Status "✓ Dependencies installed successfully" "Success"
+    $installSuccess = ($LASTEXITCODE -eq 0)
+    if ($installSuccess) {
+        Write-Host "✓ Dependencies installed successfully" -ForegroundColor Green
     } else {
-        Write-Status "⚠ Some dependencies may not have installed correctly" "Warning"
+        Write-Host "⚠ Some dependencies may not have installed correctly" -ForegroundColor Yellow
     }
-} else {
-    Write-Status "Skipping vcpkg setup" "Warning"
 }
 
-# Generate project files
-Write-Status "Generating Visual Studio project files..." "Warning"
-if (Test-Command "python") {
+# Step 6: Generate project files
+Write-Host "Step 6: Generating Visual Studio project files..." -ForegroundColor Yellow
+if ($pythonFound) {
     & python scripts/generate-vs-projects.py
-    if ($LASTEXITCODE -eq 0) {
-        Write-Status "✓ Project files generated successfully" "Success"
+    $generateSuccess = ($LASTEXITCODE -eq 0)
+    if ($generateSuccess) {
+        Write-Host "✓ Project files generated successfully" -ForegroundColor Green
     } else {
-        Write-Status "⚠ Failed to generate project files" "Warning"
+        Write-Host "⚠ Failed to generate project files" -ForegroundColor Yellow
     }
 } else {
-    Write-Status "⚠ Python required to generate project files" "Warning"
+    Write-Host "⚠ Python required to generate project files" -ForegroundColor Yellow
 }
 
-# Test build
-if (-not $SkipBuild) {
-    Write-Status "Testing build..." "Warning"
-    if (Test-Path "scripts\build-windows.ps1") {
+# Step 7: Test build
+Write-Host "Step 7: Testing build..." -ForegroundColor Yellow
+if ($SkipBuild) {
+    Write-Host "Skipping test build" -ForegroundColor Yellow
+} else {
+    $buildScriptExists = Test-Path "scripts\build-windows.ps1"
+    if ($buildScriptExists) {
         & .\scripts\build-windows.ps1 -Configuration Release -Platform x64
-        if ($LASTEXITCODE -eq 0) {
-            Write-Status "✓ Test build successful" "Success"
+        $buildSuccess = ($LASTEXITCODE -eq 0)
+        if ($buildSuccess) {
+            Write-Host "✓ Test build successful" -ForegroundColor Green
         } else {
-            Write-Status "⚠ Test build failed, but setup is complete" "Warning"
+            Write-Host "⚠ Test build failed, but setup is complete" -ForegroundColor Yellow
         }
     } else {
-        Write-Status "⚠ Build script not found" "Warning"
+        Write-Host "⚠ Build script not found" -ForegroundColor Yellow
     }
-} else {
-    Write-Status "Skipping test build" "Warning"
 }
 
 # Final instructions
-Write-Status "========================================" "Info"
-Write-Status "✓ YAZE Windows development setup complete!" "Success"
-Write-Status "========================================" "Info"
-Write-Status ""
-Write-Status "Next steps:" "Warning"
-Write-Status "1. Open YAZE.sln in Visual Studio 2022" "White"
-Write-Status "2. Select configuration (Debug/Release) and platform (x64/x86/ARM64)" "White"
-Write-Status "3. Build the solution (Ctrl+Shift+B)" "White"
-Write-Status ""
-Write-Status "Or use command line:" "Warning"
-Write-Status "  .\scripts\build-windows.ps1 -Configuration Release -Platform x64" "White"
-Write-Status ""
-Write-Status "For more information, see docs/windows-development-guide.md" "Info"
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "✓ YAZE Windows development setup complete!" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Next steps:" -ForegroundColor Yellow
+Write-Host "1. Open YAZE.sln in Visual Studio 2022" -ForegroundColor White
+Write-Host "2. Select configuration (Debug/Release) and platform (x64/x86/ARM64)" -ForegroundColor White
+Write-Host "3. Build the solution (Ctrl+Shift+B)" -ForegroundColor White
+Write-Host ""
+Write-Host "Or use command line:" -ForegroundColor Yellow
+Write-Host "  .\scripts\build-windows.ps1 -Configuration Release -Platform x64" -ForegroundColor White
+Write-Host ""
+Write-Host "For more information, see docs/windows-development-guide.md" -ForegroundColor Cyan
