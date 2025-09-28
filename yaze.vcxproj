@@ -1,967 +1,512 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x86">
       <Configuration>Debug</Configuration>
       <Platform>x86</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x86">
-      <Configuration>Release</Configuration>
-      <Platform>x86</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|ARM64">
       <Configuration>Debug</Configuration>
       <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x86">
+      <Configuration>Release</Configuration>
+      <Platform>x86</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|ARM64">
       <Configuration>Release</Configuration>
       <Platform>ARM64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x86">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|ARM64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x86">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|ARM64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
-  
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{B2C3D4E5-F6G7-8901-BCDE-F23456789012}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</ProjectGuid>
     <RootNamespace>YAZE</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>YAZE</ProjectName>
-    <VcpkgEnabled>true</VcpkgEnabled>
-    <VcpkgManifestInstall>true</VcpkgManifestInstall>
-    <VcpkgTriplet Condition="'$(Platform)'=='Win32'">x86-windows</VcpkgTriplet>
-    <VcpkgTriplet Condition="'$(Platform)'=='x64'">x64-windows</VcpkgTriplet>
-    <VcpkgTriplet Condition="'$(Platform)'=='ARM64'">arm64-windows</VcpkgTriplet>
   </PropertyGroup>
-  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <VcpkgEnabled>true</VcpkgEnabled>
-    <VcpkgManifestInstall>true</VcpkgManifestInstall>
-    <VcpkgTriplet>x64-windows</VcpkgTriplet>
   </PropertyGroup>
-  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <VcpkgEnabled>true</VcpkgEnabled>
-    <VcpkgManifestInstall>true</VcpkgManifestInstall>
-    <VcpkgTriplet>x64-windows</VcpkgTriplet>
   </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-    <VcpkgEnabled>true</VcpkgEnabled>
-    <VcpkgManifestInstall>true</VcpkgManifestInstall>
-    <VcpkgTriplet>x86-windows</VcpkgTriplet>
-  </PropertyGroup>
-  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <VcpkgEnabled>true</VcpkgEnabled>
-    <VcpkgManifestInstall>true</VcpkgManifestInstall>
-    <VcpkgTriplet>x86-windows</VcpkgTriplet>
   </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-    <VcpkgEnabled>true</VcpkgEnabled>
-    <VcpkgManifestInstall>true</VcpkgManifestInstall>
-    <VcpkgTriplet>arm64-windows</VcpkgTriplet>
-  </PropertyGroup>
-  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <VcpkgEnabled>true</VcpkgEnabled>
-    <VcpkgManifestInstall>true</VcpkgManifestInstall>
-    <VcpkgTriplet>arm64-windows</VcpkgTriplet>
   </PropertyGroup>
-  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x86'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x86'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|ARM64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  
   <ImportGroup Label="Shared">
   </ImportGroup>
-  
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x86'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|ARM64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x86'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|ARM64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>yaze</TargetName>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
   </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>yaze</TargetName>
-  </PropertyGroup>
-  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>yaze</TargetName>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
   </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>yaze</TargetName>
-  </PropertyGroup>
-  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>yaze</TargetName>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
   </PropertyGroup>
-  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\obj\$(ProjectName)\$(Configuration)\</IntDir>
-    <TargetName>yaze</TargetName>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
   </PropertyGroup>
-  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x86'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|ARM64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x86'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|ARM64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\$(Configuration)\</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);YAZE_BUILD_APP=1;YAZE_BUILD_LIB=1;YAZE_BUILD_EMU=1;YAZE_BUILD_TESTS=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\SDL\include;src\lib\abseil-cpp;src\lib\imgui_test_engine;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies Condition="'$(VcpkgEnabled)' == 'true'">SDL2.lib;SDL2main.lib;zlibd.lib;libpng16d.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(VcpkgEnabled)' != 'true'">SDL2.lib;SDL2main.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' == 'true'">$(VcpkgRoot)installed\x64-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' != 'true'">src\lib\SDL\VisualC\SDL\$(PlatformName)\$(Configuration);src\lib\abseil-cpp\absl\base;src\lib\abseil-cpp\absl\strings;src\lib\abseil-cpp\absl\container;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>copy "$(ProjectDir)src\yaze_config.h.in" "$(ProjectDir)yaze_config.h"
-powershell -Command "(Get-Content '$(ProjectDir)yaze_config.h') -replace '@yaze_VERSION_MAJOR@', '0' -replace '@yaze_VERSION_MINOR@', '3' -replace '@yaze_VERSION_PATCH@', '1' | Set-Content '$(ProjectDir)yaze_config.h'"</Command>
-      <Message>Generating yaze_config.h from template...</Message>
-    </PreBuildEvent>
-    <PostBuildEvent>
-      <Command>if not exist "$(OutDir)assets" mkdir "$(OutDir)assets"
-if not exist "$(OutDir)assets\themes" mkdir "$(OutDir)assets\themes"
-xcopy /Y /I "$(ProjectDir)assets\*" "$(OutDir)assets\"
-if exist "$(ProjectDir)zelda3.sfc" copy /Y "$(ProjectDir)zelda3.sfc" "$(OutDir)"</Command>
-      <Message>Copying assets and ROM file...</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
-  
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);YAZE_BUILD_APP=1;YAZE_BUILD_LIB=1;YAZE_BUILD_EMU=1;YAZE_BUILD_TESTS=0</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\SDL\include;src\lib\abseil-cpp;src\lib\imgui_test_engine;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies Condition="'$(VcpkgEnabled)' == 'true'">SDL2.lib;SDL2main.lib;zlib.lib;libpng16.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(VcpkgEnabled)' != 'true'">SDL2.lib;SDL2main.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' == 'true'">$(VcpkgRoot)installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' != 'true'">src\lib\SDL\VisualC\SDL\$(PlatformName)\$(Configuration);src\lib\abseil-cpp\absl\base;src\lib\abseil-cpp\absl\strings;src\lib\abseil-cpp\absl\container;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>
-    <PreBuildEvent>
-      <Command>copy "$(ProjectDir)src\yaze_config.h.in" "$(ProjectDir)yaze_config.h"
-powershell -Command "(Get-Content '$(ProjectDir)yaze_config.h') -replace '@yaze_VERSION_MAJOR@', '0' -replace '@yaze_VERSION_MINOR@', '3' -replace '@yaze_VERSION_PATCH@', '1' | Set-Content '$(ProjectDir)yaze_config.h'"</Command>
-      <Message>Generating yaze_config.h from template...</Message>
-    </PreBuildEvent>
-    <PostBuildEvent>
-      <Command>if not exist "$(OutDir)assets" mkdir "$(OutDir)assets"
-if not exist "$(OutDir)assets\themes" mkdir "$(OutDir)assets\themes"
-xcopy /Y /I "$(ProjectDir)assets\*" "$(OutDir)assets\"
-if exist "$(ProjectDir)zelda3.sfc" copy /Y "$(ProjectDir)zelda3.sfc" "$(OutDir)"</Command>
-      <Message>Copying assets and ROM file...</Message>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);YAZE_BUILD_APP=1;YAZE_BUILD_LIB=1;YAZE_BUILD_EMU=1;YAZE_BUILD_TESTS=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\SDL\include;src\lib\abseil-cpp;src\lib\imgui_test_engine;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies Condition="'$(VcpkgEnabled)' == 'true'">SDL2.lib;SDL2main.lib;zlibd.lib;libpng16d.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(VcpkgEnabled)' != 'true'">SDL2.lib;SDL2main.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' == 'true'">$(VcpkgRoot)installed\x86-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>copy "$(ProjectDir)src\yaze_config.h.in" "$(ProjectDir)yaze_config.h"
-powershell -Command "(Get-Content '$(ProjectDir)yaze_config.h') -replace '@yaze_VERSION_MAJOR@', '0' -replace '@yaze_VERSION_MINOR@', '3' -replace '@yaze_VERSION_PATCH@', '1' | Set-Content '$(ProjectDir)yaze_config.h'"</Command>
-      <Message>Generating yaze_config.h from template...</Message>
-    </PreBuildEvent>
-    <PostBuildEvent>
-      <Command>if not exist "$(OutDir)assets" mkdir "$(OutDir)assets"
-if not exist "$(OutDir)assets\themes" mkdir "$(OutDir)assets\themes"
-xcopy /Y /I "$(ProjectDir)assets\*" "$(OutDir)assets\"
-if exist "$(ProjectDir)zelda3.sfc" copy /Y "$(ProjectDir)zelda3.sfc" "$(OutDir)"</Command>
-      <Message>Copying assets and ROM file...</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
-  
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);YAZE_BUILD_APP=1;YAZE_BUILD_LIB=1;YAZE_BUILD_EMU=1;YAZE_BUILD_TESTS=0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp23</LanguageStandard>
-      <AdditionalIncludeDirectories>src\lib;src\app;src\lib\asar\src;src\lib\asar\src\asar;src\lib\asar\src\asar-dll-bindings\c;incl;src;src\lib\imgui;src\lib\SDL\include;src\lib\abseil-cpp;src\lib\imgui_test_engine;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies Condition="'$(VcpkgEnabled)' == 'true'">SDL2.lib;SDL2main.lib;zlib.lib;libpng16.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(VcpkgEnabled)' != 'true'">SDL2.lib;SDL2main.lib;ws2_32.lib;winmm.lib;imm32.lib;version.lib;oleaut32.lib;ole32.lib;setupapi.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories Condition="'$(VcpkgEnabled)' == 'true'">$(VcpkgRoot)installed\x86-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>copy "$(ProjectDir)src\yaze_config.h.in" "$(ProjectDir)yaze_config.h"
-powershell -Command "(Get-Content '$(ProjectDir)yaze_config.h') -replace '@yaze_VERSION_MAJOR@', '0' -replace '@yaze_VERSION_MINOR@', '3' -replace '@yaze_VERSION_PATCH@', '1' | Set-Content '$(ProjectDir)yaze_config.h'"</Command>
-      <Message>Generating yaze_config.h from template...</Message>
-    </PreBuildEvent>
-    <PostBuildEvent>
-      <Command>if not exist "$(OutDir)assets" mkdir "$(OutDir)assets"
-if not exist "$(OutDir)assets\themes" mkdir "$(OutDir)assets\themes"
-xcopy /Y /I "$(ProjectDir)assets\*" "$(OutDir)assets\"
-if exist "$(ProjectDir)zelda3.sfc" copy /Y "$(ProjectDir)zelda3.sfc" "$(OutDir)"</Command>
-      <Message>Copying assets and ROM file...</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
-  
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x86'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x86'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|ARM64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)incl;$(ProjectDir)src\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\app\main.cc">
-      <Filter>Application</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\rom.cc">
-      <Filter>Application</Filter>
-    </ClCompile>
-    <ClCompile Include="src\yaze.cc">
-      <Filter>Application</Filter>
-    </ClCompile>
+    <ClInclude Include="incl\yaze.h" />
+    <ClInclude Include="incl\zelda.h" />
+    <ClInclude Include="src\yaze_config.h.in" />
   </ItemGroup>
-  
   <ItemGroup>
-    <ClCompile Include="src\app\core\controller.cc">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\core\project.cc">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\core\window.cc">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\core\asar_wrapper.cc">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\emulator.cc">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\core\platform\font_loader.cc">
-      <Filter>Core\Platform</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\core\platform\clipboard.cc">
-      <Filter>Core\Platform</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\core\platform\file_dialog.cc">
-      <Filter>Core\Platform</Filter>
-    </ClCompile>
+    <ClCompile Include="src\yaze.cc" />
   </ItemGroup>
-  
   <ItemGroup>
-    <ClCompile Include="src\app\editor\editor_manager.cc">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\dungeon\dungeon_editor.cc">
-      <Filter>Editor\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\dungeon\dungeon_room_selector.cc">
-      <Filter>Editor\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\dungeon\dungeon_canvas_viewer.cc">
-      <Filter>Editor\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\dungeon\dungeon_object_selector.cc">
-      <Filter>Editor\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\dungeon\dungeon_toolset.cc">
-      <Filter>Editor\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\dungeon\dungeon_object_interaction.cc">
-      <Filter>Editor\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\dungeon\dungeon_renderer.cc">
-      <Filter>Editor\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\dungeon\dungeon_room_loader.cc">
-      <Filter>Editor\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\dungeon\dungeon_usage_tracker.cc">
-      <Filter>Editor\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\overworld\overworld_editor.cc">
-      <Filter>Editor\Overworld</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\overworld\overworld_editor_manager.cc">
-      <Filter>Editor\Overworld</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\overworld\tile16_editor.cc">
-      <Filter>Editor\Overworld</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\overworld\map_properties.cc">
-      <Filter>Editor\Overworld</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\overworld\entity.cc">
-      <Filter>Editor\Overworld</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\graphics\screen_editor.cc">
-      <Filter>Editor\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\graphics\graphics_editor.cc">
-      <Filter>Editor\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\graphics\palette_editor.cc">
-      <Filter>Editor\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\graphics\gfx_group_editor.cc">
-      <Filter>Editor\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\sprite\sprite_editor.cc">
-      <Filter>Editor\Sprite</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\music\music_editor.cc">
-      <Filter>Editor\Music</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\message\message_editor.cc">
-      <Filter>Editor\Message</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\message\message_data.cc">
-      <Filter>Editor\Message</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\message\message_preview.cc">
-      <Filter>Editor\Message</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\code\assembly_editor.cc">
-      <Filter>Editor\Code</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\system\settings_editor.cc">
-      <Filter>Editor\System</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\system\command_manager.cc">
-      <Filter>Editor\System</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\system\extension_manager.cc">
-      <Filter>Editor\System</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\system\shortcut_manager.cc">
-      <Filter>Editor\System</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\editor\system\popup_manager.cc">
-      <Filter>Editor\System</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\test\test_manager.cc">
-      <Filter>Editor\Testing</Filter>
-    </ClCompile>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ClCompile Include="src\app\gfx\arena.cc">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gfx\background_buffer.cc">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gfx\bitmap.cc">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gfx\compression.cc">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gfx\scad_format.cc">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gfx\snes_palette.cc">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gfx\snes_tile.cc">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gfx\snes_color.cc">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gfx\tilemap.cc">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ClCompile Include="src\app\gui\modules\asset_browser.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gui\modules\text_editor.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gui\canvas.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gui\canvas_utils.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gui\enhanced_palette_editor.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gui\input.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gui\style.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gui\color.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gui\zeml.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gui\theme_manager.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\gui\background_renderer.cc">
-      <Filter>GUI</Filter>
-    </ClCompile>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ClCompile Include="src\app\zelda3\hyrule_magic.cc">
-      <Filter>Zelda3</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\overworld\overworld_map.cc">
-      <Filter>Zelda3\Overworld</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\overworld\overworld.cc">
-      <Filter>Zelda3\Overworld</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\screen\inventory.cc">
-      <Filter>Zelda3\Screen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\screen\title_screen.cc">
-      <Filter>Zelda3\Screen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\screen\dungeon_map.cc">
-      <Filter>Zelda3\Screen</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\sprite\sprite.cc">
-      <Filter>Zelda3\Sprite</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\sprite\sprite_builder.cc">
-      <Filter>Zelda3\Sprite</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\music\tracker.cc">
-      <Filter>Zelda3\Music</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\dungeon\room.cc">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\dungeon\room_object.cc">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\dungeon\object_parser.cc">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\dungeon\object_renderer.cc">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\dungeon\room_layout.cc">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\dungeon\dungeon_editor_system.cc">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\zelda3\dungeon\dungeon_object_editor.cc">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClCompile>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ClCompile Include="src\app\emu\audio\apu.cc">
-      <Filter>Emulator\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\audio\spc700.cc">
-      <Filter>Emulator\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\audio\dsp.cc">
-      <Filter>Emulator\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\audio\internal\addressing.cc">
-      <Filter>Emulator\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\audio\internal\instructions.cc">
-      <Filter>Emulator\Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\cpu\internal\addressing.cc">
-      <Filter>Emulator\CPU</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\cpu\internal\instructions.cc">
-      <Filter>Emulator\CPU</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\cpu\cpu.cc">
-      <Filter>Emulator\CPU</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\video\ppu.cc">
-      <Filter>Emulator\Video</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\memory\dma.cc">
-      <Filter>Emulator\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\memory\memory.cc">
-      <Filter>Emulator\Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\emu\snes.cc">
-      <Filter>Emulator</Filter>
-    </ClCompile>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ClCompile Include="src\util\bps.cc">
-      <Filter>Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="src\util\flag.cc">
-      <Filter>Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="src\util\hex.cc">
-      <Filter>Utilities</Filter>
-    </ClCompile>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ClInclude Include="incl\yaze.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="incl\zelda.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="src\yaze_config.h.in">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\core\controller.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\core\features.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\core\project.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\core\window.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\core\asar_wrapper.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\editor\editor_manager.h">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gfx\arena.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gfx\background_buffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gfx\bitmap.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gfx\compression.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gfx\scad_format.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gfx\snes_palette.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gfx\snes_tile.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gfx\snes_color.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gfx\tilemap.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\canvas.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\canvas_utils.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\enhanced_palette_editor.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\input.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\style.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\color.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\zeml.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\theme_manager.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\background_renderer.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\modules\asset_browser.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\gui\modules\text_editor.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\hyrule_magic.h">
-      <Filter>Zelda3</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\overworld\overworld_map.h">
-      <Filter>Zelda3\Overworld</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\overworld\overworld.h">
-      <Filter>Zelda3\Overworld</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\screen\inventory.h">
-      <Filter>Zelda3\Screen</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\screen\title_screen.h">
-      <Filter>Zelda3\Screen</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\screen\dungeon_map.h">
-      <Filter>Zelda3\Screen</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\sprite\sprite.h">
-      <Filter>Zelda3\Sprite</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\sprite\sprite_builder.h">
-      <Filter>Zelda3\Sprite</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\music\tracker.h">
-      <Filter>Zelda3\Music</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\dungeon\room.h">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\dungeon\room_object.h">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\dungeon\object_parser.h">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\dungeon\object_renderer.h">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\dungeon\room_layout.h">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\dungeon\dungeon_editor_system.h">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\zelda3\dungeon\dungeon_object_editor.h">
-      <Filter>Zelda3\Dungeon</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\emu\emulator.h">
-      <Filter>Emulator</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\emu\snes.h">
-      <Filter>Emulator</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\emu\cpu\cpu.h">
-      <Filter>Emulator\CPU</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\emu\video\ppu.h">
-      <Filter>Emulator\Video</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\emu\memory\memory.h">
-      <Filter>Emulator\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\emu\memory\dma.h">
-      <Filter>Emulator\Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\emu\audio\apu.h">
-      <Filter>Emulator\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\emu\audio\spc700.h">
-      <Filter>Emulator\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\emu\audio\dsp.h">
-      <Filter>Emulator\Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\bps.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\flag.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\hex.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\util\log.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Filter Include="Application">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC943}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Platform">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC944}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC945}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Dungeon">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC946}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Overworld">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC947}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Graphics">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC948}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Sprite">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC949}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Music">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94A}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Message">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94B}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Code">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\System">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94D}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Testing">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Graphics">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC94F}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GUI">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC950}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Zelda3">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC951}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Zelda3\Overworld">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC952}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Zelda3\Screen">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC953}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Zelda3\Sprite">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC954}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Zelda3\Music">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC955}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Zelda3\Dungeon">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC956}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Emulator">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC957}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Emulator\Audio">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC958}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Emulator\CPU">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC959}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Emulator\Video">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95A}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Emulator\Memory">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95B}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Utilities">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95C}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95D}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Assets">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Assets\Fonts">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC95F}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Assets\Themes">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC960}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Assets\Assembly">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC961}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Assets\Layouts">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC962}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Assets\Libraries">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC963}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Assets\Misc">
-      <UniqueIdentifier>{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC964}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <None Include="vcpkg.json" />
     <None Include="CMakeLists.txt" />
+    <None Include="CMakePresets.json" />
+    <None Include="vcpkg.json" />
     <None Include="README.md" />
+    <None Include="LICENSE" />
   </ItemGroup>
-  
   <ItemGroup>
-    <Content Include="assets\yaze.icns">
-      <Filter>Assets</Filter>
-    </Content>
-    <Content Include="assets\yaze.png">
-      <Filter>Assets</Filter>
-    </Content>
-    <Content Include="assets\font\Karla-Regular.ttf">
-      <Filter>Assets\Fonts</Filter>
-    </Content>
-    <Content Include="assets\font\Roboto-Medium.ttf">
-      <Filter>Assets\Fonts</Filter>
-    </Content>
-    <Content Include="assets\font\Cousine-Regular.ttf">
-      <Filter>Assets\Fonts</Filter>
-    </Content>
-    <Content Include="assets\font\DroidSans.ttf">
-      <Filter>Assets\Fonts</Filter>
-    </Content>
-    <Content Include="assets\font\NotoSansJP.ttf">
-      <Filter>Assets\Fonts</Filter>
-    </Content>
-    <Content Include="assets\font\IBMPlexSansJP-Bold.ttf">
-      <Filter>Assets\Fonts</Filter>
-    </Content>
-    <Content Include="assets\font\MaterialIcons-Regular.ttf">
-      <Filter>Assets\Fonts</Filter>
-    </Content>
-    <Content Include="assets\themes\*.theme">
-      <Filter>Assets\Themes</Filter>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="assets\asm\*.asm">
-      <Filter>Assets\Assembly</Filter>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="assets\asm\*.txt">
-      <Filter>Assets\Assembly</Filter>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="assets\layouts\*">
-      <Filter>Assets\Layouts</Filter>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="assets\lib\*">
-      <Filter>Assets\Libraries</Filter>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="assets\etc\*">
-      <Filter>Assets\Misc</Filter>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <Text Include="docs\index.md" />
+    <Text Include="docs\01-getting-started.md" />
+    <Text Include="docs\02-build-instructions.md" />
+    <Text Include="docs\03-asar-integration.md" />
+    <Text Include="docs\04-api-reference.md" />
+    <Text Include="docs\A1-testing-guide.md" />
+    <Text Include="docs\B1-contributing.md" />
+    <Text Include="docs\B2-platform-compatibility.md" />
+    <Text Include="docs\B3-build-presets.md" />
+    <Text Include="docs\C1-changelog.md" />
+    <Text Include="docs\D1-roadmap.md" />
+    <Text Include="docs\E1-asm-style-guide.md" />
+    <Text Include="docs\E2-dungeon-editor-guide.md" />
+    <Text Include="docs\E3-dungeon-editor-design.md" />
+    <Text Include="docs\E4-dungeon-editor-refactoring.md" />
+    <Text Include="docs\E5-dungeon-object-system.md" />
+    <Text Include="docs\F1-overworld-loading.md" />
   </ItemGroup>
-  
   <ItemGroup>
-    <ResourceCompile Include="src\win32\yaze.rc" />
+    <Text Include="scripts\create_release.sh" />
+    <Text Include="scripts\extract_changelog.py" />
+    <Text Include="scripts\generate-vs-projects.ps1" />
+    <Text Include="scripts\generate-vs-projects.bat" />
+    <Text Include="scripts\setup-vcpkg-windows.ps1" />
+    <Text Include="scripts\setup-vs-windows.bat" />
+    <Text Include="scripts\quality_check.sh" />
+    <Text Include="scripts\test_asar_integration.py" />
   </ItemGroup>
-  
+  <ItemGroup>
+    <Text Include="assets\themes\yaze_classic.theme" />
+    <Text Include="assets\themes\cyberpunk.theme" />
+    <Text Include="assets\themes\sunset.theme" />
+    <Text Include="assets\themes\forest.theme" />
+    <Text Include="assets\themes\midnight.theme" />
+    <Text Include="assets\layouts\ow_toolset.zeml" />
+    <Text Include="assets\yaze.icns" />
+    <Text Include="assets\yaze.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="cmake\absl.cmake" />
+    <Text Include="cmake\asar.cmake" />
+    <Text Include="cmake\grpc.cmake" />
+    <Text Include="cmake\gtest.cmake" />
+    <Text Include="cmake\imgui.cmake" />
+    <Text Include="cmake\mingw64.cmake" />
+    <Text Include="cmake\packaging.cmake" />
+    <Text Include="cmake\sdl2.cmake" />
+    <Text Include="cmake\vcpkg.cmake" />
+    <Text Include="cmake\yaze.desktop.in" />
+    <Text Include="cmake\yaze.plist.in" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include=".github\workflows\ci.yml" />
+    <Text Include=".github\workflows\release.yml" />
+    <Text Include=".github\workflows\doxy.yml" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
