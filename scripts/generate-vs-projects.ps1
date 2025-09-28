@@ -27,6 +27,77 @@ if ($env:OS -ne "Windows_NT") {
     exit 1
 }
 
+# Check if CMake is available
+$cmakePath = Get-Command cmake -ErrorAction SilentlyContinue
+if (-not $cmakePath) {
+    # Try common CMake installation paths
+    $commonPaths = @(
+        "C:\Program Files\CMake\bin\cmake.exe",
+        "C:\Program Files (x86)\CMake\bin\cmake.exe",
+        "C:\cmake\bin\cmake.exe"
+    )
+    
+    foreach ($path in $commonPaths) {
+        if (Test-Path $path) {
+            Write-Host "Found CMake at: $path" -ForegroundColor Green
+            $env:Path += ";$(Split-Path $path)"
+            $cmakePath = Get-Command cmake -ErrorAction SilentlyContinue
+            if ($cmakePath) {
+                break
+            }
+        }
+    }
+}
+
+if (-not $cmakePath) {
+    Write-Host "CMake not found in PATH. Attempting to install..." -ForegroundColor Yellow
+    
+    # Try to install CMake via Chocolatey
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
+        Write-Host "Installing CMake via Chocolatey..." -ForegroundColor Yellow
+        choco install -y cmake
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "CMake installed successfully" -ForegroundColor Green
+            # Refresh PATH
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+        } else {
+            Write-Host "Failed to install CMake via Chocolatey" -ForegroundColor Red
+        }
+    } else {
+        Write-Host "Chocolatey not found. Please install CMake manually:" -ForegroundColor Red
+        Write-Host "1. Download from: https://cmake.org/download/" -ForegroundColor Yellow
+        Write-Host "2. Or install Chocolatey first: https://chocolatey.org/install" -ForegroundColor Yellow
+        Write-Host "3. Then run: choco install cmake" -ForegroundColor Yellow
+        exit 1
+    }
+    
+    # Check again after installation
+    $cmakePath = Get-Command cmake -ErrorAction SilentlyContinue
+    if (-not $cmakePath) {
+        Write-Host "CMake still not found after installation. Please restart your terminal or add CMake to PATH manually." -ForegroundColor Red
+        exit 1
+    }
+}
+
+Write-Host "CMake found: $($cmakePath.Source)" -ForegroundColor Green
+
+# Check if Visual Studio is available
+$vsWhere = Get-Command "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -ErrorAction SilentlyContinue
+if (-not $vsWhere) {
+    $vsWhere = Get-Command vswhere -ErrorAction SilentlyContinue
+}
+
+if ($vsWhere) {
+    $vsInstallPath = & $vsWhere.Source -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+    if ($vsInstallPath) {
+        Write-Host "Visual Studio found at: $vsInstallPath" -ForegroundColor Green
+    } else {
+        Write-Host "Visual Studio 2022 not found. Please install Visual Studio 2022 with C++ workload." -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "vswhere not found. Assuming Visual Studio is available." -ForegroundColor Yellow
+}
+
 # Set up paths
 $SourceDir = Split-Path -Parent $PSScriptRoot
 $BuildDir = Join-Path $SourceDir "build-vs"

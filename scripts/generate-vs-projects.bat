@@ -41,6 +41,60 @@ if not "%OS%"=="Windows_NT" (
     exit /b 1
 )
 
+REM Check if CMake is available
+where cmake >nul 2>&1
+if errorlevel 1 (
+    REM Try common CMake installation paths
+    if exist "C:\Program Files\CMake\bin\cmake.exe" (
+        echo Found CMake at: C:\Program Files\CMake\bin\cmake.exe
+        set "PATH=%PATH%;C:\Program Files\CMake\bin"
+        goto :cmake_found
+    )
+    if exist "C:\Program Files (x86)\CMake\bin\cmake.exe" (
+        echo Found CMake at: C:\Program Files (x86)\CMake\bin\cmake.exe
+        set "PATH=%PATH%;C:\Program Files (x86)\CMake\bin"
+        goto :cmake_found
+    )
+    if exist "C:\cmake\bin\cmake.exe" (
+        echo Found CMake at: C:\cmake\bin\cmake.exe
+        set "PATH=%PATH%;C:\cmake\bin"
+        goto :cmake_found
+    )
+    
+    REM If we get here, CMake is not found
+    echo CMake not found in PATH. Attempting to install...
+    
+    REM Try to install CMake via Chocolatey
+    where choco >nul 2>&1
+    if not errorlevel 1 (
+        echo Installing CMake via Chocolatey...
+        choco install -y cmake
+        if errorlevel 1 (
+            echo Failed to install CMake via Chocolatey
+        ) else (
+            echo CMake installed successfully
+            REM Refresh PATH
+            call refreshenv
+        )
+    ) else (
+        echo Chocolatey not found. Please install CMake manually:
+        echo 1. Download from: https://cmake.org/download/
+        echo 2. Or install Chocolatey first: https://chocolatey.org/install
+        echo 3. Then run: choco install cmake
+        exit /b 1
+    )
+    
+    REM Check again after installation
+    where cmake >nul 2>&1
+    if errorlevel 1 (
+        echo CMake still not found after installation. Please restart your terminal or add CMake to PATH manually.
+        exit /b 1
+    )
+)
+
+:cmake_found
+echo CMake found and ready to use
+
 REM Set up paths
 set SOURCE_DIR=%~dp0..
 set BUILD_DIR=%SOURCE_DIR%\build-vs
