@@ -15,8 +15,6 @@
 #include "app/gui/input.h"
 #include "util/log.h"
 #include "app/rom.h"
-#include "app/core/window.h"
-#include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "util/notify.h"
 
@@ -114,6 +112,15 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status RefreshAllPalettes();
   void DrawPaletteSettings();
   
+  // Get the appropriate palette slot for current graphics sheet
+  int GetPaletteSlotForSheet(int sheet_index) const;
+  
+  // NEW: Core palette mapping methods for fixing color alignment
+  int GetActualPaletteSlot(int palette_button, int sheet_index) const;
+  int GetSheetIndexForTile8(int tile8_id) const;
+  int GetActualPaletteSlotForCurrentTile16() const;
+  
+  
   // ROM data access and modification
   absl::Status UpdateROMTile16Data();
   absl::Status RefreshTile16Blockset();
@@ -132,22 +139,26 @@ class Tile16Editor : public gfx::GfxContext {
   void set_palette(const gfx::SnesPalette& palette) { 
     palette_ = palette;
     
-    // CRITICAL FIX: Immediately update the main source bitmap
-    if (current_gfx_bmp_.is_active()) {
-      current_gfx_bmp_.SetPalette(palette_);
-      current_gfx_bmp_.set_modified(true);
-      core::Renderer::Get().UpdateBitmap(&current_gfx_bmp_);
+    // Store the complete 256-color overworld palette
+    if (palette.size() >= 256) {
+      overworld_palette_ = palette;
+      util::logf("Tile16 editor received complete overworld palette with %zu colors", palette.size());
+    } else {
+      util::logf("Warning: Received incomplete palette with %zu colors", palette.size());
+      overworld_palette_ = palette;
     }
     
-    // Apply to all other graphics
-    if (rom_) {
-      auto status = RefreshAllPalettes();
+    // CRITICAL FIX: Load tile8 graphics now that we have the proper palette
+    if (rom_ && current_gfx_bmp_.is_active()) {
+      auto status = LoadTile8();
       if (!status.ok()) {
-        util::logf("Failed to refresh palettes: %s", status.message().data());
+        util::logf("Failed to load tile8 graphics with new palette: %s", status.message().data());
+      } else {
+        util::logf("Successfully loaded tile8 graphics with complete overworld palette");
       }
     }
     
-    util::logf("Tile16 editor palette set with %zu colors", palette_.size());
+    util::logf("Tile16 editor palette coordination complete");
   }
   
   // Callback for when changes are committed to notify parent editor
@@ -214,8 +225,8 @@ class Tile16Editor : public gfx::GfxContext {
   // Palette management settings
   bool show_palette_settings_ = false;
   int current_palette_group_ = 0;  // 0=overworld_main, 1=aux1, 2=aux2, etc.
-  uint8_t palette_normalization_mask_ = 0x0F;  // Default 4-bit mask
-  bool auto_normalize_pixels_ = true;
+  uint8_t palette_normalization_mask_ = 0xFF;  // Default 8-bit mask (preserve full palette index)
+  bool auto_normalize_pixels_ = false;  // Disabled by default to preserve palette offsets
 
   // Performance tracking
   std::chrono::steady_clock::time_point last_edit_time_;
@@ -252,6 +263,7 @@ class Tile16Editor : public gfx::GfxContext {
 
   PaletteEditor palette_editor_;
   gfx::SnesPalette palette_;
+  gfx::SnesPalette overworld_palette_;  // Complete 256-color overworld palette
 
   absl::Status status_;
   
