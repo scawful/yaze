@@ -3,6 +3,8 @@
 #include <iostream>
 #include <iomanip>
 
+#include "app/core/features.h"
+
 namespace yaze {
 namespace core {
 
@@ -85,12 +87,16 @@ void PerformanceMonitor::PrintSummary() const {
 }
 
 ScopedTimer::ScopedTimer(const std::string& operation_name) 
-    : operation_name_(operation_name) {
-  PerformanceMonitor::Get().StartTimer(operation_name_);
+    : operation_name_(operation_name), enabled_(core::FeatureFlags::get().kEnablePerformanceMonitoring) {
+  if (enabled_) {
+    PerformanceMonitor::Get().StartTimer(operation_name_);
+  }
 }
 
 ScopedTimer::~ScopedTimer() {
-  PerformanceMonitor::Get().EndTimer(operation_name_);
+  if (enabled_) {
+    PerformanceMonitor::Get().EndTimer(operation_name_);
+  }
 }
 
 }  // namespace core

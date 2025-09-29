@@ -22,6 +22,23 @@ class PerformanceMonitor {
     static PerformanceMonitor instance;
     return instance;
   }
+  
+  /**
+   * @brief Enable or disable performance monitoring
+   * 
+   * When disabled, ScopedTimer operations become no-ops for better performance
+   * in production builds or when monitoring is not needed.
+   */
+  static void SetEnabled(bool enabled) {
+    Get().enabled_ = enabled;
+  }
+  
+  /**
+   * @brief Check if performance monitoring is enabled
+   */
+  static bool IsEnabled() {
+    return Get().enabled_;
+  }
 
   /**
    * @brief Start timing an operation
@@ -72,6 +89,7 @@ class PerformanceMonitor {
   };
 
   std::unordered_map<std::string, OperationData> operations_;
+  bool enabled_ = true; // Performance monitoring enabled by default
 };
 
 /**
@@ -91,6 +109,7 @@ class ScopedTimer {
 
  private:
   std::string operation_name_;
+  bool enabled_;
 };
 
 }  // namespace core
