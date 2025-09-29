@@ -5,6 +5,7 @@
 
 #include "app/core/window.h"
 #include "app/gfx/bitmap.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/gui/color.h"
 #include "app/gui/style.h"
 #include "app/gui/canvas_utils.h"
@@ -530,6 +531,12 @@ bool Canvas::DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile) {
   is_hovered_ = is_hovered;
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+  
+  // Safety check: ensure tilemap is properly initialized
+  if (!tilemap.atlas.is_active() || tilemap.tile_size.x <= 0) {
+    return false;
+  }
+  
   const auto scaled_size = tilemap.tile_size.x * global_scale_;
 
   if (!is_hovered) {
@@ -548,26 +555,33 @@ bool Canvas::DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile) {
   points_.push_back(
       ImVec2(paint_pos.x + scaled_size, paint_pos.y + scaled_size));
 
-  // Use the new tile cache system
-  auto* cached_tile = tilemap.tile_cache.GetTile(current_tile);
-  if (!cached_tile) {
-    // Create and cache the tile if not found
-    gfx::Bitmap new_tile = gfx::Bitmap(
-        tilemap.tile_size.x, tilemap.tile_size.y, 8,
-        gfx::GetTilemapData(tilemap, current_tile), tilemap.atlas.palette());
-    tilemap.tile_cache.CacheTile(current_tile, std::move(new_tile));
-    cached_tile = tilemap.tile_cache.GetTile(current_tile);
-    if (cached_tile) {
-      Renderer::Get().RenderBitmap(cached_tile);
+  // CRITICAL FIX: Disable tile cache system to prevent crashes
+  // Just draw a simple preview tile using the atlas directly
+  if (tilemap.atlas.is_active() && tilemap.atlas.texture()) {
+    // Draw the tile directly from the atlas without caching
+    int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
+    if (tiles_per_row > 0) {
+      int tile_x = (current_tile % tiles_per_row) * tilemap.tile_size.x;
+      int tile_y = (current_tile / tiles_per_row) * tilemap.tile_size.y;
+      
+      // Simple bounds check
+      if (tile_x >= 0 && tile_x < tilemap.atlas.width() && 
+          tile_y >= 0 && tile_y < tilemap.atlas.height()) {
+        
+        // Draw directly from atlas texture
+        ImVec2 uv0 = ImVec2(static_cast<float>(tile_x) / tilemap.atlas.width(), 
+                           static_cast<float>(tile_y) / tilemap.atlas.height());
+        ImVec2 uv1 = ImVec2(static_cast<float>(tile_x + tilemap.tile_size.x) / tilemap.atlas.width(),
+                           static_cast<float>(tile_y + tilemap.tile_size.y) / tilemap.atlas.height());
+        
+        draw_list_->AddImage(
+            (ImTextureID)(intptr_t)tilemap.atlas.texture(),
+            ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
+            ImVec2(origin.x + paint_pos.x + scaled_size,
+                   origin.y + paint_pos.y + scaled_size),
+            uv0, uv1);
+      }
     }
-  }
-
-  if (cached_tile) {
-    draw_list_->AddImage(
-        (ImTextureID)(intptr_t)cached_tile->texture(),
-        ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
-        ImVec2(origin.x + paint_pos.x + scaled_size,
-               origin.y + paint_pos.y + scaled_size));
   }
 
   if (IsMouseClicked(ImGuiMouseButton_Left) ||
@@ -682,6 +696,8 @@ bool Canvas::DrawTileSelector(int size, int size_y) {
 }
 
 void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
+  gfx::ScopedTimer timer("canvas_select_rect");
+  
   const ImGuiIO &io = GetIO();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
@@ -689,6 +705,12 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   const float scaled_size = tile_size * scale;
   static bool dragging = false;
   constexpr int small_map_size = 0x200;
+  
+  // Only handle mouse events if the canvas is hovered
+  const bool is_hovered = IsItemHovered();
+  if (!is_hovered) {
+    return;
+  }
   
   // Calculate superX and superY accounting for world offset
   int superY, superX;
@@ -752,6 +774,8 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
     if (start_y > end_y) std::swap(start_y, end_y);
 
     selected_tiles_.clear();
+    selected_tiles_.reserve(((end_x - start_x) / tile16_size + 1) * ((end_y - start_y) / tile16_size + 1));
+    
     // Number of tiles per local map (since each tile is 16x16)
     constexpr int tiles_per_local_map = small_map_size / 16;
 
@@ -770,7 +794,7 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
         int index_x = local_map_x * tiles_per_local_map + tile16_x;
         int index_y = local_map_y * tiles_per_local_map + tile16_y;
 
-        selected_tiles_.push_back(ImVec2(index_x, index_y));
+        selected_tiles_.emplace_back(index_x, index_y);
       }
     }
     // Clear and add the calculated rectangle points
@@ -886,11 +910,8 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
     if (tile_id >= 0 && tile_id < tilemap_size) {
       gfx::RenderTile(tilemap, tile_id);
       
-      // Ensure the tile is actually rendered and active
-      auto* cached_tile = tilemap.tile_cache.GetTile(tile_id);
-      if (cached_tile && !cached_tile->is_active()) {
-        core::Renderer::Get().RenderBitmap(cached_tile);
-      }
+      // DISABLED: tile cache operations that cause crashes
+      // The tile rendering is handled by RenderTile() above
     }
   }
 
@@ -939,20 +960,8 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
         // Draw the tile bitmap at the calculated position
         gfx::RenderTile(tilemap, tile_id);
         
-        // Ensure the tile bitmap exists and is properly rendered
-        auto* cached_tile = tilemap.tile_cache.GetTile(tile_id);
-        if (cached_tile) {
-          // Ensure the bitmap is active before drawing
-          if (cached_tile->is_active()) {
-            DrawBitmap(*cached_tile, tile_pos_x, tile_pos_y, scale, 150);
-          } else {
-            // Force render if not active
-            core::Renderer::Get().RenderBitmap(cached_tile);
-            if (cached_tile->is_active()) {
-              DrawBitmap(*cached_tile, tile_pos_x, tile_pos_y, scale, 150);
-            }
-          }
-        }
+        // DISABLED: tile cache operations that cause crashes
+        // Skip individual tile drawing for now to prevent crashes
       }
       i++;
     }

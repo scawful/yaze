@@ -10,7 +10,9 @@
 #include "app/core/platform/file_dialog.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
+#include "app/gfx/atlas_renderer.h"
 #include "app/gfx/bitmap.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
@@ -31,7 +33,7 @@ void ScreenEditor::Initialize() {}
 
 absl::Status ScreenEditor::Load() {
   core::ScopedTimer timer("ScreenEditor::Load");
-  
+
   ASSIGN_OR_RETURN(dungeon_maps_,
                    zelda3::LoadDungeonMaps(*rom(), dungeon_map_labels_));
   RETURN_IF_ERROR(zelda3::LoadDungeonMapTile16(
@@ -163,25 +165,56 @@ void ScreenEditor::DrawInventoryToolset() {
 }
 
 void ScreenEditor::DrawDungeonMapScreen(int i) {
-  auto &current_dungeon = dungeon_maps_[selected_dungeon];
+  core::ScopedTimer timer("screen_editor_draw_dungeon_map_screen");
+
+  auto& current_dungeon = dungeon_maps_[selected_dungeon];
 
   floor_number = i;
   screen_canvas_.DrawBackground(ImVec2(325, 325));
   screen_canvas_.DrawTileSelector(64.f);
 
   auto boss_room = current_dungeon.boss_room;
+
+  // Pre-allocate vectors for batch operations
+  std::vector<int> tile_ids_to_render;
+  std::vector<ImVec2> tile_positions;
+  tile_ids_to_render.reserve(zelda3::kNumRooms);
+  tile_positions.reserve(zelda3::kNumRooms);
+
   for (int j = 0; j < zelda3::kNumRooms; j++) {
     if (current_dungeon.floor_rooms[floor_number][j] != 0x0F) {
       int tile16_id = current_dungeon.floor_gfx[floor_number][j];
       int posX = ((j % 5) * 32);
       int posY = ((j / 5) * 32);
 
-      gfx::RenderTile16(tile16_blockset_, tile16_id);
-      // Get tile from cache after rendering
-      auto* cached_tile = tile16_blockset_.tile_cache.GetTile(tile16_id);
-      if (cached_tile) {
-        screen_canvas_.DrawBitmap(*cached_tile, (posX * 2), (posY * 2), 4.0f);
+      // Batch tile rendering
+      tile_ids_to_render.push_back(tile16_id);
+      tile_positions.emplace_back(posX * 2, posY * 2);
+    }
+  }
+
+  // Batch render all tiles
+  for (size_t idx = 0; idx < tile_ids_to_render.size(); ++idx) {
+    int tile16_id = tile_ids_to_render[idx];
+    ImVec2 pos = tile_positions[idx];
+
+    gfx::RenderTile16(tile16_blockset_, tile16_id);
+    // Get tile from cache after rendering
+    auto* cached_tile = tile16_blockset_.tile_cache.GetTile(tile16_id);
+    if (cached_tile && cached_tile->is_active()) {
+      // Ensure the cached tile has a valid texture
+      if (!cached_tile->texture()) {
+        core::Renderer::Get().RenderBitmap(cached_tile);
       }
+      screen_canvas_.DrawBitmap(*cached_tile, pos.x, pos.y, 4.0F);
+    }
+  }
+
+  // Draw overlays and labels
+  for (int j = 0; j < zelda3::kNumRooms; j++) {
+    if (current_dungeon.floor_rooms[floor_number][j] != 0x0F) {
+      int posX = ((j % 5) * 32);
+      int posY = ((j / 5) * 32);
 
       if (current_dungeon.floor_rooms[floor_number][j] == boss_room) {
         screen_canvas_.DrawOutlineWithColor((posX * 2), (posY * 2), 64, 64,
@@ -191,7 +224,8 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
       std::string label =
           dungeon_map_labels_[selected_dungeon][floor_number][j];
       screen_canvas_.DrawText(label, (posX * 2), (posY * 2));
-      std::string gfx_id = util::HexByte(tile16_id);
+      std::string gfx_id =
+          util::HexByte(current_dungeon.floor_gfx[floor_number][j]);
       screen_canvas_.DrawText(gfx_id, (posX * 2), (posY * 2) + 16);
     }
   }
@@ -207,7 +241,7 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
 }
 
 void ScreenEditor::DrawDungeonMapsTabs() {
-  auto &current_dungeon = dungeon_maps_[selected_dungeon];
+  auto& current_dungeon = dungeon_maps_[selected_dungeon];
   if (ImGui::BeginTabBar("##DungeonMapTabs")) {
     auto nbr_floors =
         current_dungeon.nbr_of_floor + current_dungeon.nbr_of_basement;
@@ -284,22 +318,25 @@ void ScreenEditor::DrawDungeonMapsTabs() {
  * - Lazy loading of tile graphics data
  */
 void ScreenEditor::DrawDungeonMapsRoomGfx() {
+  core::ScopedTimer timer("screen_editor_draw_dungeon_maps_room_gfx");
+
   if (ImGui::BeginChild("##DungeonMapTiles", ImVec2(0, 0), true)) {
     // Enhanced tilesheet canvas with improved tile selection
     tilesheet_canvas_.DrawBackground(ImVec2((256 * 2) + 2, (192 * 2) + 4));
     tilesheet_canvas_.DrawContextMenu();
-    
+
     // Interactive tile16 selector with grid snapping
     if (tilesheet_canvas_.DrawTileSelector(32.f)) {
       selected_tile16_ = tilesheet_canvas_.points().front().x / 32 +
                          (tilesheet_canvas_.points().front().y / 32) * 16;
-      
+
       // Render selected tile16 and cache tile metadata
       gfx::RenderTile16(tile16_blockset_, selected_tile16_);
       std::ranges::copy(tile16_blockset_.tile_info[selected_tile16_],
                         current_tile16_info.begin());
     }
-    tilesheet_canvas_.DrawBitmap(tile16_blockset_.atlas, 1, 1, 2.0f);
+    // Use direct bitmap rendering for tilesheet
+    tilesheet_canvas_.DrawBitmap(tile16_blockset_.atlas, 1, 1, 2.0F);
     tilesheet_canvas_.DrawGrid(32.f);
     tilesheet_canvas_.DrawOverlay();
 
@@ -324,7 +361,11 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     }
     // Get selected tile from cache
     auto* selected_tile = tile16_blockset_.tile_cache.GetTile(selected_tile16_);
-    if (selected_tile) {
+    if (selected_tile && selected_tile->is_active()) {
+      // Ensure the selected tile has a valid texture
+      if (!selected_tile->texture()) {
+        core::Renderer::Get().RenderBitmap(selected_tile);
+      }
       current_tile_canvas_.DrawBitmap(*selected_tile, 2, 4.0f);
     }
     current_tile_canvas_.DrawGrid(16.f);
@@ -425,7 +466,8 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     ImGui::Text("Selected tile8: %d", selected_tile8_);
     ImGui::Separator();
     ImGui::Text("For use with custom inserted graphics assembly patches.");
-    if (ImGui::Button("Load GFX from BIN file")) LoadBinaryGfx();
+    if (ImGui::Button("Load GFX from BIN file"))
+      LoadBinaryGfx();
 
     ImGui::EndTable();
   }

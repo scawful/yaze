@@ -213,6 +213,13 @@ class Bitmap {
   uint8_t FindColorIndex(const SnesColor& color);
 
   /**
+   * @brief Validate that bitmap data and surface pixels are synchronized
+   * @return true if synchronized, false if there are issues
+   * @note This method helps debug surface synchronization problems
+   */
+  bool ValidateDataSurfaceSync();
+
+  /**
    * @brief Extract an 8x8 tile from the bitmap (SNES standard tile size)
    * @param tile_index Index of the tile in the tilesheet
    * @param x X offset within the tile (0-7)
@@ -250,7 +257,7 @@ class Bitmap {
   bool modified() const { return modified_; }
   bool is_active() const { return active_; }
   void set_active(bool active) { active_ = active; }
-  void set_data(const std::vector<uint8_t> &data) { data_ = data; }
+  void set_data(const std::vector<uint8_t> &data);
   void set_modified(bool modified) { modified_ = modified; }
 
 

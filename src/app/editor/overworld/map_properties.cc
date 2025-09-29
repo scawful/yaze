@@ -1,7 +1,9 @@
 #include "app/editor/overworld/map_properties.h"
 
+#include "app/core/performance_monitor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/ui_constants.h"
+#include "app/gfx/atlas_renderer.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
@@ -1050,6 +1052,8 @@ std::string MapPropertiesSystem::GetOverlayDescription(uint16_t overlay_id) {
 void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
                                                   int current_world,
                                                   bool show_overlay_preview) {
+  gfx::ScopedTimer timer("map_properties_draw_overlay_preview");
+  
   if (!show_overlay_preview || !maps_bmp_ || !canvas_)
     return;
 
