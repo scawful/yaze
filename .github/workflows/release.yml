@@ -14,7 +14,7 @@ on:
         type: string
 
 concurrency:
-  group: release-${{ github.event_name }}-${{ github.ref_name || github.event.inputs.tag || github.run_id }}
+  group: release-${{ github.ref || github.event.inputs.tag || github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -82,20 +82,21 @@ jobs:
               echo "# yaze Release Notes" > release_notes.md
               echo "" >> release_notes.md
               echo "See docs/C1-changelog.md for full history." >> release_notes.md
-              fi
-            else
-              echo "# yaze Release Notes" > release_notes.md
-              echo "" >> release_notes.md
-              echo "See docs/C1-changelog.md for full history." >> release_notes.md
             fi
-                      echo "---- RELEASE NOTES START ----"
-                      cat release_notes.md
-                      echo "---- RELEASE NOTES END ----"
+            fi
+          else
+            echo "# yaze Release Notes" > release_notes.md
+            echo "" >> release_notes.md
+            echo "See docs/C1-changelog.md for full history." >> release_notes.md
+          fi
+          echo "---- RELEASE NOTES START ----"
+          cat release_notes.md
+          echo "---- RELEASE NOTES END ----"
 
-                  - name: Store release notes output
-                    id: notes
-                    shell: bash
-                    run: |
+      - name: Store release notes output
+        id: notes
+        shell: bash
+        run: |
           {
             echo 'content<<EOF'
             cat release_notes.md
@@ -182,7 +183,7 @@ jobs:
         if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
         with:
-          # Registry tag 2025.09.17 full commit SHA
+          # vcpkg registry baseline (full 40-char commit SHA)
           vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'
           runVcpkgInstall: true
           vcpkgJsonGlob: '**/vcpkg.json'
@@ -338,7 +339,7 @@ jobs:
               fi
               ;;
             macOS)
-              ver="${{ needs.validate-and-prepare.outputs.tag_name }}"
+              ver="${{ needs['validate-and-prepare'].outputs.tag_name }}"
               ver="${ver#v}"
               chmod +x ./scripts/create-macos-bundle.sh
               ./scripts/create-macos-bundle.sh "${ver}" "${ART}"
@@ -385,11 +386,11 @@ jobs:
       - name: Create/Update Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.validate-and-prepare.outputs.tag_name }}
-          name: yaze ${{ needs.validate-and-prepare.outputs.tag_name }}
-          body: ${{ needs.validate-and-prepare.outputs.release_notes }}
+          tag_name: ${{ needs['validate-and-prepare'].outputs.tag_name }}
+          name: yaze ${{ needs['validate-and-prepare'].outputs.tag_name }}
+          body: ${{ needs['validate-and-prepare'].outputs.release_notes }}
           draft: false
-          prerelease: ${{ contains(needs.validate-and-prepare.outputs.tag_name, 'beta') || contains(needs.validate-and-prepare.outputs.tag_name, 'alpha') || contains(needs.validate-and-prepare.outputs.tag_name, 'rc') }}
+          prerelease: ${{ contains(needs['validate-and-prepare'].outputs.tag_name, 'beta') || contains(needs['validate-and-prepare'].outputs.tag_name, 'alpha') || contains(needs['validate-and-prepare'].outputs.tag_name, 'rc') }}
           files: |
             dist/**/*
         env:
@@ -402,6 +403,6 @@ jobs:
     steps:
       - name: Announce release
         run: |
-          echo "🎉 yaze ${{ needs.validate-and-prepare.outputs.tag_name }} has been released!"
+          echo "🎉 yaze ${{ needs['validate-and-prepare'].outputs.tag_name }} has been released!"
           echo "📦 Packages are now available for download"
-          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate-and-prepare.outputs.tag_name }}"
+          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs['validate-and-prepare'].outputs.tag_name }}"
