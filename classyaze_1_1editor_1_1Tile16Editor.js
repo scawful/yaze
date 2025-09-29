@@ -49,6 +49,7 @@ var classyaze_1_1editor_1_1Tile16Editor =
     [ "RefreshTile16Blockset", "classyaze_1_1editor_1_1Tile16Editor.html#a961501ef13d5a77ee8327defdddf6b3f", null ],
     [ "GetCurrentTile16Data", "classyaze_1_1editor_1_1Tile16Editor.html#abebf8fffcdcc5ed3d5404adca0c48eb4", null ],
     [ "RegenerateTile16BitmapFromROM", "classyaze_1_1editor_1_1Tile16Editor.html#a4d0954aa9cfa46dbdf940f86ff16b77c", null ],
+    [ "UpdateBlocksetBitmap", "classyaze_1_1editor_1_1Tile16Editor.html#ad12a99c5b3dd62c401b43a6c5f944ad1", null ],
     [ "DrawManualTile8Inputs", "classyaze_1_1editor_1_1Tile16Editor.html#a97587cbbdeddb2d2d31fdc5d9b705e1e", null ],
     [ "set_rom", "classyaze_1_1editor_1_1Tile16Editor.html#a68b09cff964bc0b565a592f45a1f8159", null ],
     [ "rom", "classyaze_1_1editor_1_1Tile16Editor.html#a1102a4b314713436ce8266a93bc6c615", null ],
@@ -100,5 +101,6 @@ var classyaze_1_1editor_1_1Tile16Editor =
     [ "palette_editor_", "classyaze_1_1editor_1_1Tile16Editor.html#a39858d7f26a5bcf4589035d82b2e91c8", null ],
     [ "palette_", "classyaze_1_1editor_1_1Tile16Editor.html#a61adc8f98eb325913960254df65a8545", null ],
     [ "status_", "classyaze_1_1editor_1_1Tile16Editor.html#a58ad362d4e7e090f25abeeb5cb3bed96", null ],
-    [ "on_changes_committed_", "classyaze_1_1editor_1_1Tile16Editor.html#ae9268227e12a24e12372a68193bd8fdd", null ]
+    [ "on_changes_committed_", "classyaze_1_1editor_1_1Tile16Editor.html#ae9268227e12a24e12372a68193bd8fdd", null ],
+    [ "current_tile16_data_", "classyaze_1_1editor_1_1Tile16Editor.html#a3f4ba4e6a7e6418319064bce04760d9d", null ]
 ];

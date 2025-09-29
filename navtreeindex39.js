@@ -1,5 +1,9 @@
 var NAVTREEINDEX39 =
 {
+"editor_8h.html#a297b0603822af41a3d23fbc2da2a622aab7016fa0536d3c2f14454c2bb0b203cb":[26,0,3,0,1,8,3,5],
+"editor_8h.html#a297b0603822af41a3d23fbc2da2a622aac935a934100d15241aefe3f7081e7767":[26,0,3,0,1,8,3,9],
+"editor_8h_source.html":[26,0,3,0,1,8],
+"editor__integration__test_8cc.html":[26,0,4,1,0,0],
 "editor__integration__test_8cc.html#adf4d73301961430d50d7edd96f92ce38":[26,0,4,1,0,0,0],
 "editor__integration__test_8cc_source.html":[26,0,4,1,0,0],
 "editor__integration__test_8h.html":[26,0,4,1,0,1],
@@ -137,8 +141,8 @@ var NAVTREEINDEX39 =
 "font__loader_8h_source.html":[26,0,3,0,0,0,9],
 "font__loader_8mm.html":[26,0,3,0,0,0,10],
 "font__loader_8mm_source.html":[26,0,3,0,0,0,10],
-"functions.html":[25,3,0,0],
 "functions.html":[25,3,0],
+"functions.html":[25,3,0,0],
 "functions_b.html":[25,3,0,1],
 "functions_c.html":[25,3,0,2],
 "functions_d.html":[25,3,0,3],
@@ -146,8 +150,8 @@ var NAVTREEINDEX39 =
 "functions_enum.html":[25,3,4],
 "functions_eval.html":[25,3,5],
 "functions_f.html":[25,3,0,5],
-"functions_func.html":[25,3,1,0],
 "functions_func.html":[25,3,1],
+"functions_func.html":[25,3,1,0],
 "functions_func_b.html":[25,3,1,1],
 "functions_func_c.html":[25,3,1,2],
 "functions_func_d.html":[25,3,1,3],
@@ -245,9 +249,5 @@ var NAVTREEINDEX39 =
 "globals_defs_e.html":[26,1,6,4],
 "globals_defs_f.html":[26,1,6,5],
 "globals_defs_h.html":[26,1,6,6],
-"globals_defs_i.html":[26,1,6,7],
-"globals_defs_m.html":[26,1,6,8],
-"globals_defs_n.html":[26,1,6,9],
-"globals_defs_o.html":[26,1,6,10],
-"globals_defs_p.html":[26,1,6,11]
+"globals_defs_i.html":[26,1,6,7]
 };

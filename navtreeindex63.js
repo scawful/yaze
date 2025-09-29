@@ -1,5 +1,9 @@
 var NAVTREEINDEX63 =
 {
+"snes__color_8h.html#a68d9e4162aa4c03b5061b60c3da6947a":[26,0,3,0,3,11,6],
+"snes__color_8h.html#a78da9ee9b2de37e218f0152a1ecc4e36":[26,0,3,0,3,11,3],
+"snes__color_8h.html#a893d31b6aeb9a3df9754b9def778b458":[26,0,3,0,3,11,1],
+"snes__color_8h.html#aa1d23b10c7b9b5b6d51eb35ab3df9765":[26,0,3,0,3,11,9],
 "snes__color_8h.html#abe440d09c939b2fa8b579c452893b657":[26,0,3,0,3,11,11],
 "snes__color_8h.html#ac7f1a1c381048672e273ebdb96a677e0":[26,0,3,0,3,11,10],
 "snes__color_8h.html#ae3e101d19e3d8139f0d0aac4e9e53827":[26,0,3,0,3,11,7],
@@ -245,9 +249,5 @@ var NAVTREEINDEX63 =
 "structchest__data.html#a51b15c462fab40543e72999d30e75746":[23,5,4,0],
 "structchest__data.html#a6ee5a3261f6a8c7fc0dec547e92c7860":[23,5,4,1],
 "structdestination.html":[23,5,5],
-"structdestination.html#a63de5eaebd6149a233842e169ebc4984":[23,5,5,2],
-"structdestination.html#ad90177f7b96a88aff3b44a1f66f354ed":[23,5,5,0],
-"structdestination.html#ad9349e1271695276c0a2cae38a73a00e":[23,5,5,1],
-"structdungeon__sprite.html":[23,5,0],
-"structdungeon__sprite.html#a7ed630ae9240306b411d397c5ff7546e":[23,5,0,6]
+"structdestination.html#a63de5eaebd6149a233842e169ebc4984":[23,5,5,2]
 };

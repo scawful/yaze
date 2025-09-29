@@ -1,5 +1,9 @@
 var NAVTREEINDEX64 =
 {
+"structdestination.html#ad90177f7b96a88aff3b44a1f66f354ed":[23,5,5,0],
+"structdestination.html#ad9349e1271695276c0a2cae38a73a00e":[23,5,5,1],
+"structdungeon__sprite.html":[23,5,0],
+"structdungeon__sprite.html#a7ed630ae9240306b411d397c5ff7546e":[23,5,0,6],
 "structdungeon__sprite.html#a974013bbaf61257fbb2276737663bb4a":[23,5,0,0],
 "structdungeon__sprite.html#aa2f9965c7951e4dd6d4d0c421dc4f674":[23,5,0,4],
 "structdungeon__sprite.html#ac77b264ef0992e27a9e3cf92d21e0857":[23,5,0,3],
@@ -245,9 +249,5 @@ var NAVTREEINDEX64 =
 "structyaze_1_1core_1_1SDL__Deleter.html":[25,0,0,2,11],
 "structyaze_1_1core_1_1SDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999":[25,0,0,2,11,1],
 "structyaze_1_1core_1_1SDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999":[24,0,4,2,13,1],
-"structyaze_1_1core_1_1SDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2":[25,0,0,2,11,0],
-"structyaze_1_1core_1_1SDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2":[24,0,4,2,13,0],
-"structyaze_1_1core_1_1SDL__Surface__Deleter.html":[25,0,0,2,12],
-"structyaze_1_1core_1_1SDL__Surface__Deleter.html":[24,0,4,2,14],
-"structyaze_1_1core_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87":[25,0,0,2,12,0]
+"structyaze_1_1core_1_1SDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2":[25,0,0,2,11,0]
 };

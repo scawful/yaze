@@ -226,6 +226,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:abebf8fffcdcc5ed3d5404adca0c48eb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d0954aa9cfa46dbdf940f86ff16b77c" id="r_a4d0954aa9cfa46dbdf940f86ff16b77c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#a4d0954aa9cfa46dbdf940f86ff16b77c">RegenerateTile16BitmapFromROM</a> ()</td></tr>
 <tr class="separator:a4d0954aa9cfa46dbdf940f86ff16b77c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad12a99c5b3dd62c401b43a6c5f944ad1" id="r_ad12a99c5b3dd62c401b43a6c5f944ad1"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#ad12a99c5b3dd62c401b43a6c5f944ad1">UpdateBlocksetBitmap</a> ()</td></tr>
+<tr class="separator:ad12a99c5b3dd62c401b43a6c5f944ad1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97587cbbdeddb2d2d31fdc5d9b705e1e" id="r_a97587cbbdeddb2d2d31fdc5d9b705e1e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#a97587cbbdeddb2d2d31fdc5d9b705e1e">DrawManualTile8Inputs</a> ()</td></tr>
 <tr class="separator:a97587cbbdeddb2d2d31fdc5d9b705e1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68b09cff964bc0b565a592f45a1f8159" id="r_a68b09cff964bc0b565a592f45a1f8159"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#a68b09cff964bc0b565a592f45a1f8159">set_rom</a> (<a class="el" href="classyaze_1_1Rom.html">Rom</a> *<a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#a1102a4b314713436ce8266a93bc6c615">rom</a>)</td></tr>
@@ -319,7 +321,7 @@ Private Attributes</h2></td></tr>
 <tr class="separator:abd40aed5b50ac9ec50004990d40afe59"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a08b89680033a225ea354624bfa5a6750" id="r_a08b89680033a225ea354624bfa5a6750"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#a08b89680033a225ea354624bfa5a6750">current_gfx_bmp_</a></td></tr>
 <tr class="separator:a08b89680033a225ea354624bfa5a6750"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8cadf950dd10d0fe608925fcfedb65d" id="r_ae8cadf950dd10d0fe608925fcfedb65d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1gui_1_1Table.html">gui::Table</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#ae8cadf950dd10d0fe608925fcfedb65d">tile_edit_table_</a> {&quot;##TileEditTable&quot;, 3, ImGuiTableFlags_Borders}</td></tr>
+<tr class="memitem:ae8cadf950dd10d0fe608925fcfedb65d" id="r_ae8cadf950dd10d0fe608925fcfedb65d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1gui_1_1Table.html">gui::Table</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#ae8cadf950dd10d0fe608925fcfedb65d">tile_edit_table_</a> {&quot;##TileEditTable&quot;, 3, ImGuiTableFlags_Borders, ImVec2(0, 0)}</td></tr>
 <tr class="separator:ae8cadf950dd10d0fe608925fcfedb65d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a293eda8e9f8020e4021af9036d43ccda" id="r_a293eda8e9f8020e4021af9036d43ccda"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">gfx::Tilemap</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#a293eda8e9f8020e4021af9036d43ccda">tile16_blockset_</a> = nullptr</td></tr>
 <tr class="separator:a293eda8e9f8020e4021af9036d43ccda"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -333,6 +335,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a58ad362d4e7e090f25abeeb5cb3bed96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae9268227e12a24e12372a68193bd8fdd" id="r_ae9268227e12a24e12372a68193bd8fdd"><td class="memItemLeft" align="right" valign="top">std::function&lt; absl::Status()&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#ae9268227e12a24e12372a68193bd8fdd">on_changes_committed_</a></td></tr>
 <tr class="separator:ae9268227e12a24e12372a68193bd8fdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f4ba4e6a7e6418319064bce04760d9d" id="r_a3f4ba4e6a7e6418319064bce04760d9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1editor_1_1Tile16Editor.html#a3f4ba4e6a7e6418319064bce04760d9d">current_tile16_data_</a></td></tr>
+<tr class="separator:a3f4ba4e6a7e6418319064bce04760d9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-attribs" name="pri-static-attribs"></a>
 Static Private Attributes</h2></td></tr>
@@ -423,7 +427,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00027">27</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="input_8cc_source.html#l00394">yaze::gui::AddTableColumn()</a>, <a class="el" href="tile16__editor_8h_source.html#l00201">all_tiles_types_</a>, <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00220">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile8_</a>, <a class="el" href="canvas_8h_source.html#l00251">yaze::gui::Canvas::custom_labels_enabled()</a>, <a class="el" href="bitmap_8h_source.html#l00176">yaze::gfx::Bitmap::depth()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00175">yaze::gfx::Bitmap::height()</a>, <a class="el" href="hex_8cc_source.html#l00030">yaze::util::HexByte()</a>, <a class="el" href="canvas_8cc_source.html#l00052">yaze::gui::Canvas::InitializeDefaults()</a>, <a class="el" href="canvas_8cc_source.html#l00088">yaze::gui::Canvas::InitializePaletteEditor()</a>, <a class="el" href="tile16__editor_8h_source.html#l00034">yaze::editor::kTile16PixelCount</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="tile16__editor_8cc_source.html#l00870">LoadTile8()</a>, <a class="el" href="tile16__editor_8h_source.html#l00134">map_blockset_loaded_</a>, <a class="el" href="canvas_8h_source.html#l00276">yaze::gui::Canvas::mutable_labels()</a>, <a class="el" href="bitmap_8h_source.html#l00172">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00137">priority_tile</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00133">rom_</a>, <a class="el" href="canvas_8h_source.html#l00151">yaze::gui::Canvas::SetAutoResize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00939">SetCurrentTile()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00224">tile16_blockset_</a>, <a class="el" href="tile16__editor_8h_source.html#l00207">tile16_blockset_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00210">tile16_edit_canvas_</a>, <a class="el" href="tile16__editor_8h_source.html#l00216">tile8_source_canvas_</a>, <a class="el" href="tile16__editor_8h_source.html#l00222">tile_edit_table_</a>, <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>, <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>, <a class="el" href="tile16__editor_8h_source.html#l00135">x_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00136">y_flip</a>.</p>
+<p class="reference">References <a class="el" href="input_8cc_source.html#l00394">yaze::gui::AddTableColumn()</a>, <a class="el" href="tile16__editor_8h_source.html#l00202">all_tiles_types_</a>, <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00221">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_tile8_</a>, <a class="el" href="canvas_8h_source.html#l00251">yaze::gui::Canvas::custom_labels_enabled()</a>, <a class="el" href="bitmap_8h_source.html#l00176">yaze::gfx::Bitmap::depth()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00175">yaze::gfx::Bitmap::height()</a>, <a class="el" href="hex_8cc_source.html#l00030">yaze::util::HexByte()</a>, <a class="el" href="canvas_8cc_source.html#l00052">yaze::gui::Canvas::InitializeDefaults()</a>, <a class="el" href="canvas_8cc_source.html#l00088">yaze::gui::Canvas::InitializePaletteEditor()</a>, <a class="el" href="tile16__editor_8h_source.html#l00034">yaze::editor::kTile16PixelCount</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="tile16__editor_8cc_source.html#l00914">LoadTile8()</a>, <a class="el" href="tile16__editor_8h_source.html#l00135">map_blockset_loaded_</a>, <a class="el" href="canvas_8h_source.html#l00276">yaze::gui::Canvas::mutable_labels()</a>, <a class="el" href="bitmap_8h_source.html#l00172">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00138">priority_tile</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00134">rom_</a>, <a class="el" href="canvas_8h_source.html#l00151">yaze::gui::Canvas::SetAutoResize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">tile16_blockset_</a>, <a class="el" href="tile16__editor_8h_source.html#l00208">tile16_blockset_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00211">tile16_edit_canvas_</a>, <a class="el" href="tile16__editor_8h_source.html#l00217">tile8_source_canvas_</a>, <a class="el" href="tile16__editor_8h_source.html#l00223">tile_edit_table_</a>, <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>, <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>, <a class="el" href="tile16__editor_8h_source.html#l00136">x_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00137">y_flip</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00133">yaze::editor::OverworldEditor::Load()</a>, and <a class="el" href="rom__dependent__test__suite_8h_source.html#l00390">yaze::test::RomDependentTestSuite::RunTile16EditorTest()</a>.</p>
 
@@ -446,7 +450,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00100">100</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8cc_source.html#l01068">ClearScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01214">ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01459">CommitChangesToBlockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01007">CopyTile16ToClipboard()</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile8_</a>, <a class="el" href="canvas_8h_source.html#l00251">yaze::gui::Canvas::custom_labels_enabled()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01231">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00255">DrawTile16Editor()</a>, <a class="el" href="tile16__editor_8h_source.html#l00096">EnableLivePreview()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01177">FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01078">FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01111">FlipTile16Vertical()</a>, <a class="el" href="tile16__editor_8h_source.html#l00173">live_preview_enabled_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01051">LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8h_source.html#l00134">map_blockset_loaded_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01024">PasteTile16FromClipboard()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01350">Redo()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8cc_source.html#l01144">RotateTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01396">SaveTile16ToROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01037">SaveTile16ToScratchSpace()</a>, <a class="el" href="tile16__editor_8h_source.html#l00150">scratch_space_used_</a>, <a class="el" href="tile16__editor_8h_source.html#l00230">status_</a>, <a class="el" href="tile16__editor_8h_source.html#l00216">tile8_source_canvas_</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01319">Undo()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8cc_source.html#l01118">ClearScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01264">ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01509">CommitChangesToBlockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01057">CopyTile16ToClipboard()</a>, <a class="el" href="tile16__editor_8h_source.html#l00226">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_tile8_</a>, <a class="el" href="canvas_8h_source.html#l00251">yaze::gui::Canvas::custom_labels_enabled()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01281">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00255">DrawTile16Editor()</a>, <a class="el" href="tile16__editor_8h_source.html#l00096">EnableLivePreview()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01227">FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01128">FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01161">FlipTile16Vertical()</a>, <a class="el" href="tile16__editor_8h_source.html#l00174">live_preview_enabled_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01101">LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8h_source.html#l00135">map_blockset_loaded_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01074">PasteTile16FromClipboard()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01400">Redo()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8cc_source.html#l01194">RotateTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01446">SaveTile16ToROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01087">SaveTile16ToScratchSpace()</a>, <a class="el" href="tile16__editor_8h_source.html#l00151">scratch_space_used_</a>, <a class="el" href="tile16__editor_8h_source.html#l00231">status_</a>, <a class="el" href="tile16__editor_8h_source.html#l00217">tile8_source_canvas_</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01369">Undo()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00243">yaze::editor::OverworldEditor::DrawToolset()</a>, and <a class="el" href="overworld__editor_8cc_source.html#l00160">yaze::editor::OverworldEditor::Update()</a>.</p>
 
@@ -469,7 +473,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00255">255</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00230">status_</a>, <a class="el" href="tile16__editor_8cc_source.html#l00274">UpdateBlockset()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00231">status_</a>, <a class="el" href="tile16__editor_8cc_source.html#l00274">UpdateBlockset()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 <div class="dynheader">
@@ -508,7 +512,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00274">274</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="style_8cc_source.html#l00284">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="style_8cc_source.html#l00272">yaze::gui::BeginPadding()</a>, <a class="el" href="tile16__editor_8h_source.html#l00204">blockset_canvas_</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="canvas_8cc_source.html#l00197">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00776">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00238">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l01021">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l01047">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00649">yaze::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="style_8cc_source.html#l00276">yaze::gui::EndPadding()</a>, <a class="el" href="canvas_8h_source.html#l00241">yaze::gui::Canvas::GetGridStep()</a>, <a class="el" href="canvas_8cc_source.html#l00167">yaze::gui::Canvas::GetLastClickPosition()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8cc_source.html#l00939">SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00207">tile16_blockset_bmp_</a>.</p>
+<p class="reference">References <a class="el" href="style_8cc_source.html#l00284">yaze::gui::BeginChildWithScrollbar()</a>, <a class="el" href="style_8cc_source.html#l00272">yaze::gui::BeginPadding()</a>, <a class="el" href="tile16__editor_8h_source.html#l00205">blockset_canvas_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="canvas_8cc_source.html#l00197">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00776">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00238">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l01021">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="canvas_8cc_source.html#l01047">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="canvas_8cc_source.html#l00649">yaze::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="style_8cc_source.html#l00276">yaze::gui::EndPadding()</a>, <a class="el" href="canvas_8h_source.html#l00241">yaze::gui::Canvas::GetGridStep()</a>, <a class="el" href="canvas_8cc_source.html#l00167">yaze::gui::Canvas::GetLastClickPosition()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00208">tile16_blockset_bmp_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00255">DrawTile16Editor()</a>.</p>
 
@@ -529,11 +533,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01746">1746</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01796">1796</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00158">layout_scratch_</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00159">layout_scratch_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -553,9 +557,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01765">1765</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01815">1815</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00158">layout_scratch_</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00159">layout_scratch_</a>.</p>
 
 </div>
 </div>
@@ -575,9 +579,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01777">1777</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01827">1827</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00158">layout_scratch_</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00159">layout_scratch_</a>.</p>
 
 </div>
 </div>
@@ -607,11 +611,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00447">447</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00485">485</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile8_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="tile16__editor_8h_source.html#l00026">yaze::editor::kTile8Size</a>, <a class="el" href="tile16__editor_8h_source.html#l00195">last_edit_time_</a>, <a class="el" href="tile16__editor_8h_source.html#l00173">live_preview_enabled_</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00137">priority_tile</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">rom()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01415">UpdateOverworldTilemap()</a>, <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>, <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>, <a class="el" href="tile16__editor_8h_source.html#l00135">x_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00136">y_flip</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00226">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_tile8_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="tile16__editor_8h_source.html#l00026">yaze::editor::kTile8Size</a>, <a class="el" href="tile16__editor_8h_source.html#l00196">last_edit_time_</a>, <a class="el" href="tile16__editor_8h_source.html#l00174">live_preview_enabled_</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00138">priority_tile</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00126">rom()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00355">UpdateBlocksetBitmap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01465">UpdateOverworldTilemap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00321">UpdateROMTile16Data()</a>, <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>, <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>, <a class="el" href="tile16__editor_8h_source.html#l00136">x_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00137">y_flip</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -630,9 +634,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00592">592</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00636">636</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8cc_source.html#l01214">ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01481">CommitChangesToOverworld()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01007">CopyTile16ToClipboard()</a>, <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00220">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00190">current_palette_group_</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile8_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01500">DiscardChanges()</a>, <a class="el" href="canvas_8cc_source.html#l00197">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00776">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00238">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l01021">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01790">DrawManualTile8Inputs()</a>, <a class="el" href="canvas_8h_source.html#l00222">yaze::gui::Canvas::drawn_tile_position()</a>, <a class="el" href="canvas_8cc_source.html#l01047">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01746">DrawScratchSpace()</a>, <a class="el" href="canvas_8cc_source.html#l00481">yaze::gui::Canvas::DrawTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00649">yaze::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="canvas_8cc_source.html#l00167">yaze::gui::Canvas::GetLastClickPosition()</a>, <a class="el" href="canvas_8h_source.html#l00254">yaze::gui::Canvas::height()</a>, <a class="el" href="macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="bitmap_8h_source.html#l00179">yaze::gfx::Bitmap::mutable_data()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01024">PasteTile16FromClipboard()</a>, <a class="el" href="tile16__editor_8h_source.html#l00137">priority_tile</a>, <a class="el" href="tile16__editor_8cc_source.html#l01569">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00335">RefreshTile16Blockset()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="canvas_8h_source.html#l00225">yaze::gui::Canvas::set_draggable()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00189">show_palette_settings_</a>, <a class="el" href="bitmap_8h_source.html#l00181">yaze::gfx::Bitmap::texture()</a>, <a class="el" href="tile16__editor_8h_source.html#l00210">tile16_edit_canvas_</a>, <a class="el" href="tile16__editor_8h_source.html#l00216">tile8_source_canvas_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01319">Undo()</a>, <a class="el" href="tile16__editor_8h_source.html#l00168">undo_stack_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01509">UpdateTile8Palette()</a>, <a class="el" href="canvas_8cc_source.html#l00159">yaze::gui::Canvas::WasClicked()</a>, <a class="el" href="canvas_8cc_source.html#l00163">yaze::gui::Canvas::WasDoubleClicked()</a>, <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>, <a class="el" href="canvas_8h_source.html#l00253">yaze::gui::Canvas::width()</a>, <a class="el" href="tile16__editor_8h_source.html#l00135">x_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00136">y_flip</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8cc_source.html#l01264">ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01531">CommitChangesToOverworld()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01057">CopyTile16ToClipboard()</a>, <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00221">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00226">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00191">current_palette_group_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_tile8_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01550">DiscardChanges()</a>, <a class="el" href="canvas_8cc_source.html#l00197">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="canvas_8cc_source.html#l00776">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="canvas_8cc_source.html#l00238">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="canvas_8cc_source.html#l01021">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01840">DrawManualTile8Inputs()</a>, <a class="el" href="canvas_8h_source.html#l00222">yaze::gui::Canvas::drawn_tile_position()</a>, <a class="el" href="canvas_8cc_source.html#l01047">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01796">DrawScratchSpace()</a>, <a class="el" href="canvas_8cc_source.html#l00481">yaze::gui::Canvas::DrawTilePainter()</a>, <a class="el" href="canvas_8cc_source.html#l00649">yaze::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="canvas_8cc_source.html#l00167">yaze::gui::Canvas::GetLastClickPosition()</a>, <a class="el" href="canvas_8h_source.html#l00254">yaze::gui::Canvas::height()</a>, <a class="el" href="macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="bitmap_8h_source.html#l00179">yaze::gfx::Bitmap::mutable_data()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01074">PasteTile16FromClipboard()</a>, <a class="el" href="tile16__editor_8h_source.html#l00138">priority_tile</a>, <a class="el" href="tile16__editor_8cc_source.html#l01619">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00334">RefreshTile16Blockset()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="canvas_8h_source.html#l00225">yaze::gui::Canvas::set_draggable()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00190">show_palette_settings_</a>, <a class="el" href="bitmap_8h_source.html#l00181">yaze::gfx::Bitmap::texture()</a>, <a class="el" href="tile16__editor_8h_source.html#l00211">tile16_edit_canvas_</a>, <a class="el" href="tile16__editor_8h_source.html#l00217">tile8_source_canvas_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01369">Undo()</a>, <a class="el" href="tile16__editor_8h_source.html#l00169">undo_stack_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01559">UpdateTile8Palette()</a>, <a class="el" href="canvas_8cc_source.html#l00159">yaze::gui::Canvas::WasClicked()</a>, <a class="el" href="canvas_8cc_source.html#l00163">yaze::gui::Canvas::WasDoubleClicked()</a>, <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>, <a class="el" href="canvas_8h_source.html#l00253">yaze::gui::Canvas::width()</a>, <a class="el" href="tile16__editor_8h_source.html#l00136">x_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00137">y_flip</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00255">DrawTile16Editor()</a>.</p>
 
@@ -653,11 +657,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00870">870</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00914">914</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00192">auto_normalize_pixels_</a>, <a class="el" href="tile16__editor_8h_source.html#l00220">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">current_gfx_individual_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="bitmap_8h_source.html#l00175">yaze::gfx::Bitmap::height()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00191">palette_normalization_mask_</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">rom()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01509">UpdateTile8Palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00193">auto_normalize_pixels_</a>, <a class="el" href="tile16__editor_8h_source.html#l00221">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00226">current_gfx_individual_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="bitmap_8h_source.html#l00175">yaze::gfx::Bitmap::height()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00192">palette_normalization_mask_</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00126">rom()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01559">UpdateTile8Palette()</a>, and <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -677,11 +681,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00939">939</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00983">983</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="tile16__editor_8h_source.html#l00192">auto_normalize_pixels_</a>, <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tilemap_8cc_source.html#l00193">yaze::gfx::GetTilemapData()</a>, <a class="el" href="overworld_8h_source.html#l00119">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="tile16__editor_8h_source.html#l00034">yaze::editor::kTile16PixelCount</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00191">palette_normalization_mask_</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">rom()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="tile16__editor_8h_source.html#l00224">tile16_blockset_</a>, and <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="tile16__editor_8h_source.html#l00193">auto_normalize_pixels_</a>, <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00237">current_tile16_data_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tilemap_8cc_source.html#l00193">yaze::gfx::GetTilemapData()</a>, <a class="el" href="overworld_8h_source.html#l00119">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="tile16__editor_8h_source.html#l00034">yaze::editor::kTile16PixelCount</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00192">palette_normalization_mask_</a>, <a class="el" href="rom_8cc_source.html#l00543">yaze::Rom::ReadTile16()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tile16__editor_8h_source.html#l00126">rom()</a>, <a class="el" href="tile16__editor_8h_source.html#l00134">rom_</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">tile16_blockset_</a>, and <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01500">DiscardChanges()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01790">DrawManualTile8Inputs()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01153">yaze::editor::OverworldEditor::DrawTile16Selector()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="rom__dependent__test__suite_8h_source.html#l00390">yaze::test::RomDependentTestSuite::RunTile16EditorTest()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00274">UpdateBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01550">DiscardChanges()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01840">DrawManualTile8Inputs()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01153">yaze::editor::OverworldEditor::DrawTile16Selector()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="rom__dependent__test__suite_8h_source.html#l00390">yaze::test::RomDependentTestSuite::RunTile16EditorTest()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00274">UpdateBlockset()</a>.</p>
 
 </div>
 </div>
@@ -701,11 +705,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01007">1007</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01057">1057</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00146">clipboard_has_data_</a>, <a class="el" href="tile16__editor_8h_source.html#l00145">clipboard_tile16_</a>, <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="overworld_8h_source.html#l00119">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00224">tile16_blockset_</a>, and <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00147">clipboard_has_data_</a>, <a class="el" href="tile16__editor_8h_source.html#l00146">clipboard_tile16_</a>, <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="overworld_8h_source.html#l00119">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">tile16_blockset_</a>, and <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -724,11 +728,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01024">1024</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01074">1074</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00146">clipboard_has_data_</a>, <a class="el" href="tile16__editor_8h_source.html#l00145">clipboard_tile16_</a>, <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00172">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, and <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00147">clipboard_has_data_</a>, <a class="el" href="tile16__editor_8h_source.html#l00146">clipboard_tile16_</a>, <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00172">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, and <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -748,9 +752,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01037">1037</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01087">1087</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00172">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tile16__editor_8h_source.html#l00149">scratch_space_</a>, <a class="el" href="tile16__editor_8h_source.html#l00150">scratch_space_used_</a>, and <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00172">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tile16__editor_8h_source.html#l00150">scratch_space_</a>, <a class="el" href="tile16__editor_8h_source.html#l00151">scratch_space_used_</a>, and <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 <div class="dynheader">
@@ -788,9 +792,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01051">1051</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01101">1101</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tile16__editor_8h_source.html#l00149">scratch_space_</a>, <a class="el" href="tile16__editor_8h_source.html#l00150">scratch_space_used_</a>, and <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tile16__editor_8h_source.html#l00150">scratch_space_</a>, <a class="el" href="tile16__editor_8h_source.html#l00151">scratch_space_used_</a>, and <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 <div class="dynheader">
@@ -829,9 +833,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01068">1068</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01118">1118</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00150">scratch_space_used_</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00151">scratch_space_used_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
@@ -852,9 +856,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01078">1078</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01128">1128</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="tile16__editor_8h_source.html#l00228">palette_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="tile16__editor_8h_source.html#l00229">palette_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
@@ -875,9 +879,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01111">1111</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01161">1161</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="tile16__editor_8h_source.html#l00228">palette_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="tile16__editor_8h_source.html#l00229">palette_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
@@ -898,9 +902,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01144">1144</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01194">1194</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="tile16__editor_8h_source.html#l00228">palette_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="tile16__editor_8h_source.html#l00229">palette_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
@@ -922,9 +926,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01177">1177</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01227">1227</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00225">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00226">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
@@ -962,11 +966,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01214">1214</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01264">1264</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="bitmap_8h_source.html#l00179">yaze::gfx::Bitmap::mutable_data()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, and <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="bitmap_8h_source.html#l00179">yaze::gfx::Bitmap::mutable_data()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, and <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -986,9 +990,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01231">1231</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01281">1281</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00220">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">rom()</a>, <a class="el" href="bitmap_8cc_source.html#l00277">yaze::gfx::Bitmap::SetPaletteWithTransparent()</a>, and <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00221">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00226">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00126">rom()</a>, <a class="el" href="bitmap_8cc_source.html#l00277">yaze::gfx::Bitmap::SetPaletteWithTransparent()</a>, and <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
@@ -1028,9 +1032,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01266">1266</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01316">1316</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00175">preview_dirty_</a>, <a class="el" href="tile16__editor_8h_source.html#l00174">preview_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">rom()</a>, <a class="el" href="bitmap_8cc_source.html#l00277">yaze::gfx::Bitmap::SetPaletteWithTransparent()</a>, <a class="el" href="tile16__editor_8h_source.html#l00186">show_palette_preview_</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00176">preview_dirty_</a>, <a class="el" href="tile16__editor_8h_source.html#l00175">preview_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00126">rom()</a>, <a class="el" href="bitmap_8cc_source.html#l00277">yaze::gfx::Bitmap::SetPaletteWithTransparent()</a>, <a class="el" href="tile16__editor_8h_source.html#l00187">show_palette_preview_</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>.</p>
 
 </div>
 </div>
@@ -1095,11 +1099,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01319">1319</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01369">1369</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tile16__editor_8h_source.html#l00165">yaze::editor::Tile16Editor::UndoState::palette</a>, <a class="el" href="bitmap_8h_source.html#l00172">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::priority</a>, <a class="el" href="tile16__editor_8h_source.html#l00137">priority_tile</a>, <a class="el" href="tile16__editor_8h_source.html#l00169">redo_stack_</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00163">yaze::editor::Tile16Editor::UndoState::tile_bitmap</a>, <a class="el" href="tile16__editor_8h_source.html#l00162">yaze::editor::Tile16Editor::UndoState::tile_id</a>, <a class="el" href="tile16__editor_8h_source.html#l00168">undo_stack_</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>, <a class="el" href="tile16__editor_8h_source.html#l00135">x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00136">y_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::y_flip</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::palette</a>, <a class="el" href="bitmap_8h_source.html#l00172">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00167">yaze::editor::Tile16Editor::UndoState::priority</a>, <a class="el" href="tile16__editor_8h_source.html#l00138">priority_tile</a>, <a class="el" href="tile16__editor_8h_source.html#l00170">redo_stack_</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00164">yaze::editor::Tile16Editor::UndoState::tile_bitmap</a>, <a class="el" href="tile16__editor_8h_source.html#l00163">yaze::editor::Tile16Editor::UndoState::tile_id</a>, <a class="el" href="tile16__editor_8h_source.html#l00169">undo_stack_</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>, <a class="el" href="tile16__editor_8h_source.html#l00136">x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00167">yaze::editor::Tile16Editor::UndoState::x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00137">y_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00167">yaze::editor::Tile16Editor::UndoState::y_flip</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -1118,9 +1122,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01350">1350</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01400">1400</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tile16__editor_8h_source.html#l00165">yaze::editor::Tile16Editor::UndoState::palette</a>, <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::priority</a>, <a class="el" href="tile16__editor_8h_source.html#l00137">priority_tile</a>, <a class="el" href="tile16__editor_8h_source.html#l00169">redo_stack_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="tile16__editor_8h_source.html#l00163">yaze::editor::Tile16Editor::UndoState::tile_bitmap</a>, <a class="el" href="tile16__editor_8h_source.html#l00162">yaze::editor::Tile16Editor::UndoState::tile_id</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, <a class="el" href="tile16__editor_8h_source.html#l00135">x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00136">y_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::y_flip</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::palette</a>, <a class="el" href="tile16__editor_8h_source.html#l00167">yaze::editor::Tile16Editor::UndoState::priority</a>, <a class="el" href="tile16__editor_8h_source.html#l00138">priority_tile</a>, <a class="el" href="tile16__editor_8h_source.html#l00170">redo_stack_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="tile16__editor_8h_source.html#l00164">yaze::editor::Tile16Editor::UndoState::tile_bitmap</a>, <a class="el" href="tile16__editor_8h_source.html#l00163">yaze::editor::Tile16Editor::UndoState::tile_id</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, <a class="el" href="tile16__editor_8h_source.html#l00136">x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00167">yaze::editor::Tile16Editor::UndoState::x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00137">y_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00167">yaze::editor::Tile16Editor::UndoState::y_flip</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 <div class="dynheader">
@@ -1158,11 +1162,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01294">1294</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01344">1344</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="tile16__editor_8h_source.html#l00170">kMaxUndoStates_</a>, <a class="el" href="tile16__editor_8h_source.html#l00165">yaze::editor::Tile16Editor::UndoState::palette</a>, <a class="el" href="bitmap_8h_source.html#l00172">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::priority</a>, <a class="el" href="tile16__editor_8h_source.html#l00137">priority_tile</a>, <a class="el" href="tile16__editor_8h_source.html#l00169">redo_stack_</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00163">yaze::editor::Tile16Editor::UndoState::tile_bitmap</a>, <a class="el" href="tile16__editor_8h_source.html#l00162">yaze::editor::Tile16Editor::UndoState::tile_id</a>, <a class="el" href="tile16__editor_8h_source.html#l00168">undo_stack_</a>, <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>, <a class="el" href="tile16__editor_8h_source.html#l00135">x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00136">y_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::y_flip</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="tile16__editor_8h_source.html#l00171">kMaxUndoStates_</a>, <a class="el" href="tile16__editor_8h_source.html#l00166">yaze::editor::Tile16Editor::UndoState::palette</a>, <a class="el" href="bitmap_8h_source.html#l00172">yaze::gfx::Bitmap::palette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00167">yaze::editor::Tile16Editor::UndoState::priority</a>, <a class="el" href="tile16__editor_8h_source.html#l00138">priority_tile</a>, <a class="el" href="tile16__editor_8h_source.html#l00170">redo_stack_</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00164">yaze::editor::Tile16Editor::UndoState::tile_bitmap</a>, <a class="el" href="tile16__editor_8h_source.html#l00163">yaze::editor::Tile16Editor::UndoState::tile_id</a>, <a class="el" href="tile16__editor_8h_source.html#l00169">undo_stack_</a>, <a class="el" href="bitmap_8h_source.html#l00182">yaze::gfx::Bitmap::vector()</a>, <a class="el" href="tile16__editor_8h_source.html#l00136">x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00167">yaze::editor::Tile16Editor::UndoState::x_flip</a>, <a class="el" href="tile16__editor_8h_source.html#l00137">y_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00167">yaze::editor::Tile16Editor::UndoState::y_flip</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01214">ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01177">FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01078">FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01111">FlipTile16Vertical()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01350">Redo()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01144">RotateTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01264">ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01227">FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01128">FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01161">FlipTile16Vertical()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01400">Redo()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01194">RotateTile16()</a>.</p>
 
 </div>
 </div>
@@ -1192,7 +1196,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00096">96</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00173">live_preview_enabled_</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00174">live_preview_enabled_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
@@ -1230,9 +1234,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01373">1373</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01423">1423</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00224">tile16_blockset_</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00225">tile16_blockset_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1262,9 +1266,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01390">1390</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01440">1440</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00224">tile16_blockset_</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00225">tile16_blockset_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1293,11 +1297,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01396">1396</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01446">1446</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8cc_source.html#l01459">CommitChangesToBlockset()</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00133">rom_</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01415">UpdateOverworldTilemap()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8cc_source.html#l01509">CommitChangesToBlockset()</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00134">rom_</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01465">UpdateOverworldTilemap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01481">CommitChangesToOverworld()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01790">DrawManualTile8Inputs()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01531">CommitChangesToOverworld()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01840">DrawManualTile8Inputs()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1334,11 +1338,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01415">1415</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01465">1465</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="overworld_8h_source.html#l00119">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="tile16__editor_8h_source.html#l00224">tile16_blockset_</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="overworld_8h_source.html#l00119">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">tile16_blockset_</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01481">CommitChangesToOverworld()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01396">SaveTile16ToROM()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01531">CommitChangesToOverworld()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01446">SaveTile16ToROM()</a>.</p>
 
 </div>
 </div>
@@ -1357,11 +1361,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01459">1459</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01509">1509</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00184">yaze::gfx::Bitmap::modified()</a>, <a class="el" href="tile16__editor_8h_source.html#l00224">tile16_blockset_</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, and <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00184">yaze::gfx::Bitmap::modified()</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">tile16_blockset_</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, and <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01396">SaveTile16ToROM()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01446">SaveTile16ToROM()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1396,11 +1400,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01481">1481</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01531">1531</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00233">on_changes_committed_</a>, <a class="el" href="tile16__editor_8cc_source.html#l00335">RefreshTile16Blockset()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8cc_source.html#l01396">SaveTile16ToROM()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01415">UpdateOverworldTilemap()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00234">on_changes_committed_</a>, <a class="el" href="tile16__editor_8cc_source.html#l00334">RefreshTile16Blockset()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8cc_source.html#l01446">SaveTile16ToROM()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01465">UpdateOverworldTilemap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1437,11 +1441,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01500">1500</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01550">1550</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00939">SetCurrentTile()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1479,11 +1483,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01509">1509</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01559">1559</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00220">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00190">current_palette_group_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">rom()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00221">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00226">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00191">current_palette_group_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="tile16__editor_8h_source.html#l00126">rom()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00870">LoadTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01569">RefreshAllPalettes()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00914">LoadTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01619">RefreshAllPalettes()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -1502,11 +1506,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01569">1569</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01619">1619</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00220">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">rom()</a>, <a class="el" href="bitmap_8cc_source.html#l00277">yaze::gfx::Bitmap::SetPaletteWithTransparent()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01509">UpdateTile8Palette()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00221">current_gfx_bmp_</a>, <a class="el" href="tile16__editor_8h_source.html#l00226">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00126">rom()</a>, <a class="el" href="bitmap_8cc_source.html#l00277">yaze::gfx::Bitmap::SetPaletteWithTransparent()</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01559">UpdateTile8Palette()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -1525,11 +1529,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01592">1592</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01642">1642</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="canvas_8cc_source.html#l00108">yaze::gui::Canvas::ApplyROMPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00192">auto_normalize_pixels_</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00190">current_palette_group_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile8_</a>, <a class="el" href="macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="tile16__editor_8cc_source.html#l00870">LoadTile8()</a>, <a class="el" href="tile16__editor_8h_source.html#l00191">palette_normalization_mask_</a>, <a class="el" href="tile16__editor_8h_source.html#l00133">rom_</a>, <a class="el" href="tile16__editor_8h_source.html#l00189">show_palette_settings_</a>, <a class="el" href="canvas_8cc_source.html#l00102">yaze::gui::Canvas::ShowColorAnalysis()</a>, <a class="el" href="canvas_8cc_source.html#l00095">yaze::gui::Canvas::ShowPaletteEditor()</a>, <a class="el" href="tile16__editor_8h_source.html#l00210">tile16_edit_canvas_</a>, and <a class="el" href="tile16__editor_8h_source.html#l00216">tile8_source_canvas_</a>.</p>
+<p class="reference">References <a class="el" href="canvas_8cc_source.html#l00108">yaze::gui::Canvas::ApplyROMPalette()</a>, <a class="el" href="tile16__editor_8h_source.html#l00193">auto_normalize_pixels_</a>, <a class="el" href="tile16__editor_8h_source.html#l00226">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00143">current_palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00191">current_palette_group_</a>, <a class="el" href="tile16__editor_8h_source.html#l00142">current_tile8_</a>, <a class="el" href="macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="tile16__editor_8cc_source.html#l00914">LoadTile8()</a>, <a class="el" href="tile16__editor_8h_source.html#l00192">palette_normalization_mask_</a>, <a class="el" href="tile16__editor_8h_source.html#l00134">rom_</a>, <a class="el" href="tile16__editor_8h_source.html#l00190">show_palette_settings_</a>, <a class="el" href="canvas_8cc_source.html#l00102">yaze::gui::Canvas::ShowColorAnalysis()</a>, <a class="el" href="canvas_8cc_source.html#l00095">yaze::gui::Canvas::ShowPaletteEditor()</a>, <a class="el" href="tile16__editor_8h_source.html#l00211">tile16_edit_canvas_</a>, and <a class="el" href="tile16__editor_8h_source.html#l00217">tile8_source_canvas_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1564,11 +1568,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00322">322</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00321">321</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00133">rom_</a>, and <a class="el" href="rom_8cc_source.html#l00561">yaze::Rom::WriteTile16()</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="tile16__editor_8h_source.html#l00134">rom_</a>, and <a class="el" href="rom_8cc_source.html#l00561">yaze::Rom::WriteTile16()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01790">DrawManualTile8Inputs()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01840">DrawManualTile8Inputs()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1601,11 +1605,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00335">335</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00334">334</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="tile16__editor_8h_source.html#l00224">tile16_blockset_</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, and <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>.</p>
+<p class="reference">References <a class="el" href="tilemap_8h_source.html#l00017">yaze::gfx::Tilemap::atlas</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">tile16_blockset_</a>, <a class="el" href="tilemap_8h_source.html#l00018">yaze::gfx::Tilemap::tile_bitmaps</a>, and <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01481">CommitChangesToOverworld()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01531">CommitChangesToOverworld()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1642,9 +1646,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00305">305</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="rom_8cc_source.html#l00543">yaze::Rom::ReadTile16()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00133">rom_</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00237">current_tile16_data_</a>, <a class="el" href="rom_8cc_source.html#l00543">yaze::Rom::ReadTile16()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00134">rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01790">DrawManualTile8Inputs()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00356">RegenerateTile16BitmapFromROM()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00322">UpdateROMTile16Data()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01840">DrawManualTile8Inputs()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00394">RegenerateTile16BitmapFromROM()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00321">UpdateROMTile16Data()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1673,9 +1677,32 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00356">356</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00394">394</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00213">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="snes__tile_8h_source.html#l00056">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::id_</a>, <a class="el" href="tile16__editor_8h_source.html#l00034">yaze::editor::kTile16PixelCount</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="tile16__editor_8h_source.html#l00026">yaze::editor::kTile8Size</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::palette_</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">rom()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::vertical_mirror_</a>, <a class="el" href="tile16__editor_8h_source.html#l00135">x_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00136">y_flip</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="tile16__editor_8h_source.html#l00226">current_gfx_individual_</a>, <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="snes__tile_8h_source.html#l00056">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::id_</a>, <a class="el" href="tile16__editor_8h_source.html#l00034">yaze::editor::kTile16PixelCount</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="tile16__editor_8h_source.html#l00026">yaze::editor::kTile8Size</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::palette_</a>, <a class="el" href="rom_8h_source.html#l00188">yaze::Rom::palette_group()</a>, <a class="el" href="window_8h_source.html#l00056">yaze::core::Renderer::RenderBitmap()</a>, <a class="el" href="tile16__editor_8h_source.html#l00126">rom()</a>, <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>, <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::vertical_mirror_</a>, <a class="el" href="tile16__editor_8h_source.html#l00136">x_flip</a>, and <a class="el" href="tile16__editor_8h_source.html#l00137">y_flip</a>.</p>
+
+</div>
+</div>
+<a id="ad12a99c5b3dd62c401b43a6c5f944ad1" name="ad12a99c5b3dd62c401b43a6c5f944ad1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad12a99c5b3dd62c401b43a6c5f944ad1">&#9670;&#160;</a></span>UpdateBlocksetBitmap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::Tile16Editor::UpdateBlocksetBitmap </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l00355">355</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8h_source.html#l00214">current_tile16_bmp_</a>, <a class="el" href="bitmap_8h_source.html#l00178">yaze::gfx::Bitmap::data()</a>, <a class="el" href="window_8h_source.html#l00037">yaze::core::Renderer::Get()</a>, <a class="el" href="bitmap_8h_source.html#l00185">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="overworld_8h_source.html#l00119">yaze::zelda3::kNumTile16Individual</a>, <a class="el" href="tile16__editor_8h_source.html#l00025">yaze::editor::kTile16Size</a>, <a class="el" href="bitmap_8h_source.html#l00188">yaze::gfx::Bitmap::set_modified()</a>, <a class="el" href="bitmap_8h_source.html#l00177">yaze::gfx::Bitmap::size()</a>, <a class="el" href="tile16__editor_8h_source.html#l00225">tile16_blockset_</a>, <a class="el" href="tile16__editor_8h_source.html#l00208">tile16_blockset_bmp_</a>, <a class="el" href="window_8h_source.html#l00060">yaze::core::Renderer::UpdateBitmap()</a>, <a class="el" href="bitmap_8h_source.html#l00174">yaze::gfx::Bitmap::width()</a>, and <a class="el" href="bitmap_8cc_source.html#l00327">yaze::gfx::Bitmap::WriteToPixel()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>.</p>
 
 </div>
 </div>
@@ -1694,11 +1721,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01790">1790</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8cc_source.html#l01840">1840</a> of file <a class="el" href="tile16__editor_8cc_source.html">tile16_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00140">current_tile16_</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="snes__tile_8h_source.html#l00056">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00054">yaze::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00133">rom_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01396">SaveTile16ToROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00939">SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00322">UpdateROMTile16Data()</a>, and <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::vertical_mirror_</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00141">current_tile16_</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="snes__tile_8h_source.html#l00056">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::id_</a>, <a class="el" href="snes__tile_8h_source.html#l00054">yaze::gfx::TileInfo::over_</a>, <a class="el" href="snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::palette_</a>, <a class="el" href="tile16__editor_8h_source.html#l00134">rom_</a>, <a class="el" href="tile16__editor_8cc_source.html#l01446">SaveTile16ToROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00321">UpdateROMTile16Data()</a>, and <a class="el" href="snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::vertical_mirror_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1743,9 +1770,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00124">124</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00125">125</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00125">rom()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00133">rom_</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00126">rom()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00134">rom_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1782,11 +1809,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00125">125</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00126">126</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00133">rom_</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00134">rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01231">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00870">LoadTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01266">PreviewPaletteChange()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01569">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00356">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8h_source.html#l00124">set_rom()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00939">SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01509">UpdateTile8Palette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01281">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00914">LoadTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01316">PreviewPaletteChange()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01619">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00394">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">set_rom()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01559">UpdateTile8Palette()</a>.</p>
 
 </div>
 </div>
@@ -1814,9 +1841,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00128">128</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00129">129</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00233">on_changes_committed_</a>.</p>
+<p class="reference">References <a class="el" href="tile16__editor_8h_source.html#l00234">on_changes_committed_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l00133">yaze::editor::OverworldEditor::Load()</a>.</p>
 
@@ -1843,9 +1870,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00133">133</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00134">134</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01790">DrawManualTile8Inputs()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">rom()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01396">SaveTile16ToROM()</a>, <a class="el" href="tile16__editor_8h_source.html#l00124">set_rom()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00322">UpdateROMTile16Data()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01840">DrawManualTile8Inputs()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8h_source.html#l00126">rom()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01446">SaveTile16ToROM()</a>, <a class="el" href="tile16__editor_8h_source.html#l00125">set_rom()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00321">UpdateROMTile16Data()</a>.</p>
 
 </div>
 </div>
@@ -1869,7 +1896,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00134">134</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00135">135</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
@@ -1895,9 +1922,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00135">135</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00136">136</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01350">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00356">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01319">Undo()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01400">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00394">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01369">Undo()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -1921,9 +1948,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00136">136</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00137">137</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01350">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00356">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01319">Undo()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01400">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00394">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01369">Undo()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -1947,9 +1974,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00137">137</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00138">138</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01350">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01319">Undo()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01400">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01369">Undo()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -1973,7 +2000,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00139">139</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00140">140</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -1997,9 +2024,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00140">140</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00141">141</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01500">DiscardChanges()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01790">DrawManualTile8Inputs()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01350">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00356">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00939">SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01319">Undo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00274">UpdateBlockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01415">UpdateOverworldTilemap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00322">UpdateROMTile16Data()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01373">ValidateTile16Data()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01550">DiscardChanges()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01840">DrawManualTile8Inputs()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01400">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00394">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01369">Undo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00274">UpdateBlockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00355">UpdateBlocksetBitmap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01465">UpdateOverworldTilemap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00321">UpdateROMTile16Data()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01423">ValidateTile16Data()</a>.</p>
 
 </div>
 </div>
@@ -2023,9 +2050,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00141">141</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00142">142</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -2049,9 +2076,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00142">142</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00143">143</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01231">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01350">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01569">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01319">Undo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01509">UpdateTile8Palette()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01373">ValidateTile16Data()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01281">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01400">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01619">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01369">Undo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01559">UpdateTile8Palette()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01423">ValidateTile16Data()</a>.</p>
 
 </div>
 </div>
@@ -2075,9 +2102,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00145">145</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00146">146</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01007">CopyTile16ToClipboard()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01024">PasteTile16FromClipboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01057">CopyTile16ToClipboard()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01074">PasteTile16FromClipboard()</a>.</p>
 
 </div>
 </div>
@@ -2101,9 +2128,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00146">146</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00147">147</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01007">CopyTile16ToClipboard()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01024">PasteTile16FromClipboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01057">CopyTile16ToClipboard()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01074">PasteTile16FromClipboard()</a>.</p>
 
 </div>
 </div>
@@ -2127,9 +2154,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00149">149</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00150">150</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01051">LoadTile16FromScratchSpace()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01037">SaveTile16ToScratchSpace()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01101">LoadTile16FromScratchSpace()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01087">SaveTile16ToScratchSpace()</a>.</p>
 
 </div>
 </div>
@@ -2153,9 +2180,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00150">150</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00151">151</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01068">ClearScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01051">LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01037">SaveTile16ToScratchSpace()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01118">ClearScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01101">LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01087">SaveTile16ToScratchSpace()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
 </div>
 </div>
@@ -2179,9 +2206,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00158">158</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00159">159</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01746">DrawScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01777">LoadLayoutFromScratch()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01765">SaveLayoutToScratch()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01796">DrawScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01827">LoadLayoutFromScratch()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01815">SaveLayoutToScratch()</a>.</p>
 
 </div>
 </div>
@@ -2205,9 +2232,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00168">168</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00169">169</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01319">Undo()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01369">Undo()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -2231,9 +2258,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00169">169</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00170">170</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01350">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01319">Undo()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01400">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01369">Undo()</a>.</p>
 
 </div>
 </div>
@@ -2257,9 +2284,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00170">170</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00171">171</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>.</p>
 
 </div>
 </div>
@@ -2283,9 +2310,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00173">173</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00174">174</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8h_source.html#l00096">EnableLivePreview()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8h_source.html#l00096">EnableLivePreview()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
 </div>
 </div>
@@ -2309,9 +2336,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00174">174</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00175">175</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01266">PreviewPaletteChange()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01316">PreviewPaletteChange()</a>.</p>
 
 </div>
 </div>
@@ -2335,9 +2362,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00175">175</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00176">176</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01266">PreviewPaletteChange()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01316">PreviewPaletteChange()</a>.</p>
 
 </div>
 </div>
@@ -2361,7 +2388,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00178">178</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00179">179</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2385,7 +2412,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00179">179</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00180">180</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2409,7 +2436,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00180">180</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00181">181</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2433,7 +2460,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00183">183</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00184">184</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2457,7 +2484,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00184">184</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00185">185</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2481,7 +2508,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00185">185</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00186">186</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2505,9 +2532,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00186">186</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00187">187</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01266">PreviewPaletteChange()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01316">PreviewPaletteChange()</a>.</p>
 
 </div>
 </div>
@@ -2531,9 +2558,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00189">189</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00190">190</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -2557,9 +2584,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00190">190</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00191">191</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01509">UpdateTile8Palette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01559">UpdateTile8Palette()</a>.</p>
 
 </div>
 </div>
@@ -2583,9 +2610,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00191">191</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00192">192</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00870">LoadTile8()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00939">SetCurrentTile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00914">LoadTile8()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>.</p>
 
 </div>
 </div>
@@ -2609,9 +2636,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00192">192</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00193">193</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00870">LoadTile8()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00939">SetCurrentTile()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00914">LoadTile8()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>.</p>
 
 </div>
 </div>
@@ -2635,9 +2662,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00195">195</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00196">196</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>.</p>
 
 </div>
 </div>
@@ -2661,7 +2688,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00196">196</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00197">197</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2685,7 +2712,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00198">198</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00199">199</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2709,7 +2736,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00199">199</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00200">200</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -2733,7 +2760,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00201">201</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00202">202</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>.</p>
 
@@ -2765,7 +2792,7 @@ Here is the call graph for this function:</div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html_af28f4f6ce975808297fb0f6210efa555"><div class="ttname"><a href="namespaceyaze_1_1editor.html#af28f4f6ce975808297fb0f6210efa555">yaze::editor::kTilesheetEditorWidth</a></div><div class="ttdeci">constexpr int kTilesheetEditorWidth</div><div class="ttdef"><b>Definition</b> <a href="tile16__editor_8h_source.html#l00027">tile16_editor.h:27</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_aa7b9cc1741455bb4ffc5ba758912a465a20e39deb41b95e8150718fbb7ce02774"><div class="ttname"><a href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a20e39deb41b95e8150718fbb7ce02774">yaze::gui::CanvasGridSize::k32x32</a></div><div class="ttdeci">@ k32x32</div></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00204">204</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00205">205</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00274">UpdateBlockset()</a>.</p>
 
@@ -2791,9 +2818,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00207">207</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00208">208</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00274">UpdateBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00274">UpdateBlockset()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00355">UpdateBlocksetBitmap()</a>.</p>
 
 </div>
 </div>
@@ -2821,9 +2848,9 @@ Here is the call graph for this function:</div>
 <div class="line">                                  <a class="code hl_enumvalue" href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9">gui::CanvasGridSize::k8x8</a>, 4.0F}</div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9"><div class="ttname"><a href="namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9">yaze::gui::CanvasGridSize::k8x8</a></div><div class="ttdeci">@ k8x8</div></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00210">210</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00211">211</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -2847,9 +2874,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00213">213</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00214">214</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01214">ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01231">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01177">FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01078">FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01111">FlipTile16Vertical()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01051">LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01024">PasteTile16FromClipboard()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01266">PreviewPaletteChange()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01350">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01569">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00356">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01144">RotateTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01396">SaveTile16ToROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01037">SaveTile16ToScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00939">SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01319">Undo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01415">UpdateOverworldTilemap()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01264">ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01281">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01227">FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01128">FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01161">FlipTile16Vertical()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01101">LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01074">PasteTile16FromClipboard()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01316">PreviewPaletteChange()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01400">Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01619">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00394">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01194">RotateTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01446">SaveTile16ToROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01087">SaveTile16ToScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01344">SaveUndoState()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01369">Undo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00355">UpdateBlocksetBitmap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01465">UpdateOverworldTilemap()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -2879,9 +2906,9 @@ Here is the call graph for this function:</div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a31cc30ac8b84ca5dc7a802c51698e845"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a31cc30ac8b84ca5dc7a802c51698e845">yaze::gfx::kTilesheetHeight</a></div><div class="ttdeci">constexpr int kTilesheetHeight</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8h_source.html#l00017">snes_tile.h:17</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a33c61ec68c83c1679ac87d9711d7c0b0"><div class="ttname"><a href="namespaceyaze_1_1gfx.html#a33c61ec68c83c1679ac87d9711d7c0b0">yaze::gfx::kTilesheetWidth</a></div><div class="ttdeci">constexpr int kTilesheetWidth</div><div class="ttdef"><b>Definition</b> <a href="snes__tile_8h_source.html#l00016">snes_tile.h:16</a></div></div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00216">216</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00217">217</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>.</p>
 
 </div>
 </div>
@@ -2905,9 +2932,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00220">220</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00221">221</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01231">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00870">LoadTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01569">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01509">UpdateTile8Palette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01281">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00914">LoadTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01619">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01559">UpdateTile8Palette()</a>.</p>
 
 </div>
 </div>
@@ -2921,7 +2948,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structyaze_1_1gui_1_1Table.html">gui::Table</a> yaze::editor::Tile16Editor::tile_edit_table_ {&quot;##TileEditTable&quot;, 3, ImGuiTableFlags_Borders}</td>
+          <td class="memname"><a class="el" href="structyaze_1_1gui_1_1Table.html">gui::Table</a> yaze::editor::Tile16Editor::tile_edit_table_ {&quot;##TileEditTable&quot;, 3, ImGuiTableFlags_Borders, ImVec2(0, 0)}</td>
         </tr>
       </table>
   </td>
@@ -2931,7 +2958,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00222">222</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00223">223</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>.</p>
 
@@ -2957,9 +2984,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00224">224</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00225">225</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01459">CommitChangesToBlockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01007">CopyTile16ToClipboard()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01390">IsTile16Valid()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00335">RefreshTile16Blockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00939">SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01415">UpdateOverworldTilemap()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01373">ValidateTile16Data()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01509">CommitChangesToBlockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01057">CopyTile16ToClipboard()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01440">IsTile16Valid()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00334">RefreshTile16Blockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00355">UpdateBlocksetBitmap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01465">UpdateOverworldTilemap()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01423">ValidateTile16Data()</a>.</p>
 
 </div>
 </div>
@@ -2983,9 +3010,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00225">225</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00226">226</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01231">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01592">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00447">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01177">FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00870">LoadTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01569">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00356">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00592">UpdateTile16Edit()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01509">UpdateTile8Palette()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01281">CyclePalette()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01642">DrawPaletteSettings()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00485">DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01227">FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00914">LoadTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01619">RefreshAllPalettes()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00394">RegenerateTile16BitmapFromROM()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00636">UpdateTile16Edit()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01559">UpdateTile8Palette()</a>.</p>
 
 </div>
 </div>
@@ -3009,7 +3036,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00227">227</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00228">228</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 </div>
 </div>
@@ -3033,9 +3060,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00228">228</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00229">229</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01078">FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01111">FlipTile16Vertical()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01144">RotateTile16()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01128">FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01161">FlipTile16Vertical()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l01194">RotateTile16()</a>.</p>
 
 </div>
 </div>
@@ -3059,7 +3086,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00230">230</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00231">231</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00255">DrawTile16Editor()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00100">Update()</a>.</p>
 
@@ -3085,9 +3112,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00233">233</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00234">234</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01481">CommitChangesToOverworld()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00128">set_on_changes_committed()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l01531">CommitChangesToOverworld()</a>, and <a class="el" href="tile16__editor_8h_source.html#l00129">set_on_changes_committed()</a>.</p>
+
+</div>
+</div>
+<a id="a3f4ba4e6a7e6418319064bce04760d9d" name="a3f4ba4e6a7e6418319064bce04760d9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f4ba4e6a7e6418319064bce04760d9d">&#9670;&#160;</a></span>current_tile16_data_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> yaze::editor::Tile16Editor::current_tile16_data_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="tile16__editor_8h_source.html#l00237">237</a> of file <a class="el" href="tile16__editor_8h_source.html">tile16_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="tile16__editor_8cc_source.html#l00305">GetCurrentTile16Data()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00983">SetCurrentTile()</a>.</p>
 
 </div>
 </div>
