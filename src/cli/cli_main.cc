@@ -22,7 +22,6 @@
 
 // Global flags
 ABSL_FLAG(bool, tui, false, "Launch the Text User Interface");
-ABSL_FLAG(bool, version, false, "Show version information");
 ABSL_FLAG(bool, verbose, false, "Enable verbose output");
 ABSL_FLAG(std::string, rom, "", "Path to the ROM file");
 
@@ -119,12 +118,6 @@ class ModernCLI {
         return HandleHelpCommand(args);
       }
     };
-  }
-
-  void ShowVersion() {
-    std::cout << "z3ed v0.3.1 - Yet Another Zelda3 Editor CLI" << std::endl;
-    std::cout << "Built with Asar integration" << std::endl;
-    std::cout << "Copyright (c) 2025 scawful" << std::endl;
   }
 
   void ShowHelp(const std::string& command = "") {
@@ -451,12 +444,6 @@ int main(int argc, char* argv[]) {
   auto args = absl::ParseCommandLine(argc, argv);
   
   yaze::cli::ModernCLI cli;
-
-  // Handle version flag
-  if (absl::GetFlag(FLAGS_version)) {
-    cli.ShowVersion();
-    return 0;
-  }
 
   // Handle TUI flag
   if (absl::GetFlag(FLAGS_tui)) {
