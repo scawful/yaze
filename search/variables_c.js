@@ -116,7 +116,7 @@ var searchData=
   ['mcursorposition_113',['mCursorPosition',['../structTextEditor_1_1EditorState.html#afee37ee4b138160efac9bb179385282e',1,'TextEditor::EditorState']]],
   ['mcursorpositionchanged_114',['mCursorPositionChanged',['../classTextEditor.html#acdb2f6b634833d777d9263f0a253c38a',1,'TextEditor']]],
   ['mdeclaration_115',['mDeclaration',['../structTextEditor_1_1Identifier.html#ae3be0995cbd2d21feeb354e722861b4a',1,'TextEditor::Identifier']]],
-  ['mdown_116',['mdown',['../classyaze_1_1zelda3_1_1TitleScreen.html#ad11ecb022fe8028407980e751708d0ee',1,'yaze::zelda3::TitleScreen::mDown'],['../classyaze_1_1zelda3_1_1TitleScreen.html#a66f53fad482f85ed6d119e0378173058',1,'yaze::zelda3::TitleScreen::mdown']]],
+  ['mdown_116',['mdown',['../classyaze_1_1zelda3_1_1TitleScreen.html#a66f53fad482f85ed6d119e0378173058',1,'yaze::zelda3::TitleScreen::mdown'],['../classyaze_1_1zelda3_1_1TitleScreen.html#ad11ecb022fe8028407980e751708d0ee',1,'yaze::zelda3::TitleScreen::mDown']]],
   ['median_5ftime_5fus_117',['median_time_us',['../structyaze_1_1gfx_1_1PerformanceProfiler_1_1TimingStats.html#aa3149301bddd881b8d0c8283095f5f8a',1,'yaze::gfx::PerformanceProfiler::TimingStats']]],
   ['medium_5fblocks_5f_118',['medium_blocks_',['../classyaze_1_1gfx_1_1MemoryPool.html#a5bfa73d3c0013fbca0f89ce6237fc53d',1,'yaze::gfx::MemoryPool']]],
   ['memory_119',['memory',['../classyaze_1_1emu_1_1Cpu.html#a5671d42ce5614150e078202dbbd5ad45',1,'yaze::emu::Cpu']]],

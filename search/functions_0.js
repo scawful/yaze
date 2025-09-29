@@ -81,7 +81,7 @@ var searchData=
   ['allocspcblock_78',['AllocSpcBlock',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450',1,'yaze::zelda3::music::Tracker']]],
   ['allocspccommand_79',['AllocSpcCommand',['../classyaze_1_1zelda3_1_1music_1_1Tracker.html#a169d9ecb5a18433f6f757eebdd0df0ec',1,'yaze::zelda3::music::Tracker']]],
   ['analyzeperformance_80',['AnalyzePerformance',['../classyaze_1_1gfx_1_1PerformanceDashboard.html#a7cf64a371e7908d8911f4ed996ed84dd',1,'yaze::gfx::PerformanceDashboard']]],
-  ['and_81',['and',['../classyaze_1_1emu_1_1Spc700.html#aea262b676a2f72f0b14f0ec0b2c857b5',1,'yaze::emu::Spc700::AND()'],['../classyaze_1_1emu_1_1Cpu.html#a56fdfed546707d17ea1abc309cd8478f',1,'yaze::emu::Cpu::And(uint32_t low, uint32_t high)'],['../classyaze_1_1emu_1_1Cpu.html#aa551140ac9ad214aef6313c32e95e1e3',1,'yaze::emu::Cpu::AND(uint32_t address, bool immediate=false)']]],
+  ['and_81',['and',['../classyaze_1_1emu_1_1Cpu.html#aa551140ac9ad214aef6313c32e95e1e3',1,'yaze::emu::Cpu::AND()'],['../classyaze_1_1emu_1_1Spc700.html#aea262b676a2f72f0b14f0ec0b2c857b5',1,'yaze::emu::Spc700::AND()'],['../classyaze_1_1emu_1_1Cpu.html#a56fdfed546707d17ea1abc309cd8478f',1,'yaze::emu::Cpu::And()']]],
   ['and1_82',['AND1',['../classyaze_1_1emu_1_1Spc700.html#a26093966e63ce5afa48c0f369d3ebdfe',1,'yaze::emu::Spc700']]],
   ['andabsolutelong_83',['ANDAbsoluteLong',['../classyaze_1_1emu_1_1Cpu.html#ac86865e509992c77195e34581eb14a4f',1,'yaze::emu::Cpu']]],
   ['andm_84',['ANDM',['../classyaze_1_1emu_1_1Spc700.html#a2f3159cc51171f661ebbbbfdfb4636f0',1,'yaze::emu::Spc700']]],
