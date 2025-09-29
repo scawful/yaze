@@ -137,11 +137,11 @@ class PerformanceDashboard {
   static constexpr double kUpdateIntervalMs = 100.0; // Update every 100ms
 
   // UI rendering methods
-  void RenderMetricsPanel();
-  void RenderOptimizationStatus();
+  void RenderMetricsPanel() const;
+  void RenderOptimizationStatus() const;
   void RenderMemoryUsage();
   void RenderFrameRateGraph();
-  void RenderRecommendations();
+  void RenderRecommendations() const;
   
   // Data collection methods
   void CollectMetrics();
@@ -149,10 +149,10 @@ class PerformanceDashboard {
   void AnalyzePerformance();
   
   // Helper methods
-  double CalculateAverage(const std::vector<double>& values) const;
-  double CalculatePercentile(const std::vector<double>& values, double percentile) const;
-  std::string FormatTime(double time_us) const;
-  std::string FormatMemory(size_t bytes) const;
+  static double CalculateAverage(const std::vector<double>& values);
+  static double CalculatePercentile(const std::vector<double>& values, double percentile);
+  static std::string FormatTime(double time_us);
+  static std::string FormatMemory(size_t bytes);
   std::string GetOptimizationRecommendation() const;
 };
 

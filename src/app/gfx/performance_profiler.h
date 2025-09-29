@@ -12,34 +12,55 @@ namespace yaze {
 namespace gfx {
 
 /**
- * @brief Performance profiler for measuring graphics optimization improvements
+ * @brief Unified performance profiler for all YAZE operations
  * 
  * The PerformanceProfiler class provides comprehensive timing and performance
- * measurement capabilities for the YAZE graphics system. It tracks operation
- * times, calculates statistics, and provides detailed performance reports.
+ * measurement capabilities for the entire YAZE application. It tracks operation
+ * times, calculates statistics, provides detailed performance reports, and integrates
+ * with the memory pool for efficient data storage.
  * 
  * Key Features:
  * - High-resolution timing for microsecond precision
  * - Automatic statistics calculation (min, max, average, median)
  * - Operation grouping and categorization
- * - Memory usage tracking
+ * - Memory usage tracking with MemoryPool integration
  * - Performance regression detection
+ * - Enable/disable functionality for zero-overhead when disabled
+ * - Unified interface for both core and graphics operations
  * 
  * Performance Optimizations:
+ * - Memory pool allocation for reduced fragmentation
  * - Minimal overhead timing measurements
  * - Efficient data structures for fast lookups
  * - Configurable sampling rates
  * - Automatic cleanup of old measurements
  * 
  * Usage Examples:
- * - Measure palette lookup performance improvements
- * - Track texture update efficiency gains
+ * - Measure ROM loading performance
+ * - Track graphics operation efficiency
  * - Monitor memory usage patterns
  * - Detect performance regressions
  */
 class PerformanceProfiler {
  public:
   static PerformanceProfiler& Get();
+  
+  /**
+   * @brief Enable or disable performance monitoring
+   * 
+   * When disabled, ScopedTimer operations become no-ops for better performance
+   * in production builds or when monitoring is not needed.
+   */
+  static void SetEnabled(bool enabled) {
+    Get().enabled_ = enabled;
+  }
+  
+  /**
+   * @brief Check if performance monitoring is enabled
+   */
+  static bool IsEnabled() {
+    return Get().enabled_;
+  }
   
   /**
    * @brief Start timing an operation
@@ -65,6 +86,7 @@ class PerformanceProfiler {
     double max_time_us = 0.0;
     double avg_time_us = 0.0;
     double median_time_us = 0.0;
+    double total_time_ms = 0.0;
     size_t sample_count = 0;
   };
   
@@ -100,22 +122,52 @@ class PerformanceProfiler {
    * @return True if operation is being timed
    */
   bool IsTiming(const std::string& operation_name) const;
+  
+  /**
+   * @brief Get the average time for an operation in milliseconds
+   * @param operation_name Name of the operation
+   * @return Average time in milliseconds
+   */
+  double GetAverageTime(const std::string& operation_name) const;
+  
+  /**
+   * @brief Get the total time for an operation in milliseconds
+   * @param operation_name Name of the operation
+   * @return Total time in milliseconds
+   */
+  double GetTotalTime(const std::string& operation_name) const;
+  
+  /**
+   * @brief Get the number of times an operation was measured
+   * @param operation_name Name of the operation
+   * @return Number of measurements
+   */
+  int GetOperationCount(const std::string& operation_name) const;
+  
+  /**
+   * @brief Print a summary of all operations to console
+   */
+  void PrintSummary() const;
 
  private:
-  PerformanceProfiler() = default;
+  PerformanceProfiler();
   
   using TimePoint = std::chrono::high_resolution_clock::time_point;
   using Duration = std::chrono::microseconds;
   
   std::unordered_map<std::string, TimePoint> active_timers_;
   std::unordered_map<std::string, std::vector<double>> operation_times_;
+  std::unordered_map<std::string, double> operation_totals_; // Total time per operation
+  std::unordered_map<std::string, int> operation_counts_;   // Count per operation
+  
+  bool enabled_ = true; // Performance monitoring enabled by default
   
   /**
    * @brief Calculate median value from a sorted vector
    * @param values Sorted vector of values
    * @return Median value
    */
-  double CalculateMedian(std::vector<double> values) const;
+  static double CalculateMedian(std::vector<double> values);
 };
 
 /**
