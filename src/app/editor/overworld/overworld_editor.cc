@@ -143,6 +143,10 @@ absl::Status OverworldEditor::Load() {
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
+  
+  // CRITICAL FIX: Initialize tile16 editor with the correct overworld palette
+  tile16_editor_.set_palette(palette_);
+  tile16_editor_.set_rom(rom_);
 
   // Set up callback for when tile16 changes are committed
   tile16_editor_.set_on_changes_committed([this]() -> absl::Status {

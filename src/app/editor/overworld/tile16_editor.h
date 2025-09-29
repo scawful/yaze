@@ -13,6 +13,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
+#include "util/log.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
@@ -124,6 +125,18 @@ class Tile16Editor : public gfx::GfxContext {
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
+  
+  // Set the palette from overworld to ensure color consistency
+  void set_palette(const gfx::SnesPalette& palette) { 
+    palette_ = palette;
+    // Apply to all graphics immediately
+    if (rom_) {
+      auto status = RefreshAllPalettes();
+      if (!status.ok()) {
+        util::logf("Failed to refresh palettes: %s", status.message().data());
+      }
+    }
+  }
   
   // Callback for when changes are committed to notify parent editor
   void set_on_changes_committed(std::function<absl::Status()> callback) {

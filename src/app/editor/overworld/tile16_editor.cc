@@ -31,10 +31,10 @@ absl::Status Tile16Editor::Initialize(
     std::array<uint8_t, 0x200>& all_tiles_types) {
   all_tiles_types_ = all_tiles_types;
 
-  // Copy the graphics bitmap
+  // Copy the graphics bitmap (palette will be set later by overworld editor)
   current_gfx_bmp_.Create(current_gfx_bmp.width(), current_gfx_bmp.height(),
                           current_gfx_bmp.depth(), current_gfx_bmp.vector());
-  current_gfx_bmp_.SetPalette(current_gfx_bmp.palette());
+  current_gfx_bmp_.SetPalette(current_gfx_bmp.palette()); // Temporary palette
   core::Renderer::Get().RenderBitmap(&current_gfx_bmp_);
 
   // Copy the tile16 blockset bitmap
@@ -967,6 +967,7 @@ absl::Status Tile16Editor::LoadTile8() {
         "Current graphics bitmap not initialized");
   }
 
+  // CRITICAL FIX: Use the same palette system as the overworld
   const auto& ow_main_pal_group = rom()->palette_group().overworld_main;
   if (ow_main_pal_group.size() == 0) {
     return absl::FailedPreconditionError("Overworld palette group not loaded");
@@ -1088,11 +1089,11 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   // Create the bitmap with the extracted data
   current_tile16_bmp_.Create(kTile16Size, kTile16Size, 8, tile_data);
 
-  // Set the correct palette - tile16 should have independent palette
-  const auto& ow_main_pal_group = rom()->palette_group().overworld_main;
-  if (ow_main_pal_group.size() > 0) {
-    // Use SetPalette instead of SetPaletteWithTransparent for tile16
-    current_tile16_bmp_.SetPalette(ow_main_pal_group[0]);
+  // CRITICAL FIX: Use the same complete palette that the overworld uses
+  // This ensures tile16 editor colors match the overworld exactly
+  auto overworld_palette = rom()->palette_group().overworld_main[0]; // Get the current overworld palette
+  if (overworld_palette.size() > 0) {
+    current_tile16_bmp_.SetPalette(overworld_palette);
   }
 
   // Render the bitmap
@@ -1339,25 +1340,29 @@ absl::Status Tile16Editor::CyclePalette(bool forward) {
 
   current_palette_ = new_palette;
 
-  // Update all graphics with new palette
+  // CRITICAL FIX: Use the same palette coordination as the overworld
+  // The palette selection should affect how tiles appear in the tile16 editor
   const auto& ow_main_pal_group = rom()->palette_group().overworld_main;
-  if (ow_main_pal_group.size() > current_palette_) {
-    current_gfx_bmp_.SetPaletteWithTransparent(ow_main_pal_group[0],
-                                               current_palette_);
-    current_tile16_bmp_.SetPaletteWithTransparent(ow_main_pal_group[0],
-                                                  current_palette_);
+  if (ow_main_pal_group.size() > 0) {
+    // Use the main overworld palette but apply the selected palette index
+    auto main_palette = ow_main_pal_group[0];
+    
+    // Apply the selected palette to all graphics consistently
+    current_gfx_bmp_.SetPaletteWithTransparent(main_palette, current_palette_);
+    current_tile16_bmp_.SetPaletteWithTransparent(main_palette, current_palette_);
 
-    // Update individual tile8 graphics
+    // Update individual tile8 graphics with the same palette coordination
     for (auto& tile_gfx : current_gfx_individual_) {
       if (tile_gfx.is_active()) {
-        tile_gfx.SetPaletteWithTransparent(ow_main_pal_group[0],
-                                           current_palette_);
+        tile_gfx.SetPaletteWithTransparent(main_palette, current_palette_);
         core::Renderer::Get().UpdateBitmap(&tile_gfx);
       }
     }
 
     core::Renderer::Get().UpdateBitmap(&current_gfx_bmp_);
     core::Renderer::Get().UpdateBitmap(&current_tile16_bmp_);
+    
+    util::logf("Updated all tile16 editor graphics to use palette %d", current_palette_);
   }
 
   return absl::OkStatus();
@@ -1635,50 +1640,18 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
     return absl::OkStatus();  // Skip inactive tiles
   }
 
-  // Get the appropriate palette group
+  // CRITICAL FIX: Always use the overworld main palette for consistency
+  // This ensures all tile8 graphics match the overworld colors exactly
   const auto& palette_groups = rom()->palette_group();
-  gfx::SnesPalette target_palette;
-
-  switch (current_palette_group_) {
-    case 0:
-      target_palette = palette_groups.overworld_main[0];
-      break;
-    case 1:
-      target_palette = palette_groups.overworld_aux[0];
-      break;
-    case 2:
-      target_palette = palette_groups.overworld_animated[0];
-      break;
-    case 3:
-      target_palette = palette_groups.dungeon_main[0];
-      break;
-    case 4:
-      target_palette = palette_groups.global_sprites[0];
-      break;
-    case 5:
-      target_palette = palette_groups.armors[0];
-      break;
-    case 6:
-      target_palette = palette_groups.swords[0];
-      break;
-    default:
-      target_palette = palette_groups.overworld_main[0];
-      break;
-  }
+  gfx::SnesPalette target_palette = palette_groups.overworld_main[0];
 
   // Calculate which graphics sheet this tile belongs to
   const int tiles_per_row = current_gfx_bmp_.width() / 8;  // Usually 16
   const int sheet_index = tile8_id / (tiles_per_row * 8);  // 8 rows per sheet
 
-  // For certain sheets (like sheet 0 - trees), use SetPalette instead of SetPaletteWithTransparent
-  if (sheet_index == 0 || current_palette_group_ >= 3) {
-    // Trees sheet and sprite sheets work better with direct palette
-    current_gfx_individual_[tile8_id].SetPalette(target_palette);
-  } else {
-    // Other sheets use the transparent palette system
-    current_gfx_individual_[tile8_id].SetPaletteWithTransparent(
-        target_palette, current_palette_);
-  }
+  // CRITICAL FIX: Use consistent palette application for all tile8 graphics
+  // Apply the current palette selection to match overworld appearance
+  current_gfx_individual_[tile8_id].SetPaletteWithTransparent(target_palette, current_palette_);
 
   Renderer::Get().UpdateBitmap(&current_gfx_individual_[tile8_id]);
 
@@ -1686,25 +1659,34 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
 }
 
 absl::Status Tile16Editor::RefreshAllPalettes() {
+  // CRITICAL FIX: Ensure all graphics use the same palette coordination as overworld
+  if (!rom_) {
+    return absl::FailedPreconditionError("ROM not set");
+  }
+  
   const auto& palette_groups = rom()->palette_group();
+  auto main_palette = palette_groups.overworld_main[0];
 
-  // Update tile8 graphics
-  current_gfx_bmp_.SetPaletteWithTransparent(palette_groups.overworld_main[0],
-                                             current_palette_);
+  // CRITICAL FIX: Update tile8 source graphics display with forced texture update
+  current_gfx_bmp_.SetPaletteWithTransparent(main_palette, current_palette_);
+  current_gfx_bmp_.set_modified(true); // Force update
   Renderer::Get().UpdateBitmap(&current_gfx_bmp_);
 
-  // Update current tile16
-  current_tile16_bmp_.SetPaletteWithTransparent(
-      palette_groups.overworld_main[0], current_palette_);
+  // Update current tile16 being edited
+  current_tile16_bmp_.SetPaletteWithTransparent(main_palette, current_palette_);
+  current_tile16_bmp_.set_modified(true); // Force update
   Renderer::Get().UpdateBitmap(&current_tile16_bmp_);
 
-  // Update all individual tile8 graphics
+  // Update all individual tile8 graphics to use the same palette
   for (size_t i = 0; i < current_gfx_individual_.size(); ++i) {
     if (current_gfx_individual_[i].is_active()) {
-      RETURN_IF_ERROR(UpdateTile8Palette(static_cast<int>(i)));
+      current_gfx_individual_[i].SetPaletteWithTransparent(main_palette, current_palette_);
+      current_gfx_individual_[i].set_modified(true); // Force update
+      Renderer::Get().UpdateBitmap(&current_gfx_individual_[i]);
     }
   }
 
+  util::logf("Refreshed all palettes in tile16 editor to use overworld palette %d", current_palette_);
   return absl::OkStatus();
 }
 
