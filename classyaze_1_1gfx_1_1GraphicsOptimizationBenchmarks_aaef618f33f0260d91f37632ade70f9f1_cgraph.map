@@ -1,0 +1,7 @@
+<map id="yaze::gfx::GraphicsOptimizationBenchmarks::TearDown" name="yaze::gfx::GraphicsOptimizationBenchmarks::TearDown">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,206,75"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1PerformanceProfiler.html#a01ac5ddfcc99aee15a5f929f69b0ec42" title="Clear all timing data." alt="" coords="267,5,458,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,41,251,36,252,41,206,46"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="254,70,471,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,63,238,67,238,72,206,69"/>
+</map>

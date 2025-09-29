@@ -38,7 +38,7 @@ var searchData=
   ['has_5foverlay_35',['has_overlay',['../classyaze_1_1zelda3_1_1OverworldMap.html#af3e1b2cf539e2c98d43dbfad9caa3cf6',1,'yaze::zelda3::OverworldMap']]],
   ['hasduplicatesession_36',['HasDuplicateSession',['../classyaze_1_1editor_1_1EditorManager.html#a35fced6799da15521cb0df68f1a6b414',1,'yaze::editor::EditorManager']]],
   ['hasfloor_37',['HasFloor',['../classyaze_1_1zelda3_1_1RoomLayout.html#a40cb527e3a112b4a1bb2e6679f165215',1,'yaze::zelda3::RoomLayout']]],
-  ['hashcolor_38',['HashColor',['../classyaze_1_1gfx_1_1Bitmap.html#aa5a8df644b1c0ce49fb6112a78f704ff',1,'yaze::gfx::Bitmap']]],
+  ['hashcolor_38',['HashColor',['../classyaze_1_1gfx_1_1Bitmap.html#a48b06add1af332570178c7c107169ee6',1,'yaze::gfx::Bitmap']]],
   ['hasobjectdata_39',['HasObjectData',['../classyaze_1_1test_1_1MockRom.html#a20e88390978988715502e7ccd7b2b967',1,'yaze::test::MockRom']]],
   ['hasroomdata_40',['HasRoomData',['../classyaze_1_1test_1_1MockRom.html#a40ebc3e33013b6fc32bf55bebfc7922f',1,'yaze::test::MockRom']]],
   ['hasselection_41',['HasSelection',['../classTextEditor.html#a5097fdb7707db742bbfdfb36333c43ce',1,'TextEditor']]],

@@ -1,0 +1,11 @@
+<map id="yaze::gfx::GraphicsOptimizationBenchmarks::SetUp" name="yaze::gfx::GraphicsOptimizationBenchmarks::SetUp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,88,206,129"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1PerformanceProfiler.html#a01ac5ddfcc99aee15a5f929f69b0ec42" title="Clear all timing data." alt="" coords="267,5,458,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,85,253,55,274,49,275,54,254,60,166,90"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="294,70,431,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,96,278,89,279,94,206,101"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1MemoryPool.html#ac1b35ae778321523dc6a7cbe9e39e251" title=" " alt="" coords="275,120,450,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="206,115,259,120,259,125,206,120"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="254,169,471,195"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="165,127,254,155,282,162,281,167,253,160,164,132"/>
+</map>

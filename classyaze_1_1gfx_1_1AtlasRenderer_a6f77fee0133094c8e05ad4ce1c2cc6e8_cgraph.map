@@ -1,0 +1,11 @@
+<map id="yaze::gfx::AtlasRenderer::PackBitmap" name="yaze::gfx::AtlasRenderer::PackBitmap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,164,145"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1AtlasRenderer.html#a2b05d803ad2e5b5105ed4b8ec1591017" title=" " alt="" coords="212,5,370,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,101,211,57,224,50,226,55,213,61,125,106"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="229,71,353,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,109,214,101,215,106,164,114"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1AtlasRenderer.html#ab4067ec509c9463d5fe85acdfbb062d4" title=" " alt="" coords="212,136,370,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="164,134,197,139,196,144,164,139"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="229,201,353,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="126,143,213,186,227,192,224,197,211,191,124,148"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="src/app/gfx/atlas_renderer.cc" name="src/app/gfx/atlas_renderer.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="132,5,321,31"/>
+<area shape="rect" id="Node000002" href="$atlas__renderer_8h.html" title=" " alt="" coords="5,79,165,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,34,124,74,121,69,201,29"/>
+<area shape="rect" id="Node000028" title=" " alt="" coords="189,79,264,105"/>
+<area shape="poly" id="edge3_Node000001_Node000028" title=" " alt="" coords="229,31,229,63,224,63,224,31"/>
+<area shape="rect" id="Node000029" title=" " alt="" coords="287,79,344,105"/>
+<area shape="poly" id="edge4_Node000001_Node000029" title=" " alt="" coords="243,29,290,67,287,71,240,34"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="56,153,114,178"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="88,105,88,137,82,137,82,105"/>
+</map>

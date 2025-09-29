@@ -1,5 +1,6 @@
 var classyaze_1_1gfx_1_1Arena =
 [
+    [ "BatchUpdate", "structyaze_1_1gfx_1_1Arena_1_1BatchUpdate.html", "structyaze_1_1gfx_1_1Arena_1_1BatchUpdate" ],
     [ "SurfacePool", "structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html", "structyaze_1_1gfx_1_1Arena_1_1SurfacePool" ],
     [ "TexturePool", "structyaze_1_1gfx_1_1Arena_1_1TexturePool.html", "structyaze_1_1gfx_1_1Arena_1_1TexturePool" ],
     [ "~Arena", "classyaze_1_1gfx_1_1Arena.html#ad7dfac47acae071316a9feeb1739c20c", null ],
@@ -8,6 +9,9 @@ var classyaze_1_1gfx_1_1Arena =
     [ "FreeTexture", "classyaze_1_1gfx_1_1Arena.html#ac2f43b16bb84a6c15db4ff6ecae6a57a", null ],
     [ "UpdateTexture", "classyaze_1_1gfx_1_1Arena.html#ad0e525fd3b3316abb9a6f8ce00ad9b38", null ],
     [ "UpdateTextureRegion", "classyaze_1_1gfx_1_1Arena.html#a5d9469436f3914eb5e5be98110c5c0be", null ],
+    [ "QueueTextureUpdate", "classyaze_1_1gfx_1_1Arena.html#ada910dcae8ddc865bc1d63d04d59f44e", null ],
+    [ "ProcessBatchTextureUpdates", "classyaze_1_1gfx_1_1Arena.html#ad0ecbc9abc7453f3b7acde4f6292823c", null ],
+    [ "ClearBatchQueue", "classyaze_1_1gfx_1_1Arena.html#a638446fa9225ef204f09febad49dcb16", null ],
     [ "AllocateSurface", "classyaze_1_1gfx_1_1Arena.html#a121f55b3526fdf8291ddcc48644b8226", null ],
     [ "FreeSurface", "classyaze_1_1gfx_1_1Arena.html#aa0eb6d909ed3d9ce85a61488bb74a7c0", null ],
     [ "Shutdown", "classyaze_1_1gfx_1_1Arena.html#ae52ba2fa3e011c990a2d2fe081838efa", null ],
@@ -31,5 +35,6 @@ var classyaze_1_1gfx_1_1Arena =
     [ "textures_", "classyaze_1_1gfx_1_1Arena.html#a869dc42aedfa5f8debcc5b7e2284014b", null ],
     [ "surfaces_", "classyaze_1_1gfx_1_1Arena.html#a8ec5dee5a6d3293d06f31655d0adfdf0", null ],
     [ "texture_pool_", "classyaze_1_1gfx_1_1Arena.html#a0bcd3b965edadeb0d3f8fbe893f41d7a", null ],
-    [ "surface_pool_", "classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3", null ]
+    [ "surface_pool_", "classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3", null ],
+    [ "batch_update_queue_", "classyaze_1_1gfx_1_1Arena.html#ac0361a60394b05ba32449415ff04c968", null ]
 ];

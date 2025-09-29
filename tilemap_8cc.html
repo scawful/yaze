@@ -107,6 +107,8 @@ $(document).ready(function(){initNavTree('tilemap_8cc.html',''); initResizable()
 <div class="textblock"><code>#include &quot;<a class="el" href="tilemap_8h_source.html">app/gfx/tilemap.h</a>&quot;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;<a class="el" href="window_8h_source.html">app/core/window.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="arena_8h_source.html">app/gfx/arena.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="atlas__renderer_8h_source.html">app/gfx/atlas_renderer.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="performance__profiler_8h_source.html">app/gfx/performance_profiler.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="snes__tile_8h_source.html">app/gfx/snes_tile.h</a>&quot;</code><br />
@@ -150,6 +152,9 @@ Functions</h2></td></tr>
 <tr class="separator:af64c2db0348f9d69a13b2cd77ef9ac1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85cdb560638714d7afc71b20b1b8526c" id="r_a85cdb560638714d7afc71b20b1b8526c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; uint8_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c">yaze::gfx::GetTilemapData</a> (<a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">Tilemap</a> &amp;tilemap, int tile_id)</td></tr>
 <tr class="separator:a85cdb560638714d7afc71b20b1b8526c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a027decc059ffa962980b63ef40f1f95e" id="r_a027decc059ffa962980b63ef40f1f95e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a027decc059ffa962980b63ef40f1f95e">yaze::gfx::RenderTilesBatch</a> (<a class="el" href="structyaze_1_1gfx_1_1Tilemap.html">Tilemap</a> &amp;tilemap, const std::vector&lt; int &gt; &amp;tile_ids, const std::vector&lt; std::pair&lt; float, float &gt; &gt; &amp;positions, const std::vector&lt; std::pair&lt; float, float &gt; &gt; &amp;scales={})</td></tr>
+<tr class="memdesc:a027decc059ffa962980b63ef40f1f95e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render multiple tiles using atlas rendering for improved performance.  <br /></td></tr>
+<tr class="separator:a027decc059ffa962980b63ef40f1f95e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

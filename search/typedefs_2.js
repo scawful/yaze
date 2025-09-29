@@ -10,5 +10,7 @@ var searchData=
   ['commandsizearray_7',['CommandSizeArray',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#aaf7eadbb2c70ee68f7f5ad79472b017c',1,'yaze::gfx::lc_lz2']]],
   ['compressionpiece_8',['CompressionPiece',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a3ac287bb430fa18150e49e102f9f8aa1',1,'yaze::gfx::lc_lz2']]],
   ['compressionpiecepointer_9',['CompressionPiecePointer',['../namespaceyaze_1_1gfx_1_1lc__lz2.html#a06931d5beec878518bd57c8f6ea65086',1,'yaze::gfx::lc_lz2']]],
-  ['cpucallbacks_10',['CpuCallbacks',['../namespaceyaze_1_1emu.html#aab4485d53b785a237309663ba9f72437',1,'yaze::emu']]]
+  ['const_5fpointer_10',['const_pointer',['../classyaze_1_1gfx_1_1PoolAllocator.html#a48e847e74e0a3e34b767adea2cbc41fc',1,'yaze::gfx::PoolAllocator']]],
+  ['const_5freference_11',['const_reference',['../classyaze_1_1gfx_1_1PoolAllocator.html#a8bda13c70d1a5cff3e226b3dea474db5',1,'yaze::gfx::PoolAllocator']]],
+  ['cpucallbacks_12',['CpuCallbacks',['../namespaceyaze_1_1emu.html#aab4485d53b785a237309663ba9f72437',1,'yaze::emu']]]
 ];

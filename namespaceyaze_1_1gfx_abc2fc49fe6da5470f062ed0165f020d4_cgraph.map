@@ -1,0 +1,10 @@
+<map id="yaze::gfx::TEST_F" name="yaze::gfx::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,42,130,68"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#addd611c1e3b131e9025116995eb326d9" title="Find color index in palette using optimized hash map lookup." alt="" coords="178,35,301,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,52,162,52,162,58,130,58"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a48b06add1af332570178c7c107169ee6" title="Hash a color for cache lookup." alt="" coords="349,5,472,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="301,42,333,36,334,41,302,47"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="520,35,644,75"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="301,54,349,55,472,55,505,54,505,60,472,60,349,60,301,59"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="473,34,505,39,504,44,472,39"/>
+</map>

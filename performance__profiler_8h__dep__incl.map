@@ -1,9 +1,0 @@
-<map id="src/app/gfx/performance_profiler.h" name="src/app/gfx/performance_profiler.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="175,5,336,46"/>
-<area shape="rect" id="Node000002" href="$bitmap_8cc.html" title=" " alt="" coords="5,102,151,127"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,55,104,103,102,99,200,51"/>
-<area shape="rect" id="Node000003" href="$performance__profiler_8cc.html" title=" " alt="" coords="175,94,336,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="258,62,258,94,253,94,253,62"/>
-<area shape="rect" id="Node000004" href="$tilemap_8cc.html" title=" " alt="" coords="360,102,508,127"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="311,51,410,99,408,103,308,55"/>
-</map>

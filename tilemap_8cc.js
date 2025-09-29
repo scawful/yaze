@@ -11,5 +11,6 @@ var tilemap_8cc =
     [ "ComposeAndPlaceTilePart", "tilemap_8cc.html#a508f2b61283381bc576c808d12a96454", null ],
     [ "ModifyTile16", "tilemap_8cc.html#a397e84472b7ae0309b3e692909c0f30b", null ],
     [ "ComposeTile16", "tilemap_8cc.html#af64c2db0348f9d69a13b2cd77ef9ac1d", null ],
-    [ "GetTilemapData", "tilemap_8cc.html#a85cdb560638714d7afc71b20b1b8526c", null ]
+    [ "GetTilemapData", "tilemap_8cc.html#a85cdb560638714d7afc71b20b1b8526c", null ],
+    [ "RenderTilesBatch", "tilemap_8cc.html#a027decc059ffa962980b63ef40f1f95e", null ]
 ];

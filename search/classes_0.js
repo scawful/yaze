@@ -19,6 +19,10 @@ var searchData=
   ['asmparser_16',['AsmParser',['../classyaze_1_1emu_1_1AsmParser.html',1,'yaze::emu']]],
   ['assemblyeditor_17',['AssemblyEditor',['../classyaze_1_1editor_1_1AssemblyEditor.html',1,'yaze::editor']]],
   ['assetobject_18',['AssetObject',['../structyaze_1_1gui_1_1AssetObject.html',1,'yaze::gui']]],
-  ['audioram_19',['AudioRam',['../classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu']]],
-  ['audioramimpl_20',['AudioRamImpl',['../classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]]
+  ['atlas_19',['Atlas',['../structyaze_1_1gfx_1_1AtlasRenderer_1_1Atlas.html',1,'yaze::gfx::AtlasRenderer']]],
+  ['atlasentry_20',['AtlasEntry',['../structyaze_1_1gfx_1_1AtlasRenderer_1_1AtlasEntry.html',1,'yaze::gfx::AtlasRenderer']]],
+  ['atlasrenderer_21',['AtlasRenderer',['../classyaze_1_1gfx_1_1AtlasRenderer.html',1,'yaze::gfx']]],
+  ['atlasstats_22',['AtlasStats',['../structyaze_1_1gfx_1_1AtlasStats.html',1,'yaze::gfx']]],
+  ['audioram_23',['AudioRam',['../classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu']]],
+  ['audioramimpl_24',['AudioRamImpl',['../classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]]
 ];

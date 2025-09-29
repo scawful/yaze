@@ -74,11 +74,13 @@ var searchData=
   ['frame_5frounding_71',['frame_rounding',['../structyaze_1_1gui_1_1EnhancedTheme.html#ac2f613657046248fb65bcae76f133c54',1,'yaze::gui::EnhancedTheme']]],
   ['frame_5fspeed_72',['frame_speed',['../structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a805eba5f9dcb459d17ff4b1b9ee4b17d',1,'yaze::editor::zsprite::AnimationGroup']]],
   ['frame_5fstart_73',['frame_start',['../structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a890ae576b46e098309075888052f3727',1,'yaze::editor::zsprite::AnimationGroup']]],
-  ['frames_74',['Frames',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#a21b0692979d4e6e5df7c833c57962ec6',1,'yaze::editor::zsprite::SubEditor']]],
-  ['frames_5f_75',['frames_',['../classyaze_1_1emu_1_1Snes.html#a03bedcd31638400a5f1f0be8131b1ecb',1,'yaze::emu::Snes']]],
-  ['freq_76',['freq',['../structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a8429da2f7cea8517256de196dcccee63',1,'yaze::zelda3::music::ZeldaSfxInstrument']]],
-  ['from_5fb_77',['from_b',['../structyaze_1_1emu_1_1DmaChannel.html#a512d78862c904374842ccf71f53e6589',1,'yaze::emu::DmaChannel']]],
-  ['full_5fgraphic_78',['full_graphic',['../structyaze_1_1emu_1_1VideoPortControl.html#a0dd5f71b096b82780b19a002a6ef4c48',1,'yaze::emu::VideoPortControl']]],
-  ['full_5fpalette_5f_79',['full_palette_',['../classyaze_1_1editor_1_1DungeonEditor.html#a92881a7497f26c4a0974b528182cf01c',1,'yaze::editor::DungeonEditor']]],
-  ['functions_80',['functions',['../classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
+  ['frame_5ftime_5fhistory_5f_74',['frame_time_history_',['../classyaze_1_1gfx_1_1PerformanceDashboard.html#acdb0524371d0f0f28e7bbdc73d674b00',1,'yaze::gfx::PerformanceDashboard']]],
+  ['frame_5ftime_5fms_75',['frame_time_ms',['../structyaze_1_1gfx_1_1PerformanceDashboard_1_1PerformanceMetrics.html#aad973e0628b81623c388fcbe5e3ad310',1,'yaze::gfx::PerformanceDashboard::PerformanceMetrics']]],
+  ['frames_76',['Frames',['../structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#a21b0692979d4e6e5df7c833c57962ec6',1,'yaze::editor::zsprite::SubEditor']]],
+  ['frames_5f_77',['frames_',['../classyaze_1_1emu_1_1Snes.html#a03bedcd31638400a5f1f0be8131b1ecb',1,'yaze::emu::Snes']]],
+  ['freq_78',['freq',['../structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#a8429da2f7cea8517256de196dcccee63',1,'yaze::zelda3::music::ZeldaSfxInstrument']]],
+  ['from_5fb_79',['from_b',['../structyaze_1_1emu_1_1DmaChannel.html#a512d78862c904374842ccf71f53e6589',1,'yaze::emu::DmaChannel']]],
+  ['full_5fgraphic_80',['full_graphic',['../structyaze_1_1emu_1_1VideoPortControl.html#a0dd5f71b096b82780b19a002a6ef4c48',1,'yaze::emu::VideoPortControl']]],
+  ['full_5fpalette_5f_81',['full_palette_',['../classyaze_1_1editor_1_1DungeonEditor.html#a92881a7497f26c4a0974b528182cf01c',1,'yaze::editor::DungeonEditor']]],
+  ['functions_82',['functions',['../classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
 ];

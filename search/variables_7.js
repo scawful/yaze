@@ -56,5 +56,6 @@ var searchData=
   ['hover_5fhighlight_53',['hover_highlight',['../structyaze_1_1gui_1_1EnhancedTheme.html#abd676f793e1a3df40105db48e533c5ce',1,'yaze::gui::EnhancedTheme']]],
   ['hscroll_54',['hScroll',['../structyaze_1_1emu_1_1BgLayer.html#a822da8bd7639b9e1cbf4170c4edcda9e',1,'yaze::emu::BgLayer']]],
   ['hud_55',['hud',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#abf3c25ebba26b691bdd08f5b8ca2c90d',1,'yaze::gfx::PaletteGroupMap::hud'],['../structyaze_1_1gfx_1_1Paletteset.html#a4e691551109932639735b4390f69c98d',1,'yaze::gfx::Paletteset::hud']]],
-  ['hudpalettesmax_56',['HudPalettesMax',['../namespaceyaze_1_1gfx.html#a3155343d33ccb45cd53f737dd7289552',1,'yaze::gfx']]]
+  ['hudpalettesmax_56',['HudPalettesMax',['../namespaceyaze_1_1gfx.html#a3155343d33ccb45cd53f737dd7289552',1,'yaze::gfx']]],
+  ['huge_5fblocks_5f_57',['huge_blocks_',['../classyaze_1_1gfx_1_1MemoryPool.html#a68c098f3f7a12fc086357750ed784b96',1,'yaze::gfx::MemoryPool']]]
 ];
