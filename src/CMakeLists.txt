@@ -497,6 +497,8 @@ source_group("Application\\Graphics" FILES
   app/gfx/bitmap.h
   app/gfx/compression.cc
   app/gfx/compression.h
+  app/gfx/performance_profiler.cc
+  app/gfx/performance_profiler.h
   app/gfx/scad_format.cc
   app/gfx/scad_format.h
   app/gfx/snes_color.cc

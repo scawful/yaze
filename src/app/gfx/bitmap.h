@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <span>
+#include <unordered_map>
 #include <vector>
 
 #include "app/gfx/snes_palette.h"
@@ -191,6 +192,20 @@ class Bitmap {
   void Resize(int new_width, int new_height);
 
   /**
+   * @brief Invalidate the palette lookup cache (call when palette changes)
+   * @note This must be called whenever the palette is modified to maintain cache consistency
+   */
+  void InvalidatePaletteCache();
+
+  /**
+   * @brief Find color index in palette using optimized hash map lookup
+   * @param color SNES color to find index for
+   * @return Palette index (0 if not found)
+   * @note O(1) lookup time vs O(n) linear search
+   */
+  uint8_t FindColorIndex(const SnesColor& color);
+
+  /**
    * @brief Extract an 8x8 tile from the bitmap (SNES standard tile size)
    * @param tile_index Index of the tile in the tilesheet
    * @param x X offset within the tile (0-7)
@@ -257,6 +272,40 @@ class Bitmap {
 
   // Texture for the bitmap (managed by Arena)
   SDL_Texture *texture_ = nullptr;
+
+  // Optimized palette lookup cache for O(1) color index lookups
+  std::unordered_map<uint32_t, uint8_t> color_to_index_cache_;
+
+  // Dirty region tracking for efficient texture updates
+  struct DirtyRegion {
+    int min_x = 0, min_y = 0, max_x = 0, max_y = 0;
+    bool is_dirty = false;
+    
+    void Reset() {
+      min_x = min_y = max_x = max_y = 0;
+      is_dirty = false;
+    }
+    
+    void AddPoint(int x, int y) {
+      if (!is_dirty) {
+        min_x = max_x = x;
+        min_y = max_y = y;
+        is_dirty = true;
+      } else {
+        min_x = std::min(min_x, x);
+        min_y = std::min(min_y, y);
+        max_x = std::max(max_x, x);
+        max_y = std::max(max_y, y);
+      }
+    }
+  } dirty_region_;
+
+  /**
+   * @brief Hash a color for cache lookup
+   * @param color ImVec4 color to hash
+   * @return 32-bit hash value
+   */
+  uint32_t HashColor(const ImVec4& color) const;
 };
 
 // Type alias for a table of bitmaps

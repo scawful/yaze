@@ -31,6 +31,7 @@ add_executable(
   app/rom.cc
   app/core/project.cc
   app/core/asar_wrapper.cc
+  app/core/performance_monitor.cc
   ${FILE_DIALOG_SRC}
   ${YAZE_APP_EMU_SRC}
   ${YAZE_APP_GFX_SRC}

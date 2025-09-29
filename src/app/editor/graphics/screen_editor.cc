@@ -177,8 +177,11 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
       int posY = ((j / 5) * 32);
 
       gfx::RenderTile16(tile16_blockset_, tile16_id);
-      screen_canvas_.DrawBitmap(tile16_blockset_.tile_bitmaps[tile16_id],
-                                (posX * 2), (posY * 2), 4.0f);
+      // Get tile from cache after rendering
+      auto* cached_tile = tile16_blockset_.tile_cache.GetTile(tile16_id);
+      if (cached_tile) {
+        screen_canvas_.DrawBitmap(*cached_tile, (posX * 2), (posY * 2), 4.0f);
+      }
 
       if (current_dungeon.floor_rooms[floor_number][j] == boss_room) {
         screen_canvas_.DrawOutlineWithColor((posX * 2), (posY * 2), 64, 64,
@@ -319,8 +322,11 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
                         selected_tile16_);
       gfx::UpdateTile16(tile16_blockset_, selected_tile16_);
     }
-    current_tile_canvas_.DrawBitmap(
-        tile16_blockset_.tile_bitmaps[selected_tile16_], 2, 4.0f);
+    // Get selected tile from cache
+    auto* selected_tile = tile16_blockset_.tile_cache.GetTile(selected_tile16_);
+    if (selected_tile) {
+      current_tile_canvas_.DrawBitmap(*selected_tile, 2, 4.0f);
+    }
     current_tile_canvas_.DrawGrid(16.f);
     current_tile_canvas_.DrawOverlay();
 

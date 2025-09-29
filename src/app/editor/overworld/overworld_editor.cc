@@ -1090,8 +1090,8 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
     if (tile16_blockset_.atlas.is_active()) {
       Renderer::Get().UpdateBitmap(&tile16_blockset_.atlas);
 
-      // Clear any cached tile bitmaps to force re-rendering
-      tile16_blockset_.tile_bitmaps.clear();
+      // Clear any cached tiles to force re-rendering with new atlas data
+      tile16_blockset_.tile_cache.Clear();
     }
 
     Renderer::Get().UpdateBitmap(&maps_bmp_[current_map_]);
