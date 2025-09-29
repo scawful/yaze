@@ -18,6 +18,16 @@ class BitmapError : public std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
+/**
+ * @brief Convert bitmap format enum to SDL pixel format
+ * @param format Bitmap format (0=indexed, 1=4BPP, 2=8BPP)
+ * @return SDL pixel format constant
+ * 
+ * SNES Graphics Format Mapping:
+ * - Format 0: Indexed 8-bit (most common for SNES graphics)
+ * - Format 1: 4-bit per pixel (used for some SNES backgrounds)
+ * - Format 2: 8-bit per pixel (used for high-color SNES graphics)
+ */
 Uint32 GetSnesPixelFormat(int format) {
   switch (format) {
     case 0:
@@ -153,6 +163,20 @@ void Bitmap::Create(int width, int height, int depth,
   Create(width, height, depth, static_cast<int>(BitmapFormat::kIndexed), data);
 }
 
+/**
+ * @brief Create a bitmap with specified format and data
+ * @param width Width in pixels
+ * @param height Height in pixels
+ * @param depth Color depth in bits per pixel
+ * @param format Pixel format (0=indexed, 1=4BPP, 2=8BPP)
+ * @param data Raw pixel data
+ * 
+ * Performance Notes:
+ * - Uses Arena for efficient surface allocation
+ * - Copies data to avoid external pointer dependencies
+ * - Validates data size against surface dimensions
+ * - Sets active flag for rendering pipeline
+ */
 void Bitmap::Create(int width, int height, int depth, int format,
                     const std::vector<uint8_t> &data) {
   if (data.empty()) {
@@ -181,6 +205,7 @@ void Bitmap::Create(int width, int height, int depth, int format,
   }
   
   // Copy our data into the surface's pixel buffer instead of pointing to external data
+  // This ensures data integrity and prevents crashes from external data changes
   if (surface_->pixels && data_.size() > 0) {
     memcpy(surface_->pixels, pixel_data_, 
            std::min(data_.size(), static_cast<size_t>(surface_->h * surface_->pitch)));
@@ -265,7 +290,7 @@ void Bitmap::SetPalette(const SnesPalette &palette) {
 
   SDL_UnlockSurface(surface_);
   for (size_t i = 0; i < palette.size(); ++i) {
-    auto pal_color = palette[i];
+    const auto& pal_color = palette[i];
     sdl_palette->colors[i].r = pal_color.rgb().x;
     sdl_palette->colors[i].g = pal_color.rgb().y;
     sdl_palette->colors[i].b = pal_color.rgb().z;
@@ -302,13 +327,13 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
   }
 
   SDL_UnlockSurface(surface_);
-  int i = 0;
+  int color_index = 0;
   for (const auto &each : colors) {
-    surface_->format->palette->colors[i].r = each.x;
-    surface_->format->palette->colors[i].g = each.y;
-    surface_->format->palette->colors[i].b = each.z;
-    surface_->format->palette->colors[i].a = each.w;
-    i++;
+    surface_->format->palette->colors[color_index].r = each.x;
+    surface_->format->palette->colors[color_index].g = each.y;
+    surface_->format->palette->colors[color_index].b = each.z;
+    surface_->format->palette->colors[color_index].a = each.w;
+    color_index++;
   }
   SDL_LockSurface(surface_);
 }
@@ -387,6 +412,20 @@ void Bitmap::Get16x16Tile(int tile_x, int tile_y,
 }
 
 
+/**
+ * @brief Set a pixel at the given coordinates with SNES color
+ * @param x X coordinate (0 to width-1)
+ * @param y Y coordinate (0 to height-1)
+ * @param color SNES color (15-bit RGB format)
+ * 
+ * Performance Notes:
+ * - Bounds checking for safety
+ * - Linear palette search (could be optimized with hash map for large palettes)
+ * - Marks bitmap as modified for efficient rendering updates
+ * - Direct pixel data manipulation for speed
+ * 
+ * TODO: Optimize palette lookup with hash map for palettes > 16 colors
+ */
 void Bitmap::SetPixel(int x, int y, const SnesColor& color) {
   if (x < 0 || x >= width_ || y < 0 || y >= height_) {
     return; // Bounds check
@@ -395,6 +434,7 @@ void Bitmap::SetPixel(int x, int y, const SnesColor& color) {
   int position = y * width_ + x;
   if (position >= 0 && position < (int)data_.size()) {
     // Convert SnesColor to palette index
+    // TODO: Optimize this linear search with a color->index hash map
     uint8_t color_index = 0;
     for (size_t i = 0; i < palette_.size(); i++) {
       if (palette_[i].rgb().x == color.rgb().x &&

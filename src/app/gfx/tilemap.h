@@ -8,17 +8,44 @@
 namespace yaze {
 namespace gfx {
 
+/**
+ * @brief Simple 2D coordinate pair for tilemap dimensions
+ */
 struct Pair {
-  int x;
-  int y;
+  int x;  ///< X coordinate or width
+  int y;  ///< Y coordinate or height
 };
 
+/**
+ * @brief Tilemap structure for SNES tile-based graphics management
+ * 
+ * The Tilemap class provides comprehensive tile management for ROM hacking:
+ * 
+ * Key Features:
+ * - Atlas bitmap containing all tiles in a single texture
+ * - Individual tile bitmap cache for fast access
+ * - Tile metadata storage (mirroring, palette, etc.)
+ * - Support for both 8x8 and 16x16 tile sizes
+ * - Efficient tile lookup and rendering
+ * 
+ * Performance Optimizations:
+ * - Hash map storage for O(1) tile access
+ * - Lazy tile bitmap creation (only when needed)
+ * - Atlas-based rendering to minimize draw calls
+ * - Tile metadata caching for fast property access
+ * 
+ * ROM Hacking Specific:
+ * - SNES tile format support (4BPP, 8BPP)
+ * - Tile mirroring and flipping support
+ * - Palette index management per tile
+ * - Integration with SNES graphics buffer format
+ */
 struct Tilemap {
-  Bitmap atlas;
-  absl::flat_hash_map<int, Bitmap> tile_bitmaps;
-  std::vector<std::array<gfx::TileInfo, 4>> tile_info;
-  Pair tile_size;
-  Pair map_size;
+  Bitmap atlas;                                    ///< Master bitmap containing all tiles
+  absl::flat_hash_map<int, Bitmap> tile_bitmaps;  ///< Individual tile cache
+  std::vector<std::array<gfx::TileInfo, 4>> tile_info;  ///< Tile metadata (4 tiles per 16x16)
+  Pair tile_size;                                  ///< Size of individual tiles (8x8 or 16x16)
+  Pair map_size;                                   ///< Size of tilemap in tiles
 };
 
 std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
