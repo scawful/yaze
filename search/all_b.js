@@ -93,7 +93,7 @@ var searchData=
   ['bg1hofs_90',['BG1HOFS',['../namespaceyaze_1_1emu.html#a7c572f7c1b771b95b0040c733cf93cd0',1,'yaze::emu']]],
   ['bg1sc_91',['BG1SC',['../namespaceyaze_1_1emu.html#a4463c4ad0000e9c1c109027c8f27d75c',1,'yaze::emu']]],
   ['bg1vofs_92',['BG1VOFS',['../namespaceyaze_1_1emu.html#a1d592fe47725d87b3d0fd8bad9882d05',1,'yaze::emu']]],
-  ['bg2_93',['bg2',['../classyaze_1_1zelda3_1_1RoomObject.html#a9271f3a50b053b6f15f5c2b4733dde6da96be2edb0d81ba4eca335d44969f6eb5',1,'yaze::zelda3::RoomObject::BG2'],['../classyaze_1_1gfx_1_1Arena.html#ab4b9ad9acd7039bf316e83e2131c21e7',1,'yaze::gfx::Arena::bg2()'],['../structzelda3__dungeon__room.html#a23d11d15de835636309f62cb4b813c82',1,'zelda3_dungeon_room::bg2']]],
+  ['bg2_93',['bg2',['../structzelda3__dungeon__room.html#a23d11d15de835636309f62cb4b813c82',1,'zelda3_dungeon_room::bg2'],['../classyaze_1_1zelda3_1_1RoomObject.html#a9271f3a50b053b6f15f5c2b4733dde6da96be2edb0d81ba4eca335d44969f6eb5',1,'yaze::zelda3::RoomObject::BG2'],['../classyaze_1_1gfx_1_1Arena.html#ab4b9ad9acd7039bf316e83e2131c21e7',1,'yaze::gfx::Arena::bg2()']]],
   ['bg2_5f_94',['bg2_',['../classyaze_1_1gfx_1_1Arena.html#a21ec1df21874f42118be0560920be0e3',1,'yaze::gfx::Arena::bg2_'],['../classyaze_1_1zelda3_1_1Room.html#ab2c8a0efb438bb714551c9b9c72eaadb',1,'yaze::zelda3::Room::bg2_'],['../classyaze_1_1zelda3_1_1OverworldItem.html#a3b8bc795a2aacc1527b4a4f08b259fe9',1,'yaze::zelda3::OverworldItem::bg2_']]],
   ['bg2_5faddress_95',['BG2_address',['../structyaze_1_1emu_1_1CharacterLocation.html#aa25965ea693036e40407dba4615e7bcc',1,'yaze::emu::CharacterLocation']]],
   ['bg2_5fclip_5fin_5fout_96',['BG2_clip_in_out',['../structyaze_1_1emu_1_1WindowMaskSettings.html#a95560d1423c2a43364cf9ac8f36b55d5',1,'yaze::emu::WindowMaskSettings']]],

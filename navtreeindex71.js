@@ -1,9 +1,5 @@
 var NAVTREEINDEX71 =
 {
-"structyaze_1_1emu_1_1WindowMaskSettings.html#a45e607dec963a46f58ac0855a1dfb23f":[25,0,0,4,97,5],
-"structyaze_1_1emu_1_1WindowMaskSettings.html#a89fdccbe33cc749addc27a39c6e065a1":[24,0,4,4,99,7],
-"structyaze_1_1emu_1_1WindowMaskSettings.html#a89fdccbe33cc749addc27a39c6e065a1":[25,0,0,4,97,7],
-"structyaze_1_1emu_1_1WindowMaskSettings.html#a9286b304fdd02ba7ccbfdd8d902b2a45":[24,0,4,4,99,6],
 "structyaze_1_1emu_1_1WindowMaskSettings.html#a9286b304fdd02ba7ccbfdd8d902b2a45":[25,0,0,4,97,6],
 "structyaze_1_1emu_1_1WindowMaskSettings.html#a95560d1423c2a43364cf9ac8f36b55d5":[25,0,0,4,97,2],
 "structyaze_1_1emu_1_1WindowMaskSettings.html#a95560d1423c2a43364cf9ac8f36b55d5":[24,0,4,4,99,2],
@@ -249,5 +245,9 @@ var NAVTREEINDEX71 =
 "structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#ae62d95231fa1101a4e9cbe0d7b3ecb2c":[25,0,0,6,3,0,11],
 "structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#aeff91aa3063d050000380e5225569168":[24,0,4,6,5,0,8],
 "structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#aeff91aa3063d050000380e5225569168":[25,0,0,6,3,0,8],
-"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#af39201dfcd7e1a32508661ed7fa59f85":[24,0,4,6,5,0,10]
+"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#af39201dfcd7e1a32508661ed7fa59f85":[24,0,4,6,5,0,10],
+"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#af39201dfcd7e1a32508661ed7fa59f85":[25,0,0,6,3,0,10],
+"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#afcf502b809de27032f74ec71eabdfe90":[24,0,4,6,5,0,3],
+"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#afcf502b809de27032f74ec71eabdfe90":[25,0,0,6,3,0,3],
+"structyaze_1_1gui_1_1Button.html":[24,0,4,6,6]
 };

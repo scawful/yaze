@@ -1,5 +1,5 @@
-<map id="yaze::test::MessageTest" name="yaze::test::MessageTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="66,316,226,342"/>
+<map id="yaze::test::MessageRomTest" name="yaze::test::MessageRomTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="53,316,240,342"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,228,98,253"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,262,135,314,131,318,74,266"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="127,109,208,135"/>

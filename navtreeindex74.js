@@ -1,9 +1,5 @@
 var NAVTREEINDEX74 =
 {
-"structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html":[25,0,0,6,1,3],
-"structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#a37857232448027524749a7c314051adc":[24,0,4,6,3,3,11],
-"structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#a37857232448027524749a7c314051adc":[25,0,0,6,1,3,11],
-"structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#a3c855092b99dc4e7a8c1339df427f748":[24,0,4,6,3,3,5],
 "structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#a3c855092b99dc4e7a8c1339df427f748":[25,0,0,6,1,3,5],
 "structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#a461fc6a118ab001b241e20b2ec167819":[25,0,0,6,1,3,2],
 "structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html#a461fc6a118ab001b241e20b2ec167819":[24,0,4,6,3,3,2],
@@ -249,5 +245,9 @@ var NAVTREEINDEX74 =
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html":[25,0,0,9,7,6],
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a0044f919f42c3cc54523efb61dc02d8c":[25,0,0,9,7,6,8],
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a0044f919f42c3cc54523efb61dc02d8c":[24,0,4,9,12,6,8],
-"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a495bd4c47d5aec5725e7925aa58ba8cf":[24,0,4,9,12,6,3]
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a495bd4c47d5aec5725e7925aa58ba8cf":[24,0,4,9,12,6,3],
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a495bd4c47d5aec5725e7925aa58ba8cf":[25,0,0,9,7,6,3],
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a60a7afb66cb5f32272d56615d344d645":[24,0,4,9,12,6,0],
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a60a7afb66cb5f32272d56615d344d645":[25,0,0,9,7,6,0],
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a84d5d08cd803fc056be0009b97b8cbdb":[24,0,4,9,12,6,4]
 };

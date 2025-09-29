@@ -4,7 +4,7 @@ var classyaze_1_1test_1_1EditorIntegrationTest =
     [ "~EditorIntegrationTest", "classyaze_1_1test_1_1EditorIntegrationTest.html#ad8030e52daf3fad656b0f0b989a91abe", null ],
     [ "Initialize", "classyaze_1_1test_1_1EditorIntegrationTest.html#a0792ffe2bd3cd4a0bb277940a1db94ab", null ],
     [ "RunTest", "classyaze_1_1test_1_1EditorIntegrationTest.html#a45e8663ba05507eb631c379e4a1512b2", null ],
-    [ "RegisterTests", "classyaze_1_1test_1_1EditorIntegrationTest.html#a48abfaf840b4827f44c63623c8afd876", null ],
+    [ "RegisterTests", "classyaze_1_1test_1_1EditorIntegrationTest.html#a3c96f47498c3c857d2e6ff7b0534c92b", null ],
     [ "Update", "classyaze_1_1test_1_1EditorIntegrationTest.html#a130a0c6e79c2ef24427da285a3b6902b", null ],
     [ "LoadTestRom", "classyaze_1_1test_1_1EditorIntegrationTest.html#ae6832349ee90cb33f5b3b3513236abf9", null ],
     [ "SaveTestRom", "classyaze_1_1test_1_1EditorIntegrationTest.html#a1aa032ca65f2061e3ba67f95e87d7e1d", null ],
@@ -20,8 +20,6 @@ var classyaze_1_1test_1_1EditorIntegrationTest =
     [ "TestEditorFind", "classyaze_1_1test_1_1EditorIntegrationTest.html#ab03a189b17c209971fc5862d524e14ff", null ],
     [ "TestEditorClear", "classyaze_1_1test_1_1EditorIntegrationTest.html#a14909b85f39e40bd7bfb442b97ec8eab", null ],
     [ "controller_", "classyaze_1_1test_1_1EditorIntegrationTest.html#a2efd8f98e14c8c9d5e27e06bd2b9a17c", null ],
-    [ "engine_", "classyaze_1_1test_1_1EditorIntegrationTest.html#ade2e80555aea01f523b4c8d9044423a4", null ],
     [ "test_rom_", "classyaze_1_1test_1_1EditorIntegrationTest.html#a15a8712526274665bc3666a1f12c2066", null ],
-    [ "show_demo_window_", "classyaze_1_1test_1_1EditorIntegrationTest.html#a551e485430131c41ab86ea23afc621c2", null ],
     [ "window_", "classyaze_1_1test_1_1EditorIntegrationTest.html#a5f2bf4c8fe1c1bee75e61845092c6459", null ]
 ];

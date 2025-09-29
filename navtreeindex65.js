@@ -1,9 +1,5 @@
 var NAVTREEINDEX65 =
 {
-"structyaze_1_1core_1_1SDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2":[24,0,4,2,13,0],
-"structyaze_1_1core_1_1SDL__Surface__Deleter.html":[25,0,0,2,12],
-"structyaze_1_1core_1_1SDL__Surface__Deleter.html":[24,0,4,2,14],
-"structyaze_1_1core_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87":[25,0,0,2,12,0],
 "structyaze_1_1core_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87":[24,0,4,2,14,0],
 "structyaze_1_1core_1_1SDL__Texture__Deleter.html":[24,0,4,2,15],
 "structyaze_1_1core_1_1SDL__Texture__Deleter.html":[25,0,0,2,13],
@@ -249,5 +245,9 @@ var NAVTREEINDEX65 =
 "structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a31b00e7329517c92218754dfc83f4bd9":[25,0,0,3,17,0,7],
 "structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a4a80bf45ce713399815fe1bf62c9e14d":[25,0,0,3,17,0,5],
 "structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a4a80bf45ce713399815fe1bf62c9e14d":[24,0,4,3,23,0,5],
-"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a737bea7f9a528b54d56f84c34334bd25":[25,0,0,3,17,0,2]
+"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a737bea7f9a528b54d56f84c34334bd25":[25,0,0,3,17,0,2],
+"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a737bea7f9a528b54d56f84c34334bd25":[24,0,4,3,23,0,2],
+"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a95f78a95520642e93dd30532046092bb":[25,0,0,3,17,0,0],
+"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a95f78a95520642e93dd30532046092bb":[24,0,4,3,23,0,0],
+"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#ac716205907941fe6170fcaf7592b0200":[25,0,0,3,17,0,3]
 };

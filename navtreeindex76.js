@@ -1,9 +1,5 @@
 var NAVTREEINDEX76 =
 {
-"structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html":[25,0,0,9,21,4],
-"structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html#a32f358db91e4d042401d6ebce9eb58b3":[25,0,0,9,21,4,5],
-"structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html#a32f358db91e4d042401d6ebce9eb58b3":[24,0,4,9,26,4,5],
-"structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html#a40756c3b49b60aecafb3edc82c9a451b":[25,0,0,9,21,4,2],
 "structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html#a40756c3b49b60aecafb3edc82c9a451b":[24,0,4,9,26,4,2],
 "structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html#a80009955b094cddf218521a914a981ee":[24,0,4,9,26,4,0],
 "structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html#a80009955b094cddf218521a914a981ee":[25,0,0,9,21,4,0],
@@ -249,5 +245,9 @@ var NAVTREEINDEX76 =
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a7687e34a1040b3f0b899728f2f3a3ba1":[25,0,0,9,3,5,11],
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abcf8ec71d5b830fef6d59ae449c52fde":[24,0,4,9,6,5,4],
 "structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abcf8ec71d5b830fef6d59ae449c52fde":[25,0,0,9,3,5,4],
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd":[24,0,4,9,6,5,7]
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd":[24,0,4,9,6,5,7],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd":[25,0,0,9,3,5,7],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac4b191d5ade6f487037dbbc884122dc3":[25,0,0,9,3,5,0],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac4b191d5ade6f487037dbbc884122dc3":[24,0,4,9,6,5,0],
+"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac68a57b9e3b1359935c1cc6bf92d513b":[25,0,0,9,3,5,2]
 };

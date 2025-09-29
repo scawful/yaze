@@ -290,7 +290,7 @@ var annotated_dup =
         [ "E2ETestSuite", "classyaze_1_1test_1_1E2ETestSuite.html", "classyaze_1_1test_1_1E2ETestSuite" ],
         [ "EditorIntegrationTest", "classyaze_1_1test_1_1EditorIntegrationTest.html", "classyaze_1_1test_1_1EditorIntegrationTest" ],
         [ "IntegratedTestSuite", "classyaze_1_1test_1_1IntegratedTestSuite.html", "classyaze_1_1test_1_1IntegratedTestSuite" ],
-        [ "MessageTest", "classyaze_1_1test_1_1MessageTest.html", "classyaze_1_1test_1_1MessageTest" ],
+        [ "MessageRomTest", "classyaze_1_1test_1_1MessageRomTest.html", "classyaze_1_1test_1_1MessageRomTest" ],
         [ "MockRom", "classyaze_1_1test_1_1MockRom.html", "classyaze_1_1test_1_1MockRom" ],
         [ "ObjectParserStructsTest", "classyaze_1_1test_1_1ObjectParserStructsTest.html", "classyaze_1_1test_1_1ObjectParserStructsTest" ],
         [ "ObjectParserTest", "classyaze_1_1test_1_1ObjectParserTest.html", "classyaze_1_1test_1_1ObjectParserTest" ],

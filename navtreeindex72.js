@@ -1,9 +1,5 @@
 var NAVTREEINDEX72 =
 {
-"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#af39201dfcd7e1a32508661ed7fa59f85":[25,0,0,6,3,0,10],
-"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#afcf502b809de27032f74ec71eabdfe90":[24,0,4,6,5,0,3],
-"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#afcf502b809de27032f74ec71eabdfe90":[25,0,0,6,3,0,3],
-"structyaze_1_1gui_1_1Button.html":[24,0,4,6,6],
 "structyaze_1_1gui_1_1Button.html":[25,0,0,6,4],
 "structyaze_1_1gui_1_1Button.html#ab88e64066c56418393e6fd510e0bf87e":[25,0,0,6,4,1],
 "structyaze_1_1gui_1_1Button.html#ab88e64066c56418393e6fd510e0bf87e":[24,0,4,6,6,1],
@@ -249,5 +245,9 @@ var NAVTREEINDEX72 =
 "structyaze_1_1gui_1_1EnhancedTheme.html#a834b6e99e9a37617ac180f03aa8208b6":[24,0,4,6,16,44],
 "structyaze_1_1gui_1_1EnhancedTheme.html#a83706de2bd75738dd62192f75b20d3ae":[25,0,0,6,14,0],
 "structyaze_1_1gui_1_1EnhancedTheme.html#a83706de2bd75738dd62192f75b20d3ae":[24,0,4,6,16,0],
-"structyaze_1_1gui_1_1EnhancedTheme.html#a84f7ec07c3bb6c269e9402ca193599c2":[24,0,4,6,16,67]
+"structyaze_1_1gui_1_1EnhancedTheme.html#a84f7ec07c3bb6c269e9402ca193599c2":[24,0,4,6,16,67],
+"structyaze_1_1gui_1_1EnhancedTheme.html#a84f7ec07c3bb6c269e9402ca193599c2":[25,0,0,6,14,67],
+"structyaze_1_1gui_1_1EnhancedTheme.html#a88cc3580a243bb99908842606c341de0":[24,0,4,6,16,45],
+"structyaze_1_1gui_1_1EnhancedTheme.html#a88cc3580a243bb99908842606c341de0":[25,0,0,6,14,45],
+"structyaze_1_1gui_1_1EnhancedTheme.html#a89f5ae6c919c52d4771b5091e966bb4c":[25,0,0,6,14,42]
 };

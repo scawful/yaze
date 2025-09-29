@@ -1,9 +1,5 @@
 var NAVTREEINDEX66 =
 {
-"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a737bea7f9a528b54d56f84c34334bd25":[24,0,4,3,23,0,2],
-"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a95f78a95520642e93dd30532046092bb":[25,0,0,3,17,0,0],
-"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a95f78a95520642e93dd30532046092bb":[24,0,4,3,23,0,0],
-"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#ac716205907941fe6170fcaf7592b0200":[25,0,0,3,17,0,3],
 "structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#ac716205907941fe6170fcaf7592b0200":[24,0,4,3,23,0,3],
 "structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#aca537ddb7438162c656137957402a679":[25,0,0,3,17,0,6],
 "structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#aca537ddb7438162c656137957402a679":[24,0,4,3,23,0,6],
@@ -249,5 +245,9 @@ var NAVTREEINDEX66 =
 "structyaze_1_1editor_1_1Toast.html#a4f29c7e82ca84c9f0eb3293e33b8fa17":[24,0,4,3,53,0],
 "structyaze_1_1editor_1_1Toast.html#afa57d86496bc0c0cfcb53e8d16280c51":[25,0,0,3,47,2],
 "structyaze_1_1editor_1_1Toast.html#afa57d86496bc0c0cfcb53e8d16280c51":[24,0,4,3,53,2],
-"structyaze_1_1editor_1_1Toast.html#afafc4a917d6a5dedb045aadbb6949f84":[25,0,0,3,47,1]
+"structyaze_1_1editor_1_1Toast.html#afafc4a917d6a5dedb045aadbb6949f84":[25,0,0,3,47,1],
+"structyaze_1_1editor_1_1Toast.html#afafc4a917d6a5dedb045aadbb6949f84":[24,0,4,3,53,1],
+"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html":[25,0,0,3,0,0],
+"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html":[24,0,4,3,6,0],
+"structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a166b67d21301fa43249565ec56148f22":[25,0,0,3,0,0,1]
 };

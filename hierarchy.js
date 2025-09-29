@@ -341,7 +341,7 @@ var hierarchy =
       [ "yaze::test::DungeonObjectRenderingTests", "classyaze_1_1test_1_1DungeonObjectRenderingTests.html", null ],
       [ "yaze::test::DungeonRoomTest", "classyaze_1_1test_1_1DungeonRoomTest.html", null ],
       [ "yaze::test::E2ERomDependentTest", "classyaze_1_1test_1_1E2ERomDependentTest.html", null ],
-      [ "yaze::test::MessageTest", "classyaze_1_1test_1_1MessageTest.html", null ],
+      [ "yaze::test::MessageRomTest", "classyaze_1_1test_1_1MessageRomTest.html", null ],
       [ "yaze::test::ObjectParserStructsTest", "classyaze_1_1test_1_1ObjectParserStructsTest.html", null ],
       [ "yaze::test::ObjectParserTest", "classyaze_1_1test_1_1ObjectParserTest.html", null ],
       [ "yaze::test::RomDependentTest", "classyaze_1_1test_1_1RomDependentTest.html", [
