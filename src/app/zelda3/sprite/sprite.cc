@@ -869,7 +869,6 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
                             bool mirror_x, bool mirror_y, int sizex,
                             int sizey) {
   if (current_gfx_.empty()) {
-    std::cout << "No gfx loaded" << std::endl;
     return;
   }
 

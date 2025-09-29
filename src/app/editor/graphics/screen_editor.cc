@@ -6,6 +6,7 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
+#include "app/core/performance_monitor.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
@@ -29,6 +30,8 @@ constexpr uint32_t kRedPen = 0xFF0000FF;
 void ScreenEditor::Initialize() {}
 
 absl::Status ScreenEditor::Load() {
+  core::ScopedTimer timer("ScreenEditor::Load");
+  
   ASSIGN_OR_RETURN(dungeon_maps_,
                    zelda3::LoadDungeonMaps(*rom(), dungeon_map_labels_));
   RETURN_IF_ERROR(zelda3::LoadDungeonMapTile16(

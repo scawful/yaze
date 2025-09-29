@@ -2,6 +2,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "app/core/performance_monitor.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/color.h"
 #include "imgui/imgui.h"
@@ -171,6 +172,8 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 void PaletteEditor::Initialize() {}
 
 absl::Status PaletteEditor::Load() {
+  core::ScopedTimer timer("PaletteEditor::Load");
+  
   if (rom()->is_loaded()) {
     // Initialize the labels
     for (int i = 0; i < kNumPalettes; i++) {
