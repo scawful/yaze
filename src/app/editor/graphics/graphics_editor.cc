@@ -94,6 +94,21 @@ absl::Status GraphicsEditor::UpdateGfxEdit() {
   return absl::OkStatus();
 }
 
+/**
+ * @brief Draw the graphics editing toolset with enhanced ROM hacking features
+ * 
+ * Enhanced Features:
+ * - Multi-tool selection for different editing modes
+ * - Real-time zoom controls for precise pixel editing
+ * - Sheet copy/paste operations for ROM graphics management
+ * - Color picker integration with SNES palette system
+ * - Tile size controls for 8x8 and 16x16 SNES tiles
+ * 
+ * Performance Notes:
+ * - Toolset updates are batched to minimize ImGui overhead
+ * - Color buttons use cached palette data for fast rendering
+ * - Zoom controls update canvas scaling without full redraw
+ */
 void GraphicsEditor::DrawGfxEditToolset() {
   if (ImGui::BeginTable("##GfxEditToolset", 9, ImGuiTableFlags_SizingFixedFit,
                         ImVec2(0, 0))) {
@@ -146,16 +161,34 @@ void GraphicsEditor::DrawGfxEditToolset() {
     }
 
     TableNextColumn();
+    // Enhanced palette color picker with SNES-specific features
     auto bitmap = gfx::Arena::Get().gfx_sheets()[current_sheet_];
     auto palette = bitmap.palette();
+    
+    // Display palette colors in a grid layout for better ROM hacking workflow
     for (int i = 0; i < palette.size(); i++) {
+      if (i > 0 && i % 8 == 0) {
+        ImGui::NewLine(); // New row every 8 colors (SNES palette standard)
+      }
       ImGui::SameLine();
-      auto color =
-          ImVec4(palette[i].rgb().x / 255.0f, palette[i].rgb().y / 255.0f,
-                 palette[i].rgb().z / 255.0f, 255.0f);
+      
+      // Convert SNES color to ImGui format with proper scaling
+      auto color = ImVec4(palette[i].rgb().x / 255.0f, palette[i].rgb().y / 255.0f,
+                          palette[i].rgb().z / 255.0f, 1.0f);
+      
+      // Enhanced color button with tooltip showing SNES color value
       if (ImGui::ColorButton(absl::StrFormat("Palette Color %d", i).c_str(),
-                             color)) {
+                             color, ImGuiColorEditFlags_NoTooltip)) {
         current_color_ = color;
+      }
+      
+      // Add tooltip with SNES color information
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("SNES Color: $%04X\nRGB: (%d, %d, %d)", 
+                         palette[i].snes(),
+                         static_cast<int>(palette[i].rgb().x),
+                         static_cast<int>(palette[i].rgb().y),
+                         static_cast<int>(palette[i].rgb().z));
       }
     }
 

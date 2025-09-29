@@ -1678,10 +1678,6 @@ absl::Status OverworldEditor::LoadGraphics() {
     }
   }
 
-  // Print performance summary
-  core::PerformanceMonitor::Get().PrintSummary();
-  util::logf("Overworld graphics loaded with deferred texture creation");
-
   return absl::OkStatus();
 }
 

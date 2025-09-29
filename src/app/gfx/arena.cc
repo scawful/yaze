@@ -36,6 +36,19 @@ Arena::~Arena() {
   surfaces_.clear();
 }
 
+/**
+ * @brief Allocate a new SDL texture with automatic cleanup
+ * @param renderer SDL renderer for texture creation
+ * @param width Texture width in pixels
+ * @param height Texture height in pixels
+ * @return Pointer to allocated texture (managed by Arena)
+ * 
+ * Performance Notes:
+ * - Uses RGBA8888 format for maximum compatibility
+ * - STREAMING access for dynamic updates (common in ROM editing)
+ * - Automatic cleanup via unique_ptr with custom deleter
+ * - Hash map storage for O(1) lookup and management
+ */
 SDL_Texture* Arena::AllocateTexture(SDL_Renderer* renderer, int width,
                                     int height) {
   if (!renderer) {
@@ -56,6 +69,7 @@ SDL_Texture* Arena::AllocateTexture(SDL_Renderer* renderer, int width,
     return nullptr;
   }
 
+  // Store in hash map with automatic cleanup
   textures_[texture] =
       std::unique_ptr<SDL_Texture, core::SDL_Texture_Deleter>(texture);
   return texture;
@@ -80,6 +94,22 @@ void Arena::Shutdown() {
   surfaces_.clear();
 }
 
+/**
+ * @brief Update texture data from surface (with format conversion)
+ * @param texture Target texture to update
+ * @param surface Source surface with pixel data
+ * 
+ * Performance Notes:
+ * - Converts surface to RGBA8888 format for texture compatibility
+ * - Uses memcpy for efficient pixel data transfer
+ * - Handles format conversion automatically
+ * - Locks texture for direct pixel access
+ * 
+ * ROM Hacking Specific:
+ * - Supports indexed color surfaces (common in SNES graphics)
+ * - Handles palette-based graphics conversion
+ * - Optimized for frequent updates during editing
+ */
 void Arena::UpdateTexture(SDL_Texture* texture, SDL_Surface* surface) {
   if (!texture || !surface) {
     SDL_Log("Invalid texture or surface passed to UpdateTexture");
@@ -91,6 +121,7 @@ void Arena::UpdateTexture(SDL_Texture* texture, SDL_Surface* surface) {
     return;
   }
 
+  // Convert surface to RGBA8888 format for texture compatibility
   auto converted_surface =
       std::unique_ptr<SDL_Surface, core::SDL_Surface_Deleter>(
           SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888, 0),
@@ -101,6 +132,7 @@ void Arena::UpdateTexture(SDL_Texture* texture, SDL_Surface* surface) {
     return;
   }
 
+  // Lock texture for direct pixel access
   void* pixels;
   int pitch;
   if (SDL_LockTexture(texture, nullptr, &pixels, &pitch) != 0) {
@@ -108,6 +140,7 @@ void Arena::UpdateTexture(SDL_Texture* texture, SDL_Surface* surface) {
     return;
   }
 
+  // Copy pixel data efficiently
   memcpy(pixels, converted_surface->pixels,
          converted_surface->h * converted_surface->pitch);
 

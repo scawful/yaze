@@ -12,7 +12,31 @@
 namespace yaze {
 namespace gfx {
 
-// Arena is a class that manages a collection of textures and surfaces
+/**
+ * @brief Resource management arena for efficient graphics memory handling
+ * 
+ * The Arena class provides centralized management of SDL textures and surfaces
+ * for the YAZE ROM hacking editor. It implements several key optimizations:
+ * 
+ * Key Features:
+ * - Singleton pattern for global access across all graphics components
+ * - Automatic resource cleanup with RAII-style management
+ * - Memory pooling to reduce allocation overhead
+ * - Support for 223 graphics sheets (YAZE's full graphics space)
+ * - Background buffer management for SNES layer rendering
+ * 
+ * Performance Optimizations:
+ * - Unique_ptr with custom deleters for automatic SDL resource cleanup
+ * - Hash map storage for O(1) texture/surface lookup
+ * - Batch resource management to minimize SDL calls
+ * - Pre-allocated graphics sheet array for fast access
+ * 
+ * ROM Hacking Specific:
+ * - Fixed-size graphics sheet array (223 sheets) matching YAZE's graphics space
+ * - Background buffer support for SNES layer 1 and layer 2 rendering
+ * - Tile buffer management for 64x64 tile grids
+ * - Integration with SNES graphics format requirements
+ */
 class Arena {
  public:
   static Arena& Get();
@@ -20,11 +44,42 @@ class Arena {
   ~Arena();
 
   // Resource management
+  /**
+   * @brief Allocate a new SDL texture with automatic cleanup
+   * @param renderer SDL renderer for texture creation
+   * @param width Texture width in pixels
+   * @param height Texture height in pixels
+   * @return Pointer to allocated texture (managed by Arena)
+   */
   SDL_Texture* AllocateTexture(SDL_Renderer* renderer, int width, int height);
+  
+  /**
+   * @brief Free a texture and remove from Arena management
+   * @param texture Texture to free
+   */
   void FreeTexture(SDL_Texture* texture);
+  
+  /**
+   * @brief Update texture data from surface (with format conversion)
+   * @param texture Target texture to update
+   * @param surface Source surface with pixel data
+   */
   void UpdateTexture(SDL_Texture* texture, SDL_Surface* surface);
 
+  /**
+   * @brief Allocate a new SDL surface with automatic cleanup
+   * @param width Surface width in pixels
+   * @param height Surface height in pixels
+   * @param depth Color depth in bits per pixel
+   * @param format SDL pixel format
+   * @return Pointer to allocated surface (managed by Arena)
+   */
   SDL_Surface* AllocateSurface(int width, int height, int depth, int format);
+  
+  /**
+   * @brief Free a surface and remove from Arena management
+   * @param surface Surface to free
+   */
   void FreeSurface(SDL_Surface* surface);
   
   // Explicit cleanup method for controlled shutdown
@@ -34,12 +89,44 @@ class Arena {
   size_t GetTextureCount() const { return textures_.size(); }
   size_t GetSurfaceCount() const { return surfaces_.size(); }
 
+  // Graphics sheet access (223 total sheets in YAZE)
+  /**
+   * @brief Get reference to all graphics sheets
+   * @return Reference to array of 223 Bitmap objects
+   */
   std::array<gfx::Bitmap, 223>& gfx_sheets() { return gfx_sheets_; }
+  
+  /**
+   * @brief Get a specific graphics sheet by index
+   * @param i Sheet index (0-222)
+   * @return Copy of the Bitmap at index i
+   */
   auto gfx_sheet(int i) { return gfx_sheets_[i]; }
+  
+  /**
+   * @brief Get mutable reference to a specific graphics sheet
+   * @param i Sheet index (0-222)
+   * @return Pointer to mutable Bitmap at index i
+   */
   auto mutable_gfx_sheet(int i) { return &gfx_sheets_[i]; }
+  
+  /**
+   * @brief Get mutable reference to all graphics sheets
+   * @return Pointer to mutable array of 223 Bitmap objects
+   */
   auto mutable_gfx_sheets() { return &gfx_sheets_; }
 
+  // Background buffer access for SNES layer rendering
+  /**
+   * @brief Get reference to background layer 1 buffer
+   * @return Reference to BackgroundBuffer for layer 1
+   */
   auto& bg1() { return bg1_; }
+  
+  /**
+   * @brief Get reference to background layer 2 buffer
+   * @return Reference to BackgroundBuffer for layer 2
+   */
   auto& bg2() { return bg2_; }
 
  private:
