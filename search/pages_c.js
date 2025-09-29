@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['scripts_0',['YAZE Build Scripts',['../md_scripts_2README.html',1,'']]],
-  ['started_1',['Getting Started',['../md_docs_201-getting-started.html',1,'']]],
-  ['style_20guide_2',['Asm Style Guide',['../md_docs_2E1-asm-style-guide.html',1,'']]],
-  ['suite_3',['YAZE Test Suite',['../md_test_2README.html',1,'']]],
-  ['system_4',['Dungeon Object System',['../md_docs_2E5-dungeon-object-system.html',1,'']]]
+  ['refactoring_20plan_0',['DungeonEditor Refactoring Plan',['../md_docs_2E4-dungeon-editor-refactoring.html',1,'']]],
+  ['reference_1',['API Reference',['../md_docs_204-api-reference.html',1,'']]],
+  ['release_20workflows_20documentation_2',['Release Workflows Documentation',['../md_docs_2B4-release-workflows.html',1,'']]],
+  ['renderer_20class_20performance_20analysis_20and_20optimization_3',['Renderer Class Performance Analysis and Optimization',['../md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
+  ['roadmap_4',['Roadmap',['../md_docs_2D1-roadmap.html',1,'']]]
 ];

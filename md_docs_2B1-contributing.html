@@ -101,17 +101,17 @@ $(document).ready(function(){initNavTree('md_docs_2B1-contributing.html',''); in
   <div class="headertitle"><div class="title">Contributing</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md127"></a> Guidelines for contributing to the YAZE project.</p>
-<h1><a class="anchor" id="autotoc_md128"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md357"></a> Guidelines for contributing to the YAZE project.</p>
+<h1><a class="anchor" id="autotoc_md358"></a>
 Development Setup</h1>
-<h2><a class="anchor" id="autotoc_md129"></a>
+<h2><a class="anchor" id="autotoc_md359"></a>
 Prerequisites</h2>
 <ul>
 <li><b>CMake 3.16+</b>: Modern build system</li>
 <li><b>C++23 Compiler</b>: GCC 13+, Clang 16+, MSVC 2022 17.8+</li>
 <li><b>Git</b>: Version control with submodules</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md130"></a>
+<h2><a class="anchor" id="autotoc_md360"></a>
 Quick Start</h2>
 <div class="fragment"><div class="line"># Clone with submodules</div>
 <div class="line">git clone --recursive https://github.com/scawful/yaze.git</div>
@@ -123,16 +123,16 @@ Quick Start</h2>
 <div class="line"> </div>
 <div class="line"># Run tests</div>
 <div class="line">ctest --preset stable</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md131"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md361"></a>
 Code Style</h1>
-<h2><a class="anchor" id="autotoc_md132"></a>
+<h2><a class="anchor" id="autotoc_md362"></a>
 C++ Standards</h2>
 <ul>
 <li><b>C++23</b>: Use modern language features</li>
 <li><b>Google C++ Style</b>: Follow Google C++ style guide</li>
 <li><b>Naming</b>: Use descriptive names, avoid abbreviations</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md133"></a>
+<h2><a class="anchor" id="autotoc_md363"></a>
 File Organization</h2>
 <div class="fragment"><div class="line"><span class="comment">// Header guards</span></div>
 <div class="line"><span class="preprocessor">#pragma once</span></div>
@@ -157,7 +157,7 @@ File Organization</h2>
 <div class="line"> </div>
 <div class="line">}</div>
 <div class="ttc" id="aasar__wrapper_8h_html"><div class="ttname"><a href="asar__wrapper_8h.html">asar_wrapper.h</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md134"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md364"></a>
 Error Handling</h2>
 <div class="fragment"><div class="line"><span class="comment">// Use absl::Status for error handling</span></div>
 <div class="line">absl::Status LoadRom(<span class="keyword">const</span> std::string&amp; filename) {</div>
@@ -172,16 +172,16 @@ Error Handling</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Use absl::StatusOr for operations that return values</span></div>
 <div class="line">absl::StatusOr&lt;std::vector&lt;uint8_t&gt;&gt; ReadFile(<span class="keyword">const</span> std::string&amp; filename);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md135"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md365"></a>
 Testing Requirements</h1>
-<h2><a class="anchor" id="autotoc_md136"></a>
+<h2><a class="anchor" id="autotoc_md366"></a>
 Test Categories</h2>
 <ul>
 <li><b>Stable Tests</b>: Fast, reliable, no external dependencies</li>
 <li><b>ROM-Dependent Tests</b>: Require ROM files, skip in CI</li>
 <li><b>Experimental Tests</b>: Complex, may be unstable</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md137"></a>
+<h2><a class="anchor" id="autotoc_md367"></a>
 Writing Tests</h2>
 <div class="fragment"><div class="line"><span class="comment">// Stable test example</span></div>
 <div class="line">TEST(SnesTileTest, UnpackBppTile) {</div>
@@ -200,7 +200,7 @@ Writing Tests</h2>
 <div class="line">    <span class="comment">// ... test implementation</span></div>
 <div class="line">}</div>
 <div class="ttc" id="atest__utils_8h_html_acde8466936427e1b1ba331bccb124a9e"><div class="ttname"><a href="test__utils_8h.html#acde8466936427e1b1ba331bccb124a9e">YAZE_ROM_TEST</a></div><div class="ttdeci">#define YAZE_ROM_TEST(test_case_name, test_name)</div><div class="ttdoc">Test macro for ROM-dependent tests.</div><div class="ttdef"><b>Definition</b> <a href="test__utils_8h_source.html#l00132">test_utils.h:132</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md138"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md368"></a>
 Test Execution</h2>
 <div class="fragment"><div class="line"># Run stable tests (required)</div>
 <div class="line">ctest --label-regex &quot;STABLE&quot;</div>
@@ -210,9 +210,9 @@ Test Execution</h2>
 <div class="line"> </div>
 <div class="line"># Run specific test</div>
 <div class="line">ctest -R &quot;AsarWrapperTest&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md139"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md369"></a>
 Pull Request Process</h1>
-<h2><a class="anchor" id="autotoc_md140"></a>
+<h2><a class="anchor" id="autotoc_md370"></a>
 Before Submitting</h2>
 <ol type="1">
 <li><b>Run tests</b>: Ensure all stable tests pass</li>
@@ -220,7 +220,7 @@ Before Submitting</h2>
 <li><b>Update documentation</b>: Update relevant docs if needed</li>
 <li><b>Test on multiple platforms</b>: Verify cross-platform compatibility</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md141"></a>
+<h2><a class="anchor" id="autotoc_md371"></a>
 Pull Request Template</h2>
 <div class="fragment"><div class="line">## Description</div>
 <div class="line">Brief description of changes</div>
@@ -241,9 +241,9 @@ Pull Request Template</h2>
 <div class="line">- [ ] Self-review completed</div>
 <div class="line">- [ ] Documentation updated</div>
 <div class="line">- [ ] Tests added/updated</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md142"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md372"></a>
 Development Workflow</h1>
-<h2><a class="anchor" id="autotoc_md143"></a>
+<h2><a class="anchor" id="autotoc_md373"></a>
 Branch Strategy</h2>
 <ul>
 <li><b>main</b>: Stable, release-ready code</li>
@@ -251,7 +251,7 @@ Branch Strategy</h2>
 <li><b>fix/</b>: Bug fixes</li>
 <li><b>docs/</b>: Documentation updates</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md144"></a>
+<h2><a class="anchor" id="autotoc_md374"></a>
 Commit Messages</h2>
 <div class="fragment"><div class="line">type(scope): brief description</div>
 <div class="line"> </div>
@@ -261,7 +261,7 @@ Commit Messages</h2>
 <div class="line">- Any breaking changes</div>
 <div class="line"> </div>
 <div class="line">Fixes #issue_number</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md145"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md375"></a>
 Types</h2>
 <ul>
 <li><b>feat</b>: New features</li>
@@ -272,71 +272,71 @@ Types</h2>
 <li><b>test</b>: Test additions/changes</li>
 <li><b>chore</b>: Build/tooling changes</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md146"></a>
+<h1><a class="anchor" id="autotoc_md376"></a>
 Architecture Guidelines</h1>
-<h2><a class="anchor" id="autotoc_md147"></a>
+<h2><a class="anchor" id="autotoc_md377"></a>
 Component Design</h2>
 <ul>
 <li><b>Single Responsibility</b>: Each class should have one clear purpose</li>
 <li><b>Dependency Injection</b>: Use dependency injection for testability</li>
 <li><b>Interface Segregation</b>: Keep interfaces focused and minimal</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md148"></a>
+<h2><a class="anchor" id="autotoc_md378"></a>
 Memory Management</h2>
 <ul>
 <li><b>RAII</b>: Use RAII for resource management</li>
 <li><b>Smart Pointers</b>: Prefer unique_ptr and shared_ptr</li>
 <li><b>Avoid Raw Pointers</b>: Use smart pointers or references</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md149"></a>
+<h2><a class="anchor" id="autotoc_md379"></a>
 Performance</h2>
 <ul>
 <li><b>Profile Before Optimizing</b>: Measure before optimizing</li>
 <li><b>Use Modern C++</b>: Leverage C++23 features for performance</li>
 <li><b>Avoid Premature Optimization</b>: Focus on correctness first</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md150"></a>
+<h1><a class="anchor" id="autotoc_md380"></a>
 Documentation</h1>
-<h2><a class="anchor" id="autotoc_md151"></a>
+<h2><a class="anchor" id="autotoc_md381"></a>
 Code Documentation</h2>
 <ul>
 <li><b>Doxygen Comments</b>: Use Doxygen format for public APIs</li>
 <li><b>Inline Comments</b>: Explain complex logic</li>
 <li><b>README Updates</b>: Update relevant README files</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md152"></a>
+<h2><a class="anchor" id="autotoc_md382"></a>
 API Documentation</h2>
 <div class="fragment"><div class="line"> </div>
 <div class="line">absl::StatusOr&lt;AsarPatchResult&gt; ApplyPatch(</div>
 <div class="line">    <span class="keyword">const</span> std::string&amp; patch_path,</div>
 <div class="line">    std::vector&lt;uint8_t&gt;&amp; rom_data,</div>
 <div class="line">    <span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; include_paths = {});</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md153"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md383"></a>
 Community Guidelines</h1>
-<h2><a class="anchor" id="autotoc_md154"></a>
+<h2><a class="anchor" id="autotoc_md384"></a>
 Communication</h2>
 <ul>
 <li><b>Be Respectful</b>: Treat all contributors with respect</li>
 <li><b>Be Constructive</b>: Provide helpful feedback</li>
 <li><b>Be Patient</b>: Remember that everyone is learning</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md155"></a>
+<h2><a class="anchor" id="autotoc_md385"></a>
 Getting Help</h2>
 <ul>
 <li><b>GitHub Issues</b>: Report bugs and request features</li>
 <li><b>Discussions</b>: Ask questions and discuss ideas</li>
 <li><b>Discord</b>: <a href="https://discord.gg/MBFkMTPEmk">Oracle of Secrets Discord</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md156"></a>
+<h1><a class="anchor" id="autotoc_md386"></a>
 Release Process</h1>
-<h2><a class="anchor" id="autotoc_md157"></a>
+<h2><a class="anchor" id="autotoc_md387"></a>
 Version Numbering</h2>
 <ul>
 <li><b>Semantic Versioning</b>: MAJOR.MINOR.PATCH</li>
 <li><b>v0.3.1</b>: Current stable release</li>
 <li><b>Pre-release</b>: v0.4.0-alpha, v0.4.0-beta</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md158"></a>
+<h2><a class="anchor" id="autotoc_md388"></a>
 Release Checklist</h2>
 <ul>
 <li>[ ] All stable tests pass</li>

@@ -1,6 +1,9 @@
 var searchData=
 [
-  ['changelog_0',['Changelog',['../md_docs_2C1-changelog.html',1,'']]],
-  ['compatibility_20improvements_1',['Platform Compatibility Improvements',['../md_docs_2B2-platform-compatibility.html',1,'']]],
-  ['contributing_2',['Contributing',['../md_docs_2B1-contributing.html',1,'']]]
+  ['c_20vs_20yaze_20c_20overworld_20implementation_20analysis_0',['ZScream C# vs YAZE C++ Overworld Implementation Analysis',['../md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'']]],
+  ['changelog_1',['Changelog',['../md_docs_2C1-changelog.html',1,'']]],
+  ['class_20performance_20analysis_20and_20optimization_2',['Renderer Class Performance Analysis and Optimization',['../md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
+  ['compatibility_20improvements_3',['Platform Compatibility Improvements',['../md_docs_2B2-platform-compatibility.html',1,'']]],
+  ['comprehensive_20zscream_20vs_20yaze_20overworld_20analysis_4',['Comprehensive ZScream vs YAZE Overworld Analysis',['../md_docs_2analysis_2comprehensive__overworld__analysis.html',1,'']]],
+  ['contributing_5',['Contributing',['../md_docs_2B1-contributing.html',1,'']]]
 ];
