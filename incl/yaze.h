@@ -28,18 +28,11 @@ extern "C" {
  * @{
  */
 
-/** Major version number */
-#define YAZE_VERSION_MAJOR 0
-/** Minor version number */
-#define YAZE_VERSION_MINOR 3
-/** Patch version number */
-#define YAZE_VERSION_PATCH 1
-
 /** Combined version as a string */
 #define YAZE_VERSION_STRING "0.3.2"
 
 /** Combined version as a number (major * 10000 + minor * 100 + patch) */
-#define YAZE_VERSION_NUMBER 301
+#define YAZE_VERSION_NUMBER 302
 
 /** @} */
 

@@ -384,8 +384,8 @@ void Canvas::DrawContextMenu() {
                       refresh_graphics_ = false;
                       util::logf("Applied interactive palette changes to canvas");
                     }
-                    ImGui::EndChild();
                   }
+                  ImGui::EndChild();
                 } else {
                   ImGui::Text("Load ROM palettes first using Enhanced Palette Manager");
                 }
