@@ -38,6 +38,9 @@ class FeatureFlags {
     // Log to the console.
     bool kLogToConsole = false;
 
+    // Enable performance monitoring and timing.
+    bool kEnablePerformanceMonitoring = true;
+
     // Use NFD (Native File Dialog) instead of bespoke file dialog implementation.
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
     bool kUseNativeFileDialog = true;
@@ -164,6 +167,7 @@ struct FlagsMenu {
 
   void DrawSystemFlags() {
     Checkbox("Enable Console Logging", &FeatureFlags::get().kLogToConsole);
+    Checkbox("Enable Performance Monitoring", &FeatureFlags::get().kEnablePerformanceMonitoring);
     Checkbox("Log Instructions to Emulator Debugger",
              &FeatureFlags::get().kLogInstructions);
     Checkbox("Use Native File Dialog (NFD)", &FeatureFlags::get().kUseNativeFileDialog);
