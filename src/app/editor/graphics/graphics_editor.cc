@@ -5,7 +5,6 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "app/core/platform/clipboard.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"

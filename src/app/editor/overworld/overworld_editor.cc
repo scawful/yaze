@@ -12,7 +12,6 @@
 #include "app/core/asar_wrapper.h"
 #include "app/core/features.h"
 #include "app/core/performance_monitor.h"
-#include "app/core/platform/clipboard.h"
 #include "app/core/window.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/map_properties.h"

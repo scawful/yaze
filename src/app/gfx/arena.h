@@ -76,6 +76,26 @@ class Arena {
    */
   void UpdateTextureRegion(SDL_Texture* texture, SDL_Surface* surface, SDL_Rect* rect = nullptr);
 
+  // Batch operations for improved performance
+  /**
+   * @brief Queue a texture update for batch processing
+   * @param texture Target texture to update
+   * @param surface Source surface with pixel data
+   * @param rect Region to update (nullptr for entire texture)
+   */
+  void QueueTextureUpdate(SDL_Texture* texture, SDL_Surface* surface, SDL_Rect* rect = nullptr);
+
+  /**
+   * @brief Process all queued texture updates in a single batch
+   * @note This reduces SDL calls and improves performance significantly
+   */
+  void ProcessBatchTextureUpdates();
+
+  /**
+   * @brief Clear all queued texture updates
+   */
+  void ClearBatchQueue();
+
   /**
    * @brief Allocate a new SDL surface with automatic cleanup
    * @param width Surface width in pixels
@@ -176,6 +196,19 @@ class Arena {
     std::unordered_map<SDL_Surface*, std::tuple<int, int, int, int>> surface_info_;
     static constexpr size_t MAX_POOL_SIZE = 100;
   } surface_pool_;
+
+  // Batch operations for improved performance
+  struct BatchUpdate {
+    SDL_Texture* texture;
+    SDL_Surface* surface;
+    std::unique_ptr<SDL_Rect> rect;
+    
+    BatchUpdate(SDL_Texture* t, SDL_Surface* s, SDL_Rect* r = nullptr)
+        : texture(t), surface(s), rect(r ? std::make_unique<SDL_Rect>(*r) : nullptr) {}
+  };
+  
+  std::vector<BatchUpdate> batch_update_queue_;
+  static constexpr size_t MAX_BATCH_SIZE = 50;
 
   // Helper methods for resource pooling
   SDL_Texture* CreateNewTexture(SDL_Renderer* renderer, int width, int height);

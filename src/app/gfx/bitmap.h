@@ -144,6 +144,13 @@ class Bitmap {
   void UpdateTexture(SDL_Renderer *renderer);
 
   /**
+   * @brief Queue texture update for batch processing (improved performance)
+   * @param renderer SDL renderer for texture operations
+   * @note Use this for better performance when multiple textures need updating
+   */
+  void QueueTextureUpdate(SDL_Renderer *renderer);
+
+  /**
    * @brief Updates the texture data from the surface
    */
   void UpdateTextureData();
@@ -305,7 +312,7 @@ class Bitmap {
    * @param color ImVec4 color to hash
    * @return 32-bit hash value
    */
-  uint32_t HashColor(const ImVec4& color) const;
+  static uint32_t HashColor(const ImVec4& color);
 };
 
 // Type alias for a table of bitmaps

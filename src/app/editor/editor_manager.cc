@@ -720,6 +720,10 @@ void EditorManager::Initialize(const std::string& filename) {
                  }},
             }},
            
+           // Performance Monitoring
+           {absl::StrCat(ICON_MD_SPEED, " Performance Dashboard"), "Ctrl+Shift+P",
+            [&]() { show_performance_dashboard_ = true; }},
+           
            {gui::kSeparator, "", nullptr, []() { return true; }},
            
            // Development Helpers
@@ -1113,6 +1117,14 @@ void EditorManager::DrawMenuBar() {
   }
   if (show_asm_editor_ && current_editor_set_) {
     current_editor_set_->assembly_editor_.Update(show_asm_editor_);
+  }
+  if (show_performance_dashboard_) {
+    gfx::PerformanceDashboard::Get().SetVisible(true);
+    gfx::PerformanceDashboard::Get().Update();
+    gfx::PerformanceDashboard::Get().Render();
+    if (!gfx::PerformanceDashboard::Get().IsVisible()) {
+      show_performance_dashboard_ = false;
+    }
   }
 
   // Testing interface (only when tests are enabled)
@@ -2229,6 +2241,7 @@ void EditorManager::ShowAllWindows() {
   }
   show_imgui_demo_ = true;
   show_imgui_metrics_ = true;
+  show_performance_dashboard_ = true;
 #ifdef YAZE_ENABLE_TESTING
   show_test_dashboard_ = true;
 #endif
@@ -2245,6 +2258,7 @@ void EditorManager::HideAllWindows() {
   }
   show_imgui_demo_ = false;
   show_imgui_metrics_ = false;
+  show_performance_dashboard_ = false;
 #ifdef YAZE_ENABLE_TESTING
   show_test_dashboard_ = false;
 #endif
