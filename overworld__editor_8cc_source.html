@@ -1303,7 +1303,7 @@ $(document).ready(function(){initNavTree('overworld__editor_8cc_source.html','')
 <div class="line"><a id="l01165" name="l01165"></a><span class="lineno"> 1165</span> </div>
 <div class="line"><a id="l01166" name="l01166"></a><span class="lineno"> 1166</span>  <span class="comment">// Check if ZSCustomOverworld v3 is present</span></div>
 <div class="line"><a id="l01167" name="l01167"></a><span class="lineno"> 1167</span>  uint8_t asm_version = (*rom_)[<a class="code hl_variable" href="namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
-<div class="line"><a id="l01168" name="l01168"></a><span class="lineno"> 1168</span>  <span class="keywordtype">bool</span> use_v3_area_sizes = (asm_version &gt;= 3 &amp;&amp; asm_version != 0xFF);</div>
+<div class="line"><a id="l01168" name="l01168"></a><span class="lineno"> 1168</span>  <span class="keywordtype">bool</span> use_v3_area_sizes = (asm_version &gt;= 3);</div>
 <div class="line"><a id="l01169" name="l01169"></a><span class="lineno"> 1169</span> </div>
 <div class="line"><a id="l01170" name="l01170"></a><span class="lineno"> 1170</span>  <span class="comment">// Get area size for v3+ ROMs, otherwise use legacy logic</span></div>
 <div class="line"><a id="l01171" name="l01171"></a><span class="lineno"> 1171</span>  <span class="keywordflow">if</span> (use_v3_area_sizes) {</div>
@@ -2522,7 +2522,7 @@ $(document).ready(function(){initNavTree('overworld__editor_8cc_source.html','')
 <div class="line"><a id="l02357" name="l02357"></a><span class="lineno"> 2357</span>  </div>
 <div class="line"><a id="l02358" name="l02358"></a><span class="lineno"> 2358</span>  <span class="comment">// Check if ZSCustomOverworld v3 is present</span></div>
 <div class="line"><a id="l02359" name="l02359"></a><span class="lineno"> 2359</span>  uint8_t asm_version = (*rom_)[<a class="code hl_variable" href="namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
-<div class="line"><a id="l02360" name="l02360"></a><span class="lineno"> 2360</span>  <span class="keywordtype">bool</span> use_v3_area_sizes = (asm_version &gt;= 3 &amp;&amp; asm_version != 0xFF);</div>
+<div class="line"><a id="l02360" name="l02360"></a><span class="lineno"> 2360</span>  <span class="keywordtype">bool</span> use_v3_area_sizes = (asm_version &gt;= 3);</div>
 <div class="line"><a id="l02361" name="l02361"></a><span class="lineno"> 2361</span> </div>
 <div class="line"><a id="l02362" name="l02362"></a><span class="lineno"> 2362</span>  <span class="keywordflow">if</span> (use_v3_area_sizes) {</div>
 <div class="line"><a id="l02363" name="l02363"></a><span class="lineno"> 2363</span>    <span class="comment">// Use v3 area size system</span></div>
