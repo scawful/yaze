@@ -16,8 +16,10 @@ void AtlasRenderer::Initialize(SDL_Renderer* renderer, int initial_size) {
   next_atlas_id_ = 0;
   current_atlas_ = 0;
   
+  // Clear any existing atlases
+  Clear();
+  
   // Create initial atlas
-  atlases_.push_back(std::make_unique<Atlas>(initial_size));
   CreateNewAtlas();
 }
 
@@ -38,6 +40,11 @@ int AtlasRenderer::AddBitmap(const Bitmap& bitmap) {
     atlas.entries.emplace_back(atlas_id, uv_rect, bitmap.texture());
     atlas_lookup_[atlas_id] = &atlas.entries.back();
     
+    // Copy bitmap data to atlas texture
+    SDL_SetRenderTarget(renderer_, atlas.texture);
+    SDL_RenderCopy(renderer_, bitmap.texture(), nullptr, &uv_rect);
+    SDL_SetRenderTarget(renderer_, nullptr);
+    
     return atlas_id;
   }
   
@@ -49,6 +56,11 @@ int AtlasRenderer::AddBitmap(const Bitmap& bitmap) {
     
     atlas.entries.emplace_back(atlas_id, uv_rect, bitmap.texture());
     atlas_lookup_[atlas_id] = &atlas.entries.back();
+    
+    // Copy bitmap data to atlas texture
+    SDL_SetRenderTarget(renderer_, atlas.texture);
+    SDL_RenderCopy(renderer_, bitmap.texture(), nullptr, &uv_rect);
+    SDL_SetRenderTarget(renderer_, nullptr);
     
     return atlas_id;
   }
@@ -145,7 +157,7 @@ void AtlasRenderer::RenderBatch(const std::vector<RenderCommand>& render_command
       };
       
       // Apply rotation if needed
-      if (std::abs(cmd->rotation) > 0.001f) {
+      if (std::abs(cmd->rotation) > 0.001F) {
         // For rotation, we'd need to use SDL_RenderCopyEx
         // This is a simplified version
         SDL_RenderCopy(renderer_, atlas.texture, &entry->uv_rect, &dest_rect);
@@ -171,7 +183,7 @@ AtlasStats AtlasRenderer::GetStats() const {
   }
   
   if (stats.total_entries > 0) {
-    stats.utilization_percent = (static_cast<float>(stats.used_entries) / stats.total_entries) * 100.0f;
+    stats.utilization_percent = (static_cast<float>(stats.used_entries) / stats.total_entries) * 100.0F;
   }
   
   return stats;
@@ -193,6 +205,13 @@ void AtlasRenderer::Defragment() {
 }
 
 void AtlasRenderer::Clear() {
+  // Clean up SDL textures
+  for (auto& atlas : atlases_) {
+    if (atlas->texture) {
+      SDL_DestroyTexture(atlas->texture);
+    }
+  }
+  
   atlases_.clear();
   atlas_lookup_.clear();
   next_atlas_id_ = 0;
@@ -201,6 +220,44 @@ void AtlasRenderer::Clear() {
 
 AtlasRenderer::~AtlasRenderer() {
   Clear();
+}
+
+void AtlasRenderer::RenderBitmap(int atlas_id, float x, float y, float scale_x, float scale_y) {
+  auto it = atlas_lookup_.find(atlas_id);
+  if (it == atlas_lookup_.end() || !it->second->in_use) {
+    return;
+  }
+  
+  AtlasEntry* entry = it->second;
+  
+  // Find which atlas contains this entry
+  for (auto& atlas : atlases_) {
+    for (const auto& atlas_entry : atlas->entries) {
+      if (atlas_entry.atlas_id == atlas_id) {
+        // Calculate destination rectangle
+        SDL_Rect dest_rect = {
+          static_cast<int>(x),
+          static_cast<int>(y),
+          static_cast<int>(entry->uv_rect.w * scale_x),
+          static_cast<int>(entry->uv_rect.h * scale_y)
+        };
+        
+        // Render using atlas texture
+        SDL_SetTextureBlendMode(atlas->texture, SDL_BLENDMODE_BLEND);
+        SDL_RenderCopy(renderer_, atlas->texture, &entry->uv_rect, &dest_rect);
+        return;
+      }
+    }
+  }
+}
+
+SDL_Rect AtlasRenderer::GetUVCoordinates(int atlas_id) const {
+  auto it = atlas_lookup_.find(atlas_id);
+  if (it == atlas_lookup_.end() || !it->second->in_use) {
+    return {0, 0, 0, 0};
+  }
+  
+  return it->second->uv_rect;
 }
 
 bool AtlasRenderer::PackBitmap(Atlas& atlas, const Bitmap& bitmap, SDL_Rect& uv_rect) {

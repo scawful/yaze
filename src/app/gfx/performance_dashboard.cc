@@ -4,6 +4,9 @@
 #include <iomanip>
 #include <sstream>
 
+#include "app/gfx/atlas_renderer.h"
+#include "app/gfx/memory_pool.h"
+#include "app/gfx/performance_profiler.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -232,7 +235,7 @@ void PerformanceDashboard::RenderOptimizationStatus() {
   ImGui::Text("Optimization Score: %d/100", summary.optimization_score);
 
   // Progress bar
-  float progress = summary.optimization_score / 100.0f;
+  float progress = summary.optimization_score / 100.0F;
   ImGui::ProgressBar(progress, ImVec2(-1, 0), summary.status_message.c_str());
 }
 
@@ -259,6 +262,17 @@ void PerformanceDashboard::RenderMemoryUsage() {
   float pool_usage =
       total_bytes > 0 ? static_cast<float>(used_bytes) / total_bytes : 0.0F;
   ImGui::ProgressBar(pool_usage, ImVec2(-1, 0), "Memory Pool Usage");
+  
+  // Atlas renderer stats
+  auto atlas_stats = AtlasRenderer::Get().GetStats();
+  ImGui::Text("Atlas Renderer: %d atlases, %d/%d entries used", 
+              atlas_stats.total_atlases, atlas_stats.used_entries, atlas_stats.total_entries);
+  ImGui::Text("Atlas Memory: %s", FormatMemory(atlas_stats.total_memory).c_str());
+  
+  if (atlas_stats.total_entries > 0) {
+    float atlas_usage = static_cast<float>(atlas_stats.used_entries) / atlas_stats.total_entries;
+    ImGui::ProgressBar(atlas_usage, ImVec2(-1, 0), "Atlas Utilization");
+  }
 }
 
 void PerformanceDashboard::RenderFrameRateGraph() {
@@ -366,7 +380,7 @@ void PerformanceDashboard::UpdateOptimizationStatus() {
   optimization_status_.dirty_region_tracking_enabled = true;  // Assume active
   optimization_status_.resource_pooling_active = true;        // Assume active
   optimization_status_.batch_operations_enabled = true;       // Assume active
-  optimization_status_.atlas_rendering_enabled = false;  // Not yet implemented
+  optimization_status_.atlas_rendering_enabled = true;        // Now implemented
   optimization_status_.memory_pool_active = true;        // Assume active
 }
 
