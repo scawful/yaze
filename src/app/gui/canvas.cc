@@ -548,19 +548,27 @@ bool Canvas::DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile) {
   points_.push_back(
       ImVec2(paint_pos.x + scaled_size, paint_pos.y + scaled_size));
 
-  if (tilemap.tile_bitmaps.find(current_tile) == tilemap.tile_bitmaps.end()) {
-    tilemap.tile_bitmaps[current_tile] = gfx::Bitmap(
+  // Use the new tile cache system
+  auto* cached_tile = tilemap.tile_cache.GetTile(current_tile);
+  if (!cached_tile) {
+    // Create and cache the tile if not found
+    gfx::Bitmap new_tile = gfx::Bitmap(
         tilemap.tile_size.x, tilemap.tile_size.y, 8,
         gfx::GetTilemapData(tilemap, current_tile), tilemap.atlas.palette());
-    auto bitmap_ptr = &tilemap.tile_bitmaps[current_tile];
-    Renderer::Get().RenderBitmap(bitmap_ptr);
+    tilemap.tile_cache.CacheTile(current_tile, std::move(new_tile));
+    cached_tile = tilemap.tile_cache.GetTile(current_tile);
+    if (cached_tile) {
+      Renderer::Get().RenderBitmap(cached_tile);
+    }
   }
 
-  draw_list_->AddImage(
-      (ImTextureID)(intptr_t)tilemap.tile_bitmaps[current_tile].texture(),
-      ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
-      ImVec2(origin.x + paint_pos.x + scaled_size,
-             origin.y + paint_pos.y + scaled_size));
+  if (cached_tile) {
+    draw_list_->AddImage(
+        (ImTextureID)(intptr_t)cached_tile->texture(),
+        ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
+        ImVec2(origin.x + paint_pos.x + scaled_size,
+               origin.y + paint_pos.y + scaled_size));
+  }
 
   if (IsMouseClicked(ImGuiMouseButton_Left) ||
       ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
@@ -879,9 +887,9 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
       gfx::RenderTile(tilemap, tile_id);
       
       // Ensure the tile is actually rendered and active
-      auto tile_it = tilemap.tile_bitmaps.find(tile_id);
-      if (tile_it != tilemap.tile_bitmaps.end() && !tile_it->second.is_active()) {
-        core::Renderer::Get().RenderBitmap(&tile_it->second);
+      auto* cached_tile = tilemap.tile_cache.GetTile(tile_id);
+      if (cached_tile && !cached_tile->is_active()) {
+        core::Renderer::Get().RenderBitmap(cached_tile);
       }
     }
   }
@@ -932,17 +940,16 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
         gfx::RenderTile(tilemap, tile_id);
         
         // Ensure the tile bitmap exists and is properly rendered
-        auto tile_it = tilemap.tile_bitmaps.find(tile_id);
-        if (tile_it != tilemap.tile_bitmaps.end()) {
-          auto& tile_bitmap = tile_it->second;
+        auto* cached_tile = tilemap.tile_cache.GetTile(tile_id);
+        if (cached_tile) {
           // Ensure the bitmap is active before drawing
-          if (tile_bitmap.is_active()) {
-            DrawBitmap(tile_bitmap, tile_pos_x, tile_pos_y, scale, 150);
+          if (cached_tile->is_active()) {
+            DrawBitmap(*cached_tile, tile_pos_x, tile_pos_y, scale, 150);
           } else {
             // Force render if not active
-            core::Renderer::Get().RenderBitmap(&tile_bitmap);
-            if (tile_bitmap.is_active()) {
-              DrawBitmap(tile_bitmap, tile_pos_x, tile_pos_y, scale, 150);
+            core::Renderer::Get().RenderBitmap(cached_tile);
+            if (cached_tile->is_active()) {
+              DrawBitmap(*cached_tile, tile_pos_x, tile_pos_y, scale, 150);
             }
           }
         }

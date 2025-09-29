@@ -339,8 +339,8 @@ absl::Status Tile16Editor::RefreshTile16Blockset() {
   // Force regeneration of the blockset atlas from ROM tile16 data
   // This ensures the blockset reflects any changes made to individual tiles
 
-  // Clear cached tile bitmaps to force regeneration
-  tile16_blockset_->tile_bitmaps.clear();
+  // Clear cached tiles to force regeneration
+  tile16_blockset_->tile_cache.Clear();
 
   // Mark atlas as modified to trigger regeneration
   tile16_blockset_->atlas.set_modified(true);
@@ -1074,10 +1074,11 @@ absl::Status Tile16Editor::CopyTile16ToClipboard(int tile_id) {
 
   // Create a copy of the tile16 bitmap
   gfx::RenderTile(*tile16_blockset_, tile_id);
-  clipboard_tile16_.Create(16, 16, 8,
-                           tile16_blockset_->tile_bitmaps[tile_id].vector());
-  clipboard_tile16_.SetPalette(
-      tile16_blockset_->tile_bitmaps[tile_id].palette());
+  auto* cached_tile = tile16_blockset_->tile_cache.GetTile(tile_id);
+  if (cached_tile) {
+    clipboard_tile16_.Create(16, 16, 8, cached_tile->vector());
+    clipboard_tile16_.SetPalette(cached_tile->palette());
+  }
   core::Renderer::Get().RenderBitmap(&clipboard_tile16_);
 
   clipboard_has_data_ = true;
@@ -1485,7 +1486,7 @@ absl::Status Tile16Editor::UpdateOverworldTilemap() {
   }
 
   // Update the tilemap with our modified bitmap
-  tile16_blockset_->tile_bitmaps[current_tile16_] = current_tile16_bmp_;
+  tile16_blockset_->tile_cache.CacheTile(current_tile16_, std::move(current_tile16_bmp_));
 
   // Update the atlas if needed
   if (tile16_blockset_->atlas.is_active()) {
@@ -1529,14 +1530,10 @@ absl::Status Tile16Editor::CommitChangesToBlockset() {
     core::Renderer::Get().UpdateBitmap(&tile16_blockset_->atlas);
   }
 
-  // Update individual tile bitmaps (tile_bitmaps is a map)
-  for (auto& pair : tile16_blockset_->tile_bitmaps) {
-    auto& tile_bitmap = pair.second;
-    if (tile_bitmap.modified()) {
-      core::Renderer::Get().UpdateBitmap(&tile_bitmap);
-      tile_bitmap.set_modified(false);
-    }
-  }
+  // Update individual cached tiles
+  // Note: With the new tile cache system, tiles are automatically managed
+  // and don't need manual modification tracking like the old system
+  // The cache handles LRU eviction and automatic updates
 
   return absl::OkStatus();
 }

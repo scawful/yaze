@@ -4,7 +4,9 @@
 #include <array>
 #include <cstdint>
 #include <memory>
+#include <tuple>
 #include <unordered_map>
+#include <vector>
 
 #include "app/core/platform/sdl_deleter.h"
 #include "app/gfx/background_buffer.h"
@@ -67,6 +69,14 @@ class Arena {
   void UpdateTexture(SDL_Texture* texture, SDL_Surface* surface);
 
   /**
+   * @brief Update texture data from surface for a specific region
+   * @param texture Target texture to update
+   * @param surface Source surface with pixel data
+   * @param rect Region to update (nullptr for entire texture)
+   */
+  void UpdateTextureRegion(SDL_Texture* texture, SDL_Surface* surface, SDL_Rect* rect = nullptr);
+
+  /**
    * @brief Allocate a new SDL surface with automatic cleanup
    * @param width Surface width in pixels
    * @param height Surface height in pixels
@@ -88,6 +98,8 @@ class Arena {
   // Resource tracking for debugging
   size_t GetTextureCount() const { return textures_.size(); }
   size_t GetSurfaceCount() const { return surfaces_.size(); }
+  size_t GetPooledTextureCount() const { return texture_pool_.available_textures_.size(); }
+  size_t GetPooledSurfaceCount() const { return surface_pool_.available_surfaces_.size(); }
 
   // Graphics sheet access (223 total sheets in YAZE)
   /**
@@ -151,6 +163,23 @@ class Arena {
   std::unordered_map<SDL_Surface*,
                      std::unique_ptr<SDL_Surface, core::SDL_Surface_Deleter>>
       surfaces_;
+
+  // Resource pooling for efficient memory management
+  struct TexturePool {
+    std::vector<SDL_Texture*> available_textures_;
+    std::unordered_map<SDL_Texture*, std::pair<int, int>> texture_sizes_;
+    static constexpr size_t MAX_POOL_SIZE = 100;
+  } texture_pool_;
+
+  struct SurfacePool {
+    std::vector<SDL_Surface*> available_surfaces_;
+    std::unordered_map<SDL_Surface*, std::tuple<int, int, int, int>> surface_info_;
+    static constexpr size_t MAX_POOL_SIZE = 100;
+  } surface_pool_;
+
+  // Helper methods for resource pooling
+  SDL_Texture* CreateNewTexture(SDL_Renderer* renderer, int width, int height);
+  SDL_Surface* CreateNewSurface(int width, int height, int depth, int format);
 };
 
 }  // namespace gfx

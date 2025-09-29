@@ -4,6 +4,7 @@
 
 #include "app/core/window.h"
 #include "app/gfx/bitmap.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {
@@ -28,44 +29,71 @@ void UpdateTilemap(Tilemap &tilemap, const std::vector<uint8_t> &data) {
 }
 
 void RenderTile(Tilemap &tilemap, int tile_id) {
-  if (tilemap.tile_bitmaps.find(tile_id) == tilemap.tile_bitmaps.end()) {
-    tilemap.tile_bitmaps[tile_id] =
-        Bitmap(tilemap.tile_size.x, tilemap.tile_size.y, 8,
-               GetTilemapData(tilemap, tile_id), tilemap.atlas.palette());
-    auto bitmap_ptr = &tilemap.tile_bitmaps[tile_id];
-    core::Renderer::Get().RenderBitmap(bitmap_ptr);
-  } else {
-    core::Renderer::Get().UpdateBitmap(&tilemap.tile_bitmaps[tile_id]);
+  ScopedTimer timer("tile_cache_operation");
+  
+  // Try to get tile from cache first
+  Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
+  if (cached_tile) {
+    core::Renderer::Get().UpdateBitmap(cached_tile);
+    return;
+  }
+  
+  // Create new tile and cache it
+  Bitmap new_tile = Bitmap(tilemap.tile_size.x, tilemap.tile_size.y, 8,
+                          GetTilemapData(tilemap, tile_id), tilemap.atlas.palette());
+  tilemap.tile_cache.CacheTile(tile_id, std::move(new_tile));
+  
+  // Get the cached tile and render it
+  Bitmap* tile_to_render = tilemap.tile_cache.GetTile(tile_id);
+  if (tile_to_render) {
+    core::Renderer::Get().RenderBitmap(tile_to_render);
   }
 }
 
 void RenderTile16(Tilemap &tilemap, int tile_id) {
-  if (tilemap.tile_bitmaps.find(tile_id) == tilemap.tile_bitmaps.end()) {
-    int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
-    int tile_x = (tile_id % tiles_per_row) * tilemap.tile_size.x;
-    int tile_y = (tile_id / tiles_per_row) * tilemap.tile_size.y;
-    std::vector<uint8_t> tile_data(tilemap.tile_size.x * tilemap.tile_size.y,
-                                   0x00);
-    int tile_data_offset = 0;
-    tilemap.atlas.Get16x16Tile(tile_x, tile_y, tile_data, tile_data_offset);
-    tilemap.tile_bitmaps[tile_id] =
-        Bitmap(tilemap.tile_size.x, tilemap.tile_size.y, 8, tile_data,
-               tilemap.atlas.palette());
-    auto bitmap_ptr = &tilemap.tile_bitmaps[tile_id];
-    core::Renderer::Get().RenderBitmap(bitmap_ptr);
+  // Try to get tile from cache first
+  Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
+  if (cached_tile) {
+    core::Renderer::Get().UpdateBitmap(cached_tile);
+    return;
+  }
+  
+  // Create new 16x16 tile and cache it
+  int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
+  int tile_x = (tile_id % tiles_per_row) * tilemap.tile_size.x;
+  int tile_y = (tile_id / tiles_per_row) * tilemap.tile_size.y;
+  std::vector<uint8_t> tile_data(tilemap.tile_size.x * tilemap.tile_size.y, 0x00);
+  int tile_data_offset = 0;
+  tilemap.atlas.Get16x16Tile(tile_x, tile_y, tile_data, tile_data_offset);
+  
+  Bitmap new_tile = Bitmap(tilemap.tile_size.x, tilemap.tile_size.y, 8, tile_data,
+                          tilemap.atlas.palette());
+  tilemap.tile_cache.CacheTile(tile_id, std::move(new_tile));
+  
+  // Get the cached tile and render it
+  Bitmap* tile_to_render = tilemap.tile_cache.GetTile(tile_id);
+  if (tile_to_render) {
+    core::Renderer::Get().RenderBitmap(tile_to_render);
   }
 }
 
 void UpdateTile16(Tilemap &tilemap, int tile_id) {
-  int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
-  int tile_x = (tile_id % tiles_per_row) * tilemap.tile_size.x;
-  int tile_y = (tile_id / tiles_per_row) * tilemap.tile_size.y;
-  std::vector<uint8_t> tile_data(tilemap.tile_size.x * tilemap.tile_size.y,
-                                 0x00);
-  int tile_data_offset = 0;
-  tilemap.atlas.Get16x16Tile(tile_x, tile_y, tile_data, tile_data_offset);
-  tilemap.tile_bitmaps[tile_id].set_data(tile_data);
-  core::Renderer::Get().UpdateBitmap(&tilemap.tile_bitmaps[tile_id]);
+  // Check if tile is cached
+  Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
+  if (cached_tile) {
+    // Update cached tile data
+    int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
+    int tile_x = (tile_id % tiles_per_row) * tilemap.tile_size.x;
+    int tile_y = (tile_id / tiles_per_row) * tilemap.tile_size.y;
+    std::vector<uint8_t> tile_data(tilemap.tile_size.x * tilemap.tile_size.y, 0x00);
+    int tile_data_offset = 0;
+    tilemap.atlas.Get16x16Tile(tile_x, tile_y, tile_data, tile_data_offset);
+    cached_tile->set_data(tile_data);
+    core::Renderer::Get().UpdateBitmap(cached_tile);
+  } else {
+    // Tile not cached, render it fresh
+    RenderTile16(tilemap, tile_id);
+  }
 }
 
 std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
@@ -193,8 +221,6 @@ void ComposeTile16(Tilemap &tilemap, const std::vector<uint8_t> &data,
 std::vector<uint8_t> GetTilemapData(Tilemap &tilemap, int tile_id) {
   int tile_size = tilemap.tile_size.x;
   std::vector<uint8_t> data(tile_size * tile_size);
-  int num_tiles = tilemap.map_size.x;
-  int index = tile_id * tile_size * tile_size;
   int width = tilemap.atlas.width();
 
   for (int ty = 0; ty < tile_size; ty++) {
