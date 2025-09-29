@@ -1,5 +1,9 @@
 var NAVTREEINDEX64 =
 {
+"overworld__entrance_8h.html#adc7a44403a309bba04259cd65b181719":[43,0,3,0,6,2,2,28],
+"overworld__entrance_8h.html#aee41085570fadb83139051e2d2e08bdc":[43,0,3,0,6,2,2,20],
+"overworld__entrance_8h.html#aef1ab6563987d25f7a42413bc9522825":[43,0,3,0,6,2,2,16],
+"overworld__entrance_8h.html#af2353873362052aac0583f2e63f7ad54":[43,0,3,0,6,2,2,19],
 "overworld__entrance_8h.html#afdf059629f6ea0b263c407d96e044480":[43,0,3,0,6,2,2,6],
 "overworld__entrance_8h.html#afe00a37c0e43039237d6f7452d6daca6":[43,0,3,0,6,2,2,23],
 "overworld__entrance_8h_source.html":[43,0,3,0,6,2,2],
@@ -245,9 +249,5 @@ var NAVTREEINDEX64 =
 "project_8cc_source.html":[43,0,3,0,0,8],
 "project_8h.html":[43,0,3,0,0,9],
 "project_8h.html#a1142e14777c50b720b0e9e102bff707e":[43,0,3,0,0,9,8],
-"project_8h.html#a1142e14777c50b720b0e9e102bff707ea1e3b2427a636684daa5c2b1d5a1dc4b5":[43,0,3,0,0,9,8,1],
-"project_8h.html#a1142e14777c50b720b0e9e102bff707ea642441ddc46e01a3de6f671c113ea184":[43,0,3,0,0,9,8,0],
-"project_8h.html#a3529a0c0bdd833f9ac318e43d3ca26ca":[43,0,3,0,0,9,9],
-"project_8h_source.html":[43,0,3,0,0,9],
-"rom_8cc.html":[43,0,3,0,8]
+"project_8h.html#a1142e14777c50b720b0e9e102bff707ea1e3b2427a636684daa5c2b1d5a1dc4b5":[43,0,3,0,0,9,8,1]
 };

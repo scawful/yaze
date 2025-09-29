@@ -1,8 +1,8 @@
 var searchData=
 [
   ['data_0',['data',['../classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068',1,'yaze::gfx::Bitmap::data()'],['../classyaze_1_1gfx_1_1GraphicsBuffer.html#a7b9987df02c1c1ab67ef0b400170047e',1,'yaze::gfx::GraphicsBuffer::data()'],['../classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d',1,'yaze::Rom::data()'],['../classyaze_1_1emu_1_1MemoryImpl.html#a5cb218b89908d11322f90caff46877cb',1,'yaze::emu::MemoryImpl::data()']]],
-  ['deallocate_1',['deallocate',['../classyaze_1_1gfx_1_1PoolAllocator.html#a6d368e323075fde8e39dd565fc194531',1,'yaze::gfx::PoolAllocator::deallocate()'],['../classyaze_1_1gfx_1_1MemoryPool.html#a1a7c35c877ed94d0c88f762fbcc176b7',1,'yaze::gfx::MemoryPool::Deallocate()']]],
-  ['dec_2',['dec',['../classyaze_1_1emu_1_1Cpu.html#a83866cfec0d91b50bcd34b09789751e8',1,'yaze::emu::Cpu::Dec()'],['../classyaze_1_1emu_1_1Spc700.html#a3ddaff286c54024f24247e77f985160f',1,'yaze::emu::Spc700::DEC()'],['../classyaze_1_1emu_1_1Cpu.html#acaea1eee9868075c35fc6fc30472dd76',1,'yaze::emu::Cpu::DEC()']]],
+  ['deallocate_1',['deallocate',['../classyaze_1_1gfx_1_1MemoryPool.html#a1a7c35c877ed94d0c88f762fbcc176b7',1,'yaze::gfx::MemoryPool::Deallocate()'],['../classyaze_1_1gfx_1_1PoolAllocator.html#a6d368e323075fde8e39dd565fc194531',1,'yaze::gfx::PoolAllocator::deallocate()']]],
+  ['dec_2',['dec',['../classyaze_1_1emu_1_1Spc700.html#a3ddaff286c54024f24247e77f985160f',1,'yaze::emu::Spc700::DEC()'],['../classyaze_1_1emu_1_1Cpu.html#acaea1eee9868075c35fc6fc30472dd76',1,'yaze::emu::Cpu::DEC(uint32_t address, bool accumulator=false)'],['../classyaze_1_1emu_1_1Cpu.html#a83866cfec0d91b50bcd34b09789751e8',1,'yaze::emu::Cpu::Dec(uint32_t low, uint32_t high)']]],
   ['decode_3',['decode',['../namespaceyaze_1_1util_1_1anonymous__namespace_02bps_8cc_03.html#a652836ac6c4cb09f3d59520fc9653a6f',1,'yaze::util::anonymous_namespace{bps.cc}']]],
   ['decodebrr_4',['DecodeBrr',['../classyaze_1_1emu_1_1Dsp.html#a2ad80635ab179c018b6aaf9593ada618',1,'yaze::emu::Dsp']]],
   ['decodecolfile_5',['DecodeColFile',['../namespaceyaze_1_1gfx.html#a2ea2124761ee1896a17e359c14320939',1,'yaze::gfx']]],
@@ -303,7 +303,7 @@ var searchData=
   ['drawwelcomescreen_300',['DrawWelcomeScreen',['../classyaze_1_1editor_1_1EditorManager.html#aa1e288deb163d1a710c61e7125fbd487',1,'yaze::editor::EditorManager']]],
   ['drawwhatsnewpopup_301',['DrawWhatsNewPopup',['../classyaze_1_1editor_1_1PopupManager.html#ac03fbdd917e0cf583ae642cc292699e7',1,'yaze::editor::PopupManager']]],
   ['drawworkspacehelppopup_302',['DrawWorkspaceHelpPopup',['../classyaze_1_1editor_1_1PopupManager.html#afec47f6e7a9914cbba89ad2b136c93e3',1,'yaze::editor::PopupManager']]],
-  ['dsp_303',['dsp',['../classyaze_1_1emu_1_1Dsp.html#acf9d5b3f122a8e054c1d77dff0a65f47',1,'yaze::emu::Dsp::Dsp()'],['../classyaze_1_1emu_1_1Apu.html#a2764ac75dec1c12445109690f73ec509',1,'yaze::emu::Apu::dsp()']]],
+  ['dsp_303',['dsp',['../classyaze_1_1emu_1_1Apu.html#a2764ac75dec1c12445109690f73ec509',1,'yaze::emu::Apu::dsp()'],['../classyaze_1_1emu_1_1Dsp.html#acf9d5b3f122a8e054c1d77dff0a65f47',1,'yaze::emu::Dsp::Dsp()']]],
   ['dungeon_5fpalette_304',['dungeon_palette',['../classyaze_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117',1,'yaze::Rom']]],
   ['dungeonasset_305',['DungeonAsset',['../structyaze_1_1gui_1_1DungeonAsset.html#a206502db76dc8bd6490c6c3384d8e4bf',1,'yaze::gui::DungeonAsset']]],
   ['dungeoncanvasviewer_306',['DungeonCanvasViewer',['../classyaze_1_1editor_1_1DungeonCanvasViewer.html#a7542b525ceda3c877c9f190b1a829ca1',1,'yaze::editor::DungeonCanvasViewer']]],

@@ -51,6 +51,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "RefreshOverworldMap", "classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed", null ],
     [ "RefreshOverworldMapOnDemand", "classyaze_1_1editor_1_1OverworldEditor.html#a6fdddbe4c23e52f94391f02af3725bb2", null ],
     [ "RefreshChildMapOnDemand", "classyaze_1_1editor_1_1OverworldEditor.html#adac2da0e5bfc87f31ae50e5c4c3edd2e", null ],
+    [ "RefreshMultiAreaMapsSafely", "classyaze_1_1editor_1_1OverworldEditor.html#a913b60535623273284e9baf38e1884e0", null ],
     [ "RefreshMapPalette", "classyaze_1_1editor_1_1OverworldEditor.html#a8fe0bd7dd5f3cd4c40cbee9a49d8a886", null ],
     [ "RefreshMapProperties", "classyaze_1_1editor_1_1OverworldEditor.html#a5d0429ad065eff4ddf95bcdc52ac2423", null ],
     [ "RefreshTile16Blockset", "classyaze_1_1editor_1_1OverworldEditor.html#a99a739f0d39071aa7f6987eeb264b3e1", null ],

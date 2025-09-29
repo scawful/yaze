@@ -139,7 +139,7 @@ $(document).ready(function(){initNavTree('room_8cc_source.html',''); initResizab
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  room_size.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1RoomSize.html#aa9b701e42f14dc4022a0f13a5901d00b">room_size</a> = 0;</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keyword">auto</span> room_size_address = 0xF8000 + (room_id * 3);</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  util::logf(<span class="stringliteral">&quot;Room #%#03X Addresss: %#06X&quot;</span>, room_id, room_size_address);</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  <span class="comment">// util::logf(&quot;Room #%#03X Addresss: %#06X&quot;, room_id, room_size_address);</span></div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="comment">// Reading bytes for long address construction</span></div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  uint8_t low = rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[room_size_address];</div>
@@ -148,12 +148,12 @@ $(document).ready(function(){initNavTree('room_8cc_source.html',''); initResizab
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="comment">// Constructing the long address</span></div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="keywordtype">int</span> long_address = (bank &lt;&lt; 16) | (high &lt;&lt; 8) | low;</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  util::logf(<span class="stringliteral">&quot;%#06X&quot;</span>, long_address);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="comment">// util::logf(&quot;%#06X&quot;, long_address);</span></div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  room_size.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1RoomSize.html#a6dfdeb7bad4af4b971d5566e36c5216e">room_size_pointer</a> = long_address;</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <span class="keywordflow">if</span> (long_address == 0x0A8000) {</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="comment">// Blank room disregard in size calculation</span></div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    util::logf(<span class="stringliteral">&quot;Size of Room #%#03X: 0 bytes&quot;</span>, room_id);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="comment">// util::logf(&quot;Size of Room #%#03X: 0 bytes&quot;, room_id);</span></div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    room_size.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1RoomSize.html#aa9b701e42f14dc4022a0f13a5901d00b">room_size</a> = 0;</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  } <span class="keywordflow">else</span> {</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="comment">// use the long address to calculate the size of the room</span></div>
@@ -161,7 +161,7 @@ $(document).ready(function(){initNavTree('room_8cc_source.html',''); initResizab
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="comment">// and subtract the two to get the size of the room</span></div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordtype">int</span> next_room_address = 0xF8000 + ((room_id + 1) * 3);</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    util::logf(<span class="stringliteral">&quot;Next Room Address: %#06X&quot;</span>, next_room_address);</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="comment">// util::logf(&quot;Next Room Address: %#06X&quot;, next_room_address);</span></div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="comment">// Reading bytes for long address construction</span></div>
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    uint8_t next_low = rom-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>()[next_room_address];</div>
@@ -170,12 +170,12 @@ $(document).ready(function(){initNavTree('room_8cc_source.html',''); initResizab
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="comment">// Constructing the long address</span></div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordtype">int</span> next_long_address = (next_bank &lt;&lt; 16) | (next_high &lt;&lt; 8) | next_low;</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    util::logf(<span class="stringliteral">&quot;%#06X&quot;</span>, next_long_address);</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="comment">// util::logf(&quot;%#06X&quot;, next_long_address);</span></div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="comment">// Calculate the size of the room</span></div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="keywordtype">int</span> actual_room_size = next_long_address - long_address;</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    room_size.<a class="code hl_variable" href="structyaze_1_1zelda3_1_1RoomSize.html#aa9b701e42f14dc4022a0f13a5901d00b">room_size</a> = actual_room_size;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    util::logf(<span class="stringliteral">&quot;Size of Room #%#03X: %d bytes&quot;</span>, room_id, actual_room_size);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="comment">// util::logf(&quot;Size of Room #%#03X: %d bytes&quot;, room_id, actual_room_size);</span></div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  }</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  <span class="keywordflow">return</span> room_size;</div>
@@ -499,7 +499,7 @@ $(document).ready(function(){initNavTree('room_8cc_source.html',''); initResizab
 <div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>  </div>
 <div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>  <span class="comment">// Enhanced bounds checking for object pointer</span></div>
 <div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>  <span class="keywordflow">if</span> (object_pointer &lt; 0 || object_pointer &gt;= (<span class="keywordtype">int</span>)<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#a2df186e8f139c560ec4a4acd872ee6f1">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">size</a>()) {</div>
-<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>    util::logf(<span class="stringliteral">&quot;Object pointer out of range for room %d: %#06x&quot;</span>, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#acba435558f64056905be1875e9c38f35">room_id_</a>, object_pointer);</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>    <span class="comment">// util::logf(&quot;Object pointer out of range for room %d: %#06x&quot;, room_id_, object_pointer);</span></div>
 <div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>    <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>  }</div>
 <div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>  </div>
@@ -507,7 +507,7 @@ $(document).ready(function(){initNavTree('room_8cc_source.html',''); initResizab
 <div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>  </div>
 <div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>  <span class="comment">// Enhanced bounds checking for room address</span></div>
 <div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>  <span class="keywordflow">if</span> (room_address &lt; 0 || room_address + 2 &gt;= (<span class="keywordtype">int</span>)<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#a2df186e8f139c560ec4a4acd872ee6f1">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">size</a>()) {</div>
-<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>    util::logf(<span class="stringliteral">&quot;Room address out of range for room %d: %#06x&quot;</span>, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#acba435558f64056905be1875e9c38f35">room_id_</a>, room_address);</div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>    <span class="comment">// util::logf(&quot;Room address out of range for room %d: %#06x&quot;, room_id_, room_address);</span></div>
 <div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span>    <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>  }</div>
 <div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span> </div>
@@ -518,7 +518,7 @@ $(document).ready(function(){initNavTree('room_8cc_source.html',''); initResizab
 <div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>  </div>
 <div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>  <span class="comment">// Enhanced bounds checking for objects location</span></div>
 <div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>  <span class="keywordflow">if</span> (objects_location &lt; 0 || objects_location &gt;= (<span class="keywordtype">int</span>)<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#a2df186e8f139c560ec4a4acd872ee6f1">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">size</a>()) {</div>
-<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>    util::logf(<span class="stringliteral">&quot;Objects location out of range for room %d: %#06x&quot;</span>, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#acba435558f64056905be1875e9c38f35">room_id_</a>, objects_location);</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>    <span class="comment">// util::logf(&quot;Objects location out of range for room %d: %#06x&quot;, room_id_, objects_location);</span></div>
 <div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span>    <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>  }</div>
 <div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span> </div>
@@ -760,16 +760,16 @@ $(document).ready(function(){initNavTree('room_8cc_source.html',''); initResizab
 <div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span>  <span class="keyword">auto</span> status = <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#a5b27b3fc3a563549e39939d6da3049b0">layout_</a>.<a class="code hl_function" href="classyaze_1_1zelda3_1_1RoomLayout.html#ac488974000ffa8457a507457b462b736">LoadLayout</a>(<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#acba435558f64056905be1875e9c38f35">room_id_</a>);</div>
 <div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
 <div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>    <span class="comment">// Log error but don&#39;t fail - some rooms might not have layout data</span></div>
-<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>    util::logf(<span class="stringliteral">&quot;Failed to load room layout for room %d: %s&quot;</span>, </div>
-<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>               <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#acba435558f64056905be1875e9c38f35">room_id_</a>, status.message().data());</div>
+<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>    <span class="comment">// util::logf(&quot;Failed to load room layout for room %d: %s&quot;, </span></div>
+<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>              <span class="comment">//  room_id_, status.message().data());</span></div>
 <div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>    <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>  }</div>
 <div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>  </div>
 <div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>  <span class="comment">// Store the layout ID for compatibility with existing code</span></div>
 <div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>  <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#a8ed702d4f1c19e1c88b77563b8ce2031">layout</a> = <span class="keyword">static_cast&lt;</span>uint8_t<span class="keyword">&gt;</span>(<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#acba435558f64056905be1875e9c38f35">room_id_</a> &amp; 0xFF);</div>
 <div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>  </div>
-<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>  util::logf(<span class="stringliteral">&quot;Loaded room layout for room %d with %zu objects&quot;</span>, </div>
-<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>             <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#acba435558f64056905be1875e9c38f35">room_id_</a>, <a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#a5b27b3fc3a563549e39939d6da3049b0">layout_</a>.<a class="code hl_function" href="classyaze_1_1zelda3_1_1RoomLayout.html#a95c3d2cfd70c9e30ba3323e51755b6ad">GetObjects</a>().size());</div>
+<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>  <span class="comment">// util::logf(&quot;Loaded room layout for room %d with %zu objects&quot;, </span></div>
+<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>            <span class="comment">//  room_id_, layout_.GetObjects().size());</span></div>
 <div class="line"><a id="l00647" name="l00647"></a><span class="lineno">  647</span>}</div>
 </div>
 <div class="line"><a id="l00648" name="l00648"></a><span class="lineno">  648</span> </div>
@@ -835,7 +835,6 @@ $(document).ready(function(){initNavTree('room_8cc_source.html',''); initResizab
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Arena_html_ab4b9ad9acd7039bf316e83e2131c21e7"><div class="ttname"><a href="classyaze_1_1gfx_1_1Arena.html#ab4b9ad9acd7039bf316e83e2131c21e7">yaze::gfx::Arena::bg2</a></div><div class="ttdeci">auto &amp; bg2()</div><div class="ttdoc">Get reference to background layer 2 buffer.</div><div class="ttdef"><b>Definition</b> <a href="arena_8h_source.html#l00162">arena.h:162</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Arena_html_ad0f203b2f2a24eb23c980f4572670582"><div class="ttname"><a href="classyaze_1_1gfx_1_1Arena.html#ad0f203b2f2a24eb23c980f4572670582">yaze::gfx::Arena::bg1</a></div><div class="ttdeci">auto &amp; bg1()</div><div class="ttdoc">Get reference to background layer 1 buffer.</div><div class="ttdef"><b>Definition</b> <a href="arena_8h_source.html#l00156">arena.h:156</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Arena_html_ae6809b5062da35e7d8f3ff54a79c7b55"><div class="ttname"><a href="classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55">yaze::gfx::Arena::Get</a></div><div class="ttdeci">static Arena &amp; Get()</div><div class="ttdef"><b>Definition</b> <a href="arena_8cc_source.html#l00010">arena.cc:10</a></div></div>
-<div class="ttc" id="aclassyaze_1_1zelda3_1_1RoomLayout_html_a95c3d2cfd70c9e30ba3323e51755b6ad"><div class="ttname"><a href="classyaze_1_1zelda3_1_1RoomLayout.html#a95c3d2cfd70c9e30ba3323e51755b6ad">yaze::zelda3::RoomLayout::GetObjects</a></div><div class="ttdeci">const std::vector&lt; RoomLayoutObject &gt; &amp; GetObjects() const</div><div class="ttdef"><b>Definition</b> <a href="room__layout_8h_source.html#l00092">room_layout.h:92</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1RoomLayout_html_ac488974000ffa8457a507457b462b736"><div class="ttname"><a href="classyaze_1_1zelda3_1_1RoomLayout.html#ac488974000ffa8457a507457b462b736">yaze::zelda3::RoomLayout::LoadLayout</a></div><div class="ttdeci">absl::Status LoadLayout(int room_id)</div><div class="ttdef"><b>Definition</b> <a href="room__layout_8cc_source.html#l00047">room_layout.cc:47</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1RoomObject_html"><div class="ttname"><a href="classyaze_1_1zelda3_1_1RoomObject.html">yaze::zelda3::RoomObject</a></div><div class="ttdef"><b>Definition</b> <a href="room__object_8h_source.html#l00056">room_object.h:56</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1RoomObject_html_a876ab67d5c9d17b8c9337a0cee2b569c"><div class="ttname"><a href="classyaze_1_1zelda3_1_1RoomObject.html#a876ab67d5c9d17b8c9337a0cee2b569c">yaze::zelda3::RoomObject::set_rom</a></div><div class="ttdeci">void set_rom(Rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="room__object_8h_source.html#l00074">room_object.h:74</a></div></div>

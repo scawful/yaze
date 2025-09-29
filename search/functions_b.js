@@ -135,6 +135,6 @@ var searchData=
   ['loadzelda3_132',['LoadZelda3',['../classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9',1,'yaze::Rom']]],
   ['loginstruction_133',['LogInstruction',['../classyaze_1_1emu_1_1Spc700.html#a70129acc7947101c67895c01e1bf0647',1,'yaze::emu::Spc700']]],
   ['loginstructions_134',['LogInstructions',['../classyaze_1_1emu_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5',1,'yaze::emu::Cpu']]],
-  ['lsr_135',['lsr',['../classyaze_1_1emu_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::emu::Spc700::LSR()'],['../classyaze_1_1emu_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::emu::Cpu::Lsr(uint32_t low, uint32_t high)'],['../classyaze_1_1emu_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::emu::Cpu::LSR(uint16_t address, bool accumulator=false)']]],
+  ['lsr_135',['lsr',['../classyaze_1_1emu_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::emu::Cpu::Lsr(uint32_t low, uint32_t high)'],['../classyaze_1_1emu_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::emu::Cpu::LSR(uint16_t address, bool accumulator=false)'],['../classyaze_1_1emu_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::emu::Spc700::LSR()']]],
   ['lua_136',['Lua',['../structTextEditor_1_1LanguageDefinition.html#a4e811b43370cba9ec8b8869ae2bfc4ff',1,'TextEditor::LanguageDefinition']]]
 ];

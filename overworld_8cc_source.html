@@ -763,13 +763,13 @@ $(document).ready(function(){initNavTree('overworld_8cc_source.html',''); initRe
 <div class="line"><a id="l00633" name="l00633"></a><span class="lineno">  633</span>    uint16_t px = (uint16_t)((rom_data[<a class="code hl_variable" href="namespaceyaze_1_1zelda3.html#aecd0d732f5f0f1d9c721b91d95a22c02">OWExitXPlayer</a> + (i * 2) + 1] &lt;&lt; 8) +</div>
 <div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span>                             rom_data[<a class="code hl_variable" href="namespaceyaze_1_1zelda3.html#aecd0d732f5f0f1d9c721b91d95a22c02">OWExitXPlayer</a> + (i * 2)]);</div>
 <div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span> </div>
-<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>    util::logf(</div>
-<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>        <span class="stringliteral">&quot;Exit: %d RoomID: %d MapID: %d VRAM: %d YScroll: %d XScroll: &quot;</span></div>
-<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>        <span class="stringliteral">&quot;%d YPlayer: %d XPlayer: %d YCamera: %d XCamera: %d &quot;</span></div>
-<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>        <span class="stringliteral">&quot;ScrollModY: %d ScrollModX: %d DoorType1: %d DoorType2: %d&quot;</span>,</div>
-<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>        i, exit_room_id, exit_map_id, exit_vram, exit_y_scroll, exit_x_scroll,</div>
-<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>        py, px, exit_y_camera, exit_x_camera, exit_scroll_mod_y,</div>
-<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>        exit_scroll_mod_x, exit_door_type_1, exit_door_type_2);</div>
+<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>    <span class="comment">// util::logf(</span></div>
+<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>    <span class="comment">//     &quot;Exit: %d RoomID: %d MapID: %d VRAM: %d YScroll: %d XScroll: &quot;</span></div>
+<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>    <span class="comment">//     &quot;%d YPlayer: %d XPlayer: %d YCamera: %d XCamera: %d &quot;</span></div>
+<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>    <span class="comment">//     &quot;ScrollModY: %d ScrollModX: %d DoorType1: %d DoorType2: %d&quot;,</span></div>
+<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>    <span class="comment">//     i, exit_room_id, exit_map_id, exit_vram, exit_y_scroll, exit_x_scroll,</span></div>
+<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>    <span class="comment">//     py, px, exit_y_camera, exit_x_camera, exit_scroll_mod_y,</span></div>
+<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>    <span class="comment">//     exit_scroll_mod_x, exit_door_type_1, exit_door_type_2);</span></div>
 <div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span> </div>
 <div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>    <a class="code hl_function" href="classyaze_1_1zelda3_1_1Overworld.html#a330da22ceacac461718bb46435bf02d8">exits</a>.emplace_back(exit_room_id, exit_map_id, exit_vram, exit_y_scroll,</div>
 <div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>                       exit_x_scroll, py, px, exit_y_camera, exit_x_camera,</div>

@@ -1,5 +1,9 @@
 var NAVTREEINDEX79 =
 {
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html#a7e9504268fddbb327aba7c85abf51d32":[42,0,0,9,7,2,7],
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html#a7e9504268fddbb327aba7c85abf51d32":[41,0,4,9,12,2,7],
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html#a833a1f4046d70a77c5f172f786e1e0bb":[42,0,0,9,7,2,10],
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html#a833a1f4046d70a77c5f172f786e1e0bb":[41,0,4,9,12,2,10],
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html#a994ad505c3e973da93f14ecdc2fa6b39":[42,0,0,9,7,2,8],
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html#a994ad505c3e973da93f14ecdc2fa6b39":[41,0,4,9,12,2,8],
 "structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html#aac01b8616f14a46457bddc8f836f0383":[42,0,0,9,7,2,4],
@@ -245,9 +249,5 @@ var NAVTREEINDEX79 =
 "structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html#acf5da2a2d1fa5b5a62986261bebf13a8":[41,0,4,9,5,0,5],
 "structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html#acf5da2a2d1fa5b5a62986261bebf13a8":[42,0,0,9,2,0,5],
 "structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html#ad50506bb548085365cc29ad6c72b818b":[41,0,4,9,5,0,7],
-"structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html#ad50506bb548085365cc29ad6c72b818b":[42,0,0,9,2,0,7],
-"structyaze_1_1zelda3_1_1LayerMergeType.html":[41,0,4,9,21],
-"structyaze_1_1zelda3_1_1LayerMergeType.html":[42,0,0,9,16],
-"structyaze_1_1zelda3_1_1LayerMergeType.html#a33e933d236c5ac3e79e3119bdeb4025c":[42,0,0,9,16,4],
-"structyaze_1_1zelda3_1_1LayerMergeType.html#a33e933d236c5ac3e79e3119bdeb4025c":[41,0,4,9,21,4]
+"structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html#ad50506bb548085365cc29ad6c72b818b":[42,0,0,9,2,0,7]
 };

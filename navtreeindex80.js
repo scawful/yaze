@@ -1,5 +1,9 @@
 var NAVTREEINDEX80 =
 {
+"structyaze_1_1zelda3_1_1LayerMergeType.html":[41,0,4,9,21],
+"structyaze_1_1zelda3_1_1LayerMergeType.html":[42,0,0,9,16],
+"structyaze_1_1zelda3_1_1LayerMergeType.html#a33e933d236c5ac3e79e3119bdeb4025c":[42,0,0,9,16,4],
+"structyaze_1_1zelda3_1_1LayerMergeType.html#a33e933d236c5ac3e79e3119bdeb4025c":[41,0,4,9,21,4],
 "structyaze_1_1zelda3_1_1LayerMergeType.html#a434ef962a1585fd185905ae3344f2ca8":[42,0,0,9,16,5],
 "structyaze_1_1zelda3_1_1LayerMergeType.html#a434ef962a1585fd185905ae3344f2ca8":[41,0,4,9,21,5],
 "structyaze_1_1zelda3_1_1LayerMergeType.html#a5a2af9595c05b145173de475737727d8":[42,0,0,9,16,2],
@@ -245,9 +249,5 @@ var NAVTREEINDEX80 =
 "structyaze_1_1zelda3_1_1music_1_1Song.html#ab0486f32fded23ea3644260b811ef286":[42,0,0,9,3,1,0],
 "structyaze_1_1zelda3_1_1music_1_1Song.html#ab0486f32fded23ea3644260b811ef286":[41,0,4,9,6,1,0],
 "structyaze_1_1zelda3_1_1music_1_1Song.html#ab24bf212639d288edea31f6565d8f84d":[42,0,0,9,3,1,3],
-"structyaze_1_1zelda3_1_1music_1_1Song.html#ab24bf212639d288edea31f6565d8f84d":[41,0,4,9,6,1,3],
-"structyaze_1_1zelda3_1_1music_1_1Song.html#adbf33cbeacd6ceda3d378d9c63fcb825":[42,0,0,9,3,1,1],
-"structyaze_1_1zelda3_1_1music_1_1Song.html#adbf33cbeacd6ceda3d378d9c63fcb825":[41,0,4,9,6,1,1],
-"structyaze_1_1zelda3_1_1music_1_1Song.html#af89989b0a00f480c0e43e6bb7dd5ad34":[42,0,0,9,3,1,5],
-"structyaze_1_1zelda3_1_1music_1_1Song.html#af89989b0a00f480c0e43e6bb7dd5ad34":[41,0,4,9,6,1,5]
+"structyaze_1_1zelda3_1_1music_1_1Song.html#ab24bf212639d288edea31f6565d8f84d":[41,0,4,9,6,1,3]
 };

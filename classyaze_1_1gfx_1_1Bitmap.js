@@ -26,6 +26,7 @@ var classyaze_1_1gfx_1_1Bitmap =
     [ "Resize", "classyaze_1_1gfx_1_1Bitmap.html#a7fd93b6f41ab894ada99b7a89d254c3c", null ],
     [ "InvalidatePaletteCache", "classyaze_1_1gfx_1_1Bitmap.html#a9f023ff3bf1ca16bf253d35b07a9abf5", null ],
     [ "FindColorIndex", "classyaze_1_1gfx_1_1Bitmap.html#addd611c1e3b131e9025116995eb326d9", null ],
+    [ "ValidateDataSurfaceSync", "classyaze_1_1gfx_1_1Bitmap.html#a289ec12966f666f5d196475daa2528cf", null ],
     [ "Get8x8Tile", "classyaze_1_1gfx_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be", null ],
     [ "Get16x16Tile", "classyaze_1_1gfx_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a", null ],
     [ "palette", "classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8", null ],

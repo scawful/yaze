@@ -1,0 +1,9 @@
+<map id="yaze::gfx::Arena::Shutdown" name="yaze::gfx::Arena::Shutdown">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,180,72"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ad0ecbc9abc7453f3b7acde4f6292823c" title="Process all queued texture updates in a single batch." alt="" coords="228,39,392,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,56,212,56,212,62,180,62"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#ad0e525fd3b3316abb9a6f8ce00ad9b38" title="Update texture data from surface (with format conversion)" alt="" coords="440,5,598,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="392,43,424,38,425,43,393,49"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Arena.html#a5d9469436f3914eb5e5be98110c5c0be" title="Update texture data from surface for a specific region." alt="" coords="440,71,598,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="393,69,425,74,424,79,392,74"/>
+</map>

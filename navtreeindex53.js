@@ -1,5 +1,9 @@
 var NAVTREEINDEX53 =
 {
+"md_docs_2E3-dungeon-editor-design.html#autotoc_md631":[24,8],
+"md_docs_2E3-dungeon-editor-design.html#autotoc_md632":[24,8,0],
+"md_docs_2E3-dungeon-editor-design.html#autotoc_md633":[24,8,1],
+"md_docs_2E3-dungeon-editor-design.html#autotoc_md634":[24,9],
 "md_docs_2E3-dungeon-editor-design.html#autotoc_md635":[24,9,0],
 "md_docs_2E3-dungeon-editor-design.html#autotoc_md636":[24,9,1],
 "md_docs_2E3-dungeon-editor-design.html#autotoc_md637":[24,10],
@@ -245,9 +249,5 @@ var NAVTREEINDEX53 =
 "md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md215":[9,4,1],
 "md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md216":[9,5],
 "md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md217":[9,5,0],
-"md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md218":[9,5,1],
-"md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md219":[9,5,2],
-"md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md220":[9,6],
-"md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md221":[9,6,0],
-"md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md222":[9,6,1]
+"md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md218":[9,5,1]
 };

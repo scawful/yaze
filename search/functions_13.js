@@ -60,7 +60,7 @@ var searchData=
   ['transferbyte_57',['TransferByte',['../namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584',1,'yaze::emu']]],
   ['transferoverworldselectiontoscratch_58',['TransferOverworldSelectionToScratch',['../classyaze_1_1editor_1_1OverworldEditorManager.html#a7ec30b61a34160b2973781212eac25e3',1,'yaze::editor::OverworldEditorManager']]],
   ['transferscratchselectiontooverworld_59',['TransferScratchSelectionToOverworld',['../classyaze_1_1editor_1_1OverworldEditorManager.html#a60f8af199e8206228e94f352dec0cfcc',1,'yaze::editor::OverworldEditorManager']]],
-  ['trb_60',['trb',['../classyaze_1_1emu_1_1Cpu.html#a844c46f0b48e2fc272e0f6d35d6059d5',1,'yaze::emu::Cpu::TRB(uint16_t address)'],['../classyaze_1_1emu_1_1Cpu.html#a73b9396cbbf95cb9791f0e58728832f4',1,'yaze::emu::Cpu::Trb(uint32_t low, uint32_t high)']]],
+  ['trb_60',['trb',['../classyaze_1_1emu_1_1Cpu.html#a73b9396cbbf95cb9791f0e58728832f4',1,'yaze::emu::Cpu::Trb(uint32_t low, uint32_t high)'],['../classyaze_1_1emu_1_1Cpu.html#a844c46f0b48e2fc272e0f6d35d6059d5',1,'yaze::emu::Cpu::TRB(uint16_t address)']]],
   ['trimresourcehistory_61',['TrimResourceHistory',['../classyaze_1_1test_1_1TestManager.html#aac8ba5225045f940a57ed1f7bfa1e774',1,'yaze::test::TestManager']]],
   ['tryparsebyte_62',['TryParseByte',['../classyaze_1_1emu_1_1AsmParser.html#a6ebefb8ac2822d8030c691b1a3ce2402',1,'yaze::emu::AsmParser']]],
   ['tryparsehex_63',['TryParseHex',['../classyaze_1_1emu_1_1AsmParser.html#a2dc4cfff44721a57acc183a7e122a9b0',1,'yaze::emu::AsmParser']]],

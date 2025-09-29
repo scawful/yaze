@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['b_0',['b',['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#a37ad3b16c25497c840b84b6375280a16',1,'yaze::emu::Spc700::Flags::B'],['../structyaze_1_1emu_1_1Color.html#ae21f87ce751f581f450d28d405247800',1,'yaze::emu::Color::b']]],
+  ['b_0',['b',['../structyaze_1_1emu_1_1Color.html#ae21f87ce751f581f450d28d405247800',1,'yaze::emu::Color::b'],['../structyaze_1_1emu_1_1Spc700_1_1Flags.html#a37ad3b16c25497c840b84b6375280a16',1,'yaze::emu::Spc700::Flags::B']]],
   ['b_20atlas_20based_20rendering_1',['B. Atlas-based Rendering',['../md_docs_2gfx__optimization__recommendations.html#autotoc_md837',1,'']]],
   ['b_20batch_20operations_2',['B. Batch Operations',['../md_docs_2gfx__optimization__recommendations.html#autotoc_md834',1,'']]],
   ['b_20dirty_20region_20tracking_3',['B. Dirty Region Tracking',['../md_docs_2gfx__optimization__recommendations.html#autotoc_md831',1,'']]],
@@ -111,7 +111,7 @@ var searchData=
   ['best_20practices_108',['best practices',['../md_docs_2B4-release-workflows.html#autotoc_md499',1,'Best Practices'],['../md_docs_2E5-dungeon-object-system.html#autotoc_md735',1,'Best Practices'],['../md_docs_2F1-overworld-loading.html#autotoc_md783',1,'Best Practices'],['../md_test_2README.html#autotoc_md1063',1,'Best Practices']]],
   ['beta_20preparation_109',['Beta Preparation',['../md_docs_2D1-roadmap.html#autotoc_md545',1,'']]],
   ['better_20maintainability_20strong_110',['3. &lt;strong&gt;Better Maintainability&lt;/strong&gt;',['../md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md681',1,'']]],
-  ['bg1_111',['bg1',['../classyaze_1_1zelda3_1_1RoomObject.html#a9271f3a50b053b6f15f5c2b4733dde6da884b9f0a364bd4344d42d016d1aaa109',1,'yaze::zelda3::RoomObject::BG1'],['../classyaze_1_1gfx_1_1Arena.html#ad0f203b2f2a24eb23c980f4572670582',1,'yaze::gfx::Arena::bg1()']]],
+  ['bg1_111',['bg1',['../classyaze_1_1gfx_1_1Arena.html#ad0f203b2f2a24eb23c980f4572670582',1,'yaze::gfx::Arena::bg1()'],['../classyaze_1_1zelda3_1_1RoomObject.html#a9271f3a50b053b6f15f5c2b4733dde6da884b9f0a364bd4344d42d016d1aaa109',1,'yaze::zelda3::RoomObject::BG1']]],
   ['bg12nba_112',['BG12NBA',['../namespaceyaze_1_1emu.html#a40142275978d470801c3bf85d7a738c9',1,'yaze::emu']]],
   ['bg1_5f_113',['bg1_',['../classyaze_1_1gfx_1_1Arena.html#aa6c483d4485a75e6446d42adf87a7bd2',1,'yaze::gfx::Arena']]],
   ['bg1_5faddress_114',['BG1_address',['../structyaze_1_1emu_1_1CharacterLocation.html#aaa042bbe18665c49a384cdf9b834e7b0',1,'yaze::emu::CharacterLocation']]],

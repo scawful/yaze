@@ -1,8 +1,7 @@
 <map id="yaze::editor::OverworldEditor::RefreshOverworldMap" name="yaze::editor::OverworldEditor::RefreshOverworldMap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,189,70"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1OverworldEditor.html#a6fdddbe4c23e52f94391f02af3725bb2" title="On&#45;demand map refresh that only updates what&#39;s actually needed." alt="" coords="237,29,458,70"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#adac2da0e5bfc87f31ae50e5c4c3edd2e" title="On&#45;demand child map refresh with selective updates." alt="" coords="506,29,697,70"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="458,47,491,47,491,52,458,52"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="554,29,552,19,560,10,576,5,602,3,629,5,645,11,643,16,628,10,602,8,577,10,562,15,557,21,559,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,189,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1OverworldEditor.html#a6fdddbe4c23e52f94391f02af3725bb2" title="On&#45;demand map refresh that only updates what&#39;s actually needed." alt="" coords="237,5,458,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,23,221,23,221,28,189,28"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#adac2da0e5bfc87f31ae50e5c4c3edd2e" title="On&#45;demand child map refresh with selective updates." alt="" coords="506,5,697,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="458,23,491,23,491,28,458,28"/>
 </map>

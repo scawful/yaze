@@ -1,5 +1,9 @@
 var NAVTREEINDEX40 =
 {
+"dungeon__object__editor_8cc.html#a07e9be0761dcca103b5455c68caa84c7":[43,0,3,0,6,0,2,1],
+"dungeon__object__editor_8cc.html#a5ce27ca80434a42b0843ac3fcf513581":[43,0,3,0,6,0,2,0],
+"dungeon__object__editor_8cc.html#a95fb6d946b0eb4190cc79c25a8bde603":[43,0,3,0,6,0,2,4],
+"dungeon__object__editor_8cc.html#aa2a88aa341c58c1f3c43801ebd94a5bd":[43,0,3,0,6,0,2,3],
 "dungeon__object__editor_8cc.html#ac42e25c15fdfd5e45ec3032bee46aeff":[43,0,3,0,6,0,2,2],
 "dungeon__object__editor_8cc_source.html":[43,0,3,0,6,0,2],
 "dungeon__object__editor_8h.html":[43,0,3,0,6,0,3],
@@ -245,9 +249,5 @@ var NAVTREEINDEX40 =
 "font__loader_8cc.html#af50562c29e14353a5e69a2cf5283f375":[43,0,3,0,0,0,5,3],
 "font__loader_8cc_source.html":[43,0,3,0,0,0,5],
 "font__loader_8h.html":[43,0,3,0,0,0,6],
-"font__loader_8h.html#a171a8a94e8642f977ca04cf54245cd13":[43,0,3,0,0,0,6,3],
-"font__loader_8h.html#a1ebfa2ff985b2a41c726bfbaa9a868dd":[43,0,3,0,0,0,6,2],
-"font__loader_8h.html#aa408d383ff33494e29ea06e0e6774f4c":[43,0,3,0,0,0,6,4],
-"font__loader_8h_source.html":[43,0,3,0,0,0,6],
-"font__loader_8mm.html":[43,0,3,0,0,0,7]
+"font__loader_8h.html#a171a8a94e8642f977ca04cf54245cd13":[43,0,3,0,0,0,6,3]
 };

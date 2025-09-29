@@ -1,5 +1,9 @@
 var NAVTREEINDEX63 =
 {
+"namespaceyaze_1_1zelda3_1_1ItemTypes.html#a352eb1a9df6a5bc18dd0a07d5bac9540":[41,0,4,9,5,4],
+"namespaceyaze_1_1zelda3_1_1ItemTypes.html#a8a09bd20d1adb7e50b49fdd349de17da":[41,0,4,9,5,3],
+"namespaceyaze_1_1zelda3_1_1ItemTypes.html#a96ac578ab867af965b3da48b2fd904a2":[41,0,4,9,5,1],
+"namespaceyaze_1_1zelda3_1_1ItemTypes.html#aa328417a235dd96d3dc7374ad061e1f5":[41,0,4,9,5,2],
 "namespaceyaze_1_1zelda3_1_1ObjectCategories.html":[41,0,4,9,7],
 "namespaceyaze_1_1zelda3_1_1ObjectCategories.html#a07e9be0761dcca103b5455c68caa84c7":[41,0,4,9,7,2],
 "namespaceyaze_1_1zelda3_1_1ObjectCategories.html#a95fb6d946b0eb4190cc79c25a8bde603":[41,0,4,9,7,5],
@@ -245,9 +249,5 @@ var NAVTREEINDEX63 =
 "overworld__entrance_8h.html#acc39ec0dac72d2c8e7aac79c6f02e832":[43,0,3,0,6,2,2,17],
 "overworld__entrance_8h.html#ad8e44685d2115d517d8681136d72aebc":[43,0,3,0,6,2,2,25],
 "overworld__entrance_8h.html#ada48040365b4c81ea24e3313bbb84f7f":[43,0,3,0,6,2,2,22],
-"overworld__entrance_8h.html#adbfeff680da7524cc836a51e71b08c20":[43,0,3,0,6,2,2,14],
-"overworld__entrance_8h.html#adc7a44403a309bba04259cd65b181719":[43,0,3,0,6,2,2,28],
-"overworld__entrance_8h.html#aee41085570fadb83139051e2d2e08bdc":[43,0,3,0,6,2,2,20],
-"overworld__entrance_8h.html#aef1ab6563987d25f7a42413bc9522825":[43,0,3,0,6,2,2,16],
-"overworld__entrance_8h.html#af2353873362052aac0583f2e63f7ad54":[43,0,3,0,6,2,2,19]
+"overworld__entrance_8h.html#adbfeff680da7524cc836a51e71b08c20":[43,0,3,0,6,2,2,14]
 };

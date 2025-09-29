@@ -445,7 +445,7 @@ var searchData=
   ['transparent_442',['transparent',['../group__dungeon.html#gab0998d47cb416e3349d6d14f5d7cbdbb',1,'Transparent:&#160;zelda.h'],['../classyaze_1_1gfx_1_1SnesColor.html#ae54e3550f2cacbb4bd7eba5b1c7ec09d',1,'yaze::gfx::SnesColor::transparent']]],
   ['transparent_20operation_443',['Transparent Operation',['../md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md222',1,'']]],
   ['transports_444',['TRANSPORTS',['../classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8eaaec0196e5daedbe7f7ed5702a21da0d2',1,'yaze::editor::OverworldEditor']]],
-  ['trb_445',['trb',['../classyaze_1_1emu_1_1Cpu.html#a73b9396cbbf95cb9791f0e58728832f4',1,'yaze::emu::Cpu::Trb(uint32_t low, uint32_t high)'],['../classyaze_1_1emu_1_1Cpu.html#a844c46f0b48e2fc272e0f6d35d6059d5',1,'yaze::emu::Cpu::TRB(uint16_t address)']]],
+  ['trb_445',['trb',['../classyaze_1_1emu_1_1Cpu.html#a844c46f0b48e2fc272e0f6d35d6059d5',1,'yaze::emu::Cpu::TRB(uint16_t address)'],['../classyaze_1_1emu_1_1Cpu.html#a73b9396cbbf95cb9791f0e58728832f4',1,'yaze::emu::Cpu::Trb(uint32_t low, uint32_t high)']]],
   ['tree_5flines_446',['tree_lines',['../structyaze_1_1gui_1_1EnhancedTheme.html#a5243c06761d1d20a6e54ad54cb40b8e4',1,'yaze::gui::EnhancedTheme']]],
   ['trigger_5factivated_5fchest_447',['Trigger_activated_Chest',['../namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7b45d215a1d2c1a243c2f7f81d444f71',1,'yaze::zelda3']]],
   ['triggering_20a_20release_448',['Triggering a Release',['../md_docs_2B4-release-workflows.html#autotoc_md484',1,'']]],

@@ -1,5 +1,9 @@
 var NAVTREEINDEX41 =
 {
+"font__loader_8h.html#a1ebfa2ff985b2a41c726bfbaa9a868dd":[43,0,3,0,0,0,6,2],
+"font__loader_8h.html#aa408d383ff33494e29ea06e0e6774f4c":[43,0,3,0,0,0,6,4],
+"font__loader_8h_source.html":[43,0,3,0,0,0,6],
+"font__loader_8mm.html":[43,0,3,0,0,0,7],
 "font__loader_8mm_source.html":[43,0,3,0,0,0,7],
 "functions.html":[42,3,0,0],
 "functions.html":[42,3,0],
@@ -10,8 +14,8 @@ var NAVTREEINDEX41 =
 "functions_enum.html":[42,3,4],
 "functions_eval.html":[42,3,5],
 "functions_f.html":[42,3,0,5],
-"functions_func.html":[42,3,1,0],
 "functions_func.html":[42,3,1],
+"functions_func.html":[42,3,1,0],
 "functions_func_b.html":[42,3,1,1],
 "functions_func_c.html":[42,3,1,2],
 "functions_func_d.html":[42,3,1,3],
@@ -245,9 +249,5 @@ var NAVTREEINDEX41 =
 "group__overworld.html#ga89d96324a962936d34080a4999c6049f":[40,4,7],
 "group__overworld.html#gab51faf9f16249c90790b998246f64fa1":[40,4,5],
 "group__overworld.html#gacf4581286918ed77e6d19167db9e3c3f":[40,4,6],
-"group__rom.html":[40,3],
-"group__rom.html#ga07306409f1150c26c378b99c407e635b":[40,3,1],
-"group__rom.html#gaaf21778dedba484978d3509c8dbf8047":[40,3,0],
-"group__rom.html#gac0988c3b76d517d5cb78dbc61a02e517":[40,3,2],
-"group__rom.html#gac37ec58a0da8b441220024ac2cb73a76":[40,3,3]
+"group__rom.html":[40,3]
 };
