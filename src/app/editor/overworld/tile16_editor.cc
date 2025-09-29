@@ -313,10 +313,9 @@ gfx::Tile16* Tile16Editor::GetCurrentTile16Data() {
     return nullptr;
   }
 
-  // Store in a static variable to return pointer (temporary solution)
-  static gfx::Tile16 current_tile_data;
-  current_tile_data = tile_result.value();
-  return &current_tile_data;
+  // Store in instance variable for proper persistence
+  current_tile16_data_ = tile_result.value();
+  return &current_tile16_data_;
 }
 
 absl::Status Tile16Editor::UpdateROMTile16Data() {
@@ -350,6 +349,45 @@ absl::Status Tile16Editor::RefreshTile16Blockset() {
   core::Renderer::Get().UpdateBitmap(&tile16_blockset_->atlas);
 
   util::logf("Tile16 blockset refreshed and regenerated");
+  return absl::OkStatus();
+}
+
+absl::Status Tile16Editor::UpdateBlocksetBitmap() {
+  if (!tile16_blockset_) {
+    return absl::FailedPreconditionError("Tile16 blockset not initialized");
+  }
+
+  if (current_tile16_ < 0 || current_tile16_ >= zelda3::kNumTile16Individual) {
+    return absl::OutOfRangeError("Current tile16 ID out of range");
+  }
+
+  // Update the blockset bitmap that's displayed in the editor
+  if (tile16_blockset_bmp_.is_active()) {
+    // Calculate the position of this tile in the blockset bitmap
+    constexpr int kTilesPerRow = 8;  // Standard SNES tile16 layout is 8 tiles per row
+    int tile_x = (current_tile16_ % kTilesPerRow) * kTile16Size;
+    int tile_y = (current_tile16_ / kTilesPerRow) * kTile16Size;
+
+    // Copy pixel data from current tile to blockset bitmap
+    for (int tile_y_offset = 0; tile_y_offset < kTile16Size; ++tile_y_offset) {
+      for (int tile_x_offset = 0; tile_x_offset < kTile16Size; ++tile_x_offset) {
+        int src_index = tile_y_offset * kTile16Size + tile_x_offset;
+        int dst_index = (tile_y + tile_y_offset) * tile16_blockset_bmp_.width() + 
+                       (tile_x + tile_x_offset);
+
+        if (src_index < static_cast<int>(current_tile16_bmp_.size()) &&
+            dst_index < static_cast<int>(tile16_blockset_bmp_.size())) {
+          tile16_blockset_bmp_.WriteToPixel(dst_index, current_tile16_bmp_.data()[src_index]);
+        }
+      }
+    }
+
+    // Mark the blockset bitmap as modified and update the renderer
+    tile16_blockset_bmp_.set_modified(true);
+    core::Renderer::Get().UpdateBitmap(&tile16_blockset_bmp_);
+  }
+
+  util::logf("Updated blockset bitmap for tile %d", current_tile16_);
   return absl::OkStatus();
 }
 
@@ -444,7 +482,7 @@ absl::Status Tile16Editor::RegenerateTile16BitmapFromROM() {
   return absl::OkStatus();
 }
 
-absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position,
+absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
                                                const gfx::Bitmap* source_tile) {
   constexpr int kTile8Size = 8;
   constexpr int kTile16Size = 16;
@@ -477,8 +515,8 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position,
   }
 
   // Determine which quadrant was clicked - handle the 8x scale factor properly
-  int quadrant_x = (click_position.x >= kTile8Size) ? 1 : 0;
-  int quadrant_y = (click_position.y >= kTile8Size) ? 1 : 0;
+  int quadrant_x = (pos.x >= kTile8Size) ? 1 : 0;
+  int quadrant_y = (pos.y >= kTile8Size) ? 1 : 0;
 
   int start_x = quadrant_x * kTile8Size;
   int start_y = quadrant_y * kTile8Size;
@@ -581,6 +619,12 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 click_position,
       }
     }
   }
+
+  // Write the modified tile16 data back to ROM
+  RETURN_IF_ERROR(UpdateROMTile16Data());
+
+  // Update the blockset bitmap displayed in the editor
+  RETURN_IF_ERROR(UpdateBlocksetBitmap());
 
   if (live_preview_enabled_) {
     RETURN_IF_ERROR(UpdateOverworldTilemap());
@@ -947,6 +991,12 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   }
 
   current_tile16_ = tile_id;
+
+  // Initialize the instance variable with current ROM data
+  auto tile_result = rom_->ReadTile16(current_tile16_);
+  if (tile_result.ok()) {
+    current_tile16_data_ = tile_result.value();
+  }
 
   // Extract tile data using the same method as GetTilemapData
   auto tile_data = gfx::GetTilemapData(*tile16_blockset_, tile_id);

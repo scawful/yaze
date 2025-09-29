@@ -117,6 +117,7 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status RefreshTile16Blockset();
   gfx::Tile16* GetCurrentTile16Data();
   absl::Status RegenerateTile16BitmapFromROM();
+  absl::Status UpdateBlocksetBitmap();
   
   // Manual tile8 input controls
   void DrawManualTile8Inputs();
@@ -219,7 +220,7 @@ class Tile16Editor : public gfx::GfxContext {
       gui::CanvasGridSize::k32x32};
   gfx::Bitmap current_gfx_bmp_;
 
-  gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders};
+  gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders, ImVec2(0, 0)};
 
   gfx::Tilemap* tile16_blockset_ = nullptr;
   std::vector<gfx::Bitmap> current_gfx_individual_;
@@ -231,6 +232,9 @@ class Tile16Editor : public gfx::GfxContext {
   
   // Callback to notify parent editor when changes are committed
   std::function<absl::Status()> on_changes_committed_;
+  
+  // Instance variable to store current tile16 data for proper persistence
+  gfx::Tile16 current_tile16_data_;
 };
 
 }  // namespace editor
