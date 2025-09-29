@@ -14,7 +14,7 @@ on:
         type: string
 
 concurrency:
-  group: release-${{ github.ref_name != '' && github.ref_name || (github.event.inputs.tag != '' && github.event.inputs.tag || github.run_id) }}
+  group: release-${{ github.event_name }}-${{ github.ref_name || github.event.inputs.tag || github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -79,19 +79,27 @@ jobs:
             if python3 scripts/extract_changelog.py "${VERSION}" > release_notes.md; then
               echo "Changelog extracted for ${VERSION}"
             else
-              printf '# yaze Release Notes\n\nSee docs/C1-changelog.md for full history.\n' > release_notes.md
-            fi
-          else
-            printf '# yaze Release Notes\n\nSee docs/C1-changelog.md for full history.\n' > release_notes.md
-          fi
-          echo "---- RELEASE NOTES START ----"
-          cat release_notes.md
-          echo "---- RELEASE NOTES END ----"
+              cat > release_notes.md <<'EOF'
+            # yaze Release Notes
 
-      - name: Store release notes output
-        id: notes
-        shell: bash
-        run: |
+            See docs/C1-changelog.md for full history.
+            EOF
+                        fi
+                      else
+                        cat > release_notes.md <<'EOF'
+            # yaze Release Notes
+
+            See docs/C1-changelog.md for full history.
+            EOF
+                      fi
+                      echo "---- RELEASE NOTES START ----"
+                      cat release_notes.md
+                      echo "---- RELEASE NOTES END ----"
+
+                  - name: Store release notes output
+                    id: notes
+                    shell: bash
+                    run: |
           {
             echo 'content<<EOF'
             cat release_notes.md
@@ -178,7 +186,8 @@ jobs:
         if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'  # or b2cb0da531c2f1f740045bfe7c4dac59f0b2b69c
+          # Registry tag 2025.09.17 full commit SHA
+          vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'
           runVcpkgInstall: true
           vcpkgJsonGlob: '**/vcpkg.json'
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
@@ -189,7 +198,7 @@ jobs:
           VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg
           VCPKG_USE_SYSTEM_BINARIES: 1
-          VCPKG_DOWNLOADS: ${{ github.workspace }}/vcpkg_downloads }
+          VCPKG_DOWNLOADS: ${{ github.workspace }}/vcpkg_downloads
           VCPKG_DEFAULT_HOST_TRIPLET: x64-windows
           VCPKG_FEATURE_FLAGS: versions
 
@@ -250,25 +259,31 @@ jobs:
         run: |
           if (Test-Path build) { Remove-Item -Recurse -Force build }
           New-Item -ItemType Directory -Path build | Out-Null
+
+          $toolchain = Join-Path $env:VCPKG_ROOT 'scripts\buildsystems\vcpkg.cmake'
+          $useVcpkg = (Test-Path $toolchain) -and ($env:VCPKG_AVAILABLE -ne 'false')
+
           $args = @(
-            "-S",".",
-            "-B","build",
-            "-G","${{ matrix.cmake_generator }}",
-            "-A","${{ matrix.cmake_generator_platform }}",
-            "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}",
-            "-DCMAKE_POLICY_VERSION_MINIMUM=3.16",
-            "-DYAZE_BUILD_TESTS=OFF",
-            "-DYAZE_BUILD_EMU=OFF",
-            "-DYAZE_ENABLE_ROM_TESTS=OFF",
-            "-DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF",
-            "-DYAZE_INSTALL_LIB=OFF"
+            '-S','.',
+            '-B','build',
+            '-G','${{ matrix.cmake_generator }}',
+            '-A','${{ matrix.cmake_generator_platform }}',
+            '-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}',
+            '-DCMAKE_POLICY_VERSION_MINIMUM=3.16',
+            '-DYAZE_BUILD_TESTS=OFF',
+            '-DYAZE_BUILD_EMU=OFF',
+            '-DYAZE_ENABLE_ROM_TESTS=OFF',
+            '-DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF',
+            '-DYAZE_INSTALL_LIB=OFF'
           )
-          if (Test-Path "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -and $env:VCPKG_AVAILABLE -ne "false") {
-            $args += "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-            $args += "-DYAZE_MINIMAL_BUILD=OFF"
+
+          if ($useVcpkg) {
+            $args += "-DCMAKE_TOOLCHAIN_FILE=$toolchain"
+            $args += '-DYAZE_MINIMAL_BUILD=OFF'
           } else {
-            $args += "-DYAZE_MINIMAL_BUILD=ON"
+            $args += '-DYAZE_MINIMAL_BUILD=ON'
           }
+
           cmake @args
 
       # ---------- Build ----------
@@ -319,7 +334,7 @@ jobs:
                 cp "${pkg}" "${ART}.zip"
               else
                 mkdir -p package
-                cp -r build/bin/${{ env.BUILD_TYPE }}/* package/
+                cp -r "build/bin/${{ env.BUILD_TYPE }}"/* package/
                 [[ -d assets ]] && cp -r assets package/
                 [[ -f LICENSE ]] && cp LICENSE package/
                 [[ -f README.md ]] && cp README.md package/
