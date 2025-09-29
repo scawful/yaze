@@ -3,6 +3,8 @@
 #include <vector>
 
 #include "app/core/window.h"
+#include "app/gfx/arena.h"
+#include "app/gfx/atlas_renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/performance_profiler.h"
 #include "app/gfx/snes_tile.h"
@@ -234,6 +236,72 @@ std::vector<uint8_t> GetTilemapData(Tilemap &tilemap, int tile_id) {
   }
 
   return data;
+}
+
+void RenderTilesBatch(Tilemap& tilemap, const std::vector<int>& tile_ids, 
+                      const std::vector<std::pair<float, float>>& positions,
+                      const std::vector<std::pair<float, float>>& scales) {
+  if (tile_ids.empty() || positions.empty() || tile_ids.size() != positions.size()) {
+    return;
+  }
+  
+  ScopedTimer timer("tilemap_batch_render");
+  
+  // Get renderer from Arena
+  SDL_Renderer* renderer = nullptr; // We need to get this from the renderer system
+  
+  // Initialize atlas renderer if not already done
+  auto& atlas_renderer = AtlasRenderer::Get();
+  if (!renderer) {
+    // For now, we'll use the existing rendering approach
+    // In a full implementation, we'd get the renderer from the core system
+    return;
+  }
+  
+  // Prepare render commands
+  std::vector<RenderCommand> render_commands;
+  render_commands.reserve(tile_ids.size());
+  
+  for (size_t i = 0; i < tile_ids.size(); ++i) {
+    int tile_id = tile_ids[i];
+    float x = positions[i].first;
+    float y = positions[i].second;
+    
+    // Get scale factors (default to 1.0 if not provided)
+    float scale_x = 1.0F;
+    float scale_y = 1.0F;
+    if (i < scales.size()) {
+      scale_x = scales[i].first;
+      scale_y = scales[i].second;
+    }
+    
+    // Try to get tile from cache first
+    Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
+    if (!cached_tile) {
+      // Create and cache the tile if not found
+      gfx::Bitmap new_tile = gfx::Bitmap(
+          tilemap.tile_size.x, tilemap.tile_size.y, 8,
+          gfx::GetTilemapData(tilemap, tile_id), tilemap.atlas.palette());
+      tilemap.tile_cache.CacheTile(tile_id, std::move(new_tile));
+      cached_tile = tilemap.tile_cache.GetTile(tile_id);
+      if (cached_tile) {
+        core::Renderer::Get().RenderBitmap(cached_tile);
+      }
+    }
+    
+    if (cached_tile && cached_tile->is_active()) {
+      // Add to atlas renderer
+      int atlas_id = atlas_renderer.AddBitmap(*cached_tile);
+      if (atlas_id >= 0) {
+        render_commands.emplace_back(atlas_id, x, y, scale_x, scale_y);
+      }
+    }
+  }
+  
+  // Render all commands in batch
+  if (!render_commands.empty()) {
+    atlas_renderer.RenderBatch(render_commands);
+  }
 }
 
 }  // namespace gfx

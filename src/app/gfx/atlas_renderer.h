@@ -123,6 +123,23 @@ class AtlasRenderer {
    */
   void Clear();
 
+  /**
+   * @brief Render a single bitmap using atlas (convenience method)
+   * @param atlas_id Atlas ID of bitmap to render
+   * @param x X position on screen
+   * @param y Y position on screen
+   * @param scale_x Horizontal scale factor
+   * @param scale_y Vertical scale factor
+   */
+  void RenderBitmap(int atlas_id, float x, float y, float scale_x = 1.0f, float scale_y = 1.0f);
+
+  /**
+   * @brief Get UV coordinates for a bitmap in the atlas
+   * @param atlas_id Atlas ID of bitmap
+   * @return UV rectangle (0-1 normalized coordinates)
+   */
+  SDL_Rect GetUVCoordinates(int atlas_id) const;
+
  private:
   AtlasRenderer() = default;
   ~AtlasRenderer();

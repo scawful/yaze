@@ -138,6 +138,18 @@ void ComposeTile16(Tilemap &tilemap, const std::vector<uint8_t> &data,
 
 std::vector<uint8_t> GetTilemapData(Tilemap &tilemap, int tile_id);
 
+/**
+ * @brief Render multiple tiles using atlas rendering for improved performance
+ * @param tilemap Tilemap containing tiles to render
+ * @param tile_ids Vector of tile IDs to render
+ * @param positions Vector of screen positions for each tile
+ * @param scales Vector of scale factors for each tile (optional, defaults to 1.0)
+ * @note This function uses atlas rendering to reduce draw calls significantly
+ */
+void RenderTilesBatch(Tilemap& tilemap, const std::vector<int>& tile_ids, 
+                      const std::vector<std::pair<float, float>>& positions,
+                      const std::vector<std::pair<float, float>>& scales = {});
+
 }  // namespace gfx
 }  // namespace yaze
 

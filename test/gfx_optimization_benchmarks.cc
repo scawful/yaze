@@ -306,6 +306,69 @@ TEST_F(GraphicsOptimizationBenchmarks, PerformanceProfilerOverhead) {
   std::cout << "Profiling overhead: " << overhead << " μs" << std::endl;
 }
 
+// Benchmark atlas rendering performance
+TEST_F(GraphicsOptimizationBenchmarks, AtlasRenderingPerformance2) {
+  const int kNumTiles = 100;
+  const int kTileSize = 16;
+  
+  auto& atlas_renderer = AtlasRenderer::Get();
+  auto& profiler = PerformanceProfiler::Get();
+  
+  // Create test tiles
+  std::vector<Bitmap> test_tiles;
+  std::vector<int> atlas_ids;
+  
+  for (int i = 0; i < kNumTiles; ++i) {
+    auto tile_data = CreateTestBitmapData(kTileSize, kTileSize);
+    auto tile_palette = CreateTestPalette();
+    
+    test_tiles.emplace_back(kTileSize, kTileSize, 8, tile_data, tile_palette);
+    
+    // Add to atlas
+    int atlas_id = atlas_renderer.AddBitmap(test_tiles.back());
+    if (atlas_id >= 0) {
+      atlas_ids.push_back(atlas_id);
+    }
+  }
+  
+  // Benchmark individual tile rendering
+  auto start = std::chrono::high_resolution_clock::now();
+  
+  for (int i = 0; i < kNumTiles; ++i) {
+    if (i < atlas_ids.size()) {
+      atlas_renderer.RenderBitmap(atlas_ids[i], i * 20.0f, 0.0f);
+    }
+  }
+  
+  auto end = std::chrono::high_resolution_clock::now();
+  auto individual_duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  
+  // Benchmark batch rendering
+  std::vector<RenderCommand> render_commands;
+  for (size_t i = 0; i < atlas_ids.size(); ++i) {
+    render_commands.emplace_back(atlas_ids[i], i * 20.0f, 100.0f);
+  }
+  
+  start = std::chrono::high_resolution_clock::now();
+  atlas_renderer.RenderBatch(render_commands);
+  end = std::chrono::high_resolution_clock::now();
+  auto batch_duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  
+  // Verify batch rendering is faster
+  EXPECT_LT(batch_duration.count(), individual_duration.count()) 
+      << "Batch rendering should be faster than individual rendering";
+  
+  // Get atlas statistics
+  auto stats = atlas_renderer.GetStats();
+  EXPECT_GT(stats.total_entries, 0) << "Atlas should contain entries";
+  EXPECT_GT(stats.used_entries, 0) << "Atlas should have used entries";
+  
+  std::cout << "Individual rendering: " << individual_duration.count() << " μs" << std::endl;
+  std::cout << "Batch rendering: " << batch_duration.count() << " μs" << std::endl;
+  std::cout << "Atlas entries: " << stats.used_entries << "/" << stats.total_entries << std::endl;
+  std::cout << "Atlas utilization: " << stats.utilization_percent << "%" << std::endl;
+}
+
 // Integration test for overall performance
 TEST_F(GraphicsOptimizationBenchmarks, OverallPerformanceIntegration) {
   const int kGraphicsSheets = 10;
