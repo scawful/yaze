@@ -16,6 +16,8 @@
 #include "app/zelda3/overworld/overworld.h"
 #include "app/editor/overworld/overworld_editor_manager.h"
 #include "imgui/imgui.h"
+#include <mutex>
+#include <chrono>
 
 namespace yaze {
 namespace editor {
@@ -177,6 +179,23 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   absl::Status LoadSpriteGraphics();
 
+  /**
+   * @brief Create textures for deferred map bitmaps on demand
+   * 
+   * This method should be called periodically to create textures for maps
+   * that are needed but haven't had their textures created yet. This allows
+   * for smooth loading without blocking the main thread during ROM loading.
+   */
+  void ProcessDeferredTextures();
+
+  /**
+   * @brief Ensure a specific map has its texture created
+   * 
+   * Call this when a map becomes visible or is about to be rendered.
+   * It will create the texture if it doesn't exist yet.
+   */
+  void EnsureMapTexture(int map_index);
+
   void DrawOverworldProperties();
   void DrawCustomBackgroundColorEditor();
   void DrawOverlayEditor();
@@ -300,6 +319,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> maps_bmp_;
   gfx::BitmapTable current_graphics_set_;
   std::vector<gfx::Bitmap> sprite_previews_;
+  
+  // Deferred texture creation for performance optimization
+  std::vector<gfx::Bitmap*> deferred_map_textures_;
+  std::mutex deferred_textures_mutex_;
 
   zelda3::Overworld overworld_{rom_};
   zelda3::OverworldBlockset refresh_blockset_;

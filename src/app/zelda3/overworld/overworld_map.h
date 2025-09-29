@@ -122,9 +122,12 @@ class OverworldMap : public gfx::GfxContext {
   auto bitmap_data() const { return bitmap_data_; }
   auto is_large_map() const { return large_map_; }
   auto is_initialized() const { return initialized_; }
+  auto is_built() const { return built_; }
   auto parent() const { return parent_; }
   auto mutable_mosaic() { return &mosaic_; }
   auto mutable_current_palette() { return &current_palette_; }
+  
+  void SetNotBuilt() { built_ = false; }
 
   auto area_graphics() const { return area_graphics_; }
   auto area_palette() const { return area_palette_; }

@@ -3,6 +3,7 @@
 
 #include <array>
 #include <vector>
+#include <mutex>
 
 #include "absl/status/status.h"
 #include "app/gfx/snes_tile.h"
@@ -146,6 +147,14 @@ class Overworld {
   absl::Status LoadSprites();
   absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
                                   int sprite_index);
+  
+  /**
+   * @brief Build a map on-demand if it hasn't been built yet
+   * 
+   * This method checks if the specified map needs to be built and builds it
+   * if necessary. Used for lazy loading optimization.
+   */
+  absl::Status EnsureMapBuilt(int map_index);
 
   absl::Status Save(Rom *rom);
   absl::Status SaveOverworldMaps();
@@ -297,6 +306,7 @@ class Overworld {
                         std::vector<uint8_t> &bytes2, int i, int sx, int sy,
                         int &ttpos);
   void DecompressAllMapTiles();
+  absl::Status DecompressAllMapTilesParallel();
 
   Rom *rom_;
 
@@ -310,6 +320,9 @@ class Overworld {
   int current_world_ = 0;
 
   OverworldMapTiles map_tiles_;
+
+  // Thread safety for parallel operations
+  mutable std::mutex map_tiles_mutex_;
 
   std::vector<OverworldMap> overworld_maps_;
   std::vector<OverworldEntrance> all_entrances_;
