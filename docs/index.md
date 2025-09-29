@@ -16,6 +16,7 @@ Yet Another Zelda3 Editor - A comprehensive ROM editor for The Legend of Zelda: 
 - [Platform Compatibility](B2-platform-compatibility.md) - Cross-platform support details
 - [Build Presets](B3-build-presets.md) - CMake preset usage guide
 - [Release Workflows](B4-release-workflows.md) - GitHub Actions release pipeline documentation
+- [Stability Improvements](B5-stability-improvements.md) - Performance optimizations and reliability enhancements
 
 ## Technical Documentation
 
@@ -43,4 +44,4 @@ Yet Another Zelda3 Editor - A comprehensive ROM editor for The Legend of Zelda: 
 
 ---
 
-*Last updated: September 2025 - Version 0.3.0*
+*Last updated: December 2025 - Version 0.3.2*

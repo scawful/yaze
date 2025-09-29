@@ -16,20 +16,25 @@ cmake -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
 ```
 
-### Windows (Recommended)
+### Windows (Recommended - CMake Mode)
 ```powershell
 # Automated setup (first time only)
 .\scripts\setup-windows-dev.ps1
 
-# Generate Visual Studio projects (with proper vcpkg integration)
-python scripts/generate-vs-projects.py
+# Recommended: Use Visual Studio's built-in CMake support
+# 1. Open Visual Studio 2022
+# 2. Select "Open a local folder" 
+# 3. Navigate to the yaze directory
+# 4. Visual Studio will detect CMakeLists.txt automatically
+# 5. Select configuration (Debug/Release) from the dropdown
+# 6. Press F5 to build and run
 
-# Build with Clang (recommended for better Abseil compatibility)
-.\scripts\build-windows.ps1 -Compiler clang
+# Alternative: Command line build
+cmake -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --config Debug
 
-# Or use CMake directly with Clang
-cmake -B build -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
-cmake --build build
+# Legacy: Generate Visual Studio solution (not recommended)
+# python scripts/generate-vs-projects.py  # Less maintainable, use CMake mode instead
 ```
 
 ### Minimal Build (CI/Fast)
@@ -316,26 +321,42 @@ The test system supports Google Test filters for selective execution:
 ## IDE Integration
 
 ### Visual Studio (Windows)
-**Recommended approach:**
+**Recommended approach - CMake Mode:**
 ```powershell
 # Setup development environment
 .\scripts\setup-windows-dev.ps1
 
-# Generate Visual Studio project files (with proper vcpkg integration)
-python scripts/generate-vs-projects.py
-
-# Open YAZE.sln in Visual Studio 2022
-# Select configuration (Debug/Release) and platform (x64/x86/ARM64)
-# Press F5 to build and run
+# Open in Visual Studio 2022
+# 1. File → Open → Folder
+# 2. Navigate to yaze directory
+# 3. Visual Studio detects CMakeLists.txt automatically
+# 4. Select configuration from toolbar (Debug/Release)
+# 5. Press F5 to build and run
 ```
 
+**Why CMake Mode?**
+- ✅ **No project generation step** - CMake files are the source of truth
+- ✅ **Always in sync** - Changes to CMakeLists.txt reflect immediately
+- ✅ **Better IntelliSense** - Direct CMake target understanding
+- ✅ **Native CMake support** - Modern Visual Studio feature
+- ✅ **Simpler workflow** - One less build step to maintain
+- ✅ **Cross-platform consistency** - Same CMake workflow on all platforms
+
 **Features:**
-- Full IntelliSense support
-- Integrated debugging
+- Full IntelliSense support (better than generated projects)
+- Integrated debugging with breakpoint support
 - Automatic vcpkg dependency management (SDL2)
 - Multi-platform support (x64, ARM64)
-- Automatic asset copying
-- Generated project files stay in sync with CMake configuration
+- Automatic asset copying via CMake post-build commands
+- CMakeSettings.json for custom configurations
+
+**Legacy Solution Generation (Not Recommended):**
+If you must use a .sln file (e.g., for CI integration):
+```powershell
+python scripts/generate-vs-projects.py
+# Open generated YAZE.sln
+```
+Note: This approach requires regeneration when CMakeLists.txt changes and is less maintainable.
 
 ### VS Code
 1. Install CMake Tools extension

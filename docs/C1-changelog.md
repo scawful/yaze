@@ -1,5 +1,85 @@
 # Changelog
 
+## 0.3.2 (December 2025) - In Development
+
+### Tile16 Editor Improvements (In Progress)
+
+**Palette System Enhancements:**
+- **Comprehensive Palette Coordination**: Enhanced tile16 editor now properly coordinates with overworld palette system
+- **Sheet-Based Palette Mapping**: Implemented sophisticated palette mapping where different graphics sheets use appropriate palette groups:
+  - Sheets 0, 3-6: AUX palette group
+  - Sheets 1-2: MAIN palette group  
+  - Sheet 7: ANIMATED palette group
+- **Enhanced UI Layout**: Improved scrollable layout with better organization and visual clarity
+- **Right-Click Tile Picking**: New feature to pick tiles directly from the tile16 canvas for quick editing
+- **Save/Discard Workflow**: Implemented proper save/discard workflow that prevents ROM changes until explicit user confirmation
+
+**Known Issues:**
+- ⚠️ Palette display still has some errors with certain sheet configurations (work in progress)
+- Some edge cases in palette group selection need refinement
+
+### Graphics System Optimizations
+
+**Performance Improvements:**
+- **Segmentation Fault Resolution**: Fixed critical crashes in tile16 editor caused by tile cache system using `std::move()` operations that invalidated Bitmap surface pointers
+- **Direct SDL Texture Updates**: Disabled problematic tile cache and implemented direct texture update system for improved stability
+- **Comprehensive Bounds Checking**: Added extensive bounds checking throughout graphics pipeline to prevent crashes and palette corruption
+- **Surface/Texture Pooling**: Implemented graphics optimizations including surface/texture pooling while maintaining system stability
+- **Performance Profiling**: Added performance monitoring and profiling capabilities for graphics operations
+
+### Windows Platform Stability
+
+**Build System Fixes:**
+- **Stack Overflow Fix**: Increased Windows stack size from 1MB to 8MB to match macOS/Linux defaults
+  - Prevents crashes during `EditorManager::LoadAssets()` which loads 223 graphics sheets
+  - Handles deep call stacks from multiple editor initializations
+  - Applied to both `yaze` executable and `yaze_test` test suite
+- **Development Utility Fixes**: Fixed linker errors in `extract_vanilla_values` and `rom_patch_utility` executables
+  - Resolved multiple `main()` definition conflicts
+  - Added proper `yaze_core` library linkage
+  - Prevented CI/release builds from attempting to build development-only utilities
+- **Consistent Cross-Platform Behavior**: Windows builds now have equivalent stack resources and stability as Unix-like systems
+
+### Memory Safety & Stability
+
+**Critical Fixes:**
+- **Bitmap Surface Invalidation**: Root cause analysis and fix for segmentation faults in graphics rendering
+- **Tile Cache System**: Disabled move semantics in tile cache that caused pointer invalidation
+- **Memory Management**: Enhanced RAII patterns and smart pointer usage throughout graphics pipeline
+- **Bounds Verification**: Added comprehensive bounds checking for tile and palette access
+
+### Testing & CI/CD Improvements
+
+**Test Infrastructure:**
+- **Windows Test Reliability**: Fixed test suite crashes by increasing stack size
+- **Development-Only Builds**: Properly isolated development utilities from CI/release builds
+- **Better Error Reporting**: Enhanced error messages for Windows build failures
+- **Cross-Platform Consistency**: Ensured consistent test behavior across all platforms
+
+### Future Optimizations (Planned)
+
+**Graphics System:**
+- Lazy loading of graphics sheets (load on-demand rather than all at once)
+- Heap-based allocation for large data structures instead of stack
+- Streaming/chunked loading for large ROM assets
+- Consider if all 223 sheets need to be in memory simultaneously
+
+**Build System:**
+- Further reduce CI build times
+- Enhanced dependency caching strategies
+- Improved vcpkg integration reliability
+
+### Technical Notes
+
+**Breaking Changes:**
+- None - this is a patch release focused on stability and fixes
+
+**Deprecations:**
+- None
+
+**Migration Guide:**
+- No migration required - this release is fully backward compatible with 0.3.1
+
 ## 0.3.1 (September 2025)
 
 ### Major Features
