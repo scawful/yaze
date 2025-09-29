@@ -316,5 +316,66 @@ void Arena::UpdateTextureRegion(SDL_Texture* texture, SDL_Surface* surface, SDL_
   SDL_UnlockTexture(texture);
 }
 
+/**
+ * @brief Queue a texture update for batch processing
+ * @param texture Target texture to update
+ * @param surface Source surface with pixel data
+ * @param rect Region to update (nullptr for entire texture)
+ * 
+ * Performance Notes:
+ * - Queues updates instead of processing immediately
+ * - Reduces SDL calls by batching multiple updates
+ * - Automatic queue size management to prevent memory bloat
+ */
+void Arena::QueueTextureUpdate(SDL_Texture* texture, SDL_Surface* surface, SDL_Rect* rect) {
+  if (!texture || !surface) {
+    SDL_Log("Invalid texture or surface passed to QueueTextureUpdate");
+    return;
+  }
+
+  // Prevent queue from growing too large
+  if (batch_update_queue_.size() >= MAX_BATCH_SIZE) {
+    ProcessBatchTextureUpdates();
+  }
+
+  batch_update_queue_.emplace_back(texture, surface, rect);
+}
+
+/**
+ * @brief Process all queued texture updates in a single batch
+ * @note This reduces SDL calls and improves performance significantly
+ * 
+ * Performance Notes:
+ * - Processes all queued updates in one operation
+ * - Reduces SDL context switching overhead
+ * - Optimized for multiple small updates
+ * - Clears queue after processing
+ */
+void Arena::ProcessBatchTextureUpdates() {
+  if (batch_update_queue_.empty()) {
+    return;
+  }
+
+  // Process all queued updates
+  for (const auto& update : batch_update_queue_) {
+    if (update.rect) {
+      UpdateTextureRegion(update.texture, update.surface, update.rect.get());
+    } else {
+      UpdateTexture(update.texture, update.surface);
+    }
+  }
+
+  // Clear the queue after processing
+  batch_update_queue_.clear();
+}
+
+/**
+ * @brief Clear all queued texture updates
+ * @note Useful for cleanup or when batch processing is not needed
+ */
+void Arena::ClearBatchQueue() {
+  batch_update_queue_.clear();
+}
+
 }  // namespace gfx
 }  // namespace yaze

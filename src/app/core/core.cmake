@@ -11,7 +11,6 @@ set(
 if (WIN32 OR MINGW OR UNIX AND NOT APPLE)
   list(APPEND YAZE_APP_CORE_SRC
     app/core/platform/font_loader.cc
-    app/core/platform/clipboard.cc
     app/core/platform/file_dialog.cc
   )
 endif()
@@ -23,7 +22,6 @@ if(APPLE)
       app/core/platform/app_delegate.mm
       app/core/platform/font_loader.cc
       app/core/platform/font_loader.mm
-      app/core/platform/clipboard.mm
     )
 
     find_library(COCOA_LIBRARY Cocoa)

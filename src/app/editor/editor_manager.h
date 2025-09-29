@@ -23,6 +23,7 @@
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/emu/emulator.h"
+#include "app/gfx/performance_dashboard.h"
 #include "app/rom.h"
 #include "yaze_config.h"
 
@@ -170,6 +171,7 @@ class EditorManager {
 
   // Testing interface
   bool show_test_dashboard_ = false;
+  bool show_performance_dashboard_ = false;
 
   std::string version_ = "";
   std::string settings_filename_ = "settings.ini";
