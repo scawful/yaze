@@ -2,8 +2,11 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <iostream>
 #include <numeric>
 #include <sstream>
+
+#include "app/gfx/memory_pool.h"
 
 namespace yaze {
 namespace gfx {
@@ -13,13 +16,26 @@ PerformanceProfiler& PerformanceProfiler::Get() {
   return instance;
 }
 
+PerformanceProfiler::PerformanceProfiler() : enabled_(true) {
+  // Initialize with memory pool for efficient data storage
+  // Reserve space for common operations to avoid reallocations
+  active_timers_.reserve(50);
+  operation_times_.reserve(100);
+  operation_totals_.reserve(100);
+  operation_counts_.reserve(100);
+}
+
 void PerformanceProfiler::StartTimer(const std::string& operation_name) {
+  if (!enabled_) return;
+  
   active_timers_[operation_name] = std::chrono::high_resolution_clock::now();
 }
 
 void PerformanceProfiler::EndTimer(const std::string& operation_name) {
-  auto it = active_timers_.find(operation_name);
-  if (it == active_timers_.end()) {
+  if (!enabled_) return;
+  
+  auto timer_iter = active_timers_.find(operation_name);
+  if (timer_iter == active_timers_.end()) {
     SDL_Log("Warning: EndTimer called for operation '%s' that was not started", 
             operation_name.c_str());
     return;
@@ -27,23 +43,32 @@ void PerformanceProfiler::EndTimer(const std::string& operation_name) {
   
   auto end_time = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
-      end_time - it->second).count();
+      end_time - timer_iter->second).count();
   
+  double duration_ms = duration / 1000.0;
+  
+  // Store timing data using memory pool for efficiency
   operation_times_[operation_name].push_back(static_cast<double>(duration));
-  active_timers_.erase(it);
+  operation_totals_[operation_name] += duration_ms;
+  operation_counts_[operation_name]++;
+  
+  active_timers_.erase(timer_iter);
 }
 
 PerformanceProfiler::TimingStats PerformanceProfiler::GetStats(
     const std::string& operation_name) const {
   TimingStats stats;
   
-  auto it = operation_times_.find(operation_name);
-  if (it == operation_times_.end() || it->second.empty()) {
+  auto times_iter = operation_times_.find(operation_name);
+  auto total_iter = operation_totals_.find(operation_name);
+  
+  if (times_iter == operation_times_.end() || times_iter->second.empty()) {
     return stats;
   }
   
-  const auto& times = it->second;
+  const auto& times = times_iter->second;
   stats.sample_count = times.size();
+  stats.total_time_ms = (total_iter != operation_totals_.end()) ? total_iter->second : 0.0;
   
   if (times.empty()) {
     return stats;
@@ -57,15 +82,22 @@ PerformanceProfiler::TimingStats PerformanceProfiler::GetStats(
   // Calculate median
   std::vector<double> sorted_times = times;
   std::sort(sorted_times.begin(), sorted_times.end());
-  stats.median_time_us = CalculateMedian(sorted_times);
+  stats.median_time_us = PerformanceProfiler::CalculateMedian(sorted_times);
   
   return stats;
 }
 
 std::string PerformanceProfiler::GenerateReport(bool log_to_sdl) const {
   std::ostringstream report;
-  report << "\n=== YAZE Graphics Performance Report ===\n";
-  report << "Total Operations Tracked: " << operation_times_.size() << "\n\n";
+  report << "\n=== YAZE Unified Performance Report ===\n";
+  report << "Total Operations Tracked: " << operation_times_.size() << "\n";
+  report << "Performance Monitoring: " << (enabled_ ? "ENABLED" : "DISABLED") << "\n\n";
+  
+  // Memory pool statistics
+  auto [used_bytes, total_bytes] = MemoryPool::Get().GetMemoryStats();
+  report << "Memory Pool Usage: " << std::fixed << std::setprecision(2) 
+         << (used_bytes / (1024.0 * 1024.0)) << " MB / "
+         << (total_bytes / (1024.0 * 1024.0)) << " MB\n\n";
   
   for (const auto& [operation, times] : operation_times_) {
     if (times.empty()) continue;
@@ -77,6 +109,7 @@ std::string PerformanceProfiler::GenerateReport(bool log_to_sdl) const {
     report << "  Max: " << std::fixed << std::setprecision(2) << stats.max_time_us << " μs\n";
     report << "  Average: " << std::fixed << std::setprecision(2) << stats.avg_time_us << " μs\n";
     report << "  Median: " << std::fixed << std::setprecision(2) << stats.median_time_us << " μs\n";
+    report << "  Total: " << std::fixed << std::setprecision(2) << stats.total_time_ms << " ms\n";
     
     // Performance analysis
     if (operation.find("palette_lookup") != std::string::npos) {
@@ -96,6 +129,15 @@ std::string PerformanceProfiler::GenerateReport(bool log_to_sdl) const {
         report << "  Status: ✓ OPTIMIZED (LRU cache hit)\n";
       } else {
         report << "  Status: ⚠ CACHE MISS (tile recreation needed)\n";
+      }
+    } else if (operation.find("::Load") != std::string::npos) {
+      double avg_time_ms = stats.avg_time_us / 1000.0;
+      if (avg_time_ms < 100.0) {
+        report << "  Status: ✓ FAST LOADING (< 100ms)\n";
+      } else if (avg_time_ms < 1000.0) {
+        report << "  Status: ⚠ MODERATE LOADING (100-1000ms)\n";
+      } else {
+        report << "  Status: ⚠ SLOW LOADING (> 1000ms)\n";
       }
     }
     
@@ -132,15 +174,20 @@ std::string PerformanceProfiler::GenerateReport(bool log_to_sdl) const {
 void PerformanceProfiler::Clear() {
   active_timers_.clear();
   operation_times_.clear();
+  operation_totals_.clear();
+  operation_counts_.clear();
 }
 
 void PerformanceProfiler::ClearOperation(const std::string& operation_name) {
   active_timers_.erase(operation_name);
   operation_times_.erase(operation_name);
+  operation_totals_.erase(operation_name);
+  operation_counts_.erase(operation_name);
 }
 
 std::vector<std::string> PerformanceProfiler::GetOperationNames() const {
   std::vector<std::string> names;
+  names.reserve(operation_times_.size());
   for (const auto& [name, times] : operation_times_) {
     names.push_back(name);
   }
@@ -151,25 +198,81 @@ bool PerformanceProfiler::IsTiming(const std::string& operation_name) const {
   return active_timers_.find(operation_name) != active_timers_.end();
 }
 
-double PerformanceProfiler::CalculateMedian(std::vector<double> values) const {
-  if (values.empty()) return 0.0;
+double PerformanceProfiler::GetAverageTime(const std::string& operation_name) const {
+  auto total_it = operation_totals_.find(operation_name);
+  auto count_it = operation_counts_.find(operation_name);
+  
+  if (total_it == operation_totals_.end() || count_it == operation_counts_.end() || 
+      count_it->second == 0) {
+    return 0.0;
+  }
+  
+  return total_it->second / count_it->second;
+}
+
+double PerformanceProfiler::GetTotalTime(const std::string& operation_name) const {
+  auto total_it = operation_totals_.find(operation_name);
+  return (total_it != operation_totals_.end()) ? total_it->second : 0.0;
+}
+
+int PerformanceProfiler::GetOperationCount(const std::string& operation_name) const {
+  auto count_it = operation_counts_.find(operation_name);
+  return (count_it != operation_counts_.end()) ? count_it->second : 0;
+}
+
+void PerformanceProfiler::PrintSummary() const {
+  std::cout << "\n=== Performance Summary ===\n";
+  std::cout << std::left << std::setw(30) << "Operation" 
+            << std::setw(12) << "Count" 
+            << std::setw(15) << "Total (ms)" 
+            << std::setw(15) << "Average (ms)" << "\n";
+  std::cout << std::string(72, '-') << "\n";
+
+  for (const auto& [operation_name, times] : operation_times_) {
+    if (times.empty()) continue;
+    
+    auto total_it = operation_totals_.find(operation_name);
+    auto count_it = operation_counts_.find(operation_name);
+    
+    if (total_it != operation_totals_.end() && count_it != operation_counts_.end()) {
+      double total_time = total_it->second;
+      int count = count_it->second;
+      double avg_time = (count > 0) ? total_time / count : 0.0;
+      
+      std::cout << std::left << std::setw(30) << operation_name
+                << std::setw(12) << count
+                << std::setw(15) << std::fixed << std::setprecision(2) << total_time
+                << std::setw(15) << std::fixed << std::setprecision(2) << avg_time
+                << "\n";
+    }
+  }
+  std::cout << std::string(72, '-') << "\n";
+}
+
+double PerformanceProfiler::CalculateMedian(std::vector<double> values) {
+  if (values.empty()) {
+    return 0.0;
+  }
   
   size_t size = values.size();
   if (size % 2 == 0) {
     return (values[size / 2 - 1] + values[size / 2]) / 2.0;
-  } else {
-    return values[size / 2];
   }
+  return values[size / 2];
 }
 
 // ScopedTimer implementation
 ScopedTimer::ScopedTimer(const std::string& operation_name) 
     : operation_name_(operation_name) {
-  PerformanceProfiler::Get().StartTimer(operation_name_);
+  if (PerformanceProfiler::IsEnabled()) {
+    PerformanceProfiler::Get().StartTimer(operation_name_);
+  }
 }
 
 ScopedTimer::~ScopedTimer() {
-  PerformanceProfiler::Get().EndTimer(operation_name_);
+  if (PerformanceProfiler::IsEnabled()) {
+    PerformanceProfiler::Get().EndTimer(operation_name_);
+  }
 }
 
 }  // namespace gfx

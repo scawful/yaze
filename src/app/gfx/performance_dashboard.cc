@@ -174,7 +174,7 @@ std::string PerformanceDashboard::ExportReport() const {
   return report.str();
 }
 
-void PerformanceDashboard::RenderMetricsPanel() {
+void PerformanceDashboard::RenderMetricsPanel() const {
   ImGui::Text("Performance Metrics");
 
   ImGui::Columns(2, "MetricsColumns");
@@ -199,7 +199,7 @@ void PerformanceDashboard::RenderMetricsPanel() {
   ImGui::Columns(1);
 }
 
-void PerformanceDashboard::RenderOptimizationStatus() {
+void PerformanceDashboard::RenderOptimizationStatus() const {
   ImGui::Text("Optimization Status");
 
   ImGui::Columns(2, "OptimizationColumns");
@@ -307,7 +307,7 @@ void PerformanceDashboard::RenderFrameRateGraph() {
   }
 }
 
-void PerformanceDashboard::RenderRecommendations() {
+void PerformanceDashboard::RenderRecommendations() const {
   ImGui::Text("Performance Recommendations");
 
   auto summary = GetSummary();
@@ -322,6 +322,22 @@ void PerformanceDashboard::RenderRecommendations() {
     }
   }
 
+  // Performance monitoring controls
+  static bool monitoring_enabled = PerformanceProfiler::IsEnabled();
+  if (ImGui::Checkbox("Enable Performance Monitoring", &monitoring_enabled)) {
+    PerformanceProfiler::SetEnabled(monitoring_enabled);
+  }
+  
+  ImGui::SameLine();
+  if (ImGui::Button("Clear All Data")) {
+    PerformanceProfiler::Get().Clear();
+  }
+  
+  ImGui::SameLine();
+  if (ImGui::Button("Generate Report")) {
+    std::string report = PerformanceProfiler::Get().GenerateReport(true);
+  }
+  
   // Export button
   if (ImGui::Button("Export Performance Report")) {
     std::string report = ExportReport();
@@ -332,7 +348,7 @@ void PerformanceDashboard::RenderRecommendations() {
 }
 
 void PerformanceDashboard::CollectMetrics() {
-  // Collect metrics from performance profiler
+  // Collect metrics from unified performance profiler
   auto profiler = PerformanceProfiler::Get();
 
   // Frame time (simplified - in real implementation, measure actual frame time)
@@ -340,7 +356,7 @@ void PerformanceDashboard::CollectMetrics() {
     current_metrics_.frame_time_ms = frame_time_history_.back();
   }
 
-  // Operation timings
+  // Operation timings from various categories
   auto palette_stats = profiler.GetStats("palette_lookup_optimized");
   current_metrics_.palette_lookup_time_us = palette_stats.avg_time_us;
 
@@ -350,16 +366,51 @@ void PerformanceDashboard::CollectMetrics() {
   auto batch_stats = profiler.GetStats("texture_batch_queue");
   current_metrics_.batch_operation_time_us = batch_stats.avg_time_us;
 
-  // Memory usage
+  // Memory usage from memory pool
   auto [used_bytes, total_bytes] = MemoryPool::Get().GetMemoryStats();
   current_metrics_.memory_usage_mb = used_bytes / (1024.0 * 1024.0);
 
-  // Cache hit ratio (simplified calculation)
-  current_metrics_.cache_hit_ratio = 0.85;  // Placeholder
+  // Calculate cache hit ratio based on actual performance data
+  double total_cache_operations = 0.0;
+  double total_cache_time = 0.0;
+  
+  // Look for cache-related operations
+  for (const auto& op_name : profiler.GetOperationNames()) {
+    if (op_name.find("cache") != std::string::npos || 
+        op_name.find("tile_cache") != std::string::npos) {
+      auto stats = profiler.GetStats(op_name);
+      total_cache_operations += stats.sample_count;
+      total_cache_time += stats.total_time_ms;
+    }
+  }
+  
+  // Estimate cache hit ratio based on operation speed
+  if (total_cache_operations > 0) {
+    double avg_cache_time = total_cache_time / total_cache_operations;
+    // Assume cache hits are < 10μs, misses are > 50μs
+    current_metrics_.cache_hit_ratio = std::max(0.0, std::min(1.0, 
+      1.0 - (avg_cache_time - 10.0) / 40.0));
+  } else {
+    current_metrics_.cache_hit_ratio = 0.85;  // Default estimate
+  }
 
-  // Draw calls and texture updates (simplified)
-  current_metrics_.draw_calls_per_frame = 10;      // Placeholder
-  current_metrics_.texture_updates_per_frame = 5;  // Placeholder
+  // Count draw calls and texture updates from profiler data
+  int draw_calls = 0;
+  int texture_updates = 0;
+  
+  for (const auto& op_name : profiler.GetOperationNames()) {
+    if (op_name.find("draw") != std::string::npos || 
+        op_name.find("render") != std::string::npos) {
+      draw_calls += profiler.GetOperationCount(op_name);
+    }
+    if (op_name.find("texture_update") != std::string::npos || 
+        op_name.find("texture") != std::string::npos) {
+      texture_updates += profiler.GetOperationCount(op_name);
+    }
+  }
+  
+  current_metrics_.draw_calls_per_frame = draw_calls;
+  current_metrics_.texture_updates_per_frame = texture_updates;
 
   // Update history
   frame_time_history_.push_back(current_metrics_.frame_time_ms);
@@ -374,14 +425,34 @@ void PerformanceDashboard::CollectMetrics() {
 }
 
 void PerformanceDashboard::UpdateOptimizationStatus() {
-  // Check if optimizations are active (simplified checks)
-  optimization_status_.palette_lookup_optimized =
-      true;  // Assume active if we're using the optimized version
-  optimization_status_.dirty_region_tracking_enabled = true;  // Assume active
-  optimization_status_.resource_pooling_active = true;        // Assume active
-  optimization_status_.batch_operations_enabled = true;       // Assume active
-  optimization_status_.atlas_rendering_enabled = true;        // Now implemented
-  optimization_status_.memory_pool_active = true;        // Assume active
+  auto profiler = PerformanceProfiler::Get();
+  auto [used_bytes, total_bytes] = MemoryPool::Get().GetMemoryStats();
+  
+  // Check optimization status based on actual performance data
+  optimization_status_.palette_lookup_optimized = false;
+  optimization_status_.dirty_region_tracking_enabled = false;
+  optimization_status_.resource_pooling_active = (total_bytes > 0);
+  optimization_status_.batch_operations_enabled = false;
+  optimization_status_.atlas_rendering_enabled = true;  // AtlasRenderer is implemented
+  optimization_status_.memory_pool_active = (total_bytes > 0);
+  
+  // Analyze palette lookup performance
+  auto palette_stats = profiler.GetStats("palette_lookup_optimized");
+  if (palette_stats.avg_time_us > 0 && palette_stats.avg_time_us < 5.0) {
+    optimization_status_.palette_lookup_optimized = true;
+  }
+  
+  // Analyze texture update performance
+  auto texture_stats = profiler.GetStats("texture_update_optimized");
+  if (texture_stats.avg_time_us > 0 && texture_stats.avg_time_us < 200.0) {
+    optimization_status_.dirty_region_tracking_enabled = true;
+  }
+  
+  // Check for batch operations
+  auto batch_stats = profiler.GetStats("texture_batch_queue");
+  if (batch_stats.sample_count > 0) {
+    optimization_status_.batch_operations_enabled = true;
+  }
 }
 
 void PerformanceDashboard::AnalyzePerformance() {
@@ -398,7 +469,7 @@ void PerformanceDashboard::AnalyzePerformance() {
 }
 
 double PerformanceDashboard::CalculateAverage(
-    const std::vector<double>& values) const {
+    const std::vector<double>& values) {
   if (values.empty())
     return 0.0;
 
@@ -410,7 +481,7 @@ double PerformanceDashboard::CalculateAverage(
 }
 
 double PerformanceDashboard::CalculatePercentile(
-    const std::vector<double>& values, double percentile) const {
+    const std::vector<double>& values, double percentile) {
   if (values.empty())
     return 0.0;
 
@@ -426,24 +497,24 @@ double PerformanceDashboard::CalculatePercentile(
   return sorted_values[index];
 }
 
-std::string PerformanceDashboard::FormatTime(double time_us) const {
+std::string PerformanceDashboard::FormatTime(double time_us) {
   if (time_us < 1.0) {
     return std::to_string(static_cast<int>(time_us * 1000.0)) + " ns";
-  } else if (time_us < 1000.0) {
-    return std::to_string(static_cast<int>(time_us)) + " μs";
-  } else {
-    return std::to_string(static_cast<int>(time_us / 1000.0)) + " ms";
   }
+  if (time_us < 1000.0) {
+    return std::to_string(static_cast<int>(time_us)) + " μs";
+  }
+  return std::to_string(static_cast<int>(time_us / 1000.0)) + " ms";
 }
 
-std::string PerformanceDashboard::FormatMemory(size_t bytes) const {
+std::string PerformanceDashboard::FormatMemory(size_t bytes) {
   if (bytes < 1024) {
     return std::to_string(bytes) + " B";
-  } else if (bytes < 1024 * 1024) {
-    return std::to_string(bytes / 1024) + " KB";
-  } else {
-    return std::to_string(bytes / (1024 * 1024)) + " MB";
   }
+  if (bytes < 1024 * 1024) {
+    return std::to_string(bytes / 1024) + " KB";
+  }
+  return std::to_string(bytes / (1024 * 1024)) + " MB";
 }
 
 std::string PerformanceDashboard::GetOptimizationRecommendation() const {
@@ -451,13 +522,14 @@ std::string PerformanceDashboard::GetOptimizationRecommendation() const {
 
   if (summary.optimization_score >= 90) {
     return "Performance is excellent. All optimizations are active.";
-  } else if (summary.optimization_score >= 70) {
-    return "Performance is good. Consider enabling remaining optimizations.";
-  } else if (summary.optimization_score >= 50) {
-    return "Performance is fair. Several optimizations are available.";
-  } else {
-    return "Performance needs improvement. Enable graphics optimizations.";
   }
+  if (summary.optimization_score >= 70) {
+    return "Performance is good. Consider enabling remaining optimizations.";
+  }
+  if (summary.optimization_score >= 50) {
+    return "Performance is fair. Several optimizations are available.";
+  }
+  return "Performance needs improvement. Enable graphics optimizations.";
 }
 
 }  // namespace gfx

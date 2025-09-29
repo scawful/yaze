@@ -3,6 +3,7 @@
 #include <SDL.h>
 
 #include <cstdint>
+#include <cstring>  // for memcpy
 #include <span>
 #include <stdexcept>
 
@@ -74,7 +75,9 @@ Bitmap::Bitmap(const Bitmap& other)
     surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                            GetSnesPixelFormat(BitmapFormat::kIndexed));
     if (surface_) {
-      surface_->pixels = pixel_data_;
+      SDL_LockSurface(surface_);
+      memcpy(surface_->pixels, pixel_data_, data_.size());
+      SDL_UnlockSurface(surface_);
     }
   }
 }
@@ -95,7 +98,9 @@ Bitmap& Bitmap::operator=(const Bitmap& other) {
       surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                              GetSnesPixelFormat(BitmapFormat::kIndexed));
       if (surface_) {
-        surface_->pixels = pixel_data_;
+        SDL_LockSurface(surface_);
+        memcpy(surface_->pixels, pixel_data_, data_.size());
+        SDL_UnlockSurface(surface_);
       }
     }
   }
@@ -205,9 +210,12 @@ void Bitmap::Create(int width, int height, int depth, int format,
     return;
   }
   
-  // Safe surface pixel assignment - direct pointer approach works best
+  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer assignment
+  // Direct assignment breaks SDL's memory management and causes malloc errors on shutdown
   if (surface_ && data_.size() > 0) {
-    surface_->pixels = pixel_data_;
+    SDL_LockSurface(surface_);
+    memcpy(surface_->pixels, pixel_data_, data_.size());
+    SDL_UnlockSurface(surface_);
   }
   active_ = true;
 }
@@ -216,9 +224,11 @@ void Bitmap::Reformat(int format) {
   surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                           GetSnesPixelFormat(format));
   
-  // Safe surface pixel assignment 
+  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer assignment
   if (surface_ && data_.size() > 0) {
-    surface_->pixels = pixel_data_;
+    SDL_LockSurface(surface_);
+    memcpy(surface_->pixels, pixel_data_, data_.size());
+    SDL_UnlockSurface(surface_);
   }
   active_ = true;
   SetPalette(palette_);
@@ -452,10 +462,16 @@ void Bitmap::WriteToPixel(int position, uint8_t value) {
     return;
   }
   
-  // CRITICAL FIX: Simplified pixel writing without complex surface synchronization
-  // Since surface_->pixels points directly to pixel_data_, we only need to update data_
-  pixel_data_[position] = value;
+  // CRITICAL FIX: Update both data_ and surface_ properly
   data_[position] = value;
+  pixel_data_[position] = value;
+  
+  // Update surface if it exists
+  if (surface_) {
+    SDL_LockSurface(surface_);
+    static_cast<uint8_t*>(surface_->pixels)[position] = value;
+    SDL_UnlockSurface(surface_);
+  }
   
   // Mark as modified for traditional update path
   modified_ = true;
@@ -488,12 +504,19 @@ void Bitmap::WriteColor(int position, const ImVec4 &color) {
   Uint8 index =
       SDL_MapRGB(surface_->format, sdl_color.r, sdl_color.g, sdl_color.b);
 
-  // Simplified pixel writing without complex surface synchronization
+  // CRITICAL FIX: Update both data_ and surface_ properly
   if (pixel_data_ == nullptr) {
     pixel_data_ = data_.data();
   }
-  pixel_data_[position] = index;
   data_[position] = ConvertRgbToSnes(color);
+  pixel_data_[position] = index;
+  
+  // Update surface if it exists
+  if (surface_) {
+    SDL_LockSurface(surface_);
+    static_cast<uint8_t*>(surface_->pixels)[position] = index;
+    SDL_UnlockSurface(surface_);
+  }
   
   modified_ = true;
 }
@@ -556,13 +579,19 @@ void Bitmap::SetPixel(int x, int y, const SnesColor& color) {
   
   int position = y * width_ + x;
   if (position >= 0 && position < static_cast<int>(data_.size())) {
-    // Simplified pixel writing without complex surface synchronization
     uint8_t color_index = FindColorIndex(color);
     data_[position] = color_index;
     
     // Update pixel_data_ to maintain consistency
     if (pixel_data_) {
       pixel_data_[position] = color_index;
+    }
+    
+    // Update surface if it exists
+    if (surface_) {
+      SDL_LockSurface(surface_);
+      static_cast<uint8_t*>(surface_->pixels)[position] = color_index;
+      SDL_UnlockSurface(surface_);
     }
     
     // Update dirty region for efficient texture updates
@@ -600,7 +629,9 @@ void Bitmap::Resize(int new_width, int new_height) {
   surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                          GetSnesPixelFormat(BitmapFormat::kIndexed));
   if (surface_) {
-    surface_->pixels = pixel_data_;
+    SDL_LockSurface(surface_);
+    memcpy(surface_->pixels, pixel_data_, data_.size());
+    SDL_UnlockSurface(surface_);
     active_ = true;
   } else {
     active_ = false;
@@ -677,9 +708,11 @@ void Bitmap::set_data(const std::vector<uint8_t> &data) {
   data_ = data;
   pixel_data_ = data_.data();
   
-  // Safe surface pixel assignment - direct pointer assignment works reliably
+  // CRITICAL FIX: Use proper SDL surface operations instead of direct pointer assignment
   if (surface_ && !data_.empty()) {
-    surface_->pixels = pixel_data_;
+    SDL_LockSurface(surface_);
+    memcpy(surface_->pixels, pixel_data_, data_.size());
+    SDL_UnlockSurface(surface_);
   }
   
   modified_ = true;
