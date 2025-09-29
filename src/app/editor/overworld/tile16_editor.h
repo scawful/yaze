@@ -229,7 +229,7 @@ class Tile16Editor : public gfx::GfxContext {
   // Tile8 canvas to get the tile to drawing in the tile16_edit_canvas_
   gui::Canvas tile8_source_canvas_{
       "Tile8SourceCanvas",
-      ImVec2(gfx::kTilesheetWidth * 4, gfx::kTilesheetHeight * 0x10 * 4),
+      ImVec2(gfx::kTilesheetWidth * 8, gfx::kTilesheetHeight * 0x10 * 8),
       gui::CanvasGridSize::k32x32};
   gfx::Bitmap current_gfx_bmp_;
 
