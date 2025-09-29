@@ -211,6 +211,11 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
   
   // Calculate scaled canvas bounds
   ImVec2 scaled_size = CanvasUtils::CalculateScaledCanvasSize(canvas_sz_, config_.global_scale);
+  
+  // CRITICAL FIX: Ensure minimum size to prevent ImGui assertions
+  if (scaled_size.x <= 0.0f) scaled_size.x = 1.0f;
+  if (scaled_size.y <= 0.0f) scaled_size.y = 1.0f;
+  
   canvas_p1_ = ImVec2(canvas_p0_.x + scaled_size.x, canvas_p0_.y + scaled_size.y);
 
   // Draw border and background color
@@ -672,6 +677,7 @@ void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap *bitmap,
 bool Canvas::DrawTileSelector(int size, int size_y) {
   const ImGuiIO &io = GetIO();
   const bool is_hovered = IsItemHovered();
+  is_hovered_ = is_hovered;
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
   if (size_y == 0) {
