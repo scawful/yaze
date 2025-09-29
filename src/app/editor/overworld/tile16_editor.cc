@@ -338,16 +338,13 @@ absl::Status Tile16Editor::RefreshTile16Blockset() {
     return absl::FailedPreconditionError("Tile16 blockset not available");
   }
 
-  // Force regeneration of the blockset atlas from ROM tile16 data
-  // This ensures the blockset reflects any changes made to individual tiles
-
-  // Clear cached tiles to force regeneration
-  tile16_blockset_->tile_cache.Clear();
-
+  // CRITICAL FIX: Force regeneration without using problematic tile cache
+  // Directly mark atlas as modified to trigger regeneration from ROM data
+  
   // Mark atlas as modified to trigger regeneration
   tile16_blockset_->atlas.set_modified(true);
 
-  // Update the atlas bitmap
+  // Update the atlas bitmap using the safer direct approach
   core::Renderer::Get().UpdateBitmap(&tile16_blockset_->atlas);
 
   util::logf("Tile16 blockset refreshed and regenerated");
@@ -1084,12 +1081,11 @@ absl::Status Tile16Editor::CopyTile16ToClipboard(int tile_id) {
     return absl::InvalidArgumentError("Invalid tile ID");
   }
 
-  // Create a copy of the tile16 bitmap
-  gfx::RenderTile(*tile16_blockset_, tile_id);
-  auto* cached_tile = tile16_blockset_->tile_cache.GetTile(tile_id);
-  if (cached_tile) {
-    clipboard_tile16_.Create(16, 16, 8, cached_tile->vector());
-    clipboard_tile16_.SetPalette(cached_tile->palette());
+  // CRITICAL FIX: Extract tile data directly from atlas instead of using problematic tile cache
+  auto tile_data = gfx::GetTilemapData(*tile16_blockset_, tile_id);
+  if (!tile_data.empty()) {
+    clipboard_tile16_.Create(16, 16, 8, tile_data);
+    clipboard_tile16_.SetPalette(tile16_blockset_->atlas.palette());
   }
   core::Renderer::Get().RenderBitmap(&clipboard_tile16_);
 
@@ -1497,10 +1493,8 @@ absl::Status Tile16Editor::UpdateOverworldTilemap() {
     return absl::OutOfRangeError("Current tile16 ID out of range");
   }
 
-  // Update the tilemap with our modified bitmap
-  // Create a copy to avoid moving the original bitmap
-  gfx::Bitmap tile_copy = current_tile16_bmp_;
-  tile16_blockset_->tile_cache.CacheTile(current_tile16_, std::move(tile_copy));
+  // CRITICAL FIX: Update atlas directly instead of using problematic tile cache
+  // This prevents the move-related crashes we experienced earlier
 
   // Update the atlas if needed
   if (tile16_blockset_->atlas.is_active()) {

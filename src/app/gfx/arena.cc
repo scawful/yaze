@@ -18,22 +18,8 @@ Arena::Arena() {
 }
 
 Arena::~Arena() {
-  // Safely clear all resources with proper error checking
-  for (auto& [key, texture] : textures_) {
-    // Don't rely on unique_ptr deleter during shutdown - manually manage
-    if (texture && key) {
-      [[maybe_unused]] auto* released = texture.release(); // Release ownership to prevent double deletion
-    }
-  }
-  textures_.clear();
-  
-  for (auto& [key, surface] : surfaces_) {
-    // Don't rely on unique_ptr deleter during shutdown - manually manage
-    if (surface && key) {
-      [[maybe_unused]] auto* released = surface.release(); // Release ownership to prevent double deletion
-    }
-  }
-  surfaces_.clear();
+  // Use the safe shutdown method that handles cleanup properly
+  Shutdown();
 }
 
 /**
@@ -102,13 +88,22 @@ void Arena::FreeTexture(SDL_Texture* texture) {
 }
 
 void Arena::Shutdown() {
-  // Clear all resources safely - let the unique_ptr deleters handle the cleanup
-  // while SDL context is still available
+  // Process any remaining batch updates before shutdown
+  ProcessBatchTextureUpdates();
   
-  // Just clear the containers - the unique_ptr destructors will handle SDL cleanup
-  // This avoids double-free issues from manual destruction
+  // Clear pool references first to prevent reuse during shutdown
+  surface_pool_.available_surfaces_.clear();
+  surface_pool_.surface_info_.clear();
+  texture_pool_.available_textures_.clear();
+  texture_pool_.texture_sizes_.clear();
+  
+  // CRITICAL FIX: Clear containers in reverse order to prevent cleanup issues
+  // This ensures that dependent resources are freed before their dependencies
   textures_.clear();
   surfaces_.clear();
+  
+  // Clear any remaining queue items
+  batch_update_queue_.clear();
 }
 
 /**
