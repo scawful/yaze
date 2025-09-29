@@ -105,150 +105,221 @@ $(document).ready(function(){initNavTree('dungeon__room__loader_8cc_source.html'
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;map&gt;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="snes__palette_8h.html">app/gfx/snes_palette.h</a>&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="room_8h.html">app/zelda3/dungeon/room.h</a>&quot;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;future&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;thread&gt;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;mutex&gt;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1editor.html">yaze::editor</a> {</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
-<div class="foldopen" id="foldopen00011" data-start="{" data-end="}">
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a34ff16de29d8f3a3b97fd52bd673c79e">   11</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a34ff16de29d8f3a3b97fd52bd673c79e">DungeonRoomLoader::LoadAllRooms</a>(std::array&lt;zelda3::Room, 0x128&gt;&amp; rooms) {</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a> || !<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a>()) {</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  }</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <span class="keyword">auto</span> dungeon_man_pal_group = <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7">palette_group</a>().dungeon_main;</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 0x100 + 40; i++) {</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    rooms[i] = <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9">zelda3::LoadRoomFromRom</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>, i);</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="keyword">auto</span> room_size = <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a62286f1cb2eebc9d5834551ead453371">zelda3::CalculateRoomSize</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>, i);</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a3cb5c3d7bb2cfc8b14dce64e4e888152">room_size_pointers_</a>.push_back(room_size.room_size_pointer);</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">room_sizes_</a>.push_back(room_size.room_size);</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    <span class="keywordflow">if</span> (room_size.room_size_pointer != 0x0A8000) {</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a3af7b9dc0d9849d60837b74718cf3b2f">room_size_addresses_</a>[i] = room_size.room_size_pointer;</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    }</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    rooms[i].LoadObjects();</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keyword">auto</span> dungeon_palette_ptr = <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_variable" href="classyaze_1_1Rom.html#a68851333f172b0958ea6a27e46534260">paletteset_ids</a>[rooms[i].palette][0];</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="keyword">auto</span> palette_id = <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e">ReadWord</a>(0xDEC4B + dungeon_palette_ptr);</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="keywordflow">if</span> (palette_id.status() != absl::OkStatus()) {</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    }</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keywordtype">int</span> p_id = palette_id.value() / 180;</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keyword">auto</span> color = dungeon_man_pal_group[p_id][3];</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ace2ff1490b46c030d44505094a46416f">room_palette_</a>[rooms[i].palette] = color.rgb();</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  }</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a88e8f7ad6540b2d58da03d54328a026b">LoadDungeonRoomSize</a>();</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>}</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="performance__monitor_8h.html">app/core/performance_monitor.h</a>&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="snes__palette_8h.html">app/gfx/snes_palette.h</a>&quot;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="room_8h.html">app/zelda3/dungeon/room.h</a>&quot;</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;<a class="code" href="log_8h.html">util/log.h</a>&quot;</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze_1_1editor.html">yaze::editor</a> {</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="foldopen" id="foldopen00016" data-start="{" data-end="}">
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a34ff16de29d8f3a3b97fd52bd673c79e">   16</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a34ff16de29d8f3a3b97fd52bd673c79e">DungeonRoomLoader::LoadAllRooms</a>(std::array&lt;zelda3::Room, 0x128&gt;&amp; rooms) {</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a> || !<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a>()) {</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  }</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  </div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <span class="keyword">constexpr</span> <span class="keywordtype">int</span> kTotalRooms = 0x100 + 40; <span class="comment">// 296 rooms</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  <span class="keyword">constexpr</span> <span class="keywordtype">int</span> kMaxConcurrency = 8; <span class="comment">// Reasonable thread limit for room loading</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  </div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="comment">// Determine optimal number of threads</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> max_concurrency = std::min(kMaxConcurrency, </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>                                       <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(std::thread::hardware_concurrency()));</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> rooms_per_thread = (kTotalRooms + max_concurrency - 1) / max_concurrency;</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  util::logf(<span class="stringliteral">&quot;Loading %d dungeon rooms using %d threads (%d rooms per thread)&quot;</span>, </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>             kTotalRooms, max_concurrency, rooms_per_thread);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="comment">// Thread-safe data structures for collecting results</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  std::mutex results_mutex;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  std::vector&lt;std::pair&lt;int, zelda3::RoomSize&gt;&gt; room_size_results;</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  std::vector&lt;std::pair&lt;int, ImVec4&gt;&gt; room_palette_results;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="comment">// Process rooms in parallel batches</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  std::vector&lt;std::future&lt;absl::Status&gt;&gt; futures;</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> thread_id = 0; thread_id &lt; max_concurrency; ++thread_id) {</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keyword">auto</span> task = [<span class="keyword">this</span>, &amp;rooms, thread_id, rooms_per_thread, &amp;results_mutex, </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>                 &amp;room_size_results, &amp;room_palette_results, kTotalRooms]() -&gt; absl::Status {</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>      <span class="keyword">const</span> <span class="keywordtype">int</span> start_room = thread_id * rooms_per_thread;</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>      <span class="keyword">const</span> <span class="keywordtype">int</span> end_room = std::min(start_room + rooms_per_thread, kTotalRooms);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>      </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>      <span class="keyword">auto</span> dungeon_man_pal_group = <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7">palette_group</a>().dungeon_main;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>      </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = start_room; i &lt; end_room; ++i) {</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        <span class="comment">// Load room data (this is the expensive operation)</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        rooms[i] = <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9">zelda3::LoadRoomFromRom</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>, i);</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        </div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        <span class="comment">// Calculate room size</span></div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keyword">auto</span> room_size = <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a62286f1cb2eebc9d5834551ead453371">zelda3::CalculateRoomSize</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>, i);</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="comment">// Load room objects</span></div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        rooms[i].LoadObjects();</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        </div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="comment">// Process palette</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="keyword">auto</span> dungeon_palette_ptr = <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_variable" href="classyaze_1_1Rom.html#a68851333f172b0958ea6a27e46534260">paletteset_ids</a>[rooms[i].palette][0];</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        <span class="keyword">auto</span> palette_id = <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e">ReadWord</a>(0xDEC4B + dungeon_palette_ptr);</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        <span class="keywordflow">if</span> (palette_id.status() == absl::OkStatus()) {</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>          <span class="keywordtype">int</span> p_id = palette_id.value() / 180;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>          <span class="keyword">auto</span> color = dungeon_man_pal_group[p_id][3];</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>          </div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>          <span class="comment">// Thread-safe collection of results</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>          {</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>            std::lock_guard&lt;std::mutex&gt; lock(results_mutex);</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>            room_size_results.emplace_back(i, room_size);</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>            room_palette_results.emplace_back(rooms[i].palette, color.rgb());</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>          }</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        }</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      }</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      </div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    };</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    futures.emplace_back(std::async(std::launch::async, task));</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  }</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  <span class="comment">// Wait for all threads to complete</span></div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  <span class="keywordflow">for</span> (<span class="keyword">auto</span>&amp; future : futures) {</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <a class="code hl_define" href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(future.get());</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  }</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  <span class="comment">// Process collected results on main thread</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  {</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <a class="code hl_class" href="classyaze_1_1core_1_1ScopedTimer.html">core::ScopedTimer</a> postprocess_timer(<span class="stringliteral">&quot;DungeonRoomLoader::PostProcessResults&quot;</span>);</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    </div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    <span class="comment">// Sort results by room ID for consistent ordering</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    std::sort(room_size_results.begin(), room_size_results.end(), </div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>              [](<span class="keyword">const</span> <span class="keyword">auto</span>&amp; a, <span class="keyword">const</span> <span class="keyword">auto</span>&amp; b) { return a.first &lt; b.first; });</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    std::sort(room_palette_results.begin(), room_palette_results.end(),</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>              [](<span class="keyword">const</span> <span class="keyword">auto</span>&amp; a, <span class="keyword">const</span> <span class="keyword">auto</span>&amp; b) { return a.first &lt; b.first; });</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    </div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="comment">// Process room size results</span></div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [room_id, room_size] : room_size_results) {</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a3cb5c3d7bb2cfc8b14dce64e4e888152">room_size_pointers_</a>.push_back(room_size.room_size_pointer);</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">room_sizes_</a>.push_back(room_size.room_size);</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>      <span class="keywordflow">if</span> (room_size.room_size_pointer != 0x0A8000) {</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a3af7b9dc0d9849d60837b74718cf3b2f">room_size_addresses_</a>[room_id] = room_size.room_size_pointer;</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>      }</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    }</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    </div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    <span class="comment">// Process palette results</span></div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [palette_id, color] : room_palette_results) {</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>      <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ace2ff1490b46c030d44505094a46416f">room_palette_</a>[palette_id] = color;</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    }</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  }</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>  </div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a88e8f7ad6540b2d58da03d54328a026b">LoadDungeonRoomSize</a>();</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>}</div>
 </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="foldopen" id="foldopen00044" data-start="{" data-end="}">
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a2b009f29c6b6b54364ee01122259d7b8">   44</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a2b009f29c6b6b54364ee01122259d7b8">DungeonRoomLoader::LoadRoomEntrances</a>(std::array&lt;zelda3::RoomEntrance, 0x8C&gt;&amp; entrances) {</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a> || !<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a>()) {</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  }</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  <span class="comment">// Load entrances</span></div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 0x07; ++i) {</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    entrances[i] = <a class="code hl_class" href="classyaze_1_1zelda3_1_1RoomEntrance.html">zelda3::RoomEntrance</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>, i, <span class="keyword">true</span>);</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  }</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 0x85; ++i) {</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    entrances[i + 0x07] = <a class="code hl_class" href="classyaze_1_1zelda3_1_1RoomEntrance.html">zelda3::RoomEntrance</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>, i, <span class="keyword">false</span>);</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  }</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  </div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>}</div>
-</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
-<div class="foldopen" id="foldopen00061" data-start="{" data-end="}">
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a88e8f7ad6540b2d58da03d54328a026b">   61</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a88e8f7ad6540b2d58da03d54328a026b">DungeonRoomLoader::LoadDungeonRoomSize</a>() {</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  std::map&lt;int, std::vector&lt;int&gt;&gt; rooms_by_bank;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; room : <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a3af7b9dc0d9849d60837b74718cf3b2f">room_size_addresses_</a>) {</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <span class="keywordtype">int</span> bank = room.second &gt;&gt; 16;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    rooms_by_bank[bank].push_back(room.second);</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  }</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  <span class="comment">// Process and calculate room sizes within each bank</span></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  <span class="keywordflow">for</span> (<span class="keyword">auto</span>&amp; bank_rooms : rooms_by_bank) {</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    std::ranges::sort(bank_rooms.second);</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; bank_rooms.second.size(); ++i) {</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      <span class="keywordtype">int</span> room_ptr = bank_rooms.second[i];</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      <span class="comment">// Identify the room ID for the current room pointer</span></div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      <span class="keywordtype">int</span> room_id =</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>          std::ranges::find_if(<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a3af7b9dc0d9849d60837b74718cf3b2f">room_size_addresses_</a>, [room_ptr](</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>                                                         <span class="keyword">const</span> <span class="keyword">auto</span>&amp; entry) {</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>            <span class="keywordflow">return</span> entry.second == room_ptr;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>          })-&gt;first;</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      <span class="keywordflow">if</span> (room_ptr != 0x0A8000) {</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>        <span class="keywordflow">if</span> (i &lt; bank_rooms.second.size() - 1) {</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>          <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">room_sizes_</a>[room_id] = bank_rooms.second[i + 1] - room_ptr;</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>        } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>          <span class="keywordtype">int</span> bank_end_address = (bank_rooms.first &lt;&lt; 16) | 0xFFFF;</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>          <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">room_sizes_</a>[room_id] = bank_end_address - room_ptr + 1;</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>        }</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#afd0117cb5491218bdd42ec18010a1d44">total_room_size_</a> += <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">room_sizes_</a>[room_id];</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">room_sizes_</a>[room_id] = 0x00;</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>      }</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    }</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  }</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>}</div>
-</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
-<div class="foldopen" id="foldopen00097" data-start="{" data-end="}">
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3">   97</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3">DungeonRoomLoader::LoadAndRenderRoomGraphics</a>(<span class="keywordtype">int</span> room_id, <a class="code hl_class" href="classyaze_1_1zelda3_1_1Room.html">zelda3::Room</a>&amp; room) {</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a> || !<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a>()) {</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  }</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  </div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>  <span class="comment">// Load room graphics with proper blockset</span></div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  room.<a class="code hl_function" href="classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141">LoadRoomGraphics</a>(room.<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#a7f28ab5f2e45c473d8c21b9b451f37af">blockset</a>);</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  </div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  <span class="comment">// Render the room graphics to the graphics arena</span></div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  room.<a class="code hl_function" href="classyaze_1_1zelda3_1_1Room.html#a90a5706117083d42136fa54adc2e59a2">RenderRoomGraphics</a>();</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  </div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>}</div>
-</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span> </div>
-<div class="foldopen" id="foldopen00111" data-start="{" data-end="}">
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a46d3ee807f7a9aaaec118255611b71f2">  111</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a46d3ee807f7a9aaaec118255611b71f2">DungeonRoomLoader::ReloadAllRoomGraphics</a>(std::array&lt;zelda3::Room, 0x128&gt;&amp; rooms) {</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a> || !<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a>()) {</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>  }</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  </div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>  <span class="comment">// Reload graphics for all rooms</span></div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; rooms.size(); ++i) {</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    <span class="keyword">auto</span> status = <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3">LoadAndRenderRoomGraphics</a>(<span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(i), rooms[i]);</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>      <span class="keywordflow">continue</span>; <span class="comment">// Log error but continue with other rooms</span></div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    }</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span> </div>
+<div class="foldopen" id="foldopen00114" data-start="{" data-end="}">
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a2b009f29c6b6b54364ee01122259d7b8">  114</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a2b009f29c6b6b54364ee01122259d7b8">DungeonRoomLoader::LoadRoomEntrances</a>(std::array&lt;zelda3::RoomEntrance, 0x8C&gt;&amp; entrances) {</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a> || !<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a>()) {</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  }</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  </div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>  <span class="comment">// Load entrances</span></div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 0x07; ++i) {</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    entrances[i] = <a class="code hl_class" href="classyaze_1_1zelda3_1_1RoomEntrance.html">zelda3::RoomEntrance</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>, i, <span class="keyword">true</span>);</div>
 <div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  }</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  </div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>}</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 0x85; ++i) {</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    entrances[i + 0x07] = <a class="code hl_class" href="classyaze_1_1zelda3_1_1RoomEntrance.html">zelda3::RoomEntrance</a>(<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>, i, <span class="keyword">false</span>);</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>  }</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  </div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>}</div>
 </div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>}  <span class="comment">// namespace yaze::editor</span></div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span> </div>
+<div class="foldopen" id="foldopen00131" data-start="{" data-end="}">
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a88e8f7ad6540b2d58da03d54328a026b">  131</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a88e8f7ad6540b2d58da03d54328a026b">DungeonRoomLoader::LoadDungeonRoomSize</a>() {</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  std::map&lt;int, std::vector&lt;int&gt;&gt; rooms_by_bank;</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; room : <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a3af7b9dc0d9849d60837b74718cf3b2f">room_size_addresses_</a>) {</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    <span class="keywordtype">int</span> bank = room.second &gt;&gt; 16;</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    rooms_by_bank[bank].push_back(room.second);</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  }</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  <span class="comment">// Process and calculate room sizes within each bank</span></div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  <span class="keywordflow">for</span> (<span class="keyword">auto</span>&amp; bank_rooms : rooms_by_bank) {</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    std::ranges::sort(bank_rooms.second);</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span> </div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; bank_rooms.second.size(); ++i) {</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>      <span class="keywordtype">int</span> room_ptr = bank_rooms.second[i];</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>      <span class="comment">// Identify the room ID for the current room pointer</span></div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>      <span class="keywordtype">int</span> room_id =</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>          std::ranges::find_if(<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a3af7b9dc0d9849d60837b74718cf3b2f">room_size_addresses_</a>, [room_ptr](</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>                                                         <span class="keyword">const</span> <span class="keyword">auto</span>&amp; entry) {</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>            <span class="keywordflow">return</span> entry.second == room_ptr;</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>          })-&gt;first;</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span> </div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>      <span class="keywordflow">if</span> (room_ptr != 0x0A8000) {</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>        <span class="keywordflow">if</span> (i &lt; bank_rooms.second.size() - 1) {</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>          <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">room_sizes_</a>[room_id] = bank_rooms.second[i + 1] - room_ptr;</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>          <span class="keywordtype">int</span> bank_end_address = (bank_rooms.first &lt;&lt; 16) | 0xFFFF;</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>          <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">room_sizes_</a>[room_id] = bank_end_address - room_ptr + 1;</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>        }</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#afd0117cb5491218bdd42ec18010a1d44">total_room_size_</a> += <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">room_sizes_</a>[room_id];</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>      } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>        <a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">room_sizes_</a>[room_id] = 0x00;</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>      }</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    }</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>  }</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>}</div>
+</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span> </div>
+<div class="foldopen" id="foldopen00167" data-start="{" data-end="}">
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3">  167</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3">DungeonRoomLoader::LoadAndRenderRoomGraphics</a>(<span class="keywordtype">int</span> room_id, <a class="code hl_class" href="classyaze_1_1zelda3_1_1Room.html">zelda3::Room</a>&amp; room) {</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a> || !<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a>()) {</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  }</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  </div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  <span class="comment">// Load room graphics with proper blockset</span></div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>  room.<a class="code hl_function" href="classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141">LoadRoomGraphics</a>(room.<a class="code hl_variable" href="classyaze_1_1zelda3_1_1Room.html#a7f28ab5f2e45c473d8c21b9b451f37af">blockset</a>);</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  </div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  <span class="comment">// Render the room graphics to the graphics arena</span></div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  room.<a class="code hl_function" href="classyaze_1_1zelda3_1_1Room.html#a90a5706117083d42136fa54adc2e59a2">RenderRoomGraphics</a>();</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  </div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>}</div>
+</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span> </div>
+<div class="foldopen" id="foldopen00181" data-start="{" data-end="}">
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno"><a class="line" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a46d3ee807f7a9aaaec118255611b71f2">  181</a></span>absl::Status <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a46d3ee807f7a9aaaec118255611b71f2">DungeonRoomLoader::ReloadAllRoomGraphics</a>(std::array&lt;zelda3::Room, 0x128&gt;&amp; rooms) {</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a> || !<a class="code hl_variable" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">rom_</a>-&gt;<a class="code hl_function" href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a>()) {</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  }</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>  </div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  <span class="comment">// Reload graphics for all rooms</span></div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; rooms.size(); ++i) {</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keyword">auto</span> status = <a class="code hl_function" href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3">LoadAndRenderRoomGraphics</a>(<span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(i), rooms[i]);</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>      <span class="keywordflow">continue</span>; <span class="comment">// Log error but continue with other rooms</span></div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    }</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>  }</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  </div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>}</div>
+</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span> </div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>}  <span class="comment">// namespace yaze::editor</span></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a30ec716ea7eafc1fff75856ab67e27f7"><div class="ttname"><a href="classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7">yaze::Rom::palette_group</a></div><div class="ttdeci">auto palette_group() const</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00188">rom.h:188</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a68851333f172b0958ea6a27e46534260"><div class="ttname"><a href="classyaze_1_1Rom.html#a68851333f172b0958ea6a27e46534260">yaze::Rom::paletteset_ids</a></div><div class="ttdeci">std::array&lt; std::array&lt; uint8_t, 4 &gt;, kNumPalettesets &gt; paletteset_ids</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00203">rom.h:203</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a6bd8ce3b192c32b2ed6c58f7b154787e"><div class="ttname"><a href="classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e">yaze::Rom::ReadWord</a></div><div class="ttdeci">absl::StatusOr&lt; uint16_t &gt; ReadWord(int offset)</div><div class="ttdef"><b>Definition</b> <a href="rom_8cc_source.html#l00514">rom.cc:514</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_ae35b7dfe4f08ce24c7ee566ed5d3100d"><div class="ttname"><a href="classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">yaze::Rom::is_loaded</a></div><div class="ttdeci">bool is_loaded() const</div><div class="ttdef"><b>Definition</b> <a href="rom_8h_source.html#l00173">rom.h:173</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a0337638649ca484208e9643854c10ee3"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3">yaze::editor::DungeonRoomLoader::LoadAndRenderRoomGraphics</a></div><div class="ttdeci">absl::Status LoadAndRenderRoomGraphics(int room_id, zelda3::Room &amp;room)</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8cc_source.html#l00097">dungeon_room_loader.cc:97</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a2b009f29c6b6b54364ee01122259d7b8"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a2b009f29c6b6b54364ee01122259d7b8">yaze::editor::DungeonRoomLoader::LoadRoomEntrances</a></div><div class="ttdeci">absl::Status LoadRoomEntrances(std::array&lt; zelda3::RoomEntrance, 0x8C &gt; &amp;entrances)</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8cc_source.html#l00044">dungeon_room_loader.cc:44</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a34ff16de29d8f3a3b97fd52bd673c79e"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a34ff16de29d8f3a3b97fd52bd673c79e">yaze::editor::DungeonRoomLoader::LoadAllRooms</a></div><div class="ttdeci">absl::Status LoadAllRooms(std::array&lt; zelda3::Room, 0x128 &gt; &amp;rooms)</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8cc_source.html#l00011">dungeon_room_loader.cc:11</a></div></div>
+<div class="ttc" id="aclassyaze_1_1core_1_1ScopedTimer_html"><div class="ttname"><a href="classyaze_1_1core_1_1ScopedTimer.html">yaze::core::ScopedTimer</a></div><div class="ttdoc">RAII timer that automatically records operation duration.</div><div class="ttdef"><b>Definition</b> <a href="performance__monitor_8h_source.html#l00105">performance_monitor.h:105</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a0337638649ca484208e9643854c10ee3"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3">yaze::editor::DungeonRoomLoader::LoadAndRenderRoomGraphics</a></div><div class="ttdeci">absl::Status LoadAndRenderRoomGraphics(int room_id, zelda3::Room &amp;room)</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8cc_source.html#l00167">dungeon_room_loader.cc:167</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a2b009f29c6b6b54364ee01122259d7b8"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a2b009f29c6b6b54364ee01122259d7b8">yaze::editor::DungeonRoomLoader::LoadRoomEntrances</a></div><div class="ttdeci">absl::Status LoadRoomEntrances(std::array&lt; zelda3::RoomEntrance, 0x8C &gt; &amp;entrances)</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8cc_source.html#l00114">dungeon_room_loader.cc:114</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a34ff16de29d8f3a3b97fd52bd673c79e"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a34ff16de29d8f3a3b97fd52bd673c79e">yaze::editor::DungeonRoomLoader::LoadAllRooms</a></div><div class="ttdeci">absl::Status LoadAllRooms(std::array&lt; zelda3::Room, 0x128 &gt; &amp;rooms)</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8cc_source.html#l00016">dungeon_room_loader.cc:16</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a3af7b9dc0d9849d60837b74718cf3b2f"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a3af7b9dc0d9849d60837b74718cf3b2f">yaze::editor::DungeonRoomLoader::room_size_addresses_</a></div><div class="ttdeci">std::unordered_map&lt; int, int &gt; room_size_addresses_</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8h_source.html#l00048">dungeon_room_loader.h:48</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a3cb5c3d7bb2cfc8b14dce64e4e888152"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a3cb5c3d7bb2cfc8b14dce64e4e888152">yaze::editor::DungeonRoomLoader::room_size_pointers_</a></div><div class="ttdeci">std::vector&lt; int64_t &gt; room_size_pointers_</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8h_source.html#l00046">dungeon_room_loader.h:46</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a46d3ee807f7a9aaaec118255611b71f2"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a46d3ee807f7a9aaaec118255611b71f2">yaze::editor::DungeonRoomLoader::ReloadAllRoomGraphics</a></div><div class="ttdeci">absl::Status ReloadAllRoomGraphics(std::array&lt; zelda3::Room, 0x128 &gt; &amp;rooms)</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8cc_source.html#l00111">dungeon_room_loader.cc:111</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a88e8f7ad6540b2d58da03d54328a026b"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a88e8f7ad6540b2d58da03d54328a026b">yaze::editor::DungeonRoomLoader::LoadDungeonRoomSize</a></div><div class="ttdeci">void LoadDungeonRoomSize()</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8cc_source.html#l00061">dungeon_room_loader.cc:61</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a46d3ee807f7a9aaaec118255611b71f2"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a46d3ee807f7a9aaaec118255611b71f2">yaze::editor::DungeonRoomLoader::ReloadAllRoomGraphics</a></div><div class="ttdeci">absl::Status ReloadAllRoomGraphics(std::array&lt; zelda3::Room, 0x128 &gt; &amp;rooms)</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8cc_source.html#l00181">dungeon_room_loader.cc:181</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_a88e8f7ad6540b2d58da03d54328a026b"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#a88e8f7ad6540b2d58da03d54328a026b">yaze::editor::DungeonRoomLoader::LoadDungeonRoomSize</a></div><div class="ttdeci">void LoadDungeonRoomSize()</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8cc_source.html#l00131">dungeon_room_loader.cc:131</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_ab90c18ad742af568bd9cdd131e037417"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ab90c18ad742af568bd9cdd131e037417">yaze::editor::DungeonRoomLoader::room_sizes_</a></div><div class="ttdeci">std::vector&lt; int64_t &gt; room_sizes_</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8h_source.html#l00047">dungeon_room_loader.h:47</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_ac6a4823af9d58b0a934eefa33fc01140"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ac6a4823af9d58b0a934eefa33fc01140">yaze::editor::DungeonRoomLoader::rom_</a></div><div class="ttdeci">Rom * rom_</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8h_source.html#l00044">dungeon_room_loader.h:44</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1DungeonRoomLoader_html_ace2ff1490b46c030d44505094a46416f"><div class="ttname"><a href="classyaze_1_1editor_1_1DungeonRoomLoader.html#ace2ff1490b46c030d44505094a46416f">yaze::editor::DungeonRoomLoader::room_palette_</a></div><div class="ttdeci">std::unordered_map&lt; int, ImVec4 &gt; room_palette_</div><div class="ttdef"><b>Definition</b> <a href="dungeon__room__loader_8h_source.html#l00049">dungeon_room_loader.h:49</a></div></div>
@@ -259,9 +330,12 @@ $(document).ready(function(){initNavTree('dungeon__room__loader_8cc_source.html'
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1Room_html_a7f28ab5f2e45c473d8c21b9b451f37af"><div class="ttname"><a href="classyaze_1_1zelda3_1_1Room.html#a7f28ab5f2e45c473d8c21b9b451f37af">yaze::zelda3::Room::blockset</a></div><div class="ttdeci">uint8_t blockset</div><div class="ttdef"><b>Definition</b> <a href="room_8h_source.html#l00309">room.h:309</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1Room_html_a90a5706117083d42136fa54adc2e59a2"><div class="ttname"><a href="classyaze_1_1zelda3_1_1Room.html#a90a5706117083d42136fa54adc2e59a2">yaze::zelda3::Room::RenderRoomGraphics</a></div><div class="ttdeci">void RenderRoomGraphics()</div><div class="ttdef"><b>Definition</b> <a href="room_8cc_source.html#l00286">room.cc:286</a></div></div>
 <div class="ttc" id="adungeon__room__loader_8h_html"><div class="ttname"><a href="dungeon__room__loader_8h.html">dungeon_room_loader.h</a></div></div>
+<div class="ttc" id="alog_8h_html"><div class="ttname"><a href="log_8h.html">log.h</a></div></div>
+<div class="ttc" id="amacro_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="macro_8h_source.html#l00053">macro.h:53</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1editor_html"><div class="ttname"><a href="namespaceyaze_1_1editor.html">yaze::editor</a></div><div class="ttdoc">Editors are the view controllers for the application.</div><div class="ttdef"><b>Definition</b> <a href="assembly__editor_8cc_source.html#l00012">assembly_editor.cc:12</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a62286f1cb2eebc9d5834551ead453371"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#a62286f1cb2eebc9d5834551ead453371">yaze::zelda3::CalculateRoomSize</a></div><div class="ttdeci">RoomSize CalculateRoomSize(Rom *rom, int room_id)</div><div class="ttdef"><b>Definition</b> <a href="room_8cc_source.html#l00020">room.cc:20</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_aa0d397af98a0f5652a8741144abc15e9"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9">yaze::zelda3::LoadRoomFromRom</a></div><div class="ttdeci">Room LoadRoomFromRom(Rom *rom, int room_id)</div><div class="ttdef"><b>Definition</b> <a href="room_8cc_source.html#l00080">room.cc:80</a></div></div>
+<div class="ttc" id="aperformance__monitor_8h_html"><div class="ttname"><a href="performance__monitor_8h.html">performance_monitor.h</a></div></div>
 <div class="ttc" id="aroom_8h_html"><div class="ttname"><a href="room_8h.html">room.h</a></div></div>
 <div class="ttc" id="asnes__palette_8h_html"><div class="ttname"><a href="snes__palette_8h.html">snes_palette.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->

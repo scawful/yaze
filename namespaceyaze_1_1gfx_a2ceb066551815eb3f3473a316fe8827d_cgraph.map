@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,59,234,33,235,38,139,65"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a7a4eaa09fc2375d4fc438296ef20ac3d" title=" " alt="" coords="238,55,361,96"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,73,222,73,222,78,170,78"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title=" " alt="" coords="231,121,368,161"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title="Update existing texture on main thread." alt="" coords="231,121,368,161"/>
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="132,86,217,113,216,118,131,91"/>
 <area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068" title=" " alt="" coords="429,63,577,88"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="362,73,413,73,413,78,362,78"/>

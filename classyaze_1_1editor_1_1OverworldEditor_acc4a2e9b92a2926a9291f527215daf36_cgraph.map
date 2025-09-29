@@ -4,8 +4,6 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,41,279,36,280,41,240,46"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed" title=" " alt="" coords="288,71,471,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="240,71,273,75,272,80,240,76"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="519,49,682,75"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="471,76,503,72,504,77,472,81"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1zelda3_1_1Overworld.html#a7035830b7589452ca012eae392aa7aed" title=" " alt="" coords="523,99,678,139"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="472,100,508,105,507,110,471,105"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1OverworldEditor.html#a6fdddbe4c23e52f94391f02af3725bb2" title="On&#45;demand map refresh that only updates what&#39;s actually needed." alt="" coords="519,71,740,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="471,88,503,88,503,94,471,94"/>
 </map>

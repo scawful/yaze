@@ -2,7 +2,6 @@ var classyaze_1_1cli_1_1ModernCLI =
 [
     [ "ModernCLI", "classyaze_1_1cli_1_1ModernCLI.html#a927f1cc0020ff6b5a9d5a8a40d6d568e", null ],
     [ "SetupCommands", "classyaze_1_1cli_1_1ModernCLI.html#a7eca5c1ea2d7713cff409387373b4b07", null ],
-    [ "ShowVersion", "classyaze_1_1cli_1_1ModernCLI.html#aa3cae979f76354c42faa566e28b6e214", null ],
     [ "ShowHelp", "classyaze_1_1cli_1_1ModernCLI.html#aaa5a170269ef131ddf8f8e8fe5da51a2", null ],
     [ "RunCommand", "classyaze_1_1cli_1_1ModernCLI.html#a42bb0104df2a60491e8f170b2902276f", null ],
     [ "HandleAsarCommand", "classyaze_1_1cli_1_1ModernCLI.html#af377df2d635fc13ae2d5682e9bfe602e", null ],

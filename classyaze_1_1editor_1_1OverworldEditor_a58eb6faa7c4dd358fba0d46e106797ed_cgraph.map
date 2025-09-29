@@ -1,11 +1,8 @@
 <map id="yaze::editor::OverworldEditor::RefreshOverworldMap" name="yaze::editor::OverworldEditor::RefreshOverworldMap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,89,189,129"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="247,5,410,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,85,236,41,258,33,260,38,238,46,139,90"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Overworld.html#a7035830b7589452ca012eae392aa7aed" title=" " alt="" coords="251,55,406,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,93,235,86,236,92,189,98"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560" title=" " alt="" coords="237,121,420,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="189,119,221,123,221,129,188,124"/>
-<area shape="rect" id="Node000009" href="$classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a" title=" " alt="" coords="260,186,397,227"/>
-<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="142,127,238,170,255,177,253,182,236,175,140,132"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,189,70"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1OverworldEditor.html#a6fdddbe4c23e52f94391f02af3725bb2" title="On&#45;demand map refresh that only updates what&#39;s actually needed." alt="" coords="237,29,458,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1OverworldEditor.html#adac2da0e5bfc87f31ae50e5c4c3edd2e" title="On&#45;demand child map refresh with selective updates." alt="" coords="506,29,697,70"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="458,47,491,47,491,52,458,52"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="554,29,552,19,560,10,576,5,602,3,629,5,645,11,643,16,628,10,602,8,577,10,562,15,557,21,559,28"/>
 </map>

@@ -116,15 +116,25 @@ $(document).ready(function(){initNavTree('classyaze_1_1core_1_1Renderer.html',''
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad9822300e9d48fac8aaa30c481966b58" id="r_ad9822300e9d48fac8aaa30c481966b58"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html#ad9822300e9d48fac8aaa30c481966b58">CreateRenderer</a> (SDL_Window *window)</td></tr>
+<tr class="memdesc:ad9822300e9d48fac8aaa30c481966b58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the SDL renderer on the main thread.  <br /></td></tr>
 <tr class="separator:ad9822300e9d48fac8aaa30c481966b58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9486fe9b2a29dae3f97a585da5fb036" id="r_ab9486fe9b2a29dae3f97a585da5fb036"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html#ab9486fe9b2a29dae3f97a585da5fb036">renderer</a> () -&gt; SDL_Renderer *</td></tr>
 <tr class="separator:ab9486fe9b2a29dae3f97a585da5fb036"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8aa2548cc92e136c2eb83ad5b349eb9" id="r_af8aa2548cc92e136c2eb83ad5b349eb9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9">RenderBitmap</a> (<a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> *bitmap)</td></tr>
+<tr class="memdesc:af8aa2548cc92e136c2eb83ad5b349eb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create texture for bitmap on main thread.  <br /></td></tr>
 <tr class="separator:af8aa2548cc92e136c2eb83ad5b349eb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a571c9b2494fb642abf7c8ddfe809334a" id="r_a571c9b2494fb642abf7c8ddfe809334a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html#a571c9b2494fb642abf7c8ddfe809334a">UpdateBitmap</a> (<a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> *bitmap)</td></tr>
+<tr class="memdesc:a571c9b2494fb642abf7c8ddfe809334a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update existing texture on main thread.  <br /></td></tr>
 <tr class="separator:a571c9b2494fb642abf7c8ddfe809334a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d5a59f3505536cfb25b54a54c1d855d" id="r_a0d5a59f3505536cfb25b54a54c1d855d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html#a0d5a59f3505536cfb25b54a54c1d855d">CreateAndRenderBitmap</a> (int width, int height, int depth, const std::vector&lt; uint8_t &gt; &amp;data, <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;bitmap, <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
+<tr class="memdesc:a0d5a59f3505536cfb25b54a54c1d855d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create bitmap and immediately create texture (blocking operation)  <br /></td></tr>
 <tr class="separator:a0d5a59f3505536cfb25b54a54c1d855d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac69199fda24d90b1cf8c387f3e6363f1" id="r_ac69199fda24d90b1cf8c387f3e6363f1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html#ac69199fda24d90b1cf8c387f3e6363f1">CreateBitmapWithoutTexture</a> (int width, int height, int depth, const std::vector&lt; uint8_t &gt; &amp;data, <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;bitmap, <a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;palette)</td></tr>
+<tr class="memdesc:ac69199fda24d90b1cf8c387f3e6363f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create bitmap without creating texture (non-blocking)  <br /></td></tr>
+<tr class="separator:ac69199fda24d90b1cf8c387f3e6363f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a537d1f15e9b94b242d4964c58b5651f3" id="r_a537d1f15e9b94b242d4964c58b5651f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html#a537d1f15e9b94b242d4964c58b5651f3">BatchCreateTextures</a> (std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> * &gt; &amp;bitmaps)</td></tr>
+<tr class="memdesc:a537d1f15e9b94b242d4964c58b5651f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Batch create textures for multiple bitmaps.  <br /></td></tr>
+<tr class="separator:a537d1f15e9b94b242d4964c58b5651f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab67317aeec1530597f99599ab0489ac8" id="r_ab67317aeec1530597f99599ab0489ac8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html#ab67317aeec1530597f99599ab0489ac8">Clear</a> ()</td></tr>
 <tr class="separator:ab67317aeec1530597f99599ab0489ac8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad0537d6180745ffe6a92b4e0ae9c5dc6" id="r_ad0537d6180745ffe6a92b4e0ae9c5dc6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1core_1_1Renderer.html#ad0537d6180745ffe6a92b4e0ae9c5dc6">Present</a> ()</td></tr>
@@ -151,9 +161,19 @@ Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The <a class="el" href="classyaze_1_1core_1_1Renderer.html" title="The Renderer class represents the renderer for the Yaze application.">Renderer</a> class represents the renderer for the Yaze application. </p>
-<p>This class is a singleton that provides functionality for creating and rendering bitmaps to the screen. It also includes methods for updating bitmaps on the screen. </p>
+<p>This class is a singleton that provides functionality for creating and rendering bitmaps to the screen. It also includes methods for updating bitmaps on the screen.</p>
+<p>IMPORTANT: This class MUST be used only on the main thread because:</p><ol type="1">
+<li>SDL_Renderer operations are not thread-safe</li>
+<li>OpenGL/DirectX contexts are bound to the creating thread</li>
+<li>Texture creation and rendering must happen on the main UI thread</li>
+</ol>
+<p>For performance optimization during ROM loading:</p><ul>
+<li>Use deferred texture creation (CreateBitmapWithoutTexture) for bulk operations</li>
+<li>Batch texture creation operations when possible</li>
+<li>Consider background processing of bitmap data before texture creation </li>
+</ul>
 
-<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00035">35</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00045">45</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac8762d7ca064094faf9603be575caf07" name="ac8762d7ca064094faf9603be575caf07"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac8762d7ca064094faf9603be575caf07">&#9670;&#160;</a></span>Renderer() <span class="overload">[1/2]</span></h2>
@@ -230,9 +250,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00037">37</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00047">47</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas__utils_8cc_source.html#l00098">yaze::gui::CanvasUtils::ApplyPaletteGroup()</a>, <a class="el" href="enhanced__palette__editor_8cc_source.html#l00153">yaze::gui::EnhancedPaletteEditor::ApplyROMPalette()</a>, <a class="el" href="inventory_8cc_source.html#l00076">yaze::zelda3::Inventory::BuildTileset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00989">yaze::editor::OverworldEditor::CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03249">yaze::editor::OverworldEditor::ClearScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01277">yaze::editor::Tile16Editor::ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01522">yaze::editor::Tile16Editor::CommitChangesToBlockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01070">yaze::editor::Tile16Editor::CopyTile16ToClipboard()</a>, <a class="el" href="inventory_8cc_source.html#l00013">yaze::zelda3::Inventory::Create()</a>, <a class="el" href="tilemap_8cc_source.html#l00012">yaze::gfx::CreateTilemap()</a>, <a class="el" href="window_8cc_source.html#l00019">yaze::core::CreateWindow()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">yaze::editor::Tile16Editor::CyclePalette()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00745">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00769">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="controller_8cc_source.html#l00072">yaze::core::Controller::DoRender()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01220">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="canvas_8cc_source.html#l00864">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00505">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="canvas_8cc_source.html#l00238">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="message__editor_8cc_source.html#l00324">yaze::editor::MessageEditor::DrawMessagePreview()</a>, <a class="el" href="dungeon__object__selector_8cc_source.html#l00047">yaze::editor::DungeonObjectSelector::DrawObjectRenderer()</a>, <a class="el" href="overworld__editor_8cc_source.html#l02879">yaze::editor::OverworldEditor::DrawScratchSpace()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00538">yaze::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="canvas_8cc_source.html#l00527">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00503">yaze::editor::Tile16Editor::DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01240">yaze::editor::Tile16Editor::FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01141">yaze::editor::Tile16Editor::FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01174">yaze::editor::Tile16Editor::FlipTile16Vertical()</a>, <a class="el" href="editor__integration__test_8cc_source.html#l00040">yaze::test::EditorIntegrationTest::Initialize()</a>, <a class="el" href="message__editor_8cc_source.html#l00062">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">yaze::editor::Tile16Editor::Initialize()</a>, <a class="el" href="rom_8cc_source.html#l00135">yaze::LoadAllGraphicsData()</a>, <a class="el" href="screen__editor_8cc_source.html#l00387">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00164">yaze::zelda3::LoadDungeonMapGfxFromBinary()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00099">yaze::zelda3::LoadDungeonMapTile16()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01536">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01585">yaze::editor::OverworldEditor::LoadSpriteGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01114">yaze::editor::Tile16Editor::LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01087">yaze::editor::Tile16Editor::PasteTile16FromClipboard()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01329">yaze::editor::Tile16Editor::PreviewPaletteChange()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01413">yaze::editor::Tile16Editor::Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01632">yaze::editor::Tile16Editor::RefreshAllPalettes()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00154">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01621">yaze::editor::OverworldEditor::RefreshOverworldMap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00334">yaze::editor::Tile16Editor::RefreshTile16Blockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00412">yaze::editor::Tile16Editor::RegenerateTile16BitmapFromROM()</a>, <a class="el" href="dungeon__canvas__viewer_8cc_source.html#l00154">yaze::editor::DungeonCanvasViewer::RenderObjectInCanvas()</a>, <a class="el" href="dungeon__renderer_8cc_source.html#l00012">yaze::editor::DungeonRenderer::RenderObjectInCanvas()</a>, <a class="el" href="room_8cc_source.html#l00286">yaze::zelda3::Room::RenderRoomGraphics()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00042">yaze::gfx::RenderTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01207">yaze::editor::Tile16Editor::RotateTile16()</a>, <a class="el" href="emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>, <a class="el" href="test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03155">yaze::editor::OverworldEditor::SaveCurrentSelectionToScratch()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01100">yaze::editor::Tile16Editor::SaveTile16ToScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00996">yaze::editor::Tile16Editor::SetCurrentTile()</a>, <a class="el" href="tile16__editor__test_8cc_source.html#l00034">yaze::editor::test::Tile16EditorIntegrationTest::SetUp()</a>, <a class="el" href="window_8cc_source.html#l00084">yaze::core::ShutdownWindow()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01382">yaze::editor::Tile16Editor::Undo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00355">yaze::editor::Tile16Editor::UpdateBlocksetBitmap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00242">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01478">yaze::editor::Tile16Editor::UpdateOverworldTilemap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00339">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>, <a class="el" href="dungeon__canvas__viewer_8cc_source.html#l00595">yaze::editor::DungeonCanvasViewer::UpdateRoomBackgroundLayers()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03105">yaze::editor::OverworldEditor::UpdateScratchBitmapTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00059">yaze::gfx::UpdateTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00646">yaze::editor::Tile16Editor::UpdateTile16Edit()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01572">yaze::editor::Tile16Editor::UpdateTile8Palette()</a>, and <a class="el" href="tilemap_8cc_source.html#l00025">yaze::gfx::UpdateTilemap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="canvas__utils_8cc_source.html#l00098">yaze::gui::CanvasUtils::ApplyPaletteGroup()</a>, <a class="el" href="enhanced__palette__editor_8cc_source.html#l00153">yaze::gui::EnhancedPaletteEditor::ApplyROMPalette()</a>, <a class="el" href="inventory_8cc_source.html#l00076">yaze::zelda3::Inventory::BuildTileset()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01021">yaze::editor::OverworldEditor::CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03530">yaze::editor::OverworldEditor::ClearScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01277">yaze::editor::Tile16Editor::ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01522">yaze::editor::Tile16Editor::CommitChangesToBlockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01070">yaze::editor::Tile16Editor::CopyTile16ToClipboard()</a>, <a class="el" href="inventory_8cc_source.html#l00013">yaze::zelda3::Inventory::Create()</a>, <a class="el" href="tilemap_8cc_source.html#l00012">yaze::gfx::CreateTilemap()</a>, <a class="el" href="window_8cc_source.html#l00019">yaze::core::CreateWindow()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">yaze::editor::Tile16Editor::CyclePalette()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00745">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00769">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="controller_8cc_source.html#l00072">yaze::core::Controller::DoRender()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01258">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="canvas_8cc_source.html#l00864">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00505">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="canvas_8cc_source.html#l00238">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="message__editor_8cc_source.html#l00328">yaze::editor::MessageEditor::DrawMessagePreview()</a>, <a class="el" href="dungeon__object__selector_8cc_source.html#l00047">yaze::editor::DungeonObjectSelector::DrawObjectRenderer()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03160">yaze::editor::OverworldEditor::DrawScratchSpace()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00538">yaze::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="canvas_8cc_source.html#l00527">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00503">yaze::editor::Tile16Editor::DrawToCurrentTile16()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01781">yaze::editor::OverworldEditor::EnsureMapTexture()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01240">yaze::editor::Tile16Editor::FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01141">yaze::editor::Tile16Editor::FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01174">yaze::editor::Tile16Editor::FlipTile16Vertical()</a>, <a class="el" href="editor__integration__test_8cc_source.html#l00040">yaze::test::EditorIntegrationTest::Initialize()</a>, <a class="el" href="message__editor_8cc_source.html#l00063">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">yaze::editor::Tile16Editor::Initialize()</a>, <a class="el" href="rom_8cc_source.html#l00135">yaze::LoadAllGraphicsData()</a>, <a class="el" href="screen__editor_8cc_source.html#l00390">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00164">yaze::zelda3::LoadDungeonMapGfxFromBinary()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00099">yaze::zelda3::LoadDungeonMapTile16()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01574">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01688">yaze::editor::OverworldEditor::LoadSpriteGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01114">yaze::editor::Tile16Editor::LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01087">yaze::editor::Tile16Editor::PasteTile16FromClipboard()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01329">yaze::editor::Tile16Editor::PreviewPaletteChange()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01709">yaze::editor::OverworldEditor::ProcessDeferredTextures()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01413">yaze::editor::Tile16Editor::Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01632">yaze::editor::Tile16Editor::RefreshAllPalettes()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01871">yaze::editor::OverworldEditor::RefreshChildMapOnDemand()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00173">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00334">yaze::editor::Tile16Editor::RefreshTile16Blockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00412">yaze::editor::Tile16Editor::RegenerateTile16BitmapFromROM()</a>, <a class="el" href="dungeon__canvas__viewer_8cc_source.html#l00154">yaze::editor::DungeonCanvasViewer::RenderObjectInCanvas()</a>, <a class="el" href="dungeon__renderer_8cc_source.html#l00012">yaze::editor::DungeonRenderer::RenderObjectInCanvas()</a>, <a class="el" href="room_8cc_source.html#l00286">yaze::zelda3::Room::RenderRoomGraphics()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00042">yaze::gfx::RenderTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01207">yaze::editor::Tile16Editor::RotateTile16()</a>, <a class="el" href="emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>, <a class="el" href="test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03436">yaze::editor::OverworldEditor::SaveCurrentSelectionToScratch()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01100">yaze::editor::Tile16Editor::SaveTile16ToScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00996">yaze::editor::Tile16Editor::SetCurrentTile()</a>, <a class="el" href="tile16__editor__test_8cc_source.html#l00034">yaze::editor::test::Tile16EditorIntegrationTest::SetUp()</a>, <a class="el" href="window_8cc_source.html#l00084">yaze::core::ShutdownWindow()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01382">yaze::editor::Tile16Editor::Undo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00355">yaze::editor::Tile16Editor::UpdateBlocksetBitmap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00242">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01478">yaze::editor::Tile16Editor::UpdateOverworldTilemap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00339">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>, <a class="el" href="dungeon__canvas__viewer_8cc_source.html#l00595">yaze::editor::DungeonCanvasViewer::UpdateRoomBackgroundLayers()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03386">yaze::editor::OverworldEditor::UpdateScratchBitmapTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00059">yaze::gfx::UpdateTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00646">yaze::editor::Tile16Editor::UpdateTile16Edit()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01572">yaze::editor::Tile16Editor::UpdateTile8Palette()</a>, and <a class="el" href="tilemap_8cc_source.html#l00025">yaze::gfx::UpdateTilemap()</a>.</p>
 
 </div>
 </div>
@@ -260,9 +280,12 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00042">42</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+<p>Initialize the SDL renderer on the main thread. </p>
+<p>This MUST be called from the main thread as SDL renderer operations are not thread-safe and require the OpenGL/DirectX context to be bound to the calling thread. </p>
 
-<p class="reference">References <a class="el" href="window_8h_source.html#l00082">renderer_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00059">59</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+
+<p class="reference">References <a class="el" href="window_8h_source.html#l00147">renderer_</a>.</p>
 
 </div>
 </div>
@@ -289,9 +312,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00054">54</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00071">71</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
 
-<p class="reference">References <a class="el" href="window_8h_source.html#l00082">renderer_</a>.</p>
+<p class="reference">References <a class="el" href="window_8h_source.html#l00147">renderer_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="window_8cc_source.html#l00019">yaze::core::CreateWindow()</a>, <a class="el" href="editor__integration__test_8cc_source.html#l00040">yaze::test::EditorIntegrationTest::Initialize()</a>, and <a class="el" href="test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>.</p>
 
@@ -321,17 +344,20 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00056">56</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+<p>Create texture for bitmap on main thread. </p>
+<p>This operation blocks the main thread and should be used sparingly during bulk loading operations. Consider using CreateBitmapWithoutTexture followed by batch texture creation. </p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00219">yaze::gfx::Bitmap::CreateTexture()</a>, and <a class="el" href="window_8h_source.html#l00082">renderer_</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00080">80</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="inventory_8cc_source.html#l00076">yaze::zelda3::Inventory::BuildTileset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01070">yaze::editor::Tile16Editor::CopyTile16ToClipboard()</a>, <a class="el" href="inventory_8cc_source.html#l00013">yaze::zelda3::Inventory::Create()</a>, <a class="el" href="window_8h_source.html#l00064">CreateAndRenderBitmap()</a>, <a class="el" href="tilemap_8cc_source.html#l00012">yaze::gfx::CreateTilemap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00745">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00769">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="canvas_8cc_source.html#l00864">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00505">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="dungeon__object__selector_8cc_source.html#l00047">yaze::editor::DungeonObjectSelector::DrawObjectRenderer()</a>, <a class="el" href="overworld__editor_8cc_source.html#l02879">yaze::editor::OverworldEditor::DrawScratchSpace()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00538">yaze::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="canvas_8cc_source.html#l00527">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">yaze::editor::Tile16Editor::Initialize()</a>, <a class="el" href="screen__editor_8cc_source.html#l00387">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00164">yaze::zelda3::LoadDungeonMapGfxFromBinary()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00099">yaze::zelda3::LoadDungeonMapTile16()</a>, <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01585">yaze::editor::OverworldEditor::LoadSpriteGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01114">yaze::editor::Tile16Editor::LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01087">yaze::editor::Tile16Editor::PasteTile16FromClipboard()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00412">yaze::editor::Tile16Editor::RegenerateTile16BitmapFromROM()</a>, <a class="el" href="dungeon__canvas__viewer_8cc_source.html#l00154">yaze::editor::DungeonCanvasViewer::RenderObjectInCanvas()</a>, <a class="el" href="dungeon__renderer_8cc_source.html#l00012">yaze::editor::DungeonRenderer::RenderObjectInCanvas()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00042">yaze::gfx::RenderTile16()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03155">yaze::editor::OverworldEditor::SaveCurrentSelectionToScratch()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01100">yaze::editor::Tile16Editor::SaveTile16ToScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00996">yaze::editor::Tile16Editor::SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00646">yaze::editor::Tile16Editor::UpdateTile16Edit()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00219">yaze::gfx::Bitmap::CreateTexture()</a>, and <a class="el" href="window_8h_source.html#l00147">renderer_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="inventory_8cc_source.html#l00076">yaze::zelda3::Inventory::BuildTileset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01070">yaze::editor::Tile16Editor::CopyTile16ToClipboard()</a>, <a class="el" href="inventory_8cc_source.html#l00013">yaze::zelda3::Inventory::Create()</a>, <a class="el" href="window_8h_source.html#l00098">CreateAndRenderBitmap()</a>, <a class="el" href="tilemap_8cc_source.html#l00012">yaze::gfx::CreateTilemap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00745">yaze::editor::GraphicsEditor::DecompressImportData()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00769">yaze::editor::GraphicsEditor::DecompressSuperDonkey()</a>, <a class="el" href="canvas_8cc_source.html#l00864">yaze::gui::Canvas::DrawBitmapGroup()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00505">yaze::editor::GraphicsEditor::DrawCgxImport()</a>, <a class="el" href="dungeon__object__selector_8cc_source.html#l00047">yaze::editor::DungeonObjectSelector::DrawObjectRenderer()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03160">yaze::editor::OverworldEditor::DrawScratchSpace()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00538">yaze::editor::GraphicsEditor::DrawScrImport()</a>, <a class="el" href="canvas_8cc_source.html#l00527">yaze::gui::Canvas::DrawTilemapPainter()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01781">yaze::editor::OverworldEditor::EnsureMapTexture()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00027">yaze::editor::Tile16Editor::Initialize()</a>, <a class="el" href="screen__editor_8cc_source.html#l00390">yaze::editor::ScreenEditor::LoadBinaryGfx()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00164">yaze::zelda3::LoadDungeonMapGfxFromBinary()</a>, <a class="el" href="dungeon__map_8cc_source.html#l00099">yaze::zelda3::LoadDungeonMapTile16()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01574">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="rom_8cc_source.html#l00058">yaze::LoadLinkGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01688">yaze::editor::OverworldEditor::LoadSpriteGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01114">yaze::editor::Tile16Editor::LoadTile16FromScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01087">yaze::editor::Tile16Editor::PasteTile16FromClipboard()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01709">yaze::editor::OverworldEditor::ProcessDeferredTextures()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00412">yaze::editor::Tile16Editor::RegenerateTile16BitmapFromROM()</a>, <a class="el" href="dungeon__canvas__viewer_8cc_source.html#l00154">yaze::editor::DungeonCanvasViewer::RenderObjectInCanvas()</a>, <a class="el" href="dungeon__renderer_8cc_source.html#l00012">yaze::editor::DungeonRenderer::RenderObjectInCanvas()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00042">yaze::gfx::RenderTile16()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03436">yaze::editor::OverworldEditor::SaveCurrentSelectionToScratch()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01100">yaze::editor::Tile16Editor::SaveTile16ToScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00996">yaze::editor::Tile16Editor::SetCurrentTile()</a>, and <a class="el" href="tile16__editor_8cc_source.html#l00646">yaze::editor::Tile16Editor::UpdateTile16Edit()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1core_1_1Renderer_af8aa2548cc92e136c2eb83ad5b349eb9_cgraph.png" border="0" usemap="#aclassyaze_1_1core_1_1Renderer_af8aa2548cc92e136c2eb83ad5b349eb9_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1core_1_1Renderer_af8aa2548cc92e136c2eb83ad5b349eb9_cgraph" id="aclassyaze_1_1core_1_1Renderer_af8aa2548cc92e136c2eb83ad5b349eb9_cgraph">
-<area shape="rect" title=" " alt="" coords="5,63,142,103"/>
+<area shape="rect" title="Create texture for bitmap on main thread." alt="" coords="5,63,142,103"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="190,63,313,103"/>
 <area shape="poly" title=" " alt="" coords="142,80,175,80,175,86,142,86"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Arena.html#a0439996c580b1b2860eadb6ebc6fcbaa" title=" " alt="" coords="361,5,524,46"/>
@@ -370,17 +396,19 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00060">60</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+<p>Update existing texture on main thread. </p>
 
-<p class="reference">References <a class="el" href="window_8h_source.html#l00082">renderer_</a>, and <a class="el" href="bitmap_8cc_source.html#l00204">yaze::gfx::Bitmap::UpdateTexture()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00087">87</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="canvas__utils_8cc_source.html#l00098">yaze::gui::CanvasUtils::ApplyPaletteGroup()</a>, <a class="el" href="enhanced__palette__editor_8cc_source.html#l00153">yaze::gui::EnhancedPaletteEditor::ApplyROMPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l00989">yaze::editor::OverworldEditor::CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03249">yaze::editor::OverworldEditor::ClearScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01277">yaze::editor::Tile16Editor::ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01522">yaze::editor::Tile16Editor::CommitChangesToBlockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">yaze::editor::Tile16Editor::CyclePalette()</a>, <a class="el" href="canvas_8cc_source.html#l00238">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="message__editor_8cc_source.html#l00324">yaze::editor::MessageEditor::DrawMessagePreview()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00503">yaze::editor::Tile16Editor::DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01240">yaze::editor::Tile16Editor::FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01141">yaze::editor::Tile16Editor::FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01174">yaze::editor::Tile16Editor::FlipTile16Vertical()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01329">yaze::editor::Tile16Editor::PreviewPaletteChange()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01413">yaze::editor::Tile16Editor::Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01632">yaze::editor::Tile16Editor::RefreshAllPalettes()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00154">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01621">yaze::editor::OverworldEditor::RefreshOverworldMap()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00334">yaze::editor::Tile16Editor::RefreshTile16Blockset()</a>, <a class="el" href="room_8cc_source.html#l00286">yaze::zelda3::Room::RenderRoomGraphics()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01207">yaze::editor::Tile16Editor::RotateTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01382">yaze::editor::Tile16Editor::Undo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00355">yaze::editor::Tile16Editor::UpdateBlocksetBitmap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00242">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01478">yaze::editor::Tile16Editor::UpdateOverworldTilemap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00339">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>, <a class="el" href="dungeon__canvas__viewer_8cc_source.html#l00595">yaze::editor::DungeonCanvasViewer::UpdateRoomBackgroundLayers()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03105">yaze::editor::OverworldEditor::UpdateScratchBitmapTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00059">yaze::gfx::UpdateTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01572">yaze::editor::Tile16Editor::UpdateTile8Palette()</a>, and <a class="el" href="tilemap_8cc_source.html#l00025">yaze::gfx::UpdateTilemap()</a>.</p>
+<p class="reference">References <a class="el" href="window_8h_source.html#l00147">renderer_</a>, and <a class="el" href="bitmap_8cc_source.html#l00204">yaze::gfx::Bitmap::UpdateTexture()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="canvas__utils_8cc_source.html#l00098">yaze::gui::CanvasUtils::ApplyPaletteGroup()</a>, <a class="el" href="enhanced__palette__editor_8cc_source.html#l00153">yaze::gui::EnhancedPaletteEditor::ApplyROMPalette()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01021">yaze::editor::OverworldEditor::CheckForCurrentMap()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03530">yaze::editor::OverworldEditor::ClearScratchSpace()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01277">yaze::editor::Tile16Editor::ClearTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01522">yaze::editor::Tile16Editor::CommitChangesToBlockset()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01294">yaze::editor::Tile16Editor::CyclePalette()</a>, <a class="el" href="canvas_8cc_source.html#l00238">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="message__editor_8cc_source.html#l00328">yaze::editor::MessageEditor::DrawMessagePreview()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00503">yaze::editor::Tile16Editor::DrawToCurrentTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01240">yaze::editor::Tile16Editor::FillTile16WithTile8()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01141">yaze::editor::Tile16Editor::FlipTile16Horizontal()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01174">yaze::editor::Tile16Editor::FlipTile16Vertical()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01329">yaze::editor::Tile16Editor::PreviewPaletteChange()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01413">yaze::editor::Tile16Editor::Redo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01632">yaze::editor::Tile16Editor::RefreshAllPalettes()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01871">yaze::editor::OverworldEditor::RefreshChildMapOnDemand()</a>, <a class="el" href="dungeon__editor_8cc_source.html#l00173">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00334">yaze::editor::Tile16Editor::RefreshTile16Blockset()</a>, <a class="el" href="room_8cc_source.html#l00286">yaze::zelda3::Room::RenderRoomGraphics()</a>, <a class="el" href="tilemap_8cc_source.html#l00030">yaze::gfx::RenderTile()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01207">yaze::editor::Tile16Editor::RotateTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01382">yaze::editor::Tile16Editor::Undo()</a>, <a class="el" href="tile16__editor_8cc_source.html#l00355">yaze::editor::Tile16Editor::UpdateBlocksetBitmap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00242">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01478">yaze::editor::Tile16Editor::UpdateOverworldTilemap()</a>, <a class="el" href="graphics__editor_8cc_source.html#l00339">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>, <a class="el" href="dungeon__canvas__viewer_8cc_source.html#l00595">yaze::editor::DungeonCanvasViewer::UpdateRoomBackgroundLayers()</a>, <a class="el" href="overworld__editor_8cc_source.html#l03386">yaze::editor::OverworldEditor::UpdateScratchBitmapTile()</a>, <a class="el" href="tilemap_8cc_source.html#l00059">yaze::gfx::UpdateTile16()</a>, <a class="el" href="tile16__editor_8cc_source.html#l01572">yaze::editor::Tile16Editor::UpdateTile8Palette()</a>, and <a class="el" href="tilemap_8cc_source.html#l00025">yaze::gfx::UpdateTilemap()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1core_1_1Renderer_a571c9b2494fb642abf7c8ddfe809334a_cgraph.png" border="0" usemap="#aclassyaze_1_1core_1_1Renderer_a571c9b2494fb642abf7c8ddfe809334a_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1core_1_1Renderer_a571c9b2494fb642abf7c8ddfe809334a_cgraph" id="aclassyaze_1_1core_1_1Renderer_a571c9b2494fb642abf7c8ddfe809334a_cgraph">
-<area shape="rect" title=" " alt="" coords="5,63,142,103"/>
+<area shape="rect" title="Update existing texture on main thread." alt="" coords="5,63,142,103"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="190,63,313,103"/>
 <area shape="poly" title=" " alt="" coords="142,80,175,80,175,86,142,86"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="379,5,502,46"/>
@@ -453,20 +481,23 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00064">64</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+<p>Create bitmap and immediately create texture (blocking operation) </p>
+<p>This is the original method that blocks during texture creation. For performance during ROM loading, consider using CreateBitmapWithoutTexture and deferring texture creation until needed. </p>
 
-<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="window_8h_source.html#l00056">RenderBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00098">98</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01220">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="message__editor_8cc_source.html#l00324">yaze::editor::MessageEditor::DrawMessagePreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00062">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="overworld__editor_8cc_source.html#l01536">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="room_8cc_source.html#l00286">yaze::zelda3::Room::RenderRoomGraphics()</a>, and <a class="el" href="tile16__editor__test_8cc_source.html#l00034">yaze::editor::test::Tile16EditorIntegrationTest::SetUp()</a>.</p>
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="window_8h_source.html#l00080">RenderBitmap()</a>, and <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01258">yaze::editor::OverworldEditor::DrawAreaGraphics()</a>, <a class="el" href="message__editor_8cc_source.html#l00328">yaze::editor::MessageEditor::DrawMessagePreview()</a>, <a class="el" href="message__editor_8cc_source.html#l00063">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="room_8cc_source.html#l00286">yaze::zelda3::Room::RenderRoomGraphics()</a>, and <a class="el" href="tile16__editor__test_8cc_source.html#l00034">yaze::editor::test::Tile16EditorIntegrationTest::SetUp()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="classyaze_1_1core_1_1Renderer_a0d5a59f3505536cfb25b54a54c1d855d_cgraph.png" border="0" usemap="#aclassyaze_1_1core_1_1Renderer_a0d5a59f3505536cfb25b54a54c1d855d_cgraph" alt=""/></div>
 <map name="aclassyaze_1_1core_1_1Renderer_a0d5a59f3505536cfb25b54a54c1d855d_cgraph" id="aclassyaze_1_1core_1_1Renderer_a0d5a59f3505536cfb25b54a54c1d855d_cgraph">
-<area shape="rect" title=" " alt="" coords="5,95,176,135"/>
+<area shape="rect" title="Create bitmap and immediately create texture (blocking operation)" alt="" coords="5,95,176,135"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Create a bitmap with the given dimensions and data." alt="" coords="230,29,354,70"/>
 <area shape="poly" title=" " alt="" coords="154,92,215,72,216,77,156,97"/>
-<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title=" " alt="" coords="224,95,360,135"/>
+<area shape="rect" href="classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Create texture for bitmap on main thread." alt="" coords="224,95,360,135"/>
 <area shape="poly" title=" " alt="" coords="176,112,208,112,208,118,176,118"/>
 <area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8b0be39d195a5d6d7002d2ecd70f2a3c" title="Set the palette for the bitmap." alt="" coords="230,160,354,201"/>
 <area shape="poly" title=" " alt="" coords="156,133,216,153,215,158,154,138"/>
@@ -475,6 +506,125 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="354,47,392,47,392,52,354,52"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="ac69199fda24d90b1cf8c387f3e6363f1" name="ac69199fda24d90b1cf8c387f3e6363f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac69199fda24d90b1cf8c387f3e6363f1">&#9670;&#160;</a></span>CreateBitmapWithoutTexture()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::core::Renderer::CreateBitmapWithoutTexture </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>width</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>height</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>depth</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; uint8_t &gt; &amp;&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;&#160;</td>
+          <td class="paramname"><em>bitmap</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classyaze_1_1gfx_1_1SnesPalette.html">gfx::SnesPalette</a> &amp;&#160;</td>
+          <td class="paramname"><em>palette</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Create bitmap without creating texture (non-blocking) </p>
+<p>This method prepares the bitmap data and surface but doesn't create the GPU texture, allowing for faster bulk operations during ROM loading. Texture creation can be deferred until the bitmap is actually needed for rendering. </p>
+
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00114">114</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+
+<p class="reference">References <a class="el" href="bitmap_8cc_source.html#l00146">yaze::gfx::Bitmap::Create()</a>, and <a class="el" href="bitmap_8cc_source.html#l00251">yaze::gfx::Bitmap::SetPalette()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="overworld__editor_8cc_source.html#l01574">yaze::editor::OverworldEditor::LoadGraphics()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="classyaze_1_1core_1_1Renderer_ac69199fda24d90b1cf8c387f3e6363f1_cgraph.png" border="0" usemap="#aclassyaze_1_1core_1_1Renderer_ac69199fda24d90b1cf8c387f3e6363f1_cgraph" alt=""/></div>
+<map name="aclassyaze_1_1core_1_1Renderer_ac69199fda24d90b1cf8c387f3e6363f1_cgraph" id="aclassyaze_1_1core_1_1Renderer_ac69199fda24d90b1cf8c387f3e6363f1_cgraph">
+<area shape="rect" title="Create bitmap without creating texture (non&#45;blocking)" alt="" coords="5,63,199,103"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a1725878c64e66f79cecade531d14d384" title="Create a bitmap with the given dimensions and data." alt="" coords="247,29,370,70"/>
+<area shape="poly" title=" " alt="" coords="199,65,231,59,232,65,200,70"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a8b0be39d195a5d6d7002d2ecd70f2a3c" title="Set the palette for the bitmap." alt="" coords="247,95,370,135"/>
+<area shape="poly" title=" " alt="" coords="200,95,232,100,231,106,199,101"/>
+<area shape="poly" title=" " alt="" coords="273,29,271,19,277,10,290,5,308,3,328,5,340,11,338,16,327,10,308,8,291,10,281,14,277,20,278,28"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068" title=" " alt="" coords="418,9,566,35"/>
+<area shape="poly" title=" " alt="" coords="370,38,403,33,403,38,371,43"/>
+<area shape="rect" href="classyaze_1_1gfx_1_1Bitmap.html#a985c964b37adc34496b5c6898712c8c0" title=" " alt="" coords="431,59,554,99"/>
+<area shape="poly" title=" " alt="" coords="371,57,415,64,414,69,370,62"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a537d1f15e9b94b242d4964c58b5651f3" name="a537d1f15e9b94b242d4964c58b5651f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a537d1f15e9b94b242d4964c58b5651f3">&#9670;&#160;</a></span>BatchCreateTextures()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::core::Renderer::BatchCreateTextures </td>
+          <td>(</td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> * &gt; &amp;&#160;</td>
+          <td class="paramname"><em>bitmaps</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Batch create textures for multiple bitmaps. </p>
+<p>This method can be used to efficiently create textures for multiple bitmaps that have already been prepared with CreateBitmapWithoutTexture. Useful for deferred texture creation during ROM loading. </p>
+
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00129">129</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+
+<p class="reference">References <a class="el" href="window_8h_source.html#l00147">renderer_</a>.</p>
 
 </div>
 </div>
@@ -501,9 +651,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00072">72</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00137">137</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
 
-<p class="reference">References <a class="el" href="window_8h_source.html#l00082">renderer_</a>.</p>
+<p class="reference">References <a class="el" href="window_8h_source.html#l00147">renderer_</a>.</p>
 
 </div>
 </div>
@@ -530,9 +680,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00077">77</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00142">142</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
 
-<p class="reference">References <a class="el" href="window_8h_source.html#l00082">renderer_</a>.</p>
+<p class="reference">References <a class="el" href="window_8h_source.html#l00147">renderer_</a>.</p>
 
 </div>
 </div>
@@ -583,9 +733,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00082">82</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="window_8h_source.html#l00147">147</a> of file <a class="el" href="window_8h_source.html">window.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="window_8h_source.html#l00072">Clear()</a>, <a class="el" href="window_8h_source.html#l00042">CreateRenderer()</a>, <a class="el" href="window_8h_source.html#l00077">Present()</a>, <a class="el" href="window_8h_source.html#l00056">RenderBitmap()</a>, <a class="el" href="window_8h_source.html#l00054">renderer()</a>, and <a class="el" href="window_8h_source.html#l00060">UpdateBitmap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="window_8h_source.html#l00129">BatchCreateTextures()</a>, <a class="el" href="window_8h_source.html#l00137">Clear()</a>, <a class="el" href="window_8h_source.html#l00059">CreateRenderer()</a>, <a class="el" href="window_8h_source.html#l00142">Present()</a>, <a class="el" href="window_8h_source.html#l00080">RenderBitmap()</a>, <a class="el" href="window_8h_source.html#l00071">renderer()</a>, and <a class="el" href="window_8h_source.html#l00087">UpdateBitmap()</a>.</p>
 
 </div>
 </div>

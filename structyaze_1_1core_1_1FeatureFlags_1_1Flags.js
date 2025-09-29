@@ -8,6 +8,7 @@ var structyaze_1_1core_1_1FeatureFlags_1_1Flags =
     [ "kSaveDungeonMaps", "structyaze_1_1core_1_1FeatureFlags_1_1Flags.html#aaa505cc77dcd187b5b9fa522f0441a93", null ],
     [ "kSaveGraphicsSheet", "structyaze_1_1core_1_1FeatureFlags_1_1Flags.html#a3e16ea4da94dac5de051e8846fd3e057", null ],
     [ "kLogToConsole", "structyaze_1_1core_1_1FeatureFlags_1_1Flags.html#accfab8388c9395fe83ce120552c72b97", null ],
+    [ "kEnablePerformanceMonitoring", "structyaze_1_1core_1_1FeatureFlags_1_1Flags.html#af94e0c0144d80a6e95e32acccc5e97c1", null ],
     [ "kUseNativeFileDialog", "structyaze_1_1core_1_1FeatureFlags_1_1Flags.html#a428254d821cede4fbe7a7ec0e2fbb21c", null ],
     [ "overworld", "structyaze_1_1core_1_1FeatureFlags_1_1Flags.html#aacf1d7d010e3fe182fdcdfea1c7e5d6b", null ]
 ];

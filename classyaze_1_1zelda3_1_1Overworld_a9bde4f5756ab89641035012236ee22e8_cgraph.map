@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::Overworld::EnsureMapBuilt" name="yaze::zelda3::Overworld::EnsureMapBuilt">
+<area shape="rect" id="Node000001" title="Build a map on&#45;demand if it hasn&#39;t been built yet." alt="" coords="5,5,161,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Overworld.html#aefb0ff6e39728b1484b9b1a70dec656c" title=" " alt="" coords="209,5,364,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,23,193,23,193,28,161,28"/>
+</map>

@@ -27,13 +27,14 @@ var searchData=
   ['_7eperformancetestsuite_24',['~PerformanceTestSuite',['../classyaze_1_1test_1_1PerformanceTestSuite.html#adaa0f0549a935f442d26b23019417a01',1,'yaze::test::PerformanceTestSuite']]],
   ['_7eppuinterface_25',['~PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html#ad72156d555df5ac5842cd83193dce464',1,'yaze::emu::PpuInterface']]],
   ['_7eromdependenttestsuite_26',['~RomDependentTestSuite',['../classyaze_1_1test_1_1RomDependentTestSuite.html#aa1227cbe4a9995ec93bd36485afd942d',1,'yaze::test::RomDependentTestSuite']]],
-  ['_7esnes_27',['~Snes',['../classyaze_1_1emu_1_1Snes.html#a447f7314e8df8a75cc4c39a90b4a0284',1,'yaze::emu::Snes']]],
-  ['_7etesteditor_28',['~TestEditor',['../classyaze_1_1test_1_1TestEditor.html#a4235b48ee094a0ef8cced6778c7a12d7',1,'yaze::test::TestEditor']]],
-  ['_7etestmanager_29',['~TestManager',['../classyaze_1_1test_1_1TestManager.html#aaadff49f02206c0a11b5543ea7c69e95',1,'yaze::test::TestManager']]],
-  ['_7etestsuite_30',['~TestSuite',['../classyaze_1_1test_1_1TestSuite.html#a79fa61e29aad1e42b96839a09bb31f04',1,'yaze::test::TestSuite']]],
-  ['_7etexteditor_31',['~TextEditor',['../classTextEditor.html#a67cc14c174c7b66738c40f844d4dd7d7',1,'TextEditor']]],
-  ['_7euitestsuite_32',['~UITestSuite',['../classyaze_1_1test_1_1UITestSuite.html#a9fa6c401b624bcbb3d3df3caa0103ac3',1,'yaze::test::UITestSuite']]],
-  ['_7eundorecord_33',['~UndoRecord',['../classTextEditor_1_1UndoRecord.html#a981455d44f29b51ee6aeb5065afa12ff',1,'TextEditor::UndoRecord']]],
-  ['_7eunittestsuite_34',['~UnitTestSuite',['../classyaze_1_1test_1_1UnitTestSuite.html#ab8ea1278701d8f096f21af822201a7b3',1,'yaze::test::UnitTestSuite']]],
-  ['_7ezscustomoverworldtestsuite_35',['~ZSCustomOverworldTestSuite',['../classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#af0a3cdcd4c88e651b4e6c80c7e78d7c4',1,'yaze::test::ZSCustomOverworldTestSuite']]]
+  ['_7escopedtimer_27',['~ScopedTimer',['../classyaze_1_1core_1_1ScopedTimer.html#a1278a7ceaf2c11afc64354eeaae05e39',1,'yaze::core::ScopedTimer']]],
+  ['_7esnes_28',['~Snes',['../classyaze_1_1emu_1_1Snes.html#a447f7314e8df8a75cc4c39a90b4a0284',1,'yaze::emu::Snes']]],
+  ['_7etesteditor_29',['~TestEditor',['../classyaze_1_1test_1_1TestEditor.html#a4235b48ee094a0ef8cced6778c7a12d7',1,'yaze::test::TestEditor']]],
+  ['_7etestmanager_30',['~TestManager',['../classyaze_1_1test_1_1TestManager.html#aaadff49f02206c0a11b5543ea7c69e95',1,'yaze::test::TestManager']]],
+  ['_7etestsuite_31',['~TestSuite',['../classyaze_1_1test_1_1TestSuite.html#a79fa61e29aad1e42b96839a09bb31f04',1,'yaze::test::TestSuite']]],
+  ['_7etexteditor_32',['~TextEditor',['../classTextEditor.html#a67cc14c174c7b66738c40f844d4dd7d7',1,'TextEditor']]],
+  ['_7euitestsuite_33',['~UITestSuite',['../classyaze_1_1test_1_1UITestSuite.html#a9fa6c401b624bcbb3d3df3caa0103ac3',1,'yaze::test::UITestSuite']]],
+  ['_7eundorecord_34',['~UndoRecord',['../classTextEditor_1_1UndoRecord.html#a981455d44f29b51ee6aeb5065afa12ff',1,'TextEditor::UndoRecord']]],
+  ['_7eunittestsuite_35',['~UnitTestSuite',['../classyaze_1_1test_1_1UnitTestSuite.html#ab8ea1278701d8f096f21af822201a7b3',1,'yaze::test::UnitTestSuite']]],
+  ['_7ezscustomoverworldtestsuite_36',['~ZSCustomOverworldTestSuite',['../classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#af0a3cdcd4c88e651b4e6c80c7e78d7c4',1,'yaze::test::ZSCustomOverworldTestSuite']]]
 ];

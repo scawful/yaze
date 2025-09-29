@@ -10,7 +10,7 @@ var searchData=
   ['parsedelement_7',['ParsedElement',['../structyaze_1_1editor_1_1ParsedElement.html',1,'yaze::editor']]],
   ['pctosnescommand_8',['PcToSnesCommand',['../classyaze_1_1cli_1_1PcToSnesCommand.html',1,'yaze::cli']]],
   ['performancemetrics_9',['PerformanceMetrics',['../structyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest_1_1PerformanceMetrics.html',1,'yaze::zelda3::DungeonObjectRendererIntegrationTest']]],
-  ['performancemonitor_10',['PerformanceMonitor',['../classyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceMonitor.html',1,'yaze::zelda3::ObjectRenderer']]],
+  ['performancemonitor_10',['performancemonitor',['../classyaze_1_1core_1_1PerformanceMonitor.html',1,'yaze::core::PerformanceMonitor'],['../classyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceMonitor.html',1,'yaze::zelda3::ObjectRenderer::PerformanceMonitor']]],
   ['performancestats_11',['PerformanceStats',['../structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html',1,'yaze::zelda3::ObjectRenderer']]],
   ['performancetestsuite_12',['PerformanceTestSuite',['../classyaze_1_1test_1_1PerformanceTestSuite.html',1,'yaze::test']]],
   ['popupmanager_13',['PopupManager',['../classyaze_1_1editor_1_1PopupManager.html',1,'yaze::editor']]],

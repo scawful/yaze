@@ -1,12 +1,10 @@
 <map id="main" name="main">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,120,55,145"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,78,55,104"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1cli_1_1ModernCLI.html#a42bb0104df2a60491e8f170b2902276f" title=" " alt="" coords="103,5,239,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="40,117,66,88,101,57,108,52,111,56,104,61,70,92,44,121"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="54,78,111,51,113,55,56,82"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1cli_1_1ModernCLI.html#aaa5a170269ef131ddf8f8e8fe5da51a2" title=" " alt="" coords="103,71,239,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="54,123,87,113,89,118,56,128"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="55,88,87,88,87,94,55,94"/>
 <area shape="rect" id="Node000004" href="$namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3" title=" " alt="" coords="104,160,238,185"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="56,137,109,152,108,157,54,142"/>
-<area shape="rect" id="Node000005" href="$classyaze_1_1cli_1_1ModernCLI.html#aa3cae979f76354c42faa566e28b6e214" title=" " alt="" coords="103,209,239,250"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="45,144,71,169,104,196,110,199,107,204,101,200,68,173,42,148"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="56,102,135,149,132,154,53,107"/>
 <area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="146,160,142,151,145,141,155,135,171,133,188,135,197,142,194,146,186,140,171,138,156,140,149,145,147,150,151,158"/>
 </map>
