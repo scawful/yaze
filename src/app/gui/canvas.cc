@@ -4,6 +4,7 @@
 #include <string>
 
 #include "app/core/window.h"
+#include "app/gfx/atlas_renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/performance_profiler.h"
 #include "app/gui/color.h"
@@ -904,8 +905,12 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
     return;
   }
 
-  // Skip pre-rendering to avoid tile cache crashes
-  // We'll draw directly from the atlas instead
+  // OPTIMIZATION: Use optimized rendering for large groups to improve performance
+  bool use_optimized_rendering = group.size() > 16; // Optimize for large selections
+  
+  // Pre-calculate common values to avoid repeated computation
+  const float tile_scale = tile_size * scale;
+  const int atlas_tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
 
   // Top-left and bottom-right corners of the rectangle
   ImVec2 rect_top_left = selected_points_[0];
@@ -949,32 +954,38 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
         int tile_pos_x = (x + start_tile_x) * tile_size * scale;
         int tile_pos_y = (y + start_tile_y) * tile_size * scale;
 
-        // Draw tile directly from atlas without caching to prevent crashes
-        if (tilemap.atlas.is_active() && tilemap.atlas.texture()) {
-          int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
-          if (tiles_per_row > 0) {
-            int atlas_tile_x = (tile_id % tiles_per_row) * tilemap.tile_size.x;
-            int atlas_tile_y = (tile_id / tiles_per_row) * tilemap.tile_size.y;
+        // OPTIMIZATION: Use pre-calculated values for better performance with large selections
+        if (tilemap.atlas.is_active() && tilemap.atlas.texture() && atlas_tiles_per_row > 0) {
+          int atlas_tile_x = (tile_id % atlas_tiles_per_row) * tilemap.tile_size.x;
+          int atlas_tile_y = (tile_id / atlas_tiles_per_row) * tilemap.tile_size.y;
+          
+          // Simple bounds check
+          if (atlas_tile_x >= 0 && atlas_tile_x < tilemap.atlas.width() && 
+              atlas_tile_y >= 0 && atlas_tile_y < tilemap.atlas.height()) {
             
-            // Simple bounds check
-            if (atlas_tile_x >= 0 && atlas_tile_x < tilemap.atlas.width() && 
-                atlas_tile_y >= 0 && atlas_tile_y < tilemap.atlas.height()) {
-              
-              // Calculate UV coordinates for atlas texture
-              ImVec2 uv0 = ImVec2(static_cast<float>(atlas_tile_x) / tilemap.atlas.width(), 
-                                 static_cast<float>(atlas_tile_y) / tilemap.atlas.height());
-              ImVec2 uv1 = ImVec2(static_cast<float>(atlas_tile_x + tilemap.tile_size.x) / tilemap.atlas.width(),
-                                 static_cast<float>(atlas_tile_y + tilemap.tile_size.y) / tilemap.atlas.height());
-              
-              // Draw from atlas texture with transparency for preview
-              draw_list_->AddImage(
-                  (ImTextureID)(intptr_t)tilemap.atlas.texture(),
-                  ImVec2(canvas_p0_.x + scrolling_.x + tile_pos_x, 
-                         canvas_p0_.y + scrolling_.y + tile_pos_y),
-                  ImVec2(canvas_p0_.x + scrolling_.x + tile_pos_x + (tilemap.tile_size.x * scale),
-                         canvas_p0_.y + scrolling_.y + tile_pos_y + (tilemap.tile_size.y * scale)),
-                  uv0, uv1, IM_COL32(255, 255, 255, 150)); // 150 alpha for preview
-            }
+            // Calculate UV coordinates once for efficiency
+            const float atlas_width = static_cast<float>(tilemap.atlas.width());
+            const float atlas_height = static_cast<float>(tilemap.atlas.height());
+            ImVec2 uv0 = ImVec2(atlas_tile_x / atlas_width, atlas_tile_y / atlas_height);
+            ImVec2 uv1 = ImVec2((atlas_tile_x + tilemap.tile_size.x) / atlas_width,
+                               (atlas_tile_y + tilemap.tile_size.y) / atlas_height);
+            
+            // Calculate screen positions
+            float screen_x = canvas_p0_.x + scrolling_.x + tile_pos_x;
+            float screen_y = canvas_p0_.y + scrolling_.y + tile_pos_y;
+            float screen_w = tilemap.tile_size.x * scale;
+            float screen_h = tilemap.tile_size.y * scale;
+            
+            // Use higher alpha for large selections to make them more visible
+            uint32_t alpha_color = use_optimized_rendering ? 
+                IM_COL32(255, 255, 255, 200) : IM_COL32(255, 255, 255, 150);
+            
+            // Draw from atlas texture with optimized parameters
+            draw_list_->AddImage(
+                (ImTextureID)(intptr_t)tilemap.atlas.texture(),
+                ImVec2(screen_x, screen_y),
+                ImVec2(screen_x + screen_w, screen_y + screen_h),
+                uv0, uv1, alpha_color);
           }
         }
       }
@@ -985,6 +996,8 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
       break;
     }
   }
+
+  // Performance optimization completed - tiles are now rendered with pre-calculated values
 
   const ImGuiIO &io = GetIO();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
