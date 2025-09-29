@@ -159,13 +159,9 @@ endif()
 
 # Post-build step to copy assets to output directory (Windows/Linux)
 if(NOT APPLE)
-  # Create custom target for copying assets
-  add_custom_target(copy_assets ALL
-    COMMENT "Copying assets to output directory"
-  )
-  
+  # Add post-build commands directly to the yaze target
   # Copy fonts
-  add_custom_command(TARGET copy_assets POST_BUILD
+  add_custom_command(TARGET yaze POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
     $<TARGET_FILE_DIR:yaze>/assets/font
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -175,7 +171,7 @@ if(NOT APPLE)
   )
   
   # Copy themes
-  add_custom_command(TARGET copy_assets POST_BUILD
+  add_custom_command(TARGET yaze POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
     $<TARGET_FILE_DIR:yaze>/assets/themes
     COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -186,7 +182,7 @@ if(NOT APPLE)
   
   # Copy other assets if they exist
   if(EXISTS ${CMAKE_SOURCE_DIR}/assets/layouts)
-    add_custom_command(TARGET copy_assets POST_BUILD
+    add_custom_command(TARGET yaze POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E make_directory
       $<TARGET_FILE_DIR:yaze>/assets/layouts
       COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -197,7 +193,7 @@ if(NOT APPLE)
   endif()
   
   if(EXISTS ${CMAKE_SOURCE_DIR}/assets/lib)
-    add_custom_command(TARGET copy_assets POST_BUILD
+    add_custom_command(TARGET yaze POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E make_directory
       $<TARGET_FILE_DIR:yaze>/assets/lib
       COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -206,8 +202,5 @@ if(NOT APPLE)
       COMMENT "Copying library assets"
     )
   endif()
-  
-  # Make the main target depend on asset copying
-  add_dependencies(yaze copy_assets)
 endif()
 
