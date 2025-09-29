@@ -117,11 +117,11 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
   endif()
 
 # Add vanilla value extraction utility (only for local development with ROM access)
-if(NOT YAZE_MINIMAL_BUILD AND YAZE_ENABLE_ROM_TESTS)
+# IMPORTANT: Do not build in CI/release - this is a development-only utility
+if(NOT YAZE_MINIMAL_BUILD AND YAZE_ENABLE_ROM_TESTS AND NOT DEFINED ENV{GITHUB_ACTIONS})
   add_executable(
     extract_vanilla_values
     unit/zelda3/extract_vanilla_values.cc
-    unit/zelda3/rom_patch_utility.cc
     ${YAZE_SRC_FILES}
   )
 
@@ -142,16 +142,49 @@ if(NOT YAZE_MINIMAL_BUILD AND YAZE_ENABLE_ROM_TESTS)
 
   target_link_libraries(
     extract_vanilla_values
+    yaze_core
     ${SDL_TARGETS}
     asar-static
     ${ABSL_TARGETS}
     ${PNG_LIBRARIES}
     ${OPENGL_LIBRARIES}
     ${CMAKE_DL_LIBS}
+    ImGui
   )
-
-  # Note: extract_vanilla_values is a standalone utility that doesn't need yaze_c library
-  # It only needs the core ROM functionality which is provided by the source files
+  
+  # Add rom_patch_utility as a separate executable
+  add_executable(
+    rom_patch_utility
+    unit/zelda3/rom_patch_utility.cc
+    ${YAZE_SRC_FILES}
+  )
+  
+  target_include_directories(
+    rom_patch_utility PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/app/
+    ${CMAKE_SOURCE_DIR}/src/lib/
+    ${CMAKE_SOURCE_DIR}/incl/
+    ${CMAKE_SOURCE_DIR}/src/
+    ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
+    ${SDL2_INCLUDE_DIR}
+    ${PNG_INCLUDE_DIRS}
+    ${PROJECT_BINARY_DIR}
+  )
+  
+  target_link_libraries(
+    rom_patch_utility
+    yaze_core
+    ${SDL_TARGETS}
+    asar-static
+    ${ABSL_TARGETS}
+    ${PNG_LIBRARIES}
+    ${OPENGL_LIBRARIES}
+    ${CMAKE_DL_LIBS}
+    ImGui
+  )
 endif()
 
   # Configure test executable only when tests are enabled
@@ -212,6 +245,12 @@ endif()
       target_compile_definitions(yaze_test PRIVATE "MACOS" "stricmp=strcasecmp")
   elseif(WIN32)
       target_compile_definitions(yaze_test PRIVATE "WINDOWS")
+      # Increase stack size on Windows to prevent stack overflow during tests
+      if(MSVC)
+        target_link_options(yaze_test PRIVATE /STACK:8388608)  # 8MB stack
+      elseif(MINGW)
+        target_link_options(yaze_test PRIVATE -Wl,--stack,8388608)
+      endif()
   endif()
 endif()
 
