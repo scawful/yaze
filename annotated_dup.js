@@ -236,10 +236,13 @@ var annotated_dup =
         [ "PaletteGroup", "structyaze_1_1gfx_1_1PaletteGroup.html", "structyaze_1_1gfx_1_1PaletteGroup" ],
         [ "PaletteGroupMap", "structyaze_1_1gfx_1_1PaletteGroupMap.html", "structyaze_1_1gfx_1_1PaletteGroupMap" ],
         [ "Paletteset", "structyaze_1_1gfx_1_1Paletteset.html", "structyaze_1_1gfx_1_1Paletteset" ],
+        [ "PerformanceProfiler", "classyaze_1_1gfx_1_1PerformanceProfiler.html", "classyaze_1_1gfx_1_1PerformanceProfiler" ],
+        [ "ScopedTimer", "classyaze_1_1gfx_1_1ScopedTimer.html", "classyaze_1_1gfx_1_1ScopedTimer" ],
         [ "SnesColor", "classyaze_1_1gfx_1_1SnesColor.html", "classyaze_1_1gfx_1_1SnesColor" ],
         [ "SnesPalette", "classyaze_1_1gfx_1_1SnesPalette.html", "classyaze_1_1gfx_1_1SnesPalette" ],
         [ "Tile16", "classyaze_1_1gfx_1_1Tile16.html", "classyaze_1_1gfx_1_1Tile16" ],
         [ "Tile32", "classyaze_1_1gfx_1_1Tile32.html", "classyaze_1_1gfx_1_1Tile32" ],
+        [ "TileCache", "structyaze_1_1gfx_1_1TileCache.html", "structyaze_1_1gfx_1_1TileCache" ],
         [ "TileInfo", "classyaze_1_1gfx_1_1TileInfo.html", "classyaze_1_1gfx_1_1TileInfo" ],
         [ "Tilemap", "structyaze_1_1gfx_1_1Tilemap.html", "structyaze_1_1gfx_1_1Tilemap" ]
       ] ],

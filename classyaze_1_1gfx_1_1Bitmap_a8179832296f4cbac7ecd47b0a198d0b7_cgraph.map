@@ -1,7 +1,13 @@
 <map id="yaze::gfx::Bitmap::SetPixel" name="yaze::gfx::Bitmap::SetPixel">
-<area shape="rect" id="Node000001" title="Set a pixel at the given x,y coordinates." alt="" coords="5,39,129,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="177,5,324,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,45,161,39,162,44,129,50"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="189,71,312,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,67,174,75,173,80,129,72"/>
+<area shape="rect" id="Node000001" title="Set a pixel at the given x,y coordinates with SNES color." alt="" coords="5,71,129,111"/>
+<area shape="rect" id="Node000002" href="$structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html#abd0bc3627d279f85e0c24ff3f51fbe95" title=" " alt="" coords="177,5,323,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,68,176,49,178,54,127,73"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#addd611c1e3b131e9025116995eb326d9" title="Find color index in palette using optimized hash map lookup." alt="" coords="188,71,312,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,88,172,88,172,94,129,94"/>
+<area shape="rect" id="Node000005" href="$classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="542,77,666,118"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="128,109,177,120,271,128,365,126,453,119,527,109,527,114,454,124,366,131,271,133,176,126,127,114"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#aa5a8df644b1c0ce49fb6112a78f704ff" title="Hash a color for cache lookup." alt="" coords="371,20,494,61"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="311,71,355,59,357,64,313,76"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="312,89,527,94,527,99,312,95"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="496,59,529,70,527,75,494,64"/>
 </map>

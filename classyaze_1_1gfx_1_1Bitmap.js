@@ -1,5 +1,6 @@
 var classyaze_1_1gfx_1_1Bitmap =
 [
+    [ "DirtyRegion", "structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html", "structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion" ],
     [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html#a581325df602245d58086208cb6e85739", null ],
     [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html#abfcc8b8d5411f0e1332b695fd446cc61", null ],
     [ "Bitmap", "classyaze_1_1gfx_1_1Bitmap.html#a23788e804babb9cbf0a087eb1fd79d99", null ],
@@ -22,6 +23,8 @@ var classyaze_1_1gfx_1_1Bitmap =
     [ "WriteColor", "classyaze_1_1gfx_1_1Bitmap.html#a748139853655afc687cf9668eeb01443", null ],
     [ "SetPixel", "classyaze_1_1gfx_1_1Bitmap.html#a8179832296f4cbac7ecd47b0a198d0b7", null ],
     [ "Resize", "classyaze_1_1gfx_1_1Bitmap.html#a7fd93b6f41ab894ada99b7a89d254c3c", null ],
+    [ "InvalidatePaletteCache", "classyaze_1_1gfx_1_1Bitmap.html#a9f023ff3bf1ca16bf253d35b07a9abf5", null ],
+    [ "FindColorIndex", "classyaze_1_1gfx_1_1Bitmap.html#addd611c1e3b131e9025116995eb326d9", null ],
     [ "Get8x8Tile", "classyaze_1_1gfx_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be", null ],
     [ "Get16x16Tile", "classyaze_1_1gfx_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a", null ],
     [ "palette", "classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8", null ],
@@ -41,6 +44,7 @@ var classyaze_1_1gfx_1_1Bitmap =
     [ "set_active", "classyaze_1_1gfx_1_1Bitmap.html#a7370ee180c7adbcda6b3d99651f0a768", null ],
     [ "set_data", "classyaze_1_1gfx_1_1Bitmap.html#a7a4eaa09fc2375d4fc438296ef20ac3d", null ],
     [ "set_modified", "classyaze_1_1gfx_1_1Bitmap.html#a6d17a8f9b6ed80bde87b67e8e36e40c1", null ],
+    [ "HashColor", "classyaze_1_1gfx_1_1Bitmap.html#aa5a8df644b1c0ce49fb6112a78f704ff", null ],
     [ "width_", "classyaze_1_1gfx_1_1Bitmap.html#a9e80c481091f60d20edbe2ccf62f6016", null ],
     [ "height_", "classyaze_1_1gfx_1_1Bitmap.html#a39893effa3239a8c1acfd4b009e63443", null ],
     [ "depth_", "classyaze_1_1gfx_1_1Bitmap.html#aa6c562f517f83f39c47c6d2292a9afe0", null ],
@@ -51,5 +55,7 @@ var classyaze_1_1gfx_1_1Bitmap =
     [ "palette_", "classyaze_1_1gfx_1_1Bitmap.html#ae3d7a292bdf5c64aa11b34efa13fa38c", null ],
     [ "data_", "classyaze_1_1gfx_1_1Bitmap.html#a94bb9a034aef85db52ad56dd59ca5c5e", null ],
     [ "surface_", "classyaze_1_1gfx_1_1Bitmap.html#a06f2c8e38b83a9e1b2456eb1bec6facd", null ],
-    [ "texture_", "classyaze_1_1gfx_1_1Bitmap.html#a9cfe67b27a2d9c6600697d48ba262735", null ]
+    [ "texture_", "classyaze_1_1gfx_1_1Bitmap.html#a9cfe67b27a2d9c6600697d48ba262735", null ],
+    [ "color_to_index_cache_", "classyaze_1_1gfx_1_1Bitmap.html#a32e18798426b1f315a6ab10375e51610", null ],
+    [ "dirty_region_", "classyaze_1_1gfx_1_1Bitmap.html#abd46fd7600f27df451d6c320e9ac3129", null ]
 ];

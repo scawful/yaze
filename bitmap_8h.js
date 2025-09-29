@@ -1,6 +1,7 @@
 var bitmap_8h =
 [
     [ "yaze::gfx::Bitmap", "classyaze_1_1gfx_1_1Bitmap.html", "classyaze_1_1gfx_1_1Bitmap" ],
+    [ "yaze::gfx::Bitmap::DirtyRegion", "structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html", "structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion" ],
     [ "BitmapTable", "bitmap_8h.html#ad59175cdad18379972f52c0aafa32d08", null ],
     [ "BitmapFormat", "bitmap_8h.html#a2dbad3152b14109b6d797128f9c2c3ba", [
       [ "kIndexed", "bitmap_8h.html#a2dbad3152b14109b6d797128f9c2c3baa5172f5b5640d9778d46551616f815c63", null ],

@@ -2,13 +2,13 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="99,5,247,46"/>
 <area shape="rect" id="Node000002" href="$bitmap_8h.html" title=" " alt="" coords="211,168,327,193"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,45,226,93,259,153,254,155,221,95,186,48"/>
-<area shape="rect" id="Node000023" href="$snes__tile_8h.html" title=" " alt="" coords="5,168,135,193"/>
-<area shape="poly" id="edge3_Node000001_Node000023" title=" " alt="" coords="159,48,124,96,86,156,82,153,120,92,155,45"/>
-<area shape="rect" id="Node000025" href="$rom_8h.html" title=" " alt="" coords="134,94,212,120"/>
-<area shape="poly" id="edge4_Node000001_Node000025" title=" " alt="" coords="175,46,175,78,170,78,170,46"/>
+<area shape="rect" id="Node000024" href="$snes__tile_8h.html" title=" " alt="" coords="5,168,135,193"/>
+<area shape="poly" id="edge3_Node000001_Node000024" title=" " alt="" coords="159,48,124,96,86,156,82,153,120,92,155,45"/>
+<area shape="rect" id="Node000026" href="$rom_8h.html" title=" " alt="" coords="134,94,212,120"/>
+<area shape="poly" id="edge4_Node000001_Node000026" title=" " alt="" coords="175,46,175,78,170,78,170,46"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="192,241,249,267"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="263,195,240,230,235,227,259,192"/>
-<area shape="poly" id="edge6_Node000025_Node000002" title=" " alt="" coords="191,118,242,156,239,161,187,122"/>
-<area shape="poly" id="edge5_Node000025_Node000003" title=" " alt="" coords="178,119,201,192,213,226,208,228,195,194,173,121"/>
-<area shape="poly" id="edge7_Node000025_Node000023" title=" " alt="" coords="157,122,101,161,98,156,154,118"/>
+<area shape="poly" id="edge6_Node000026_Node000002" title=" " alt="" coords="191,118,242,156,239,161,187,122"/>
+<area shape="poly" id="edge5_Node000026_Node000003" title=" " alt="" coords="178,119,201,192,213,226,208,228,195,194,173,121"/>
+<area shape="poly" id="edge7_Node000026_Node000024" title=" " alt="" coords="157,122,101,161,98,156,154,118"/>
 </map>

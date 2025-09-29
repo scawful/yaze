@@ -111,6 +111,7 @@ $(document).ready(function(){initNavTree('bitmap_8h.html',''); initResizable(); 
 <div class="textblock"><code>#include &lt;SDL.h&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;span&gt;</code><br />
+<code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;<a class="el" href="snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
 </div>
@@ -119,7 +120,9 @@ $(document).ready(function(){initNavTree('bitmap_8h.html',''); initResizable(); 
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classyaze_1_1gfx_1_1Bitmap.html">yaze::gfx::Bitmap</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a bitmap image.  <a href="classyaze_1_1gfx_1_1Bitmap.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a bitmap image optimized for SNES ROM hacking.  <a href="classyaze_1_1gfx_1_1Bitmap.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html">yaze::gfx::Bitmap::DirtyRegion</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -147,7 +150,7 @@ Enumerations</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a88d0646ee27ae9755070c4e936cb36bf" id="r_a88d0646ee27ae9755070c4e936cb36bf"><td class="memItemLeft" align="right" valign="top">Uint32&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceyaze_1_1gfx.html#a88d0646ee27ae9755070c4e936cb36bf">yaze::gfx::GetSnesPixelFormat</a> (int format)</td></tr>
-<tr class="memdesc:a88d0646ee27ae9755070c4e936cb36bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the SDL pixel format for a given bitmap format.  <br /></td></tr>
+<tr class="memdesc:a88d0646ee27ae9755070c4e936cb36bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert bitmap format enum to SDL pixel format.  <br /></td></tr>
 <tr class="separator:a88d0646ee27ae9755070c4e936cb36bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>

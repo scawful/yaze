@@ -1,5 +1,5 @@
 <map id="yaze::editor::PaletteEditor::DrawCustomPalette" name="yaze::editor::PaletteEditor::DrawCustomPalette">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,171,103"/>
+<area shape="rect" id="Node000001" title="Draw custom palette editor with enhanced ROM hacking features." alt="" coords="5,63,171,103"/>
 <area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1PaletteEditor.html#a58c1f8475a00167010e55b35b7e7571f" title=" " alt="" coords="219,5,384,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,60,208,48,209,53,167,65"/>
 <area shape="rect" id="Node000003" href="$namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d" title=" " alt="" coords="432,88,613,129"/>

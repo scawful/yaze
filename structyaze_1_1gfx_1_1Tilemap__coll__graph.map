@@ -1,9 +1,11 @@
 <map id="yaze::gfx::Tilemap" name="yaze::gfx::Tilemap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="117,198,239,223"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image." alt="" coords="20,94,138,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,129,168,195,164,199,99,133"/>
+<area shape="rect" id="Node000001" title="Tilemap structure for SNES tile&#45;based graphics management." alt="" coords="167,198,290,223"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking." alt="" coords="20,94,138,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,126,212,195,209,199,108,131"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,5,153,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="82,47,82,94,76,94,76,47"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1Pair.html" title=" " alt="" coords="161,94,261,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="205,135,184,198,179,196,200,134"/>
+<area shape="rect" id="Node000005" href="$structyaze_1_1gfx_1_1TileCache.html" title="Smart tile cache with LRU eviction for efficient memory management." alt="" coords="161,94,296,120"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="231,135,231,197,226,197,226,135"/>
+<area shape="rect" id="Node000006" href="$structyaze_1_1gfx_1_1Pair.html" title="Simple 2D coordinate pair for tilemap dimensions." alt="" coords="320,94,419,120"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="349,133,298,176,256,199,254,195,295,171,345,129"/>
 </map>

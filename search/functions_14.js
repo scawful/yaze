@@ -43,12 +43,13 @@ var searchData=
   ['updatescratchbitmaptile_40',['UpdateScratchBitmapTile',['../classyaze_1_1editor_1_1OverworldEditor.html#aee6ad009e6007c1e881c31d4b8f05edd',1,'yaze::editor::OverworldEditor']]],
   ['updateselectedobjects_41',['UpdateSelectedObjects',['../classyaze_1_1editor_1_1DungeonObjectInteraction.html#a75ac76531c0ad96e595ebc056e000a5f',1,'yaze::editor::DungeonObjectInteraction']]],
   ['updatesprite_42',['UpdateSprite',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#aed287047e766904d00e7bcb7ada62edb',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['updatetexture_43',['updatetexture',['../classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98',1,'yaze::gfx::Bitmap::UpdateTexture()'],['../classyaze_1_1gfx_1_1Arena.html#ad0e525fd3b3316abb9a6f8ce00ad9b38',1,'yaze::gfx::Arena::UpdateTexture()']]],
+  ['updatetexture_43',['updatetexture',['../classyaze_1_1gfx_1_1Arena.html#ad0e525fd3b3316abb9a6f8ce00ad9b38',1,'yaze::gfx::Arena::UpdateTexture()'],['../classyaze_1_1gfx_1_1Bitmap.html#a172f5edf2451ecc596cdb73758029c98',1,'yaze::gfx::Bitmap::UpdateTexture(SDL_Renderer *renderer)']]],
   ['updatetexturedata_44',['UpdateTextureData',['../classyaze_1_1gfx_1_1Bitmap.html#ae54809d052e7f6cbf3b1900d8b13686e',1,'yaze::gfx::Bitmap']]],
-  ['updatetile16_45',['UpdateTile16',['../namespaceyaze_1_1gfx.html#a3e6fa2a2909d5dd9dfe748dbc691aa06',1,'yaze::gfx']]],
-  ['updatetile16edit_46',['UpdateTile16Edit',['../classyaze_1_1editor_1_1Tile16Editor.html#a6edf31644612357ae6ec5805cdbf5d46',1,'yaze::editor::Tile16Editor']]],
-  ['updatetile8palette_47',['UpdateTile8Palette',['../classyaze_1_1editor_1_1Tile16Editor.html#a93f69670ffe128ece01c158bceaec969',1,'yaze::editor::Tile16Editor']]],
-  ['updatetilemap_48',['UpdateTilemap',['../namespaceyaze_1_1gfx.html#a2ceb066551815eb3f3473a316fe8827d',1,'yaze::gfx']]],
-  ['updateusagestats_49',['UpdateUsageStats',['../classyaze_1_1editor_1_1OverworldEditor.html#a14ae026e75243f19defc01df2f7523f2',1,'yaze::editor::OverworldEditor']]],
-  ['userroutine_50',['UserRoutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine']]]
+  ['updatetextureregion_45',['UpdateTextureRegion',['../classyaze_1_1gfx_1_1Arena.html#a5d9469436f3914eb5e5be98110c5c0be',1,'yaze::gfx::Arena']]],
+  ['updatetile16_46',['UpdateTile16',['../namespaceyaze_1_1gfx.html#a3e6fa2a2909d5dd9dfe748dbc691aa06',1,'yaze::gfx']]],
+  ['updatetile16edit_47',['UpdateTile16Edit',['../classyaze_1_1editor_1_1Tile16Editor.html#a6edf31644612357ae6ec5805cdbf5d46',1,'yaze::editor::Tile16Editor']]],
+  ['updatetile8palette_48',['UpdateTile8Palette',['../classyaze_1_1editor_1_1Tile16Editor.html#a93f69670ffe128ece01c158bceaec969',1,'yaze::editor::Tile16Editor']]],
+  ['updatetilemap_49',['UpdateTilemap',['../namespaceyaze_1_1gfx.html#a2ceb066551815eb3f3473a316fe8827d',1,'yaze::gfx']]],
+  ['updateusagestats_50',['UpdateUsageStats',['../classyaze_1_1editor_1_1OverworldEditor.html#a14ae026e75243f19defc01df2f7523f2',1,'yaze::editor::OverworldEditor']]],
+  ['userroutine_51',['UserRoutine',['../structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a1bab4ea9f52dc3661efea0b3db41eef8',1,'yaze::editor::zsprite::UserRoutine']]]
 ];

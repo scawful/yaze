@@ -1,0 +1,7 @@
+<map id="yaze::gfx::ScopedTimer::ScopedTimer" name="yaze::gfx::ScopedTimer::ScopedTimer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,159,68"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="207,5,424,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,35,193,31,194,36,159,41"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1PerformanceProfiler.html#a171cf20283195c9fb8da3abd8db09311" title="Start timing an operation." alt="" coords="220,55,411,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,54,205,60,205,65,159,59"/>
+</map>

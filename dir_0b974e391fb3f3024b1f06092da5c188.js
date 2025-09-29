@@ -8,6 +8,8 @@ var dir_0b974e391fb3f3024b1f06092da5c188 =
     [ "bitmap.h", "bitmap_8h.html", "bitmap_8h" ],
     [ "compression.cc", "compression_8cc.html", "compression_8cc" ],
     [ "compression.h", "compression_8h.html", "compression_8h" ],
+    [ "performance_profiler.cc", "performance__profiler_8cc.html", null ],
+    [ "performance_profiler.h", "performance__profiler_8h.html", "performance__profiler_8h" ],
     [ "scad_format.cc", "scad__format_8cc.html", "scad__format_8cc" ],
     [ "scad_format.h", "scad__format_8h.html", "scad__format_8h" ],
     [ "snes_color.cc", "snes__color_8cc.html", "snes__color_8cc" ],
