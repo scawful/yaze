@@ -11,6 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "app/core/asar_wrapper.h"
 #include "app/core/features.h"
+#include "app/core/performance_monitor.h"
 #include "app/core/platform/clipboard.h"
 #include "app/core/window.h"
 #include "app/editor/overworld/entity.h"
@@ -159,6 +160,10 @@ absl::Status OverworldEditor::Load() {
 
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
+  
+  // Process deferred textures for smooth loading
+  ProcessDeferredTextures();
+  
   if (overworld_canvas_fullscreen_) {
     DrawFullscreenCanvas();
     return status_;
@@ -1008,6 +1013,9 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
   if (!current_map_lock_) {
     current_map_ = hovered_map;
     current_parent_ = overworld_.overworld_map(current_map_)->parent();
+    
+    // Ensure the current map is built (on-demand loading)
+    RETURN_IF_ERROR(overworld_.EnsureMapBuilt(current_map_));
   }
 
   const int current_highlighted_map = current_map_;
@@ -1043,6 +1051,9 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
                                kOverworldMapSize, kOverworldMapSize);
   }
 
+  // Ensure current map has texture created for rendering
+  EnsureMapTexture(current_map_);
+  
   if (maps_bmp_[current_map_].modified() ||
       ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     RefreshOverworldMap();
@@ -1534,50 +1545,115 @@ absl::Status OverworldEditor::Save() {
 }
 
 absl::Status OverworldEditor::LoadGraphics() {
+  core::ScopedTimer timer("LoadGraphics");
+  
   util::logf("Loading overworld.");
   // Load the Link to the Past overworld.
-  RETURN_IF_ERROR(overworld_.Load(rom_));
+  {
+    core::ScopedTimer load_timer("Overworld::Load");
+    RETURN_IF_ERROR(overworld_.Load(rom_));
+  }
   palette_ = overworld_.current_area_palette();
 
-  util::logf("Loading overworld graphics.");
-  // Create the area graphics image
-  Renderer::Get().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x40,
-                                        overworld_.current_graphics(),
-                                        current_gfx_bmp_, palette_);
+  util::logf("Loading overworld graphics (optimized).");
+  
+  // Phase 1: Create bitmaps without textures for faster loading
+  // This avoids blocking the main thread with GPU texture creation
+  {
+    core::ScopedTimer gfx_timer("CreateBitmapWithoutTexture_Graphics");
+    Renderer::Get().CreateBitmapWithoutTexture(0x80, kOverworldMapSize, 0x40,
+                                              overworld_.current_graphics(),
+                                              current_gfx_bmp_, palette_);
+  }
 
-  util::logf("Loading overworld tileset.");
-  // Create the tile16 blockset image
-  Renderer::Get().CreateAndRenderBitmap(0x80, 0x2000, 0x08,
-                                        overworld_.tile16_blockset_data(),
-                                        tile16_blockset_bmp_, palette_);
+  util::logf("Loading overworld tileset (deferred textures).");
+  {
+    core::ScopedTimer tileset_timer("CreateBitmapWithoutTexture_Tileset");
+    Renderer::Get().CreateBitmapWithoutTexture(0x80, 0x2000, 0x08,
+                                              overworld_.tile16_blockset_data(),
+                                              tile16_blockset_bmp_, palette_);
+  }
   map_blockset_loaded_ = true;
 
   // Copy the tile16 data into individual tiles.
   auto tile16_blockset_data = overworld_.tile16_blockset_data();
   util::logf("Loading overworld tile16 graphics.");
 
-  tile16_blockset_ =
-      gfx::CreateTilemap(tile16_blockset_data, 0x80, 0x2000, kTile16Size,
-                         zelda3::kNumTile16Individual, palette_);
+  {
+    core::ScopedTimer tilemap_timer("CreateTilemap");
+    tile16_blockset_ =
+        gfx::CreateTilemap(tile16_blockset_data, 0x80, 0x2000, kTile16Size,
+                           zelda3::kNumTile16Individual, palette_);
+  }
 
-  util::logf("Loading overworld maps.");
-  // Render the overworld maps loaded from the ROM.
-  for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
-    overworld_.set_current_map(i);
-    auto palette = overworld_.current_area_palette();
-    try {
-      Renderer::Get().CreateAndRenderBitmap(
-          kOverworldMapSize, kOverworldMapSize, 0x80,
-          overworld_.current_map_bitmap_data(), maps_bmp_[i], palette);
-    } catch (const std::bad_alloc& e) {
-      std::cout << "Error: " << e.what() << std::endl;
-      continue;
+  // Phase 2: Create bitmaps only for essential maps initially
+  // Non-essential maps will be created on-demand when accessed
+  constexpr int kEssentialMapsPerWorld = 8;
+  constexpr int kLightWorldEssential = kEssentialMapsPerWorld;
+  constexpr int kDarkWorldEssential = zelda3::kDarkWorldMapIdStart + kEssentialMapsPerWorld;
+  constexpr int kSpecialWorldEssential = zelda3::kSpecialWorldMapIdStart + kEssentialMapsPerWorld;
+  
+  util::logf("Creating bitmaps for essential maps only (first %d maps per world)", kEssentialMapsPerWorld);
+  
+  std::vector<gfx::Bitmap*> maps_to_texture;
+  maps_to_texture.reserve(kEssentialMapsPerWorld * 3); // 8 maps per world * 3 worlds
+  
+  {
+    core::ScopedTimer maps_timer("CreateEssentialOverworldMaps");
+    for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
+      bool is_essential = false;
+      
+      // Check if this is an essential map
+      if (i < kLightWorldEssential) {
+        is_essential = true;
+      } else if (i >= zelda3::kDarkWorldMapIdStart && i < kDarkWorldEssential) {
+        is_essential = true;
+      } else if (i >= zelda3::kSpecialWorldMapIdStart && i < kSpecialWorldEssential) {
+        is_essential = true;
+      }
+      
+      if (is_essential) {
+        overworld_.set_current_map(i);
+        auto palette = overworld_.current_area_palette();
+        try {
+          // Create bitmap data and surface but defer texture creation
+          maps_bmp_[i].Create(kOverworldMapSize, kOverworldMapSize, 0x80,
+                              overworld_.current_map_bitmap_data());
+          maps_bmp_[i].SetPalette(palette);
+          maps_to_texture.push_back(&maps_bmp_[i]);
+        } catch (const std::bad_alloc& e) {
+          std::cout << "Error allocating map " << i << ": " << e.what() << std::endl;
+          continue;
+        }
+      }
+      // Non-essential maps will be created on-demand when accessed
     }
   }
 
-  if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
-    RETURN_IF_ERROR(LoadSpriteGraphics());
+  // Phase 3: Create textures only for currently visible maps
+  // Only create textures for the first few maps initially
+  const int initial_texture_count = std::min(4, static_cast<int>(maps_to_texture.size()));
+  {
+    core::ScopedTimer initial_textures_timer("CreateInitialTextures");
+    for (int i = 0; i < initial_texture_count; ++i) {
+      Renderer::Get().RenderBitmap(maps_to_texture[i]);
+    }
   }
+  
+  // Store remaining maps for lazy texture creation
+  deferred_map_textures_.assign(maps_to_texture.begin() + initial_texture_count, 
+                                maps_to_texture.end());
+
+  if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
+    {
+      core::ScopedTimer sprites_timer("LoadSpriteGraphics");
+      RETURN_IF_ERROR(LoadSpriteGraphics());
+    }
+  }
+
+  // Print performance summary
+  core::PerformanceMonitor::Get().PrintSummary();
+  util::logf("Overworld graphics loaded with deferred texture creation");
 
   return absl::OkStatus();
 }
@@ -1601,6 +1677,72 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
       Renderer::Get().RenderBitmap(&(sprite_previews_[sprite.id()]));
     }
   return absl::OkStatus();
+}
+
+void OverworldEditor::ProcessDeferredTextures() {
+  std::lock_guard<std::mutex> lock(deferred_textures_mutex_);
+  
+  if (deferred_map_textures_.empty()) {
+    return;
+  }
+  
+  // Process a few textures per frame to avoid blocking
+  const int textures_per_frame = 2;
+  int processed = 0;
+  
+  auto it = deferred_map_textures_.begin();
+  while (it != deferred_map_textures_.end() && processed < textures_per_frame) {
+    if (*it && !(*it)->texture()) {
+      Renderer::Get().RenderBitmap(*it);
+      processed++;
+    }
+    ++it;
+  }
+  
+  // Remove processed textures from the deferred list
+  if (processed > 0) {
+    deferred_map_textures_.erase(deferred_map_textures_.begin(), it);
+  }
+}
+
+void OverworldEditor::EnsureMapTexture(int map_index) {
+  if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  
+  // Ensure the map is built first (on-demand loading)
+  auto status = overworld_.EnsureMapBuilt(map_index);
+  if (!status.ok()) {
+    util::logf("Failed to build map %d: %s", map_index, status.message());
+    return;
+  }
+  
+  auto& bitmap = maps_bmp_[map_index];
+  
+  // If bitmap doesn't exist yet (non-essential map), create it now
+  if (!bitmap.is_active()) {
+    overworld_.set_current_map(map_index);
+    auto palette = overworld_.current_area_palette();
+    try {
+      bitmap.Create(kOverworldMapSize, kOverworldMapSize, 0x80,
+                    overworld_.current_map_bitmap_data());
+      bitmap.SetPalette(palette);
+    } catch (const std::bad_alloc& e) {
+      util::logf("Error allocating bitmap for map %d: %s", map_index, e.what());
+      return;
+    }
+  }
+  
+  if (!bitmap.texture() && bitmap.is_active()) {
+    Renderer::Get().RenderBitmap(&bitmap);
+    
+    // Remove from deferred list if it was there
+    std::lock_guard<std::mutex> lock(deferred_textures_mutex_);
+    auto it = std::find(deferred_map_textures_.begin(), deferred_map_textures_.end(), &bitmap);
+    if (it != deferred_map_textures_.end()) {
+      deferred_map_textures_.erase(it);
+    }
+  }
 }
 
 void OverworldEditor::RefreshChildMap(int map_index) {
