@@ -11,7 +11,6 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/core/asar_wrapper.h"
-#include "app/gfx/performance_profiler.h"
 #include "app/core/features.h"
 #include "app/core/performance_monitor.h"
 #include "app/core/window.h"
@@ -20,6 +19,7 @@
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
@@ -35,6 +35,7 @@
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
+
 
 namespace yaze::editor {
 
@@ -142,19 +143,19 @@ absl::Status OverworldEditor::Load() {
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
-  
+
   // Set up callback for when tile16 changes are committed
   tile16_editor_.set_on_changes_committed([this]() -> absl::Status {
     // Regenerate the overworld editor's tile16 blockset
     RETURN_IF_ERROR(RefreshTile16Blockset());
-    
+
     // Force refresh of the current overworld map to show changes
     RefreshOverworldMap();
-    
+
     util::logf("Overworld editor refreshed after Tile16 changes");
     return absl::OkStatus();
   });
-  
+
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
   all_gfx_loaded_ = true;
   return absl::OkStatus();
@@ -162,10 +163,10 @@ absl::Status OverworldEditor::Load() {
 
 absl::Status OverworldEditor::Update() {
   status_ = absl::OkStatus();
-  
+
   // Process deferred textures for smooth loading
   ProcessDeferredTextures();
-  
+
   if (overworld_canvas_fullscreen_) {
     DrawFullscreenCanvas();
     return status_;
@@ -722,21 +723,22 @@ void OverworldEditor::DrawOverworldMaps() {
   int yy = 0;
   for (int i = 0; i < 0x40; i++) {
     int world_index = i + (current_world_ * 0x40);
-    
+
     // Bounds checking to prevent crashes
     if (world_index < 0 || world_index >= static_cast<int>(maps_bmp_.size())) {
-      continue; // Skip invalid map index
+      continue;  // Skip invalid map index
     }
-    
+
     int scale = static_cast<int>(ow_map_canvas_.global_scale());
     int map_x = (xx * kOverworldMapSize * scale);
     int map_y = (yy * kOverworldMapSize * scale);
-    
+
     // Check if the map has a texture, if not, ensure it gets loaded
-    if (!maps_bmp_[world_index].texture() && maps_bmp_[world_index].is_active()) {
+    if (!maps_bmp_[world_index].texture() &&
+        maps_bmp_[world_index].is_active()) {
       EnsureMapTexture(world_index);
     }
-    
+
     // Only draw if the map has a texture or is the currently selected map
     if (maps_bmp_[world_index].texture() || world_index == current_map_) {
       ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y,
@@ -745,21 +747,24 @@ void OverworldEditor::DrawOverworldMaps() {
       // Draw a placeholder for maps that haven't loaded yet
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
       ImVec2 canvas_pos = ow_map_canvas_.zero_point();
-      ImVec2 placeholder_pos = ImVec2(canvas_pos.x + map_x, canvas_pos.y + map_y);
-      ImVec2 placeholder_size = ImVec2(kOverworldMapSize * scale, kOverworldMapSize * scale);
-      
+      ImVec2 placeholder_pos =
+          ImVec2(canvas_pos.x + map_x, canvas_pos.y + map_y);
+      ImVec2 placeholder_size =
+          ImVec2(kOverworldMapSize * scale, kOverworldMapSize * scale);
+
       // Draw a subtle loading indicator
-      draw_list->AddRectFilled(placeholder_pos, 
-                              ImVec2(placeholder_pos.x + placeholder_size.x, 
-                                     placeholder_pos.y + placeholder_size.y),
-                              IM_COL32(32, 32, 32, 128)); // Dark gray with transparency
-      
+      draw_list->AddRectFilled(
+          placeholder_pos,
+          ImVec2(placeholder_pos.x + placeholder_size.x,
+                 placeholder_pos.y + placeholder_size.y),
+          IM_COL32(32, 32, 32, 128));  // Dark gray with transparency
+
       // Draw loading text
       ImVec2 text_pos = ImVec2(placeholder_pos.x + placeholder_size.x / 2 - 20,
-                              placeholder_pos.y + placeholder_size.y / 2);
+                               placeholder_pos.y + placeholder_size.y / 2);
       draw_list->AddText(text_pos, IM_COL32(128, 128, 128, 255), "Loading...");
     }
-    
+
     xx++;
     if (xx >= 8) {
       yy++;
@@ -783,23 +788,29 @@ void OverworldEditor::DrawOverworldEdits() {
 
   // Bounds checking to prevent crashes
   if (current_map_ < 0 || current_map_ >= static_cast<int>(maps_bmp_.size())) {
-    return; // Invalid map index, skip drawing
+    return;  // Invalid map index, skip drawing
   }
 
   // Validate tile16_blockset_ before calling GetTilemapData
-  if (!tile16_blockset_.atlas.is_active() || tile16_blockset_.atlas.vector().empty()) {
-    util::logf("Error: tile16_blockset_ is not properly initialized (active: %s, size: %zu)", 
-               tile16_blockset_.atlas.is_active() ? "true" : "false", 
-               tile16_blockset_.atlas.vector().size());
-    return; // Skip drawing if blockset is invalid
+  if (!tile16_blockset_.atlas.is_active() ||
+      tile16_blockset_.atlas.vector().empty()) {
+    util::logf(
+        "Error: tile16_blockset_ is not properly initialized (active: %s, "
+        "size: %zu)",
+        tile16_blockset_.atlas.is_active() ? "true" : "false",
+        tile16_blockset_.atlas.vector().size());
+    return;  // Skip drawing if blockset is invalid
   }
-  
+
   // Validate current_tile16_ before proceeding
   if (current_tile16_ < 0 || current_tile16_ >= 512) {
-    util::logf("ERROR: DrawOverworldEdits - Invalid current_tile16_=%d (should be 0-511)", current_tile16_);
+    util::logf(
+        "ERROR: DrawOverworldEdits - Invalid current_tile16_=%d (should be "
+        "0-511)",
+        current_tile16_);
     return;
   }
-  
+
   // Render the updated map bitmap.
   auto tile_data = gfx::GetTilemapData(tile16_blockset_, current_tile16_);
   RenderUpdatedMapBitmap(mouse_position, tile_data);
@@ -830,9 +841,11 @@ void OverworldEditor::RenderUpdatedMapBitmap(
 
   // Bounds checking to prevent crashes
   if (current_map_ < 0 || current_map_ >= static_cast<int>(maps_bmp_.size())) {
-    util::logf("ERROR: RenderUpdatedMapBitmap - Invalid current_map_ %d (maps_bmp_.size()=%zu)", 
-               current_map_, maps_bmp_.size());
-    return; // Invalid map index, skip rendering
+    util::logf(
+        "ERROR: RenderUpdatedMapBitmap - Invalid current_map_ %d "
+        "(maps_bmp_.size()=%zu)",
+        current_map_, maps_bmp_.size());
+    return;  // Invalid map index, skip rendering
   }
 
   // Calculate the tile index for x and y based on the click_position
@@ -851,8 +864,11 @@ void OverworldEditor::RenderUpdatedMapBitmap(
 
   // Validate bitmap state before writing
   if (!current_bitmap.is_active() || current_bitmap.size() == 0) {
-    util::logf("ERROR: RenderUpdatedMapBitmap - Bitmap %d is not active or has no data (active=%s, size=%zu)", 
-               current_map_, current_bitmap.is_active() ? "true" : "false", current_bitmap.size());
+    util::logf(
+        "ERROR: RenderUpdatedMapBitmap - Bitmap %d is not active or has no "
+        "data (active=%s, size=%zu)",
+        current_map_, current_bitmap.is_active() ? "true" : "false",
+        current_bitmap.size());
     return;
   }
 
@@ -862,17 +878,23 @@ void OverworldEditor::RenderUpdatedMapBitmap(
           (start_position.y + y) * kOverworldMapSize + (start_position.x + x);
 
       // Bounds check for pixel index
-      if (pixel_index < 0 || pixel_index >= static_cast<int>(current_bitmap.size())) {
-        util::logf("ERROR: RenderUpdatedMapBitmap - pixel_index %d out of bounds (bitmap size=%zu)", 
-                   pixel_index, current_bitmap.size());
+      if (pixel_index < 0 ||
+          pixel_index >= static_cast<int>(current_bitmap.size())) {
+        util::logf(
+            "ERROR: RenderUpdatedMapBitmap - pixel_index %d out of bounds "
+            "(bitmap size=%zu)",
+            pixel_index, current_bitmap.size());
         continue;
       }
 
       // Bounds check for tile data
       int tile_data_index = y * kTile16Size + x;
-      if (tile_data_index < 0 || tile_data_index >= static_cast<int>(tile_data.size())) {
-        util::logf("ERROR: RenderUpdatedMapBitmap - tile_data_index %d out of bounds (tile_data size=%zu)", 
-                   tile_data_index, tile_data.size());
+      if (tile_data_index < 0 ||
+          tile_data_index >= static_cast<int>(tile_data.size())) {
+        util::logf(
+            "ERROR: RenderUpdatedMapBitmap - tile_data_index %d out of bounds "
+            "(tile_data size=%zu)",
+            tile_data_index, tile_data.size());
         continue;
       }
 
@@ -881,7 +903,7 @@ void OverworldEditor::RenderUpdatedMapBitmap(
   }
 
   current_bitmap.set_modified(true);
-  
+
   // Immediately update the texture to reflect changes
   core::Renderer::Get().UpdateBitmap(&current_bitmap);
 }
@@ -901,7 +923,7 @@ void OverworldEditor::CheckForOverworldEdits() {
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
       util::logf("CheckForOverworldEdits: About to apply rectangle selection");
-      
+
       auto& selected_world =
           (current_world_ == 0) ? overworld_.mutable_map_tiles()->light_world
           : (current_world_ == 1)
@@ -926,7 +948,10 @@ void OverworldEditor::CheckForOverworldEdits() {
       // Number of tiles per local map (since each tile is 16x16)
       constexpr int tiles_per_local_map = local_map_size / kTile16Size;
 
-      util::logf("CheckForOverworldEdits: About to fill rectangle with current_tile16_=%d", current_tile16_);
+      util::logf(
+          "CheckForOverworldEdits: About to fill rectangle with "
+          "current_tile16_=%d",
+          current_tile16_);
 
       // Apply the current selected tile to each position in the rectangle
       for (int y = start_y; y <= end_y; y += kTile16Size) {
@@ -942,24 +967,31 @@ void OverworldEditor::CheckForOverworldEdits() {
           // Calculate the index within the overall map structure
           int index_x = local_map_x * tiles_per_local_map + tile16_x;
           int index_y = local_map_y * tiles_per_local_map + tile16_y;
-          
+
           // Bounds check for the selected world array
-          if (index_x >= 0 && index_x < 0x200 && index_y >= 0 && index_y < 0x200) {
+          if (index_x >= 0 && index_x < 0x200 && index_y >= 0 &&
+              index_y < 0x200) {
             // CRITICAL FIX: Set the tile to the currently selected tile16, not read from canvas
             selected_world[index_x][index_y] = current_tile16_;
-            
+
             // CRITICAL FIX: Also update the bitmap directly like single tile drawing
             ImVec2 tile_position(x, y);
-            auto tile_data = gfx::GetTilemapData(tile16_blockset_, current_tile16_);
+            auto tile_data =
+                gfx::GetTilemapData(tile16_blockset_, current_tile16_);
             if (!tile_data.empty()) {
               RenderUpdatedMapBitmap(tile_position, tile_data);
-              util::logf("CheckForOverworldEdits: Updated bitmap at position (%d,%d) with tile16_id=%d", 
-                         x, y, current_tile16_);
+              util::logf(
+                  "CheckForOverworldEdits: Updated bitmap at position (%d,%d) "
+                  "with tile16_id=%d",
+                  x, y, current_tile16_);
             } else {
-              util::logf("ERROR: Failed to get tile data for tile16_id=%d", current_tile16_);
+              util::logf("ERROR: Failed to get tile data for tile16_id=%d",
+                         current_tile16_);
             }
           } else {
-            util::logf("ERROR: Rectangle selection position [%d,%d] out of bounds", index_x, index_y);
+            util::logf(
+                "ERROR: Rectangle selection position [%d,%d] out of bounds",
+                index_x, index_y);
           }
         }
       }
@@ -967,7 +999,8 @@ void OverworldEditor::CheckForOverworldEdits() {
       // Clear the rectangle selection after applying
       ow_map_canvas_.mutable_selected_tiles()->clear();
       ow_map_canvas_.mutable_points()->clear();
-      util::logf("CheckForOverworldEdits: Rectangle selection applied and cleared");
+      util::logf(
+          "CheckForOverworldEdits: Rectangle selection applied and cleared");
     }
   }
 }
@@ -1125,7 +1158,7 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
   if (!current_map_lock_) {
     current_map_ = hovered_map;
     current_parent_ = overworld_.overworld_map(current_map_)->parent();
-    
+
     // Ensure the current map is built (on-demand loading)
     RETURN_IF_ERROR(overworld_.EnsureMapBuilt(current_map_));
   }
@@ -1165,7 +1198,7 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
 
   // Ensure current map has texture created for rendering
   EnsureMapTexture(current_map_);
-  
+
   if (maps_bmp_[current_map_].modified()) {
     RefreshOverworldMap();
     RETURN_IF_ERROR(RefreshTile16Blockset());
@@ -1280,47 +1313,35 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   blockset_canvas_.DrawContextMenu();
   blockset_canvas_.DrawBitmap(tile16_blockset_.atlas, /*border_offset=*/2,
                               map_blockset_loaded_, /*scale=*/2);
+                bool tile_selected = false;
 
-  // Fixed tile interaction detection - handle single clicks properly
-  bool tile_selected = false;
-  
-  // First, call DrawTileSelector to handle the visual feedback
-  blockset_canvas_.DrawTileSelector(32.0f);
-  
-  // Handle both single click (select) and double click (edit) properly
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && blockset_canvas_.IsMouseHovering()) {
+  // Call DrawTileSelector after event detection for visual feedback
+  if (blockset_canvas_.DrawTileSelector(32.0f)) {
     tile_selected = true;
+    show_tile16_editor_ = true;
   }
-  
-  // Check for double click to open tile16 editor
-  bool open_tile16_editor = false;
-  if (blockset_canvas_.IsMouseHovering() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+
+  // Then check for single click (if not double-click)
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+           blockset_canvas_.IsMouseHovering()) {
     tile_selected = true;
-    open_tile16_editor = true;
   }
 
   if (tile_selected) {
     // Get mouse position relative to canvas
     const ImGuiIO& io = ImGui::GetIO();
     ImVec2 canvas_pos = blockset_canvas_.zero_point();
-    ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
-    
+    ImVec2 mouse_pos =
+        ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
+
     // Calculate grid position (32x32 tiles in blockset)
     int grid_x = static_cast<int>(mouse_pos.x / 32);
     int grid_y = static_cast<int>(mouse_pos.y / 32);
-    int id = grid_x + grid_y * 8; // 8 tiles per row in blockset
+    int id = grid_x + grid_y * 8;  // 8 tiles per row in blockset
 
     if (id != current_tile16_ && id >= 0 && id < 512) {
       current_tile16_ = id;
-      // CRITICAL FIX: Always sync tile16 editor with overworld editor selection
       RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(id));
-      
-      if (open_tile16_editor) {
-        show_tile16_editor_ = true;
-        util::logf("Opened Tile16 editor for tile %d (double-click)", id);
-      } else {
-        util::logf("Selected Tile16: %d (single-click)", id);
-      }
     }
   }
 
@@ -1674,7 +1695,7 @@ absl::Status OverworldEditor::Save() {
 
 absl::Status OverworldEditor::LoadGraphics() {
   core::ScopedTimer timer("LoadGraphics");
-  
+
   util::logf("Loading overworld.");
   // Load the Link to the Past overworld.
   {
@@ -1684,22 +1705,22 @@ absl::Status OverworldEditor::LoadGraphics() {
   palette_ = overworld_.current_area_palette();
 
   util::logf("Loading overworld graphics (optimized).");
-  
+
   // Phase 1: Create bitmaps without textures for faster loading
   // This avoids blocking the main thread with GPU texture creation
   {
     core::ScopedTimer gfx_timer("CreateBitmapWithoutTexture_Graphics");
     Renderer::Get().CreateBitmapWithoutTexture(0x80, kOverworldMapSize, 0x40,
-                                              overworld_.current_graphics(),
-                                              current_gfx_bmp_, palette_);
+                                               overworld_.current_graphics(),
+                                               current_gfx_bmp_, palette_);
   }
 
   util::logf("Loading overworld tileset (deferred textures).");
   {
     core::ScopedTimer tileset_timer("CreateBitmapWithoutTexture_Tileset");
-    Renderer::Get().CreateBitmapWithoutTexture(0x80, 0x2000, 0x08,
-                                              overworld_.tile16_blockset_data(),
-                                              tile16_blockset_bmp_, palette_);
+    Renderer::Get().CreateBitmapWithoutTexture(
+        0x80, 0x2000, 0x08, overworld_.tile16_blockset_data(),
+        tile16_blockset_bmp_, palette_);
   }
   map_blockset_loaded_ = true;
 
@@ -1718,28 +1739,34 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Non-essential maps will be created on-demand when accessed
   constexpr int kEssentialMapsPerWorld = 8;
   constexpr int kLightWorldEssential = kEssentialMapsPerWorld;
-  constexpr int kDarkWorldEssential = zelda3::kDarkWorldMapIdStart + kEssentialMapsPerWorld;
-  constexpr int kSpecialWorldEssential = zelda3::kSpecialWorldMapIdStart + kEssentialMapsPerWorld;
-  
-  util::logf("Creating bitmaps for essential maps only (first %d maps per world)", kEssentialMapsPerWorld);
-  
+  constexpr int kDarkWorldEssential =
+      zelda3::kDarkWorldMapIdStart + kEssentialMapsPerWorld;
+  constexpr int kSpecialWorldEssential =
+      zelda3::kSpecialWorldMapIdStart + kEssentialMapsPerWorld;
+
+  util::logf(
+      "Creating bitmaps for essential maps only (first %d maps per world)",
+      kEssentialMapsPerWorld);
+
   std::vector<gfx::Bitmap*> maps_to_texture;
-  maps_to_texture.reserve(kEssentialMapsPerWorld * 3); // 8 maps per world * 3 worlds
-  
+  maps_to_texture.reserve(kEssentialMapsPerWorld *
+                          3);  // 8 maps per world * 3 worlds
+
   {
     core::ScopedTimer maps_timer("CreateEssentialOverworldMaps");
     for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
       bool is_essential = false;
-      
+
       // Check if this is an essential map
       if (i < kLightWorldEssential) {
         is_essential = true;
       } else if (i >= zelda3::kDarkWorldMapIdStart && i < kDarkWorldEssential) {
         is_essential = true;
-      } else if (i >= zelda3::kSpecialWorldMapIdStart && i < kSpecialWorldEssential) {
+      } else if (i >= zelda3::kSpecialWorldMapIdStart &&
+                 i < kSpecialWorldEssential) {
         is_essential = true;
       }
-      
+
       if (is_essential) {
         overworld_.set_current_map(i);
         auto palette = overworld_.current_area_palette();
@@ -1750,7 +1777,8 @@ absl::Status OverworldEditor::LoadGraphics() {
           maps_bmp_[i].SetPalette(palette);
           maps_to_texture.push_back(&maps_bmp_[i]);
         } catch (const std::bad_alloc& e) {
-          std::cout << "Error allocating map " << i << ": " << e.what() << std::endl;
+          std::cout << "Error allocating map " << i << ": " << e.what()
+                    << std::endl;
           continue;
         }
       }
@@ -1760,16 +1788,17 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Phase 3: Create textures only for currently visible maps
   // Only create textures for the first few maps initially
-  const int initial_texture_count = std::min(4, static_cast<int>(maps_to_texture.size()));
+  const int initial_texture_count =
+      std::min(4, static_cast<int>(maps_to_texture.size()));
   {
     core::ScopedTimer initial_textures_timer("CreateInitialTextures");
     for (int i = 0; i < initial_texture_count; ++i) {
       Renderer::Get().RenderBitmap(maps_to_texture[i]);
     }
   }
-  
+
   // Store remaining maps for lazy texture creation
-  deferred_map_textures_.assign(maps_to_texture.begin() + initial_texture_count, 
+  deferred_map_textures_.assign(maps_to_texture.begin() + initial_texture_count,
                                 maps_to_texture.end());
 
   if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
@@ -1805,15 +1834,15 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
 
 void OverworldEditor::ProcessDeferredTextures() {
   std::lock_guard<std::mutex> lock(deferred_textures_mutex_);
-  
+
   if (deferred_map_textures_.empty()) {
     return;
   }
-  
+
   // Priority-based loading: process more textures for visible maps
-  const int textures_per_frame = 8; // Increased from 2 to 8 for faster loading
+  const int textures_per_frame = 8;  // Increased from 2 to 8 for faster loading
   int processed = 0;
-  
+
   // First pass: prioritize textures for the current world
   auto it = deferred_map_textures_.begin();
   while (it != deferred_map_textures_.end() && processed < textures_per_frame) {
@@ -1826,18 +1855,19 @@ void OverworldEditor::ProcessDeferredTextures() {
           break;
         }
       }
-      
+
       bool is_current_world = false;
       if (map_index >= 0) {
-        int map_world = map_index / 0x40; // 64 maps per world
+        int map_world = map_index / 0x40;  // 64 maps per world
         is_current_world = (map_world == current_world_);
       }
-      
+
       // Prioritize current world maps, but also process others if we have capacity
       if (is_current_world || processed < textures_per_frame / 2) {
         Renderer::Get().RenderBitmap(*it);
         processed++;
-        it = deferred_map_textures_.erase(it); // Remove immediately after processing
+        it = deferred_map_textures_.erase(
+            it);  // Remove immediately after processing
       } else {
         ++it;
       }
@@ -1845,11 +1875,12 @@ void OverworldEditor::ProcessDeferredTextures() {
       ++it;
     }
   }
-  
+
   // Second pass: process remaining textures if we still have capacity
   if (processed < textures_per_frame) {
     it = deferred_map_textures_.begin();
-    while (it != deferred_map_textures_.end() && processed < textures_per_frame) {
+    while (it != deferred_map_textures_.end() &&
+           processed < textures_per_frame) {
       if (*it && !(*it)->texture()) {
         Renderer::Get().RenderBitmap(*it);
         processed++;
@@ -1859,10 +1890,11 @@ void OverworldEditor::ProcessDeferredTextures() {
       }
     }
   }
-  
+
   // Third pass: process deferred map refreshes for visible maps
   if (processed < textures_per_frame) {
-    for (int i = 0; i < zelda3::kNumOverworldMaps && processed < textures_per_frame; ++i) {
+    for (int i = 0;
+         i < zelda3::kNumOverworldMaps && processed < textures_per_frame; ++i) {
       if (maps_bmp_[i].modified() && maps_bmp_[i].is_active()) {
         // Check if this map is visible
         bool is_visible = (i == current_map_) || (i / 0x40 == current_world_);
@@ -1879,16 +1911,16 @@ void OverworldEditor::EnsureMapTexture(int map_index) {
   if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
     return;
   }
-  
+
   // Ensure the map is built first (on-demand loading)
   auto status = overworld_.EnsureMapBuilt(map_index);
   if (!status.ok()) {
     util::logf("Failed to build map %d: %s", map_index, status.message());
     return;
   }
-  
+
   auto& bitmap = maps_bmp_[map_index];
-  
+
   // If bitmap doesn't exist yet (non-essential map), create it now
   if (!bitmap.is_active()) {
     overworld_.set_current_map(map_index);
@@ -1902,13 +1934,14 @@ void OverworldEditor::EnsureMapTexture(int map_index) {
       return;
     }
   }
-  
+
   if (!bitmap.texture() && bitmap.is_active()) {
     Renderer::Get().RenderBitmap(&bitmap);
-    
+
     // Remove from deferred list if it was there
     std::lock_guard<std::mutex> lock(deferred_textures_mutex_);
-    auto it = std::find(deferred_map_textures_.begin(), deferred_map_textures_.end(), &bitmap);
+    auto it = std::find(deferred_map_textures_.begin(),
+                        deferred_map_textures_.end(), &bitmap);
     if (it != deferred_map_textures_.end()) {
       deferred_map_textures_.erase(it);
     }
@@ -1946,18 +1979,18 @@ void OverworldEditor::RefreshOverworldMapOnDemand(int map_index) {
   if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
     return;
   }
-  
+
   // Check if the map is actually visible or being edited
   bool is_current_map = (map_index == current_map_);
   bool is_current_world = (map_index / 0x40 == current_world_);
-  
+
   // For non-current maps in non-current worlds, defer the refresh
   if (!is_current_map && !is_current_world) {
     // Mark for deferred refresh - will be processed when the map becomes visible
     maps_bmp_[map_index].set_modified(true);
     return;
   }
-  
+
   // For visible maps, do immediate refresh
   RefreshChildMapOnDemand(map_index);
 }
@@ -1967,45 +2000,50 @@ void OverworldEditor::RefreshOverworldMapOnDemand(int map_index) {
  */
 void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
   auto* map = overworld_.mutable_overworld_map(map_index);
-  
+
   // Check what actually needs to be refreshed
   bool needs_graphics_rebuild = maps_bmp_[map_index].modified();
-  bool needs_palette_rebuild = false; // Could be tracked more granularly
-  
+  bool needs_palette_rebuild = false;  // Could be tracked more granularly
+
   if (needs_graphics_rebuild) {
     // Only rebuild what's actually changed
     map->LoadAreaGraphics();
-    
+
     // Rebuild tileset only if graphics changed
     auto status = map->BuildTileset();
     if (!status.ok()) {
-      util::logf("Failed to build tileset for map %d: %s", map_index, status.message().data());
+      util::logf("Failed to build tileset for map %d: %s", map_index,
+                 status.message().data());
       return;
     }
-    
+
     // Rebuild tiles16 graphics
-    status = map->BuildTiles16Gfx(*overworld_.mutable_tiles16(), overworld_.tiles16().size());
+    status = map->BuildTiles16Gfx(*overworld_.mutable_tiles16(),
+                                  overworld_.tiles16().size());
     if (!status.ok()) {
-      util::logf("Failed to build tiles16 graphics for map %d: %s", map_index, status.message().data());
+      util::logf("Failed to build tiles16 graphics for map %d: %s", map_index,
+                 status.message().data());
       return;
     }
-    
+
     // Rebuild bitmap
     status = map->BuildBitmap(overworld_.GetMapTiles(current_world_));
     if (!status.ok()) {
-      util::logf("Failed to build bitmap for map %d: %s", map_index, status.message().data());
+      util::logf("Failed to build bitmap for map %d: %s", map_index,
+                 status.message().data());
       return;
     }
-    
+
     // Update bitmap data
     maps_bmp_[map_index].set_data(map->bitmap_data());
     maps_bmp_[map_index].set_modified(false);
-    
+
     // Validate surface synchronization to help debug crashes
     if (!maps_bmp_[map_index].ValidateDataSurfaceSync()) {
-      util::logf("Warning: Surface synchronization issue detected for map %d", map_index);
+      util::logf("Warning: Surface synchronization issue detected for map %d",
+                 map_index);
     }
-    
+
     // Update texture on main thread
     if (maps_bmp_[map_index].texture()) {
       Renderer::Get().UpdateBitmap(&maps_bmp_[map_index]);
@@ -2014,7 +2052,7 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
       EnsureMapTexture(map_index);
     }
   }
-  
+
   // Handle multi-area maps (large, wide, tall) with safe coordination
   RefreshMultiAreaMapsSafely(map_index, map);
 }
@@ -2026,29 +2064,32 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
  * by using a non-recursive approach with explicit map list processing.
  * It respects the ZScream area size logic and prevents infinite recursion.
  */
-void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index, zelda3::OverworldMap* map) {
+void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
+                                                 zelda3::OverworldMap* map) {
   using zelda3::AreaSizeEnum;
-  
+
   // Skip if this is already a processed sibling to avoid double-processing
   static std::set<int> currently_processing;
   if (currently_processing.count(map_index)) {
     return;
   }
-  
+
   auto area_size = map->area_size();
   if (area_size == AreaSizeEnum::SmallArea) {
-    return; // No siblings to coordinate
+    return;  // No siblings to coordinate
   }
-  
-  util::logf("RefreshMultiAreaMapsSafely: Processing %s area map %d (parent: %d)",
-             (area_size == AreaSizeEnum::LargeArea) ? "large" :
-             (area_size == AreaSizeEnum::WideArea) ? "wide" : "tall",
-             map_index, map->parent());
-  
+
+  util::logf(
+      "RefreshMultiAreaMapsSafely: Processing %s area map %d (parent: %d)",
+      (area_size == AreaSizeEnum::LargeArea)  ? "large"
+      : (area_size == AreaSizeEnum::WideArea) ? "wide"
+                                              : "tall",
+      map_index, map->parent());
+
   // Determine all maps that are part of this multi-area structure
   std::vector<int> sibling_maps;
   int parent_id = map->parent();
-  
+
   // Use the same logic as ZScream for area coordination
   switch (area_size) {
     case AreaSizeEnum::LargeArea: {
@@ -2056,76 +2097,82 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index, zelda3::Overworl
       // Parent is top-left (quadrant 0), siblings are:
       // +1 (top-right, quadrant 1), +8 (bottom-left, quadrant 2), +9 (bottom-right, quadrant 3)
       sibling_maps = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
-      util::logf("RefreshMultiAreaMapsSafely: Large area siblings: %d, %d, %d, %d", 
-                 parent_id, parent_id + 1, parent_id + 8, parent_id + 9);
+      util::logf(
+          "RefreshMultiAreaMapsSafely: Large area siblings: %d, %d, %d, %d",
+          parent_id, parent_id + 1, parent_id + 8, parent_id + 9);
       break;
     }
-    
+
     case AreaSizeEnum::WideArea: {
       // Wide Area: 2x1 grid (2 maps total, horizontally adjacent)
       // Parent is left, sibling is +1 (right)
       sibling_maps = {parent_id, parent_id + 1};
-      util::logf("RefreshMultiAreaMapsSafely: Wide area siblings: %d, %d", 
+      util::logf("RefreshMultiAreaMapsSafely: Wide area siblings: %d, %d",
                  parent_id, parent_id + 1);
       break;
     }
-    
+
     case AreaSizeEnum::TallArea: {
       // Tall Area: 1x2 grid (2 maps total, vertically adjacent)
       // Parent is top, sibling is +8 (bottom)
       sibling_maps = {parent_id, parent_id + 8};
-      util::logf("RefreshMultiAreaMapsSafely: Tall area siblings: %d, %d", 
+      util::logf("RefreshMultiAreaMapsSafely: Tall area siblings: %d, %d",
                  parent_id, parent_id + 8);
       break;
     }
-    
+
     default:
-      util::logf("RefreshMultiAreaMapsSafely: Unknown area size %d for map %d", 
+      util::logf("RefreshMultiAreaMapsSafely: Unknown area size %d for map %d",
                  static_cast<int>(area_size), map_index);
       return;
   }
-  
+
   // Mark all siblings as being processed to prevent recursion
   for (int sibling : sibling_maps) {
     currently_processing.insert(sibling);
   }
-  
+
   // Only refresh siblings that are visible/current and need updating
   for (int sibling : sibling_maps) {
     if (sibling == map_index) {
-      continue; // Skip self (already processed above)
+      continue;  // Skip self (already processed above)
     }
-    
+
     // Bounds check
     if (sibling < 0 || sibling >= zelda3::kNumOverworldMaps) {
       continue;
     }
-    
+
     // Only refresh if it's visible or current
     bool is_current_map = (sibling == current_map_);
     bool is_current_world = (sibling / 0x40 == current_world_);
     bool needs_refresh = maps_bmp_[sibling].modified();
-    
+
     if ((is_current_map || is_current_world) && needs_refresh) {
-      util::logf("RefreshMultiAreaMapsSafely: Refreshing %s area sibling map %d (parent: %d)", 
-                 (area_size == AreaSizeEnum::LargeArea) ? "large" :
-                 (area_size == AreaSizeEnum::WideArea) ? "wide" : "tall",
-                 sibling, parent_id);
-      
+      util::logf(
+          "RefreshMultiAreaMapsSafely: Refreshing %s area sibling map %d "
+          "(parent: %d)",
+          (area_size == AreaSizeEnum::LargeArea)  ? "large"
+          : (area_size == AreaSizeEnum::WideArea) ? "wide"
+                                                  : "tall",
+          sibling, parent_id);
+
       // Direct refresh without calling RefreshChildMapOnDemand to avoid recursion
       auto* sibling_map = overworld_.mutable_overworld_map(sibling);
       if (sibling_map && maps_bmp_[sibling].modified()) {
         sibling_map->LoadAreaGraphics();
-        
+
         auto status = sibling_map->BuildTileset();
         if (status.ok()) {
-          status = sibling_map->BuildTiles16Gfx(*overworld_.mutable_tiles16(), overworld_.tiles16().size());
+          status = sibling_map->BuildTiles16Gfx(*overworld_.mutable_tiles16(),
+                                                overworld_.tiles16().size());
           if (status.ok()) {
-            status = sibling_map->BuildBitmap(overworld_.GetMapTiles(current_world_));
+            status = sibling_map->BuildBitmap(
+                overworld_.GetMapTiles(current_world_));
             if (status.ok()) {
               maps_bmp_[sibling].set_data(sibling_map->bitmap_data());
               maps_bmp_[sibling].set_modified(false);
-              
+
               // Update texture if it exists
               if (maps_bmp_[sibling].texture()) {
                 core::Renderer::Get().UpdateBitmap(&maps_bmp_[sibling]);
@@ -2135,10 +2182,12 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index, zelda3::Overworl
             }
           }
         }
-        
+
         if (!status.ok()) {
-          util::logf("RefreshMultiAreaMapsSafely: Failed to refresh sibling map %d: %s", 
-                     sibling, status.message().data());
+          util::logf(
+              "RefreshMultiAreaMapsSafely: Failed to refresh sibling map %d: "
+              "%s",
+              sibling, status.message().data());
         }
       }
     } else if (!is_current_map && !is_current_world) {
@@ -2146,7 +2195,7 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index, zelda3::Overworl
       maps_bmp_[sibling].set_modified(true);
     }
   }
-  
+
   // Clear processing set after completion
   for (int sibling : sibling_maps) {
     currently_processing.erase(sibling);
@@ -3603,7 +3652,7 @@ void OverworldEditor::DrawScratchSpacePattern() {
 void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
                                               int tile_id, int slot) {
   gfx::ScopedTimer timer("overworld_update_scratch_tile");
-  
+
   // Use current slot if not specified
   if (slot == -1)
     slot = current_scratch_slot_;
@@ -3649,13 +3698,14 @@ void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
 
   scratch_slot.scratch_bitmap.set_modified(true);
   // Use batch operations for texture updates
-  scratch_slot.scratch_bitmap.QueueTextureUpdate(core::Renderer::Get().renderer());
+  scratch_slot.scratch_bitmap.QueueTextureUpdate(
+      core::Renderer::Get().renderer());
   scratch_slot.in_use = true;
 }
 
 absl::Status OverworldEditor::SaveCurrentSelectionToScratch(int slot) {
   gfx::ScopedTimer timer("overworld_save_selection_to_scratch");
-  
+
   if (slot < 0 || slot >= 4) {
     return absl::InvalidArgumentError("Invalid scratch slot");
   }
@@ -3732,7 +3782,7 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch(int slot) {
 
   // Process all queued texture updates at once
   gfx::Arena::Get().ProcessBatchTextureUpdates();
-  
+
   return absl::OkStatus();
 }
 
