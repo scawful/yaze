@@ -899,6 +899,8 @@ void OverworldEditor::CheckForOverworldEdits() {
   if (ow_map_canvas_.select_rect_active()) {
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+      util::logf("CheckForOverworldEdits: About to apply rectangle selection");
+      
       auto& selected_world =
           (current_world_ == 0) ? overworld_.mutable_map_tiles()->light_world
           : (current_world_ == 1)
@@ -923,8 +925,17 @@ void OverworldEditor::CheckForOverworldEdits() {
       // Number of tiles per local map (since each tile is 16x16)
       constexpr int tiles_per_local_map = local_map_size / kTile16Size;
 
+      util::logf("CheckForOverworldEdits: About to process %zu selected tiles", ow_map_canvas_.selected_tiles().size());
+
       for (int y = start_y, i = 0; y <= end_y; y += kTile16Size) {
         for (int x = start_x; x <= end_x; x += kTile16Size, ++i) {
+          // Bounds check to prevent crashes
+          if (i >= static_cast<int>(ow_map_canvas_.selected_tiles().size())) {
+            util::logf("ERROR: Rectangle selection index %d out of bounds (size: %zu)", 
+                       i, ow_map_canvas_.selected_tiles().size());
+            break;
+          }
+          
           // Determine which local map (512x512) the tile is in
           int local_map_x = x / local_map_size;
           int local_map_y = y / local_map_size;
@@ -944,7 +955,9 @@ void OverworldEditor::CheckForOverworldEdits() {
         }
       }
 
+      util::logf("CheckForOverworldEdits: About to call RefreshOverworldMap");
       RefreshOverworldMap();
+      util::logf("CheckForOverworldEdits: RefreshOverworldMap completed");
     }
   }
 }
@@ -1960,14 +1973,14 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
       return;
     }
     
-  // Update bitmap data
-  maps_bmp_[map_index].set_data(map->bitmap_data());
-  maps_bmp_[map_index].set_modified(false);
-  
-  // Validate surface synchronization to help debug crashes
-  if (!maps_bmp_[map_index].ValidateDataSurfaceSync()) {
-    util::logf("Warning: Surface synchronization issue detected for map %d", map_index);
-  }
+    // Update bitmap data
+    maps_bmp_[map_index].set_data(map->bitmap_data());
+    maps_bmp_[map_index].set_modified(false);
+    
+    // Validate surface synchronization to help debug crashes
+    if (!maps_bmp_[map_index].ValidateDataSurfaceSync()) {
+      util::logf("Warning: Surface synchronization issue detected for map %d", map_index);
+    }
     
     // Update texture on main thread
     if (maps_bmp_[map_index].texture()) {
@@ -1978,26 +1991,13 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
     }
   }
   
-  // Handle large maps - refresh siblings if needed
+  // CRITICAL FIX: Disable large map sibling refresh to prevent infinite recursion
+  // The large map sibling refresh logic was causing infinite recursion when
+  // editing map 00 (and other large maps), leading to segmentation faults.
+  // For now, we'll handle large maps individually to prevent crashes.
+  // TODO: Implement safer large map coordination without recursion
   if (map->is_large_map()) {
-    int parent_id = map->parent();
-    for (int i = 1; i < 4; i++) {
-      int sibling_index = parent_id + i;
-      if (i >= 2) {
-        sibling_index += 6;
-      }
-      
-      // Only refresh sibling if it's also visible
-      bool is_sibling_visible = (sibling_index == current_map_) || 
-                               (sibling_index / 0x40 == current_world_);
-      
-      if (is_sibling_visible) {
-        RefreshChildMapOnDemand(sibling_index);
-      } else {
-        // Mark sibling for deferred refresh
-        maps_bmp_[sibling_index].set_modified(true);
-      }
-    }
+    util::logf("RefreshChildMapOnDemand: Large map %d detected, skipping sibling refresh to prevent recursion", map_index);
   }
 }
 
