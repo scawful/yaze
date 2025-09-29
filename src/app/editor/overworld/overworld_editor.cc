@@ -1287,9 +1287,16 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   // First, call DrawTileSelector to handle the visual feedback
   blockset_canvas_.DrawTileSelector(32.0f);
   
-  // Then check for single click to update tile selection
-  if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && blockset_canvas_.IsMouseHovering()) {
+  // Handle both single click (select) and double click (edit) properly
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && blockset_canvas_.IsMouseHovering()) {
     tile_selected = true;
+  }
+  
+  // Check for double click to open tile16 editor
+  bool open_tile16_editor = false;
+  if (blockset_canvas_.IsMouseHovering() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+    tile_selected = true;
+    open_tile16_editor = true;
   }
 
   if (tile_selected) {
@@ -1305,8 +1312,15 @@ absl::Status OverworldEditor::DrawTile16Selector() {
 
     if (id != current_tile16_ && id >= 0 && id < 512) {
       current_tile16_ = id;
+      // CRITICAL FIX: Always sync tile16 editor with overworld editor selection
       RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(id));
-      show_tile16_editor_ = true;
+      
+      if (open_tile16_editor) {
+        show_tile16_editor_ = true;
+        util::logf("Opened Tile16 editor for tile %d (double-click)", id);
+      } else {
+        util::logf("Selected Tile16: %d (single-click)", id);
+      }
     }
   }
 

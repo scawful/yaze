@@ -53,15 +53,13 @@ absl::Status Tile16Editor::Initialize(
   current_tile16_bmp_.SetPalette(tile16_blockset_bmp.palette());
   core::Renderer::Get().RenderBitmap(&current_tile16_bmp_);
 
-  // Initialize enhanced canvas features
+  // Initialize enhanced canvas features with proper sizing
   tile16_edit_canvas_.InitializeDefaults();
   tile8_source_canvas_.InitializeDefaults();
 
-  // Configure canvases for table integration - keep fixed sizes but ensure proper content reporting
-  tile16_edit_canvas_.SetAutoResize(
-      false);  // Keep fixed size for precise editing
-  tile8_source_canvas_.SetAutoResize(
-      false);  // Keep fixed size for consistent layout
+  // Configure canvases with proper initialization
+  tile16_edit_canvas_.SetAutoResize(false);
+  tile8_source_canvas_.SetAutoResize(false);
 
   // Initialize enhanced palette editors if ROM is available
   if (rom_) {
@@ -280,19 +278,33 @@ absl::Status Tile16Editor::UpdateBlockset() {
   gui::EndPadding();
 
   blockset_canvas_.DrawContextMenu();
-  if (blockset_canvas_.DrawTileSelector(32)) {
-    auto tile_pos = blockset_canvas_.GetLastClickPosition();
-    int clicked_x =
-        static_cast<int>(tile_pos.x / blockset_canvas_.GetGridStep());
-    int clicked_y =
-        static_cast<int>(tile_pos.y / blockset_canvas_.GetGridStep());
-    int selected_tile =
-        clicked_x + (clicked_y * 8);  // 8 tiles per row in blockset
-    if (selected_tile != current_tile16_ && selected_tile >= 0 &&
-        selected_tile < 512) {
+  
+  // CRITICAL FIX: Handle single clicks properly like the overworld editor
+  bool tile_selected = false;
+  
+  // First, call DrawTileSelector for visual feedback
+  blockset_canvas_.DrawTileSelector(32.0f);
+  
+  // Then check for single click to update tile selection
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && blockset_canvas_.IsMouseHovering()) {
+    tile_selected = true;
+  }
+
+  if (tile_selected) {
+    // Get mouse position relative to canvas
+    const ImGuiIO& io = ImGui::GetIO();
+    ImVec2 canvas_pos = blockset_canvas_.zero_point();
+    ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
+    
+    // Calculate grid position (32x32 tiles in blockset)
+    int grid_x = static_cast<int>(mouse_pos.x / 32);
+    int grid_y = static_cast<int>(mouse_pos.y / 32);
+    int selected_tile = grid_x + grid_y * 8; // 8 tiles per row in blockset
+
+    if (selected_tile != current_tile16_ && selected_tile >= 0 && selected_tile < 512) {
       RETURN_IF_ERROR(SetCurrentTile(selected_tile));
       util::logf("Selected Tile16 from blockset: %d (grid: %d,%d)",
-                 selected_tile, clicked_x, clicked_y);
+                 selected_tile, grid_x, grid_y);
     }
   }
   blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, true, 2.0f);
@@ -695,7 +707,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
             ImVec2(tile8_source_canvas_.width(), tile8_source_canvas_.height()),
             true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
 
-      // Enable dragging for scrolling behavior
+      // Enable dragging for scrolling behavior  
       tile8_source_canvas_.set_draggable(true);
       tile8_source_canvas_.DrawBackground();
       tile8_source_canvas_.DrawContextMenu();
@@ -735,8 +747,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
                           ImGuiWindowFlags_NoScrollbar |
                               ImGuiWindowFlags_NoScrollWithMouse)) {
 
-      tile16_edit_canvas_.DrawBackground(
-          ImVec2(64, 64));  // Fixed 64x64 display size
+      tile16_edit_canvas_.DrawBackground(ImVec2(64, 64));
       tile16_edit_canvas_.DrawContextMenu();
 
       // Draw current tile16 bitmap at 4x scale for clarity (16x16 pixels -> 64x64 display)
@@ -1547,21 +1558,44 @@ absl::Status Tile16Editor::CommitChangesToBlockset() {
 }
 
 absl::Status Tile16Editor::CommitChangesToOverworld() {
-  // Write all tile16 changes to ROM
-  RETURN_IF_ERROR(SaveTile16ToROM());
+  // CRITICAL FIX: Complete workflow for tile16 changes
+  
+  // Step 1: Update ROM data with current tile16 changes
+  RETURN_IF_ERROR(UpdateROMTile16Data());
+  
+  // Step 2: Update the local blockset to reflect changes
+  RETURN_IF_ERROR(UpdateBlocksetBitmap());
+  
+  // Step 3: Update the atlas directly (bypass problematic tile cache)
+  if (tile16_blockset_->atlas.is_active()) {
+    // Calculate the position of this tile in the blockset atlas
+    constexpr int kTilesPerRow = 8;
+    int tile_x = (current_tile16_ % kTilesPerRow) * kTile16Size;
+    int tile_y = (current_tile16_ / kTilesPerRow) * kTile16Size;
+    
+    // Copy current tile16 bitmap data directly to atlas
+    for (int ty = 0; ty < kTile16Size; ++ty) {
+      for (int tx = 0; tx < kTile16Size; ++tx) {
+        int src_index = ty * kTile16Size + tx;
+        int dst_index = (tile_y + ty) * tile16_blockset_->atlas.width() + (tile_x + tx);
+        
+        if (src_index < static_cast<int>(current_tile16_bmp_.size()) &&
+            dst_index < static_cast<int>(tile16_blockset_->atlas.size())) {
+          tile16_blockset_->atlas.WriteToPixel(dst_index, current_tile16_bmp_.data()[src_index]);
+        }
+      }
+    }
+    
+    tile16_blockset_->atlas.set_modified(true);
+    core::Renderer::Get().UpdateBitmap(&tile16_blockset_->atlas);
+  }
 
-  // Regenerate the tile16 blockset to reflect changes
-  RETURN_IF_ERROR(RefreshTile16Blockset());
-
-  // Update the overworld tilemap to use the new tile16 data
-  RETURN_IF_ERROR(UpdateOverworldTilemap());
-
-  // Notify the parent editor (overworld editor) to regenerate its blockset
+  // Step 4: Notify the parent editor (overworld editor) to regenerate its blockset
   if (on_changes_committed_) {
     RETURN_IF_ERROR(on_changes_committed_());
   }
 
-  util::logf("Committed all Tile16 changes to overworld system");
+  util::logf("Committed Tile16 %d changes to overworld system", current_tile16_);
   return absl::OkStatus();
 }
 
