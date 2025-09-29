@@ -723,8 +723,35 @@ void OverworldEditor::DrawOverworldMaps() {
     int scale = static_cast<int>(ow_map_canvas_.global_scale());
     int map_x = (xx * kOverworldMapSize * scale);
     int map_y = (yy * kOverworldMapSize * scale);
-    ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y,
-                              ow_map_canvas_.global_scale());
+    
+    // Check if the map has a texture, if not, ensure it gets loaded
+    if (!maps_bmp_[world_index].texture() && maps_bmp_[world_index].is_active()) {
+      EnsureMapTexture(world_index);
+    }
+    
+    // Only draw if the map has a texture or is the currently selected map
+    if (maps_bmp_[world_index].texture() || world_index == current_map_) {
+      ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y,
+                                ow_map_canvas_.global_scale());
+    } else {
+      // Draw a placeholder for maps that haven't loaded yet
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+      ImVec2 canvas_pos = ow_map_canvas_.zero_point();
+      ImVec2 placeholder_pos = ImVec2(canvas_pos.x + map_x, canvas_pos.y + map_y);
+      ImVec2 placeholder_size = ImVec2(kOverworldMapSize * scale, kOverworldMapSize * scale);
+      
+      // Draw a subtle loading indicator
+      draw_list->AddRectFilled(placeholder_pos, 
+                              ImVec2(placeholder_pos.x + placeholder_size.x, 
+                                     placeholder_pos.y + placeholder_size.y),
+                              IM_COL32(32, 32, 32, 128)); // Dark gray with transparency
+      
+      // Draw loading text
+      ImVec2 text_pos = ImVec2(placeholder_pos.x + placeholder_size.x / 2 - 20,
+                              placeholder_pos.y + placeholder_size.y / 2);
+      draw_list->AddText(text_pos, IM_COL32(128, 128, 128, 255), "Loading...");
+    }
+    
     xx++;
     if (xx >= 8) {
       yy++;
@@ -1686,22 +1713,68 @@ void OverworldEditor::ProcessDeferredTextures() {
     return;
   }
   
-  // Process a few textures per frame to avoid blocking
-  const int textures_per_frame = 2;
+  // Priority-based loading: process more textures for visible maps
+  const int textures_per_frame = 8; // Increased from 2 to 8 for faster loading
   int processed = 0;
   
+  // First pass: prioritize textures for the current world
   auto it = deferred_map_textures_.begin();
   while (it != deferred_map_textures_.end() && processed < textures_per_frame) {
     if (*it && !(*it)->texture()) {
-      Renderer::Get().RenderBitmap(*it);
-      processed++;
+      // Check if this texture belongs to the current world
+      int map_index = -1;
+      for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
+        if (&maps_bmp_[i] == *it) {
+          map_index = i;
+          break;
+        }
+      }
+      
+      bool is_current_world = false;
+      if (map_index >= 0) {
+        int map_world = map_index / 0x40; // 64 maps per world
+        is_current_world = (map_world == current_world_);
+      }
+      
+      // Prioritize current world maps, but also process others if we have capacity
+      if (is_current_world || processed < textures_per_frame / 2) {
+        Renderer::Get().RenderBitmap(*it);
+        processed++;
+        it = deferred_map_textures_.erase(it); // Remove immediately after processing
+      } else {
+        ++it;
+      }
+    } else {
+      ++it;
     }
-    ++it;
   }
   
-  // Remove processed textures from the deferred list
-  if (processed > 0) {
-    deferred_map_textures_.erase(deferred_map_textures_.begin(), it);
+  // Second pass: process remaining textures if we still have capacity
+  if (processed < textures_per_frame) {
+    it = deferred_map_textures_.begin();
+    while (it != deferred_map_textures_.end() && processed < textures_per_frame) {
+      if (*it && !(*it)->texture()) {
+        Renderer::Get().RenderBitmap(*it);
+        processed++;
+        it = deferred_map_textures_.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
+  
+  // Third pass: process deferred map refreshes for visible maps
+  if (processed < textures_per_frame) {
+    for (int i = 0; i < zelda3::kNumOverworldMaps && processed < textures_per_frame; ++i) {
+      if (maps_bmp_[i].modified() && maps_bmp_[i].is_active()) {
+        // Check if this map is visible
+        bool is_visible = (i == current_map_) || (i / 0x40 == current_world_);
+        if (is_visible) {
+          RefreshOverworldMapOnDemand(i);
+          processed++;
+        }
+      }
+    }
   }
 }
 
@@ -1761,39 +1834,105 @@ void OverworldEditor::RefreshChildMap(int map_index) {
 }
 
 void OverworldEditor::RefreshOverworldMap() {
-  std::vector<std::future<void>> futures;
-  std::array<int, 4> indices = {0, 0, 0, 0};
+  // Use the new on-demand refresh system
+  RefreshOverworldMapOnDemand(current_map_);
+}
 
-  auto refresh_map_async = [this](int map_index) {
-    RefreshChildMap(map_index);
-  };
+/**
+ * @brief On-demand map refresh that only updates what's actually needed
+ * 
+ * This method intelligently determines what needs to be refreshed based on
+ * the type of change and only updates the necessary components, avoiding
+ * expensive full rebuilds when possible.
+ */
+void OverworldEditor::RefreshOverworldMapOnDemand(int map_index) {
+  if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  
+  // Check if the map is actually visible or being edited
+  bool is_current_map = (map_index == current_map_);
+  bool is_current_world = (map_index / 0x40 == current_world_);
+  
+  // For non-current maps in non-current worlds, defer the refresh
+  if (!is_current_map && !is_current_world) {
+    // Mark for deferred refresh - will be processed when the map becomes visible
+    maps_bmp_[map_index].set_modified(true);
+    return;
+  }
+  
+  // For visible maps, do immediate refresh
+  RefreshChildMapOnDemand(map_index);
+}
 
-  int source_map_id = current_map_;
-  bool is_large = overworld_.overworld_map(current_map_)->is_large_map();
-  if (is_large) {
-    source_map_id = current_parent_;
-    // We need to update the map and its siblings if it's a large map
-    for (int i = 1; i < 4; i++) {
-      int sibling_index = overworld_.overworld_map(source_map_id)->parent() + i;
-      if (i >= 2)
-        sibling_index += 6;
-      futures.push_back(
-          std::async(std::launch::async, refresh_map_async, sibling_index));
-      indices[i] = sibling_index;
+/**
+ * @brief On-demand child map refresh with selective updates
+ */
+void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
+  auto* map = overworld_.mutable_overworld_map(map_index);
+  
+  // Check what actually needs to be refreshed
+  bool needs_graphics_rebuild = maps_bmp_[map_index].modified();
+  bool needs_palette_rebuild = false; // Could be tracked more granularly
+  
+  if (needs_graphics_rebuild) {
+    // Only rebuild what's actually changed
+    map->LoadAreaGraphics();
+    
+    // Rebuild tileset only if graphics changed
+    auto status = map->BuildTileset();
+    if (!status.ok()) {
+      util::logf("Failed to build tileset for map %d: %s", map_index, status.message().data());
+      return;
+    }
+    
+    // Rebuild tiles16 graphics
+    status = map->BuildTiles16Gfx(*overworld_.mutable_tiles16(), overworld_.tiles16().size());
+    if (!status.ok()) {
+      util::logf("Failed to build tiles16 graphics for map %d: %s", map_index, status.message().data());
+      return;
+    }
+    
+    // Rebuild bitmap
+    status = map->BuildBitmap(overworld_.GetMapTiles(current_world_));
+    if (!status.ok()) {
+      util::logf("Failed to build bitmap for map %d: %s", map_index, status.message().data());
+      return;
+    }
+    
+    // Update bitmap data
+    maps_bmp_[map_index].set_data(map->bitmap_data());
+    maps_bmp_[map_index].set_modified(false);
+    
+    // Update texture on main thread
+    if (maps_bmp_[map_index].texture()) {
+      Renderer::Get().UpdateBitmap(&maps_bmp_[map_index]);
+    } else {
+      // Create texture if it doesn't exist
+      EnsureMapTexture(map_index);
     }
   }
-  indices[0] = source_map_id;
-  futures.push_back(
-      std::async(std::launch::async, refresh_map_async, source_map_id));
-
-  for (auto& each : futures) {
-    each.wait();
-    each.get();
-  }
-  int n = is_large ? 4 : 1;
-  // We do texture updating on the main thread
-  for (int i = 0; i < n; ++i) {
-    Renderer::Get().UpdateBitmap(&maps_bmp_[indices[i]]);
+  
+  // Handle large maps - refresh siblings if needed
+  if (map->is_large_map()) {
+    int parent_id = map->parent();
+    for (int i = 1; i < 4; i++) {
+      int sibling_index = parent_id + i;
+      if (i >= 2) {
+        sibling_index += 6;
+      }
+      
+      // Only refresh sibling if it's also visible
+      bool is_sibling_visible = (sibling_index == current_map_) || 
+                               (sibling_index / 0x40 == current_world_);
+      
+      if (is_sibling_visible) {
+        RefreshChildMapOnDemand(sibling_index);
+      } else {
+        // Mark sibling for deferred refresh
+        maps_bmp_[sibling_index].set_modified(true);
+      }
+    }
   }
 }
 

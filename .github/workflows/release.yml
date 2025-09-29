@@ -302,9 +302,11 @@ jobs:
             '-A','${{ matrix.cmake_generator_platform }}',
             '-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}',
             '-DCMAKE_POLICY_VERSION_MINIMUM=3.16',
-            '-DYAZE_BUILD_TESTS=OFF',
+            '-DYAZE_BUILD_TESTS=ON',
             '-DYAZE_BUILD_EMU=OFF',
-            '-DYAZE_ENABLE_ROM_TESTS=OFF',
+            '-DYAZE_BUILD_Z3ED=ON',
+            '-DYAZE_ENABLE_UI_TESTS=ON',
+            '-DYAZE_ENABLE_ROM_TESTS=ON',
             '-DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF',
             '-DYAZE_INSTALL_LIB=OFF'
           )

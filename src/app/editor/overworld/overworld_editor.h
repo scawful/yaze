@@ -133,6 +133,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   void RefreshChildMap(int i);
   void RefreshOverworldMap();
+  void RefreshOverworldMapOnDemand(int map_index);
+  void RefreshChildMapOnDemand(int map_index);
   absl::Status RefreshMapPalette();
   void RefreshMapProperties();
   absl::Status RefreshTile16Blockset();
