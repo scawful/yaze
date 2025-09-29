@@ -35,13 +35,25 @@ set(YAZE_RESOURCE_FILES
 file(GLOB YAZE_THEME_FILES "${CMAKE_SOURCE_DIR}/assets/themes/*.theme")
 list(APPEND YAZE_RESOURCE_FILES ${YAZE_THEME_FILES})
 
+# Configure assets for different platforms
 foreach (FILE ${YAZE_RESOURCE_FILES})
   file(RELATIVE_PATH NEW_FILE "${CMAKE_SOURCE_DIR}/assets" ${FILE})
   get_filename_component(NEW_FILE_PATH ${NEW_FILE} DIRECTORY)
-  set_source_files_properties(${FILE}
-    PROPERTIES
-    MACOSX_PACKAGE_LOCATION "Resources/${NEW_FILE_PATH}"
-  )
+  
+  if (APPLE)
+    # macOS: Set bundle location
+    set_source_files_properties(${FILE}
+      PROPERTIES
+      MACOSX_PACKAGE_LOCATION "Resources/${NEW_FILE_PATH}"
+    )
+  else()
+    # Windows/Linux: Copy to output directory
+    set_source_files_properties(${FILE}
+      PROPERTIES
+      VS_DEPLOYMENT_CONTENT 1
+      VS_DEPLOYMENT_LOCATION "assets/${NEW_FILE_PATH}"
+    )
+  endif()
 endforeach()
 
 # Conditionally add native file dialog (optional for CI builds)
@@ -670,4 +682,27 @@ source_group("Platform\\iOS\\Assets" FILES
 # Configuration
 source_group("Configuration" FILES
   yaze_config.h.in
+)
+
+# Assets
+source_group("Assets\\Fonts" FILES
+  ${CMAKE_SOURCE_DIR}/assets/font/Karla-Regular.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/Roboto-Medium.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/Cousine-Regular.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/DroidSans.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/NotoSansJP.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/IBMPlexSansJP-Bold.ttf
+  ${CMAKE_SOURCE_DIR}/assets/font/MaterialIcons-Regular.ttf
+)
+
+source_group("Assets\\Themes" FILES
+  ${YAZE_THEME_FILES}
+)
+
+source_group("Assets\\Layouts" FILES
+  ${CMAKE_SOURCE_DIR}/assets/layouts/ow_toolset.zeml
+)
+
+source_group("Assets\\Library" FILES
+  ${CMAKE_SOURCE_DIR}/assets/lib/libasar.dll
 )

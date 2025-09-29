@@ -53,6 +53,25 @@ else()
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
   )
+  
+  # Add asset files for Windows/Linux builds
+  if(WIN32 OR LINUX)
+    target_sources(yaze PRIVATE ${YAZE_RESOURCE_FILES})
+    
+    # Set up asset deployment for Visual Studio
+    if(WIN32)
+      foreach(ASSET_FILE ${YAZE_RESOURCE_FILES})
+        file(RELATIVE_PATH ASSET_REL_PATH "${CMAKE_SOURCE_DIR}/assets" ${ASSET_FILE})
+        get_filename_component(ASSET_DIR ${ASSET_REL_PATH} DIRECTORY)
+        
+        set_source_files_properties(${ASSET_FILE}
+          PROPERTIES
+          VS_DEPLOYMENT_CONTENT 1
+          VS_DEPLOYMENT_LOCATION "assets/${ASSET_DIR}"
+        )
+      endforeach()
+    endif()
+  endif()
 endif()
 
 target_include_directories(
@@ -136,5 +155,59 @@ endif()
 
 if (APPLE)
   target_link_libraries(yaze PUBLIC ${COCOA_LIBRARY})
+endif()
+
+# Post-build step to copy assets to output directory (Windows/Linux)
+if(NOT APPLE)
+  # Create custom target for copying assets
+  add_custom_target(copy_assets ALL
+    COMMENT "Copying assets to output directory"
+  )
+  
+  # Copy fonts
+  add_custom_command(TARGET copy_assets POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+    $<TARGET_FILE_DIR:yaze>/assets/font
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets/font
+    $<TARGET_FILE_DIR:yaze>/assets/font
+    COMMENT "Copying font assets"
+  )
+  
+  # Copy themes
+  add_custom_command(TARGET copy_assets POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+    $<TARGET_FILE_DIR:yaze>/assets/themes
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets/themes
+    $<TARGET_FILE_DIR:yaze>/assets/themes
+    COMMENT "Copying theme assets"
+  )
+  
+  # Copy other assets if they exist
+  if(EXISTS ${CMAKE_SOURCE_DIR}/assets/layouts)
+    add_custom_command(TARGET copy_assets POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+      $<TARGET_FILE_DIR:yaze>/assets/layouts
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${CMAKE_SOURCE_DIR}/assets/layouts
+      $<TARGET_FILE_DIR:yaze>/assets/layouts
+      COMMENT "Copying layout assets"
+    )
+  endif()
+  
+  if(EXISTS ${CMAKE_SOURCE_DIR}/assets/lib)
+    add_custom_command(TARGET copy_assets POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+      $<TARGET_FILE_DIR:yaze>/assets/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${CMAKE_SOURCE_DIR}/assets/lib
+      $<TARGET_FILE_DIR:yaze>/assets/lib
+      COMMENT "Copying library assets"
+    )
+  endif()
+  
+  # Make the main target depend on asset copying
+  add_dependencies(yaze copy_assets)
 endif()
 
