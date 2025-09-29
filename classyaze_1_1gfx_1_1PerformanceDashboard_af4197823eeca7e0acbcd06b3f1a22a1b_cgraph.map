@@ -1,9 +1,9 @@
 <map id="yaze::gfx::PerformanceDashboard::ExportReport" name="yaze::gfx::PerformanceDashboard::ExportReport">
 <area shape="rect" id="Node000001" title="Export performance report." alt="" coords="5,39,218,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1PerformanceDashboard.html#a4bb9951bfa701c9b8bb9c55d6ffe5111" title=" " alt="" coords="266,5,478,46"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1PerformanceDashboard.html#a5d0b52ad4d946146259683e903947e22" title=" " alt="" coords="266,5,478,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="218,43,250,39,250,44,218,48"/>
 <area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1PerformanceDashboard.html#a7d2449c4c7d5e3949f5475146d402453" title="Get current performance summary." alt="" coords="266,71,478,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="218,69,250,73,250,79,218,75"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1PerformanceDashboard.html#a8d40dc10b66ea11e59dce15ff2a9b14a" title=" " alt="" coords="526,71,738,111"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1PerformanceDashboard.html#a9894a2ead7c58058b4cf34c3492d6903" title=" " alt="" coords="526,71,738,111"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="478,88,510,88,510,94,478,94"/>
 </map>

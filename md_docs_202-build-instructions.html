@@ -113,19 +113,24 @@ Linux</h2>
 <div class="fragment"><div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
 <div class="line">cmake --build build</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md10"></a>
-Windows (Recommended)</h2>
+Windows (Recommended - CMake Mode)</h2>
 <div class="fragment"><div class="line"># Automated setup (first time only)</div>
 <div class="line">.\scripts\setup-windows-dev.ps1</div>
 <div class="line"> </div>
-<div class="line"># Generate Visual Studio projects (with proper vcpkg integration)</div>
-<div class="line">python scripts/generate-vs-projects.py</div>
+<div class="line"># Recommended: Use Visual Studio&#39;s built-in CMake support</div>
+<div class="line"># 1. Open Visual Studio 2022</div>
+<div class="line"># 2. Select &quot;Open a local folder&quot; </div>
+<div class="line"># 3. Navigate to the yaze directory</div>
+<div class="line"># 4. Visual Studio will detect CMakeLists.txt automatically</div>
+<div class="line"># 5. Select configuration (Debug/Release) from the dropdown</div>
+<div class="line"># 6. Press F5 to build and run</div>
 <div class="line"> </div>
-<div class="line"># Build with Clang (recommended for better Abseil compatibility)</div>
-<div class="line">.\scripts\build-windows.ps1 -Compiler clang</div>
+<div class="line"># Alternative: Command line build</div>
+<div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
+<div class="line">cmake --build build --config Debug</div>
 <div class="line"> </div>
-<div class="line"># Or use CMake directly with Clang</div>
-<div class="line">cmake -B build -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang</div>
-<div class="line">cmake --build build</div>
+<div class="line"># Legacy: Generate Visual Studio solution (not recommended)</div>
+<div class="line"># python scripts/generate-vs-projects.py  # Less maintainable, use CMake mode instead</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md11"></a>
 Minimal Build (CI/Fast)</h2>
 <div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
@@ -385,23 +390,34 @@ Test Filters</h3>
 IDE Integration</h1>
 <h2><a class="anchor" id="autotoc_md48"></a>
 Visual Studio (Windows)</h2>
-<p><b>Recommended approach:</b> </p><div class="fragment"><div class="line"># Setup development environment</div>
+<p><b>Recommended approach - CMake Mode:</b> </p><div class="fragment"><div class="line"># Setup development environment</div>
 <div class="line">.\scripts\setup-windows-dev.ps1</div>
 <div class="line"> </div>
-<div class="line"># Generate Visual Studio project files (with proper vcpkg integration)</div>
-<div class="line">python scripts/generate-vs-projects.py</div>
-<div class="line"> </div>
-<div class="line"># Open YAZE.sln in Visual Studio 2022</div>
-<div class="line"># Select configuration (Debug/Release) and platform (x64/x86/ARM64)</div>
-<div class="line"># Press F5 to build and run</div>
-</div><!-- fragment --><p><b>Features:</b></p><ul>
-<li>Full IntelliSense support</li>
-<li>Integrated debugging</li>
+<div class="line"># Open in Visual Studio 2022</div>
+<div class="line"># 1. File → Open → Folder</div>
+<div class="line"># 2. Navigate to yaze directory</div>
+<div class="line"># 3. Visual Studio detects CMakeLists.txt automatically</div>
+<div class="line"># 4. Select configuration from toolbar (Debug/Release)</div>
+<div class="line"># 5. Press F5 to build and run</div>
+</div><!-- fragment --><p><b>Why CMake Mode?</b></p><ul>
+<li>✅ <b>No project generation step</b> - CMake files are the source of truth</li>
+<li>✅ <b>Always in sync</b> - Changes to CMakeLists.txt reflect immediately</li>
+<li>✅ <b>Better IntelliSense</b> - Direct CMake target understanding</li>
+<li>✅ <b>Native CMake support</b> - Modern Visual Studio feature</li>
+<li>✅ <b>Simpler workflow</b> - One less build step to maintain</li>
+<li>✅ <b>Cross-platform consistency</b> - Same CMake workflow on all platforms</li>
+</ul>
+<p><b>Features:</b></p><ul>
+<li>Full IntelliSense support (better than generated projects)</li>
+<li>Integrated debugging with breakpoint support</li>
 <li>Automatic vcpkg dependency management (SDL2)</li>
 <li>Multi-platform support (x64, ARM64)</li>
-<li>Automatic asset copying</li>
-<li>Generated project files stay in sync with CMake configuration</li>
+<li>Automatic asset copying via CMake post-build commands</li>
+<li>CMakeSettings.json for custom configurations</li>
 </ul>
+<p><b>Legacy Solution Generation (Not Recommended):</b> If you must use a .sln file (e.g., for CI integration): </p><div class="fragment"><div class="line">python scripts/generate-vs-projects.py</div>
+<div class="line"># Open generated YAZE.sln</div>
+</div><!-- fragment --><p> Note: This approach requires regeneration when CMakeLists.txt changes and is less maintainable.</p>
 <h2><a class="anchor" id="autotoc_md49"></a>
 VS Code</h2>
 <ol type="1">

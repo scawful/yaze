@@ -36,7 +36,7 @@ var NAVTREE =
       [ "Quick Start", "md_docs_202-build-instructions.html#autotoc_md7", [
         [ "macOS (Apple Silicon)", "md_docs_202-build-instructions.html#autotoc_md8", null ],
         [ "Linux", "md_docs_202-build-instructions.html#autotoc_md9", null ],
-        [ "Windows (Recommended)", "md_docs_202-build-instructions.html#autotoc_md10", null ],
+        [ "Windows (Recommended - CMake Mode)", "md_docs_202-build-instructions.html#autotoc_md10", null ],
         [ "Minimal Build (CI/Fast)", "md_docs_202-build-instructions.html#autotoc_md11", null ]
       ] ],
       [ "Dependencies", "md_docs_202-build-instructions.html#autotoc_md12", [
@@ -664,710 +664,770 @@ var NAVTREE =
         [ "Integration Opportunities", "md_docs_2B4-release-workflows.html#autotoc_md506", null ]
       ] ]
     ] ],
+    [ "Stability, Testability & Release Workflow Improvements", "md_docs_2B5-stability-improvements.html", [
+      [ "Recent Improvements (v0.3.2)", "md_docs_2B5-stability-improvements.html#autotoc_md509", [
+        [ "Windows Platform Stability", "md_docs_2B5-stability-improvements.html#autotoc_md510", [
+          [ "Stack Size Optimization", "md_docs_2B5-stability-improvements.html#autotoc_md511", null ],
+          [ "Development Utility Isolation", "md_docs_2B5-stability-improvements.html#autotoc_md512", null ]
+        ] ],
+        [ "Graphics System Stability", "md_docs_2B5-stability-improvements.html#autotoc_md513", [
+          [ "Segmentation Fault Resolution", "md_docs_2B5-stability-improvements.html#autotoc_md514", null ],
+          [ "Comprehensive Bounds Checking", "md_docs_2B5-stability-improvements.html#autotoc_md515", null ]
+        ] ],
+        [ "Build System Improvements", "md_docs_2B5-stability-improvements.html#autotoc_md516", [
+          [ "Modern Windows Workflow", "md_docs_2B5-stability-improvements.html#autotoc_md517", null ],
+          [ "Enhanced CI/CD Reliability", "md_docs_2B5-stability-improvements.html#autotoc_md518", null ]
+        ] ]
+      ] ],
+      [ "Recommended Optimizations", "md_docs_2B5-stability-improvements.html#autotoc_md519", [
+        [ "High Priority", "md_docs_2B5-stability-improvements.html#autotoc_md520", [
+          [ "1. Lazy Graphics Loading", "md_docs_2B5-stability-improvements.html#autotoc_md521", null ],
+          [ "2. Heap-Based Large Allocations", "md_docs_2B5-stability-improvements.html#autotoc_md522", null ],
+          [ "3. Streaming ROM Assets", "md_docs_2B5-stability-improvements.html#autotoc_md523", null ]
+        ] ],
+        [ "Medium Priority", "md_docs_2B5-stability-improvements.html#autotoc_md524", [
+          [ "4. Enhanced Test Isolation", "md_docs_2B5-stability-improvements.html#autotoc_md525", null ],
+          [ "5. Dependency Caching Optimization", "md_docs_2B5-stability-improvements.html#autotoc_md526", null ],
+          [ "6. Memory Pool for Graphics", "md_docs_2B5-stability-improvements.html#autotoc_md527", null ]
+        ] ],
+        [ "Low Priority", "md_docs_2B5-stability-improvements.html#autotoc_md528", [
+          [ "7. Build Time Optimization", "md_docs_2B5-stability-improvements.html#autotoc_md529", null ],
+          [ "8. Release Workflow Simplification", "md_docs_2B5-stability-improvements.html#autotoc_md530", null ]
+        ] ]
+      ] ],
+      [ "Testing Improvements", "md_docs_2B5-stability-improvements.html#autotoc_md531", [
+        [ "Current State", "md_docs_2B5-stability-improvements.html#autotoc_md532", null ],
+        [ "Recommendations", "md_docs_2B5-stability-improvements.html#autotoc_md533", [
+          [ "1. Visual Regression Testing", "md_docs_2B5-stability-improvements.html#autotoc_md534", null ],
+          [ "2. Performance Benchmarks", "md_docs_2B5-stability-improvements.html#autotoc_md535", null ],
+          [ "3. Fuzz Testing", "md_docs_2B5-stability-improvements.html#autotoc_md536", null ]
+        ] ]
+      ] ],
+      [ "Metrics & Monitoring", "md_docs_2B5-stability-improvements.html#autotoc_md537", [
+        [ "Current Measurements", "md_docs_2B5-stability-improvements.html#autotoc_md538", null ],
+        [ "Target Improvements", "md_docs_2B5-stability-improvements.html#autotoc_md539", null ]
+      ] ],
+      [ "Action Items", "md_docs_2B5-stability-improvements.html#autotoc_md540", [
+        [ "Immediate (v0.3.2)", "md_docs_2B5-stability-improvements.html#autotoc_md541", null ],
+        [ "Short Term (v0.3.3)", "md_docs_2B5-stability-improvements.html#autotoc_md542", null ],
+        [ "Medium Term (v0.4.0)", "md_docs_2B5-stability-improvements.html#autotoc_md543", null ],
+        [ "Long Term (v0.5.0+)", "md_docs_2B5-stability-improvements.html#autotoc_md544", null ]
+      ] ],
+      [ "Conclusion", "md_docs_2B5-stability-improvements.html#autotoc_md545", null ]
+    ] ],
     [ "Changelog", "md_docs_2C1-changelog.html", [
-      [ "0.3.1 (September 2025)", "md_docs_2C1-changelog.html#autotoc_md509", [
-        [ "Major Features", "md_docs_2C1-changelog.html#autotoc_md510", null ],
-        [ "Tile16 Editor Enhancements", "md_docs_2C1-changelog.html#autotoc_md511", null ],
-        [ "ZSCustomOverworld v3 Implementation", "md_docs_2C1-changelog.html#autotoc_md512", null ],
-        [ "Technical Improvements", "md_docs_2C1-changelog.html#autotoc_md513", null ],
-        [ "User Interface", "md_docs_2C1-changelog.html#autotoc_md514", null ],
-        [ "Bug Fixes", "md_docs_2C1-changelog.html#autotoc_md515", null ],
-        [ "ZScream Compatibility Improvements", "md_docs_2C1-changelog.html#autotoc_md516", null ]
+      [ "0.3.2 (December 2025) - In Development", "md_docs_2C1-changelog.html#autotoc_md547", [
+        [ "Tile16 Editor Improvements (In Progress)", "md_docs_2C1-changelog.html#autotoc_md548", null ],
+        [ "Graphics System Optimizations", "md_docs_2C1-changelog.html#autotoc_md549", null ],
+        [ "Windows Platform Stability", "md_docs_2C1-changelog.html#autotoc_md550", null ],
+        [ "Memory Safety & Stability", "md_docs_2C1-changelog.html#autotoc_md551", null ],
+        [ "Testing & CI/CD Improvements", "md_docs_2C1-changelog.html#autotoc_md552", null ],
+        [ "Future Optimizations (Planned)", "md_docs_2C1-changelog.html#autotoc_md553", null ],
+        [ "Technical Notes", "md_docs_2C1-changelog.html#autotoc_md554", null ]
       ] ],
-      [ "0.3.0 (September 2025)", "md_docs_2C1-changelog.html#autotoc_md517", [
-        [ "Major Features", "md_docs_2C1-changelog.html#autotoc_md518", null ],
-        [ "User Interface & Theming", "md_docs_2C1-changelog.html#autotoc_md519", null ],
-        [ "Enhancements", "md_docs_2C1-changelog.html#autotoc_md520", null ],
-        [ "Technical Improvements", "md_docs_2C1-changelog.html#autotoc_md521", null ],
-        [ "Bug Fixes", "md_docs_2C1-changelog.html#autotoc_md522", null ]
+      [ "0.3.1 (September 2025)", "md_docs_2C1-changelog.html#autotoc_md555", [
+        [ "Major Features", "md_docs_2C1-changelog.html#autotoc_md556", null ],
+        [ "Tile16 Editor Enhancements", "md_docs_2C1-changelog.html#autotoc_md557", null ],
+        [ "ZSCustomOverworld v3 Implementation", "md_docs_2C1-changelog.html#autotoc_md558", null ],
+        [ "Technical Improvements", "md_docs_2C1-changelog.html#autotoc_md559", null ],
+        [ "User Interface", "md_docs_2C1-changelog.html#autotoc_md560", null ],
+        [ "Bug Fixes", "md_docs_2C1-changelog.html#autotoc_md561", null ],
+        [ "ZScream Compatibility Improvements", "md_docs_2C1-changelog.html#autotoc_md562", null ]
       ] ],
-      [ "0.2.2 (December 2024)", "md_docs_2C1-changelog.html#autotoc_md523", null ],
-      [ "0.2.1 (August 2024)", "md_docs_2C1-changelog.html#autotoc_md524", null ],
-      [ "0.2.0 (July 2024)", "md_docs_2C1-changelog.html#autotoc_md525", null ],
-      [ "0.1.0 (May 2024)", "md_docs_2C1-changelog.html#autotoc_md526", null ],
-      [ "0.0.9 (April 2024)", "md_docs_2C1-changelog.html#autotoc_md527", null ],
-      [ "0.0.8 (February 2024)", "md_docs_2C1-changelog.html#autotoc_md528", null ],
-      [ "0.0.7 (January 2024)", "md_docs_2C1-changelog.html#autotoc_md529", null ],
-      [ "0.0.6 (November 2023)", "md_docs_2C1-changelog.html#autotoc_md530", null ],
-      [ "0.0.5 (November 2023)", "md_docs_2C1-changelog.html#autotoc_md531", null ],
-      [ "0.0.4 (November 2023)", "md_docs_2C1-changelog.html#autotoc_md532", null ],
-      [ "0.0.3 (October 2023)", "md_docs_2C1-changelog.html#autotoc_md533", null ]
+      [ "0.3.0 (September 2025)", "md_docs_2C1-changelog.html#autotoc_md563", [
+        [ "Major Features", "md_docs_2C1-changelog.html#autotoc_md564", null ],
+        [ "User Interface & Theming", "md_docs_2C1-changelog.html#autotoc_md565", null ],
+        [ "Enhancements", "md_docs_2C1-changelog.html#autotoc_md566", null ],
+        [ "Technical Improvements", "md_docs_2C1-changelog.html#autotoc_md567", null ],
+        [ "Bug Fixes", "md_docs_2C1-changelog.html#autotoc_md568", null ]
+      ] ],
+      [ "0.2.2 (December 2024)", "md_docs_2C1-changelog.html#autotoc_md569", null ],
+      [ "0.2.1 (August 2024)", "md_docs_2C1-changelog.html#autotoc_md570", null ],
+      [ "0.2.0 (July 2024)", "md_docs_2C1-changelog.html#autotoc_md571", null ],
+      [ "0.1.0 (May 2024)", "md_docs_2C1-changelog.html#autotoc_md572", null ],
+      [ "0.0.9 (April 2024)", "md_docs_2C1-changelog.html#autotoc_md573", null ],
+      [ "0.0.8 (February 2024)", "md_docs_2C1-changelog.html#autotoc_md574", null ],
+      [ "0.0.7 (January 2024)", "md_docs_2C1-changelog.html#autotoc_md575", null ],
+      [ "0.0.6 (November 2023)", "md_docs_2C1-changelog.html#autotoc_md576", null ],
+      [ "0.0.5 (November 2023)", "md_docs_2C1-changelog.html#autotoc_md577", null ],
+      [ "0.0.4 (November 2023)", "md_docs_2C1-changelog.html#autotoc_md578", null ],
+      [ "0.0.3 (October 2023)", "md_docs_2C1-changelog.html#autotoc_md579", null ]
     ] ],
     [ "Roadmap", "md_docs_2D1-roadmap.html", [
-      [ "0.4.X (Next Major Release)", "md_docs_2D1-roadmap.html#autotoc_md535", [
-        [ "Core Features", "md_docs_2D1-roadmap.html#autotoc_md536", null ],
-        [ "Technical Improvements", "md_docs_2D1-roadmap.html#autotoc_md537", null ]
+      [ "0.4.X (Next Major Release)", "md_docs_2D1-roadmap.html#autotoc_md581", [
+        [ "Core Features", "md_docs_2D1-roadmap.html#autotoc_md582", null ],
+        [ "Technical Improvements", "md_docs_2D1-roadmap.html#autotoc_md583", null ]
       ] ],
-      [ "0.5.X", "md_docs_2D1-roadmap.html#autotoc_md538", [
-        [ "Advanced Features", "md_docs_2D1-roadmap.html#autotoc_md539", null ]
+      [ "0.5.X", "md_docs_2D1-roadmap.html#autotoc_md584", [
+        [ "Advanced Features", "md_docs_2D1-roadmap.html#autotoc_md585", null ]
       ] ],
-      [ "0.6.X", "md_docs_2D1-roadmap.html#autotoc_md540", [
-        [ "Platform & Integration", "md_docs_2D1-roadmap.html#autotoc_md541", null ]
+      [ "0.6.X", "md_docs_2D1-roadmap.html#autotoc_md586", [
+        [ "Platform & Integration", "md_docs_2D1-roadmap.html#autotoc_md587", null ]
       ] ],
-      [ "0.7.X", "md_docs_2D1-roadmap.html#autotoc_md542", [
-        [ "Performance & Polish", "md_docs_2D1-roadmap.html#autotoc_md543", null ]
+      [ "0.7.X", "md_docs_2D1-roadmap.html#autotoc_md588", [
+        [ "Performance & Polish", "md_docs_2D1-roadmap.html#autotoc_md589", null ]
       ] ],
-      [ "0.8.X", "md_docs_2D1-roadmap.html#autotoc_md544", [
-        [ "Beta Preparation", "md_docs_2D1-roadmap.html#autotoc_md545", null ]
+      [ "0.8.X", "md_docs_2D1-roadmap.html#autotoc_md590", [
+        [ "Beta Preparation", "md_docs_2D1-roadmap.html#autotoc_md591", null ]
       ] ],
-      [ "1.0.0", "md_docs_2D1-roadmap.html#autotoc_md546", [
-        [ "Stable Release", "md_docs_2D1-roadmap.html#autotoc_md547", null ]
+      [ "1.0.0", "md_docs_2D1-roadmap.html#autotoc_md592", [
+        [ "Stable Release", "md_docs_2D1-roadmap.html#autotoc_md593", null ]
       ] ],
-      [ "Current Focus Areas", "md_docs_2D1-roadmap.html#autotoc_md548", [
-        [ "Immediate Priorities (v0.4.X)", "md_docs_2D1-roadmap.html#autotoc_md549", null ],
-        [ "Long-term Vision", "md_docs_2D1-roadmap.html#autotoc_md550", null ]
+      [ "Current Focus Areas", "md_docs_2D1-roadmap.html#autotoc_md594", [
+        [ "Immediate Priorities (v0.4.X)", "md_docs_2D1-roadmap.html#autotoc_md595", null ],
+        [ "Long-term Vision", "md_docs_2D1-roadmap.html#autotoc_md596", null ]
       ] ]
     ] ],
     [ "Asm Style Guide", "md_docs_2E1-asm-style-guide.html", [
-      [ "Table of Contents", "md_docs_2E1-asm-style-guide.html#autotoc_md552", null ],
-      [ "File Structure", "md_docs_2E1-asm-style-guide.html#autotoc_md553", null ],
-      [ "Labels and Symbols", "md_docs_2E1-asm-style-guide.html#autotoc_md554", null ],
-      [ "Comments", "md_docs_2E1-asm-style-guide.html#autotoc_md555", null ],
-      [ "Instructions", "md_docs_2E1-asm-style-guide.html#autotoc_md556", null ],
-      [ "Macros", "md_docs_2E1-asm-style-guide.html#autotoc_md557", null ],
-      [ "Loops and Branching", "md_docs_2E1-asm-style-guide.html#autotoc_md558", null ],
-      [ "Data Structures", "md_docs_2E1-asm-style-guide.html#autotoc_md559", null ],
-      [ "Code Organization", "md_docs_2E1-asm-style-guide.html#autotoc_md560", null ],
-      [ "Custom Code", "md_docs_2E1-asm-style-guide.html#autotoc_md561", null ]
+      [ "Table of Contents", "md_docs_2E1-asm-style-guide.html#autotoc_md598", null ],
+      [ "File Structure", "md_docs_2E1-asm-style-guide.html#autotoc_md599", null ],
+      [ "Labels and Symbols", "md_docs_2E1-asm-style-guide.html#autotoc_md600", null ],
+      [ "Comments", "md_docs_2E1-asm-style-guide.html#autotoc_md601", null ],
+      [ "Instructions", "md_docs_2E1-asm-style-guide.html#autotoc_md602", null ],
+      [ "Macros", "md_docs_2E1-asm-style-guide.html#autotoc_md603", null ],
+      [ "Loops and Branching", "md_docs_2E1-asm-style-guide.html#autotoc_md604", null ],
+      [ "Data Structures", "md_docs_2E1-asm-style-guide.html#autotoc_md605", null ],
+      [ "Code Organization", "md_docs_2E1-asm-style-guide.html#autotoc_md606", null ],
+      [ "Custom Code", "md_docs_2E1-asm-style-guide.html#autotoc_md607", null ]
     ] ],
     [ "Dungeon Editor Guide", "md_docs_2E2-dungeon-editor-guide.html", [
-      [ "Overview", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md563", null ],
-      [ "Architecture", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md564", [
-        [ "Core Components", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md565", [
-          [ "1. DungeonEditorSystem", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md566", null ],
-          [ "2. DungeonObjectEditor", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md567", null ],
-          [ "3. ObjectRenderer", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md568", null ],
-          [ "4. DungeonEditor (UI Layer)", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md569", null ]
+      [ "Overview", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md609", null ],
+      [ "Architecture", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md610", [
+        [ "Core Components", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md611", [
+          [ "1. DungeonEditorSystem", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md612", null ],
+          [ "2. DungeonObjectEditor", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md613", null ],
+          [ "3. ObjectRenderer", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md614", null ],
+          [ "4. DungeonEditor (UI Layer)", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md615", null ]
         ] ]
       ] ],
-      [ "Coordinate System", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md570", [
-        [ "Room Coordinates vs Canvas Coordinates", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md571", [
-          [ "Conversion Functions", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md572", null ]
+      [ "Coordinate System", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md616", [
+        [ "Room Coordinates vs Canvas Coordinates", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md617", [
+          [ "Conversion Functions", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md618", null ]
         ] ],
-        [ "Coordinate System Features", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md573", null ]
+        [ "Coordinate System Features", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md619", null ]
       ] ],
-      [ "Object Rendering System", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md574", [
-        [ "Object Types", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md575", null ],
-        [ "Rendering Pipeline", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md576", null ],
-        [ "Performance Optimizations", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md577", null ]
+      [ "Object Rendering System", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md620", [
+        [ "Object Types", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md621", null ],
+        [ "Rendering Pipeline", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md622", null ],
+        [ "Performance Optimizations", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md623", null ]
       ] ],
-      [ "User Interface", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md578", [
-        [ "Integrated Editing Panels", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md579", [
-          [ "Main Canvas", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md580", null ],
-          [ "Compact Editing Panels", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md581", null ]
+      [ "User Interface", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md624", [
+        [ "Integrated Editing Panels", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md625", [
+          [ "Main Canvas", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md626", null ],
+          [ "Compact Editing Panels", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md627", null ]
         ] ],
-        [ "Object Preview System", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md582", null ]
+        [ "Object Preview System", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md628", null ]
       ] ],
-      [ "Integration with ZScream", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md583", [
-        [ "Room Loading", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md584", null ],
-        [ "Object Parsing", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md585", null ],
-        [ "Coordinate System", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md586", null ]
+      [ "Integration with ZScream", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md629", [
+        [ "Room Loading", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md630", null ],
+        [ "Object Parsing", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md631", null ],
+        [ "Coordinate System", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md632", null ]
       ] ],
-      [ "Testing and Validation", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md587", [
-        [ "Integration Tests", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md588", null ],
-        [ "Test Data", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md589", null ],
-        [ "Performance Benchmarks", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md590", null ]
+      [ "Testing and Validation", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md633", [
+        [ "Integration Tests", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md634", null ],
+        [ "Test Data", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md635", null ],
+        [ "Performance Benchmarks", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md636", null ]
       ] ],
-      [ "Usage Examples", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md591", [
-        [ "Basic Object Editing", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md592", null ],
-        [ "Coordinate Conversion", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md593", null ],
-        [ "Object Preview", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md594", null ]
+      [ "Usage Examples", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md637", [
+        [ "Basic Object Editing", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md638", null ],
+        [ "Coordinate Conversion", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md639", null ],
+        [ "Object Preview", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md640", null ]
       ] ],
-      [ "Configuration Options", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md595", [
-        [ "Editor Configuration", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md596", null ],
-        [ "Performance Configuration", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md597", null ]
+      [ "Configuration Options", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md641", [
+        [ "Editor Configuration", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md642", null ],
+        [ "Performance Configuration", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md643", null ]
       ] ],
-      [ "Troubleshooting", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md598", [
-        [ "Common Issues", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md599", null ],
-        [ "Debug Information", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md600", null ]
+      [ "Troubleshooting", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md644", [
+        [ "Common Issues", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md645", null ],
+        [ "Debug Information", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md646", null ]
       ] ],
-      [ "Future Enhancements", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md601", [
-        [ "Planned Features", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md602", null ]
+      [ "Future Enhancements", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md647", [
+        [ "Planned Features", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md648", null ]
       ] ],
-      [ "Conclusion", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md603", null ]
+      [ "Conclusion", "md_docs_2E2-dungeon-editor-guide.html#autotoc_md649", null ]
     ] ],
     [ "Dungeon Editor Design Plan", "md_docs_2E3-dungeon-editor-design.html", [
-      [ "Overview", "md_docs_2E3-dungeon-editor-design.html#autotoc_md605", null ],
-      [ "Architecture Overview", "md_docs_2E3-dungeon-editor-design.html#autotoc_md606", [
-        [ "Core Components", "md_docs_2E3-dungeon-editor-design.html#autotoc_md607", null ],
-        [ "File Structure", "md_docs_2E3-dungeon-editor-design.html#autotoc_md608", null ]
+      [ "Overview", "md_docs_2E3-dungeon-editor-design.html#autotoc_md651", null ],
+      [ "Architecture Overview", "md_docs_2E3-dungeon-editor-design.html#autotoc_md652", [
+        [ "Core Components", "md_docs_2E3-dungeon-editor-design.html#autotoc_md653", null ],
+        [ "File Structure", "md_docs_2E3-dungeon-editor-design.html#autotoc_md654", null ]
       ] ],
-      [ "Component Responsibilities", "md_docs_2E3-dungeon-editor-design.html#autotoc_md609", [
-        [ "DungeonEditor (Main Orchestrator)", "md_docs_2E3-dungeon-editor-design.html#autotoc_md610", null ],
-        [ "DungeonRoomSelector", "md_docs_2E3-dungeon-editor-design.html#autotoc_md611", null ],
-        [ "DungeonCanvasViewer", "md_docs_2E3-dungeon-editor-design.html#autotoc_md612", null ],
-        [ "DungeonObjectSelector", "md_docs_2E3-dungeon-editor-design.html#autotoc_md613", null ]
+      [ "Component Responsibilities", "md_docs_2E3-dungeon-editor-design.html#autotoc_md655", [
+        [ "DungeonEditor (Main Orchestrator)", "md_docs_2E3-dungeon-editor-design.html#autotoc_md656", null ],
+        [ "DungeonRoomSelector", "md_docs_2E3-dungeon-editor-design.html#autotoc_md657", null ],
+        [ "DungeonCanvasViewer", "md_docs_2E3-dungeon-editor-design.html#autotoc_md658", null ],
+        [ "DungeonObjectSelector", "md_docs_2E3-dungeon-editor-design.html#autotoc_md659", null ]
       ] ],
-      [ "Data Flow", "md_docs_2E3-dungeon-editor-design.html#autotoc_md614", [
-        [ "Initialization Flow", "md_docs_2E3-dungeon-editor-design.html#autotoc_md615", null ],
-        [ "Runtime Data Flow", "md_docs_2E3-dungeon-editor-design.html#autotoc_md616", null ],
-        [ "Key Data Structures", "md_docs_2E3-dungeon-editor-design.html#autotoc_md617", null ]
+      [ "Data Flow", "md_docs_2E3-dungeon-editor-design.html#autotoc_md660", [
+        [ "Initialization Flow", "md_docs_2E3-dungeon-editor-design.html#autotoc_md661", null ],
+        [ "Runtime Data Flow", "md_docs_2E3-dungeon-editor-design.html#autotoc_md662", null ],
+        [ "Key Data Structures", "md_docs_2E3-dungeon-editor-design.html#autotoc_md663", null ]
       ] ],
-      [ "Integration Patterns", "md_docs_2E3-dungeon-editor-design.html#autotoc_md618", [
-        [ "Component Communication", "md_docs_2E3-dungeon-editor-design.html#autotoc_md619", null ],
-        [ "ROM Data Management", "md_docs_2E3-dungeon-editor-design.html#autotoc_md620", null ],
-        [ "State Synchronization", "md_docs_2E3-dungeon-editor-design.html#autotoc_md621", null ]
+      [ "Integration Patterns", "md_docs_2E3-dungeon-editor-design.html#autotoc_md664", [
+        [ "Component Communication", "md_docs_2E3-dungeon-editor-design.html#autotoc_md665", null ],
+        [ "ROM Data Management", "md_docs_2E3-dungeon-editor-design.html#autotoc_md666", null ],
+        [ "State Synchronization", "md_docs_2E3-dungeon-editor-design.html#autotoc_md667", null ]
       ] ],
-      [ "UI Layout Architecture", "md_docs_2E3-dungeon-editor-design.html#autotoc_md622", [
-        [ "3-Column Layout", "md_docs_2E3-dungeon-editor-design.html#autotoc_md623", null ],
-        [ "Component Internal Layout", "md_docs_2E3-dungeon-editor-design.html#autotoc_md624", null ]
+      [ "UI Layout Architecture", "md_docs_2E3-dungeon-editor-design.html#autotoc_md668", [
+        [ "3-Column Layout", "md_docs_2E3-dungeon-editor-design.html#autotoc_md669", null ],
+        [ "Component Internal Layout", "md_docs_2E3-dungeon-editor-design.html#autotoc_md670", null ]
       ] ],
-      [ "Coordinate System", "md_docs_2E3-dungeon-editor-design.html#autotoc_md625", [
-        [ "Room Coordinates vs Canvas Coordinates", "md_docs_2E3-dungeon-editor-design.html#autotoc_md626", null ],
-        [ "Bounds Checking", "md_docs_2E3-dungeon-editor-design.html#autotoc_md627", null ]
+      [ "Coordinate System", "md_docs_2E3-dungeon-editor-design.html#autotoc_md671", [
+        [ "Room Coordinates vs Canvas Coordinates", "md_docs_2E3-dungeon-editor-design.html#autotoc_md672", null ],
+        [ "Bounds Checking", "md_docs_2E3-dungeon-editor-design.html#autotoc_md673", null ]
       ] ],
-      [ "Error Handling & Validation", "md_docs_2E3-dungeon-editor-design.html#autotoc_md628", [
-        [ "ROM Validation", "md_docs_2E3-dungeon-editor-design.html#autotoc_md629", null ],
-        [ "Bounds Validation", "md_docs_2E3-dungeon-editor-design.html#autotoc_md630", null ]
+      [ "Error Handling & Validation", "md_docs_2E3-dungeon-editor-design.html#autotoc_md674", [
+        [ "ROM Validation", "md_docs_2E3-dungeon-editor-design.html#autotoc_md675", null ],
+        [ "Bounds Validation", "md_docs_2E3-dungeon-editor-design.html#autotoc_md676", null ]
       ] ],
-      [ "Performance Considerations", "md_docs_2E3-dungeon-editor-design.html#autotoc_md631", [
-        [ "Caching Strategy", "md_docs_2E3-dungeon-editor-design.html#autotoc_md632", null ],
-        [ "Rendering Optimization", "md_docs_2E3-dungeon-editor-design.html#autotoc_md633", null ]
+      [ "Performance Considerations", "md_docs_2E3-dungeon-editor-design.html#autotoc_md677", [
+        [ "Caching Strategy", "md_docs_2E3-dungeon-editor-design.html#autotoc_md678", null ],
+        [ "Rendering Optimization", "md_docs_2E3-dungeon-editor-design.html#autotoc_md679", null ]
       ] ],
-      [ "Testing Strategy", "md_docs_2E3-dungeon-editor-design.html#autotoc_md634", [
-        [ "Integration Tests", "md_docs_2E3-dungeon-editor-design.html#autotoc_md635", null ],
-        [ "Test Categories", "md_docs_2E3-dungeon-editor-design.html#autotoc_md636", null ]
+      [ "Testing Strategy", "md_docs_2E3-dungeon-editor-design.html#autotoc_md680", [
+        [ "Integration Tests", "md_docs_2E3-dungeon-editor-design.html#autotoc_md681", null ],
+        [ "Test Categories", "md_docs_2E3-dungeon-editor-design.html#autotoc_md682", null ]
       ] ],
-      [ "Future Development Guidelines", "md_docs_2E3-dungeon-editor-design.html#autotoc_md637", [
-        [ "Adding New Features", "md_docs_2E3-dungeon-editor-design.html#autotoc_md638", null ],
-        [ "Component Extension Patterns", "md_docs_2E3-dungeon-editor-design.html#autotoc_md639", null ],
-        [ "Data Flow Extension", "md_docs_2E3-dungeon-editor-design.html#autotoc_md640", null ],
-        [ "UI Layout Extension", "md_docs_2E3-dungeon-editor-design.html#autotoc_md641", null ]
+      [ "Future Development Guidelines", "md_docs_2E3-dungeon-editor-design.html#autotoc_md683", [
+        [ "Adding New Features", "md_docs_2E3-dungeon-editor-design.html#autotoc_md684", null ],
+        [ "Component Extension Patterns", "md_docs_2E3-dungeon-editor-design.html#autotoc_md685", null ],
+        [ "Data Flow Extension", "md_docs_2E3-dungeon-editor-design.html#autotoc_md686", null ],
+        [ "UI Layout Extension", "md_docs_2E3-dungeon-editor-design.html#autotoc_md687", null ]
       ] ],
-      [ "Common Pitfalls & Solutions", "md_docs_2E3-dungeon-editor-design.html#autotoc_md642", [
-        [ "Memory Management", "md_docs_2E3-dungeon-editor-design.html#autotoc_md643", null ],
-        [ "Coordinate System", "md_docs_2E3-dungeon-editor-design.html#autotoc_md644", null ],
-        [ "State Synchronization", "md_docs_2E3-dungeon-editor-design.html#autotoc_md645", null ],
-        [ "Performance Issues", "md_docs_2E3-dungeon-editor-design.html#autotoc_md646", null ]
+      [ "Common Pitfalls & Solutions", "md_docs_2E3-dungeon-editor-design.html#autotoc_md688", [
+        [ "Memory Management", "md_docs_2E3-dungeon-editor-design.html#autotoc_md689", null ],
+        [ "Coordinate System", "md_docs_2E3-dungeon-editor-design.html#autotoc_md690", null ],
+        [ "State Synchronization", "md_docs_2E3-dungeon-editor-design.html#autotoc_md691", null ],
+        [ "Performance Issues", "md_docs_2E3-dungeon-editor-design.html#autotoc_md692", null ]
       ] ],
-      [ "Debugging Tools", "md_docs_2E3-dungeon-editor-design.html#autotoc_md647", [
-        [ "Debug Popup", "md_docs_2E3-dungeon-editor-design.html#autotoc_md648", null ],
-        [ "Logging", "md_docs_2E3-dungeon-editor-design.html#autotoc_md649", null ]
+      [ "Debugging Tools", "md_docs_2E3-dungeon-editor-design.html#autotoc_md693", [
+        [ "Debug Popup", "md_docs_2E3-dungeon-editor-design.html#autotoc_md694", null ],
+        [ "Logging", "md_docs_2E3-dungeon-editor-design.html#autotoc_md695", null ]
       ] ],
-      [ "Build Integration", "md_docs_2E3-dungeon-editor-design.html#autotoc_md650", [
-        [ "CMake Configuration", "md_docs_2E3-dungeon-editor-design.html#autotoc_md651", null ],
-        [ "Dependencies", "md_docs_2E3-dungeon-editor-design.html#autotoc_md652", null ]
+      [ "Build Integration", "md_docs_2E3-dungeon-editor-design.html#autotoc_md696", [
+        [ "CMake Configuration", "md_docs_2E3-dungeon-editor-design.html#autotoc_md697", null ],
+        [ "Dependencies", "md_docs_2E3-dungeon-editor-design.html#autotoc_md698", null ]
       ] ],
-      [ "Conclusion", "md_docs_2E3-dungeon-editor-design.html#autotoc_md653", null ]
+      [ "Conclusion", "md_docs_2E3-dungeon-editor-design.html#autotoc_md699", null ]
     ] ],
     [ "DungeonEditor Refactoring Plan", "md_docs_2E4-dungeon-editor-refactoring.html", [
-      [ "Overview", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md655", null ],
-      [ "Component Structure", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md656", [
-        [ "✅ Created Components", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md657", [
-          [ "1. DungeonToolset (<tt>dungeon_toolset.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md658", null ],
-          [ "2. DungeonObjectInteraction (<tt>dungeon_object_interaction.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md659", null ],
-          [ "3. DungeonRenderer (<tt>dungeon_renderer.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md660", null ],
-          [ "4. DungeonRoomLoader (<tt>dungeon_room_loader.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md661", null ],
-          [ "5. DungeonUsageTracker (<tt>dungeon_usage_tracker.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md662", null ]
+      [ "Overview", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md701", null ],
+      [ "Component Structure", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md702", [
+        [ "✅ Created Components", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md703", [
+          [ "1. DungeonToolset (<tt>dungeon_toolset.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md704", null ],
+          [ "2. DungeonObjectInteraction (<tt>dungeon_object_interaction.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md705", null ],
+          [ "3. DungeonRenderer (<tt>dungeon_renderer.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md706", null ],
+          [ "4. DungeonRoomLoader (<tt>dungeon_room_loader.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md707", null ],
+          [ "5. DungeonUsageTracker (<tt>dungeon_usage_tracker.h/cc</tt>)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md708", null ]
         ] ]
       ] ],
-      [ "Refactored DungeonEditor Structure", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md663", [
-        [ "Before Refactoring: 1444 lines", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md664", null ],
-        [ "After Refactoring: ~400 lines", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md665", null ]
+      [ "Refactored DungeonEditor Structure", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md709", [
+        [ "Before Refactoring: 1444 lines", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md710", null ],
+        [ "After Refactoring: ~400 lines", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md711", null ]
       ] ],
-      [ "Method Migration Map", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md666", [
-        [ "Core Editor Methods (Keep in main file)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md667", null ],
-        [ "UI Methods (Keep for coordination)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md668", null ],
-        [ "Methods Moved to Components", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md669", [
-          [ "→ DungeonToolset", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md670", null ],
-          [ "→ DungeonObjectInteraction", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md671", null ],
-          [ "→ DungeonRenderer", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md672", null ],
-          [ "→ DungeonRoomLoader", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md673", null ],
-          [ "→ DungeonUsageTracker", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md674", null ]
+      [ "Method Migration Map", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md712", [
+        [ "Core Editor Methods (Keep in main file)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md713", null ],
+        [ "UI Methods (Keep for coordination)", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md714", null ],
+        [ "Methods Moved to Components", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md715", [
+          [ "→ DungeonToolset", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md716", null ],
+          [ "→ DungeonObjectInteraction", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md717", null ],
+          [ "→ DungeonRenderer", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md718", null ],
+          [ "→ DungeonRoomLoader", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md719", null ],
+          [ "→ DungeonUsageTracker", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md720", null ]
         ] ]
       ] ],
-      [ "Component Communication", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md675", [
-        [ "Callback System", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md676", null ],
-        [ "Data Sharing", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md677", null ]
+      [ "Component Communication", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md721", [
+        [ "Callback System", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md722", null ],
+        [ "Data Sharing", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md723", null ]
       ] ],
-      [ "Benefits of Refactoring", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md678", [
-        [ "1. <strong>Reduced Complexity</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md679", null ],
-        [ "2. <strong>Improved Testability</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md680", null ],
-        [ "3. <strong>Better Maintainability</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md681", null ],
-        [ "4. <strong>Enhanced Extensibility</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md682", null ],
-        [ "5. <strong>Cleaner Dependencies</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md683", null ]
+      [ "Benefits of Refactoring", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md724", [
+        [ "1. <strong>Reduced Complexity</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md725", null ],
+        [ "2. <strong>Improved Testability</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md726", null ],
+        [ "3. <strong>Better Maintainability</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md727", null ],
+        [ "4. <strong>Enhanced Extensibility</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md728", null ],
+        [ "5. <strong>Cleaner Dependencies</strong>", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md729", null ]
       ] ],
-      [ "Implementation Status", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md684", [
-        [ "✅ Completed", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md685", null ],
-        [ "🔄 In Progress", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md686", null ],
-        [ "⏳ Pending", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md687", null ]
+      [ "Implementation Status", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md730", [
+        [ "✅ Completed", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md731", null ],
+        [ "🔄 In Progress", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md732", null ],
+        [ "⏳ Pending", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md733", null ]
       ] ],
-      [ "Migration Strategy", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md688", [
-        [ "Phase 1: Create Components ✅", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md689", null ],
-        [ "Phase 2: Integrate Components 🔄", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md690", null ],
-        [ "Phase 3: Move Methods", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md691", null ],
-        [ "Phase 4: Cleanup", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md692", null ]
+      [ "Migration Strategy", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md734", [
+        [ "Phase 1: Create Components ✅", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md735", null ],
+        [ "Phase 2: Integrate Components 🔄", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md736", null ],
+        [ "Phase 3: Move Methods", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md737", null ],
+        [ "Phase 4: Cleanup", "md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md738", null ]
       ] ]
     ] ],
     [ "Dungeon Object System", "md_docs_2E5-dungeon-object-system.html", [
-      [ "Overview", "md_docs_2E5-dungeon-object-system.html#autotoc_md694", null ],
-      [ "Architecture", "md_docs_2E5-dungeon-object-system.html#autotoc_md695", [
-        [ "Core Components", "md_docs_2E5-dungeon-object-system.html#autotoc_md696", [
-          [ "1. DungeonEditor (<tt>src/app/editor/dungeon/dungeon_editor.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md697", null ],
-          [ "2. DungeonObjectSelector (<tt>src/app/editor/dungeon/dungeon_object_selector.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md698", null ],
-          [ "3. DungeonCanvasViewer (<tt>src/app/editor/dungeon/dungeon_canvas_viewer.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md699", null ],
-          [ "4. Room Management System (<tt>src/app/zelda3/dungeon/room.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md700", null ]
+      [ "Overview", "md_docs_2E5-dungeon-object-system.html#autotoc_md740", null ],
+      [ "Architecture", "md_docs_2E5-dungeon-object-system.html#autotoc_md741", [
+        [ "Core Components", "md_docs_2E5-dungeon-object-system.html#autotoc_md742", [
+          [ "1. DungeonEditor (<tt>src/app/editor/dungeon/dungeon_editor.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md743", null ],
+          [ "2. DungeonObjectSelector (<tt>src/app/editor/dungeon/dungeon_object_selector.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md744", null ],
+          [ "3. DungeonCanvasViewer (<tt>src/app/editor/dungeon/dungeon_canvas_viewer.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md745", null ],
+          [ "4. Room Management System (<tt>src/app/zelda3/dungeon/room.h</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md746", null ]
         ] ]
       ] ],
-      [ "Object Types and Hierarchies", "md_docs_2E5-dungeon-object-system.html#autotoc_md701", [
-        [ "Room Objects", "md_docs_2E5-dungeon-object-system.html#autotoc_md702", [
-          [ "Type 1 Objects (0x00-0xFF)", "md_docs_2E5-dungeon-object-system.html#autotoc_md703", null ],
-          [ "Type 2 Objects (0x100-0x1FF)", "md_docs_2E5-dungeon-object-system.html#autotoc_md704", null ],
-          [ "Type 3 Objects (0x200+)", "md_docs_2E5-dungeon-object-system.html#autotoc_md705", null ]
+      [ "Object Types and Hierarchies", "md_docs_2E5-dungeon-object-system.html#autotoc_md747", [
+        [ "Room Objects", "md_docs_2E5-dungeon-object-system.html#autotoc_md748", [
+          [ "Type 1 Objects (0x00-0xFF)", "md_docs_2E5-dungeon-object-system.html#autotoc_md749", null ],
+          [ "Type 2 Objects (0x100-0x1FF)", "md_docs_2E5-dungeon-object-system.html#autotoc_md750", null ],
+          [ "Type 3 Objects (0x200+)", "md_docs_2E5-dungeon-object-system.html#autotoc_md751", null ]
         ] ],
-        [ "Object Properties", "md_docs_2E5-dungeon-object-system.html#autotoc_md706", null ]
+        [ "Object Properties", "md_docs_2E5-dungeon-object-system.html#autotoc_md752", null ]
       ] ],
-      [ "How Object Placement Works", "md_docs_2E5-dungeon-object-system.html#autotoc_md707", [
-        [ "Selection Process", "md_docs_2E5-dungeon-object-system.html#autotoc_md708", null ],
-        [ "Placement Process", "md_docs_2E5-dungeon-object-system.html#autotoc_md709", null ],
-        [ "Code Flow", "md_docs_2E5-dungeon-object-system.html#autotoc_md710", null ]
+      [ "How Object Placement Works", "md_docs_2E5-dungeon-object-system.html#autotoc_md753", [
+        [ "Selection Process", "md_docs_2E5-dungeon-object-system.html#autotoc_md754", null ],
+        [ "Placement Process", "md_docs_2E5-dungeon-object-system.html#autotoc_md755", null ],
+        [ "Code Flow", "md_docs_2E5-dungeon-object-system.html#autotoc_md756", null ]
       ] ],
-      [ "Rendering Pipeline", "md_docs_2E5-dungeon-object-system.html#autotoc_md711", [
-        [ "Object Rendering", "md_docs_2E5-dungeon-object-system.html#autotoc_md712", null ],
-        [ "Performance Optimizations", "md_docs_2E5-dungeon-object-system.html#autotoc_md713", null ]
+      [ "Rendering Pipeline", "md_docs_2E5-dungeon-object-system.html#autotoc_md757", [
+        [ "Object Rendering", "md_docs_2E5-dungeon-object-system.html#autotoc_md758", null ],
+        [ "Performance Optimizations", "md_docs_2E5-dungeon-object-system.html#autotoc_md759", null ]
       ] ],
-      [ "User Interface Components", "md_docs_2E5-dungeon-object-system.html#autotoc_md714", [
-        [ "Three-Column Layout", "md_docs_2E5-dungeon-object-system.html#autotoc_md715", [
-          [ "Column 1: Room Control Panel (280px fixed)", "md_docs_2E5-dungeon-object-system.html#autotoc_md716", null ],
-          [ "Column 2: Windowed Canvas (800px fixed)", "md_docs_2E5-dungeon-object-system.html#autotoc_md717", null ],
-          [ "Column 3: Object Selector/Editor (stretch)", "md_docs_2E5-dungeon-object-system.html#autotoc_md718", null ]
+      [ "User Interface Components", "md_docs_2E5-dungeon-object-system.html#autotoc_md760", [
+        [ "Three-Column Layout", "md_docs_2E5-dungeon-object-system.html#autotoc_md761", [
+          [ "Column 1: Room Control Panel (280px fixed)", "md_docs_2E5-dungeon-object-system.html#autotoc_md762", null ],
+          [ "Column 2: Windowed Canvas (800px fixed)", "md_docs_2E5-dungeon-object-system.html#autotoc_md763", null ],
+          [ "Column 3: Object Selector/Editor (stretch)", "md_docs_2E5-dungeon-object-system.html#autotoc_md764", null ]
         ] ],
-        [ "Debug and Control Features", "md_docs_2E5-dungeon-object-system.html#autotoc_md719", [
-          [ "Room Properties Table", "md_docs_2E5-dungeon-object-system.html#autotoc_md720", null ],
-          [ "Object Statistics", "md_docs_2E5-dungeon-object-system.html#autotoc_md721", null ]
+        [ "Debug and Control Features", "md_docs_2E5-dungeon-object-system.html#autotoc_md765", [
+          [ "Room Properties Table", "md_docs_2E5-dungeon-object-system.html#autotoc_md766", null ],
+          [ "Object Statistics", "md_docs_2E5-dungeon-object-system.html#autotoc_md767", null ]
         ] ]
       ] ],
-      [ "Integration with ROM Data", "md_docs_2E5-dungeon-object-system.html#autotoc_md722", [
-        [ "Data Sources", "md_docs_2E5-dungeon-object-system.html#autotoc_md723", [
-          [ "Room Headers (<tt>0x1F8000</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md724", null ],
-          [ "Object Data", "md_docs_2E5-dungeon-object-system.html#autotoc_md725", null ],
-          [ "Graphics Data", "md_docs_2E5-dungeon-object-system.html#autotoc_md726", null ]
+      [ "Integration with ROM Data", "md_docs_2E5-dungeon-object-system.html#autotoc_md768", [
+        [ "Data Sources", "md_docs_2E5-dungeon-object-system.html#autotoc_md769", [
+          [ "Room Headers (<tt>0x1F8000</tt>)", "md_docs_2E5-dungeon-object-system.html#autotoc_md770", null ],
+          [ "Object Data", "md_docs_2E5-dungeon-object-system.html#autotoc_md771", null ],
+          [ "Graphics Data", "md_docs_2E5-dungeon-object-system.html#autotoc_md772", null ]
         ] ],
-        [ "Assembly Integration", "md_docs_2E5-dungeon-object-system.html#autotoc_md727", null ]
+        [ "Assembly Integration", "md_docs_2E5-dungeon-object-system.html#autotoc_md773", null ]
       ] ],
-      [ "Comparison with ZScream", "md_docs_2E5-dungeon-object-system.html#autotoc_md728", [
-        [ "Architectural Differences", "md_docs_2E5-dungeon-object-system.html#autotoc_md729", [
-          [ "Component-Based Architecture", "md_docs_2E5-dungeon-object-system.html#autotoc_md730", null ],
-          [ "Real-time Rendering", "md_docs_2E5-dungeon-object-system.html#autotoc_md731", null ],
-          [ "UI Organization", "md_docs_2E5-dungeon-object-system.html#autotoc_md732", null ],
-          [ "Caching Strategy", "md_docs_2E5-dungeon-object-system.html#autotoc_md733", null ]
+      [ "Comparison with ZScream", "md_docs_2E5-dungeon-object-system.html#autotoc_md774", [
+        [ "Architectural Differences", "md_docs_2E5-dungeon-object-system.html#autotoc_md775", [
+          [ "Component-Based Architecture", "md_docs_2E5-dungeon-object-system.html#autotoc_md776", null ],
+          [ "Real-time Rendering", "md_docs_2E5-dungeon-object-system.html#autotoc_md777", null ],
+          [ "UI Organization", "md_docs_2E5-dungeon-object-system.html#autotoc_md778", null ],
+          [ "Caching Strategy", "md_docs_2E5-dungeon-object-system.html#autotoc_md779", null ]
         ] ],
-        [ "Shared Concepts", "md_docs_2E5-dungeon-object-system.html#autotoc_md734", null ]
+        [ "Shared Concepts", "md_docs_2E5-dungeon-object-system.html#autotoc_md780", null ]
       ] ],
-      [ "Best Practices", "md_docs_2E5-dungeon-object-system.html#autotoc_md735", [
-        [ "Performance", "md_docs_2E5-dungeon-object-system.html#autotoc_md736", null ],
-        [ "Code Organization", "md_docs_2E5-dungeon-object-system.html#autotoc_md737", null ],
-        [ "User Experience", "md_docs_2E5-dungeon-object-system.html#autotoc_md738", null ]
+      [ "Best Practices", "md_docs_2E5-dungeon-object-system.html#autotoc_md781", [
+        [ "Performance", "md_docs_2E5-dungeon-object-system.html#autotoc_md782", null ],
+        [ "Code Organization", "md_docs_2E5-dungeon-object-system.html#autotoc_md783", null ],
+        [ "User Experience", "md_docs_2E5-dungeon-object-system.html#autotoc_md784", null ]
       ] ],
-      [ "Future Enhancements", "md_docs_2E5-dungeon-object-system.html#autotoc_md739", [
-        [ "Planned Features", "md_docs_2E5-dungeon-object-system.html#autotoc_md740", null ],
-        [ "Technical Improvements", "md_docs_2E5-dungeon-object-system.html#autotoc_md741", null ]
+      [ "Future Enhancements", "md_docs_2E5-dungeon-object-system.html#autotoc_md785", [
+        [ "Planned Features", "md_docs_2E5-dungeon-object-system.html#autotoc_md786", null ],
+        [ "Technical Improvements", "md_docs_2E5-dungeon-object-system.html#autotoc_md787", null ]
       ] ]
     ] ],
     [ "Overworld Loading Guide", "md_docs_2F1-overworld-loading.html", [
-      [ "Table of Contents", "md_docs_2F1-overworld-loading.html#autotoc_md743", null ],
-      [ "Overview", "md_docs_2F1-overworld-loading.html#autotoc_md744", null ],
-      [ "ROM Types and Versions", "md_docs_2F1-overworld-loading.html#autotoc_md745", [
-        [ "Version Detection", "md_docs_2F1-overworld-loading.html#autotoc_md746", null ],
-        [ "Feature Support by Version", "md_docs_2F1-overworld-loading.html#autotoc_md747", null ]
+      [ "Table of Contents", "md_docs_2F1-overworld-loading.html#autotoc_md789", null ],
+      [ "Overview", "md_docs_2F1-overworld-loading.html#autotoc_md790", null ],
+      [ "ROM Types and Versions", "md_docs_2F1-overworld-loading.html#autotoc_md791", [
+        [ "Version Detection", "md_docs_2F1-overworld-loading.html#autotoc_md792", null ],
+        [ "Feature Support by Version", "md_docs_2F1-overworld-loading.html#autotoc_md793", null ]
       ] ],
-      [ "Overworld Map Structure", "md_docs_2F1-overworld-loading.html#autotoc_md748", [
-        [ "Core Properties", "md_docs_2F1-overworld-loading.html#autotoc_md749", null ]
+      [ "Overworld Map Structure", "md_docs_2F1-overworld-loading.html#autotoc_md794", [
+        [ "Core Properties", "md_docs_2F1-overworld-loading.html#autotoc_md795", null ]
       ] ],
-      [ "Overlays and Special Area Maps", "md_docs_2F1-overworld-loading.html#autotoc_md750", [
-        [ "Understanding Overlays", "md_docs_2F1-overworld-loading.html#autotoc_md751", null ],
-        [ "Special Area Maps (0x80-0x9F)", "md_docs_2F1-overworld-loading.html#autotoc_md752", null ],
-        [ "Overlay ID Mappings", "md_docs_2F1-overworld-loading.html#autotoc_md753", null ],
-        [ "Drawing Order", "md_docs_2F1-overworld-loading.html#autotoc_md754", null ],
-        [ "Vanilla Overlay Loading", "md_docs_2F1-overworld-loading.html#autotoc_md755", null ],
-        [ "Special Area Graphics Loading", "md_docs_2F1-overworld-loading.html#autotoc_md756", null ]
+      [ "Overlays and Special Area Maps", "md_docs_2F1-overworld-loading.html#autotoc_md796", [
+        [ "Understanding Overlays", "md_docs_2F1-overworld-loading.html#autotoc_md797", null ],
+        [ "Special Area Maps (0x80-0x9F)", "md_docs_2F1-overworld-loading.html#autotoc_md798", null ],
+        [ "Overlay ID Mappings", "md_docs_2F1-overworld-loading.html#autotoc_md799", null ],
+        [ "Drawing Order", "md_docs_2F1-overworld-loading.html#autotoc_md800", null ],
+        [ "Vanilla Overlay Loading", "md_docs_2F1-overworld-loading.html#autotoc_md801", null ],
+        [ "Special Area Graphics Loading", "md_docs_2F1-overworld-loading.html#autotoc_md802", null ]
       ] ],
-      [ "Loading Process", "md_docs_2F1-overworld-loading.html#autotoc_md757", [
-        [ "1. Version Detection", "md_docs_2F1-overworld-loading.html#autotoc_md758", null ],
-        [ "2. Map Initialization", "md_docs_2F1-overworld-loading.html#autotoc_md759", null ],
-        [ "3. Property Loading", "md_docs_2F1-overworld-loading.html#autotoc_md760", [
-          [ "Vanilla ROMs (asm_version == 0xFF)", "md_docs_2F1-overworld-loading.html#autotoc_md761", null ],
-          [ "ZSCustomOverworld v2/v3", "md_docs_2F1-overworld-loading.html#autotoc_md762", null ]
+      [ "Loading Process", "md_docs_2F1-overworld-loading.html#autotoc_md803", [
+        [ "1. Version Detection", "md_docs_2F1-overworld-loading.html#autotoc_md804", null ],
+        [ "2. Map Initialization", "md_docs_2F1-overworld-loading.html#autotoc_md805", null ],
+        [ "3. Property Loading", "md_docs_2F1-overworld-loading.html#autotoc_md806", [
+          [ "Vanilla ROMs (asm_version == 0xFF)", "md_docs_2F1-overworld-loading.html#autotoc_md807", null ],
+          [ "ZSCustomOverworld v2/v3", "md_docs_2F1-overworld-loading.html#autotoc_md808", null ]
         ] ],
-        [ "4. Custom Data Loading", "md_docs_2F1-overworld-loading.html#autotoc_md763", null ]
+        [ "4. Custom Data Loading", "md_docs_2F1-overworld-loading.html#autotoc_md809", null ]
       ] ],
-      [ "ZScream Implementation", "md_docs_2F1-overworld-loading.html#autotoc_md764", [
-        [ "OverworldMap Constructor", "md_docs_2F1-overworld-loading.html#autotoc_md765", null ],
-        [ "Key Methods", "md_docs_2F1-overworld-loading.html#autotoc_md766", null ]
+      [ "ZScream Implementation", "md_docs_2F1-overworld-loading.html#autotoc_md810", [
+        [ "OverworldMap Constructor", "md_docs_2F1-overworld-loading.html#autotoc_md811", null ],
+        [ "Key Methods", "md_docs_2F1-overworld-loading.html#autotoc_md812", null ]
       ] ],
-      [ "Yaze Implementation", "md_docs_2F1-overworld-loading.html#autotoc_md767", [
-        [ "OverworldMap Constructor", "md_docs_2F1-overworld-loading.html#autotoc_md768", null ],
-        [ "Key Methods", "md_docs_2F1-overworld-loading.html#autotoc_md769", null ],
-        [ "Current Status", "md_docs_2F1-overworld-loading.html#autotoc_md770", null ]
+      [ "Yaze Implementation", "md_docs_2F1-overworld-loading.html#autotoc_md813", [
+        [ "OverworldMap Constructor", "md_docs_2F1-overworld-loading.html#autotoc_md814", null ],
+        [ "Key Methods", "md_docs_2F1-overworld-loading.html#autotoc_md815", null ],
+        [ "Current Status", "md_docs_2F1-overworld-loading.html#autotoc_md816", null ]
       ] ],
-      [ "Key Differences", "md_docs_2F1-overworld-loading.html#autotoc_md771", [
-        [ "1. Language and Architecture", "md_docs_2F1-overworld-loading.html#autotoc_md772", null ],
-        [ "2. Data Structures", "md_docs_2F1-overworld-loading.html#autotoc_md773", null ],
-        [ "3. Error Handling", "md_docs_2F1-overworld-loading.html#autotoc_md774", null ],
-        [ "4. Graphics Processing", "md_docs_2F1-overworld-loading.html#autotoc_md775", null ]
+      [ "Key Differences", "md_docs_2F1-overworld-loading.html#autotoc_md817", [
+        [ "1. Language and Architecture", "md_docs_2F1-overworld-loading.html#autotoc_md818", null ],
+        [ "2. Data Structures", "md_docs_2F1-overworld-loading.html#autotoc_md819", null ],
+        [ "3. Error Handling", "md_docs_2F1-overworld-loading.html#autotoc_md820", null ],
+        [ "4. Graphics Processing", "md_docs_2F1-overworld-loading.html#autotoc_md821", null ]
       ] ],
-      [ "Common Issues and Solutions", "md_docs_2F1-overworld-loading.html#autotoc_md776", [
-        [ "1. Version Detection Issues", "md_docs_2F1-overworld-loading.html#autotoc_md777", null ],
-        [ "2. Palette Loading Errors", "md_docs_2F1-overworld-loading.html#autotoc_md778", null ],
-        [ "3. Graphics Not Loading", "md_docs_2F1-overworld-loading.html#autotoc_md779", null ],
-        [ "4. Overlay Issues", "md_docs_2F1-overworld-loading.html#autotoc_md780", null ],
-        [ "5. Large Map Problems", "md_docs_2F1-overworld-loading.html#autotoc_md781", null ],
-        [ "6. Special Area Graphics Issues", "md_docs_2F1-overworld-loading.html#autotoc_md782", null ]
+      [ "Common Issues and Solutions", "md_docs_2F1-overworld-loading.html#autotoc_md822", [
+        [ "1. Version Detection Issues", "md_docs_2F1-overworld-loading.html#autotoc_md823", null ],
+        [ "2. Palette Loading Errors", "md_docs_2F1-overworld-loading.html#autotoc_md824", null ],
+        [ "3. Graphics Not Loading", "md_docs_2F1-overworld-loading.html#autotoc_md825", null ],
+        [ "4. Overlay Issues", "md_docs_2F1-overworld-loading.html#autotoc_md826", null ],
+        [ "5. Large Map Problems", "md_docs_2F1-overworld-loading.html#autotoc_md827", null ],
+        [ "6. Special Area Graphics Issues", "md_docs_2F1-overworld-loading.html#autotoc_md828", null ]
       ] ],
-      [ "Best Practices", "md_docs_2F1-overworld-loading.html#autotoc_md783", [
-        [ "1. Version-Specific Code", "md_docs_2F1-overworld-loading.html#autotoc_md784", null ],
-        [ "2. Error Handling", "md_docs_2F1-overworld-loading.html#autotoc_md785", null ],
-        [ "3. Memory Management", "md_docs_2F1-overworld-loading.html#autotoc_md786", null ],
-        [ "4. Thread Safety", "md_docs_2F1-overworld-loading.html#autotoc_md787", null ]
+      [ "Best Practices", "md_docs_2F1-overworld-loading.html#autotoc_md829", [
+        [ "1. Version-Specific Code", "md_docs_2F1-overworld-loading.html#autotoc_md830", null ],
+        [ "2. Error Handling", "md_docs_2F1-overworld-loading.html#autotoc_md831", null ],
+        [ "3. Memory Management", "md_docs_2F1-overworld-loading.html#autotoc_md832", null ],
+        [ "4. Thread Safety", "md_docs_2F1-overworld-loading.html#autotoc_md833", null ]
       ] ],
-      [ "Conclusion", "md_docs_2F1-overworld-loading.html#autotoc_md788", null ]
+      [ "Conclusion", "md_docs_2F1-overworld-loading.html#autotoc_md834", null ]
     ] ],
     [ "YAZE Graphics System Improvements Summary", "md_docs_2gfx__improvements__summary.html", [
-      [ "Overview", "md_docs_2gfx__improvements__summary.html#autotoc_md790", null ],
-      [ "Files Modified", "md_docs_2gfx__improvements__summary.html#autotoc_md791", [
-        [ "Core Graphics Classes", "md_docs_2gfx__improvements__summary.html#autotoc_md792", [
-          [ "1. <tt>/src/app/gfx/bitmap.h</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md793", null ],
-          [ "2. <tt>/src/app/gfx/bitmap.cc</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md794", null ],
-          [ "3. <tt>/src/app/gfx/arena.h</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md795", null ],
-          [ "4. <tt>/src/app/gfx/arena.cc</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md796", null ],
-          [ "5. <tt>/src/app/gfx/tilemap.h</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md797", null ]
+      [ "Overview", "md_docs_2gfx__improvements__summary.html#autotoc_md836", null ],
+      [ "Files Modified", "md_docs_2gfx__improvements__summary.html#autotoc_md837", [
+        [ "Core Graphics Classes", "md_docs_2gfx__improvements__summary.html#autotoc_md838", [
+          [ "1. <tt>/src/app/gfx/bitmap.h</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md839", null ],
+          [ "2. <tt>/src/app/gfx/bitmap.cc</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md840", null ],
+          [ "3. <tt>/src/app/gfx/arena.h</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md841", null ],
+          [ "4. <tt>/src/app/gfx/arena.cc</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md842", null ],
+          [ "5. <tt>/src/app/gfx/tilemap.h</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md843", null ]
         ] ],
-        [ "Editor Classes", "md_docs_2gfx__improvements__summary.html#autotoc_md798", [
-          [ "6. <tt>/src/app/editor/graphics/graphics_editor.cc</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md799", null ],
-          [ "7. <tt>/src/app/editor/graphics/palette_editor.cc</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md800", null ],
-          [ "8. <tt>/src/app/editor/graphics/screen_editor.cc</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md801", null ]
+        [ "Editor Classes", "md_docs_2gfx__improvements__summary.html#autotoc_md844", [
+          [ "6. <tt>/src/app/editor/graphics/graphics_editor.cc</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md845", null ],
+          [ "7. <tt>/src/app/editor/graphics/palette_editor.cc</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md846", null ],
+          [ "8. <tt>/src/app/editor/graphics/screen_editor.cc</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md847", null ]
         ] ]
       ] ],
-      [ "New Documentation Files", "md_docs_2gfx__improvements__summary.html#autotoc_md802", [
-        [ "9. <tt>/docs/gfx_optimization_recommendations.md</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md803", null ]
+      [ "New Documentation Files", "md_docs_2gfx__improvements__summary.html#autotoc_md848", [
+        [ "9. <tt>/docs/gfx_optimization_recommendations.md</tt>", "md_docs_2gfx__improvements__summary.html#autotoc_md849", null ]
       ] ],
-      [ "Performance Optimization Recommendations", "md_docs_2gfx__improvements__summary.html#autotoc_md804", [
-        [ "High Impact, Low Risk (Phase 1)", "md_docs_2gfx__improvements__summary.html#autotoc_md805", null ],
-        [ "Medium Impact, Medium Risk (Phase 2)", "md_docs_2gfx__improvements__summary.html#autotoc_md806", null ],
-        [ "High Impact, High Risk (Phase 3)", "md_docs_2gfx__improvements__summary.html#autotoc_md807", null ]
+      [ "Performance Optimization Recommendations", "md_docs_2gfx__improvements__summary.html#autotoc_md850", [
+        [ "High Impact, Low Risk (Phase 1)", "md_docs_2gfx__improvements__summary.html#autotoc_md851", null ],
+        [ "Medium Impact, Medium Risk (Phase 2)", "md_docs_2gfx__improvements__summary.html#autotoc_md852", null ],
+        [ "High Impact, High Risk (Phase 3)", "md_docs_2gfx__improvements__summary.html#autotoc_md853", null ]
       ] ],
-      [ "ROM Hacking Workflow Improvements", "md_docs_2gfx__improvements__summary.html#autotoc_md808", [
-        [ "Graphics Editor Enhancements", "md_docs_2gfx__improvements__summary.html#autotoc_md809", null ],
-        [ "Palette Editor Enhancements", "md_docs_2gfx__improvements__summary.html#autotoc_md810", null ],
-        [ "Screen Editor Enhancements", "md_docs_2gfx__improvements__summary.html#autotoc_md811", null ]
+      [ "ROM Hacking Workflow Improvements", "md_docs_2gfx__improvements__summary.html#autotoc_md854", [
+        [ "Graphics Editor Enhancements", "md_docs_2gfx__improvements__summary.html#autotoc_md855", null ],
+        [ "Palette Editor Enhancements", "md_docs_2gfx__improvements__summary.html#autotoc_md856", null ],
+        [ "Screen Editor Enhancements", "md_docs_2gfx__improvements__summary.html#autotoc_md857", null ]
       ] ],
-      [ "Code Quality Improvements", "md_docs_2gfx__improvements__summary.html#autotoc_md812", [
-        [ "Documentation Standards", "md_docs_2gfx__improvements__summary.html#autotoc_md813", null ],
-        [ "Code Organization", "md_docs_2gfx__improvements__summary.html#autotoc_md814", null ]
+      [ "Code Quality Improvements", "md_docs_2gfx__improvements__summary.html#autotoc_md858", [
+        [ "Documentation Standards", "md_docs_2gfx__improvements__summary.html#autotoc_md859", null ],
+        [ "Code Organization", "md_docs_2gfx__improvements__summary.html#autotoc_md860", null ]
       ] ],
-      [ "Future Development Recommendations", "md_docs_2gfx__improvements__summary.html#autotoc_md815", [
-        [ "Immediate Improvements", "md_docs_2gfx__improvements__summary.html#autotoc_md816", null ],
-        [ "Medium-term Enhancements", "md_docs_2gfx__improvements__summary.html#autotoc_md817", null ],
-        [ "Long-term Goals", "md_docs_2gfx__improvements__summary.html#autotoc_md818", null ]
+      [ "Future Development Recommendations", "md_docs_2gfx__improvements__summary.html#autotoc_md861", [
+        [ "Immediate Improvements", "md_docs_2gfx__improvements__summary.html#autotoc_md862", null ],
+        [ "Medium-term Enhancements", "md_docs_2gfx__improvements__summary.html#autotoc_md863", null ],
+        [ "Long-term Goals", "md_docs_2gfx__improvements__summary.html#autotoc_md864", null ]
       ] ],
-      [ "Conclusion", "md_docs_2gfx__improvements__summary.html#autotoc_md819", null ]
+      [ "Conclusion", "md_docs_2gfx__improvements__summary.html#autotoc_md865", null ]
     ] ],
     [ "YAZE Graphics System Optimization Recommendations", "md_docs_2gfx__optimization__recommendations.html", [
-      [ "Overview", "md_docs_2gfx__optimization__recommendations.html#autotoc_md821", null ],
-      [ "Current Architecture Analysis", "md_docs_2gfx__optimization__recommendations.html#autotoc_md822", [
-        [ "Strengths", "md_docs_2gfx__optimization__recommendations.html#autotoc_md823", null ],
-        [ "Performance Bottlenecks Identified", "md_docs_2gfx__optimization__recommendations.html#autotoc_md824", [
-          [ "1. Bitmap Class Issues", "md_docs_2gfx__optimization__recommendations.html#autotoc_md825", null ],
-          [ "2. Arena Resource Management", "md_docs_2gfx__optimization__recommendations.html#autotoc_md826", null ],
-          [ "3. Tilemap Performance", "md_docs_2gfx__optimization__recommendations.html#autotoc_md827", null ]
+      [ "Overview", "md_docs_2gfx__optimization__recommendations.html#autotoc_md867", null ],
+      [ "Current Architecture Analysis", "md_docs_2gfx__optimization__recommendations.html#autotoc_md868", [
+        [ "Strengths", "md_docs_2gfx__optimization__recommendations.html#autotoc_md869", null ],
+        [ "Performance Bottlenecks Identified", "md_docs_2gfx__optimization__recommendations.html#autotoc_md870", [
+          [ "1. Bitmap Class Issues", "md_docs_2gfx__optimization__recommendations.html#autotoc_md871", null ],
+          [ "2. Arena Resource Management", "md_docs_2gfx__optimization__recommendations.html#autotoc_md872", null ],
+          [ "3. Tilemap Performance", "md_docs_2gfx__optimization__recommendations.html#autotoc_md873", null ]
         ] ]
       ] ],
-      [ "Optimization Recommendations", "md_docs_2gfx__optimization__recommendations.html#autotoc_md828", [
-        [ "1. Bitmap Class Optimizations", "md_docs_2gfx__optimization__recommendations.html#autotoc_md829", [
-          [ "A. Palette Lookup Optimization", "md_docs_2gfx__optimization__recommendations.html#autotoc_md830", null ],
-          [ "B. Dirty Region Tracking", "md_docs_2gfx__optimization__recommendations.html#autotoc_md831", null ]
+      [ "Optimization Recommendations", "md_docs_2gfx__optimization__recommendations.html#autotoc_md874", [
+        [ "1. Bitmap Class Optimizations", "md_docs_2gfx__optimization__recommendations.html#autotoc_md875", [
+          [ "A. Palette Lookup Optimization", "md_docs_2gfx__optimization__recommendations.html#autotoc_md876", null ],
+          [ "B. Dirty Region Tracking", "md_docs_2gfx__optimization__recommendations.html#autotoc_md877", null ]
         ] ],
-        [ "2. Arena Resource Management Improvements", "md_docs_2gfx__optimization__recommendations.html#autotoc_md832", [
-          [ "A. Resource Pooling", "md_docs_2gfx__optimization__recommendations.html#autotoc_md833", null ],
-          [ "B. Batch Operations", "md_docs_2gfx__optimization__recommendations.html#autotoc_md834", null ]
+        [ "2. Arena Resource Management Improvements", "md_docs_2gfx__optimization__recommendations.html#autotoc_md878", [
+          [ "A. Resource Pooling", "md_docs_2gfx__optimization__recommendations.html#autotoc_md879", null ],
+          [ "B. Batch Operations", "md_docs_2gfx__optimization__recommendations.html#autotoc_md880", null ]
         ] ],
-        [ "3. Tilemap Performance Enhancements", "md_docs_2gfx__optimization__recommendations.html#autotoc_md835", [
-          [ "A. Smart Tile Caching", "md_docs_2gfx__optimization__recommendations.html#autotoc_md836", null ],
-          [ "B. Atlas-based Rendering", "md_docs_2gfx__optimization__recommendations.html#autotoc_md837", null ]
+        [ "3. Tilemap Performance Enhancements", "md_docs_2gfx__optimization__recommendations.html#autotoc_md881", [
+          [ "A. Smart Tile Caching", "md_docs_2gfx__optimization__recommendations.html#autotoc_md882", null ],
+          [ "B. Atlas-based Rendering", "md_docs_2gfx__optimization__recommendations.html#autotoc_md883", null ]
         ] ],
-        [ "4. Editor-Specific Optimizations", "md_docs_2gfx__optimization__recommendations.html#autotoc_md838", [
-          [ "A. Graphics Editor Improvements", "md_docs_2gfx__optimization__recommendations.html#autotoc_md839", null ],
-          [ "B. Palette Editor Optimizations", "md_docs_2gfx__optimization__recommendations.html#autotoc_md840", null ]
+        [ "4. Editor-Specific Optimizations", "md_docs_2gfx__optimization__recommendations.html#autotoc_md884", [
+          [ "A. Graphics Editor Improvements", "md_docs_2gfx__optimization__recommendations.html#autotoc_md885", null ],
+          [ "B. Palette Editor Optimizations", "md_docs_2gfx__optimization__recommendations.html#autotoc_md886", null ]
         ] ],
-        [ "5. Memory Management Improvements", "md_docs_2gfx__optimization__recommendations.html#autotoc_md841", [
-          [ "A. Custom Allocator for Graphics Data", "md_docs_2gfx__optimization__recommendations.html#autotoc_md842", null ],
-          [ "B. Smart Pointer Management", "md_docs_2gfx__optimization__recommendations.html#autotoc_md843", null ]
+        [ "5. Memory Management Improvements", "md_docs_2gfx__optimization__recommendations.html#autotoc_md887", [
+          [ "A. Custom Allocator for Graphics Data", "md_docs_2gfx__optimization__recommendations.html#autotoc_md888", null ],
+          [ "B. Smart Pointer Management", "md_docs_2gfx__optimization__recommendations.html#autotoc_md889", null ]
         ] ]
       ] ],
-      [ "Implementation Priority", "md_docs_2gfx__optimization__recommendations.html#autotoc_md844", [
-        [ "Phase 1 (High Impact, Low Risk)", "md_docs_2gfx__optimization__recommendations.html#autotoc_md845", null ],
-        [ "Phase 2 (Medium Impact, Medium Risk)", "md_docs_2gfx__optimization__recommendations.html#autotoc_md846", null ],
-        [ "Phase 3 (High Impact, High Risk)", "md_docs_2gfx__optimization__recommendations.html#autotoc_md847", null ]
+      [ "Implementation Priority", "md_docs_2gfx__optimization__recommendations.html#autotoc_md890", [
+        [ "Phase 1 (High Impact, Low Risk)", "md_docs_2gfx__optimization__recommendations.html#autotoc_md891", null ],
+        [ "Phase 2 (Medium Impact, Medium Risk)", "md_docs_2gfx__optimization__recommendations.html#autotoc_md892", null ],
+        [ "Phase 3 (High Impact, High Risk)", "md_docs_2gfx__optimization__recommendations.html#autotoc_md893", null ]
       ] ],
-      [ "Performance Metrics", "md_docs_2gfx__optimization__recommendations.html#autotoc_md848", [
-        [ "Target Improvements", "md_docs_2gfx__optimization__recommendations.html#autotoc_md849", null ],
-        [ "Measurement Tools", "md_docs_2gfx__optimization__recommendations.html#autotoc_md850", null ]
+      [ "Performance Metrics", "md_docs_2gfx__optimization__recommendations.html#autotoc_md894", [
+        [ "Target Improvements", "md_docs_2gfx__optimization__recommendations.html#autotoc_md895", null ],
+        [ "Measurement Tools", "md_docs_2gfx__optimization__recommendations.html#autotoc_md896", null ]
       ] ],
-      [ "Conclusion", "md_docs_2gfx__optimization__recommendations.html#autotoc_md851", null ]
+      [ "Conclusion", "md_docs_2gfx__optimization__recommendations.html#autotoc_md897", null ]
     ] ],
     [ "YAZE Graphics System Optimizations - Complete Implementation", "md_docs_2gfx__optimizations__complete.html", [
-      [ "Overview", "md_docs_2gfx__optimizations__complete.html#autotoc_md853", null ],
-      [ "Implemented Optimizations", "md_docs_2gfx__optimizations__complete.html#autotoc_md854", [
-        [ "1. Palette Lookup Optimization ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md855", null ],
-        [ "2. Dirty Region Tracking ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md856", null ],
-        [ "3. Resource Pooling ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md857", null ],
-        [ "4. LRU Tile Caching ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md858", null ],
-        [ "5. Batch Operations ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md859", null ],
-        [ "6. Memory Pool Allocator ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md860", null ],
-        [ "7. Atlas-Based Rendering ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md861", null ],
-        [ "8. Performance Profiling System ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md862", null ],
-        [ "9. Performance Monitoring Dashboard ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md863", null ],
-        [ "10. Optimization Validation Suite ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md864", null ]
+      [ "Overview", "md_docs_2gfx__optimizations__complete.html#autotoc_md899", null ],
+      [ "Implemented Optimizations", "md_docs_2gfx__optimizations__complete.html#autotoc_md900", [
+        [ "1. Palette Lookup Optimization ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md901", null ],
+        [ "2. Dirty Region Tracking ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md902", null ],
+        [ "3. Resource Pooling ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md903", null ],
+        [ "4. LRU Tile Caching ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md904", null ],
+        [ "5. Batch Operations ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md905", null ],
+        [ "6. Memory Pool Allocator ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md906", null ],
+        [ "7. Atlas-Based Rendering ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md907", null ],
+        [ "8. Performance Profiling System ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md908", null ],
+        [ "9. Performance Monitoring Dashboard ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md909", null ],
+        [ "10. Optimization Validation Suite ✅ COMPLETED", "md_docs_2gfx__optimizations__complete.html#autotoc_md910", null ]
       ] ],
-      [ "Performance Metrics", "md_docs_2gfx__optimizations__complete.html#autotoc_md865", [
-        [ "Expected Improvements", "md_docs_2gfx__optimizations__complete.html#autotoc_md866", null ],
-        [ "Measurement Tools", "md_docs_2gfx__optimizations__complete.html#autotoc_md867", null ]
+      [ "Performance Metrics", "md_docs_2gfx__optimizations__complete.html#autotoc_md911", [
+        [ "Expected Improvements", "md_docs_2gfx__optimizations__complete.html#autotoc_md912", null ],
+        [ "Measurement Tools", "md_docs_2gfx__optimizations__complete.html#autotoc_md913", null ]
       ] ],
-      [ "Integration Points", "md_docs_2gfx__optimizations__complete.html#autotoc_md868", [
-        [ "Graphics Editor", "md_docs_2gfx__optimizations__complete.html#autotoc_md869", null ],
-        [ "Palette Editor", "md_docs_2gfx__optimizations__complete.html#autotoc_md870", null ],
-        [ "Screen Editor", "md_docs_2gfx__optimizations__complete.html#autotoc_md871", null ]
+      [ "Integration Points", "md_docs_2gfx__optimizations__complete.html#autotoc_md914", [
+        [ "Graphics Editor", "md_docs_2gfx__optimizations__complete.html#autotoc_md915", null ],
+        [ "Palette Editor", "md_docs_2gfx__optimizations__complete.html#autotoc_md916", null ],
+        [ "Screen Editor", "md_docs_2gfx__optimizations__complete.html#autotoc_md917", null ]
       ] ],
-      [ "Backward Compatibility", "md_docs_2gfx__optimizations__complete.html#autotoc_md872", null ],
-      [ "Usage Examples", "md_docs_2gfx__optimizations__complete.html#autotoc_md873", [
-        [ "Using Batch Operations", "md_docs_2gfx__optimizations__complete.html#autotoc_md874", null ],
-        [ "Using Memory Pool", "md_docs_2gfx__optimizations__complete.html#autotoc_md875", null ],
-        [ "Using Atlas Rendering", "md_docs_2gfx__optimizations__complete.html#autotoc_md876", null ],
-        [ "Using Performance Monitoring", "md_docs_2gfx__optimizations__complete.html#autotoc_md877", null ]
+      [ "Backward Compatibility", "md_docs_2gfx__optimizations__complete.html#autotoc_md918", null ],
+      [ "Usage Examples", "md_docs_2gfx__optimizations__complete.html#autotoc_md919", [
+        [ "Using Batch Operations", "md_docs_2gfx__optimizations__complete.html#autotoc_md920", null ],
+        [ "Using Memory Pool", "md_docs_2gfx__optimizations__complete.html#autotoc_md921", null ],
+        [ "Using Atlas Rendering", "md_docs_2gfx__optimizations__complete.html#autotoc_md922", null ],
+        [ "Using Performance Monitoring", "md_docs_2gfx__optimizations__complete.html#autotoc_md923", null ]
       ] ],
-      [ "Future Enhancements", "md_docs_2gfx__optimizations__complete.html#autotoc_md878", [
-        [ "Phase 2 Optimizations (Medium Priority)", "md_docs_2gfx__optimizations__complete.html#autotoc_md879", null ],
-        [ "Phase 3 Optimizations (High Priority)", "md_docs_2gfx__optimizations__complete.html#autotoc_md880", null ]
+      [ "Future Enhancements", "md_docs_2gfx__optimizations__complete.html#autotoc_md924", [
+        [ "Phase 2 Optimizations (Medium Priority)", "md_docs_2gfx__optimizations__complete.html#autotoc_md925", null ],
+        [ "Phase 3 Optimizations (High Priority)", "md_docs_2gfx__optimizations__complete.html#autotoc_md926", null ]
       ] ],
-      [ "Testing and Validation", "md_docs_2gfx__optimizations__complete.html#autotoc_md881", [
-        [ "Performance Testing", "md_docs_2gfx__optimizations__complete.html#autotoc_md882", null ],
-        [ "ROM Hacking Workflow Testing", "md_docs_2gfx__optimizations__complete.html#autotoc_md883", null ]
+      [ "Testing and Validation", "md_docs_2gfx__optimizations__complete.html#autotoc_md927", [
+        [ "Performance Testing", "md_docs_2gfx__optimizations__complete.html#autotoc_md928", null ],
+        [ "ROM Hacking Workflow Testing", "md_docs_2gfx__optimizations__complete.html#autotoc_md929", null ]
       ] ],
-      [ "Conclusion", "md_docs_2gfx__optimizations__complete.html#autotoc_md884", null ],
-      [ "Files Modified/Created", "md_docs_2gfx__optimizations__complete.html#autotoc_md885", [
-        [ "Core Graphics Classes", "md_docs_2gfx__optimizations__complete.html#autotoc_md886", null ],
-        [ "New Optimization Components", "md_docs_2gfx__optimizations__complete.html#autotoc_md887", null ],
-        [ "Testing and Validation", "md_docs_2gfx__optimizations__complete.html#autotoc_md888", null ],
-        [ "Build System", "md_docs_2gfx__optimizations__complete.html#autotoc_md889", null ],
-        [ "Documentation", "md_docs_2gfx__optimizations__complete.html#autotoc_md890", null ]
+      [ "Conclusion", "md_docs_2gfx__optimizations__complete.html#autotoc_md930", null ],
+      [ "Files Modified/Created", "md_docs_2gfx__optimizations__complete.html#autotoc_md931", [
+        [ "Core Graphics Classes", "md_docs_2gfx__optimizations__complete.html#autotoc_md932", null ],
+        [ "New Optimization Components", "md_docs_2gfx__optimizations__complete.html#autotoc_md933", null ],
+        [ "Testing and Validation", "md_docs_2gfx__optimizations__complete.html#autotoc_md934", null ],
+        [ "Build System", "md_docs_2gfx__optimizations__complete.html#autotoc_md935", null ],
+        [ "Documentation", "md_docs_2gfx__optimizations__complete.html#autotoc_md936", null ]
       ] ]
     ] ],
     [ "YAZE Graphics System Optimizations - Implementation Summary", "md_docs_2gfx__optimizations__implemented.html", [
-      [ "Overview", "md_docs_2gfx__optimizations__implemented.html#autotoc_md892", null ],
-      [ "Implemented Optimizations", "md_docs_2gfx__optimizations__implemented.html#autotoc_md893", [
-        [ "1. Palette Lookup Optimization ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md894", null ],
-        [ "2. Dirty Region Tracking ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md895", null ],
-        [ "3. Resource Pooling ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md896", null ],
-        [ "4. LRU Tile Caching ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md897", null ],
-        [ "5. Region-Specific Texture Updates ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md898", null ],
-        [ "6. Performance Profiling System ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md899", null ]
+      [ "Overview", "md_docs_2gfx__optimizations__implemented.html#autotoc_md938", null ],
+      [ "Implemented Optimizations", "md_docs_2gfx__optimizations__implemented.html#autotoc_md939", [
+        [ "1. Palette Lookup Optimization ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md940", null ],
+        [ "2. Dirty Region Tracking ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md941", null ],
+        [ "3. Resource Pooling ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md942", null ],
+        [ "4. LRU Tile Caching ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md943", null ],
+        [ "5. Region-Specific Texture Updates ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md944", null ],
+        [ "6. Performance Profiling System ✅ COMPLETED", "md_docs_2gfx__optimizations__implemented.html#autotoc_md945", null ]
       ] ],
-      [ "Performance Metrics", "md_docs_2gfx__optimizations__implemented.html#autotoc_md900", [
-        [ "Expected Improvements", "md_docs_2gfx__optimizations__implemented.html#autotoc_md901", null ],
-        [ "Measurement Tools", "md_docs_2gfx__optimizations__implemented.html#autotoc_md902", null ]
+      [ "Performance Metrics", "md_docs_2gfx__optimizations__implemented.html#autotoc_md946", [
+        [ "Expected Improvements", "md_docs_2gfx__optimizations__implemented.html#autotoc_md947", null ],
+        [ "Measurement Tools", "md_docs_2gfx__optimizations__implemented.html#autotoc_md948", null ]
       ] ],
-      [ "Integration Points", "md_docs_2gfx__optimizations__implemented.html#autotoc_md903", [
-        [ "Graphics Editor", "md_docs_2gfx__optimizations__implemented.html#autotoc_md904", null ],
-        [ "Palette Editor", "md_docs_2gfx__optimizations__implemented.html#autotoc_md905", null ],
-        [ "Screen Editor", "md_docs_2gfx__optimizations__implemented.html#autotoc_md906", null ]
+      [ "Integration Points", "md_docs_2gfx__optimizations__implemented.html#autotoc_md949", [
+        [ "Graphics Editor", "md_docs_2gfx__optimizations__implemented.html#autotoc_md950", null ],
+        [ "Palette Editor", "md_docs_2gfx__optimizations__implemented.html#autotoc_md951", null ],
+        [ "Screen Editor", "md_docs_2gfx__optimizations__implemented.html#autotoc_md952", null ]
       ] ],
-      [ "Backward Compatibility", "md_docs_2gfx__optimizations__implemented.html#autotoc_md907", null ],
-      [ "Future Enhancements", "md_docs_2gfx__optimizations__implemented.html#autotoc_md908", [
-        [ "Phase 2 Optimizations (Medium Priority)", "md_docs_2gfx__optimizations__implemented.html#autotoc_md909", null ],
-        [ "Phase 3 Optimizations (High Priority)", "md_docs_2gfx__optimizations__implemented.html#autotoc_md910", null ]
+      [ "Backward Compatibility", "md_docs_2gfx__optimizations__implemented.html#autotoc_md953", null ],
+      [ "Future Enhancements", "md_docs_2gfx__optimizations__implemented.html#autotoc_md954", [
+        [ "Phase 2 Optimizations (Medium Priority)", "md_docs_2gfx__optimizations__implemented.html#autotoc_md955", null ],
+        [ "Phase 3 Optimizations (High Priority)", "md_docs_2gfx__optimizations__implemented.html#autotoc_md956", null ]
       ] ],
-      [ "Testing and Validation", "md_docs_2gfx__optimizations__implemented.html#autotoc_md911", [
-        [ "Performance Testing", "md_docs_2gfx__optimizations__implemented.html#autotoc_md912", null ],
-        [ "ROM Hacking Workflow Testing", "md_docs_2gfx__optimizations__implemented.html#autotoc_md913", null ]
+      [ "Testing and Validation", "md_docs_2gfx__optimizations__implemented.html#autotoc_md957", [
+        [ "Performance Testing", "md_docs_2gfx__optimizations__implemented.html#autotoc_md958", null ],
+        [ "ROM Hacking Workflow Testing", "md_docs_2gfx__optimizations__implemented.html#autotoc_md959", null ]
       ] ],
-      [ "Conclusion", "md_docs_2gfx__optimizations__implemented.html#autotoc_md914", null ]
+      [ "Conclusion", "md_docs_2gfx__optimizations__implemented.html#autotoc_md960", null ]
     ] ],
     [ "YAZE Graphics Optimizations Project - Final Summary", "md_docs_2gfx__optimizations__project__summary.html", [
-      [ "Project Overview", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md916", null ],
-      [ "Completed Optimizations", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md917", [
-        [ "✅ 1. Batch Operations for Texture Updates", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md918", null ],
-        [ "✅ 2. Memory Pool Allocator", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md919", null ],
-        [ "✅ 3. Atlas-Based Rendering System", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md920", null ],
-        [ "✅ 4. Performance Monitoring Dashboard", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md921", null ],
-        [ "✅ 5. Optimization Validation Suite", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md922", null ],
-        [ "✅ 6. Debug Menu Integration", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md923", null ]
+      [ "Project Overview", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md962", null ],
+      [ "Completed Optimizations", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md963", [
+        [ "✅ 1. Batch Operations for Texture Updates", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md964", null ],
+        [ "✅ 2. Memory Pool Allocator", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md965", null ],
+        [ "✅ 3. Atlas-Based Rendering System", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md966", null ],
+        [ "✅ 4. Performance Monitoring Dashboard", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md967", null ],
+        [ "✅ 5. Optimization Validation Suite", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md968", null ],
+        [ "✅ 6. Debug Menu Integration", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md969", null ]
       ] ],
-      [ "Performance Metrics Achieved", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md924", [
-        [ "Expected Improvements (Based on Implementation)", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md925", null ],
-        [ "Real Performance Data (From Timing Report)", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md926", null ]
+      [ "Performance Metrics Achieved", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md970", [
+        [ "Expected Improvements (Based on Implementation)", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md971", null ],
+        [ "Real Performance Data (From Timing Report)", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md972", null ]
       ] ],
-      [ "Technical Implementation Details", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md927", [
-        [ "Architecture Improvements", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md928", null ],
-        [ "Code Quality Enhancements", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md929", null ]
+      [ "Technical Implementation Details", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md973", [
+        [ "Architecture Improvements", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md974", null ],
+        [ "Code Quality Enhancements", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md975", null ]
       ] ],
-      [ "Integration Points", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md930", [
-        [ "Graphics System Integration", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md931", null ],
-        [ "Editor Integration", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md932", null ]
+      [ "Integration Points", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md976", [
+        [ "Graphics System Integration", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md977", null ],
+        [ "Editor Integration", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md978", null ]
       ] ],
-      [ "Future Enhancements", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md933", [
-        [ "Remaining Optimization (Pending)", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md934", null ],
-        [ "Potential Extensions", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md935", null ]
+      [ "Future Enhancements", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md979", [
+        [ "Remaining Optimization (Pending)", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md980", null ],
+        [ "Potential Extensions", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md981", null ]
       ] ],
-      [ "Build and Testing", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md936", [
-        [ "Build Status", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md937", null ],
-        [ "Testing Status", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md938", null ]
+      [ "Build and Testing", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md982", [
+        [ "Build Status", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md983", null ],
+        [ "Testing Status", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md984", null ]
       ] ],
-      [ "Conclusion", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md939", null ]
+      [ "Conclusion", "md_docs_2gfx__optimizations__project__summary.html#autotoc_md985", null ]
     ] ],
     [ "YAZE Documentation", "md_docs_2index.html", [
-      [ "Quick Start", "md_docs_2index.html#autotoc_md941", null ],
-      [ "Development", "md_docs_2index.html#autotoc_md942", null ],
-      [ "Technical Documentation", "md_docs_2index.html#autotoc_md943", [
-        [ "Assembly & Code", "md_docs_2index.html#autotoc_md944", null ],
-        [ "Editor Systems", "md_docs_2index.html#autotoc_md945", null ],
-        [ "Overworld System", "md_docs_2index.html#autotoc_md946", null ]
+      [ "Quick Start", "md_docs_2index.html#autotoc_md987", null ],
+      [ "Development", "md_docs_2index.html#autotoc_md988", null ],
+      [ "Technical Documentation", "md_docs_2index.html#autotoc_md989", [
+        [ "Assembly & Code", "md_docs_2index.html#autotoc_md990", null ],
+        [ "Editor Systems", "md_docs_2index.html#autotoc_md991", null ],
+        [ "Overworld System", "md_docs_2index.html#autotoc_md992", null ]
       ] ],
-      [ "Key Features", "md_docs_2index.html#autotoc_md947", null ]
+      [ "Key Features", "md_docs_2index.html#autotoc_md993", null ]
     ] ],
     [ "YAZE Overworld Testing Guide", "md_docs_2overworld__testing__guide.html", [
-      [ "Overview", "md_docs_2overworld__testing__guide.html#autotoc_md950", null ],
-      [ "Test Architecture", "md_docs_2overworld__testing__guide.html#autotoc_md951", [
-        [ "1. Golden Data System", "md_docs_2overworld__testing__guide.html#autotoc_md952", null ],
-        [ "2. Test Categories", "md_docs_2overworld__testing__guide.html#autotoc_md953", [
-          [ "Unit Tests (<tt>test/unit/zelda3/</tt>)", "md_docs_2overworld__testing__guide.html#autotoc_md954", null ],
-          [ "Integration Tests (<tt>test/e2e/</tt>)", "md_docs_2overworld__testing__guide.html#autotoc_md955", null ],
-          [ "Golden Data Tools", "md_docs_2overworld__testing__guide.html#autotoc_md956", null ]
+      [ "Overview", "md_docs_2overworld__testing__guide.html#autotoc_md996", null ],
+      [ "Test Architecture", "md_docs_2overworld__testing__guide.html#autotoc_md997", [
+        [ "1. Golden Data System", "md_docs_2overworld__testing__guide.html#autotoc_md998", null ],
+        [ "2. Test Categories", "md_docs_2overworld__testing__guide.html#autotoc_md999", [
+          [ "Unit Tests (<tt>test/unit/zelda3/</tt>)", "md_docs_2overworld__testing__guide.html#autotoc_md1000", null ],
+          [ "Integration Tests (<tt>test/e2e/</tt>)", "md_docs_2overworld__testing__guide.html#autotoc_md1001", null ],
+          [ "Golden Data Tools", "md_docs_2overworld__testing__guide.html#autotoc_md1002", null ]
         ] ]
       ] ],
-      [ "Quick Start", "md_docs_2overworld__testing__guide.html#autotoc_md957", [
-        [ "Prerequisites", "md_docs_2overworld__testing__guide.html#autotoc_md958", null ],
-        [ "Running Tests", "md_docs_2overworld__testing__guide.html#autotoc_md959", [
-          [ "Basic Test Run", "md_docs_2overworld__testing__guide.html#autotoc_md960", null ],
-          [ "Selective Test Execution", "md_docs_2overworld__testing__guide.html#autotoc_md961", null ]
+      [ "Quick Start", "md_docs_2overworld__testing__guide.html#autotoc_md1003", [
+        [ "Prerequisites", "md_docs_2overworld__testing__guide.html#autotoc_md1004", null ],
+        [ "Running Tests", "md_docs_2overworld__testing__guide.html#autotoc_md1005", [
+          [ "Basic Test Run", "md_docs_2overworld__testing__guide.html#autotoc_md1006", null ],
+          [ "Selective Test Execution", "md_docs_2overworld__testing__guide.html#autotoc_md1007", null ]
         ] ]
       ] ],
-      [ "Test Components", "md_docs_2overworld__testing__guide.html#autotoc_md962", [
-        [ "1. Golden Data Extractor", "md_docs_2overworld__testing__guide.html#autotoc_md963", null ],
-        [ "2. Integration Tests", "md_docs_2overworld__testing__guide.html#autotoc_md964", null ],
-        [ "3. End-to-End Tests", "md_docs_2overworld__testing__guide.html#autotoc_md965", null ]
+      [ "Test Components", "md_docs_2overworld__testing__guide.html#autotoc_md1008", [
+        [ "1. Golden Data Extractor", "md_docs_2overworld__testing__guide.html#autotoc_md1009", null ],
+        [ "2. Integration Tests", "md_docs_2overworld__testing__guide.html#autotoc_md1010", null ],
+        [ "3. End-to-End Tests", "md_docs_2overworld__testing__guide.html#autotoc_md1011", null ]
       ] ],
-      [ "Test Validation Points", "md_docs_2overworld__testing__guide.html#autotoc_md966", [
-        [ "1. ZScream Compatibility", "md_docs_2overworld__testing__guide.html#autotoc_md967", null ],
-        [ "2. ROM State Validation", "md_docs_2overworld__testing__guide.html#autotoc_md968", null ],
-        [ "3. Performance and Stability", "md_docs_2overworld__testing__guide.html#autotoc_md969", null ]
+      [ "Test Validation Points", "md_docs_2overworld__testing__guide.html#autotoc_md1012", [
+        [ "1. ZScream Compatibility", "md_docs_2overworld__testing__guide.html#autotoc_md1013", null ],
+        [ "2. ROM State Validation", "md_docs_2overworld__testing__guide.html#autotoc_md1014", null ],
+        [ "3. Performance and Stability", "md_docs_2overworld__testing__guide.html#autotoc_md1015", null ]
       ] ],
-      [ "Environment Variables", "md_docs_2overworld__testing__guide.html#autotoc_md970", [
-        [ "Test Configuration", "md_docs_2overworld__testing__guide.html#autotoc_md971", null ],
-        [ "Build Configuration", "md_docs_2overworld__testing__guide.html#autotoc_md972", null ]
+      [ "Environment Variables", "md_docs_2overworld__testing__guide.html#autotoc_md1016", [
+        [ "Test Configuration", "md_docs_2overworld__testing__guide.html#autotoc_md1017", null ],
+        [ "Build Configuration", "md_docs_2overworld__testing__guide.html#autotoc_md1018", null ]
       ] ],
-      [ "Test Reports", "md_docs_2overworld__testing__guide.html#autotoc_md973", [
-        [ "Generated Reports", "md_docs_2overworld__testing__guide.html#autotoc_md974", null ],
-        [ "Report Location", "md_docs_2overworld__testing__guide.html#autotoc_md975", null ]
+      [ "Test Reports", "md_docs_2overworld__testing__guide.html#autotoc_md1019", [
+        [ "Generated Reports", "md_docs_2overworld__testing__guide.html#autotoc_md1020", null ],
+        [ "Report Location", "md_docs_2overworld__testing__guide.html#autotoc_md1021", null ]
       ] ],
-      [ "Troubleshooting", "md_docs_2overworld__testing__guide.html#autotoc_md976", [
-        [ "Common Issues", "md_docs_2overworld__testing__guide.html#autotoc_md977", [
-          [ "1. ROM Not Found", "md_docs_2overworld__testing__guide.html#autotoc_md978", null ],
-          [ "2. Build Failures", "md_docs_2overworld__testing__guide.html#autotoc_md979", null ],
-          [ "3. Test Failures", "md_docs_2overworld__testing__guide.html#autotoc_md980", null ]
+      [ "Troubleshooting", "md_docs_2overworld__testing__guide.html#autotoc_md1022", [
+        [ "Common Issues", "md_docs_2overworld__testing__guide.html#autotoc_md1023", [
+          [ "1. ROM Not Found", "md_docs_2overworld__testing__guide.html#autotoc_md1024", null ],
+          [ "2. Build Failures", "md_docs_2overworld__testing__guide.html#autotoc_md1025", null ],
+          [ "3. Test Failures", "md_docs_2overworld__testing__guide.html#autotoc_md1026", null ]
         ] ],
-        [ "Debug Mode", "md_docs_2overworld__testing__guide.html#autotoc_md981", null ]
+        [ "Debug Mode", "md_docs_2overworld__testing__guide.html#autotoc_md1027", null ]
       ] ],
-      [ "Advanced Usage", "md_docs_2overworld__testing__guide.html#autotoc_md982", [
-        [ "Custom Test Scenarios", "md_docs_2overworld__testing__guide.html#autotoc_md983", [
-          [ "1. Testing Custom ROMs", "md_docs_2overworld__testing__guide.html#autotoc_md984", null ],
-          [ "2. Regression Testing", "md_docs_2overworld__testing__guide.html#autotoc_md985", null ],
-          [ "3. Performance Testing", "md_docs_2overworld__testing__guide.html#autotoc_md986", null ]
+      [ "Advanced Usage", "md_docs_2overworld__testing__guide.html#autotoc_md1028", [
+        [ "Custom Test Scenarios", "md_docs_2overworld__testing__guide.html#autotoc_md1029", [
+          [ "1. Testing Custom ROMs", "md_docs_2overworld__testing__guide.html#autotoc_md1030", null ],
+          [ "2. Regression Testing", "md_docs_2overworld__testing__guide.html#autotoc_md1031", null ],
+          [ "3. Performance Testing", "md_docs_2overworld__testing__guide.html#autotoc_md1032", null ]
         ] ]
       ] ],
-      [ "Integration with CI/CD", "md_docs_2overworld__testing__guide.html#autotoc_md987", [
-        [ "GitHub Actions Example", "md_docs_2overworld__testing__guide.html#autotoc_md988", null ]
+      [ "Integration with CI/CD", "md_docs_2overworld__testing__guide.html#autotoc_md1033", [
+        [ "GitHub Actions Example", "md_docs_2overworld__testing__guide.html#autotoc_md1034", null ]
       ] ],
-      [ "Contributing", "md_docs_2overworld__testing__guide.html#autotoc_md989", [
-        [ "Adding New Tests", "md_docs_2overworld__testing__guide.html#autotoc_md990", null ],
-        [ "Test Guidelines", "md_docs_2overworld__testing__guide.html#autotoc_md991", null ],
-        [ "Example Test Structure", "md_docs_2overworld__testing__guide.html#autotoc_md992", null ]
+      [ "Contributing", "md_docs_2overworld__testing__guide.html#autotoc_md1035", [
+        [ "Adding New Tests", "md_docs_2overworld__testing__guide.html#autotoc_md1036", null ],
+        [ "Test Guidelines", "md_docs_2overworld__testing__guide.html#autotoc_md1037", null ],
+        [ "Example Test Structure", "md_docs_2overworld__testing__guide.html#autotoc_md1038", null ]
       ] ],
-      [ "Conclusion", "md_docs_2overworld__testing__guide.html#autotoc_md993", null ]
+      [ "Conclusion", "md_docs_2overworld__testing__guide.html#autotoc_md1039", null ]
     ] ],
     [ "YAZE - Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Version 0.3.1 - Release", "md_README.html#autotoc_md995", [
-        [ "🛠️ Technical Improvements", "md_README.html#autotoc_md999", null ]
+      [ "Version 0.3.2 - Release", "md_README.html#autotoc_md1041", [
+        [ "🛠️ Technical Improvements", "md_README.html#autotoc_md1045", null ]
       ] ],
-      [ "Quick Start", "md_README.html#autotoc_md1000", [
-        [ "Build", "md_README.html#autotoc_md1001", null ],
-        [ "Applications", "md_README.html#autotoc_md1002", null ]
+      [ "Quick Start", "md_README.html#autotoc_md1046", [
+        [ "Build", "md_README.html#autotoc_md1047", null ],
+        [ "Applications", "md_README.html#autotoc_md1048", null ]
       ] ],
-      [ "Usage", "md_README.html#autotoc_md1003", [
-        [ "GUI Editor", "md_README.html#autotoc_md1004", null ],
-        [ "Command Line Tool", "md_README.html#autotoc_md1005", null ],
-        [ "C++ API", "md_README.html#autotoc_md1006", null ]
+      [ "Usage", "md_README.html#autotoc_md1049", [
+        [ "GUI Editor", "md_README.html#autotoc_md1050", null ],
+        [ "Command Line Tool", "md_README.html#autotoc_md1051", null ],
+        [ "C++ API", "md_README.html#autotoc_md1052", null ]
       ] ],
-      [ "Documentation", "md_README.html#autotoc_md1007", null ],
-      [ "Supported Platforms", "md_README.html#autotoc_md1008", null ],
-      [ "ROM Compatibility", "md_README.html#autotoc_md1009", null ],
-      [ "Contributing", "md_README.html#autotoc_md1010", null ],
-      [ "License", "md_README.html#autotoc_md1011", null ],
-      [ "🙏 Acknowledgments", "md_README.html#autotoc_md1012", null ],
-      [ "📸 Screenshots", "md_README.html#autotoc_md1013", null ]
+      [ "Documentation", "md_README.html#autotoc_md1053", null ],
+      [ "Supported Platforms", "md_README.html#autotoc_md1054", null ],
+      [ "ROM Compatibility", "md_README.html#autotoc_md1055", null ],
+      [ "Contributing", "md_README.html#autotoc_md1056", null ],
+      [ "License", "md_README.html#autotoc_md1057", null ],
+      [ "🙏 Acknowledgments", "md_README.html#autotoc_md1058", null ],
+      [ "📸 Screenshots", "md_README.html#autotoc_md1059", null ]
     ] ],
     [ "YAZE Build Scripts", "md_scripts_2README.html", [
-      [ "Windows Scripts", "md_scripts_2README.html#autotoc_md1016", [
-        [ "Setup Scripts", "md_scripts_2README.html#autotoc_md1017", null ],
-        [ "Build Scripts", "md_scripts_2README.html#autotoc_md1018", null ],
-        [ "Validation Scripts", "md_scripts_2README.html#autotoc_md1019", null ],
-        [ "Project Generation", "md_scripts_2README.html#autotoc_md1020", null ]
+      [ "Windows Scripts", "md_scripts_2README.html#autotoc_md1062", [
+        [ "Setup Scripts", "md_scripts_2README.html#autotoc_md1063", null ],
+        [ "Build Scripts", "md_scripts_2README.html#autotoc_md1064", null ],
+        [ "Validation Scripts", "md_scripts_2README.html#autotoc_md1065", null ],
+        [ "Project Generation", "md_scripts_2README.html#autotoc_md1066", null ]
       ] ],
-      [ "Windows Compiler Recommendations", "md_scripts_2README.html#autotoc_md1021", [
-        [ "⚠️ Important: MSVC vs Clang on Windows", "md_scripts_2README.html#autotoc_md1022", [
-          [ "Why Clang is Recommended:", "md_scripts_2README.html#autotoc_md1023", null ],
-          [ "MSVC Issues:", "md_scripts_2README.html#autotoc_md1024", null ]
+      [ "Windows Compiler Recommendations", "md_scripts_2README.html#autotoc_md1067", [
+        [ "⚠️ Important: MSVC vs Clang on Windows", "md_scripts_2README.html#autotoc_md1068", [
+          [ "Why Clang is Recommended:", "md_scripts_2README.html#autotoc_md1069", null ],
+          [ "MSVC Issues:", "md_scripts_2README.html#autotoc_md1070", null ]
         ] ],
-        [ "Compiler Setup Options", "md_scripts_2README.html#autotoc_md1025", [
-          [ "Option 1: Clang (Recommended)", "md_scripts_2README.html#autotoc_md1026", null ],
-          [ "Option 2: MSVC with Workarounds", "md_scripts_2README.html#autotoc_md1027", null ]
+        [ "Compiler Setup Options", "md_scripts_2README.html#autotoc_md1071", [
+          [ "Option 1: Clang (Recommended)", "md_scripts_2README.html#autotoc_md1072", null ],
+          [ "Option 2: MSVC with Workarounds", "md_scripts_2README.html#autotoc_md1073", null ]
         ] ]
       ] ],
-      [ "Quick Start (Windows)", "md_scripts_2README.html#autotoc_md1028", [
-        [ "Option 1: Automated Setup (Recommended)", "md_scripts_2README.html#autotoc_md1029", null ],
-        [ "Option 2: Manual Setup", "md_scripts_2README.html#autotoc_md1030", null ],
-        [ "Option 3: Using Batch Scripts", "md_scripts_2README.html#autotoc_md1031", null ]
+      [ "Quick Start (Windows)", "md_scripts_2README.html#autotoc_md1074", [
+        [ "Option 1: Automated Setup (Recommended)", "md_scripts_2README.html#autotoc_md1075", null ],
+        [ "Option 2: Manual Setup", "md_scripts_2README.html#autotoc_md1076", null ],
+        [ "Option 3: Using Batch Scripts", "md_scripts_2README.html#autotoc_md1077", null ]
       ] ],
-      [ "Script Options", "md_scripts_2README.html#autotoc_md1032", [
-        [ "setup-windows-dev.ps1", "md_scripts_2README.html#autotoc_md1033", null ],
-        [ "build-windows.ps1", "md_scripts_2README.html#autotoc_md1034", null ],
-        [ "build-windows.bat", "md_scripts_2README.html#autotoc_md1035", null ]
+      [ "Script Options", "md_scripts_2README.html#autotoc_md1078", [
+        [ "setup-windows-dev.ps1", "md_scripts_2README.html#autotoc_md1079", null ],
+        [ "build-windows.ps1", "md_scripts_2README.html#autotoc_md1080", null ],
+        [ "build-windows.bat", "md_scripts_2README.html#autotoc_md1081", null ]
       ] ],
-      [ "Examples", "md_scripts_2README.html#autotoc_md1036", null ],
-      [ "Troubleshooting", "md_scripts_2README.html#autotoc_md1037", [
-        [ "Common Issues", "md_scripts_2README.html#autotoc_md1038", null ],
-        [ "Getting Help", "md_scripts_2README.html#autotoc_md1039", null ]
+      [ "Examples", "md_scripts_2README.html#autotoc_md1082", null ],
+      [ "Troubleshooting", "md_scripts_2README.html#autotoc_md1083", [
+        [ "Common Issues", "md_scripts_2README.html#autotoc_md1084", null ],
+        [ "Getting Help", "md_scripts_2README.html#autotoc_md1085", null ]
       ] ],
-      [ "Other Scripts", "md_scripts_2README.html#autotoc_md1040", null ]
+      [ "Other Scripts", "md_scripts_2README.html#autotoc_md1086", null ]
     ] ],
     [ "YAZE Test Suite", "md_test_2README.html", [
-      [ "Directory Structure", "md_test_2README.html#autotoc_md1042", null ],
-      [ "Test Categories", "md_test_2README.html#autotoc_md1043", [
-        [ "Unit Tests (<tt>unit/</tt>)", "md_test_2README.html#autotoc_md1044", null ],
-        [ "Integration Tests (<tt>integration/</tt>)", "md_test_2README.html#autotoc_md1045", null ],
-        [ "End-to-End Tests (<tt>e2e/</tt>)", "md_test_2README.html#autotoc_md1046", null ]
+      [ "Directory Structure", "md_test_2README.html#autotoc_md1088", null ],
+      [ "Test Categories", "md_test_2README.html#autotoc_md1089", [
+        [ "Unit Tests (<tt>unit/</tt>)", "md_test_2README.html#autotoc_md1090", null ],
+        [ "Integration Tests (<tt>integration/</tt>)", "md_test_2README.html#autotoc_md1091", null ],
+        [ "End-to-End Tests (<tt>e2e/</tt>)", "md_test_2README.html#autotoc_md1092", null ]
       ] ],
-      [ "Enhanced Test Runner", "md_test_2README.html#autotoc_md1047", [
-        [ "Usage Examples", "md_test_2README.html#autotoc_md1048", null ],
-        [ "Test Modes", "md_test_2README.html#autotoc_md1049", null ],
-        [ "Options", "md_test_2README.html#autotoc_md1050", null ]
+      [ "Enhanced Test Runner", "md_test_2README.html#autotoc_md1093", [
+        [ "Usage Examples", "md_test_2README.html#autotoc_md1094", null ],
+        [ "Test Modes", "md_test_2README.html#autotoc_md1095", null ],
+        [ "Options", "md_test_2README.html#autotoc_md1096", null ]
       ] ],
-      [ "E2E ROM Testing", "md_test_2README.html#autotoc_md1051", [
-        [ "Test Cases", "md_test_2README.html#autotoc_md1052", null ]
+      [ "E2E ROM Testing", "md_test_2README.html#autotoc_md1097", [
+        [ "Test Cases", "md_test_2README.html#autotoc_md1098", null ]
       ] ],
-      [ "ZSCustomOverworld Upgrade Testing", "md_test_2README.html#autotoc_md1053", [
-        [ "Supported Upgrades", "md_test_2README.html#autotoc_md1054", null ],
-        [ "Test Cases", "md_test_2README.html#autotoc_md1055", null ],
-        [ "Version-Specific Features", "md_test_2README.html#autotoc_md1056", [
-          [ "Vanilla", "md_test_2README.html#autotoc_md1057", null ],
-          [ "v2", "md_test_2README.html#autotoc_md1058", null ],
-          [ "v3", "md_test_2README.html#autotoc_md1059", null ]
+      [ "ZSCustomOverworld Upgrade Testing", "md_test_2README.html#autotoc_md1099", [
+        [ "Supported Upgrades", "md_test_2README.html#autotoc_md1100", null ],
+        [ "Test Cases", "md_test_2README.html#autotoc_md1101", null ],
+        [ "Version-Specific Features", "md_test_2README.html#autotoc_md1102", [
+          [ "Vanilla", "md_test_2README.html#autotoc_md1103", null ],
+          [ "v2", "md_test_2README.html#autotoc_md1104", null ],
+          [ "v3", "md_test_2README.html#autotoc_md1105", null ]
         ] ]
       ] ],
-      [ "Environment Variables", "md_test_2README.html#autotoc_md1060", null ],
-      [ "CI/CD Integration", "md_test_2README.html#autotoc_md1061", null ],
-      [ "Deprecated Tests", "md_test_2README.html#autotoc_md1062", null ],
-      [ "Best Practices", "md_test_2README.html#autotoc_md1063", null ],
-      [ "AI Agent Testing", "md_test_2README.html#autotoc_md1064", null ]
+      [ "Environment Variables", "md_test_2README.html#autotoc_md1106", null ],
+      [ "CI/CD Integration", "md_test_2README.html#autotoc_md1107", null ],
+      [ "Deprecated Tests", "md_test_2README.html#autotoc_md1108", null ],
+      [ "Best Practices", "md_test_2README.html#autotoc_md1109", null ],
+      [ "AI Agent Testing", "md_test_2README.html#autotoc_md1110", null ]
     ] ],
     [ "Deprecated List", "deprecated.html", null ],
     [ "Todo List", "todo.html", null ],
@@ -1417,86 +1477,86 @@ var NAVTREEINDEX =
 "classTextEditor.html#a0a69e851768e3a608036220e09016547",
 "classyaze_1_1Rom.html#a97d2783a3b91dd4acb21af5547a4ecfa",
 "classyaze_1_1cli_1_1SnesToPcCommand.html#a1829823afb92b629ad854249ef61388e",
-"classyaze_1_1editor_1_1DungeonCanvasViewer.html#a77288f577249bfefd09dd53e46b733b9",
-"classyaze_1_1editor_1_1DungeonObjectInteraction.html#acb7bf3f24512c4c3af4669d343434319",
-"classyaze_1_1editor_1_1DungeonToolset.html#a421ed475c29ade41e75c7046b1180110",
-"classyaze_1_1editor_1_1EditorManager.html#a77a335d0093d34cbafda3e8f3f5e14a9",
-"classyaze_1_1editor_1_1GraphicsEditor.html#a45dbfa0d0691497a73c1b565b8312b61",
-"classyaze_1_1editor_1_1MessageEditor.html#a13fb551d588934b48769b54cd2c46ccb",
-"classyaze_1_1editor_1_1OverworldEditor.html#a731533c366b7f5e3e9043933ed21ca02",
-"classyaze_1_1editor_1_1OverworldEditorManager.html#a885169c6a329546a91f06605b81efd84",
-"classyaze_1_1editor_1_1ScreenEditor.html#abe71861ba9a781c5840747a9015e45dc",
-"classyaze_1_1editor_1_1Tile16Editor.html#a85f46de7674a3d881c7279a50827bef7",
-"classyaze_1_1emu_1_1AudioRamImpl.html",
-"classyaze_1_1emu_1_1Cpu.html#a872d70b49bfdf7976bc04e521df4cced",
-"classyaze_1_1emu_1_1Dsp.html#a16725893e384a6cffb91f4ba9617c868",
-"classyaze_1_1emu_1_1MemoryImpl.html#a06347168c624c16693efdb2193bb8ca0",
-"classyaze_1_1emu_1_1Ppu.html#a1d119fd537dcde7f6e20c266363c88fa",
-"classyaze_1_1emu_1_1Snes.html#a36610fdc93a127c79dc5ffc5e772dee4",
-"classyaze_1_1emu_1_1Spc700.html#a7fbbf38b0efdcf8d44de0b758723d6b3",
-"classyaze_1_1gfx_1_1BackgroundBuffer.html",
-"classyaze_1_1gfx_1_1OamTile.html#af278ecefff462d75dea92bce9f30d0a1",
-"classyaze_1_1gfx_1_1Tile32.html",
-"classyaze_1_1gui_1_1Canvas.html#a9084927e7e6b80627d9f2b2f1d655b67",
-"classyaze_1_1gui_1_1ThemeManager.html#a8afa8adaa8165e9f6ae0b13d72643f12",
-"classyaze_1_1test_1_1IntegratedTestSuite.html#ab326fcc31270fa7399a689090b3ff496",
-"classyaze_1_1test_1_1TestEditor.html#ada22869540b58dcaed74e480bdfe3904",
-"classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest.html#a36501c77a376aad27546899135eae7e7",
-"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a3bc68227c3b50119b9c4b601c2d81c18",
-"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#aee292575e26cabfc6619970864796f16",
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#aec78672c7cb17ee2a8f775bea3311938",
-"classyaze_1_1zelda3_1_1ObjectRenderer.html#aa5ea9562f7d79f208add4d65484a2e7c",
-"classyaze_1_1zelda3_1_1Overworld.html#a7ffca1c6ac8cc8c6dc372b73743d1fcf",
-"classyaze_1_1zelda3_1_1OverworldMap.html#a34bec4f77c8bf80ce86600cd48e759b3",
-"classyaze_1_1zelda3_1_1Room.html#a322e683046befa7f1b015388e5a0f8bd",
-"classyaze_1_1zelda3_1_1RoomLayout.html#a20e12f33eaddade88ce96ce58c227fb9",
-"classyaze_1_1zelda3_1_1Sprite.html#a986a640402b62b103a0355b1f615585c",
-"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a10f7c6425c05a5e25121a882e894e66e",
-"compression_8h.html#a87bb9224f822a93b75406e4f0cd71c97",
-"dungeon__map_8h.html#a667bebf9da1ffa893137ed0cb17e4386",
-"flag_8h.html#a60afeb1f1afc9e19c61b64749a219577",
-"group__graphics.html#gaefa71f38cc28578cb8876442d0a7ffa7",
-"icons_8h.html#a1452c9e6ed2694f172659aa539f31771",
-"icons_8h.html#a32bd5b778056f6359177d04948d3e7a0",
-"icons_8h.html#a4eb44c972e2a23d22b2f32689b58094b",
-"icons_8h.html#a6a5e49da50755e9598ec7ec6217b5d0f",
-"icons_8h.html#a8af3689816df661bc30cfa4fdcbb16a3",
-"icons_8h.html#aa95271d0bfe832e1dc888bc5112a00ef",
-"icons_8h.html#ac6db71d2c133cf64c09b4cb7367a1e01",
-"icons_8h.html#ae1bf3b96a44889d86bcda049341e9a64",
-"icons_8h.html#afcef49fd05a19d398e7d32623ed7a64d",
-"md_docs_204-api-reference.html#autotoc_md89",
-"md_docs_2E3-dungeon-editor-design.html#autotoc_md617",
-"md_docs_2analysis_2lazy__loading__optimization__summary.html#autotoc_md205",
-"md_docs_2gfx__optimizations__complete.html#autotoc_md856",
-"message__data_8h.html#afa2bb58012ea2e36ff07daad1c52f812",
-"namespaceyaze_1_1editor.html#a00c4d23b26706fde3a72cdc112aef45b",
-"namespaceyaze_1_1emu.html#a4e6cb9d03518d93b60d1c77f8eabfb84",
-"namespaceyaze_1_1gfx_1_1lc__lz2.html#a5e8d3b2d511c228a26bdb581fc427eaa",
-"namespaceyaze_1_1test.html#a1ec8eb5e2d7546d162986e9abb9b8457",
-"namespaceyaze_1_1zelda3.html#a172b874c8d8774ff131137c6ba540f73",
-"namespaceyaze_1_1zelda3.html#a74613b4bf8b1cf0af09575210b5b729e",
-"namespaceyaze_1_1zelda3.html#afbcf95f0000387646abc0306914ec5fd",
-"overworld__entrance_8h.html#a8be815d02c938abd39ea4d7866137f05",
-"ppu__registers_8h.html#af5ebc77f7ec3bf25df1520e43ceeb609",
-"room__entrance_8h.html#aabbed84401e10f830675c9169cda67d3",
-"snes__palette__test_8cc.html#accde1cc1e268583c589cf5eb583c37e8",
-"structyaze_1_1cli_1_1Context.html",
-"structyaze_1_1core_1_1YazeProject.html#a9cedeb1f86793da04e75760036a8c119",
-"structyaze_1_1editor_1_1MessagePreview.html#a4a9a978d63046846cc9196d99c730564",
-"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a5be0731a0e7b3b6ef9a65c0b7cd103e4",
-"structyaze_1_1emu_1_1DmaChannel.html#a66a23a67d2809197c30e92da9ad859f9",
-"structyaze_1_1emu_1_1MnemonicMode.html#a4697de524abf7738b33b80dae58c1c55",
-"structyaze_1_1emu_1_1Timer.html#a7cfb8b601e2b7679ea93002471464202",
-"structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html#a590147e78dce71f863d02593ec9b82cd",
-"structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html",
-"structyaze_1_1gui_1_1EnhancedTheme.html#a37680f5c647e9f58664d13121128687c",
-"structyaze_1_1gui_1_1Table.html#a255ff80d28a7408e1d9155301d340546",
-"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html",
-"structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html#a3587989b03f2fea2e7c9e35a9e06111a",
-"structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#ae64d75212acab9b23b70f24f646791b1",
-"style_8cc.html",
-"ui__constants_8h.html#a6af7fe91707f8dcdb2a4d47a5a87b73f"
+"classyaze_1_1editor_1_1DungeonCanvasViewer.html#aedb51c1f0ab7c8f78914b43375b8c470",
+"classyaze_1_1editor_1_1DungeonObjectSelector.html#a2c93195d7cefad7deb3e6562fadd05a7",
+"classyaze_1_1editor_1_1DungeonToolset.html#ac9170fbc1d88691828b594c519f8ad40a0e96f1c2438fc4c766ecbb9c4880b268",
+"classyaze_1_1editor_1_1EditorManager.html#aa1e288deb163d1a710c61e7125fbd487",
+"classyaze_1_1editor_1_1GraphicsEditor.html#a746e24831041bfda949dc9f820809ccf",
+"classyaze_1_1editor_1_1MessageEditor.html#a7c57b31fc61d0a6512ab1264142e70cb",
+"classyaze_1_1editor_1_1OverworldEditor.html#a8c3a9537b4b9623c2d72f9fc863fc45b",
+"classyaze_1_1editor_1_1OverworldEditorManager.html#ae3b281f500bc70f7e1ce787b201c3a5a",
+"classyaze_1_1editor_1_1SettingsEditor.html#a0b98593274a5ee2d63f36c11c8790d64",
+"classyaze_1_1editor_1_1Tile16Editor.html#aa64493d61245129f7743ef3bee4662b8",
+"classyaze_1_1emu_1_1Cpu.html#a04a9b2dcbbc669d262247ebc3c144cc6",
+"classyaze_1_1emu_1_1Cpu.html#a968ddbdeca0cd9c89ff91153fe56223c",
+"classyaze_1_1emu_1_1Dsp.html#a643e95ee9f9d37e5a97e8dc53e0d76f8",
+"classyaze_1_1emu_1_1MemoryImpl.html#a421de7d323acef686d11ebe9d36f941e",
+"classyaze_1_1emu_1_1Ppu.html#a368d39a3ab37d6679ab6882c0ff62b4a",
+"classyaze_1_1emu_1_1Snes.html#a65cdf334d1b7337ef9cf3bddfe69eec9",
+"classyaze_1_1emu_1_1Spc700.html#aa4bf5d19e6fd2d7cde94f18829aa05f5",
+"classyaze_1_1gfx_1_1Bitmap.html#a0275436efca736b00dfa4c0ce43e8068",
+"classyaze_1_1gfx_1_1PerformanceDashboard.html#a809bb9c1d532a84e4460ba0184d54aaf",
+"classyaze_1_1gfx_1_1TileInfo.html#a1f25958d86007fecd8c79ff7ce5f8dd5",
+"classyaze_1_1gui_1_1Canvas.html#aa0a32f21adbcf767c7adbf1c39feb401",
+"classyaze_1_1gui_1_1ThemeManager.html#af1f03f4506065aaafe8efd13d5764000",
+"classyaze_1_1test_1_1MockRom.html",
+"classyaze_1_1test_1_1TestManager.html#a1dedc9ee9e25653bb04cf48ae8c647a1",
+"classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html#a49a3b444d1e2d50706a6e34ae75088e3",
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a525dab6ae325fef4623bdf7dfb23bdc2",
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#afba20203537da7f9e40522ed91a1259c",
+"classyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest.html#a45e0ae4040a1fc5a71c51479104b4093",
+"classyaze_1_1zelda3_1_1ObjectRenderer.html#afbce58547d7f88ae990f4d392c6b9d3a",
+"classyaze_1_1zelda3_1_1Overworld.html#aa6422613ca34b9a9b29a2feafc8b2033",
+"classyaze_1_1zelda3_1_1OverworldMap.html#a4e8f929457942ff26cfa9b6913041910",
+"classyaze_1_1zelda3_1_1Room.html#a5bc53acf14a313bab1bce257f6a261ce",
+"classyaze_1_1zelda3_1_1RoomLayout.html#afd05fd7a8057f15f6c8e5bf3202592e1",
+"classyaze_1_1zelda3_1_1Sprite.html#ae131592f5fa82ceff345a5d78aa889a0",
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#a518dedb944e7ab676e68508a32d08af0",
+"compression_8h.html#aeab3533c41cb40119b84e3cdeaf095af",
+"dungeon__object__editor_8h_source.html",
+"functions_eval.html",
+"group__rom__types.html#ga80d4b5acfdbaa2e0e0e2e9c68a8896ee",
+"icons_8h.html#a180d06be3c142067b9e4785ea3bee93d",
+"icons_8h.html#a36feaf6815eeb82bbd6165594dbb3a3f",
+"icons_8h.html#a51281f0a94f64a80f1678dcdf527c437",
+"icons_8h.html#a6f2bed2f1ec120bbc6e89034d6957be3",
+"icons_8h.html#a8f41ad368fbf8b1932a42a3a14e0ccd6",
+"icons_8h.html#aac7b2b0ac34769e4210eeb1cb7106f7a",
+"icons_8h.html#aca3038d81f333e67cc7cc377f6725f57",
+"icons_8h.html#ae524fbbba5e017078119ee7c03e14c9f",
+"input_8cc.html",
+"md_docs_2A1-testing-guide.html#autotoc_md124",
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md646",
+"md_docs_2analysis_2editor__performance__monitoring__setup.html#autotoc_md188",
+"md_docs_2gfx__optimization__recommendations.html#autotoc_md885",
+"message__data_8h.html#a6e03f0e92717101837c29f9cc3bf172f",
+"namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648a693c2aebaf2fb12fb4dcc15732891b18",
+"namespaceyaze_1_1emu.html#a256667ac958a87d6c20b5a3e032fd072",
+"namespaceyaze_1_1gfx_1_1lc__lz2.html#a1d384e849a94dbe68c85146ea6ab1d27",
+"namespaceyaze_1_1test.html#a09d506bccffd0952de360a353439505c",
+"namespaceyaze_1_1zelda3.html#a0b0fc81d66e7a7c520437b89110312ea",
+"namespaceyaze_1_1zelda3.html#a69e083feab320dadfb5ed2d22bacf6af",
+"namespaceyaze_1_1zelda3.html#af3ade2fc4ac8034f003478283057cea8",
+"overworld__entrance_8h.html#a0b16d6719abc9aad2fd71d18915ea5ea",
+"ppu__registers_8h.html#aaa27643e56c9546c09d625282f69c2b9",
+"room__entrance_8h.html#a65a4abc3c3128bb2a0bb0c534e1520e2",
+"snes__palette_8h.html#acb08518117f632fe321cc8191defe210",
+"structyaze_1_1app_1_1core_1_1AsarSymbol.html",
+"structyaze_1_1core_1_1YazeProject.html#a714a1b44baf53a5173a407ca71c79492",
+"structyaze_1_1editor_1_1MessageData.html#ae25062204179c0fc1e800dbe98ef60d0",
+"structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3226c3e3f187558defafc2854eaffd81",
+"structyaze_1_1emu_1_1CpuCallbacks.html#a15ff9a76d86b1e0faa561539b0aa6e5f",
+"structyaze_1_1emu_1_1MaskLogicSettings.html",
+"structyaze_1_1emu_1_1TilemapEntry.html#a828cbb0f34624b0c5e43bcf64972c957",
+"structyaze_1_1gfx_1_1AtlasStats.html#a8327b6456e099e4d8756208e4a6a0753",
+"structyaze_1_1gfx_1_1TileCache.html#ab1c9626eb921417fbe6b847fc6e8bd0b",
+"structyaze_1_1gui_1_1EnhancedTheme.html#a2c2ae2e0ab749795021e77d29c335385",
+"structyaze_1_1gui_1_1MenuItem.html#aab96814f0d34f522fab18b972c3d559d",
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#a5abf60965c4357527701949df4930fee",
+"structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#a725a7289b9591ccee8192c297c7b7faf",
+"structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a6a7bedcecc09d36ffc8f562d75566b73",
+"structzelda3__version__pointers.html#a9725e310223fc8750cab8871c9eb5a44",
+"tui_8h.html#ab3acc1b59e84abb18e2d438f7ed2ad33aa4092dc81b981432a504e30d43a2e3c6"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

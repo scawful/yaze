@@ -1,6 +1,5 @@
 var performance__monitor_8h =
 [
-    [ "yaze::core::PerformanceMonitor", "classyaze_1_1core_1_1PerformanceMonitor.html", "classyaze_1_1core_1_1PerformanceMonitor" ],
-    [ "yaze::core::PerformanceMonitor::OperationData", "structyaze_1_1core_1_1PerformanceMonitor_1_1OperationData.html", "structyaze_1_1core_1_1PerformanceMonitor_1_1OperationData" ],
-    [ "yaze::core::ScopedTimer", "classyaze_1_1core_1_1ScopedTimer.html", "classyaze_1_1core_1_1ScopedTimer" ]
+    [ "PerformanceMonitor", "performance__monitor_8h.html#ac076bebd5db3a5357c22141d4aecc8fe", null ],
+    [ "ScopedTimer", "performance__monitor_8h.html#a091f2e0a0166f13b7da0140ce905779b", null ]
 ];

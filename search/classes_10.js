@@ -2,7 +2,7 @@ var searchData=
 [
   ['sampleedit_0',['SampleEdit',['../structyaze_1_1zelda3_1_1music_1_1SampleEdit.html',1,'yaze::zelda3::music']]],
   ['savesettings_1',['SaveSettings',['../structyaze_1_1Rom_1_1SaveSettings.html',1,'yaze::Rom']]],
-  ['scopedtimer_2',['scopedtimer',['../classyaze_1_1gfx_1_1ScopedTimer.html',1,'yaze::gfx::ScopedTimer'],['../classyaze_1_1core_1_1ScopedTimer.html',1,'yaze::core::ScopedTimer']]],
+  ['scopedtimer_2',['ScopedTimer',['../classyaze_1_1gfx_1_1ScopedTimer.html',1,'yaze::gfx']]],
   ['scratchspaceslot_3',['ScratchSpaceSlot',['../structyaze_1_1editor_1_1OverworldEditor_1_1ScratchSpaceSlot.html',1,'yaze::editor::OverworldEditor']]],
   ['screendisplay_4',['ScreenDisplay',['../structyaze_1_1emu_1_1ScreenDisplay.html',1,'yaze::emu']]],
   ['screeneditor_5',['ScreenEditor',['../classyaze_1_1editor_1_1ScreenEditor.html',1,'yaze::editor']]],

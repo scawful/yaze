@@ -15,7 +15,7 @@ var searchData=
   ['absolutelongindexedx_12',['AbsoluteLongIndexedX',['../classyaze_1_1emu_1_1Cpu.html#a37fd03b30813b6a3155845b439884a7b',1,'yaze::emu::Cpu']]],
   ['active_13',['active',['../classyaze_1_1editor_1_1Editor.html#a452299050ad2b9d197ab90c9b56dd61a',1,'yaze::editor::Editor::active()'],['../classyaze_1_1core_1_1Controller.html#a3b8d4516aea70ac4d233d56a8b9ade4b',1,'yaze::core::Controller::active()']]],
   ['active_5frooms_14',['active_rooms',['../classyaze_1_1editor_1_1DungeonRoomSelector.html#a5f3635857fb8432cb88131630f1839fe',1,'yaze::editor::DungeonRoomSelector']]],
-  ['adc_15',['adc',['../classyaze_1_1emu_1_1Cpu.html#af7c346e1824ae4818c32df0819d68242',1,'yaze::emu::Cpu::Adc(uint32_t low, uint32_t high)'],['../classyaze_1_1emu_1_1Cpu.html#a968ddbdeca0cd9c89ff91153fe56223c',1,'yaze::emu::Cpu::ADC(uint16_t operand)'],['../classyaze_1_1emu_1_1Spc700.html#aae524a6445589770d82e7a62f229ed82',1,'yaze::emu::Spc700::ADC(uint16_t adr)']]],
+  ['adc_15',['adc',['../classyaze_1_1emu_1_1Cpu.html#a968ddbdeca0cd9c89ff91153fe56223c',1,'yaze::emu::Cpu::ADC()'],['../classyaze_1_1emu_1_1Spc700.html#aae524a6445589770d82e7a62f229ed82',1,'yaze::emu::Spc700::ADC()'],['../classyaze_1_1emu_1_1Cpu.html#af7c346e1824ae4818c32df0819d68242',1,'yaze::emu::Cpu::Adc()']]],
   ['adcm_16',['ADCM',['../classyaze_1_1emu_1_1Spc700.html#acd140d3cc399702bb8a1b1afe6db7d57',1,'yaze::emu::Spc700']]],
   ['add_17',['Add',['../classyaze_1_1editor_1_1HistoryManager.html#aa09be7516a692df2eb5af0cdf262dffd',1,'yaze::editor::HistoryManager']]],
   ['add_5froom_18',['add_room',['../classyaze_1_1editor_1_1DungeonEditor.html#a0867626a4677c96be31fb181fff86ccd',1,'yaze::editor::DungeonEditor']]],

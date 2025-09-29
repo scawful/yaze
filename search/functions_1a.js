@@ -29,7 +29,7 @@ var searchData=
   ['_7eperformancetestsuite_26',['~PerformanceTestSuite',['../classyaze_1_1test_1_1PerformanceTestSuite.html#adaa0f0549a935f442d26b23019417a01',1,'yaze::test::PerformanceTestSuite']]],
   ['_7eppuinterface_27',['~PpuInterface',['../classyaze_1_1emu_1_1PpuInterface.html#ad72156d555df5ac5842cd83193dce464',1,'yaze::emu::PpuInterface']]],
   ['_7eromdependenttestsuite_28',['~RomDependentTestSuite',['../classyaze_1_1test_1_1RomDependentTestSuite.html#aa1227cbe4a9995ec93bd36485afd942d',1,'yaze::test::RomDependentTestSuite']]],
-  ['_7escopedtimer_29',['~scopedtimer',['../classyaze_1_1gfx_1_1ScopedTimer.html#ad2af38c5cd5b3af49f82b93dcf07a12f',1,'yaze::gfx::ScopedTimer::~ScopedTimer()'],['../classyaze_1_1core_1_1ScopedTimer.html#a1278a7ceaf2c11afc64354eeaae05e39',1,'yaze::core::ScopedTimer::~ScopedTimer()']]],
+  ['_7escopedtimer_29',['~ScopedTimer',['../classyaze_1_1gfx_1_1ScopedTimer.html#ad2af38c5cd5b3af49f82b93dcf07a12f',1,'yaze::gfx::ScopedTimer']]],
   ['_7esnes_30',['~Snes',['../classyaze_1_1emu_1_1Snes.html#a447f7314e8df8a75cc4c39a90b4a0284',1,'yaze::emu::Snes']]],
   ['_7etesteditor_31',['~TestEditor',['../classyaze_1_1test_1_1TestEditor.html#a4235b48ee094a0ef8cced6778c7a12d7',1,'yaze::test::TestEditor']]],
   ['_7etestmanager_32',['~TestManager',['../classyaze_1_1test_1_1TestManager.html#aaadff49f02206c0a11b5543ea7c69e95',1,'yaze::test::TestManager']]],

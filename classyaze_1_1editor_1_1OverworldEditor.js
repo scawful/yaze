@@ -85,6 +85,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "DrawMapPropertiesPanel", "classyaze_1_1editor_1_1OverworldEditor.html#a5e47f9e490148da5b9686f0f0b7e9f8d", null ],
     [ "HandleMapInteraction", "classyaze_1_1editor_1_1OverworldEditor.html#a1067150beb62b40aa2c5abe46de5cbff", null ],
     [ "SetupOverworldCanvasContextMenu", "classyaze_1_1editor_1_1OverworldEditor.html#a47db8d1736a0d24480adc2b86a644a02", null ],
+    [ "ScrollBlocksetCanvasToCurrentTile", "classyaze_1_1editor_1_1OverworldEditor.html#acdb3cf1f6971383c1e73bc3390f6d3da", null ],
     [ "DrawScratchSpace", "classyaze_1_1editor_1_1OverworldEditor.html#a16ca27cc07fead3f30ba0789460bc402", null ],
     [ "SaveCurrentSelectionToScratch", "classyaze_1_1editor_1_1OverworldEditor.html#a6cef930fc01fed78c28ae32c3057b187", null ],
     [ "LoadScratchToSelection", "classyaze_1_1editor_1_1OverworldEditor.html#aadf139852c6c2d39375f3edefdad7c45", null ],

@@ -84,7 +84,7 @@ var searchData=
   ['iscursorpositionchanged_81',['IsCursorPositionChanged',['../classTextEditor.html#a0c7ddcca32e0a92332922647c63beb3c',1,'TextEditor']]],
   ['isdirty_82',['IsDirty',['../classyaze_1_1zelda3_1_1DungeonEditorSystem.html#afb42da7c0633b93f324cf42ac7257faf',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['isempty_83',['IsEmpty',['../structyaze_1_1core_1_1YazeProject.html#a86f2fbd85eed7fe05681326827507c75',1,'yaze::core::YazeProject']]],
-  ['isenabled_84',['isenabled',['../classyaze_1_1test_1_1TestSuite.html#aced53e3c8719be624da559bd7116a193',1,'yaze::test::TestSuite::IsEnabled()'],['../classyaze_1_1core_1_1PerformanceMonitor.html#a437a178eede8ba14739ce325d9ae038e',1,'yaze::core::PerformanceMonitor::IsEnabled()']]],
+  ['isenabled_84',['isenabled',['../classyaze_1_1test_1_1TestSuite.html#aced53e3c8719be624da559bd7116a193',1,'yaze::test::TestSuite::IsEnabled()'],['../classyaze_1_1gfx_1_1PerformanceProfiler.html#acd3939c958a489fce176f44acf79d7ea',1,'yaze::gfx::PerformanceProfiler::IsEnabled()']]],
   ['ishandlekeyboardinputsenabled_85',['IsHandleKeyboardInputsEnabled',['../classTextEditor.html#af25f13378ad752bde0541e9907bdb3e3',1,'TextEditor']]],
   ['ishandlemouseinputsenabled_86',['IsHandleMouseInputsEnabled',['../classTextEditor.html#a7336396ef0e745643c3ad8b2f52a573c',1,'TextEditor']]],
   ['isimguichildignored_87',['IsImGuiChildIgnored',['../classTextEditor.html#ab4fa274b9193b5acb09d44d7599dad36',1,'TextEditor']]],

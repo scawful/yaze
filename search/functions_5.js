@@ -31,8 +31,8 @@ var searchData=
   ['fliptile16vertical_28',['FlipTile16Vertical',['../classyaze_1_1editor_1_1Tile16Editor.html#af1eaa07503781612672898f8b7cb613d',1,'yaze::editor::Tile16Editor']]],
   ['focus_29',['Focus',['../structyaze_1_1gui_1_1TextBox.html#a814579de55d968ae10560ae4e8ea176a',1,'yaze::gui::TextBox']]],
   ['for_5feach_30',['for_each',['../structyaze_1_1gfx_1_1PaletteGroupMap.html#a40a66b477eec40339a17508a0e3c1160',1,'yaze::gfx::PaletteGroupMap']]],
-  ['formatmemory_31',['FormatMemory',['../classyaze_1_1gfx_1_1PerformanceDashboard.html#a7b894b7d6656c5d1264a587ab02a1421',1,'yaze::gfx::PerformanceDashboard']]],
-  ['formattime_32',['FormatTime',['../classyaze_1_1gfx_1_1PerformanceDashboard.html#a4bb9951bfa701c9b8bb9c55d6ffe5111',1,'yaze::gfx::PerformanceDashboard']]],
+  ['formatmemory_31',['FormatMemory',['../classyaze_1_1gfx_1_1PerformanceDashboard.html#a81e393c04b9771f80d09d79d2fcdc083',1,'yaze::gfx::PerformanceDashboard']]],
+  ['formattime_32',['FormatTime',['../classyaze_1_1gfx_1_1PerformanceDashboard.html#a5d0b52ad4d946146259683e903947e22',1,'yaze::gfx::PerformanceDashboard']]],
   ['freesurface_33',['FreeSurface',['../classyaze_1_1gfx_1_1Arena.html#aa0eb6d909ed3d9ce85a61488bb74a7c0',1,'yaze::gfx::Arena']]],
   ['freetexture_34',['FreeTexture',['../classyaze_1_1gfx_1_1Arena.html#ac2f43b16bb84a6c15db4ff6ecae6a57a',1,'yaze::gfx::Arena']]]
 ];

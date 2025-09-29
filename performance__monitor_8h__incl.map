@@ -1,11 +1,11 @@
 <map id="src/app/core/performance_monitor.h" name="src/app/core/performance_monitor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="84,5,254,46"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,66,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,49,70,88,68,83,134,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="90,94,144,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,48,136,82,131,79,154,45"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="167,94,277,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="184,45,208,80,203,83,180,48"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="302,94,359,120"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="210,44,293,84,291,89,208,49"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="32,5,202,46"/>
+<area shape="rect" id="Node000002" href="$performance__profiler_8h.html" title=" " alt="" coords="47,94,187,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,47,120,78,114,78,114,47"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,183,66,208"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="99,137,61,173,57,170,95,133"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="90,183,144,208"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="120,135,120,167,114,167,114,135"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="167,183,277,208"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="144,133,195,171,192,175,141,137"/>
 </map>
