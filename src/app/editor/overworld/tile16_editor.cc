@@ -707,19 +707,30 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
             ImVec2(tile8_source_canvas_.width(), tile8_source_canvas_.height()),
             true, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
 
-      // Enable dragging for scrolling behavior  
-      tile8_source_canvas_.set_draggable(true);
+      // CRITICAL FIX: Don't use draggable mode as it conflicts with tile selection
+      tile8_source_canvas_.set_draggable(false);
       tile8_source_canvas_.DrawBackground();
       tile8_source_canvas_.DrawContextMenu();
 
       // Tile8 selection with improved feedback
+      bool tile8_selected = false;
       tile8_source_canvas_.DrawTileSelector(32.0F);
+      
+      // Check for clicks properly
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+        tile8_selected = true;
+      }
 
-      if (tile8_source_canvas_.WasClicked() ||
-          tile8_source_canvas_.WasDoubleClicked()) {
-        auto tile_pos = tile8_source_canvas_.GetLastClickPosition();
-        int tile_x = static_cast<int>(tile_pos.x / 32);
-        int tile_y = static_cast<int>(tile_pos.y / 32);
+      if (tile8_selected) {
+        // Get mouse position relative to canvas more accurately
+        const ImGuiIO& io = ImGui::GetIO();
+        ImVec2 canvas_pos = tile8_source_canvas_.zero_point();
+        ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
+        
+        // Account for the 4x scale when calculating tile position
+        int tile_x = static_cast<int>(mouse_pos.x / (8 * 4)); // 8 pixel tile * 4x scale = 32 pixels per tile
+        int tile_y = static_cast<int>(mouse_pos.y / (8 * 4));
+        
         // Calculate tiles per row based on bitmap width (should be 16 for 128px wide bitmap)
         int tiles_per_row = current_gfx_bmp_.width() / 8;
         int new_tile8 = tile_x + (tile_y * tiles_per_row);
@@ -791,22 +802,28 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           tile_to_paint = &flipped_tile;
         }
 
-        // Paint with 8x8 tile size at 4x scale (32 display pixels per 8x8 tile)
-        // Always use the flipped tile for consistency between preview and actual drawing
-        if (tile16_edit_canvas_.DrawTilePainter(*tile_to_paint, 8, 4.0F)) {
-          ImVec2 click_pos = tile16_edit_canvas_.drawn_tile_position();
+        // CRITICAL FIX: Handle tile painting with simple click instead of click+drag
+        // Draw the preview first
+        tile16_edit_canvas_.DrawTilePainter(*tile_to_paint, 8, 4.0F);
+        
+        // Check for simple click to paint tile8 to tile16
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+          // Get mouse position relative to tile16 canvas
+          const ImGuiIO& io = ImGui::GetIO();
+          ImVec2 canvas_pos = tile16_edit_canvas_.zero_point();
+          ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
           
           // Convert canvas coordinates to tile16 coordinates (0-15 range)
           // The canvas is 64x64 display pixels showing a 16x16 tile at 4x scale
-          int tile_x = static_cast<int>(click_pos.x / 4.0F);
-          int tile_y = static_cast<int>(click_pos.y / 4.0F);
+          int tile_x = static_cast<int>(mouse_pos.x / 4.0F);
+          int tile_y = static_cast<int>(mouse_pos.y / 4.0F);
           
           // Clamp to valid range
           tile_x = std::max(0, std::min(15, tile_x));
           tile_y = std::max(0, std::min(15, tile_y));
           
-          util::logf("Canvas click: (%.2f, %.2f) -> Tile16: (%d, %d)", 
-                     click_pos.x, click_pos.y, tile_x, tile_y);
+          util::logf("Tile16 canvas click: (%.2f, %.2f) -> Tile16: (%d, %d)", 
+                     mouse_pos.x, mouse_pos.y, tile_x, tile_y);
 
           // Pass the flipped tile if we created one, otherwise pass nullptr to use original with flips
           const gfx::Bitmap* tile_to_draw =
