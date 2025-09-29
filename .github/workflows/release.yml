@@ -14,7 +14,7 @@ on:
         type: string
 
 concurrency:
-  group: release-${{ github.ref || github.event.inputs.tag || github.run_id }}
+  group: release-${{ github.event_name }}-${{ github.ref_name || github.event.inputs.tag || github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -121,10 +121,16 @@ jobs:
             cmake_generator: "Visual Studio 17 2022"
             cmake_generator_platform: ARM64
             artifact_name: "yaze-windows-arm64"
-          - name: "macOS Universal (x86_64+arm64)"
+          - name: "macOS arm64"
             os: macos-14
             vcpkg_triplet: arm64-osx
-            artifact_name: "yaze-macos"
+            mac_arch: arm64
+            artifact_name: "yaze-macos-arm64"
+          - name: "macOS x86_64"
+            os: macos-14
+            vcpkg_triplet: x64-osx
+            mac_arch: x86_64
+            artifact_name: "yaze-macos-x86_64"
           - name: "Linux x64"
             os: ubuntu-22.04
             artifact_name: "yaze-linux-x64"
@@ -171,18 +177,18 @@ jobs:
             libx11-dev libxrandr-dev libxcursor-dev \
             libxinerama-dev libxi-dev
 
-      - name: Install macOS dependencies
+      - name: Install macOS build tools
         if: runner.os == 'macOS'
         run: |
           brew update
-          brew install pkg-config libpng boost abseil ninja gtk+3
+          brew install pkg-config ninja cmake
 
+      # ---------- vcpkg (Windows & macOS) ----------
       - name: Set up vcpkg (Windows)
-        id: vcpkg_setup
+        id: vcpkg_win
         if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
         with:
-          # vcpkg registry baseline (full 40-char commit SHA)
           vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'
           runVcpkgInstall: true
           vcpkgJsonGlob: '**/vcpkg.json'
@@ -198,17 +204,35 @@ jobs:
           VCPKG_DEFAULT_HOST_TRIPLET: x64-windows
           VCPKG_FEATURE_FLAGS: versions
 
-      - name: Mark vcpkg availability
-        if: runner.os == 'Windows' && steps.vcpkg_setup.outcome == 'success'
+      - name: Mark vcpkg availability (Windows)
+        if: runner.os == 'Windows' && steps.vcpkg_win.outcome == 'success'
         shell: pwsh
         run: echo "VCPKG_AVAILABLE=true" >> $env:GITHUB_ENV
 
       - name: Mark minimal build (Windows fallback)
-        if: runner.os == 'Windows' && steps.vcpkg_setup.outcome != 'success'
+        if: runner.os == 'Windows' && steps.vcpkg_win.outcome != 'success'
         shell: pwsh
         run: |
           echo "VCPKG_AVAILABLE=false" >> $env:GITHUB_ENV
           echo "YAZE_MINIMAL_BUILD=ON" >> $env:GITHUB_ENV
+
+      - name: Set up vcpkg (macOS)
+        if: runner.os == 'macOS'
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'
+          runVcpkgInstall: true
+          vcpkgJsonGlob: '**/vcpkg.json'
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+        env:
+          VCPKG_FORCE_SYSTEM_BINARIES: 1
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+          VCPKG_DISABLE_METRICS: 1
+          VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+          VCPKG_USE_SYSTEM_BINARIES: 1
+          VCPKG_DOWNLOADS: ${{ github.workspace }}/vcpkg_downloads
+          VCPKG_FEATURE_FLAGS: versions
 
       # ---------- Configure ----------
       - name: Configure CMake (Linux)
@@ -230,7 +254,7 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
-      - name: Configure CMake (macOS universal2)
+      - name: Configure CMake (macOS per-arch)
         if: runner.os == 'macOS'
         run: |
           rm -rf build && mkdir -p build
@@ -246,8 +270,9 @@ jobs:
             -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
             -DYAZE_INSTALL_LIB=OFF \
             -DYAZE_MINIMAL_BUILD=OFF \
-            -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }} \
+            -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
 
       - name: Configure CMake (Windows)
         if: runner.os == 'Windows'
@@ -307,17 +332,8 @@ jobs:
           fi
           ls -lh "$EXE"
 
-      - name: Verify universal binary (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          APP="build/bin/yaze.app/Contents/MacOS/yaze"
-          [[ -f "$APP" ]] || { echo "Missing $APP"; exit 1; }
-          lipo -info "$APP"
-          lipo -archs "$APP" | grep -q "x86_64" || { echo "x86_64 slice missing"; exit 1; }
-          lipo -archs "$APP" | grep -q "arm64"  || { echo "arm64 slice missing"; exit 1; }
-
-      # ---------- Package ----------
-      - name: Package
+      # ---------- Package / Stage ----------
+      - name: Package / Stage
         shell: bash
         run: |
           set -euo pipefail
@@ -338,10 +354,12 @@ jobs:
               fi
               ;;
             macOS)
-              ver="${{ needs['validate-and-prepare'].outputs.tag_name }}"
-              ver="${ver#v}"
-              chmod +x ./scripts/create-macos-bundle.sh
-              ./scripts/create-macos-bundle.sh "${ver}" "${ART}"
+              # stage per-arch outputs for universal merge
+              mkdir -p slice
+              cp -R build/bin/yaze.app slice/
+              [[ -d assets ]] && cp -R assets slice/ || true
+              [[ -f LICENSE ]] && cp LICENSE slice/ || true
+              [[ -f README.md ]] && cp README.md slice/ || true
               ;;
             Linux)
               mkdir -p package
@@ -353,8 +371,7 @@ jobs:
               tar -czf "${ART}.tar.gz" -C package .
               ;;
           esac
-          echo "Package artifacts:"
-          ls -lh ${ART}.zip ${ART}.tar.gz 2>/dev/null || true
+          echo "Staged/packaged for ${ART}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -363,12 +380,68 @@ jobs:
           path: |
             ${{ matrix.artifact_name }}.zip
             ${{ matrix.artifact_name }}.tar.gz
+            slice/**
           if-no-files-found: ignore
+          retention-days: 7
+
+  macos-universal-merge:
+    name: Merge macOS slices -> universal2
+    needs: build-release
+    runs-on: macos-14
+    steps:
+      - name: Download macOS arm64 slice
+        uses: actions/download-artifact@v4
+        with:
+          name: yaze-macos-arm64
+          path: mac-arm64
+
+      - name: Download macOS x86_64 slice
+        uses: actions/download-artifact@v4
+        with:
+          name: yaze-macos-x86_64
+          path: mac-x86_64
+
+      - name: Merge with lipo
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARM_BIN="mac-arm64/slice/yaze.app/Contents/MacOS/yaze"
+          X64_BIN="mac-x86_64/slice/yaze.app/Contents/MacOS/yaze"
+          [[ -f "$ARM_BIN" && -f "$X64_BIN" ]]
+
+          # Copy arm64 bundle as base
+          cp -R "mac-arm64/slice/yaze.app" "yaze.app"
+
+          # Merge executable
+          lipo -create "$ARM_BIN" "$X64_BIN" -output "yaze.app/Contents/MacOS/yaze"
+          lipo -info "yaze.app/Contents/MacOS/yaze"
+
+          # Optionally merge any arch-specific helper binaries similarly if present
+
+      - name: Repackage universal app
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p package
+          cp -R yaze.app package/
+          # Prefer arm64 assets/LICENSE/README if present
+          [[ -d mac-arm64/slice/assets ]] && cp -R mac-arm64/slice/assets package/ || true
+          [[ -f mac-arm64/slice/LICENSE ]] && cp mac-arm64/slice/LICENSE package/ || true
+          [[ -f mac-arm64/slice/README.md ]] && cp mac-arm64/slice/README.md package/ || true
+
+          ditto -c -k --sequesterRsrc --keepParent package "yaze-macos-universal.zip"
+          echo "Created yaze-macos-universal.zip"
+
+      - name: Upload universal macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: yaze-macos
+          path: yaze-macos-universal.zip
           retention-days: 7
 
   create-release:
     name: Create GitHub Release
-    needs: [validate-and-prepare, build-release]
+    needs: [validate-and-prepare, build-release, macos-universal-merge]
     runs-on: ubuntu-latest
     steps:
       - name: Download all build artifacts
@@ -380,18 +453,19 @@ jobs:
         shell: bash
         run: |
           echo "Artifacts downloaded:"
-          find dist -maxdepth 2 -type f -print -exec ls -lh {} \;
+          find dist -maxdepth 3 -type f -print -exec ls -lh {} \;
 
       - name: Create/Update Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs['validate-and-prepare'].outputs.tag_name }}
-          name: yaze ${{ needs['validate-and-prepare'].outputs.tag_name }}
-          body: ${{ needs['validate-and-prepare'].outputs.release_notes }}
+          tag_name: ${{ needs.validate-and-prepare.outputs.tag_name }}
+          name: yaze ${{ needs.validate-and-prepare.outputs.tag_name }}
+          body: ${{ needs.validate-and-prepare.outputs.release_notes }}
           draft: false
-          prerelease: ${{ contains(needs['validate-and-prepare'].outputs.tag_name, 'beta') || contains(needs['validate-and-prepare'].outputs.tag_name, 'alpha') || contains(needs['validate-and-prepare'].outputs.tag_name, 'rc') }}
+          prerelease: ${{ contains(needs.validate-and-prepare.outputs.tag_name, 'beta') || contains(needs.validate-and-prepare.outputs.tag_name, 'alpha') || contains(needs.validate-and-prepare.outputs.tag_name, 'rc') }}
           files: |
             dist/**/*
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -402,6 +476,6 @@ jobs:
     steps:
       - name: Announce release
         run: |
-          echo "🎉 yaze ${{ needs['validate-and-prepare'].outputs.tag_name }} has been released!"
+          echo "🎉 yaze ${{ needs.validate-and-prepare.outputs.tag_name }} has been released!"
           echo "📦 Packages are now available for download"
-          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs['validate-and-prepare'].outputs.tag_name }}"
+          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate-and-prepare.outputs.tag_name }}"
