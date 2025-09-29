@@ -4,6 +4,7 @@
 #include <cmath>
 #include <filesystem>
 #include <future>
+#include <set>
 #include <unordered_map>
 #include <vector>
 
@@ -925,17 +926,11 @@ void OverworldEditor::CheckForOverworldEdits() {
       // Number of tiles per local map (since each tile is 16x16)
       constexpr int tiles_per_local_map = local_map_size / kTile16Size;
 
-      util::logf("CheckForOverworldEdits: About to process %zu selected tiles", ow_map_canvas_.selected_tiles().size());
+      util::logf("CheckForOverworldEdits: About to fill rectangle with current_tile16_=%d", current_tile16_);
 
-      for (int y = start_y, i = 0; y <= end_y; y += kTile16Size) {
-        for (int x = start_x; x <= end_x; x += kTile16Size, ++i) {
-          // Bounds check to prevent crashes
-          if (i >= static_cast<int>(ow_map_canvas_.selected_tiles().size())) {
-            util::logf("ERROR: Rectangle selection index %d out of bounds (size: %zu)", 
-                       i, ow_map_canvas_.selected_tiles().size());
-            break;
-          }
-          
+      // Apply the current selected tile to each position in the rectangle
+      for (int y = start_y; y <= end_y; y += kTile16Size) {
+        for (int x = start_x; x <= end_x; x += kTile16Size) {
           // Determine which local map (512x512) the tile is in
           int local_map_x = x / local_map_size;
           int local_map_y = y / local_map_size;
@@ -947,17 +942,32 @@ void OverworldEditor::CheckForOverworldEdits() {
           // Calculate the index within the overall map structure
           int index_x = local_map_x * tiles_per_local_map + tile16_x;
           int index_y = local_map_y * tiles_per_local_map + tile16_y;
-          overworld_.set_current_world(current_world_);
-          overworld_.set_current_map(current_map_);
-          int tile16_id = overworld_.GetTileFromPosition(
-              ow_map_canvas_.selected_tiles()[i]);
-          selected_world[index_x][index_y] = tile16_id;
+          
+          // Bounds check for the selected world array
+          if (index_x >= 0 && index_x < 0x200 && index_y >= 0 && index_y < 0x200) {
+            // CRITICAL FIX: Set the tile to the currently selected tile16, not read from canvas
+            selected_world[index_x][index_y] = current_tile16_;
+            
+            // CRITICAL FIX: Also update the bitmap directly like single tile drawing
+            ImVec2 tile_position(x, y);
+            auto tile_data = gfx::GetTilemapData(tile16_blockset_, current_tile16_);
+            if (!tile_data.empty()) {
+              RenderUpdatedMapBitmap(tile_position, tile_data);
+              util::logf("CheckForOverworldEdits: Updated bitmap at position (%d,%d) with tile16_id=%d", 
+                         x, y, current_tile16_);
+            } else {
+              util::logf("ERROR: Failed to get tile data for tile16_id=%d", current_tile16_);
+            }
+          } else {
+            util::logf("ERROR: Rectangle selection position [%d,%d] out of bounds", index_x, index_y);
+          }
         }
       }
 
-      util::logf("CheckForOverworldEdits: About to call RefreshOverworldMap");
-      RefreshOverworldMap();
-      util::logf("CheckForOverworldEdits: RefreshOverworldMap completed");
+      // Clear the rectangle selection after applying
+      ow_map_canvas_.mutable_selected_tiles()->clear();
+      ow_map_canvas_.mutable_points()->clear();
+      util::logf("CheckForOverworldEdits: Rectangle selection applied and cleared");
     }
   }
 }
@@ -1991,13 +2001,141 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
     }
   }
   
-  // CRITICAL FIX: Disable large map sibling refresh to prevent infinite recursion
-  // The large map sibling refresh logic was causing infinite recursion when
-  // editing map 00 (and other large maps), leading to segmentation faults.
-  // For now, we'll handle large maps individually to prevent crashes.
-  // TODO: Implement safer large map coordination without recursion
-  if (map->is_large_map()) {
-    util::logf("RefreshChildMapOnDemand: Large map %d detected, skipping sibling refresh to prevent recursion", map_index);
+  // Handle multi-area maps (large, wide, tall) with safe coordination
+  RefreshMultiAreaMapsSafely(map_index, map);
+}
+
+/**
+ * @brief Safely refresh multi-area maps without recursion
+ * 
+ * This function handles the coordination of large, wide, and tall area maps
+ * by using a non-recursive approach with explicit map list processing.
+ * It respects the ZScream area size logic and prevents infinite recursion.
+ */
+void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index, zelda3::OverworldMap* map) {
+  using zelda3::AreaSizeEnum;
+  
+  // Skip if this is already a processed sibling to avoid double-processing
+  static std::set<int> currently_processing;
+  if (currently_processing.count(map_index)) {
+    return;
+  }
+  
+  auto area_size = map->area_size();
+  if (area_size == AreaSizeEnum::SmallArea) {
+    return; // No siblings to coordinate
+  }
+  
+  util::logf("RefreshMultiAreaMapsSafely: Processing %s area map %d (parent: %d)",
+             (area_size == AreaSizeEnum::LargeArea) ? "large" :
+             (area_size == AreaSizeEnum::WideArea) ? "wide" : "tall",
+             map_index, map->parent());
+  
+  // Determine all maps that are part of this multi-area structure
+  std::vector<int> sibling_maps;
+  int parent_id = map->parent();
+  
+  // Use the same logic as ZScream for area coordination
+  switch (area_size) {
+    case AreaSizeEnum::LargeArea: {
+      // Large Area: 2x2 grid (4 maps total)
+      // Parent is top-left (quadrant 0), siblings are:
+      // +1 (top-right, quadrant 1), +8 (bottom-left, quadrant 2), +9 (bottom-right, quadrant 3)
+      sibling_maps = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
+      util::logf("RefreshMultiAreaMapsSafely: Large area siblings: %d, %d, %d, %d", 
+                 parent_id, parent_id + 1, parent_id + 8, parent_id + 9);
+      break;
+    }
+    
+    case AreaSizeEnum::WideArea: {
+      // Wide Area: 2x1 grid (2 maps total, horizontally adjacent)
+      // Parent is left, sibling is +1 (right)
+      sibling_maps = {parent_id, parent_id + 1};
+      util::logf("RefreshMultiAreaMapsSafely: Wide area siblings: %d, %d", 
+                 parent_id, parent_id + 1);
+      break;
+    }
+    
+    case AreaSizeEnum::TallArea: {
+      // Tall Area: 1x2 grid (2 maps total, vertically adjacent)
+      // Parent is top, sibling is +8 (bottom)
+      sibling_maps = {parent_id, parent_id + 8};
+      util::logf("RefreshMultiAreaMapsSafely: Tall area siblings: %d, %d", 
+                 parent_id, parent_id + 8);
+      break;
+    }
+    
+    default:
+      util::logf("RefreshMultiAreaMapsSafely: Unknown area size %d for map %d", 
+                 static_cast<int>(area_size), map_index);
+      return;
+  }
+  
+  // Mark all siblings as being processed to prevent recursion
+  for (int sibling : sibling_maps) {
+    currently_processing.insert(sibling);
+  }
+  
+  // Only refresh siblings that are visible/current and need updating
+  for (int sibling : sibling_maps) {
+    if (sibling == map_index) {
+      continue; // Skip self (already processed above)
+    }
+    
+    // Bounds check
+    if (sibling < 0 || sibling >= zelda3::kNumOverworldMaps) {
+      continue;
+    }
+    
+    // Only refresh if it's visible or current
+    bool is_current_map = (sibling == current_map_);
+    bool is_current_world = (sibling / 0x40 == current_world_);
+    bool needs_refresh = maps_bmp_[sibling].modified();
+    
+    if ((is_current_map || is_current_world) && needs_refresh) {
+      util::logf("RefreshMultiAreaMapsSafely: Refreshing %s area sibling map %d (parent: %d)", 
+                 (area_size == AreaSizeEnum::LargeArea) ? "large" :
+                 (area_size == AreaSizeEnum::WideArea) ? "wide" : "tall",
+                 sibling, parent_id);
+      
+      // Direct refresh without calling RefreshChildMapOnDemand to avoid recursion
+      auto* sibling_map = overworld_.mutable_overworld_map(sibling);
+      if (sibling_map && maps_bmp_[sibling].modified()) {
+        sibling_map->LoadAreaGraphics();
+        
+        auto status = sibling_map->BuildTileset();
+        if (status.ok()) {
+          status = sibling_map->BuildTiles16Gfx(*overworld_.mutable_tiles16(), overworld_.tiles16().size());
+          if (status.ok()) {
+            status = sibling_map->BuildBitmap(overworld_.GetMapTiles(current_world_));
+            if (status.ok()) {
+              maps_bmp_[sibling].set_data(sibling_map->bitmap_data());
+              maps_bmp_[sibling].set_modified(false);
+              
+              // Update texture if it exists
+              if (maps_bmp_[sibling].texture()) {
+                core::Renderer::Get().UpdateBitmap(&maps_bmp_[sibling]);
+              } else {
+                EnsureMapTexture(sibling);
+              }
+            }
+          }
+        }
+        
+        if (!status.ok()) {
+          util::logf("RefreshMultiAreaMapsSafely: Failed to refresh sibling map %d: %s", 
+                     sibling, status.message().data());
+        }
+      }
+    } else if (!is_current_map && !is_current_world) {
+      // Mark non-visible siblings for deferred refresh
+      maps_bmp_[sibling].set_modified(true);
+    }
+  }
+  
+  // Clear processing set after completion
+  for (int sibling : sibling_maps) {
+    currently_processing.erase(sibling);
   }
 }
 
