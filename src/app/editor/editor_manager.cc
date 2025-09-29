@@ -28,10 +28,12 @@
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld_map.h"
 #include "app/test/test_manager.h"
+#ifdef YAZE_ENABLE_TESTING
 #include "app/test/integrated_test_suite.h"
 #include "app/test/rom_dependent_test_suite.h"
 #include "app/test/e2e_test_suite.h"
 #include "app/test/zscustomoverworld_test_suite.h"
+#endif
 #ifdef YAZE_ENABLE_GTEST
 #include "app/test/unit_test_suite.h"
 #endif
@@ -156,6 +158,7 @@ void EditorManager::LoadWorkspacePreset(const std::string &name) {
 void EditorManager::InitializeTestSuites() {
   auto& test_manager = test::TestManager::Get();
   
+#ifdef YAZE_ENABLE_TESTING
   // Register comprehensive test suites
   test_manager.RegisterTestSuite(std::make_unique<test::IntegratedTestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::PerformanceTestSuite>());
@@ -165,6 +168,7 @@ void EditorManager::InitializeTestSuites() {
   // Register new E2E and ZSCustomOverworld test suites
   test_manager.RegisterTestSuite(std::make_unique<test::E2ETestSuite>());
   test_manager.RegisterTestSuite(std::make_unique<test::ZSCustomOverworldTestSuite>());
+#endif
   
   // Register Google Test suite if available
 #ifdef YAZE_ENABLE_GTEST
