@@ -1165,7 +1165,7 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
 
   // Check if ZSCustomOverworld v3 is present
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_v3_area_sizes = (asm_version >= 3 && asm_version != 0xFF);
+  bool use_v3_area_sizes = (asm_version >= 3);
 
   // Get area size for v3+ ROMs, otherwise use legacy logic
   if (use_v3_area_sizes) {
@@ -2357,7 +2357,7 @@ void OverworldEditor::RefreshMapProperties() {
   
   // Check if ZSCustomOverworld v3 is present
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  bool use_v3_area_sizes = (asm_version >= 3 && asm_version != 0xFF);
+  bool use_v3_area_sizes = (asm_version >= 3);
 
   if (use_v3_area_sizes) {
     // Use v3 area size system
