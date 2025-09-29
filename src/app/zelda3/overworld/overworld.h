@@ -241,6 +241,7 @@ class Overworld {
   auto exits() const { return &all_exits_; }
   auto mutable_exits() { return &all_exits_; }
   std::vector<gfx::Tile16> tiles16() const { return tiles16_; }
+  auto tiles32_unique() const { return tiles32_unique_; }
   auto mutable_tiles16() { return &tiles16_; }
   auto sprites(int state) const { return all_sprites_[state]; }
   auto mutable_sprites(int state) { return &all_sprites_[state]; }
@@ -263,6 +264,9 @@ class Overworld {
     return overworld_maps_[current_map_].current_tile16_blockset();
   }
   auto is_loaded() const { return is_loaded_; }
+  auto expanded_tile16() const { return expanded_tile16_; }
+  auto expanded_tile32() const { return expanded_tile32_; }
+  auto expanded_entrances() const { return expanded_entrances_; }
   void set_current_map(int i) { current_map_ = i; }
   void set_current_world(int world) { current_world_ = world; }
   auto map_tiles() const { return map_tiles_; }
@@ -271,6 +275,7 @@ class Overworld {
   auto mutable_all_items() { return &all_items_; }
   auto all_tiles_types() const { return all_tiles_types_; }
   auto mutable_all_tiles_types() { return &all_tiles_types_; }
+  auto all_sprites() const { return all_sprites_; }
 
  private:
   enum Dimension {
