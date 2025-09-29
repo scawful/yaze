@@ -184,6 +184,13 @@ jobs:
           brew install pkg-config ninja cmake
 
       # ---------- vcpkg (Windows & macOS) ----------
+      - name: Prepare vcpkg download cache (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $dl = Join-Path $env:GITHUB_WORKSPACE 'vcpkg_downloads'
+          New-Item -ItemType Directory -Force -Path $dl | Out-Null
+
       - name: Set up vcpkg (Windows)
         id: vcpkg_win
         if: runner.os == 'Windows'
@@ -215,6 +222,10 @@ jobs:
         run: |
           echo "VCPKG_AVAILABLE=false" >> $env:GITHUB_ENV
           echo "YAZE_MINIMAL_BUILD=ON" >> $env:GITHUB_ENV
+
+      - name: Prepare vcpkg download cache (macOS)
+        if: runner.os == 'macOS'
+        run: mkdir -p "${{ github.workspace }}/vcpkg_downloads"
 
       - name: Set up vcpkg (macOS)
         if: runner.os == 'macOS'
