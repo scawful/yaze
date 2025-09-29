@@ -79,19 +79,15 @@ jobs:
             if python3 scripts/extract_changelog.py "${VERSION}" > release_notes.md; then
               echo "Changelog extracted for ${VERSION}"
             else
-              cat > release_notes.md <<'EOF'
-            # yaze Release Notes
-
-            See docs/C1-changelog.md for full history.
-            EOF
-                        fi
-                      else
-                        cat > release_notes.md <<'EOF'
-            # yaze Release Notes
-
-            See docs/C1-changelog.md for full history.
-            EOF
-                      fi
+              echo "# yaze Release Notes" > release_notes.md
+              echo "" >> release_notes.md
+              echo "See docs/C1-changelog.md for full history." >> release_notes.md
+              fi
+            else
+              echo "# yaze Release Notes" > release_notes.md
+              echo "" >> release_notes.md
+              echo "See docs/C1-changelog.md for full history." >> release_notes.md
+            fi
                       echo "---- RELEASE NOTES START ----"
                       cat release_notes.md
                       echo "---- RELEASE NOTES END ----"
