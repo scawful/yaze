@@ -5,7 +5,7 @@ A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM 
 [![Build Status](https://github.com/scawful/yaze/workflows/CI/badge.svg)](https://github.com/scawful/yaze/actions)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-## Version 0.3.1 - Release
+## Version 0.3.2 - Release
 
 #### Asar 65816 Assembler Integration
 - **Cross-platform ROM patching** with assembly code support

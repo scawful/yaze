@@ -26,14 +26,14 @@ if(WIN32)
     set(THREADS_PREFER_PTHREAD_FLAG OFF)
 endif()
 
-project(yaze VERSION 0.3.1
+project(yaze VERSION 0.3.2
              DESCRIPTION "Yet Another Zelda3 Editor"
              LANGUAGES CXX C)
 
 # Set project metadata
 set(YAZE_VERSION_MAJOR 0)
 set(YAZE_VERSION_MINOR 3)
-set(YAZE_VERSION_PATCH 1)
+set(YAZE_VERSION_PATCH 2)
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/src/yaze_config.h.in
