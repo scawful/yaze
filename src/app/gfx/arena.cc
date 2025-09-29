@@ -138,6 +138,17 @@ void Arena::UpdateTexture(SDL_Texture* texture, SDL_Surface* surface) {
     return;
   }
 
+  // Additional safety checks to prevent crashes
+  if (surface->w <= 0 || surface->h <= 0) {
+    SDL_Log("Invalid surface dimensions: %dx%d", surface->w, surface->h);
+    return;
+  }
+
+  if (!surface->format) {
+    SDL_Log("Surface format is nullptr");
+    return;
+  }
+
   // Convert surface to RGBA8888 format for texture compatibility
   auto converted_surface =
       std::unique_ptr<SDL_Surface, core::SDL_Surface_Deleter>(
@@ -149,6 +160,30 @@ void Arena::UpdateTexture(SDL_Texture* texture, SDL_Surface* surface) {
     return;
   }
 
+  // Additional validation for converted surface
+  if (!converted_surface->pixels) {
+    SDL_Log("Converted surface pixels are nullptr");
+    return;
+  }
+
+  if (converted_surface->w <= 0 || converted_surface->h <= 0) {
+    SDL_Log("Invalid converted surface dimensions: %dx%d", converted_surface->w, converted_surface->h);
+    return;
+  }
+
+  // Validate texture before locking
+  int texture_w, texture_h;
+  if (SDL_QueryTexture(texture, nullptr, nullptr, &texture_w, &texture_h) != 0) {
+    SDL_Log("SDL_QueryTexture failed: %s", SDL_GetError());
+    return;
+  }
+
+  if (texture_w != converted_surface->w || texture_h != converted_surface->h) {
+    SDL_Log("Texture/surface size mismatch: texture=%dx%d, surface=%dx%d", 
+            texture_w, texture_h, converted_surface->w, converted_surface->h);
+    return;
+  }
+
   // Lock texture for direct pixel access
   void* pixels;
   int pitch;
@@ -157,9 +192,25 @@ void Arena::UpdateTexture(SDL_Texture* texture, SDL_Surface* surface) {
     return;
   }
 
-  // Copy pixel data efficiently
-  memcpy(pixels, converted_surface->pixels,
-         converted_surface->h * converted_surface->pitch);
+  // Additional safety check for locked pixels
+  if (!pixels) {
+    SDL_Log("Locked texture pixels are nullptr");
+    SDL_UnlockTexture(texture);
+    return;
+  }
+
+  // Validate copy size to prevent buffer overrun
+  size_t copy_size = converted_surface->h * converted_surface->pitch;
+  size_t max_texture_size = texture_h * pitch;
+  
+  if (copy_size > max_texture_size) {
+    SDL_Log("Copy size (%zu) exceeds texture capacity (%zu)", copy_size, max_texture_size);
+    SDL_UnlockTexture(texture);
+    return;
+  }
+
+  // Copy pixel data efficiently with bounds checking
+  memcpy(pixels, converted_surface->pixels, copy_size);
 
   SDL_UnlockTexture(texture);
 }
@@ -174,6 +225,11 @@ SDL_Surface* Arena::AllocateSurface(int width, int height, int depth,
         std::get<2>(info) == depth && std::get<3>(info) == format) {
       SDL_Surface* surface = *it;
       surface_pool_.available_surfaces_.erase(it);
+      
+      // Clear the surface pixels before reusing for safety
+      if (surface && surface->pixels) {
+        memset(surface->pixels, 0, surface->h * surface->pitch);
+      }
       
       // Store in hash map with automatic cleanup
       surfaces_[surface] =
@@ -267,12 +323,10 @@ SDL_Surface* Arena::CreateNewSurface(int width, int height, int depth, int forma
  */
 void Arena::UpdateTextureRegion(SDL_Texture* texture, SDL_Surface* surface, SDL_Rect* rect) {
   if (!texture || !surface) {
-    SDL_Log("Invalid texture or surface passed to UpdateTextureRegion");
     return;
   }
 
   if (surface->pixels == nullptr) {
-    SDL_Log("Surface pixels are nullptr");
     return;
   }
 
@@ -283,7 +337,6 @@ void Arena::UpdateTextureRegion(SDL_Texture* texture, SDL_Surface* surface, SDL_
           core::SDL_Surface_Deleter());
 
   if (!converted_surface) {
-    SDL_Log("SDL_ConvertSurfaceFormat failed: %s", SDL_GetError());
     return;
   }
 
@@ -291,21 +344,34 @@ void Arena::UpdateTextureRegion(SDL_Texture* texture, SDL_Surface* surface, SDL_
   void* pixels;
   int pitch;
   if (SDL_LockTexture(texture, rect, &pixels, &pitch) != 0) {
-    SDL_Log("SDL_LockTexture failed: %s", SDL_GetError());
     return;
   }
 
-  // Copy pixel data efficiently
+  // Copy pixel data efficiently with bounds checking
   if (rect) {
-    // Copy only the specified region
-    int src_offset = rect->y * converted_surface->pitch + rect->x * 4; // 4 bytes per RGBA pixel
-    int dst_offset = 0;
-    for (int y = 0; y < rect->h; y++) {
-      memcpy(static_cast<char*>(pixels) + dst_offset,
-             static_cast<char*>(converted_surface->pixels) + src_offset,
-             rect->w * 4);
-      src_offset += converted_surface->pitch;
-      dst_offset += pitch;
+    // Validate rect bounds against surface dimensions
+    int max_x = std::min(rect->x + rect->w, converted_surface->w);
+    int max_y = std::min(rect->y + rect->h, converted_surface->h);
+    int safe_x = std::max(0, rect->x);
+    int safe_y = std::max(0, rect->y);
+    int safe_w = max_x - safe_x;
+    int safe_h = max_y - safe_y;
+    
+    
+    if (safe_w > 0 && safe_h > 0) {
+      // Copy only the safe region
+      int src_offset = safe_y * converted_surface->pitch + safe_x * 4; // 4 bytes per RGBA pixel
+      int dst_offset = 0;
+      for (int y = 0; y < safe_h; y++) {
+        // Additional safety check for each row
+        if (src_offset + safe_w * 4 <= converted_surface->h * converted_surface->pitch) {
+          memcpy(static_cast<char*>(pixels) + dst_offset,
+                 static_cast<char*>(converted_surface->pixels) + src_offset,
+                 safe_w * 4);
+        }
+        src_offset += converted_surface->pitch;
+        dst_offset += pitch;
+      }
     }
   } else {
     // Copy entire surface
@@ -356,8 +422,13 @@ void Arena::ProcessBatchTextureUpdates() {
     return;
   }
 
-  // Process all queued updates
+  // Process all queued updates with minimal logging
   for (const auto& update : batch_update_queue_) {
+    // Validate pointers before processing
+    if (!update.texture || !update.surface) {
+      continue;
+    }
+    
     if (update.rect) {
       UpdateTextureRegion(update.texture, update.surface, update.rect.get());
     } else {

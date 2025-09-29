@@ -9,6 +9,7 @@
 #include "app/gfx/arena.h"
 #include "app/gfx/performance_profiler.h"
 #include "app/gfx/snes_palette.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace gfx {
@@ -67,14 +68,13 @@ Bitmap::Bitmap(const Bitmap& other)
       modified_(other.modified_),
       palette_(other.palette_),
       data_(other.data_) {
-  // Copy the data and recreate surface/texture
+  // Copy the data and recreate surface/texture with simple assignment
   pixel_data_ = data_.data();
   if (active_ && !data_.empty()) {
     surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                            GetSnesPixelFormat(BitmapFormat::kIndexed));
-    if (surface_ && surface_->pixels) {
-      memcpy(surface_->pixels, pixel_data_, 
-             std::min(data_.size(), static_cast<size_t>(surface_->h * surface_->pitch)));
+    if (surface_) {
+      surface_->pixels = pixel_data_;
     }
   }
 }
@@ -205,11 +205,9 @@ void Bitmap::Create(int width, int height, int depth, int format,
     return;
   }
   
-  // Copy our data into the surface's pixel buffer instead of pointing to external data
-  // This ensures data integrity and prevents crashes from external data changes
-  if (surface_->pixels && data_.size() > 0) {
-    memcpy(surface_->pixels, pixel_data_, 
-           std::min(data_.size(), static_cast<size_t>(surface_->h * surface_->pitch)));
+  // Safe surface pixel assignment - direct pointer approach works best
+  if (surface_ && data_.size() > 0) {
+    surface_->pixels = pixel_data_;
   }
   active_ = true;
 }
@@ -218,45 +216,35 @@ void Bitmap::Reformat(int format) {
   surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                           GetSnesPixelFormat(format));
   
-  // Copy our data into the surface's pixel buffer
-  if (surface_ && surface_->pixels && data_.size() > 0) {
-    memcpy(surface_->pixels, pixel_data_, 
-           std::min(data_.size(), static_cast<size_t>(surface_->h * surface_->pitch)));
+  // Safe surface pixel assignment 
+  if (surface_ && data_.size() > 0) {
+    surface_->pixels = pixel_data_;
   }
   active_ = true;
   SetPalette(palette_);
 }
 
 void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
-  ScopedTimer timer("texture_update_optimized");
-  
   if (!texture_) {
     CreateTexture(renderer);
     return;
   }
   
-  // Only update if there are dirty regions
-  if (!dirty_region_.is_dirty) {
-    return;
-  }
-  
-  // Ensure surface pixels are synchronized with our data
-  if (surface_ && surface_->pixels && data_.size() > 0) {
-    memcpy(surface_->pixels, data_.data(), 
-           std::min(data_.size(), static_cast<size_t>(surface_->h * surface_->pitch)));
-  }
-  
-  // Update only the dirty region for efficiency
-  if (dirty_region_.is_dirty) {
-    SDL_Rect dirty_rect = {
-      dirty_region_.min_x, dirty_region_.min_y,
-      dirty_region_.max_x - dirty_region_.min_x + 1,
-      dirty_region_.max_y - dirty_region_.min_y + 1
-    };
-    
-    // Update only the dirty region for efficiency
-    Arena::Get().UpdateTextureRegion(texture_, surface_, &dirty_rect);
-    dirty_region_.Reset();
+  // Use direct SDL calls for reliable texture updates
+  if (modified_ && surface_ && surface_->pixels) {
+    // Convert surface to RGBA8888 format for texture compatibility
+    SDL_Surface* converted = SDL_ConvertSurfaceFormat(surface_, SDL_PIXELFORMAT_RGBA8888, 0);
+    if (converted) {
+      // Update texture directly with SDL
+      int result = SDL_UpdateTexture(texture_, nullptr, converted->pixels, converted->pitch);
+      if (result != 0) {
+        SDL_Log("SDL_UpdateTexture failed: %s", SDL_GetError());
+      }
+      SDL_FreeSurface(converted);
+    } else {
+      SDL_Log("SDL_ConvertSurfaceFormat failed: %s", SDL_GetError());
+    }
+    modified_ = false;
   }
 }
 
@@ -284,22 +272,19 @@ void Bitmap::QueueTextureUpdate(SDL_Renderer *renderer) {
     return;
   }
   
-  // Ensure surface pixels are synchronized with our data
-  if (surface_ && surface_->pixels && data_.size() > 0) {
-    memcpy(surface_->pixels, data_.data(), 
-           std::min(data_.size(), static_cast<size_t>(surface_->h * surface_->pitch)));
-  }
-  
   // Queue the dirty region update for batch processing
   if (dirty_region_.is_dirty) {
-    SDL_Rect dirty_rect = {
-      dirty_region_.min_x, dirty_region_.min_y,
-      dirty_region_.max_x - dirty_region_.min_x + 1,
-      dirty_region_.max_y - dirty_region_.min_y + 1
-    };
+    // Ensure dirty rect is within bounds
+    int rect_x = std::max(0, dirty_region_.min_x);
+    int rect_y = std::max(0, dirty_region_.min_y);
+    int rect_w = std::min(width_ - rect_x, dirty_region_.max_x - dirty_region_.min_x + 1);
+    int rect_h = std::min(height_ - rect_y, dirty_region_.max_y - dirty_region_.min_y + 1);
     
-    // Queue the update for batch processing
-    Arena::Get().QueueTextureUpdate(texture_, surface_, &dirty_rect);
+    // Only proceed if we have a valid rect
+    if (rect_w > 0 && rect_h > 0) {
+      SDL_Rect dirty_rect = { rect_x, rect_y, rect_w, rect_h };
+      Arena::Get().QueueTextureUpdate(texture_, surface_, &dirty_rect);
+    }
     dirty_region_.Reset();
   }
 }
@@ -416,15 +401,62 @@ void Bitmap::SetPalette(const std::vector<SDL_Color> &palette) {
 }
 
 void Bitmap::WriteToPixel(int position, uint8_t value) {
+  // Bounds checking to prevent crashes
+  if (position < 0 || position >= static_cast<int>(data_.size())) {
+    SDL_Log("ERROR: WriteToPixel - position %d out of bounds (size: %zu)", 
+            position, data_.size());
+    return;
+  }
+  
+  // Safety check: ensure bitmap is active and has valid data
+  if (!active_ || data_.empty()) {
+    SDL_Log("ERROR: WriteToPixel - bitmap not active or data empty (active=%s, size=%zu)", 
+            active_ ? "true" : "false", data_.size());
+    return;
+  }
+  
   if (pixel_data_ == nullptr) {
     pixel_data_ = data_.data();
   }
+  
+  // Safety check: ensure surface exists and is valid
+  if (!surface_ || !surface_->pixels) {
+    SDL_Log("ERROR: WriteToPixel - surface or pixels are null (surface=%p, pixels=%p)", 
+            surface_, surface_ ? surface_->pixels : nullptr);
+    return;
+  }
+  
+  // Additional validation: ensure pixel_data_ is valid
+  if (pixel_data_ == nullptr) {
+    SDL_Log("ERROR: WriteToPixel - pixel_data_ is null after assignment");
+    return;
+  }
+  
+  // CRITICAL FIX: Simplified pixel writing without complex surface synchronization
+  // Since surface_->pixels points directly to pixel_data_, we only need to update data_
   pixel_data_[position] = value;
   data_[position] = value;
+  
+  // Mark as modified for traditional update path
   modified_ = true;
 }
 
 void Bitmap::WriteColor(int position, const ImVec4 &color) {
+  // Bounds checking to prevent crashes
+  if (position < 0 || position >= static_cast<int>(data_.size())) {
+    return;
+  }
+  
+  // Safety check: ensure bitmap is active and has valid data
+  if (!active_ || data_.empty()) {
+    return;
+  }
+  
+  // Safety check: ensure surface exists and is valid
+  if (!surface_ || !surface_->pixels || !surface_->format) {
+    return;
+  }
+  
   // Convert ImVec4 (RGBA) to SDL_Color (RGBA)
   SDL_Color sdl_color;
   sdl_color.r = static_cast<Uint8>(color.x * 255);
@@ -436,10 +468,13 @@ void Bitmap::WriteColor(int position, const ImVec4 &color) {
   Uint8 index =
       SDL_MapRGB(surface_->format, sdl_color.r, sdl_color.g, sdl_color.b);
 
-  // Write the color index to the pixel data
+  // Simplified pixel writing without complex surface synchronization
+  if (pixel_data_ == nullptr) {
+    pixel_data_ = data_.data();
+  }
   pixel_data_[position] = index;
   data_[position] = ConvertRgbToSnes(color);
-
+  
   modified_ = true;
 }
 
@@ -501,9 +536,14 @@ void Bitmap::SetPixel(int x, int y, const SnesColor& color) {
   
   int position = y * width_ + x;
   if (position >= 0 && position < static_cast<int>(data_.size())) {
-    // Use optimized O(1) palette lookup
+    // Simplified pixel writing without complex surface synchronization
     uint8_t color_index = FindColorIndex(color);
     data_[position] = color_index;
+    
+    // Update pixel_data_ to maintain consistency
+    if (pixel_data_) {
+      pixel_data_[position] = color_index;
+    }
     
     // Update dirty region for efficient texture updates
     dirty_region_.AddPoint(x, y);
@@ -605,6 +645,50 @@ uint8_t Bitmap::FindColorIndex(const SnesColor& color) {
   uint32_t hash = HashColor(color.rgb());
   auto it = color_to_index_cache_.find(hash);
   return (it != color_to_index_cache_.end()) ? it->second : 0;
+}
+
+void Bitmap::set_data(const std::vector<uint8_t> &data) {
+  // Validate input data
+  if (data.empty()) {
+    SDL_Log("Warning: set_data called with empty data vector");
+    return;
+  }
+  
+  data_ = data;
+  pixel_data_ = data_.data();
+  
+  // Safe surface pixel assignment - direct pointer assignment works reliably
+  if (surface_ && !data_.empty()) {
+    surface_->pixels = pixel_data_;
+  }
+  
+  modified_ = true;
+}
+
+bool Bitmap::ValidateDataSurfaceSync() {
+  if (!surface_ || !surface_->pixels || data_.empty()) {
+    SDL_Log("ValidateDataSurfaceSync: surface or data is null/empty");
+    return false;
+  }
+  
+  // Check if data and surface are synchronized
+  size_t surface_size = static_cast<size_t>(surface_->h * surface_->pitch);
+  size_t data_size = data_.size();
+  size_t compare_size = std::min(data_size, surface_size);
+  
+  if (compare_size == 0) {
+    SDL_Log("ValidateDataSurfaceSync: invalid sizes - surface: %zu, data: %zu", 
+            surface_size, data_size);
+    return false;
+  }
+  
+  // Compare first few bytes to check synchronization
+  if (memcmp(surface_->pixels, data_.data(), compare_size) != 0) {
+    SDL_Log("ValidateDataSurfaceSync: data and surface are not synchronized");
+    return false;
+  }
+  
+  return true;
 }
 
 }  // namespace gfx

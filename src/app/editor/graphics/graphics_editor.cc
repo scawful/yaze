@@ -20,6 +20,7 @@
 #include "app/gui/modules/asset_browser.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
+#include "gfx/performance_profiler.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui_memory_editor.h"
@@ -272,6 +273,8 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
 }
 
 absl::Status GraphicsEditor::UpdateGfxTabView() {
+  gfx::ScopedTimer timer("graphics_editor_update_gfx_tab_view");
+  
   static int next_tab_id = 0;
   constexpr ImGuiTabBarFlags kGfxEditTabBarFlags =
       ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable |
@@ -312,7 +315,8 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         auto draw_tile_event = [&]() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
-          Renderer::Get().UpdateBitmap(&current_bitmap);
+          // Use batch operations for texture updates
+          current_bitmap.QueueTextureUpdate(core::Renderer::Get().renderer());
         };
 
         current_sheet_canvas_.UpdateColorPainter(
@@ -364,6 +368,9 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
       child_window_sheets_.erase(id_to_release);
     }
   }
+
+  // Process all queued texture updates at once
+  gfx::Arena::Get().ProcessBatchTextureUpdates();
 
   return absl::OkStatus();
 }

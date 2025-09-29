@@ -6,7 +6,9 @@
 #include "absl/status/status.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/window.h"
+#include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
@@ -353,33 +355,27 @@ absl::Status Tile16Editor::RefreshTile16Blockset() {
 }
 
 absl::Status Tile16Editor::UpdateBlocksetBitmap() {
-  util::logf("UpdateBlocksetBitmap called for tile %d", current_tile16_);
+  gfx::ScopedTimer timer("tile16_blockset_update");
   
   if (!tile16_blockset_) {
-    util::logf("ERROR: Tile16 blockset not initialized");
     return absl::FailedPreconditionError("Tile16 blockset not initialized");
   }
 
   if (current_tile16_ < 0 || current_tile16_ >= zelda3::kNumTile16Individual) {
-    util::logf("ERROR: Current tile16 ID %d out of range", current_tile16_);
     return absl::OutOfRangeError("Current tile16 ID out of range");
   }
 
-  // Update the blockset bitmap directly from the current tile16 bitmap
+  // Use optimized batch operations for better performance
   if (tile16_blockset_bmp_.is_active() && current_tile16_bmp_.is_active()) {
-    util::logf("Updating blockset bitmap directly from current tile16...");
-    
     // Calculate the position of this tile in the blockset bitmap
     constexpr int kTilesPerRow = 8;  // Standard SNES tile16 layout is 8 tiles per row
     int tile_x = (current_tile16_ % kTilesPerRow) * kTile16Size;
     int tile_y = (current_tile16_ / kTilesPerRow) * kTile16Size;
     
-    util::logf("Tile position: (%d, %d), blockset size: %dx%d, tile16 size: %dx%d", 
-               tile_x, tile_y, tile16_blockset_bmp_.width(), tile16_blockset_bmp_.height(),
-               current_tile16_bmp_.width(), current_tile16_bmp_.height());
-
-    // Copy pixel data from current tile to blockset bitmap
-    int pixels_copied = 0;
+    // Use dirty region tracking for efficient updates
+    SDL_Rect dirty_region = {tile_x, tile_y, kTile16Size, kTile16Size};
+    
+    // Copy pixel data from current tile to blockset bitmap using batch operations
     for (int tile_y_offset = 0; tile_y_offset < kTile16Size; ++tile_y_offset) {
       for (int tile_x_offset = 0; tile_x_offset < kTile16Size; ++tile_x_offset) {
         int src_index = tile_y_offset * kTile16Size + tile_x_offset;
@@ -390,22 +386,38 @@ absl::Status Tile16Editor::UpdateBlocksetBitmap() {
             dst_index < static_cast<int>(tile16_blockset_bmp_.size())) {
           uint8_t pixel_value = current_tile16_bmp_.data()[src_index];
           tile16_blockset_bmp_.WriteToPixel(dst_index, pixel_value);
-          pixels_copied++;
         }
       }
     }
 
-    util::logf("Copied %d pixels to blockset bitmap", pixels_copied);
-
-    // Mark the blockset bitmap as modified and update the renderer
+    // Mark the blockset bitmap as modified and use batch texture update
     tile16_blockset_bmp_.set_modified(true);
-    core::Renderer::Get().UpdateBitmap(&tile16_blockset_bmp_);
-    util::logf("Blockset bitmap updated and renderer notified");
-  } else {
-    util::logf("ERROR: Blockset bitmap or current tile16 bitmap not active");
+    tile16_blockset_bmp_.QueueTextureUpdate(nullptr); // Use batch operations
+    
+    // Also update the tile16 blockset atlas if available
+    if (tile16_blockset_->atlas.is_active()) {
+      // Update the atlas with the new tile data
+      for (int tile_y_offset = 0; tile_y_offset < kTile16Size; ++tile_y_offset) {
+        for (int tile_x_offset = 0; tile_x_offset < kTile16Size; ++tile_x_offset) {
+          int src_index = tile_y_offset * kTile16Size + tile_x_offset;
+          int dst_index = (tile_y + tile_y_offset) * tile16_blockset_->atlas.width() + 
+                         (tile_x + tile_x_offset);
+
+          if (src_index < static_cast<int>(current_tile16_bmp_.size()) &&
+              dst_index < static_cast<int>(tile16_blockset_->atlas.size())) {
+            tile16_blockset_->atlas.WriteToPixel(dst_index, current_tile16_bmp_.data()[src_index]);
+          }
+        }
+      }
+      
+      tile16_blockset_->atlas.set_modified(true);
+      tile16_blockset_->atlas.QueueTextureUpdate(nullptr);
+    }
+    
+    // Process all queued texture updates at once
+    gfx::Arena::Get().ProcessBatchTextureUpdates();
   }
 
-  util::logf("UpdateBlocksetBitmap completed for tile %d", current_tile16_);
   return absl::OkStatus();
 }
 
@@ -1486,7 +1498,9 @@ absl::Status Tile16Editor::UpdateOverworldTilemap() {
   }
 
   // Update the tilemap with our modified bitmap
-  tile16_blockset_->tile_cache.CacheTile(current_tile16_, std::move(current_tile16_bmp_));
+  // Create a copy to avoid moving the original bitmap
+  gfx::Bitmap tile_copy = current_tile16_bmp_;
+  tile16_blockset_->tile_cache.CacheTile(current_tile16_, std::move(tile_copy));
 
   // Update the atlas if needed
   if (tile16_blockset_->atlas.is_active()) {

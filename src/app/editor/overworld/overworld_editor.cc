@@ -10,11 +10,13 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/core/asar_wrapper.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/core/features.h"
 #include "app/core/performance_monitor.h"
 #include "app/core/window.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -719,6 +721,12 @@ void OverworldEditor::DrawOverworldMaps() {
   int yy = 0;
   for (int i = 0; i < 0x40; i++) {
     int world_index = i + (current_world_ * 0x40);
+    
+    // Bounds checking to prevent crashes
+    if (world_index < 0 || world_index >= static_cast<int>(maps_bmp_.size())) {
+      continue; // Skip invalid map index
+    }
+    
     int scale = static_cast<int>(ow_map_canvas_.global_scale());
     int map_x = (xx * kOverworldMapSize * scale);
     int map_y = (yy * kOverworldMapSize * scale);
@@ -762,6 +770,7 @@ void OverworldEditor::DrawOverworldMaps() {
 void OverworldEditor::DrawOverworldEdits() {
   // Determine which overworld map the user is currently editing.
   auto mouse_position = ow_map_canvas_.drawn_tile_position();
+
   int map_x = mouse_position.x / kOverworldMapSize;
   int map_y = mouse_position.y / kOverworldMapSize;
   current_map_ = map_x + map_y * 8;
@@ -771,9 +780,28 @@ void OverworldEditor::DrawOverworldEdits() {
     current_map_ += 0x80;
   }
 
+  // Bounds checking to prevent crashes
+  if (current_map_ < 0 || current_map_ >= static_cast<int>(maps_bmp_.size())) {
+    return; // Invalid map index, skip drawing
+  }
+
+  // Validate tile16_blockset_ before calling GetTilemapData
+  if (!tile16_blockset_.atlas.is_active() || tile16_blockset_.atlas.vector().empty()) {
+    util::logf("Error: tile16_blockset_ is not properly initialized (active: %s, size: %zu)", 
+               tile16_blockset_.atlas.is_active() ? "true" : "false", 
+               tile16_blockset_.atlas.vector().size());
+    return; // Skip drawing if blockset is invalid
+  }
+  
+  // Validate current_tile16_ before proceeding
+  if (current_tile16_ < 0 || current_tile16_ >= 512) {
+    util::logf("ERROR: DrawOverworldEdits - Invalid current_tile16_=%d (should be 0-511)", current_tile16_);
+    return;
+  }
+  
   // Render the updated map bitmap.
-  RenderUpdatedMapBitmap(
-      mouse_position, gfx::GetTilemapData(tile16_blockset_, current_tile16_));
+  auto tile_data = gfx::GetTilemapData(tile16_blockset_, current_tile16_);
+  RenderUpdatedMapBitmap(mouse_position, tile_data);
 
   // Calculate the correct superX and superY values
   int superY = current_map_ / 8;
@@ -798,6 +826,14 @@ void OverworldEditor::DrawOverworldEdits() {
 
 void OverworldEditor::RenderUpdatedMapBitmap(
     const ImVec2& click_position, const std::vector<uint8_t>& tile_data) {
+
+  // Bounds checking to prevent crashes
+  if (current_map_ < 0 || current_map_ >= static_cast<int>(maps_bmp_.size())) {
+    util::logf("ERROR: RenderUpdatedMapBitmap - Invalid current_map_ %d (maps_bmp_.size()=%zu)", 
+               current_map_, maps_bmp_.size());
+    return; // Invalid map index, skip rendering
+  }
+
   // Calculate the tile index for x and y based on the click_position
   int tile_index_x =
       (static_cast<int>(click_position.x) % kOverworldMapSize) / kTile16Size;
@@ -811,15 +847,42 @@ void OverworldEditor::RenderUpdatedMapBitmap(
 
   // Update the bitmap's pixel data based on the start_position and tile_data
   gfx::Bitmap& current_bitmap = maps_bmp_[current_map_];
+
+  // Validate bitmap state before writing
+  if (!current_bitmap.is_active() || current_bitmap.size() == 0) {
+    util::logf("ERROR: RenderUpdatedMapBitmap - Bitmap %d is not active or has no data (active=%s, size=%zu)", 
+               current_map_, current_bitmap.is_active() ? "true" : "false", current_bitmap.size());
+    return;
+  }
+
   for (int y = 0; y < kTile16Size; ++y) {
     for (int x = 0; x < kTile16Size; ++x) {
       int pixel_index =
           (start_position.y + y) * kOverworldMapSize + (start_position.x + x);
-      current_bitmap.WriteToPixel(pixel_index, tile_data[y * kTile16Size + x]);
+
+      // Bounds check for pixel index
+      if (pixel_index < 0 || pixel_index >= static_cast<int>(current_bitmap.size())) {
+        util::logf("ERROR: RenderUpdatedMapBitmap - pixel_index %d out of bounds (bitmap size=%zu)", 
+                   pixel_index, current_bitmap.size());
+        continue;
+      }
+
+      // Bounds check for tile data
+      int tile_data_index = y * kTile16Size + x;
+      if (tile_data_index < 0 || tile_data_index >= static_cast<int>(tile_data.size())) {
+        util::logf("ERROR: RenderUpdatedMapBitmap - tile_data_index %d out of bounds (tile_data size=%zu)", 
+                   tile_data_index, tile_data.size());
+        continue;
+      }
+
+      current_bitmap.WriteToPixel(pixel_index, tile_data[tile_data_index]);
     }
   }
 
   current_bitmap.set_modified(true);
+  
+  // Immediately update the texture to reflect changes
+  core::Renderer::Get().UpdateBitmap(&current_bitmap);
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
@@ -1080,19 +1143,16 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
   // Ensure current map has texture created for rendering
   EnsureMapTexture(current_map_);
   
-  if (maps_bmp_[current_map_].modified() ||
-      ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+  if (maps_bmp_[current_map_].modified()) {
     RefreshOverworldMap();
     RETURN_IF_ERROR(RefreshTile16Blockset());
 
     // Ensure tile16 blockset is fully updated before rendering
     if (tile16_blockset_.atlas.is_active()) {
       Renderer::Get().UpdateBitmap(&tile16_blockset_.atlas);
-
-      // Clear any cached tiles to force re-rendering with new atlas data
-      tile16_blockset_.tile_cache.Clear();
     }
 
+    // Update map texture with the traditional direct update approach
     Renderer::Get().UpdateBitmap(&maps_bmp_[current_map_]);
     maps_bmp_[current_map_].set_modified(false);
   }
@@ -1198,27 +1258,32 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   blockset_canvas_.DrawBitmap(tile16_blockset_.atlas, /*border_offset=*/2,
                               map_blockset_loaded_, /*scale=*/2);
 
-  // Improved tile interaction detection - use proper canvas interaction
+  // Fixed tile interaction detection - handle single clicks properly
   bool tile_selected = false;
-  if (blockset_canvas_.DrawTileSelector(32.0f)) {
-    tile_selected = true;
-  } else if (ImGui::IsItemClicked(ImGuiMouseButton_Left) &&
-             blockset_canvas_.IsMouseHovering()) {
-    // Secondary detection for direct clicks
+  
+  // First, call DrawTileSelector to handle the visual feedback
+  blockset_canvas_.DrawTileSelector(32.0f);
+  
+  // Then check for single click to update tile selection
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && blockset_canvas_.IsMouseHovering()) {
     tile_selected = true;
   }
 
-  if (tile_selected && blockset_canvas_.HasValidSelection()) {
-    auto tile_pos = blockset_canvas_.GetLastClickPosition();
-    int grid_x = static_cast<int>(tile_pos.x / 32);
-    int grid_y = static_cast<int>(tile_pos.y / 32);
-    int id = grid_x + grid_y * 8;
+  if (tile_selected) {
+    // Get mouse position relative to canvas
+    const ImGuiIO& io = ImGui::GetIO();
+    ImVec2 canvas_pos = blockset_canvas_.zero_point();
+    ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
+    
+    // Calculate grid position (32x32 tiles in blockset)
+    int grid_x = static_cast<int>(mouse_pos.x / 32);
+    int grid_y = static_cast<int>(mouse_pos.y / 32);
+    int id = grid_x + grid_y * 8; // 8 tiles per row in blockset
 
     if (id != current_tile16_ && id >= 0 && id < 512) {
       current_tile16_ = id;
       RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(id));
       show_tile16_editor_ = true;
-      util::logf("Selected Tile16: %d (grid: %d,%d)", id, grid_x, grid_y);
     }
   }
 
@@ -1895,9 +1960,14 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
       return;
     }
     
-    // Update bitmap data
-    maps_bmp_[map_index].set_data(map->bitmap_data());
-    maps_bmp_[map_index].set_modified(false);
+  // Update bitmap data
+  maps_bmp_[map_index].set_data(map->bitmap_data());
+  maps_bmp_[map_index].set_modified(false);
+  
+  // Validate surface synchronization to help debug crashes
+  if (!maps_bmp_[map_index].ValidateDataSurfaceSync()) {
+    util::logf("Warning: Surface synchronization issue detected for map %d", map_index);
+  }
     
     // Update texture on main thread
     if (maps_bmp_[map_index].texture()) {
@@ -3380,6 +3450,8 @@ void OverworldEditor::DrawScratchSpacePattern() {
 
 void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
                                               int tile_id, int slot) {
+  gfx::ScopedTimer timer("overworld_update_scratch_tile");
+  
   // Use current slot if not specified
   if (slot == -1)
     slot = current_scratch_slot_;
@@ -3424,11 +3496,14 @@ void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
   }
 
   scratch_slot.scratch_bitmap.set_modified(true);
-  core::Renderer::Get().UpdateBitmap(&scratch_slot.scratch_bitmap);
+  // Use batch operations for texture updates
+  scratch_slot.scratch_bitmap.QueueTextureUpdate(core::Renderer::Get().renderer());
   scratch_slot.in_use = true;
 }
 
 absl::Status OverworldEditor::SaveCurrentSelectionToScratch(int slot) {
+  gfx::ScopedTimer timer("overworld_save_selection_to_scratch");
+  
   if (slot < 0 || slot >= 4) {
     return absl::InvalidArgumentError("Invalid scratch slot");
   }
@@ -3503,6 +3578,9 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch(int slot) {
     scratch_spaces_[slot].in_use = true;
   }
 
+  // Process all queued texture updates at once
+  gfx::Arena::Get().ProcessBatchTextureUpdates();
+  
   return absl::OkStatus();
 }
 
