@@ -313,9 +313,6 @@ jobs:
 
           if ($useVcpkg) {
             $args += "-DCMAKE_TOOLCHAIN_FILE=$toolchain"
-            $args += '-DYAZE_MINIMAL_BUILD=OFF'
-          } else {
-            $args += '-DYAZE_MINIMAL_BUILD=ON'
           }
 
           cmake @args

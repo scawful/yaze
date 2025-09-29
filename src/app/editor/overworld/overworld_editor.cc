@@ -1008,6 +1008,9 @@ void OverworldEditor::CheckForSelectRectangle() {
     current_tile16_ =
         overworld_.GetTileFromPosition(ow_map_canvas_.selected_tile_pos());
     ow_map_canvas_.set_selected_tile_pos(ImVec2(-1, -1));
+    
+    // Scroll blockset canvas to show the selected tile
+    ScrollBlocksetCanvasToCurrentTile();
   }
 
   static std::vector<int> tile16_ids;
@@ -1160,35 +1163,95 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
 
   const int current_highlighted_map = current_map_;
 
-  if (overworld_.overworld_map(current_map_)->is_large_map() ||
-      overworld_.overworld_map(current_map_)->large_index() != 0) {
+  // Check if ZSCustomOverworld v3 is present
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  bool use_v3_area_sizes = (asm_version >= 3 && asm_version != 0xFF);
+
+  // Get area size for v3+ ROMs, otherwise use legacy logic
+  if (use_v3_area_sizes) {
+    using zelda3::AreaSizeEnum;
+    auto area_size = overworld_.overworld_map(current_map_)->area_size();
     const int highlight_parent =
         overworld_.overworld_map(current_highlighted_map)->parent();
-    const int parent_map_x = highlight_parent % 8;
-    const int parent_map_y = highlight_parent / 8;
-    ow_map_canvas_.DrawOutline(parent_map_x * kOverworldMapSize,
-                               parent_map_y * kOverworldMapSize, large_map_size,
-                               large_map_size);
-  } else {
-    // Calculate map coordinates accounting for world offset
-    int current_map_x, current_map_y;
+
+    // Calculate parent map coordinates accounting for world offset
+    int parent_map_x;
+    int parent_map_y;
     if (current_world_ == 0) {
       // Light World (0x00-0x3F)
-      current_map_x = current_highlighted_map % 8;
-      current_map_y = current_highlighted_map / 8;
+      parent_map_x = highlight_parent % 8;
+      parent_map_y = highlight_parent / 8;
     } else if (current_world_ == 1) {
       // Dark World (0x40-0x7F)
-      current_map_x = (current_highlighted_map - 0x40) % 8;
-      current_map_y = (current_highlighted_map - 0x40) / 8;
+      parent_map_x = (highlight_parent - 0x40) % 8;
+      parent_map_y = (highlight_parent - 0x40) / 8;
     } else {
-      // Special World (0x80-0x9F) - use display coordinates based on current_world_
-      // The special world maps are displayed in the same 8x8 grid as LW/DW
-      current_map_x = (current_highlighted_map - 0x80) % 8;
-      current_map_y = (current_highlighted_map - 0x80) / 8;
+      // Special World (0x80-0x9F)
+      parent_map_x = (highlight_parent - 0x80) % 8;
+      parent_map_y = (highlight_parent - 0x80) / 8;
     }
-    ow_map_canvas_.DrawOutline(current_map_x * kOverworldMapSize,
-                               current_map_y * kOverworldMapSize,
-                               kOverworldMapSize, kOverworldMapSize);
+
+    // Draw outline based on area size
+    switch (area_size) {
+      case AreaSizeEnum::LargeArea:
+        // 2x2 grid (1024x1024)
+        ow_map_canvas_.DrawOutline(parent_map_x * kOverworldMapSize,
+                                   parent_map_y * kOverworldMapSize,
+                                   large_map_size, large_map_size);
+        break;
+      case AreaSizeEnum::WideArea:
+        // 2x1 grid (1024x512) - horizontal
+        ow_map_canvas_.DrawOutline(parent_map_x * kOverworldMapSize,
+                                   parent_map_y * kOverworldMapSize,
+                                   large_map_size, kOverworldMapSize);
+        break;
+      case AreaSizeEnum::TallArea:
+        // 1x2 grid (512x1024) - vertical
+        ow_map_canvas_.DrawOutline(parent_map_x * kOverworldMapSize,
+                                   parent_map_y * kOverworldMapSize,
+                                   kOverworldMapSize, large_map_size);
+        break;
+      case AreaSizeEnum::SmallArea:
+      default:
+        // 1x1 grid (512x512)
+        ow_map_canvas_.DrawOutline(parent_map_x * kOverworldMapSize,
+                                   parent_map_y * kOverworldMapSize,
+                                   kOverworldMapSize, kOverworldMapSize);
+        break;
+    }
+  } else {
+    // Legacy logic for vanilla and v2 ROMs
+    if (overworld_.overworld_map(current_map_)->is_large_map() ||
+        overworld_.overworld_map(current_map_)->large_index() != 0) {
+      const int highlight_parent =
+          overworld_.overworld_map(current_highlighted_map)->parent();
+      const int parent_map_x = highlight_parent % 8;
+      const int parent_map_y = highlight_parent / 8;
+      ow_map_canvas_.DrawOutline(parent_map_x * kOverworldMapSize,
+                                 parent_map_y * kOverworldMapSize, large_map_size,
+                                 large_map_size);
+    } else {
+      // Calculate map coordinates accounting for world offset
+      int current_map_x;
+      int current_map_y;
+      if (current_world_ == 0) {
+        // Light World (0x00-0x3F)
+        current_map_x = current_highlighted_map % 8;
+        current_map_y = current_highlighted_map / 8;
+      } else if (current_world_ == 1) {
+        // Dark World (0x40-0x7F)
+        current_map_x = (current_highlighted_map - 0x40) % 8;
+        current_map_y = (current_highlighted_map - 0x40) / 8;
+      } else {
+        // Special World (0x80-0x9F) - use display coordinates based on current_world_
+        // The special world maps are displayed in the same 8x8 grid as LW/DW
+        current_map_x = (current_highlighted_map - 0x80) % 8;
+        current_map_y = (current_highlighted_map - 0x80) / 8;
+      }
+      ow_map_canvas_.DrawOutline(current_map_x * kOverworldMapSize,
+                                 current_map_y * kOverworldMapSize,
+                                 kOverworldMapSize, kOverworldMapSize);
+    }
   }
 
   // Ensure current map has texture created for rendering
@@ -1341,6 +1404,9 @@ absl::Status OverworldEditor::DrawTile16Selector() {
     if (id != current_tile16_ && id >= 0 && id < 512) {
       current_tile16_ = id;
       RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(id));
+      
+      // Scroll blockset canvas to show the selected tile
+      ScrollBlocksetCanvasToCurrentTile();
     }
   }
 
@@ -2053,7 +2119,19 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
   }
 
   // Handle multi-area maps (large, wide, tall) with safe coordination
-  RefreshMultiAreaMapsSafely(map_index, map);
+  // Check if ZSCustomOverworld v3 is present
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  bool use_v3_area_sizes = (asm_version >= 3 && asm_version != 0xFF);
+  
+  if (use_v3_area_sizes) {
+    // Use v3 multi-area coordination
+    RefreshMultiAreaMapsSafely(map_index, map);
+  } else {
+    // Legacy logic: only handle large maps for vanilla/v2
+    if (map->is_large_map()) {
+      RefreshMultiAreaMapsSafely(map_index, map);
+    }
+  }
 }
 
 /**
@@ -2166,17 +2244,22 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
           status = sibling_map->BuildTiles16Gfx(*overworld_.mutable_tiles16(),
                                                 overworld_.tiles16().size());
           if (status.ok()) {
-            status = sibling_map->BuildBitmap(
-                overworld_.GetMapTiles(current_world_));
+            // Load palette for the sibling map
+            status = sibling_map->LoadPalette();
             if (status.ok()) {
-              maps_bmp_[sibling].set_data(sibling_map->bitmap_data());
-              maps_bmp_[sibling].set_modified(false);
+              status = sibling_map->BuildBitmap(
+                  overworld_.GetMapTiles(current_world_));
+              if (status.ok()) {
+                maps_bmp_[sibling].set_data(sibling_map->bitmap_data());
+                maps_bmp_[sibling].SetPalette(overworld_.current_area_palette());
+                maps_bmp_[sibling].set_modified(false);
 
-              // Update texture if it exists
-              if (maps_bmp_[sibling].texture()) {
-                core::Renderer::Get().UpdateBitmap(&maps_bmp_[sibling]);
-              } else {
-                EnsureMapTexture(sibling);
+                // Update texture if it exists
+                if (maps_bmp_[sibling].texture()) {
+                  core::Renderer::Get().UpdateBitmap(&maps_bmp_[sibling]);
+                } else {
+                  EnsureMapTexture(sibling);
+                }
               }
             }
           }
@@ -2206,39 +2289,136 @@ absl::Status OverworldEditor::RefreshMapPalette() {
       overworld_.mutable_overworld_map(current_map_)->LoadPalette());
   const auto current_map_palette = overworld_.current_area_palette();
 
-  if (overworld_.overworld_map(current_map_)->is_large_map()) {
-    // We need to update the map and its siblings if it's a large map
-    for (int i = 1; i < 4; i++) {
-      int sibling_index = overworld_.overworld_map(current_map_)->parent() + i;
-      if (i >= 2)
-        sibling_index += 6;
-      RETURN_IF_ERROR(
-          overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
-      maps_bmp_[sibling_index].SetPalette(current_map_palette);
+  // Check if ZSCustomOverworld v3 is present
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  bool use_v3_area_sizes = (asm_version >= 3 && asm_version != 0xFF);
+
+  if (use_v3_area_sizes) {
+    // Use v3 area size system
+    using zelda3::AreaSizeEnum;
+    auto area_size = overworld_.overworld_map(current_map_)->area_size();
+    
+    if (area_size != AreaSizeEnum::SmallArea) {
+      // Get all sibling maps that need palette updates
+      std::vector<int> sibling_maps;
+      int parent_id = overworld_.overworld_map(current_map_)->parent();
+      
+      switch (area_size) {
+        case AreaSizeEnum::LargeArea:
+          // 2x2 grid: parent, parent+1, parent+8, parent+9
+          sibling_maps = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
+          break;
+        case AreaSizeEnum::WideArea:
+          // 2x1 grid: parent, parent+1
+          sibling_maps = {parent_id, parent_id + 1};
+          break;
+        case AreaSizeEnum::TallArea:
+          // 1x2 grid: parent, parent+8
+          sibling_maps = {parent_id, parent_id + 8};
+          break;
+        default:
+          break;
+      }
+      
+      // Update palette for all siblings
+      for (int sibling_index : sibling_maps) {
+        if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
+          continue;
+        }
+        RETURN_IF_ERROR(
+            overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
+        maps_bmp_[sibling_index].SetPalette(current_map_palette);
+      }
+    } else {
+      // Small area - only update current map
+      maps_bmp_[current_map_].SetPalette(current_map_palette);
     }
+  } else {
+    // Legacy logic for vanilla and v2 ROMs
+    if (overworld_.overworld_map(current_map_)->is_large_map()) {
+      // We need to update the map and its siblings if it's a large map
+      for (int i = 1; i < 4; i++) {
+        int sibling_index = overworld_.overworld_map(current_map_)->parent() + i;
+        if (i >= 2)
+          sibling_index += 6;
+        RETURN_IF_ERROR(
+            overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
+        maps_bmp_[sibling_index].SetPalette(current_map_palette);
+      }
+    }
+    maps_bmp_[current_map_].SetPalette(current_map_palette);
   }
 
-  maps_bmp_[current_map_].SetPalette(current_map_palette);
   return absl::OkStatus();
 }
 
 void OverworldEditor::RefreshMapProperties() {
   const auto& current_ow_map = *overworld_.mutable_overworld_map(current_map_);
-  if (current_ow_map.is_large_map()) {
-    // We need to copy the properties from the parent map to the children
-    for (int i = 1; i < 4; i++) {
-      int sibling_index = current_ow_map.parent() + i;
-      if (i >= 2) {
-        sibling_index += 6;
+  
+  // Check if ZSCustomOverworld v3 is present
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  bool use_v3_area_sizes = (asm_version >= 3 && asm_version != 0xFF);
+
+  if (use_v3_area_sizes) {
+    // Use v3 area size system
+    using zelda3::AreaSizeEnum;
+    auto area_size = current_ow_map.area_size();
+    
+    if (area_size != AreaSizeEnum::SmallArea) {
+      // Get all sibling maps that need property updates
+      std::vector<int> sibling_maps;
+      int parent_id = current_ow_map.parent();
+      
+      switch (area_size) {
+        case AreaSizeEnum::LargeArea:
+          // 2x2 grid: parent+1, parent+8, parent+9 (skip parent itself)
+          sibling_maps = {parent_id + 1, parent_id + 8, parent_id + 9};
+          break;
+        case AreaSizeEnum::WideArea:
+          // 2x1 grid: parent+1 (skip parent itself)
+          sibling_maps = {parent_id + 1};
+          break;
+        case AreaSizeEnum::TallArea:
+          // 1x2 grid: parent+8 (skip parent itself)
+          sibling_maps = {parent_id + 8};
+          break;
+        default:
+          break;
       }
-      auto& map = *overworld_.mutable_overworld_map(sibling_index);
-      map.set_area_graphics(current_ow_map.area_graphics());
-      map.set_area_palette(current_ow_map.area_palette());
-      map.set_sprite_graphics(game_state_,
-                              current_ow_map.sprite_graphics(game_state_));
-      map.set_sprite_palette(game_state_,
-                             current_ow_map.sprite_palette(game_state_));
-      map.set_message_id(current_ow_map.message_id());
+      
+      // Copy properties from parent map to all siblings
+      for (int sibling_index : sibling_maps) {
+        if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
+          continue;
+        }
+        auto& map = *overworld_.mutable_overworld_map(sibling_index);
+        map.set_area_graphics(current_ow_map.area_graphics());
+        map.set_area_palette(current_ow_map.area_palette());
+        map.set_sprite_graphics(game_state_,
+                                current_ow_map.sprite_graphics(game_state_));
+        map.set_sprite_palette(game_state_,
+                               current_ow_map.sprite_palette(game_state_));
+        map.set_message_id(current_ow_map.message_id());
+      }
+    }
+  } else {
+    // Legacy logic for vanilla and v2 ROMs
+    if (current_ow_map.is_large_map()) {
+      // We need to copy the properties from the parent map to the children
+      for (int i = 1; i < 4; i++) {
+        int sibling_index = current_ow_map.parent() + i;
+        if (i >= 2) {
+          sibling_index += 6;
+        }
+        auto& map = *overworld_.mutable_overworld_map(sibling_index);
+        map.set_area_graphics(current_ow_map.area_graphics());
+        map.set_area_palette(current_ow_map.area_palette());
+        map.set_sprite_graphics(game_state_,
+                                current_ow_map.sprite_graphics(game_state_));
+        map.set_sprite_palette(game_state_,
+                               current_ow_map.sprite_palette(game_state_));
+        map.set_message_id(current_ow_map.message_id());
+      }
     }
   }
 }
@@ -3011,6 +3191,18 @@ void OverworldEditor::SetupOverworldCanvasContextMenu() {
     ow_map_canvas_.AddContextMenuItem(overlay_item);
   }
 
+  // Map editing controls
+  gui::Canvas::ContextMenuItem refresh_map_item;
+  refresh_map_item.label = "Refresh Map Changes";
+  refresh_map_item.callback = [this]() {
+    RefreshOverworldMap();
+    auto status = RefreshTile16Blockset();
+    if (!status.ok()) {
+      util::logf("Failed to refresh tile16 blockset: %s", status.message().data());
+    }
+  };
+  ow_map_canvas_.AddContextMenuItem(refresh_map_item);
+  
   // Canvas controls
   gui::Canvas::ContextMenuItem reset_pos_item;
   reset_pos_item.label = "Reset Canvas Position";
@@ -3026,6 +3218,39 @@ void OverworldEditor::SetupOverworldCanvasContextMenu() {
     ow_map_canvas_.set_scrolling(ImVec2(0, 0));
   };
   ow_map_canvas_.AddContextMenuItem(zoom_fit_item);
+}
+
+void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
+  // Calculate the position of the current tile in the blockset canvas
+  // Blockset is arranged in an 8-tile-per-row grid, each tile is 16x16 pixels
+  constexpr int kTilesPerRow = 8;
+  constexpr int kTileDisplaySize = 32;  // Each tile displayed at 32x32 (16x16 at 2x scale)
+  
+  // Calculate tile position in canvas coordinates (absolute position in the grid)
+  int tile_col = current_tile16_ % kTilesPerRow;
+  int tile_row = current_tile16_ / kTilesPerRow;
+  float tile_x = static_cast<float>(tile_col * kTileDisplaySize);
+  float tile_y = static_cast<float>(tile_row * kTileDisplaySize);
+  
+  // Get the canvas dimensions
+  ImVec2 canvas_size = blockset_canvas_.canvas_size();
+  
+  // Calculate the scroll position to center the tile in the viewport
+  float scroll_x = tile_x - (canvas_size.x / 2.0F) + (kTileDisplaySize / 2.0F);
+  float scroll_y = tile_y - (canvas_size.y / 2.0F) + (kTileDisplaySize / 2.0F);
+  
+  // Clamp scroll to valid ranges (don't scroll beyond bounds)
+  if (scroll_x < 0) scroll_x = 0;
+  if (scroll_y < 0) scroll_y = 0;
+  
+  // Update the blockset canvas scrolling position first
+  blockset_canvas_.set_scrolling(ImVec2(-1, -scroll_y));
+  
+  // Set the points to draw the white outline box around the current tile
+  // Points are in canvas coordinates (not screen coordinates)
+  blockset_canvas_.mutable_points()->clear();
+  blockset_canvas_.mutable_points()->push_back(ImVec2(tile_x, tile_y));
+  blockset_canvas_.mutable_points()->push_back(ImVec2(tile_x + kTileDisplaySize, tile_y + kTileDisplaySize));
 }
 
 void OverworldEditor::DrawOverworldProperties() {

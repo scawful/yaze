@@ -211,6 +211,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void HandleMapInteraction();
   void SetupOverworldCanvasContextMenu();
   
+  /**
+   * @brief Scroll the blockset canvas to show the current selected tile16
+   */
+  void ScrollBlocksetCanvasToCurrentTile();
+  
   // Scratch space canvas methods
   absl::Status DrawScratchSpace();
   absl::Status SaveCurrentSelectionToScratch(int slot);

@@ -9,6 +9,7 @@
 #include "app/gfx/performance_profiler.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/canvas.h"
+#include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
@@ -251,22 +252,8 @@ absl::Status Tile16Editor::Update() {
 }
 
 void Tile16Editor::DrawTile16Editor() {
-  if (BeginTable("#Tile16EditorTable", 2, ImGuiTableFlags_Resizable)) {
-    TableSetupColumn("Blockset", ImGuiTableColumnFlags_WidthFixed, 280);
-    TableSetupColumn("Editor", ImGuiTableColumnFlags_WidthStretch);
-    TableHeadersRow();
-    TableNextRow();
-
-    // Blockset selection column
-    TableNextColumn();
-    status_ = UpdateBlockset();
-
-    // Editor column
-    TableNextColumn();
-    status_ = UpdateTile16Edit();
-
-    EndTable();
-  }
+  // REFACTORED: Single unified table layout in UpdateTile16Edit
+  status_ = UpdateTile16Edit();
 }
 
 absl::Status Tile16Editor::UpdateBlockset() {
@@ -308,7 +295,8 @@ absl::Status Tile16Editor::UpdateBlockset() {
                  selected_tile, grid_x, grid_y);
     }
   }
-  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, true, 2.0f);
+  blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, true,
+                              blockset_canvas_.GetGlobalScale());
   blockset_canvas_.DrawGrid();
   blockset_canvas_.DrawOverlay();
   EndChild();
@@ -690,7 +678,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   // Modern header with improved styling
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 4));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 4));
-  
+
   // Header section with better visual hierarchy
   ImGui::BeginGroup();
   ImGui::TextColored(ImVec4(0.8f, 0.9f, 1.0f, 1.0f), "Tile16 Editor");
@@ -700,16 +688,16 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   ImGui::TextDisabled("|");
   ImGui::SameLine();
   ImGui::TextDisabled("Palette: %d", current_palette_);
-  
+
   // Show actual palette slot for debugging
   if (show_debug_info) {
     ImGui::SameLine();
     int actual_slot = GetActualPaletteSlotForCurrentTile16();
     ImGui::TextDisabled("(Slot: %d)", actual_slot);
   }
-  
+
   ImGui::EndGroup();
-  
+
   // Modern button styling for controls
   ImGui::SameLine(ImGui::GetContentRegionAvail().x - 180);
   if (ImGui::Button("Debug Info", ImVec2(80, 0))) {
@@ -719,49 +707,84 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   if (ImGui::Button("Advanced", ImVec2(80, 0))) {
     show_advanced_controls = !show_advanced_controls;
   }
-  
+
   ImGui::PopStyleVar(2);
-  
+
   ImGui::Separator();
 
-  // Modern 3-column layout with improved spacing
+  // REFACTORED: Improved 3-column layout with better space utilization
   if (ImGui::BeginTable("##Tile16EditLayout", 3,
-                        ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV |
-                        ImGuiTableFlags_SizingFixedFit)) {
-    ImGui::TableSetupColumn("Tile8 Source", ImGuiTableColumnFlags_WidthStretch, 0.5f);
-    ImGui::TableSetupColumn("Tile16 Editor", ImGuiTableColumnFlags_WidthFixed, 120.0f);
-    ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthStretch, 0.3f);
-    
+                        ImGuiTableFlags_Resizable |
+                            ImGuiTableFlags_BordersInnerV |
+                            ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableSetupColumn("Tile16 Blockset",
+                            ImGuiTableColumnFlags_WidthStretch, 0.35f);
+    ImGui::TableSetupColumn("Tile8 Source", ImGuiTableColumnFlags_WidthStretch,
+                            0.35f);
+    ImGui::TableSetupColumn("Editor & Controls",
+                            ImGuiTableColumnFlags_WidthStretch, 0.30f);
+
     ImGui::TableHeadersRow();
     ImGui::TableNextRow();
 
-    // Tile8 selector column - modern design
+    // ========== COLUMN 1: Tile16 Blockset ==========
     ImGui::TableNextColumn();
     ImGui::BeginGroup();
-    
-    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "Tile8 Source");
-    
-    // Modern palette group selector with better styling
-    const char* palette_group_names[] = {
-        "OW Main", "OW Aux", "OW Anim", "Dungeon", "Sprites", "Armor", "Sword"};
-    
-    ImGui::SetNextItemWidth(120);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.2f, 0.25f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.25f, 0.25f, 0.3f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.3f, 0.3f, 0.35f, 1.0f));
-    
-    if (ImGui::Combo("##PaletteGroup", &current_palette_group_, palette_group_names, 7)) {
-      RETURN_IF_ERROR(RefreshAllPalettes());
-    }
-    
-    ImGui::PopStyleColor(3);
 
-    // CRITICAL FIX: Use proper scrollable child window with fixed height
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "Tile16 Blockset");
+
+    // Blockset canvas with scrolling
+    if (BeginChild("##BlocksetScrollable",
+                   ImVec2(0, ImGui::GetContentRegionAvail().y), true,
+                   ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+
+      blockset_canvas_.DrawBackground();
+      blockset_canvas_.DrawContextMenu();
+
+      // Handle tile selection from blockset
+      bool tile_selected = false;
+      blockset_canvas_.DrawTileSelector(32.0f);
+
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Left) &&
+          blockset_canvas_.IsMouseHovering()) {
+        tile_selected = true;
+      }
+
+      if (tile_selected) {
+        const ImGuiIO& io = ImGui::GetIO();
+        ImVec2 canvas_pos = blockset_canvas_.zero_point();
+        ImVec2 mouse_pos =
+            ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
+
+        int grid_x = static_cast<int>(mouse_pos.x /
+                                      (32 * blockset_canvas_.GetGlobalScale()));
+        int grid_y = static_cast<int>(mouse_pos.y /
+                                      (32 * blockset_canvas_.GetGlobalScale()));
+        int selected_tile = grid_x + grid_y * 8;
+
+        if (selected_tile != current_tile16_ && selected_tile >= 0) {
+          RETURN_IF_ERROR(SetCurrentTile(selected_tile));
+          util::logf("Selected Tile16 from blockset: %d", selected_tile);
+        }
+      }
+
+      blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, true, 2);
+      blockset_canvas_.DrawGrid();
+      blockset_canvas_.DrawOverlay();
+    }
+    EndChild();
+    ImGui::EndGroup();
+
+    // ========== COLUMN 2: Tile8 Source ==========
+    ImGui::TableNextColumn();
+    ImGui::BeginGroup();
+
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "Tile8 Source");
+
     tile8_source_canvas_.set_draggable(false);
 
-    // Use direct ImGui child window for proper scrolling
-    if (BeginChild("##Tile8SourceScrollable",
-                   ImVec2(0, 32 * 8 * 4), true,
+    // Scrollable tile8 source
+    if (BeginChild("##Tile8SourceScrollable", ImVec2(0, 0), true,
                    ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
 
       tile8_source_canvas_.DrawBackground();
@@ -777,19 +800,18 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       }
 
       if (tile8_selected) {
-        // Get mouse position relative to canvas more accurately
         const ImGuiIO& io = ImGui::GetIO();
         ImVec2 canvas_pos = tile8_source_canvas_.zero_point();
         ImVec2 mouse_pos =
             ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
 
-        // Account for the 4x scale when calculating tile position
+        // Account for dynamic zoom when calculating tile position
         int tile_x = static_cast<int>(
             mouse_pos.x /
             (8 * 4));  // 8 pixel tile * 4x scale = 32 pixels per tile
         int tile_y = static_cast<int>(mouse_pos.y / (8 * 4));
 
-        // Calculate tiles per row based on bitmap width (should be 16 for 128px wide bitmap)
+        // Calculate tiles per row based on bitmap width
         int tiles_per_row = current_gfx_bmp_.width() / 8;
         int new_tile8 = tile_x + (tile_y * tiles_per_row);
 
@@ -802,15 +824,16 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         }
       }
 
-      tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 2, 2, 4.0F);
+      tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 2, 2, 4);
       tile8_source_canvas_.DrawGrid();
       tile8_source_canvas_.DrawOverlay();
-
-    }  // End tile8 source scrollable child
+    }
     EndChild();
     ImGui::EndGroup();
-    // Tile16 editor column - compact and focused
+
+    // ========== COLUMN 3: Tile16 Editor + Controls ==========
     TableNextColumn();
+    ImGui::BeginGroup();
 
     // Fixed size container to prevent canvas expansion
     if (ImGui::BeginChild("##Tile16FixedCanvas", ImVec2(90, 90), true,
@@ -820,9 +843,9 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       tile16_edit_canvas_.DrawBackground(ImVec2(64, 64));
       tile16_edit_canvas_.DrawContextMenu();
 
-      // Draw current tile16 bitmap at 4x scale for clarity (16x16 pixels -> 64x64 display)
+      // Draw current tile16 bitmap with dynamic zoom
       if (current_tile16_bmp_.is_active()) {
-        tile16_edit_canvas_.DrawBitmap(current_tile16_bmp_, 2, 2, 4.0F);
+        tile16_edit_canvas_.DrawBitmap(current_tile16_bmp_, 2, 2, 4);
       }
 
       // Handle tile8 painting with improved hover preview
@@ -832,21 +855,23 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
         // Create a display tile that shows the current palette selection
         gfx::Bitmap display_tile;
-        
+
         // Get the original pixel data (already has sheet offsets from ProcessGraphicsBuffer)
-        std::vector<uint8_t> tile_data = current_gfx_individual_[current_tile8_].vector();
-        
+        std::vector<uint8_t> tile_data =
+            current_gfx_individual_[current_tile8_].vector();
+
         // The pixel data already contains the correct indices for the 256-color palette
         // We don't need to remap - just use it as-is
         display_tile.Create(8, 8, 8, tile_data);
-        
+
         // Apply the complete 256-color palette
         if (overworld_palette_.size() >= 256) {
           display_tile.SetPalette(overworld_palette_);
         } else {
-          display_tile.SetPalette(current_gfx_individual_[current_tile8_].palette());
+          display_tile.SetPalette(
+              current_gfx_individual_[current_tile8_].palette());
         }
-        
+
         // Apply flips if needed
         if (x_flip || y_flip) {
           auto& data = display_tile.mutable_data();
@@ -867,26 +892,27 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
             }
           }
         }
-        
+
         // Render the display tile
         core::Renderer::Get().RenderBitmap(&display_tile);
 
         // CRITICAL FIX: Handle tile painting with simple click instead of click+drag
         // Draw the preview first
-        tile16_edit_canvas_.DrawTilePainter(display_tile, 8, 4.0F);
+        tile16_edit_canvas_.DrawTilePainter(
+            display_tile, 8, 4);
 
         // Check for simple click to paint tile8 to tile16
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-          // Get mouse position relative to tile16 canvas
           const ImGuiIO& io = ImGui::GetIO();
           ImVec2 canvas_pos = tile16_edit_canvas_.zero_point();
           ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x,
                                     io.MousePos.y - canvas_pos.y);
 
-          // Convert canvas coordinates to tile16 coordinates (0-15 range)
-          // The canvas is 64x64 display pixels showing a 16x16 tile at 4x scale
-          int tile_x = static_cast<int>(mouse_pos.x / 4.0F);
-          int tile_y = static_cast<int>(mouse_pos.y / 4.0F);
+          // Convert canvas coordinates to tile16 coordinates with dynamic zoom
+          int tile_x = static_cast<int>(mouse_pos.x /
+                                        4);
+          int tile_y = static_cast<int>(mouse_pos.y /
+                                        4);
 
           // Clamp to valid range
           tile_x = std::max(0, std::min(15, tile_x));
@@ -895,22 +921,22 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           util::logf("Tile16 canvas click: (%.2f, %.2f) -> Tile16: (%d, %d)",
                      mouse_pos.x, mouse_pos.y, tile_x, tile_y);
 
-          // Pass the display tile to draw
           RETURN_IF_ERROR(
               DrawToCurrentTile16(ImVec2(tile_x, tile_y), &display_tile));
         }
 
         // CRITICAL FIX: Right-click to pick tile8 from tile16
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          // Get mouse position relative to tile16 canvas
           const ImGuiIO& io = ImGui::GetIO();
           ImVec2 canvas_pos = tile16_edit_canvas_.zero_point();
           ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x,
                                     io.MousePos.y - canvas_pos.y);
 
-          // Convert canvas coordinates to tile16 coordinates (0-15 range)
-          int tile_x = static_cast<int>(mouse_pos.x / 4.0F);
-          int tile_y = static_cast<int>(mouse_pos.y / 4.0F);
+          // Convert with dynamic zoom
+          int tile_x = static_cast<int>(mouse_pos.x /
+                                        4);
+          int tile_y = static_cast<int>(mouse_pos.y /
+                                        4);
 
           // Clamp to valid range
           tile_x = std::max(0, std::min(15, tile_x));
@@ -922,164 +948,156 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         }
       }
 
-      tile16_edit_canvas_.DrawGrid(8.0F);  // 8x8 grid
+      tile16_edit_canvas_.DrawGrid(8.0F);  // Scale grid with zoom
       tile16_edit_canvas_.DrawOverlay();
-
-    }  // End fixed canvas child window
+    }
     ImGui::EndChild();
-
-    // Compact preview below canvas
-    if (current_tile16_bmp_.is_active()) {
-      auto* texture = current_tile16_bmp_.texture();
-      if (texture) {
-        Text("Preview:");
-        ImGui::Image((ImTextureID)(intptr_t)texture, ImVec2(32.0F, 32.0F));
-      }
-    }
-
-    // Controls column - clean and organized
-    TableNextColumn();
-    Text("Controls");
-
-    // Essential tile8 controls at the top
-    Text("Tile8 Options:");
-    Checkbox("X Flip", &x_flip);
-    SameLine();
-    Checkbox("Y Flip", &y_flip);
-    Checkbox("Priority", &priority_tile);
-
-    // Show current tile8 selection
-    if (current_tile8_ >= 0 &&
-        current_tile8_ < static_cast<int>(current_gfx_individual_.size()) &&
-        current_gfx_individual_[current_tile8_].is_active()) {
-      Text("Tile8: %d", current_tile8_);
-      SameLine();
-      auto* tile8_texture = current_gfx_individual_[current_tile8_].texture();
-      if (tile8_texture) {
-        ImGui::Image((ImTextureID)(intptr_t)tile8_texture, ImVec2(16, 16));
-      }
-    }
 
     Separator();
 
-    // Modern palette selector with enhanced UX
-    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "Palette Selection");
-    
-    // Show debug info if enabled
-    if (show_debug_info) {
-      int actual_slot = GetActualPaletteSlotForCurrentTile16();
-      ImGui::TextDisabled("Button %d → Slot %d", current_palette_, actual_slot);
+    // === Compact Controls Section ===
+
+    // Tile8 info and preview
+    if (current_tile8_ >= 0 &&
+        current_tile8_ < static_cast<int>(current_gfx_individual_.size()) &&
+        current_gfx_individual_[current_tile8_].is_active()) {
+      Text("Tile8: %02X", current_tile8_);
+      SameLine();
+      auto* tile8_texture = current_gfx_individual_[current_tile8_].texture();
+      if (tile8_texture) {
+        ImGui::Image((ImTextureID)(intptr_t)tile8_texture, ImVec2(24, 24));
+      }
     }
 
-    // Modern palette grid with improved styling
+    // Tile8 transform options in compact form
+    Checkbox("X Flip", &x_flip);
+    SameLine();
+    Checkbox("Y Flip", &y_flip);
+    SameLine();
+    Checkbox("Priority", &priority_tile);
+
+    Separator();
+
+    // Palette selector - more compact
+    Text("Palette:");
+    if (show_debug_info) {
+      SameLine();
+      int actual_slot = GetActualPaletteSlotForCurrentTile16();
+      ImGui::TextDisabled("(Slot %d)", actual_slot);
+    }
+
+    // Compact palette grid
     ImGui::BeginGroup();
-    
-    // Calculate optimal button size based on available width
     float available_width = ImGui::GetContentRegionAvail().x;
-    float button_size = std::min(28.0f, (available_width - 24.0f) / 4.0f);
-    
+    float button_size = std::min(32.0f, (available_width - 16.0f) / 4.0f);
+
     for (int row = 0; row < 2; ++row) {
       for (int col = 0; col < 4; ++col) {
-        if (col > 0) ImGui::SameLine();
-        
+        if (col > 0)
+          ImGui::SameLine();
+
         int i = row * 4 + col;
         bool is_current = (current_palette_ == i);
-        
+
         // Modern button styling with better visual hierarchy
         ImGui::PushID(i);
-        
+
         if (is_current) {
-          ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.3f, 1.0f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.8f, 0.4f, 1.0f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.6f, 0.2f, 1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,
+                                ImVec4(0.2f, 0.7f, 0.3f, 1.0f));
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                                ImVec4(0.3f, 0.8f, 0.4f, 1.0f));
+          ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                                ImVec4(0.1f, 0.6f, 0.2f, 1.0f));
         } else {
-          ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.35f, 1.0f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.45f, 1.0f));
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.3f, 1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Button,
+                                ImVec4(0.3f, 0.3f, 0.35f, 1.0f));
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                                ImVec4(0.4f, 0.4f, 0.45f, 1.0f));
+          ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                                ImVec4(0.25f, 0.25f, 0.3f, 1.0f));
         }
-        
+
         // Add border for better definition
         ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-        ImGui::PushStyleColor(ImGuiCol_Border, is_current ? 
-          ImVec4(0.4f, 0.9f, 0.5f, 1.0f) : ImVec4(0.5f, 0.5f, 0.5f, 0.3f));
-        
-        if (ImGui::Button(absl::StrFormat("%d", i).c_str(), ImVec2(button_size, button_size))) {
+        ImGui::PushStyleColor(ImGuiCol_Border,
+                              is_current ? ImVec4(0.4f, 0.9f, 0.5f, 1.0f)
+                                         : ImVec4(0.5f, 0.5f, 0.5f, 0.3f));
+
+        if (ImGui::Button(absl::StrFormat("%d", i).c_str(),
+                          ImVec2(button_size, button_size))) {
           if (current_palette_ != i) {
             current_palette_ = i;
             auto status = RefreshAllPalettes();
             if (!status.ok()) {
-              util::logf("Failed to refresh palettes: %s", status.message().data());
+              util::logf("Failed to refresh palettes: %s",
+                         status.message().data());
             } else {
-              util::logf("Palette successfully changed to %d", current_palette_);
+              util::logf("Palette successfully changed to %d",
+                         current_palette_);
             }
           }
         }
-        
+
         ImGui::PopStyleColor(4);  // 3 button colors + 1 border color
         ImGui::PopStyleVar(1);    // border size
         ImGui::PopID();
-        
-        // Enhanced tooltip with debug information
+
+        // Simplified tooltip
         if (ImGui::IsItemHovered()) {
           ImGui::BeginTooltip();
-          ImGui::Text("Palette Button %d", i);
-          
           if (show_debug_info) {
-            // Show what actual palette slot this maps to for different sheets
-            ImGui::Separator();
-            ImGui::Text("Sheet Mappings:");
-            ImGui::Text("  Sheet 0,3,4: Slot %d", GetActualPaletteSlot(i, 0));
-            ImGui::Text("  Sheet 1,2:   Slot %d", GetActualPaletteSlot(i, 1));
-            ImGui::Text("  Sheet 5,6:   Slot %d", GetActualPaletteSlot(i, 5));
-            ImGui::Text("  Sheet 7:     Slot %d", GetActualPaletteSlot(i, 7));
+            ImGui::Text("Palette %d → Slots:", i);
+            ImGui::Text("  S0,3,4: %d", GetActualPaletteSlot(i, 0));
+            ImGui::Text("  S1,2: %d", GetActualPaletteSlot(i, 1));
+            ImGui::Text("  S5,6: %d", GetActualPaletteSlot(i, 5));
+            ImGui::Text("  S7: %d", GetActualPaletteSlot(i, 7));
           } else {
+            ImGui::Text("Palette %d", i);
             if (is_current) {
-              ImGui::TextColored(ImVec4(0.3f, 0.8f, 0.3f, 1.0f), "✓ Active");
-            } else {
-              ImGui::Text("Click to activate");
+              ImGui::TextColored(ImVec4(0.3f, 0.8f, 0.3f, 1.0f), "Active");
             }
           }
           ImGui::EndTooltip();
         }
       }
     }
-    
     ImGui::EndGroup();
 
     Separator();
 
-    // Essential actions
-    Text("Actions:");
-    if (Button("Clear", ImVec2(50, 0))) {
+    // Compact action buttons
+    if (Button("Clear", ImVec2(-1, 0))) {
       RETURN_IF_ERROR(ClearTile16());
     }
-    SameLine();
-    if (Button("Copy", ImVec2(50, 0))) {
+
+    if (Button("Copy", ImVec2(-1, 0))) {
       RETURN_IF_ERROR(CopyTile16ToClipboard(current_tile16_));
     }
-    if (Button("Paste", ImVec2(50, 0))) {
+
+    if (Button("Paste", ImVec2(-1, 0))) {
       RETURN_IF_ERROR(PasteTile16FromClipboard());
     }
 
     Separator();
 
-    // Save/Discard changes
-    Text("Changes:");
-    if (Button("Save", ImVec2(50, 0))) {
+    // Save/Discard - full width buttons
+    if (Button("Save Changes", ImVec2(-1, 0))) {
       RETURN_IF_ERROR(CommitChangesToOverworld());
     }
     HOVER_HINT("Apply changes to overworld and regenerate blockset");
-    SameLine();
-    if (Button("Discard", ImVec2(50, 0))) {
+
+    if (Button("Discard Changes", ImVec2(-1, 0))) {
       RETURN_IF_ERROR(DiscardChanges());
     }
     HOVER_HINT("Reload tile16 from ROM, discarding local changes");
 
-    bool can_undo = !undo_stack_.empty();
+    Separator();
 
+    bool can_undo = !undo_stack_.empty();
     if (!can_undo)
       BeginDisabled();
-    if (Button("Undo", ImVec2(50, 0))) {
+    if (Button("Undo", ImVec2(-1, 0))) {
       RETURN_IF_ERROR(Undo());
     }
     if (!can_undo)
@@ -1087,61 +1105,55 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
     // Advanced controls (collapsible)
     if (show_advanced_controls) {
-      ImGui::Separator();
-      ImGui::TextColored(ImVec4(0.8f, 0.9f, 1.0f, 1.0f), "Advanced Controls");
-      
-      ImGui::BeginGroup();
-      if (ImGui::Button("Palette Settings", ImVec2(120, 0))) {
+      Separator();
+      Text("Advanced:");
+
+      if (Button("Palette Settings", ImVec2(-1, 0))) {
         show_palette_settings_ = !show_palette_settings_;
       }
-      
-      if (ImGui::Button("Manual Edit", ImVec2(120, 0))) {
+
+      if (Button("Manual Edit", ImVec2(-1, 0))) {
         ImGui::OpenPopup("ManualTile8Editor");
       }
-      
-      if (ImGui::Button("Refresh Blockset", ImVec2(120, 0))) {
+
+      if (Button("Refresh Blockset", ImVec2(-1, 0))) {
         RETURN_IF_ERROR(RefreshTile16Blockset());
       }
-      ImGui::EndGroup();
 
       // Scratch space in compact form
-      ImGui::Text("Scratch Space:");
+      Text("Scratch:");
       DrawScratchSpace();
 
       // Manual tile8 editor popup
       DrawManualTile8Inputs();
     }
-    
-    // Debug information panel
+
+    // Compact debug information panel
     if (show_debug_info) {
-      ImGui::Separator();
-      ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.6f, 1.0f), "Debug Information");
-      
-      // Current tile16 info
-      ImGui::BeginGroup();
-      ImGui::Text("Current Tile16: %d (0x%02X)", current_tile16_, current_tile16_);
-      ImGui::Text("Current Tile8: %d", current_tile8_);
-      ImGui::Text("Selected Palette Button: %d", current_palette_);
-      
+      Separator();
+      Text("Debug:");
+      ImGui::TextDisabled("T16:%02X T8:%d Pal:%d", current_tile16_,
+                          current_tile8_, current_palette_);
+
       if (current_tile8_ >= 0) {
         int sheet_index = GetSheetIndexForTile8(current_tile8_);
         int actual_slot = GetActualPaletteSlot(current_palette_, sheet_index);
-        ImGui::Text("Tile8 Sheet Index: %d", sheet_index);
-        ImGui::Text("Actual Palette Slot: %d", actual_slot);
+        ImGui::TextDisabled("Sheet:%d Slot:%d", sheet_index, actual_slot);
       }
-      ImGui::EndGroup();
-      
-      // Palette mapping table
-      if (ImGui::CollapsingHeader("Palette Mapping Reference")) {
-        if (ImGui::BeginTable("##PaletteMapping", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-          ImGui::TableSetupColumn("Button");
-          ImGui::TableSetupColumn("Sheet 0,3,4");
-          ImGui::TableSetupColumn("Sheet 1,2");
-          ImGui::TableSetupColumn("Sheet 5,6");
-          ImGui::TableSetupColumn("Sheet 7");
-          ImGui::TableSetupColumn("Default");
+
+      // Compact palette mapping table
+      if (ImGui::CollapsingHeader("Palette Map",
+                                  ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::BeginChild("##PaletteMappingScroll", ImVec2(0, 120), true);
+        if (ImGui::BeginTable("##PalMap", 3,
+                              ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                                  ImGuiTableFlags_SizingFixedFit)) {
+          ImGui::TableSetupColumn("Btn", ImGuiTableColumnFlags_WidthFixed, 30);
+          ImGui::TableSetupColumn("S0,3-4", ImGuiTableColumnFlags_WidthFixed,
+                                  50);
+          ImGui::TableSetupColumn("S1-2", ImGuiTableColumnFlags_WidthFixed, 50);
           ImGui::TableHeadersRow();
-          
+
           for (int i = 0; i < 8; ++i) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
@@ -1150,52 +1162,54 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
             ImGui::Text("%d", GetActualPaletteSlot(i, 0));
             ImGui::TableNextColumn();
             ImGui::Text("%d", GetActualPaletteSlot(i, 1));
-            ImGui::TableNextColumn();
-            ImGui::Text("%d", GetActualPaletteSlot(i, 5));
-            ImGui::TableNextColumn();
-            ImGui::Text("%d", GetActualPaletteSlot(i, 7));
-            ImGui::TableNextColumn();
-            ImGui::Text("%d", GetActualPaletteSlot(i, 0));
           }
           ImGui::EndTable();
         }
+        ImGui::EndChild();
       }
-      
-      // Color comparison section
-      if (ImGui::CollapsingHeader("Color Comparison")) {
+
+      // Color preview - compact
+      if (ImGui::CollapsingHeader("Colors")) {
         if (overworld_palette_.size() >= 256) {
-          ImGui::Text("Overworld Palette Size: %zu colors", overworld_palette_.size());
-          
-          // Show first few colors of current palette slot
           int actual_slot = GetActualPaletteSlotForCurrentTile16();
-          ImGui::Text("Current Palette Slot Colors (starting at slot %d):", actual_slot);
-          
-          ImGui::BeginGroup();
-          for (int i = 0; i < 16 && (actual_slot + i) < static_cast<int>(overworld_palette_.size()); ++i) {
+          ImGui::Text("Slot %d:", actual_slot);
+
+          for (int i = 0;
+               i < 8 &&
+               (actual_slot + i) < static_cast<int>(overworld_palette_.size());
+               ++i) {
             int color_index = actual_slot + i;
             auto color = overworld_palette_[color_index];
             ImVec4 display_color = color.rgb();
-            
-            ImGui::ColorButton(absl::StrFormat("##color%d", i).c_str(), 
-                              display_color, ImGuiColorEditFlags_NoTooltip, ImVec2(16, 16));
+
+            ImGui::ColorButton(absl::StrFormat("##c%d", i).c_str(),
+                               display_color, ImGuiColorEditFlags_NoTooltip,
+                               ImVec2(20, 20));
             if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Slot %d: 0x%04X", color_index, color.snes());
+              ImGui::SetTooltip("%d:0x%04X", color_index, color.snes());
             }
-            
-            if ((i + 1) % 8 != 0) ImGui::SameLine();
+
+            if ((i + 1) % 4 != 0)
+              ImGui::SameLine();
           }
-          ImGui::EndGroup();
-        } else {
-          ImGui::TextDisabled("Overworld palette not available");
         }
       }
     }
 
+    ImGui::EndGroup();
     EndTable();
   }
 
-  // Draw palette settings if enabled
+  // Draw palette settings and canvas popups
   DrawPaletteSettings();
+
+  // Show canvas popup windows if opened from context menu
+  blockset_canvas_.ShowAdvancedCanvasProperties();
+  blockset_canvas_.ShowScalingControls();
+  tile8_source_canvas_.ShowAdvancedCanvasProperties();
+  tile8_source_canvas_.ShowScalingControls();
+  tile16_edit_canvas_.ShowAdvancedCanvasProperties();
+  tile16_edit_canvas_.ShowScalingControls();
 
   return absl::OkStatus();
 }
@@ -1249,7 +1263,7 @@ absl::Status Tile16Editor::LoadTile8() {
 
       try {
         tile_bitmap.Create(8, 8, 8, tile_data);
-        
+
         // Set default palette using the same system as overworld
         if (overworld_palette_.size() >= 256) {
           // Use complete 256-color palette (same as overworld system)
@@ -1948,37 +1962,38 @@ int Tile16Editor::GetPaletteSlotForSheet(int sheet_index) const {
 }
 
 // NEW: Get the actual palette slot for a given palette button and sheet index
-int Tile16Editor::GetActualPaletteSlot(int palette_button, int sheet_index) const {
+int Tile16Editor::GetActualPaletteSlot(int palette_button,
+                                       int sheet_index) const {
   // Map palette buttons 0-7 to actual 256-color palette slots based on sheet type
   // Based on the correct 256-color palette structure from SetColorsPalette()
   // The 256-color palette is organized as a 16x16 grid (16 colors per row)
-  
+
   switch (sheet_index) {
-    case 0:     // Main blockset -> AUX1 region (right side, rows 2-4, cols 9-15)
-    case 3:     
-    case 4:     
+    case 0:  // Main blockset -> AUX1 region (right side, rows 2-4, cols 9-15)
+    case 3:
+    case 4:
       // AUX1 palette: Row 2-4, cols 9-15 = slots 41-47, 57-63, 73-79
       // Use row 2, col 9 + palette_button offset
       return 41 + palette_button;  // Row 2, col 9 = slot 41
-      
-    case 5:     
-    case 6:     // Area graphics -> AUX2 region (right side, rows 5-7, cols 9-15)
+
+    case 5:
+    case 6:  // Area graphics -> AUX2 region (right side, rows 5-7, cols 9-15)
       // AUX2 palette: Row 5-7, cols 9-15 = slots 89-95, 105-111, 121-127
-      // Use row 5, col 9 + palette_button offset  
+      // Use row 5, col 9 + palette_button offset
       return 89 + palette_button;  // Row 5, col 9 = slot 89
-      
-    case 1:     
-    case 2:     // Main graphics -> MAIN region (left side, rows 2-6, cols 1-7)
+
+    case 1:
+    case 2:  // Main graphics -> MAIN region (left side, rows 2-6, cols 1-7)
       // MAIN palette: Row 2-6, cols 1-7 = slots 33-39, 49-55, 65-71, 81-87, 97-103
       // Use row 2, col 1 + palette_button offset
       return 33 + palette_button;  // Row 2, col 1 = slot 33
-      
-    case 7:     // Animated tiles -> ANIMATED region (row 7, cols 1-7)
+
+    case 7:  // Animated tiles -> ANIMATED region (row 7, cols 1-7)
       // ANIMATED palette: Row 7, cols 1-7 = slots 113-119
       return 113 + palette_button;  // Row 7, col 1 = slot 113
-      
-    default:    
-      return 33 + palette_button;   // Default to MAIN region
+
+    default:
+      return 33 + palette_button;  // Default to MAIN region
   }
 }
 
@@ -1986,10 +2001,10 @@ int Tile16Editor::GetActualPaletteSlot(int palette_button, int sheet_index) cons
 int Tile16Editor::GetSheetIndexForTile8(int tile8_id) const {
   // Determine which graphics sheet a tile8 belongs to based on its position
   // This is based on the 256-tile per sheet organization
-  
+
   constexpr int kTilesPerSheet = 256;  // 16x16 tiles per sheet
   int sheet_index = tile8_id / kTilesPerSheet;
-  
+
   // Clamp to valid sheet range (0-7)
   return std::min(7, std::max(0, sheet_index));
 }
@@ -1998,16 +2013,16 @@ int Tile16Editor::GetSheetIndexForTile8(int tile8_id) const {
 int Tile16Editor::GetActualPaletteSlotForCurrentTile16() const {
   // For the current tile16, we need to determine which sheet the tile8s belong to
   // and use the most appropriate palette region
-  
-  if (current_tile8_ >= 0 && current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
+
+  if (current_tile8_ >= 0 &&
+      current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
     int sheet_index = GetSheetIndexForTile8(current_tile8_);
     return GetActualPaletteSlot(current_palette_, sheet_index);
   }
-  
+
   // Default to sheet 0 (main blockset) if no tile8 selected
   return GetActualPaletteSlot(current_palette_, 0);
 }
-
 
 // Helper methods for palette management
 absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
@@ -2046,15 +2061,16 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
     current_palette_ = 0;
   }
 
-  // Use the same palette system as the overworld (complete 256-color palette)
-  if (display_palette.size() >= 256) {
-    // Apply complete 256-color palette (same as overworld system)
-    // The pixel data already contains correct color indices for the 256-color palette
-    current_gfx_individual_[tile8_id].SetPalette(display_palette);
-  } else {
-    // For smaller palettes, use SetPaletteWithTransparent with current palette
-    current_gfx_individual_[tile8_id].SetPaletteWithTransparent(display_palette, current_palette_);
-  }
+  // // Use the same palette system as the overworld (complete 256-color palette)
+  // if (display_palette.size() >= 256) {
+  //   // Apply complete 256-color palette (same as overworld system)
+  //   // The pixel data already contains correct color indices for the 256-color palette
+  //   current_gfx_individual_[tile8_id].SetPalette(display_palette);
+  // } else {
+  // For smaller palettes, use SetPaletteWithTransparent with current palette
+  current_gfx_individual_[tile8_id].SetPaletteWithTransparent(display_palette,
+                                                              current_palette_);
+  // }
 
   current_gfx_individual_[tile8_id].set_modified(true);
   Renderer::Get().UpdateBitmap(&current_gfx_individual_[tile8_id]);
@@ -2104,13 +2120,15 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
   // CRITICAL FIX: Use the same palette system as the overworld
   // The overworld system applies the complete 256-color palette to the main graphics bitmap
   // Individual tile8 graphics use the same palette but with proper color mapping
-  
+
   if (current_gfx_bmp_.is_active()) {
     // Apply the complete 256-color palette to the source bitmap (same as overworld)
     current_gfx_bmp_.SetPalette(display_palette);
     current_gfx_bmp_.set_modified(true);
     core::Renderer::Get().UpdateBitmap(&current_gfx_bmp_);
-    util::logf("Applied complete 256-color palette to source bitmap (same as overworld)");
+    util::logf(
+        "Applied complete 256-color palette to source bitmap (same as "
+        "overworld)");
   }
 
   // Update current tile16 being edited with complete 256-color palette
@@ -2133,7 +2151,8 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
   }
 
   util::logf(
-      "Successfully refreshed all palettes in tile16 editor using complete 256-color palette "
+      "Successfully refreshed all palettes in tile16 editor using complete "
+      "256-color palette "
       "(same as overworld system)");
   return absl::OkStatus();
 }
