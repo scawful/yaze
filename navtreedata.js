@@ -694,90 +694,150 @@ var NAVTREE =
       ] ],
       [ "Key Features", "md_docs_2index.html#autotoc_md535", null ]
     ] ],
+    [ "YAZE Overworld Testing Guide", "md_docs_2overworld__testing__guide.html", [
+      [ "Overview", "md_docs_2overworld__testing__guide.html#autotoc_md538", null ],
+      [ "Test Architecture", "md_docs_2overworld__testing__guide.html#autotoc_md539", [
+        [ "1. Golden Data System", "md_docs_2overworld__testing__guide.html#autotoc_md540", null ],
+        [ "2. Test Categories", "md_docs_2overworld__testing__guide.html#autotoc_md541", [
+          [ "Unit Tests (<tt>test/unit/zelda3/</tt>)", "md_docs_2overworld__testing__guide.html#autotoc_md542", null ],
+          [ "Integration Tests (<tt>test/e2e/</tt>)", "md_docs_2overworld__testing__guide.html#autotoc_md543", null ],
+          [ "Golden Data Tools", "md_docs_2overworld__testing__guide.html#autotoc_md544", null ]
+        ] ]
+      ] ],
+      [ "Quick Start", "md_docs_2overworld__testing__guide.html#autotoc_md545", [
+        [ "Prerequisites", "md_docs_2overworld__testing__guide.html#autotoc_md546", null ],
+        [ "Running Tests", "md_docs_2overworld__testing__guide.html#autotoc_md547", [
+          [ "Basic Test Run", "md_docs_2overworld__testing__guide.html#autotoc_md548", null ],
+          [ "Selective Test Execution", "md_docs_2overworld__testing__guide.html#autotoc_md549", null ]
+        ] ]
+      ] ],
+      [ "Test Components", "md_docs_2overworld__testing__guide.html#autotoc_md550", [
+        [ "1. Golden Data Extractor", "md_docs_2overworld__testing__guide.html#autotoc_md551", null ],
+        [ "2. Integration Tests", "md_docs_2overworld__testing__guide.html#autotoc_md552", null ],
+        [ "3. End-to-End Tests", "md_docs_2overworld__testing__guide.html#autotoc_md553", null ]
+      ] ],
+      [ "Test Validation Points", "md_docs_2overworld__testing__guide.html#autotoc_md554", [
+        [ "1. ZScream Compatibility", "md_docs_2overworld__testing__guide.html#autotoc_md555", null ],
+        [ "2. ROM State Validation", "md_docs_2overworld__testing__guide.html#autotoc_md556", null ],
+        [ "3. Performance and Stability", "md_docs_2overworld__testing__guide.html#autotoc_md557", null ]
+      ] ],
+      [ "Environment Variables", "md_docs_2overworld__testing__guide.html#autotoc_md558", [
+        [ "Test Configuration", "md_docs_2overworld__testing__guide.html#autotoc_md559", null ],
+        [ "Build Configuration", "md_docs_2overworld__testing__guide.html#autotoc_md560", null ]
+      ] ],
+      [ "Test Reports", "md_docs_2overworld__testing__guide.html#autotoc_md561", [
+        [ "Generated Reports", "md_docs_2overworld__testing__guide.html#autotoc_md562", null ],
+        [ "Report Location", "md_docs_2overworld__testing__guide.html#autotoc_md563", null ]
+      ] ],
+      [ "Troubleshooting", "md_docs_2overworld__testing__guide.html#autotoc_md564", [
+        [ "Common Issues", "md_docs_2overworld__testing__guide.html#autotoc_md565", [
+          [ "1. ROM Not Found", "md_docs_2overworld__testing__guide.html#autotoc_md566", null ],
+          [ "2. Build Failures", "md_docs_2overworld__testing__guide.html#autotoc_md567", null ],
+          [ "3. Test Failures", "md_docs_2overworld__testing__guide.html#autotoc_md568", null ]
+        ] ],
+        [ "Debug Mode", "md_docs_2overworld__testing__guide.html#autotoc_md569", null ]
+      ] ],
+      [ "Advanced Usage", "md_docs_2overworld__testing__guide.html#autotoc_md570", [
+        [ "Custom Test Scenarios", "md_docs_2overworld__testing__guide.html#autotoc_md571", [
+          [ "1. Testing Custom ROMs", "md_docs_2overworld__testing__guide.html#autotoc_md572", null ],
+          [ "2. Regression Testing", "md_docs_2overworld__testing__guide.html#autotoc_md573", null ],
+          [ "3. Performance Testing", "md_docs_2overworld__testing__guide.html#autotoc_md574", null ]
+        ] ]
+      ] ],
+      [ "Integration with CI/CD", "md_docs_2overworld__testing__guide.html#autotoc_md575", [
+        [ "GitHub Actions Example", "md_docs_2overworld__testing__guide.html#autotoc_md576", null ]
+      ] ],
+      [ "Contributing", "md_docs_2overworld__testing__guide.html#autotoc_md577", [
+        [ "Adding New Tests", "md_docs_2overworld__testing__guide.html#autotoc_md578", null ],
+        [ "Test Guidelines", "md_docs_2overworld__testing__guide.html#autotoc_md579", null ],
+        [ "Example Test Structure", "md_docs_2overworld__testing__guide.html#autotoc_md580", null ]
+      ] ],
+      [ "Conclusion", "md_docs_2overworld__testing__guide.html#autotoc_md581", null ]
+    ] ],
     [ "YAZE - Yet Another Zelda3 Editor", "md_README.html", [
-      [ "Version 0.3.1 - Release", "md_README.html#autotoc_md538", [
-        [ "🛠️ Technical Improvements", "md_README.html#autotoc_md542", null ]
+      [ "Version 0.3.1 - Release", "md_README.html#autotoc_md583", [
+        [ "🛠️ Technical Improvements", "md_README.html#autotoc_md587", null ]
       ] ],
-      [ "Quick Start", "md_README.html#autotoc_md543", [
-        [ "Build", "md_README.html#autotoc_md544", null ],
-        [ "Applications", "md_README.html#autotoc_md545", null ]
+      [ "Quick Start", "md_README.html#autotoc_md588", [
+        [ "Build", "md_README.html#autotoc_md589", null ],
+        [ "Applications", "md_README.html#autotoc_md590", null ]
       ] ],
-      [ "Usage", "md_README.html#autotoc_md546", [
-        [ "GUI Editor", "md_README.html#autotoc_md547", null ],
-        [ "Command Line Tool", "md_README.html#autotoc_md548", null ],
-        [ "C++ API", "md_README.html#autotoc_md549", null ]
+      [ "Usage", "md_README.html#autotoc_md591", [
+        [ "GUI Editor", "md_README.html#autotoc_md592", null ],
+        [ "Command Line Tool", "md_README.html#autotoc_md593", null ],
+        [ "C++ API", "md_README.html#autotoc_md594", null ]
       ] ],
-      [ "Documentation", "md_README.html#autotoc_md550", null ],
-      [ "Supported Platforms", "md_README.html#autotoc_md551", null ],
-      [ "ROM Compatibility", "md_README.html#autotoc_md552", null ],
-      [ "Contributing", "md_README.html#autotoc_md553", null ],
-      [ "License", "md_README.html#autotoc_md554", null ],
-      [ "🙏 Acknowledgments", "md_README.html#autotoc_md555", null ],
-      [ "📸 Screenshots", "md_README.html#autotoc_md556", null ]
+      [ "Documentation", "md_README.html#autotoc_md595", null ],
+      [ "Supported Platforms", "md_README.html#autotoc_md596", null ],
+      [ "ROM Compatibility", "md_README.html#autotoc_md597", null ],
+      [ "Contributing", "md_README.html#autotoc_md598", null ],
+      [ "License", "md_README.html#autotoc_md599", null ],
+      [ "🙏 Acknowledgments", "md_README.html#autotoc_md600", null ],
+      [ "📸 Screenshots", "md_README.html#autotoc_md601", null ]
     ] ],
     [ "YAZE Build Scripts", "md_scripts_2README.html", [
-      [ "Windows Scripts", "md_scripts_2README.html#autotoc_md559", [
-        [ "Setup Scripts", "md_scripts_2README.html#autotoc_md560", null ],
-        [ "Build Scripts", "md_scripts_2README.html#autotoc_md561", null ],
-        [ "Validation Scripts", "md_scripts_2README.html#autotoc_md562", null ],
-        [ "Project Generation", "md_scripts_2README.html#autotoc_md563", null ]
+      [ "Windows Scripts", "md_scripts_2README.html#autotoc_md604", [
+        [ "Setup Scripts", "md_scripts_2README.html#autotoc_md605", null ],
+        [ "Build Scripts", "md_scripts_2README.html#autotoc_md606", null ],
+        [ "Validation Scripts", "md_scripts_2README.html#autotoc_md607", null ],
+        [ "Project Generation", "md_scripts_2README.html#autotoc_md608", null ]
       ] ],
-      [ "Windows Compiler Recommendations", "md_scripts_2README.html#autotoc_md564", [
-        [ "⚠️ Important: MSVC vs Clang on Windows", "md_scripts_2README.html#autotoc_md565", [
-          [ "Why Clang is Recommended:", "md_scripts_2README.html#autotoc_md566", null ],
-          [ "MSVC Issues:", "md_scripts_2README.html#autotoc_md567", null ]
+      [ "Windows Compiler Recommendations", "md_scripts_2README.html#autotoc_md609", [
+        [ "⚠️ Important: MSVC vs Clang on Windows", "md_scripts_2README.html#autotoc_md610", [
+          [ "Why Clang is Recommended:", "md_scripts_2README.html#autotoc_md611", null ],
+          [ "MSVC Issues:", "md_scripts_2README.html#autotoc_md612", null ]
         ] ],
-        [ "Compiler Setup Options", "md_scripts_2README.html#autotoc_md568", [
-          [ "Option 1: Clang (Recommended)", "md_scripts_2README.html#autotoc_md569", null ],
-          [ "Option 2: MSVC with Workarounds", "md_scripts_2README.html#autotoc_md570", null ]
+        [ "Compiler Setup Options", "md_scripts_2README.html#autotoc_md613", [
+          [ "Option 1: Clang (Recommended)", "md_scripts_2README.html#autotoc_md614", null ],
+          [ "Option 2: MSVC with Workarounds", "md_scripts_2README.html#autotoc_md615", null ]
         ] ]
       ] ],
-      [ "Quick Start (Windows)", "md_scripts_2README.html#autotoc_md571", [
-        [ "Option 1: Automated Setup (Recommended)", "md_scripts_2README.html#autotoc_md572", null ],
-        [ "Option 2: Manual Setup", "md_scripts_2README.html#autotoc_md573", null ],
-        [ "Option 3: Using Batch Scripts", "md_scripts_2README.html#autotoc_md574", null ]
+      [ "Quick Start (Windows)", "md_scripts_2README.html#autotoc_md616", [
+        [ "Option 1: Automated Setup (Recommended)", "md_scripts_2README.html#autotoc_md617", null ],
+        [ "Option 2: Manual Setup", "md_scripts_2README.html#autotoc_md618", null ],
+        [ "Option 3: Using Batch Scripts", "md_scripts_2README.html#autotoc_md619", null ]
       ] ],
-      [ "Script Options", "md_scripts_2README.html#autotoc_md575", [
-        [ "setup-windows-dev.ps1", "md_scripts_2README.html#autotoc_md576", null ],
-        [ "build-windows.ps1", "md_scripts_2README.html#autotoc_md577", null ],
-        [ "build-windows.bat", "md_scripts_2README.html#autotoc_md578", null ]
+      [ "Script Options", "md_scripts_2README.html#autotoc_md620", [
+        [ "setup-windows-dev.ps1", "md_scripts_2README.html#autotoc_md621", null ],
+        [ "build-windows.ps1", "md_scripts_2README.html#autotoc_md622", null ],
+        [ "build-windows.bat", "md_scripts_2README.html#autotoc_md623", null ]
       ] ],
-      [ "Examples", "md_scripts_2README.html#autotoc_md579", null ],
-      [ "Troubleshooting", "md_scripts_2README.html#autotoc_md580", [
-        [ "Common Issues", "md_scripts_2README.html#autotoc_md581", null ],
-        [ "Getting Help", "md_scripts_2README.html#autotoc_md582", null ]
+      [ "Examples", "md_scripts_2README.html#autotoc_md624", null ],
+      [ "Troubleshooting", "md_scripts_2README.html#autotoc_md625", [
+        [ "Common Issues", "md_scripts_2README.html#autotoc_md626", null ],
+        [ "Getting Help", "md_scripts_2README.html#autotoc_md627", null ]
       ] ],
-      [ "Other Scripts", "md_scripts_2README.html#autotoc_md583", null ]
+      [ "Other Scripts", "md_scripts_2README.html#autotoc_md628", null ]
     ] ],
     [ "YAZE Test Suite", "md_test_2README.html", [
-      [ "Directory Structure", "md_test_2README.html#autotoc_md585", null ],
-      [ "Test Categories", "md_test_2README.html#autotoc_md586", [
-        [ "Unit Tests (<tt>unit/</tt>)", "md_test_2README.html#autotoc_md587", null ],
-        [ "Integration Tests (<tt>integration/</tt>)", "md_test_2README.html#autotoc_md588", null ],
-        [ "End-to-End Tests (<tt>e2e/</tt>)", "md_test_2README.html#autotoc_md589", null ]
+      [ "Directory Structure", "md_test_2README.html#autotoc_md630", null ],
+      [ "Test Categories", "md_test_2README.html#autotoc_md631", [
+        [ "Unit Tests (<tt>unit/</tt>)", "md_test_2README.html#autotoc_md632", null ],
+        [ "Integration Tests (<tt>integration/</tt>)", "md_test_2README.html#autotoc_md633", null ],
+        [ "End-to-End Tests (<tt>e2e/</tt>)", "md_test_2README.html#autotoc_md634", null ]
       ] ],
-      [ "Enhanced Test Runner", "md_test_2README.html#autotoc_md590", [
-        [ "Usage Examples", "md_test_2README.html#autotoc_md591", null ],
-        [ "Test Modes", "md_test_2README.html#autotoc_md592", null ],
-        [ "Options", "md_test_2README.html#autotoc_md593", null ]
+      [ "Enhanced Test Runner", "md_test_2README.html#autotoc_md635", [
+        [ "Usage Examples", "md_test_2README.html#autotoc_md636", null ],
+        [ "Test Modes", "md_test_2README.html#autotoc_md637", null ],
+        [ "Options", "md_test_2README.html#autotoc_md638", null ]
       ] ],
-      [ "E2E ROM Testing", "md_test_2README.html#autotoc_md594", [
-        [ "Test Cases", "md_test_2README.html#autotoc_md595", null ]
+      [ "E2E ROM Testing", "md_test_2README.html#autotoc_md639", [
+        [ "Test Cases", "md_test_2README.html#autotoc_md640", null ]
       ] ],
-      [ "ZSCustomOverworld Upgrade Testing", "md_test_2README.html#autotoc_md596", [
-        [ "Supported Upgrades", "md_test_2README.html#autotoc_md597", null ],
-        [ "Test Cases", "md_test_2README.html#autotoc_md598", null ],
-        [ "Version-Specific Features", "md_test_2README.html#autotoc_md599", [
-          [ "Vanilla", "md_test_2README.html#autotoc_md600", null ],
-          [ "v2", "md_test_2README.html#autotoc_md601", null ],
-          [ "v3", "md_test_2README.html#autotoc_md602", null ]
+      [ "ZSCustomOverworld Upgrade Testing", "md_test_2README.html#autotoc_md641", [
+        [ "Supported Upgrades", "md_test_2README.html#autotoc_md642", null ],
+        [ "Test Cases", "md_test_2README.html#autotoc_md643", null ],
+        [ "Version-Specific Features", "md_test_2README.html#autotoc_md644", [
+          [ "Vanilla", "md_test_2README.html#autotoc_md645", null ],
+          [ "v2", "md_test_2README.html#autotoc_md646", null ],
+          [ "v3", "md_test_2README.html#autotoc_md647", null ]
         ] ]
       ] ],
-      [ "Environment Variables", "md_test_2README.html#autotoc_md603", null ],
-      [ "CI/CD Integration", "md_test_2README.html#autotoc_md604", null ],
-      [ "Deprecated Tests", "md_test_2README.html#autotoc_md605", null ],
-      [ "Best Practices", "md_test_2README.html#autotoc_md606", null ],
-      [ "AI Agent Testing", "md_test_2README.html#autotoc_md607", null ]
+      [ "Environment Variables", "md_test_2README.html#autotoc_md648", null ],
+      [ "CI/CD Integration", "md_test_2README.html#autotoc_md649", null ],
+      [ "Deprecated Tests", "md_test_2README.html#autotoc_md650", null ],
+      [ "Best Practices", "md_test_2README.html#autotoc_md651", null ],
+      [ "AI Agent Testing", "md_test_2README.html#autotoc_md652", null ]
     ] ],
     [ "Deprecated List", "deprecated.html", null ],
     [ "Todo List", "todo.html", null ],
@@ -824,85 +884,85 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"classTextEditor.html#a3e1ccefadd63b8bac29a7d650ee0c9ae",
-"classyaze_1_1Rom.html#ac1848b47fb6ac63afe391b562d1f09a9",
-"classyaze_1_1core_1_1Controller.html#a4da513a611336bcfc09e4c40119c362b",
-"classyaze_1_1editor_1_1DungeonEditor.html#a18b1a8b9dba8fe5b8f5f4af70e224aa6",
-"classyaze_1_1editor_1_1DungeonObjectSelector.html#a64c2a1ff1c308c01d7794fe15b796da2",
-"classyaze_1_1editor_1_1DungeonUsageTracker.html#a1a18d56c63361d86936503a3e87ceb92",
-"classyaze_1_1editor_1_1EditorManager.html#ac0340e25707cca3bfff0b8384d55ead9",
-"classyaze_1_1editor_1_1GraphicsEditor.html#a8cfe302d85d5f0f260d6636ffb1f39aa",
-"classyaze_1_1editor_1_1MessageEditor.html#ad58bede17198c9016fd82e224bd48047",
-"classyaze_1_1editor_1_1OverworldEditor.html#aadf139852c6c2d39375f3edefdad7c45",
-"classyaze_1_1editor_1_1PaletteEditor.html#a93ec20f0031e2447f69e090f54c85988",
-"classyaze_1_1editor_1_1ShortcutManager.html#aa126613baf1a31d8bdb2b032b01e3a6a",
-"classyaze_1_1editor_1_1Tile16Editor.html#ae09b6d1c6a04f7802dc12e05a4948869",
-"classyaze_1_1emu_1_1Cpu.html#a241abb5eeead09b3b2329ee5f09da24f",
-"classyaze_1_1emu_1_1Cpu.html#ab4a8438b61718eb89533c828c54cfde4",
-"classyaze_1_1emu_1_1Emulator.html#a0dec3e42fe398a7275373df8a38384fb",
-"classyaze_1_1emu_1_1MemoryImpl.html#a9fedbbb77d8a2ccad32d68b137955d61",
-"classyaze_1_1emu_1_1Ppu.html#a7149f31700fc8f8389de97a6d4e61b2e",
-"classyaze_1_1emu_1_1Snes.html#aee7a85cbf294342b9110a6708db17200",
-"classyaze_1_1emu_1_1Spc700.html#adfb18385d560e082912e2a458918ecfd",
-"classyaze_1_1gfx_1_1GraphicsBuffer.html#a7b9987df02c1c1ab67ef0b400170047e",
-"classyaze_1_1gui_1_1Canvas.html#a11fba4e26102cee445fa43d95691d908",
-"classyaze_1_1gui_1_1Canvas.html#aed199b3747d8584c7d92e1cebb27734b",
-"classyaze_1_1test_1_1DungeonObjectRenderingTests.html#a7ff9d43e8f044bec73fb73e0b67e991c",
-"classyaze_1_1test_1_1PerformanceTestSuite.html#a6b0da7243cf8f34488b93d91b5b8ce18",
-"classyaze_1_1test_1_1TestManager.html#aea6f794c6a6ec46cc7717785214948dc",
-"classyaze_1_1util_1_1NotifyValue.html#a5e043e96e569c1097bc1fc35dfcf18c6",
-"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ab1e9a163a7d7961859f585c40ac912cf",
-"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a442ee20d4adca8e96852ddd4200f0178",
-"classyaze_1_1zelda3_1_1Inventory.html#a403a3654dfc12889b35aa138f0cfa434",
-"classyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceMonitor.html#a9aa1ea6291ac5589df199ff5ea0b968a",
-"classyaze_1_1zelda3_1_1OverworldExit.html#a12bcb9d33b5a173a2e73ba6850e55835",
-"classyaze_1_1zelda3_1_1OverworldMap.html#ad16bbc0c9b5fe327d537f9d2c26e3c8f",
-"classyaze_1_1zelda3_1_1Room.html#acba435558f64056905be1875e9c38f35",
-"classyaze_1_1zelda3_1_1RoomObject.html#a926650263b106f9966669f81ae2feb0b",
-"classyaze_1_1zelda3_1_1Subtype3.html#a04ee2357c879adc67fac5b63959dd395",
-"color_8h.html#aa32511a1a3eadf62366b193da8b5f3da",
-"dir_d6ff204a1e2980f727e0884e04308341.html",
-"editor_8h.html#a297b0603822af41a3d23fbc2da2a622aab7016fa0536d3c2f14454c2bb0b203cb",
-"globals_defs_m.html",
-"icons_8h.html#a0516aba5cf6030f8a0d979b8a56fc2a8",
-"icons_8h.html#a243eb2aaa6da904b0c50b49c4d9e954b",
-"icons_8h.html#a40f1f72bce4a9598dd21e3ffe4f510ca",
-"icons_8h.html#a5e75d35257c123aeac3f4d791ef4bc04",
-"icons_8h.html#a7d376428387fe88201e53aca379e8c3e",
-"icons_8h.html#a9d6d47573d06f0b13b6e680f535f9be6",
-"icons_8h.html#ab95ef1184d7557ffbc81d228b9f78911",
-"icons_8h.html#ad5f975b6fb8d184df295496db7447ce5",
-"icons_8h.html#af03c07a90233a785f850edec663f1e77",
-"md_README.html",
-"md_docs_2B4-release-workflows.html#autotoc_md243",
-"md_docs_2F1-overworld-loading.html#autotoc_md494",
-"namespacemembers_n.html",
-"namespaceyaze_1_1editor.html#a861a117f36af4cfe2abaaeb25a2bbc88",
-"namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3baa826db0251f792f5763b484b7abb96fbb",
-"namespaceyaze_1_1gui.html#a84a13625d308186227f8870a6d75434e",
-"namespaceyaze_1_1test.html#aae4c262535441ad66bac739ffd6f308b",
-"namespaceyaze_1_1zelda3.html#a55b3055a27e7305f342ef86d50ba7323",
-"namespaceyaze_1_1zelda3.html#ab12277550d7aea2b576b2f9688ae60e4",
-"overworld_8h.html#a0d1e976ff94ce8a0bde0a7faa3e0a4c4",
-"overworld__test_8cc.html",
-"room_8h.html#a693df677b1b2754452c8b8b4c4a98468a7fe16f9c2a46ae665867fc85f5eb9304",
-"snes__color_8h.html#a68d9e4162aa4c03b5061b60c3da6947a",
-"structdestination.html#ad90177f7b96a88aff3b44a1f66f354ed",
-"structyaze_1_1core_1_1SDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2",
-"structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a737bea7f9a528b54d56f84c34334bd25",
-"structyaze_1_1editor_1_1Toast.html#afafc4a917d6a5dedb045aadbb6949f84",
-"structyaze_1_1emu_1_1BgLayer.html#aac08a08df9df7047ecbf6548cccb63ae",
-"structyaze_1_1emu_1_1Input.html#a2d282c67099bf3874f451c1ad1a89110",
-"structyaze_1_1emu_1_1Spc700_1_1Flags.html",
-"structyaze_1_1emu_1_1WindowMaskSettings.html#a45e607dec963a46f58ac0855a1dfb23f",
-"structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#af39201dfcd7e1a32508661ed7fa59f85",
-"structyaze_1_1gui_1_1EnhancedTheme.html#a84f7ec07c3bb6c269e9402ca193599c2",
-"structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html",
-"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html#a495bd4c47d5aec5725e7925aa58ba8cf",
-"structyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceStats.html",
-"structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#abd2c6d8cd99d0510524ee3e1ab3a8fdd",
-"test__manager_8h.html#a24fd08ea41d8314e6fccdb0fdcd9f072a8983357689cc2645e40d3e2a29696391",
-"zeml_8cc.html#a6a8d0465bb3639ae5cec5439c895f939"
+"classTextEditor.html#a12b095b7d22bc7e83077eeae3b7980ec",
+"classyaze_1_1Rom.html#a99c1cb4e80c3cafb975d1d74a842c833",
+"classyaze_1_1cli_1_1Tile16Transfer.html",
+"classyaze_1_1editor_1_1DungeonCanvasViewer.html#afdc313f9d759216613f5674e21860a9a",
+"classyaze_1_1editor_1_1DungeonObjectSelector.html#a3cb0eecd7608e97076cd128b446045b2",
+"classyaze_1_1editor_1_1DungeonToolset.html#ac9170fbc1d88691828b594c519f8ad40ab0a67eed2a2aea21bf8c223c5ef87c97",
+"classyaze_1_1editor_1_1EditorManager.html#aa7bff637c74e3a804a2699d82c04a456",
+"classyaze_1_1editor_1_1GraphicsEditor.html#a77ce8009438d56cdb43f792bd11fb70a",
+"classyaze_1_1editor_1_1MessageEditor.html#a9a05ddca2c83e0fe11366512c8955d47",
+"classyaze_1_1editor_1_1OverworldEditor.html#a939d684939198a152ac3fa753276e4ce",
+"classyaze_1_1editor_1_1PaletteEditor.html#a3202a27e79a0d9035f733e0e7f5ca306",
+"classyaze_1_1editor_1_1SettingsEditor.html#ab90539b1706c9e00c6070d223623e6b8",
+"classyaze_1_1editor_1_1Tile16Editor.html#acf3d44d801476676d9f137c5539c5e41",
+"classyaze_1_1emu_1_1Cpu.html#a1e7fd1758cd1fc6c73ef84fda616b578",
+"classyaze_1_1emu_1_1Cpu.html#aad7df7574682156aea5cd8da5c2896a9",
+"classyaze_1_1emu_1_1Dsp.html#ac5e4f3cce1d1864ce48da9aa99e2fc03",
+"classyaze_1_1emu_1_1MemoryImpl.html#a8023d2ee521d60c70d786c3bf0b0b701",
+"classyaze_1_1emu_1_1Ppu.html#a5ae6104c9b63b8ee606c71ee660ff926",
+"classyaze_1_1emu_1_1Snes.html#ab97c6abec253b714f5fa1710477a38c7",
+"classyaze_1_1emu_1_1Spc700.html#ac87af5c7809365cca219ad430d3d9f86",
+"classyaze_1_1gfx_1_1GfxContext.html",
+"classyaze_1_1gui_1_1Canvas.html#a01bf7ad681e216aef246fd8f562a9a56",
+"classyaze_1_1gui_1_1Canvas.html#ad7081d52f5a736dde87a62caf2ce63dc",
+"classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#adf31048c1448fe3671b3e27b124c2644",
+"classyaze_1_1test_1_1ObjectParserTest.html#a9c9e7c6f319807a07e3c9349a67f2f1a",
+"classyaze_1_1test_1_1TestManager.html#ab6308ac80eacf9acd6a8a1cfa61ce192",
+"classyaze_1_1util_1_1FlagParser.html#aa07d8084adebfe9e6c71db34e5fd0110",
+"classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a9145190456643d3843bbfbcbf506816b",
+"classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a1c2e473670e625afd1f0c27a77e7e775",
+"classyaze_1_1zelda3_1_1GameEntity.html#a04318cae2fac826a7a06bdbb6e7948b2a8cd1c7e970abfa25379087a6ed8f0b1a",
+"classyaze_1_1zelda3_1_1ObjectRenderer_1_1ObjectParser.html#a72bb37257061864f94680a4823d10fb3",
+"classyaze_1_1zelda3_1_1Overworld.html#ae05a4c37ae145ceb9b1620119743b99d",
+"classyaze_1_1zelda3_1_1OverworldMap.html#a8bf79f77aeb50dc40c648ee5ea997169",
+"classyaze_1_1zelda3_1_1Room.html#aae6503f2b2036384069d0b5e671c0402",
+"classyaze_1_1zelda3_1_1RoomObject.html#a0e506f8a8453a9e017f3ec0928ee70b3",
+"classyaze_1_1zelda3_1_1SpriteInstruction.html#ac14981bf7b1288751377cf81ed1d8a28",
+"classyaze_1_1zelda3_1_1music_1_1Tracker.html#ae5415f3ff26377242bdb8c9eab99cd49",
+"dir_1803ec2ac2120f8427544b062f2515ae.html",
+"dungeon__renderer_8h_source.html",
+"functions_vars_p.html",
+"icons_8h.html#a016835c11db0f38553add0e3eae22ac0",
+"icons_8h.html#a1f22a441f3c6a1716a797e5e5c2d35fe",
+"icons_8h.html#a3d33c12bf11968e6587f27432a26f55c",
+"icons_8h.html#a5a3f2eab21905f6fc007e48141de6c86",
+"icons_8h.html#a78de186ead21fb3a43eb2547c324b937",
+"icons_8h.html#a97e6450ec0046bc38a60f9b8a09e3977",
+"icons_8h.html#ab494ea1c600d916a8b50817a695c561f",
+"icons_8h.html#ad13f249d90abd56fe1c71bed1c509a54",
+"icons_8h.html#aeb42b970867f6af123f0de168b434259",
+"log_8h_source.html",
+"md_docs_2B4-release-workflows.html#autotoc_md195",
+"md_docs_2E5-dungeon-object-system.html#autotoc_md454",
+"message__editor_8h_source.html",
+"namespaceyaze_1_1editor.html#a180364fa630f1bbd2b029efa9277f342",
+"namespaceyaze_1_1emu.html#a5da036c77baa6b69891876c48cfdb708",
+"namespaceyaze_1_1gfx_1_1lc__lz2.html#a9f9585e104565c6688541c1454569d85",
+"namespaceyaze_1_1test.html#a4794bb6ae09b218c26d7da2fcc5d7a9d",
+"namespaceyaze_1_1zelda3.html#a290a5d6a40147f63f5eb61da018f78fe",
+"namespaceyaze_1_1zelda3.html#a8781b2fb0c5e79475ce83809818216a7",
+"namespaceyaze_1_1zelda3_1_1ObjectRenderingUtils.html#a346b84d6805e1b96a2eec88c955f278d",
+"overworld__exit_8h.html#a394261cb328b7ca80f38c07ca1bf750a",
+"rom_8h.html#a928bdc81237834754dbac3f20bde2dca",
+"room__object_8h.html#a479da514040cddc99b5da1235244c421a52a3e405eb69e72cd81af3c5e1f93065",
+"snes__tile_8h.html#abddef303b6a036e2cbce669f424f7317",
+"structyaze_1_1core_1_1FeatureFlags_1_1Flags_1_1Overworld.html#a158c2456cdf1224ebe3a5a24303b9211",
+"structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html",
+"structyaze_1_1editor_1_1ParsedElement.html#afc80cfa64f0d742c55ee5528254c201b",
+"structyaze_1_1emu_1_1ApuCallbacks.html#ab3fe2128178c59e8b6b272e141dd3f00",
+"structyaze_1_1emu_1_1DspChannel.html",
+"structyaze_1_1emu_1_1OAMSize.html#a3f87f1db1ae0ad3640227b503144b14b",
+"structyaze_1_1emu_1_1W12SEL.html#a62efe56e7dc02807364e88a8e6ec343b",
+"structyaze_1_1gfx_1_1Paletteset.html#a931ee06cebd5114a00b9128c994a2f8c",
+"structyaze_1_1gui_1_1EnhancedTheme.html#a2c2ae2e0ab749795021e77d29c335385",
+"structyaze_1_1gui_1_1MenuItem.html#aab96814f0d34f522fab18b972c3d559d",
+"structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html#a5abf60965c4357527701949df4930fee",
+"structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#a725a7289b9591ccee8192c297c7b7faf",
+"structyaze_1_1zelda3_1_1music_1_1SampleEdit.html#a6a7bedcecc09d36ffc8f562d75566b73",
+"structzelda3__version__pointers.html#a9725e310223fc8750cab8871c9eb5a44",
+"tui_8h.html#ab3acc1b59e84abb18e2d438f7ed2ad33af6aa4f00977101448893001bd7e064da"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

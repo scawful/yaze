@@ -244,6 +244,7 @@ var hierarchy =
     [ "yaze::zelda3::Overworld", "classyaze_1_1zelda3_1_1Overworld.html", null ],
     [ "yaze::editor::OverworldEditorManager", "classyaze_1_1editor_1_1OverworldEditorManager.html", null ],
     [ "yaze::zelda3::OverworldEntranceTileTypes", "structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html", null ],
+    [ "OverworldGoldenDataExtractor", "classOverworldGoldenDataExtractor.html", null ],
     [ "yaze::zelda3::OverworldMapTiles", "structyaze_1_1zelda3_1_1OverworldMapTiles.html", null ],
     [ "yaze::gfx::Pair", "structyaze_1_1gfx_1_1Pair.html", null ],
     [ "yaze::editor::palette_internal::PaletteChange", "structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html", null ],
@@ -344,6 +345,7 @@ var hierarchy =
       [ "yaze::test::MessageRomTest", "classyaze_1_1test_1_1MessageRomTest.html", null ],
       [ "yaze::test::ObjectParserStructsTest", "classyaze_1_1test_1_1ObjectParserStructsTest.html", null ],
       [ "yaze::test::ObjectParserTest", "classyaze_1_1test_1_1ObjectParserTest.html", null ],
+      [ "yaze::test::OverworldE2ETest", "classyaze_1_1test_1_1OverworldE2ETest.html", null ],
       [ "yaze::test::RomDependentTest", "classyaze_1_1test_1_1RomDependentTest.html", [
         [ "yaze::test::integration::AsarRomIntegrationTest", "classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html", null ]
       ] ],
@@ -359,7 +361,6 @@ var hierarchy =
       [ "yaze::zelda3::DungeonObjectRendererMockTest", "classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html", null ],
       [ "yaze::zelda3::OverworldIntegrationTest", "classyaze_1_1zelda3_1_1OverworldIntegrationTest.html", null ],
       [ "yaze::zelda3::OverworldTest", "classyaze_1_1zelda3_1_1OverworldTest.html", null ],
-      [ "yaze::zelda3::OverworldV3IntegrationTest", "classyaze_1_1zelda3_1_1OverworldV3IntegrationTest.html", null ],
       [ "yaze::zelda3::SpritePositionTest", "classyaze_1_1zelda3_1_1SpritePositionTest.html", null ]
     ] ],
     [ "yaze::test::TestConfig", "structyaze_1_1test_1_1TestConfig.html", null ],

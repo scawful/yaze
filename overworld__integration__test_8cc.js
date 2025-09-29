@@ -1,18 +1,14 @@
 var overworld__integration__test_8cc =
 [
     [ "yaze::zelda3::OverworldIntegrationTest", "classyaze_1_1zelda3_1_1OverworldIntegrationTest.html", "classyaze_1_1zelda3_1_1OverworldIntegrationTest" ],
-    [ "yaze::zelda3::OverworldV3IntegrationTest", "classyaze_1_1zelda3_1_1OverworldV3IntegrationTest.html", "classyaze_1_1zelda3_1_1OverworldV3IntegrationTest" ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#ae8774726107ee54506f56490cf949e88", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#a484c6ac1d3801e13afd440c1c05215bd", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#a96166bd10efeffc68c002c7a8fe11fad", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#a8026de9ae6faebb8db7a43fbc38edf0f", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#a955976632b4be13438c7fd3992380788", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#a20f96eb4cd1395f35a3db0417aa0ee95", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#ae41b8d95ba7392e9b2f8873f2cfd4480", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#a64944d45121497f37066a6e7eecf379c", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#a65358e83a0c0d08a836f937fbb93a734", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#a8915773feae49406293827fd2792288b", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#a67e55bf7a74ca19351d3406389046892", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#aa46e1dc1fb59b68ce93167e879200177", null ],
-    [ "TEST_F", "overworld__integration__test_8cc.html#a70723594e3de7ec200b3ee3117d38b60", null ]
+    [ "TEST_F", "overworld__integration__test_8cc.html#a4e29a942e207313fe6a7aeaec235f489", null ],
+    [ "TEST_F", "overworld__integration__test_8cc.html#a65a3024d273a63817ef97575eecf2248", null ],
+    [ "TEST_F", "overworld__integration__test_8cc.html#aab96f759329d140e8933ca290f0126d3", null ],
+    [ "TEST_F", "overworld__integration__test_8cc.html#a1caab9b6e4754442bb7aad1093670f45", null ],
+    [ "TEST_F", "overworld__integration__test_8cc.html#aab17fb6bf62c4e58a881ba091a9e96af", null ],
+    [ "TEST_F", "overworld__integration__test_8cc.html#a3aec00cc3815dc0dcf49d8b346da112a", null ],
+    [ "TEST_F", "overworld__integration__test_8cc.html#a5929adf39548e65e9c31a89bf46a6308", null ],
+    [ "TEST_F", "overworld__integration__test_8cc.html#a843cdb4db501cb8c930008b6ddb6d970", null ],
+    [ "TEST_F", "overworld__integration__test_8cc.html#a5efc37cc65ed4d35405c56a3d8105af8", null ],
+    [ "TEST_F", "overworld__integration__test_8cc.html#a53a5ee07aac36a7f7f450cfde995ab2b", null ]
 ];

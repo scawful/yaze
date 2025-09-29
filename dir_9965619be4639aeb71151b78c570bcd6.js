@@ -12,6 +12,7 @@ var dir_9965619be4639aeb71151b78c570bcd6 =
     [ "message_test.cc", "message__test_8cc.html", "message__test_8cc" ],
     [ "object_parser_structs_test.cc", "object__parser__structs__test_8cc.html", "object__parser__structs__test_8cc" ],
     [ "object_parser_test.cc", "object__parser__test_8cc.html", "object__parser__test_8cc" ],
+    [ "overworld_golden_data_extractor.cc", "overworld__golden__data__extractor_8cc.html", "overworld__golden__data__extractor_8cc" ],
     [ "overworld_integration_test.cc", "overworld__integration__test_8cc.html", "overworld__integration__test_8cc" ],
     [ "overworld_test.cc", "overworld__test_8cc.html", "overworld__test_8cc" ],
     [ "rom_patch_utility.cc", "rom__patch__utility_8cc.html", "rom__patch__utility_8cc" ],

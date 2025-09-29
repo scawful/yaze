@@ -1,0 +1,9 @@
+<map id="yaze::test::OverworldE2ETest::ValidateROMAgainstGoldenData" name="yaze::test::OverworldE2ETest::ValidateROMAgainstGoldenData">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,222,88"/>
+<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html#abfad5beaef8b6648f43c1ee018d1b6ee" title=" " alt="" coords="270,5,412,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,44,263,32,264,37,211,49"/>
+<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="286,55,396,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="222,65,271,65,271,70,222,70"/>
+<area shape="rect" id="Node000004" href="$classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="287,104,395,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="211,86,273,100,272,105,210,91"/>
+</map>
