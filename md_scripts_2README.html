@@ -101,38 +101,38 @@ $(document).ready(function(){initNavTree('md_scripts_2README.html',''); initResi
   <div class="headertitle"><div class="title">YAZE Build Scripts</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md833"></a> This directory contains build and setup scripts for YAZE development on different platforms.</p>
-<h1><a class="anchor" id="autotoc_md834"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1015"></a> This directory contains build and setup scripts for YAZE development on different platforms.</p>
+<h1><a class="anchor" id="autotoc_md1016"></a>
 Windows Scripts</h1>
-<h2><a class="anchor" id="autotoc_md835"></a>
+<h2><a class="anchor" id="autotoc_md1017"></a>
 Setup Scripts</h2>
 <ul>
 <li>**<code>setup-windows-dev.ps1</code>** - Complete Windows development environment setup (PowerShell)</li>
 <li>**<code>setup-vcpkg-windows.ps1</code>** - vcpkg setup only (PowerShell)</li>
 <li>**<code>setup-vcpkg-windows.bat</code>** - vcpkg setup only (Batch)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md836"></a>
+<h2><a class="anchor" id="autotoc_md1018"></a>
 Build Scripts</h2>
 <ul>
 <li>**<code>build-windows.ps1</code>** - Build YAZE on Windows (PowerShell)</li>
 <li>**<code>build-windows.bat</code>** - Build YAZE on Windows (Batch)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md837"></a>
+<h2><a class="anchor" id="autotoc_md1019"></a>
 Validation Scripts</h2>
 <ul>
 <li>**<code>validate-windows-build.ps1</code>** - Validate Windows build environment</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md838"></a>
+<h2><a class="anchor" id="autotoc_md1020"></a>
 Project Generation</h2>
 <ul>
 <li>**<code><a class="el" href="generate-vs-projects_8py.html">generate-vs-projects.py</a></code>** - Generate Visual Studio project files (Cross-platform Python)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md839"></a>
+<h1><a class="anchor" id="autotoc_md1021"></a>
 Windows Compiler Recommendations</h1>
-<h2><a class="anchor" id="autotoc_md840"></a>
+<h2><a class="anchor" id="autotoc_md1022"></a>
 ⚠️ Important: MSVC vs Clang on Windows</h2>
 <p><b>We strongly recommend using Clang on Windows</b> due to compatibility issues with MSVC and Abseil's int128 and type_traits features:</p>
-<h3><a class="anchor" id="autotoc_md841"></a>
+<h3><a class="anchor" id="autotoc_md1023"></a>
 Why Clang is Recommended:</h3>
 <ul>
 <li>✅ <b>Better C++23 Support</b>: Full support for modern C++23 features</li>
@@ -141,7 +141,7 @@ Why Clang is Recommended:</h3>
 <li>✅ <b>Better Error Messages</b>: More helpful diagnostic messages</li>
 <li>✅ <b>Faster Compilation</b>: Generally faster than MSVC</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md842"></a>
+<h3><a class="anchor" id="autotoc_md1024"></a>
 MSVC Issues:</h3>
 <ul>
 <li>❌ <b>C++23 Deprecation Warnings</b>: Abseil int128 triggers numerous deprecation warnings</li>
@@ -149,9 +149,9 @@ MSVC Issues:</h3>
 <li>❌ <b>Int128 Limitations</b>: MSVC's int128 support is incomplete</li>
 <li>❌ <b>Build Complexity</b>: Requires additional workarounds and flags</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md843"></a>
+<h2><a class="anchor" id="autotoc_md1025"></a>
 Compiler Setup Options</h2>
-<h3><a class="anchor" id="autotoc_md844"></a>
+<h3><a class="anchor" id="autotoc_md1026"></a>
 Option 1: Clang (Recommended)</h3>
 <div class="fragment"><div class="line"># Install LLVM/Clang via winget</div>
 <div class="line">winget install LLVM.LLVM</div>
@@ -161,7 +161,7 @@ Option 1: Clang (Recommended)</h3>
 <div class="line"> </div>
 <div class="line"># Verify installation</div>
 <div class="line">clang --version</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md845"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1027"></a>
 Option 2: MSVC with Workarounds</h3>
 <p>If you must use MSVC, the build system includes workarounds:</p><ul>
 <li>Abseil int128 is automatically disabled on Windows</li>
@@ -169,12 +169,12 @@ Option 2: MSVC with Workarounds</h3>
 <li>Additional compatibility flags are applied</li>
 </ul>
 <p>However, you may still encounter issues with some Abseil features.</p>
-<h1><a class="anchor" id="autotoc_md846"></a>
+<h1><a class="anchor" id="autotoc_md1028"></a>
 Quick Start (Windows)</h1>
-<h2><a class="anchor" id="autotoc_md847"></a>
+<h2><a class="anchor" id="autotoc_md1029"></a>
 Option 1: Automated Setup (Recommended)</h2>
 <div class="fragment"><div class="line">.\scripts\setup-windows-dev.ps1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md848"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1030"></a>
 Option 2: Manual Setup</h2>
 <div class="fragment"><div class="line"># 1. Setup vcpkg</div>
 <div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
@@ -184,7 +184,7 @@ Option 2: Manual Setup</h2>
 <div class="line"> </div>
 <div class="line"># 3. Build</div>
 <div class="line">.\scripts\build-windows.ps1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md849"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1031"></a>
 Option 3: Using Batch Scripts</h2>
 <div class="fragment"><div class="line">REM Setup vcpkg</div>
 <div class="line">.\scripts\setup-vcpkg-windows.bat</div>
@@ -194,16 +194,16 @@ Option 3: Using Batch Scripts</h2>
 <div class="line"> </div>
 <div class="line">REM Build</div>
 <div class="line">.\scripts\build-windows.bat</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md850"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1032"></a>
 Script Options</h1>
-<h2><a class="anchor" id="autotoc_md851"></a>
+<h2><a class="anchor" id="autotoc_md1033"></a>
 setup-windows-dev.ps1</h2>
 <ul>
 <li><code>-SkipVcpkg</code> - Skip vcpkg setup</li>
 <li><code>-SkipVS</code> - Skip Visual Studio check</li>
 <li><code>-SkipBuild</code> - Skip test build</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md852"></a>
+<h2><a class="anchor" id="autotoc_md1034"></a>
 build-windows.ps1</h2>
 <ul>
 <li><code>-Configuration</code> - Build configuration (Debug, Release, RelWithDebInfo, MinSizeRel)</li>
@@ -212,7 +212,7 @@ build-windows.ps1</h2>
 <li><code>-Clean</code> - Clean build directories before building</li>
 <li><code>-Verbose</code> - Verbose build output</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md853"></a>
+<h2><a class="anchor" id="autotoc_md1035"></a>
 build-windows.bat</h2>
 <ul>
 <li>First argument: Configuration (Debug, Release, RelWithDebInfo, MinSizeRel)</li>
@@ -221,7 +221,7 @@ build-windows.bat</h2>
 <li><code>clean</code> - Clean build directories</li>
 <li><code>verbose</code> - Verbose build output</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md854"></a>
+<h1><a class="anchor" id="autotoc_md1036"></a>
 Examples</h1>
 <div class="fragment"><div class="line"># Build Release x64 with Clang (recommended)</div>
 <div class="line">.\scripts\build-windows.ps1 -Compiler clang</div>
@@ -254,9 +254,9 @@ Examples</h1>
 <div class="line"> </div>
 <div class="line">REM Clean build with Clang</div>
 <div class="line">.\scripts\build-windows.bat clean clang</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md855"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1037"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md856"></a>
+<h2><a class="anchor" id="autotoc_md1038"></a>
 Common Issues</h2>
 <ol type="1">
 <li><b>PowerShell Execution Policy</b> <div class="fragment"><div class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</div>
@@ -295,14 +295,14 @@ Common Issues</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md857"></a>
+<h2><a class="anchor" id="autotoc_md1039"></a>
 Getting Help</h2>
 <ol type="1">
 <li>Run validation script: <code>.\scripts\validate-windows-build.ps1</code></li>
 <li>Check the Windows Development Guide</li>
 <li>Review build output for specific error messages</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md858"></a>
+<h1><a class="anchor" id="autotoc_md1040"></a>
 Other Scripts</h1>
 <ul>
 <li>**<code>create_release.sh</code>** - Create GitHub releases (Linux/macOS)</li>

@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('md_docs_2E1-asm-style-guide.html','');
   <div class="headertitle"><div class="title">Asm Style Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md520"></a> 65816 Assembly is the assembly language used by the Super Nintendo Entertainment System (SNES) and its Ricoh 5A22 processor. This style guide provides conventions and best practices for writing 65816 assembly code in the context of the yaze project. Following these guidelines will help maintain consistency and readability across the codebase.</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md551"></a> 65816 Assembly is the assembly language used by the Super Nintendo Entertainment System (SNES) and its Ricoh 5A22 processor. This style guide provides conventions and best practices for writing 65816 assembly code in the context of the yaze project. Following these guidelines will help maintain consistency and readability across the codebase.</p>
 <p>This guide is based primarily on the <a href="https://github.com/scawful/Oracle-of-Secrets">Oracle of Secrets</a> codebase and is meant for the <a href="https://github.com/RPGHacker/asar">Asar</a> assembler and derives influence from the <a href="https://rpghacker.github.io/asar/asar_19/manual/">Asar 1.9 Manual</a>.</p>
 <p>Custom assembly code applied to the game should be included through the <code>yaze.asm</code> file found in <code>assets/asm</code>. This file can be applied to the ROM by the editor using the Asar library or included into a projects codebase for use with the Asar assembler.</p>
-<h1><a class="anchor" id="autotoc_md521"></a>
+<h1><a class="anchor" id="autotoc_md552"></a>
 Table of Contents</h1>
 <ul>
 <li>File Structure</li>
@@ -118,7 +118,7 @@ Table of Contents</h1>
 <li>Code Organization</li>
 <li>Custom Code</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md522"></a>
+<h1><a class="anchor" id="autotoc_md553"></a>
 File Structure</h1>
 <ul>
 <li><b>File Extension</b>: Use <code>.asm</code> as the file extension for 65816 assembly files.</li>
@@ -139,7 +139,7 @@ File Structure</h1>
 </div><!-- fragment --><ul>
 <li><b>Macro Definitions and Includes</b>: Place macros and include directives at the beginning of the file to keep them organized and easily accessible.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md523"></a>
+<h1><a class="anchor" id="autotoc_md554"></a>
 Labels and Symbols</h1>
 <ul>
 <li><b>Naming Conventions</b>:<ul>
@@ -158,7 +158,7 @@ Labels and Symbols</h1>
 <div class="line">    JSR HandleDynamicSwitchTileDirections</div>
 <div class="line">    RTS</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md524"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md555"></a>
 Comments</h1>
 <ul>
 <li><b>Purpose</b>: Comments should explain why the code exists and what it is intended to do, especially for complex logic.</li>
@@ -171,7 +171,7 @@ Comments</h1>
 </ul>
 <p>Example:</p>
 <div class="fragment"><div class="line">LDA $22 : SEC : SBC $3F : STA $31   ; Adjust X position for camera movement</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md525"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md556"></a>
 Instructions</h1>
 <ul>
 <li><b>Single Line Instructions</b>: Combine multiple instructions on a single line using colons (<code>:</code>) where appropriate for related operations.</li>
@@ -180,7 +180,7 @@ Instructions</h1>
 </ul>
 <p>Example:</p>
 <div class="fragment"><div class="line">LDA #$01 : STA !LinkInCart  ; Set Link in cart flag</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md526"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md557"></a>
 Macros</h1>
 <ul>
 <li><b>Naming</b>: Use <code>PascalCase</code> for macro names, with the first letter of each word capitalized (e.g., <code>InitMovement</code>, <code>MoveCart</code>).</li>
@@ -195,7 +195,7 @@ Macros</h1>
 <div class="line">  JSL HandleIndoorCameraAndDoors</div>
 <div class="line">  RTS</div>
 <div class="line">endmacro</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md527"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md558"></a>
 Loops and Branching</h1>
 <ul>
 <li><b>Branch Labels</b>: Use meaningful names for branch labels, prefixed with a dot (<code>.</code>) for local branches.</li>
@@ -208,7 +208,7 @@ Loops and Branching</h1>
 <div class="line">  BRA .loop_start</div>
 <div class="line">.end_loop</div>
 <div class="line">RTS</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md528"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md559"></a>
 Data Structures</h1>
 <ul>
 <li><b>Alignment</b>: Align data tables and structures clearly, and use comments to describe the purpose and layout of each.</li>
@@ -258,7 +258,7 @@ Data Structures</h1>
 <div class="line">  dw   0 ; down</div>
 <div class="line">  dw  -4 ; left</div>
 <div class="line">  dw  11 ; right</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md529"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md560"></a>
 Code Organization</h1>
 <ul>
 <li><b>Logical Grouping</b>: Organize code into logical sections, with related routines and macros grouped together.</li>
@@ -280,7 +280,7 @@ Code Organization</h1>
 <div class="line">  SEP #$20</div>
 <div class="line">  RTS</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md530"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md561"></a>
 Custom Code</h1>
 <ul>
 <li><b>Integration</b>: Include custom assembly code in the <code>yaze.asm</code> file to ensure it is applied correctly to the ROM. The module should include a define and conditional statement to allow users to disable the module if needed.</li>

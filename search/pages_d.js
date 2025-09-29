@@ -1,11 +1,10 @@
 var searchData=
 [
-  ['scripts_0',['YAZE Build Scripts',['../md_scripts_2README.html',1,'']]],
-  ['setup_1',['Editor Performance Monitoring Setup',['../md_docs_2analysis_2editor__performance__monitoring__setup.html',1,'']]],
-  ['started_2',['Getting Started',['../md_docs_201-getting-started.html',1,'']]],
-  ['status_20update_3',['Overworld Optimization Status Update',['../md_docs_2analysis_2overworld__optimization__status.html',1,'']]],
-  ['style_20guide_4',['Asm Style Guide',['../md_docs_2E1-asm-style-guide.html',1,'']]],
-  ['suite_5',['YAZE Test Suite',['../md_test_2README.html',1,'']]],
-  ['summary_6',['summary',['../md_docs_2analysis_2lazy__loading__optimization__summary.html',1,'Lazy Loading Optimization Implementation Summary'],['../md_docs_2analysis_2performance__optimization__summary.html',1,'YAZE Performance Optimization Summary']]],
-  ['system_7',['Dungeon Object System',['../md_docs_2E5-dungeon-object-system.html',1,'']]]
+  ['recommendations_0',['YAZE Graphics System Optimization Recommendations',['../md_docs_2gfx__optimization__recommendations.html',1,'']]],
+  ['refactoring_20plan_1',['DungeonEditor Refactoring Plan',['../md_docs_2E4-dungeon-editor-refactoring.html',1,'']]],
+  ['reference_2',['API Reference',['../md_docs_204-api-reference.html',1,'']]],
+  ['release_20workflows_20documentation_3',['Release Workflows Documentation',['../md_docs_2B4-release-workflows.html',1,'']]],
+  ['renderer_20class_20performance_20analysis_20and_20optimization_4',['Renderer Class Performance Analysis and Optimization',['../md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
+  ['rendering_20implementation_20yaze_20graphics_20optimizations_5',['Atlas Rendering Implementation - YAZE Graphics Optimizations',['../md_docs_2atlas__rendering__implementation.html',1,'']]],
+  ['roadmap_6',['Roadmap',['../md_docs_2D1-roadmap.html',1,'']]]
 ];
