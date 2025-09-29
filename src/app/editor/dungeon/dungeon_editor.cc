@@ -1,6 +1,7 @@
 #include "dungeon_editor.h"
 
 #include "absl/strings/str_format.h"
+#include "app/core/performance_monitor.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
@@ -46,6 +47,8 @@ void DungeonEditor::Initialize() {
 }
 
 absl::Status DungeonEditor::Load() {
+  core::ScopedTimer timer("DungeonEditor::Load");
+  
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -53,22 +56,38 @@ absl::Status DungeonEditor::Load() {
   auto dungeon_man_pal_group = rom()->palette_group().dungeon_main;
 
   // Use room loader component for loading rooms
-  RETURN_IF_ERROR(room_loader_.LoadAllRooms(rooms_));
-  RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
+  {
+    core::ScopedTimer rooms_timer("DungeonEditor::LoadAllRooms");
+    RETURN_IF_ERROR(room_loader_.LoadAllRooms(rooms_));
+  }
+  
+  {
+    core::ScopedTimer entrances_timer("DungeonEditor::LoadRoomEntrances");
+    RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
+  }
 
   // Load the palette group and palette for the dungeon
-  full_palette_ = dungeon_man_pal_group[current_palette_group_id_];
-  ASSIGN_OR_RETURN(current_palette_group_,
-                   gfx::CreatePaletteGroupFromLargePalette(full_palette_));
+  {
+    core::ScopedTimer palette_timer("DungeonEditor::LoadPalettes");
+    full_palette_ = dungeon_man_pal_group[current_palette_group_id_];
+    ASSIGN_OR_RETURN(current_palette_group_,
+                     gfx::CreatePaletteGroupFromLargePalette(full_palette_));
+  }
 
   // Calculate usage statistics
-  usage_tracker_.CalculateUsageStats(rooms_);
+  {
+    core::ScopedTimer usage_timer("DungeonEditor::CalculateUsageStats");
+    usage_tracker_.CalculateUsageStats(rooms_);
+  }
 
   // Initialize the new editor system
-  if (dungeon_editor_system_) {
-    auto status = dungeon_editor_system_->Initialize();
-    if (!status.ok()) {
-      return status;
+  {
+    core::ScopedTimer init_timer("DungeonEditor::InitializeSystem");
+    if (dungeon_editor_system_) {
+      auto status = dungeon_editor_system_->Initialize();
+      if (!status.ok()) {
+        return status;
+      }
     }
   }
 

@@ -1,5 +1,6 @@
 #include "sprite_editor.h"
 
+#include "app/core/performance_monitor.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gfx/arena.h"
@@ -24,7 +25,10 @@ using ImGui::Text;
 
 void SpriteEditor::Initialize() {}
 
-absl::Status SpriteEditor::Load() { return absl::OkStatus(); }
+absl::Status SpriteEditor::Load() { 
+  core::ScopedTimer timer("SpriteEditor::Load");
+  return absl::OkStatus(); 
+}
 
 absl::Status SpriteEditor::Update() {
   if (rom()->is_loaded() && !sheets_loaded_) {
