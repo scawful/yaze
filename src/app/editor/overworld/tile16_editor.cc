@@ -756,12 +756,12 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     
     ImGui::PopStyleColor(3);
 
-    // CRITICAL FIX: Use proper scrollable child window instead of gui helpers
+    // CRITICAL FIX: Use proper scrollable child window with fixed height
     tile8_source_canvas_.set_draggable(false);
 
     // Use direct ImGui child window for proper scrolling
     if (BeginChild("##Tile8SourceScrollable",
-                   ImVec2(0, ImGui::GetContentRegionAvail().y - 10), true,
+                   ImVec2(0, 32 * 8 * 4), true,
                    ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
 
       tile8_source_canvas_.DrawBackground();
@@ -833,25 +833,11 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         // Create a display tile that shows the current palette selection
         gfx::Bitmap display_tile;
         
-        // Get the original pixel data
+        // Get the original pixel data (already has sheet offsets from ProcessGraphicsBuffer)
         std::vector<uint8_t> tile_data = current_gfx_individual_[current_tile8_].vector();
         
-        // Apply palette offset to pixel data (like ZScream does)
-        // Each pixel value (0-15) needs to be remapped to the correct 8-color sub-palette
-        if (overworld_palette_.size() >= 256) {
-          int sheet_index = GetSheetIndexForTile8(current_tile8_);
-          int actual_palette_slot = GetActualPaletteSlot(current_palette_, sheet_index);
-          
-          // Remap pixel indices to the correct palette region
-          // Pixel values 0-15 in the original data map to different palette slots
-          for (size_t i = 0; i < tile_data.size(); ++i) {
-            uint8_t pixel = tile_data[i];
-            // Keep only the lower 4 bits (0-15) and add the palette offset
-            tile_data[i] = (pixel & 0x0F) + actual_palette_slot;
-          }
-        }
-        
-        // Create the display tile with the remapped pixel data
+        // The pixel data already contains the correct indices for the 256-color palette
+        // We don't need to remap - just use it as-is
         display_tile.Create(8, 8, 8, tile_data);
         
         // Apply the complete 256-color palette

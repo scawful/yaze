@@ -352,39 +352,59 @@ void Bitmap::SetPalette(const SnesPalette &palette) {
 
 void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
                                        int length) {
+  if (surface_ == nullptr) {
+    throw BitmapError("Surface is null. Palette not applied");
+  }
+
+  // CRITICAL FIX: Use index directly as palette slot, not index * 7
+  // For 8-color palettes, index should be 0-7, not 0-49
   if (index >= palette.size()) {
     throw std::invalid_argument("Invalid palette index");
   }
 
-  if (length < 0 || length > palette.size()) {
-    throw std::invalid_argument("Invalid palette length");
+  if (length < 0 || length > 8) {
+    throw std::invalid_argument("Invalid palette length (must be 0-8 for 8-color palettes)");
   }
 
   if (index + length > palette.size()) {
     throw std::invalid_argument("Palette index + length exceeds size");
   }
 
-  if (surface_ == nullptr) {
-    throw BitmapError("Surface is null. Palette not applied");
-  }
-
-  auto start_index = index * 7;
-  palette_ = palette.sub_palette(start_index, start_index + 7);
+  // Extract 8-color sub-palette starting at the specified index
+  // This correctly handles both 256-color overworld palettes and smaller palettes
   std::vector<ImVec4> colors;
+  
+  // Always start with transparent color (index 0)
   colors.push_back(ImVec4(0, 0, 0, 0));
-  for (size_t i = start_index; i < start_index + 7; ++i) {
-    auto &pal_color = palette[i];
+  
+  // Extract up to 7 colors from the palette starting at index
+  for (size_t i = 0; i < 7 && (index + i) < palette.size(); ++i) {
+    auto &pal_color = palette[index + i];
     colors.push_back(pal_color.rgb());
   }
+  
+  // Ensure we have exactly 8 colors (transparent + 7 data colors)
+  while (colors.size() < 8) {
+    colors.push_back(ImVec4(0, 0, 0, 1.0f)); // Fill with black if needed
+  }
+  
+  // CRITICAL FIX: Keep the original complete palette in palette_ member
+  // Only update the SDL surface palette for display purposes
+  // This prevents breaking other editors that expect the complete palette
+  if (palette_.size() != palette.size()) {
+    palette_ = palette;  // Store complete palette
+    InvalidatePaletteCache();  // Update cache with complete palette
+  }
 
+  // Apply the 8-color sub-palette to SDL surface for display
   SDL_UnlockSurface(surface_);
-  int color_index = 0;
-  for (const auto &each : colors) {
-    surface_->format->palette->colors[color_index].r = each.x;
-    surface_->format->palette->colors[color_index].g = each.y;
-    surface_->format->palette->colors[color_index].b = each.z;
-    surface_->format->palette->colors[color_index].a = each.w;
-    color_index++;
+  for (int color_index = 0; color_index < 8 && color_index < static_cast<int>(colors.size()); ++color_index) {
+    if (color_index < surface_->format->palette->ncolors) {
+      surface_->format->palette->colors[color_index].r = static_cast<Uint8>(colors[color_index].x * 255);
+      surface_->format->palette->colors[color_index].g = static_cast<Uint8>(colors[color_index].y * 255);
+      surface_->format->palette->colors[color_index].b = static_cast<Uint8>(colors[color_index].z * 255);
+      surface_->format->palette->colors[color_index].a = static_cast<Uint8>(colors[color_index].w * 255);
+    }
   }
   SDL_LockSurface(surface_);
 }
