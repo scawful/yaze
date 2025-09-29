@@ -123,6 +123,15 @@ target_link_libraries(
   ImGui
 )
 
+# Increase stack size on Windows to prevent stack overflow during asset loading
+# Windows default is 1MB, macOS/Linux is typically 8MB
+# LoadAssets() loads 223 graphics sheets and initializes multiple editors
+if(MSVC)
+  target_link_options(yaze PRIVATE /STACK:8388608)  # 8MB stack
+elseif(MINGW)
+  target_link_options(yaze PRIVATE -Wl,--stack,8388608)
+endif()
+
 # Conditionally link ImGui Test Engine
 if(YAZE_ENABLE_UI_TESTS)
   if(TARGET ImGuiTestEngine)
