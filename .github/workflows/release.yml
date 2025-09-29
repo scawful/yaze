@@ -83,7 +83,6 @@ jobs:
               echo "" >> release_notes.md
               echo "See docs/C1-changelog.md for full history." >> release_notes.md
             fi
-            fi
           else
             echo "# yaze Release Notes" > release_notes.md
             echo "" >> release_notes.md
