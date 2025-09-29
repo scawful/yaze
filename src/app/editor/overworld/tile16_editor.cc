@@ -353,22 +353,33 @@ absl::Status Tile16Editor::RefreshTile16Blockset() {
 }
 
 absl::Status Tile16Editor::UpdateBlocksetBitmap() {
+  util::logf("UpdateBlocksetBitmap called for tile %d", current_tile16_);
+  
   if (!tile16_blockset_) {
+    util::logf("ERROR: Tile16 blockset not initialized");
     return absl::FailedPreconditionError("Tile16 blockset not initialized");
   }
 
   if (current_tile16_ < 0 || current_tile16_ >= zelda3::kNumTile16Individual) {
+    util::logf("ERROR: Current tile16 ID %d out of range", current_tile16_);
     return absl::OutOfRangeError("Current tile16 ID out of range");
   }
 
-  // Update the blockset bitmap that's displayed in the editor
-  if (tile16_blockset_bmp_.is_active()) {
+  // Update the blockset bitmap directly from the current tile16 bitmap
+  if (tile16_blockset_bmp_.is_active() && current_tile16_bmp_.is_active()) {
+    util::logf("Updating blockset bitmap directly from current tile16...");
+    
     // Calculate the position of this tile in the blockset bitmap
     constexpr int kTilesPerRow = 8;  // Standard SNES tile16 layout is 8 tiles per row
     int tile_x = (current_tile16_ % kTilesPerRow) * kTile16Size;
     int tile_y = (current_tile16_ / kTilesPerRow) * kTile16Size;
+    
+    util::logf("Tile position: (%d, %d), blockset size: %dx%d, tile16 size: %dx%d", 
+               tile_x, tile_y, tile16_blockset_bmp_.width(), tile16_blockset_bmp_.height(),
+               current_tile16_bmp_.width(), current_tile16_bmp_.height());
 
     // Copy pixel data from current tile to blockset bitmap
+    int pixels_copied = 0;
     for (int tile_y_offset = 0; tile_y_offset < kTile16Size; ++tile_y_offset) {
       for (int tile_x_offset = 0; tile_x_offset < kTile16Size; ++tile_x_offset) {
         int src_index = tile_y_offset * kTile16Size + tile_x_offset;
@@ -377,17 +388,24 @@ absl::Status Tile16Editor::UpdateBlocksetBitmap() {
 
         if (src_index < static_cast<int>(current_tile16_bmp_.size()) &&
             dst_index < static_cast<int>(tile16_blockset_bmp_.size())) {
-          tile16_blockset_bmp_.WriteToPixel(dst_index, current_tile16_bmp_.data()[src_index]);
+          uint8_t pixel_value = current_tile16_bmp_.data()[src_index];
+          tile16_blockset_bmp_.WriteToPixel(dst_index, pixel_value);
+          pixels_copied++;
         }
       }
     }
 
+    util::logf("Copied %d pixels to blockset bitmap", pixels_copied);
+
     // Mark the blockset bitmap as modified and update the renderer
     tile16_blockset_bmp_.set_modified(true);
     core::Renderer::Get().UpdateBitmap(&tile16_blockset_bmp_);
+    util::logf("Blockset bitmap updated and renderer notified");
+  } else {
+    util::logf("ERROR: Blockset bitmap or current tile16 bitmap not active");
   }
 
-  util::logf("Updated blockset bitmap for tile %d", current_tile16_);
+  util::logf("UpdateBlocksetBitmap completed for tile %d", current_tile16_);
   return absl::OkStatus();
 }
 
@@ -565,17 +583,9 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
     }
   }
 
-  // Recreate the bitmap since we modified pixel data
-  auto tile16_data = current_tile16_bmp_.vector();
-  current_tile16_bmp_.Create(kTile16Size, kTile16Size, 8, tile16_data);
-
-  // Re-apply the correct palette to the tile16 bitmap after pixel updates
-  const auto& ow_main_pal_group = rom()->palette_group().overworld_main;
-  if (ow_main_pal_group.size() > 0) {
-    current_tile16_bmp_.SetPalette(ow_main_pal_group[0]);
-  }
-
-  core::Renderer::Get().RenderBitmap(&current_tile16_bmp_);
+  // Mark the bitmap as modified and update the renderer
+  current_tile16_bmp_.set_modified(true);
+  core::Renderer::Get().UpdateBitmap(&current_tile16_bmp_);
 
   // Update ROM data when painting to tile16
   auto* tile_data = GetCurrentTile16Data();
@@ -765,20 +775,23 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         // Always use the flipped tile for consistency between preview and actual drawing
         if (tile16_edit_canvas_.DrawTilePainter(*tile_to_paint, 8, 4.0F)) {
           ImVec2 click_pos = tile16_edit_canvas_.drawn_tile_position();
-          // Convert from display coordinates to tile16 bitmap coordinates
-          // The canvas shows 16x16 pixels at 4x scale (64x64 display), so divide by 4 to get actual pixel coordinates
-          click_pos.x =
-              (click_pos.x - 2) / 4.0F;  // Account for padding and 4x scale
-          click_pos.y = (click_pos.y - 2) / 4.0F;
-
-          // Ensure coordinates are within the 16x16 tile bounds
-          click_pos.x = std::max(0.0F, std::min(15.0F, click_pos.x));
-          click_pos.y = std::max(0.0F, std::min(15.0F, click_pos.y));
+          
+          // Convert canvas coordinates to tile16 coordinates (0-15 range)
+          // The canvas is 64x64 display pixels showing a 16x16 tile at 4x scale
+          int tile_x = static_cast<int>(click_pos.x / 4.0F);
+          int tile_y = static_cast<int>(click_pos.y / 4.0F);
+          
+          // Clamp to valid range
+          tile_x = std::max(0, std::min(15, tile_x));
+          tile_y = std::max(0, std::min(15, tile_y));
+          
+          util::logf("Canvas click: (%.2f, %.2f) -> Tile16: (%d, %d)", 
+                     click_pos.x, click_pos.y, tile_x, tile_y);
 
           // Pass the flipped tile if we created one, otherwise pass nullptr to use original with flips
           const gfx::Bitmap* tile_to_draw =
               (x_flip || y_flip) ? tile_to_paint : nullptr;
-          RETURN_IF_ERROR(DrawToCurrentTile16(click_pos, tile_to_draw));
+          RETURN_IF_ERROR(DrawToCurrentTile16(ImVec2(tile_x, tile_y), tile_to_draw));
         }
       }
 
