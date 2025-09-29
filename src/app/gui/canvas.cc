@@ -904,16 +904,8 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
     return;
   }
 
-  // Pre-render all tiles to avoid timing issues
-  auto tilemap_size = tilemap.atlas.width() * tilemap.atlas.height() / tilemap.map_size.x;
-  for (int tile_id : group) {
-    if (tile_id >= 0 && tile_id < tilemap_size) {
-      gfx::RenderTile(tilemap, tile_id);
-      
-      // DISABLED: tile cache operations that cause crashes
-      // The tile rendering is handled by RenderTile() above
-    }
-  }
+  // Skip pre-rendering to avoid tile cache crashes
+  // We'll draw directly from the atlas instead
 
   // Top-left and bottom-right corners of the rectangle
   ImVec2 rect_top_left = selected_points_[0];
@@ -957,11 +949,34 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
         int tile_pos_x = (x + start_tile_x) * tile_size * scale;
         int tile_pos_y = (y + start_tile_y) * tile_size * scale;
 
-        // Draw the tile bitmap at the calculated position
-        gfx::RenderTile(tilemap, tile_id);
-        
-        // DISABLED: tile cache operations that cause crashes
-        // Skip individual tile drawing for now to prevent crashes
+        // Draw tile directly from atlas without caching to prevent crashes
+        if (tilemap.atlas.is_active() && tilemap.atlas.texture()) {
+          int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
+          if (tiles_per_row > 0) {
+            int atlas_tile_x = (tile_id % tiles_per_row) * tilemap.tile_size.x;
+            int atlas_tile_y = (tile_id / tiles_per_row) * tilemap.tile_size.y;
+            
+            // Simple bounds check
+            if (atlas_tile_x >= 0 && atlas_tile_x < tilemap.atlas.width() && 
+                atlas_tile_y >= 0 && atlas_tile_y < tilemap.atlas.height()) {
+              
+              // Calculate UV coordinates for atlas texture
+              ImVec2 uv0 = ImVec2(static_cast<float>(atlas_tile_x) / tilemap.atlas.width(), 
+                                 static_cast<float>(atlas_tile_y) / tilemap.atlas.height());
+              ImVec2 uv1 = ImVec2(static_cast<float>(atlas_tile_x + tilemap.tile_size.x) / tilemap.atlas.width(),
+                                 static_cast<float>(atlas_tile_y + tilemap.tile_size.y) / tilemap.atlas.height());
+              
+              // Draw from atlas texture with transparency for preview
+              draw_list_->AddImage(
+                  (ImTextureID)(intptr_t)tilemap.atlas.texture(),
+                  ImVec2(canvas_p0_.x + scrolling_.x + tile_pos_x, 
+                         canvas_p0_.y + scrolling_.y + tile_pos_y),
+                  ImVec2(canvas_p0_.x + scrolling_.x + tile_pos_x + (tilemap.tile_size.x * scale),
+                         canvas_p0_.y + scrolling_.y + tile_pos_y + (tilemap.tile_size.y * scale)),
+                  uv0, uv1, IM_COL32(255, 255, 255, 150)); // 150 alpha for preview
+            }
+          }
+        }
       }
       i++;
     }
