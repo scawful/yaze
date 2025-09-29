@@ -150,10 +150,8 @@ if(NOT YAZE_MINIMAL_BUILD AND YAZE_ENABLE_ROM_TESTS)
     ${CMAKE_DL_LIBS}
   )
 
-  # Conditionally link yaze_c only when library is built
-  if(YAZE_BUILD_LIB)
-    target_link_libraries(extract_vanilla_values yaze_c)
-  endif()
+  # Note: extract_vanilla_values is a standalone utility that doesn't need yaze_c library
+  # It only needs the core ROM functionality which is provided by the source files
 endif()
 
   # Configure test executable only when tests are enabled
