@@ -15,6 +15,7 @@
 #include "app/gui/input.h"
 #include "util/log.h"
 #include "app/rom.h"
+#include "app/core/window.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "util/notify.h"
@@ -119,6 +120,7 @@ class Tile16Editor : public gfx::GfxContext {
   gfx::Tile16* GetCurrentTile16Data();
   absl::Status RegenerateTile16BitmapFromROM();
   absl::Status UpdateBlocksetBitmap();
+  absl::Status PickTile8FromTile16(const ImVec2& position);
   
   // Manual tile8 input controls
   void DrawManualTile8Inputs();
@@ -129,13 +131,23 @@ class Tile16Editor : public gfx::GfxContext {
   // Set the palette from overworld to ensure color consistency
   void set_palette(const gfx::SnesPalette& palette) { 
     palette_ = palette;
-    // Apply to all graphics immediately
+    
+    // CRITICAL FIX: Immediately update the main source bitmap
+    if (current_gfx_bmp_.is_active()) {
+      current_gfx_bmp_.SetPalette(palette_);
+      current_gfx_bmp_.set_modified(true);
+      core::Renderer::Get().UpdateBitmap(&current_gfx_bmp_);
+    }
+    
+    // Apply to all other graphics
     if (rom_) {
       auto status = RefreshAllPalettes();
       if (!status.ok()) {
         util::logf("Failed to refresh palettes: %s", status.message().data());
       }
     }
+    
+    util::logf("Tile16 editor palette set with %zu colors", palette_.size());
   }
   
   // Callback for when changes are committed to notify parent editor
