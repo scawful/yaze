@@ -38,6 +38,11 @@
   - Resolved multiple `main()` definition conflicts
   - Added proper `yaze_core` library linkage
   - Prevented CI/release builds from attempting to build development-only utilities
+- **File Dialog Fallback Implementation**: Fixed non-functional file dialogs in minimal builds
+  - Implemented proper Windows COM-based `IFileOpenDialog`/`IFileSaveDialog` fallback
+  - Previously returned empty string when NFD (Native File Dialog) was unavailable
+  - Now works in all Windows builds regardless of vcpkg/NFD availability
+  - Supports file open, file save, and folder selection dialogs
 - **Consistent Cross-Platform Behavior**: Windows builds now have equivalent stack resources and stability as Unix-like systems
 
 ### Memory Safety & Stability

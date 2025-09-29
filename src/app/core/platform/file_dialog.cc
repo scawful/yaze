@@ -158,8 +158,58 @@ std::string FileDialogWrapper::ShowOpenFileDialogNFD() {
 }
 
 std::string FileDialogWrapper::ShowOpenFileDialogBespoke() {
-  // For CI/CD, just return a placeholder path
-  return ""; // Placeholder for bespoke implementation
+  // Use Windows COM-based IFileOpenDialog as fallback when NFD not available
+  HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  if (FAILED(hr)) {
+    return "";
+  }
+
+  std::string result;
+  IFileOpenDialog *pFileOpen = NULL;
+
+  // Create the FileOpenDialog object
+  hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+                        IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+
+  if (SUCCEEDED(hr)) {
+    // Set file type filters
+    COMDLG_FILTERSPEC rgSpec[] = {
+        {L"ROM Files", L"*.sfc;*.smc"},
+        {L"All Files", L"*.*"}
+    };
+    pFileOpen->SetFileTypes(ARRAYSIZE(rgSpec), rgSpec);
+    pFileOpen->SetFileTypeIndex(1);
+    pFileOpen->SetDefaultExtension(L"sfc");
+
+    // Show the Open dialog
+    hr = pFileOpen->Show(NULL);
+
+    if (SUCCEEDED(hr)) {
+      // Get the file name from the dialog
+      IShellItem *pItem;
+      hr = pFileOpen->GetResult(&pItem);
+      if (SUCCEEDED(hr)) {
+        PWSTR pszFilePath;
+        hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+        if (SUCCEEDED(hr)) {
+          // Convert wide string to narrow string
+          int size_needed = WideCharToMultiByte(CP_UTF8, 0, pszFilePath, -1, NULL, 0, NULL, NULL);
+          if (size_needed > 0) {
+            std::vector<char> buffer(size_needed);
+            WideCharToMultiByte(CP_UTF8, 0, pszFilePath, -1, buffer.data(), size_needed, NULL, NULL);
+            result = std::string(buffer.data());
+          }
+          CoTaskMemFree(pszFilePath);
+        }
+        pItem->Release();
+      }
+    }
+    pFileOpen->Release();
+  }
+
+  CoUninitialize();
+  return result;
 }
 
 std::string FileDialogWrapper::ShowSaveFileDialog(const std::string& default_name, 
@@ -223,11 +273,77 @@ std::string FileDialogWrapper::ShowSaveFileDialogNFD(const std::string& default_
 
 std::string FileDialogWrapper::ShowSaveFileDialogBespoke(const std::string& default_name, 
                                                         const std::string& default_extension) {
-  // For CI/CD, just return a placeholder path
-  if (!default_name.empty() && !default_extension.empty()) {
-    return default_name + "." + default_extension;
+  // Use Windows COM-based IFileSaveDialog as fallback when NFD not available
+  HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  if (FAILED(hr)) {
+    return "";
   }
-  return ""; // Placeholder for bespoke implementation
+
+  std::string result;
+  IFileSaveDialog *pFileSave = NULL;
+
+  // Create the FileSaveDialog object
+  hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_ALL,
+                        IID_IFileSaveDialog, reinterpret_cast<void**>(&pFileSave));
+
+  if (SUCCEEDED(hr)) {
+    // Set file type filters based on extension
+    if (default_extension == "theme") {
+      COMDLG_FILTERSPEC rgSpec[] = {{L"Theme Files", L"*.theme"}};
+      pFileSave->SetFileTypes(ARRAYSIZE(rgSpec), rgSpec);
+      pFileSave->SetDefaultExtension(L"theme");
+    } else if (default_extension == "yaze") {
+      COMDLG_FILTERSPEC rgSpec[] = {{L"YAZE Project Files", L"*.yaze"}};
+      pFileSave->SetFileTypes(ARRAYSIZE(rgSpec), rgSpec);
+      pFileSave->SetDefaultExtension(L"yaze");
+    } else if (default_extension == "sfc" || default_extension == "smc") {
+      COMDLG_FILTERSPEC rgSpec[] = {
+          {L"SFC ROM Files", L"*.sfc"},
+          {L"SMC ROM Files", L"*.smc"}
+      };
+      pFileSave->SetFileTypes(ARRAYSIZE(rgSpec), rgSpec);
+      pFileSave->SetDefaultExtension(default_extension == "sfc" ? L"sfc" : L"smc");
+    }
+
+    // Set default filename if provided
+    if (!default_name.empty()) {
+      int size_needed = MultiByteToWideChar(CP_UTF8, 0, default_name.c_str(), -1, NULL, 0);
+      if (size_needed > 0) {
+        std::vector<wchar_t> wname(size_needed);
+        MultiByteToWideChar(CP_UTF8, 0, default_name.c_str(), -1, wname.data(), size_needed);
+        pFileSave->SetFileName(wname.data());
+      }
+    }
+
+    // Show the Save dialog
+    hr = pFileSave->Show(NULL);
+
+    if (SUCCEEDED(hr)) {
+      // Get the file name from the dialog
+      IShellItem *pItem;
+      hr = pFileSave->GetResult(&pItem);
+      if (SUCCEEDED(hr)) {
+        PWSTR pszFilePath;
+        hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+
+        if (SUCCEEDED(hr)) {
+          // Convert wide string to narrow string
+          int size_needed = WideCharToMultiByte(CP_UTF8, 0, pszFilePath, -1, NULL, 0, NULL, NULL);
+          if (size_needed > 0) {
+            std::vector<char> buffer(size_needed);
+            WideCharToMultiByte(CP_UTF8, 0, pszFilePath, -1, buffer.data(), size_needed, NULL, NULL);
+            result = std::string(buffer.data());
+          }
+          CoTaskMemFree(pszFilePath);
+        }
+        pItem->Release();
+      }
+    }
+    pFileSave->Release();
+  }
+
+  CoUninitialize();
+  return result;
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
@@ -262,8 +378,58 @@ std::string FileDialogWrapper::ShowOpenFolderDialogNFD() {
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialogBespoke() {
-  // For CI/CD, just return a placeholder path
-  return ""; // Placeholder for bespoke implementation
+  // Use Windows COM-based IFileOpenDialog in folder-picking mode as fallback
+  HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  if (FAILED(hr)) {
+    return "";
+  }
+
+  std::string result;
+  IFileOpenDialog *pFileOpen = NULL;
+
+  // Create the FileOpenDialog object
+  hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL,
+                        IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+
+  if (SUCCEEDED(hr)) {
+    // Set options to pick folders instead of files
+    DWORD dwOptions;
+    hr = pFileOpen->GetOptions(&dwOptions);
+    if (SUCCEEDED(hr)) {
+      hr = pFileOpen->SetOptions(dwOptions | FOS_PICKFOLDERS);
+    }
+
+    if (SUCCEEDED(hr)) {
+      // Show the Open dialog
+      hr = pFileOpen->Show(NULL);
+
+      if (SUCCEEDED(hr)) {
+        // Get the folder path from the dialog
+        IShellItem *pItem;
+        hr = pFileOpen->GetResult(&pItem);
+        if (SUCCEEDED(hr)) {
+          PWSTR pszFolderPath;
+          hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFolderPath);
+
+          if (SUCCEEDED(hr)) {
+            // Convert wide string to narrow string
+            int size_needed = WideCharToMultiByte(CP_UTF8, 0, pszFolderPath, -1, NULL, 0, NULL, NULL);
+            if (size_needed > 0) {
+              std::vector<char> buffer(size_needed);
+              WideCharToMultiByte(CP_UTF8, 0, pszFolderPath, -1, buffer.data(), size_needed, NULL, NULL);
+              result = std::string(buffer.data());
+            }
+            CoTaskMemFree(pszFolderPath);
+          }
+          pItem->Release();
+        }
+      }
+    }
+    pFileOpen->Release();
+  }
+
+  CoUninitialize();
+  return result;
 }
 
 std::vector<std::string> FileDialogWrapper::GetSubdirectoriesInFolder(
