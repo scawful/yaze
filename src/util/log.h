@@ -42,7 +42,7 @@ static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
   // Reopen file if path changed
   if (g_log_file_path != last_log_path) {
     fout.close();
-    fout.open(g_log_file_path, std::ios::out | std::ios::app);
+    fout.open(g_log_file_path, std::ios::out | std::ios::trunc);
     last_log_path = g_log_file_path;
   }
   

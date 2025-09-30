@@ -74,6 +74,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       test_editor.h
       testing.h
       test_utils.h
+      test_utils.cc
       
       # Unit Tests
       unit/core/asar_wrapper_test.cc
@@ -101,6 +102,8 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       integration/editor/editor_integration_test.h
       
       # E2E Tests (included in development builds)
+      e2e/canvas_selection_test.cc
+      e2e/framework_smoke_test.cc
       e2e/rom_dependent/e2e_rom_test.cc
       e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
       
@@ -212,7 +215,6 @@ endif()
     ${PNG_LIBRARIES}
     ${OPENGL_LIBRARIES}
     ${CMAKE_DL_LIBS}
-    ImGui
     gmock_main
     gmock
     gtest_main

@@ -9,6 +9,12 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/flags/usage.h"
+#include <unistd.h>
+#include <sys/wait.h>
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_cat.h"
@@ -29,6 +35,9 @@ ABSL_FLAG(std::string, rom, "", "Path to the ROM file");
 ABSL_FLAG(std::string, output, "", "Output file path");
 ABSL_FLAG(bool, dry_run, false, "Perform a dry run without making changes");
 ABSL_FLAG(bool, backup, true, "Create a backup before modifying files");
+ABSL_FLAG(std::string, test, "", "Name of the test to run");
+ABSL_FLAG(bool, show_gui, false, "Show the test engine GUI");
+
 
 namespace yaze {
 namespace cli {
@@ -116,6 +125,15 @@ class ModernCLI {
       .usage = "z3ed help [command]",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleHelpCommand(args);
+      }
+    };
+
+    commands_["test-gui"] = {
+      .name = "test-gui",
+      .description = "Run automated GUI tests",
+      .usage = "z3ed test-gui --rom=<rom_file> --test=<test_name>",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleTestGuiCommand(args);
       }
     };
   }
@@ -415,6 +433,78 @@ class ModernCLI {
       std::cout << "❌ Some tests failed." << std::endl;
       return absl::InternalError("Test failures detected");
     }
+  }
+
+  absl::Status HandleTestGuiCommand(const std::vector<std::string>& args) {
+    std::string rom_file = absl::GetFlag(FLAGS_rom);
+    std::string test_name = absl::GetFlag(FLAGS_test);
+
+    if (rom_file.empty()) {
+      return absl::InvalidArgumentError("ROM file required (use --rom=<file>)");
+    }
+
+    // Get the path to the current executable
+    char exe_path[1024];
+#ifdef __APPLE__
+    uint32_t size = sizeof(exe_path);
+    if (_NSGetExecutablePath(exe_path, &size) != 0) {
+        return absl::InternalError("Could not get executable path");
+    }
+#else
+    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (len == -1) {
+        return absl::InternalError("Could not get executable path");
+    }
+    exe_path[len] = '\0';
+#endif
+
+    std::string exe_dir = std::string(exe_path);
+    exe_dir = exe_dir.substr(0, exe_dir.find_last_of("/"));
+
+    std::string yaze_test_path = exe_dir + "/yaze_test";
+
+    std::vector<std::string> command_args;
+    command_args.push_back(yaze_test_path);
+    command_args.push_back("--enable-ui-tests");
+    command_args.push_back("--rom-path=" + rom_file);
+    if (!test_name.empty()) {
+        command_args.push_back(test_name);
+    }
+    if (absl::GetFlag(FLAGS_show_gui)) {
+        command_args.push_back("--show-gui");
+    }
+
+    std::vector<char*> argv;
+    for (const auto& arg : command_args) {
+        argv.push_back((char*)arg.c_str());
+    }
+    argv.push_back(nullptr);
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        return absl::InternalError("Failed to fork process");
+    }
+
+    if (pid == 0) {
+        // Child process
+        execv(yaze_test_path.c_str(), argv.data());
+        // If execv returns, it must have failed
+        return absl::InternalError("Failed to execute yaze_test");
+    } else {
+        // Parent process
+        int status;
+        waitpid(pid, &status, 0);
+        if (WIFEXITED(status)) {
+            int exit_code = WEXITSTATUS(status);
+            if (exit_code == 0) {
+                return absl::OkStatus();
+            } else {
+                return absl::InternalError(absl::StrFormat("yaze_test exited with code %d", exit_code));
+            }
+        }
+    }
+
+    return absl::OkStatus();
   }
 
   absl::Status HandleHelpCommand(const std::vector<std::string>& args) {

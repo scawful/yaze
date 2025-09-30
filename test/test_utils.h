@@ -10,6 +10,9 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include "absl/strings/str_format.h"
+#include "imgui_test_engine/imgui_te_context.h"
+
 namespace yaze {
 namespace test {
 
@@ -149,6 +152,13 @@ class RomDependentTest : public ::testing::Test {
 
   std::vector<uint8_t> test_rom_;
 };
+
+namespace gui {
+
+void LoadRomInTest(ImGuiTestContext* ctx, const std::string& rom_path);
+void OpenEditorInTest(ImGuiTestContext* ctx, const std::string& editor_name);
+
+} // namespace gui
 
 }  // namespace test
 }  // namespace yaze

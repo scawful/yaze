@@ -101,6 +101,7 @@ class EditorManager {
   absl::Status SetCurrentRom(Rom* rom);
   auto GetCurrentRom() -> Rom* { return current_rom_; }
   auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
+  auto overworld() -> yaze::zelda3::Overworld* { return &current_editor_set_->overworld_editor_.overworld(); }
 
   // Get current session's feature flags (falls back to global if no session)
   core::FeatureFlags::Flags* GetCurrentFeatureFlags() {
