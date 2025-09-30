@@ -139,7 +139,7 @@ Overview</h1>
 </table>
 <h2><a class="anchor" id="autotoc_md190"></a>
 3. &lt;strong&gt;Implementation Details&lt;/strong&gt;</h2>
-<p>Each editor now includes: </p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="performance__monitor_8h.html">app/core/performance_monitor.h</a>&quot;</span></div>
+<p>Each editor now includes: </p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;app/core/performance_monitor.h&quot;</span></div>
 <div class="line"> </div>
 <div class="line">absl::Status [EditorName]::Load() {</div>
 <div class="line">  core::ScopedTimer timer(<span class="stringliteral">&quot;[EditorName]::Load&quot;</span>);</div>
@@ -148,7 +148,6 @@ Overview</h1>
 <div class="line">  </div>
 <div class="line">  <span class="keywordflow">return</span> absl::OkStatus();</div>
 <div class="line">}</div>
-<div class="ttc" id="aperformance__monitor_8h_html"><div class="ttname"><a href="performance__monitor_8h.html">performance_monitor.h</a></div></div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md191"></a>
 🎯 &lt;strong&gt;Expected Results&lt;/strong&gt;</h1>
 <p>When you run the application and load a ROM, you'll now see detailed timing for each editor:</p>

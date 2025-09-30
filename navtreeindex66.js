@@ -1,13 +1,5 @@
 var NAVTREEINDEX66 =
 {
-"room__object_8h.html#a4852800a3aabb1c20b4dc965a6b2ddba":[44,0,3,0,6,0,14,15],
-"room__object_8h.html#a599b7198a7dd0ec9da754a83f9a7e5f9":[44,0,3,0,6,0,14,9],
-"room__object_8h.html#a5f1053148284ef69ee84ef1d04d61fad":[44,0,3,0,6,0,14,11],
-"room__object_8h.html#a8dba0a80bc8aa578678dd25378dcd0f5":[44,0,3,0,6,0,14,13],
-"room__object_8h.html#a93f46a6999be6a8b526030afb9b1d6be":[44,0,3,0,6,0,14,14],
-"room__object_8h.html#a9490ecf2dca104bfd1d4d40b44f5e747":[44,0,3,0,6,0,14,6],
-"room__object_8h.html#a9490ecf2dca104bfd1d4d40b44f5e747a14f444c54a9121666c45db7b09b7a879":[44,0,3,0,6,0,14,6,5],
-"room__object_8h.html#a9490ecf2dca104bfd1d4d40b44f5e747a1bea8d95112c19ad328f5575ae154236":[44,0,3,0,6,0,14,6,1],
 "room__object_8h.html#a9490ecf2dca104bfd1d4d40b44f5e747a1c0bac950eb1bff4d38394e5369893ad":[44,0,3,0,6,0,14,6,0],
 "room__object_8h.html#a9490ecf2dca104bfd1d4d40b44f5e747a2c1d66c39504bf46d0675a151c3c0ffb":[44,0,3,0,6,0,14,6,3],
 "room__object_8h.html#a9490ecf2dca104bfd1d4d40b44f5e747a3b3d4dde7f8529d93bbc8e3d7bf17073":[44,0,3,0,6,0,14,6,7],
@@ -249,5 +241,13 @@ var NAVTREEINDEX66 =
 "snes__tile_8h.html#a7defcba4175eb8d38335943a94fc81e3":[44,0,3,0,3,23,6],
 "snes__tile_8h.html#a960630bcf8c1227f79ff2cf1f6c034bb":[44,0,3,0,3,23,5],
 "snes__tile_8h.html#aa50c94ff8a438c8d1f9d8a74115c5304":[44,0,3,0,3,23,7],
-"snes__tile_8h.html#aa5ae49b02472150a2ad972abf1f7d35a":[44,0,3,0,3,23,15]
+"snes__tile_8h.html#aa5ae49b02472150a2ad972abf1f7d35a":[44,0,3,0,3,23,15],
+"snes__tile_8h.html#aa922bcd5f021d803c8d6fe22e37af0ef":[44,0,3,0,3,23,19],
+"snes__tile_8h.html#abddef303b6a036e2cbce669f424f7317":[44,0,3,0,3,23,13],
+"snes__tile_8h.html#aca0ab154feaf9fd61510d5f26832e054":[44,0,3,0,3,23,9],
+"snes__tile_8h_source.html":[44,0,3,0,3,23],
+"snes__tile__test_8cc.html":[44,0,4,3,1,2],
+"snes__tile__test_8cc.html#a09d506bccffd0952de360a353439505c":[44,0,4,3,1,2,3],
+"snes__tile__test_8cc.html#a12c69443b0f80ade46e466ae9ccf0789":[44,0,4,3,1,2,0],
+"snes__tile__test_8cc.html#a2bc40237272e2d4fb9d31f8dc475c210":[44,0,4,3,1,2,2]
 };

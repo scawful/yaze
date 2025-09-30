@@ -29,8 +29,6 @@ var namespaceyaze_1_1core =
     [ "Window", "structyaze_1_1core_1_1Window.html", "structyaze_1_1core_1_1Window" ],
     [ "WorkspaceSettings", "structyaze_1_1core_1_1WorkspaceSettings.html", "structyaze_1_1core_1_1WorkspaceSettings" ],
     [ "YazeProject", "structyaze_1_1core_1_1YazeProject.html", "structyaze_1_1core_1_1YazeProject" ],
-    [ "PerformanceMonitor", "namespaceyaze_1_1core.html#ac076bebd5db3a5357c22141d4aecc8fe", null ],
-    [ "ScopedTimer", "namespaceyaze_1_1core.html#a091f2e0a0166f13b7da0140ce905779b", null ],
     [ "Platform", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648", [
       [ "kUnknown", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648a25c2dc47991b3df171ed5192bcf70390", null ],
       [ "kMacOS", "namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648ad4b84d921444ff96b6ed220a036f9a8a", null ],
