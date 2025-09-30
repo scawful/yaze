@@ -70,6 +70,12 @@ void Canvas::InitializeDefaults() {
   // Initialize palette editor
   palette_editor_ = std::make_unique<EnhancedPaletteEditor>();
   
+  // Initialize interaction handler
+  interaction_handler_.Initialize(canvas_id_);
+  
+  // Initialize enhanced components
+  InitializeEnhancedComponents();
+  
   // Initialize legacy compatibility variables to match config
   enable_grid_ = config_.enable_grid;
   enable_hex_tile_labels_ = config_.enable_hex_labels;
@@ -86,6 +92,93 @@ void Canvas::InitializeDefaults() {
 void Canvas::Cleanup() {
   palette_editor_.reset();
   selection_.Clear();
+  
+  // Stop performance monitoring before cleanup to prevent segfault
+  if (performance_integration_) {
+    performance_integration_->StopMonitoring();
+  }
+  
+  // Cleanup enhanced components
+  modals_.reset();
+  context_menu_.reset();
+  usage_tracker_.reset();
+  performance_integration_.reset();
+}
+
+void Canvas::InitializeEnhancedComponents() {
+  // Initialize modals system
+  modals_ = std::make_unique<canvas::CanvasModals>();
+  
+  // Initialize context menu system
+  context_menu_ = std::make_unique<canvas::CanvasContextMenu>();
+  context_menu_->Initialize(canvas_id_);
+  
+  // Initialize usage tracker
+  usage_tracker_ = std::make_shared<canvas::CanvasUsageTracker>();
+  usage_tracker_->Initialize(canvas_id_);
+  canvas::CanvasUsageManager::Get().RegisterTracker(canvas_id_, usage_tracker_);
+  
+  // Initialize performance integration
+  performance_integration_ = std::make_shared<canvas::CanvasPerformanceIntegration>();
+  performance_integration_->Initialize(canvas_id_);
+  performance_integration_->SetUsageTracker(usage_tracker_);
+  canvas::CanvasPerformanceManager::Get().RegisterIntegration(canvas_id_, performance_integration_);
+  
+  // Start performance monitoring
+  performance_integration_->StartMonitoring();
+  usage_tracker_->StartSession();
+}
+
+void Canvas::SetUsageMode(canvas::CanvasUsage usage) {
+  if (usage_tracker_) {
+    usage_tracker_->SetUsageMode(usage);
+  }
+  if (context_menu_) {
+    context_menu_->SetUsageMode(usage);
+  }
+}
+
+canvas::CanvasUsage Canvas::GetUsageMode() const {
+  if (usage_tracker_) {
+    return usage_tracker_->GetCurrentStats().usage_mode;
+  }
+  return canvas::CanvasUsage::kUnknown;
+}
+
+void Canvas::RecordCanvasOperation(const std::string& operation_name, double time_ms) {
+  if (usage_tracker_) {
+    usage_tracker_->RecordOperation(operation_name, time_ms);
+  }
+  if (performance_integration_) {
+    performance_integration_->RecordOperation(operation_name, time_ms, GetUsageMode());
+  }
+}
+
+void Canvas::ShowPerformanceUI() {
+  if (performance_integration_) {
+    performance_integration_->RenderPerformanceUI();
+  }
+}
+
+void Canvas::ShowUsageReport() {
+  if (usage_tracker_) {
+    std::string report = usage_tracker_->ExportUsageReport();
+    // Show report in a modal or window
+    if (modals_) {
+      // Create a simple text display modal
+      ImGui::OpenPopup("Canvas Usage Report");
+      if (ImGui::BeginPopupModal("Canvas Usage Report", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text("Canvas Usage Report");
+        ImGui::Separator();
+        ImGui::TextWrapped("%s", report.c_str());
+        ImGui::Separator();
+        if (ImGui::Button("Close")) {
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+    }
+  }
 }
 
 void Canvas::InitializePaletteEditor(Rom* rom) {
@@ -174,6 +267,24 @@ ImVec2 Canvas::GetLastClickPosition() const {
   return ImVec2(-1, -1); // Invalid position
 }
 
+// ==================== Modern ImGui-Style Interface ====================
+
+void Canvas::Begin(ImVec2 canvas_size) {
+  // Modern ImGui-style begin - combines DrawBackground + DrawContextMenu
+  DrawBackground(canvas_size);
+  DrawContextMenu();
+}
+
+void Canvas::End() {
+  // Modern ImGui-style end - automatically draws grid and overlay
+  if (config_.enable_grid) {
+    DrawGrid();
+  }
+  DrawOverlay();
+}
+
+// ==================== Legacy Interface ====================
+
 void Canvas::UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
                                 const std::function<void()> &event,
                                 int tile_size, float scale) {
@@ -250,6 +361,119 @@ void Canvas::DrawContextMenu() {
   const ImVec2 origin(canvas_p0_.x + scrolling_.x,
                       canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+  
+  // Update canvas state for enhanced components
+  if (usage_tracker_) {
+    usage_tracker_->UpdateCanvasState(canvas_sz_, config_.content_size, 
+                                     global_scale_, custom_step_, 
+                                     enable_grid_, enable_hex_tile_labels_, 
+                                     enable_custom_labels_);
+  }
+  
+  // Use enhanced context menu if available
+  if (context_menu_) {
+    canvas::CanvasConfig snapshot;
+    snapshot.canvas_size = canvas_sz_;
+    snapshot.content_size = config_.content_size;
+    snapshot.global_scale = global_scale_;
+    snapshot.grid_step = custom_step_;
+    snapshot.enable_grid = enable_grid_;
+    snapshot.enable_hex_labels = enable_hex_tile_labels_;
+    snapshot.enable_custom_labels = enable_custom_labels_;
+    snapshot.enable_context_menu = enable_context_menu_;
+    snapshot.is_draggable = draggable_;
+    snapshot.auto_resize = config_.auto_resize;
+    snapshot.scrolling = scrolling_;
+
+    context_menu_->SetCanvasState(canvas_sz_, config_.content_size,
+                                 global_scale_, custom_step_, enable_grid_,
+                                 enable_hex_tile_labels_, enable_custom_labels_,
+                                 enable_context_menu_, draggable_,
+                                 config_.auto_resize, scrolling_);
+
+    context_menu_->Render(
+        context_id_, mouse_pos, bitmap_,
+        bitmap_ ? bitmap_->mutable_palette() : nullptr,
+        [this](canvas::CanvasContextMenu::Command command,
+               const canvas::CanvasConfig& updated_config) {
+          switch (command) {
+            case canvas::CanvasContextMenu::Command::kResetView:
+              ResetView();
+              break;
+            case canvas::CanvasContextMenu::Command::kZoomToFit:
+              if (bitmap_) {
+                SetZoomToFit(*bitmap_);
+              }
+              break;
+            case canvas::CanvasContextMenu::Command::kZoomIn:
+              SetGlobalScale(config_.global_scale * 1.25f);
+              break;
+            case canvas::CanvasContextMenu::Command::kZoomOut:
+              SetGlobalScale(config_.global_scale * 0.8f);
+              break;
+            case canvas::CanvasContextMenu::Command::kToggleGrid:
+              config_.enable_grid = !config_.enable_grid;
+              enable_grid_ = config_.enable_grid;
+              break;
+            case canvas::CanvasContextMenu::Command::kToggleHexLabels:
+              config_.enable_hex_labels = !config_.enable_hex_labels;
+              enable_hex_tile_labels_ = config_.enable_hex_labels;
+              break;
+            case canvas::CanvasContextMenu::Command::kToggleCustomLabels:
+              config_.enable_custom_labels = !config_.enable_custom_labels;
+              enable_custom_labels_ = config_.enable_custom_labels;
+              break;
+            case canvas::CanvasContextMenu::Command::kToggleContextMenu:
+              config_.enable_context_menu = !config_.enable_context_menu;
+              enable_context_menu_ = config_.enable_context_menu;
+              break;
+            case canvas::CanvasContextMenu::Command::kToggleAutoResize:
+              config_.auto_resize = !config_.auto_resize;
+              break;
+            case canvas::CanvasContextMenu::Command::kToggleDraggable:
+              config_.is_draggable = !config_.is_draggable;
+              draggable_ = config_.is_draggable;
+              break;
+            case canvas::CanvasContextMenu::Command::kSetGridStep:
+              config_.grid_step = updated_config.grid_step;
+              custom_step_ = config_.grid_step;
+              break;
+            case canvas::CanvasContextMenu::Command::kSetScale:
+              config_.global_scale = updated_config.global_scale;
+              global_scale_ = config_.global_scale;
+              break;
+            case canvas::CanvasContextMenu::Command::kOpenAdvancedProperties:
+              if (modals_) {
+                canvas::CanvasConfig modal_config = updated_config;
+                modal_config.on_config_changed =
+                    [this](const canvas::CanvasConfig& cfg) { ApplyConfigSnapshot(cfg); };
+                modal_config.on_scale_changed =
+                    [this](const canvas::CanvasConfig& cfg) { ApplyScaleSnapshot(cfg); };
+                modals_->ShowAdvancedProperties(canvas_id_, modal_config, bitmap_);
+              }
+              break;
+            case canvas::CanvasContextMenu::Command::kOpenScalingControls:
+              if (modals_) {
+                canvas::CanvasConfig modal_config = updated_config;
+                modal_config.on_config_changed =
+                    [this](const canvas::CanvasConfig& cfg) { ApplyConfigSnapshot(cfg); };
+                modal_config.on_scale_changed =
+                    [this](const canvas::CanvasConfig& cfg) { ApplyScaleSnapshot(cfg); };
+                modals_->ShowScalingControls(canvas_id_, modal_config, bitmap_);
+              }
+              break;
+            default:
+              break;
+          }
+        },
+        snapshot);
+
+    if (modals_) {
+      modals_->Render();
+    }
+
+    return;
+  }
 
   static bool show_bitmap_data = false;
   if (show_bitmap_data && bitmap_ != nullptr) {
@@ -461,8 +685,6 @@ void Canvas::ClearContextMenuItems() {
   context_menu_items_.clear();
 }
 
-// Old ShowPaletteEditor method removed - now handled by EnhancedPaletteEditor
-
 void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
   if (!bitmap.is_active()) return;
   
@@ -484,6 +706,35 @@ void Canvas::ResetView() {
   config_.global_scale = 1.0f;
   global_scale_ = 1.0f; // Legacy compatibility
   scrolling_ = ImVec2(0, 0);
+}
+
+void Canvas::ApplyConfigSnapshot(const canvas::CanvasConfig& snapshot) {
+  config_.enable_grid = snapshot.enable_grid;
+  config_.enable_hex_labels = snapshot.enable_hex_labels;
+  config_.enable_custom_labels = snapshot.enable_custom_labels;
+  config_.enable_context_menu = snapshot.enable_context_menu;
+  config_.is_draggable = snapshot.is_draggable;
+  config_.auto_resize = snapshot.auto_resize;
+  config_.grid_step = snapshot.grid_step;
+  config_.global_scale = snapshot.global_scale;
+  config_.canvas_size = snapshot.canvas_size;
+  config_.content_size = snapshot.content_size;
+  config_.custom_canvas_size = snapshot.canvas_size.x > 0 && snapshot.canvas_size.y > 0;
+
+  enable_grid_ = config_.enable_grid;
+  enable_hex_tile_labels_ = config_.enable_hex_labels;
+  enable_custom_labels_ = config_.enable_custom_labels;
+  enable_context_menu_ = config_.enable_context_menu;
+  draggable_ = config_.is_draggable;
+  custom_step_ = config_.grid_step;
+  global_scale_ = config_.global_scale;
+  scrolling_ = snapshot.scrolling;
+}
+
+void Canvas::ApplyScaleSnapshot(const canvas::CanvasConfig& snapshot) {
+  config_.global_scale = snapshot.global_scale;
+  global_scale_ = config_.global_scale;
+  scrolling_ = snapshot.scrolling;
 }
 
 bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
@@ -913,7 +1164,7 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
   }
 
   // OPTIMIZATION: Use optimized rendering for large groups to improve performance
-  bool use_optimized_rendering = group.size() > 16; // Optimize for large selections
+  bool use_optimized_rendering = group.size() > 128; // Optimize for large selections
   
   // Pre-calculate common values to avoid repeated computation
   const float tile_scale = tile_size * scale;
@@ -954,8 +1205,7 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
       int tile_id = group[i];
 
       // Check if tile_id is within the range of tile16_individual_
-      auto tilemap_size =
-          tilemap.atlas.width() * tilemap.atlas.height() / tilemap.map_size.x;
+      auto tilemap_size = tilemap.map_size.x;
       if (tile_id >= 0 && tile_id < tilemap_size) {
         // Calculate the position of the tile within the rectangle
         int tile_pos_x = (x + start_tile_x) * tile_size * scale;
@@ -1108,7 +1358,7 @@ void Canvas::DrawOverlay() {
     .grid_step = config_.grid_step
   };
   
-  // Use high-level utility function
+  // Use high-level utility function with local points (synchronized from interaction handler)
   CanvasUtils::DrawCanvasOverlay(ctx, points_, selected_points_);
 }
 
@@ -1266,6 +1516,36 @@ void TableCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap,
 }
 
 void Canvas::ShowAdvancedCanvasProperties() {
+  // Use the new modal system if available
+  if (modals_) {
+    canvas::CanvasConfig modal_config;
+    modal_config.canvas_size = canvas_sz_;
+    modal_config.content_size = config_.content_size;
+    modal_config.global_scale = global_scale_;
+    modal_config.grid_step = custom_step_;
+    modal_config.enable_grid = enable_grid_;
+    modal_config.enable_hex_labels = enable_hex_tile_labels_;
+    modal_config.enable_custom_labels = enable_custom_labels_;
+    modal_config.enable_context_menu = enable_context_menu_;
+    modal_config.is_draggable = draggable_;
+    modal_config.auto_resize = config_.auto_resize;
+    modal_config.scrolling = scrolling_;
+    modal_config.on_config_changed = [this](const canvas::CanvasConfig& updated_config) {
+      // Update legacy variables when config changes
+      enable_grid_ = updated_config.enable_grid;
+      enable_hex_tile_labels_ = updated_config.enable_hex_labels;
+      enable_custom_labels_ = updated_config.enable_custom_labels;
+    };
+    modal_config.on_scale_changed = [this](const canvas::CanvasConfig& updated_config) {
+      global_scale_ = updated_config.global_scale;
+      scrolling_ = updated_config.scrolling;
+    };
+    
+    modals_->ShowAdvancedProperties(canvas_id_, modal_config, bitmap_);
+    return;
+  }
+  
+  // Fallback to legacy modal system
   if (ImGui::BeginPopupModal("Advanced Canvas Properties", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Advanced Canvas Configuration");
     ImGui::Separator();
@@ -1346,6 +1626,39 @@ void Canvas::ShowAdvancedCanvasProperties() {
 // Old ShowPaletteManager method removed - now handled by EnhancedPaletteEditor
 
 void Canvas::ShowScalingControls() {
+  // Use the new modal system if available
+  if (modals_) {
+    canvas::CanvasConfig modal_config;
+    modal_config.canvas_size = canvas_sz_;
+    modal_config.content_size = config_.content_size;
+    modal_config.global_scale = global_scale_;
+    modal_config.grid_step = custom_step_;
+    modal_config.enable_grid = enable_grid_;
+    modal_config.enable_hex_labels = enable_hex_tile_labels_;
+    modal_config.enable_custom_labels = enable_custom_labels_;
+    modal_config.enable_context_menu = enable_context_menu_;
+    modal_config.is_draggable = draggable_;
+    modal_config.auto_resize = config_.auto_resize;
+    modal_config.scrolling = scrolling_;
+    modal_config.on_config_changed = [this](const canvas::CanvasConfig& updated_config) {
+      // Update legacy variables when config changes
+      enable_grid_ = updated_config.enable_grid;
+      enable_hex_tile_labels_ = updated_config.enable_hex_labels;
+      enable_custom_labels_ = updated_config.enable_custom_labels;
+      enable_context_menu_ = updated_config.enable_context_menu;
+    };
+    modal_config.on_scale_changed = [this](const canvas::CanvasConfig& updated_config) {
+      draggable_ = updated_config.is_draggable;
+      custom_step_ = updated_config.grid_step;
+      global_scale_ = updated_config.global_scale;
+      scrolling_ = updated_config.scrolling;
+    };
+    
+    modals_->ShowScalingControls(canvas_id_, modal_config);
+    return;
+  }
+  
+  // Fallback to legacy modal system
   if (ImGui::BeginPopupModal("Scaling Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Canvas Scaling and Display Controls");
     ImGui::Separator();
@@ -1438,8 +1751,6 @@ void Canvas::ShowScalingControls() {
     ImGui::EndPopup();
   }
 }
-
-// Old ROM palette management methods removed - now handled by EnhancedPaletteEditor
 
 // BPP format management methods
 void Canvas::ShowBppFormatSelector() {
