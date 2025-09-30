@@ -6,9 +6,7 @@ var canvas_8cc =
     [ "GraphicsBinCanvasPipeline", "da/dbb/canvas_8cc.html#a359973f01787648b92a53d2aa84120a9", null ],
     [ "BitmapCanvasPipeline", "da/dbb/canvas_8cc.html#a097a97de3f408828135e749498b16bd6", null ],
     [ "TableCanvasPipeline", "da/dbb/canvas_8cc.html#ac4c4a4ccedd870c65c05fe1f65c478a8", null ],
-    [ "kBlackColor", "da/dbb/canvas_8cc.html#ac795552df5b144846631c846b65a7b6f", null ],
     [ "kRectangleColor", "da/dbb/canvas_8cc.html#a074b2ff8f8c07459d6dbdc5cac6b68cb", null ],
     [ "kWhiteColor", "da/dbb/canvas_8cc.html#a052158d35957768a382590f5af89e34e", null ],
-    [ "kOutlineRect", "da/dbb/canvas_8cc.html#a5b902cf759ec2b5ea194439194b3764c", null ],
     [ "kMouseFlags", "da/dbb/canvas_8cc.html#ac8d8a407cf4b76e12a012f326008d58a", null ]
 ];

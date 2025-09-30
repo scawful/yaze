@@ -1,5 +1,5 @@
 <map id="yaze::gui::Canvas::DrawBitmapGroup" name="yaze::gui::Canvas::DrawBitmapGroup">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,133,145"/>
+<area shape="rect" id="Node000001" title="Draw group of bitmaps for multi&#45;tile selection preview." alt="" coords="5,104,133,145"/>
 <area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="181,5,304,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,101,179,57,188,52,191,56,182,61,106,106"/>
 <area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919" title=" " alt="" coords="181,71,304,111"/>

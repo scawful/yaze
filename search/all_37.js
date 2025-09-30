@@ -1,5 +1,8 @@
 var searchData=
 [
-  ['🛠️_20ide_20integration_0',['🛠️ IDE Integration',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md438',1,'']]],
-  ['🛠️_20technical_20improvements_1',['🛠️ Technical Improvements',['../d0/d30/md_README.html#autotoc_md1045',1,'']]]
+  ['🔍_20known_20working_20patterns_0',['🔍 Known Working Patterns',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md663',1,'']]],
+  ['🔍_20strong_20additional_20findings_20strong_1',['🔍 &lt;strong&gt;Additional Findings&lt;/strong&gt;',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html#autotoc_md141',1,'']]],
+  ['🔍_20strong_20bottleneck_20identification_20strategy_20strong_2',['🔍 &lt;strong&gt;Bottleneck Identification Strategy&lt;/strong&gt;',['../d2/dda/md_docs_2analysis_2editor__performance__monitoring__setup.html#autotoc_md192',1,'']]],
+  ['🔍_20strong_20root_20cause_20analysis_20strong_3',['🔍 &lt;strong&gt;Root Cause Analysis&lt;/strong&gt;',['../d6/d6d/md_docs_2analysis_2dungeon__editor__bottleneck__analysis.html#autotoc_md152',1,'']]],
+  ['🔍_20troubleshooting_4',['🔍 Troubleshooting',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md442',1,'']]]
 ];

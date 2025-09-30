@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['🔄_0',['Phase 2: Integrate Components 🔄',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md736',1,'']]],
-  ['🔄_20in_20progress_1',['🔄 In Progress',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md732',1,'']]],
-  ['🔄_20strong_20next_20steps_20strong_2',['🔄 &lt;strong&gt;Next Steps&lt;/strong&gt;',['../d6/d6d/md_docs_2analysis_2dungeon__editor__bottleneck__analysis.html#autotoc_md166',1,'']]]
+  ['📋_20available_20presets_0',['📋 Available Presets',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md436',1,'']]],
+  ['📋_20for_20future_20agent_1',['📋 For Future Agent',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md671',1,'']]]
 ];

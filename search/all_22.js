@@ -29,7 +29,7 @@ var searchData=
   ['yaze_20graphics_20system_20optimizations_20complete_20implementation_26',['YAZE Graphics System Optimizations - Complete Implementation',['../d6/df4/md_docs_2gfx__optimizations__complete.html',1,'']]],
   ['yaze_20graphics_20system_20optimizations_20implementation_20summary_27',['YAZE Graphics System Optimizations - Implementation Summary',['../d3/d7b/md_docs_2gfx__optimizations__implemented.html',1,'']]],
   ['yaze_20h_20tt_20tt_20incl_20zelda_20h_20tt_28',['C API (&lt;tt&gt;incl/yaze.h&lt;/tt&gt;, &lt;tt&gt;incl/zelda.h&lt;/tt&gt;)',['../dd/d96/md_docs_204-api-reference.html#autotoc_md87',1,'']]],
-  ['yaze_20implementation_29',['Yaze Implementation',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md813',1,'']]],
+  ['yaze_20implementation_29',['Yaze Implementation',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md929',1,'']]],
   ['yaze_20overworld_20analysis_30',['Comprehensive ZScream vs YAZE Overworld Analysis',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html',1,'']]],
   ['yaze_20overworld_20testing_20guide_31',['YAZE Overworld Testing Guide',['../de/d8a/md_docs_2overworld__testing__guide.html',1,'']]],
   ['yaze_20performance_20optimization_20summary_32',['YAZE Performance Optimization Summary',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html',1,'']]],

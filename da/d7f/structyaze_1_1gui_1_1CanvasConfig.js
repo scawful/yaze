@@ -6,6 +6,7 @@ var structyaze_1_1gui_1_1CanvasConfig =
     [ "enable_context_menu", "da/d7f/structyaze_1_1gui_1_1CanvasConfig.html#ae72f4069b6b57e5b5cde37d6d1d05359", null ],
     [ "is_draggable", "da/d7f/structyaze_1_1gui_1_1CanvasConfig.html#a66767662ac1edcdc0bbdf9625e447d06", null ],
     [ "auto_resize", "da/d7f/structyaze_1_1gui_1_1CanvasConfig.html#afe96fa7b927d5ba331fecff2741d8019", null ],
+    [ "clamp_rect_to_local_maps", "da/d7f/structyaze_1_1gui_1_1CanvasConfig.html#a744d38bbfb315c5c8570b67a05846297", null ],
     [ "grid_step", "da/d7f/structyaze_1_1gui_1_1CanvasConfig.html#ac8a7f9b47209ff6e332933b4bfed0624", null ],
     [ "global_scale", "da/d7f/structyaze_1_1gui_1_1CanvasConfig.html#a5f8419cdc6e2e834ae00e60d9a673bd4", null ],
     [ "canvas_size", "da/d7f/structyaze_1_1gui_1_1CanvasConfig.html#a881a6c34ce1f3d6928b618a03e425fee", null ],

@@ -98,6 +98,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "DrawUsageGrid", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a374ed17f504a7503785b6af574f9ad32", null ],
     [ "DrawDebugWindow", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#afacae18d961e34d0617af016c995fc55", null ],
     [ "jump_to_tab_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e", null ],
+    [ "selected_tile16_ids_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2a624d3d6d72347a47b888d1eeeaeb90", null ],
     [ "current_mode", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a3542b48a05a29ca04015badae5336835", null ],
     [ "previous_mode", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ace50d203cb202e7509ec9af3eb7ad566", null ],
     [ "current_world_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a136f4a855e2b8baf01ba6b0256cb8733", null ],
