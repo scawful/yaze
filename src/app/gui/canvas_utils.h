@@ -20,6 +20,7 @@ struct CanvasConfig {
   bool enable_context_menu = true;
   bool is_draggable = false;
   bool auto_resize = false;
+  bool clamp_rect_to_local_maps = true;  // NEW: Prevent rectangle wrap across 512x512 boundaries
   float grid_step = 32.0f;
   float global_scale = 1.0f;
   ImVec2 canvas_size = ImVec2(0, 0);

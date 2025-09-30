@@ -154,6 +154,30 @@ class Canvas {
     std::function<void()> callback;
     std::function<bool()> enabled_condition = []() { return true; };
     std::vector<ContextMenuItem> subitems;
+    
+    // Helper constructor for simple items
+    ContextMenuItem() = default;
+    ContextMenuItem(const std::string& lbl, std::function<void()> cb, 
+                   const std::string& sc = "")
+        : label(lbl), shortcut(sc), callback(std::move(cb)) {}
+    
+    // Helper to create disabled item
+    static ContextMenuItem Disabled(const std::string& lbl) {
+      ContextMenuItem item;
+      item.label = lbl;
+      item.enabled_condition = []() { return false; };
+      return item;
+    }
+    
+    // Helper to create conditional item
+    static ContextMenuItem Conditional(const std::string& lbl, std::function<void()> cb,
+                                      std::function<bool()> condition) {
+      ContextMenuItem item;
+      item.label = lbl;
+      item.callback = std::move(cb);
+      item.enabled_condition = std::move(condition);
+      return item;
+    }
   };
   
   // BPP format UI components
@@ -311,6 +335,10 @@ class Canvas {
   void SetGlobalScale(float scale) { config_.global_scale = scale; }
   bool* GetCustomLabelsEnabled() { return &config_.enable_custom_labels; }
   float GetGridStep() const { return config_.grid_step; }
+  
+  // Rectangle selection boundary control (prevents wrapping in large maps)
+  void SetClampRectToLocalMaps(bool clamp) { config_.clamp_rect_to_local_maps = clamp; }
+  bool GetClampRectToLocalMaps() const { return config_.clamp_rect_to_local_maps; }
   float GetCanvasWidth() const { return config_.canvas_size.x; }
   float GetCanvasHeight() const { return config_.canvas_size.y; }
   
@@ -333,7 +361,19 @@ class Canvas {
   void DrawBitmap(Bitmap &bitmap, int x_offset, int y_offset, float scale = 1.0f, int alpha = 255);
   void DrawBitmap(Bitmap &bitmap, ImVec2 dest_pos, ImVec2 dest_size, ImVec2 src_pos, ImVec2 src_size);
   void DrawBitmapTable(const BitmapTable &gfx_bin);
-  void DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap, int tile_size, float scale = 1.0f);
+  /**
+   * @brief Draw group of bitmaps for multi-tile selection preview
+   * @param group Vector of tile IDs to draw
+   * @param tilemap Tilemap containing the tiles
+   * @param tile_size Size of each tile (default 16)
+   * @param scale Rendering scale (default 1.0)
+   * @param local_map_size Size of local map in pixels (default 512 for standard maps)
+   * @param total_map_size Total map size for boundary clamping (default 4096x4096)
+   */
+  void DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap, 
+                      int tile_size, float scale = 1.0f,
+                      int local_map_size = 0x200,
+                      ImVec2 total_map_size = ImVec2(0x1000, 0x1000));
   bool DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile);
   void DrawSelectRect(int current_map, int tile_size = 0x10, float scale = 1.0f);
   bool DrawTileSelector(int size, int size_y = 0);
