@@ -1,7 +1,7 @@
 var classyaze_1_1emu_1_1Emulator =
 [
     [ "Bookmark", "structyaze_1_1emu_1_1Emulator_1_1Bookmark.html", "structyaze_1_1emu_1_1Emulator_1_1Bookmark" ],
-    [ "Emulator", "classyaze_1_1emu_1_1Emulator.html#a9d42da55a4a6e519e18de44de236f3c2", null ],
+    [ "Emulator", "classyaze_1_1emu_1_1Emulator.html#ad9808f4ae6174fdbecfd3f76ec9e612c", null ],
     [ "Run", "classyaze_1_1emu_1_1Emulator.html#ab503c0f8f58bb8b7dc0ce77b74868fb8", null ],
     [ "snes", "classyaze_1_1emu_1_1Emulator.html#ae7676db1e19dc323e578195bc5699297", null ],
     [ "running", "classyaze_1_1emu_1_1Emulator.html#aeb8057d7c853b6f52dc64b5b24ab3746", null ],
@@ -12,6 +12,7 @@ var classyaze_1_1emu_1_1Emulator =
     [ "mutable_rom", "classyaze_1_1emu_1_1Emulator.html#aa035f2d1fee53bf132ce5005d29b1d17", null ],
     [ "RenderNavBar", "classyaze_1_1emu_1_1Emulator.html#a633c7813e4160322bcc71056bf8df523", null ],
     [ "HandleEvents", "classyaze_1_1emu_1_1Emulator.html#a476e68b4c3a44ef7152278f9cceda30c", null ],
+    [ "RenderEmulatorInterface", "classyaze_1_1emu_1_1Emulator.html#af0decb21c491b4f2eef222db4d06f0b8", null ],
     [ "RenderSnesPpu", "classyaze_1_1emu_1_1Emulator.html#a7ba570e817991c947635a0dafb0fbbd5", null ],
     [ "RenderBreakpointList", "classyaze_1_1emu_1_1Emulator.html#a9548a53ee762f8ae08f6732af5f92cd8", null ],
     [ "RenderMemoryViewer", "classyaze_1_1emu_1_1Emulator.html#a655e0f73f3f700e8c340c70a2899c61d", null ],
@@ -35,6 +36,5 @@ var classyaze_1_1emu_1_1Emulator =
     [ "snes_", "classyaze_1_1emu_1_1Emulator.html#a123fbe1bb0092c69bbd461cbd6314565", null ],
     [ "ppu_texture_", "classyaze_1_1emu_1_1Emulator.html#a1fe1362e01040f8ccd7bd3914641dcf8", null ],
     [ "rom_data_", "classyaze_1_1emu_1_1Emulator.html#a8532516d071862efe4ad42f9e6eca403", null ],
-    [ "keybindings_", "classyaze_1_1emu_1_1Emulator.html#a4559b9d5fd7974f6244c16717a10c392", null ],
-    [ "emulator_node_", "classyaze_1_1emu_1_1Emulator.html#a499cadfc2b57449d483dded7b77a68db", null ]
+    [ "keybindings_", "classyaze_1_1emu_1_1Emulator.html#a4559b9d5fd7974f6244c16717a10c392", null ]
 ];

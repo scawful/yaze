@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['yaze_5fstatus_0',['yaze_status',['../group__core.html#ga8b8638fa48e18e420ef66414847265c0',1,'yaze.h']]]
+  ['zelda3_5fbg2_5feffect_0',['zelda3_bg2_effect',['../group__dungeon.html#gaae3c30030730adfb9b8f6b941ac36339',1,'zelda.h']]],
+  ['zelda3_5fversion_1',['zelda3_version',['../group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d',1,'zelda.h']]]
 ];

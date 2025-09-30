@@ -1,10 +1,5 @@
 var NAVTREEINDEX52 =
 {
-"md_docs_2A1-testing-guide.html#autotoc_md124":[4,6],
-"md_docs_2A1-testing-guide.html#autotoc_md125":[4,6,0],
-"md_docs_2A1-testing-guide.html#autotoc_md126":[4,6,1],
-"md_docs_2B1-contributing.html":[16],
-"md_docs_2B1-contributing.html#autotoc_md389":[16,0],
 "md_docs_2B1-contributing.html#autotoc_md390":[16,0,0],
 "md_docs_2B1-contributing.html#autotoc_md391":[16,0,1],
 "md_docs_2B1-contributing.html#autotoc_md392":[16,1],
@@ -249,5 +244,10 @@ var NAVTREEINDEX52 =
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md642":[24,8,0],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md643":[24,8,1],
 "md_docs_2E2-dungeon-editor-guide.html#autotoc_md644":[24,9],
-"md_docs_2E2-dungeon-editor-guide.html#autotoc_md645":[24,9,0]
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md645":[24,9,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md646":[24,9,1],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md647":[24,10],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md648":[24,10,0],
+"md_docs_2E2-dungeon-editor-guide.html#autotoc_md649":[24,11],
+"md_docs_2E3-dungeon-editor-design.html":[25]
 };

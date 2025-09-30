@@ -1,10 +1,5 @@
 var NAVTREEINDEX54 =
 {
-"md_docs_2analysis_2editor__performance__monitoring__setup.html#autotoc_md188":[8,1,0],
-"md_docs_2analysis_2editor__performance__monitoring__setup.html#autotoc_md189":[8,1,1],
-"md_docs_2analysis_2editor__performance__monitoring__setup.html#autotoc_md190":[8,1,2],
-"md_docs_2analysis_2editor__performance__monitoring__setup.html#autotoc_md191":[8,2],
-"md_docs_2analysis_2editor__performance__monitoring__setup.html#autotoc_md192":[8,3],
 "md_docs_2analysis_2editor__performance__monitoring__setup.html#autotoc_md193":[8,3,0],
 "md_docs_2analysis_2editor__performance__monitoring__setup.html#autotoc_md194":[8,3,1],
 "md_docs_2analysis_2editor__performance__monitoring__setup.html#autotoc_md195":[8,3,2],
@@ -249,5 +244,10 @@ var NAVTREEINDEX54 =
 "md_docs_2gfx__optimization__recommendations.html#autotoc_md881":[30,2,2],
 "md_docs_2gfx__optimization__recommendations.html#autotoc_md882":[30,2,2,0],
 "md_docs_2gfx__optimization__recommendations.html#autotoc_md883":[30,2,2,1],
-"md_docs_2gfx__optimization__recommendations.html#autotoc_md884":[30,2,3]
+"md_docs_2gfx__optimization__recommendations.html#autotoc_md884":[30,2,3],
+"md_docs_2gfx__optimization__recommendations.html#autotoc_md885":[30,2,3,0],
+"md_docs_2gfx__optimization__recommendations.html#autotoc_md886":[30,2,3,1],
+"md_docs_2gfx__optimization__recommendations.html#autotoc_md887":[30,2,4],
+"md_docs_2gfx__optimization__recommendations.html#autotoc_md888":[30,2,4,0],
+"md_docs_2gfx__optimization__recommendations.html#autotoc_md889":[30,2,4,1]
 };

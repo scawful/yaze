@@ -7,7 +7,6 @@ var namespaceyaze_1_1gui =
       [ "ParseColor", "namespaceyaze_1_1gui_1_1anonymous__namespace_02style_8cc_03.html#a81e571437cbb87acc15065daeddcbb19", null ]
     ] ],
     [ "CanvasUtils", "namespaceyaze_1_1gui_1_1CanvasUtils.html", "namespaceyaze_1_1gui_1_1CanvasUtils" ],
-    [ "zeml", "namespaceyaze_1_1gui_1_1zeml.html", "namespaceyaze_1_1gui_1_1zeml" ],
     [ "AssetObject", "structyaze_1_1gui_1_1AssetObject.html", "structyaze_1_1gui_1_1AssetObject" ],
     [ "BackgroundRenderer", "classyaze_1_1gui_1_1BackgroundRenderer.html", "classyaze_1_1gui_1_1BackgroundRenderer" ],
     [ "Button", "structyaze_1_1gui_1_1Button.html", "structyaze_1_1gui_1_1Button" ],

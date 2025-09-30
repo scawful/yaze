@@ -4,8 +4,8 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,58,124,75,107,95,95,120,88,146,82,190,77,190,83,145,90,118,103,93,120,71,140,54"/>
 <area shape="rect" id="Node000003" href="$canvas_8h.html" title=" " alt="" coords="117,102,258,127"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,62,190,101,185,101,185,62"/>
-<area shape="rect" id="Node000055" href="$canvas__utils_8cc.html" title=" " alt="" coords="282,94,413,135"/>
-<area shape="poly" id="edge5_Node000001_Node000055" title=" " alt="" coords="238,51,313,91,310,96,236,56"/>
+<area shape="rect" id="Node000054" href="$canvas__utils_8cc.html" title=" " alt="" coords="282,94,413,135"/>
+<area shape="poly" id="edge5_Node000001_Node000054" title=" " alt="" coords="238,51,313,91,310,96,236,56"/>
 <area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="162,139,96,192,93,187,159,135"/>
 <area shape="rect" id="Node000004" href="$dungeon__canvas__viewer_8cc.html" title=" " alt="" coords="178,183,363,223"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="211,137,254,181,250,184,208,140"/>

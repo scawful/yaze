@@ -1,6 +1,5 @@
 var hierarchy =
 [
-    [ "yaze::gui::zeml::Action", "structyaze_1_1gui_1_1zeml_1_1Action.html", null ],
     [ "yaze::editor::zsprite::AnimationGroup", "structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html", null ],
     [ "AppDelegate", "classAppDelegate.html", null ],
     [ "AppViewController", "classAppViewController.html", null ],
@@ -220,7 +219,6 @@ var hierarchy =
     [ "yaze::emu::MPYL", "structyaze_1_1emu_1_1MPYL.html", null ],
     [ "yaze::emu::MPYM", "structyaze_1_1emu_1_1MPYM.html", null ],
     [ "yaze::gui::MultiSelect< T >", "classyaze_1_1gui_1_1MultiSelect.html", null ],
-    [ "yaze::gui::zeml::Node", "structyaze_1_1gui_1_1zeml_1_1Node.html", null ],
     [ "yaze::util::NotifyValue< T >", "classyaze_1_1util_1_1NotifyValue.html", null ],
     [ "yaze::util::NotifyValue< uint32_t >", "classyaze_1_1util_1_1NotifyValue.html", null ],
     [ "yaze::util::NotifyValue< uint8_t >", "classyaze_1_1util_1_1NotifyValue.html", null ],
@@ -419,7 +417,6 @@ var hierarchy =
     [ "yaze::emu::TMW", "structyaze_1_1emu_1_1TMW.html", null ],
     [ "yaze::editor::Toast", "structyaze_1_1editor_1_1Toast.html", null ],
     [ "yaze::editor::ToastManager", "classyaze_1_1editor_1_1ToastManager.html", null ],
-    [ "yaze::gui::zeml::Token", "structyaze_1_1gui_1_1zeml_1_1Token.html", null ],
     [ "yaze::zelda3::music::Tracker", "classyaze_1_1zelda3_1_1music_1_1Tracker.html", null ],
     [ "yaze::Transaction", "classyaze_1_1Transaction.html", null ],
     [ "yaze::emu::TS", "structyaze_1_1emu_1_1TS.html", null ],
@@ -443,7 +440,6 @@ var hierarchy =
     [ "yaze::emu::WH1", "structyaze_1_1emu_1_1WH1.html", null ],
     [ "yaze::emu::WH2", "structyaze_1_1emu_1_1WH2.html", null ],
     [ "yaze::emu::WH3", "structyaze_1_1emu_1_1WH3.html", null ],
-    [ "yaze::gui::zeml::WidgetAttributes", "structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html", null ],
     [ "yaze::core::Window", "structyaze_1_1core_1_1Window.html", null ],
     [ "yaze::emu::WindowLayer", "structyaze_1_1emu_1_1WindowLayer.html", null ],
     [ "yaze::emu::WindowMaskSettings", "structyaze_1_1emu_1_1WindowMaskSettings.html", null ],

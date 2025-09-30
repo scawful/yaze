@@ -106,28 +106,23 @@ $(document).ready(function(){initNavTree('hyrule__magic_8h_source.html',''); ini
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;absl/strings/str_cat.h&quot;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;absl/strings/str_format.h&quot;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span>zelda3 {</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a170971bb7a8dd89072c7180edc712057">stle16b_i</a>(uint8_t *<span class="keyword">const</span> p_arr, <span class="keywordtype">size_t</span> <span class="keyword">const</span> p_index,</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>               uint16_t <span class="keyword">const</span> p_val);</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a774997795015cda5de65dd2621c1284a">stle16b</a>(uint8_t *<span class="keyword">const</span> p_arr, uint16_t <span class="keyword">const</span> p_val);</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>uint16_t <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a197e8a71bbb281224f38410a3025804d">ldle16b_i</a>(uint8_t <span class="keyword">const</span> *<span class="keyword">const</span> p_arr, <span class="keywordtype">size_t</span> <span class="keyword">const</span> p_index);</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="comment">// Load little endian halfword (16-bit) dereferenced from</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>uint16_t <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a23f2763cd8a3044a6a63cfa1c4c0ce53">ldle16b</a>(uint8_t <span class="keyword">const</span> *<span class="keyword">const</span> p_arr);</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>}  <span class="comment">// namespace zelda3</span></div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_ZELDA3_HYRULE_MAGIC_H</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span>zelda3 {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a170971bb7a8dd89072c7180edc712057">stle16b_i</a>(uint8_t *<span class="keyword">const</span> p_arr, <span class="keywordtype">size_t</span> <span class="keyword">const</span> p_index,</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>               uint16_t <span class="keyword">const</span> p_val);</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keywordtype">void</span> <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a774997795015cda5de65dd2621c1284a">stle16b</a>(uint8_t *<span class="keyword">const</span> p_arr, uint16_t <span class="keyword">const</span> p_val);</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>uint16_t <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a197e8a71bbb281224f38410a3025804d">ldle16b_i</a>(uint8_t <span class="keyword">const</span> *<span class="keyword">const</span> p_arr, <span class="keywordtype">size_t</span> <span class="keyword">const</span> p_index);</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="comment">// Load little endian halfword (16-bit) dereferenced from</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>uint16_t <a class="code hl_function" href="namespaceyaze_1_1zelda3.html#a23f2763cd8a3044a6a63cfa1c4c0ce53">ldle16b</a>(uint8_t <span class="keyword">const</span> *<span class="keyword">const</span> p_arr);</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}  <span class="comment">// namespace zelda3</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_ZELDA3_HYRULE_MAGIC_H</span></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a170971bb7a8dd89072c7180edc712057"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#a170971bb7a8dd89072c7180edc712057">yaze::zelda3::stle16b_i</a></div><div class="ttdeci">void stle16b_i(uint8_t *const p_arr, size_t const p_index, uint16_t const p_val)</div><div class="ttdoc">Store little endian 16-bit value using a byte pointer, offset by an index before dereferencing.</div><div class="ttdef"><b>Definition</b> <a href="hyrule__magic_8cc_source.html#l00051">hyrule_magic.cc:51</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a197e8a71bbb281224f38410a3025804d"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#a197e8a71bbb281224f38410a3025804d">yaze::zelda3::ldle16b_i</a></div><div class="ttdeci">uint16_t ldle16b_i(uint8_t const *const p_arr, size_t const p_index)</div><div class="ttdoc">Load little endian halfword (16-bit) dereferenced from an arrays of bytes. This version provides an i...</div><div class="ttdef"><b>Definition</b> <a href="hyrule__magic_8cc_source.html#l00067">hyrule_magic.cc:67</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a23f2763cd8a3044a6a63cfa1c4c0ce53"><div class="ttname"><a href="namespaceyaze_1_1zelda3.html#a23f2763cd8a3044a6a63cfa1c4c0ce53">yaze::zelda3::ldle16b</a></div><div class="ttdeci">uint16_t ldle16b(uint8_t const *const p_arr)</div><div class="ttdef"><b>Definition</b> <a href="hyrule__magic_8cc_source.html#l00061">hyrule_magic.cc:61</a></div></div>

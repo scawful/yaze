@@ -47,7 +47,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "DrawToolset", "classyaze_1_1editor_1_1OverworldEditor.html#abd85ac71082a0372db173be15e56cba8", null ],
     [ "DrawOverworldMapSettings", "classyaze_1_1editor_1_1OverworldEditor.html#a9225be6edc7498bcf055bc646b10c9ca", null ],
     [ "DrawCustomOverworldMapSettings", "classyaze_1_1editor_1_1OverworldEditor.html#a731533c366b7f5e3e9043933ed21ca02", null ],
-    [ "RefreshChildMap", "classyaze_1_1editor_1_1OverworldEditor.html#aa39da036dde898607eb6dadb93523560", null ],
+    [ "RefreshChildMap", "classyaze_1_1editor_1_1OverworldEditor.html#aa56421b91f5ced2065b558c7666334c7", null ],
     [ "RefreshOverworldMap", "classyaze_1_1editor_1_1OverworldEditor.html#a58eb6faa7c4dd358fba0d46e106797ed", null ],
     [ "RefreshOverworldMapOnDemand", "classyaze_1_1editor_1_1OverworldEditor.html#a6fdddbe4c23e52f94391f02af3725bb2", null ],
     [ "RefreshChildMapOnDemand", "classyaze_1_1editor_1_1OverworldEditor.html#adac2da0e5bfc87f31ae50e5c4c3edd2e", null ],

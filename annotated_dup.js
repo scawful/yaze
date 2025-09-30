@@ -256,12 +256,6 @@ var annotated_dup =
         [ "CanvasUtils", "namespaceyaze_1_1gui_1_1CanvasUtils.html", [
           [ "CanvasRenderContext", "structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html", "structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext" ]
         ] ],
-        [ "zeml", "namespaceyaze_1_1gui_1_1zeml.html", [
-          [ "Action", "structyaze_1_1gui_1_1zeml_1_1Action.html", "structyaze_1_1gui_1_1zeml_1_1Action" ],
-          [ "Node", "structyaze_1_1gui_1_1zeml_1_1Node.html", "structyaze_1_1gui_1_1zeml_1_1Node" ],
-          [ "Token", "structyaze_1_1gui_1_1zeml_1_1Token.html", "structyaze_1_1gui_1_1zeml_1_1Token" ],
-          [ "WidgetAttributes", "structyaze_1_1gui_1_1zeml_1_1WidgetAttributes.html", "structyaze_1_1gui_1_1zeml_1_1WidgetAttributes" ]
-        ] ],
         [ "AssetObject", "structyaze_1_1gui_1_1AssetObject.html", "structyaze_1_1gui_1_1AssetObject" ],
         [ "BackgroundRenderer", "classyaze_1_1gui_1_1BackgroundRenderer.html", "classyaze_1_1gui_1_1BackgroundRenderer" ],
         [ "Button", "structyaze_1_1gui_1_1Button.html", "structyaze_1_1gui_1_1Button" ],
