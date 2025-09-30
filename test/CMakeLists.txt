@@ -252,6 +252,8 @@ endif()
         target_link_options(yaze_test PRIVATE /STACK:8388608)  # 8MB stack
       elseif(MINGW)
         target_link_options(yaze_test PRIVATE -Wl,--stack,8388608)
+      else()
+        target_link_options(yaze_test PRIVATE -Wl,-w)
       endif()
   endif()
 endif()
