@@ -41,6 +41,16 @@ configure_file(
   @ONLY
 )
 
+# Build options and tooling
+option(YAZE_USE_CCACHE "Use ccache/sccache if available" ON)
+option(YAZE_CLANG_TIDY "Enable clang-tidy during builds" OFF)
+option(YAZE_ENABLE_SANITIZERS "Enable sanitizers on supported compilers (Debug)" OFF)
+option(YAZE_ENABLE_LTO "Enable link-time optimization for Release/RelWithDebInfo" ON)
+option(YAZE_WARNINGS_AS_ERRORS "Treat warnings as errors (recommended for CI)" OFF)
+option(YAZE_USE_SDL3 "Build against SDL3 instead of SDL2 (experimental)" OFF)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Build Flags
 set(YAZE_BUILD_APP ON)
 set(YAZE_BUILD_LIB ON)
@@ -84,6 +94,16 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_FIND_FRAMEWORK LAST)
+
+# Compiler launcher (ccache/sccache)
+if(YAZE_USE_CCACHE)
+  find_program(CCACHE_PROGRAM NAMES sccache ccache)
+  if(CCACHE_PROGRAM)
+    set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+    message(STATUS "Using compiler launcher: ${CCACHE_PROGRAM}")
+  endif()
+endif()
 
 # Platform detection
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
@@ -179,6 +199,52 @@ else()
         _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS
         ABSL_HAVE_INTRINSIC_INT128=1  # Enable intrinsic int128 support
     )
+endif()
+
+# Treat warnings as errors (opt-in; enable in CI or strict presets)
+if(YAZE_WARNINGS_AS_ERRORS)
+  if(MSVC)
+    target_compile_options(yaze_common INTERFACE /WX)
+  else()
+    target_compile_options(yaze_common INTERFACE -Werror)
+  endif()
+endif()
+
+# Enable sanitizers for Debug builds when requested (non-MSVC by default)
+if(YAZE_ENABLE_SANITIZERS)
+  if(MSVC)
+    message(STATUS "Sanitizers requested, but limited support under MSVC. Skipping.")
+  else()
+    target_compile_options(yaze_common INTERFACE
+      $<$<CONFIG:Debug>:-fsanitize=address,undefined -fno-omit-frame-pointer>
+    )
+    target_link_options(yaze_common INTERFACE
+      $<$<CONFIG:Debug>:-fsanitize=address,undefined>
+    )
+  endif()
+endif()
+
+# Enable LTO/IPO for optimized builds when supported
+if(YAZE_ENABLE_LTO)
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT _ipo_supported OUTPUT _ipo_output)
+  if(_ipo_supported)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO ON)
+  else()
+    message(STATUS "IPO/LTO not supported: ${_ipo_output}")
+  endif()
+endif()
+
+# Clang-Tidy integration (opt-in)
+if(YAZE_CLANG_TIDY)
+  find_program(CLANG_TIDY_EXE NAMES clang-tidy clang-tidy-18 clang-tidy-17 clang-tidy-16 clang-tidy-15 clang-tidy-14)
+  if(CLANG_TIDY_EXE)
+    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+    message(STATUS "clang-tidy enabled: ${CLANG_TIDY_EXE}")
+  else()
+    message(WARNING "YAZE_CLANG_TIDY=ON but clang-tidy was not found")
+  endif()
 endif()
 
 # Abseil Standard Specifications
