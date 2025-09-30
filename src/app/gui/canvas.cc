@@ -35,10 +35,8 @@ using ImGui::OpenPopupOnItemClick;
 using ImGui::Selectable;
 using ImGui::Text;
 
-constexpr uint32_t kBlackColor = IM_COL32(0, 0, 0, 255);
 constexpr uint32_t kRectangleColor = IM_COL32(32, 32, 32, 255);
 constexpr uint32_t kWhiteColor = IM_COL32(255, 255, 255, 255);
-constexpr uint32_t kOutlineRect = IM_COL32(255, 255, 255, 200);
 
 constexpr ImGuiButtonFlags kMouseFlags =
     ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight;
@@ -1153,7 +1151,9 @@ void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
 }
 
 void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
-                             int tile_size, float scale) {
+                             int tile_size, float scale,
+                             int local_map_size,
+                             ImVec2 total_map_size) {
   if (selected_points_.size() != 2) {
     // points_ should contain exactly two points
     return;
@@ -1165,6 +1165,11 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
 
   // OPTIMIZATION: Use optimized rendering for large groups to improve performance
   bool use_optimized_rendering = group.size() > 128; // Optimize for large selections
+  
+  // Use provided map sizes for proper boundary handling
+  const int small_map = local_map_size;
+  const float large_map_width = total_map_size.x;
+  const float large_map_height = total_map_size.y;
   
   // Pre-calculate common values to avoid repeated computation
   const float tile_scale = tile_size * scale;
@@ -1256,10 +1261,49 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
 
   // Performance optimization completed - tiles are now rendered with pre-calculated values
 
+  // Reposition rectangle to follow mouse, but clamp to prevent wrapping across map boundaries
   const ImGuiIO &io = GetIO();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-  auto new_start_pos = AlignPosToGrid(mouse_pos, tile_size * scale);
+  
+  // CRITICAL FIX: Clamp BEFORE grid alignment for smoother dragging behavior
+  // This prevents the rectangle from even attempting to cross boundaries during drag
+  ImVec2 clamped_mouse_pos = mouse_pos;
+  
+  if (config_.clamp_rect_to_local_maps) {
+    // Calculate which local map the mouse is in
+    int mouse_local_map_x = static_cast<int>(mouse_pos.x) / small_map;
+    int mouse_local_map_y = static_cast<int>(mouse_pos.y) / small_map;
+    
+    // Calculate where the rectangle END would be if we place it at mouse position
+    float potential_end_x = mouse_pos.x + rect_width;
+    float potential_end_y = mouse_pos.y + rect_height;
+    
+    // Check if this would cross local map boundary (512x512 blocks)
+    int potential_end_map_x = static_cast<int>(potential_end_x) / small_map;
+    int potential_end_map_y = static_cast<int>(potential_end_y) / small_map;
+    
+    // Clamp mouse position to prevent crossing during drag
+    if (potential_end_map_x != mouse_local_map_x) {
+      // Would cross horizontal boundary - clamp mouse to safe zone
+      float max_mouse_x = (mouse_local_map_x + 1) * small_map - rect_width;
+      clamped_mouse_pos.x = std::min(mouse_pos.x, max_mouse_x);
+    }
+    
+    if (potential_end_map_y != mouse_local_map_y) {
+      // Would cross vertical boundary - clamp mouse to safe zone
+      float max_mouse_y = (mouse_local_map_y + 1) * small_map - rect_height;
+      clamped_mouse_pos.y = std::min(mouse_pos.y, max_mouse_y);
+    }
+  }
+  
+  // Now grid-align the clamped position
+  auto new_start_pos = AlignPosToGrid(clamped_mouse_pos, tile_size * scale);
+  
+  // Additional safety: clamp to overall map bounds
+  new_start_pos.x = std::clamp(new_start_pos.x, 0.0f, large_map_width - rect_width);
+  new_start_pos.y = std::clamp(new_start_pos.y, 0.0f, large_map_height - rect_height);
+  
   selected_points_.clear();
   selected_points_.push_back(new_start_pos);
   selected_points_.push_back(

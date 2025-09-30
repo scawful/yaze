@@ -946,9 +946,13 @@ void OverworldEditor::CheckForOverworldEdits() {
           "current_tile16_=%d",
           current_tile16_);
 
-      // Apply the current selected tile to each position in the rectangle
-      for (int y = start_y, i = 0; y <= end_y; y += kTile16Size) {
-        for (int x = start_x; x <= end_x; x += kTile16Size, ++i) {
+      // Apply the selected tiles to each position in the rectangle
+      // CRITICAL FIX: Use pre-computed tile16_ids_ instead of recalculating from selected_tiles_
+      // This prevents wrapping issues when dragging near boundaries
+      int i = 0;
+      for (int y = start_y; y <= end_y && i < static_cast<int>(selected_tile16_ids_.size()); y += kTile16Size) {
+        for (int x = start_x; x <= end_x && i < static_cast<int>(selected_tile16_ids_.size()); x += kTile16Size, ++i) {
+          
           // Determine which local map (512x512) the tile is in
           int local_map_x = x / local_map_size;
           int local_map_y = y / local_map_size;
@@ -961,13 +965,25 @@ void OverworldEditor::CheckForOverworldEdits() {
           int index_x = local_map_x * tiles_per_local_map + tile16_x;
           int index_y = local_map_y * tiles_per_local_map + tile16_y;
 
-          overworld_.set_current_world(current_world_);
-          overworld_.set_current_map(current_map_);
-          int tile16_id = overworld_.GetTileFromPosition(
-              ow_map_canvas_.selected_tiles()[i]);
-          // Bounds check for the selected world array
-          if (index_x >= 0 && index_x < 0x200 && index_y >= 0 &&
-              index_y < 0x200) {
+          // FIXED: Use pre-computed tile ID from the ORIGINAL selection
+          int tile16_id = selected_tile16_ids_[i];
+          // Bounds check for the selected world array, accounting for rectangle size
+          // Ensure the entire rectangle fits within the world bounds
+          int rect_width = ((end_x - start_x) / kTile16Size) + 1;
+          int rect_height = ((end_y - start_y) / kTile16Size) + 1;
+
+          // Prevent painting from wrapping around at the edges of large maps
+          // Only allow painting if the entire rectangle is within the same 512x512 local map
+          int start_local_map_x = start_x / local_map_size;
+          int start_local_map_y = start_y / local_map_size;
+          int end_local_map_x = end_x / local_map_size;
+          int end_local_map_y = end_y / local_map_size;
+
+          bool in_same_local_map = (start_local_map_x == end_local_map_x) && (start_local_map_y == end_local_map_y);
+
+          if (in_same_local_map &&
+              index_x >= 0 && (index_x + rect_width - 1) < 0x200 &&
+              index_y >= 0 && (index_y + rect_height - 1) < 0x200) {
             selected_world[index_x][index_y] = tile16_id;
 
             // CRITICAL FIX: Also update the bitmap directly like single tile drawing
@@ -989,6 +1005,7 @@ void OverworldEditor::CheckForOverworldEdits() {
 
       RefreshOverworldMap();
       // Clear the rectangle selection after applying
+      // This is commented out for now, will come back to later.
       // ow_map_canvas_.mutable_selected_tiles()->clear();
       // ow_map_canvas_.mutable_points()->clear();
       util::logf(
@@ -1005,29 +1022,27 @@ void OverworldEditor::CheckForSelectRectangle() {
     current_tile16_ =
         overworld_.GetTileFromPosition(ow_map_canvas_.selected_tile_pos());
     ow_map_canvas_.set_selected_tile_pos(ImVec2(-1, -1));
-
+    
     // Scroll blockset canvas to show the selected tile
     ScrollBlocksetCanvasToCurrentTile();
   }
 
-  static std::vector<int> tile16_ids;
+  // Rectangle selection case - use member variable instead of static local
   if (ow_map_canvas_.select_rect_active()) {
     // Get the tile16 IDs from the selected tile ID positions
-    if (tile16_ids.size() != 0) {
-      tile16_ids.clear();
-    }
+    selected_tile16_ids_.clear();
 
     if (ow_map_canvas_.selected_tiles().size() > 0) {
       // Set the current world and map in overworld for proper tile lookup
       overworld_.set_current_world(current_world_);
       overworld_.set_current_map(current_map_);
       for (auto& each : ow_map_canvas_.selected_tiles()) {
-        tile16_ids.push_back(overworld_.GetTileFromPosition(each));
+        selected_tile16_ids_.push_back(overworld_.GetTileFromPosition(each));
       }
     }
   }
   // Create a composite image of all the tile16s selected
-  ow_map_canvas_.DrawBitmapGroup(tile16_ids, tile16_blockset_, 0x10,
+  ow_map_canvas_.DrawBitmapGroup(selected_tile16_ids_, tile16_blockset_, 0x10,
                                  ow_map_canvas_.global_scale());
 }
 

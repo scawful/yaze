@@ -165,6 +165,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    * @brief Draw and create the tile16 IDs that are currently selected.
    */
   void CheckForSelectRectangle();
+  
+  // Selected tile IDs for rectangle operations (moved from local static)
+  std::vector<int> selected_tile16_ids_;
 
   /**
    * @brief Check for changes to the overworld map. Calls RefreshOverworldMap
