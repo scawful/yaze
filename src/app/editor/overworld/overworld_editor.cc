@@ -12,7 +12,6 @@
 #include "absl/strings/str_format.h"
 #include "app/core/asar_wrapper.h"
 #include "app/core/features.h"
-#include "app/gfx/performance_profiler.h"
 #include "app/core/window.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/map_properties.h"
@@ -35,7 +34,6 @@
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
-
 
 namespace yaze::editor {
 
@@ -143,7 +141,7 @@ absl::Status OverworldEditor::Load() {
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
-  
+
   // CRITICAL FIX: Initialize tile16 editor with the correct overworld palette
   tile16_editor_.set_palette(palette_);
   tile16_editor_.set_rom(rom_);
@@ -949,8 +947,8 @@ void OverworldEditor::CheckForOverworldEdits() {
           current_tile16_);
 
       // Apply the current selected tile to each position in the rectangle
-      for (int y = start_y; y <= end_y; y += kTile16Size) {
-        for (int x = start_x; x <= end_x; x += kTile16Size) {
+      for (int y = start_y, i = 0; y <= end_y; y += kTile16Size) {
+        for (int x = start_x; x <= end_x; x += kTile16Size, ++i) {
           // Determine which local map (512x512) the tile is in
           int local_map_x = x / local_map_size;
           int local_map_y = y / local_map_size;
@@ -963,37 +961,36 @@ void OverworldEditor::CheckForOverworldEdits() {
           int index_x = local_map_x * tiles_per_local_map + tile16_x;
           int index_y = local_map_y * tiles_per_local_map + tile16_y;
 
+          overworld_.set_current_world(current_world_);
+          overworld_.set_current_map(current_map_);
+          int tile16_id = overworld_.GetTileFromPosition(
+              ow_map_canvas_.selected_tiles()[i]);
           // Bounds check for the selected world array
           if (index_x >= 0 && index_x < 0x200 && index_y >= 0 &&
               index_y < 0x200) {
-            // CRITICAL FIX: Set the tile to the currently selected tile16, not read from canvas
-            selected_world[index_x][index_y] = current_tile16_;
+            selected_world[index_x][index_y] = tile16_id;
 
             // CRITICAL FIX: Also update the bitmap directly like single tile drawing
             ImVec2 tile_position(x, y);
-            auto tile_data =
-                gfx::GetTilemapData(tile16_blockset_, current_tile16_);
+            auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile16_id);
             if (!tile_data.empty()) {
               RenderUpdatedMapBitmap(tile_position, tile_data);
               util::logf(
                   "CheckForOverworldEdits: Updated bitmap at position (%d,%d) "
                   "with tile16_id=%d",
-                  x, y, current_tile16_);
+                  x, y, tile16_id);
             } else {
               util::logf("ERROR: Failed to get tile data for tile16_id=%d",
-                         current_tile16_);
+                         tile16_id);
             }
-          } else {
-            util::logf(
-                "ERROR: Rectangle selection position [%d,%d] out of bounds",
-                index_x, index_y);
           }
         }
       }
 
+      RefreshOverworldMap();
       // Clear the rectangle selection after applying
-      ow_map_canvas_.mutable_selected_tiles()->clear();
-      ow_map_canvas_.mutable_points()->clear();
+      // ow_map_canvas_.mutable_selected_tiles()->clear();
+      // ow_map_canvas_.mutable_points()->clear();
       util::logf(
           "CheckForOverworldEdits: Rectangle selection applied and cleared");
     }
@@ -1008,7 +1005,7 @@ void OverworldEditor::CheckForSelectRectangle() {
     current_tile16_ =
         overworld_.GetTileFromPosition(ow_map_canvas_.selected_tile_pos());
     ow_map_canvas_.set_selected_tile_pos(ImVec2(-1, -1));
-    
+
     // Scroll blockset canvas to show the selected tile
     ScrollBlocksetCanvasToCurrentTile();
   }
@@ -1228,8 +1225,8 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
       const int parent_map_x = highlight_parent % 8;
       const int parent_map_y = highlight_parent / 8;
       ow_map_canvas_.DrawOutline(parent_map_x * kOverworldMapSize,
-                                 parent_map_y * kOverworldMapSize, large_map_size,
-                                 large_map_size);
+                                 parent_map_y * kOverworldMapSize,
+                                 large_map_size, large_map_size);
     } else {
       // Calculate map coordinates accounting for world offset
       int current_map_x;
@@ -1375,7 +1372,7 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   blockset_canvas_.DrawContextMenu();
   blockset_canvas_.DrawBitmap(tile16_blockset_.atlas, /*border_offset=*/2,
                               map_blockset_loaded_, /*scale=*/2);
-                bool tile_selected = false;
+  bool tile_selected = false;
 
   // Call DrawTileSelector after event detection for visual feedback
   if (blockset_canvas_.DrawTileSelector(32.0f)) {
@@ -1385,7 +1382,7 @@ absl::Status OverworldEditor::DrawTile16Selector() {
 
   // Then check for single click (if not double-click)
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
-           blockset_canvas_.IsMouseHovering()) {
+      blockset_canvas_.IsMouseHovering()) {
     tile_selected = true;
   }
 
@@ -1404,7 +1401,7 @@ absl::Status OverworldEditor::DrawTile16Selector() {
     if (id != current_tile16_ && id >= 0 && id < 512) {
       current_tile16_ = id;
       RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(id));
-      
+
       // Scroll blockset canvas to show the selected tile
       ScrollBlocksetCanvasToCurrentTile();
     }
@@ -2122,7 +2119,7 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
   // Check if ZSCustomOverworld v3 is present
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   bool use_v3_area_sizes = (asm_version >= 3 && asm_version != 0xFF);
-  
+
   if (use_v3_area_sizes) {
     // Use v3 multi-area coordination
     RefreshMultiAreaMapsSafely(map_index, map);
@@ -2251,7 +2248,8 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
                   overworld_.GetMapTiles(current_world_));
               if (status.ok()) {
                 maps_bmp_[sibling].set_data(sibling_map->bitmap_data());
-                maps_bmp_[sibling].SetPalette(overworld_.current_area_palette());
+                maps_bmp_[sibling].SetPalette(
+                    overworld_.current_area_palette());
                 maps_bmp_[sibling].set_modified(false);
 
                 // Update texture if it exists
@@ -2297,16 +2295,17 @@ absl::Status OverworldEditor::RefreshMapPalette() {
     // Use v3 area size system
     using zelda3::AreaSizeEnum;
     auto area_size = overworld_.overworld_map(current_map_)->area_size();
-    
+
     if (area_size != AreaSizeEnum::SmallArea) {
       // Get all sibling maps that need palette updates
       std::vector<int> sibling_maps;
       int parent_id = overworld_.overworld_map(current_map_)->parent();
-      
+
       switch (area_size) {
         case AreaSizeEnum::LargeArea:
           // 2x2 grid: parent, parent+1, parent+8, parent+9
-          sibling_maps = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
+          sibling_maps = {parent_id, parent_id + 1, parent_id + 8,
+                          parent_id + 9};
           break;
         case AreaSizeEnum::WideArea:
           // 2x1 grid: parent, parent+1
@@ -2319,7 +2318,7 @@ absl::Status OverworldEditor::RefreshMapPalette() {
         default:
           break;
       }
-      
+
       // Update palette for all siblings
       for (int sibling_index : sibling_maps) {
         if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
@@ -2338,7 +2337,8 @@ absl::Status OverworldEditor::RefreshMapPalette() {
     if (overworld_.overworld_map(current_map_)->is_large_map()) {
       // We need to update the map and its siblings if it's a large map
       for (int i = 1; i < 4; i++) {
-        int sibling_index = overworld_.overworld_map(current_map_)->parent() + i;
+        int sibling_index =
+            overworld_.overworld_map(current_map_)->parent() + i;
         if (i >= 2)
           sibling_index += 6;
         RETURN_IF_ERROR(
@@ -2354,7 +2354,7 @@ absl::Status OverworldEditor::RefreshMapPalette() {
 
 void OverworldEditor::RefreshMapProperties() {
   const auto& current_ow_map = *overworld_.mutable_overworld_map(current_map_);
-  
+
   // Check if ZSCustomOverworld v3 is present
   uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   bool use_v3_area_sizes = (asm_version >= 3);
@@ -2363,12 +2363,12 @@ void OverworldEditor::RefreshMapProperties() {
     // Use v3 area size system
     using zelda3::AreaSizeEnum;
     auto area_size = current_ow_map.area_size();
-    
+
     if (area_size != AreaSizeEnum::SmallArea) {
       // Get all sibling maps that need property updates
       std::vector<int> sibling_maps;
       int parent_id = current_ow_map.parent();
-      
+
       switch (area_size) {
         case AreaSizeEnum::LargeArea:
           // 2x2 grid: parent+1, parent+8, parent+9 (skip parent itself)
@@ -2385,7 +2385,7 @@ void OverworldEditor::RefreshMapProperties() {
         default:
           break;
       }
-      
+
       // Copy properties from parent map to all siblings
       for (int sibling_index : sibling_maps) {
         if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
@@ -3198,11 +3198,12 @@ void OverworldEditor::SetupOverworldCanvasContextMenu() {
     RefreshOverworldMap();
     auto status = RefreshTile16Blockset();
     if (!status.ok()) {
-      util::logf("Failed to refresh tile16 blockset: %s", status.message().data());
+      util::logf("Failed to refresh tile16 blockset: %s",
+                 status.message().data());
     }
   };
   ow_map_canvas_.AddContextMenuItem(refresh_map_item);
-  
+
   // Canvas controls
   gui::Canvas::ContextMenuItem reset_pos_item;
   reset_pos_item.label = "Reset Canvas Position";
@@ -3224,33 +3225,36 @@ void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
   // Calculate the position of the current tile in the blockset canvas
   // Blockset is arranged in an 8-tile-per-row grid, each tile is 16x16 pixels
   constexpr int kTilesPerRow = 8;
-  constexpr int kTileDisplaySize = 32;  // Each tile displayed at 32x32 (16x16 at 2x scale)
-  
+  constexpr int kTileDisplaySize =
+      32;  // Each tile displayed at 32x32 (16x16 at 2x scale)
+
   // Calculate tile position in canvas coordinates (absolute position in the grid)
   int tile_col = current_tile16_ % kTilesPerRow;
   int tile_row = current_tile16_ / kTilesPerRow;
   float tile_x = static_cast<float>(tile_col * kTileDisplaySize);
   float tile_y = static_cast<float>(tile_row * kTileDisplaySize);
-  
+
   // Get the canvas dimensions
   ImVec2 canvas_size = blockset_canvas_.canvas_size();
-  
+
   // Calculate the scroll position to center the tile in the viewport
   float scroll_x = tile_x - (canvas_size.x / 2.0F) + (kTileDisplaySize / 2.0F);
   float scroll_y = tile_y - (canvas_size.y / 2.0F) + (kTileDisplaySize / 2.0F);
-  
+
   // Clamp scroll to valid ranges (don't scroll beyond bounds)
-  if (scroll_x < 0) scroll_x = 0;
-  if (scroll_y < 0) scroll_y = 0;
-  
+  if (scroll_x < 0)
+    scroll_x = 0;
+  if (scroll_y < 0)
+    scroll_y = 0;
+
   // Update the blockset canvas scrolling position first
   blockset_canvas_.set_scrolling(ImVec2(-1, -scroll_y));
-  
+
   // Set the points to draw the white outline box around the current tile
   // Points are in canvas coordinates (not screen coordinates)
-  blockset_canvas_.mutable_points()->clear();
-  blockset_canvas_.mutable_points()->push_back(ImVec2(tile_x, tile_y));
-  blockset_canvas_.mutable_points()->push_back(ImVec2(tile_x + kTileDisplaySize, tile_y + kTileDisplaySize));
+  // blockset_canvas_.mutable_points()->clear();
+  // blockset_canvas_.mutable_points()->push_back(ImVec2(tile_x, tile_y));
+  // blockset_canvas_.mutable_points()->push_back(ImVec2(tile_x + kTileDisplaySize, tile_y + kTileDisplaySize));
 }
 
 void OverworldEditor::DrawOverworldProperties() {

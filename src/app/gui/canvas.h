@@ -15,6 +15,11 @@
 #include "app/gui/enhanced_palette_editor.h"
 #include "app/gfx/bpp_format_manager.h"
 #include "app/gui/bpp_format_ui.h"
+#include "app/gui/canvas/canvas_modals.h"
+#include "app/gui/canvas/canvas_context_menu.h"
+#include "app/gui/canvas/canvas_usage_tracker.h"
+#include "app/gui/canvas/canvas_performance_integration.h"
+#include "app/gui/canvas/canvas_interaction_handler.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -103,6 +108,37 @@ class Canvas {
   void UpdateInfoGrid(ImVec2 bg_size, float grid_size = 64.0f,
                       int label_id = 0);
 
+  // ==================== Modern ImGui-Style Interface ====================
+  
+  /**
+   * @brief Begin canvas rendering (ImGui-style)
+   * 
+   * Modern alternative to DrawBackground(). Handles:
+   * - Background and border rendering
+   * - Size calculation
+   * - Scroll/drag setup
+   * - Context menu
+   * 
+   * Usage:
+   * ```cpp
+   * canvas.Begin();
+   * canvas.DrawBitmap(bitmap);
+   * if (canvas.DrawTilePainter(tile, 16)) { ... }
+   * canvas.End();  // Draws grid and overlay
+   * ```
+   */
+  void Begin(ImVec2 canvas_size = ImVec2(0, 0));
+  
+  /**
+   * @brief End canvas rendering (ImGui-style)
+   * 
+   * Modern alternative to manual DrawGrid() + DrawOverlay().
+   * Automatically draws grid and overlay if enabled.
+   */
+  void End();
+  
+  // ==================== Legacy Interface (Backward Compatible) ====================
+
   // Background for the Canvas represents region without any content drawn to
   // it, but can be controlled by the user.
   void DrawBackground(ImVec2 canvas_size = ImVec2(0, 0));
@@ -125,6 +161,13 @@ class Canvas {
   std::unique_ptr<gui::BppConversionDialog> bpp_conversion_dialog_;
   std::unique_ptr<gui::BppComparisonTool> bpp_comparison_tool_;
   
+  // Enhanced canvas components
+  std::unique_ptr<canvas::CanvasModals> modals_;
+  std::unique_ptr<canvas::CanvasContextMenu> context_menu_;
+  std::shared_ptr<canvas::CanvasUsageTracker> usage_tracker_;
+  std::shared_ptr<canvas::CanvasPerformanceIntegration> performance_integration_;
+  canvas::CanvasInteractionHandler interaction_handler_;
+  
   void AddContextMenuItem(const ContextMenuItem& item);
   void ClearContextMenuItems();
   void SetContextMenuEnabled(bool enabled) { context_menu_enabled_ = enabled; }
@@ -134,6 +177,8 @@ class Canvas {
   void ShowScalingControls();
   void SetZoomToFit(const gfx::Bitmap& bitmap);
   void ResetView();
+  void ApplyConfigSnapshot(const canvas::CanvasConfig& snapshot);
+  void ApplyScaleSnapshot(const canvas::CanvasConfig& snapshot);
   
   // Modular component access
   CanvasConfig& GetConfig() { return config_; }
@@ -153,6 +198,18 @@ class Canvas {
   void ShowBppConversionDialog();
   bool ConvertBitmapFormat(gfx::BppFormat target_format);
   gfx::BppFormat GetCurrentBppFormat() const;
+  
+  // Enhanced canvas management
+  void InitializeEnhancedComponents();
+  void SetUsageMode(canvas::CanvasUsage usage);
+  canvas::CanvasUsage GetUsageMode() const;
+  void RecordCanvasOperation(const std::string& operation_name, double time_ms);
+  void ShowPerformanceUI();
+  void ShowUsageReport();
+  
+  // Interaction handler access
+  canvas::CanvasInteractionHandler& GetInteractionHandler() { return interaction_handler_; }
+  const canvas::CanvasInteractionHandler& GetInteractionHandler() const { return interaction_handler_; }
   
   // Initialization and cleanup
   void InitializeDefaults();
@@ -226,8 +283,9 @@ class Canvas {
   void ZoomIn() { global_scale_ += 0.25f; }
   void ZoomOut() { global_scale_ -= 0.25f; }
 
-  auto points() const { return points_; }
-  auto mutable_points() { return &points_; }
+  // Points accessors - points_ is maintained separately for custom overlay drawing
+  const ImVector<ImVec2>& points() const { return points_; }
+  ImVector<ImVec2>* mutable_points() { return &points_; }
   auto push_back(ImVec2 pos) { points_.push_back(pos); }
   auto draw_list() const { return draw_list_; }
   auto zero_point() const { return canvas_p0_; }
@@ -345,6 +403,7 @@ class Canvas {
   ImVec2 mouse_pos_in_canvas_;
 
   // Drawing and labeling
+  // NOTE: points_ synchronized from interaction_handler_ for backward compatibility
   ImVector<ImVec2> points_;
   ImVector<ImVector<std::string>> labels_;
 
@@ -381,6 +440,97 @@ void BitmapCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap, int width,
 // Table-optimized canvas pipeline with automatic sizing
 void TableCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap, 
                         const std::string& label = "", bool auto_resize = true);
+
+/**
+ * @class ScopedCanvas
+ * @brief RAII wrapper for Canvas (ImGui-style)
+ * 
+ * Automatically calls Begin() on construction and End() on destruction,
+ * preventing forgotten End() calls and ensuring proper cleanup.
+ * 
+ * Usage:
+ * ```cpp
+ * {
+ *   gui::ScopedCanvas canvas("MyCanvas", ImVec2(512, 512));
+ *   canvas->DrawBitmap(bitmap);
+ *   if (canvas->DrawTilePainter(tile, 16)) {
+ *     HandlePaint(canvas->drawn_tile_position());
+ *   }
+ * } // Automatic End() and cleanup
+ * ```
+ * 
+ * Or wrap existing canvas:
+ * ```cpp
+ * Canvas my_canvas("Editor");
+ * {
+ *   ScopedCanvas scoped(my_canvas);
+ *   scoped->DrawBitmap(bitmap);
+ * } // Automatic End()
+ * ```
+ */
+class ScopedCanvas {
+ public:
+  /**
+   * @brief Construct and begin a new canvas
+   */
+  explicit ScopedCanvas(const std::string& id, ImVec2 canvas_size = ImVec2(0, 0))
+      : canvas_(new Canvas(id, canvas_size)), owned_(true), active_(true) {
+    canvas_->Begin();
+  }
+  
+  /**
+   * @brief Wrap existing canvas with RAII
+   */
+  explicit ScopedCanvas(Canvas& canvas) 
+      : canvas_(&canvas), owned_(false), active_(true) {
+    canvas_->Begin();
+  }
+  
+  /**
+   * @brief Destructor automatically calls End()
+   */
+  ~ScopedCanvas() {
+    if (active_ && canvas_) {
+      canvas_->End();
+    }
+    if (owned_) {
+      delete canvas_;
+    }
+  }
+  
+  // No copy, move only
+  ScopedCanvas(const ScopedCanvas&) = delete;
+  ScopedCanvas& operator=(const ScopedCanvas&) = delete;
+  
+  ScopedCanvas(ScopedCanvas&& other) noexcept 
+      : canvas_(other.canvas_), owned_(other.owned_), active_(other.active_) {
+    other.active_ = false;
+    other.canvas_ = nullptr;
+  }
+  
+  /**
+   * @brief Arrow operator for clean syntax: scoped->DrawBitmap(...)
+   */
+  Canvas* operator->() { return canvas_; }
+  const Canvas* operator->() const { return canvas_; }
+  
+  /**
+   * @brief Dereference operator for direct access: (*scoped).DrawBitmap(...)
+   */
+  Canvas& operator*() { return *canvas_; }
+  const Canvas& operator*() const { return *canvas_; }
+  
+  /**
+   * @brief Get underlying canvas
+   */
+  Canvas* get() { return canvas_; }
+  const Canvas* get() const { return canvas_; }
+  
+ private:
+  Canvas* canvas_;
+  bool owned_;
+  bool active_;
+};
 
 }  // namespace gui
 }  // namespace yaze
