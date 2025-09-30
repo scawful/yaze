@@ -12,7 +12,7 @@
 #include "absl/strings/str_format.h"
 #include "app/core/asar_wrapper.h"
 #include "app/core/features.h"
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/core/window.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/map_properties.h"
@@ -1759,12 +1759,12 @@ absl::Status OverworldEditor::Save() {
 }
 
 absl::Status OverworldEditor::LoadGraphics() {
-  core::ScopedTimer timer("LoadGraphics");
+  gfx::ScopedTimer timer("LoadGraphics");
 
   util::logf("Loading overworld.");
   // Load the Link to the Past overworld.
   {
-    core::ScopedTimer load_timer("Overworld::Load");
+    gfx::ScopedTimer load_timer("Overworld::Load");
     RETURN_IF_ERROR(overworld_.Load(rom_));
   }
   palette_ = overworld_.current_area_palette();
@@ -1774,7 +1774,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   // Phase 1: Create bitmaps without textures for faster loading
   // This avoids blocking the main thread with GPU texture creation
   {
-    core::ScopedTimer gfx_timer("CreateBitmapWithoutTexture_Graphics");
+    gfx::ScopedTimer gfx_timer("CreateBitmapWithoutTexture_Graphics");
     Renderer::Get().CreateBitmapWithoutTexture(0x80, kOverworldMapSize, 0x40,
                                                overworld_.current_graphics(),
                                                current_gfx_bmp_, palette_);
@@ -1782,7 +1782,7 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   util::logf("Loading overworld tileset (deferred textures).");
   {
-    core::ScopedTimer tileset_timer("CreateBitmapWithoutTexture_Tileset");
+    gfx::ScopedTimer tileset_timer("CreateBitmapWithoutTexture_Tileset");
     Renderer::Get().CreateBitmapWithoutTexture(
         0x80, 0x2000, 0x08, overworld_.tile16_blockset_data(),
         tile16_blockset_bmp_, palette_);
@@ -1794,7 +1794,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   util::logf("Loading overworld tile16 graphics.");
 
   {
-    core::ScopedTimer tilemap_timer("CreateTilemap");
+    gfx::ScopedTimer tilemap_timer("CreateTilemap");
     tile16_blockset_ =
         gfx::CreateTilemap(tile16_blockset_data, 0x80, 0x2000, kTile16Size,
                            zelda3::kNumTile16Individual, palette_);
@@ -1818,7 +1818,7 @@ absl::Status OverworldEditor::LoadGraphics() {
                           3);  // 8 maps per world * 3 worlds
 
   {
-    core::ScopedTimer maps_timer("CreateEssentialOverworldMaps");
+    gfx::ScopedTimer maps_timer("CreateEssentialOverworldMaps");
     for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
       bool is_essential = false;
 
@@ -1856,7 +1856,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   const int initial_texture_count =
       std::min(4, static_cast<int>(maps_to_texture.size()));
   {
-    core::ScopedTimer initial_textures_timer("CreateInitialTextures");
+    gfx::ScopedTimer initial_textures_timer("CreateInitialTextures");
     for (int i = 0; i < initial_texture_count; ++i) {
       Renderer::Get().RenderBitmap(maps_to_texture[i]);
     }
@@ -1868,7 +1868,7 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
     {
-      core::ScopedTimer sprites_timer("LoadSpriteGraphics");
+      gfx::ScopedTimer sprites_timer("LoadSpriteGraphics");
       RETURN_IF_ERROR(LoadSpriteGraphics());
     }
   }

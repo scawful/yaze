@@ -1,6 +1,6 @@
 #include "sprite_editor.h"
 
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gfx/arena.h"
@@ -26,7 +26,7 @@ using ImGui::Text;
 void SpriteEditor::Initialize() {}
 
 absl::Status SpriteEditor::Load() { 
-  core::ScopedTimer timer("SpriteEditor::Load");
+  gfx::ScopedTimer timer("SpriteEditor::Load");
   return absl::OkStatus(); 
 }
 

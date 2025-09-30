@@ -3,7 +3,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/features.h"
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/gui/style.h"
 #include "imgui/imgui.h"
 
@@ -25,7 +25,7 @@ using ImGui::TableSetupColumn;
 void SettingsEditor::Initialize() {}
 
 absl::Status SettingsEditor::Load() { 
-  core::ScopedTimer timer("SettingsEditor::Load");
+  gfx::ScopedTimer timer("SettingsEditor::Load");
   return absl::OkStatus(); 
 }
 

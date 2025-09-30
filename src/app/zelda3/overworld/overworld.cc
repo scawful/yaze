@@ -10,7 +10,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/features.h"
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
@@ -25,7 +25,7 @@ namespace yaze {
 namespace zelda3 {
 
 absl::Status Overworld::Load(Rom* rom) {
-  core::ScopedTimer timer("Overworld::Load");
+  gfx::ScopedTimer timer("Overworld::Load");
   
   if (rom->size() == 0) {
     return absl::InvalidArgumentError("ROM file not loaded");
@@ -34,20 +34,20 @@ absl::Status Overworld::Load(Rom* rom) {
 
   // Phase 1: Tile Assembly (can be parallelized)
   {
-    core::ScopedTimer assembly_timer("AssembleTiles");
+    gfx::ScopedTimer assembly_timer("AssembleTiles");
     RETURN_IF_ERROR(AssembleMap32Tiles());
     RETURN_IF_ERROR(AssembleMap16Tiles());
   }
 
   // Phase 2: Map Decompression (major bottleneck - now parallelized)
   {
-    core::ScopedTimer decompression_timer("DecompressAllMapTiles");
+    gfx::ScopedTimer decompression_timer("DecompressAllMapTiles");
     RETURN_IF_ERROR(DecompressAllMapTilesParallel());
   }
 
   // Phase 3: Map Object Creation (fast)
   {
-    core::ScopedTimer map_creation_timer("CreateOverworldMapObjects");
+    gfx::ScopedTimer map_creation_timer("CreateOverworldMapObjects");
     for (int map_index = 0; map_index < kNumOverworldMaps; ++map_index)
       overworld_maps_.emplace_back(map_index, rom_);
 
@@ -67,40 +67,40 @@ absl::Status Overworld::Load(Rom* rom) {
 
   // Phase 5: Data Loading (with individual timing)
   {
-    core::ScopedTimer data_loading_timer("LoadOverworldData");
+    gfx::ScopedTimer data_loading_timer("LoadOverworldData");
     
     {
-      core::ScopedTimer tile_types_timer("LoadTileTypes");
+      gfx::ScopedTimer tile_types_timer("LoadTileTypes");
       LoadTileTypes();
     }
     
     {
-      core::ScopedTimer entrances_timer("LoadEntrances");
+      gfx::ScopedTimer entrances_timer("LoadEntrances");
       RETURN_IF_ERROR(LoadEntrances());
     }
     
     {
-      core::ScopedTimer holes_timer("LoadHoles");
+      gfx::ScopedTimer holes_timer("LoadHoles");
       RETURN_IF_ERROR(LoadHoles());
     }
     
     {
-      core::ScopedTimer exits_timer("LoadExits");
+      gfx::ScopedTimer exits_timer("LoadExits");
       RETURN_IF_ERROR(LoadExits());
     }
     
     {
-      core::ScopedTimer items_timer("LoadItems");
+      gfx::ScopedTimer items_timer("LoadItems");
       RETURN_IF_ERROR(LoadItems());
     }
     
     {
-      core::ScopedTimer overworld_maps_timer("LoadOverworldMaps");
+      gfx::ScopedTimer overworld_maps_timer("LoadOverworldMaps");
       RETURN_IF_ERROR(LoadOverworldMaps());
     }
     
     {
-      core::ScopedTimer sprites_timer("LoadSprites");
+      gfx::ScopedTimer sprites_timer("LoadSprites");
       RETURN_IF_ERROR(LoadSprites());
     }
   }

@@ -1,7 +1,7 @@
 #include "dungeon_editor.h"
 
 #include "absl/strings/str_format.h"
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
@@ -47,7 +47,7 @@ void DungeonEditor::Initialize() {
 }
 
 absl::Status DungeonEditor::Load() {
-  core::ScopedTimer timer("DungeonEditor::Load");
+  gfx::ScopedTimer timer("DungeonEditor::Load");
   
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
@@ -57,18 +57,18 @@ absl::Status DungeonEditor::Load() {
 
   // Use room loader component for loading rooms
   {
-    core::ScopedTimer rooms_timer("DungeonEditor::LoadAllRooms");
+    gfx::ScopedTimer rooms_timer("DungeonEditor::LoadAllRooms");
     RETURN_IF_ERROR(room_loader_.LoadAllRooms(rooms_));
   }
   
   {
-    core::ScopedTimer entrances_timer("DungeonEditor::LoadRoomEntrances");
+    gfx::ScopedTimer entrances_timer("DungeonEditor::LoadRoomEntrances");
     RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
   }
 
   // Load the palette group and palette for the dungeon
   {
-    core::ScopedTimer palette_timer("DungeonEditor::LoadPalettes");
+    gfx::ScopedTimer palette_timer("DungeonEditor::LoadPalettes");
     full_palette_ = dungeon_man_pal_group[current_palette_group_id_];
     ASSIGN_OR_RETURN(current_palette_group_,
                      gfx::CreatePaletteGroupFromLargePalette(full_palette_));
@@ -76,13 +76,13 @@ absl::Status DungeonEditor::Load() {
 
   // Calculate usage statistics
   {
-    core::ScopedTimer usage_timer("DungeonEditor::CalculateUsageStats");
+    gfx::ScopedTimer usage_timer("DungeonEditor::CalculateUsageStats");
     usage_tracker_.CalculateUsageStats(rooms_);
   }
 
   // Initialize the new editor system
   {
-    core::ScopedTimer init_timer("DungeonEditor::InitializeSystem");
+    gfx::ScopedTimer init_timer("DungeonEditor::InitializeSystem");
     if (dungeon_editor_system_) {
       auto status = dungeon_editor_system_->Initialize();
       if (!status.ok()) {

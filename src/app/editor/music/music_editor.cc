@@ -1,7 +1,7 @@
 #include "music_editor.h"
 
 #include "absl/strings/str_format.h"
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -13,7 +13,7 @@ namespace editor {
 void MusicEditor::Initialize() {}
 
 absl::Status MusicEditor::Load() {
-  core::ScopedTimer timer("MusicEditor::Load");
+  gfx::ScopedTimer timer("MusicEditor::Load");
   return absl::OkStatus();
 }
 

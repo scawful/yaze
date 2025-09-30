@@ -6,7 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/window.h"
 #include "app/gfx/bitmap.h"
@@ -93,7 +93,7 @@ void MessageEditor::Initialize() {
 }
 
 absl::Status MessageEditor::Load() { 
-  core::ScopedTimer timer("MessageEditor::Load");
+  gfx::ScopedTimer timer("MessageEditor::Load");
   return absl::OkStatus(); 
 }
 

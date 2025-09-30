@@ -6,7 +6,7 @@
 #include <thread>
 #include <mutex>
 
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/gfx/snes_palette.h"
 #include "app/zelda3/dungeon/room.h"
 #include "util/log.h"
@@ -84,7 +84,7 @@ absl::Status DungeonRoomLoader::LoadAllRooms(std::array<zelda3::Room, 0x128>& ro
   
   // Process collected results on main thread
   {
-    core::ScopedTimer postprocess_timer("DungeonRoomLoader::PostProcessResults");
+    gfx::ScopedTimer postprocess_timer("DungeonRoomLoader::PostProcessResults");
     
     // Sort results by room ID for consistent ordering
     std::sort(room_size_results.begin(), room_size_results.end(), 
