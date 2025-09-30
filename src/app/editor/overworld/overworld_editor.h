@@ -131,7 +131,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawOverworldMapSettings();
   void DrawCustomOverworldMapSettings();
 
-  void RefreshChildMap(int i);
+  void RefreshChildMap(int map_index);
   void RefreshOverworldMap();
   void RefreshOverworldMapOnDemand(int map_index);
   void RefreshChildMapOnDemand(int map_index);

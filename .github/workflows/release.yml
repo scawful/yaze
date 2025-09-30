@@ -115,12 +115,6 @@ jobs:
             cmake_generator: "Visual Studio 17 2022"
             cmake_generator_platform: x64
             artifact_name: "yaze-windows-x64"
-          - name: "Windows ARM64"
-            os: windows-2022
-            vcpkg_triplet: arm64-windows
-            cmake_generator: "Visual Studio 17 2022"
-            cmake_generator_platform: ARM64
-            artifact_name: "yaze-windows-arm64"
           - name: "macOS arm64"
             os: macos-14
             vcpkg_triplet: arm64-osx

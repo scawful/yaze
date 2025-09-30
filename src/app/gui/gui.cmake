@@ -8,7 +8,6 @@ set(
   app/gui/input.cc
   app/gui/style.cc
   app/gui/color.cc
-  app/gui/zeml.cc
   app/gui/theme_manager.cc
   app/gui/background_renderer.cc
 )

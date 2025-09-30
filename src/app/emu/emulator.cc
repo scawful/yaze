@@ -8,7 +8,6 @@
 #include "app/emu/cpu/internal/opcodes.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
-#include "app/gui/zeml.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 
@@ -105,7 +104,76 @@ void Emulator::Run() {
     }
   }
 
-  gui::zeml::Render(emulator_node_);
+  RenderEmulatorInterface();
+}
+
+void Emulator::RenderEmulatorInterface() {
+  if (ImGui::BeginTable("Emulator", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
+    ImGui::TableSetupColumn("CPU");
+    ImGui::TableSetupColumn("PPU");
+    ImGui::TableHeadersRow();
+
+    // CPU Column
+    ImGui::TableNextColumn();
+    
+    // CPU Register Values
+    if (ImGui::CollapsingHeader("Register Values", ImGuiTreeNodeFlags_DefaultOpen)) {
+      ImGui::BeginChild("##CpuState", ImVec2(0, 100), ImGuiChildFlags_None, 
+                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
+      ImGui::Columns(2, "registersColumns");
+      
+      ImGui::Text("A: 0x%04X", snes_.cpu().A);
+      ImGui::Text("X: 0x%04X", snes_.cpu().X);
+      ImGui::Text("Y: 0x%04X", snes_.cpu().Y);
+      ImGui::Text("PC: 0x%04X", snes_.cpu().PC);
+      ImGui::Text("SP: 0x%02X", snes_.memory().mutable_sp());
+      
+      ImGui::NextColumn();
+      
+      ImGui::Text("D: 0x%04X", snes_.cpu().D);
+      ImGui::Text("DB: 0x%02X", snes_.cpu().DB);
+      ImGui::Text("PB: 0x%02X", snes_.cpu().PB);
+      ImGui::Text("PS: 0x%02X", snes_.cpu().status);
+      ImGui::Text("Cycle: %llu", snes_.mutable_cycles());
+      
+      ImGui::Columns(1);
+      ImGui::EndChild();
+    }
+    
+    // SPC Registers
+    if (ImGui::CollapsingHeader("SPC Registers", ImGuiTreeNodeFlags_DefaultOpen)) {
+      ImGui::BeginChild("##SpcState", ImVec2(0, 100), ImGuiChildFlags_None,
+                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
+      ImGui::Columns(2, "spcRegistersColumns");
+      
+      ImGui::Text("A: 0x%02X", snes_.apu().spc700().A);
+      ImGui::Text("X: 0x%02X", snes_.apu().spc700().X);
+      ImGui::Text("Y: 0x%02X", snes_.apu().spc700().Y);
+      
+      ImGui::NextColumn();
+      
+      ImGui::Text("PC: 0x%04X", snes_.apu().spc700().PC);
+      ImGui::Text("SP: 0x%02X", snes_.apu().spc700().SP);
+      ImGui::Text("PSW: 0x%02X", snes_.apu().spc700().FlagsToByte(snes_.apu().spc700().PSW));
+      
+      ImGui::Columns(1);
+      ImGui::EndChild();
+    }
+    
+    // CPU Instruction Log
+    RenderCpuInstructionLog(snes_.cpu().instruction_log_);
+    
+    // PPU Column
+    ImGui::TableNextColumn();
+    
+    // SNES PPU
+    RenderSnesPpu();
+    
+    // Breakpoint List
+    RenderBreakpointList();
+    
+    ImGui::EndTable();
+  }
 }
 
 void Emulator::RenderSnesPpu() {
@@ -132,18 +200,21 @@ void Emulator::RenderSnesPpu() {
 }
 
 void Emulator::RenderNavBar() {
-  std::string navbar_layout = R"(
-    BeginMenuBar {
-      BeginMenu title="Options" {
-        MenuItem title="Input" {}
-        MenuItem title="Audio" {}
-        MenuItem title="Video" {}
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu("Options")) {
+      if (ImGui::MenuItem("Input")) {
+        // Input options logic
       }
+      if (ImGui::MenuItem("Audio")) {
+        // Audio options logic
+      }
+      if (ImGui::MenuItem("Video")) {
+        // Video options logic
+      }
+      ImGui::EndMenu();
     }
-  )";
-
-  static auto navbar_node = gui::zeml::Parse(navbar_layout);
-  gui::zeml::Render(navbar_node);
+    ImGui::EndMenuBar();
+  }
 
   if (ImGui::Button(ICON_MD_PLAY_ARROW)) {
     running_ = true;
