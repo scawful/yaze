@@ -10,4 +10,5 @@ set(
   app/gui/color.cc
   app/gui/theme_manager.cc
   app/gui/background_renderer.cc
+  app/gui/bpp_format_ui.cc
 )

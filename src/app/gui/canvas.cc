@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <string>
+#include "app/gfx/bpp_format_manager.h"
 
 #include "app/core/window.h"
 #include "app/gfx/atlas_renderer.h"
@@ -1439,5 +1440,78 @@ void Canvas::ShowScalingControls() {
 }
 
 // Old ROM palette management methods removed - now handled by EnhancedPaletteEditor
+
+// BPP format management methods
+void Canvas::ShowBppFormatSelector() {
+  if (!bpp_format_ui_) {
+    bpp_format_ui_ = std::make_unique<gui::BppFormatUI>(canvas_id_ + "_bpp_format");
+  }
+  
+  if (bitmap_) {
+    bpp_format_ui_->RenderFormatSelector(bitmap_, bitmap_->palette(), 
+      [this](gfx::BppFormat format) {
+        ConvertBitmapFormat(format);
+      });
+  }
+}
+
+void Canvas::ShowBppAnalysis() {
+  if (!bpp_format_ui_) {
+    bpp_format_ui_ = std::make_unique<gui::BppFormatUI>(canvas_id_ + "_bpp_format");
+  }
+  
+  if (bitmap_) {
+    bpp_format_ui_->RenderAnalysisPanel(*bitmap_, bitmap_->palette());
+  }
+}
+
+void Canvas::ShowBppConversionDialog() {
+  if (!bpp_conversion_dialog_) {
+    bpp_conversion_dialog_ = std::make_unique<gui::BppConversionDialog>(canvas_id_ + "_bpp_conversion");
+  }
+  
+  if (bitmap_) {
+    bpp_conversion_dialog_->Show(*bitmap_, bitmap_->palette(),
+      [this](gfx::BppFormat format, bool preserve_palette) {
+        ConvertBitmapFormat(format);
+      });
+  }
+  
+  bpp_conversion_dialog_->Render();
+}
+
+bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
+  if (!bitmap_) return false;
+  
+  gfx::BppFormat current_format = GetCurrentBppFormat();
+  if (current_format == target_format) {
+    return true; // No conversion needed
+  }
+  
+  try {
+    // Convert the bitmap data
+    auto converted_data = gfx::BppFormatManager::Get().ConvertFormat(
+      bitmap_->vector(), current_format, target_format, 
+      bitmap_->width(), bitmap_->height());
+    
+    // Update the bitmap with converted data
+    bitmap_->set_data(converted_data);
+    
+    // Update the renderer
+    core::Renderer::Get().UpdateBitmap(bitmap_);
+    
+    return true;
+  } catch (const std::exception& e) {
+    SDL_Log("Failed to convert bitmap format: %s", e.what());
+    return false;
+  }
+}
+
+gfx::BppFormat Canvas::GetCurrentBppFormat() const {
+  if (!bitmap_) return gfx::BppFormat::kBpp8;
+  
+  return gfx::BppFormatManager::Get().DetectFormat(
+    bitmap_->vector(), bitmap_->width(), bitmap_->height());
+}
 
 }  // namespace yaze::gui

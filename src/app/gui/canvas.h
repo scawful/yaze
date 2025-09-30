@@ -13,6 +13,8 @@
 #include "app/rom.h"
 #include "app/gui/canvas_utils.h"
 #include "app/gui/enhanced_palette_editor.h"
+#include "app/gfx/bpp_format_manager.h"
+#include "app/gui/bpp_format_ui.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -118,6 +120,11 @@ class Canvas {
     std::vector<ContextMenuItem> subitems;
   };
   
+  // BPP format UI components
+  std::unique_ptr<gui::BppFormatUI> bpp_format_ui_;
+  std::unique_ptr<gui::BppConversionDialog> bpp_conversion_dialog_;
+  std::unique_ptr<gui::BppComparisonTool> bpp_comparison_tool_;
+  
   void AddContextMenuItem(const ContextMenuItem& item);
   void ClearContextMenuItems();
   void SetContextMenuEnabled(bool enabled) { context_menu_enabled_ = enabled; }
@@ -139,6 +146,13 @@ class Canvas {
   void ShowPaletteEditor();
   void ShowColorAnalysis();
   bool ApplyROMPalette(int group_index, int palette_index);
+  
+  // BPP format management
+  void ShowBppFormatSelector();
+  void ShowBppAnalysis();
+  void ShowBppConversionDialog();
+  bool ConvertBitmapFormat(gfx::BppFormat target_format);
+  gfx::BppFormat GetCurrentBppFormat() const;
   
   // Initialization and cleanup
   void InitializeDefaults();
