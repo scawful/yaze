@@ -1,44 +1,73 @@
-# SDL2
-# On Windows, try to use vcpkg first, then fall back to bundled SDL
-if(WIN32)
-  # Try to find SDL2 via vcpkg first
-  find_package(SDL2 QUIET)
-  if(SDL2_FOUND)
-    # Use vcpkg SDL2
-    set(SDL_TARGETS SDL2::SDL2)
-    list(PREPEND SDL_TARGETS SDL2::SDL2main ws2_32)
+#[[
+  SDL discovery (SDL2 default, optional SDL3)
+  Priority: CONFIG packages (vcpkg/homebrew/conan) -> system -> vendored submodule
+]]
+
+if(YAZE_USE_SDL3)
+  find_package(SDL3 QUIET CONFIG)
+  if(SDL3_FOUND)
+    set(SDL_TARGETS SDL3::SDL3)
     add_definitions("-DSDL_MAIN_HANDLED")
-    message(STATUS "Using vcpkg SDL2")
+    message(STATUS "Using SDL3 via package config")
   else()
-    # Fall back to bundled SDL
-    add_subdirectory(src/lib/SDL)
-    set(SDL_TARGETS SDL2-static)
-    set(SDL2_INCLUDE_DIR 
-      ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
-      ${CMAKE_BINARY_DIR}/src/lib/SDL/include
-      ${CMAKE_BINARY_DIR}/src/lib/SDL/include-config-${CMAKE_BUILD_TYPE}
-    )
-    set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
-    list(PREPEND SDL_TARGETS SDL2main ws2_32)
-    add_definitions("-DSDL_MAIN_HANDLED")
-    message(STATUS "Using bundled SDL2")
+    message(FATAL_ERROR "YAZE_USE_SDL3=ON but SDL3 package not found. Provide SDL3 or disable the option.")
   endif()
-elseif(UNIX OR MINGW)
-  # Non-Windows: use bundled SDL
-  add_subdirectory(src/lib/SDL)
-  set(SDL_TARGETS SDL2-static)
-  set(SDL2_INCLUDE_DIR 
-    ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
-    ${CMAKE_BINARY_DIR}/src/lib/SDL/include
-    ${CMAKE_BINARY_DIR}/src/lib/SDL/include-config-${CMAKE_BUILD_TYPE}
-  )
-  set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
-  message(STATUS "Using bundled SDL2")
 else()
-  # Fallback: try to find system SDL
-  find_package(SDL2)
-  set(SDL_TARGETS SDL2::SDL2)
-  message(STATUS "Using system SDL2")
+  # Try CONFIG mode first to prefer modern imported targets
+  find_package(SDL2 QUIET CONFIG)
+  if(SDL2_FOUND)
+    if(TARGET SDL2::SDL2)
+      set(SDL_TARGETS SDL2::SDL2)
+    elseif(TARGET SDL2::SDL2-static)
+      set(SDL_TARGETS SDL2::SDL2-static)
+    endif()
+    if(TARGET SDL2::SDL2main)
+      list(PREPEND SDL_TARGETS SDL2::SDL2main)
+    endif()
+    if(WIN32)
+      list(APPEND SDL_TARGETS ws2_32)
+    endif()
+    add_definitions("-DSDL_MAIN_HANDLED")
+    message(STATUS "Using SDL2 via package config: ${SDL_TARGETS}")
+  else()
+    # Fallback to module find or vendored submodule
+    find_package(SDL2 QUIET)
+    if(SDL2_FOUND AND TARGET SDL2::SDL2)
+      set(SDL_TARGETS SDL2::SDL2)
+      if(TARGET SDL2::SDL2main)
+        list(PREPEND SDL_TARGETS SDL2::SDL2main)
+      endif()
+      if(WIN32)
+        list(APPEND SDL_TARGETS ws2_32)
+      endif()
+      add_definitions("-DSDL_MAIN_HANDLED")
+      message(STATUS "Using SDL2 via module find: ${SDL_TARGETS}")
+    else()
+      # Vendored fallback
+      add_subdirectory(${CMAKE_SOURCE_DIR}/src/lib/SDL)
+      if(TARGET SDL2::SDL2)
+        set(SDL_TARGETS SDL2::SDL2)
+      else()
+        set(SDL_TARGETS SDL2-static)
+      endif()
+      set(SDL2_INCLUDE_DIR 
+        ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
+        ${CMAKE_BINARY_DIR}/src/lib/SDL/include
+        ${CMAKE_BINARY_DIR}/src/lib/SDL/include-config-${CMAKE_BUILD_TYPE}
+      )
+      set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
+      if(TARGET SDL2::SDL2main)
+        list(PREPEND SDL_TARGETS SDL2::SDL2main)
+      elseif(TARGET SDL2main)
+        list(PREPEND SDL_TARGETS SDL2main)
+      endif()
+      if(WIN32)
+        list(APPEND SDL_TARGETS ws2_32)
+      endif()
+      add_definitions("-DSDL_MAIN_HANDLED")
+      message(STATUS "Using vendored SDL2 submodule: ${SDL_TARGETS}")
+    endif()
+  endif()
 endif()
 
-# PNG and ZLIB dependencies removed
+# PNG and ZLIB dependencies removed (handled elsewhere if needed)
