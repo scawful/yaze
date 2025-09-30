@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::ObjectRenderer::CreateBitmap" name="yaze::zelda3::ObjectRenderer::CreateBitmap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,192,46"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919" title=" " alt="" coords="240,5,363,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,23,224,23,224,28,192,28"/>
+</map>

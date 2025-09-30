@@ -1,5 +1,0 @@
-<map id="yaze::zelda3::Room::LoadBlocks" name="yaze::zelda3::Room::LoadBlocks">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,136,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Room.html#a14530368efe211f7ebbe9226189b5651" title=" " alt="" coords="184,13,342,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,23,168,23,168,28,136,28"/>
-</map>

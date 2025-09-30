@@ -1,0 +1,14 @@
+<map id="yaze::editor::OverworldEditorManager" name="yaze::editor::OverworldEditorManager">
+<area shape="rect" id="Node000001" title="Manages the complex overworld editor functionality and v3 features." alt="" coords="128,286,311,327"/>
+<area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="34,109,189,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,147,67,164,53,183,47,203,52,222,68,242,89,259,137,283,135,288,86,264,65,246,47,225,42,202,49,180,63,160,81,143"/>
+<area shape="rect" id="Node000008" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html" title="Manipulates the Overworld and OverworldMap data in a Rom." alt="" coords="128,198,311,223"/>
+<area shape="poly" id="edge7_Node000008_Node000002" title=" " alt="" coords="135,144,166,172,200,195,197,199,163,176,131,148"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="210,13,290,39"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="273,49,299,83,322,127,330,151,335,176,334,201,326,224,313,244,297,262,261,288,258,284,293,258,309,241,321,222,328,200,329,176,325,153,317,129,294,86,269,52"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="222,50,168,87,132,111,129,106,165,83,219,46"/>
+<area shape="poly" id="edge6_Node000008_Node000003" title=" " alt="" coords="250,54,244,110,233,174,226,198,221,197,228,173,239,109,245,54"/>
+<area shape="rect" id="Node000007" href="$da/d54/structyaze_1_1zelda3_1_1OverworldMapTiles.html" title="Overworld map tile32 data." alt="" coords="5,5,186,46"/>
+<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="100,61,103,84,110,108,104,110,98,86,94,62"/>
+<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="222,239,222,286,217,286,217,239"/>
+</map>

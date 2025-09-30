@@ -1,0 +1,9 @@
+<map id="yaze::gui::Canvas::DrawBackground" name="yaze::gui::Canvas::DrawBackground">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,132,118"/>
+<area shape="rect" id="Node000002" href="$da/dc3/namespaceyaze_1_1gui_1_1canvas_1_1CanvasUtils.html#a811afdf4436ef10cb41ff3ecd2cd4013" title=" " alt="" coords="180,5,401,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,74,179,55,200,48,201,54,181,60,126,79"/>
+<area shape="rect" id="Node000003" href="$da/dc3/namespaceyaze_1_1gui_1_1canvas_1_1CanvasUtils.html#a40bc6f25b6ca30ee1b635a030da0dd3b" title=" " alt="" coords="194,70,387,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,95,179,95,179,100,132,100"/>
+<area shape="rect" id="Node000004" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="227,149,354,190"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="126,116,181,135,213,145,212,151,179,140,124,121"/>
+</map>

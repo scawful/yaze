@@ -1,7 +1,0 @@
-<map id="TextEditor::GetCursorPosition" name="TextEditor::GetCursorPosition">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,197,39"/>
-<area shape="rect" id="Node000002" href="$classTextEditor.html#adc502d0e9e3ad42f78182f495ec25307" title=" " alt="" coords="245,5,426,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,23,229,23,229,28,197,28"/>
-<area shape="rect" id="Node000003" href="$classTextEditor.html#aa9c843e6371660744b9a064b90b2ef38" title=" " alt="" coords="474,13,674,39"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="427,23,459,23,459,28,427,28"/>
-</map>

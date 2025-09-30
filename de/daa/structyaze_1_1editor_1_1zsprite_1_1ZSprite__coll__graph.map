@@ -1,0 +1,7 @@
+<map id="yaze::editor::zsprite::ZSprite" name="yaze::editor::zsprite::ZSprite">
+<area shape="rect" id="Node000001" title=" " alt="" coords="81,259,211,300"/>
+<area shape="rect" id="Node000002" href="$de/d9d/structyaze_1_1editor_1_1zsprite_1_1SubEditor.html" title=" " alt="" coords="5,5,135,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,60,143,258,138,259,78,62"/>
+<area shape="rect" id="Node000003" href="$d9/d26/structyaze_1_1editor_1_1zsprite_1_1SpriteProperty.html" title=" " alt="" coords="159,5,288,46"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,62,205,143,192,190,175,236,162,260,158,257,170,234,187,188,200,142,216,61"/>
+</map>

@@ -1,0 +1,6 @@
+<map id="yaze::editor::MessagePreview::DrawCharacterToPreview" name="yaze::editor::MessagePreview::DrawCharacterToPreview">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,197,70"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="58,29,56,19,63,10,78,5,101,3,126,5,140,11,138,16,124,10,101,8,79,10,66,15,61,21,63,28"/>
+<area shape="rect" id="Node000002" href="$d1/d3e/namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c" title=" " alt="" coords="245,29,414,70"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="197,47,229,47,229,52,197,52"/>
+</map>

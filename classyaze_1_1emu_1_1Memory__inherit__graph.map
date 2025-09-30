@@ -1,7 +1,0 @@
-<map id="yaze::emu::Memory" name="yaze::emu::Memory">
-<area shape="rect" id="Node000001" title="Memory interface." alt="" coords="109,5,239,31"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1MemoryImpl.html" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="5,79,161,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,43,100,81,97,77,145,39"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1MockMemory.html" title="A mock implementation of the Memory class." alt="" coords="185,79,347,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,39,252,77,249,81,200,43"/>
-</map>

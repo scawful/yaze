@@ -1,0 +1,5 @@
+<map id="yaze::cli::ReadFromRom" name="yaze::cli::ReadFromRom">
+<area shape="rect" id="Node000001" title="Read from a Rom file." alt="" coords="14,79,173,105"/>
+<area shape="rect" id="Node000002" href="$dd/d80/classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="5,5,182,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="96,46,96,79,91,79,91,46"/>
+</map>

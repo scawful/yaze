@@ -1,0 +1,25 @@
+var canvas__utils_8cc =
+[
+    [ "AlignToGrid", "dd/df4/canvas__utils_8cc.html#aeecccc6b4c4d354bb7d438ab142c259b", null ],
+    [ "CalculateEffectiveScale", "dd/df4/canvas__utils_8cc.html#a8ca045966d86258316be042afe49d251", null ],
+    [ "GetTileIdFromPosition", "dd/df4/canvas__utils_8cc.html#a996ea6ecdce025ca9cb1e01b9406e0f9", null ],
+    [ "LoadROMPaletteGroups", "dd/df4/canvas__utils_8cc.html#a5fb5a1e89437d46557ffab8291b49ea3", null ],
+    [ "ApplyPaletteGroup", "dd/df4/canvas__utils_8cc.html#a19bec6839ed5866759106e754647385c", null ],
+    [ "DrawCanvasRect", "dd/df4/canvas__utils_8cc.html#a1366d6accda53f25cc1c5f8651161c4f", null ],
+    [ "DrawCanvasText", "dd/df4/canvas__utils_8cc.html#ac0910f171a77137f82396c45cb1b02cc", null ],
+    [ "DrawCanvasOutline", "dd/df4/canvas__utils_8cc.html#a8ceb52571f7d28aff6121cd21779e3e3", null ],
+    [ "DrawCanvasOutlineWithColor", "dd/df4/canvas__utils_8cc.html#a9c72df99a1c2eebb453ed22f39d92b95", null ],
+    [ "DrawCanvasGridLines", "dd/df4/canvas__utils_8cc.html#ae8a926ef1b98ec18dbe883e46074398b", null ],
+    [ "DrawCustomHighlight", "dd/df4/canvas__utils_8cc.html#adb4f27ec4f20442abe0b220c2ed71390", null ],
+    [ "DrawHexTileLabels", "dd/df4/canvas__utils_8cc.html#af88a65a493b2e8883f522546047a7b45", null ],
+    [ "CalculateCanvasSize", "dd/df4/canvas__utils_8cc.html#a434cd63fa78b972755cd86b494ca8cc6", null ],
+    [ "CalculateScaledCanvasSize", "dd/df4/canvas__utils_8cc.html#ad1c4923ff7508efd8f56a60e3d2ca1d7", null ],
+    [ "IsPointInCanvas", "dd/df4/canvas__utils_8cc.html#a22d7a04a9562a7107f21a7fbed1cb773", null ],
+    [ "CalculateMinimumCanvasSize", "dd/df4/canvas__utils_8cc.html#a65389748566b25ee130b4994ced4fa78", null ],
+    [ "CalculatePreferredCanvasSize", "dd/df4/canvas__utils_8cc.html#abe23e23eed53addb8e822f1ebf1e5709", null ],
+    [ "ReserveCanvasSpace", "dd/df4/canvas__utils_8cc.html#a1284021a5bd3ac8263f10246b37af928", null ],
+    [ "SetNextCanvasSize", "dd/df4/canvas__utils_8cc.html#a12bbd9b2031d2139978766cf9f57e73d", null ],
+    [ "DrawCanvasGrid", "dd/df4/canvas__utils_8cc.html#ab00f5769eb96b749ecfe385571b5d486", null ],
+    [ "DrawCanvasOverlay", "dd/df4/canvas__utils_8cc.html#a3179a79f843f6076dbf595c97da7342c", null ],
+    [ "DrawCanvasLabels", "dd/df4/canvas__utils_8cc.html#a195c54ea0600ea6e367ee37e8c9aadca", null ]
+];

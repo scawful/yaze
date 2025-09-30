@@ -1,0 +1,13 @@
+<map id="yaze::cli::ModernCLI::HandleAsarCommand" name="yaze::cli::ModernCLI::HandleAsarCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,49,160,89"/>
+<area shape="rect" id="Node000002" href="$d7/d3f/classyaze_1_1cli_1_1AsarPatch.html#a9a794ec4ea7297ca773bb280d1674c48" title=" " alt="" coords="208,56,370,82"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,66,192,66,192,72,160,72"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="418,5,584,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="345,53,429,33,430,38,346,58"/>
+<area shape="rect" id="Node000031" href="$d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="632,56,755,82"/>
+<area shape="poly" id="edge6_Node000002_Node000031" title=" " alt="" coords="371,66,617,66,617,72,371,72"/>
+<area shape="rect" id="Node000033" href="$d6/d30/classyaze_1_1Rom.html#a85481fc21993edbc298608a66cb70ba9" title=" " alt="" coords="425,107,577,132"/>
+<area shape="poly" id="edge4_Node000002_Node000033" title=" " alt="" coords="346,80,430,100,429,105,345,85"/>
+<area shape="poly" id="edge3_Node000003_Node000031" title=" " alt="" coords="554,29,628,49,627,54,552,34"/>
+<area shape="poly" id="edge5_Node000033_Node000031" title=" " alt="" coords="552,103,627,84,628,89,554,109"/>
+</map>

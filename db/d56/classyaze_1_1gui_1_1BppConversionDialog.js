@@ -1,0 +1,25 @@
+var classyaze_1_1gui_1_1BppConversionDialog =
+[
+    [ "BppConversionDialog", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a494c0dbdac8e146e93f04ef853e0387b", null ],
+    [ "Show", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#abbead34f6a3a00064825072915e6371e", null ],
+    [ "Render", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a4df44d0e1e0ab88292dff729efc0bd4f", null ],
+    [ "IsOpen", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a893b64130454a29df867da7318d56ea2", null ],
+    [ "Close", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#ac0c72d734fe1284d75a52a96542557c3", null ],
+    [ "UpdatePreview", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a7f435742d8045060daa6fd2a172cf6d6", null ],
+    [ "RenderFormatSelector", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a02a11e27e6dcd73e4fa9cfcf72e9a7e3", null ],
+    [ "RenderPreview", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a4a82ca3eb7962e38d97dc28993573492", null ],
+    [ "RenderOptions", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#ab200902860df8cbd65e4b39e4b5c1169", null ],
+    [ "RenderButtons", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a081ba0e66cc2483ed7805c949a165285", null ],
+    [ "id_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#addc351ba11a4921ddccb5326a92eeebc", null ],
+    [ "is_open_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#aa56c9b112e96e10c263af6ad72bdff5a", null ],
+    [ "source_bitmap_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#aba048cabe234930363ef2bcd916f890f", null ],
+    [ "source_palette_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a848360987e1e06dece73be5a265cd85f", null ],
+    [ "target_format_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#ae58a3c2254024fc4a654e474a07790e9", null ],
+    [ "preserve_palette_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a8438d26497f8bd2a43bf414de7aecc7a", null ],
+    [ "convert_callback_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a10821325866511ed36f76c84cc2335b4", null ],
+    [ "preview_data_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a9b4061504e99d747c11b98f12cdd1381", null ],
+    [ "preview_bitmap_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#ac3388333518b5d722c7af8c30ed21b99", null ],
+    [ "preview_valid_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#acdf54271dd92d281c7451e6f2d1c2af6", null ],
+    [ "show_preview_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a656a9a866e3de8017e63b2f10346f279", null ],
+    [ "preview_scale_", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a8eb3595cacda3191f7fd896719d663d4", null ]
+];

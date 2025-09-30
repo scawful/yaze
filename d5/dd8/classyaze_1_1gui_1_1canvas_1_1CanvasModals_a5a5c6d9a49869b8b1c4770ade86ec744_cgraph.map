@@ -1,0 +1,7 @@
+<map id="yaze::gui::canvas::CanvasModals::ShowPaletteEditor" name="yaze::gui::canvas::CanvasModals::ShowPaletteEditor">
+<area shape="rect" id="Node000001" title="Show palette editor modal." alt="" coords="5,41,226,82"/>
+<area shape="rect" id="Node000002" href="$d5/dd8/classyaze_1_1gui_1_1canvas_1_1CanvasModals.html#a13472d493c439fbadf315d51fd88a451" title=" " alt="" coords="282,5,461,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,43,266,38,267,43,226,49"/>
+<area shape="rect" id="Node000003" href="$d5/dd8/classyaze_1_1gui_1_1canvas_1_1CanvasModals.html#a40747c9873a5c65cf5f883263c86358c" title=" " alt="" coords="274,70,469,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="226,75,259,79,258,84,226,80"/>
+</map>

@@ -1,5 +1,0 @@
-<map id="yaze::gui::CanvasPaletteManager" name="yaze::gui::CanvasPaletteManager">
-<area shape="rect" id="Node000001" title="Palette management state for canvas." alt="" coords="5,94,167,135"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="12,5,160,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,46,89,93,83,93,83,46"/>
-</map>

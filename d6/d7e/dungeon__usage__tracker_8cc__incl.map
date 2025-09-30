@@ -1,0 +1,11 @@
+<map id="src/app/editor/dungeon/dungeon_usage_tracker.cc" name="src/app/editor/dungeon/dungeon_usage_tracker.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="132,5,312,46"/>
+<area shape="rect" id="Node000002" href="$d8/d05/dungeon__usage__tracker_8h.html" title=" " alt="" coords="58,94,228,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,48,168,85,164,81,200,45"/>
+<area shape="rect" id="Node000031" title=" " alt="" coords="252,94,349,120"/>
+<area shape="poly" id="edge4_Node000001_Node000031" title=" " alt="" coords="243,45,280,81,276,85,239,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,168,129,208"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="133,122,98,158,94,155,130,118"/>
+<area shape="rect" id="Node000004" href="$d9/dc0/room_8h.html" title=" " alt="" coords="152,168,289,208"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="157,118,193,155,189,158,153,122"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="yaze::editor::DungeonObjectSelector::PlaceObjectAtPosition" name="yaze::editor::DungeonObjectSelector::PlaceObjectAtPosition">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,212,46"/>
+<area shape="rect" id="Node000002" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a58bf94e5d69ac3998e6c597b7bf4619b" title=" " alt="" coords="260,5,428,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,23,244,23,244,28,212,28"/>
+<area shape="rect" id="Node000003" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#afd819f43f28aa53b38c3dddf1c8d3084" title=" " alt="" coords="476,13,656,39"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="428,23,460,23,460,28,428,28"/>
+</map>

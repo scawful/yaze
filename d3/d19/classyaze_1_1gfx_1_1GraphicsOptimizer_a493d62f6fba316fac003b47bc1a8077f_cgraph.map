@@ -1,0 +1,7 @@
+<map id="yaze::gfx::GraphicsOptimizer::GenerateOptimizationReason" name="yaze::gfx::GraphicsOptimizer::GenerateOptimizationReason">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,202,68"/>
+<area shape="rect" id="Node000002" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#aa4801c6b5c08e38becdba8bee6a6a2f8" title=" " alt="" coords="250,5,467,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,34,234,30,235,35,203,39"/>
+<area shape="rect" id="Node000003" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#abdaf7a3f1dc0c7770157fa1748132924" title="Get BPP format information." alt="" coords="263,55,454,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,56,248,61,247,66,202,61"/>
+</map>

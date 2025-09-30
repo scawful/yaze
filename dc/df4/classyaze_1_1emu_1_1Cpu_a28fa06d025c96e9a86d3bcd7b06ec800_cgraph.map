@@ -1,0 +1,10 @@
+<map id="yaze::emu::Cpu::SetZN" name="yaze::emu::Cpu::SetZN">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,157,56"/>
+<area shape="rect" id="Node000002" href="$dc/df4/classyaze_1_1emu_1_1Cpu.html#ae49a5adcf7c394a45acb909e8e190d32" title=" " alt="" coords="205,5,415,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,32,189,29,189,34,157,38"/>
+<area shape="rect" id="Node000004" href="$dc/df4/classyaze_1_1emu_1_1Cpu.html#a5765d7be546bde8375e6004b5915251f" title=" " alt="" coords="218,55,402,80"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="157,49,202,54,202,59,157,54"/>
+<area shape="rect" id="Node000003" href="$dc/df4/classyaze_1_1emu_1_1Cpu.html#a85032a2395e68acc4644787df6c1c815" title=" " alt="" coords="463,31,621,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="416,27,448,31,447,36,415,32"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="402,55,447,51,448,56,403,61"/>
+</map>

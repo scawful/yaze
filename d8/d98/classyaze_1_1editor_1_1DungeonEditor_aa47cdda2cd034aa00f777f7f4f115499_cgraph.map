@@ -1,0 +1,12 @@
+<map id="yaze::editor::DungeonEditor::DrawRoomPropertiesDebugPopup" name="yaze::editor::DungeonEditor::DrawRoomPropertiesDebugPopup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,230,103"/>
+<area shape="rect" id="Node000002" href="$d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html#a9c0deb1bad7d2e5875ee37f96513c2ae" title=" " alt="" coords="278,5,472,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,59,265,47,266,53,212,65"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="298,70,452,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="230,80,282,80,282,86,230,86"/>
+<area shape="rect" id="Node000005" href="$d3/dbf/namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="296,120,454,145"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="228,101,290,113,289,119,227,107"/>
+<area shape="rect" id="Node000004" href="$df/de4/namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d" title=" " alt="" coords="520,96,671,121"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="453,89,505,95,504,101,452,95"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="454,121,504,116,505,121,455,126"/>
+</map>

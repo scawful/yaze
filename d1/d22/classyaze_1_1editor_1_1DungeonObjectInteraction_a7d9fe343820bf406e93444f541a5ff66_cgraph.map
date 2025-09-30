@@ -1,0 +1,5 @@
+<map id="yaze::editor::DungeonObjectInteraction::DrawDragPreview" name="yaze::editor::DungeonObjectInteraction::DrawDragPreview">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,198,46"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="246,5,372,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,23,230,23,230,28,198,28"/>
+</map>

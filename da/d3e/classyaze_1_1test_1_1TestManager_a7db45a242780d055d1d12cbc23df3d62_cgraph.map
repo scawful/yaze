@@ -1,0 +1,9 @@
+<map id="yaze::test::TestManager::ExecuteTestSuite" name="yaze::test::TestManager::ExecuteTestSuite">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,163,79"/>
+<area shape="rect" id="Node000002" href="$da/d3e/classyaze_1_1test_1_1TestManager.html#accb083bc4e5f9205954fa5c0059e4ba5" title=" " alt="" coords="211,5,368,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,44,195,38,196,44,164,49"/>
+<area shape="rect" id="Node000004" href="$d1/de0/classyaze_1_1test_1_1TestSuite.html#afbd8679b5a0b0cf9dce5399e5d90a4be" title=" " alt="" coords="221,71,358,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="164,69,206,75,205,81,163,74"/>
+<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="416,13,553,39"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="368,23,400,23,400,28,368,28"/>
+</map>

@@ -1,6 +1,0 @@
-<map id="yaze::gfx::lc_lz2::DecompressV2" name="yaze::gfx::lc_lz2::DecompressV2">
-<area shape="rect" id="Node000001" title="Decompresses a buffer of data using the LC_LZ2 algorithm." alt="" coords="5,29,121,70"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="31,29,30,19,35,11,46,5,63,3,81,5,92,11,89,16,79,10,63,8,48,10,39,14,35,20,37,28"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx_1_1lc__lz2.html#a1e7456c15a9ba70593eca2c16d3dd85e" title=" " alt="" coords="169,29,284,70"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="121,47,153,47,153,52,121,52"/>
-</map>

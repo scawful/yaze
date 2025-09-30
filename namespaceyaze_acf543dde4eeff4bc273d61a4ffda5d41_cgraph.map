@@ -1,7 +1,0 @@
-<map id="yaze::GetGraphicsAddress" name="yaze::GetGraphicsAddress">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,180,56"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze.html#a9017f3490bdc0bba68696fec505147eb" title=" " alt="" coords="228,5,392,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,31,212,27,213,32,180,36"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="253,55,367,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,50,238,57,237,62,180,56"/>
-</map>

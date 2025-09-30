@@ -1,9 +1,0 @@
-<map id="yaze::test::PerformanceTestSuite::RunFrameRateTest" name="yaze::test::PerformanceTestSuite::RunFrameRateTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,187,111"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1test_1_1TestResults.html#abe5ca04144ec78a21183b44d5f87a597" title=" " alt="" coords="250,5,401,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,68,236,48,238,53,170,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1PerformanceTestSuite.html#aa9e398ee03f89f8c9f567df94bde25a3" title=" " alt="" coords="235,71,416,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,88,219,88,219,94,187,94"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1PerformanceTestSuite.html#a828aa621fff280c64927634a7421e008" title=" " alt="" coords="235,136,416,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="170,109,238,129,236,134,169,114"/>
-</map>

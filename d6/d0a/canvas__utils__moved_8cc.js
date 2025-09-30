@@ -1,0 +1,25 @@
+var canvas__utils__moved_8cc =
+[
+    [ "AlignToGrid", "d6/d0a/canvas__utils__moved_8cc.html#aeaf4349713a0033ff120fbb679853882", null ],
+    [ "CalculateEffectiveScale", "d6/d0a/canvas__utils__moved_8cc.html#ad3764d0881c0fd928890783de32daa66", null ],
+    [ "GetTileIdFromPosition", "d6/d0a/canvas__utils__moved_8cc.html#a9a850260d3ef885a233d564bce25f25b", null ],
+    [ "LoadROMPaletteGroups", "d6/d0a/canvas__utils__moved_8cc.html#a4079f2ae1421b1cef2de16581ef3eeba", null ],
+    [ "ApplyPaletteGroup", "d6/d0a/canvas__utils__moved_8cc.html#a53167b5f3a93240f6fdb1f4d4869bebf", null ],
+    [ "DrawCanvasRect", "d6/d0a/canvas__utils__moved_8cc.html#a85936a6a715a3df6be9090169897b2ae", null ],
+    [ "DrawCanvasText", "d6/d0a/canvas__utils__moved_8cc.html#a8b09024c825a7452289a675413be558e", null ],
+    [ "DrawCanvasOutline", "d6/d0a/canvas__utils__moved_8cc.html#ac3ebc8805dda51ce6e4562baa95cd6ee", null ],
+    [ "DrawCanvasOutlineWithColor", "d6/d0a/canvas__utils__moved_8cc.html#a5ae9a4ef2df4b3fccf04d3e83e585c96", null ],
+    [ "DrawCanvasGridLines", "d6/d0a/canvas__utils__moved_8cc.html#a499e711f7d49a194e508885371c7e6a6", null ],
+    [ "DrawCustomHighlight", "d6/d0a/canvas__utils__moved_8cc.html#aa54069e17d6e04b0de75276828c9c8ae", null ],
+    [ "DrawHexTileLabels", "d6/d0a/canvas__utils__moved_8cc.html#a0b8991553f9e324bddf3dba978d41aea", null ],
+    [ "CalculateCanvasSize", "d6/d0a/canvas__utils__moved_8cc.html#a811afdf4436ef10cb41ff3ecd2cd4013", null ],
+    [ "CalculateScaledCanvasSize", "d6/d0a/canvas__utils__moved_8cc.html#a40bc6f25b6ca30ee1b635a030da0dd3b", null ],
+    [ "IsPointInCanvas", "d6/d0a/canvas__utils__moved_8cc.html#aa2e62467cdb1b205950bc3defd2ce9b6", null ],
+    [ "CalculateMinimumCanvasSize", "d6/d0a/canvas__utils__moved_8cc.html#a59a47710a7e275850089cadbc076dee0", null ],
+    [ "CalculatePreferredCanvasSize", "d6/d0a/canvas__utils__moved_8cc.html#a3ed2f6b4e39a3550fedafb1eefd33051", null ],
+    [ "ReserveCanvasSpace", "d6/d0a/canvas__utils__moved_8cc.html#a67eba177018309bc98609873bed4ebcf", null ],
+    [ "SetNextCanvasSize", "d6/d0a/canvas__utils__moved_8cc.html#a026f1d87e34f0059f4341377af4ca679", null ],
+    [ "DrawCanvasGrid", "d6/d0a/canvas__utils__moved_8cc.html#abf937e927270c0a8a50fd06a10a79a4f", null ],
+    [ "DrawCanvasOverlay", "d6/d0a/canvas__utils__moved_8cc.html#a3f981234a76681b5418f64def541d270", null ],
+    [ "DrawCanvasLabels", "d6/d0a/canvas__utils__moved_8cc.html#acf603fb9537f45b2ff6c2e7707212b15", null ]
+];

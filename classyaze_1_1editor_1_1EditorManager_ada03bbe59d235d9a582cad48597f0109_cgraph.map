@@ -1,7 +1,0 @@
-<map id="yaze::editor::EditorManager::GetCurrentFeatureFlags" name="yaze::editor::EditorManager::GetCurrentFeatureFlags">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,180,68"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614" title=" " alt="" coords="228,5,412,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,34,212,29,213,35,180,39"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1EditorManager.html#ab5f55dd56fa4e0d77ae0080f02762a8f" title=" " alt="" coords="233,55,407,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,56,217,60,217,66,180,61"/>
-</map>

@@ -1,0 +1,11 @@
+<map id="yaze::gui::Canvas::InitializeEnhancedComponents" name="yaze::gui::Canvas::InitializeEnhancedComponents">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,107,204,147"/>
+<area shape="rect" id="Node000002" href="$df/db7/classyaze_1_1gui_1_1canvas_1_1CanvasPerformanceManager.html#a5f59e5c9def7c339033fa6e8619a03e5" title=" " alt="" coords="252,5,468,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,104,251,57,271,49,273,54,253,61,148,109"/>
+<area shape="rect" id="Node000003" href="$d4/da1/classyaze_1_1gui_1_1canvas_1_1CanvasUsageManager.html#a88f0abc401e684187079377bd23072bf" title=" " alt="" coords="270,71,450,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,110,254,103,254,109,205,116"/>
+<area shape="rect" id="Node000004" href="$df/db7/classyaze_1_1gui_1_1canvas_1_1CanvasPerformanceManager.html#ae422893eb7667252446e725cfe6cbff3" title="Register a canvas performance integration." alt="" coords="265,135,455,191"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="205,138,250,145,250,150,204,144"/>
+<area shape="rect" id="Node000005" href="$d4/da1/classyaze_1_1gui_1_1canvas_1_1CanvasUsageManager.html#a28512d6250770b33587a9da776a89875" title="Register a canvas tracker." alt="" coords="280,215,440,271"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="144,146,253,201,267,207,265,212,251,205,142,150"/>
+</map>

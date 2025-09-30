@@ -1,0 +1,11 @@
+<map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,78,135,104"/>
+<area shape="rect" id="Node000002" href="$d1/d3e/namespaceyaze_1_1editor.html#a199dd8e58308137481462885cf847442" title=" " alt="" coords="183,78,386,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,88,167,88,167,94,135,94"/>
+<area shape="rect" id="Node000003" href="$d1/d3e/namespaceyaze_1_1editor.html#af2bcfdac4bd90975500b37f854728a4d" title=" " alt="" coords="434,5,607,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="333,75,429,48,430,53,334,80"/>
+<area shape="rect" id="Node000004" href="$d1/d3e/namespaceyaze_1_1editor.html#aceb6d61973044373dd0f03cfe074b0fe" title=" " alt="" coords="436,71,605,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="386,88,420,88,420,94,386,94"/>
+<area shape="rect" id="Node000005" href="$d1/d3e/namespaceyaze_1_1editor.html#a95bb92d26041cf1e3a0b332290bdea54" title=" " alt="" coords="436,136,605,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="334,102,430,129,429,134,333,107"/>
+</map>

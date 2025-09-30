@@ -1,0 +1,11 @@
+<map id="yaze::gfx::RenderTile16" name="yaze::gfx::RenderTile16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,112,158,137"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="206,5,329,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,109,213,51,215,56,109,113"/>
+<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919" title=" " alt="" coords="206,71,329,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="156,108,190,102,191,107,157,113"/>
+<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="206,136,329,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="158,135,191,141,190,146,157,140"/>
+<area shape="rect" id="Node000005" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="206,201,329,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="109,135,215,191,212,196,107,140"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::SaveDungeonMaps" name="yaze::zelda3::SaveDungeonMaps">
+<area shape="rect" id="Node000001" title="Save the dungeon maps to the ROM." alt="" coords="5,31,215,56"/>
+<area shape="rect" id="Node000002" href="$dc/d46/namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="277,5,391,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,29,261,24,261,29,215,34"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a3f76910dd3716dc67f477e7da77cee33" title=" " alt="" coords="263,55,405,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,52,248,56,247,61,215,57"/>
+</map>

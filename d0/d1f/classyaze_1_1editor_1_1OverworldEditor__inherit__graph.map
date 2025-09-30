@@ -1,0 +1,7 @@
+<map id="yaze::editor::OverworldEditor" name="yaze::editor::OverworldEditor">
+<area shape="rect" id="Node000001" title="Manipulates the Overworld and OverworldMap data in a Rom." alt="" coords="53,79,237,105"/>
+<area shape="rect" id="Node000002" href="$d3/d9f/classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="5,5,130,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,40,134,77,130,81,90,44"/>
+<area shape="rect" id="Node000003" href="$d5/d28/classyaze_1_1gfx_1_1GfxContext.html" title="Shared graphical context across editors." alt="" coords="153,5,294,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,43,160,81,156,77,197,40"/>
+</map>

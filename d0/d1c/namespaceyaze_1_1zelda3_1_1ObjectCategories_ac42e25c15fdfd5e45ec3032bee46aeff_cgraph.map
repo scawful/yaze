@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::ObjectCategories::GetObjectsInCategory" name="yaze::zelda3::ObjectCategories::GetObjectsInCategory">
+<area shape="rect" id="Node000001" title="Get objects in a specific category." alt="" coords="5,5,202,46"/>
+<area shape="rect" id="Node000002" href="$d0/d1c/namespaceyaze_1_1zelda3_1_1ObjectCategories.html#a07e9be0761dcca103b5455c68caa84c7" title="Get all available object categories." alt="" coords="250,5,446,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,23,234,23,234,28,202,28"/>
+</map>

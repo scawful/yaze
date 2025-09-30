@@ -1,0 +1,11 @@
+<map id="yaze::editor::DungeonObjectInteraction" name="yaze::editor::DungeonObjectInteraction">
+<area shape="rect" id="Node000001" title="Handles object selection, placement, and interaction within the dungeon canvas." alt="" coords="170,198,351,238"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="116,109,237,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,145,245,195,241,199,195,148"/>
+<area shape="rect" id="Node000003" href="$dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html" title="Handles all tile&#45;based interactions for Canvas." alt="" coords="5,5,177,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="103,59,117,83,131,96,148,106,145,111,128,100,113,87,98,62"/>
+<area shape="rect" id="Node000004" href="$d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html" title="Canvas configuration options for modals." alt="" coords="201,5,325,46"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="252,62,236,87,204,111,200,106,232,83,248,59"/>
+<area shape="rect" id="Node000013" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html" title=" " alt="" coords="260,109,429,135"/>
+<area shape="poly" id="edge4_Node000001_Node000013" title=" " alt="" coords="326,148,280,199,276,195,322,145"/>
+</map>

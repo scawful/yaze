@@ -1,5 +1,0 @@
-<map id="yaze::gfx::DrawScrWithCgx" name="yaze::gfx::DrawScrWithCgx">
-<area shape="rect" id="Node000001" title="Draw screen tilemap with graphical data." alt="" coords="5,5,180,31"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1gfx.html#aa5ae49b02472150a2ad972abf1f7d35a" title=" " alt="" coords="228,5,375,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,16,212,16,212,21,180,21"/>
-</map>

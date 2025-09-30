@@ -1,0 +1,12 @@
+<map id="yaze::gui::Canvas::Begin" name="yaze::gui::Canvas::Begin">
+<area shape="rect" id="Node000001" title="Begin canvas rendering (ImGui&#45;style)" alt="" coords="5,63,132,103"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="403,5,529,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,60,179,48,287,33,387,26,387,31,288,39,180,54,133,65"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ad8f81f1ad4537d5b9c094ed4bb66d304" title=" " alt="" coords="180,63,307,103"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,80,165,80,165,86,132,86"/>
+<area shape="rect" id="Node000006" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab" title=" " alt="" coords="180,128,307,169"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="126,101,174,120,172,125,124,106"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="306,64,387,43,388,48,308,69"/>
+<area shape="rect" id="Node000004" href="$da/dc3/namespaceyaze_1_1gui_1_1canvas_1_1CanvasUtils.html#a811afdf4436ef10cb41ff3ecd2cd4013" title=" " alt="" coords="355,71,576,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="307,83,339,84,339,89,307,88"/>
+</map>

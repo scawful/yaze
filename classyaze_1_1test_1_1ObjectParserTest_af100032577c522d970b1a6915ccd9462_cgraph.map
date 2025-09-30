@@ -1,9 +1,0 @@
-<map id="yaze::test::ObjectParserTest::SetUp" name="yaze::test::ObjectParserTest::SetUp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,163,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1ObjectParserTest.html#a8a20a0daf80f3fcade518124e50fd85a" title=" " alt="" coords="211,39,368,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,56,195,56,195,62,163,62"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1ObjectParserTest.html#a08414427e710d4002f25e36272787eb6" title=" " alt="" coords="416,5,582,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="368,44,400,39,401,44,369,49"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1ObjectParserTest.html#a7eac72bdd3f6c912cb20fc09badc6954" title=" " alt="" coords="421,71,578,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="369,68,406,74,405,79,368,74"/>
-</map>

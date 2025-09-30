@@ -1,0 +1,11 @@
+<map id="yaze::cli::ReadFromRom::Run" name="yaze::cli::ReadFromRom::Run">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,194,80"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="249,5,415,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,51,252,32,254,37,164,57"/>
+<area shape="rect" id="Node000032" href="$d6/d30/classyaze_1_1Rom.html#abfad5beaef8b6648f43c1ee018d1b6ee" title=" " alt="" coords="261,55,403,80"/>
+<area shape="poly" id="edge3_Node000001_Node000032" title=" " alt="" coords="194,65,245,65,245,70,194,70"/>
+<area shape="rect" id="Node000033" href="$d6/d30/classyaze_1_1Rom.html#a0241f94c39962115e9602cc5c3c46796" title=" " alt="" coords="242,104,422,130"/>
+<area shape="poly" id="edge4_Node000001_Node000033" title=" " alt="" coords="164,78,254,98,252,103,163,84"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="470,5,604,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="416,16,454,16,454,21,416,21"/>
+</map>

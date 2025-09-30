@@ -1,0 +1,10 @@
+<map id="yaze::gfx::Bitmap::FindColorIndex" name="yaze::gfx::Bitmap::FindColorIndex">
+<area shape="rect" id="Node000001" title="Find color index in palette using optimized hash map lookup." alt="" coords="5,63,129,103"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a48b06add1af332570178c7c107169ee6" title="Hash a color for cache lookup." alt="" coords="195,5,319,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,62,180,46,182,51,130,67"/>
+<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="385,35,508,75"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="129,76,369,58,370,63,130,81"/>
+<area shape="rect" id="Node000004" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title=" " alt="" coords="177,121,337,147"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="130,97,192,114,191,119,128,102"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="319,33,371,41,370,46,319,38"/>
+</map>

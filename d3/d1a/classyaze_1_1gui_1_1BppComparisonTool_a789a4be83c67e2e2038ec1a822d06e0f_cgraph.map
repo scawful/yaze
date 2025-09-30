@@ -1,0 +1,11 @@
+<map id="yaze::gui::BppComparisonTool::RenderComparisonGrid" name="yaze::gui::BppComparisonTool::RenderComparisonGrid">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,89,192,129"/>
+<area shape="rect" id="Node000002" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#aa4801c6b5c08e38becdba8bee6a6a2f8" title=" " alt="" coords="240,5,457,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,86,185,63,239,41,266,33,267,38,241,46,187,68,140,90"/>
+<area shape="rect" id="Node000003" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#a6e4947d87761dd42ab3c31f71b8d140b" title="Get all available BPP formats." alt="" coords="253,55,444,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,94,237,88,238,93,193,99"/>
+<area shape="rect" id="Node000004" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#abdaf7a3f1dc0c7770157fa1748132924" title="Get BPP format information." alt="" coords="253,121,444,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="193,118,238,124,237,129,192,123"/>
+<area shape="rect" id="Node000005" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a1507df8a1507303c3bec7aa263f360b0" title=" " alt="" coords="287,186,410,227"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="143,127,241,170,273,182,271,187,239,175,140,132"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::DungeonObjectEditor::UndoPoint" name="yaze::zelda3::DungeonObjectEditor::UndoPoint">
+<area shape="rect" id="Node000001" title=" " alt="" coords="294,39,479,79"/>
+<area shape="rect" id="Node000002" href="$d6/dfb/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState.html" title=" " alt="" coords="5,5,191,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,36,294,46,293,51,206,41"/>
+<area shape="rect" id="Node000003" href="$d4/d68/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html" title=" " alt="" coords="5,71,191,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,76,293,67,294,72,207,82"/>
+</map>

@@ -1,5 +1,0 @@
-<map id="yaze_shutdown" name="yaze_shutdown">
-<area shape="rect" id="Node000001" title="Shutdown and clean up a YAZE editor context." alt="" coords="5,5,116,31"/>
-<area shape="rect" id="Node000002" href="$group__rom__functions.html#ga0c0dfb85f1e87702458d4dbaae0beef3" title="Unload and free ROM data." alt="" coords="164,5,285,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,16,148,16,148,21,116,21"/>
-</map>

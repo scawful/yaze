@@ -1,7 +1,0 @@
-<map id="yaze::gfx::HyruleMagicDecompress" name="yaze::gfx::HyruleMagicDecompress">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,227,56"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1zelda3.html#a23f2763cd8a3044a6a63cfa1c4c0ce53" title=" " alt="" coords="275,5,413,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,28,260,25,260,30,228,34"/>
-<area shape="rect" id="Node000003" href="$namespaceyaze_1_1zelda3.html#a774997795015cda5de65dd2621c1284a" title=" " alt="" coords="275,55,413,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,53,260,56,259,61,227,58"/>
-</map>

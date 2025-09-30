@@ -1,0 +1,11 @@
+<map id="yaze::gui::BppConversionDialog::Render" name="yaze::gui::BppConversionDialog::Render">
+<area shape="rect" id="Node000001" title="Render the dialog." alt="" coords="5,104,170,145"/>
+<area shape="rect" id="Node000002" href="$db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a081ba0e66cc2483ed7805c949a165285" title=" " alt="" coords="232,5,397,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,101,217,57,234,49,236,54,219,61,128,106"/>
+<area shape="rect" id="Node000003" href="$db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a02a11e27e6dcd73e4fa9cfcf72e9a7e3" title=" " alt="" coords="218,71,411,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="169,110,202,105,203,110,170,115"/>
+<area shape="rect" id="Node000006" href="$db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#ab200902860df8cbd65e4b39e4b5c1169" title=" " alt="" coords="232,136,397,177"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="170,133,217,140,217,145,169,139"/>
+<area shape="rect" id="Node000007" href="$db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a4a82ca3eb7962e38d97dc28993573492" title=" " alt="" coords="232,201,397,242"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="129,143,219,186,236,193,234,198,217,191,127,148"/>
+</map>

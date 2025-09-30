@@ -1,0 +1,13 @@
+<map id="src/app/editor/message/message_preview.cc" name="src/app/editor/message/message_preview.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="11,5,169,46"/>
+<area shape="rect" id="Node000002" href="$d5/dfd/message__preview_8h.html" title=" " alt="" coords="20,94,160,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,47,93,78,87,78,87,47"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="17,271,70,297"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="56,137,31,157,12,184,8,202,11,221,27,257,22,259,6,223,3,202,7,182,28,154,53,133"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="107,271,164,297"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="127,133,152,154,172,182,177,202,174,223,156,260,152,258,169,222,172,202,167,184,148,157,123,137"/>
+<area shape="rect" id="Node000005" href="$db/d9c/message__data_8h.html" title=" " alt="" coords="22,183,158,223"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="93,135,93,167,87,167,87,135"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="81,225,61,259,56,256,76,222"/>
+<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="103,222,123,256,118,259,99,225"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="src/app/zelda3/screen/inventory.h" name="src/app/zelda3/screen/inventory.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="95,5,243,46"/>
+<area shape="rect" id="Node000002" href="$d7/dd0/screen__editor_8h.html" title=" " alt="" coords="5,94,159,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,59,103,95,100,92,136,55"/>
+<area shape="rect" id="Node000016" href="$d1/dcc/inventory_8cc.html" title=" " alt="" coords="183,94,331,135"/>
+<area shape="poly" id="edge5_Node000001_Node000016" title=" " alt="" coords="201,55,239,92,235,95,198,59"/>
+<area shape="rect" id="Node000003" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="14,271,150,312"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="68,150,58,183,55,203,58,223,75,270,70,272,53,224,50,203,53,182,63,148"/>
+<area shape="rect" id="Node000004" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="67,183,204,223"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="104,147,126,181,121,184,100,149"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="118,238,96,272,92,269,113,235"/>
+</map>

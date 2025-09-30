@@ -1,0 +1,7 @@
+<map id="yaze::gfx::GraphicsOptimizationScope" name="yaze::gfx::GraphicsOptimizationScope">
+<area shape="rect" id="Node000001" title="RAII wrapper for graphics optimization operations." alt="" coords="78,94,278,135"/>
+<area shape="rect" id="Node000002" href="$d7/ddb/classyaze_1_1gfx_1_1ScopedTimer.html" title="RAII timer for automatic timing management." alt="" coords="5,5,159,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,40,160,92,156,95,103,44"/>
+<area shape="rect" id="Node000003" href="$d6/d5e/structyaze_1_1gfx_1_1OptimizationResult.html" title="Graphics optimization result." alt="" coords="183,5,368,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="254,44,200,95,197,92,250,40"/>
+</map>

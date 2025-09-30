@@ -1,0 +1,7 @@
+<map id="yaze::gfx::TEST_F" name="yaze::gfx::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,130,56"/>
+<area shape="rect" id="Node000002" href="$d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html#af244e38a02072e8c76765cb651a61574" title=" " alt="" coords="194,5,379,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,34,178,28,178,33,131,39"/>
+<area shape="rect" id="Node000003" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="178,55,395,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="130,48,162,51,162,57,130,53"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="yaze::editor::Tile16Editor::GetActualPaletteSlotForCurrentTile16" name="yaze::editor::Tile16Editor::GetActualPaletteSlotForCurrentTile16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,216,87"/>
+<area shape="rect" id="Node000002" href="$db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a5eb9e3d92903ff61a9feafe585d4b74f" title=" " alt="" coords="264,5,424,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,41,248,37,249,42,216,47"/>
+<area shape="rect" id="Node000003" href="$db/d82/classyaze_1_1editor_1_1Tile16Editor.html#af0265934ff7bef5a6015a002dbe0fb71" title=" " alt="" coords="264,71,424,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,71,249,75,248,81,216,76"/>
+</map>

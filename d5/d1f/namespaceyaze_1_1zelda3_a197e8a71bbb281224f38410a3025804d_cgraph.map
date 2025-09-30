@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::ldle16b_i" name="yaze::zelda3::ldle16b_i">
+<area shape="rect" id="Node000001" title="Load little endian halfword (16&#45;bit) dereferenced from an arrays of bytes. This version provides an i..." alt="" coords="5,5,153,31"/>
+<area shape="rect" id="Node000002" href="$d5/d1f/namespaceyaze_1_1zelda3.html#a23f2763cd8a3044a6a63cfa1c4c0ce53" title=" " alt="" coords="201,5,338,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,16,185,16,185,21,153,21"/>
+</map>

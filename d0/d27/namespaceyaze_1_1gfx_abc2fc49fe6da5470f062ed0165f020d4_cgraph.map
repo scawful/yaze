@@ -1,0 +1,12 @@
+<map id="yaze::gfx::TEST_F" name="yaze::gfx::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,130,96"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#addd611c1e3b131e9025116995eb326d9" title="Find color index in palette using optimized hash map lookup." alt="" coords="178,63,301,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,80,162,80,162,86,130,86"/>
+<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a48b06add1af332570178c7c107169ee6" title="Hash a color for cache lookup." alt="" coords="368,5,491,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="301,62,352,46,354,51,302,67"/>
+<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="557,35,681,75"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="301,76,542,58,542,63,302,81"/>
+<area shape="rect" id="Node000005" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title=" " alt="" coords="349,121,509,147"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="302,97,364,114,363,119,301,102"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="492,33,543,41,542,46,491,38"/>
+</map>

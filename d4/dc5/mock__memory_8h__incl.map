@@ -1,0 +1,11 @@
+<map id="test/mocks/mock_memory.h" name="test/mocks/mock_memory.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="97,5,283,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,119,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,34,98,73,96,69,167,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="143,79,237,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,31,193,63,187,63,187,31"/>
+<area shape="rect" id="Node000004" href="$dc/d18/memory_8h.html" title=" " alt="" coords="261,79,442,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="218,29,311,70,309,75,216,34"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="321,153,382,178"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="354,105,354,137,349,137,349,105"/>
+</map>

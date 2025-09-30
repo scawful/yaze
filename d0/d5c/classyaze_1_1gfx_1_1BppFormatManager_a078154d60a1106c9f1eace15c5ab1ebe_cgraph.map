@@ -1,0 +1,9 @@
+<map id="yaze::gfx::BppFormatManager::OptimizePaletteForFormat" name="yaze::gfx::BppFormatManager::OptimizePaletteForFormat">
+<area shape="rect" id="Node000001" title="Optimize palette for specific BPP format." alt="" coords="5,71,196,111"/>
+<area shape="rect" id="Node000002" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="265,5,413,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,68,249,47,251,53,178,73"/>
+<area shape="rect" id="Node000003" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#abdaf7a3f1dc0c7770157fa1748132924" title="Get BPP format information." alt="" coords="244,71,434,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,88,228,88,228,94,196,94"/>
+<area shape="rect" id="Node000004" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="265,136,413,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="178,109,251,129,249,135,176,114"/>
+</map>

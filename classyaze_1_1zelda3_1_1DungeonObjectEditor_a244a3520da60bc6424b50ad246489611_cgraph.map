@@ -1,9 +1,0 @@
-<map id="yaze::zelda3::DungeonObjectEditor::Undo" name="yaze::zelda3::DungeonObjectEditor::Undo">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,191,79"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#aedbada46ec4fc709f6f600e1e1fb1353" title=" " alt="" coords="239,5,424,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,43,223,38,223,44,192,48"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a380aafd954189f76a0723dd7dcd982ab" title=" " alt="" coords="239,71,424,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="192,69,223,74,223,79,191,74"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1DungeonObjectEditor.html#acaabbf711d0fc4d8341a9070d149ca4b" title=" " alt="" coords="472,5,659,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,23,456,23,456,28,424,28"/>
-</map>

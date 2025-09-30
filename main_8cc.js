@@ -1,7 +1,0 @@
-var main_8cc =
-[
-    [ "DEFINE_FLAG", "main_8cc.html#a1519586100621dde15a2ce66a033b176", null ],
-    [ "DEFINE_FLAG", "main_8cc.html#a2c88155d1fb6995fa7b890ff689d8b17", null ],
-    [ "DEFINE_FLAG", "main_8cc.html#ab4d473e7eca4851e72dd79841f08e912", null ],
-    [ "main", "main_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627", null ]
-];

@@ -1,0 +1,25 @@
+var rom_8h =
+[
+    [ "yaze::Rom", "d6/d30/classyaze_1_1Rom.html", "d6/d30/classyaze_1_1Rom" ],
+    [ "yaze::Rom::SaveSettings", "d9/d36/structyaze_1_1Rom_1_1SaveSettings.html", "d9/d36/structyaze_1_1Rom_1_1SaveSettings" ],
+    [ "yaze::Rom::WriteAction", "d6/dea/structyaze_1_1Rom_1_1WriteAction.html", "d6/dea/structyaze_1_1Rom_1_1WriteAction" ],
+    [ "LoadAllGraphicsData", "da/de5/rom_8h.html#acd38081a0d3a77b20abfb9375574d1b9", null ],
+    [ "SaveAllGraphicsData", "da/de5/rom_8h.html#aeb8ae3fba1064ff2cf19393b113fac1c", null ],
+    [ "Load2BppGraphics", "da/de5/rom_8h.html#a3167c1c857f5e405cb39a492529d6557", null ],
+    [ "LoadLinkGraphics", "da/de5/rom_8h.html#a3dde9364829e66bec50d5da15df53b6a", null ],
+    [ "LoadFontGraphics", "da/de5/rom_8h.html#ac3b63569c41736a1d31eb6fbb8eaa64d", null ],
+    [ "kNumGfxSheets", "da/de5/rom_8h.html#ac71d5970d234195c079f64f1a56e4522", null ],
+    [ "kNumLinkSheets", "da/de5/rom_8h.html#a51ca5df538b7f54c045a80783c02b102", null ],
+    [ "kTile16Ptr", "da/de5/rom_8h.html#a928bdc81237834754dbac3f20bde2dca", null ],
+    [ "kNormalGfxSpaceStart", "da/de5/rom_8h.html#a55790eacbcbbde02e71f7cb230f1b044", null ],
+    [ "kNormalGfxSpaceEnd", "da/de5/rom_8h.html#ae7f4d060a7da8c9ae259ac78937ff0f5", null ],
+    [ "kFontSpriteLocation", "da/de5/rom_8h.html#a7f1d429e106ef643d8ead4c650743feb", null ],
+    [ "kGfxGroupsPointer", "da/de5/rom_8h.html#a2c1b8ba6ad52ecf45a54a2513d02da64", null ],
+    [ "kUncompressedSheetSize", "da/de5/rom_8h.html#a30653b94f9a3bf78bee51a203e141dd4", null ],
+    [ "kNumMainBlocksets", "da/de5/rom_8h.html#a992222fdde7c53740e5f3cc542881b3a", null ],
+    [ "kNumRoomBlocksets", "da/de5/rom_8h.html#ac2b08cb603f8f019b669df53fbe14f2a", null ],
+    [ "kNumSpritesets", "da/de5/rom_8h.html#a8ec2f2f56a0053f8169ecb919412cba6", null ],
+    [ "kNumPalettesets", "da/de5/rom_8h.html#ae3027bef139fcf788bb8a0d3f6f1a3ed", null ],
+    [ "kEntranceGfxGroup", "da/de5/rom_8h.html#a70210423b80d30a75edab49bddef04d0", null ],
+    [ "kMaxGraphics", "da/de5/rom_8h.html#a1811556fa67024bbd32667c731c21036", null ]
+];

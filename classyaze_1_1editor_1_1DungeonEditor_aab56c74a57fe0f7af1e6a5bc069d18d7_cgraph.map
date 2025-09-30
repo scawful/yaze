@@ -1,5 +1,0 @@
-<map id="yaze::editor::DungeonEditor::OnRoomSelected" name="yaze::editor::DungeonEditor::OnRoomSelected">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,181,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonRoomSelector.html#ae7dd44beb0277320fa1ea6279ad860ca" title=" " alt="" coords="229,5,407,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,23,213,23,213,28,181,28"/>
-</map>

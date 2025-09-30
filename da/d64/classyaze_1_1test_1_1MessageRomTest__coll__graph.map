@@ -1,0 +1,12 @@
+<map id="yaze::test::MessageRomTest" name="yaze::test::MessageRomTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="53,316,240,342"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,228,98,253"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,262,135,314,131,318,74,266"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="127,109,208,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,150,150,316,145,316,162,149"/>
+<area shape="rect" id="Node000007" href="$d3/d6c/classyaze_1_1editor_1_1MessageEditor.html" title=" " alt="" coords="203,228,380,253"/>
+<area shape="poly" id="edge5_Node000007_Node000003" title=" " alt="" coords="193,144,280,225,277,229,190,147"/>
+<area shape="rect" id="Node000004" href="$d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="82,5,253,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="170,61,170,109,165,109,165,61"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="259,264,168,318,165,313,257,259"/>
+</map>

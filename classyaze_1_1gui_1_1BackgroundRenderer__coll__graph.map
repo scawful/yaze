@@ -1,7 +1,0 @@
-<map id="yaze::gui::BackgroundRenderer" name="yaze::gui::BackgroundRenderer">
-<area shape="rect" id="Node000001" title="Renders themed background effects for docking windows." alt="" coords="93,109,291,135"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html" title=" " alt="" coords="5,5,203,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,55,183,107,179,111,131,59"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1gui_1_1Color.html" title=" " alt="" coords="227,13,333,39"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="272,54,250,87,218,110,215,106,246,83,267,51"/>
-</map>

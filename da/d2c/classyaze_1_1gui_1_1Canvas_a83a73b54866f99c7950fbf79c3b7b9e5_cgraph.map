@@ -1,0 +1,12 @@
+<map id="yaze::gui::Canvas::DrawTileOnBitmap" name="yaze::gui::Canvas::DrawTileOnBitmap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,136,79"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="184,5,307,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,44,168,38,169,43,136,49"/>
+<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a748139853655afc687cf9668eeb01443" title="Write a color to a pixel at the given position." alt="" coords="184,71,307,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="136,68,169,74,168,80,135,74"/>
+<area shape="rect" id="Node000004" href="$d0/d27/namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="355,49,544,75"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="307,80,340,75,341,80,308,85"/>
+<area shape="rect" id="Node000005" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="388,99,511,139"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="308,97,373,106,372,111,307,102"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="416,50,409,40,413,30,427,24,450,22,475,25,488,32,485,36,473,30,450,27,428,29,417,34,414,40,420,47"/>
+</map>

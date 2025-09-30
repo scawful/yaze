@@ -1,0 +1,11 @@
+<map id="yaze::test::DungeonRoomTest" name="yaze::test::DungeonRoomTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,198,198,223"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="34,109,126,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,149,101,197,96,198,84,151"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="151,109,231,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="169,147,116,199,112,195,166,144"/>
+<area shape="rect" id="Node000004" href="$d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="7,5,178,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="100,60,113,83,130,98,151,108,149,113,128,102,108,87,95,62"/>
+<area shape="rect" id="Node000005" href="$d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="202,13,380,39"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="284,54,275,71,263,87,246,101,227,111,224,106,243,96,260,83,271,68,279,52"/>
+</map>

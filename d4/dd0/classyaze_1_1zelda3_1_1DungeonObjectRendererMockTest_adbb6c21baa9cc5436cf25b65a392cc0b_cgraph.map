@@ -1,0 +1,9 @@
+<map id="yaze::zelda3::DungeonObjectRendererMockTest::CreateMockObjectSet" name="yaze::zelda3::DungeonObjectRendererMockTest::CreateMockObjectSet">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,271,79"/>
+<area shape="rect" id="Node000002" href="$d4/dd0/classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html#aca90d68db31d65c5258d94909306c20a" title=" " alt="" coords="319,39,564,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="271,56,303,56,303,62,271,62"/>
+<area shape="rect" id="Node000003" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a22961cd5bd623cdc4a93e4de0c626a01" title=" " alt="" coords="612,5,780,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="564,40,596,36,597,41,565,46"/>
+<area shape="rect" id="Node000014" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a876ab67d5c9d17b8c9337a0cee2b569c" title=" " alt="" coords="612,71,780,111"/>
+<area shape="poly" id="edge3_Node000002_Node000014" title=" " alt="" coords="565,72,597,76,596,81,564,77"/>
+</map>

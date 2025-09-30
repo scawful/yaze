@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['final_20summary_0',['YAZE Graphics Optimizations Project - Final Summary',['../md_docs_2gfx__optimizations__project__summary.html',1,'']]]
+  ['final_20summary_0',['YAZE Graphics Optimizations Project - Final Summary',['../d8/dfb/md_docs_2gfx__optimizations__project__summary.html',1,'']]]
 ];

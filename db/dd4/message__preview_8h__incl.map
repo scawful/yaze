@@ -1,0 +1,13 @@
+<map id="src/app/editor/message/message_preview.h" name="src/app/editor/message/message_preview.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="48,5,205,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,183,59,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,48,70,69,49,95,37,132,34,168,28,167,32,131,44,93,66,65,92,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="193,183,250,208"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,44,187,65,209,93,222,131,225,167,220,168,217,132,204,95,184,69,158,48"/>
+<area shape="rect" id="Node000004" href="$db/d9c/message__data_8h.html" title=" " alt="" coords="59,94,194,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="129,47,129,78,124,78,124,47"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="105,137,60,175,56,171,102,133"/>
+<area shape="poly" id="edge6_Node000004_Node000003" title=" " alt="" coords="152,133,197,171,194,175,148,137"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="94,183,160,208"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="129,135,129,167,124,167,124,135"/>
+</map>

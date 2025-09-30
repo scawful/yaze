@@ -1,0 +1,7 @@
+<map id="yaze::test::TestDungeonObjects::CreateTestRom" name="yaze::test::TestDungeonObjects::CreateTestRom">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,209,79"/>
+<area shape="rect" id="Node000002" href="$d9/dd3/classyaze_1_1test_1_1TestDungeonObjects.html#a9ee9152be704d3f19339f6c732af4e10" title=" " alt="" coords="257,5,460,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,43,241,39,241,44,209,48"/>
+<area shape="rect" id="Node000003" href="$d9/dd3/classyaze_1_1test_1_1TestDungeonObjects.html#a051b3373b45a23bd2070badb1e5d8238" title=" " alt="" coords="257,71,460,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="209,69,241,73,241,79,209,75"/>
+</map>

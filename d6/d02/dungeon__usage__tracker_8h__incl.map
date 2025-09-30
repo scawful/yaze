@@ -1,0 +1,11 @@
+<map id="src/app/editor/dungeon/dungeon_usage_tracker.h" name="src/app/editor/dungeon/dungeon_usage_tracker.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="56,5,230,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,129,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,48,96,84,92,80,124,45"/>
+<area shape="rect" id="Node000003" href="$d9/dc0/room_8h.html" title=" " alt="" coords="152,94,289,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,45,195,80,191,84,159,48"/>
+<area shape="rect" id="Node000004" href="$d9/d89/yaze_8h.html" title="Yet Another Zelda3 Editor (YAZE) &#45; Public C API." alt="" coords="150,183,208,208"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="212,136,195,170,190,167,208,134"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="232,183,292,208"/>
+<area shape="poly" id="edge4_Node000003_Node000009" title=" " alt="" coords="233,134,251,167,246,170,228,136"/>
+</map>

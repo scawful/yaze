@@ -1,0 +1,7 @@
+<map id="yaze::gui::ThemeManager" name="yaze::gui::ThemeManager">
+<area shape="rect" id="Node000001" title="Manages themes, loading, saving, and switching." alt="" coords="9,333,175,358"/>
+<area shape="rect" id="Node000002" href="$d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html" title="Comprehensive theme structure for YAZE." alt="" coords="5,244,179,270"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,285,95,332,89,332,89,285"/>
+<area shape="rect" id="Node000003" href="$d4/dca/structyaze_1_1gui_1_1Color.html" title=" " alt="" coords="39,5,145,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,47,95,244,89,244,89,47"/>
+</map>

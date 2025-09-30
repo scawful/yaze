@@ -1,0 +1,12 @@
+<map id="yaze::gfx::GraphicsOptimizer::GetOptimizationRecommendations" name="yaze::gfx::GraphicsOptimizer::GetOptimizationRecommendations">
+<area shape="rect" id="Node000001" title="Get optimization recommendations for all sheets." alt="" coords="5,25,234,65"/>
+<area shape="rect" id="Node000002" href="$d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a84ff97055dd879aea73c27973c94b251" title="Analyze graphics sheet for optimization opportunities." alt="" coords="282,25,465,65"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,42,266,42,266,48,234,48"/>
+<area shape="rect" id="Node000003" href="$d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a498319a2447d5d2c7136bc1861204503" title=" " alt="" coords="751,29,935,69"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="451,21,513,10,608,3,704,10,761,22,760,27,703,16,608,8,513,16,452,27"/>
+<area shape="rect" id="Node000005" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#a678573c5ba599fdce7a0bc34515a0d93" title="Detect BPP format from bitmap data." alt="" coords="513,25,703,65"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="465,42,497,42,497,48,465,48"/>
+<area shape="rect" id="Node000007" href="$d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a1c026054bd8ac0a96d3f2a3ddc878203" title=" " alt="" coords="517,90,700,131"/>
+<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="449,63,518,83,517,88,448,69"/>
+<area shape="poly" id="edge5_Node000007_Node000003" title=" " alt="" coords="688,87,747,71,748,77,689,92"/>
+</map>

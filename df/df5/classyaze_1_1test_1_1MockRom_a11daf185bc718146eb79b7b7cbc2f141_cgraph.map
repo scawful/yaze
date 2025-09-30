@@ -1,0 +1,7 @@
+<map id="yaze::test::MockRom::IsValid" name="yaze::test::MockRom::IsValid">
+<area shape="rect" id="Node000001" title="Check if the mock ROM is valid for testing." alt="" coords="5,23,146,64"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="194,5,335,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,31,178,27,179,32,147,37"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="210,55,319,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="146,50,195,56,194,61,146,55"/>
+</map>

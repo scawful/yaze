@@ -1,0 +1,13 @@
+<map id="test/unit/gfx/snes_tile_test.cc" name="test/unit/gfx/snes_tile_test.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="148,5,269,46"/>
+<area shape="rect" id="Node000002" href="$d0/d8d/snes__tile_8h.html" title=" " alt="" coords="5,94,135,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,49,106,88,103,84,173,44"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="124,168,237,193"/>
+<area shape="poly" id="edge2_Node000001_Node000014" title=" " alt="" coords="208,47,188,153,183,152,202,46"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="266,168,359,193"/>
+<area shape="poly" id="edge3_Node000001_Node000015" title=" " alt="" coords="244,45,270,66,294,93,307,122,313,152,308,153,302,124,289,95,267,69,240,49"/>
+<area shape="rect" id="Node000016" href="$db/d56/testing_8h.html" title=" " alt="" coords="210,94,280,120"/>
+<area shape="poly" id="edge4_Node000001_Node000016" title=" " alt="" coords="220,45,235,78,230,81,215,48"/>
+<area shape="poly" id="edge5_Node000016_Node000014" title=" " alt="" coords="236,122,203,158,199,154,232,118"/>
+<area shape="poly" id="edge6_Node000016_Node000015" title=" " alt="" coords="258,118,293,155,289,158,254,122"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="yaze::gfx::ModifyTile16" name="yaze::gfx::ModifyTile16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,155,39"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="203,5,326,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,23,187,23,187,28,155,28"/>
+</map>

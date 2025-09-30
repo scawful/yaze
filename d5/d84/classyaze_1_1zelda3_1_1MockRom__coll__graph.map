@@ -1,0 +1,11 @@
+<map id="yaze::zelda3::MockRom" name="yaze::zelda3::MockRom">
+<area shape="rect" id="Node000001" title="Mock ROM class for testing without real ROM files." alt="" coords="183,213,338,238"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="150,117,230,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,153,253,211,249,214,206,156"/>
+<area shape="rect" id="Node000003" href="$d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,177,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="99,60,111,83,132,101,155,114,153,118,129,105,107,87,95,62"/>
+<area shape="rect" id="Node000004" href="$d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="201,13,378,39"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="283,54,262,87,241,105,218,118,216,114,238,100,258,83,278,51"/>
+<area shape="rect" id="Node000006" href="$d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html" title=" " alt="" coords="253,109,409,150"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="309,164,271,214,267,211,305,160"/>
+</map>

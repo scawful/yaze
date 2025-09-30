@@ -1,0 +1,7 @@
+<map id="yaze::gfx::GraphicsOptimizer::CalculateMemorySavings" name="yaze::gfx::GraphicsOptimizer::CalculateMemorySavings">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,189,68"/>
+<area shape="rect" id="Node000002" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#aa4801c6b5c08e38becdba8bee6a6a2f8" title=" " alt="" coords="237,5,454,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,34,221,30,221,36,189,39"/>
+<area shape="rect" id="Node000003" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#abdaf7a3f1dc0c7770157fa1748132924" title="Get BPP format information." alt="" coords="250,55,441,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,55,235,60,234,66,189,60"/>
+</map>

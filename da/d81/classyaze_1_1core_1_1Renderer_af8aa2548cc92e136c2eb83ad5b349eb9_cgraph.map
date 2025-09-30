@@ -1,0 +1,12 @@
+<map id="yaze::core::Renderer::RenderBitmap" name="yaze::core::Renderer::RenderBitmap">
+<area shape="rect" id="Node000001" title="Create texture for bitmap on main thread." alt="" coords="5,63,142,103"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="190,63,313,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,80,175,80,175,86,142,86"/>
+<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#a0439996c580b1b2860eadb6ebc6fcbaa" title="Allocate a new SDL texture with automatic cleanup." alt="" coords="361,5,524,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="313,62,358,48,359,53,314,67"/>
+<area shape="rect" id="Node000005" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="572,100,710,125"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="314,85,557,103,557,109,313,90"/>
+<area shape="rect" id="Node000006" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#ae54809d052e7f6cbf3b1900d8b13686e" title="Updates the texture data from the surface." alt="" coords="376,120,509,161"/>
+<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="314,99,362,113,360,118,313,104"/>
+<area shape="poly" id="edge5_Node000006_Node000005" title=" " alt="" coords="509,128,557,122,557,127,510,134"/>
+</map>

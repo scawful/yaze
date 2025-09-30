@@ -1,0 +1,5 @@
+<map id="yaze::gfx::Arena::AllocateTexture" name="yaze::gfx::Arena::AllocateTexture">
+<area shape="rect" id="Node000001" title="Allocate a new SDL texture with automatic cleanup." alt="" coords="5,5,169,46"/>
+<area shape="rect" id="Node000002" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#a0888a8deb20d09e47b3ca7ac4f3be218" title="Create a new SDL texture (helper for resource pooling)" alt="" coords="217,5,371,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,23,201,23,201,28,169,28"/>
+</map>

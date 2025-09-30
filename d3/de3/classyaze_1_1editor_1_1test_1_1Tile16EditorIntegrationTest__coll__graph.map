@@ -1,0 +1,7 @@
+<map id="yaze::editor::test::Tile16EditorIntegrationTest" name="yaze::editor::test::Tile16EditorIntegrationTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="28,94,211,135"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,98,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="71,42,107,92,103,95,67,45"/>
+<area shape="rect" id="Node000003" href="$de/d86/structyaze_1_1core_1_1Window.html" title=" " alt="" coords="122,5,253,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="172,45,136,95,132,92,168,42"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="yaze::editor::EditorManager::RepairCurrentProject" name="yaze::editor::EditorManager::RepairCurrentProject">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,180,111"/>
+<area shape="rect" id="Node000002" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#a0edffd7dd61a25e90297596f93fe3d23" title=" " alt="" coords="238,5,392,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,68,228,48,229,54,165,73"/>
+<area shape="rect" id="Node000003" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#a7afa65e90c74ab2130c27795c506af2b" title=" " alt="" coords="238,71,392,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,88,222,88,222,94,180,94"/>
+<area shape="rect" id="Node000005" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="228,136,402,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="165,109,229,128,228,134,163,114"/>
+<area shape="rect" id="Node000004" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#ac3453c69a9672bec45c593e54d434479" title=" " alt="" coords="450,71,604,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="392,88,435,88,435,94,392,94"/>
+</map>

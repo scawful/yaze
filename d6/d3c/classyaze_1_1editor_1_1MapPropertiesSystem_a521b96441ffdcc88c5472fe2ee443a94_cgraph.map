@@ -1,0 +1,9 @@
+<map id="yaze::editor::MapPropertiesSystem::DrawMosaicControls" name="yaze::editor::MapPropertiesSystem::DrawMosaicControls">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,197,111"/>
+<area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a90cc1152067e0937c7e48d69e88a563f" title=" " alt="" coords="261,5,429,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,68,251,48,252,53,180,73"/>
+<area shape="rect" id="Node000003" href="$d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a1ae3f21d8a5446c4e4b9039230061039" title=" " alt="" coords="245,71,445,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,88,229,88,229,94,197,94"/>
+<area shape="rect" id="Node000004" href="$d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a3f3c216f891a78be9d5f289d2c13e2cc" title=" " alt="" coords="245,136,445,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,109,252,129,251,134,179,114"/>
+</map>

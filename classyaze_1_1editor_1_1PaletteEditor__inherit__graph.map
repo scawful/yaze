@@ -1,5 +1,0 @@
-<map id="yaze::editor::PaletteEditor" name="yaze::editor::PaletteEditor">
-<area shape="rect" id="Node000001" title="Allows the user to view and edit in game palettes." alt="" coords="5,79,171,105"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="26,5,150,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,46,91,79,85,79,85,46"/>
-</map>

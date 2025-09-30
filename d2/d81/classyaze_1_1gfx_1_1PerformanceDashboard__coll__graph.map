@@ -1,0 +1,7 @@
+<map id="yaze::gfx::PerformanceDashboard" name="yaze::gfx::PerformanceDashboard">
+<area shape="rect" id="Node000001" title="Comprehensive performance monitoring dashboard for YAZE graphics system." alt="" coords="388,46,600,72"/>
+<area shape="rect" id="Node000002" href="$d6/dc5/structyaze_1_1gfx_1_1PerformanceDashboard_1_1PerformanceMetrics.html" title=" " alt="" coords="5,5,218,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,34,387,47,387,52,233,39"/>
+<area shape="rect" id="Node000003" href="$d8/dc8/structyaze_1_1gfx_1_1PerformanceDashboard_1_1OptimizationStatus.html" title=" " alt="" coords="5,71,218,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="233,78,363,67,387,65,387,71,364,73,233,84"/>
+</map>

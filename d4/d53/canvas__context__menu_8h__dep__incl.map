@@ -1,0 +1,12 @@
+<map id="src/app/gui/canvas/canvas_context_menu.h" name="src/app/gui/canvas/canvas_context_menu.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="106,5,271,46"/>
+<area shape="rect" id="Node000002" href="$d4/dcf/canvas_8h.html" title=" " alt="" coords="27,102,169,127"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,59,112,103,109,99,155,55"/>
+<area shape="rect" id="Node000054" href="$df/db2/canvas__context__menu_8cc.html" title=" " alt="" coords="193,94,366,135"/>
+<area shape="poly" id="edge5_Node000001_Node000054" title=" " alt="" coords="222,55,261,92,257,95,218,59"/>
+<area shape="rect" id="Node000003" href="$d1/d35/dungeon__canvas__viewer_8cc.html" title=" " alt="" coords="5,271,191,312"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="83,142,71,162,63,183,60,203,63,223,73,248,86,270,81,272,68,250,58,224,55,203,58,182,67,159,78,139"/>
+<area shape="rect" id="Node000004" href="$d3/d38/dungeon__canvas__viewer_8h.html" title=" " alt="" coords="73,183,251,223"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="118,138,150,181,146,184,114,141"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="141,237,115,272,110,269,136,234"/>
+</map>

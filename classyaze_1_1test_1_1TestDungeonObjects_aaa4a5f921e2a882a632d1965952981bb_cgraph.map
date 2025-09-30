@@ -1,5 +1,0 @@
-<map id="yaze::test::TestDungeonObjects::SetupObjectData" name="yaze::test::TestDungeonObjects::SetupObjectData">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,209,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1test_1_1TestDungeonObjects.html#a934e9e810bb646cfc8bffd2073013db4" title=" " alt="" coords="257,5,460,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,23,241,23,241,28,209,28"/>
-</map>

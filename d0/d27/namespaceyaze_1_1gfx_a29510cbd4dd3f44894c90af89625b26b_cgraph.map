@@ -1,0 +1,7 @@
+<map id="yaze::gfx::LoadScr" name="yaze::gfx::LoadScr">
+<area shape="rect" id="Node000001" title="Load Scr file (screen data)" alt="" coords="5,31,131,56"/>
+<area shape="rect" id="Node000002" href="$d0/d27/namespaceyaze_1_1gfx.html#aa5ae49b02472150a2ad972abf1f7d35a" title=" " alt="" coords="188,5,335,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,33,172,27,173,32,132,38"/>
+<area shape="rect" id="Node000003" href="$d0/d27/namespaceyaze_1_1gfx.html#a7219dcf105343b1542cf0dea95e4f7f8" title=" " alt="" coords="179,55,344,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,49,164,53,163,58,131,54"/>
+</map>

@@ -1,9 +1,0 @@
-<map id="yaze::test::DungeonObjectRenderingTests::DungeonScenario" name="yaze::test::DungeonObjectRenderingTests::DungeonScenario">
-<area shape="rect" id="Node000001" title=" " alt="" coords="71,183,291,223"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1RoomLayout.html" title="Manages room layout data and objects." alt="" coords="5,94,175,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,129,164,180,160,184,110,133"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="50,5,130,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="93,47,93,94,87,94,87,47"/>
-<area shape="rect" id="Node000007" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="199,94,346,120"/>
-<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="252,133,202,184,198,180,248,129"/>
-</map>

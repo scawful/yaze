@@ -1,7 +1,0 @@
-<map id="yaze::gfx::Bitmap" name="yaze::gfx::Bitmap">
-<area shape="rect" id="Node000001" title="Represents a bitmap image optimized for SNES ROM hacking." alt="" coords="100,109,218,135"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="5,13,153,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,49,151,107,147,110,97,52"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html" title=" " alt="" coords="177,5,301,46"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,60,171,111,167,107,211,56"/>
-</map>

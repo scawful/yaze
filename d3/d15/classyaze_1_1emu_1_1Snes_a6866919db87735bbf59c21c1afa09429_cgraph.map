@@ -1,0 +1,11 @@
+<map id="yaze::emu::Snes::CpuWrite" name="yaze::emu::Snes::CpuWrite">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,84,179,110"/>
+<area shape="rect" id="Node000002" href="$d6/d20/namespaceyaze_1_1emu.html#a7215347ac720fbffdc26780519322eae" title=" " alt="" coords="242,5,394,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,81,226,40,246,33,248,38,228,45,124,86"/>
+<area shape="rect" id="Node000008" href="$d3/d15/classyaze_1_1emu_1_1Snes.html#a20e9a804b60fa527dd6447a5c8d61796" title=" " alt="" coords="227,55,409,80"/>
+<area shape="poly" id="edge2_Node000001_Node000008" title=" " alt="" coords="179,83,211,79,211,84,179,88"/>
+<area shape="rect" id="Node000120" href="$dc/df4/classyaze_1_1emu_1_1Cpu.html#a50035ffb781ab92696205c9c04c25af1" title=" " alt="" coords="252,105,384,145"/>
+<area shape="poly" id="edge3_Node000001_Node000120" title=" " alt="" coords="179,105,237,112,236,117,179,110"/>
+<area shape="rect" id="Node000112" href="$d3/d15/classyaze_1_1emu_1_1Snes.html#a8b7d6d33a6bb4e38e32b170255557ee5" title=" " alt="" coords="243,169,393,195"/>
+<area shape="poly" id="edge4_Node000001_Node000112" title=" " alt="" coords="121,108,228,154,250,162,248,167,226,159,119,113"/>
+</map>

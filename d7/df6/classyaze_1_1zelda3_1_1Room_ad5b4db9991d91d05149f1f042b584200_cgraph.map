@@ -1,0 +1,9 @@
+<map id="yaze::zelda3::Room::LoadAnimatedGraphics" name="yaze::zelda3::Room::LoadAnimatedGraphics">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,169,88"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="225,5,367,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,46,224,32,225,38,170,51"/>
+<area shape="rect" id="Node000003" href="$d7/df6/classyaze_1_1zelda3_1_1Room.html#a14530368efe211f7ebbe9226189b5651" title=" " alt="" coords="217,55,375,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="169,65,201,65,201,70,169,70"/>
+<area shape="rect" id="Node000004" href="$dc/d46/namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="239,104,353,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="170,84,225,97,224,103,169,89"/>
+</map>

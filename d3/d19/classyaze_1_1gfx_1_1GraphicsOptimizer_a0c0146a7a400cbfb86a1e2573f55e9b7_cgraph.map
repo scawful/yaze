@@ -1,0 +1,8 @@
+<map id="yaze::gfx::GraphicsOptimizer::CalculateColorEfficiency" name="yaze::gfx::GraphicsOptimizer::CalculateColorEfficiency">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,189,75"/>
+<area shape="rect" id="Node000002" href="$d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a498319a2447d5d2c7136bc1861204503" title=" " alt="" coords="237,5,420,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,41,221,37,221,42,189,46"/>
+<area shape="rect" id="Node000003" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="468,35,615,75"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="189,54,237,55,420,55,452,55,453,60,420,60,237,60,189,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="421,36,453,40,452,45,420,41"/>
+</map>

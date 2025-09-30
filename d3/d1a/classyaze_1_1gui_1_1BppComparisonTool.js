@@ -1,0 +1,25 @@
+var classyaze_1_1gui_1_1BppComparisonTool =
+[
+    [ "BppComparisonTool", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#afd6247fad3ace8945ebf56261318cb32", null ],
+    [ "SetSource", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#aa5a8ad86b4e168a6bc2fda7cf2ed8586", null ],
+    [ "Render", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a50f5bae764d591582c0f87611e0706ab", null ],
+    [ "IsOpen", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a4b23df727415f9d1301f4c0c5692a0f3", null ],
+    [ "Open", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#ad3a813bbc42fde07bb47de610146ed9b", null ],
+    [ "Close", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a1cba8d1ffd2204c5046e2c979fa7ee2e", null ],
+    [ "GenerateComparisons", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a203ecb0534d4687260851e1d27b32102", null ],
+    [ "RenderComparisonGrid", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a789a4be83c67e2e2038ec1a822d06e0f", null ],
+    [ "RenderMetrics", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#ac18abb70efd7b720cfb8aba5c9c1422c", null ],
+    [ "RenderFormatSelector", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a1ec42e6dc2381fba60acd8e7de194d44", null ],
+    [ "CalculateMetrics", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a1c5f395e17bb770418cf613a8f5bb52a", null ],
+    [ "id_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a1a61fbe337c128a012bd569f8a9378ac", null ],
+    [ "is_open_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a48227e84c572717c223f33d4d05f2ca3", null ],
+    [ "source_bitmap_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a7bca8735bd3a4d5c23af2ebba1c0b40a", null ],
+    [ "source_palette_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a459533e03ee3e9328c1d153d139e8eaf", null ],
+    [ "has_source_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a737cee0f6e22d9b57a1af32796fc264c", null ],
+    [ "comparison_bitmaps_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a3d0f999e56011521753ae84fcb84e796", null ],
+    [ "comparison_palettes_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#ab02e965b5b5ea934e5cabf0a7738936b", null ],
+    [ "comparison_valid_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#acfcb99cae1085bff2eaafd2ecdb77dc7", null ],
+    [ "comparison_scale_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#ae7a159e3ab150421945366a0250b5a37", null ],
+    [ "show_metrics_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#aad01244ffd74c0c00e5500e27d393f43", null ],
+    [ "selected_comparison_", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a1571f3b0654eb7142285d06ea7d01694", null ]
+];

@@ -1,7 +1,0 @@
-<map id="yaze::gui::Canvas::Canvas" name="yaze::gui::Canvas::Canvas">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,132,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1Canvas.html#adbe838c11c999dcd089b9f33f8df73c3" title=" " alt="" coords="180,5,306,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,23,164,23,164,28,132,28"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1gui_1_1CanvasSelection.html#ac56a0c5832c16671b0d959909b229bdf" title=" " alt="" coords="354,5,528,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="307,23,338,23,338,28,307,28"/>
-</map>

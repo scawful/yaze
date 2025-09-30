@@ -1,0 +1,25 @@
+var structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats =
+[
+    [ "Reset", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a8e6104ceaf11080348a10d4fa439daa2", null ],
+    [ "usage_mode", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a67054bfe712fd9a7d9859705af4e81cd", null ],
+    [ "session_start", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#aa2134149f508446450a6ab7258084520", null ],
+    [ "total_time", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#af084df868203e2cf01e874435b6ca040", null ],
+    [ "active_time", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a45d70dcfe00642dd14ddc5d9740b3551", null ],
+    [ "idle_time", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#acf1516b732b14df7d07300dfc8778b19", null ],
+    [ "mouse_clicks", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#ad925bd77a516c0122e380088bd84028e", null ],
+    [ "mouse_drags", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a20d59b7a1ba1c7555d2d399dc5d0c471", null ],
+    [ "context_menu_opens", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a2bd93817cd2f75c3e04727d17930112d", null ],
+    [ "modal_opens", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#ac8dc0918ba0ddd47a90afbeec3eb53ed", null ],
+    [ "tool_changes", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a93fe65a96514f05e45f9e6509c0a4e45", null ],
+    [ "mode_changes", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a55284a2bc1cb66247b9eef129cf383ca", null ],
+    [ "average_operation_time_ms", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#aa7cf16cb4859bafd0613029e656050f0", null ],
+    [ "max_operation_time_ms", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a05232313d3902b626b2c524e70cd1fbd", null ],
+    [ "total_operations", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#aad82e9db89297a9dc469c5e9b098553b", null ],
+    [ "canvas_size", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#abf0da4b81bcab5a1ce8c2c1c6e79e820", null ],
+    [ "content_size", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#af5e699dba3150ac64fc389c37c1fc7c9", null ],
+    [ "global_scale", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a70f1b004c25d009adedd5c0bcfc942f3", null ],
+    [ "grid_step", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#ac119f55174364a15b22097434b417e84", null ],
+    [ "enable_grid", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a7a6005f556e557759be654fbacfcf813", null ],
+    [ "enable_hex_labels", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a4bc5b271a8db9b19dcbe855ee0c2e0db", null ],
+    [ "enable_custom_labels", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a11a38d36c7aacc786b642a7efd796047", null ]
+];

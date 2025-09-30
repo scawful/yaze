@@ -1,0 +1,11 @@
+<map id="yaze::editor::EditorManager::SetCurrentRom" name="yaze::editor::EditorManager::SetCurrentRom">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,180,68"/>
+<area shape="rect" id="Node000002" href="$da/d3e/classyaze_1_1test_1_1TestManager.html#aba8e45afb0fc70d7fe9bd73e61296edf" title=" " alt="" coords="228,5,412,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,34,212,29,213,35,180,39"/>
+<area shape="rect" id="Node000003" href="$da/d3e/classyaze_1_1test_1_1TestManager.html#a993d8b173579ab54ac01b3f31b4f4c56" title=" " alt="" coords="241,55,399,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,56,226,61,225,67,180,61"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="460,37,601,63"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="398,63,444,58,445,63,399,69"/>
+<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="477,87,584,112"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="399,82,462,89,461,94,398,87"/>
+</map>

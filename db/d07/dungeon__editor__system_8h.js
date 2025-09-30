@@ -1,0 +1,28 @@
+var dungeon__editor__system_8h =
+[
+    [ "yaze::zelda3::DungeonEditorSystem", "d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html", "d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem" ],
+    [ "yaze::zelda3::DungeonEditorSystem::EditorState", "d2/dd9/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EditorState.html", "d2/dd9/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EditorState" ],
+    [ "yaze::zelda3::DungeonEditorSystem::SpriteData", "d5/dbe/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1SpriteData.html", "d5/dbe/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1SpriteData" ],
+    [ "yaze::zelda3::DungeonEditorSystem::ItemData", "d2/d4b/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ItemData.html", "d2/d4b/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ItemData" ],
+    [ "yaze::zelda3::DungeonEditorSystem::EntranceData", "d3/d9b/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EntranceData.html", "d3/d9b/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EntranceData" ],
+    [ "yaze::zelda3::DungeonEditorSystem::DoorData", "dd/dfa/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData.html", "dd/dfa/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DoorData" ],
+    [ "yaze::zelda3::DungeonEditorSystem::ChestData", "dc/d40/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ChestData.html", "dc/d40/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ChestData" ],
+    [ "yaze::zelda3::DungeonEditorSystem::RoomProperties", "d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html", "d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties" ],
+    [ "yaze::zelda3::DungeonEditorSystem::DungeonSettings", "d5/d95/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html", "d5/d95/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings" ],
+    [ "yaze::zelda3::DungeonEditorSystem::UndoPoint", "d7/dbb/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1UndoPoint.html", "d7/dbb/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1UndoPoint" ],
+    [ "yaze::zelda3::SpriteTypes::SpriteInfo", "dc/ded/structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html", "dc/ded/structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo" ],
+    [ "yaze::zelda3::ItemTypes::ItemInfo", "d8/d57/structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html", "d8/d57/structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo" ],
+    [ "yaze::zelda3::EntranceTypes::EntranceInfo", "dc/dfb/structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html", "dc/dfb/structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo" ],
+    [ "CreateDungeonEditorSystem", "db/d07/dungeon__editor__system_8h.html#a5f2bcb776569f17bd6615e2059e59a7d", null ],
+    [ "GetSpriteInfo", "db/d07/dungeon__editor__system_8h.html#ae8957edf67f61262c7a691e0161662e9", null ],
+    [ "GetAllSpriteInfos", "db/d07/dungeon__editor__system_8h.html#a704fd4ad3e48be427b13f03033c1eb8f", null ],
+    [ "GetSpritesByType", "db/d07/dungeon__editor__system_8h.html#adc6bf1a6896ef6d145333aebe136b50d", null ],
+    [ "GetSpriteCategory", "db/d07/dungeon__editor__system_8h.html#af9c6629a48ff36d5359c3129c461d747", null ],
+    [ "GetItemInfo", "db/d07/dungeon__editor__system_8h.html#a96ac578ab867af965b3da48b2fd904a2", null ],
+    [ "GetAllItemInfos", "db/d07/dungeon__editor__system_8h.html#aa328417a235dd96d3dc7374ad061e1f5", null ],
+    [ "GetItemsByType", "db/d07/dungeon__editor__system_8h.html#a8a09bd20d1adb7e50b49fdd349de17da", null ],
+    [ "GetItemCategory", "db/d07/dungeon__editor__system_8h.html#a352eb1a9df6a5bc18dd0a07d5bac9540", null ],
+    [ "GetEntranceInfo", "db/d07/dungeon__editor__system_8h.html#a72d0fbafe11dad5a14e229a315363efe", null ],
+    [ "GetAllEntranceInfos", "db/d07/dungeon__editor__system_8h.html#ab96bee2a4a566aebed64bf8245a8ff5d", null ],
+    [ "GetEntrancesByType", "db/d07/dungeon__editor__system_8h.html#aa1e6c4daf8dc7ff09c8c780ea0e22158", null ]
+];

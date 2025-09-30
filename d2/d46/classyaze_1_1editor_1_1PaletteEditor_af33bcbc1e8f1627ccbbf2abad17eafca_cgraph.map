@@ -1,0 +1,9 @@
+<map id="yaze::editor::PaletteEditor::EditColorInPalette" name="yaze::editor::PaletteEditor::EditColorInPalette">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,171,111"/>
+<area shape="rect" id="Node000002" href="$d2/d46/classyaze_1_1editor_1_1PaletteEditor.html#a58c1f8475a00167010e55b35b7e7571f" title=" " alt="" coords="219,5,385,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,68,217,49,219,54,158,73"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#ad6ba4f05b40456918b1e49bfbb876c14" title=" " alt="" coords="219,71,385,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,88,203,88,203,94,171,94"/>
+<area shape="rect" id="Node000004" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="228,136,376,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="158,109,219,128,217,133,156,114"/>
+</map>

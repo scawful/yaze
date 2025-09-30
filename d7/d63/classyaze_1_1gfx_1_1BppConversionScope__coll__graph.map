@@ -1,0 +1,5 @@
+<map id="yaze::gfx::BppConversionScope" name="yaze::gfx::BppConversionScope">
+<area shape="rect" id="Node000001" title="RAII wrapper for BPP format conversion operations." alt="" coords="5,94,170,135"/>
+<area shape="rect" id="Node000002" href="$d7/ddb/classyaze_1_1gfx_1_1ScopedTimer.html" title="RAII timer for automatic timing management." alt="" coords="11,5,164,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,46,90,93,85,93,85,46"/>
+</map>

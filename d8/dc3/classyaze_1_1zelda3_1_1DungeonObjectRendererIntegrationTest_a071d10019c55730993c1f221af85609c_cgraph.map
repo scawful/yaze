@@ -1,0 +1,9 @@
+<map id="yaze::zelda3::DungeonObjectRendererIntegrationTest::CreateGanonRoomObjects" name="yaze::zelda3::DungeonObjectRendererIntegrationTest::CreateGanonRoomObjects">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,191,87"/>
+<area shape="rect" id="Node000002" href="$d8/dc3/classyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest.html#ac26b43ef194b371d15dcef0ec3a39898" title=" " alt="" coords="239,31,424,87"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,56,223,56,223,62,191,62"/>
+<area shape="rect" id="Node000003" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a22961cd5bd623cdc4a93e4de0c626a01" title=" " alt="" coords="472,5,640,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,43,456,38,457,43,425,48"/>
+<area shape="rect" id="Node000014" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a876ab67d5c9d17b8c9337a0cee2b569c" title=" " alt="" coords="472,71,640,111"/>
+<area shape="poly" id="edge3_Node000002_Node000014" title=" " alt="" coords="425,70,457,74,456,79,424,75"/>
+</map>

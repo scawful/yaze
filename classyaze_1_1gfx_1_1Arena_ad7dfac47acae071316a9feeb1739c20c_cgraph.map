@@ -1,7 +1,0 @@
-<map id="yaze::gfx::Arena::~Arena" name="yaze::gfx::Arena::~Arena">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,122,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae52ba2fa3e011c990a2d2fe081838efa" title=" " alt="" coords="170,13,344,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,23,154,23,154,28,122,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#ad0ecbc9abc7453f3b7acde4f6292823c" title="Process all queued texture updates in a single batch." alt="" coords="392,5,556,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="344,23,377,23,377,28,344,28"/>
-</map>

@@ -1,0 +1,9 @@
+<map id="yaze::editor::DungeonObjectInteraction::SelectObjectsInRect" name="yaze::editor::DungeonObjectInteraction::SelectObjectsInRect">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,214,111"/>
+<area shape="rect" id="Node000002" href="$d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#adc598532a831126e0144116e1e198230" title=" " alt="" coords="262,5,512,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,67,282,47,283,53,199,73"/>
+<area shape="rect" id="Node000003" href="$d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a2fd31b9ebfed8a6b442afccc0478a0bb" title=" " alt="" coords="262,71,512,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,88,246,88,246,94,214,94"/>
+<area shape="rect" id="Node000004" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="324,136,450,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="199,109,309,135,308,141,198,115"/>
+</map>

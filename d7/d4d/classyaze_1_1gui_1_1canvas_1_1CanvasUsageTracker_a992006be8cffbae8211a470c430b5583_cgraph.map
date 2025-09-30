@@ -1,0 +1,11 @@
+<map id="yaze::gui::canvas::CanvasUsageTracker::SetUsageMode" name="yaze::gui::canvas::CanvasUsageTracker::SetUsageMode">
+<area shape="rect" id="Node000001" title="Set the current usage mode." alt="" coords="5,85,159,141"/>
+<area shape="rect" id="Node000002" href="$d7/d4d/classyaze_1_1gui_1_1canvas_1_1CanvasUsageTracker.html#a9a9592c794e5cbedd9615d83e693427e" title="Get usage mode name." alt="" coords="207,5,360,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,82,196,65,198,70,155,87"/>
+<area shape="rect" id="Node000003" href="$d7/d4d/classyaze_1_1gui_1_1canvas_1_1CanvasUsageTracker.html#a3a865e572cb1f9073023e823923413fc" title="Record an interaction." alt="" coords="207,85,360,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,111,191,111,191,116,159,116"/>
+<area shape="rect" id="Node000004" href="$d7/d4d/classyaze_1_1gui_1_1canvas_1_1CanvasUsageTracker.html#a2d03b000b7998aaa04c8361a29ed56b2" title=" " alt="" coords="207,165,360,221"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="155,139,198,157,196,161,153,144"/>
+<area shape="rect" id="Node000005" href="$d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html#a8e6104ceaf11080348a10d4fa439daa2" title=" " alt="" coords="408,173,582,214"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="360,191,392,191,392,196,360,196"/>
+</map>

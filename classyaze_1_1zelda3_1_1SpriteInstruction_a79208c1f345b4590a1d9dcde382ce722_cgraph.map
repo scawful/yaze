@@ -1,5 +1,0 @@
-<map id="yaze::zelda3::SpriteInstruction::ApplySpeedTowardsPlayer" name="yaze::zelda3::SpriteInstruction::ApplySpeedTowardsPlayer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,197,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1SpriteInstruction.html#a9206d062ee82eab689117d2d268a3357" title=" " alt="" coords="245,5,436,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,23,229,23,229,28,197,28"/>
-</map>

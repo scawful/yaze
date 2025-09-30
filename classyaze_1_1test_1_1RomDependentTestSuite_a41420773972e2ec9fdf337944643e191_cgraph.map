@@ -1,9 +1,0 @@
-<map id="yaze::test::RomDependentTestSuite::RunRomMusicDataTest" name="yaze::test::RomDependentTestSuite::RunRomMusicDataTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,227,111"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1test_1_1TestResults.html#abe5ca04144ec78a21183b44d5f87a597" title=" " alt="" coords="284,5,436,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,68,269,47,270,52,195,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1test_1_1RomDependentTestSuite.html#aedf9fae3ba0e4fcc5d81737dab5ceddc" title=" " alt="" coords="275,71,445,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="227,88,259,88,259,94,227,94"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1test_1_1RomDependentTestSuite.html#ae804e338255837a4f3e4c0ab3596d797" title=" " alt="" coords="275,136,445,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="195,109,267,129,266,134,194,114"/>
-</map>

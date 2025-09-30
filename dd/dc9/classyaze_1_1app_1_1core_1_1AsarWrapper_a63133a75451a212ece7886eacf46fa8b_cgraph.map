@@ -1,0 +1,11 @@
+<map id="yaze::app::core::AsarWrapper::ExtractSymbols" name="yaze::app::core::AsarWrapper::ExtractSymbols">
+<area shape="rect" id="Node000001" title="Extract symbols from an assembly file without patching." alt="" coords="5,71,192,111"/>
+<area shape="rect" id="Node000002" href="$dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper.html#ab2583f55b85ce00f473fbff231e94c4b" title="Apply an assembly patch to a ROM." alt="" coords="240,71,426,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,88,224,88,224,94,192,94"/>
+<area shape="rect" id="Node000003" href="$dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper.html#ae627cf8b68c21f8042f1d92139b3902b" title="Extract symbols from the last Asar operation." alt="" coords="474,5,703,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="415,67,491,48,492,53,416,73"/>
+<area shape="rect" id="Node000004" href="$dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper.html#a1ff1e2f034158e89d8f89f578d2bf915" title="Process errors from Asar and store them." alt="" coords="496,71,682,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="427,88,480,88,480,94,427,94"/>
+<area shape="rect" id="Node000005" href="$dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper.html#ae73b2aa4ee0047cc21952c48c859a1f4" title="Process warnings from Asar and store them." alt="" coords="496,136,682,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="416,109,492,129,491,134,415,115"/>
+</map>

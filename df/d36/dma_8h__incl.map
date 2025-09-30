@@ -1,0 +1,15 @@
+<map id="src/app/emu/memory/dma.h" name="src/app/emu/memory/dma.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="40,5,183,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="82,241,142,267"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,48,49,100,27,133,12,169,8,181,11,192,22,207,36,219,69,237,66,241,33,223,18,210,7,195,3,181,7,167,23,130,45,96,89,45"/>
+<area shape="rect" id="Node000003" href="$dc/d18/memory_8h.html" title=" " alt="" coords="21,168,202,193"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="114,46,114,152,109,152,109,46"/>
+<area shape="rect" id="Node000007" href="$d2/de3/emu_2snes_8h.html" title=" " alt="" coords="166,94,279,120"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="141,44,195,82,191,87,138,49"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="114,194,114,226,109,226,109,194"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="209,241,286,267"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="136,192,212,231,210,236,134,196"/>
+<area shape="poly" id="edge6_Node000007_Node000002" title=" " alt="" coords="227,120,228,155,225,176,217,195,190,222,158,240,155,236,187,218,212,192,220,174,223,155,222,120"/>
+<area shape="poly" id="edge8_Node000007_Node000003" title=" " alt="" coords="205,122,145,161,142,157,202,118"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="234,119,249,140,261,167,264,198,259,227,254,226,258,198,256,168,244,143,230,122"/>
+</map>

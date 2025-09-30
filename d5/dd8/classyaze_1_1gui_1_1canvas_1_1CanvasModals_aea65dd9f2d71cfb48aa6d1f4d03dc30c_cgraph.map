@@ -1,0 +1,11 @@
+<map id="yaze::gui::canvas::CanvasModals::ShowAdvancedProperties" name="yaze::gui::canvas::CanvasModals::ShowAdvancedProperties">
+<area shape="rect" id="Node000001" title="Show advanced canvas properties modal." alt="" coords="5,34,210,90"/>
+<area shape="rect" id="Node000002" href="$d5/dd8/classyaze_1_1gui_1_1canvas_1_1CanvasModals.html#a13472d493c439fbadf315d51fd88a451" title=" " alt="" coords="274,5,454,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,45,258,38,259,43,211,50"/>
+<area shape="rect" id="Node000003" href="$d5/dd8/classyaze_1_1gui_1_1canvas_1_1CanvasModals.html#abd17581cce655140a3224d44d82f459d" title=" " alt="" coords="258,70,470,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="211,73,242,78,242,83,210,79"/>
+<area shape="rect" id="Node000004" href="$db/dc3/namespaceyaze_1_1gui_1_1canvas.html#a78f7b978c11b1f7a4d3006ed9dbfd926" title=" " alt="" coords="559,48,717,89"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="470,84,543,76,543,81,471,89"/>
+<area shape="rect" id="Node000005" href="$d4/d6f/classyaze_1_1gfx_1_1PerformanceDashboard.html#a17aa7d383b756039828f137ba8ddf004" title=" " alt="" coords="518,113,757,139"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="471,106,503,109,502,114,470,111"/>
+</map>

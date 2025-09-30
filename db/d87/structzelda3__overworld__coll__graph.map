@@ -1,0 +1,5 @@
+<map id="zelda3_overworld" name="zelda3_overworld">
+<area shape="rect" id="Node000001" title="Complete overworld data." alt="" coords="21,94,143,120"/>
+<area shape="rect" id="Node000002" href="$da/d93/structzelda3__overworld__map.html" title="Overworld map data." alt="" coords="5,5,159,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,47,85,94,79,94,79,47"/>
+</map>

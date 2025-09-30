@@ -1,0 +1,9 @@
+<map id="yaze::gui::DrawBitmapViewer" name="yaze::gui::DrawBitmapViewer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,78,193,104"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="241,5,364,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,75,225,48,227,53,142,80"/>
+<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a1507df8a1507303c3bec7aa263f360b0" title=" " alt="" coords="241,71,364,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,88,225,88,225,94,193,94"/>
+<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="241,136,364,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="142,102,227,129,225,134,141,107"/>
+</map>

@@ -1,8 +1,0 @@
-<map id="yaze::gfx::Bitmap::FindColorIndex" name="yaze::gfx::Bitmap::FindColorIndex">
-<area shape="rect" id="Node000001" title="Find color index in palette using optimized hash map lookup." alt="" coords="5,35,129,75"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a48b06add1af332570178c7c107169ee6" title="Hash a color for cache lookup." alt="" coords="177,5,300,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,42,161,36,162,41,130,47"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="348,35,471,75"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="129,54,177,55,300,55,332,54,332,60,300,60,177,60,129,59"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="301,34,333,39,332,44,300,39"/>
-</map>

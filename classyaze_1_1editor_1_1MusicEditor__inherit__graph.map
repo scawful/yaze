@@ -1,5 +1,0 @@
-<map id="yaze::editor::MusicEditor" name="yaze::editor::MusicEditor">
-<area shape="rect" id="Node000001" title="A class for editing music data in a Rom." alt="" coords="5,79,165,105"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="23,5,147,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,46,88,79,82,79,82,46"/>
-</map>

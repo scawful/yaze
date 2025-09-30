@@ -1,0 +1,10 @@
+<map id="yaze::gfx::palette_group_internal::LoadDungeonMainPalettes" name="yaze::gfx::palette_group_internal::LoadDungeonMainPalettes">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,201,83"/>
+<area shape="rect" id="Node000002" href="$d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb" title=" " alt="" coords="275,5,427,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,41,259,34,260,39,202,46"/>
+<area shape="rect" id="Node000003" href="$d0/d27/namespaceyaze_1_1gfx.html#a12f5360f217c5684780f5867ade296b1" title=" " alt="" coords="249,70,453,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="202,63,233,67,233,72,201,69"/>
+<area shape="rect" id="Node000004" href="$d0/d27/namespaceyaze_1_1gfx.html#a4e83a052d42017612243c3f81b538b7d" title=" " alt="" coords="501,70,690,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="453,80,485,80,485,86,453,86"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="555,72,547,62,552,52,569,46,596,44,626,46,641,53,639,58,625,51,596,49,570,51,556,56,553,61,559,68"/>
+</map>

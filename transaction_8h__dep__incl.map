@@ -1,9 +1,0 @@
-<map id="src/app/transaction.h" name="src/app/transaction.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="184,5,326,31"/>
-<area shape="rect" id="Node000002" href="$e2e__test__suite_8h.html" title=" " alt="" coords="5,79,150,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,40,123,81,121,76,213,35"/>
-<area shape="rect" id="Node000003" href="$e2e__rom__test_8cc.html" title=" " alt="" coords="174,79,336,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="258,46,258,79,252,79,252,46"/>
-<area shape="rect" id="Node000004" href="$rom__test_8cc.html" title=" " alt="" coords="360,87,526,112"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="299,35,415,84,413,88,297,40"/>
-</map>

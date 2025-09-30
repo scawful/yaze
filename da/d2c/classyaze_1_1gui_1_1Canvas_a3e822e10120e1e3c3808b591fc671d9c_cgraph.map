@@ -1,0 +1,11 @@
+<map id="yaze::gui::Canvas::ShowAdvancedCanvasProperties" name="yaze::gui::Canvas::ShowAdvancedCanvasProperties">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,221,145"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a694922bd86e7076a343deb4bafed62bf" title=" " alt="" coords="269,5,395,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,101,270,50,272,55,161,106"/>
+<area shape="rect" id="Node000004" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a9084927e7e6b80627d9f2b2f1d655b67" title=" " alt="" coords="269,71,395,111"/>
+<area shape="poly" id="edge2_Node000001_Node000004" title=" " alt="" coords="221,105,253,100,254,106,222,110"/>
+<area shape="rect" id="Node000006" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="270,136,394,177"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="222,138,255,143,255,148,221,143"/>
+<area shape="rect" id="Node000007" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="270,201,394,242"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="162,143,271,192,269,197,160,148"/>
+</map>

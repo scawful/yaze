@@ -1,0 +1,11 @@
+<map id="yaze::gui::Canvas::InitializeDefaults" name="yaze::gui::Canvas::InitializeDefaults">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,132,118"/>
+<area shape="rect" id="Node000002" href="$d7/d02/structyaze_1_1gui_1_1CanvasSelection.html#ac56a0c5832c16671b0d959909b229bdf" title=" " alt="" coords="192,5,366,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,74,179,55,198,49,199,54,181,60,127,79"/>
+<area shape="rect" id="Node000003" href="$dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#ab55bd18cb9404d720704a6e5270df926" title="Initialize the interaction handler." alt="" coords="193,70,365,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,95,177,95,177,100,132,100"/>
+<area shape="rect" id="Node000005" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a3453f1f5a0906844d99b8140d3f89c06" title=" " alt="" coords="180,149,378,190"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="127,116,181,135,199,142,198,147,179,140,125,121"/>
+<area shape="rect" id="Node000004" href="$dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#abe4b7fae6a26169810ba2036d56d6d2c" title="Clear all interaction state." alt="" coords="426,70,597,126"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="365,95,410,95,410,100,365,100"/>
+</map>

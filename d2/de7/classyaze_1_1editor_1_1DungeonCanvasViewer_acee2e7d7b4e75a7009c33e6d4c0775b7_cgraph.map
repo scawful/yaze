@@ -1,0 +1,7 @@
+<map id="yaze::editor::DungeonCanvasViewer::IsWithinCanvasBounds" name="yaze::editor::DungeonCanvasViewer::IsWithinCanvasBounds">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,208,79"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd" title=" " alt="" coords="256,5,382,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,40,240,35,241,41,208,46"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a5b4af30b100372bf2f0e388b1c878d7b" title=" " alt="" coords="256,71,382,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,72,241,77,240,82,207,77"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="yaze::gui::BppComparisonTool::SetSource" name="yaze::gui::BppComparisonTool::SetSource">
+<area shape="rect" id="Node000001" title="Set source bitmap for comparison." alt="" coords="5,71,174,111"/>
+<area shape="rect" id="Node000002" href="$d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#a203ecb0534d4687260851e1d27b32102" title=" " alt="" coords="222,71,403,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,88,206,88,206,94,174,94"/>
+<area shape="rect" id="Node000003" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#a7c7ed56a91eb64c41b9e67af82dca9d5" title="Convert bitmap data between BPP formats." alt="" coords="451,5,641,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="387,68,455,48,457,53,388,73"/>
+<area shape="rect" id="Node000011" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a985c964b37adc34496b5c6898712c8c0" title=" " alt="" coords="485,71,608,111"/>
+<area shape="poly" id="edge3_Node000002_Node000011" title=" " alt="" coords="403,88,469,88,469,94,403,94"/>
+<area shape="rect" id="Node000012" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#a678573c5ba599fdce7a0bc34515a0d93" title="Detect BPP format from bitmap data." alt="" coords="451,136,641,177"/>
+<area shape="poly" id="edge4_Node000002_Node000012" title=" " alt="" coords="388,109,457,129,455,134,387,114"/>
+</map>

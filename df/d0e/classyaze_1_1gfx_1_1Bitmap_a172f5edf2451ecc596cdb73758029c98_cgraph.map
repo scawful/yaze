@@ -1,0 +1,12 @@
+<map id="yaze::gfx::Bitmap::UpdateTexture" name="yaze::gfx::Bitmap::UpdateTexture">
+<area shape="rect" id="Node000001" title="Updates the underlying SDL_Texture when it already exists." alt="" coords="5,92,129,133"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="177,63,300,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,99,161,94,162,99,130,104"/>
+<area shape="rect" id="Node000008" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="368,120,491,161"/>
+<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="129,114,353,132,352,137,129,120"/>
+<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#a0439996c580b1b2860eadb6ebc6fcbaa" title="Allocate a new SDL texture with automatic cleanup." alt="" coords="348,5,511,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="300,62,345,48,346,53,301,67"/>
+<area shape="rect" id="Node000005" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="361,70,498,96"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="300,80,346,80,346,86,300,86"/>
+<area shape="poly" id="edge4_Node000002_Node000008" title=" " alt="" coords="301,99,354,115,352,120,300,104"/>
+</map>

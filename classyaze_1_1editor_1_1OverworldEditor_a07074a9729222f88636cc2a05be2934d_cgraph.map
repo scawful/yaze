@@ -1,7 +1,0 @@
-<map id="yaze::editor::OverworldEditor::Clear" name="yaze::editor::OverworldEditor::Clear">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,189,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Overworld.html#ac44618ad4337c4f46cc41b88b330d87c" title=" " alt="" coords="237,5,392,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,23,221,23,221,28,189,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Overworld.html#a3f756e95bf3daf66f09f1f09d69ff7b0" title=" " alt="" coords="440,5,595,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="392,23,424,23,424,28,392,28"/>
-</map>

@@ -1,0 +1,10 @@
+<map id="yaze::gfx::ScopedTimer::ScopedTimer" name="yaze::gfx::ScopedTimer::ScopedTimer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,26,159,67"/>
+<area shape="rect" id="Node000002" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="445,5,662,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,23,206,12,321,4,429,6,429,11,321,9,207,17,152,28"/>
+<area shape="rect" id="Node000003" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#acd3939c958a489fce176f44acf79d7ea" title="Check if performance monitoring is enabled." alt="" coords="207,26,397,67"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,44,191,44,191,49,159,49"/>
+<area shape="rect" id="Node000004" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a171cf20283195c9fb8da3abd8db09311" title="Start timing an operation." alt="" coords="207,91,397,132"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="153,64,217,84,216,89,152,70"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="397,33,429,29,430,35,398,38"/>
+</map>

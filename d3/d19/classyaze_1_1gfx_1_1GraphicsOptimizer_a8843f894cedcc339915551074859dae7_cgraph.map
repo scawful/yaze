@@ -1,0 +1,12 @@
+<map id="yaze::gfx::GraphicsOptimizer::OptimizeSheets" name="yaze::gfx::GraphicsOptimizer::OptimizeSheets">
+<area shape="rect" id="Node000001" title="Optimize multiple graphics sheets." alt="" coords="5,104,189,145"/>
+<area shape="rect" id="Node000002" href="$d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#ac8934ddf9d250f7f228b04ed830bf6cc" title="Optimize a single graphics sheet." alt="" coords="237,73,420,114"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,110,221,105,221,111,189,115"/>
+<area shape="rect" id="Node000016" href="$d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a092fe11bb77ef8e7339e13fc5c0f437e" title=" " alt="" coords="468,136,651,177"/>
+<area shape="poly" id="edge5_Node000001_Node000016" title=" " alt="" coords="189,128,453,146,452,152,189,133"/>
+<area shape="rect" id="Node000003" href="$d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a84ff97055dd879aea73c27973c94b251" title="Analyze graphics sheet for optimization opportunities." alt="" coords="468,5,651,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="399,70,473,48,474,53,401,75"/>
+<area shape="rect" id="Node000013" href="$d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a29b9197273833ca635664b356f918931" title=" " alt="" coords="468,71,651,111"/>
+<area shape="poly" id="edge3_Node000002_Node000013" title=" " alt="" coords="420,90,452,90,452,95,420,95"/>
+<area shape="poly" id="edge4_Node000002_Node000016" title=" " alt="" coords="407,112,468,129,466,134,405,117"/>
+</map>

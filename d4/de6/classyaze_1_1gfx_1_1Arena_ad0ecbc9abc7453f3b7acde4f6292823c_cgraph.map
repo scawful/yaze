@@ -1,0 +1,7 @@
+<map id="yaze::gfx::Arena::ProcessBatchTextureUpdates" name="yaze::gfx::Arena::ProcessBatchTextureUpdates">
+<area shape="rect" id="Node000001" title="Process all queued texture updates in a single batch." alt="" coords="5,39,170,79"/>
+<area shape="rect" id="Node000002" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ad0e525fd3b3316abb9a6f8ce00ad9b38" title="Update texture data from surface (with format conversion)" alt="" coords="218,5,376,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,43,202,38,202,43,170,49"/>
+<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#a5d9469436f3914eb5e5be98110c5c0be" title="Update texture data from surface for a specific region." alt="" coords="218,71,376,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,69,202,74,202,79,170,74"/>
+</map>

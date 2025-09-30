@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::stle16b_i" name="yaze::zelda3::stle16b_i">
+<area shape="rect" id="Node000001" title="Store little endian 16&#45;bit value using a byte pointer, offset by an index before dereferencing." alt="" coords="5,5,154,31"/>
+<area shape="rect" id="Node000002" href="$d5/d1f/namespaceyaze_1_1zelda3.html#a774997795015cda5de65dd2621c1284a" title=" " alt="" coords="202,5,340,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,16,186,16,186,21,154,21"/>
+</map>

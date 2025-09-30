@@ -1,7 +1,0 @@
-<map id="yaze::gfx::MemoryPool::AllocateAligned" name="yaze::gfx::MemoryPool::AllocateAligned">
-<area shape="rect" id="Node000001" title="Allocate memory block aligned to specified boundary." alt="" coords="5,5,154,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1MemoryPool.html#a316f711d134cc8ed9add904df9525b0c" title="Allocate memory block of specified size." alt="" coords="202,5,350,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,23,186,23,186,28,154,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1MemoryPool.html#a80d1d1a5570f5aafe456f6d161adb6a8" title=" " alt="" coords="398,5,546,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="350,23,382,23,382,28,350,28"/>
-</map>

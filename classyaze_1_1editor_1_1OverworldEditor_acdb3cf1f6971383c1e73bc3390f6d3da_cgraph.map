@@ -1,9 +1,0 @@
-<map id="yaze::editor::OverworldEditor::ScrollBlocksetCanvasToCurrentTile" name="yaze::editor::OverworldEditor::ScrollBlocksetCanvasToCurrentTile">
-<area shape="rect" id="Node000001" title="Scroll the blockset canvas to show the current selected tile16." alt="" coords="5,71,239,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="287,5,413,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,68,271,45,272,51,196,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gui_1_1Canvas.html#ac4e830a7d7229a0816a9059a6b20fec6" title=" " alt="" coords="287,71,413,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="239,88,271,88,271,94,239,94"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gui_1_1Canvas.html#a01bf7ad681e216aef246fd8f562a9a56" title=" " alt="" coords="287,136,413,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="196,109,272,131,271,137,194,114"/>
-</map>

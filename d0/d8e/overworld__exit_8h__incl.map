@@ -1,0 +1,12 @@
+<map id="src/app/zelda3/overworld/overworld_exit.h" name="src/app/zelda3/overworld/overworld_exit.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,171,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="47,168,108,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="71,48,55,69,43,95,41,110,44,126,59,154,54,157,39,127,35,110,37,93,50,67,67,45"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="52,94,124,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="91,46,91,78,85,78,85,46"/>
+<area shape="rect" id="Node000004" href="$dc/d54/common_8h.html" title=" " alt="" coords="148,94,295,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="123,44,189,83,186,88,120,49"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="198,123,117,163,114,158,196,118"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="195,168,248,193"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="224,120,224,152,219,152,219,120"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::ObjectParser::GetObjectSubtype" name="yaze::zelda3::ObjectParser::GetObjectSubtype">
+<area shape="rect" id="Node000001" title="Get object subtype information." alt="" coords="5,5,178,46"/>
+<area shape="rect" id="Node000002" href="$d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#af7be6d73b4620312b5731976b5c6baa1" title="Determine object subtype from ID." alt="" coords="226,5,398,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,23,210,23,210,28,178,28"/>
+</map>

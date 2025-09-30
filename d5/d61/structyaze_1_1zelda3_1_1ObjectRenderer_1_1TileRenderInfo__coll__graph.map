@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::ObjectRenderer::TileRenderInfo" name="yaze::zelda3::ObjectRenderer::TileRenderInfo">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,228,192,268"/>
+<area shape="rect" id="Node000002" href="$d1/dae/classyaze_1_1gfx_1_1Tile16.html" title="Tile composition of four 8x8 tiles." alt="" coords="43,139,154,165"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,180,101,227,96,227,96,180"/>
+<area shape="rect" id="Node000003" href="$d3/de4/classyaze_1_1gfx_1_1TileInfo.html" title="SNES 16&#45;bit tile metadata container." alt="" coords="39,5,158,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,47,101,138,96,138,96,47"/>
+</map>

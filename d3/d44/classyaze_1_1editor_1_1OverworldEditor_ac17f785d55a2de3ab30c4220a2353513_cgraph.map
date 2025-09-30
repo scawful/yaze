@@ -1,0 +1,12 @@
+<map id="yaze::editor::OverworldEditor::ProcessDeferredTextures" name="yaze::editor::OverworldEditor::ProcessDeferredTextures">
+<area shape="rect" id="Node000001" title="Create textures for deferred map bitmaps on demand." alt="" coords="5,29,189,70"/>
+<area shape="rect" id="Node000002" href="$da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="745,9,909,35"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,26,236,15,370,5,504,3,628,6,730,11,729,17,627,11,504,8,370,10,237,20,175,31"/>
+<area shape="rect" id="Node000003" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a6fdddbe4c23e52f94391f02af3725bb2" title="On&#45;demand map refresh that only updates what&#39;s actually needed." alt="" coords="237,29,458,70"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,47,221,47,221,52,189,52"/>
+<area shape="rect" id="Node000010" href="$da/d81/classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Create texture for bitmap on main thread." alt="" coords="279,95,416,135"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="178,68,265,91,263,96,177,73"/>
+<area shape="rect" id="Node000004" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#adac2da0e5bfc87f31ae50e5c4c3edd2e" title="On&#45;demand child map refresh with selective updates." alt="" coords="506,29,697,70"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="458,47,491,47,491,52,458,52"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="697,35,729,31,730,36,698,41"/>
+</map>

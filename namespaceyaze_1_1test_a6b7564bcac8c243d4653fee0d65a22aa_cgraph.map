@@ -1,9 +1,0 @@
-<map id="yaze::test::TEST" name="yaze::test::TEST">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,78,120,104"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1editor_1_1DungeonToolset.html#a47e8e7a0781970c9429ea561ae8c4deb" title=" " alt="" coords="168,5,353,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,75,181,49,183,54,105,80"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1editor_1_1DungeonToolset.html#ae433049c50019f665fd95694780dac20" title=" " alt="" coords="168,71,353,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="120,88,152,88,152,94,120,94"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1editor_1_1DungeonToolset.html#a2b2d2cb99114b9f22de436c0685a923e" title=" " alt="" coords="168,136,353,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="105,102,183,128,181,133,103,107"/>
-</map>

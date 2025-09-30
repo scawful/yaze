@@ -1,0 +1,12 @@
+<map id="yaze::Rom::WriteTransaction" name="yaze::Rom::WriteTransaction">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,190,56"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="452,5,574,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,35,436,20,437,25,190,41"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a8b05e9e0a0266a95d15ec694e6b6d4e6" title=" " alt="" coords="238,56,392,82"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,52,223,55,222,61,190,57"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="367,53,445,33,446,38,369,58"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a3f76910dd3716dc67f477e7da77cee33" title=" " alt="" coords="442,55,584,80"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="392,66,427,65,427,71,392,71"/>
+<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html#a3411bbc77e219c54497575d362859c8f" title=" " alt="" coords="440,104,586,130"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="372,80,443,97,441,102,371,85"/>
+</map>

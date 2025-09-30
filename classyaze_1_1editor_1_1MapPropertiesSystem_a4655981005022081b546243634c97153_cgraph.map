@@ -1,9 +1,0 @@
-<map id="yaze::editor::MapPropertiesSystem::DrawOverlayPreviewOnMap" name="yaze::editor::MapPropertiesSystem::DrawOverlayPreviewOnMap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,240,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1Canvas.html#a532038da57a64fa8f26c0a14bba26b11" title=" " alt="" coords="302,5,429,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,68,286,44,288,49,201,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="302,71,429,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="240,88,287,88,287,94,240,94"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1zelda3_1_1Overworld.html#a7035830b7589452ca012eae392aa7aed" title=" " alt="" coords="288,136,443,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="201,109,273,129,272,134,200,114"/>
-</map>

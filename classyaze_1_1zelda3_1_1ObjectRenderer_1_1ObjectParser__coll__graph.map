@@ -1,9 +1,0 @@
-<map id="yaze::zelda3::ObjectRenderer::ObjectParser" name="yaze::zelda3::ObjectRenderer::ObjectParser">
-<area shape="rect" id="Node000001" title=" " alt="" coords="97,198,283,238"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="150,109,230,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,150,192,197,187,197,187,150"/>
-<area shape="rect" id="Node000003" href="$structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,177,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="99,60,111,83,129,98,150,108,148,113,126,102,107,87,94,62"/>
-<area shape="rect" id="Node000004" href="$structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="201,13,378,39"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="283,54,274,71,262,87,245,101,225,111,223,106,242,96,258,83,270,68,278,52"/>
-</map>

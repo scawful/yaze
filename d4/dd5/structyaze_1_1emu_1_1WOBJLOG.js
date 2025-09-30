@@ -1,0 +1,6 @@
+var structyaze_1_1emu_1_1WOBJLOG =
+[
+    [ "unused", "d4/dd5/structyaze_1_1emu_1_1WOBJLOG.html#a570daf2ea4fde30a8fdc6634fcd9ce47", null ],
+    [ "mask_logic_color", "d4/dd5/structyaze_1_1emu_1_1WOBJLOG.html#ab1cc39b2a815421327f40e2f08f81af7", null ],
+    [ "mask_logic_obj", "d4/dd5/structyaze_1_1emu_1_1WOBJLOG.html#a401a58fd3b55d5d71d24db2ab1f3165f", null ]
+];

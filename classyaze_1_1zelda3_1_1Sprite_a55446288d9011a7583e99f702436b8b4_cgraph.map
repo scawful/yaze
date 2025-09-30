@@ -1,7 +1,0 @@
-<map id="yaze::zelda3::Sprite::DrawSpriteTile" name="yaze::zelda3::Sprite::DrawSpriteTile">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,136,64"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1Sprite.html#ae640a5c086d36e3611788acd66cb75f4" title=" " alt="" coords="184,5,326,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,32,168,27,168,33,136,37"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1zelda3_1_1Sprite.html#ae019782d3eb9d0552f39307dfacdb5e6" title=" " alt="" coords="184,55,326,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="136,49,168,54,168,59,136,55"/>
-</map>

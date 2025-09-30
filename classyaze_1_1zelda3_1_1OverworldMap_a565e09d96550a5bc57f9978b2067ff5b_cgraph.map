@@ -1,7 +1,0 @@
-<map id="yaze::zelda3::OverworldMap::LoadOverlay" name="yaze::zelda3::OverworldMap::LoadOverlay">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,186,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1zelda3_1_1OverworldMap.html#a23c6abbeb479d62bbc97c2d3b74d3888" title=" " alt="" coords="234,5,414,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,23,218,23,218,28,186,28"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="462,13,571,39"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="414,23,447,23,447,28,414,28"/>
-</map>

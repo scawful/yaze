@@ -1,0 +1,11 @@
+<map id="yaze::gui::BppConversionDialog::RenderPreview" name="yaze::gui::BppConversionDialog::RenderPreview">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,170,79"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a1507df8a1507303c3bec7aa263f360b0" title=" " alt="" coords="238,5,362,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,43,223,35,223,40,170,49"/>
+<area shape="rect" id="Node000003" href="$db/d56/classyaze_1_1gui_1_1BppConversionDialog.html#a7f435742d8045060daa6fd2a172cf6d6" title=" " alt="" coords="218,71,382,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,69,203,74,202,79,169,74"/>
+<area shape="rect" id="Node000004" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#a7c7ed56a91eb64c41b9e67af82dca9d5" title="Convert bitmap data between BPP formats." alt="" coords="430,37,620,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="382,76,414,71,415,77,383,82"/>
+<area shape="rect" id="Node000012" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a985c964b37adc34496b5c6898712c8c0" title=" " alt="" coords="464,103,587,143"/>
+<area shape="poly" id="edge4_Node000003_Node000012" title=" " alt="" coords="383,100,448,109,448,115,382,105"/>
+</map>

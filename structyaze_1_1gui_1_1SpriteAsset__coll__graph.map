@@ -1,5 +1,0 @@
-<map id="yaze::gui::SpriteAsset" name="yaze::gui::SpriteAsset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="7,79,152,105"/>
-<area shape="rect" id="Node000002" href="$structyaze_1_1gui_1_1AssetObject.html" title=" " alt="" coords="5,5,154,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,46,82,79,77,79,77,46"/>
-</map>

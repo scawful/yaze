@@ -1,5 +1,0 @@
-<map id="yaze::editor::OverworldEditor::HandleMapInteraction" name="yaze::editor::OverworldEditor::HandleMapInteraction">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,189,46"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gui_1_1Canvas.html#a49545e3d19ee62eaa59f0bdd7495d719" title=" " alt="" coords="237,5,369,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,23,221,23,221,28,189,28"/>
-</map>

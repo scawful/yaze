@@ -1,0 +1,9 @@
+<map id="yaze::gui::canvas::CanvasContextMenu::RenderPerformanceMenu" name="yaze::gui::canvas::CanvasContextMenu::RenderPerformanceMenu">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,300,88"/>
+<area shape="rect" id="Node000002" href="$d4/d6f/classyaze_1_1gfx_1_1PerformanceDashboard.html#a17aa7d383b756039828f137ba8ddf004" title=" " alt="" coords="348,5,587,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="286,44,365,31,366,37,287,49"/>
+<area shape="rect" id="Node000003" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="359,55,576,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="300,65,343,65,343,70,300,70"/>
+<area shape="rect" id="Node000004" href="$d4/d6f/classyaze_1_1gfx_1_1PerformanceDashboard.html#a299c35628e9a5ea90833099b019100a5" title="Show/hide the dashboard." alt="" coords="361,105,574,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="268,86,346,100,345,105,267,91"/>
+</map>

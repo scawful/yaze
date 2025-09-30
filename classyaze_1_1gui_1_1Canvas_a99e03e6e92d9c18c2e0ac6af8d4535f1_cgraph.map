@@ -1,9 +1,0 @@
-<map id="yaze::gui::Canvas::SetZoomToFit" name="yaze::gui::Canvas::SetZoomToFit">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,132,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="180,5,303,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,68,170,49,172,54,125,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919" title=" " alt="" coords="180,71,303,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,88,164,88,164,94,132,94"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="180,136,303,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="125,109,172,128,170,133,123,114"/>
-</map>

@@ -1,0 +1,27 @@
+var classyaze_1_1gui_1_1BppFormatUI =
+[
+    [ "BppFormatUI", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a31eb6eeef520797f98f41edc276953e3", null ],
+    [ "RenderFormatSelector", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a0630f792705ff6b6ab9c3048c28a0af5", null ],
+    [ "RenderAnalysisPanel", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a0e01a70bd4fabfba091be483448f6218", null ],
+    [ "RenderConversionPreview", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#ad0b9f66350ef70e5716fc2d3ad6499ce", null ],
+    [ "RenderSheetAnalysis", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a1ccfdca10738b89fc1967b7fa2aa0ee8", null ],
+    [ "GetSelectedFormat", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#aa1e5b7e123ad70fcb8db0575613324b1", null ],
+    [ "SetSelectedFormat", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a132da45fc705d3952c2c64a2b4fe3314", null ],
+    [ "IsConversionAvailable", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#aae9f53598e0239adc284af4e01d3029c", null ],
+    [ "GetConversionEfficiency", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a1620f5671fb45fc7d3dfeeddce3fad04", null ],
+    [ "RenderFormatInfo", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#ab2617ae2801baf8deb515e73fa91e066", null ],
+    [ "RenderColorUsageChart", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#af4625f1f6ec3f09849dd4fe45bf75e27", null ],
+    [ "RenderConversionHistory", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#ab22779c078839d9c0d039d86d0250d57", null ],
+    [ "GetFormatDescription", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a8d549e5d7b9234953d81697620ea290c", null ],
+    [ "GetFormatColor", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a341ca17481d1b473e183ceff662db613", null ],
+    [ "UpdateAnalysisCache", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#ab704dbfc967865bfc5104144955de43b", null ],
+    [ "id_", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a57fdafa04a77d1fe142b6306beb48991", null ],
+    [ "selected_format_", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#ae2de6f2904eed3cd8c47afa1e22abea3", null ],
+    [ "preview_format_", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#ad141d7b05ac535e12ffb4a25cd071347", null ],
+    [ "show_analysis_", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a230b7ff330d0e7cf297954c561681ad4", null ],
+    [ "show_preview_", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#ae1abe5c912ac559a5dd55585c658782e", null ],
+    [ "show_sheet_analysis_", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a7895f3206ffbfd568b7deeb9fb3a987e", null ],
+    [ "cached_analysis_", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#ab78bf5f1ce18304de4a3903c54de71bd", null ],
+    [ "format_changed_", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#acac74e1cee13221b6a814c12949b217a", null ],
+    [ "last_analysis_sheet_", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a90ceab2154c581aa267fd42d6e5cd908", null ]
+];

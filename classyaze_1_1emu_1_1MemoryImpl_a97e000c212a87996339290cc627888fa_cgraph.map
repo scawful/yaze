@@ -1,9 +1,0 @@
-<map id="yaze::emu::MemoryImpl::cart_read" name="yaze::emu::MemoryImpl::cart_read">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,161,111"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1emu_1_1MemoryImpl.html#aaf695407eab1c0d51a7dc0388db3f5f5" title=" " alt="" coords="209,5,364,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,68,205,49,207,54,149,73"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1emu_1_1MemoryImpl.html#a73532365bb6fcd9a608f577c383eb1b3" title=" " alt="" coords="209,71,364,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,88,193,88,193,94,161,94"/>
-<area shape="rect" id="Node000004" href="$classyaze_1_1emu_1_1MemoryImpl.html#aad1b29fbe4a5143336aa7c6ecbd1c1c4" title=" " alt="" coords="209,136,364,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="149,109,207,128,205,133,148,114"/>
-</map>

@@ -1,0 +1,9 @@
+<map id="yaze::zelda3::GameEntity" name="yaze::zelda3::GameEntity">
+<area shape="rect" id="Node000001" title="Base class for all overworld and dungeon entities." alt="" coords="5,55,169,80"/>
+<area shape="rect" id="Node000002" href="$d3/d5a/classyaze_1_1zelda3_1_1OverworldEntrance.html" title=" " alt="" coords="217,5,423,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,48,255,29,256,34,167,53"/>
+<area shape="rect" id="Node000003" href="$d6/d2f/classyaze_1_1zelda3_1_1OverworldExit.html" title=" " alt="" coords="232,55,408,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,65,231,65,231,70,184,70"/>
+<area shape="rect" id="Node000004" href="$d1/d26/classyaze_1_1zelda3_1_1OverworldItem.html" title=" " alt="" coords="229,104,411,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="167,82,256,101,255,106,166,87"/>
+</map>

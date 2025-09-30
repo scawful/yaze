@@ -1,0 +1,11 @@
+<map id="yaze::editor::OverworldEditor::DrawScratchSpacePattern" name="yaze::editor::OverworldEditor::DrawScratchSpacePattern">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,189,79"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a49545e3d19ee62eaa59f0bdd7495d719" title=" " alt="" coords="262,5,395,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,43,246,35,247,40,189,48"/>
+<area shape="rect" id="Node000003" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aee6ad009e6007c1e881c31d4b8f05edd" title=" " alt="" coords="237,71,420,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,69,221,74,221,79,188,74"/>
+<area shape="rect" id="Node000004" href="$da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="472,53,635,79"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="420,78,456,74,456,79,420,83"/>
+<area shape="rect" id="Node000005" href="$d0/d27/namespaceyaze_1_1gfx.html#a85cdb560638714d7afc71b20b1b8526c" title=" " alt="" coords="468,102,638,128"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="420,98,453,102,452,107,420,103"/>
+</map>

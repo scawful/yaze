@@ -1,8 +1,0 @@
-<map id="yaze_app_main" name="yaze_app_main">
-<area shape="rect" id="Node000001" title="Main entry point for the YAZE application." alt="" coords="5,58,116,84"/>
-<area shape="rect" id="Node000002" href="$namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577" title=" " alt="" coords="178,5,289,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,55,162,41,164,47,113,60"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1util_1_1FlagParser.html#aa5d5b0f51665afbb0d6bf9e41859b051" title=" " alt="" coords="164,95,303,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="114,82,150,91,148,96,113,87"/>
-<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="200,94,198,85,204,76,216,70,233,68,252,70,264,77,261,81,251,76,233,73,217,75,207,80,204,86,205,94"/>
-</map>

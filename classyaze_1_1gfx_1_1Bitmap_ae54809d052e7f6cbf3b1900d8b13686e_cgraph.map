@@ -1,7 +1,0 @@
-<map id="yaze::gfx::Bitmap::UpdateTextureData" name="yaze::gfx::Bitmap::UpdateTextureData">
-<area shape="rect" id="Node000001" title="Updates the texture data from the surface." alt="" coords="5,27,139,68"/>
-<area shape="rect" id="Node000002" href="$classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="197,5,335,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,35,181,28,182,34,140,40"/>
-<area shape="rect" id="Node000003" href="$classyaze_1_1gfx_1_1Arena.html#ad0e525fd3b3316abb9a6f8ce00ad9b38" title="Update texture data from surface (with format conversion)" alt="" coords="187,55,345,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="140,54,171,59,171,64,139,60"/>
-</map>

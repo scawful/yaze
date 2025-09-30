@@ -1,0 +1,7 @@
+<map id="yaze::editor::EditorManager::DrawSessionRenameDialog" name="yaze::editor::EditorManager::DrawSessionRenameDialog">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,194,46"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a43424c51697f1025f326bc3ff520e4c4" title=" " alt="" coords="242,5,416,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,23,226,23,226,28,194,28"/>
+<area shape="rect" id="Node000003" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="464,5,638,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="416,23,448,23,448,28,416,28"/>
+</map>

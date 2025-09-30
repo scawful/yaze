@@ -1,0 +1,7 @@
+<map id="yaze::gui::canvas::CanvasPerformanceIntegration::Initialize" name="yaze::gui::canvas::CanvasPerformanceIntegration::Initialize">
+<area shape="rect" id="Node000001" title="Initialize performance integration." alt="" coords="5,24,206,79"/>
+<area shape="rect" id="Node000002" href="$d4/d6f/classyaze_1_1gfx_1_1PerformanceDashboard.html#a17aa7d383b756039828f137ba8ddf004" title=" " alt="" coords="254,5,493,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,36,249,31,250,36,207,42"/>
+<area shape="rect" id="Node000003" href="$d3/d30/structyaze_1_1gui_1_1canvas_1_1CanvasPerformanceMetrics.html#a55ed08d0b369b103b9aefefdd6240efa" title=" " alt="" coords="282,56,465,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="207,61,267,68,266,73,206,66"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="yaze::emu::ResetDma" name="yaze::emu::ResetDma">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,112,151,137"/>
+<area shape="rect" id="Node000002" href="$de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#a4423903e4da3f0e0f4acef1e3db06de6" title=" " alt="" coords="208,5,363,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,109,197,57,213,50,215,55,200,61,103,113"/>
+<area shape="rect" id="Node000003" href="$de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#a11899a4b48ba8ab298e48c12cd2000b2" title=" " alt="" coords="208,71,363,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="150,110,192,103,193,109,151,115"/>
+<area shape="rect" id="Node000004" href="$de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#ae286a6c904922ce9f44c7996a51e71b3" title=" " alt="" coords="199,136,372,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="151,133,184,138,183,143,151,138"/>
+<area shape="rect" id="Node000005" href="$de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#a52702d71239294b71aa303158a30bca9" title=" " alt="" coords="199,201,372,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="103,135,200,186,215,193,213,197,198,191,101,140"/>
+</map>

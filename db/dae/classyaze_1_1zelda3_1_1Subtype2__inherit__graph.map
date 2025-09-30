@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::Subtype2" name="yaze::zelda3::Subtype2">
+<area shape="rect" id="Node000001" title=" " alt="" coords="14,79,165,105"/>
+<area shape="rect" id="Node000002" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html" title=" " alt="" coords="5,5,174,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,46,92,79,87,79,87,46"/>
+</map>

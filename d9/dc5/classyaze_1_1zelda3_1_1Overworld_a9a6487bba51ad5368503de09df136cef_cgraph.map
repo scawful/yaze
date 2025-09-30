@@ -1,0 +1,9 @@
+<map id="yaze::zelda3::Overworld::LoadSprites" name="yaze::zelda3::Overworld::LoadSprites">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,161,64"/>
+<area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#ac8964f7153a9e49bd61c81b936feab3d" title=" " alt="" coords="209,23,364,64"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,41,193,41,193,46,161,46"/>
+<area shape="rect" id="Node000003" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4" title=" " alt="" coords="412,5,595,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="364,32,396,28,397,33,365,37"/>
+<area shape="rect" id="Node000004" href="$dc/d46/namespaceyaze.html#aefc163a31f0531da9e1636396859b450" title=" " alt="" coords="447,55,561,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="365,49,431,57,430,62,364,55"/>
+</map>

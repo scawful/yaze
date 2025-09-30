@@ -1,0 +1,11 @@
+<map id="yaze::gfx::GraphicsOptimizer::ApplyOptimizations" name="yaze::gfx::GraphicsOptimizer::ApplyOptimizations">
+<area shape="rect" id="Node000001" title="Apply optimization recommendations." alt="" coords="5,92,189,133"/>
+<area shape="rect" id="Node000002" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#a7c7ed56a91eb64c41b9e67af82dca9d5" title="Convert bitmap data between BPP formats." alt="" coords="250,5,441,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,89,236,55,256,48,258,53,238,60,149,94"/>
+<area shape="rect" id="Node000010" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#aa4801c6b5c08e38becdba8bee6a6a2f8" title=" " alt="" coords="237,70,454,96"/>
+<area shape="poly" id="edge2_Node000001_Node000010" title=" " alt="" coords="189,99,221,95,221,100,189,104"/>
+<area shape="rect" id="Node000011" href="$d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#a078154d60a1106c9f1eace15c5ab1ebe" title="Optimize palette for specific BPP format." alt="" coords="250,120,441,161"/>
+<area shape="poly" id="edge3_Node000001_Node000011" title=" " alt="" coords="189,120,235,125,234,131,189,125"/>
+<area shape="rect" id="Node000015" href="$d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a092fe11bb77ef8e7339e13fc5c0f437e" title=" " alt="" coords="254,185,437,226"/>
+<area shape="poly" id="edge4_Node000001_Node000015" title=" " alt="" coords="144,131,238,170,259,177,258,183,236,175,142,136"/>
+</map>

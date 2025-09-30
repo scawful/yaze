@@ -1,9 +1,0 @@
-<map id="src/app/editor/overworld/entity.h" name="src/app/editor/overworld/entity.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="189,5,350,46"/>
-<area shape="rect" id="Node000002" href="$entity_8cc.html" title=" " alt="" coords="5,94,166,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="215,55,128,96,126,91,213,50"/>
-<area shape="rect" id="Node000003" href="$overworld__editor_8cc.html" title=" " alt="" coords="189,94,350,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="272,62,272,94,267,94,267,62"/>
-<area shape="rect" id="Node000004" href="$scratch__space_8cc.html" title=" " alt="" coords="373,94,534,135"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="326,50,413,91,411,96,324,55"/>
-</map>

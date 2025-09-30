@@ -8,8 +8,8 @@ var dir_767a2d6ce89f966c317c25dc7e3aed5d =
     [ "overworld", "dir_2a6e74d3eed253325bbc2e3058622b3c.html", "dir_2a6e74d3eed253325bbc2e3058622b3c" ],
     [ "sprite", "dir_d61788e60caad948d761f6bd7dfa638e.html", "dir_d61788e60caad948d761f6bd7dfa638e" ],
     [ "system", "dir_6786299e5fb540707e8551af9d97f855.html", "dir_6786299e5fb540707e8551af9d97f855" ],
-    [ "editor.h", "editor_8h.html", "editor_8h" ],
-    [ "editor_manager.cc", "editor__manager_8cc.html", "editor__manager_8cc" ],
-    [ "editor_manager.h", "editor__manager_8h.html", "editor__manager_8h" ],
-    [ "editor_safeguards.h", "editor__safeguards_8h.html", "editor__safeguards_8h" ]
+    [ "editor.h", "dd/d60/editor_8h.html", "dd/d60/editor_8h" ],
+    [ "editor_manager.cc", "d0/dd9/editor__manager_8cc.html", "d0/dd9/editor__manager_8cc" ],
+    [ "editor_manager.h", "df/d60/editor__manager_8h.html", "df/d60/editor__manager_8h" ],
+    [ "editor_safeguards.h", "dc/ddd/editor__safeguards_8h.html", "dc/ddd/editor__safeguards_8h" ]
 ];

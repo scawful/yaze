@@ -1,7 +1,0 @@
-<map id="src/app/emu/cpu/internal/opcodes.h" name="src/app/emu/cpu/internal/opcodes.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="97,5,261,46"/>
-<area shape="rect" id="Node000002" href="$cpu_8cc.html" title=" " alt="" coords="5,94,166,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,58,102,95,98,91,142,54"/>
-<area shape="rect" id="Node000003" href="$emulator_8cc.html" title=" " alt="" coords="190,94,354,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,54,259,91,256,95,212,58"/>
-</map>

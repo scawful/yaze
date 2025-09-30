@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::RoomEntrance::RoomEntrance" name="yaze::zelda3::RoomEntrance::RoomEntrance">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,187,46"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="235,13,346,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,23,219,23,219,28,187,28"/>
+</map>
