@@ -8,6 +8,7 @@
 
 #include "app/gfx/bitmap.h"
 #include "app/gfx/performance_profiler.h"
+#include "app/gfx/bpp_format_manager.h"
 
 namespace yaze {
 namespace gfx {
@@ -89,6 +90,14 @@ class AtlasRenderer {
   int AddBitmap(const Bitmap& bitmap);
 
   /**
+   * @brief Add a bitmap to the atlas with BPP format optimization
+   * @param bitmap Bitmap to add to atlas
+   * @param target_bpp Target BPP format for optimization
+   * @return Atlas ID for referencing this bitmap
+   */
+  int AddBitmapWithBppOptimization(const Bitmap& bitmap, BppFormat target_bpp);
+
+  /**
    * @brief Remove a bitmap from the atlas
    * @param atlas_id Atlas ID of bitmap to remove
    */
@@ -106,6 +115,14 @@ class AtlasRenderer {
    * @param render_commands Vector of render commands (atlas_id, x, y, scale)
    */
   void RenderBatch(const std::vector<RenderCommand>& render_commands);
+
+  /**
+   * @brief Render multiple bitmaps with BPP-aware batching
+   * @param render_commands Vector of render commands
+   * @param bpp_groups Map of BPP format to command groups for optimization
+   */
+  void RenderBatchWithBppOptimization(const std::vector<RenderCommand>& render_commands,
+                                     const std::unordered_map<BppFormat, std::vector<int>>& bpp_groups);
 
   /**
    * @brief Get atlas statistics
@@ -149,9 +166,14 @@ class AtlasRenderer {
     SDL_Rect uv_rect;  // UV coordinates in atlas
     SDL_Texture* texture;
     bool in_use;
+    BppFormat bpp_format;  // BPP format of this entry
+    int original_width;
+    int original_height;
     
-    AtlasEntry(int id, const SDL_Rect& rect, SDL_Texture* tex)
-        : atlas_id(id), uv_rect(rect), texture(tex), in_use(true) {}
+    AtlasEntry(int id, const SDL_Rect& rect, SDL_Texture* tex, BppFormat bpp = BppFormat::kBpp8, 
+               int width = 0, int height = 0)
+        : atlas_id(id), uv_rect(rect), texture(tex), in_use(true), 
+          bpp_format(bpp), original_width(width), original_height(height) {}
   };
 
   struct Atlas {

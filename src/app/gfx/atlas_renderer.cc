@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include "app/gfx/bpp_format_manager.h"
 
 namespace yaze {
 namespace gfx {
@@ -36,8 +37,9 @@ int AtlasRenderer::AddBitmap(const Bitmap& bitmap) {
     int atlas_id = next_atlas_id_++;
     auto& atlas = *atlases_[current_atlas_];
     
-    // Create atlas entry
-    atlas.entries.emplace_back(atlas_id, uv_rect, bitmap.texture());
+    // Create atlas entry with BPP format information
+    BppFormat bpp_format = BppFormatManager::Get().DetectFormat(bitmap.vector(), bitmap.width(), bitmap.height());
+    atlas.entries.emplace_back(atlas_id, uv_rect, bitmap.texture(), bpp_format, bitmap.width(), bitmap.height());
     atlas_lookup_[atlas_id] = &atlas.entries.back();
     
     // Copy bitmap data to atlas texture
@@ -54,7 +56,8 @@ int AtlasRenderer::AddBitmap(const Bitmap& bitmap) {
     int atlas_id = next_atlas_id_++;
     auto& atlas = *atlases_[current_atlas_];
     
-    atlas.entries.emplace_back(atlas_id, uv_rect, bitmap.texture());
+    BppFormat bpp_format = BppFormatManager::Get().DetectFormat(bitmap.vector(), bitmap.width(), bitmap.height());
+    atlas.entries.emplace_back(atlas_id, uv_rect, bitmap.texture(), bpp_format, bitmap.width(), bitmap.height());
     atlas_lookup_[atlas_id] = &atlas.entries.back();
     
     // Copy bitmap data to atlas texture
@@ -66,6 +69,33 @@ int AtlasRenderer::AddBitmap(const Bitmap& bitmap) {
   }
   
   return -1; // Failed to add
+}
+
+int AtlasRenderer::AddBitmapWithBppOptimization(const Bitmap& bitmap, BppFormat target_bpp) {
+  if (!bitmap.is_active() || !bitmap.texture()) {
+    return -1; // Invalid bitmap
+  }
+  
+  ScopedTimer timer("atlas_add_bitmap_bpp_optimized");
+  
+  // Detect current BPP format
+  BppFormat current_bpp = BppFormatManager::Get().DetectFormat(bitmap.vector(), bitmap.width(), bitmap.height());
+  
+  // If formats match, use standard addition
+  if (current_bpp == target_bpp) {
+    return AddBitmap(bitmap);
+  }
+  
+  // Convert bitmap to target BPP format
+  auto converted_data = BppFormatManager::Get().ConvertFormat(
+    bitmap.vector(), current_bpp, target_bpp, bitmap.width(), bitmap.height());
+  
+  // Create temporary bitmap with converted data
+  Bitmap converted_bitmap(bitmap.width(), bitmap.height(), bitmap.depth(), converted_data, bitmap.palette());
+  converted_bitmap.CreateTexture(renderer_);
+  
+  // Add converted bitmap to atlas
+  return AddBitmap(converted_bitmap);
 }
 
 void AtlasRenderer::RemoveBitmap(int atlas_id) {
@@ -163,6 +193,74 @@ void AtlasRenderer::RenderBatch(const std::vector<RenderCommand>& render_command
         SDL_RenderCopy(renderer_, atlas.texture, &entry->uv_rect, &dest_rect);
       } else {
         SDL_RenderCopy(renderer_, atlas.texture, &entry->uv_rect, &dest_rect);
+      }
+    }
+  }
+}
+
+void AtlasRenderer::RenderBatchWithBppOptimization(const std::vector<RenderCommand>& render_commands,
+                                                  const std::unordered_map<BppFormat, std::vector<int>>& bpp_groups) {
+  if (render_commands.empty()) {
+    return;
+  }
+  
+  ScopedTimer timer("atlas_batch_render_bpp_optimized");
+  
+  // Render each BPP group separately for optimal performance
+  for (const auto& [bpp_format, command_indices] : bpp_groups) {
+    if (command_indices.empty()) continue;
+    
+    // Group commands by atlas for this BPP format
+    std::unordered_map<int, std::vector<const RenderCommand*>> atlas_groups;
+    
+    for (int cmd_index : command_indices) {
+      if (cmd_index >= 0 && cmd_index < static_cast<int>(render_commands.size())) {
+        const auto& cmd = render_commands[cmd_index];
+        auto it = atlas_lookup_.find(cmd.atlas_id);
+        if (it != atlas_lookup_.end() && it->second->in_use && it->second->bpp_format == bpp_format) {
+          // Find which atlas contains this entry
+          for (size_t i = 0; i < atlases_.size(); ++i) {
+            for (const auto& entry : atlases_[i]->entries) {
+              if (entry.atlas_id == cmd.atlas_id) {
+                atlas_groups[i].push_back(&cmd);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Render each atlas group for this BPP format
+    for (const auto& [atlas_index, commands] : atlas_groups) {
+      if (commands.empty()) continue;
+      
+      auto& atlas = *atlases_[atlas_index];
+      
+      // Set atlas texture with BPP-specific blend mode
+      SDL_SetTextureBlendMode(atlas.texture, SDL_BLENDMODE_BLEND);
+      
+      // Render all commands for this atlas and BPP format
+      for (const auto* cmd : commands) {
+        auto it = atlas_lookup_.find(cmd->atlas_id);
+        if (it == atlas_lookup_.end()) continue;
+        
+        AtlasEntry* entry = it->second;
+        
+        // Calculate destination rectangle
+        SDL_Rect dest_rect = {
+          static_cast<int>(cmd->x),
+          static_cast<int>(cmd->y),
+          static_cast<int>(entry->uv_rect.w * cmd->scale_x),
+          static_cast<int>(entry->uv_rect.h * cmd->scale_y)
+        };
+        
+        // Apply rotation if needed
+        if (std::abs(cmd->rotation) > 0.001F) {
+          SDL_RenderCopy(renderer_, atlas.texture, &entry->uv_rect, &dest_rect);
+        } else {
+          SDL_RenderCopy(renderer_, atlas.texture, &entry->uv_rect, &dest_rect);
+        }
       }
     }
   }
