@@ -1051,15 +1051,8 @@ absl::Status OverworldEditor::Copy() {
     return absl::FailedPreconditionError("No editor context");
   // If a rectangle selection exists, copy its tile16 IDs into shared clipboard
   if (ow_map_canvas_.select_rect_active() &&
-      !ow_map_canvas_.selected_tiles().empty()) {
+      !ow_map_canvas_.selected_points().empty()) {
     std::vector<int> ids;
-    ids.reserve(ow_map_canvas_.selected_tiles().size());
-    overworld_.set_current_world(current_world_);
-    overworld_.set_current_map(current_map_);
-    for (const auto& pos : ow_map_canvas_.selected_tiles()) {
-      ids.push_back(overworld_.GetTileFromPosition(pos));
-    }
-    // Determine width/height in tile16 based on selection bounds
     const auto start = ow_map_canvas_.selected_points()[0];
     const auto end = ow_map_canvas_.selected_points()[1];
     const int start_x =
@@ -1072,6 +1065,14 @@ absl::Status OverworldEditor::Copy() {
         static_cast<int>(std::floor(std::max(start.y, end.y) / 16.0f));
     const int width = end_x - start_x + 1;
     const int height = end_y - start_y + 1;
+    ids.reserve(width * height);
+    overworld_.set_current_world(current_world_);
+    overworld_.set_current_map(current_map_);
+    for (int y = start_y; y <= end_y; ++y) {
+      for (int x = start_x; x <= end_x; ++x) {
+        ids.push_back(overworld_.GetTile(x, y));
+      }
+    }
 
     context_->shared_clipboard.overworld_tile16_ids = std::move(ids);
     context_->shared_clipboard.overworld_width = width;

@@ -61,6 +61,7 @@ void Canvas::InitializeDefaults() {
   config_.global_scale = 1.0f;
   config_.canvas_size = ImVec2(0, 0);
   config_.custom_canvas_size = false;
+  config_.clamp_rect_to_local_maps = false;
   
   // Initialize selection state
   selection_.Clear();
@@ -1040,8 +1041,8 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
     for (int y = start_y; y <= end_y; y += tile16_size) {
       for (int x = start_x; x <= end_x; x += tile16_size) {
         // Determine which local map (512x512) the tile is in
-        int local_map_x = x / small_map_size;
-        int local_map_y = y / small_map_size;
+        int local_map_x = (x / small_map_size) % 8;
+        int local_map_y = (y / small_map_size) % 8;
 
         // Calculate the tile's position within its local map
         int tile16_x = (x % small_map_size) / tile16_size;
