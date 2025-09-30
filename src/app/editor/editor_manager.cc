@@ -8,7 +8,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "app/core/features.h"
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
@@ -1718,7 +1718,7 @@ absl::Status EditorManager::LoadAssets() {
   RETURN_IF_ERROR(current_editor_set_->music_editor_.Load());
   RETURN_IF_ERROR(current_editor_set_->palette_editor_.Load());
 
-  core::PerformanceMonitor::Get().PrintSummary();
+  gfx::PerformanceProfiler::Get().PrintSummary();
 
   auto end_time = std::chrono::steady_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(

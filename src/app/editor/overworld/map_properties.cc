@@ -1,6 +1,6 @@
 #include "app/editor/overworld/map_properties.h"
 
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gfx/atlas_renderer.h"

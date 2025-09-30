@@ -6,7 +6,7 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
-#include "app/core/performance_monitor.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
@@ -32,7 +32,7 @@ constexpr uint32_t kRedPen = 0xFF0000FF;
 void ScreenEditor::Initialize() {}
 
 absl::Status ScreenEditor::Load() {
-  core::ScopedTimer timer("ScreenEditor::Load");
+  gfx::ScopedTimer timer("ScreenEditor::Load");
 
   ASSIGN_OR_RETURN(dungeon_maps_,
                    zelda3::LoadDungeonMaps(*rom(), dungeon_map_labels_));
@@ -165,7 +165,7 @@ void ScreenEditor::DrawInventoryToolset() {
 }
 
 void ScreenEditor::DrawDungeonMapScreen(int i) {
-  core::ScopedTimer timer("screen_editor_draw_dungeon_map_screen");
+  gfx::ScopedTimer timer("screen_editor_draw_dungeon_map_screen");
 
   auto& current_dungeon = dungeon_maps_[selected_dungeon];
 
@@ -318,7 +318,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
  * - Lazy loading of tile graphics data
  */
 void ScreenEditor::DrawDungeonMapsRoomGfx() {
-  core::ScopedTimer timer("screen_editor_draw_dungeon_maps_room_gfx");
+  gfx::ScopedTimer timer("screen_editor_draw_dungeon_maps_room_gfx");
 
   if (ImGui::BeginChild("##DungeonMapTiles", ImVec2(0, 0), true)) {
     // Enhanced tilesheet canvas with improved tile selection
