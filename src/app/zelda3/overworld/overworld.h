@@ -278,6 +278,15 @@ class Overworld {
   auto expanded_entrances() const { return expanded_entrances_; }
   void set_current_map(int i) { current_map_ = i; }
   void set_current_world(int world) { current_world_ = world; }
+  uint16_t GetTile(int x, int y) const {
+    if (current_world_ == 0) {
+      return map_tiles_.light_world[y][x];
+    } else if (current_world_ == 1) {
+      return map_tiles_.dark_world[y][x];
+    } else {
+      return map_tiles_.special_world[y][x];
+    }
+  }
   auto map_tiles() const { return map_tiles_; }
   auto mutable_map_tiles() { return &map_tiles_; }
   auto all_items() const { return all_items_; }

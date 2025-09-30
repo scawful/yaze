@@ -9,6 +9,17 @@
 
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
+#include "imgui/imgui.h"
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_sdlrenderer2.h"
+#include "imgui_test_engine/imgui_te_context.h"
+#include "imgui_test_engine/imgui_te_engine.h"
+#include "imgui_test_engine/imgui_te_ui.h"
+#include "app/core/window.h"
+#include "app/core/controller.h"
+#include "e2e/canvas_selection_test.h"
+#include "e2e/framework_smoke_test.h"
+
 // #include "test_editor.h"  // Not used in main
 
 namespace yaze {
@@ -36,6 +47,7 @@ struct TestConfig {
   bool verbose = false;
   bool skip_rom_tests = false;
   bool enable_ui_tests = false;
+  bool show_gui = false;
 };
 
 // Parse command line arguments for better AI agent testing support
@@ -98,6 +110,8 @@ TestConfig ParseArguments(int argc, char* argv[]) {
       config.enable_ui_tests = true;
     } else if (arg == "--verbose") {
       config.verbose = true;
+    } else if (arg == "--show-gui") {
+      config.show_gui = true;
     } else if (arg.find("--") != 0) {
       // Test pattern (not a flag)
       config.mode = TestMode::kSpecific;
@@ -224,11 +238,121 @@ int main(int argc, char* argv[]) {
   // Initialize Google Test
   ::testing::InitGoogleTest(&argc, argv);
   
-  // Run tests
-  int result = RUN_ALL_TESTS();
-  
-  // Cleanup SDL
-  SDL_Quit();
-  
-  return result;
+  if (config.enable_ui_tests) {
+    // Create a window
+    yaze::core::Window window;
+    yaze::core::CreateWindow(window, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+
+    // Create a renderer
+    yaze::core::Renderer::Get().CreateRenderer(window.window_.get());
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport / Platform Windows
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        style.WindowRounding = 0.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    }
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(), yaze::core::Renderer::Get().renderer());
+    ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::Get().renderer());
+
+    // Setup test engine
+    ImGuiTestEngine* engine = ImGuiTestEngine_CreateContext();
+    ImGuiTestEngineIO& test_io = ImGuiTestEngine_GetIO(engine);
+    test_io.ConfigRunSpeed = ImGuiTestRunSpeed_Fast;
+    test_io.ConfigVerboseLevel = ImGuiTestVerboseLevel_Info;
+    test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;
+
+    yaze::core::Controller controller;
+
+    // Register smoke test
+    ImGuiTest* smoke_test = IM_REGISTER_TEST(engine, "E2ETest", "FrameworkSmokeTest");
+    smoke_test->TestFunc = E2ETest_FrameworkSmokeTest;
+
+    // Register canvas selection test
+    ImGuiTest* canvas_test = IM_REGISTER_TEST(engine, "E2ETest", "CanvasSelectionTest");
+    canvas_test->TestFunc = E2ETest_CanvasSelectionTest;
+    canvas_test->UserData = &controller;
+
+    // Main loop
+    bool done = false;
+    while (!done) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+            if (event.type == SDL_QUIT) {
+                done = true;
+            }
+            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window.window_.get())) {
+                done = true;
+            }
+        }
+
+        // Start the Dear ImGui frame
+        ImGui_ImplSDLRenderer2_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+
+        // Render the UI
+        if (config.show_gui) {
+            ImGuiTestEngine_ShowTestEngineWindows(engine, &config.show_gui);
+        }
+        controller.DoRender();
+
+        // End the Dear ImGui frame
+        ImGui::Render();
+        yaze::core::Renderer::Get().Clear();
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), yaze::core::Renderer::Get().renderer());
+        yaze::core::Renderer::Get().Present();
+
+        // Update and Render additional Platform Windows
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+            SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();
+            SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
+        }
+
+        // Run test engine
+        ImGuiTestEngine_PostSwap(engine);
+    }
+
+    // Get test result
+    ImGuiTestEngineResultSummary summary;
+    ImGuiTestEngine_GetResultSummary(engine, &summary);
+    int result = (summary.CountSuccess == summary.CountTested) ? 0 : 1;
+
+    // Cleanup
+    controller.OnExit();
+    ImGuiTestEngine_DestroyContext(engine);
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
+    yaze::core::ShutdownWindow(window);
+    SDL_Quit();
+
+    return result;
+  } else {
+    // Run tests
+    int result = RUN_ALL_TESTS();
+    
+    // Cleanup SDL
+    SDL_Quit();
+    
+    return result;
+  }
 }

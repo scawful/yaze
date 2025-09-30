@@ -32,6 +32,7 @@ class Controller {
   auto window() -> SDL_Window * { return window_.window_.get(); }
   void set_active(bool active) { active_ = active; }
   auto active() const { return active_; }
+  auto overworld() -> yaze::zelda3::Overworld* { return editor_manager_.overworld(); }
 
  private:
   friend int ::main(int argc, char **argv);

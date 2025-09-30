@@ -94,6 +94,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
   absl::Status Clear() override;
+  zelda3::Overworld& overworld() { return overworld_; }
   
   /**
    * @brief Apply ZSCustomOverworld ASM patch to upgrade ROM version
