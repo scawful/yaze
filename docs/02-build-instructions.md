@@ -16,11 +16,8 @@ cmake -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
 ```
 
-### Windows (Recommended - CMake Mode)
+### Windows (Visual Studio CMake Workflow)
 ```powershell
-# Automated setup (first time only)
-.\scripts\setup-windows-dev.ps1
-
 # Recommended: Use Visual Studio's built-in CMake support
 # 1. Open Visual Studio 2022
 # 2. Select "Open a local folder" 
@@ -32,9 +29,6 @@ cmake --build build
 # Alternative: Command line build
 cmake -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build --config Debug
-
-# Legacy: Generate Visual Studio solution (not recommended)
-# python scripts/generate-vs-projects.py  # Less maintainable, use CMake mode instead
 ```
 
 ### Minimal Build (CI/Fast)
@@ -75,92 +69,34 @@ sudo apt-get install -y build-essential cmake ninja-build pkg-config \
 
 ### Windows
 
-#### Automated Setup (Recommended)
-The project includes comprehensive setup scripts for Windows development:
+#### Requirements
+- Visual Studio 2022 with "Desktop development with C++" workload
+- CMake 3.16+ (included with Visual Studio)
+- Git (for cloning and submodules)
+
+#### Optional: vcpkg for SDL2
+The project uses bundled dependencies by default. Optionally, you can use vcpkg for SDL2:
 
 ```powershell
-# Complete development environment setup
-.\scripts\setup-windows-dev.ps1
-
-# Generate Visual Studio project files (with proper vcpkg integration)
-python scripts/generate-vs-projects.py
-
-# Test CMake configuration
-.\scripts\test-cmake-config.ps1
+# Setup vcpkg (optional)
+.\scripts\setup-vcpkg-windows.ps1
 ```
 
-**What the setup script installs:**
-- Chocolatey package manager
-- CMake 3.16+
-- Git, Ninja, Python 3
-- Visual Studio 2022 detection and verification
+#### vcpkg Integration (Optional)
 
-#### Manual Setup Options
-
-**Option 1 - Minimal (CI/Fast Builds):**
-- Visual Studio 2019+ with C++ CMake tools
-- No additional dependencies needed (all bundled)
-
-**Option 2 - Full Development with vcpkg:**
-- Visual Studio 2019+ with C++ CMake tools
-- vcpkg package manager for dependency management
-
-#### vcpkg Integration
-
-**Automatic Setup:**
+**Setup vcpkg for SDL2:**
 ```powershell
 # PowerShell
-.\scripts\setup-windows-dev.ps1
+.\scripts\setup-vcpkg-windows.ps1
 
 # Command Prompt
-scripts\setup-windows-dev.bat
-```
-
-**Manual vcpkg Setup:**
-```cmd
-git clone https://github.com/Microsoft/vcpkg.git
-cd vcpkg
-.\bootstrap-vcpkg.bat
-.\vcpkg.exe integrate install
-set VCPKG_ROOT=%CD%
+.\scripts\setup-vcpkg-windows.bat
 ```
 
 **Dependencies (vcpkg.json):**
-- sdl2 (graphics/input with Vulkan support)
+- sdl2 (graphics/input) - optional, bundled version available
 
-**Note**: Abseil and gtest are built from source via CMake rather than through vcpkg to avoid compatibility issues.
-
-#### Windows Build Commands
-
-**Using CMake Presets:**
-```cmd
-# Debug build (minimal, no tests)
-cmake --preset windows-debug
-cmake --build build --preset windows-debug
-
-# Development build (includes Google Test)
-cmake --preset windows-dev
-cmake --build build --preset windows-dev
-
-# Release build (optimized, no tests)
-cmake --preset windows-release
-cmake --build build --preset windows-release
-```
-
-**Using Visual Studio Projects:**
-```powershell
-# Generate project files (with proper vcpkg integration)
-python scripts/generate-vs-projects.py
-
-# Open YAZE.sln in Visual Studio
-# Select configuration (Debug/Release) and platform (x64/x86/ARM64)
-# Press F5 to build and run
-```
-
-**Build Types:**
-- **windows-debug**: Minimal debug build, no Google Test
-- **windows-dev**: Development build with Google Test and ROM testing
-- **windows-release**: Optimized release build, no Google Test
+**Note**: All other dependencies (Abseil, GoogleTest, ImGui, Asar) are built from source via CMake for better compatibility.
 
 ## Build Targets
 
@@ -321,42 +257,26 @@ The test system supports Google Test filters for selective execution:
 ## IDE Integration
 
 ### Visual Studio (Windows)
-**Recommended approach - CMake Mode:**
-```powershell
-# Setup development environment
-.\scripts\setup-windows-dev.ps1
-
-# Open in Visual Studio 2022
-# 1. File → Open → Folder
-# 2. Navigate to yaze directory
-# 3. Visual Studio detects CMakeLists.txt automatically
-# 4. Select configuration from toolbar (Debug/Release)
-# 5. Press F5 to build and run
-```
+**CMake Workflow (Recommended):**
+1. **File → Open → Folder**
+2. Navigate to yaze directory
+3. Visual Studio detects `CMakeLists.txt` automatically
+4. Select configuration from toolbar (Debug/Release)
+5. Press F5 to build and run
 
 **Why CMake Mode?**
-- ✅ **No project generation step** - CMake files are the source of truth
+- ✅ **No project generation** - CMake files are the source of truth
 - ✅ **Always in sync** - Changes to CMakeLists.txt reflect immediately
 - ✅ **Better IntelliSense** - Direct CMake target understanding
 - ✅ **Native CMake support** - Modern Visual Studio feature
-- ✅ **Simpler workflow** - One less build step to maintain
-- ✅ **Cross-platform consistency** - Same CMake workflow on all platforms
+- ✅ **Cross-platform consistency** - Same workflow on all platforms
 
 **Features:**
-- Full IntelliSense support (better than generated projects)
-- Integrated debugging with breakpoint support
-- Automatic vcpkg dependency management (SDL2)
-- Multi-platform support (x64, ARM64)
-- Automatic asset copying via CMake post-build commands
+- Full IntelliSense support
+- Integrated debugging with breakpoints
+- Automatic vcpkg dependency management (if configured)
+- Multi-architecture support (x64, x86, ARM64)
 - CMakeSettings.json for custom configurations
-
-**Legacy Solution Generation (Not Recommended):**
-If you must use a .sln file (e.g., for CI integration):
-```powershell
-python scripts/generate-vs-projects.py
-# Open generated YAZE.sln
-```
-Note: This approach requires regeneration when CMakeLists.txt changes and is less maintainable.
 
 ### VS Code
 1. Install CMake Tools extension
@@ -375,42 +295,17 @@ open build/yaze.xcodeproj
 
 ## Windows Development Scripts
 
-The project includes several PowerShell and Batch scripts to streamline Windows development:
-
-### Setup Scripts
-- **`setup-windows-dev.ps1`**: Complete development environment setup
-- **`setup-windows-dev.bat`**: Batch version of setup script
-
-**What they install:**
-- Chocolatey package manager
-- CMake 3.16+
-- Git, Ninja, Python 3
-- Visual Studio 2022 detection
-
-### Project Generation Scripts
-- **`generate-vs-projects.py`**: Generate Visual Studio project files with proper vcpkg integration
-- **`generate-vs-projects.bat`**: Batch version of project generation
-
-**Features:**
-- Automatic CMake detection and installation
-- Visual Studio 2022 detection
-- Multi-architecture support (x64, ARM64)
-- vcpkg integration
-- CMake compatibility fixes
-
-### Testing Scripts
-- **`test-cmake-config.ps1`**: Test CMake configuration without full build
+### vcpkg Setup (Optional)
+- **`setup-vcpkg-windows.ps1`**: Setup vcpkg for SDL2 dependency
+- **`setup-vcpkg-windows.bat`**: Batch version of vcpkg setup
 
 **Usage:**
 ```powershell
-# Test configuration
-.\scripts\test-cmake-config.ps1
+# Setup vcpkg (optional - for SDL2 via vcpkg instead of bundled)
+.\scripts\setup-vcpkg-windows.ps1
 
-# Test with specific architecture
-.\scripts\test-cmake-config.ps1 -Architecture x86
-
-# Clean test build
-.\scripts\test-cmake-config.ps1 -Clean
+# Or using batch
+.\scripts\setup-vcpkg-windows.bat
 ```
 
 ## Features by Build Type
@@ -523,14 +418,14 @@ Remove-Item -Recurse -Force build
 cmake -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_WARN_DEPRECATED=OFF
 ```
 
-**Visual Studio Project Issues:**
+**Visual Studio CMake Issues:**
 ```powershell
-# Regenerate project files
-.\scripts\generate-vs-projects.ps1
-
-# Clean and rebuild
+# Clean CMake cache
 Remove-Item -Recurse -Force build
-cmake --preset windows-debug
+
+# Rebuild CMake configuration
+cmake -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --config Debug
 ```
 
 ### vcpkg Issues
@@ -562,13 +457,13 @@ cd C:\vcpkg
 .\vcpkg.exe integrate install
 ```
 
-**ZLIB or Other Dependencies Not Found:**
-```bash
-# Regenerate project files with proper vcpkg integration
-python scripts/generate-vs-projects.py
+**Dependencies Not Found:**
+```powershell
+# Ensure vcpkg is properly set up (if using vcpkg)
+.\scripts\setup-vcpkg-windows.ps1
 
-# Ensure vcpkg is properly set up
-.\scripts\setup-windows-dev.ps1
+# Or use bundled dependencies (default)
+cmake -B build -DCMAKE_BUILD_TYPE=Debug
 ```
 
 ### Test Issues
@@ -634,8 +529,9 @@ cmake --build build
 - Ensures proper C++ standard handling
 
 **Visual Studio "file not found" errors:**
-- Run `python scripts/generate-vs-projects.py` to regenerate project files
-- Ensure CMake configuration completed successfully first
+- Close and reopen the folder in Visual Studio
+- Delete the `build/` directory and let Visual Studio regenerate CMake cache
+- Ensure all git submodules are initialized: `git submodule update --init --recursive`
 
 **CI/CD Build Failures:**
 - Check if vcpkg download failed (network issues)
