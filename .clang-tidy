@@ -1,4 +1,4 @@
-# YAZE clang-tidy configuration
+# yaze clang-tidy configuration
 # More lenient configuration for easier compliance
 
 Checks: >

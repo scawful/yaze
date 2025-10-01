@@ -6,7 +6,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -14,14 +13,25 @@
 #include "app/snes.h"
 #include "util/macro.h"
 
+// Forward declarations
+namespace ftxui {
+class ScreenInteractive;
+}
+
 namespace yaze {
 namespace cli {
+
+// Forward declaration
+class TuiComponent;
 
 class CommandHandler {
  public:
   CommandHandler() = default;
   virtual ~CommandHandler() = default;
   virtual absl::Status Run(const std::vector<std::string>& arg_vec) = 0;
+  virtual void RunTUI(ftxui::ScreenInteractive& screen) {
+    // Default implementation does nothing
+  }
 
   Rom rom_;
 };
@@ -33,7 +43,9 @@ class ApplyPatch : public CommandHandler {
 
 class AsarPatch : public CommandHandler {
  public:
+  AsarPatch();
   absl::Status Run(const std::vector<std::string>& arg_vec) override;
+  void RunTUI(ftxui::ScreenInteractive& screen) override;
 };
 
 class CreatePatch : public CommandHandler {
@@ -56,6 +68,20 @@ class GfxImport : public CommandHandler {
   absl::Status Run(const std::vector<std::string>& arg_vec) override;
 };
 
+class Palette : public CommandHandler {
+ public:
+  Palette();
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+  void RunTUI(ftxui::ScreenInteractive& screen) override;
+};
+
+class CommandPalette : public CommandHandler {
+ public:
+  CommandPalette();
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+  void RunTUI(ftxui::ScreenInteractive& screen) override;
+};
+
 class PaletteExport : public CommandHandler {
  public:
   absl::Status Run(const std::vector<std::string>& arg_vec) override;
@@ -67,6 +93,56 @@ class PaletteImport : public CommandHandler {
 };
 
 class DungeonExport : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class DungeonListObjects : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class RomValidate : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class RomDiff : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class RomGenerateGolden : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class ProjectInit : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class ProjectBuild : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class Agent : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class OverworldGetTile : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class OverworldSetTile : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class SpriteCreate : public CommandHandler {
  public:
   absl::Status Run(const std::vector<std::string>& arg_vec) override;
 };

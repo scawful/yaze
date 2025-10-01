@@ -41,7 +41,7 @@ private List<Tile32> AssembleMap32Tiles()
 }
 ```
 
-#### YAZE C++ Logic (`overworld.cc:AssembleMap32Tiles`)
+#### yaze C++ Logic (`overworld.cc:AssembleMap32Tiles`)
 ```cpp
 absl::Status Overworld::AssembleMap32Tiles() {
   ASSIGN_OR_RETURN(auto count, rom_->ReadLong(kMap32TilesCountAddr));
@@ -79,7 +79,7 @@ private List<Tile16> AssembleMap16Tiles()
 }
 ```
 
-#### YAZE C++ Logic (`overworld.cc:AssembleMap16Tiles`)
+#### yaze C++ Logic (`overworld.cc:AssembleMap16Tiles`)
 ```cpp
 absl::Status Overworld::AssembleMap16Tiles() {
   ASSIGN_OR_RETURN(auto bank, rom_->ReadByte(kMap16TilesBankAddr));
@@ -108,7 +108,7 @@ private (ushort[,], ushort[,], ushort[,]) DecompressAllMapTiles()
 }
 ```
 
-#### YAZE C++ Logic (`overworld.cc:DecompressAllMapTiles`)
+#### yaze C++ Logic (`overworld.cc:DecompressAllMapTiles`)
 ```cpp
 absl::StatusOr<OverworldMapTiles> Overworld::DecompressAllMapTiles() {
   // Use HyruleMagicDecompress for each world
@@ -144,7 +144,7 @@ private EntranceOW[] LoadEntrances()
 }
 ```
 
-#### YAZE C++ Logic (`overworld.cc:LoadEntrances`)
+#### yaze C++ Logic (`overworld.cc:LoadEntrances`)
 ```cpp
 absl::Status Overworld::LoadEntrances() {
   for (int i = 0; i < kNumEntrances; i++) {
@@ -188,7 +188,7 @@ private EntranceOW[] LoadHoles()
 }
 ```
 
-#### YAZE C++ Logic (`overworld.cc:LoadHoles`)
+#### yaze C++ Logic (`overworld.cc:LoadHoles`)
 ```cpp
 absl::Status Overworld::LoadHoles() {
   for (int i = 0; i < kNumHoles; i++) {
@@ -233,7 +233,7 @@ private List<RoomPotSaveEditor> LoadItems()
 }
 ```
 
-#### YAZE C++ Logic (`overworld.cc:LoadItems`)
+#### yaze C++ Logic (`overworld.cc:LoadItems`)
 ```cpp
 absl::Status Overworld::LoadItems() {
   ASSIGN_OR_RETURN(auto asm_version, rom_->ReadByte(kOverworldCustomASMAddr));
@@ -275,7 +275,7 @@ private List<Sprite>[] LoadSprites()
 }
 ```
 
-#### YAZE C++ Logic (`overworld.cc:LoadSprites`)
+#### yaze C++ Logic (`overworld.cc:LoadSprites`)
 ```cpp
 absl::Status Overworld::LoadSprites() {
   // Three game states: 0=rain, 1=pre-Agahnim, 2=post-Agahnim
@@ -323,7 +323,7 @@ public OverworldMap[] AssignMapSizes(OverworldMap[] givenMaps)
 }
 ```
 
-#### YAZE C++ Logic (`overworld.cc:AssignMapSizes`)
+#### yaze C++ Logic (`overworld.cc:AssignMapSizes`)
 ```cpp
 absl::Status Overworld::AssignMapSizes() {
   for (int i = 0; i < kNumOverworldMaps; i++) {

@@ -22,10 +22,12 @@ Hover:
 Diagnostics:
   ClangTidy:
     Add: 
-      - readability-*
-      - modernize-*
+      # - readability-*
+      # - modernize-*
       - performance-*
     Remove:
+      - readability-*
+      - modernize-*
       - modernize-use-trailing-return-type
       - readability-braces-around-statements
       - readability-magic-numbers
@@ -33,3 +35,4 @@ Diagnostics:
       - readability-identifier-naming
       - readability-function-cognitive-complexity
       - readability-function-size
+      - readability-uppercase-literal-suffix

@@ -1,4 +1,4 @@
-# YAZE Documentation
+# yaze Documentation
 
 Yet Another Zelda3 Editor - A comprehensive ROM editor for The Legend of Zelda: A Link to the Past.
 

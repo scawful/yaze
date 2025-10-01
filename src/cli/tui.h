@@ -23,6 +23,8 @@ const std::vector<std::string> kMainMenuEntries = {
     "Validate Assembly",
     "Generate Save File",
     "Palette Editor",
+    "Hex Viewer",
+    "Command Palette",
     "Help",
     "Exit",
 };
@@ -35,6 +37,8 @@ enum class MainMenuEntry {
   kValidateAssembly,
   kGenerateSaveFile,
   kPaletteEditor,
+  kHexViewer,
+  kCommandPalette,
   kHelp,
   kExit,
 };
@@ -47,6 +51,8 @@ enum class LayoutID {
   kValidateAssembly,
   kGenerateSaveFile,
   kPaletteEditor,
+  kHexViewer,
+  kCommandPalette,
   kHelp,
   kExit,
   kMainMenu,

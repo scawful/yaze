@@ -1,4 +1,4 @@
-# YAZE Overworld Testing Guide
+# yaze Overworld Testing Guide
 
 ## Overview
 
@@ -211,7 +211,7 @@ cmake --build build --target extract_vanilla_values
 The test runner generates comprehensive reports:
 
 ```markdown
-# YAZE Overworld Test Report
+# yaze Overworld Test Report
 
 **Generated:** 2024-01-15 14:30:00
 **ROM:** zelda3.sfc

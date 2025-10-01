@@ -116,8 +116,8 @@ absl::Status LoadScr(std::string_view filename, uint8_t input_value,
   return absl::OkStatus();
 }
 
-absl::Status DrawScrWithCgx(uint8_t bpp, std::vector<uint8_t>& map_data,
-                            std::vector<uint8_t>& map_bitmap_data,
+absl::Status DrawScrWithCgx(uint8_t bpp, std::vector<uint8_t>& map_bitmap_data,
+                            std::vector<uint8_t>& map_data,
                             std::vector<uint8_t>& cgx_loaded) {
   const std::vector<uint16_t> dimensions = {0x000, 0x400, 0x800, 0xC00};
   uint8_t p = 0;
@@ -155,6 +155,34 @@ absl::Status DrawScrWithCgx(uint8_t bpp, std::vector<uint8_t>& map_data,
   return absl::OkStatus();
 }
 
+absl::Status SaveCgx(uint8_t bpp, std::string_view filename,
+                     const std::vector<uint8_t>& cgx_data,
+                     const std::vector<uint8_t>& cgx_header) {
+  std::ofstream file(filename.data(), std::ios::binary);
+  if (!file.is_open()) {
+    return absl::NotFoundError("Could not open file for writing.");
+  }
+
+  CgxHeader header;
+  strncpy(header.file_type, "SCH", 4);
+  std::string bpp_str = std::to_string(bpp) + "BIT";
+  strncpy(header.bit_mode, bpp_str.c_str(), 5);
+  strncpy(header.version_number, "Ver-0.01\n", 9);
+  header.header_size = sizeof(CgxHeader);
+  strncpy(header.hardware_name, "SFC", 4);
+  header.bg_obj_flag = 0;
+  header.color_palette_number = 0;
+
+  file.write(reinterpret_cast<const char*>(&header), sizeof(CgxHeader));
+  file.write(reinterpret_cast<const char*>(cgx_data.data()), cgx_data.size());
+  file.write(reinterpret_cast<const char*>(cgx_header.data()), cgx_header.size());
+
+  file.close();
+  return absl::OkStatus();
+}
+
+
+
 std::vector<SDL_Color> DecodeColFile(const std::string_view filename) {
   std::vector<SDL_Color> decoded_col;
   std::ifstream file(filename.data(), std::ios::binary | std::ios::ate);
@@ -188,6 +216,23 @@ std::vector<SDL_Color> DecodeColFile(const std::string_view filename) {
   }
 
   return decoded_col;
+}
+
+absl::Status SaveCol(std::string_view filename, const std::vector<SDL_Color>& palette) {
+  std::ofstream file(filename.data(), std::ios::binary);
+  if (!file.is_open()) {
+    return absl::NotFoundError("Could not open file for writing.");
+  }
+
+  for (const auto& color : palette) {
+    uint16_t snes_color = ((color.b >> 3) << 10) |
+                          ((color.g >> 3) << 5) |
+                          (color.r >> 3);
+    file.write(reinterpret_cast<const char*>(&snes_color), sizeof(snes_color));
+  }
+
+  file.close();
+  return absl::OkStatus();
 }
 
 absl::Status DecodeObjFile(

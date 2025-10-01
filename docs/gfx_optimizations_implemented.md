@@ -1,4 +1,4 @@
-# YAZE Graphics System Optimizations - Implementation Summary
+# yaze Graphics System Optimizations - Implementation Summary
 
 ## Overview
 This document summarizes the comprehensive graphics optimizations implemented in the YAZE ROM hacking editor, targeting significant performance improvements for Link to the Past graphics editing workflows.

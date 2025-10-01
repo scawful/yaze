@@ -31,6 +31,19 @@ add_executable(
   cli/handlers/dungeon.cc
   cli/handlers/gfx.cc
   cli/handlers/palette.cc
+  cli/handlers/rom.cc
+  cli/handlers/overworld.cc
+  cli/handlers/sprite.cc
+  cli/tui/tui_component.h
+  cli/tui/asar_patch.cc
+  cli/tui/palette_editor.cc
+  cli/tui/command_palette.cc
+  cli/modern_cli.cc
+  cli/handlers/command_palette.cc
+  cli/handlers/project.cc
+  cli/handlers/agent.cc
+  cli/service/ai_service.cc
+  cli/service/gemini_ai_service.cc
   app/rom.cc
   app/core/project.cc
   app/core/asar_wrapper.cc
@@ -42,6 +55,14 @@ add_executable(
   ${YAZE_GUI_SRC}
   ${IMGUI_SRC}
 )
+
+option(YAZE_WITH_JSON "Build with JSON support" OFF)
+if(YAZE_WITH_JSON)
+  add_subdirectory(../../third_party/json)
+  target_compile_definitions(z3ed PRIVATE YAZE_WITH_JSON)
+  target_link_libraries(z3ed PRIVATE nlohmann_json::nlohmann_json)
+  list(APPEND Z3ED_SRC_FILES cli/gemini_ai_service.cc)
+endif()
 
 target_include_directories(
   z3ed PUBLIC

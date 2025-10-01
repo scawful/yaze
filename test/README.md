@@ -1,4 +1,4 @@
-# YAZE Test Suite
+# yaze Test Suite
 
 This directory contains the comprehensive test suite for YAZE, organized for optimal AI agent testing and development workflow.
 
