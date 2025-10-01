@@ -12,6 +12,10 @@ var namespaceyaze_1_1test =
     [ "anonymous_namespace{snes_palette_test.cc}", "d1/dfa/namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html", [
       [ "test_convert", "d1/dfa/namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#a0492926f27e09c79e929ad1165ae19a5", null ]
     ] ],
+    [ "gui", "d7/d79/namespaceyaze_1_1test_1_1gui.html", [
+      [ "LoadRomInTest", "d7/d79/namespaceyaze_1_1test_1_1gui.html#ae62d5a7e55450297c7b7efdb5c9448bc", null ],
+      [ "OpenEditorInTest", "d7/d79/namespaceyaze_1_1test_1_1gui.html#af12c501448079ffb3ab9d73d71237882", null ]
+    ] ],
     [ "integration", "d3/dec/namespaceyaze_1_1test_1_1integration.html", "d3/dec/namespaceyaze_1_1test_1_1integration" ],
     [ "ArenaTestSuite", "dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html", "dc/de0/classyaze_1_1test_1_1ArenaTestSuite" ],
     [ "DungeonEditorIntegrationTest", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest" ],

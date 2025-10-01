@@ -23,7 +23,6 @@ var searchData=
   ['overworld_5fload_5foptimization_5fanalysis_2emd_20',['overworld_load_optimization_analysis.md',['../dc/da2/overworld__load__optimization__analysis_8md.html',1,'']]],
   ['overworld_5fmap_2ecc_21',['overworld_map.cc',['../d8/d3e/overworld__map_8cc.html',1,'']]],
   ['overworld_5fmap_2eh_22',['overworld_map.h',['../d1/d4f/overworld__map_8h.html',1,'']]],
-  ['overworld_5foptimization_5fstatus_2emd_23',['overworld_optimization_status.md',['../d1/d92/overworld__optimization__status_8md.html',1,'']]],
-  ['overworld_5ftest_2ecc_24',['overworld_test.cc',['../d8/d9a/overworld__test_8cc.html',1,'']]],
-  ['overworld_5ftesting_5fguide_2emd_25',['overworld_testing_guide.md',['../da/d3e/overworld__testing__guide_8md.html',1,'']]]
+  ['overworld_5ftest_2ecc_23',['overworld_test.cc',['../d8/d9a/overworld__test_8cc.html',1,'']]],
+  ['overworld_5ftesting_5fguide_2emd_24',['overworld_testing_guide.md',['../da/d3e/overworld__testing__guide_8md.html',1,'']]]
 ];

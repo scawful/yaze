@@ -147,7 +147,7 @@ $(document).ready(function(){initNavTree('d7/d7f/log_8h_source.html','../../'); 
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="comment">// Reopen file if path changed</span></div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  <span class="keywordflow">if</span> (g_log_file_path != last_log_path) {</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    fout.close();</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    fout.open(g_log_file_path, std::ios::out | std::ios::app);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    fout.open(g_log_file_path, std::ios::out | std::ios::trunc);</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    last_log_path = g_log_file_path;</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  }</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  </div>

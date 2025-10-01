@@ -115,6 +115,16 @@ $(document).ready(function(){initNavTree('de/d3d/yaze__test_8cc.html','../../');
 <code>#include &lt;cstdlib&gt;</code><br />
 <code>#include &quot;absl/debugging/failure_signal_handler.h&quot;</code><br />
 <code>#include &quot;absl/debugging/symbolize.h&quot;</code><br />
+<code>#include &quot;imgui/imgui.h&quot;</code><br />
+<code>#include &quot;imgui/backends/imgui_impl_sdl2.h&quot;</code><br />
+<code>#include &quot;imgui/backends/imgui_impl_sdlrenderer2.h&quot;</code><br />
+<code>#include &quot;imgui_test_engine/imgui_te_context.h&quot;</code><br />
+<code>#include &quot;imgui_test_engine/imgui_te_engine.h&quot;</code><br />
+<code>#include &quot;imgui_test_engine/imgui_te_ui.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d3/df1/window_8h_source.html">app/core/window.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d2/dd9/controller_8h_source.html">app/core/controller.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d1/d88/canvas__selection__test_8h_source.html">e2e/canvas_selection_test.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d9/dc1/framework__smoke__test_8h_source.html">e2e/framework_smoke_test.h</a>&quot;</code><br />
 </div>
 <p><a href="../../de/d3d/yaze__test_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -211,23 +221,9 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00197">197</a> of file <a class="el" href="../../de/d3d/yaze__test_8cc_source.html">yaze_test.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00211">211</a> of file <a class="el" href="../../de/d3d/yaze__test_8cc_source.html">yaze_test.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00132">yaze::test::ConfigureTestFilters()</a>, <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00042">yaze::test::ParseArguments()</a>, and <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00112">yaze::test::SetupTestEnvironment()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../de/d3d/yaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph.png" border="0" usemap="#ade/d3d/yaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph" alt=""/></div>
-<map name="ade/d3d/yaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph" id="ade/d3d/yaze__test_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph">
-<area shape="rect" title=" " alt="" coords="5,70,55,96"/>
-<area shape="rect" href="../../d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8" title=" " alt="" coords="129,5,290,46"/>
-<area shape="poly" title=" " alt="" coords="54,72,102,55,122,48,124,54,104,60,56,77"/>
-<area shape="rect" href="../../d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951" title=" " alt="" coords="120,70,299,96"/>
-<area shape="poly" title=" " alt="" coords="55,80,105,80,105,86,55,86"/>
-<area shape="rect" href="../../d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2" title=" " alt="" coords="103,120,316,145"/>
-<area shape="poly" title=" " alt="" coords="56,90,103,106,129,113,128,118,102,111,54,95"/>
-</map>
-</div>
+<p class="reference">References <a class="el" href="../../d3/df1/window_8h_source.html#l00137">yaze::core::Renderer::Clear()</a>, <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00146">yaze::test::ConfigureTestFilters()</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00059">yaze::core::Renderer::CreateRenderer()</a>, <a class="el" href="../../d7/d60/window_8cc_source.html#l00019">yaze::core::CreateWindow()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00072">yaze::core::Controller::DoRender()</a>, <a class="el" href="../../d2/d5c/canvas__selection__test_8cc_source.html#l00006">E2ETest_CanvasSelectionTest()</a>, <a class="el" href="../../da/d8d/framework__smoke__test_8cc_source.html#l00010">E2ETest_FrameworkSmokeTest()</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00047">yaze::core::Renderer::Get()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00080">yaze::core::Controller::OnExit()</a>, <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00054">yaze::test::ParseArguments()</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00142">yaze::core::Renderer::Present()</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00071">yaze::core::Renderer::renderer()</a>, <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00126">yaze::test::SetupTestEnvironment()</a>, <a class="el" href="../../d7/d60/window_8cc_source.html#l00084">yaze::core::ShutdownWindow()</a>, and <a class="el" href="../../d3/df1/window_8h_source.html#l00017">yaze::core::Window::window_</a>.</p>
 
 </div>
 </div>

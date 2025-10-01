@@ -4,9 +4,9 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="280,39,116,88,114,83,279,33"/>
 <area shape="rect" id="Node000003" href="$db/dc0/emulator_8h.html" title=" " alt="" coords="168,87,326,112"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="311,43,262,88,258,84,308,40"/>
-<area shape="rect" id="Node000017" href="$d9/d95/dma_8h.html" title=" " alt="" coords="350,79,493,120"/>
-<area shape="poly" id="edge3_Node000001_Node000017" title=" " alt="" coords="360,40,402,77,398,81,357,44"/>
-<area shape="rect" id="Node000019" href="$dc/dbe/snes_8cc.html" title=" " alt="" coords="405,168,548,193"/>
-<area shape="poly" id="edge5_Node000001_Node000019" title=" " alt="" coords="417,25,467,43,489,58,508,78,516,102,511,127,500,151,488,169,483,166,495,148,506,125,510,102,503,80,486,62,465,48,415,30"/>
-<area shape="poly" id="edge4_Node000017_Node000019" title=" " alt="" coords="446,131,470,166,466,169,442,134"/>
+<area shape="rect" id="Node000020" href="$d9/d95/dma_8h.html" title=" " alt="" coords="350,79,493,120"/>
+<area shape="poly" id="edge3_Node000001_Node000020" title=" " alt="" coords="360,40,402,77,398,81,357,44"/>
+<area shape="rect" id="Node000022" href="$dc/dbe/snes_8cc.html" title=" " alt="" coords="405,168,548,193"/>
+<area shape="poly" id="edge5_Node000001_Node000022" title=" " alt="" coords="417,25,467,43,489,58,508,78,516,102,511,127,500,151,488,169,483,166,495,148,506,125,510,102,503,80,486,62,465,48,415,30"/>
+<area shape="poly" id="edge4_Node000020_Node000022" title=" " alt="" coords="446,131,470,166,466,169,442,134"/>
 </map>

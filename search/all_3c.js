@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['🚨_20strong_20critical_20performance_20issue_20identified_20strong_0',['🚨 &lt;strong&gt;Critical Performance Issue Identified&lt;/strong&gt;',['../d6/d6d/md_docs_2analysis_2dungeon__editor__bottleneck__analysis.html#autotoc_md149',1,'']]]
+  ['🛠️_20ide_20integration_0',['🛠️ IDE Integration',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md364',1,'']]],
+  ['🛠️_20technical_20improvements_1',['🛠️ Technical Improvements',['../d0/d30/md_README.html#autotoc_md1087',1,'']]]
 ];

@@ -114,6 +114,8 @@ $(document).ready(function(){initNavTree('d5/d48/cli__main_8cc.html','../../'); 
 <code>#include &quot;absl/flags/flag.h&quot;</code><br />
 <code>#include &quot;absl/flags/parse.h&quot;</code><br />
 <code>#include &quot;absl/flags/usage.h&quot;</code><br />
+<code>#include &lt;unistd.h&gt;</code><br />
+<code>#include &lt;sys/wait.h&gt;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_join.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
@@ -156,12 +158,16 @@ Functions</h2></td></tr>
 <tr class="separator:a3a2d50060fab81f1664645eef656a6f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68b91cdb98329ee0335befccc5a9bbc2" id="r_a68b91cdb98329ee0335befccc5a9bbc2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a68b91cdb98329ee0335befccc5a9bbc2">ABSL_FLAG</a> (bool, backup, true, &quot;Create a backup before modifying files&quot;)</td></tr>
 <tr class="separator:a68b91cdb98329ee0335befccc5a9bbc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a500d3ada8dcadc8a5fcc7bde7a950082" id="r_a500d3ada8dcadc8a5fcc7bde7a950082"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a500d3ada8dcadc8a5fcc7bde7a950082">ABSL_FLAG</a> (std::string, test, &quot;&quot;, &quot;Name of the test to run&quot;)</td></tr>
+<tr class="separator:a500d3ada8dcadc8a5fcc7bde7a950082"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ab7020aedd81cf5176ebb5e7d58907b" id="r_a4ab7020aedd81cf5176ebb5e7d58907b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a4ab7020aedd81cf5176ebb5e7d58907b">ABSL_FLAG</a> (bool, show_gui, false, &quot;Show the test engine GUI&quot;)</td></tr>
+<tr class="separator:a4ab7020aedd81cf5176ebb5e7d58907b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97" id="r_a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">main</a> (int argc, char *argv[])</td></tr>
 <tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a2ff5ae9fe7b12910d476f8eb1eed9687" name="a2ff5ae9fe7b12910d476f8eb1eed9687"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2ff5ae9fe7b12910d476f8eb1eed9687">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[1/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ff5ae9fe7b12910d476f8eb1eed9687">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[1/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -201,7 +207,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="ab0bb452024d100028135ed05bb28de3d" name="ab0bb452024d100028135ed05bb28de3d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab0bb452024d100028135ed05bb28de3d">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0bb452024d100028135ed05bb28de3d">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -241,7 +247,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="a91812729dacce6b1853f0e70048b936c" name="a91812729dacce6b1853f0e70048b936c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91812729dacce6b1853f0e70048b936c">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[3/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a91812729dacce6b1853f0e70048b936c">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[3/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -281,7 +287,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="ae2ea10bc626ef49b17b7da4de75743e4" name="ae2ea10bc626ef49b17b7da4de75743e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae2ea10bc626ef49b17b7da4de75743e4">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[4/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2ea10bc626ef49b17b7da4de75743e4">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[4/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -321,7 +327,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="a3a2d50060fab81f1664645eef656a6f5" name="a3a2d50060fab81f1664645eef656a6f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a2d50060fab81f1664645eef656a6f5">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[5/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a2d50060fab81f1664645eef656a6f5">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[5/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -361,7 +367,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="a68b91cdb98329ee0335befccc5a9bbc2" name="a68b91cdb98329ee0335befccc5a9bbc2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a68b91cdb98329ee0335befccc5a9bbc2">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[6/6]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a68b91cdb98329ee0335befccc5a9bbc2">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[6/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -400,6 +406,86 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a500d3ada8dcadc8a5fcc7bde7a950082" name="a500d3ada8dcadc8a5fcc7bde7a950082"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a500d3ada8dcadc8a5fcc7bde7a950082">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[7/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">test&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;&quot;&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Name of the test to run&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4ab7020aedd81cf5176ebb5e7d58907b" name="a4ab7020aedd81cf5176ebb5e7d58907b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ab7020aedd81cf5176ebb5e7d58907b">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[8/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">show_gui&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">false&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Show the test engine GUI&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a0ddf1224851353fc92bfbff6f499fa97" name="a0ddf1224851353fc92bfbff6f499fa97"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0ddf1224851353fc92bfbff6f499fa97">&#9670;&#160;</a></span>main()</h2>
 
@@ -426,9 +512,9 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00433">433</a> of file <a class="el" href="../../d5/d48/cli__main_8cc_source.html">cli_main.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00523">523</a> of file <a class="el" href="../../d5/d48/cli__main_8cc_source.html">cli_main.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00171">yaze::cli::ModernCLI::RunCommand()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00123">yaze::cli::ModernCLI::ShowHelp()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00929">yaze::cli::ShowMain()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00189">yaze::cli::ModernCLI::RunCommand()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00141">yaze::cli::ModernCLI::ShowHelp()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00929">yaze::cli::ShowMain()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

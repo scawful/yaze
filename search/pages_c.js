@@ -1,12 +1,12 @@
 var searchData=
 [
-  ['parallel_20optimization_20implementation_0',['DungeonEditor Parallel Optimization Implementation',['../d7/d30/md_docs_2analysis_2dungeon__parallel__optimization__summary.html',1,'']]],
-  ['performance_20analysis_20and_20optimization_1',['Renderer Class Performance Analysis and Optimization',['../dd/d7c/md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
-  ['performance_20analysis_20and_20optimization_20plan_2',['Overworld::Load Performance Analysis and Optimization Plan',['../d1/dc3/md_docs_2analysis_2overworld__load__optimization__analysis.html',1,'']]],
-  ['performance_20monitoring_20setup_3',['Editor Performance Monitoring Setup',['../d2/dda/md_docs_2analysis_2editor__performance__monitoring__setup.html',1,'']]],
-  ['performance_20optimization_20summary_4',['YAZE Performance Optimization Summary',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html',1,'']]],
-  ['plan_5',['plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'Dungeon Editor Design Plan'],['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html',1,'DungeonEditor Refactoring Plan'],['../d1/dc3/md_docs_2analysis_2overworld__load__optimization__analysis.html',1,'Overworld::Load Performance Analysis and Optimization Plan']]],
-  ['platform_20compatibility_20improvements_6',['Platform Compatibility Improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'']]],
-  ['presets_20guide_7',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]],
-  ['project_20final_20summary_8',['YAZE Graphics Optimizations Project - Final Summary',['../d8/dfb/md_docs_2gfx__optimizations__project__summary.html',1,'']]]
+  ['recommendations_0',['YAZE Graphics System Optimization Recommendations',['../de/def/md_docs_2gfx__optimization__recommendations.html',1,'']]],
+  ['refactoring_20current_20status_20future_20work_1',['Canvas Refactoring - Current Status &amp; Future Work',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html',1,'']]],
+  ['refactoring_20plan_2',['DungeonEditor Refactoring Plan',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html',1,'']]],
+  ['reference_3',['API Reference',['../dd/d96/md_docs_204-api-reference.html',1,'']]],
+  ['release_20workflow_20improvements_4',['Stability, Testability &amp; Release Workflow Improvements',['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'']]],
+  ['release_20workflows_20documentation_5',['Release Workflows Documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'']]],
+  ['renderer_20class_20performance_20analysis_20and_20optimization_6',['Renderer Class Performance Analysis and Optimization',['../dd/d7c/md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
+  ['rendering_20implementation_20yaze_20graphics_20optimizations_7',['Atlas Rendering Implementation - YAZE Graphics Optimizations',['../db/d26/md_docs_2atlas__rendering__implementation.html',1,'']]],
+  ['roadmap_8',['Roadmap',['../d6/db4/md_docs_2D1-roadmap.html',1,'']]]
 ];

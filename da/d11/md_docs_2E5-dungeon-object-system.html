@@ -101,16 +101,16 @@ $(document).ready(function(){initNavTree('da/d11/md_docs_2E5-dungeon-object-syst
   <div class="headertitle"><div class="title">Dungeon Object System</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md855"></a> </p>
-<h1><a class="anchor" id="autotoc_md856"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md781"></a> </p>
+<h1><a class="anchor" id="autotoc_md782"></a>
 Overview</h1>
 <p>The Dungeon Object System provides a comprehensive framework for editing and managing dungeon rooms, objects, and layouts in The Legend of Zelda: A Link to the Past. This system combines real-time visual editing with precise data manipulation to create a powerful dungeon creation and modification toolkit.</p>
-<h1><a class="anchor" id="autotoc_md857"></a>
+<h1><a class="anchor" id="autotoc_md783"></a>
 Architecture</h1>
-<h2><a class="anchor" id="autotoc_md858"></a>
+<h2><a class="anchor" id="autotoc_md784"></a>
 Core Components</h2>
 <p>The dungeon system is built around several key components that work together to provide a seamless editing experience:</p>
-<h3><a class="anchor" id="autotoc_md859"></a>
+<h3><a class="anchor" id="autotoc_md785"></a>
 1. DungeonEditor (&lt;tt&gt;src/app/editor/dungeon/dungeon_editor.h&lt;/tt&gt;)</h3>
 <p>The main interface that orchestrates all dungeon editing functionality. It provides:</p><ul>
 <li><b>Windowed Canvas System</b>: Fixed-size canvas that prevents UI layout disruption</li>
@@ -118,21 +118,21 @@ Core Components</h2>
 <li><b>Integrated Object Placement</b>: Direct object placement from selector to canvas</li>
 <li><b>Real-time Preview</b>: Live object preview follows mouse cursor during placement</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md860"></a>
+<h3><a class="anchor" id="autotoc_md786"></a>
 2. DungeonObjectSelector (&lt;tt&gt;src/app/editor/dungeon/dungeon_object_selector.h&lt;/tt&gt;)</h3>
 <p>Combines object browsing and editing in a unified interface:</p><ul>
 <li><b>Object Browser</b>: Visual grid of all available objects with real-time previews</li>
 <li><b>Object Editor</b>: Integrated editing panels for sprites, items, entrances, doors, and chests</li>
 <li><b>Callback System</b>: Notifies main editor when objects are selected for placement</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md861"></a>
+<h3><a class="anchor" id="autotoc_md787"></a>
 3. DungeonCanvasViewer (&lt;tt&gt;src/app/editor/dungeon/dungeon_canvas_viewer.h&lt;/tt&gt;)</h3>
 <p>Specialized canvas for rendering dungeon rooms:</p><ul>
 <li><b>Background Layer Rendering</b>: Proper BG1/BG2 layer composition</li>
 <li><b>Object Rendering</b>: Cached object rendering with palette support</li>
 <li><b>Coordinate System</b>: Seamless translation between room and canvas coordinates</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md862"></a>
+<h3><a class="anchor" id="autotoc_md788"></a>
 4. Room Management System (&lt;tt&gt;src/app/zelda3/dungeon/room.h&lt;/tt&gt;)</h3>
 <p>Core data structures for room representation:</p><ul>
 <li><b>Room Objects</b>: Tile-based objects (walls, floors, decorations)</li>
@@ -140,12 +140,12 @@ Core Components</h2>
 <li><b>Sprites</b>: Enemy and NPC placement</li>
 <li><b>Entrances/Exits</b>: Room connections and transitions</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md863"></a>
+<h1><a class="anchor" id="autotoc_md789"></a>
 Object Types and Hierarchies</h1>
-<h2><a class="anchor" id="autotoc_md864"></a>
+<h2><a class="anchor" id="autotoc_md790"></a>
 Room Objects</h2>
 <p>Room objects are the fundamental building blocks of dungeon rooms. They follow a hierarchical structure:</p>
-<h3><a class="anchor" id="autotoc_md865"></a>
+<h3><a class="anchor" id="autotoc_md791"></a>
 Type 1 Objects (0x00-0xFF)</h3>
 <p>Basic structural elements:</p><ul>
 <li><b>0x10-0x1F</b>: Wall objects (various types and orientations)</li>
@@ -153,21 +153,21 @@ Type 1 Objects (0x00-0xFF)</h3>
 <li><b>0x30-0x3F</b>: Decorative elements (torches, statues, pillars)</li>
 <li><b>0x40-0x4F</b>: Interactive elements (switches, blocks)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md866"></a>
+<h3><a class="anchor" id="autotoc_md792"></a>
 Type 2 Objects (0x100-0x1FF)</h3>
 <p>Complex multi-tile objects:</p><ul>
 <li><b>0x100-0x10F</b>: Large wall sections</li>
 <li><b>0x110-0x11F</b>: Complex floor patterns</li>
 <li><b>0x120-0x12F</b>: Multi-tile decorations</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md867"></a>
+<h3><a class="anchor" id="autotoc_md793"></a>
 Type 3 Objects (0x200+)</h3>
 <p>Special dungeon-specific objects:</p><ul>
 <li><b>0x200-0x20F</b>: Boss room elements</li>
 <li><b>0x210-0x21F</b>: Puzzle-specific objects</li>
 <li><b>0xF9-0xFA</b>: Chests (small and large)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md868"></a>
+<h2><a class="anchor" id="autotoc_md794"></a>
 Object Properties</h2>
 <p>Each object has several key properties:</p>
 <div class="fragment"><div class="line"><span class="keyword">class </span>RoomObject {</div>
@@ -177,9 +177,9 @@ Object Properties</h2>
 <div class="line">  LayerType layer_; <span class="comment">// Rendering layer (0=BG, 1=MID, 2=FG)</span></div>
 <div class="line">  <span class="comment">// ... additional properties</span></div>
 <div class="line">};</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md869"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md795"></a>
 How Object Placement Works</h1>
-<h2><a class="anchor" id="autotoc_md870"></a>
+<h2><a class="anchor" id="autotoc_md796"></a>
 Selection Process</h2>
 <ol type="1">
 <li><b>Object Browser</b>: User selects an object from the visual grid</li>
@@ -187,7 +187,7 @@ Selection Process</h2>
 <li><b>Callback Trigger</b>: Selection notifies main editor via callback</li>
 <li><b>Preview Update</b>: Main editor receives object and enables placement mode</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md871"></a>
+<h2><a class="anchor" id="autotoc_md797"></a>
 Placement Process</h2>
 <ol type="1">
 <li><b>Mouse Tracking</b>: Preview object follows mouse cursor on canvas</li>
@@ -196,7 +196,7 @@ Placement Process</h2>
 <li><b>Click Placement</b>: Left-click places object at current position</li>
 <li><b>Room Update</b>: Object added to room data and cache cleared for redraw</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md872"></a>
+<h2><a class="anchor" id="autotoc_md798"></a>
 Code Flow</h2>
 <div class="fragment"><div class="line"><span class="comment">// Object selection in DungeonObjectSelector</span></div>
 <div class="line"><span class="keywordflow">if</span> (ImGui::Selectable(<span class="stringliteral">&quot;&quot;</span>, is_selected)) {</div>
@@ -220,9 +220,9 @@ Code Flow</h2>
 <div class="line">  room.AddTileObject(new_object);</div>
 <div class="line">  object_render_cache_.clear(); <span class="comment">// Force redraw</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md873"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md799"></a>
 Rendering Pipeline</h1>
-<h2><a class="anchor" id="autotoc_md874"></a>
+<h2><a class="anchor" id="autotoc_md800"></a>
 Object Rendering</h2>
 <p>The system uses a sophisticated rendering pipeline:</p>
 <ol type="1">
@@ -232,7 +232,7 @@ Object Rendering</h2>
 <li><b>Caching</b>: Rendered objects cached for performance</li>
 <li><b>Canvas Drawing</b>: Bitmap drawn to canvas at correct position</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md875"></a>
+<h2><a class="anchor" id="autotoc_md801"></a>
 Performance Optimizations</h2>
 <ul>
 <li><b>Render Caching</b>: Objects cached based on ID, position, size, and palette hash</li>
@@ -240,19 +240,19 @@ Performance Optimizations</h2>
 <li><b>Lazy Loading</b>: Graphics and objects loaded on-demand</li>
 <li><b>Palette Hashing</b>: Efficient cache invalidation when palettes change</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md876"></a>
+<h1><a class="anchor" id="autotoc_md802"></a>
 User Interface Components</h1>
-<h2><a class="anchor" id="autotoc_md877"></a>
+<h2><a class="anchor" id="autotoc_md803"></a>
 Three-Column Layout</h2>
 <p>The dungeon editor uses a carefully designed three-column layout:</p>
-<h3><a class="anchor" id="autotoc_md878"></a>
+<h3><a class="anchor" id="autotoc_md804"></a>
 Column 1: Room Control Panel (280px fixed)</h3>
 <ul>
 <li><b>Room Selector</b>: Browse and select rooms</li>
 <li><b>Debug Controls</b>: Room properties in table format</li>
 <li><b>Object Statistics</b>: Live object counts and cache status</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md879"></a>
+<h3><a class="anchor" id="autotoc_md805"></a>
 Column 2: Windowed Canvas (800px fixed)</h3>
 <ul>
 <li><b>Tabbed Interface</b>: Multiple rooms open simultaneously</li>
@@ -260,16 +260,16 @@ Column 2: Windowed Canvas (800px fixed)</h3>
 <li><b>Real-time Preview</b>: Object placement preview follows cursor</li>
 <li><b>Layer Visualization</b>: Proper background/foreground rendering</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md880"></a>
+<h3><a class="anchor" id="autotoc_md806"></a>
 Column 3: Object Selector/Editor (stretch)</h3>
 <ul>
 <li><b>Object Browser Tab</b>: Visual grid of available objects</li>
 <li><b>Object Editor Tab</b>: Integrated editing for sprites, items, etc.</li>
 <li><b>Placement Tools</b>: Object property editing and placement controls</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md881"></a>
+<h2><a class="anchor" id="autotoc_md807"></a>
 Debug and Control Features</h2>
-<h3><a class="anchor" id="autotoc_md882"></a>
+<h3><a class="anchor" id="autotoc_md808"></a>
 Room Properties Table</h3>
 <p>Real-time editing of room attributes: </p><div class="fragment"><div class="line">Property    | Value</div>
 <div class="line">------------|--------</div>
@@ -281,7 +281,7 @@ Room Properties Table</h3>
 <div class="line">Floor 1     | [Hex Input]</div>
 <div class="line">Floor 2     | [Hex Input]</div>
 <div class="line">Message ID  | [Hex Input]</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md883"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md809"></a>
 Object Statistics</h3>
 <p>Live feedback on room contents:</p><ul>
 <li>Total objects count</li>
@@ -290,12 +290,12 @@ Object Statistics</h3>
 <li>Chests count</li>
 <li>Cache status and controls</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md884"></a>
+<h1><a class="anchor" id="autotoc_md810"></a>
 Integration with ROM Data</h1>
-<h2><a class="anchor" id="autotoc_md885"></a>
+<h2><a class="anchor" id="autotoc_md811"></a>
 Data Sources</h2>
 <p>The system integrates with multiple ROM data sources:</p>
-<h3><a class="anchor" id="autotoc_md886"></a>
+<h3><a class="anchor" id="autotoc_md812"></a>
 Room Headers (&lt;tt&gt;0x1F8000&lt;/tt&gt;)</h3>
 <ul>
 <li>Room layout index</li>
@@ -303,21 +303,21 @@ Room Headers (&lt;tt&gt;0x1F8000&lt;/tt&gt;)</h3>
 <li>Palette assignments</li>
 <li>Floor type definitions</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md887"></a>
+<h3><a class="anchor" id="autotoc_md813"></a>
 Object Data</h3>
 <ul>
 <li>Object definitions and tile mappings</li>
 <li>Size and layer information</li>
 <li>Interaction properties</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md888"></a>
+<h3><a class="anchor" id="autotoc_md814"></a>
 Graphics Data</h3>
 <ul>
 <li>Tile graphics (4bpp SNES format)</li>
 <li>Palette data (15-color palettes)</li>
 <li>Blockset compositions</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md889"></a>
+<h2><a class="anchor" id="autotoc_md815"></a>
 Assembly Integration</h2>
 <p>The system references the US disassembly (<code>assets/asm/usdasm/</code>) for:</p><ul>
 <li>Room data structure validation</li>
@@ -325,36 +325,36 @@ Assembly Integration</h2>
 <li>Memory layout verification</li>
 <li>Data pointer validation</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md890"></a>
+<h1><a class="anchor" id="autotoc_md816"></a>
 Comparison with ZScream</h1>
-<h2><a class="anchor" id="autotoc_md891"></a>
+<h2><a class="anchor" id="autotoc_md817"></a>
 Architectural Differences</h2>
 <p>YAZE's approach differs from ZScream in several key ways:</p>
-<h3><a class="anchor" id="autotoc_md892"></a>
+<h3><a class="anchor" id="autotoc_md818"></a>
 Component-Based Architecture</h3>
 <ul>
 <li><b>YAZE</b>: Modular components with clear separation of concerns</li>
 <li><b>ZScream</b>: More monolithic approach with integrated functionality</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md893"></a>
+<h3><a class="anchor" id="autotoc_md819"></a>
 Real-time Rendering</h3>
 <ul>
 <li><b>YAZE</b>: Live object preview with mouse tracking</li>
 <li><b>ZScream</b>: Static preview with separate placement step</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md894"></a>
+<h3><a class="anchor" id="autotoc_md820"></a>
 UI Organization</h3>
 <ul>
 <li><b>YAZE</b>: Fixed-width columns prevent layout disruption</li>
 <li><b>ZScream</b>: Resizable panels that can affect overall layout</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md895"></a>
+<h3><a class="anchor" id="autotoc_md821"></a>
 Caching Strategy</h3>
 <ul>
 <li><b>YAZE</b>: Sophisticated object render caching with hash-based invalidation</li>
 <li><b>ZScream</b>: Simpler caching approach</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md896"></a>
+<h2><a class="anchor" id="autotoc_md822"></a>
 Shared Concepts</h2>
 <p>Both systems share fundamental concepts:</p><ul>
 <li>Object-based room construction</li>
@@ -362,9 +362,9 @@ Shared Concepts</h2>
 <li>ROM data integration</li>
 <li>Visual object browsing</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md897"></a>
+<h1><a class="anchor" id="autotoc_md823"></a>
 Best Practices</h1>
-<h2><a class="anchor" id="autotoc_md898"></a>
+<h2><a class="anchor" id="autotoc_md824"></a>
 Performance</h2>
 <ol type="1">
 <li><b>Use Render Caching</b>: Don't clear cache unnecessarily</li>
@@ -372,7 +372,7 @@ Performance</h2>
 <li><b>Lazy Loading</b>: Load graphics and objects on-demand</li>
 <li><b>Efficient Callbacks</b>: Minimize callback frequency</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md899"></a>
+<h2><a class="anchor" id="autotoc_md825"></a>
 Code Organization</h2>
 <ol type="1">
 <li><b>Separation of Concerns</b>: Keep UI, data, and rendering separate</li>
@@ -380,7 +380,7 @@ Code Organization</h2>
 <li><b>Error Handling</b>: Validate ROM data and handle errors gracefully</li>
 <li><b>Memory Management</b>: Clean up resources properly</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md900"></a>
+<h2><a class="anchor" id="autotoc_md826"></a>
 User Experience</h2>
 <ol type="1">
 <li><b>Visual Feedback</b>: Provide clear object placement preview</li>
@@ -388,9 +388,9 @@ User Experience</h2>
 <li><b>Contextual Information</b>: Show relevant object properties</li>
 <li><b>Efficient Workflow</b>: Minimize clicks for common operations</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md901"></a>
+<h1><a class="anchor" id="autotoc_md827"></a>
 Future Enhancements</h1>
-<h2><a class="anchor" id="autotoc_md902"></a>
+<h2><a class="anchor" id="autotoc_md828"></a>
 Planned Features</h2>
 <ol type="1">
 <li><b>Drag and Drop</b>: Direct object dragging from selector to canvas</li>
@@ -399,7 +399,7 @@ Planned Features</h2>
 <li><b>Undo/Redo</b>: Full edit history management</li>
 <li><b>Template System</b>: Save and load room templates</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md903"></a>
+<h2><a class="anchor" id="autotoc_md829"></a>
 Technical Improvements</h2>
 <ol type="1">
 <li><b>GPU Acceleration</b>: Move rendering to GPU for better performance</li>

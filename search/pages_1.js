@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['analysis_0',['analysis',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html',1,'Comprehensive ZScream vs YAZE Overworld Analysis'],['../d6/d6d/md_docs_2analysis_2dungeon__editor__bottleneck__analysis.html',1,'DungeonEditor Bottleneck Analysis'],['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'ZScream C# vs YAZE C++ Overworld Implementation Analysis']]],
+  ['analysis_0',['analysis',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html',1,'Comprehensive ZScream vs YAZE Overworld Analysis'],['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'ZScream C# vs YAZE C++ Overworld Implementation Analysis']]],
   ['analysis_20and_20optimization_1',['Renderer Class Performance Analysis and Optimization',['../dd/d7c/md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
   ['analysis_20and_20optimization_20plan_2',['Overworld::Load Performance Analysis and Optimization Plan',['../d1/dc3/md_docs_2analysis_2overworld__load__optimization__analysis.html',1,'']]],
   ['and_20optimization_3',['Renderer Class Performance Analysis and Optimization',['../dd/d7c/md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],

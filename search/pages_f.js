@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['test_20suite_0',['YAZE Test Suite',['../d0/d46/md_test_2README.html',1,'']]],
-  ['testability_20release_20workflow_20improvements_1',['Stability, Testability &amp; Release Workflow Improvements',['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'']]],
-  ['testing_20guide_2',['testing guide',['../d6/d10/md_docs_2A1-testing-guide.html',1,'Testing Guide'],['../de/d8a/md_docs_2overworld__testing__guide.html',1,'YAZE Overworld Testing Guide']]],
-  ['todo_20list_3',['Todo List',['../dd/da0/todo.html',1,'']]]
+  ['vs_20yaze_20c_20overworld_20implementation_20analysis_0',['ZScream C# vs YAZE C++ Overworld Implementation Analysis',['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'']]],
+  ['vs_20yaze_20overworld_20analysis_1',['Comprehensive ZScream vs YAZE Overworld Analysis',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html',1,'']]]
 ];

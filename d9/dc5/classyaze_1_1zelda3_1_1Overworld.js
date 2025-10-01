@@ -72,6 +72,7 @@ var classyaze_1_1zelda3_1_1Overworld =
     [ "expanded_entrances", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#ac01d30cbb771e77415d0241b79c2d568", null ],
     [ "set_current_map", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a85b380c53cfe4769b4ba05cda14b3cd8", null ],
     [ "set_current_world", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a06d8d1c0415daa5b721bd312f239f049", null ],
+    [ "GetTile", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#aaf829190011d16662c756ae1cc6f2688", null ],
     [ "map_tiles", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a3ffe5e86186b6fcd8c5a8177834f4a68", null ],
     [ "mutable_map_tiles", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#af41ee7a2df7343c6250eab3752593892", null ],
     [ "all_items", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a454b66f41a375d386f3dcab81dfcdc7c", null ],

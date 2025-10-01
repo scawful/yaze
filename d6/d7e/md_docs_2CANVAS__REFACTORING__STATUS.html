@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('d6/d7e/md_docs_2CANVAS__REFACTORING__S
   <div class="headertitle"><div class="title">Canvas Refactoring - Current Status &amp; Future Work</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md638"></a> </p>
-<h1><a class="anchor" id="autotoc_md639"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md564"></a> </p>
+<h1><a class="anchor" id="autotoc_md565"></a>
 ✅ Successfully Completed</h1>
-<h2><a class="anchor" id="autotoc_md640"></a>
+<h2><a class="anchor" id="autotoc_md566"></a>
 1. Modern ImGui-Style Interface (Working)</h2>
 <p><b>Added Methods</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">void</span> Canvas::Begin(ImVec2 size = {0, 0});  <span class="comment">// Replaces DrawBackground + DrawContextMenu</span></div>
 <div class="line"><span class="keywordtype">void</span> Canvas::End();                        <span class="comment">// Replaces DrawGrid + DrawOverlay</span></div>
@@ -124,7 +124,7 @@ $(document).ready(function(){initNavTree('d6/d7e/md_docs_2CANVAS__REFACTORING__S
 <div class="line">canvas.DrawGrid();</div>
 <div class="line">canvas.DrawOverlay();</div>
 </div><!-- fragment --><p><b>Status</b>: ✅ Implemented, builds successfully, ready for adoption</p>
-<h2><a class="anchor" id="autotoc_md641"></a>
+<h2><a class="anchor" id="autotoc_md567"></a>
 2. Context Menu Improvements (Working)</h2>
 <p><b>Helper Constructors</b>: </p><div class="fragment"><div class="line"><span class="comment">// Simple item</span></div>
 <div class="line">canvas.AddContextMenuItem({<span class="stringliteral">&quot;Label&quot;</span>, callback});</div>
@@ -138,24 +138,24 @@ $(document).ready(function(){initNavTree('d6/d7e/md_docs_2CANVAS__REFACTORING__S
 <div class="line">);</div>
 </div><!-- fragment --><p><b>Benefits</b>: More concise, clearer intent</p>
 <p><b>Status</b>: ✅ Implemented and working</p>
-<h2><a class="anchor" id="autotoc_md642"></a>
+<h2><a class="anchor" id="autotoc_md568"></a>
 3. Optional CanvasInteractionHandler Component (Available)</h2>
 <p><b>Created</b>: <code>canvas/canvas_interaction_handler.{h,cc}</code> (579 lines total)</p>
 <p><b>Purpose</b>: Alternative API for tile interaction (NOT integrated into main Canvas)</p>
 <p><b>Status</b>: ✅ Built and available for future custom interaction logic</p>
-<h2><a class="anchor" id="autotoc_md643"></a>
+<h2><a class="anchor" id="autotoc_md569"></a>
 4. Code Cleanup</h2>
 <ul>
 <li>✅ Removed unused constants (<code>kBlackColor</code>, <code>kOutlineRect</code>)</li>
 <li>✅ Improved inline documentation</li>
 <li>✅ Better code organization</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md644"></a>
+<h1><a class="anchor" id="autotoc_md570"></a>
 ⚠️ Outstanding Issue: Rectangle Selection Wrapping</h1>
-<h2><a class="anchor" id="autotoc_md645"></a>
+<h2><a class="anchor" id="autotoc_md571"></a>
 The Problem</h2>
 <p>When dragging a multi-tile rectangle selection near 512x512 local map boundaries in large maps, tiles still paint in the wrong location (wrap to left side of map).</p>
-<h2><a class="anchor" id="autotoc_md646"></a>
+<h2><a class="anchor" id="autotoc_md572"></a>
 What Was Attempted</h2>
 <p><b>Attempt 1</b>: Clamp preview position in <code>DrawBitmapGroup()</code></p><ul>
 <li>✅ Prevents visual wrapping in preview</li>
@@ -169,7 +169,7 @@ What Was Attempted</h2>
 <li>✅ Smoother preview dragging</li>
 <li>❌ Painting still wraps</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md647"></a>
+<h2><a class="anchor" id="autotoc_md573"></a>
 Root Cause Analysis</h2>
 <p>The issue involves complex interaction between:</p>
 <ol type="1">
@@ -200,7 +200,7 @@ Root Cause Analysis</h2>
 <li>Index goes out of sync</li>
 <li>OR: Loop positions don't match the coordinate calculation</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md648"></a>
+<h2><a class="anchor" id="autotoc_md574"></a>
 Suspected Issue</h2>
 <p>The problem likely lies in how <code>index_x</code> and <code>index_y</code> are calculated in the painting loop:</p>
 <div class="fragment"><div class="line"><span class="comment">// Current calculation (line 961-970 in overworld_editor.cc):</span></div>
@@ -213,7 +213,7 @@ Suspected Issue</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// This calculation assumes x,y are in WORLD coordinates (0-4096)</span></div>
 <div class="line"><span class="comment">// But if the clamped rectangle spans boundaries differently...</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md649"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md575"></a>
 What Needs Investigation</h2>
 <ol type="1">
 <li><b>Coordinate space mismatch</b>: Are x,y in the painting loop using the right coordinate system?</li>
@@ -221,7 +221,7 @@ What Needs Investigation</h2>
 <li><b>Boundary conditions</b>: What happens when clamped rectangle is smaller than original?</li>
 <li><b>World array structure</b>: Is <code>selected_world[index_x][index_y]</code> the right indexing?</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md650"></a>
+<h2><a class="anchor" id="autotoc_md576"></a>
 Debugging Steps for Future Agent</h2>
 <div class="fragment"><div class="line"><span class="comment">// Add logging to CheckForOverworldEdits painting loop:</span></div>
 <div class="line">util::logf(<span class="stringliteral">&quot;Painting: i=%d, x=%d, y=%d, local_map=(%d,%d), tile16=(%d,%d), index=(%d,%d), tile_id=%d&quot;</span>,</div>
@@ -235,7 +235,7 @@ Debugging Steps for Future Agent</h2>
 <div class="line"><span class="comment">// Check array bounds:</span></div>
 <div class="line">util::logf(<span class="stringliteral">&quot;World array: selected_world[%d][%d], bounds: 0x200 x 0x200&quot;</span>, </div>
 <div class="line">           index_x, index_y);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md651"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md577"></a>
 Possible Fixes to Try</h2>
 <p><b>Option A</b>: Don't allow dragging across local map boundaries at all </p><div class="fragment"><div class="line"><span class="comment">// In DrawBitmapGroup, keep rectangle at original position if it would cross</span></div>
 <div class="line"><span class="keywordflow">if</span> (would_cross_boundary) {</div>
@@ -252,9 +252,9 @@ Possible Fixes to Try</h2>
 <div class="line">  <span class="keywordtype">int</span> abs_y = start_y + (rel_y * kTile16Size);</div>
 <div class="line">  <span class="comment">// Paint selected_tile16_ids_[i] at (abs_x, abs_y)</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md652"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md578"></a>
 🔧 Files Modified</h1>
-<h2><a class="anchor" id="autotoc_md653"></a>
+<h2><a class="anchor" id="autotoc_md579"></a>
 Core Canvas</h2>
 <ul>
 <li><code><a class="el" href="../../d4/dcf/canvas_8h.html">src/app/gui/canvas.h</a></code> - Begin/End, ScopedCanvas, context menu helpers, clamping control</li>
@@ -262,19 +262,19 @@ Core Canvas</h2>
 <li><code><a class="el" href="../../d1/d39/canvas__utils_8h.html">src/app/gui/canvas_utils.h</a></code> - Added <code>clamp_rect_to_local_maps</code> config</li>
 <li><code>src/app/gui/gui.cmake</code> - Added <a class="el" href="../../d2/d1f/canvas__interaction__handler_8cc.html">canvas_interaction_handler.cc</a></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md654"></a>
+<h2><a class="anchor" id="autotoc_md580"></a>
 Overworld Editor</h2>
 <ul>
 <li><code><a class="el" href="../../db/d9f/overworld__editor_8h.html">src/app/editor/overworld/overworld_editor.h</a></code> - Added <code>selected_tile16_ids_</code> member</li>
 <li><code><a class="el" href="../../d9/d8a/overworld__editor_8cc.html">src/app/editor/overworld/overworld_editor.cc</a></code> - Use member variable for tile IDs</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md655"></a>
+<h2><a class="anchor" id="autotoc_md581"></a>
 Components Created</h2>
 <ul>
 <li><code><a class="el" href="../../dd/db1/canvas__interaction__handler_8h.html">src/app/gui/canvas/canvas_interaction_handler.h</a></code> (209 lines)</li>
 <li><code><a class="el" href="../../d2/d1f/canvas__interaction__handler_8cc.html">src/app/gui/canvas/canvas_interaction_handler.cc</a></code> (370 lines)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md656"></a>
+<h1><a class="anchor" id="autotoc_md582"></a>
 📚 Documentation (Consolidated)</h1>
 <p><b>Final Structure</b> (3 files):</p><ol type="1">
 <li>**<code><a class="el" href="../../de/df8/CANVAS__GUIDE_8md.html">CANVAS_GUIDE.md</a></code>** - Complete reference guide</li>
@@ -282,9 +282,9 @@ Components Created</h2>
 <li>**<code><a class="el" href="../../d4/d83/CANVAS__REFACTORING__STATUS_8md.html">CANVAS_REFACTORING_STATUS.md</a></code>** - This file</li>
 </ol>
 <p><b>Removed</b>: 10+ outdated/duplicate/incorrect planning documents</p>
-<h1><a class="anchor" id="autotoc_md657"></a>
+<h1><a class="anchor" id="autotoc_md583"></a>
 🎯 Future Refactoring Steps</h1>
-<h2><a class="anchor" id="autotoc_md658"></a>
+<h2><a class="anchor" id="autotoc_md584"></a>
 Priority 1: Fix Rectangle Wrapping (High)</h2>
 <p><b>Issue</b>: Rectangle selection still wraps when dragged to boundaries</p>
 <p><b>Investigation needed</b>:</p><ol type="1">
@@ -294,7 +294,7 @@ Priority 1: Fix Rectangle Wrapping (High)</h2>
 <li>Compare clamped vs original rectangle sizes</li>
 </ol>
 <p><b>Possible approach</b>: See "Possible Fixes to Try" section above</p>
-<h2><a class="anchor" id="autotoc_md659"></a>
+<h2><a class="anchor" id="autotoc_md585"></a>
 Priority 2: Extract Coordinate Conversion Helpers (Low Impact)</h2>
 <p><b>Pattern found</b>: Repeated coordinate calculations across overworld editor</p>
 <div class="fragment"><div class="line"><span class="comment">// Extract to helpers:</span></div>
@@ -303,7 +303,7 @@ Priority 2: Extract Coordinate Conversion Helpers (Low Impact)</h2>
 <div class="line">ImVec2 CanvasToWorldCoords(ImVec2 canvas_pos) <span class="keyword">const</span>;</div>
 <div class="line">ImVec2 WorldToTileCoords(ImVec2 world_pos) <span class="keyword">const</span>;</div>
 </div><!-- fragment --><p><b>Benefit</b>: Clearer code, less duplication, easier to debug</p>
-<h2><a class="anchor" id="autotoc_md660"></a>
+<h2><a class="anchor" id="autotoc_md586"></a>
 Priority 3: Move Components to canvas/ Namespace (Organizational)</h2>
 <p><b>Files to move</b>:</p><ul>
 <li><code>gui/canvas_utils.{h,cc}</code> → <code>gui/canvas/canvas_utils.{h,cc}</code></li>
@@ -312,7 +312,7 @@ Priority 3: Move Components to canvas/ Namespace (Organizational)</h2>
 </ul>
 <p><b>Add compatibility shims</b> for old paths</p>
 <p><b>Benefit</b>: Better organization, clear namespace structure</p>
-<h2><a class="anchor" id="autotoc_md661"></a>
+<h2><a class="anchor" id="autotoc_md587"></a>
 Priority 4: Complete Scratch Space Feature (Feature)</h2>
 <p><b>Current state</b>:</p><ul>
 <li>Data structures exist (<code>ScratchSpaceSlot</code>)</li>
@@ -324,7 +324,7 @@ Priority 4: Complete Scratch Space Feature (Feature)</h2>
 <li>Save/load scratch layouts</li>
 <li>UI for managing 4 scratch slots</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md662"></a>
+<h2><a class="anchor" id="autotoc_md588"></a>
 Priority 5: Simplify Canvas State (Refactoring)</h2>
 <p><b>Issue</b>: Dual state management still exists</p>
 <div class="fragment"><div class="line"><span class="comment">// Both config_ and legacy variables:</span></div>
@@ -333,9 +333,9 @@ Priority 5: Simplify Canvas State (Refactoring)</h2>
 <div class="line"><span class="keywordtype">float</span> global_scale_;           <span class="comment">// Legacy (duplicate)</span></div>
 </div><!-- fragment --><p><b>Goal</b>: Eliminate legacy variables, use config_ only with property accessors</p>
 <p><b>Requires</b>: Careful migration to avoid breaking changes</p>
-<h1><a class="anchor" id="autotoc_md663"></a>
+<h1><a class="anchor" id="autotoc_md589"></a>
 🔍 Known Working Patterns</h1>
-<h2><a class="anchor" id="autotoc_md664"></a>
+<h2><a class="anchor" id="autotoc_md590"></a>
 Overworld Tile Painting (Working)</h2>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> CheckForOverworldEdits() {</div>
 <div class="line">  CheckForSelectRectangle();</div>
@@ -353,7 +353,7 @@ Overworld Tile Painting (Working)</h2>
 <div class="line">    <span class="comment">// Paint rectangle - wrapping issue here</span></div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md665"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md591"></a>
 Blockset Selection (Working)</h2>
 <div class="fragment"><div class="line">blockset_canvas_.DrawTileSelector(32);</div>
 <div class="line"> </div>
@@ -362,16 +362,16 @@ Blockset Selection (Working)</h2>
 <div class="line">  <span class="comment">// Get tile from blockset - WORKS</span></div>
 <div class="line">  current_tile16_ = CalculateTileId();</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md666"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md592"></a>
 Manual Overlay Highlighting (Working)</h2>
 <div class="fragment"><div class="line"><span class="comment">// Set custom highlight box</span></div>
 <div class="line">blockset_canvas_.mutable_points()-&gt;clear();</div>
 <div class="line">blockset_canvas_.mutable_points()-&gt;push_back(ImVec2(x, y));</div>
 <div class="line">blockset_canvas_.mutable_points()-&gt;push_back(ImVec2(x + w, y + h));</div>
 <div class="line"><span class="comment">// Renders as white outline in DrawOverlay()</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md667"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md593"></a>
 🎓 Lessons Learned</h1>
-<h2><a class="anchor" id="autotoc_md668"></a>
+<h2><a class="anchor" id="autotoc_md594"></a>
 What Worked</h2>
 <ol type="1">
 <li>✅ <b>Additive changes</b> - Begin/End alongside legacy (no breakage)</li>
@@ -379,14 +379,14 @@ What Worked</h2>
 <li>✅ <b>Configurable behavior</b> - Easy revert options</li>
 <li>✅ <b>Helper constructors</b> - Simpler API without breaking changes</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md669"></a>
+<h2><a class="anchor" id="autotoc_md595"></a>
 What Didn't Work</h2>
 <ol type="1">
 <li>❌ <b>Delegating tile methods</b> - Broke subtle state management</li>
 <li>❌ <b>Replacing points management</b> - points_ manipulation is intentional</li>
 <li>❌ <b>Simple clamping</b> - Rectangle painting has complex coordinate logic</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md670"></a>
+<h2><a class="anchor" id="autotoc_md596"></a>
 Key Insights</h2>
 <ol type="1">
 <li><b>Test runtime behavior</b> - Build success ≠ correct behavior</li>
@@ -394,9 +394,9 @@ Key Insights</h2>
 <li><b>Preserve working code</b> - If it works, keep original implementation</li>
 <li><b>Add, don't replace</b> - New patterns alongside old</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md671"></a>
+<h1><a class="anchor" id="autotoc_md597"></a>
 📋 For Future Agent</h1>
-<h2><a class="anchor" id="autotoc_md672"></a>
+<h2><a class="anchor" id="autotoc_md598"></a>
 Immediate Task: Fix Rectangle Wrapping</h2>
 <p><b>Symptoms</b>:</p><ul>
 <li>Single tile painting: ✅ Works at all boundaries</li>
@@ -417,7 +417,7 @@ Immediate Task: Fix Rectangle Wrapping</h2>
 <li><code>canvas.cc::DrawSelectRect()</code> (lines 957-1064)</li>
 </ul>
 <p><b>Key question</b>: Why does single tile painting work but rectangle doesn't?</p>
-<h2><a class="anchor" id="autotoc_md673"></a>
+<h2><a class="anchor" id="autotoc_md599"></a>
 Medium Term: Namespace Organization</h2>
 <p>Move all canvas components to <code>canvas/</code> namespace: </p><div class="fragment"><div class="line">gui/canvas/</div>
 <div class="line">├── canvas_utils.{h,cc}              // Move from gui/</div>
@@ -429,7 +429,7 @@ Medium Term: Namespace Organization</h2>
 <div class="line">├── canvas_usage_tracker.{h,cc}      // Already here</div>
 <div class="line">└── canvas_performance_integration.{h,cc} // Already here</div>
 </div><!-- fragment --><p>Add compatibility shims for old paths.</p>
-<h2><a class="anchor" id="autotoc_md674"></a>
+<h2><a class="anchor" id="autotoc_md600"></a>
 Long Term: State Management Simplification</h2>
 <p><b>Current issue</b>: Dual state management </p><div class="fragment"><div class="line">CanvasConfig config_;    <span class="comment">// Modern</span></div>
 <div class="line"><span class="keywordtype">bool</span> enable_grid_;       <span class="comment">// Legacy (duplicate)</span></div>
@@ -440,7 +440,7 @@ Long Term: State Management Simplification</h2>
 <div class="line"><span class="keywordtype">void</span> SetEnableGrid(<span class="keywordtype">bool</span> v) { config_.enable_grid = v; }</div>
 <div class="ttc" id="astructyaze_1_1gui_1_1canvas_1_1CanvasConfig_html_affa49ea705f560bf40f983a0510162b2"><div class="ttname"><a href="../../d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html#affa49ea705f560bf40f983a0510162b2">yaze::gui::canvas::CanvasConfig::enable_grid</a></div><div class="ttdeci">bool enable_grid</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d07/canvas__modals_8h_source.html#l00030">canvas_modals.h:30</a></div></div>
 </div><!-- fragment --><p><b>Requires</b>: Careful migration, test all editors</p>
-<h2><a class="anchor" id="autotoc_md675"></a>
+<h2><a class="anchor" id="autotoc_md601"></a>
 Stretch Goals: Enhanced Features</h2>
 <ol type="1">
 <li><b>Scratch Space UI</b> - Complete the scratch canvas implementation</li>
@@ -448,7 +448,7 @@ Stretch Goals: Enhanced Features</h2>
 <li><b>Keyboard shortcuts</b> - Add to context menu items</li>
 <li><b>Multi-layer rendering</b> - Support sprite overlays</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md676"></a>
+<h1><a class="anchor" id="autotoc_md602"></a>
 📊 Current Metrics</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -468,15 +468,15 @@ Stretch Goals: Enhanced Features</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Modern patterns   </td><td class="markdownTableBodyNone">Available but optional   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md677"></a>
+<h1><a class="anchor" id="autotoc_md603"></a>
 🔑 Key Files Reference</h1>
-<h2><a class="anchor" id="autotoc_md678"></a>
+<h2><a class="anchor" id="autotoc_md604"></a>
 Core Canvas</h2>
 <ul>
 <li><code><a class="el" href="../../d4/dcf/canvas_8h.html">src/app/gui/canvas.h</a></code> - Main class definition</li>
 <li><code><a class="el" href="../../da/dbb/canvas_8cc.html">src/app/gui/canvas.cc</a></code> - Implementation</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md679"></a>
+<h2><a class="anchor" id="autotoc_md605"></a>
 Canvas Components</h2>
 <ul>
 <li><code>src/app/gui/canvas/canvas_interaction_handler.{h,cc}</code> - Optional interaction API</li>
@@ -485,12 +485,12 @@ Canvas Components</h2>
 <li><code>src/app/gui/canvas/canvas_usage_tracker.{h,cc}</code> - Usage analytics</li>
 <li><code>src/app/gui/canvas/canvas_performance_integration.{h,cc}</code> - Performance monitoring</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md680"></a>
+<h2><a class="anchor" id="autotoc_md606"></a>
 Utilities</h2>
 <ul>
 <li><code>src/app/gui/canvas_utils.{h,cc}</code> - Helper functions (TODO: move to canvas/)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md681"></a>
+<h2><a class="anchor" id="autotoc_md607"></a>
 Major Consumers</h2>
 <ul>
 <li><code>src/app/editor/overworld/overworld_editor.{h,cc}</code> - Primary user, complex interactions</li>
@@ -498,9 +498,9 @@ Major Consumers</h2>
 <li><code>src/app/editor/graphics/graphics_editor.{h,cc}</code> - Graphics sheet editing</li>
 <li><code>src/app/editor/dungeon/dungeon_editor.{h,cc}</code> - Dungeon room editing</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md682"></a>
+<h1><a class="anchor" id="autotoc_md608"></a>
 🎯 Recommended Next Steps</h1>
-<h2><a class="anchor" id="autotoc_md683"></a>
+<h2><a class="anchor" id="autotoc_md609"></a>
 Step 1: Fix Rectangle Wrapping Bug (Critical)</h2>
 <p><b>Action</b>: Debug the coordinate calculation in painting loop <b>Time</b>: 2-4 hours <br  />
  <b>Risk</b>: Medium (affects core functionality)</p>
@@ -511,7 +511,7 @@ Step 1: Fix Rectangle Wrapping Bug (Critical)</h2>
 <li>Identify where coordinate calculation goes wrong</li>
 <li>Apply surgical fix</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md684"></a>
+<h2><a class="anchor" id="autotoc_md610"></a>
 Step 2: Test All Editors (Verification)</h2>
 <p><b>Action</b>: Manual testing of all Canvas usage <b>Time</b>: 1-2 hours <b>Risk</b>: Low (just testing)</p>
 <p><b>Test cases</b>:</p><ul>
@@ -520,44 +520,44 @@ Step 2: Test All Editors (Verification)</h2>
 <li>Graphics: Sheet display, tile selection</li>
 <li>Dungeon: Room canvas</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md685"></a>
+<h2><a class="anchor" id="autotoc_md611"></a>
 Step 3: Adopt Modern Patterns (Optional)</h2>
 <p><b>Action</b>: Use Begin/End or ScopedCanvas in new features <b>Time</b>: Ongoing <b>Risk</b>: Zero (additive only)</p>
 <p><b>Benefits</b>: Cleaner code, exception safety</p>
-<h1><a class="anchor" id="autotoc_md686"></a>
+<h1><a class="anchor" id="autotoc_md612"></a>
 📖 Documentation</h1>
-<h2><a class="anchor" id="autotoc_md687"></a>
+<h2><a class="anchor" id="autotoc_md613"></a>
 Read This</h2>
 <ul>
 <li>**<code><a class="el" href="../../de/df8/CANVAS__GUIDE_8md.html">CANVAS_GUIDE.md</a></code>** - Complete feature reference and API documentation</li>
 <li>**<code><a class="el" href="../../d4/d83/CANVAS__REFACTORING__STATUS_8md.html">CANVAS_REFACTORING_STATUS.md</a></code>** - This file (current status)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md688"></a>
+<h2><a class="anchor" id="autotoc_md614"></a>
 Background (Optional)</h2>
 <ul>
 <li><code>canvas_refactoring_summary.md</code> - Phase 1 (sizing improvements)</li>
 <li><code>canvas_refactoring_summary_phase2.md</code> - What we tried and learned</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md689"></a>
+<h1><a class="anchor" id="autotoc_md615"></a>
 💡 Quick Reference</h1>
-<h2><a class="anchor" id="autotoc_md690"></a>
+<h2><a class="anchor" id="autotoc_md616"></a>
 Modern Usage</h2>
 <div class="fragment"><div class="line">canvas.Begin();</div>
 <div class="line">canvas.DrawBitmap(bitmap);</div>
 <div class="line">canvas.End();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md691"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md617"></a>
 Legacy Usage (Still Works)</h2>
 <div class="fragment"><div class="line">canvas.DrawBackground();</div>
 <div class="line">canvas.DrawBitmap(bitmap);</div>
 <div class="line">canvas.DrawGrid();</div>
 <div class="line">canvas.DrawOverlay();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md692"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md618"></a>
 Revert Clamping</h2>
 <div class="fragment"><div class="line">canvas.SetClampRectToLocalMaps(<span class="keyword">false</span>);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md693"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md619"></a>
 Add Context Menu</h2>
 <div class="fragment"><div class="line">canvas.AddContextMenuItem({<span class="stringliteral">&quot;Action&quot;</span>, callback, <span class="stringliteral">&quot;Shortcut&quot;</span>});</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md694"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md620"></a>
 ✅ Current Status</h1>
 <p><b>Build</b>: ✅ Compiles without errors <br  />
  <b>Functionality</b>: ✅ Most features working <b>Known issue</b>: ⚠️ Rectangle wrapping at boundaries <br  />

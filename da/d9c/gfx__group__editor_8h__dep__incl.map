@@ -2,12 +2,12 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="113,5,266,46"/>
 <area shape="rect" id="Node000002" href="$d6/df5/dungeon__editor_8h.html" title=" " alt="" coords="24,183,177,223"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,42,52,62,31,77,15,95,8,114,15,133,35,160,62,180,59,184,32,164,10,136,3,114,10,93,28,73,49,57,97,37"/>
-<area shape="rect" id="Node000018" href="$db/d1b/gfx__group__editor_8cc.html" title=" " alt="" coords="25,94,178,135"/>
-<area shape="poly" id="edge2_Node000001_Node000018" title=" " alt="" coords="161,59,124,95,120,92,157,55"/>
-<area shape="rect" id="Node000019" href="$d9/d54/palette__editor_8h.html" title=" " alt="" coords="202,94,356,135"/>
-<area shape="poly" id="edge3_Node000001_Node000019" title=" " alt="" coords="223,55,261,92,257,95,219,59"/>
-<area shape="rect" id="Node000023" href="$db/d9f/overworld__editor_8h.html" title=" " alt="" coords="256,183,417,223"/>
-<area shape="poly" id="edge6_Node000001_Node000023" title=" " alt="" coords="283,37,331,57,353,73,371,93,379,116,376,140,366,164,354,184,349,181,361,161,370,139,373,116,366,95,349,77,329,62,280,42"/>
-<area shape="poly" id="edge4_Node000019_Node000002" title=" " alt="" coords="226,144,142,185,140,180,224,139"/>
-<area shape="poly" id="edge5_Node000019_Node000023" title=" " alt="" coords="303,146,326,181,321,184,298,149"/>
+<area shape="rect" id="Node000021" href="$db/d1b/gfx__group__editor_8cc.html" title=" " alt="" coords="25,94,178,135"/>
+<area shape="poly" id="edge2_Node000001_Node000021" title=" " alt="" coords="161,59,124,95,120,92,157,55"/>
+<area shape="rect" id="Node000022" href="$d9/d54/palette__editor_8h.html" title=" " alt="" coords="202,94,356,135"/>
+<area shape="poly" id="edge3_Node000001_Node000022" title=" " alt="" coords="223,55,261,92,257,95,219,59"/>
+<area shape="rect" id="Node000026" href="$db/d9f/overworld__editor_8h.html" title=" " alt="" coords="256,183,417,223"/>
+<area shape="poly" id="edge6_Node000001_Node000026" title=" " alt="" coords="283,37,331,57,353,73,371,93,379,116,376,140,366,164,354,184,349,181,361,161,370,139,373,116,366,95,349,77,329,62,280,42"/>
+<area shape="poly" id="edge4_Node000022_Node000002" title=" " alt="" coords="226,144,142,185,140,180,224,139"/>
+<area shape="poly" id="edge5_Node000022_Node000026" title=" " alt="" coords="303,146,326,181,321,184,298,149"/>
 </map>

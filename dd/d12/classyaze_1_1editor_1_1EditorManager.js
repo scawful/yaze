@@ -11,6 +11,7 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "SetCurrentRom", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#af060b602b2a51a3ae072edf1e10fb703", null ],
     [ "GetCurrentRom", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a43368659fa37930f823a79d4f5481d19", null ],
     [ "GetCurrentEditorSet", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#aa10a67fe8c2887bd7597df64e152d198", null ],
+    [ "overworld", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#aeea38d7642ff4cd0f8adb37d07cba5a9", null ],
     [ "GetCurrentFeatureFlags", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ada03bbe59d235d9a582cad48597f0109", null ],
     [ "SetFontGlobalScale", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a6bd2531ab0c2a1b04e90bcbaafecf361", null ],
     [ "DrawWelcomeScreen", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#aa1e288deb163d1a710c61e7125fbd487", null ],

@@ -101,7 +101,8 @@ $(document).ready(function(){initNavTree('df/dfd/test__utils_8h.html','../../');
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#define-members">Macros</a>  </div>
+<a href="#define-members">Macros</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">test_utils.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -112,18 +113,8 @@ $(document).ready(function(){initNavTree('df/dfd/test__utils_8h.html','../../');
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;gtest/gtest.h&gt;</code><br />
 <code>#include &lt;gmock/gmock.h&gt;</code><br />
-</div><div class="textblock"><div class="dynheader">
-This graph shows which files directly or indirectly include this file:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d8/dc0/test__utils_8h__dep__incl.png" border="0" usemap="#atest_2test__utils_8hdep" alt=""/></div>
-<map name="atest_2test__utils_8hdep" id="atest_2test__utils_8hdep">
-<area shape="rect" title=" " alt="" coords="96,5,206,31"/>
-<area shape="rect" href="../../d7/dcf/asar__rom__test_8cc.html" title=" " alt="" coords="5,79,142,120"/>
-<area shape="poly" title=" " alt="" coords="131,44,94,80,91,77,127,40"/>
-<area shape="rect" href="../../dd/d76/asar__wrapper__test_8cc.html" title=" " alt="" coords="166,79,293,120"/>
-<area shape="poly" title=" " alt="" coords="175,40,212,77,208,81,171,44"/>
-</map>
-</div>
+<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
+<code>#include &quot;imgui_test_engine/imgui_te_context.h&quot;</code><br />
 </div>
 <p><a href="../../df/dfd/test__utils_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -143,12 +134,21 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:d4/d0a/namespaceyaze_1_1test" id="r_d4/d0a/namespaceyaze_1_1test"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html">yaze::test</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:d7/d79/namespaceyaze_1_1test_1_1gui" id="r_d7/d79/namespaceyaze_1_1test_1_1gui"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d79/namespaceyaze_1_1test_1_1gui.html">yaze::test::gui</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:acde8466936427e1b1ba331bccb124a9e" id="r_acde8466936427e1b1ba331bccb124a9e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfd/test__utils_8h.html#acde8466936427e1b1ba331bccb124a9e">YAZE_ROM_TEST</a>(test_case_name,  test_name)</td></tr>
 <tr class="memdesc:acde8466936427e1b1ba331bccb124a9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test macro for ROM-dependent tests.  <br /></td></tr>
 <tr class="separator:acde8466936427e1b1ba331bccb124a9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ae62d5a7e55450297c7b7efdb5c9448bc" id="r_ae62d5a7e55450297c7b7efdb5c9448bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d79/namespaceyaze_1_1test_1_1gui.html#ae62d5a7e55450297c7b7efdb5c9448bc">yaze::test::gui::LoadRomInTest</a> (ImGuiTestContext *ctx, const std::string &amp;rom_path)</td></tr>
+<tr class="separator:ae62d5a7e55450297c7b7efdb5c9448bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af12c501448079ffb3ab9d73d71237882" id="r_af12c501448079ffb3ab9d73d71237882"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d79/namespaceyaze_1_1test_1_1gui.html#af12c501448079ffb3ab9d73d71237882">yaze::test::gui::OpenEditorInTest</a> (ImGuiTestContext *ctx, const std::string &amp;editor_name)</td></tr>
+<tr class="separator:af12c501448079ffb3ab9d73d71237882"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="acde8466936427e1b1ba331bccb124a9e" name="acde8466936427e1b1ba331bccb124a9e"></a>
@@ -184,7 +184,7 @@ Macros</h2></td></tr>
 </div><!-- fragment -->
 <p>Test macro for ROM-dependent tests. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/dfd/test__utils_8h_source.html#l00132">132</a> of file <a class="el" href="../../df/dfd/test__utils_8h_source.html">test_utils.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/dfd/test__utils_8h_source.html#l00135">135</a> of file <a class="el" href="../../df/dfd/test__utils_8h_source.html">test_utils.h</a>.</p>
 
 </div>
 </div>

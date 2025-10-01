@@ -101,19 +101,19 @@ $(document).ready(function(){initNavTree('d7/d30/md_docs_2analysis_2dungeon__par
   <div class="headertitle"><div class="title">DungeonEditor Parallel Optimization Implementation</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md167"></a> </p>
-<h1><a class="anchor" id="autotoc_md168"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md148"></a> </p>
+<h1><a class="anchor" id="autotoc_md149"></a>
 🚀 &lt;strong&gt;Parallelization Strategy Implemented&lt;/strong&gt;</h1>
-<h2><a class="anchor" id="autotoc_md169"></a>
+<h2><a class="anchor" id="autotoc_md150"></a>
 &lt;strong&gt;Problem Identified&lt;/strong&gt;</h2>
 <ul>
 <li><b>DungeonEditor::LoadAllRooms</b>: <b>17,966ms (17.97 seconds)</b> - 99.9% of loading time</li>
 <li>Loading <b>296 rooms</b> sequentially, each involving complex operations</li>
 <li>Perfect candidate for parallelization due to independent room processing</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md170"></a>
+<h2><a class="anchor" id="autotoc_md151"></a>
 &lt;strong&gt;Solution: Multi-Threaded Room Loading&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md171"></a>
+<h3><a class="anchor" id="autotoc_md152"></a>
 &lt;strong&gt;Key Optimizations&lt;/strong&gt;</h3>
 <ol type="1">
 <li><b>Parallel Room Processing</b> <div class="fragment"><div class="line"><span class="comment">// Load 296 rooms using up to 8 threads</span></div>
@@ -131,7 +131,7 @@ $(document).ready(function(){initNavTree('d7/d30/md_docs_2analysis_2dungeon__par
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md172"></a>
+<h3><a class="anchor" id="autotoc_md153"></a>
 &lt;strong&gt;Parallel Processing Flow&lt;/strong&gt;</h3>
 <div class="fragment"><div class="line"><span class="comment">// Each thread processes a batch of rooms</span></div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = start_room; i &lt; end_room; ++i) {</div>
@@ -147,7 +147,7 @@ $(document).ready(function(){initNavTree('d7/d30/md_docs_2analysis_2dungeon__par
 <div class="line">  <span class="comment">// 4. Process palette (thread-safe collection)</span></div>
 <div class="line">  <span class="comment">// ... palette processing ...</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md173"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md154"></a>
 &lt;strong&gt;Thread Safety Features&lt;/strong&gt;</h3>
 <ol type="1">
 <li><b>Mutex Protection</b>: <code>std::mutex results_mutex</code> protects shared data structures</li>
@@ -155,9 +155,9 @@ $(document).ready(function(){initNavTree('d7/d30/md_docs_2analysis_2dungeon__par
 <li><b>Independent Processing</b>: Each thread works on different room ranges</li>
 <li><b>Synchronized Results</b>: Results collected and sorted on main thread</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md174"></a>
+<h2><a class="anchor" id="autotoc_md155"></a>
 &lt;strong&gt;Expected Performance Impact&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md175"></a>
+<h3><a class="anchor" id="autotoc_md156"></a>
 &lt;strong&gt;Theoretical Speedup&lt;/strong&gt;</h3>
 <ul>
 <li><b>8x faster</b> with 8 threads (ideal case)</li>
@@ -169,7 +169,7 @@ $(document).ready(function(){initNavTree('d7/d30/md_docs_2analysis_2dungeon__par
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md176"></a>
+<h3><a class="anchor" id="autotoc_md157"></a>
 &lt;strong&gt;Expected Results&lt;/strong&gt;</h3>
 <ul>
 <li><b>Before</b>: 17,966ms (17.97 seconds)</li>
@@ -177,9 +177,9 @@ $(document).ready(function(){initNavTree('d7/d30/md_docs_2analysis_2dungeon__par
 <li><b>Total Loading Time</b>: <b>2.5-5 seconds</b> (down from 18.6 seconds)</li>
 <li><b>Overall Improvement</b>: <b>70-85% reduction</b> in loading time</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md177"></a>
+<h2><a class="anchor" id="autotoc_md158"></a>
 &lt;strong&gt;Technical Implementation Details&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md178"></a>
+<h3><a class="anchor" id="autotoc_md159"></a>
 &lt;strong&gt;Thread Management&lt;/strong&gt;</h3>
 <div class="fragment"><div class="line">std::vector&lt;std::future&lt;absl::Status&gt;&gt; futures;</div>
 <div class="line"> </div>
@@ -197,7 +197,7 @@ $(document).ready(function(){initNavTree('d7/d30/md_docs_2analysis_2dungeon__par
 <div class="line">  <a class="code hl_define" href="../../d4/d9e/macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(future.get());</div>
 <div class="line">}</div>
 <div class="ttc" id="amacro_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="../../d4/d9e/macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d9e/macro_8h_source.html#l00053">macro.h:53</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md179"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md160"></a>
 &lt;strong&gt;Result Processing&lt;/strong&gt;</h3>
 <div class="fragment"><div class="line"><span class="comment">// Sort results by room ID for consistent ordering</span></div>
 <div class="line">std::sort(room_size_results.begin(), room_size_results.end(), </div>
@@ -208,20 +208,20 @@ $(document).ready(function(){initNavTree('d7/d30/md_docs_2analysis_2dungeon__par
 <div class="line">  room_size_pointers_.push_back(room_size.room_size_pointer);</div>
 <div class="line">  <span class="comment">// ... process results ...</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md180"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md161"></a>
 &lt;strong&gt;Monitoring and Validation&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md181"></a>
+<h3><a class="anchor" id="autotoc_md162"></a>
 &lt;strong&gt;Performance Timing Added&lt;/strong&gt;</h3>
 <ul>
 <li><b>DungeonRoomLoader::PostProcessResults</b>: Measures result processing time</li>
 <li><b>Thread creation overhead</b>: Minimal compared to room loading time</li>
 <li><b>Result collection time</b>: Expected to be &lt;100ms</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md182"></a>
+<h3><a class="anchor" id="autotoc_md163"></a>
 &lt;strong&gt;Logging and Debugging&lt;/strong&gt;</h3>
 <div class="fragment"><div class="line">util::logf(<span class="stringliteral">&quot;Loading %d dungeon rooms using %d threads (%d rooms per thread)&quot;</span>, </div>
 <div class="line">           kTotalRooms, max_concurrency, rooms_per_thread);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md183"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md164"></a>
 &lt;strong&gt;Benefits of This Approach&lt;/strong&gt;</h2>
 <ol type="1">
 <li><b>Massive Performance Gain</b>: 70-85% reduction in loading time</li>
@@ -230,7 +230,7 @@ $(document).ready(function(){initNavTree('d7/d30/md_docs_2analysis_2dungeon__par
 <li><b>Maintainable</b>: Clean separation of parallel processing and result collection</li>
 <li><b>Robust</b>: Error handling per thread with proper status propagation</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md184"></a>
+<h2><a class="anchor" id="autotoc_md165"></a>
 &lt;strong&gt;Next Steps&lt;/strong&gt;</h2>
 <ol type="1">
 <li><b>Test Performance</b>: Run application and measure actual speedup</li>
