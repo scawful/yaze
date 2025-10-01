@@ -1,6 +1,7 @@
 #include "cli/z3ed.h"
 #include "cli/modern_cli.h"
 #include "cli/service/ai_service.h"
+#include "cli/service/proposal_registry.h"
 #include "cli/service/resource_catalog.h"
 #include "cli/service/rom_sandbox_manager.h"
 #include "util/macro.h"
@@ -9,6 +10,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
 
@@ -105,23 +107,48 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec, Rom& rom)
     std::string prompt = arg_vec[1];
     
     // Save a sandbox copy of the ROM for proposal tracking.
-    if (rom.is_loaded()) {
-        auto sandbox_or = RomSandboxManager::Instance().CreateSandbox(
-            rom, "agent-run");
-        if (!sandbox_or.ok()) {
-            return sandbox_or.status();
-        }
+    if (!rom.is_loaded()) {
+        return absl::FailedPreconditionError("No ROM loaded");
     }
+
+    auto sandbox_or = RomSandboxManager::Instance().CreateSandbox(
+        rom, "agent-run");
+    if (!sandbox_or.ok()) {
+        return sandbox_or.status();
+    }
+    auto sandbox = sandbox_or.value();
+
+    // Create a proposal to track this agent run
+    auto proposal_or = ProposalRegistry::Instance().CreateProposal(
+        sandbox.id, prompt, "Agent-generated ROM modifications");
+    if (!proposal_or.ok()) {
+        return proposal_or.status();
+    }
+    auto proposal = proposal_or.value();
+
+    // Log the start of execution
+    RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
+        proposal.id, absl::StrCat("Starting agent run with prompt: ", prompt)));
 
     MockAIService ai_service;
     auto commands_or = ai_service.GetCommands(prompt);
     if (!commands_or.ok()) {
+        RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
+            proposal.id, absl::StrCat("AI service error: ", commands_or.status().message())));
         return commands_or.status();
     }
     std::vector<std::string> commands = commands_or.value();
 
+    // Log the planned commands
+    RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
+        proposal.id, absl::StrCat("Generated ", commands.size(), " commands")));
+
     ModernCLI cli;
+    int commands_executed = 0;
     for (const auto& command : commands) {
+        RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
+            proposal.id, absl::StrCat("Executing: ", command)));
+
         std::vector<std::string> command_parts;
         std::string current_part;
         bool in_quotes = false;
@@ -144,10 +171,30 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec, Rom& rom)
         if (it != cli.commands_.end()) {
             auto status = it->second.handler(cmd_args);
             if (!status.ok()) {
+                RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
+                    proposal.id, absl::StrCat("Command failed: ", status.message())));
                 return status;
             }
+            commands_executed++;
+            RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
+                proposal.id, "Command succeeded"));
+        } else {
+            auto error_msg = absl::StrCat("Unknown command: ", cmd_name);
+            RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
+                proposal.id, error_msg));
+            return absl::NotFoundError(error_msg);
         }
     }
+
+    // Update proposal with execution stats
+    RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
+        proposal.id, absl::StrCat("Completed execution of ", commands_executed, " commands")));
+
+    std::cout << "✅ Agent run completed successfully." << std::endl;
+    std::cout << "   Proposal ID: " << proposal.id << std::endl;
+    std::cout << "   Sandbox: " << sandbox.rom_path << std::endl;
+    std::cout << "   Use 'z3ed agent diff' to review changes" << std::endl;
+
     return absl::OkStatus();
 }
 
@@ -170,11 +217,110 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& arg_vec) {
     return absl::OkStatus();
 }
 
-absl::Status HandleDiffCommand(Rom& rom) {
+absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
+    // Parse optional --proposal-id flag
+    std::optional<std::string> proposal_id;
+    for (size_t i = 0; i < args.size(); ++i) {
+        const std::string& token = args[i];
+        if (absl::StartsWith(token, "--proposal-id=")) {
+            proposal_id = token.substr(14);  // Length of "--proposal-id="
+        } else if (token == "--proposal-id" && i + 1 < args.size()) {
+            proposal_id = args[i + 1];
+            ++i;
+        }
+    }
+    
+    auto& registry = ProposalRegistry::Instance();
+    absl::StatusOr<ProposalRegistry::ProposalMetadata> proposal_or;
+    
+    // Get specific proposal or latest pending
+    if (proposal_id.has_value()) {
+        proposal_or = registry.GetProposal(proposal_id.value());
+    } else {
+        proposal_or = registry.GetLatestPendingProposal();
+    }
+    
+    if (proposal_or.ok()) {
+        const auto& proposal = proposal_or.value();
+        
+        std::cout << "\n=== Proposal Diff ===\n";
+        std::cout << "Proposal ID: " << proposal.id << "\n";
+        std::cout << "Sandbox ID: " << proposal.sandbox_id << "\n";
+        std::cout << "Prompt: " << proposal.prompt << "\n";
+        std::cout << "Description: " << proposal.description << "\n";
+        std::cout << "Status: ";
+        switch (proposal.status) {
+            case ProposalRegistry::ProposalStatus::kPending:
+                std::cout << "Pending";
+                break;
+            case ProposalRegistry::ProposalStatus::kAccepted:
+                std::cout << "Accepted";
+                break;
+            case ProposalRegistry::ProposalStatus::kRejected:
+                std::cout << "Rejected";
+                break;
+        }
+        std::cout << "\n";
+        std::cout << "Created: " << absl::FormatTime(proposal.created_at) << "\n";
+        std::cout << "Commands Executed: " << proposal.commands_executed << "\n";
+        std::cout << "Bytes Changed: " << proposal.bytes_changed << "\n\n";
+        
+        // Read and display the diff file
+        if (std::filesystem::exists(proposal.diff_path)) {
+            std::cout << "--- Diff Content ---\n";
+            std::ifstream diff_file(proposal.diff_path);
+            if (diff_file.is_open()) {
+                std::string line;
+                while (std::getline(diff_file, line)) {
+                    std::cout << line << "\n";
+                }
+                diff_file.close();
+            } else {
+                std::cout << "(Unable to read diff file)\n";
+            }
+        } else {
+            std::cout << "(No diff file found)\n";
+        }
+        
+        // Display execution log summary
+        std::cout << "\n--- Execution Log ---\n";
+        if (std::filesystem::exists(proposal.log_path)) {
+            std::ifstream log_file(proposal.log_path);
+            if (log_file.is_open()) {
+                std::string line;
+                int line_count = 0;
+                while (std::getline(log_file, line)) {
+                    std::cout << line << "\n";
+                    line_count++;
+                    if (line_count > 50) {  // Limit output for readability
+                        std::cout << "... (log truncated, see " << proposal.log_path << " for full output)\n";
+                        break;
+                    }
+                }
+                log_file.close();
+            } else {
+                std::cout << "(Unable to read log file)\n";
+            }
+        } else {
+            std::cout << "(No log file found)\n";
+        }
+        
+        // Display next steps
+        std::cout << "\n=== Next Steps ===\n";
+        std::cout << "To accept changes: z3ed agent commit\n";
+        std::cout << "To reject changes: z3ed agent revert\n";
+        std::cout << "To review in GUI: yaze --proposal=" << proposal.id << "\n";
+        
+        return absl::OkStatus();
+    }
+    
+    // Fallback to old behavior if no proposal found
     if (rom.is_loaded()) {
         auto sandbox_or = RomSandboxManager::Instance().ActiveSandbox();
         if (!sandbox_or.ok()) {
-            return sandbox_or.status();
+            return absl::NotFoundError(
+                "No pending proposals found and no active sandbox. "
+                "Run 'z3ed agent run' first.");
         }
         RomDiff diff_handler;
         auto status = diff_handler.Run(
@@ -279,6 +425,46 @@ absl::Status HandleLearnCommand() {
     return absl::OkStatus();
 }
 
+absl::Status HandleListCommand() {
+    auto& registry = ProposalRegistry::Instance();
+    auto proposals = registry.ListProposals();
+    
+    if (proposals.empty()) {
+        std::cout << "No proposals found.\n";
+        std::cout << "Run 'z3ed agent run --prompt \"...\"' to create a proposal.\n";
+        return absl::OkStatus();
+    }
+    
+    std::cout << "\n=== Agent Proposals ===\n\n";
+    
+    for (const auto& proposal : proposals) {
+        std::cout << "ID: " << proposal.id << "\n";
+        std::cout << "  Status: ";
+        switch (proposal.status) {
+            case ProposalRegistry::ProposalStatus::kPending:
+                std::cout << "Pending";
+                break;
+            case ProposalRegistry::ProposalStatus::kAccepted:
+                std::cout << "Accepted";
+                break;
+            case ProposalRegistry::ProposalStatus::kRejected:
+                std::cout << "Rejected";
+                break;
+        }
+        std::cout << "\n";
+        std::cout << "  Created: " << absl::FormatTime(proposal.created_at) << "\n";
+        std::cout << "  Prompt: " << proposal.prompt << "\n";
+        std::cout << "  Commands: " << proposal.commands_executed << "\n";
+        std::cout << "  Bytes Changed: " << proposal.bytes_changed << "\n";
+        std::cout << "\n";
+    }
+    
+    std::cout << "Total: " << proposals.size() << " proposal(s)\n";
+    std::cout << "\nUse 'z3ed agent diff --proposal-id=<id>' to view details.\n";
+    
+    return absl::OkStatus();
+}
+
 absl::Status HandleCommitCommand(Rom& rom) {
     if (rom.is_loaded()) {
         auto status = rom.SaveToFile({.save_new = false});
@@ -367,7 +553,7 @@ absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec) {
 absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   if (arg_vec.empty()) {
         return absl::InvalidArgumentError(
-                "Usage: agent <run|plan|diff|test|learn|commit|revert|describe> [options]");
+                "Usage: agent <run|plan|diff|test|learn|list|commit|revert|describe> [options]");
   }
 
   std::string subcommand = arg_vec[0];
@@ -378,11 +564,13 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   } else if (subcommand == "plan") {
     return HandlePlanCommand(subcommand_args);
   } else if (subcommand == "diff") {
-    return HandleDiffCommand(rom_);
+    return HandleDiffCommand(rom_, subcommand_args);
   } else if (subcommand == "test") {
     return HandleTestCommand(subcommand_args);
   } else if (subcommand == "learn") {
     return HandleLearnCommand();
+  } else if (subcommand == "list") {
+    return HandleListCommand();
   } else if (subcommand == "commit") {
     return HandleCommitCommand(rom_);
   } else if (subcommand == "revert") {

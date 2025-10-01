@@ -31,6 +31,42 @@ namespace yaze {
 using core::Renderer;
 constexpr int Uncompressed3BPPSize = 0x0600;
 
+namespace {
+constexpr size_t kBaseRomSize = 1048576;  // 1MB
+constexpr size_t kHeaderSize = 0x200;     // 512 bytes
+
+void MaybeStripSmcHeader(std::vector<uint8_t> &rom_data, unsigned long &size) {
+  if (size % kBaseRomSize == kHeaderSize && size >= kHeaderSize) {
+    rom_data.erase(rom_data.begin(), rom_data.begin() + kHeaderSize);
+    size -= kHeaderSize;
+  }
+}
+
+}  // namespace
+
+RomLoadOptions RomLoadOptions::AppDefaults() { return RomLoadOptions{}; }
+
+RomLoadOptions RomLoadOptions::CliDefaults() {
+  RomLoadOptions options;
+  options.populate_palettes = false;
+  options.populate_gfx_groups = false;
+  options.expand_to_full_image = false;
+  options.load_resource_labels = false;
+  return options;
+}
+
+RomLoadOptions RomLoadOptions::RawDataOnly() {
+  RomLoadOptions options;
+  options.load_zelda3_content = false;
+  options.strip_header = false;
+  options.populate_metadata = false;
+  options.populate_palettes = false;
+  options.populate_gfx_groups = false;
+  options.expand_to_full_image = false;
+  options.load_resource_labels = false;
+  return options;
+}
+
 uint32_t GetGraphicsAddress(const uint8_t *data, uint8_t addr, uint32_t ptr1,
                             uint32_t ptr2, uint32_t ptr3) {
   return SnesToPc(AddressFromBytes(data[ptr1 + addr], data[ptr2 + addr],
@@ -69,7 +105,9 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
     link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                             gfx::kTilesheetDepth, link_sheet_8bpp);
     link_graphics[i].SetPalette(rom.palette_group().armors[0]);
-    Renderer::Get().RenderBitmap(&link_graphics[i]);
+    if (SDL_Renderer *renderer = Renderer::Get().renderer(); renderer != nullptr) {
+      Renderer::Get().RenderBitmap(&link_graphics[i]);
+    }
   }
   return link_graphics;
 }
@@ -137,6 +175,8 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets;
   std::vector<uint8_t> sheet;
   bool bpp3 = false;
+  SDL_Renderer *renderer = Renderer::Get().renderer();
+  const bool renderer_ready = renderer != nullptr;
 
   for (uint32_t i = 0; i < kNumGfxSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
@@ -174,8 +214,8 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
         }
       }
 
-      if (!defer_render) {
-        graphics_sheets[i].CreateTexture(Renderer::Get().renderer());
+      if (!defer_render && renderer_ready) {
+        graphics_sheets[i].CreateTexture(renderer);
       }
 
       for (int j = 0; j < graphics_sheets[i].size(); ++j) {
@@ -228,6 +268,13 @@ absl::Status SaveAllGraphicsData(
 }
 
 absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
+  return LoadFromFile(
+      filename, z3_load ? RomLoadOptions::AppDefaults()
+                         : RomLoadOptions::RawDataOnly());
+}
+
+absl::Status Rom::LoadFromFile(const std::string &filename,
+                               const RomLoadOptions &options) {
   if (filename.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
@@ -259,59 +306,108 @@ absl::Status Rom::LoadFromFile(const std::string &filename, bool z3_load) {
   file.read(reinterpret_cast<char *>(rom_data_.data()), size_);
   file.close();
 
-  if (z3_load) {
-    RETURN_IF_ERROR(LoadZelda3());
-    resource_label_manager_.LoadLabels(absl::StrFormat("%s.labels", filename));
+  if (!options.load_zelda3_content) {
+    if (options.strip_header) {
+      MaybeStripSmcHeader(rom_data_, size_);
+    }
+    size_ = rom_data_.size();
+  } else {
+    RETURN_IF_ERROR(LoadZelda3(options));
+  }
+
+  if (options.load_resource_labels) {
+    resource_label_manager_.LoadLabels(
+        absl::StrFormat("%s.labels", filename));
   }
 
   return absl::OkStatus();
 }
 
 absl::Status Rom::LoadFromData(const std::vector<uint8_t> &data, bool z3_load) {
+  return LoadFromData(
+      data, z3_load ? RomLoadOptions::AppDefaults()
+                    : RomLoadOptions::RawDataOnly());
+}
+
+absl::Status Rom::LoadFromData(const std::vector<uint8_t> &data,
+                               const RomLoadOptions &options) {
   if (data.empty()) {
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `data` is empty.");
   }
   rom_data_ = data;
   size_ = data.size();
-  if (z3_load) {
-    RETURN_IF_ERROR(LoadZelda3());
+
+  if (!options.load_zelda3_content) {
+    if (options.strip_header) {
+      MaybeStripSmcHeader(rom_data_, size_);
+    }
+    size_ = rom_data_.size();
+  } else {
+    RETURN_IF_ERROR(LoadZelda3(options));
   }
+
   return absl::OkStatus();
 }
 
 absl::Status Rom::LoadZelda3() {
-  // Check if the ROM has a header
-  constexpr size_t kBaseRomSize = 1048576;  // 1MB
-  constexpr size_t kHeaderSize = 0x200;     // 512 bytes
-  if (size_ % kBaseRomSize == kHeaderSize) {
-    auto header = std::vector<uint8_t>(rom_data_.begin(),
-                                       rom_data_.begin() + kHeaderSize);
-    rom_data_.erase(rom_data_.begin(), rom_data_.begin() + kHeaderSize);
-    size_ -= 0x200;
+  return LoadZelda3(RomLoadOptions::AppDefaults());
+}
+
+absl::Status Rom::LoadZelda3(const RomLoadOptions &options) {
+  if (rom_data_.empty()) {
+    return absl::FailedPreconditionError("ROM data is empty");
   }
 
-  // Copy ROM title
+  if (options.strip_header) {
+    MaybeStripSmcHeader(rom_data_, size_);
+  }
+
+  size_ = rom_data_.size();
+
   constexpr uint32_t kTitleStringOffset = 0x7FC0;
   constexpr uint32_t kTitleStringLength = 20;
-  title_.resize(kTitleStringLength);
-  std::copy(rom_data_.begin() + kTitleStringOffset,
-            rom_data_.begin() + kTitleStringOffset + kTitleStringLength,
-            title_.begin());
-  if (rom_data_[kTitleStringOffset + 0x19] == 0) {
-    version_ = zelda3_version::JP;
-  } else {
-    version_ = zelda3_version::US;
+  constexpr uint32_t kTitleStringOffsetWithHeader = 0x81C0;
+
+  if (options.populate_metadata) {
+    uint32_t offset = options.strip_header ? kTitleStringOffset
+                                           : kTitleStringOffsetWithHeader;
+    if (offset + kTitleStringLength > rom_data_.size()) {
+      return absl::OutOfRangeError(
+          "ROM image is too small to contain title metadata.");
+    }
+    title_.assign(rom_data_.begin() + offset,
+                  rom_data_.begin() + offset + kTitleStringLength);
+    if (rom_data_[offset + 0x19] == 0) {
+      version_ = zelda3_version::JP;
+    } else {
+      version_ = zelda3_version::US;
+    }
   }
 
-  // Load additional resources
-  RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
-  // TODO Load gfx groups or expanded ZS values
-  RETURN_IF_ERROR(LoadGfxGroups());
+  if (options.populate_palettes) {
+    palette_groups_.clear();
+    RETURN_IF_ERROR(gfx::LoadAllPalettes(rom_data_, palette_groups_));
+  } else {
+    palette_groups_.clear();
+  }
 
-  // Expand the ROM data to 2MB without changing the data in the first 1MB
-  rom_data_.resize(kBaseRomSize * 2);
-  size_ = kBaseRomSize * 2;
+  if (options.populate_gfx_groups) {
+    RETURN_IF_ERROR(LoadGfxGroups());
+  } else {
+    main_blockset_ids = {};
+    room_blockset_ids = {};
+    spriteset_ids = {};
+    paletteset_ids = {};
+  }
+
+  if (options.expand_to_full_image) {
+    if (rom_data_.size() < kBaseRomSize * 2) {
+      rom_data_.resize(kBaseRomSize * 2);
+    }
+  }
+
+  size_ = rom_data_.size();
 
   return absl::OkStatus();
 }

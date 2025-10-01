@@ -93,11 +93,18 @@ The generative workflow has been refined to incorporate more detailed planning a
 - **Project Scaffolding**: Implemented.
 
 ### Phase 4: Agentic Framework & Generative AI (In Progress)
-- **`z3ed agent` command**: Implemented with `run`, `plan`, `diff`, `test`, `commit`, `revert`, and `learn` subcommands.
+- **`z3ed agent` command**: ✅ Implemented with `run`, `plan`, `diff`, `test`, `commit`, `revert`, `describe`, `learn`, and `list` subcommands.
+- **Resource Catalog System**: ✅ Complete - comprehensive schema for all CLI commands with effects and returns metadata.
+- **Agent Describe Command**: ✅ Fully operational - exports command catalog in JSON/YAML formats for AI consumption.
+- **Agent List Command**: ✅ Complete - enumerates all proposals with status and metadata.
+- **Agent Diff Enhancement**: ✅ Complete - reads proposals from registry, supports `--proposal-id` flag, displays execution logs and metadata.
+- **Machine-Readable API**: ✅ `docs/api/z3ed-resources.yaml` generated and maintained for automation.
 - **AI Model Interaction**: In progress, with `MockAIService` and `GeminiAIService` (conditional) implemented.
 - **Execution Loop (MCP)**: In progress, with command parsing and execution logic.
-- **Leveraging `ImGuiTestEngine`**: In progress, with `agent test` subcommand.
-- **Granular Data Commands**: Not started, but planned.
+- **Leveraging `ImGuiTestEngine`**: In progress, with `agent test` subcommand for GUI verification.
+- **Sandbox ROM Management**: ✅ Complete - `RomSandboxManager` operational with full lifecycle management.
+- **Proposal Tracking**: ✅ Complete - `ProposalRegistry` implemented with metadata, diffs, logs, and lifecycle management.
+- **Granular Data Commands**: Partially complete - rom, palette, overworld, dungeon commands operational.
 - **SpriteBuilder CLI**: Deprioritized.
 
 ### Phase 5: Code Structure & UX Improvements (Completed)
@@ -107,6 +114,27 @@ The generative workflow has been refined to incorporate more detailed planning a
 - **Error Handling**: Improved error handling with consistent `absl::Status` usage throughout the codebase.
 - **Build System**: Streamlined CMake configuration with proper dependency management and conditional compilation.
 - **Code Quality**: Resolved linting errors and improved code maintainability through better header organization and forward declarations.
+
+### Phase 6: Resource Catalogue & API Documentation (✅ Completed - Oct 1, 2025)
+- **Resource Schema System**: ✅ Comprehensive schema definitions for all CLI resources (ROM, Patch, Palette, Overworld, Dungeon, Agent).
+- **Metadata Annotations**: ✅ All commands annotated with arguments, effects, returns, and stability levels.
+- **Serialization Framework**: ✅ Dual-format export (JSON compact, YAML human-readable) with resource filtering.
+- **Agent Describe Command**: ✅ Full implementation with `--format`, `--resource`, `--output`, `--version` flags.
+- **API Documentation Generation**: ✅ Automated generation of `docs/api/z3ed-resources.yaml` for AI/tooling consumption.
+- **Flag-Based Dispatch**: ✅ Hardened command routing - all ROM commands use `FLAGS_rom` consistently.
+- **ROM Info Fix**: ✅ Created dedicated `RomInfo` handler, resolving segfault issue.
+
+**Key Achievements**:
+- Machine-readable API catalog enables LLM integration for automated ROM hacking workflows
+- Comprehensive command documentation with argument types, effects, and return schemas
+- Stable foundation for AI agents to discover and invoke CLI commands programmatically
+- Validation layer for ensuring command compatibility and argument correctness
+
+**Testing Coverage**:
+- ✅ All ROM commands tested: `info`, `validate`, `diff`, `generate-golden`
+- ✅ Agent describe tested: YAML output, JSON output, resource filtering, file generation
+- ✅ Help system integration verified with updated command listings
+- ✅ Build system validated on macOS (arm64) with no critical warnings
 
 ## 8. Agentic Framework Architecture - Advanced Dive
 
@@ -118,10 +146,12 @@ The `z3ed agent` command is the main entry point for the agent. It has the follo
 
 - `run --prompt "..."`: Executes a prompt by generating and running a sequence of `z3ed` commands.
 - `plan --prompt "..."`: Shows the sequence of `z3ed` commands the AI plans to execute.
-- `diff`: Shows a diff of the changes made to the ROM after running a prompt.
+- `diff [--proposal-id <id>]`: Shows a diff of the changes made to the ROM after running a prompt. Displays the latest pending proposal by default, or a specific proposal if ID is provided.
+- `list`: Lists all proposals with their status, creation time, prompt, and execution statistics.
 - `test --prompt "..."`: Generates changes and then runs an `ImGuiTestEngine` test to verify them.
 - `commit`: Saves the modified ROM and any new assets to the project.
 - `revert`: Reverts the changes made by the agent.
+- `describe [--resource <name>]`: Returns machine-readable schemas for CLI commands, enabling AI/LLM integration.
 - `learn --description "..."`: Records a sequence of user actions (CLI commands and GUI interactions) and associates them with a natural language description, allowing the agent to learn new workflows.
 
 ### 8.2. The Agentic Loop (MCP) - Detailed Workflow
@@ -413,6 +443,37 @@ Allowing an LLM to drive the ImGui UI safely requires a structured bridge betwee
 - **Command Translation Layer**: Extend `z3ed agent run` to recognize plan steps with type `imgui_action`. These steps translate to harness calls (e.g., `{ "type": "imgui_action", "action": "click", "target": "Palette/Cell[12]" }`).
 - **Synchronization Primitives**: Provide `WaitForIdle`, `WaitForCondition`, and `Delay` primitives so LLMs can coordinate with frame updates. Each primitive enforces timeouts and returns explicit success/failure statuses.
 - **State Queries**: Implement reflection endpoints retrieving ImGui widget hierarchy, enabling the agent to confirm UI states before issuing the next action—mirroring how `ImGuiTestEngine` DSL scripts work today.
+
+#### 13.1.1. Transport & Envelope
+
+- **Session bootstrap**: `yaze_test --automation=<socket path>` spins up the harness and prints a connection URI. The CLI or external agent opens a persistent stream (Unix domain socket on macOS/Linux, named pipe + overlapped IO on Windows). TLS is out-of-scope; trust is derived from local IPC.
+- **Message format**: Each frame is a length-prefixed JSON envelope with optional binary attachments. Core fields:
+    ```json
+    {
+        "id": "req-42",
+        "type": "event" | "query" | "expect" | "control",
+        "payload": { /* type-specific body */ },
+        "attachments": [
+            { "slot": 0, "mime": "image/png" }
+        ]
+    }
+    ```
+    Binary blobs (e.g., screenshots) follow immediately after the JSON payload in the same frame to avoid out-of-band coordination.
+- **Streaming semantics**: Responses reuse the `id` field and include `status`, `error`, and optional attachments. Long-running operations (`WaitForCondition`) stream periodic `progress` updates before returning `status: "ok"` or `status: "timeout"`.
+
+#### 13.1.2. Harness Runtime Lifecycle
+
+1. **Attach**: Agent sends a `control` message (`{"command":"attach"}`) to lock in a session. Harness responds with negotiated capabilities (available input devices, screenshot formats, rate limits).
+2. **Activate context**: Agent issues an `event` to focus a specific ImGui context (e.g., "main", "palette_editor"). Harness binds to the corresponding `ImGuiTestEngine` backend fixture.
+3. **Execute actions**: Agent streams `event` objects (`click`, `drag`, `keystroke`, `text_input`). Harness feeds them into the ImGui event queue at the start of the next frame, waits for the frame to settle, then replies.
+4. **Query & assert**: Agent interleaves `query` messages (`get_widget_tree`, `capture_screenshot`, `read_value`) and `expect` messages (`assert_property`, `assert_pixel`). Harness routes these to existing ImGuiTestEngine inspectors, lifting the results into structured JSON.
+5. **Detach**: Agent issues `{"command":"detach"}` (or connection closes). Harness flushes pending frames, releases sandbox locks, and tears down the socket.
+
+#### 13.1.3. Integration with `z3ed agent`
+
+- **Plan annotation**: The CLI plan schema gains a new step kind `imgui_action` with fields `harness_uri`, `actions[]`, and optional `expect[]`. During execution `z3ed agent run` opens the harness stream, feeds each action, and short-circuits on first failure.
+- **Sandbox awareness**: Harness sessions inherit the active sandbox ROM path from `RomSandboxManager`, ensuring UI assertions operate on the same data snapshot as CLI mutations.
+- **Telemetry hooks**: Every harness response is appended to the proposal timeline (see §12) with thumbnails for screenshots. Failures bubble up as structured errors with hints (`"missing_widget": "Palette/Cell[12]"`).
 
 ### 13.2. Safety & Sandboxing
 

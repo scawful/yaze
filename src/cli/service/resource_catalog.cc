@@ -51,6 +51,20 @@ ResourceSchema MakeRomSchema() {
   schema.resource = "rom";
   schema.description = "ROM validation, diffing, and snapshot helpers.";
 
+  ResourceAction info_action;
+  info_action.name = "info";
+  info_action.synopsis = "z3ed rom info --rom <file>";
+  info_action.stability = "stable";
+  info_action.arguments = {
+    ResourceArgument{"--rom", "path", true, "Path to ROM file configured via global flag."},
+  };
+  info_action.effects = {
+    "Reads ROM from disk and displays basic information (title, size, filename)."};
+  info_action.returns = {
+    {"title", "string", "ROM internal title from header."},
+    {"size", "integer", "ROM file size in bytes."},
+    {"filename", "string", "Full path to the ROM file."}};
+
   ResourceAction validate_action;
   validate_action.name = "validate";
   validate_action.synopsis = "z3ed rom validate --rom <file>";
@@ -91,7 +105,7 @@ ResourceSchema MakeRomSchema() {
   generate_action.returns = {
     {"artifact", "path", "Absolute path to the generated golden image."}};
 
-  schema.actions = {validate_action, diff_action, generate_action};
+  schema.actions = {info_action, validate_action, diff_action, generate_action};
   return schema;
 }
 
@@ -231,7 +245,7 @@ ResourceSchema MakeAgentSchema() {
   ResourceSchema schema;
   schema.resource = "agent";
   schema.description =
-    "Agent workflow helpers including planning, diffing, and schema discovery.";
+    "Agent workflow helpers including planning, diffing, listing, and schema discovery.";
 
   ResourceAction describe_action;
   describe_action.name = "describe";
@@ -245,7 +259,31 @@ ResourceSchema MakeAgentSchema() {
       {"schema", "object",
        "JSON schema describing resource arguments and semantics."}};
 
-  schema.actions = {describe_action};
+  ResourceAction list_action;
+  list_action.name = "list";
+  list_action.synopsis = "z3ed agent list";
+  list_action.stability = "prototype";
+  list_action.arguments = {};
+  list_action.effects = {{"reads", "proposal_registry"}};
+  list_action.returns = {
+      {"proposals", "array",
+       "List of all proposals with ID, status, prompt, and metadata."}};
+
+  ResourceAction diff_action;
+  diff_action.name = "diff";
+  diff_action.synopsis = "z3ed agent diff [--proposal-id <id>]";
+  diff_action.stability = "prototype";
+  diff_action.arguments = {
+    ResourceArgument{"--proposal-id", "string", false,
+             "Optional proposal ID to view specific proposal. Defaults to latest pending."},
+  };
+  diff_action.effects = {{"reads", "proposal_registry"}, {"reads", "sandbox"}};
+  diff_action.returns = {
+      {"diff", "string", "Unified diff showing changes to ROM."},
+      {"log", "string", "Execution log of commands run."},
+      {"metadata", "object", "Proposal metadata including status and timestamps."}};
+
+  schema.actions = {describe_action, list_action, diff_action};
   return schema;
 }
 

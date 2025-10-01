@@ -102,6 +102,11 @@ class DungeonListObjects : public CommandHandler {
   absl::Status Run(const std::vector<std::string>& arg_vec) override;
 };
 
+class RomInfo : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
 class RomValidate : public CommandHandler {
  public:
   absl::Status Run(const std::vector<std::string>& arg_vec) override;
@@ -151,7 +156,7 @@ class Open : public CommandHandler {
  public:
   absl::Status Run(const std::vector<std::string>& arg_vec) override {
     auto const& arg = arg_vec[0];
-    RETURN_IF_ERROR(rom_.LoadFromFile(arg))
+    RETURN_IF_ERROR(rom_.LoadFromFile(arg, RomLoadOptions::CliDefaults()))
     std::cout << "Title: " << rom_.title() << std::endl;
     std::cout << "Size: 0x" << std::hex << rom_.size() << std::endl;
     return absl::OkStatus();
