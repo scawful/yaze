@@ -700,6 +700,15 @@ void EditorManager::Initialize(const std::string& filename) {
             [&]() { show_asm_editor_ = true; }},
            {absl::StrCat(ICON_MD_SETTINGS, " Feature Flags"), "",
             [&]() { popup_manager_->Show("Feature Flags"); }},
+           
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           
+           // Agent Proposals
+           {absl::StrCat(ICON_MD_PREVIEW, " Agent Proposals"), "",
+            [&]() { proposal_drawer_.Toggle(); }},
+           
+           {gui::kSeparator, "", nullptr, []() { return true; }},
+           
            {absl::StrCat(ICON_MD_PALETTE, " Graphics Debugging"), "", []() {}, []() { return true; },
             std::vector<gui::MenuItem>{
                 {absl::StrCat(ICON_MD_REFRESH, " Clear Graphics Cache"), "",
@@ -1135,6 +1144,9 @@ void EditorManager::DrawMenuBar() {
     test_manager.DrawTestDashboard(&show_test_dashboard_);
   }
 #endif
+
+  // Agent proposal drawer
+  proposal_drawer_.Draw();
 
   // Welcome screen (accessible from View menu)
   if (show_welcome_screen_) {

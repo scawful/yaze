@@ -20,6 +20,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/popup_manager.h"
+#include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/emu/emulator.h"
@@ -173,6 +174,10 @@ class EditorManager {
   // Testing interface
   bool show_test_dashboard_ = false;
   bool show_performance_dashboard_ = false;
+  
+  // Agent proposal drawer
+  ProposalDrawer proposal_drawer_;
+  bool show_proposal_drawer_ = false;
 
   std::string version_ = "";
   std::string settings_filename_ = "settings.ini";
