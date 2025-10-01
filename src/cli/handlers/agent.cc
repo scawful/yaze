@@ -2,8 +2,19 @@
 #include "cli/modern_cli.h"
 #include "cli/service/ai_service.h"
 
+#include "absl/status/status.h"
+
+#include <cstdlib>  // For EXIT_FAILURE
+
+// Platform-specific includes for process management and executable path detection
+#if !defined(_WIN32)
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
+#endif
 #endif
 
 namespace yaze {
@@ -101,32 +112,41 @@ absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
     if (arg_vec.size() < 2 || arg_vec[0] != "--test") {
         return absl::InvalidArgumentError("Usage: agent test --test <test_name>");
     }
-    std::string test_name = arg_vec[1];
-
+    
 #ifdef _WIN32
+    // Windows doesn't support fork/exec, so users must run tests directly
     return absl::UnimplementedError(
         "GUI test command is not supported on Windows. "
         "Please run yaze_test.exe directly with --enable-ui-tests flag.");
 #else
+    // Unix-like systems (macOS, Linux) support fork/exec for process spawning
+    std::string test_name = arg_vec[1];
+    
+    // Get the executable path using platform-specific methods
     char exe_path[1024];
 #ifdef __APPLE__
     uint32_t size = sizeof(exe_path);
     if (_NSGetExecutablePath(exe_path, &size) != 0) {
         return absl::InternalError("Could not get executable path");
     }
-#else
+#elif defined(__linux__)
     ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
     if (len == -1) {
         return absl::InternalError("Could not get executable path");
     }
     exe_path[len] = '\0';
+#else
+    return absl::UnimplementedError(
+        "GUI test command is not supported on this platform. "
+        "Please run yaze_test directly with --enable-ui-tests flag.");
 #endif
 
+    // Extract directory from executable path
     std::string exe_dir = std::string(exe_path);
     exe_dir = exe_dir.substr(0, exe_dir.find_last_of("/"));
-
     std::string yaze_test_path = exe_dir + "/yaze_test";
 
+    // Prepare command arguments for execv
     std::vector<std::string> command_args;
     command_args.push_back(yaze_test_path);
     command_args.push_back("--enable-ui-tests");
@@ -138,31 +158,39 @@ absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
     }
     argv.push_back(nullptr);
 
+    // Fork and execute the test process
     pid_t pid = fork();
     if (pid == -1) {
         return absl::InternalError("Failed to fork process");
     }
 
     if (pid == 0) {
-        // Child process
+        // Child process: execute the test binary
         execv(yaze_test_path.c_str(), argv.data());
         // If execv returns, it must have failed
-        return absl::InternalError("Failed to execute yaze_test");
+        _exit(EXIT_FAILURE);  // Use _exit in child process after failed exec
     } else {
-        // Parent process
+        // Parent process: wait for child to complete
         int status;
-        waitpid(pid, &status, 0);
+        if (waitpid(pid, &status, 0) == -1) {
+            return absl::InternalError("Failed to wait for child process");
+        }
+        
         if (WIFEXITED(status)) {
             int exit_code = WEXITSTATUS(status);
             if (exit_code == 0) {
                 return absl::OkStatus();
             } else {
-                return absl::InternalError(absl::StrFormat("yaze_test exited with code %d", exit_code));
+                return absl::InternalError(
+                    absl::StrFormat("yaze_test exited with code %d", exit_code));
             }
+        } else if (WIFSIGNALED(status)) {
+            return absl::InternalError(
+                absl::StrFormat("yaze_test terminated by signal %d", WTERMSIG(status)));
+        } else {
+            return absl::InternalError("yaze_test terminated abnormally");
         }
     }
-
-    return absl::OkStatus();
 #endif
 }
 
