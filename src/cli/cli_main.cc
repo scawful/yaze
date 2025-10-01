@@ -58,64 +58,109 @@ class ModernCLI {
   }
 
   void SetupCommands() {
-    commands_["asar"] = {
-      .name = "asar",
+    commands_["patch apply-asar"] = {
+      .name = "patch apply-asar",
       .description = "Apply Asar 65816 assembly patch to ROM",
-      .usage = "z3ed asar <patch.asm> [--rom=<rom_file>] [--output=<output_file>]",
+      .usage = "z3ed patch apply-asar <patch.asm> [--rom=<rom_file>] [--output=<output_file>]",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleAsarCommand(args);
       }
     };
 
-    commands_["patch"] = {
-      .name = "patch", 
+    commands_["patch apply-bps"] = {
+      .name = "patch apply-bps", 
       .description = "Apply BPS patch to ROM",
-      .usage = "z3ed patch <patch.bps> [--rom=<rom_file>] [--output=<output_file>]",
+      .usage = "z3ed patch apply-bps <patch.bps> [--rom=<rom_file>] [--output=<output_file>]",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandlePatchCommand(args);
       }
     };
 
-    commands_["extract"] = {
-      .name = "extract",
+    commands_["patch extract-symbols"] = {
+      .name = "patch extract-symbols",
       .description = "Extract symbols from assembly file",
-      .usage = "z3ed extract <patch.asm>",
+      .usage = "z3ed patch extract-symbols <patch.asm>",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleExtractCommand(args);
       }
     };
 
-    commands_["validate"] = {
-      .name = "validate",
+    commands_["patch validate"] = {
+      .name = "patch validate",
       .description = "Validate assembly file syntax",
-      .usage = "z3ed validate <patch.asm>",
+      .usage = "z3ed patch validate <patch.asm>",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleValidateCommand(args);
       }
     };
 
-    commands_["info"] = {
-      .name = "info",
+    commands_["rom info"] = {
+      .name = "rom info",
       .description = "Show ROM information",
-      .usage = "z3ed info [--rom=<rom_file>]",
+      .usage = "z3ed rom info [--rom=<rom_file>]",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleInfoCommand(args);
       }
     };
 
-    commands_["convert"] = {
-      .name = "convert",
+    commands_["dungeon export"] = {
+      .name = "dungeon export",
+      .description = "Export dungeon data to a file",
+      .usage = "z3ed dungeon export <room_id> --format <format>",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleDungeonExportCommand(args);
+      }
+    };
+
+    commands_["gfx export-sheet"] = {
+      .name = "gfx export-sheet",
+      .description = "Export a graphics sheet to a file",
+      .usage = "z3ed gfx export-sheet <sheet_id> --to <file>",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleGfxExportCommand(args);
+      }
+    };
+
+    commands_["gfx import-sheet"] = {
+      .name = "gfx import-sheet",
+      .description = "Import a graphics sheet from a file",
+      .usage = "z3ed gfx import-sheet <sheet_id> --from <file>",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleGfxImportCommand(args);
+      }
+    };
+
+    commands_["palette export"] = {
+      .name = "palette export",
+      .description = "Export a palette to a file",
+      .usage = "z3ed palette export --group <group> --id <id> --format <format>",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandlePaletteExportCommand(args);
+      }
+    };
+
+    commands_["palette import"] = {
+      .name = "palette import",
+      .description = "Import a palette from a file",
+      .usage = "z3ed palette import --group <group> --id <id> --from <file>",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandlePaletteImportCommand(args);
+      }
+    };
+
+    commands_["util convert"] = {
+      .name = "util convert",
       .description = "Convert between SNES and PC addresses",
-      .usage = "z3ed convert <address> [--to-pc|--to-snes]",
+      .usage = "z3ed util convert <address> [--to-pc|--to-snes]",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleConvertCommand(args);
       }
     };
 
-    commands_["test"] = {
-      .name = "test",
+    commands_["test run-assets"] = {
+      .name = "test run-assets",
       .description = "Run comprehensive asset loading tests on ROM",
-      .usage = "z3ed test [--rom=<rom_file>] [--graphics] [--overworld] [--dungeons]",
+      .usage = "z3ed test run-assets [--rom=<rom_file>]",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleTestCommand(args);
       }
@@ -130,10 +175,10 @@ class ModernCLI {
       }
     };
 
-    commands_["test-gui"] = {
-      .name = "test-gui",
+    commands_["test run-gui"] = {
+      .name = "test run-gui",
       .description = "Run automated GUI tests",
-      .usage = "z3ed test-gui --rom=<rom_file> --test=<test_name>",
+      .usage = "z3ed test run-gui --rom=<rom_file> --test=<test_name>",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleTestGuiCommand(args);
       }
@@ -157,7 +202,7 @@ class ModernCLI {
     std::cout << "z3ed - Yet Another Zelda3 Editor CLI Tool" << std::endl;
     std::cout << std::endl;
     std::cout << "USAGE:" << std::endl;
-    std::cout << "  z3ed [--tui] [command] [arguments]" << std::endl;
+    std::cout << "  z3ed [--tui] <resource> <action> [arguments]" << std::endl;
     std::cout << std::endl;
     std::cout << "GLOBAL FLAGS:" << std::endl;
     std::cout << "  --tui              Launch Text User Interface" << std::endl;
@@ -171,21 +216,19 @@ class ModernCLI {
     std::cout << "COMMANDS:" << std::endl;
     
     for (const auto& [name, info] : commands_) {
-      std::cout << absl::StrFormat("  %-12s %s", name, info.description) << std::endl;
+      std::cout << absl::StrFormat("  %-25s %s", name, info.description) << std::endl;
     }
     
     std::cout << std::endl;
     std::cout << "EXAMPLES:" << std::endl;
     std::cout << "  z3ed --tui                                    # Launch TUI" << std::endl;
-    std::cout << "  z3ed asar patch.asm --rom=zelda3.sfc         # Apply Asar patch" << std::endl;
-    std::cout << "  z3ed patch changes.bps --rom=zelda3.sfc      # Apply BPS patch" << std::endl;
-    std::cout << "  z3ed extract patch.asm                       # Extract symbols" << std::endl;
-    std::cout << "  z3ed validate patch.asm                      # Validate assembly" << std::endl;
-    std::cout << "  z3ed info --rom=zelda3.sfc                   # Show ROM info" << std::endl;
-    std::cout << "  z3ed convert 0x008000 --to-pc                # Convert address" << std::endl;
+    std::cout << "  z3ed patch apply-asar patch.asm --rom=zelda3.sfc # Apply Asar patch" << std::endl;
+    std::cout << "  z3ed patch apply-bps changes.bps --rom=zelda3.sfc # Apply BPS patch" << std::endl;
+    std::cout << "  z3ed patch extract-symbols patch.asm          # Extract symbols" << std::endl;
+    std::cout << "  z3ed rom info --rom=zelda3.sfc                   # Show ROM info" << std::endl;
     std::cout << std::endl;
     std::cout << "For more information on a specific command:" << std::endl;
-    std::cout << "  z3ed help <command>" << std::endl;
+    std::cout << "  z3ed help <resource> <action>" << std::endl;
   }
 
   absl::Status RunCommand(const std::string& command, const std::vector<std::string>& args) {
@@ -197,8 +240,37 @@ class ModernCLI {
     return it->second.handler(args);
   }
 
+#include "cli/handlers/dungeon.h"
+
  private:
   std::map<std::string, CommandInfo> commands_;
+
+  absl::Status HandleDungeonExportCommand(const std::vector<std::string>& args) {
+    DungeonExport handler;
+    return handler.Run(args);
+  }
+
+  absl::Status HandleGfxExportCommand(const std::vector<std::string>& args) {
+    GfxExport handler;
+    return handler.Run(args);
+  }
+
+  absl::Status HandleGfxImportCommand(const std::vector<std::string>& args) {
+    GfxImport handler;
+    return handler.Run(args);
+  }
+
+  absl::Status HandlePaletteExportCommand(const std::vector<std::string>& args) {
+    PaletteExport handler;
+    return handler.Run(args);
+  }
+
+  absl::Status HandlePaletteImportCommand(const std::vector<std::string>& args) {
+    PaletteImport handler;
+    return handler.Run(args);
+  }
+
+
 
   absl::Status HandleAsarCommand(const std::vector<std::string>& args) {
     if (args.empty()) {
@@ -516,7 +588,7 @@ class ModernCLI {
   }
 
   absl::Status HandleHelpCommand(const std::vector<std::string>& args) {
-    std::string command = args.empty() ? "" : args[0];
+    std::string command = args.empty() ? "" : absl::StrJoin(args, " ");
     ShowHelp(command);
     return absl::OkStatus();
   }
@@ -555,8 +627,16 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  std::string command = args[1];
-  std::vector<std::string> command_args(args.begin() + 2, args.end());
+  std::string command;
+  std::vector<std::string> command_args;
+
+  if (args.size() >= 3) {
+    command = std::string(args[1]) + " " + std::string(args[2]);
+    command_args.assign(args.begin() + 3, args.end());
+  } else {
+    command = args[1];
+    command_args.assign(args.begin() + 2, args.end());
+  }
 
   auto status = cli.RunCommand(command, command_args);
   if (!status.ok()) {

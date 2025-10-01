@@ -22,9 +22,6 @@ void SwitchComponents(ftxui::ScreenInteractive &screen, LayoutID layout) {
   screen.ExitLoopClosure()();
   screen.Clear();
   app_context.current_layout = layout;
-
-  // Clear the buffer
-  // std::cout << "\033[2J\033[1;1H";
 }
 
 bool HandleInput(ftxui::ScreenInteractive &screen, ftxui::Event &event,
@@ -704,7 +701,7 @@ void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
 
 void HelpComponent(ftxui::ScreenInteractive &screen) {
   auto help_text = vbox({
-      text("z3ed v0.3.1") | bold | color(Color::Yellow),
+      text("z3ed v0.3.2") | bold | color(Color::Yellow),
       text("by scawful") | color(Color::Magenta),
       text("The Legend of Zelda: A Link to the Past Hacking Tool") |
           color(Color::Red),
@@ -866,7 +863,7 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
   auto title = border(hbox({
       text("z3ed") | bold | color(Color::Blue1),
       separator(),
-      text("v0.3.1") | bold | color(Color::Green1),
+      text("v0.3.2") | bold | color(Color::Green1),
       separator(),
       text(rom_information) | bold | color(Color::Red1),
   }));
