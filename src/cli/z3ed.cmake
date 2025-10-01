@@ -28,6 +28,9 @@ add_executable(
   cli/handlers/compress.cc
   cli/handlers/patch.cc
   cli/handlers/tile16_transfer.cc
+  cli/handlers/dungeon.cc
+  cli/handlers/gfx.cc
+  cli/handlers/palette.cc
   app/rom.cc
   app/core/project.cc
   app/core/asar_wrapper.cc

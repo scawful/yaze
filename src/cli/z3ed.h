@@ -46,6 +46,31 @@ class Tile16Transfer : public CommandHandler {
   absl::Status Run(const std::vector<std::string>& arg_vec) override;
 };
 
+class GfxExport : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class GfxImport : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class PaletteExport : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class PaletteImport : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class DungeonExport : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
 class Open : public CommandHandler {
  public:
   absl::Status Run(const std::vector<std::string>& arg_vec) override {
@@ -186,4 +211,4 @@ class Expand : public CommandHandler {
 }  // namespace cli
 }  // namespace yaze
 
-#endif
+#endif  // YAZE_CLI_Z3ED_H

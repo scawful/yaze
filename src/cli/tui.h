@@ -39,7 +39,7 @@ enum class MainMenuEntry {
   kExit,
 };
 
-enum LayoutID {
+enum class LayoutID {
   kLoadRom,
   kApplyAsarPatch,
   kApplyBpsPatch,
