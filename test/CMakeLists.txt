@@ -29,6 +29,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       # Unit Tests
       unit/core/asar_wrapper_test.cc
       unit/core/hex_test.cc
+      unit/cli/resource_catalog_test.cc
       unit/rom/rom_test.cc
       unit/gfx/snes_tile_test.cc
       unit/gfx/compression_test.cc
@@ -41,6 +42,9 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       unit/zelda3/sprite_position_test.cc
       unit/zelda3/test_dungeon_objects.cc
       unit/zelda3/dungeon_component_unit_test.cc
+
+      # CLI Services (for catalog serialization tests)
+      ../src/cli/service/resource_catalog.cc
       
       # Integration Tests
       integration/asar_integration_test.cc
@@ -79,6 +83,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       # Unit Tests
       unit/core/asar_wrapper_test.cc
       unit/core/hex_test.cc
+      unit/cli/resource_catalog_test.cc
       unit/rom/rom_test.cc
       unit/gfx/snes_tile_test.cc
       unit/gfx/compression_test.cc
@@ -91,6 +96,9 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       unit/zelda3/sprite_position_test.cc
       unit/zelda3/test_dungeon_objects.cc
       unit/zelda3/dungeon_component_unit_test.cc
+
+      # CLI Services (for catalog serialization tests)
+      ../src/cli/service/resource_catalog.cc
       
       # Integration Tests
       integration/asar_integration_test.cc

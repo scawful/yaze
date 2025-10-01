@@ -1,10 +1,20 @@
 #include "cli/z3ed.h"
 #include "cli/modern_cli.h"
 #include "cli/service/ai_service.h"
+#include "cli/service/resource_catalog.h"
+#include "cli/service/rom_sandbox_manager.h"
+#include "util/macro.h"
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
+#include "absl/strings/str_format.h"
+#include "absl/time/time.h"
 
 #include <cstdlib>  // For EXIT_FAILURE
+#include <fstream>
+#include <optional>
 
 // Platform-specific includes for process management and executable path detection
 #if !defined(_WIN32)
@@ -24,17 +34,82 @@ namespace cli {
 
 namespace {
 
+struct DescribeOptions {
+    std::optional<std::string> resource;
+    std::string format = "json";
+    std::optional<std::string> output_path;
+    std::string version = "0.1.0";
+    std::optional<std::string> last_updated;
+};
+
+absl::StatusOr<DescribeOptions> ParseDescribeArgs(
+        const std::vector<std::string>& args) {
+    DescribeOptions options;
+    for (size_t i = 0; i < args.size(); ++i) {
+        const std::string& token = args[i];
+        std::string flag = token;
+        std::optional<std::string> inline_value;
+
+        if (absl::StartsWith(token, "--")) {
+            auto eq_pos = token.find('=');
+            if (eq_pos != std::string::npos) {
+                flag = token.substr(0, eq_pos);
+                inline_value = token.substr(eq_pos + 1);
+            }
+        }
+
+        auto require_value = [&](absl::string_view flag_name) -> absl::StatusOr<std::string> {
+            if (inline_value.has_value()) {
+                return *inline_value;
+            }
+            if (i + 1 >= args.size()) {
+                return absl::InvalidArgumentError(
+                        absl::StrFormat("Flag %s requires a value", flag_name));
+            }
+            return args[++i];
+        };
+
+        if (flag == "--resource") {
+            ASSIGN_OR_RETURN(auto value, require_value("--resource"));
+            options.resource = std::move(value);
+        } else if (flag == "--format") {
+            ASSIGN_OR_RETURN(auto value, require_value("--format"));
+            options.format = std::move(value);
+        } else if (flag == "--output") {
+            ASSIGN_OR_RETURN(auto value, require_value("--output"));
+            options.output_path = std::move(value);
+        } else if (flag == "--version") {
+            ASSIGN_OR_RETURN(auto value, require_value("--version"));
+            options.version = std::move(value);
+        } else if (flag == "--last-updated") {
+            ASSIGN_OR_RETURN(auto value, require_value("--last-updated"));
+            options.last_updated = std::move(value);
+        } else {
+            return absl::InvalidArgumentError(
+                    absl::StrFormat("Unknown flag for agent describe: %s", token));
+        }
+    }
+
+    options.format = absl::AsciiStrToLower(options.format);
+    if (options.format != "json" && options.format != "yaml") {
+        return absl::InvalidArgumentError("--format must be either json or yaml");
+    }
+
+    return options;
+}
+
 absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec, Rom& rom) {
     if (arg_vec.size() < 2 || arg_vec[0] != "--prompt") {
         return absl::InvalidArgumentError("Usage: agent run --prompt <prompt>");
     }
     std::string prompt = arg_vec[1];
     
-    // Save a temporary copy of the ROM
+    // Save a sandbox copy of the ROM for proposal tracking.
     if (rom.is_loaded()) {
-        auto status = rom.SaveToFile({.save_new = true, .filename = "temp_rom.sfc"});
-        if (!status.ok()) {
-            return status;
+        auto sandbox_or = RomSandboxManager::Instance().CreateSandbox(
+            rom, "agent-run");
+        if (!sandbox_or.ok()) {
+            return sandbox_or.status();
         }
     }
 
@@ -97,8 +172,13 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& arg_vec) {
 
 absl::Status HandleDiffCommand(Rom& rom) {
     if (rom.is_loaded()) {
+        auto sandbox_or = RomSandboxManager::Instance().ActiveSandbox();
+        if (!sandbox_or.ok()) {
+            return sandbox_or.status();
+        }
         RomDiff diff_handler;
-        auto status = diff_handler.Run({rom.filename(), "temp_rom.sfc"});
+        auto status = diff_handler.Run(
+            {rom.filename(), sandbox_or->rom_path.string()});
         if (!status.ok()) {
             return status;
         }
@@ -225,11 +305,69 @@ absl::Status HandleRevertCommand(Rom& rom) {
     return absl::OkStatus();
 }
 
+absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec) {
+    ASSIGN_OR_RETURN(auto options, ParseDescribeArgs(arg_vec));
+
+    const auto& catalog = ResourceCatalog::Instance();
+    std::optional<ResourceSchema> resource_schema;
+    if (options.resource.has_value()) {
+        auto resource_or = catalog.GetResource(*options.resource);
+        if (!resource_or.ok()) {
+            return resource_or.status();
+        }
+        resource_schema = resource_or.value();
+    }
+
+    std::string payload;
+    if (options.format == "json") {
+        if (resource_schema.has_value()) {
+            payload = catalog.SerializeResource(*resource_schema);
+        } else {
+            payload = catalog.SerializeResources(catalog.AllResources());
+        }
+    } else {
+        std::string last_updated = options.last_updated.has_value()
+                                                                     ? *options.last_updated
+                                                                     : absl::FormatTime("%Y-%m-%d", absl::Now(),
+                                                                                                            absl::LocalTimeZone());
+        if (resource_schema.has_value()) {
+            std::vector<ResourceSchema> schemas{*resource_schema};
+            payload = catalog.SerializeResourcesAsYaml(
+                    schemas, options.version, last_updated);
+        } else {
+            payload = catalog.SerializeResourcesAsYaml(
+                    catalog.AllResources(), options.version, last_updated);
+        }
+    }
+
+    if (options.output_path.has_value()) {
+        std::ofstream out(*options.output_path, std::ios::binary | std::ios::trunc);
+        if (!out.is_open()) {
+            return absl::InternalError(absl::StrFormat(
+                    "Failed to open %s for writing", *options.output_path));
+        }
+        out << payload;
+        out.close();
+        if (!out) {
+            return absl::InternalError(absl::StrFormat(
+                    "Failed to write schema to %s", *options.output_path));
+        }
+        std::cout << absl::StrFormat("Wrote %s schema to %s", options.format,
+                                                                 *options.output_path)
+                            << std::endl;
+        return absl::OkStatus();
+    }
+
+    std::cout << payload << std::endl;
+    return absl::OkStatus();
+}
+
 } // namespace
 
 absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   if (arg_vec.empty()) {
-    return absl::InvalidArgumentError("Usage: agent <run|plan|diff|test|learn|commit|revert> [options]");
+        return absl::InvalidArgumentError(
+                "Usage: agent <run|plan|diff|test|learn|commit|revert|describe> [options]");
   }
 
   std::string subcommand = arg_vec[0];
@@ -249,6 +387,8 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
     return HandleCommitCommand(rom_);
   } else if (subcommand == "revert") {
     return HandleRevertCommand(rom_);
+    } else if (subcommand == "describe") {
+        return HandleDescribeCommand(subcommand_args);
   } else {
     return absl::InvalidArgumentError("Invalid subcommand for agent command.");
   }

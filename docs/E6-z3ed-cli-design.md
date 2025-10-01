@@ -336,3 +336,132 @@ src/cli/
 4. **JSON Integration**: Complete HTTP/JSON library integration for Gemini AI service
 5. **Performance**: Address copy-construction warnings by using const references
 6. **Testing**: Expand unit test coverage for command handlers
+
+## 11. Agent-Ready API Surface Area
+
+To unlock deeper agentic workflows, the CLI and application layers must expose a well-documented, machine-consumable API surface that mirrors the capabilities available in the GUI editors. The following initiatives expand the command coverage and standardize access for both humans and AI agents:
+
+- **Resource Inventory**: Catalogue every actionable subsystem (ROM metadata, banks, tile16 atlas, actors, palettes, scripts) and map it to a resource/action pair (e.g., `rom header set`, `dungeon room copy`, `sprite spawn`). The catalogue will live in `docs/api/z3ed-resources.yaml` and be generated from source annotations; current machine-readable coverage includes palette, overworld, rom, patch, and dungeon actions.
+- **Rich Metadata**: Schemas annotate each action with structured `effects` and `returns` arrays so agents can reason about side-effects and expected outputs when constructing plans.
+- **Command Introspection Endpoint**: Introduce `z3ed agent describe --resource <name>` to return a structured schema describing arguments, enum values, preconditions, side-effects, and example invocations. Schemas will follow JSON Schema, enabling UI tooltips and LLM prompt construction.  _Prototype status (Oct 2025)_: the command now streams catalog JSON from `ResourceCatalog`, including `effects` and `returns` arrays for each action across palette, overworld, rom, patch, and dungeon resources.  
+    ```json
+    {
+        "resources": [
+            {
+                "resource": "rom",
+                "actions": [
+                    {
+                        "name": "validate",
+                        "effects": [
+                            "Reads ROM from disk, verifies checksum, and reports header status."
+                        ],
+                        "returns": [
+                            { "field": "report", "type": "object", "description": "Checksum + header validation summary." }
+                        ]
+                    }
+                ]
+            },
+            {
+                "resource": "overworld",
+                "actions": [
+                    {
+                        "name": "get-tile",
+                        "returns": [
+                            { "field": "tile", "type": "integer", "description": "Tile id located at the supplied coordinates." }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+    ```
+- **State Snapshot APIs**: Extend `rom` and `project` resources with `export-state` actions that emit compact JSON snapshots (bank checksums, tile hashes, palette CRCs). Snapshots will seed the LLM context and accelerate change verification.
+- **Write Guard Hooks**: All mutation-oriented commands will publish `PreChange` and `PostChange` events onto an internal bus (backed by `absl::Notification` + ring buffer). The agent loop subscribes to the bus to build a change proposal timeline used in review UIs and acceptance workflows.
+- **Replayable Scripts**: Standardize a TOML-based script format (`.z3edscript`) that records CLI invocations with metadata (ROM hash, duration, success). Agents can emit scripts, humans can replay them via `z3ed script run <file>`.
+
+## 12. Acceptance & Review Workflow
+
+An explicit accept/reject system keeps humans in control while encouraging rapid agent iteration.
+
+### 12.1. Change Proposal Lifecycle
+
+1. **Draft**: Agent executes commands in a sandbox ROM (auto-cloned using `Rom::SaveToFile` with `save_new=true`). All diffs, test logs, and screenshots are attached to a proposal ID.
+2. **Review**: The dashboard surfaces proposals with summary cards (changed resources, affected banks, test status). Users can open a detail view built atop the existing diff viewer, augmented with per-resource controls (accept tile, reject palette entry, etc.).
+3. **Decision**: Accepting merges the delta into the primary ROM and commits associated assets. Rejecting discards the sandbox ROM and emits feedback signals (tagged reasons) that can be fed back to future LLM prompts.
+4. **Archive**: Accepted proposals are archived with metadata for provenance; rejected ones are stored briefly for analytics before being pruned.
+
+### 12.2. UI Extensions
+
+- **Proposal Drawer**: Adds a right-hand drawer in the ImGui dashboard listing open proposals with filters (resource type, test pass/fail, age).
+- **Inline Diff Controls**: Integrate checkboxes/buttons into the existing palette/tile hex viewers so users can cherry-pick changes without leaving the visual context.
+- **Feedback Composer**: Provide quick tags (“Incorrect palette”, “Misplaced sprite”, “Regression detected”) and optional freeform text. Feedback is serialized into the agent telemetry channel.
+- **Undo/Redo Enhancements**: Accepted proposals push onto the global undo stack with descriptive labels, enabling rapid rollback during exploratory sessions.
+
+### 12.3. Policy Configuration
+
+- **Gatekeeping Rules**: Define YAML-driven policies (e.g., “require passing `agent smoke` and `palette regression` suites before accept button activates”). Rules live in `.yaze/policies/agent.yaml` and are evaluated by the dashboard.
+- **Access Control**: Integrate project roles so only maintainers can finalize proposals while contributors can submit drafts.
+- **Telemetry Opt-In**: Provide toggles for sharing anonymized proposal statistics to improve default prompts and heuristics.
+
+## 13. ImGuiTestEngine Control Bridge
+
+Allowing an LLM to drive the ImGui UI safely requires a structured bridge between generated plans and the `ImGuiTestEngine` runtime.
+
+### 13.1. Bridge Architecture
+
+- **Test Harness API**: Expose a lightweight gRPC/IPC service (`ImGuiTestHarness`) that accepts serialized input events (click, drag, key, text), query requests (widget tree, screenshot), and expectations (assert widget text equals …). The service runs inside `yaze_test` when started with `--automation=sock`. Agents connect via domain sockets (macOS/Linux) or named pipes (Windows).
+- **Command Translation Layer**: Extend `z3ed agent run` to recognize plan steps with type `imgui_action`. These steps translate to harness calls (e.g., `{ "type": "imgui_action", "action": "click", "target": "Palette/Cell[12]" }`).
+- **Synchronization Primitives**: Provide `WaitForIdle`, `WaitForCondition`, and `Delay` primitives so LLMs can coordinate with frame updates. Each primitive enforces timeouts and returns explicit success/failure statuses.
+- **State Queries**: Implement reflection endpoints retrieving ImGui widget hierarchy, enabling the agent to confirm UI states before issuing the next action—mirroring how `ImGuiTestEngine` DSL scripts work today.
+
+### 13.2. Safety & Sandboxing
+
+- **Read-Only Default**: Harness sessions start in read-only mode; mutation commands must explicitly request escalation after presenting a plan (triggering a UI prompt for the user to authorize). Without authorization, only `capture` and `assert` operations succeed.
+- **Rate Limiting**: Cap concurrent interactions and enforce per-step quotas to prevent runaway agents.
+- **Logging**: Every harness call is logged and linked to the proposal ID, with playback available inside the acceptance UI.
+
+### 13.3. Script Generation Strategy
+
+- **Template Library**: Publish a library of canonical ImGui action sequences (open file, expand tree, focus palette editor). Plans reference templates via IDs to reduce LLM token usage and improve reliability.
+- **Auto-Healing**: When a widget lookup fails, the harness can suggest closest matches (Levenshtein distance) so the agent can retry with corrected IDs.
+- **Hybrid Execution**: Encourage plans that mix CLI operations for bulk edits and ImGui actions for visual verification, minimizing UI-driven mutations.
+
+## 14. Test & Verification Strategy
+
+### 14.1. Layered Test Suites
+
+- **CLI Unit Tests**: Extend `test/cli/` with high-coverage tests for new resource handlers using sandbox ROM fixtures.
+- **Harness Integration Tests**: Add `test/ui/automation/` cases that spin up the harness, replay canned plans, and validate deterministic behavior.
+- **End-to-End Agent Scenarios**: Create golden scenarios (e.g., “Recolor Link tunic”, “Shift Dungeon Chest”) that exercise command + UI flows, verifying ROM diffs, UI captures, and pass/fail criteria.
+
+### 14.2. Continuous Verification
+
+- **CI Pipelines**: Introduce dedicated CI jobs for agent features, enabling `YAZE_WITH_JSON` builds, running harness smoke suites, and publishing artifacts (diffs, screenshots) on failure.
+- **Nightly Regression**: Schedule nightly runs of expensive ImGui scenarios and long-running CLI scripts with hardware acceleration (Apple Metal) to detect flaky interactions.
+- **Fuzzing Hooks**: Instrument command parsers with libFuzzer harnesses to catch malformed LLM output early.
+
+### 14.3. Telemetry-Informed Testing
+
+- **Flake Tracker**: Aggregate harness failures by widget/action to prioritize stabilization.
+- **Adaptive Test Selection**: Use proposal metadata to select relevant regression suites dynamically (e.g., palette-focused proposals trigger palette regression tests).
+- **Feedback Loop**: Feed test outcomes back into prompt engineering, e.g., annotate prompts with known flaky commands so the LLM favors safer alternatives.
+
+## 15. Expanded Roadmap (Phase 6+)
+
+### Phase 6: Agent Workflow Foundations (Planned)
+- Implement resource catalogue tooling and `agent describe` schemas.
+- Ship sandbox ROM workflow with proposal tracking and acceptance UI.
+- Finalize ImGuiTestHarness MVP with read-only verification.
+- Expand CLI surface with sprite/object manipulation commands flagged as agent-safe.
+
+### Phase 7: Controlled Mutation & Review (Planned)
+- Enable harness mutation mode with user authorization prompts.
+- Deliver inline diff controls and feedback composer UI.
+- Wire policy engine for gating accept buttons.
+- Launch initial telemetry dashboards (opt-in) for agent performance metrics.
+
+### Phase 8: Learning & Self-Improvement (Exploratory)
+- Capture accept/reject rationales to train prompt selectors.
+- Experiment with reinforcement signals for local models (reward accepted plans, penalize rejected ones).
+- Explore collaborative agent sessions where multiple proposals merge or compete under defined heuristics.
+- Investigate deterministic replay of LLM outputs for reliable regression testing.

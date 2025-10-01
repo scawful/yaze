@@ -6,6 +6,7 @@
 #include "absl/flags/declare.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 
 #include "app/core/asar_wrapper.h"
 #include "app/rom.h"
@@ -59,7 +60,9 @@ void ModernCLI::SetupCommands() {
     commands_["agent"] = {
       .name = "agent",
       .description = "Interact with the AI agent",
-      .usage = "z3ed agent <run|plan|diff|test> [options]",
+      .usage = "z3ed agent <run|plan|diff|test|learn|commit|revert|describe> [options]\n"
+               "  describe options: [--resource <name>] [--format json|yaml] [--output <path>]\n"
+               "                     [--version <value>] [--last-updated <date>]",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleAgentCommand(args);
       }
@@ -156,6 +159,15 @@ void ModernCLI::SetupCommands() {
     };
 
     commands_["palette"] = {
+      .name = "palette",
+      .description = "Manage palette data (export/import)",
+      .usage = "z3ed palette <export|import> [options]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandlePaletteCommand(args);
+      }
+    };
+
+    commands_["palette export"] = {
       .name = "palette export",
       .description = "Export a palette to a file",
       .usage = "z3ed palette export --group <group> --id <id> --to <file>",
@@ -209,12 +221,9 @@ void ModernCLI::ShowHelp() {
     std::cout << std::endl;
     std::cout << "GLOBAL FLAGS:" << std::endl;
     std::cout << "  --tui              Launch Text User Interface" << std::endl;
-    std::cout << "  --version          Show version information" << std::endl;
-    std::cout << "  --verbose          Enable verbose output" << std::endl;
     std::cout << "  --rom=<file>       Specify ROM file to use" << std::endl;
-    std::cout << "  --output=<file>    Specify output file path" << std::endl;
-    std::cout << "  --dry-run          Perform operations without making changes" << std::endl;
-    std::cout << "  --backup=<bool>    Create backup before modifying (default: true)" << std::endl;
+    std::cout << "  --version          Show version information" << std::endl;
+    std::cout << "  --help             Show this help message" << std::endl;
     std::cout << std::endl;
     std::cout << "COMMANDS:" << std::endl;
     
@@ -234,31 +243,51 @@ void ModernCLI::ShowHelp() {
     std::cout << "  z3ed help <resource> <action>" << std::endl;
 }
 
+void ModernCLI::PrintTopLevelHelp() const {
+  const_cast<ModernCLI*>(this)->ShowHelp();
+}
+
 absl::Status ModernCLI::Run(int argc, char* argv[]) {
   if (argc < 2) {
     ShowHelp();
     return absl::OkStatus();
   }
 
-  std::string command;
-  std::vector<std::string> command_args;
+  std::vector<std::string> args;
+  args.reserve(argc - 1);
+  for (int i = 1; i < argc; ++i) {
+    args.emplace_back(argv[i]);
+  }
 
-  if (argc >= 3) {
-    command = std::string(argv[1]) + " " + std::string(argv[2]);
-    for (int i = 3; i < argc; ++i) {
-        command_args.push_back(argv[i]);
+  const CommandInfo* command_info = nullptr;
+  size_t consumed_tokens = 0;
+
+  if (args.size() >= 2) {
+    std::string candidate = absl::StrCat(args[0], " ", args[1]);
+    auto it = commands_.find(candidate);
+    if (it != commands_.end()) {
+      command_info = &it->second;
+      consumed_tokens = 2;
     }
-  } else {
-    command = argv[1];
   }
 
-  auto it = commands_.find(command);
-  if (it == commands_.end()) {
+  if (command_info == nullptr && !args.empty()) {
+    auto it = commands_.find(args[0]);
+    if (it != commands_.end()) {
+      command_info = &it->second;
+      consumed_tokens = 1;
+    }
+  }
+
+  if (command_info == nullptr) {
     ShowHelp();
-    return absl::NotFoundError(absl::StrCat("Unknown command: ", command));
+    std::string joined = args.empty() ? std::string() : absl::StrJoin(args, " ");
+    return absl::NotFoundError(
+        absl::StrCat("Unknown command: ", joined.empty() ? "<none>" : joined));
   }
 
-  return it->second.handler(command_args);
+  std::vector<std::string> command_args(args.begin() + consumed_tokens, args.end());
+  return command_info->handler(command_args);
 }
 
 CommandHandler* ModernCLI::GetCommandHandler(const std::string& name) {

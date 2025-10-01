@@ -43,6 +43,8 @@ add_executable(
   cli/handlers/project.cc
   cli/handlers/agent.cc
   cli/service/ai_service.cc
+  cli/service/resource_catalog.cc
+  cli/service/rom_sandbox_manager.cc
   cli/service/gemini_ai_service.cc
   app/rom.cc
   app/core/project.cc
