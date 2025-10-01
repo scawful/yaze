@@ -9,8 +9,10 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/flags/usage.h"
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/wait.h>
+#endif
 #ifdef __APPLE__
 #include <mach-o/dyld.h>
 #endif
@@ -436,6 +438,11 @@ class ModernCLI {
   }
 
   absl::Status HandleTestGuiCommand(const std::vector<std::string>& args) {
+#ifdef _WIN32
+    return absl::UnimplementedError(
+        "GUI test command is not supported on Windows. "
+        "Please run yaze_test.exe directly with --enable-ui-tests flag.");
+#else
     std::string rom_file = absl::GetFlag(FLAGS_rom);
     std::string test_name = absl::GetFlag(FLAGS_test);
 
@@ -505,6 +512,7 @@ class ModernCLI {
     }
 
     return absl::OkStatus();
+#endif  // _WIN32
   }
 
   absl::Status HandleHelpCommand(const std::vector<std::string>& args) {
