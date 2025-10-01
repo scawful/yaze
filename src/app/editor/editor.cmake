@@ -35,4 +35,5 @@ set(
   app/test/integrated_test_suite.h
   app/test/rom_dependent_test_suite.h
   app/test/unit_test_suite.h
+  app/editor/system/proposal_drawer.cc
 )

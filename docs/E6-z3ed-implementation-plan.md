@@ -14,7 +14,7 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 | Verification Pipeline | Build layered testing + CI coverage. | Phase 6+ | Integrates with harness + CLI suites. |
 | Telemetry & Learning | Capture signals to improve prompts + heuristics. | Phase 8 | Optional/opt-in features. |
 
-### Progress snapshot — 2025-10-01 final update (Phase 6 + Agent Diff & List Complete)
+### Progress snapshot — 2025-10-01 final update (Phase 6 + AW-03 Complete)
 
 - ✅ CLI global flag passthrough now preserves subcommand options, letting `agent describe` and palette routines accept both space-separated and `--flag=value` styles alongside the updated help text.
 - ✅ `agent describe --format yaml` writes catalog data end-to-end; JSON format also working correctly.
@@ -30,6 +30,8 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 - ✅ **Implemented `agent list` command** to enumerate all proposals with status filtering and metadata display.
 - ✅ **Updated resource catalog** with agent list and diff actions including comprehensive argument and return schemas.
 - ✅ **Regenerated API documentation** (`docs/api/z3ed-resources.yaml`) with all new agent commands.
+- ✅ **Implemented ProposalDrawer ImGui component** with proposal list, detail view, and accept/reject/delete actions (AW-03).
+- ✅ **Fixed linker errors** by adding CLI service sources to app/emu/lib build targets in CMake configuration.
 
 ## 2. Task Backlog
 
@@ -42,7 +44,7 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 | RC-05 | Harden CLI command routing/flag parsing to unblock agent automation. | Resource Catalogue | Code | Done | Fixed rom info handler to use FLAGS_rom |
 | AW-01 | Implement sandbox ROM cloning and tracking (`RomSandboxManager`). | Acceptance Workflow | Code | Done | ROM sandbox manager operational with lifecycle management |
 | AW-02 | Build proposal registry service storing diffs, logs, screenshots. | Acceptance Workflow | Code | Done | ProposalRegistry implemented and integrated with agent run workflow |
-| AW-03 | Add ImGui drawer for proposals with accept/reject controls. | Acceptance Workflow | UX | Planned | AW-02 |
+| AW-03 | Add ImGui drawer for proposals with accept/reject controls. | Acceptance Workflow | UX | Done | ProposalDrawer GUI complete with list, detail, and action buttons |
 | AW-04 | Implement policy evaluation for gating accept buttons. | Acceptance Workflow | Code | Planned | AW-03 |
 | AW-05 | Draft `.z3ed-diff` hybrid schema (binary deltas + JSON metadata). | Acceptance Workflow | Design | Planned | AW-01 |
 | IT-01 | Create `ImGuiTestHarness` IPC service embedded in `yaze_test`. | ImGuiTest Bridge | Code | Planned | Harness transport decision |
@@ -168,15 +170,38 @@ The foundational infrastructure for proposal tracking and review is now operatio
 - Updated agent resource description to include listing and diffing capabilities
 - Regenerated `docs/api/z3ed-resources.yaml` with new agent actions
 
+**ProposalDrawer GUI Component** (Completed Oct 1, 2025):
+- ImGui right-side drawer for proposal review (AW-03)
+- Split view: proposal list (top) + detail view (bottom)
+- List view: table with ID, status, prompt columns; colored status indicators
+- Detail view: collapsible sections for metadata/diff/log; syntax-aware display
+- Action buttons: Accept, Reject, Delete with confirmation dialogs
+- Status filtering (All/Pending/Accepted/Rejected)
+- Integrated into EditorManager with Debug → Agent Proposals menu
+- Accept/Reject updates ProposalRegistry status
+- Delete removes proposal from registry and filesystem
+- TODO: Implement actual ROM merging in AcceptProposal method
+
+**CMake Build Integration**:
+- Added `cli/service/proposal_registry.cc` and `cli/service/rom_sandbox_manager.cc` to all app targets
+- Fixed linker errors by including CLI service sources in:
+  - `yaze` (main GUI app)
+  - `yaze_emu` (emulator standalone)
+  - `yaze_core` (testing library)
+  - `yaze_c` (C API library)
+- All targets now build successfully with ProposalDrawer dependencies
+
 **Architecture Benefits**:
 - Clean separation: RomSandboxManager (file ops) ↔ ProposalRegistry (metadata)
 - Thread-safe with mutex protection for concurrent access
 - Extensible design ready for ImGui review UI (AW-03)
 - Proposal persistence enables post-session review and auditing
 - Proposal-centric workflow enables human-in-the-loop review
+- GUI and CLI both have full access to proposal system
 
 **Next Steps for AW Workstream**:
-- AW-03: ImGui drawer with accept/reject controls
+- Test ProposalDrawer in running application
+- Complete ROM merging in AcceptProposal method
 - AW-04: Policy evaluation for gating mutations
 - AW-05: `.z3ed-diff` hybrid format design
 
@@ -193,6 +218,22 @@ The foundational infrastructure for proposal tracking and review is now operatio
 6. `src/cli/service/proposal_registry.h` - New proposal tracking service interface
 7. `src/cli/service/proposal_registry.cc` - Implementation with full lifecycle management
 8. `src/cli/handlers/agent.cc` - Integrated ProposalRegistry into agent run workflow
+
+**Agent Diff & List Enhancement**:
+9. `src/cli/handlers/agent.cc` - Enhanced HandleDiffCommand with proposal reading, added HandleListCommand
+10. `src/cli/service/resource_catalog.cc` - Added agent list/diff actions with schemas
+11. `docs/api/z3ed-resources.yaml` - Regenerated with new agent commands
+12. `docs/E6-z3ed-cli-design.md` - Updated Section 8.1 with list/diff documentation
+
+**AW-03 (ProposalDrawer GUI)**:
+13. `src/app/editor/system/proposal_drawer.h` - Complete drawer interface with Draw/Accept/Reject/Delete
+14. `src/app/editor/system/proposal_drawer.cc` - Full implementation (~350 lines) with list/detail views
+15. `src/app/editor/editor_manager.h` - Added ProposalDrawer member and include
+16. `src/app/editor/editor_manager.cc` - Added menu item and Draw() call in Update loop
+17. `src/CMakeLists.txt` - Added proposal_drawer files to System Editor source group
+18. `src/app/app.cmake` - Added CLI service sources to yaze target (both Apple and non-Apple builds)
+19. `src/app/emu/emu.cmake` - Added CLI service sources to yaze_emu target
+20. `src/CMakeLists.txt` - Added CLI service sources to yaze_core library sources
 9. `src/cli/z3ed.cmake` - Added proposal_registry.cc to build
 10. `docs/E6-z3ed-implementation-plan.md` - Updated progress and task statuses
 

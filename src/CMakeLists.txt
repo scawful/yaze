@@ -169,6 +169,9 @@ if (YAZE_BUILD_LIB)
     ${YAZE_APP_EMU_SRC}
     ${YAZE_GUI_SRC}
     ${YAZE_UTIL_SRC}
+    # CLI service sources (needed for ProposalDrawer)
+    cli/service/proposal_registry.cc
+    cli/service/rom_sandbox_manager.cc
   )
   
   # Create full library for C API
@@ -434,6 +437,8 @@ source_group("Application\\Editor\\System" FILES
   app/editor/system/log_viewer.h
   app/editor/system/memory_editor.cc
   app/editor/system/memory_editor.h
+  app/editor/system/proposal_drawer.cc
+  app/editor/system/proposal_drawer.h
   app/editor/system/rom_analyzer.cc
   app/editor/system/rom_analyzer.h
 )
