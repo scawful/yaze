@@ -24,6 +24,7 @@ class ModernCLI {
   ModernCLI();
   absl::Status Run(int argc, char* argv[]);
   CommandHandler* GetCommandHandler(const std::string& name);
+  void PrintTopLevelHelp() const;
 
   std::map<std::string, CommandInfo> commands_;
 
