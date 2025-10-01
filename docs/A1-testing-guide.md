@@ -158,6 +158,97 @@ TEST(CpuTest, InstructionExecution) {
 - **Performance tests**: May vary by system
 - **GUI components**: May require display context
 
+## E2E GUI Testing Framework
+
+### Overview
+
+An agent-friendly, end-to-end testing framework built on `ImGuiTestEngine` to automate UI interaction testing for the YAZE editor.
+
+### Architecture
+
+**Test Execution Flow**:
+1. `z3ed test-gui` command invokes the modified `yaze_test` executable
+2. `yaze_test` initializes an application window and `ImGuiTestEngine`
+3. Tests are registered and executed against the live GUI
+4. Results are reported back with detailed logs and assertions
+
+**Key Components**:
+- `test/yaze_test.cc` - Main test executable with GUI initialization
+- `test/e2e/framework_smoke_test.cc` - Basic infrastructure verification
+- `test/e2e/canvas_selection_test.cc` - Canvas interaction tests
+- `test/test_utils.h` - High-level action wrappers (LoadRomInTest, OpenEditorInTest, etc.)
+
+### Writing E2E Tests
+
+```cpp
+// Example: Canvas selection test
+#include "test/test_utils.h"
+
+void RegisterCanvasSelectionTest() {
+  ImGuiTestEngine* engine = ImGuiTestEngine_GetCurrentContext();
+  
+  ImGuiTest* t = IM_REGISTER_TEST(engine, "e2e", "canvas_selection");
+  t->GuiFunc = [](ImGuiTestContext* ctx) {
+    // Load ROM and open editor
+    LoadRomInTest(ctx, "zelda3.sfc");
+    OpenEditorInTest(ctx, "Overworld Editor");
+    
+    // Perform actions
+    ctx->MouseMove("##OverworldCanvas");
+    ctx->MouseClick(ImGuiMouseButton_Left);
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_C);  // Copy
+    
+    // Assertions
+    IM_CHECK(VerifyTileData(ctx, expected_data));
+  };
+}
+```
+
+### Helper Functions
+
+**test/test_utils.h** provides high-level wrappers:
+- `LoadRomInTest(ctx, rom_path)` - Load ROM file in test context
+- `OpenEditorInTest(ctx, editor_name)` - Open specific editor
+- `VerifyTileData(ctx, expected)` - Assert tile data correctness
+- `WaitForRender(ctx)` - Wait for rendering to complete
+
+### Running GUI Tests
+
+```bash
+# Run all E2E tests
+z3ed test-gui --rom zelda3.sfc --test all
+
+# Run specific test suite
+z3ed test-gui --rom zelda3.sfc --test canvas_selection
+
+# Run in headless mode (CI)
+z3ed test-gui --rom zelda3.sfc --test all --headless
+```
+
+### Test Categories for E2E
+
+- **Smoke Tests**: Basic functionality verification (window opens, ROM loads)
+- **Canvas Tests**: Drawing, selection, copy/paste operations
+- **Editor Tests**: Specific editor workflows (Overworld, Dungeon, Graphics)
+- **Integration Tests**: Multi-editor workflows and data persistence
+
+### Development Status
+
+- ✅ **Phase 1**: Core infrastructure & test execution flow
+- ✅ **Phase 2**: Agent-friendly test definition & interaction
+- ✅ **Phase 3**: Initial test case - Canvas rectangle selection
+- ✅ **Phase 4**: Build and verify infrastructure
+- ⏳ **Phase 5**: Expand test coverage and fix identified bugs
+- ⏳ **Phase 6**: CI/CD integration with headless mode
+
+### Best Practices
+
+1. **Keep tests deterministic** - Use fixed delays and wait for specific states
+2. **Use high-level helpers** - Abstract ImGuiTestEngine complexity
+3. **Test user workflows** - Focus on real user interactions, not internal state
+4. **Verify visually** - Check rendered output, not just data structures
+5. **Clean up state** - Reset between tests to prevent interference
+
 ## Performance and Maintenance
 
 ### Regular Review
@@ -171,3 +262,9 @@ TEST(CpuTest, InstructionExecution) {
 - **Identify slow tests** for optimization or recategorization
 - **Monitor CI resource usage** and adjust parallelism
 - **Benchmark critical path tests** for performance regression
+
+### E2E Test Maintenance
+- **Update test helpers** as UI components change
+- **Maintain test ROM files** for consistent test data
+- **Review failed tests** for UI changes vs. actual bugs
+- **Expand coverage** for new features and bug fixes

@@ -1,63 +1,414 @@
-#+TITLE: yaze todo
-#+SUBTITLE: yet another zelda3 editor todo list
+#+TITLE: YAZE Development Tracker
+#+SUBTITLE: Yet Another Zelda3 Editor
 #+AUTHOR: @scawful
-#+TODO: TODO ACTIVE FEEDBACK VERIFY | DONE
+#+EMAIL: scawful@users.noreply.github.com
+#+DATE: 2025-01-31
+#+STARTUP: overview
+#+TODO: TODO ACTIVE FEEDBACK VERIFY | DONE CANCELLED
+#+TAGS: bug(b) feature(f) refactor(r) ui(u) performance(p) docs(d)
+#+PRIORITIES: A C B
+#+COLUMNS: %25ITEM %TODO %3PRIORITY %TAGS
 
-* Daily Log
+* Active Issues [0/6]
+** TODO [#A] Overworld sprites can't be moved on the overworld canvas :bug:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+- Issue: Sprites are not responding to drag operations
+- Location: Overworld canvas interaction
+- Impact: Blocks sprite editing workflow
 
-<2024-11-14 Thu>
-Been making lots of adjustments and cleaning up old code. Primarily improving the dungeon map editor and supporting bin graphics for my Oracle of Secrets dungeon maps. Additionally, working to support saving for resources like graphics sheets and expanded the project file system.
+** TODO [#A] Canvas multi select has issues with large map intersection drawing :bug:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+- Issue: Selection box rendering incorrect when crossing 512px boundaries
+- Location: Canvas selection system
+- Note: E2E test exists to reproduce this bug (canvas_selection_test)
 
-<2024-09-07 Sat>
-Various header cleanup using the LSP in emacs to detect unused includes.
-Making adjustments to font loading so the editor can be opened from terminal/emacs.
-Currently the font files and the zeml files require the binary to be relative to `assets/layouts` and `assets/fonts`
-I've set it up so that the macOS app bundles the resources into the `yaze.app` so that the binary can be run from anywhere. This will need to be adjusted for other platforms.
+** TODO [#B] Right click randomly shows oversized tile16 :bug:ui:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+- Issue: Context menu displays abnormally large tile16 preview
+- Location: Right-click context menu
+- Frequency: Random/intermittent
 
-<2024-09-02 Mon>
-Extracted the DisplayPalette function out of the PaletteEditor and into its own standalone function.
+** TODO [#B] Overworld Map properties panel popup displaying incorrectly :ui:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+- Issue: Modal popup positioning or rendering issues
+- Similar to: Canvas popup fixes (now resolved)
+- Potential fix: Apply same solution as canvas popup refactoring
 
-<2024-09-01 Sun>
-Started learning spacemacs and org-mode.
+** TODO [#A] Tile8 source canvas palette issues in Tile16 Editor :bug:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:DOCUMENTATION: E7-tile16-editor-palette-system.md
+:END:
+- Issue: Tile8 source canvas (current area graphics) shows incorrect colors
+- Impact: Cannot properly preview tiles before placing them
+- Root cause: Area graphics not receiving proper palette application
+- Related issue: Palette buttons (0-7) do not update palettes correctly
+- Status: Active investigation - graphics buffer processing issue
+
+** TODO [#C] Scratch space implementation incomplete :feature:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+- Feature: Temporary workspace for tile/object manipulation
+- Status: Partially implemented
+- Priority: Low (quality of life feature)
 
 * Editors
-** Overworld
-*** TODO ZSCustomOverworld implementation.
-**** DONE Custom Overworld Map Settings Inputs
-**** DONE Load ZSCOW data from ROM in OverworldMap
-**** TODO Add Main Palette support
-**** TODO Add Custom Area BG Color support
+** Overworld [2/7]
+*** DONE Custom Overworld Map Settings Inputs
+CLOSED: [2024-11-14]
+:PROPERTIES:
+:CREATED: [2024-11-14]
+:END:
 
-*** TODO Fix sprite icon draw positions
-*** TODO Fix exit icon draw positions
+*** DONE Load ZSCOW data from ROM in OverworldMap
+CLOSED: [2024-11-14]
+:PROPERTIES:
+:CREATED: [2024-11-14]
+:END:
 
-** Dungeon
-*** TODO Draw dungeon objects
+*** TODO [#A] ZSCustomOverworld Main Palette support :feature:
+:PROPERTIES:
+:CREATED: [2024-11-14]
+:DEPENDENCIES: Custom overworld data loading
+:END:
 
-** Graphics
-*** TODO Tile16 Editor
-- [ ] Draw tile8 to tile16 quadrant.
+*** TODO [#A] ZSCustomOverworld Custom Area BG Color support :feature:
+:PROPERTIES:
+:CREATED: [2024-11-14]
+:DEPENDENCIES: ZSCOW Main Palette
+:END:
 
-*** TODO Fix graphics sheet pencil drawing
+*** TODO [#B] Fix sprite icon draw positions :bug:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
 
-** Message
-*** TODO Fix Message Parsing
+*** TODO [#B] Fix exit icon draw positions :bug:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
 
-** Palette
-*** TODO Persist color changes for saving to ROM.
+*** TODO [#C] Overworld Map screen editor :feature:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
 
-** Screens
-*** ACTIVE Dungeon Maps
-*** ACTIVE Inventory Menu
-*** TODO Overworld Map
-*** TODO Title Screen
-*** TODO Naming Screen
+** Dungeon [0/2]
+*** TODO [#B] Draw dungeon objects :feature:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
+- See E5-dungeon-object-system.md for design
 
-* Infrastructure
-** File Handling
-*** TODO Update recent files manager to bundle the recent files list with the application
-*** DONE Create a util for handling file operations from the bundled resources.
-** Font Loading
-*** TODO Make font sizes variables so they can be reloaded by the user.
-** ZEML
-*** DONE Package layout files with the executable to avoid relative file lookup
+*** ACTIVE [#A] Dungeon Maps screen editor :feature:
+:PROPERTIES:
+:CREATED: [2024-11-14]
+:END:
+- Currently in active development
+- Supporting bin graphics for Oracle of Secrets
+
+** Graphics [1/2]
+*** ACTIVE [#A] Tile16 Editor palette system :feature:ui:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:DOCUMENTATION: E7-tile16-editor-palette-system.md
+:STATUS: In Progress
+:END:
+- [X] Fix palette system crashes (SIGBUS errors)
+- [X] Three-column layout refactoring
+- [X] Dynamic zoom controls
+- [X] Canvas popup fixes
+- [ ] Tile8 source canvas palette issues (incorrect colors)
+- [ ] Palette button update functionality (not working)
+- [ ] Color consistency between canvases
+
+*** TODO [#C] Fix graphics sheet pencil drawing :bug:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
+
+** Message [0/1]
+*** TODO [#C] Fix Message Parsing :bug:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
+
+** Palette [0/1]
+*** TODO [#B] Persist color changes for saving to ROM :feature:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
+
+** Screens [2/5]
+*** ACTIVE [#A] Dungeon Maps :feature:
+:PROPERTIES:
+:CREATED: [2024-11-14]
+:END:
+
+*** ACTIVE [#B] Inventory Menu :feature:ui:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
+
+*** TODO [#C] Overworld Map screen :feature:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
+
+*** TODO [#C] Title Screen editor :feature:ui:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
+
+*** TODO [#C] Naming Screen editor :feature:ui:
+:PROPERTIES:
+:CREATED: [2024-09-01]
+:END:
+
+* Infrastructure [4/7]
+** DONE Package layout files with executable
+CLOSED: [2024-09-07]
+:PROPERTIES:
+:CREATED: [2024-09-07]
+:END:
+
+** DONE Create util for bundled resource handling
+CLOSED: [2024-09-07]
+:PROPERTIES:
+:CREATED: [2024-09-07]
+:END:
+
+** DONE DisplayPalette function extraction
+CLOSED: [2024-09-02]
+:PROPERTIES:
+:CREATED: [2024-09-02]
+:END:
+
+** DONE Header cleanup with LSP
+CLOSED: [2024-09-07]
+:PROPERTIES:
+:CREATED: [2024-09-07]
+:END:
+
+** TODO [#B] Update recent files manager for bundled apps :refactor:
+:PROPERTIES:
+:CREATED: [2024-09-07]
+:END:
+
+** TODO [#C] Make font sizes configurable :feature:ui:
+:PROPERTIES:
+:CREATED: [2024-09-07]
+:END:
+
+** TODO [#C] Cross-platform font/asset loading :refactor:
+:PROPERTIES:
+:CREATED: [2024-09-07]
+:END:
+
+* Testing [4/6]
+** DONE [#A] E2E testing framework infrastructure
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:DOCUMENTATION: A1-testing-guide.md
+:END:
+
+** DONE [#A] Canvas selection E2E test
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** DONE [#A] Stable test suite (CI/CD)
+CLOSED: [2024-11-14]
+:PROPERTIES:
+:CREATED: [2024-11-14]
+:END:
+
+** DONE [#B] ROM-dependent test separation
+CLOSED: [2024-11-14]
+:PROPERTIES:
+:CREATED: [2024-11-14]
+:END:
+
+** TODO [#B] Expand E2E test coverage :feature:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** TODO [#C] E2E CI/CD integration with headless mode :feature:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+* CLI Tool (z3ed) [8/12]
+** DONE [#A] Resource-oriented command structure
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:DOCUMENTATION: E6-z3ed-cli-design.md
+:END:
+
+** DONE [#A] FTXUI TUI component system
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** DONE [#A] Code quality refactoring
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** DONE [#A] Interactive palette editor (TUI)
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** DONE [#A] Interactive hex viewer (TUI)
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** DONE [#A] Command palette (TUI)
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** DONE [#B] ROM validation commands
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** DONE [#B] Agent framework foundation
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** TODO [#A] Complete agent execution loop (MCP) :feature:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:DEPENDENCIES: Agent framework foundation
+:END:
+
+** TODO [#B] Agent GUI control panel :feature:ui:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** TODO [#B] Granular data manipulation commands :feature:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** TODO [#C] SpriteBuilder CLI :feature:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:STATUS: Deprioritized
+:END:
+
+* Documentation [3/5]
+** DONE [#A] Consolidate tile16 editor documentation
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** DONE [#A] Merge E2E testing documentation
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** DONE [#A] Merge z3ed refactoring documentation
+CLOSED: [2025-01-31]
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** TODO [#B] API documentation generation :docs:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** TODO [#C] User guide for ROM hackers :docs:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+* Research & Planning [0/3]
+** TODO [#B] Advanced canvas rendering optimizations :performance:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:REFERENCES: gfx_optimization_recommendations.md
+:END:
+
+** TODO [#B] Oracle of Secrets dungeon support :feature:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+** TODO [#C] Plugin system architecture :feature:
+:PROPERTIES:
+:CREATED: [2025-01-31]
+:END:
+
+* Org-Mode Productivity Tips
+** Quick Capture Templates
+Add to your Emacs config:
+#+begin_src emacs-lisp
+(setq org-capture-templates
+      '(("t" "TODO" entry (file+headline "~/Code/yaze/docs/yaze.org" "Active Issues")
+         "** TODO [#B] %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n")
+        ("b" "Bug" entry (file+headline "~/Code/yaze/docs/yaze.org" "Active Issues")
+         "** TODO [#A] %? :bug:\n:PROPERTIES:\n:CREATED: %U\n:END:\n")
+        ("f" "Feature" entry (file+headline "~/Code/yaze/docs/yaze.org" "Active Issues")
+         "** TODO [#B] %? :feature:\n:PROPERTIES:\n:CREATED: %U\n:END:\n")))
+#+end_src
+
+** Useful Commands
+- =C-c C-t= : Cycle TODO state
+- =C-c C-q= : Add tags
+- =C-c ,= : Set priority
+- =C-c C-x C-s= : Archive DONE items
+- =C-c C-v= : View agenda
+- =C-c a t= : Global TODO list
+- =C-c a m= : Match tags/properties
+
+** Agenda Configuration
+#+begin_src emacs-lisp
+(setq org-agenda-files '("~/Code/yaze/docs/yaze.org"))
+(setq org-agenda-custom-commands
+      '(("y" "YAZE Active Tasks"
+         ((tags-todo "bug"
+                     ((org-agenda-overriding-header "Active Bugs")))
+          (tags-todo "feature"
+                     ((org-agenda-overriding-header "Features in Development")))
+          (todo "ACTIVE"
+                ((org-agenda-overriding-header "Currently Working On")))))))
+#+end_src
+
+** Workflow Tips
+1. Use =C-c C-c= on headlines to update statistics cookies [/] and [%]
+2. Create custom views with =org-agenda-custom-commands=
+3. Use =org-refile= (C-c C-w) to reorganize tasks
+4. Archive completed tasks regularly
+5. Use =org-sparse-tree= (C-c /) to filter by TODO state or tags
+6. Link to documentation: =[[file:E7-tile16-editor-palette-system.md]]=
+7. Track time with =C-c C-x C-i= (clock in) and =C-c C-x C-o= (clock out)
+

@@ -1,4 +1,4 @@
-# YAZE Windows Development Setup Script
+# yaze Windows Development Setup Script
 # Sequential approach with no functions and minimal conditionals
 
 param(

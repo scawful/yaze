@@ -235,3 +235,104 @@ Based on the current architecture, several UX improvements are planned:
 - **Context-Aware Help**: Help text will adapt based on current ROM state and available commands.
 - **Undo/Redo System**: Command history tracking for safer experimentation.
 - **Batch Operations**: Support for executing multiple related commands as a single operation.
+
+## 10. Implementation Status and Code Quality
+
+### 10.1. Recent Refactoring Improvements (January 2025)
+
+The z3ed CLI underwent significant refactoring to improve code quality, fix linting errors, and enhance maintainability.
+
+**Issues Resolved**:
+- ✅ **Missing Headers**: Added proper forward declarations for `ftxui::ScreenInteractive` and `TuiComponent`
+- ✅ **Include Path Issues**: Standardized all includes to use `cli/` prefix instead of `src/cli/`
+- ✅ **Namespace Conflicts**: Resolved namespace pollution issues by properly organizing includes
+- ✅ **Duplicate Definitions**: Removed duplicate `CommandInfo` and `ModernCLI` definitions
+- ✅ **FLAGS_rom Multiple Definitions**: Changed duplicate `ABSL_FLAG` declarations to `ABSL_DECLARE_FLAG`
+
+**Build System Improvements**:
+- **CMake Configuration**: Cleaned up `z3ed.cmake` to properly configure all source files
+- **Dependency Management**: Added proper includes for `absl/flags/declare.h` where needed
+- **Conditional Compilation**: Properly wrapped JSON/HTTP library usage with `#ifdef YAZE_WITH_JSON`
+
+**Architecture Improvements**:
+- Removed `std::unique_ptr<TuiComponent>` members from command handlers to avoid incomplete type issues
+- Simplified constructors and `RunTUI` methods
+- Maintained clean separation between CLI and TUI execution paths
+
+### 10.2. File Organization
+
+```
+src/cli/
+  ├── cli_main.cc          (Entry point - defines FLAGS)
+  ├── modern_cli.{h,cc}    (Command registry and dispatch)
+  ├── tui.{h,cc}           (TUI components and layout management)
+  ├── z3ed.{h,cc}          (Command handler base classes)
+  ├── service/
+  │   ├── ai_service.{h,cc}           (AI service interface)
+  │   └── gemini_ai_service.{h,cc}    (Gemini API implementation)
+  ├── handlers/            (Command implementations)
+  │   ├── agent.cc
+  │   ├── command_palette.cc
+  │   ├── compress.cc
+  │   ├── dungeon.cc
+  │   ├── gfx.cc
+  │   ├── overworld.cc
+  │   ├── palette.cc
+  │   ├── patch.cc
+  │   ├── project.cc
+  │   ├── rom.cc
+  │   ├── sprite.cc
+  │   └── tile16_transfer.cc
+  └── tui/                 (TUI component implementations)
+      ├── tui_component.h
+      ├── asar_patch.{h,cc}
+      ├── palette_editor.{h,cc}
+      └── command_palette.{h,cc}
+```
+
+### 10.3. Code Quality Improvements
+
+**Removed Problematic Patterns**:
+- Eliminated returning raw pointers to temporary objects in `GetCommandHandler`
+- Used `static` storage for handlers to ensure valid lifetimes
+- Proper const-reference usage to avoid unnecessary copies
+
+**Standardized Error Handling**:
+- Consistent use of `absl::Status` return types
+- Proper status checking with `RETURN_IF_ERROR` macro
+- Clear error messages for user-facing commands
+
+**API Corrections**:
+- Fixed `Bitmap::bpp()` → `Bitmap::depth()`
+- Fixed `PaletteGroup::set_palette()` → direct pointer manipulation
+- Fixed `Bitmap::mutable_vector()` → `Bitmap::set_data()`
+
+### 10.4. TUI Component System
+
+**Implemented Components**:
+- `TuiComponent` interface for consistent UI components
+- `ApplyAsarPatchComponent` - Modular patch application UI
+- `PaletteEditorComponent` - Interactive palette editing
+- `CommandPaletteComponent` - Command search and execution
+
+**Standardized Patterns**:
+- Consistent navigation across all TUI screens
+- Centralized error handling with dedicated error screen
+- Direct component function calls instead of handler indirection
+
+### 10.5. Known Limitations
+
+**Remaining Warnings (Non-Critical)**:
+- Unused parameter warnings (mostly for stub implementations)
+- Nodiscard warnings for status returns that are logged elsewhere
+- Copy-construction warnings (minor performance considerations)
+- Virtual destructor warnings in third-party zelda3 classes
+
+### 10.6. Future Code Quality Goals
+
+1. **Complete TUI Components**: Finish implementing all planned TUI components with full functionality
+2. **Error Handling**: Add proper status checking for all `LoadFromFile` calls
+3. **API Methods**: Implement missing ROM validation methods
+4. **JSON Integration**: Complete HTTP/JSON library integration for Gemini AI service
+5. **Performance**: Address copy-construction warnings by using const references
+6. **Testing**: Expand unit test coverage for command handlers
