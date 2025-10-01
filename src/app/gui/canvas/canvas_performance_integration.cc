@@ -36,21 +36,22 @@ void CanvasPerformanceIntegration::StartMonitoring() {
 }
 
 void CanvasPerformanceIntegration::StopMonitoring() {
-  if (frame_timer_active_) {
-    frame_timer_.reset();
-    frame_timer_active_ = false;
-  }
-  if (draw_timer_active_) {
-    draw_timer_.reset();
-    draw_timer_active_ = false;
+  // Release timers in reverse order of creation to ensure clean shutdown
+  if (modal_timer_active_) {
+    modal_timer_.reset();
+    modal_timer_active_ = false;
   }
   if (interaction_timer_active_) {
     interaction_timer_.reset();
     interaction_timer_active_ = false;
   }
-  if (modal_timer_active_) {
-    modal_timer_.reset();
-    modal_timer_active_ = false;
+  if (draw_timer_active_) {
+    draw_timer_.reset();
+    draw_timer_active_ = false;
+  }
+  if (frame_timer_active_) {
+    frame_timer_.reset();
+    frame_timer_active_ = false;
   }
   
   util::logf("Stopped performance monitoring for canvas: %s", canvas_id_.c_str());

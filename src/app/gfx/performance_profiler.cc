@@ -16,28 +16,36 @@ PerformanceProfiler& PerformanceProfiler::Get() {
   return instance;
 }
 
-PerformanceProfiler::PerformanceProfiler() : enabled_(true) {
+PerformanceProfiler::PerformanceProfiler() : enabled_(true), is_shutting_down_(false) {
   // Initialize with memory pool for efficient data storage
   // Reserve space for common operations to avoid reallocations
   active_timers_.reserve(50);
   operation_times_.reserve(100);
   operation_totals_.reserve(100);
   operation_counts_.reserve(100);
+  
+  // Register destructor to set shutdown flag
+  std::atexit([]() {
+    Get().is_shutting_down_ = true;
+  });
 }
 
 void PerformanceProfiler::StartTimer(const std::string& operation_name) {
-  if (!enabled_) return;
+  if (!enabled_ || is_shutting_down_) return;
   
   active_timers_[operation_name] = std::chrono::high_resolution_clock::now();
 }
 
 void PerformanceProfiler::EndTimer(const std::string& operation_name) {
-  if (!enabled_) return;
+  if (!enabled_ || is_shutting_down_) return;
   
   auto timer_iter = active_timers_.find(operation_name);
   if (timer_iter == active_timers_.end()) {
-    SDL_Log("Warning: EndTimer called for operation '%s' that was not started", 
-            operation_name.c_str());
+    // During shutdown, silently ignore missing timers to avoid log spam
+    if (!is_shutting_down_) {
+      SDL_Log("Warning: EndTimer called for operation '%s' that was not started", 
+              operation_name.c_str());
+    }
     return;
   }
   
@@ -264,13 +272,15 @@ double PerformanceProfiler::CalculateMedian(std::vector<double> values) {
 // ScopedTimer implementation
 ScopedTimer::ScopedTimer(const std::string& operation_name) 
     : operation_name_(operation_name) {
-  if (PerformanceProfiler::IsEnabled()) {
+  if (PerformanceProfiler::IsEnabled() && PerformanceProfiler::IsValid()) {
     PerformanceProfiler::Get().StartTimer(operation_name_);
   }
 }
 
 ScopedTimer::~ScopedTimer() {
-  if (PerformanceProfiler::IsEnabled()) {
+  // Check if profiler is still valid (not shutting down) to prevent
+  // crashes during static destruction order issues
+  if (PerformanceProfiler::IsEnabled() && PerformanceProfiler::IsValid()) {
     PerformanceProfiler::Get().EndTimer(operation_name_);
   }
 }
