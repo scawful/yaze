@@ -2,7 +2,7 @@ var searchData=
 [
   ['readme_2emd_0',['readme.md',['../da/ddd/README_8md.html',1,'(Global Namespace)'],['../db/d08/scripts_2README_8md.html',1,'(Global Namespace)'],['../dd/dee/test_2README_8md.html',1,'(Global Namespace)']]],
   ['renderer_5foptimization_5fanalysis_2emd_1',['renderer_optimization_analysis.md',['../d2/dfd/renderer__optimization__analysis_8md.html',1,'']]],
-  ['rom_2ecc_2',['rom.cc',['../d5/d00/rom_8cc.html',1,'']]],
+  ['rom_2ecc_2',['rom.cc',['../d4/d1a/cli_2handlers_2rom_8cc.html',1,'(Global Namespace)'],['../d4/d79/app_2rom_8cc.html',1,'(Global Namespace)']]],
   ['rom_2eh_3',['rom.h',['../da/de5/rom_8h.html',1,'']]],
   ['rom_5fdependent_5ftest_5fsuite_2eh_4',['rom_dependent_test_suite.h',['../d5/d98/rom__dependent__test__suite_8h.html',1,'']]],
   ['rom_5fpatch_5futility_2ecc_5',['rom_patch_utility.cc',['../da/db0/rom__patch__utility_8cc.html',1,'']]],

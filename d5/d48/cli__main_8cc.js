@@ -1,12 +1,10 @@
 var cli__main_8cc =
 [
-    [ "yaze::cli::CommandInfo", "dd/d22/structyaze_1_1cli_1_1CommandInfo.html", "dd/d22/structyaze_1_1cli_1_1CommandInfo" ],
-    [ "yaze::cli::ModernCLI", "df/db9/classyaze_1_1cli_1_1ModernCLI.html", "df/db9/classyaze_1_1cli_1_1ModernCLI" ],
-    [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#a2ff5ae9fe7b12910d476f8eb1eed9687", null ],
-    [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#ab0bb452024d100028135ed05bb28de3d", null ],
+    [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#ad1f607cfb6c65380d2957cdfca942205", null ],
     [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#a91812729dacce6b1853f0e70048b936c", null ],
     [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#ae2ea10bc626ef49b17b7da4de75743e4", null ],
-    [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#a3a2d50060fab81f1664645eef656a6f5", null ],
+    [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#ab0bb452024d100028135ed05bb28de3d", null ],
+    [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#a3b9507a5005613a1e0e359925488c352", null ],
     [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#a68b91cdb98329ee0335befccc5a9bbc2", null ],
     [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#a500d3ada8dcadc8a5fcc7bde7a950082", null ],
     [ "ABSL_FLAG", "d5/d48/cli__main_8cc.html#a4ab7020aedd81cf5176ebb5e7d58907b", null ],

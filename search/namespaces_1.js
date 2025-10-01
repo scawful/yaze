@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['imgui_0',['ImGui',['../df/de4/namespaceImGui.html',1,'']]]
+  ['ftxui_0',['ftxui',['../dc/d1b/namespaceftxui.html',1,'']]]
 ];

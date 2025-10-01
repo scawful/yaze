@@ -19,6 +19,8 @@ var searchData=
   ['message_5ftest_2ecc_16',['message_test.cc',['../d2/d5c/message__test_8cc.html',1,'']]],
   ['mock_5fmemory_2eh_17',['mock_memory.h',['../d5/d43/mock__memory_8h.html',1,'']]],
   ['mock_5from_2eh_18',['mock_rom.h',['../de/dd9/mock__rom_8h.html',1,'']]],
-  ['music_5feditor_2ecc_19',['music_editor.cc',['../dc/d9f/music__editor_8cc.html',1,'']]],
-  ['music_5feditor_2eh_20',['music_editor.h',['../d5/de8/music__editor_8h.html',1,'']]]
+  ['modern_5fcli_2ecc_19',['modern_cli.cc',['../dc/d8b/modern__cli_8cc.html',1,'']]],
+  ['modern_5fcli_2eh_20',['modern_cli.h',['../d8/d43/modern__cli_8h.html',1,'']]],
+  ['music_5feditor_2ecc_21',['music_editor.cc',['../dc/d9f/music__editor_8cc.html',1,'']]],
+  ['music_5feditor_2eh_22',['music_editor.h',['../d5/de8/music__editor_8h.html',1,'']]]
 ];

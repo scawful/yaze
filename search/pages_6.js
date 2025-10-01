@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['final_20summary_0',['YAZE Graphics Optimizations Project - Final Summary',['../d8/dfb/md_docs_2gfx__optimizations__project__summary.html',1,'']]],
-  ['future_20work_1',['Canvas Refactoring - Current Status &amp; Future Work',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html',1,'']]]
+  ['editor_0',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
+  ['editor_20design_20plan_1',['Dungeon Editor Design Plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'']]],
+  ['editor_20guide_2',['Dungeon Editor Guide',['../dd/d33/md_docs_2E2-dungeon-editor-guide.html',1,'']]],
+  ['editor_20palette_20system_3',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]]
 ];

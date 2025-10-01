@@ -1,5 +1,9 @@
 var hierarchy =
 [
+    [ "yaze::cli::AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", [
+      [ "yaze::cli::GeminiAIService", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html", null ],
+      [ "yaze::cli::MockAIService", "df/d18/classyaze_1_1cli_1_1MockAIService.html", null ]
+    ] ],
     [ "yaze::editor::zsprite::AnimationGroup", "dc/d2c/structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html", null ],
     [ "AppDelegate", "d3/d3e/classAppDelegate.html", null ],
     [ "AppViewController", "d1/de7/classAppViewController.html", null ],
@@ -80,17 +84,34 @@ var hierarchy =
     [ "yaze::gui::canvas::ColorAnalysisOptions", "d8/de6/structyaze_1_1gui_1_1canvas_1_1ColorAnalysisOptions.html", null ],
     [ "yaze::editor::CommandManager::CommandGroup", "d7/d2a/structyaze_1_1editor_1_1CommandManager_1_1CommandGroup.html", null ],
     [ "yaze::cli::CommandHandler", "dd/d80/classyaze_1_1cli_1_1CommandHandler.html", [
+      [ "yaze::cli::Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", null ],
       [ "yaze::cli::ApplyPatch", "dd/d64/classyaze_1_1cli_1_1ApplyPatch.html", null ],
       [ "yaze::cli::AsarPatch", "d7/d3f/classyaze_1_1cli_1_1AsarPatch.html", null ],
       [ "yaze::cli::Backup", "d5/d4f/classyaze_1_1cli_1_1Backup.html", null ],
+      [ "yaze::cli::CommandPalette", "d7/d60/classyaze_1_1cli_1_1CommandPalette.html", null ],
       [ "yaze::cli::Compress", "de/d92/classyaze_1_1cli_1_1Compress.html", null ],
       [ "yaze::cli::CreatePatch", "d7/d65/classyaze_1_1cli_1_1CreatePatch.html", null ],
       [ "yaze::cli::Decompress", "dc/db3/classyaze_1_1cli_1_1Decompress.html", null ],
+      [ "yaze::cli::DungeonExport", "d7/dc5/classyaze_1_1cli_1_1DungeonExport.html", null ],
+      [ "yaze::cli::DungeonListObjects", "da/dc4/classyaze_1_1cli_1_1DungeonListObjects.html", null ],
       [ "yaze::cli::Expand", "d7/d30/classyaze_1_1cli_1_1Expand.html", null ],
+      [ "yaze::cli::GfxExport", "dd/d8b/classyaze_1_1cli_1_1GfxExport.html", null ],
+      [ "yaze::cli::GfxImport", "d2/d55/classyaze_1_1cli_1_1GfxImport.html", null ],
       [ "yaze::cli::Open", "de/d8f/classyaze_1_1cli_1_1Open.html", null ],
+      [ "yaze::cli::OverworldGetTile", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile.html", null ],
+      [ "yaze::cli::OverworldSetTile", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile.html", null ],
+      [ "yaze::cli::Palette", "d3/d6c/classyaze_1_1cli_1_1Palette.html", null ],
+      [ "yaze::cli::PaletteExport", "da/d77/classyaze_1_1cli_1_1PaletteExport.html", null ],
+      [ "yaze::cli::PaletteImport", "d7/d47/classyaze_1_1cli_1_1PaletteImport.html", null ],
       [ "yaze::cli::PcToSnesCommand", "dd/d06/classyaze_1_1cli_1_1PcToSnesCommand.html", null ],
+      [ "yaze::cli::ProjectBuild", "d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html", null ],
+      [ "yaze::cli::ProjectInit", "d9/d3b/classyaze_1_1cli_1_1ProjectInit.html", null ],
       [ "yaze::cli::ReadFromRom", "d1/d72/classyaze_1_1cli_1_1ReadFromRom.html", null ],
+      [ "yaze::cli::RomDiff", "d1/d9c/classyaze_1_1cli_1_1RomDiff.html", null ],
+      [ "yaze::cli::RomGenerateGolden", "d2/d4a/classyaze_1_1cli_1_1RomGenerateGolden.html", null ],
+      [ "yaze::cli::RomValidate", "d6/d8e/classyaze_1_1cli_1_1RomValidate.html", null ],
       [ "yaze::cli::SnesToPcCommand", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand.html", null ],
+      [ "yaze::cli::SpriteCreate", "da/d30/classyaze_1_1cli_1_1SpriteCreate.html", null ],
       [ "yaze::cli::Tile16Transfer", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html", null ]
     ] ],
     [ "yaze::cli::CommandInfo", "dd/d22/structyaze_1_1cli_1_1CommandInfo.html", null ],
@@ -454,6 +475,11 @@ var hierarchy =
     [ "yaze::Transaction", "df/d26/classyaze_1_1Transaction.html", null ],
     [ "yaze::emu::TS", "da/db1/structyaze_1_1emu_1_1TS.html", null ],
     [ "yaze::emu::TSW", "d2/de5/structyaze_1_1emu_1_1TSW.html", null ],
+    [ "yaze::cli::TuiComponent", "dc/d6b/classyaze_1_1cli_1_1TuiComponent.html", [
+      [ "yaze::cli::AsarPatchComponent", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent.html", null ],
+      [ "yaze::cli::CommandPaletteComponent", "dc/d14/classyaze_1_1cli_1_1CommandPaletteComponent.html", null ],
+      [ "yaze::cli::PaletteEditorComponent", "d8/d3c/classyaze_1_1cli_1_1PaletteEditorComponent.html", null ]
+    ] ],
     [ "yaze::zelda3::DungeonEditorSystem::UndoPoint", "d7/dbb/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1UndoPoint.html", null ],
     [ "yaze::zelda3::DungeonObjectEditor::UndoPoint", "d6/da4/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1UndoPoint.html", null ],
     [ "TextEditor::UndoRecord", "d5/d1e/classTextEditor_1_1UndoRecord.html", null ],

@@ -1,0 +1,11 @@
+<map id="yaze::cli::ModernCLI::HandleGfxImportCommand" name="yaze::cli::ModernCLI::HandleGfxImportCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,190,88"/>
+<area shape="rect" id="Node000002" href="$d2/d55/classyaze_1_1cli_1_1GfxImport.html#a6c86d3a7ed24b14ef4a4eb3a9db5ed1a" title=" " alt="" coords="238,55,396,80"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,65,222,65,222,70,190,70"/>
+<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="446,5,583,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="371,51,445,33,446,38,372,57"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="444,55,585,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="396,65,429,65,429,70,396,70"/>
+<area shape="rect" id="Node000005" href="$d0/d27/namespaceyaze_1_1gfx.html#a3c4700a0bf17807deebe21067786072a" title="Load Cgx file (graphical content)" alt="" coords="451,104,578,130"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="372,78,446,97,445,102,371,84"/>
+</map>

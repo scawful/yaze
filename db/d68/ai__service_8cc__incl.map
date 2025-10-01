@@ -1,0 +1,11 @@
+<map id="src/cli/service/ai_service.cc" name="src/cli/service/ai_service.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="54,5,170,46"/>
+<area shape="rect" id="Node000002" href="$d7/d52/ai__service_8h.html" title=" " alt="" coords="35,94,189,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,46,115,78,109,78,109,46"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,168,59,193"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="100,122,58,159,55,155,97,118"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="83,168,141,193"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="115,120,115,152,109,152,109,120"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="164,168,311,193"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="135,118,204,157,202,162,132,123"/>
+</map>

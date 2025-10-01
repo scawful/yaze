@@ -40,7 +40,7 @@ var searchData=
   ['ensuretilesloaded_37',['EnsureTilesLoaded',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a22961cd5bd623cdc4a93e4de0c626a01',1,'yaze::zelda3::RoomObject']]],
   ['entercharacter_38',['EnterCharacter',['../d0/d28/classTextEditor.html#ac2078f6456d504a7bca40486c3180755',1,'TextEditor']]],
   ['entrances_39',['entrances',['../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#aa89fb081c621db38f659b6273f0d9ab3',1,'yaze::zelda3::Overworld']]],
-  ['eor_40',['eor',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#ac706e07f6d30a24a3ee86662a1cd432e',1,'yaze::emu::Cpu::Eor()'],['../d2/d07/classyaze_1_1emu_1_1Spc700.html#ab101730015ee5d0026969bac0f73b9b1',1,'yaze::emu::Spc700::EOR()'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a767c1e311a7d05afe9a529ad48650639',1,'yaze::emu::Cpu::EOR()']]],
+  ['eor_40',['eor',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a767c1e311a7d05afe9a529ad48650639',1,'yaze::emu::Cpu::EOR(uint32_t address, bool immediate=false)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#ac706e07f6d30a24a3ee86662a1cd432e',1,'yaze::emu::Cpu::Eor(uint32_t low, uint32_t high)'],['../d2/d07/classyaze_1_1emu_1_1Spc700.html#ab101730015ee5d0026969bac0f73b9b1',1,'yaze::emu::Spc700::EOR(uint16_t adr)']]],
   ['eor1_41',['EOR1',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a5089ca3cb83a7cc1b696d5e017a1ba25',1,'yaze::emu::Spc700']]],
   ['eorm_42',['EORM',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a39ca6e77bbd0efaaff66020177448d6a',1,'yaze::emu::Spc700']]],
   ['equals_43',['equals',['../dd/d5a/text__editor_8cc.html#aeac7f529776b9f402e3ee7c09eb4d6ed',1,'text_editor.cc']]],

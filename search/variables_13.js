@@ -151,7 +151,7 @@ var searchData=
   ['tilenamemask_148',['TileNameMask',['../d0/d27/namespaceyaze_1_1gfx.html#a2ac2c8b176a65259c394aac54d1e69b1',1,'yaze::gfx']]],
   ['tilenumber_149',['tileNumber',['../d1/d04/structyaze_1_1emu_1_1TilemapEntry.html#a828cbb0f34624b0c5e43bcf64972c957',1,'yaze::emu::TilemapEntry']]],
   ['tileprioritybit_150',['TilePriorityBit',['../d0/d27/namespaceyaze_1_1gfx.html#a8fb57254803cd278210eca15c3a60ad7',1,'yaze::gfx']]],
-  ['tiles_151',['tiles',['../d7/d54/structsnes__tile16.html#ac600abfadbc79e7265b2086c99e322cc',1,'snes_tile16::tiles'],['../dc/d2c/structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a85c3791a37c6256a2eafca2a16eb470a',1,'yaze::editor::zsprite::AnimationGroup::Tiles']]],
+  ['tiles_151',['tiles',['../dc/d2c/structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a85c3791a37c6256a2eafca2a16eb470a',1,'yaze::editor::zsprite::AnimationGroup::Tiles'],['../d7/d54/structsnes__tile16.html#ac600abfadbc79e7265b2086c99e322cc',1,'snes_tile16::tiles']]],
   ['tiles16_5f_152',['tiles16_',['../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#abbc481b6b30057bc7fab6e9175e67c43',1,'yaze::zelda3::Overworld']]],
   ['tiles32_5f_153',['tiles32_',['../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#aad3f6b3bf091e393000372fd43187b8e',1,'yaze::zelda3::Overworld']]],
   ['tiles32_5flist_5f_154',['tiles32_list_',['../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a04df43a4f51e37c1a880c861a0deff0e',1,'yaze::zelda3::Overworld']]],

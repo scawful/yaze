@@ -1,0 +1,13 @@
+<map id="yaze::cli::anonymous_namespace{agent::cc}::HandleDiffCommand" name="yaze::cli::anonymous_namespace{agent::cc}::HandleDiffCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,161,85"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="44,29,44,19,51,10,64,5,83,3,104,5,117,12,115,17,103,10,83,8,66,10,54,15,49,21,49,29"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="618,43,753,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,36,208,29,315,24,422,26,521,33,603,42,602,47,520,38,422,31,315,29,209,34,161,42"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="212,44,353,70"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="161,55,196,55,196,60,161,60"/>
+<area shape="rect" id="Node000004" href="$d1/d9c/classyaze_1_1cli_1_1RomDiff.html#a54e05379b4ea584836a4eea6fd5cea7f" title=" " alt="" coords="209,94,356,119"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="162,74,213,87,212,92,160,79"/>
+<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="404,68,570,94"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="356,95,388,91,389,96,357,100"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="571,68,602,64,603,69,571,73"/>
+</map>

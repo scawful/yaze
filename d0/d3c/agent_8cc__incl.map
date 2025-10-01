@@ -1,0 +1,12 @@
+<map id="src/cli/handlers/agent.cc" name="src/cli/handlers/agent.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="9,5,171,31"/>
+<area shape="rect" id="Node000002" href="$d3/dfa/z3ed_8h.html" title=" " alt="" coords="5,153,81,178"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="70,34,44,53,24,80,20,94,21,109,31,138,25,139,16,110,15,94,19,78,40,49,66,29"/>
+<area shape="rect" id="Node000042" href="$d8/d43/modern__cli_8h.html" title=" " alt="" coords="34,79,145,105"/>
+<area shape="poly" id="edge3_Node000001_Node000042" title=" " alt="" coords="92,31,92,63,87,63,87,31"/>
+<area shape="rect" id="Node000044" href="$d7/d52/ai__service_8h.html" title=" " alt="" coords="169,79,322,105"/>
+<area shape="poly" id="edge5_Node000001_Node000044" title=" " alt="" coords="117,29,206,70,204,75,115,34"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="13,226,73,252"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="46,179,46,211,40,211,40,179"/>
+<area shape="poly" id="edge4_Node000042_Node000002" title=" " alt="" coords="84,106,61,141,57,138,80,103"/>
+</map>

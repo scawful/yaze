@@ -4,6 +4,8 @@ var scad__format_8cc =
     [ "LoadCgx", "d1/de3/scad__format_8cc.html#a3c4700a0bf17807deebe21067786072a", null ],
     [ "LoadScr", "d1/de3/scad__format_8cc.html#a29510cbd4dd3f44894c90af89625b26b", null ],
     [ "DrawScrWithCgx", "d1/de3/scad__format_8cc.html#a638b6d667a91885c1f202815ef862d7f", null ],
+    [ "SaveCgx", "d1/de3/scad__format_8cc.html#a464001df38cc9e68bd80e777cf4ccf91", null ],
     [ "DecodeColFile", "d1/de3/scad__format_8cc.html#a2ea2124761ee1896a17e359c14320939", null ],
+    [ "SaveCol", "d1/de3/scad__format_8cc.html#a0337c80f437af948df03d0490b1ebe8f", null ],
     [ "DecodeObjFile", "d1/de3/scad__format_8cc.html#a243a7c8ca687efd609fc535e14c4aafa", null ]
 ];

@@ -258,8 +258,96 @@ Writing Experimental Tests</h2>
 <li><b>GUI components</b>: May require display context</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md124"></a>
-Performance and Maintenance</h1>
+E2E GUI Testing Framework</h1>
 <h2><a class="anchor" id="autotoc_md125"></a>
+Overview</h2>
+<p>An agent-friendly, end-to-end testing framework built on <code>ImGuiTestEngine</code> to automate UI interaction testing for the YAZE editor.</p>
+<h2><a class="anchor" id="autotoc_md126"></a>
+Architecture</h2>
+<p><b>Test Execution Flow</b>:</p><ol type="1">
+<li><code>z3ed test-gui</code> command invokes the modified <code>yaze_test</code> executable</li>
+<li><code>yaze_test</code> initializes an application window and <code>ImGuiTestEngine</code></li>
+<li>Tests are registered and executed against the live GUI</li>
+<li>Results are reported back with detailed logs and assertions</li>
+</ol>
+<p><b>Key Components</b>:</p><ul>
+<li><code><a class="el" href="../../de/d3d/yaze__test_8cc.html">test/yaze_test.cc</a></code> - Main test executable with GUI initialization</li>
+<li><code><a class="el" href="../../da/d8d/framework__smoke__test_8cc.html">test/e2e/framework_smoke_test.cc</a></code> - Basic infrastructure verification</li>
+<li><code><a class="el" href="../../d2/d5c/canvas__selection__test_8cc.html">test/e2e/canvas_selection_test.cc</a></code> - Canvas interaction tests</li>
+<li><code><a class="el" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a></code> - High-level action wrappers (LoadRomInTest, OpenEditorInTest, etc.)</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md127"></a>
+Writing E2E Tests</h2>
+<div class="fragment"><div class="line"><span class="comment">// Example: Canvas selection test</span></div>
+<div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a>&quot;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keywordtype">void</span> RegisterCanvasSelectionTest() {</div>
+<div class="line">  ImGuiTestEngine* engine = ImGuiTestEngine_GetCurrentContext();</div>
+<div class="line">  </div>
+<div class="line">  ImGuiTest* t = IM_REGISTER_TEST(engine, <span class="stringliteral">&quot;e2e&quot;</span>, <span class="stringliteral">&quot;canvas_selection&quot;</span>);</div>
+<div class="line">  t-&gt;GuiFunc = [](ImGuiTestContext* ctx) {</div>
+<div class="line">    <span class="comment">// Load ROM and open editor</span></div>
+<div class="line">    LoadRomInTest(ctx, <span class="stringliteral">&quot;zelda3.sfc&quot;</span>);</div>
+<div class="line">    OpenEditorInTest(ctx, <span class="stringliteral">&quot;Overworld Editor&quot;</span>);</div>
+<div class="line">    </div>
+<div class="line">    <span class="comment">// Perform actions</span></div>
+<div class="line">    ctx-&gt;MouseMove(<span class="stringliteral">&quot;##OverworldCanvas&quot;</span>);</div>
+<div class="line">    ctx-&gt;MouseClick(ImGuiMouseButton_Left);</div>
+<div class="line">    ctx-&gt;KeyPress(ImGuiMod_Ctrl | ImGuiKey_C);  <span class="comment">// Copy</span></div>
+<div class="line">    </div>
+<div class="line">    <span class="comment">// Assertions</span></div>
+<div class="line">    IM_CHECK(VerifyTileData(ctx, expected_data));</div>
+<div class="line">  };</div>
+<div class="line">}</div>
+<div class="ttc" id="atest__utils_8h_html"><div class="ttname"><a href="../../df/dfd/test__utils_8h.html">test_utils.h</a></div></div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md128"></a>
+Helper Functions</h2>
+<p><b><a class="el" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a></b> provides high-level wrappers:</p><ul>
+<li><code>LoadRomInTest(ctx, rom_path)</code> - Load ROM file in test context</li>
+<li><code>OpenEditorInTest(ctx, editor_name)</code> - Open specific editor</li>
+<li><code>VerifyTileData(ctx, expected)</code> - Assert tile data correctness</li>
+<li><code>WaitForRender(ctx)</code> - Wait for rendering to complete</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md129"></a>
+Running GUI Tests</h2>
+<div class="fragment"><div class="line"># Run all E2E tests</div>
+<div class="line">z3ed test-gui --rom zelda3.sfc --test all</div>
+<div class="line"> </div>
+<div class="line"># Run specific test suite</div>
+<div class="line">z3ed test-gui --rom zelda3.sfc --test canvas_selection</div>
+<div class="line"> </div>
+<div class="line"># Run in headless mode (CI)</div>
+<div class="line">z3ed test-gui --rom zelda3.sfc --test all --headless</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md130"></a>
+Test Categories for E2E</h2>
+<ul>
+<li><b>Smoke Tests</b>: Basic functionality verification (window opens, ROM loads)</li>
+<li><b>Canvas Tests</b>: Drawing, selection, copy/paste operations</li>
+<li><b>Editor Tests</b>: Specific editor workflows (Overworld, Dungeon, Graphics)</li>
+<li><b>Integration Tests</b>: Multi-editor workflows and data persistence</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md131"></a>
+Development Status</h2>
+<ul>
+<li>✅ <b>Phase 1</b>: Core infrastructure &amp; test execution flow</li>
+<li>✅ <b>Phase 2</b>: Agent-friendly test definition &amp; interaction</li>
+<li>✅ <b>Phase 3</b>: Initial test case - Canvas rectangle selection</li>
+<li>✅ <b>Phase 4</b>: Build and verify infrastructure</li>
+<li>⏳ <b>Phase 5</b>: Expand test coverage and fix identified bugs</li>
+<li>⏳ <b>Phase 6</b>: CI/CD integration with headless mode</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md132"></a>
+Best Practices</h2>
+<ol type="1">
+<li><b>Keep tests deterministic</b> - Use fixed delays and wait for specific states</li>
+<li><b>Use high-level helpers</b> - Abstract ImGuiTestEngine complexity</li>
+<li><b>Test user workflows</b> - Focus on real user interactions, not internal state</li>
+<li><b>Verify visually</b> - Check rendered output, not just data structures</li>
+<li><b>Clean up state</b> - Reset between tests to prevent interference</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md133"></a>
+Performance and Maintenance</h1>
+<h2><a class="anchor" id="autotoc_md134"></a>
 Regular Review</h2>
 <ul>
 <li><b>Monthly review</b> of experimental test failures</li>
@@ -267,13 +355,21 @@ Regular Review</h2>
 <li><b>Deprecate obsolete tests</b> that no longer provide value</li>
 <li><b>Update test categorization</b> as features mature</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md126"></a>
+<h2><a class="anchor" id="autotoc_md135"></a>
 Performance Monitoring</h2>
 <ul>
 <li><b>Track test execution times</b> for CI efficiency</li>
 <li><b>Identify slow tests</b> for optimization or recategorization</li>
 <li><b>Monitor CI resource usage</b> and adjust parallelism</li>
-<li><b>Benchmark critical path tests</b> for performance regression </li>
+<li><b>Benchmark critical path tests</b> for performance regression</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md136"></a>
+E2E Test Maintenance</h2>
+<ul>
+<li><b>Update test helpers</b> as UI components change</li>
+<li><b>Maintain test ROM files</b> for consistent test data</li>
+<li><b>Review failed tests</b> for UI changes vs. actual bugs</li>
+<li><b>Expand coverage</b> for new features and bug fixes </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

@@ -6,7 +6,7 @@ var dir_fcc5e025f1b672ef47e35e5c700d9477 =
     [ "controller.cc", "da/d0c/controller_8cc.html", null ],
     [ "controller.h", "d2/dd9/controller_8h.html", "d2/dd9/controller_8h" ],
     [ "features.h", "de/d47/features_8h.html", "de/d47/features_8h" ],
-    [ "project.cc", "d3/dd5/project_8cc.html", "d3/dd5/project_8cc" ],
+    [ "project.cc", "db/d6c/app_2core_2project_8cc.html", "db/d6c/app_2core_2project_8cc" ],
     [ "project.h", "dc/d8d/project_8h.html", "dc/d8d/project_8h" ],
     [ "window.cc", "d7/d60/window_8cc.html", "d7/d60/window_8cc" ],
     [ "window.h", "d3/df1/window_8h.html", "d3/df1/window_8h" ]

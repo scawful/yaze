@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('d2/db2/md_docs_2CANVAS__GUIDE.html','.
   <div class="headertitle"><div class="title">Canvas System - Comprehensive Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md506"></a> </p>
-<h1><a class="anchor" id="autotoc_md507"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md516"></a> </p>
+<h1><a class="anchor" id="autotoc_md517"></a>
 Overview</h1>
 <p>The Canvas class provides a flexible drawing surface for the YAZE ROM editor, supporting tile-based editing, bitmap display, grid overlays, and interactive selection.</p>
-<h1><a class="anchor" id="autotoc_md508"></a>
+<h1><a class="anchor" id="autotoc_md518"></a>
 Core Concepts</h1>
-<h2><a class="anchor" id="autotoc_md509"></a>
+<h2><a class="anchor" id="autotoc_md519"></a>
 Canvas Structure</h2>
 <ul>
 <li><b>Background</b>: Drawing surface with border and optional scrolling</li>
@@ -115,7 +115,7 @@ Canvas Structure</h2>
 <li><b>Grid Overlay</b>: Optional grid with hex labels</li>
 <li><b>Interaction Layer</b>: Hover previews, selection rectangles</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md510"></a>
+<h2><a class="anchor" id="autotoc_md520"></a>
 Coordinate Systems</h2>
 <ul>
 <li><b>Screen Space</b>: <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> window coordinates</li>
@@ -123,9 +123,9 @@ Coordinate Systems</h2>
 <li><b>Tile Space</b>: Grid-aligned tile indices</li>
 <li><b>World Space</b>: Overworld 4096x4096 large map coordinates</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md511"></a>
+<h1><a class="anchor" id="autotoc_md521"></a>
 Usage Patterns</h1>
-<h2><a class="anchor" id="autotoc_md512"></a>
+<h2><a class="anchor" id="autotoc_md522"></a>
 Pattern 1: Basic Bitmap Display</h2>
 <div class="fragment"><div class="line">gui::Canvas canvas(<span class="stringliteral">&quot;MyCanvas&quot;</span>, ImVec2(512, 512));</div>
 <div class="line"> </div>
@@ -134,19 +134,19 @@ Pattern 1: Basic Bitmap Display</h2>
 <div class="line">canvas.DrawBitmap(bitmap, 0, 0, 2.0f);  <span class="comment">// scale 2x</span></div>
 <div class="line">canvas.DrawGrid(16.0f);</div>
 <div class="line">canvas.DrawOverlay();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md513"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md523"></a>
 Pattern 2: Modern Begin/End</h2>
 <div class="fragment"><div class="line">canvas.Begin(ImVec2(512, 512));</div>
 <div class="line">canvas.DrawBitmap(bitmap, 0, 0, 2.0f);</div>
 <div class="line">canvas.End();  <span class="comment">// Automatic grid + overlay</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md514"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md524"></a>
 Pattern 3: RAII ScopedCanvas</h2>
 <div class="fragment"><div class="line">gui::ScopedCanvas canvas(<span class="stringliteral">&quot;Editor&quot;</span>, ImVec2(512, 512));</div>
 <div class="line">canvas-&gt;DrawBitmap(bitmap, 0, 0, 2.0f);</div>
 <div class="line"><span class="comment">// Automatic cleanup</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md515"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md525"></a>
 Feature: Tile Painting</h1>
-<h2><a class="anchor" id="autotoc_md516"></a>
+<h2><a class="anchor" id="autotoc_md526"></a>
 Single Tile Painting</h2>
 <div class="fragment"><div class="line"><span class="keywordflow">if</span> (canvas.DrawTilePainter(current_tile_bitmap, 16, 2.0f)) {</div>
 <div class="line">  ImVec2 paint_pos = canvas.drawn_tile_position();</div>
@@ -158,23 +158,23 @@ Single Tile Painting</h2>
 <li>Returns <code>true</code> on left-click + drag</li>
 <li>Updates <code>drawn_tile_position()</code> with paint location</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md517"></a>
+<h2><a class="anchor" id="autotoc_md527"></a>
 Tilemap Painting</h2>
 <div class="fragment"><div class="line"><span class="keywordflow">if</span> (canvas.DrawTilemapPainter(tilemap, current_tile_id)) {</div>
 <div class="line">  ImVec2 paint_pos = canvas.drawn_tile_position();</div>
 <div class="line">  ApplyTileToMap(paint_pos, current_tile_id);</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Use for</b>: Painting from tile atlases (e.g., tile16 blockset)</p>
-<h2><a class="anchor" id="autotoc_md518"></a>
+<h2><a class="anchor" id="autotoc_md528"></a>
 Color Painting</h2>
 <div class="fragment"><div class="line">ImVec4 paint_color(1.0f, 0.0f, 0.0f, 1.0f);  <span class="comment">// Red</span></div>
 <div class="line"><span class="keywordflow">if</span> (canvas.DrawSolidTilePainter(paint_color, 16)) {</div>
 <div class="line">  ImVec2 paint_pos = canvas.drawn_tile_position();</div>
 <div class="line">  ApplyColorToMap(paint_pos, paint_color);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md519"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md529"></a>
 Feature: Tile Selection</h1>
-<h2><a class="anchor" id="autotoc_md520"></a>
+<h2><a class="anchor" id="autotoc_md530"></a>
 Single Tile Selection</h2>
 <div class="fragment"><div class="line"><span class="keywordflow">if</span> (canvas.DrawTileSelector(16)) {</div>
 <div class="line">  <span class="comment">// Double-click detected</span></div>
@@ -186,7 +186,7 @@ Single Tile Selection</h2>
 <div class="line">  ImVec2 selected = canvas.hover_mouse_pos();</div>
 <div class="line">  current_tile = CalculateTileId(selected);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md521"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md531"></a>
 Multi-Tile Rectangle Selection</h2>
 <div class="fragment"><div class="line">canvas.DrawSelectRect(current_map_id, 16, 1.0f);</div>
 <div class="line"> </div>
@@ -210,7 +210,7 @@ Multi-Tile Rectangle Selection</h2>
 <li><code>selected_points_</code> contains rectangle bounds</li>
 <li><code>select_rect_active()</code> returns true</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md522"></a>
+<h2><a class="anchor" id="autotoc_md532"></a>
 Rectangle Drag &amp; Paint</h2>
 <p><b>Overworld-Specific</b>: Multi-tile copy/paste pattern</p>
 <div class="fragment"><div class="line"><span class="comment">// In CheckForSelectRectangle():</span></div>
@@ -237,9 +237,9 @@ Rectangle Drag &amp; Paint</h2>
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md523"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md533"></a>
 Feature: Custom Overlays</h1>
-<h2><a class="anchor" id="autotoc_md524"></a>
+<h2><a class="anchor" id="autotoc_md534"></a>
 Manual Points Manipulation</h2>
 <div class="fragment"><div class="line"><span class="comment">// Clear previous highlight</span></div>
 <div class="line">canvas.mutable_points()-&gt;clear();</div>
@@ -250,9 +250,9 @@ Manual Points Manipulation</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// DrawOverlay() will render this as a white outline</span></div>
 </div><!-- fragment --><p><b>Used for</b>: Custom selection highlights (e.g., blockset current tile indicator)</p>
-<h1><a class="anchor" id="autotoc_md525"></a>
+<h1><a class="anchor" id="autotoc_md535"></a>
 Feature: Large Map Support</h1>
-<h2><a class="anchor" id="autotoc_md526"></a>
+<h2><a class="anchor" id="autotoc_md536"></a>
 Map Types</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -266,7 +266,7 @@ Map Types</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Tall   </td><td class="markdownTableBodyNone">512x1024   </td><td class="markdownTableBodyNone">1x2 grid   </td><td class="markdownTableBodyNone">2 local maps   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md527"></a>
+<h2><a class="anchor" id="autotoc_md537"></a>
 Boundary Clamping</h2>
 <p><b>Problem</b>: Rectangle selection can wrap across 512x512 local map boundaries</p>
 <p><b>Solution</b>: Enabled by default </p><div class="fragment"><div class="line">canvas.SetClampRectToLocalMaps(<span class="keyword">true</span>);  <span class="comment">// Default - prevents wrapping</span></div>
@@ -276,15 +276,15 @@ Boundary Clamping</h2>
 <li>Prevents visual and functional wrapping artifacts</li>
 </ul>
 <p><b>Revert if needed</b>: </p><div class="fragment"><div class="line">canvas.SetClampRectToLocal Maps(<span class="keyword">false</span>);  <span class="comment">// Old behavior</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md528"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md538"></a>
 Custom Map Sizes</h2>
 <div class="fragment"><div class="line"><span class="comment">// For custom ROM hacks with different map structures</span></div>
 <div class="line">canvas.DrawBitmapGroup(tiles, tilemap, 16, scale,</div>
 <div class="line">                      custom_local_size,            <span class="comment">// e.g., 1024</span></div>
 <div class="line">                      ImVec2(custom_width, custom_height));  <span class="comment">// e.g., (2048, 2048)</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md529"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md539"></a>
 Feature: Context Menu</h1>
-<h2><a class="anchor" id="autotoc_md530"></a>
+<h2><a class="anchor" id="autotoc_md540"></a>
 Adding Custom Items</h2>
 <p><b>Simple</b>: </p><div class="fragment"><div class="line">canvas.AddContextMenuItem({</div>
 <div class="line">  <span class="stringliteral">&quot;My Action&quot;</span>,</div>
@@ -302,7 +302,7 @@ Adding Custom Items</h2>
 <div class="line">    [<span class="keyword">this</span>]() { <span class="keywordflow">return</span> has_selection_; }  <span class="comment">// Only enabled when selection exists</span></div>
 <div class="line">  )</div>
 <div class="line">);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md531"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md541"></a>
 Overworld Editor Example</h2>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> SetupOverworldCanvasContextMenu() {</div>
 <div class="line">  ow_map_canvas_.ClearContextMenuItems();</div>
@@ -325,7 +325,7 @@ Overworld Editor Example</h2>
 <div class="line">    <span class="stringliteral">&quot;F5&quot;</span></div>
 <div class="line">  });</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md532"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md542"></a>
 Feature: Scratch Space (In Progress)</h1>
 <p><b>Concept</b>: Temporary canvas for tile arrangement before pasting to main map</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>ScratchSpaceSlot {</div>
@@ -341,9 +341,9 @@ Feature: Scratch Space (In Progress)</h1>
 <div class="line">  <span class="keywordtype">bool</span> select_rect_active = <span class="keyword">false</span>;</div>
 <div class="line">};</div>
 </div><!-- fragment --><p><b>Status</b>: Data structures exist, UI not yet complete</p>
-<h1><a class="anchor" id="autotoc_md533"></a>
+<h1><a class="anchor" id="autotoc_md543"></a>
 Common Workflows</h1>
-<h2><a class="anchor" id="autotoc_md534"></a>
+<h2><a class="anchor" id="autotoc_md544"></a>
 Workflow 1: Overworld Tile Painting</h2>
 <div class="fragment"><div class="line"><span class="comment">// 1. Setup canvas</span></div>
 <div class="line">ow_map_canvas_.Begin();</div>
@@ -368,7 +368,7 @@ Workflow 1: Overworld Tile Painting</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// 5. Finish</span></div>
 <div class="line">ow_map_canvas_.End();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md535"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md545"></a>
 Workflow 2: Tile16 Blockset Selection</h2>
 <div class="fragment"><div class="line"><span class="comment">// 1. Setup</span></div>
 <div class="line">blockset_canvas_.Begin();</div>
@@ -396,7 +396,7 @@ Workflow 2: Tile16 Blockset Selection</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// 5. Finish</span></div>
 <div class="line">blockset_canvas_.End();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md536"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md546"></a>
 Workflow 3: Graphics Sheet Display</h2>
 <div class="fragment"><div class="line">gui::ScopedCanvas canvas(<span class="stringliteral">&quot;GfxSheet&quot;</span>, ImVec2(128, 256));</div>
 <div class="line"> </div>
@@ -407,27 +407,27 @@ Workflow 3: Graphics Sheet Display</h2>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Automatic cleanup</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md537"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md547"></a>
 Configuration</h1>
-<h2><a class="anchor" id="autotoc_md538"></a>
+<h2><a class="anchor" id="autotoc_md548"></a>
 Grid Settings</h2>
 <div class="fragment"><div class="line">canvas.SetGridStep(16.0f);        <span class="comment">// 16x16 grid</span></div>
 <div class="line">canvas.SetEnableGrid(<span class="keyword">true</span>);        <span class="comment">// Show grid</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md539"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md549"></a>
 Scale Settings</h2>
 <div class="fragment"><div class="line">canvas.SetGlobalScale(2.0f);       <span class="comment">// 2x zoom</span></div>
 <div class="line">canvas.SetZoomToFit(bitmap);       <span class="comment">// Auto-fit to window</span></div>
 <div class="line">canvas.ResetView();                <span class="comment">// Reset to 1x, (0,0)</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md540"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md550"></a>
 Interaction Settings</h2>
 <div class="fragment"><div class="line">canvas.set_draggable(<span class="keyword">true</span>);        <span class="comment">// Enable pan with right-drag</span></div>
 <div class="line">canvas.SetContextMenuEnabled(<span class="keyword">true</span>); <span class="comment">// Enable right-click menu</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md541"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md551"></a>
 Large Map Settings</h2>
 <div class="fragment"><div class="line">canvas.SetClampRectToLocalMaps(<span class="keyword">true</span>);  <span class="comment">// Prevent boundary wrapping (default)</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md542"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md552"></a>
 Bug Fixes Applied</h1>
-<h2><a class="anchor" id="autotoc_md543"></a>
+<h2><a class="anchor" id="autotoc_md553"></a>
 1. Rectangle Selection Wrapping in Large Maps ✅</h2>
 <p><b>Issue</b>: When dragging rectangle selection near 512x512 boundaries, tiles painted in wrong location</p>
 <p><b>Root Cause</b>:</p><ul>
@@ -443,13 +443,13 @@ Bug Fixes Applied</h1>
 <li>Proper bounds checking prevents array overflow</li>
 </ul>
 <p><b>Result</b>: Rectangle painting works correctly at all boundary positions</p>
-<h2><a class="anchor" id="autotoc_md544"></a>
+<h2><a class="anchor" id="autotoc_md554"></a>
 2. Drag-Time Preview Clamping ✅</h2>
 <p><b>Issue</b>: Preview could show wrapping during drag</p>
 <p><b>Fix</b>: Clamp mouse position BEFORE grid alignment in <code>DrawBitmapGroup</code></p>
-<h1><a class="anchor" id="autotoc_md545"></a>
+<h1><a class="anchor" id="autotoc_md555"></a>
 API Reference</h1>
-<h2><a class="anchor" id="autotoc_md546"></a>
+<h2><a class="anchor" id="autotoc_md556"></a>
 Drawing Methods</h2>
 <div class="fragment"><div class="line"><span class="comment">// Background and setup</span></div>
 <div class="line"><span class="keywordtype">void</span> DrawBackground(ImVec2 size = {0, 0});</div>
@@ -482,7 +482,7 @@ Drawing Methods</h2>
 <div class="line"><span class="keywordtype">void</span> DrawOutline(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> w, <span class="keywordtype">int</span> h);</div>
 <div class="line"><span class="keywordtype">void</span> DrawRect(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> w, <span class="keywordtype">int</span> h, ImVec4 color);</div>
 <div class="line"><span class="keywordtype">void</span> DrawText(std::string text, <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md547"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md557"></a>
 State Accessors</h2>
 <div class="fragment"><div class="line"><span class="comment">// Selection state</span></div>
 <div class="line"><span class="keywordtype">bool</span> select_rect_active() <span class="keyword">const</span>;</div>
@@ -504,7 +504,7 @@ State Accessors</h2>
 <div class="line"><span class="keywordtype">void</span> set_scrolling(ImVec2 scroll);</div>
 <div class="line"><span class="keywordtype">float</span> global_scale() <span class="keyword">const</span>;</div>
 <div class="line"><span class="keywordtype">void</span> set_global_scale(<span class="keywordtype">float</span> scale);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md548"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md558"></a>
 Configuration</h2>
 <div class="fragment"><div class="line"><span class="comment">// Grid</span></div>
 <div class="line"><span class="keywordtype">void</span> SetGridStep(<span class="keywordtype">float</span> step);</div>
@@ -522,9 +522,9 @@ Configuration</h2>
 <div class="line"><span class="comment">// Context menu</span></div>
 <div class="line"><span class="keywordtype">void</span> AddContextMenuItem(<span class="keyword">const</span> ContextMenuItem&amp; item);</div>
 <div class="line"><span class="keywordtype">void</span> ClearContextMenuItems();</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md549"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md559"></a>
 Implementation Notes</h1>
-<h2><a class="anchor" id="autotoc_md550"></a>
+<h2><a class="anchor" id="autotoc_md560"></a>
 Points Management</h2>
 <p><b>Two separate point arrays</b>:</p>
 <ol type="1">
@@ -541,7 +541,7 @@ Points Management</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md551"></a>
+<h2><a class="anchor" id="autotoc_md561"></a>
 Selection State</h2>
 <p><b>Three pieces of selection data</b>:</p>
 <ol type="1">
@@ -564,7 +564,7 @@ Selection State</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md552"></a>
+<h2><a class="anchor" id="autotoc_md562"></a>
 Overworld Rectangle Painting Flow</h2>
 <div class="fragment"><div class="line">1. User right-click drags in overworld</div>
 <div class="line">   ↓</div>
@@ -589,9 +589,9 @@ Overworld Rectangle Painting Flow</h2>
 <div class="line">   - Uses selected_points_ for NEW paint location</div>
 <div class="line">   - Uses selected_tile16_ids_ for tile data</div>
 <div class="line">   - Paints correctly without recalculation</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md553"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md563"></a>
 Best Practices</h1>
-<h2><a class="anchor" id="autotoc_md554"></a>
+<h2><a class="anchor" id="autotoc_md564"></a>
 DO ✅</h2>
 <ul>
 <li>Use <code>Begin()/End()</code> for new code (cleaner)</li>
@@ -601,7 +601,7 @@ DO ✅</h2>
 <li>Use helper constructors for context menu items</li>
 <li>Enable boundary clamping for large maps</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md555"></a>
+<h2><a class="anchor" id="autotoc_md565"></a>
 DON'T ❌</h2>
 <ul>
 <li>Don't clear <code>points_</code> if you need the hover preview</li>
@@ -610,21 +610,21 @@ DON'T ❌</h2>
 <li>Don't access <code>selected_tiles_[i]</code> without bounds check</li>
 <li>Don't modify <code>points_</code> during tile painter calls (managed internally)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md556"></a>
+<h1><a class="anchor" id="autotoc_md566"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md557"></a>
+<h2><a class="anchor" id="autotoc_md567"></a>
 Issue: Rectangle wraps at boundaries</h2>
 <p><b>Fix</b>: Ensure <code>SetClampRectToLocalMaps(true)</code> (default)</p>
-<h2><a class="anchor" id="autotoc_md558"></a>
+<h2><a class="anchor" id="autotoc_md568"></a>
 Issue: Painting in wrong location</h2>
 <p><b>Fix</b>: Use pre-computed tile IDs, not recalculated from selected_tiles_</p>
-<h2><a class="anchor" id="autotoc_md559"></a>
+<h2><a class="anchor" id="autotoc_md569"></a>
 Issue: Array index out of bounds</h2>
 <p><b>Fix</b>: Add bounds check: <code>i &lt; selected_tile_ids.size()</code></p>
-<h2><a class="anchor" id="autotoc_md560"></a>
+<h2><a class="anchor" id="autotoc_md570"></a>
 Issue: Forgot to call End()</h2>
 <p><b>Fix</b>: Use <code>ScopedCanvas</code> for automatic cleanup</p>
-<h1><a class="anchor" id="autotoc_md561"></a>
+<h1><a class="anchor" id="autotoc_md571"></a>
 Future: Scratch Space</h1>
 <p><b>Planned features</b>:</p><ul>
 <li>Temporary tile arrangement canvas</li>
@@ -633,7 +633,7 @@ Future: Scratch Space</h1>
 <li>Save/load scratch layouts</li>
 </ul>
 <p><b>Current status</b>: Data structures exist, UI pending</p>
-<h1><a class="anchor" id="autotoc_md562"></a>
+<h1><a class="anchor" id="autotoc_md572"></a>
 Documentation Files</h1>
 <ol type="1">
 <li><b><a class="el" href="../../de/df8/CANVAS__GUIDE_8md.html">CANVAS_GUIDE.md</a></b> (this file) - Complete reference</li>
@@ -642,7 +642,7 @@ Documentation Files</h1>
 <li><b>canvas_refactoring_summary_phase2.md</b> - Lessons learned</li>
 <li><b>canvas_bug_analysis.md</b> - Wrapping bug details</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md563"></a>
+<h1><a class="anchor" id="autotoc_md573"></a>
 Summary</h1>
 <p>The Canvas system provides:</p><ul>
 <li>✅ Flexible bitmap display</li>

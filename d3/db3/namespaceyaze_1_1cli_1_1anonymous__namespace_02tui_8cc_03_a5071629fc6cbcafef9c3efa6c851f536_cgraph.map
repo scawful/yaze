@@ -1,7 +1,10 @@
 <map id="yaze::cli::anonymous_namespace{tui::cc}::ApplyAsarPatchComponent" name="yaze::cli::anonymous_namespace{tui::cc}::ApplyAsarPatchComponent">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,186,85"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="54,29,55,19,62,10,76,5,96,3,118,5,131,12,129,17,116,10,95,8,77,10,65,15,60,21,59,29"/>
-<area shape="rect" id="Node000002" href="$d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c" title=" " alt="" coords="234,29,377,85"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="53,29,53,19,61,10,75,5,96,3,118,5,132,12,130,17,117,10,95,8,76,10,64,15,58,21,58,29"/>
+<area shape="rect" id="Node000002" href="$d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#aca48c44e4e20f84f95f7d0ee8edf1303" title=" " alt="" coords="234,29,392,85"/>
 <area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="186,55,218,55,218,60,186,60"/>
-<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="264,29,264,19,272,10,286,5,305,3,328,5,341,12,339,17,326,10,305,8,287,10,275,15,269,21,269,29"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="273,29,274,19,281,10,294,5,313,3,334,5,347,12,344,17,332,10,313,8,295,10,284,15,279,21,279,29"/>
+<area shape="rect" id="Node000003" href="$d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c" title=" " alt="" coords="440,29,583,85"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="392,55,424,55,424,60,392,60"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="472,29,473,19,480,10,493,5,512,3,533,5,546,12,543,17,531,10,512,8,494,10,483,15,478,21,478,29"/>
 </map>

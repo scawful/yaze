@@ -1,0 +1,11 @@
+<map id="yaze::cli::ModernCLI::HandleSpriteCreateCommand" name="yaze::cli::ModernCLI::HandleSpriteCreateCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,205,111"/>
+<area shape="rect" id="Node000002" href="$da/d30/classyaze_1_1cli_1_1SpriteCreate.html#a7d3056334f66a84cb00a7ffdb92c2bb5" title=" " alt="" coords="253,78,426,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,88,237,88,237,94,205,94"/>
+<area shape="rect" id="Node000003" href="$d4/d57/classyaze_1_1zelda3_1_1SpriteBuilder.html#a1ad0fb226b371789e19aedd5144e5670" title=" " alt="" coords="485,5,655,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="387,75,480,48,482,53,388,80"/>
+<area shape="rect" id="Node000004" href="$d3/d60/classyaze_1_1zelda3_1_1SpriteInstruction.html#a79208c1f345b4590a1d9dcde382ce722" title=" " alt="" coords="474,71,665,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="426,88,458,88,458,94,426,94"/>
+<area shape="rect" id="Node000006" href="$d4/d57/classyaze_1_1zelda3_1_1SpriteBuilder.html#a2c508ac8284c10b3a97a0d919f6517f9" title=" " alt="" coords="485,136,655,177"/>
+<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="388,102,482,129,480,134,387,107"/>
+</map>

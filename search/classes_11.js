@@ -38,5 +38,6 @@ var searchData=
   ['tracker_35',['Tracker',['../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::zelda3::music']]],
   ['transaction_36',['Transaction',['../df/d26/classyaze_1_1Transaction.html',1,'yaze']]],
   ['ts_37',['TS',['../da/db1/structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
-  ['tsw_38',['TSW',['../d2/de5/structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]]
+  ['tsw_38',['TSW',['../d2/de5/structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]],
+  ['tuicomponent_39',['TuiComponent',['../dc/d6b/classyaze_1_1cli_1_1TuiComponent.html',1,'yaze::cli']]]
 ];

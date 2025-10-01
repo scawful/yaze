@@ -1,0 +1,11 @@
+<map id="src/cli/service/gemini_ai_service.cc" name="src/cli/service/gemini_ai_service.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="109,5,253,46"/>
+<area shape="rect" id="Node000002" href="$d3/d22/gemini__ai__service_8h.html" title=" " alt="" coords="5,94,128,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,49,106,87,103,82,154,44"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="152,102,211,127"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="184,47,184,86,179,86,179,47"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="235,102,378,127"/>
+<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="211,44,278,90,275,95,208,49"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="40,183,93,208"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="69,135,69,167,64,167,64,135"/>
+</map>

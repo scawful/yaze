@@ -1,0 +1,11 @@
+<map id="yaze::cli::PaletteImport::Run" name="yaze::cli::PaletteImport::Run">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,80,185,106"/>
+<area shape="rect" id="Node000002" href="$d0/d27/namespaceyaze_1_1gfx.html#a2ea2124761ee1896a17e359c14320939" title="Decode color file." alt="" coords="236,5,396,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,77,232,40,251,33,253,38,234,45,131,82"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="245,55,387,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,80,229,75,230,80,185,85"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="233,104,399,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="185,100,217,103,217,109,185,105"/>
+<area shape="rect" id="Node000034" href="$d6/d30/classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="253,154,379,195"/>
+<area shape="poly" id="edge4_Node000001_Node000034" title=" " alt="" coords="133,104,245,146,243,151,131,109"/>
+</map>
