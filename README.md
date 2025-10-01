@@ -1,4 +1,4 @@
-# YAZE - Yet Another Zelda3 Editor
+# yaze - Yet Another Zelda3 Editor
 
 A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM hacking, built with C++23 and featuring complete Asar 65816 assembler integration.
 

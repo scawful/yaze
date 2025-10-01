@@ -1,4 +1,4 @@
-# YAZE Performance Optimization Summary
+# yaze Performance Optimization Summary
 
 ## 🎉 **Massive Performance Improvements Achieved!**
 

@@ -7,10 +7,12 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/str_join.h"
 #include "util/bps.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/asar_wrapper.h"
+#include "app/zelda3/overworld/overworld.h"
+#include "cli/modern_cli.h"
+#include "cli/tui/command_palette.h"
 
 namespace yaze {
 namespace cli {
@@ -219,137 +221,91 @@ void GenerateSaveFileComponent(ftxui::ScreenInteractive &screen) {
   screen.Loop(renderer);
 }
 
-void ApplyAsarPatchComponent(ftxui::ScreenInteractive &screen) {
-  static std::string patch_file;
-  static std::string output_message;
-  static std::vector<std::string> symbols_list;
-  static bool show_symbols = false;
 
-  auto patch_file_input = Input(&patch_file, "Assembly patch file (.asm)");
+
+void ApplyAsarPatchComponent(ftxui::ScreenInteractive &screen) {
+  ReturnIfRomNotLoaded(screen);
+
+  static std::string asm_file;
+  static std::string output_message;
+  static Color output_color = Color::White;
+
+  auto asm_file_input = Input(&asm_file, "Assembly file (.asm)");
 
   auto apply_button = Button("Apply Asar Patch", [&] {
-    if (patch_file.empty()) {
-      app_context.error_message = "Please specify an assembly patch file";
-      SwitchComponents(screen, LayoutID::kError);
-      return;
-    }
-
-    if (!app_context.rom.is_loaded()) {
-      app_context.error_message = "No ROM loaded. Please load a ROM first.";
+    if (asm_file.empty()) {
+      app_context.error_message = "Please specify an assembly file";
       SwitchComponents(screen, LayoutID::kError);
       return;
     }
 
     try {
-      app::core::AsarWrapper wrapper;
-      auto init_status = wrapper.Initialize();
-      if (!init_status.ok()) {
-        app_context.error_message = absl::StrCat("Failed to initialize Asar: ", init_status.message());
-        SwitchComponents(screen, LayoutID::kError);
-        return;
+      // Use the command handler directly
+      AsarPatch handler;
+      auto status = handler.Run({asm_file});
+      if (status.ok()) {
+        output_message = "✅ Asar patch applied successfully!";
+        output_color = Color::Green;
+      } else {
+        output_message = absl::StrCat("❌ Patch failed:\n", status.message());
+        output_color = Color::Red;
       }
-
-      auto rom_data = app_context.rom.vector();
-      auto patch_result = wrapper.ApplyPatch(patch_file, rom_data);
-      
-      if (!patch_result.ok()) {
-        app_context.error_message = absl::StrCat("Patch failed: ", patch_result.status().message());
-        SwitchComponents(screen, LayoutID::kError);
-        return;
-      }
-
-      const auto& result = patch_result.value();
-      if (!result.success) {
-        app_context.error_message = absl::StrCat("Patch failed: ", absl::StrJoin(result.errors, "; "));
-        SwitchComponents(screen, LayoutID::kError);
-        return;
-      }
-
-      // Update ROM with patched data
-      // Note: ROM update would need proper implementation
-      // For now, just indicate success
-      
-      // Prepare success message
-      output_message = absl::StrFormat(
-        "✅ Patch applied successfully!\n"
-        "📊 ROM size: %d bytes\n"
-        "🏷️  Symbols found: %d",
-        result.rom_size, result.symbols.size());
-
-      // Prepare symbols list
-      symbols_list.clear();
-      for (const auto& symbol : result.symbols) {
-        symbols_list.push_back(absl::StrFormat("%-20s @ $%06X", 
-                                             symbol.name, symbol.address));
-      }
-      show_symbols = !symbols_list.empty();
-
     } catch (const std::exception& e) {
-      app_context.error_message = "Exception: " + std::string(e.what());
-      SwitchComponents(screen, LayoutID::kError);
+      output_message = "Exception: " + std::string(e.what());
+      output_color = Color::Red;
     }
-  });
-
-  auto show_symbols_button = Button("Show Symbols", [&] {
-    show_symbols = !show_symbols;
   });
 
   auto back_button = Button("Back to Main Menu", [&] {
     output_message.clear();
-    symbols_list.clear();
-    show_symbols = false;
     SwitchComponents(screen, LayoutID::kMainMenu);
   });
 
-  std::vector<Component> container_items = {
-    patch_file_input,
+  auto container = Container::Vertical({
+    asm_file_input,
     apply_button,
-  };
-
-  if (!output_message.empty()) {
-    container_items.push_back(show_symbols_button);
-  }
-  container_items.push_back(back_button);
-
-  auto container = Container::Vertical(container_items);
+    back_button,
+  });
 
   auto renderer = Renderer(container, [&] {
     std::vector<Element> elements = {
-      text("Apply Asar Assembly Patch") | center | bold,
+      text("Apply Asar Patch") | center | bold,
       separator(),
-      text("Assembly Patch File:"),
-      patch_file_input->Render(),
+      text("Assembly File:"),
+      asm_file_input->Render(),
       separator(),
       apply_button->Render() | center,
     };
 
     if (!output_message.empty()) {
       elements.push_back(separator());
-      elements.push_back(text(output_message) | color(Color::Green));
-      elements.push_back(show_symbols_button->Render() | center);
-      
-      if (show_symbols && !symbols_list.empty()) {
-        elements.push_back(separator());
-        elements.push_back(text("Extracted Symbols:") | bold);
-        
-        // Show symbols in a scrollable area
-        std::vector<Element> symbol_elements;
-        for (size_t i = 0; i < std::min(symbols_list.size(), size_t(10)); ++i) {
-          symbol_elements.push_back(text(symbols_list[i]) | color(Color::Cyan));
-        }
-        if (symbols_list.size() > 10) {
-          symbol_elements.push_back(text(absl::StrFormat("... and %d more", 
-                                                        symbols_list.size() - 10)) | 
-                                   color(Color::Yellow));
-        }
-        elements.push_back(vbox(symbol_elements) | frame);
-      }
+      elements.push_back(text(output_message) | color(output_color));
     }
 
     elements.push_back(separator());
     elements.push_back(back_button->Render() | center);
 
     return vbox(elements) | center | border;
+  });
+
+  screen.Loop(renderer);
+}
+
+void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
+  ReturnIfRomNotLoaded(screen);
+
+  auto back_button = Button("Back to Main Menu", [&] {
+    SwitchComponents(screen, LayoutID::kMainMenu);
+  });
+
+  auto renderer = Renderer(back_button, [&] {
+    return vbox({
+      text("Palette Editor") | center | bold,
+      separator(),
+      text("Palette editing functionality coming soon...") | center,
+      separator(),
+      back_button->Render() | center,
+    }) | center | border;
   });
 
   screen.Loop(renderer);
@@ -576,128 +532,7 @@ Element ColorBox(const Color &color) {
   return ftxui::text("  ") | ftxui::bgcolor(color);
 }
 
-void PaletteEditorComponent(ftxui::ScreenInteractive &screen) {
-  ReturnIfRomNotLoaded(screen);
 
-  auto back_button =
-      Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
-
-  static auto palette_groups = app_context.rom.palette_group();
-  static std::vector<gfx::PaletteGroup> ftx_palettes = {
-      palette_groups.swords,
-      palette_groups.shields,
-      palette_groups.armors,
-      palette_groups.overworld_main,
-      palette_groups.overworld_aux,
-      palette_groups.global_sprites,
-      palette_groups.sprites_aux1,
-      palette_groups.sprites_aux2,
-      palette_groups.sprites_aux3,
-      palette_groups.dungeon_main,
-      palette_groups.overworld_mini_map,
-      palette_groups.grass,
-      palette_groups.object_3d,
-  };
-
-  // Create a list of palette groups to pick from
-  static int selected_palette_group = 0;
-  static std::vector<std::string> palette_group_names;
-  if (palette_group_names.empty()) {
-    for (size_t i = 0; i < 14; ++i) {
-      palette_group_names.push_back(gfx::kPaletteCategoryNames[i].data());
-    }
-  }
-
-  static bool show_palette_editor = false;
-  static std::vector<std::vector<Element>> palette_elements;
-
-  const auto load_palettes_from_current_group = [&]() {
-    auto palette_group = ftx_palettes[selected_palette_group];
-    palette_elements.clear();
-    // Create a list of colors to display in the palette editor.
-    for (size_t i = 0; i < palette_group.size(); ++i) {
-      palette_elements.push_back(std::vector<Element>());
-      for (size_t j = 0; j < palette_group[i].size(); ++j) {
-        auto color = palette_group[i][j];
-        palette_elements[i].push_back(
-            ColorBox(Color::RGB(color.rgb().x, color.rgb().y, color.rgb().z)));
-      }
-    }
-  };
-
-  if (show_palette_editor) {
-    if (palette_elements.empty()) {
-      load_palettes_from_current_group();
-    }
-
-    auto palette_grid = Container::Vertical({});
-    for (const auto &element : palette_elements) {
-      auto row = Container::Horizontal({});
-      for (const auto &color : element) {
-        row->Add(Renderer([color] { return color; }));
-      }
-      palette_grid->Add(row);
-    }
-
-    // Create a button to save the changes to the palette.
-    auto save_button = Button("Save Changes", [&] {
-      // Save the changes to the palette here.
-      // You can use the current_palette vector to determine the new colors.
-      // After saving the changes, you could either stay here or return to the
-      // main menu.
-    });
-
-    auto back_button = Button("Back", [&] {
-      show_palette_editor = false;
-      screen.ExitLoopClosure()();
-    });
-
-    auto palette_editor_container = Container::Vertical({
-        palette_grid,
-        save_button,
-        back_button,
-    });
-
-    auto palette_editor_renderer = Renderer(palette_editor_container, [&] {
-      return vbox({text(gfx::kPaletteCategoryNames[selected_palette_group]
-                            .data()) |
-                       center,
-                   separator(), palette_grid->Render(), separator(),
-                   hbox({
-                       save_button->Render() | center,
-                       separator(),
-                       back_button->Render() | center,
-                   }) | center}) |
-             center;
-    });
-    screen.Loop(palette_editor_renderer);
-  } else {
-    auto palette_list = Menu(&palette_group_names, &selected_palette_group);
-    palette_list = CatchEvent(palette_list, [&](Event event) {
-      if (event == Event::Return) {
-        // Load the selected palette group into the palette editor.
-        // This will be a separate component.
-        show_palette_editor = true;
-        screen.ExitLoopClosure()();
-        load_palettes_from_current_group();
-        return true;
-      }
-      return false;
-    });
-
-    auto container = Container::Vertical({
-        palette_list,
-        back_button,
-    });
-    auto renderer = Renderer(container, [&] {
-      return vbox({text("Palette Editor") | center, separator(),
-                   palette_list->Render(), separator(),
-                   back_button->Render() | center}) |
-             center;
-    });
-    screen.Loop(renderer);
-  }
-}
 
 void HelpComponent(ftxui::ScreenInteractive &screen) {
   auto help_text = vbox({
@@ -846,6 +681,72 @@ void HelpComponent(ftxui::ScreenInteractive &screen) {
   screen.Loop(renderer);
 }
 
+void HexViewerComponent(ftxui::ScreenInteractive &screen) {
+  ReturnIfRomNotLoaded(screen);
+
+  auto back_button =
+      Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
+
+  static int offset = 0;
+  const int lines_to_show = 20;
+
+  auto renderer = Renderer(back_button, [&] {
+    std::vector<Element> rows;
+    for (int i = 0; i < lines_to_show; ++i) {
+        int current_offset = offset + (i * 16);
+        if (current_offset >= static_cast<int>(app_context.rom.size())) {
+            break;
+        }
+
+        Elements row;
+        row.push_back(text(absl::StrFormat("0x%08X: ", current_offset)) | color(Color::Yellow));
+
+        for (int j = 0; j < 16; ++j) {
+            if (current_offset + j < static_cast<int>(app_context.rom.size())) {
+                row.push_back(text(absl::StrFormat("%02X ", app_context.rom.vector()[current_offset + j])));
+            } else {
+                row.push_back(text("   "));
+            }
+        }
+
+        row.push_back(separator());
+
+        for (int j = 0; j < 16; ++j) {
+            if (current_offset + j < static_cast<int>(app_context.rom.size())) {
+                char c = app_context.rom.vector()[current_offset + j];
+                row.push_back(text(std::isprint(c) ? std::string(1, c) : "."));
+            } else {
+                row.push_back(text(" "));
+            }
+        }
+
+        rows.push_back(hbox(row));
+    }
+
+    return vbox({
+        text("Hex Viewer") | center | bold,
+        separator(),
+        vbox(rows) | frame | flex,
+        separator(),
+        text(absl::StrFormat("Offset: 0x%08X", offset)),
+        separator(),
+        back_button->Render() | center,
+    }) | border;
+  });
+
+  auto event_handler = CatchEvent(renderer, [&](Event event) {
+    if (event == Event::ArrowUp) offset = std::max(0, offset - 16);
+    if (event == Event::ArrowDown) offset = std::min(static_cast<int>(app_context.rom.size()) - (lines_to_show * 16), offset + 16);
+    if (event == Event::PageUp) offset = std::max(0, offset - (lines_to_show * 16));
+    if (event == Event::PageDown) offset = std::min(static_cast<int>(app_context.rom.size()) - (lines_to_show * 16), offset + (lines_to_show * 16));
+    if (event == Event::Character('q')) SwitchComponents(screen, LayoutID::kExit);
+    if (event == Event::Return) SwitchComponents(screen, LayoutID::kMainMenu);
+    return false;
+  });
+
+  screen.Loop(event_handler);
+}
+
 void MainMenuComponent(ftxui::ScreenInteractive &screen) {
   // Tracks which menu item is selected.
   static int selected = 0;
@@ -902,6 +803,12 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
         case MainMenuEntry::kPaletteEditor:
           SwitchComponents(screen, LayoutID::kPaletteEditor);
           return true;
+        case MainMenuEntry::kHexViewer:
+          SwitchComponents(screen, LayoutID::kHexViewer);
+          return true;
+        case MainMenuEntry::kCommandPalette:
+          SwitchComponents(screen, LayoutID::kCommandPalette);
+          return true;
         case MainMenuEntry::kHelp:
           SwitchComponents(screen, LayoutID::kHelp);
           return true;
@@ -950,6 +857,14 @@ void ShowMain() {
       } break;
       case LayoutID::kPaletteEditor: {
         PaletteEditorComponent(screen);
+      } break;
+      case LayoutID::kHexViewer: {
+        HexViewerComponent(screen);
+      } break;
+      case LayoutID::kCommandPalette: {
+        CommandPaletteComponent component;
+        auto cmd_component = component.Render();
+        screen.Loop(cmd_component);
       } break;
       case LayoutID::kHelp: {
         HelpComponent(screen);

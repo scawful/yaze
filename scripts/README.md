@@ -1,4 +1,4 @@
-# YAZE Build Scripts
+# yaze Build Scripts
 
 This directory contains build and setup scripts for YAZE development on different platforms.
 

@@ -74,6 +74,13 @@ absl::Status DrawScrWithCgx(uint8_t bpp, std::vector<uint8_t>& map_bitmap_data,
                             std::vector<uint8_t>& cgx_loaded);
 
 /**
+ * @brief Save Cgx file (graphical content)
+ */
+absl::Status SaveCgx(uint8_t bpp, std::string_view filename,
+                     const std::vector<uint8_t>& cgx_data,
+                     const std::vector<uint8_t>& cgx_header);
+
+/**
  * @brief Decode color file
  */
 std::vector<SDL_Color> DecodeColFile(const std::string_view filename);
@@ -86,6 +93,11 @@ absl::Status DecodeObjFile(
     std::vector<uint8_t> actual_obj_data,
     std::unordered_map<std::string, std::vector<uint8_t>> decoded_obj,
     std::vector<uint8_t>& decoded_extra_obj, int& obj_loaded);
+
+/**
+ * @brief Save Col file (palette data)
+ */
+absl::Status SaveCol(std::string_view filename, const std::vector<SDL_Color>& palette);
 
 }  // namespace gfx
 }  // namespace yaze
