@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
   <div class="headertitle"><div class="title">yaze Performance Optimization Summary</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md198"></a> </p>
-<h1><a class="anchor" id="autotoc_md199"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md195"></a> </p>
+<h1><a class="anchor" id="autotoc_md196"></a>
 🎉 &lt;strong&gt;Massive Performance Improvements Achieved!&lt;/strong&gt;</h1>
-<h2><a class="anchor" id="autotoc_md200"></a>
+<h2><a class="anchor" id="autotoc_md197"></a>
 📊 &lt;strong&gt;Overall Performance Results&lt;/strong&gt;</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -116,18 +116,18 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><b>User Experience</b>   </td><td class="markdownTableBodyNone">18-second freeze   </td><td class="markdownTableBodyNone">Near-instant   </td><td class="markdownTableBodyNone"><b>Dramatic improvement</b>   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md201"></a>
+<h1><a class="anchor" id="autotoc_md198"></a>
 🚀 &lt;strong&gt;Optimizations Implemented&lt;/strong&gt;</h1>
-<h2><a class="anchor" id="autotoc_md202"></a>
+<h2><a class="anchor" id="autotoc_md199"></a>
 1. &lt;strong&gt;Performance Monitoring System with Feature Flag&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md203"></a>
+<h3><a class="anchor" id="autotoc_md200"></a>
 &lt;strong&gt;Features Added&lt;/strong&gt;</h3>
 <ul>
 <li><b>Feature Flag Control</b>: <code>kEnablePerformanceMonitoring</code> in FeatureFlags</li>
 <li><b>Zero-Overhead When Disabled</b>: ScopedTimer becomes no-op when monitoring is off</li>
 <li><b>UI Toggle</b>: Performance monitoring can be enabled/disabled in Settings</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md204"></a>
+<h3><a class="anchor" id="autotoc_md201"></a>
 &lt;strong&gt;Implementation&lt;/strong&gt;</h3>
 <div class="fragment"><div class="line"><span class="comment">// Feature flag integration</span></div>
 <div class="line">ScopedTimer::ScopedTimer(<span class="keyword">const</span> std::string&amp; operation_name) </div>
@@ -137,15 +137,15 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <div class="line">    PerformanceMonitor::Get().StartTimer(operation_name_);</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md205"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md202"></a>
 2. &lt;strong&gt;DungeonEditor Parallel Loading (79% Speedup)&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md206"></a>
+<h3><a class="anchor" id="autotoc_md203"></a>
 &lt;strong&gt;Problem Solved&lt;/strong&gt;</h3>
 <ul>
 <li><b>DungeonEditor::LoadAllRooms</b>: 17,966ms → 3,746ms</li>
 <li>Loading 296 rooms sequentially was the primary bottleneck</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md207"></a>
+<h3><a class="anchor" id="autotoc_md204"></a>
 &lt;strong&gt;Solution: Multi-Threaded Room Loading&lt;/strong&gt;</h3>
 <div class="fragment"><div class="line"><span class="comment">// Parallel processing with up to 8 threads</span></div>
 <div class="line"><span class="keyword">const</span> <span class="keywordtype">int</span> max_concurrency = std::min(8, std::thread::hardware_concurrency());</div>
@@ -157,7 +157,7 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <div class="line">  rooms[i].LoadObjects();</div>
 <div class="line">  <span class="comment">// ... other room processing</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md208"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md205"></a>
 &lt;strong&gt;Key Features&lt;/strong&gt;</h3>
 <ul>
 <li><b>Thread-Safe Result Collection</b>: Mutex-protected shared data structures</li>
@@ -165,15 +165,15 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <li><b>Error Handling</b>: Proper status propagation per thread</li>
 <li><b>Result Synchronization</b>: Main thread processes collected results</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md209"></a>
+<h2><a class="anchor" id="autotoc_md206"></a>
 3. &lt;strong&gt;Incremental Overworld Map Loading&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md210"></a>
+<h3><a class="anchor" id="autotoc_md207"></a>
 &lt;strong&gt;Problem Solved&lt;/strong&gt;</h3>
 <ul>
 <li>Blank maps visible during loading</li>
 <li>All maps loaded upfront causing UI blocking</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md211"></a>
+<h3><a class="anchor" id="autotoc_md208"></a>
 &lt;strong&gt;Solution: Priority-Based Incremental Loading&lt;/strong&gt;</h3>
 <div class="fragment"><div class="line"><span class="comment">// Increased from 2 to 8 textures per frame</span></div>
 <div class="line"><span class="keyword">const</span> <span class="keywordtype">int</span> textures_per_frame = 8;</div>
@@ -183,7 +183,7 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <div class="line">  Renderer::Get().RenderBitmap(*it);</div>
 <div class="line">  processed++;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md212"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md209"></a>
 &lt;strong&gt;Key Features&lt;/strong&gt;</h3>
 <ul>
 <li><b>Priority Loading</b>: Current world maps load first</li>
@@ -191,15 +191,15 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <li><b>Loading Indicators</b>: "Loading..." placeholders for pending maps</li>
 <li><b>Graceful Degradation</b>: Only draws maps with textures</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md213"></a>
+<h2><a class="anchor" id="autotoc_md210"></a>
 4. &lt;strong&gt;On-Demand Map Reloading&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md214"></a>
+<h3><a class="anchor" id="autotoc_md211"></a>
 &lt;strong&gt;Problem Solved&lt;/strong&gt;</h3>
 <ul>
 <li>Full map refresh on every property change</li>
 <li>Expensive rebuilds for non-visible maps</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md215"></a>
+<h3><a class="anchor" id="autotoc_md212"></a>
 &lt;strong&gt;Solution: Intelligent Refresh System&lt;/strong&gt;</h3>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> RefreshOverworldMapOnDemand(<span class="keywordtype">int</span> map_index) {</div>
 <div class="line">  <span class="comment">// Only refresh visible maps immediately</span></div>
@@ -215,7 +215,7 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <div class="line">  <span class="comment">// Immediate refresh for visible maps</span></div>
 <div class="line">  RefreshChildMapOnDemand(map_index);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md216"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md213"></a>
 &lt;strong&gt;Key Features&lt;/strong&gt;</h3>
 <ul>
 <li><b>Visibility-Aware</b>: Only refreshes visible maps immediately</li>
@@ -223,9 +223,9 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <li><b>Selective Updates</b>: Only rebuilds changed components</li>
 <li><b>Smart Sibling Handling</b>: Large map siblings refreshed intelligently</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md217"></a>
+<h1><a class="anchor" id="autotoc_md214"></a>
 🎯 &lt;strong&gt;Technical Architecture&lt;/strong&gt;</h1>
-<h2><a class="anchor" id="autotoc_md218"></a>
+<h2><a class="anchor" id="autotoc_md215"></a>
 &lt;strong&gt;Performance Monitoring System&lt;/strong&gt;</h2>
 <div class="fragment"><div class="line">FeatureFlags::kEnablePerformanceMonitoring</div>
 <div class="line">    ↓ (enabled/disabled)</div>
@@ -236,7 +236,7 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <div class="line">Operation timing collection</div>
 <div class="line">    ↓</div>
 <div class="line">Performance summary output</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md219"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md216"></a>
 &lt;strong&gt;Parallel Loading Architecture&lt;/strong&gt;</h2>
 <div class="fragment"><div class="line">Main Thread</div>
 <div class="line">    ↓</div>
@@ -249,7 +249,7 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <div class="line">Result Processing &amp; Sorting</div>
 <div class="line">    ↓</div>
 <div class="line">Map Population</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md220"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md217"></a>
 &lt;strong&gt;Incremental Loading Flow&lt;/strong&gt;</h2>
 <div class="fragment"><div class="line">ROM Load Start</div>
 <div class="line">    ↓</div>
@@ -261,9 +261,9 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <div class="line">Current World Maps First → Other Maps</div>
 <div class="line">    ↓</div>
 <div class="line">Loading Indicators for Pending Maps</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md221"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md218"></a>
 📈 &lt;strong&gt;Performance Impact Analysis&lt;/strong&gt;</h1>
-<h2><a class="anchor" id="autotoc_md222"></a>
+<h2><a class="anchor" id="autotoc_md219"></a>
 &lt;strong&gt;DungeonEditor Optimization&lt;/strong&gt;</h2>
 <ul>
 <li><b>Before</b>: 17,967ms (single-threaded)</li>
@@ -271,7 +271,7 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <li><b>Speedup</b>: 4.8x theoretical, 4.0x actual (due to overhead)</li>
 <li><b>Efficiency</b>: 83% of theoretical maximum</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md223"></a>
+<h2><a class="anchor" id="autotoc_md220"></a>
 &lt;strong&gt;OverworldEditor Optimization&lt;/strong&gt;</h2>
 <ul>
 <li><b>Loading Time</b>: Reduced from blocking to progressive</li>
@@ -279,7 +279,7 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <li><b>User Experience</b>: No more blank maps, smooth loading</li>
 <li><b>Memory Usage</b>: Reduced initial footprint</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md224"></a>
+<h2><a class="anchor" id="autotoc_md221"></a>
 &lt;strong&gt;Overall System Impact&lt;/strong&gt;</h2>
 <ul>
 <li><b>Total Loading Time</b>: 18.6s → 4.7s (75% reduction)</li>
@@ -287,28 +287,28 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <li><b>Memory Efficiency</b>: Reduced initial allocations</li>
 <li><b>CPU Utilization</b>: Better multi-core usage</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md225"></a>
+<h1><a class="anchor" id="autotoc_md222"></a>
 🔧 &lt;strong&gt;Configuration Options&lt;/strong&gt;</h1>
-<h2><a class="anchor" id="autotoc_md226"></a>
+<h2><a class="anchor" id="autotoc_md223"></a>
 &lt;strong&gt;Performance Monitoring&lt;/strong&gt;</h2>
 <div class="fragment"><div class="line"><span class="comment">// Enable/disable in UI or code</span></div>
 <div class="line">FeatureFlags::get().kEnablePerformanceMonitoring = <span class="keyword">true</span>/<span class="keyword">false</span>;</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Zero overhead when disabled</span></div>
 <div class="line">ScopedTimer timer(<span class="stringliteral">&quot;Operation&quot;</span>); <span class="comment">// No-op when monitoring disabled</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md227"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md224"></a>
 &lt;strong&gt;Parallel Loading Tuning&lt;/strong&gt;</h2>
 <div class="fragment"><div class="line"><span class="comment">// Adjust thread count based on system</span></div>
 <div class="line"><span class="keyword">constexpr</span> <span class="keywordtype">int</span> kMaxConcurrency = 8; <span class="comment">// Reasonable default</span></div>
 <div class="line"><span class="keyword">const</span> <span class="keywordtype">int</span> max_concurrency = std::min(kMaxConcurrency, </div>
 <div class="line">                                     std::thread::hardware_concurrency());</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md228"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md225"></a>
 &lt;strong&gt;Incremental Loading Tuning&lt;/strong&gt;</h2>
 <div class="fragment"><div class="line"><span class="comment">// Adjust textures per frame based on performance</span></div>
 <div class="line"><span class="keyword">const</span> <span class="keywordtype">int</span> textures_per_frame = 8; <span class="comment">// Balance between speed and UI responsiveness</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md229"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md226"></a>
 🎯 &lt;strong&gt;Future Optimization Opportunities&lt;/strong&gt;</h1>
-<h2><a class="anchor" id="autotoc_md230"></a>
+<h2><a class="anchor" id="autotoc_md227"></a>
 &lt;strong&gt;Potential Further Improvements&lt;/strong&gt;</h2>
 <ol type="1">
 <li><b>Memory-Mapped ROM Access</b>: Reduce memory copying during loading</li>
@@ -317,7 +317,7 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <li><b>Compression Caching</b>: Cache decompressed data for faster subsequent loads</li>
 <li><b>GPU-Accelerated Texture Creation</b>: Move texture creation to GPU</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md231"></a>
+<h2><a class="anchor" id="autotoc_md228"></a>
 &lt;strong&gt;Monitoring and Profiling&lt;/strong&gt;</h2>
 <ol type="1">
 <li><b>Real-Time Performance Metrics</b>: In-app performance dashboard</li>
@@ -325,7 +325,7 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <li><b>Thread Utilization Metrics</b>: Track CPU core usage efficiency</li>
 <li><b>User Interaction Timing</b>: Measure time to interactive</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md232"></a>
+<h1><a class="anchor" id="autotoc_md229"></a>
 ✅ &lt;strong&gt;Success Metrics Achieved&lt;/strong&gt;</h1>
 <ul>
 <li>✅ <b>75% reduction</b> in total loading time (18.6s → 4.7s)</li>
@@ -336,7 +336,7 @@ $(document).ready(function(){initNavTree('db/de6/md_docs_2analysis_2performance_
 <li>✅ <b>Multi-threaded architecture</b> utilizing all CPU cores</li>
 <li>✅ <b>Backward compatibility</b> maintained throughout</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md233"></a>
+<h1><a class="anchor" id="autotoc_md230"></a>
 🚀 &lt;strong&gt;Result: Lightning-Fast YAZE&lt;/strong&gt;</h1>
 <p>YAZE has been transformed from a slow-loading application with 18-second freezes to a <b>lightning-fast ROM editor</b> that loads in under 5 seconds with smooth, progressive loading and intelligent resource management. The optimizations provide both immediate performance gains and a foundation for future enhancements. </p>
 </div></div><!-- contents -->

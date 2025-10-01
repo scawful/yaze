@@ -101,15 +101,15 @@ $(document).ready(function(){initNavTree('d5/ddd/md_docs_2analysis_2comprehensiv
   <div class="headertitle"><div class="title">Comprehensive ZScream vs YAZE Overworld Analysis</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md137"></a> </p>
-<h1><a class="anchor" id="autotoc_md138"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md134"></a> </p>
+<h1><a class="anchor" id="autotoc_md135"></a>
 Executive Summary</h1>
 <p>After conducting a thorough line-by-line analysis of both ZScream (C#) and YAZE (C++) overworld implementations, I can confirm that our previous analysis was <b>largely correct</b> with some important additional findings. The implementations are functionally equivalent with minor differences in approach and some potential edge cases.</p>
-<h1><a class="anchor" id="autotoc_md139"></a>
+<h1><a class="anchor" id="autotoc_md136"></a>
 Key Findings</h1>
-<h2><a class="anchor" id="autotoc_md140"></a>
+<h2><a class="anchor" id="autotoc_md137"></a>
 ✅ &lt;strong&gt;Confirmed Correct Implementations&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md141"></a>
+<h3><a class="anchor" id="autotoc_md138"></a>
 1. &lt;strong&gt;Tile32 Expansion Detection Logic&lt;/strong&gt;</h3>
 <p><b>ZScream C#:</b> </p><div class="fragment"><div class="line"><span class="comment">// Check if data is expanded by examining bank byte</span></div>
 <div class="line"><span class="keywordflow">if</span> (ROM.DATA[Constants.Map32Tiles_BottomLeft_0] == 4)</div>
@@ -144,7 +144,7 @@ Key Findings</h1>
 <li>YAZE: Checks expansion flag position AND ASM version &gt;= 3</li>
 <li><b>Both are correct</b> - YAZE's approach is more robust as it handles both expansion detection methods</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md142"></a>
+<h3><a class="anchor" id="autotoc_md139"></a>
 2. &lt;strong&gt;Tile16 Expansion Detection Logic&lt;/strong&gt;</h3>
 <p><b>ZScream C#:</b> </p><div class="fragment"><div class="line"><span class="keywordflow">if</span> (ROM.DATA[Constants.map16TilesBank] == 0x0F)</div>
 <div class="line">{</div>
@@ -175,7 +175,7 @@ Key Findings</h1>
 <li>YAZE: Checks expansion flag position (0x0F) OR ASM version &gt;= 3</li>
 <li><b>YAZE's approach is more robust</b> as it handles both detection methods</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md143"></a>
+<h3><a class="anchor" id="autotoc_md140"></a>
 3. &lt;strong&gt;Entrance Coordinate Calculation&lt;/strong&gt;</h3>
 <p><b>ZScream C#:</b> </p><div class="fragment"><div class="line"><span class="keywordtype">int</span> p = mapPos &gt;&gt; 1;</div>
 <div class="line"><span class="keywordtype">int</span> x = p % 64;</div>
@@ -192,7 +192,7 @@ Key Findings</h1>
 <div class="line">    (y * 16) + (((map_id % 64) / 8) * 512), entrance_id, map_id, map_pos,</div>
 <div class="line">    deleted);</div>
 </div><!-- fragment --><p><b>Analysis:</b> <b>Identical coordinate calculation logic</b> - both implementations are correct.</p>
-<h3><a class="anchor" id="autotoc_md144"></a>
+<h3><a class="anchor" id="autotoc_md141"></a>
 4. &lt;strong&gt;Hole Coordinate Calculation (with 0x400 offset)&lt;/strong&gt;</h3>
 <p><b>ZScream C#:</b> </p><div class="fragment"><div class="line"><span class="keywordtype">int</span> p = (mapPos + 0x400) &gt;&gt; 1;</div>
 <div class="line"><span class="keywordtype">int</span> x = p % 64;</div>
@@ -209,7 +209,7 @@ Key Findings</h1>
 <div class="line">    (y * 16) + (((map_id % 64) / 8) * 512), entrance_id, map_id,</div>
 <div class="line">    (uint16_t)(map_pos + 0x400), <span class="keyword">true</span>);</div>
 </div><!-- fragment --><p><b>Analysis:</b> <b>Identical hole coordinate calculation logic</b> - both implementations are correct.</p>
-<h3><a class="anchor" id="autotoc_md145"></a>
+<h3><a class="anchor" id="autotoc_md142"></a>
 5. &lt;strong&gt;Exit Data Loading&lt;/strong&gt;</h3>
 <p><b>ZScream C#:</b> </p><div class="fragment"><div class="line">ushort exitRoomID = (ushort)((ROM.DATA[Constants.OWExitRoomId + (i * 2) + 1] &lt;&lt; 8) + ROM.DATA[Constants.OWExitRoomId + (i * 2)]);</div>
 <div class="line"><span class="keywordtype">byte</span> exitMapID = ROM.DATA[Constants.OWExitMapId + i];</div>
@@ -221,7 +221,7 @@ Key Findings</h1>
 <div class="line"><span class="comment">// ... more exit data loading</span></div>
 <div class="ttc" id="amacro_8h_html_a9a548e9537ecb0675b887fec6654d2d3"><div class="ttname"><a href="../../d4/d9e/macro_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a></div><div class="ttdeci">#define ASSIGN_OR_RETURN(type_variable_name, expression)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d9e/macro_8h_source.html#l00061">macro.h:61</a></div></div>
 </div><!-- fragment --><p><b>Analysis:</b> Both implementations load the same exit data with equivalent byte ordering - <b>both are correct</b>.</p>
-<h3><a class="anchor" id="autotoc_md146"></a>
+<h3><a class="anchor" id="autotoc_md143"></a>
 6. &lt;strong&gt;Item Loading with ASM Version Detection&lt;/strong&gt;</h3>
 <p><b>ZScream C#:</b> </p><div class="fragment"><div class="line"><span class="keywordtype">byte</span> asmVersion = ROM.DATA[Constants.OverworldCustomASMHasBeenApplied];</div>
 <div class="line"><span class="comment">// Version 0x03 of the OW ASM added item support for the SW</span></div>
@@ -233,9 +233,9 @@ Key Findings</h1>
 <div class="line">    <span class="comment">// Load items only for LW and DW (0x80 maps)</span></div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Analysis:</b> Both implementations correctly detect ASM version and adjust item loading accordingly - <b>both are correct</b>.</p>
-<h2><a class="anchor" id="autotoc_md147"></a>
+<h2><a class="anchor" id="autotoc_md144"></a>
 ⚠️ &lt;strong&gt;Key Differences Found&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md148"></a>
+<h3><a class="anchor" id="autotoc_md145"></a>
 1. &lt;strong&gt;Entrance Expansion Detection&lt;/strong&gt;</h3>
 <p><b>ZScream C#:</b> </p><div class="fragment"><div class="line"><span class="comment">// Uses fixed vanilla addresses - no expansion detection for entrances</span></div>
 <div class="line"><span class="keywordtype">int</span> ow_entrance_map_ptr = Constants.OWEntranceMap;</div>
@@ -251,7 +251,7 @@ Key Findings</h1>
 <div class="line">    num_entrances = 256;  <span class="comment">// Expanded entrance count</span></div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Analysis:</b> YAZE has more robust entrance expansion detection that ZScream lacks.</p>
-<h3><a class="anchor" id="autotoc_md149"></a>
+<h3><a class="anchor" id="autotoc_md146"></a>
 2. &lt;strong&gt;Address Constants&lt;/strong&gt;</h3>
 <p><b>ZScream C#:</b> </p><div class="fragment"><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keywordtype">int</span> map32TilesTL = 0x018000;</div>
 <div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keywordtype">int</span> map32TilesTR = 0x01B400;</div>
@@ -266,44 +266,44 @@ Key Findings</h1>
 <div class="line"><span class="keyword">constexpr</span> <span class="keywordtype">int</span> kMap32ExpandedFlagPos = 0x01772E;</div>
 <div class="line"><span class="keyword">constexpr</span> <span class="keywordtype">int</span> kMap16ExpandedFlagPos = 0x02FD28;</div>
 </div><!-- fragment --><p><b>Analysis:</b> Address constants are consistent between implementations.</p>
-<h3><a class="anchor" id="autotoc_md150"></a>
+<h3><a class="anchor" id="autotoc_md147"></a>
 3. &lt;strong&gt;Decompression Logic&lt;/strong&gt;</h3>
 <p><b>ZScream C#:</b> </p><div class="fragment"><div class="line"><span class="comment">// Uses ALTTPDecompressOverworld for map decompression</span></div>
 <div class="line"><span class="comment">// Complex pointer calculation and decompression logic</span></div>
 </div><!-- fragment --><p><b>YAZE C++:</b> </p><div class="fragment"><div class="line"><span class="comment">// Uses HyruleMagicDecompress for map decompression</span></div>
 <div class="line"><span class="comment">// Equivalent decompression logic with different function name</span></div>
 </div><!-- fragment --><p><b>Analysis:</b> Both use equivalent decompression algorithms with different function names.</p>
-<h2><a class="anchor" id="autotoc_md151"></a>
+<h2><a class="anchor" id="autotoc_md148"></a>
 🔍 &lt;strong&gt;Additional Findings&lt;/strong&gt;</h2>
-<h3><a class="anchor" id="autotoc_md152"></a>
+<h3><a class="anchor" id="autotoc_md149"></a>
 1. &lt;strong&gt;Error Handling&lt;/strong&gt;</h3>
 <ul>
 <li><b>ZScream:</b> Uses basic error checking with <code>Deleted</code> flags</li>
 <li><b>YAZE:</b> Uses <code>absl::Status</code> for comprehensive error handling</li>
 <li><b>Impact:</b> YAZE has more robust error handling</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md153"></a>
+<h3><a class="anchor" id="autotoc_md150"></a>
 2. &lt;strong&gt;Memory Management&lt;/strong&gt;</h3>
 <ul>
 <li><b>ZScream:</b> Uses C# garbage collection</li>
 <li><b>YAZE:</b> Uses RAII and smart pointers</li>
 <li><b>Impact:</b> Both are appropriate for their respective languages</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md154"></a>
+<h3><a class="anchor" id="autotoc_md151"></a>
 3. &lt;strong&gt;Data Structures&lt;/strong&gt;</h3>
 <ul>
 <li><b>ZScream:</b> Uses C# arrays and Lists</li>
 <li><b>YAZE:</b> Uses std::vector and custom containers</li>
 <li><b>Impact:</b> Both are functionally equivalent</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md155"></a>
+<h3><a class="anchor" id="autotoc_md152"></a>
 4. &lt;strong&gt;Threading&lt;/strong&gt;</h3>
 <ul>
 <li><b>ZScream:</b> Uses background threads for map building</li>
 <li><b>YAZE:</b> Uses std::async for parallel map building</li>
 <li><b>Impact:</b> Both implement similar parallel processing</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md156"></a>
+<h2><a class="anchor" id="autotoc_md153"></a>
 📊 &lt;strong&gt;Validation Results&lt;/strong&gt;</h2>
 <p>Our comprehensive test suite validates:</p>
 <ol type="1">
@@ -317,7 +317,7 @@ Key Findings</h1>
 <li><b>✅ Map Decompression:</b> Equivalent decompression algorithms</li>
 <li><b>✅ Address Constants:</b> Consistent ROM addresses between implementations</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md157"></a>
+<h2><a class="anchor" id="autotoc_md154"></a>
 🎯 &lt;strong&gt;Conclusion&lt;/strong&gt;</h2>
 <p><b>The analysis confirms that both ZScream and YAZE implementations are functionally correct and equivalent.</b> The key differences are:</p>
 <ol type="1">

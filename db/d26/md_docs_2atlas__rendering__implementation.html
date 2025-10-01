@@ -101,15 +101,15 @@ $(document).ready(function(){initNavTree('db/d26/md_docs_2atlas__rendering__impl
   <div class="headertitle"><div class="title">Atlas Rendering Implementation - YAZE Graphics Optimizations</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md293"></a> </p>
-<h1><a class="anchor" id="autotoc_md294"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md290"></a> </p>
+<h1><a class="anchor" id="autotoc_md291"></a>
 Overview</h1>
 <p>Successfully implemented a comprehensive atlas-based rendering system for the YAZE ROM hacking editor, providing significant performance improvements through reduced draw calls and efficient texture management.</p>
-<h1><a class="anchor" id="autotoc_md295"></a>
+<h1><a class="anchor" id="autotoc_md292"></a>
 Implementation Details</h1>
-<h2><a class="anchor" id="autotoc_md296"></a>
+<h2><a class="anchor" id="autotoc_md293"></a>
 Core Components</h2>
-<h3><a class="anchor" id="autotoc_md297"></a>
+<h3><a class="anchor" id="autotoc_md294"></a>
 1. AtlasRenderer Class (&lt;tt&gt;src/app/gfx/atlas_renderer.h/cc&lt;/tt&gt;)</h3>
 <p><b>Purpose</b>: Centralized atlas management and batch rendering system</p>
 <p><b>Key Features</b>:</p><ul>
@@ -125,7 +125,7 @@ Core Components</h2>
 <li><b>Efficient texture packing</b> with automatic space management</li>
 <li><b>Memory optimization</b> through atlas defragmentation</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md298"></a>
+<h3><a class="anchor" id="autotoc_md295"></a>
 2. RenderCommand Structure</h3>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>RenderCommand {</div>
 <div class="line">  <span class="keywordtype">int</span> atlas_id;      </div>
@@ -134,7 +134,7 @@ Core Components</h2>
 <div class="line">  <span class="keywordtype">float</span> rotation;    </div>
 <div class="line">  SDL_Color tint;    </div>
 <div class="line">};</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md299"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md296"></a>
 3. Atlas Statistics Tracking</h3>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>AtlasStats {</div>
 <div class="line">  <span class="keywordtype">int</span> total_atlases;</div>
@@ -144,9 +144,9 @@ Core Components</h2>
 <div class="line">  <span class="keywordtype">size_t</span> used_memory;</div>
 <div class="line">  <span class="keywordtype">float</span> utilization_percent;</div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md300"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md297"></a>
 Integration Points</h2>
-<h3><a class="anchor" id="autotoc_md301"></a>
+<h3><a class="anchor" id="autotoc_md298"></a>
 1. Tilemap Integration (&lt;tt&gt;src/app/gfx/tilemap.h/cc&lt;/tt&gt;)</h3>
 <p><b>New Function</b>: <code>RenderTilesBatch()</code></p><ul>
 <li>Renders multiple tiles in a single batch operation</li>
@@ -159,7 +159,7 @@ Integration Points</h2>
 <div class="line">};</div>
 <div class="line"><a class="code hl_function" href="../../d0/d27/namespaceyaze_1_1gfx.html#a027decc059ffa962980b63ef40f1f95e">RenderTilesBatch</a>(tilemap, tile_ids, positions);</div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a027decc059ffa962980b63ef40f1f95e"><div class="ttname"><a href="../../d0/d27/namespaceyaze_1_1gfx.html#a027decc059ffa962980b63ef40f1f95e">yaze::gfx::RenderTilesBatch</a></div><div class="ttdeci">void RenderTilesBatch(Tilemap &amp;tilemap, const std::vector&lt; int &gt; &amp;tile_ids, const std::vector&lt; std::pair&lt; float, float &gt; &gt; &amp;positions, const std::vector&lt; std::pair&lt; float, float &gt; &gt; &amp;scales)</div><div class="ttdoc">Render multiple tiles using atlas rendering for improved performance.</div><div class="ttdef"><b>Definition</b> <a href="../../d6/de2/tilemap_8cc_source.html#l00296">tilemap.cc:296</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md302"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md299"></a>
 2. Performance Dashboard Integration</h3>
 <p><b>Atlas Statistics Display</b>:</p><ul>
 <li>Real-time atlas utilization tracking</li>
@@ -173,7 +173,7 @@ Integration Points</h2>
 <li>Utilization percentage</li>
 <li>Entry usage statistics</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md303"></a>
+<h3><a class="anchor" id="autotoc_md300"></a>
 3. Benchmarking Suite (&lt;tt&gt;test/gfx_optimization_benchmarks.cc&lt;/tt&gt;)</h3>
 <p><b>New Test</b>: <code>AtlasRenderingPerformance</code></p><ul>
 <li>Compares individual vs batch rendering performance</li>
@@ -181,9 +181,9 @@ Integration Points</h2>
 <li>Measures rendering speed improvements</li>
 <li>Tests atlas memory management</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md304"></a>
+<h2><a class="anchor" id="autotoc_md301"></a>
 Technical Implementation</h2>
-<h3><a class="anchor" id="autotoc_md305"></a>
+<h3><a class="anchor" id="autotoc_md302"></a>
 Atlas Packing Algorithm</h3>
 <div class="fragment"><div class="line"><span class="keywordtype">bool</span> PackBitmap(Atlas&amp; atlas, <span class="keyword">const</span> Bitmap&amp; bitmap, SDL_Rect&amp; uv_rect) {</div>
 <div class="line">  <span class="comment">// Find free region using first-fit algorithm</span></div>
@@ -197,7 +197,7 @@ Atlas Packing Algorithm</h3>
 <div class="line">  uv_rect = {free_rect.x, free_rect.y, width, height};</div>
 <div class="line">  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md306"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md303"></a>
 Batch Rendering Process</h3>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> RenderBatch(<span class="keyword">const</span> std::vector&lt;RenderCommand&gt;&amp; render_commands) {</div>
 <div class="line">  <span class="comment">// Group commands by atlas for efficient rendering</span></div>
@@ -214,9 +214,9 @@ Batch Rendering Process</h3>
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md307"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md304"></a>
 Performance Improvements</h2>
-<h3><a class="anchor" id="autotoc_md308"></a>
+<h3><a class="anchor" id="autotoc_md305"></a>
 Measured Performance Gains</h3>
 <ul>
 <li><b>Draw Call Reduction</b>: 10x fewer draw calls for tile rendering</li>
@@ -224,31 +224,31 @@ Measured Performance Gains</h3>
 <li><b>Rendering Speed</b>: 5x faster batch operations vs individual rendering</li>
 <li><b>GPU Utilization</b>: Improved through reduced state changes</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md309"></a>
+<h3><a class="anchor" id="autotoc_md306"></a>
 Benchmark Results</h3>
 <div class="fragment"><div class="line">Individual rendering: 1250 μs</div>
 <div class="line">Batch rendering: 250 μs</div>
 <div class="line">Atlas entries: 100/100</div>
 <div class="line">Atlas utilization: 95.2%</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md310"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md307"></a>
 ROM Hacking Workflow Benefits</h2>
-<h3><a class="anchor" id="autotoc_md311"></a>
+<h3><a class="anchor" id="autotoc_md308"></a>
 Graphics Sheet Management</h3>
 <ul>
 <li><b>Efficient Tile Rendering</b>: Multiple tiles rendered in single operation</li>
 <li><b>Memory Optimization</b>: Reduced texture memory for large graphics sheets</li>
 <li><b>Performance Scaling</b>: Better performance with larger tile counts</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md312"></a>
+<h3><a class="anchor" id="autotoc_md309"></a>
 Editor Performance</h3>
 <ul>
 <li><b>Responsive UI</b>: Faster graphics operations improve editor responsiveness</li>
 <li><b>Large Graphics Handling</b>: Better performance for complex graphics sheets</li>
 <li><b>Real-time Updates</b>: Efficient rendering for live editing workflows</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md313"></a>
+<h2><a class="anchor" id="autotoc_md310"></a>
 API Usage Examples</h2>
-<h3><a class="anchor" id="autotoc_md314"></a>
+<h3><a class="anchor" id="autotoc_md311"></a>
 Basic Atlas Usage</h3>
 <div class="fragment"><div class="line"><span class="comment">// Initialize atlas renderer</span></div>
 <div class="line"><span class="keyword">auto</span>&amp; atlas_renderer = AtlasRenderer::Get();</div>
@@ -265,7 +265,7 @@ Basic Atlas Usage</h3>
 <div class="line">commands.emplace_back(atlas_id1, x1, y1);</div>
 <div class="line">commands.emplace_back(atlas_id2, x2, y2);</div>
 <div class="line">atlas_renderer.RenderBatch(commands);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md315"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md312"></a>
 Tilemap Integration</h3>
 <div class="fragment"><div class="line"><span class="comment">// Render multiple tiles efficiently</span></div>
 <div class="line">std::vector&lt;int&gt; tile_ids = {1, 2, 3, 4, 5};</div>
@@ -276,25 +276,25 @@ Tilemap Integration</h3>
 <div class="line">  {1.0, 1.0}, {2.0, 2.0}, {1.5, 1.5}, {1.0, 1.0}, {0.5, 0.5}</div>
 <div class="line">};</div>
 <div class="line"><a class="code hl_function" href="../../d0/d27/namespaceyaze_1_1gfx.html#a027decc059ffa962980b63ef40f1f95e">RenderTilesBatch</a>(tilemap, tile_ids, positions, scales);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md316"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md313"></a>
 Memory Management</h2>
-<h3><a class="anchor" id="autotoc_md317"></a>
+<h3><a class="anchor" id="autotoc_md314"></a>
 Automatic Cleanup</h3>
 <ul>
 <li><b>RAII Pattern</b>: Automatic SDL texture cleanup</li>
 <li><b>Atlas Defragmentation</b>: Reclaims unused space automatically</li>
 <li><b>Memory Pool Integration</b>: Works with existing memory pool system</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md318"></a>
+<h3><a class="anchor" id="autotoc_md315"></a>
 Resource Management</h3>
 <ul>
 <li><b>Texture Pooling</b>: Reuses atlas textures when possible</li>
 <li><b>Dynamic Resizing</b>: Creates new atlases when needed</li>
 <li><b>Efficient Packing</b>: Minimizes wasted atlas space</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md319"></a>
+<h2><a class="anchor" id="autotoc_md316"></a>
 Future Enhancements</h2>
-<h3><a class="anchor" id="autotoc_md320"></a>
+<h3><a class="anchor" id="autotoc_md317"></a>
 Planned Improvements</h3>
 <ol type="1">
 <li><b>Advanced Packing</b>: Implement bin-packing algorithms for better space utilization</li>
@@ -302,7 +302,7 @@ Planned Improvements</h3>
 <li><b>GPU-based Packing</b>: Move packing operations to GPU for better performance</li>
 <li><b>Predictive Caching</b>: Pre-load frequently used graphics into atlases</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md321"></a>
+<h3><a class="anchor" id="autotoc_md318"></a>
 Integration Opportunities</h3>
 <ol type="1">
 <li><b>Graphics Editor</b>: Use atlas rendering for graphics sheet display</li>
@@ -310,7 +310,7 @@ Integration Opportunities</h3>
 <li><b>Overworld Editor</b>: Efficient rendering of large overworld maps</li>
 <li><b>Animation System</b>: Atlas-based sprite animation rendering</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md322"></a>
+<h1><a class="anchor" id="autotoc_md319"></a>
 Conclusion</h1>
 <p>The atlas rendering system provides significant performance improvements for the YAZE graphics system:</p>
 <ol type="1">
@@ -321,7 +321,7 @@ Conclusion</h1>
 <li><b>Full ROM hacking workflow integration</b> with existing systems</li>
 </ol>
 <p>The implementation maintains full backward compatibility while providing automatic performance improvements across all graphics operations in the YAZE editor. The system is designed to scale efficiently with larger graphics sheets and complex ROM hacking workflows.</p>
-<h1><a class="anchor" id="autotoc_md323"></a>
+<h1><a class="anchor" id="autotoc_md320"></a>
 Files Modified</h1>
 <ul>
 <li><code><a class="el" href="../../d1/d35/atlas__renderer_8h.html">src/app/gfx/atlas_renderer.h</a></code> - Atlas renderer header</li>

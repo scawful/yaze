@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d3/d49/md_docs_2B4-release-workflows.h
   <div class="headertitle"><div class="title">Release Workflows Documentation</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md380"></a> YAZE uses three different GitHub Actions workflows for creating releases, each designed for specific use cases and reliability levels. This document explains the differences, use cases, and when to use each workflow.</p>
-<h1><a class="anchor" id="autotoc_md381"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md377"></a> YAZE uses three different GitHub Actions workflows for creating releases, each designed for specific use cases and reliability levels. This document explains the differences, use cases, and when to use each workflow.</p>
+<h1><a class="anchor" id="autotoc_md378"></a>
 Overview</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -115,12 +115,12 @@ Overview</h1>
 <td class="markdownTableBodyNone"><b>release-complex.yml</b>   </td><td class="markdownTableBodyNone">High   </td><td class="markdownTableBodyNone">Maximum   </td><td class="markdownTableBodyNone">Production releases, fallbacks   </td></tr>
 </table>
 <hr  />
-<h1><a class="anchor" id="autotoc_md383"></a>
+<h1><a class="anchor" id="autotoc_md380"></a>
 1. Release-Simplified (&lt;tt&gt;release-simplified.yml&lt;/tt&gt;)</h1>
-<h2><a class="anchor" id="autotoc_md384"></a>
+<h2><a class="anchor" id="autotoc_md381"></a>
 Purpose</h2>
 <p>A streamlined workflow for quick releases and testing scenarios.</p>
-<h2><a class="anchor" id="autotoc_md385"></a>
+<h2><a class="anchor" id="autotoc_md382"></a>
 Key Features</h2>
 <ul>
 <li><b>Minimal Configuration</b>: Basic build setup with standard dependencies</li>
@@ -128,7 +128,7 @@ Key Features</h2>
 <li><b>Standard vcpkg</b>: Uses fixed vcpkg commit without fallback options</li>
 <li><b>Basic Testing</b>: Simple executable verification</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md386"></a>
+<h2><a class="anchor" id="autotoc_md383"></a>
 Use Cases</h2>
 <ul>
 <li><b>Development Testing</b>: Testing release process during development</li>
@@ -136,13 +136,13 @@ Use Cases</h2>
 <li><b>Hotfixes</b>: Emergency releases that need to be deployed quickly</li>
 <li><b>CI/CD Validation</b>: Ensuring the basic release process works</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md387"></a>
+<h2><a class="anchor" id="autotoc_md384"></a>
 Configuration</h2>
 <div class="fragment"><div class="line"># Standard vcpkg setup</div>
 <div class="line">vcpkgGitCommitId: &#39;c8696863d371ab7f46e213d8f5ca923c4aef2a00&#39;</div>
 <div class="line"># No fallback mechanisms</div>
 <div class="line"># Basic dependency installation</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md388"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md385"></a>
 Platforms Supported</h2>
 <ul>
 <li>Windows (x64, x86, ARM64)</li>
@@ -150,12 +150,12 @@ Platforms Supported</h2>
 <li>Linux x64</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md390"></a>
+<h1><a class="anchor" id="autotoc_md387"></a>
 2. Release (&lt;tt&gt;release.yml&lt;/tt&gt;)</h1>
-<h2><a class="anchor" id="autotoc_md391"></a>
+<h2><a class="anchor" id="autotoc_md388"></a>
 Purpose</h2>
 <p>The standard production release workflow with enhanced reliability.</p>
-<h2><a class="anchor" id="autotoc_md392"></a>
+<h2><a class="anchor" id="autotoc_md389"></a>
 Key Features</h2>
 <ul>
 <li><b>Enhanced vcpkg</b>: Updated baseline and improved dependency management</li>
@@ -163,20 +163,20 @@ Key Features</h2>
 <li><b>Comprehensive Testing</b>: Extended executable validation and artifact verification</li>
 <li><b>Production Ready</b>: Designed for stable releases</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md393"></a>
+<h2><a class="anchor" id="autotoc_md390"></a>
 Use Cases</h2>
 <ul>
 <li><b>Stable Releases</b>: Official stable version releases</li>
 <li><b>Feature Releases</b>: Major feature releases with full testing</li>
 <li><b>Release Candidates</b>: Pre-release candidates for testing</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md394"></a>
+<h2><a class="anchor" id="autotoc_md391"></a>
 Configuration</h2>
 <div class="fragment"><div class="line"># Updated vcpkg baseline</div>
 <div class="line">builtin-baseline: &quot;2024.12.12&quot;</div>
 <div class="line"># Enhanced error handling</div>
 <div class="line"># Comprehensive testing</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md395"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md392"></a>
 Advantages over Simplified</h2>
 <ul>
 <li>More reliable dependency resolution</li>
@@ -185,12 +185,12 @@ Advantages over Simplified</h2>
 <li>Production-grade stability</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md397"></a>
+<h1><a class="anchor" id="autotoc_md394"></a>
 3. Release-Complex (&lt;tt&gt;release-complex.yml&lt;/tt&gt;)</h1>
-<h2><a class="anchor" id="autotoc_md398"></a>
+<h2><a class="anchor" id="autotoc_md395"></a>
 Purpose</h2>
 <p>Maximum reliability release workflow with comprehensive fallback mechanisms.</p>
-<h2><a class="anchor" id="autotoc_md399"></a>
+<h2><a class="anchor" id="autotoc_md396"></a>
 Key Features</h2>
 <ul>
 <li><b>Advanced Fallback System</b>: Multiple dependency installation strategies</li>
@@ -200,7 +200,7 @@ Key Features</h2>
 <li><b>Multiple Build Strategies</b>: CMake configuration fallbacks</li>
 <li><b>Enhanced Validation</b>: Multi-stage build verification</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md400"></a>
+<h2><a class="anchor" id="autotoc_md397"></a>
 Use Cases</h2>
 <ul>
 <li><b>Production Releases</b>: Critical production releases requiring maximum reliability</li>
@@ -208,9 +208,9 @@ Use Cases</h2>
 <li><b>Major Version Releases</b>: Significant version releases (v1.0, v2.0, etc.)</li>
 <li><b>Problem Resolution</b>: When other workflows fail due to dependency issues</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md401"></a>
+<h2><a class="anchor" id="autotoc_md398"></a>
 Fallback Mechanisms</h2>
-<h3><a class="anchor" id="autotoc_md402"></a>
+<h3><a class="anchor" id="autotoc_md399"></a>
 vcpkg Fallback</h3>
 <div class="fragment"><div class="line"># Primary: vcpkg installation</div>
 <div class="line">- name: Set up vcpkg (Windows)</div>
@@ -219,7 +219,7 @@ vcpkg Fallback</h3>
 <div class="line"># Fallback: Manual dependency installation</div>
 <div class="line">- name: Install dependencies manually (Windows fallback)</div>
 <div class="line">  if: steps.vcpkg_setup.outcome == &#39;failure&#39;</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md403"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md400"></a>
 Chocolatey Integration</h3>
 <div class="fragment"><div class="line"># Install Chocolatey if not present</div>
 <div class="line">if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {</div>
@@ -228,14 +228,14 @@ Chocolatey Integration</h3>
 <div class="line"> </div>
 <div class="line"># Install dependencies via Chocolatey</div>
 <div class="line">choco install -y cmake ninja git python3</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md404"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md401"></a>
 Build Configuration Fallback</h3>
 <div class="fragment"><div class="line"># Primary: Full build with vcpkg</div>
 <div class="line">cmake -DCMAKE_TOOLCHAIN_FILE=&quot;vcpkg.cmake&quot; -DYAZE_MINIMAL_BUILD=OFF</div>
 <div class="line"> </div>
 <div class="line"># Fallback: Minimal build without vcpkg</div>
 <div class="line">cmake -DYAZE_MINIMAL_BUILD=ON</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md405"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md402"></a>
 Advanced Features</h2>
 <ul>
 <li><b>Multi-stage Validation</b>: Visual Studio project validation</li>
@@ -244,7 +244,7 @@ Advanced Features</h2>
 <li><b>Environment Detection</b>: Automatic environment configuration</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md407"></a>
+<h1><a class="anchor" id="autotoc_md404"></a>
 Workflow Comparison Matrix</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -271,9 +271,9 @@ Workflow Comparison Matrix</h1>
 <td class="markdownTableBodyNone"><b>Reliability</b>   </td><td class="markdownTableBodyNone">Low   </td><td class="markdownTableBodyNone">High   </td><td class="markdownTableBodyNone">Maximum   </td></tr>
 </table>
 <hr  />
-<h1><a class="anchor" id="autotoc_md409"></a>
+<h1><a class="anchor" id="autotoc_md406"></a>
 When to Use Each Workflow</h1>
-<h2><a class="anchor" id="autotoc_md410"></a>
+<h2><a class="anchor" id="autotoc_md407"></a>
 Use Simplified When:</h2>
 <ul>
 <li>✅ Testing release process during development</li>
@@ -282,7 +282,7 @@ Use Simplified When:</h2>
 <li>✅ Validating basic CI/CD functionality</li>
 <li>✅ Development team testing</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md411"></a>
+<h2><a class="anchor" id="autotoc_md408"></a>
 Use Release When:</h2>
 <ul>
 <li>✅ Creating stable production releases</li>
@@ -291,7 +291,7 @@ Use Release When:</h2>
 <li>✅ Standard version releases</li>
 <li>✅ Most production scenarios</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md412"></a>
+<h2><a class="anchor" id="autotoc_md409"></a>
 Use Complex When:</h2>
 <ul>
 <li>✅ Critical production releases</li>
@@ -302,86 +302,86 @@ Use Complex When:</h2>
 <li>✅ Complex dependency scenarios</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md414"></a>
+<h1><a class="anchor" id="autotoc_md411"></a>
 Workflow Selection Guide</h1>
-<h2><a class="anchor" id="autotoc_md415"></a>
+<h2><a class="anchor" id="autotoc_md412"></a>
 For Development Team</h2>
 <div class="fragment"><div class="line">Development → Simplified</div>
 <div class="line">Testing → Release</div>
 <div class="line">Production → Complex</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md416"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md413"></a>
 For Release Manager</h2>
 <div class="fragment"><div class="line">Hotfix → Simplified</div>
 <div class="line">Feature Release → Release</div>
 <div class="line">Major Release → Complex</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md417"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md414"></a>
 For CI/CD Pipeline</h2>
 <div class="fragment"><div class="line">PR Validation → Simplified</div>
 <div class="line">Nightly Builds → Release</div>
 <div class="line">Release Pipeline → Complex</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md419"></a>
+<h1><a class="anchor" id="autotoc_md416"></a>
 Configuration Examples</h1>
-<h2><a class="anchor" id="autotoc_md420"></a>
+<h2><a class="anchor" id="autotoc_md417"></a>
 Triggering a Release</h2>
-<h3><a class="anchor" id="autotoc_md421"></a>
+<h3><a class="anchor" id="autotoc_md418"></a>
 Manual Release (All Workflows)</h3>
 <div class="fragment"><div class="line"># Using workflow_dispatch</div>
 <div class="line">gh workflow run release.yml -f tag=v0.3.0</div>
 <div class="line">gh workflow run release-simplified.yml -f tag=v0.3.0-beta</div>
 <div class="line">gh workflow run release-complex.yml -f tag=v1.0.0</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md422"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md419"></a>
 Automatic Release (Tag Push)</h3>
 <div class="fragment"><div class="line"># Creates release automatically</div>
 <div class="line">git tag v0.3.0</div>
 <div class="line">git push origin v0.3.0</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md423"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md420"></a>
 Customizing Release Notes</h2>
 <p>All workflows support automatic changelog extraction: </p><div class="fragment"><div class="line"># Extract changelog for version</div>
 <div class="line">python3 scripts/extract_changelog.py &quot;0.3.0&quot; &gt; release_notes.md</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md425"></a>
+<h1><a class="anchor" id="autotoc_md422"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md426"></a>
+<h2><a class="anchor" id="autotoc_md423"></a>
 Common Issues</h2>
-<h3><a class="anchor" id="autotoc_md427"></a>
+<h3><a class="anchor" id="autotoc_md424"></a>
 vcpkg Failures (Windows)</h3>
 <ul>
 <li><b>Simplified</b>: Fails completely</li>
 <li><b>Release</b>: Basic error reporting</li>
 <li><b>Complex</b>: Automatic fallback to manual installation</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md428"></a>
+<h3><a class="anchor" id="autotoc_md425"></a>
 Dependency Conflicts</h3>
 <ul>
 <li><b>Simplified</b>: Manual intervention required</li>
 <li><b>Release</b>: Enhanced error reporting</li>
 <li><b>Complex</b>: Multiple resolution strategies</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md429"></a>
+<h3><a class="anchor" id="autotoc_md426"></a>
 Build Failures</h3>
 <ul>
 <li><b>Simplified</b>: Basic error output</li>
 <li><b>Release</b>: Enhanced debugging</li>
 <li><b>Complex</b>: Comprehensive failure analysis</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md430"></a>
+<h2><a class="anchor" id="autotoc_md427"></a>
 Debug Information</h2>
-<h3><a class="anchor" id="autotoc_md431"></a>
+<h3><a class="anchor" id="autotoc_md428"></a>
 Simplified Workflow</h3>
 <ul>
 <li>Basic build output</li>
 <li>Simple error messages</li>
 <li>Minimal logging</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md432"></a>
+<h3><a class="anchor" id="autotoc_md429"></a>
 Release Workflow</h3>
 <ul>
 <li>Enhanced error reporting</li>
 <li>Artifact verification</li>
 <li>Build validation</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md433"></a>
+<h3><a class="anchor" id="autotoc_md430"></a>
 Complex Workflow</h3>
 <ul>
 <li>Extensive debug output</li>
@@ -390,23 +390,23 @@ Complex Workflow</h3>
 <li>Automatic fallback execution</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md435"></a>
+<h1><a class="anchor" id="autotoc_md432"></a>
 Best Practices</h1>
-<h2><a class="anchor" id="autotoc_md436"></a>
+<h2><a class="anchor" id="autotoc_md433"></a>
 Workflow Selection</h2>
 <ol type="1">
 <li><b>Start with Simplified</b> for development and testing</li>
 <li><b>Use Release</b> for standard production releases</li>
 <li><b>Use Complex</b> only when maximum reliability is required</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md437"></a>
+<h2><a class="anchor" id="autotoc_md434"></a>
 Release Process</h2>
 <ol type="1">
 <li><b>Test with Simplified</b> first</li>
 <li><b>Validate with Release</b> for production readiness</li>
 <li><b>Use Complex</b> for critical releases</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md438"></a>
+<h2><a class="anchor" id="autotoc_md435"></a>
 Maintenance</h2>
 <ol type="1">
 <li><b>Keep all workflows updated</b> with latest dependency versions</li>
@@ -414,9 +414,9 @@ Maintenance</h2>
 <li><b>Document any custom modifications</b> for team knowledge</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md440"></a>
+<h1><a class="anchor" id="autotoc_md437"></a>
 Future Improvements</h1>
-<h2><a class="anchor" id="autotoc_md441"></a>
+<h2><a class="anchor" id="autotoc_md438"></a>
 Planned Enhancements</h2>
 <ul>
 <li><b>Automated Workflow Selection</b>: Based on release type and criticality</li>
@@ -424,7 +424,7 @@ Planned Enhancements</h2>
 <li><b>Performance Optimization</b>: Reduced build times while maintaining reliability</li>
 <li><b>Cross-Platform Consistency</b>: Unified behavior across all platforms</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md442"></a>
+<h2><a class="anchor" id="autotoc_md439"></a>
 Integration Opportunities</h2>
 <ul>
 <li><b>Release Automation</b>: Integration with semantic versioning</li>
