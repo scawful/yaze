@@ -14,7 +14,7 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 | Verification Pipeline | Build layered testing + CI coverage. | Phase 6+ | Integrates with harness + CLI suites. |
 | Telemetry & Learning | Capture signals to improve prompts + heuristics. | Phase 8 | Optional/opt-in features. |
 
-### Progress snapshot — 2025-10-01 final update (Phase 6 + AW-03 Complete)
+### Progress snapshot — 2025-10-01 final update (Phase 6 + AW-03 Complete + Graphics Fix)
 
 - ✅ CLI global flag passthrough now preserves subcommand options, letting `agent describe` and palette routines accept both space-separated and `--flag=value` styles alongside the updated help text.
 - ✅ `agent describe --format yaml` writes catalog data end-to-end; JSON format also working correctly.
@@ -32,6 +32,7 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 - ✅ **Regenerated API documentation** (`docs/api/z3ed-resources.yaml`) with all new agent commands.
 - ✅ **Implemented ProposalDrawer ImGui component** with proposal list, detail view, and accept/reject/delete actions (AW-03).
 - ✅ **Fixed linker errors** by adding CLI service sources to app/emu/lib build targets in CMake configuration.
+- ✅ **Fixed RAII shutdown crash** in `PerformanceProfiler` - added shutdown flag and validity checks to prevent segfault during static destruction (see `docs/gfx-raii-shutdown-fix.md`).
 
 ## 2. Task Backlog
 
@@ -67,9 +68,12 @@ _Status Legend: Prototype · In Progress · Planned · Blocked · Done_
 5. ✅ **COMPLETED**: Added `agent list` command to enumerate all proposals with status filtering.
 6. ✅ **COMPLETED**: Added `--proposal-id` flag to `agent diff` for viewing specific proposals.
 7. ✅ **COMPLETED**: Updated resource catalog with agent list and diff actions including arguments and return schemas.
-8. **PLANNED**: Add ImGui drawer for proposals with accept/reject controls (AW-03).
-9. **PLANNED**: Spike IPC options for `ImGuiTestHarness` (socket vs. HTTP vs. shared memory) and document findings (IT-01).
-10. **PLANNED**: Integrate schema export with TUI command palette + help overlays (RC-04).
+8. ✅ **COMPLETED**: Implemented ProposalDrawer ImGui component with proposal list, detail view, and accept/reject/delete actions (AW-03).
+9. ✅ **COMPLETED**: Fixed RAII shutdown crash in `PerformanceProfiler` for clean application exit.
+10. **IN PROGRESS**: Test ProposalDrawer in running application with live proposals.
+11. **PLANNED**: Complete ROM merging in AcceptProposal method (AW-03 TODO).
+12. **PLANNED**: Spike IPC options for `ImGuiTestHarness` (socket vs. HTTP vs. shared memory) and document findings (IT-01).
+13. **PLANNED**: Integrate schema export with TUI command palette + help overlays (RC-04).
 
 ## 4. Open Questions
 

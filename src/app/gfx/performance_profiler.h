@@ -63,6 +63,14 @@ class PerformanceProfiler {
   }
   
   /**
+   * @brief Check if the profiler is in a valid state (not shutting down)
+   * This prevents crashes during static destruction order issues
+   */
+  static bool IsValid() {
+    return !Get().is_shutting_down_;
+  }
+  
+  /**
    * @brief Start timing an operation
    * @param operation_name Name of the operation to time
    * @note Multiple operations can be timed simultaneously
@@ -161,6 +169,7 @@ class PerformanceProfiler {
   std::unordered_map<std::string, int> operation_counts_;   // Count per operation
   
   bool enabled_ = true; // Performance monitoring enabled by default
+  bool is_shutting_down_ = false; // Flag to prevent operations during destruction
   
   /**
    * @brief Calculate median value from a sorted vector
