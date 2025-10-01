@@ -1,4 +1,4 @@
-# YAZE vcpkg Setup Script
+# yaze vcpkg Setup Script
 # This script sets up vcpkg for YAZE development on Windows
 
 param(
