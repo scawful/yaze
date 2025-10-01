@@ -40,6 +40,20 @@ constexpr uint32_t kNumPalettesets = 72;
 constexpr uint32_t kEntranceGfxGroup = 0x5D97;
 constexpr uint32_t kMaxGraphics = 0x0C3FFF;  // 0xC3FB5
 
+struct RomLoadOptions {
+  bool load_zelda3_content = true;
+  bool strip_header = true;
+  bool populate_metadata = true;
+  bool populate_palettes = true;
+  bool populate_gfx_groups = true;
+  bool expand_to_full_image = true;
+  bool load_resource_labels = true;
+
+  static RomLoadOptions AppDefaults();
+  static RomLoadOptions CliDefaults();
+  static RomLoadOptions RawDataOnly();
+};
+
 /**
  * @brief A map of version constants for each version of the game.
  */
@@ -64,9 +78,14 @@ class Rom {
   };
 
   absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
+  absl::Status LoadFromFile(const std::string& filename,
+                           const RomLoadOptions& options);
   absl::Status LoadFromData(const std::vector<uint8_t>& data,
                             bool z3_load = true);
+  absl::Status LoadFromData(const std::vector<uint8_t>& data,
+                            const RomLoadOptions& options);
   absl::Status LoadZelda3();
+  absl::Status LoadZelda3(const RomLoadOptions& options);
   absl::Status LoadGfxGroups();
 
   absl::Status SaveGfxGroups();

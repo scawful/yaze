@@ -8,15 +8,34 @@ ABSL_DECLARE_FLAG(std::string, rom);
 namespace yaze {
 namespace cli {
 
+absl::Status RomInfo::Run(const std::vector<std::string>& arg_vec) {
+  std::string rom_file = absl::GetFlag(FLAGS_rom);
+  if (rom_file.empty()) {
+    return absl::InvalidArgumentError("ROM file must be provided via --rom flag.");
+  }
+
+  RETURN_IF_ERROR(rom_.LoadFromFile(rom_file, RomLoadOptions::CliDefaults()));
+  if (!rom_.is_loaded()) {
+    return absl::AbortedError("Failed to load ROM.");
+  }
+
+  std::cout << "ROM Information:" << std::endl;
+  std::cout << "  Title: " << rom_.title() << std::endl;
+  std::cout << "  Size: 0x" << std::hex << rom_.size() << " bytes" << std::endl;
+  std::cout << "  Filename: " << rom_file << std::endl;
+
+  return absl::OkStatus();
+}
+
 absl::Status RomValidate::Run(const std::vector<std::string>& arg_vec) {
   std::string rom_file = absl::GetFlag(FLAGS_rom);
   if (rom_file.empty()) {
       return absl::InvalidArgumentError("ROM file must be provided via --rom flag.");
   }
 
-  rom_.LoadFromFile(rom_file);
+  RETURN_IF_ERROR(rom_.LoadFromFile(rom_file, RomLoadOptions::CliDefaults()));
   if (!rom_.is_loaded()) {
-      return absl::AbortedError("Failed to load ROM.");
+    return absl::AbortedError("Failed to load ROM.");
   }
 
   bool all_ok = true;
@@ -57,13 +76,13 @@ absl::Status RomDiff::Run(const std::vector<std::string>& arg_vec) {
   }
 
   Rom rom_a;
-  auto status_a = rom_a.LoadFromFile(arg_vec[0]);
+  auto status_a = rom_a.LoadFromFile(arg_vec[0], RomLoadOptions::CliDefaults());
   if (!status_a.ok()) {
     return status_a;
   }
 
   Rom rom_b;
-  auto status_b = rom_b.LoadFromFile(arg_vec[1]);
+  auto status_b = rom_b.LoadFromFile(arg_vec[1], RomLoadOptions::CliDefaults());
   if (!status_b.ok()) {
     return status_b;
   }
@@ -95,7 +114,7 @@ absl::Status RomGenerateGolden::Run(const std::vector<std::string>& arg_vec) {
   }
 
   Rom rom;
-  auto status = rom.LoadFromFile(arg_vec[0]);
+  auto status = rom.LoadFromFile(arg_vec[0], RomLoadOptions::CliDefaults());
   if (!status.ok()) {
     return status;
   }

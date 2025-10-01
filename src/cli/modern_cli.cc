@@ -318,7 +318,7 @@ absl::Status ModernCLI::HandleBpsPatchCommand(const std::vector<std::string>& ar
 }
 
 absl::Status ModernCLI::HandleRomInfoCommand(const std::vector<std::string>& args) {
-    Open handler;
+    RomInfo handler;
     return handler.Run(args);
 }
 

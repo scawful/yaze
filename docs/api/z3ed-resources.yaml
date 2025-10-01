@@ -1,0 +1,304 @@
+# Auto-generated resource catalogue
+version: "0.1.0"
+last_updated: "2025-10-01"
+resources:
+  - name: "rom"
+    description: "ROM validation, diffing, and snapshot helpers."
+    actions:
+      - name: "info"
+        synopsis: "z3ed rom info --rom <file>"
+        stability: "stable"
+        args:
+          - flag: "--rom"
+            type: "path"
+            required: true
+            description: "Path to ROM file configured via global flag."
+        effects:
+          - "Reads ROM from disk and displays basic information (title, size, filename)."
+        returns:
+          - field: "title"
+            type: "string"
+            description: "ROM internal title from header."
+          - field: "size"
+            type: "integer"
+            description: "ROM file size in bytes."
+          - field: "filename"
+            type: "string"
+            description: "Full path to the ROM file."
+      - name: "validate"
+        synopsis: "z3ed rom validate --rom <file>"
+        stability: "stable"
+        args:
+          - flag: "--rom"
+            type: "path"
+            required: true
+            description: "Path to ROM file configured via global flag."
+        effects:
+          - "Reads ROM from disk, verifies checksum, and reports header status."
+        returns:
+          - field: "report"
+            type: "object"
+            description: "Structured validation summary with checksum and header results."
+      - name: "diff"
+        synopsis: "z3ed rom diff <rom_a> <rom_b>"
+        stability: "beta"
+        args:
+          - flag: "rom_a"
+            type: "path"
+            required: true
+            description: "Reference ROM path."
+          - flag: "rom_b"
+            type: "path"
+            required: true
+            description: "Candidate ROM path."
+        effects:
+          - "Reads two ROM images, compares bytes, and streams differences to stdout."
+        returns:
+          - field: "differences"
+            type: "integer"
+            description: "Count of mismatched bytes between ROMs."
+      - name: "generate-golden"
+        synopsis: "z3ed rom generate-golden <rom_file> <golden_file>"
+        stability: "experimental"
+        args:
+          - flag: "rom_file"
+            type: "path"
+            required: true
+            description: "Source ROM to snapshot."
+          - flag: "golden_file"
+            type: "path"
+            required: true
+            description: "Output path for golden image."
+        effects:
+          - "Writes out exact ROM image for tooling baselines and diff workflows."
+        returns:
+          - field: "artifact"
+            type: "path"
+            description: "Absolute path to the generated golden image."
+  - name: "patch"
+    description: "Patch authoring and application commands covering BPS and Asar flows."
+    actions:
+      - name: "apply"
+        synopsis: "z3ed patch apply <rom_file> <bps_patch>"
+        stability: "beta"
+        args:
+          - flag: "rom_file"
+            type: "path"
+            required: true
+            description: "Source ROM image that will receive the patch."
+          - flag: "bps_patch"
+            type: "path"
+            required: true
+            description: "BPS patch to apply to the ROM."
+        effects:
+          - "Loads ROM from disk, applies a BPS patch, and writes `patched.sfc`."
+        returns:
+          - field: "artifact"
+            type: "path"
+            description: "Absolute path to the patched ROM image produced on success."
+      - name: "apply-asar"
+        synopsis: "z3ed patch apply-asar <patch.asm>"
+        stability: "prototype"
+        args:
+          - flag: "patch.asm"
+            type: "path"
+            required: true
+            description: "Assembly patch consumed by the bundled Asar runtime."
+          - flag: "--rom"
+            type: "path"
+            required: false
+            description: "ROM path supplied via global --rom flag."
+        effects:
+          - "Invokes Asar against the active ROM buffer and applies assembled changes."
+        returns:
+          - field: "log"
+            type: "string"
+            description: "Assembler diagnostics emitted during application."
+      - name: "create"
+        synopsis: "z3ed patch create --source <rom> --target <rom> --out <patch.bps>"
+        stability: "experimental"
+        args:
+          - flag: "--source"
+            type: "path"
+            required: true
+            description: "Baseline ROM used when computing the patch."
+          - flag: "--target"
+            type: "path"
+            required: true
+            description: "Modified ROM to diff against the baseline."
+          - flag: "--out"
+            type: "path"
+            required: true
+            description: "Output path for the generated BPS patch."
+        effects:
+          - "Compares source and target images to synthesize a distributable BPS patch."
+        returns:
+          - field: "artifact"
+            type: "path"
+            description: "File system path to the generated patch."
+  - name: "palette"
+    description: "Palette manipulation commands covering export, import, and color editing."
+    actions:
+      - name: "export"
+        synopsis: "z3ed palette export --group <group> --id <id> --to <file>"
+        stability: "experimental"
+        args:
+          - flag: "--group"
+            type: "integer"
+            required: true
+            description: "Palette group id (0-31)."
+          - flag: "--id"
+            type: "integer"
+            required: true
+            description: "Palette index inside the group."
+          - flag: "--to"
+            type: "path"
+            required: true
+            description: "Destination file path for binary export."
+        effects:
+          - "Reads ROM palette buffer and writes binary palette data to disk."
+        returns: []
+      - name: "import"
+        synopsis: "z3ed palette import --group <group> --id <id> --from <file>"
+        stability: "experimental"
+        args:
+          - flag: "--group"
+            type: "integer"
+            required: true
+            description: "Palette group id (0-31)."
+          - flag: "--id"
+            type: "integer"
+            required: true
+            description: "Palette index inside the group."
+          - flag: "--from"
+            type: "path"
+            required: true
+            description: "Source binary palette file."
+        effects:
+          - "Writes imported palette bytes into ROM buffer and marks project dirty."
+        returns: []
+  - name: "overworld"
+    description: "Overworld tile inspection and manipulation commands."
+    actions:
+      - name: "get-tile"
+        synopsis: "z3ed overworld get-tile --map <map_id> --x <x> --y <y>"
+        stability: "stable"
+        args:
+          - flag: "--map"
+            type: "integer"
+            required: true
+            description: "Overworld map identifier (0-63)."
+          - flag: "--x"
+            type: "integer"
+            required: true
+            description: "Tile x coordinate."
+          - flag: "--y"
+            type: "integer"
+            required: true
+            description: "Tile y coordinate."
+        effects: []
+        returns:
+          - field: "tile"
+            type: "integer"
+            description: "Tile id located at the supplied coordinates."
+      - name: "set-tile"
+        synopsis: "z3ed overworld set-tile --map <map_id> --x <x> --y <y> --tile <tile_id>"
+        stability: "experimental"
+        args:
+          - flag: "--map"
+            type: "integer"
+            required: true
+            description: "Overworld map identifier (0-63)."
+          - flag: "--x"
+            type: "integer"
+            required: true
+            description: "Tile x coordinate."
+          - flag: "--y"
+            type: "integer"
+            required: true
+            description: "Tile y coordinate."
+          - flag: "--tile"
+            type: "integer"
+            required: true
+            description: "Tile id to write."
+        effects:
+          - "Mutates overworld tile map and enqueues render invalidation."
+        returns: []
+  - name: "dungeon"
+    description: "Dungeon room export and inspection utilities."
+    actions:
+      - name: "export"
+        synopsis: "z3ed dungeon export <room_id>"
+        stability: "prototype"
+        args:
+          - flag: "room_id"
+            type: "integer"
+            required: true
+            description: "Dungeon room identifier to inspect."
+        effects:
+          - "Loads the active ROM via --rom and prints metadata for the requested room."
+        returns:
+          - field: "metadata"
+            type: "object"
+            description: "Structured room summary including blockset, spriteset, palette, and layout."
+      - name: "list-objects"
+        synopsis: "z3ed dungeon list-objects <room_id>"
+        stability: "prototype"
+        args:
+          - flag: "room_id"
+            type: "integer"
+            required: true
+            description: "Dungeon room identifier whose objects should be listed."
+        effects:
+          - "Streams parsed dungeon object records for the requested room to stdout."
+        returns:
+          - field: "objects"
+            type: "array"
+            description: "Collection of tile object records with ids, coordinates, and layers."
+  - name: "agent"
+    description: "Agent workflow helpers including planning, diffing, listing, and schema discovery."
+    actions:
+      - name: "describe"
+        synopsis: "z3ed agent describe --resource <name>"
+        stability: "prototype"
+        args:
+          - flag: "--resource"
+            type: "string"
+            required: false
+            description: "Optional resource name to filter results."
+        effects: []
+        returns:
+          - field: "schema"
+            type: "object"
+            description: "JSON schema describing resource arguments and semantics."
+      - name: "list"
+        synopsis: "z3ed agent list"
+        stability: "prototype"
+        args: []
+        effects:
+          - "reads "
+        returns:
+          - field: "proposals"
+            type: "array"
+            description: "List of all proposals with ID, status, prompt, and metadata."
+      - name: "diff"
+        synopsis: "z3ed agent diff [--proposal-id <id>]"
+        stability: "prototype"
+        args:
+          - flag: "--proposal-id"
+            type: "string"
+            required: false
+            description: "Optional proposal ID to view specific proposal. Defaults to latest pending."
+        effects:
+          - "reads "
+          - "reads proposal_registry List of all proposals with ID, status, prompt, and metadata. z3ed agent diff [--proposal-id <id>] Optional proposal ID to view specific proposal. Defaults to latest pending. "
+        returns:
+          - field: "diff"
+            type: "string"
+            description: "Unified diff showing changes to ROM."
+          - field: "log"
+            type: "string"
+            description: "Execution log of commands run."
+          - field: "metadata"
+            type: "object"
+            description: "Proposal metadata including status and timestamps."
