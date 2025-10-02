@@ -1,5 +1,6 @@
 var NAVTREEINDEX69 =
 {
+"dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#af90c2f25ff63c81a5d4ab3bf7d93bb3e":[49,0,4,8,33,0],
 "dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#af90c2f25ff63c81a5d4ab3bf7d93bb3e":[50,0,1,7,30,0],
 "dc/db3/classyaze_1_1cli_1_1Decompress.html":[49,0,4,2,20],
 "dc/db3/classyaze_1_1cli_1_1Decompress.html":[50,0,1,1,15],
@@ -248,6 +249,5 @@ var NAVTREEINDEX69 =
 "dc/df4/classyaze_1_1emu_1_1Cpu.html#a32670c90122daf9129f8935cb0c23c8f":[50,0,1,4,21,8],
 "dc/df4/classyaze_1_1emu_1_1Cpu.html#a32670c90122daf9129f8935cb0c23c8f":[49,0,4,5,23,8],
 "dc/df4/classyaze_1_1emu_1_1Cpu.html#a354deac30e3c97e2c031378bc0a5be86":[50,0,1,4,21,139],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a354deac30e3c97e2c031378bc0a5be86":[49,0,4,5,23,139],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a36c696bd1879841aa04289baa3047f9e":[50,0,1,4,21,69]
+"dc/df4/classyaze_1_1emu_1_1Cpu.html#a354deac30e3c97e2c031378bc0a5be86":[49,0,4,5,23,139]
 };

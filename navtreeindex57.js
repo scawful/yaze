@@ -1,5 +1,6 @@
 var NAVTREEINDEX57 =
 {
+"da/d2d/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html":[49,0,4,10,7,0],
 "da/d2d/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html#a30179be8446891eed56ab3035b9ae682":[50,0,1,9,4,0,1],
 "da/d2d/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html#a30179be8446891eed56ab3035b9ae682":[49,0,4,10,7,0,1],
 "da/d2d/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html#a5bce43d1c21dd9cec9121767198dd905":[50,0,1,9,4,0,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX57 =
 "da/d5e/structyaze_1_1core_1_1YazeProject.html#a20b1e57b07c6db7acad023da53171abe":[49,0,4,3,18,9],
 "da/d5e/structyaze_1_1core_1_1YazeProject.html#a20b1e57b07c6db7acad023da53171abe":[50,0,1,2,16,9],
 "da/d5e/structyaze_1_1core_1_1YazeProject.html#a23d14dfef0d0804dfa8745d24dd00527":[50,0,1,2,16,33],
-"da/d5e/structyaze_1_1core_1_1YazeProject.html#a23d14dfef0d0804dfa8745d24dd00527":[49,0,4,3,18,33],
-"da/d5e/structyaze_1_1core_1_1YazeProject.html#a32d0e30cdd0df9a279316f5031172d50":[49,0,4,3,18,37]
+"da/d5e/structyaze_1_1core_1_1YazeProject.html#a23d14dfef0d0804dfa8745d24dd00527":[49,0,4,3,18,33]
 };

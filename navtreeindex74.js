@@ -1,5 +1,6 @@
 var NAVTREEINDEX74 =
 {
+"dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#ac36dc416e54927264f121cd306830d97":[50,0,1,9,8,4],
 "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#ad934427a78a8d6c305e4c85941a255af":[49,0,4,10,13,6],
 "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#ad934427a78a8d6c305e4c85941a255af":[50,0,1,9,8,6],
 "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#ae58769c15e7432de14fc62a768d314b2":[49,0,4,10,13,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX74 =
 "dd/d96/md_docs_204-api-reference.html#autotoc_md87":[3,0,2],
 "dd/d96/md_docs_204-api-reference.html#autotoc_md88":[3,0,3],
 "dd/d96/md_docs_204-api-reference.html#autotoc_md89":[3,0,4],
-"dd/d96/md_docs_204-api-reference.html#autotoc_md90":[3,1],
-"dd/d96/md_docs_204-api-reference.html#autotoc_md91":[3,1,0]
+"dd/d96/md_docs_204-api-reference.html#autotoc_md90":[3,1]
 };

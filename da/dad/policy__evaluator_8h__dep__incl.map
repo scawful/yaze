@@ -1,7 +1,5 @@
 <map id="src/cli/service/policy_evaluator.h" name="src/cli/service/policy_evaluator.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="92,5,231,46"/>
-<area shape="rect" id="Node000002" href="$d1/d96/proposal__drawer_8cc.html" title=" " alt="" coords="5,94,152,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,59,99,95,95,92,130,56"/>
-<area shape="rect" id="Node000003" href="$d1/d57/policy__evaluator_8cc.html" title=" " alt="" coords="176,94,315,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,56,228,92,224,95,189,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,145,46"/>
+<area shape="rect" id="Node000002" href="$d1/d57/policy__evaluator_8cc.html" title=" " alt="" coords="5,94,145,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,62,78,94,72,94,72,62"/>
 </map>

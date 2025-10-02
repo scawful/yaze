@@ -16,7 +16,7 @@ var searchData=
   ['0_203_200_20september_202025_13',['0.3.0 (September 2025)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md496',1,'']]],
   ['0_203_201_20september_202025_14',['0.3.1 (September 2025)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md488',1,'']]],
   ['0_203_202_20december_202025_20in_20development_15',['0.3.2 (December 2025) - In Development',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md480',1,'']]],
-  ['0_203_202_20release_16',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md1441',1,'']]],
+  ['0_203_202_20release_16',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md1442',1,'']]],
   ['0_204_20x_20next_20major_20release_17',['0.4.X (Next Major Release)',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md630',1,'']]],
   ['0_205_20x_18',['0.5.X',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md633',1,'']]],
   ['0_206_20x_19',['0.6.X',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md635',1,'']]],

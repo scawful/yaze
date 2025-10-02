@@ -157,7 +157,12 @@ Build System Integration</h2>
 <ul>
 <li>Added <code><a class="el" href="../../d1/d57/policy__evaluator_8cc.html">cli/service/policy_evaluator.cc</a></code> to:<ul>
 <li><code>src/cli/z3ed.cmake</code> (z3ed CLI target)</li>
-<li><code>src/app/app.cmake</code> (yaze GUI target, both macOS and Windows/Linux)</li>
+<li><code>src/app/app.cmake</code> (yaze GUI target, with <code>YAZE_ENABLE_POLICY_FRAMEWORK=1</code>)</li>
+</ul>
+</li>
+<li><b>Conditional Compilation</b>: Policy framework only enabled in main <code>yaze</code> target<ul>
+<li><code>yaze_emu</code> (emulator) builds without policy support</li>
+<li>Uses <code>#ifdef YAZE_ENABLE_POLICY_FRAMEWORK</code> to wrap optional code</li>
 </ul>
 </li>
 <li>Clean build with no errors (warnings only for Abseil version mismatch)</li>
@@ -214,7 +219,14 @@ Files Modified (5 files):</h2>
 </ul>
 </li>
 <li><b>src/app/app.cmake</b><ul>
-<li>Added: <code><a class="el" href="../../d1/d57/policy__evaluator_8cc.html">cli/service/policy_evaluator.cc</a></code> to yaze sources (macOS + Windows/Linux)</li>
+<li>Added: <code><a class="el" href="../../d1/d57/policy__evaluator_8cc.html">cli/service/policy_evaluator.cc</a></code> to yaze sources</li>
+<li>Added: <code>YAZE_ENABLE_POLICY_FRAMEWORK=1</code> compile definition</li>
+<li>Note: <code>yaze_emu</code> target does NOT include policy framework (optional feature)</li>
+</ul>
+</li>
+<li><b><a class="el" href="../../d1/d96/proposal__drawer_8cc.html">src/app/editor/system/proposal_drawer.cc</a></b><ul>
+<li>Wrapped policy code with <code>#ifdef YAZE_ENABLE_POLICY_FRAMEWORK</code></li>
+<li>Gracefully degrades when policy framework disabled</li>
 </ul>
 </li>
 <li><b><a class="el" href="../../df/d90/E6-z3ed-implementation-plan_8md.html">docs/z3ed/E6-z3ed-implementation-plan.md</a></b><ul>
@@ -227,6 +239,19 @@ Files Modified (5 files):</h2>
 <h1><a class="anchor" id="autotoc_md1352"></a>
 Technical Details</h1>
 <h2><a class="anchor" id="autotoc_md1353"></a>
+Conditional Compilation</h2>
+<p>The policy framework uses conditional compilation to allow building without policy support:</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#ifdef YAZE_ENABLE_POLICY_FRAMEWORK</span></div>
+<div class="line">  <span class="keyword">auto</span>&amp; policy_eval = cli::PolicyEvaluator::GetInstance();</div>
+<div class="line">  <span class="keyword">auto</span> policy_result = policy_eval.EvaluateProposal(p.id);</div>
+<div class="line">  <span class="comment">// ... policy evaluation logic ...</span></div>
+<div class="line"><span class="preprocessor">#endif</span></div>
+</div><!-- fragment --><p><b>Build Targets</b>:</p><ul>
+<li><code>yaze</code> (main editor): Policy framework <b>enabled</b> ✅</li>
+<li><code>yaze_emu</code> (emulator): Policy framework <b>disabled</b> (not needed)</li>
+<li><code>z3ed</code> (CLI): Policy framework <b>enabled</b> ✅</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md1354"></a>
 API Usage Patterns</h2>
 <p><b>StatusOr Error Handling</b>: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> proposal_result = registry.GetProposal(proposal_id);</div>
 <div class="line"><span class="keywordflow">if</span> (!proposal_result.ok()) {</div>
@@ -238,17 +263,18 @@ API Usage Patterns</h2>
 <div class="line">config_-&gt;version = std::string(absl::StripAsciiWhitespace(parts[1]));</div>
 </div><!-- fragment --><p><b>Singleton Pattern</b>: </p><div class="fragment"><div class="line">PolicyEvaluator&amp; evaluator = PolicyEvaluator::Get();</div>
 <div class="line">PolicyResult result = evaluator.EvaluateProposal(proposal_id);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1354"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1355"></a>
 Compilation Fixes Applied</h2>
 <ol type="1">
 <li><b>Include Paths</b>: Changed from <code>src/cli/service/...</code> to <code>cli/service/...</code></li>
 <li><b>StatusOr API</b>: Used <code>.ok()</code> and <code>.value()</code> instead of <code>.has_value()</code></li>
 <li><b>String Numbers</b>: Added <code>#include "absl/strings/numbers.h"</code> for SimpleAtoi</li>
 <li><b>String View</b>: Explicit <code>std::string()</code> cast for all absl::StripAsciiWhitespace() calls</li>
+<li><b>Conditional Compilation</b>: Wrapped policy code with <code>YAZE_ENABLE_POLICY_FRAMEWORK</code> to fix yaze_emu build</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1355"></a>
+<h1><a class="anchor" id="autotoc_md1356"></a>
 Testing Plan</h1>
-<h2><a class="anchor" id="autotoc_md1356"></a>
+<h2><a class="anchor" id="autotoc_md1357"></a>
 Phase 1: Manual Validation (Next Step)</h2>
 <ul>
 <li>[ ] Launch yaze GUI and open Proposal Drawer</li>
@@ -257,7 +283,7 @@ Phase 1: Manual Validation (Next Step)</h2>
 <li>[ ] Test warning override flow (confirmation dialog)</li>
 <li>[ ] Verify policy status display with all severity levels</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1357"></a>
+<h2><a class="anchor" id="autotoc_md1358"></a>
 Phase 2: Policy Testing</h2>
 <ul>
 <li>[ ] Test forbidden_range detection (ROM header protection)</li>
@@ -266,7 +292,7 @@ Phase 2: Policy Testing</h2>
 <li>[ ] Test review_requirement flagging (complex proposals)</li>
 <li>[ ] Test policy enable/disable toggle</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1358"></a>
+<h2><a class="anchor" id="autotoc_md1359"></a>
 Phase 3: Edge Cases</h2>
 <ul>
 <li>[ ] Invalid YAML syntax handling</li>
@@ -275,7 +301,7 @@ Phase 3: Edge Cases</h2>
 <li>[ ] Policy reload during runtime</li>
 <li>[ ] Multiple policies of same type</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1359"></a>
+<h2><a class="anchor" id="autotoc_md1360"></a>
 Phase 4: Unit Tests</h2>
 <ul>
 <li>[ ] PolicyEvaluator::ParsePolicyFile() unit tests</li>
@@ -283,7 +309,7 @@ Phase 4: Unit Tests</h2>
 <li>[ ] Severity categorization tests</li>
 <li>[ ] Integration tests with ProposalRegistry</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1360"></a>
+<h1><a class="anchor" id="autotoc_md1361"></a>
 Known Limitations</h1>
 <ol type="1">
 <li><b>YAML Parsing</b>: Simple custom parser implemented<ul>
@@ -307,7 +333,7 @@ Known Limitations</h1>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1361"></a>
+<h1><a class="anchor" id="autotoc_md1362"></a>
 Production Readiness Checklist</h1>
 <ul>
 <li>✅ Core implementation complete</li>
@@ -320,7 +346,7 @@ Production Readiness Checklist</h1>
 <li>⏳ Windows cross-platform validation</li>
 <li>⏳ Performance profiling</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1362"></a>
+<h1><a class="anchor" id="autotoc_md1363"></a>
 Next Steps</h1>
 <p><b>Immediate</b> (30 minutes):</p><ol type="1">
 <li>Launch yaze and test policy evaluation in ProposalDrawer</li>
@@ -338,7 +364,7 @@ Next Steps</h1>
 <li>Add policy reload command to CLI</li>
 <li>Performance profiling and optimization</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1363"></a>
+<h1><a class="anchor" id="autotoc_md1364"></a>
 References</h1>
 <ul>
 <li><b>Specification</b>: <a class="el" href="../../d9/dc3/md_docs_2z3ed_2AW-04-POLICY-FRAMEWORK.html">AW-04-POLICY-FRAMEWORK.md</a></li>

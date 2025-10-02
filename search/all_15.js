@@ -350,7 +350,7 @@ var searchData=
   ['knotrun_347',['kNotRun',['../d4/d0a/namespaceyaze_1_1test.html#a24fd08ea41d8314e6fccdb0fdcd9f072a8983357689cc2645e40d3e2a29696391',1,'yaze::test']]],
   ['knotype_348',['kNoType',['../db/d00/classyaze_1_1editor_1_1DungeonToolset.html#ac9170fbc1d88691828b594c519f8ad40accd10d36f1a15334a6c0722a67a25165',1,'yaze::editor::DungeonToolset']]],
   ['known_20issues_20and_20ongoing_20work_349',['Known Issues and Ongoing Work',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html#autotoc_md862',1,'']]],
-  ['known_20limitations_350',['known limitations',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1189',1,'10.5. Known Limitations'],['../d5/d7c/md_docs_2z3ed_2POLICY-IMPLEMENTATION-SUMMARY.html#autotoc_md1360',1,'Known Limitations']]],
+  ['known_20limitations_350',['known limitations',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1189',1,'10.5. Known Limitations'],['../d5/d7c/md_docs_2z3ed_2POLICY-IMPLEMENTATION-SUMMARY.html#autotoc_md1361',1,'Known Limitations']]],
   ['known_20limitations_20non_20blocking_351',['Known Limitations (Non-Blocking)',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1240',1,'']]],
   ['known_20working_20patterns_352',['🔍 Known Working Patterns',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md596',1,'']]],
   ['knownidentifier_353',['KnownIdentifier',['../d0/d28/classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a110205a61f3ff4b16b854c54ffc0d8c6',1,'TextEditor']]],

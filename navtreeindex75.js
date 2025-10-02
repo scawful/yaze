@@ -1,5 +1,6 @@
 var NAVTREEINDEX75 =
 {
+"dd/d96/md_docs_204-api-reference.html#autotoc_md91":[3,1,0],
 "dd/d96/md_docs_204-api-reference.html#autotoc_md92":[3,1,1],
 "dd/d96/md_docs_204-api-reference.html#autotoc_md93":[3,1,1,0],
 "dd/d96/md_docs_204-api-reference.html#autotoc_md94":[3,1,1,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX75 =
 "dd/dd2/structTextEditor_1_1LanguageDefinition.html#ac40f4cc01836db6f18dbf21f25121f2d":[50,0,19,5,3],
 "dd/dd4/overlord_8h.html":[51,0,3,0,6,4,0],
 "dd/dd4/overlord_8h_source.html":[51,0,3,0,6,4,0],
-"dd/dde/structzelda3__message.html":[48,6,0],
-"dd/dde/structzelda3__message.html#a08d9529b9d6499c9e07b33bde869ef53":[48,6,0,1]
+"dd/dde/structzelda3__message.html":[48,6,0]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX55 =
 {
+"d9/dff/ppu__registers_8h.html#a4e6cb9d03518d93b60d1c77f8eabfb84":[51,0,3,0,2,3,2,105],
 "d9/dff/ppu__registers_8h.html#a50331c27c6c0f047cf8ba4f61aeca94d":[51,0,3,0,2,3,2,100],
 "d9/dff/ppu__registers_8h.html#a51815a972a0f63da0c6ba6f7bf4f0b93":[51,0,3,0,2,3,2,109],
 "d9/dff/ppu__registers_8h.html#a52cf9bff7fb62e618f83cb3278d74ef8":[51,0,3,0,2,3,2,106],
@@ -248,6 +249,5 @@ var NAVTREEINDEX55 =
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab":[50,0,1,6,8,13],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a40ca5e627a61320034d7f747240f96f2":[49,0,4,7,10,77],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a40ca5e627a61320034d7f747240f96f2":[50,0,1,6,8,77],
-"da/d2c/classyaze_1_1gui_1_1Canvas.html#a436bbb0e8ff48bd3b80aeded4435da0a":[49,0,4,7,10,38],
-"da/d2c/classyaze_1_1gui_1_1Canvas.html#a436bbb0e8ff48bd3b80aeded4435da0a":[50,0,1,6,8,38]
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#a436bbb0e8ff48bd3b80aeded4435da0a":[49,0,4,7,10,38]
 };

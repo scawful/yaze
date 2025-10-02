@@ -1,5 +1,6 @@
 var NAVTREEINDEX58 =
 {
+"da/d5e/structyaze_1_1core_1_1YazeProject.html#a32d0e30cdd0df9a279316f5031172d50":[49,0,4,3,18,37],
 "da/d5e/structyaze_1_1core_1_1YazeProject.html#a32d0e30cdd0df9a279316f5031172d50":[50,0,1,2,16,37],
 "da/d5e/structyaze_1_1core_1_1YazeProject.html#a38b04f26dca1e30884e16f402e6ceba1":[50,0,1,2,16,17],
 "da/d5e/structyaze_1_1core_1_1YazeProject.html#a38b04f26dca1e30884e16f402e6ceba1":[49,0,4,3,18,17],
@@ -248,6 +249,5 @@ var NAVTREEINDEX58 =
 "da/d93/structzelda3__overworld__map.html#aebdac76c670c01e01f3f9079579e7018":[48,4,0,9],
 "da/d93/structzelda3__overworld__map.html#af2305faa33e9ae3188352c9bff47f5b7":[48,4,0,17],
 "da/d93/structzelda3__overworld__map.html#af7be613f2f0970d3b316e07145f5c571":[48,4,0,0],
-"da/d93/structzelda3__overworld__map.html#afd6bc604ac46dc1d51d95c8960e43989":[48,4,0,16],
-"da/d96/room__layout_8h.html":[51,0,3,0,6,0,12]
+"da/d93/structzelda3__overworld__map.html#afd6bc604ac46dc1d51d95c8960e43989":[48,4,0,16]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX91 =
 {
+"df/d26/classyaze_1_1Transaction.html#a51bbb27b4e677fbdb7015b1736195008":[49,0,4,13,6],
 "df/d26/classyaze_1_1Transaction.html#a51bbb27b4e677fbdb7015b1736195008":[50,0,1,12,6],
 "df/d26/classyaze_1_1Transaction.html#a591bfb6d638166efd60adb125648e011":[49,0,4,13,12],
 "df/d26/classyaze_1_1Transaction.html#a591bfb6d638166efd60adb125648e011":[50,0,1,12,12],
@@ -248,6 +249,5 @@ var NAVTREEINDEX91 =
 "df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1232":[37,8,1,2],
 "df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1233":[37,8,1,3],
 "df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1234":[37,8,2],
-"df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1235":[37,8,3],
-"df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1236":[37,8,4]
+"df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1235":[37,8,3]
 };

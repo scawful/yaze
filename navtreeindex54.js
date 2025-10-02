@@ -1,5 +1,6 @@
 var NAVTREEINDEX54 =
 {
+"d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#ac2e492cac975f018fe6c5fc31299fb60":[50,0,1,9,31,46],
 "d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#ac2e492cac975f018fe6c5fc31299fb60":[49,0,4,10,36,46],
 "d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#aceb6f85e5129289463d83efd292c9390":[50,0,1,9,31,36],
 "d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#aceb6f85e5129289463d83efd292c9390":[49,0,4,10,36,36],
@@ -248,6 +249,5 @@ var NAVTREEINDEX54 =
 "d9/dff/ppu__registers_8h.html#a45ad8fd0e2c63a0bded106968d171ce9":[51,0,3,0,2,3,2,78],
 "d9/dff/ppu__registers_8h.html#a47674b3c7d11e8b9d321c139872cac7f":[51,0,3,0,2,3,2,61],
 "d9/dff/ppu__registers_8h.html#a47913265dadcd260ffdbb30eafee192d":[51,0,3,0,2,3,2,87],
-"d9/dff/ppu__registers_8h.html#a4aab07f51d1fc56257b8bc23b7a2ae67":[51,0,3,0,2,3,2,55],
-"d9/dff/ppu__registers_8h.html#a4e6cb9d03518d93b60d1c77f8eabfb84":[51,0,3,0,2,3,2,105]
+"d9/dff/ppu__registers_8h.html#a4aab07f51d1fc56257b8bc23b7a2ae67":[51,0,3,0,2,3,2,55]
 };

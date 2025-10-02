@@ -1,5 +1,6 @@
 var NAVTREEINDEX49 =
 {
+"d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a10f7c6425c05a5e25121a882e894e66e":[49,0,4,10,6,6,42],
 "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a137a2b9f2994b5217feaef0f56abc760":[49,0,4,10,6,6,46],
 "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a137a2b9f2994b5217feaef0f56abc760":[50,0,1,9,3,6,46],
 "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a1460fa50e22e03c99b5112aadf3d7987":[50,0,1,9,3,6,15],
@@ -248,6 +249,5 @@ var NAVTREEINDEX49 =
 "d8/df8/structTextEditor_1_1Glyph.html#a8574ee4841bfd39fc688d72c999d9be7":[50,0,19,3,0],
 "d8/df8/structTextEditor_1_1Glyph.html#ac73459bb7dd69fa94409b5bd7009f5fc":[50,0,19,3,4],
 "d8/dfb/md_docs_2gfx__optimizations__project__summary.html":[32],
-"d8/dfb/md_docs_2gfx__optimizations__project__summary.html#autotoc_md1047":[32,0],
-"d8/dfb/md_docs_2gfx__optimizations__project__summary.html#autotoc_md1048":[32,1]
+"d8/dfb/md_docs_2gfx__optimizations__project__summary.html#autotoc_md1047":[32,0]
 };

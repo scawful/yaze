@@ -1,5 +1,6 @@
 var NAVTREEINDEX50 =
 {
+"d8/dfb/md_docs_2gfx__optimizations__project__summary.html#autotoc_md1048":[32,1],
 "d8/dfb/md_docs_2gfx__optimizations__project__summary.html#autotoc_md1049":[32,1,0],
 "d8/dfb/md_docs_2gfx__optimizations__project__summary.html#autotoc_md1050":[32,1,1],
 "d8/dfb/md_docs_2gfx__optimizations__project__summary.html#autotoc_md1051":[32,1,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX50 =
 "d9/d6b/md_docs_2B5-stability-improvements.html#autotoc_md478":[16,5],
 "d9/d6c/classyaze_1_1editor_1_1HistoryManager.html":[50,0,1,3,26],
 "d9/d6c/classyaze_1_1editor_1_1HistoryManager.html":[49,0,4,4,32],
-"d9/d6c/classyaze_1_1editor_1_1HistoryManager.html#a2a273490bcf95b621573efb7cbb45e83":[50,0,1,3,26,5],
-"d9/d6c/classyaze_1_1editor_1_1HistoryManager.html#a2a273490bcf95b621573efb7cbb45e83":[49,0,4,4,32,5]
+"d9/d6c/classyaze_1_1editor_1_1HistoryManager.html#a2a273490bcf95b621573efb7cbb45e83":[50,0,1,3,26,5]
 };

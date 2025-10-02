@@ -1,5 +1,6 @@
 var NAVTREEINDEX60 =
 {
+"da/dec/color_8h.html#ad6ba4f05b40456918b1e49bfbb876c14":[51,0,3,0,4,11,4],
 "da/dec/color_8h.html#ae0d03d6cdef355d2ffa9bfa5d5e3247a":[51,0,3,0,4,11,8],
 "da/dec/color_8h_source.html":[51,0,3,0,4,11],
 "da/dec/structyaze_1_1gfx_1_1BppFormatInfo.html":[49,0,4,6,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX60 =
 "db/d2e/structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ae4eb6acbaa3ca64f6691adcfee04368f":[50,0,1,9,3,8,4],
 "db/d30/sprite__editor_8cc.html":[51,0,3,0,1,6,0],
 "db/d30/sprite__editor_8cc_source.html":[51,0,3,0,1,6,0],
-"db/d30/structsnes__tile8.html":[48,2,3],
-"db/d30/structsnes__tile8.html#a31238a531373c34f184472d718ec33e8":[48,2,3,0]
+"db/d30/structsnes__tile8.html":[48,2,3]
 };

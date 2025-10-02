@@ -101,12 +101,12 @@ $(document).ready(function(){initNavTree('d7/d42/md_docs_2z3ed_2WIDGET__ID__NEXT
   <div class="headertitle"><div class="title">Widget ID Refactoring - Next Actions</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1408"></a> <b>Date</b>: October 2, 2025 <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md1409"></a> <b>Date</b>: October 2, 2025 <br  />
  <b>Status</b>: Phase 1 Complete - Testing &amp; Integration Phase <br  />
  <b>Previous Session</b>: SESSION_SUMMARY_OCT2_NIGHT.md</p>
-<h1><a class="anchor" id="autotoc_md1409"></a>
+<h1><a class="anchor" id="autotoc_md1410"></a>
 Quick Start - Next Session</h1>
-<h2><a class="anchor" id="autotoc_md1410"></a>
+<h2><a class="anchor" id="autotoc_md1411"></a>
 Option 1: Manual Testing (15 minutes) 🎯 RECOMMENDED FIRST</h2>
 <p><b>Goal</b>: Verify widgets register correctly in running GUI</p>
 <div class="fragment"><div class="line"># 1. Launch YAZE</div>
@@ -132,7 +132,7 @@ Option 1: Manual Testing (15 minutes) 🎯 RECOMMENDED FIRST</h2>
 <li>✅ No error messages in console</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1412"></a>
+<h2><a class="anchor" id="autotoc_md1413"></a>
 Option 2: Add Widget Discovery Command (30 minutes)</h2>
 <p><b>Goal</b>: Create CLI command to list registered widgets</p>
 <p><b>File to Edit</b>: <code><a class="el" href="../../d2/d0e/agent_8cc.html">src/cli/handlers/agent.cc</a></code></p>
@@ -188,7 +188,7 @@ Option 2: Add Widget Discovery Command (30 minutes)</h2>
 <div class="line"># Note: This requires YAZE to be running with widgets registered</div>
 <div class="line"># We&#39;ll need a different approach - see Option 3</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md1414"></a>
+<h2><a class="anchor" id="autotoc_md1415"></a>
 Option 3: Widget Export at Shutdown (30 minutes) 🎯 BETTER APPROACH</h2>
 <p><b>Goal</b>: Export widget catalog when YAZE exits</p>
 <p><b>File to Edit</b>: <code><a class="el" href="../../d0/dd9/editor__manager_8cc.html">src/app/editor/editor_manager.cc</a></code></p>
@@ -231,7 +231,7 @@ Option 3: Widget Export at Shutdown (30 minutes) 🎯 BETTER APPROACH</h2>
 <div class="line">#       tab: Toolset</div>
 <div class="line">#     ...</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md1416"></a>
+<h2><a class="anchor" id="autotoc_md1417"></a>
 Option 4: Test Harness Integration (1-2 hours)</h2>
 <p><b>Goal</b>: Enable test harness to click widgets by hierarchical ID</p>
 <p><b>Files to Edit</b>:</p><ol type="1">
@@ -303,23 +303,23 @@ Option 4: Test Harness Integration (1-2 hours)</h2>
 <div class="line"> </div>
 <div class="line"># Expected: Click succeeds, DrawTile mode activated</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1418"></a>
+<h1><a class="anchor" id="autotoc_md1419"></a>
 Recommended Sequence</h1>
-<h2><a class="anchor" id="autotoc_md1419"></a>
+<h2><a class="anchor" id="autotoc_md1420"></a>
 Tonight (30 minutes)</h2>
 <ol type="1">
 <li>✅ <b>Option 1</b>: Manual testing - verify no crashes</li>
 <li>📋 <b>Option 3</b>: Add widget export at shutdown</li>
 <li>📋 Inspect exported YAML, verify 13 toolset widgets</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1420"></a>
+<h2><a class="anchor" id="autotoc_md1421"></a>
 Tomorrow Morning (1-2 hours)</h2>
 <ol type="1">
 <li>📋 <b>Option 4</b>: Test harness integration</li>
 <li>📋 Test clicking widgets via hierarchical IDs</li>
 <li>📋 Update E2E test script with new IDs</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1421"></a>
+<h2><a class="anchor" id="autotoc_md1422"></a>
 Tomorrow Afternoon (2-3 hours)</h2>
 <ol type="1">
 <li>📋 Complete Overworld editor (canvas, properties)</li>
@@ -327,30 +327,30 @@ Tomorrow Afternoon (2-3 hours)</h2>
 <li>📋 Document patterns and best practices</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1423"></a>
+<h1><a class="anchor" id="autotoc_md1424"></a>
 Files to Modify Next</h1>
-<h2><a class="anchor" id="autotoc_md1424"></a>
+<h2><a class="anchor" id="autotoc_md1425"></a>
 High Priority</h2>
 <ol type="1">
 <li><code><a class="el" href="../../d0/dd9/editor__manager_8cc.html">src/app/editor/editor_manager.cc</a></code> - Add widget export at shutdown</li>
 <li><code><a class="el" href="../../dd/d7f/imgui__test__harness__service_8cc.html">src/app/core/imgui_test_harness_service.cc</a></code> - Registry lookup in Click RPC</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1425"></a>
+<h2><a class="anchor" id="autotoc_md1426"></a>
 Medium Priority</h2>
 <ol type="1">
 <li><code>src/app/core/proto/imgui_test_harness.proto</code> - Add DiscoverWidgets RPC</li>
 <li><code><a class="el" href="../../d9/d8a/overworld__editor_8cc.html">src/app/editor/overworld/overworld_editor.cc</a></code> - Add canvas/properties widgets</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1426"></a>
+<h2><a class="anchor" id="autotoc_md1427"></a>
 Low Priority</h2>
 <ol type="1">
 <li><code>scripts/test_harness_e2e.sh</code> - Update with hierarchical IDs</li>
 <li><code>docs/z3ed/IT-01-QUICKSTART.md</code> - Add widget ID examples</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1428"></a>
+<h1><a class="anchor" id="autotoc_md1429"></a>
 Success Criteria</h1>
-<h2><a class="anchor" id="autotoc_md1429"></a>
+<h2><a class="anchor" id="autotoc_md1430"></a>
 Phase 1 (Complete) ✅</h2>
 <ul>
 <li>[x] Widget registry in build</li>
@@ -358,7 +358,7 @@ Phase 1 (Complete) ✅</h2>
 <li>[x] Clean build</li>
 <li>[x] Documentation updated</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1430"></a>
+<h2><a class="anchor" id="autotoc_md1431"></a>
 Phase 2 (Current) 🔄</h2>
 <ul>
 <li>[ ] Manual testing passes</li>
@@ -366,7 +366,7 @@ Phase 2 (Current) 🔄</h2>
 <li>[ ] Test harness can click by hierarchical ID</li>
 <li>[ ] At least 1 E2E test updated</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1431"></a>
+<h2><a class="anchor" id="autotoc_md1432"></a>
 Phase 3 (Next) 📋</h2>
 <ul>
 <li>[ ] Complete Overworld editor (30+ widgets)</li>
@@ -375,9 +375,9 @@ Phase 3 (Next) 📋</h2>
 <li>[ ] Performance validated (&lt; 1ms overhead)</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1433"></a>
+<h1><a class="anchor" id="autotoc_md1434"></a>
 Quick Commands</h1>
-<h2><a class="anchor" id="autotoc_md1434"></a>
+<h2><a class="anchor" id="autotoc_md1435"></a>
 Build</h2>
 <div class="fragment"><div class="line"># Regular build</div>
 <div class="line">cmake --build build --target yaze -j8</div>
@@ -387,7 +387,7 @@ Build</h2>
 <div class="line"> </div>
 <div class="line"># CLI build</div>
 <div class="line">cmake --build build --target z3ed -j8</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1435"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1436"></a>
 Test</h2>
 <div class="fragment"><div class="line"># Manual test</div>
 <div class="line">./build/bin/yaze.app/Contents/MacOS/yaze</div>
@@ -397,7 +397,7 @@ Test</h2>
 <div class="line">  --enable_test_harness \</div>
 <div class="line">  --test_harness_port=50052 \</div>
 <div class="line">  --rom_file=assets/zelda3.sfc</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1436"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1437"></a>
 Cleanup</h2>
 <div class="fragment"><div class="line"># Kill running YAZE instances</div>
 <div class="line">killall yaze</div>
@@ -406,7 +406,7 @@ Cleanup</h2>
 <div class="line">rm -rf build/CMakeFiles build/bin</div>
 <div class="line">cmake --build build -j8</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1438"></a>
+<h1><a class="anchor" id="autotoc_md1439"></a>
 References</h1>
 <p><b>Progress Docs</b>:</p><ul>
 <li>WIDGET_ID_REFACTORING_PROGRESS.md - Detailed tracker</li>

@@ -1,5 +1,6 @@
 var NAVTREEINDEX72 =
 {
+"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a48def668ba4292e746660d5df3886798":[50,0,1,3,17,44],
 "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a48def668ba4292e746660d5df3886798":[49,0,4,4,23,44],
 "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a4b1e1e74ff813843b0a02c8dbabc5148":[50,0,1,3,17,74],
 "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a4b1e1e74ff813843b0a02c8dbabc5148":[49,0,4,4,23,74],
@@ -248,6 +249,5 @@ var NAVTREEINDEX72 =
 "dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a86dfd2c2c223a10804fa59db10c38c75":[49,0,4,4,8,1,4],
 "dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a9c4e748235e35b807ad5a1ccb2f0f865":[49,0,4,4,8,1,8],
 "dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html#a9c4e748235e35b807ad5a1ccb2f0f865":[50,0,1,3,2,1,8],
-"dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html#ac77c0f2c9b47ac06492297dfea263b71":[50,0,1,3,2,1,7],
-"dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html#ac77c0f2c9b47ac06492297dfea263b71":[49,0,4,4,8,1,7]
+"dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html#ac77c0f2c9b47ac06492297dfea263b71":[50,0,1,3,2,1,7]
 };

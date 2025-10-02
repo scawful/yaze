@@ -44,8 +44,8 @@ var searchData=
   ['4_3a_20cleanup_41',['Phase 4: Cleanup',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md787',1,'']]],
   ['4_3a_20cli_20integration_20windows_20testing_204_205_20hours_42',['Phase 4: CLI Integration &amp; Windows Testing (4-5 hours)',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1233',1,'']]],
   ['4_3a_20complete_20scratch_20space_20feature_20feature_43',['Priority 4: Complete Scratch Space Feature (Feature)',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md594',1,'']]],
-  ['4_3a_20test_20harness_20integration_201_202_20hours_44',['Option 4: Test Harness Integration (1-2 hours)',['../d7/d42/md_docs_2z3ed_2WIDGET__ID__NEXT__ACTIONS.html#autotoc_md1416',1,'']]],
+  ['4_3a_20test_20harness_20integration_201_202_20hours_44',['Option 4: Test Harness Integration (1-2 hours)',['../d7/d42/md_docs_2z3ed_2WIDGET__ID__NEXT__ACTIONS.html#autotoc_md1417',1,'']]],
   ['4_3a_20testing_20documentation_201_202_20hours_45',['Phase 4: Testing &amp; Documentation (1-2 hours)',['../d9/dc3/md_docs_2z3ed_2AW-04-POLICY-FRAMEWORK.html#autotoc_md1139',1,'']]],
-  ['4_3a_20unit_20tests_46',['Phase 4: Unit Tests',['../d5/d7c/md_docs_2z3ed_2POLICY-IMPLEMENTATION-SUMMARY.html#autotoc_md1359',1,'']]],
-  ['4_3a_20workflow_20chaining_201_202_20hours_47',['Priority 4: Workflow Chaining (1-2 hours)',['../d3/d61/md_docs_2z3ed_2REMOTE__CONTROL__WORKFLOWS.html#autotoc_md1396',1,'']]]
+  ['4_3a_20unit_20tests_46',['Phase 4: Unit Tests',['../d5/d7c/md_docs_2z3ed_2POLICY-IMPLEMENTATION-SUMMARY.html#autotoc_md1360',1,'']]],
+  ['4_3a_20workflow_20chaining_201_202_20hours_47',['Priority 4: Workflow Chaining (1-2 hours)',['../d3/d61/md_docs_2z3ed_2REMOTE__CONTROL__WORKFLOWS.html#autotoc_md1397',1,'']]]
 ];

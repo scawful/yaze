@@ -1,5 +1,6 @@
 var NAVTREEINDEX66 =
 {
+"dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md909":[27,9,1],
 "dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md910":[27,9,2],
 "dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md911":[27,9,3],
 "dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md912":[27,9,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX66 =
 "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#af26bc6bdb74d5e4594bcb0fe8012a8f4":[50,0,1,3,25,29],
 "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#af26bc6bdb74d5e4594bcb0fe8012a8f4":[49,0,4,4,31,29],
 "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#af437ef4bea31c95f4c9fceae18c34d0c":[50,0,1,3,25,46],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#af437ef4bea31c95f4c9fceae18c34d0c":[49,0,4,4,31,46],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#af43d671e88e319d9a63aedeeb9d437c2":[50,0,1,3,25,104]
+"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#af437ef4bea31c95f4c9fceae18c34d0c":[49,0,4,4,31,46]
 };

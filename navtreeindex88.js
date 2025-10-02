@@ -1,5 +1,6 @@
 var NAVTREEINDEX88 =
 {
+"de/dbf/icons_8h.html#aec97dfbbafbe581a3dcdbfc3aefd2bd2":[51,0,3,0,4,14,1096],
 "de/dbf/icons_8h.html#aeccec3881ae3e4e84b64884f4a255871":[51,0,3,0,4,14,1946],
 "de/dbf/icons_8h.html#aecd5821b4a728bde718b4378d5137be6":[51,0,3,0,4,14,364],
 "de/dbf/icons_8h.html#aece16889a9b89669fe549b3858548532":[51,0,3,0,4,14,2050],
@@ -248,6 +249,5 @@ var NAVTREEINDEX88 =
 "de/dda/structyaze_1_1zelda3_1_1ObjectRenderer_1_1TileRenderInfo.html#af270967da5f910c74bed9dea5131aa4d":[49,0,4,10,26,5,2],
 "de/dda/structyaze_1_1zelda3_1_1ObjectRenderer_1_1TileRenderInfo.html#af270967da5f910c74bed9dea5131aa4d":[50,0,1,9,21,5,2],
 "de/ddb/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ChangeConstraint.html":[50,0,1,1,33,0,0],
-"de/ddb/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ChangeConstraint.html":[49,0,4,2,38,0,0],
-"de/ddb/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ChangeConstraint.html#a075e8f96a3f02edf131ad38d768dbe7f":[50,0,1,1,33,0,0,0]
+"de/ddb/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ChangeConstraint.html":[49,0,4,2,38,0,0]
 };

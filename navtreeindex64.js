@@ -1,5 +1,6 @@
 var NAVTREEINDEX64 =
 {
+"db/dc5/structyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock.html":[50,0,1,5,17,0],
 "db/dc5/structyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock.html#a3c174207ceabed5340008a64d623e9ec":[50,0,1,5,17,0,4],
 "db/dc5/structyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock.html#a3c174207ceabed5340008a64d623e9ec":[49,0,4,6,19,0,4],
 "db/dc5/structyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock.html#a6115e55f1e4982643cd0c6f1e339d85c":[49,0,4,6,19,0,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX64 =
 "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a0e0f774fbd05970e01b1a33f9eca1b43":[49,0,4,4,18,14],
 "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a1213b1e19cf2e4e50eecd9022ea4f315":[50,0,1,3,12,16],
 "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a1213b1e19cf2e4e50eecd9022ea4f315":[49,0,4,4,18,16],
-"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a319df59bdc6637a967791bd59575caa0":[49,0,4,4,18,7],
-"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a319df59bdc6637a967791bd59575caa0":[50,0,1,3,12,7]
+"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a319df59bdc6637a967791bd59575caa0":[49,0,4,4,18,7]
 };

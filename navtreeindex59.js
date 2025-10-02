@@ -1,5 +1,6 @@
 var NAVTREEINDEX59 =
 {
+"da/d96/room__layout_8h.html":[51,0,3,0,6,0,12],
 "da/d96/room__layout_8h_source.html":[51,0,3,0,6,0,12],
 "da/d9f/namespaceyaze_1_1zelda3_1_1ItemTypes.html":[49,0,4,10,5],
 "da/d9f/namespaceyaze_1_1zelda3_1_1ItemTypes.html#a352eb1a9df6a5bc18dd0a07d5bac9540":[49,0,4,10,5,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX59 =
 "da/dec/color_8h.html#a9f7caa95981f846c2eac84bff36b952d":[51,0,3,0,4,11,9],
 "da/dec/color_8h.html#aa32511a1a3eadf62366b193da8b5f3da":[51,0,3,0,4,11,6],
 "da/dec/color_8h.html#ab124e6bc45ea2b052653f4c9e2eeec42":[51,0,3,0,4,11,2],
-"da/dec/color_8h.html#ab4191a76f6cec5d60a28a6c49d7065d9":[51,0,3,0,4,11,7],
-"da/dec/color_8h.html#ad6ba4f05b40456918b1e49bfbb876c14":[51,0,3,0,4,11,4]
+"da/dec/color_8h.html#ab4191a76f6cec5d60a28a6c49d7065d9":[51,0,3,0,4,11,7]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX79 =
 {
+"de/d86/structyaze_1_1core_1_1Window.html#a1a317b8784c222c4343d20a56f09ab79":[49,0,4,3,16,2],
 "de/d86/structyaze_1_1core_1_1Window.html#a1a317b8784c222c4343d20a56f09ab79":[50,0,1,2,14,2],
 "de/d86/structyaze_1_1core_1_1Window.html#a7819c4d497845fc3c7a0f4150a21b1da":[50,0,1,2,14,1],
 "de/d86/structyaze_1_1core_1_1Window.html#a7819c4d497845fc3c7a0f4150a21b1da":[49,0,4,3,16,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX79 =
 "de/dbf/icons_8h.html#a01d1e30a55e3e5c43550726d9a47a166":[51,0,3,0,4,14,286],
 "de/dbf/icons_8h.html#a01d93ba05cf2488b638ad4b68c791e49":[51,0,3,0,4,14,970],
 "de/dbf/icons_8h.html#a01e0a04dd085840a43b3baedf14ea20c":[51,0,3,0,4,14,1215],
-"de/dbf/icons_8h.html#a02051d4bc59223b13d9cf96846f0c63e":[51,0,3,0,4,14,1093],
-"de/dbf/icons_8h.html#a020e336a90d1c1a560a9bcacd8059b7f":[51,0,3,0,4,14,1903]
+"de/dbf/icons_8h.html#a02051d4bc59223b13d9cf96846f0c63e":[51,0,3,0,4,14,1093]
 };

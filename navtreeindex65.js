@@ -1,5 +1,6 @@
 var NAVTREEINDEX65 =
 {
+"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a319df59bdc6637a967791bd59575caa0":[50,0,1,3,12,7],
 "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a46a05a344a70ff3ecbad50f59f527614":[50,0,1,3,12,5],
 "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a46a05a344a70ff3ecbad50f59f527614":[49,0,4,4,18,5],
 "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a52252b067502d105dd0ee56c37145de6":[50,0,1,3,12,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX65 =
 "dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md905":[27,8,2],
 "dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md906":[27,8,3],
 "dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md907":[27,9],
-"dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md908":[27,9,0],
-"dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md909":[27,9,1]
+"dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md908":[27,9,0]
 };

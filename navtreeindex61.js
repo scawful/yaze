@@ -1,5 +1,6 @@
 var NAVTREEINDEX61 =
 {
+"db/d30/structsnes__tile8.html#a31238a531373c34f184472d718ec33e8":[48,2,3,0],
 "db/d30/structsnes__tile8.html#ab4471447241bf1409ab7d127473e99bf":[48,2,3,2],
 "db/d30/structsnes__tile8.html#afc5deb54b6f6b59dda0dea55d477348b":[48,2,3,1],
 "db/d33/namespaceyaze_1_1core.html":[49,0,4,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX61 =
 "db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a2a942884ba55c4f4678ac2ef983a61d5":[49,0,4,4,53,61],
 "db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a2a942884ba55c4f4678ac2ef983a61d5":[50,0,1,3,47,61],
 "db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a33f90b95f832454de66e9820494e91bf":[50,0,1,3,47,76],
-"db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a33f90b95f832454de66e9820494e91bf":[49,0,4,4,53,76],
-"db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a39858d7f26a5bcf4589035d82b2e91c8":[50,0,1,3,47,104]
+"db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a33f90b95f832454de66e9820494e91bf":[49,0,4,4,53,76]
 };

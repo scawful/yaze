@@ -36,7 +36,7 @@ var searchData=
   ['yaze_20performance_20optimization_20summary_33',['yaze Performance Optimization Summary',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html',1,'']]],
   ['yaze_20strong_34',['🚀 &lt;strong&gt;Result: Lightning-Fast YAZE&lt;/strong&gt;',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html#autotoc_md230',1,'']]],
   ['yaze_20test_20suite_35',['yaze Test Suite',['../d0/d46/md_test_2README.html',1,'']]],
-  ['yaze_20with_20test_20harness_36',['1. Start YAZE with Test Harness',['../d3/d61/md_docs_2z3ed_2REMOTE__CONTROL__WORKFLOWS.html#autotoc_md1374',1,'']]],
+  ['yaze_20with_20test_20harness_36',['1. Start YAZE with Test Harness',['../d3/d61/md_docs_2z3ed_2REMOTE__CONTROL__WORKFLOWS.html#autotoc_md1375',1,'']]],
   ['yaze_20yet_20another_20zelda3_20editor_37',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
   ['yaze_2ecc_38',['yaze.cc',['../df/d84/yaze_8cc.html',1,'']]],
   ['yaze_2eh_39',['yaze.h',['../d9/d89/yaze_8h.html',1,'']]],

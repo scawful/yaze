@@ -1,5 +1,6 @@
 var NAVTREEINDEX68 =
 {
+"dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#ada16b1a9f4c6d64a85e96b95cdb9c29a":[49,0,4,6,19,17],
 "dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#adb48401e3ee771f8fd108c17e3642ece":[50,0,1,5,17,18],
 "dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#adb48401e3ee771f8fd108c17e3642ece":[49,0,4,6,19,18],
 "dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#aecfb427e06b194333badf82bde05680b":[49,0,4,6,19,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX68 =
 "dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#adef783384dbed42a070f0f59b32bf150":[50,0,1,7,30,4],
 "dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#adef783384dbed42a070f0f59b32bf150":[49,0,4,8,33,4],
 "dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#af0a3cdcd4c88e651b4e6c80c7e78d7c4":[50,0,1,7,30,1],
-"dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#af0a3cdcd4c88e651b4e6c80c7e78d7c4":[49,0,4,8,33,1],
-"dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#af90c2f25ff63c81a5d4ab3bf7d93bb3e":[49,0,4,8,33,0]
+"dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#af0a3cdcd4c88e651b4e6c80c7e78d7c4":[49,0,4,8,33,1]
 };

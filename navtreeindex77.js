@@ -1,5 +1,6 @@
 var NAVTREEINDEX77 =
 {
+"dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html#a62e80e26c9c6eb15334b68102a1121b6":[49,0,4,8,8,3],
 "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html#a6a607435b7db1300a5289bcbf9c8f5f6":[49,0,4,8,8,0],
 "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html#a6a607435b7db1300a5289bcbf9c8f5f6":[50,0,1,7,5,0],
 "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html#a7a5d92bf79bd0662e360b1c0f32913bd":[50,0,1,7,5,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX77 =
 "de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html":[50,0,1,5,13],
 "de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html":[49,0,4,6,15],
 "de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html#a08609adb7fa7989eef6b6088b805a257":[50,0,1,5,13,0],
-"de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html#a08609adb7fa7989eef6b6088b805a257":[49,0,4,6,15,0],
-"de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html#a45a14385f5ed526d9efe0f8a0e7c8783":[50,0,1,5,13,2]
+"de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html#a08609adb7fa7989eef6b6088b805a257":[49,0,4,6,15,0]
 };

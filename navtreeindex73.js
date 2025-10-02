@@ -1,5 +1,6 @@
 var NAVTREEINDEX73 =
 {
+"dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html#ac77c0f2c9b47ac06492297dfea263b71":[49,0,4,4,8,1,7],
 "dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html#ac98b42966db687401970fb7ba291b3e2":[50,0,1,3,2,1,1],
 "dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html#ac98b42966db687401970fb7ba291b3e2":[49,0,4,4,8,1,1],
 "dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html#af865bd48beca4bec7dd1aa33b2e1fbc7":[50,0,1,3,2,1,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX73 =
 "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#aa4f2f1c32f8ea6d2c12b5459a1d5294b":[49,0,4,10,13,2],
 "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#aac5299ac99d70d0708516631eb18ebff":[50,0,1,9,8,1],
 "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#aac5299ac99d70d0708516631eb18ebff":[49,0,4,10,13,1],
-"dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#ac36dc416e54927264f121cd306830d97":[49,0,4,10,13,4],
-"dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#ac36dc416e54927264f121cd306830d97":[50,0,1,9,8,4]
+"dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#ac36dc416e54927264f121cd306830d97":[49,0,4,10,13,4]
 };

@@ -1,5 +1,6 @@
 var NAVTREEINDEX47 =
 {
+"d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html#a2b05d803ad2e5b5105ed4b8ec1591017":[50,0,1,5,2,19],
 "d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html#a2b05d803ad2e5b5105ed4b8ec1591017":[49,0,4,6,4,19],
 "d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html#a2d8560ea1c835a88da94baf0a460c1b5":[49,0,4,6,4,2],
 "d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html#a2d8560ea1c835a88da94baf0a460c1b5":[50,0,1,5,2,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX47 =
 "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#ac6dd0d449f54bd82ac3529436d6cbdb5":[50,0,1,3,7,68],
 "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#ac937ae0b3f5ad1d4f70cd1d36f4af94a":[49,0,4,4,13,26],
 "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#ac937ae0b3f5ad1d4f70cd1d36f4af94a":[50,0,1,3,7,26],
-"d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#acdfc87bf1c3409ea52ee0e42ca23c64b":[50,0,1,3,7,7],
-"d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#acdfc87bf1c3409ea52ee0e42ca23c64b":[49,0,4,4,13,7]
+"d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#acdfc87bf1c3409ea52ee0e42ca23c64b":[50,0,1,3,7,7]
 };

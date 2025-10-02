@@ -1,5 +1,6 @@
 var NAVTREEINDEX56 =
 {
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#a436bbb0e8ff48bd3b80aeded4435da0a":[50,0,1,6,8,38],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a477c71f526fd0c2fc3b17ab068d77640":[50,0,1,6,8,156],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a477c71f526fd0c2fc3b17ab068d77640":[49,0,4,7,10,156],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a48e333f5292885fddcbb874422781366":[50,0,1,6,8,70],
@@ -248,6 +249,5 @@ var NAVTREEINDEX56 =
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#afa748092797ce3a712d834b6dc58923c":[50,0,1,6,8,122],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#afe9536078fd64fbc64c405134dd73778":[49,0,4,7,10,22],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#afe9536078fd64fbc64c405134dd73778":[50,0,1,6,8,22],
-"da/d2d/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html":[50,0,1,9,4,0],
-"da/d2d/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html":[49,0,4,10,7,0]
+"da/d2d/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html":[50,0,1,9,4,0]
 };

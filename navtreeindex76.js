@@ -1,5 +1,6 @@
 var NAVTREEINDEX76 =
 {
+"dd/dde/structzelda3__message.html#a08d9529b9d6499c9e07b33bde869ef53":[48,6,0,1],
 "dd/dde/structzelda3__message.html#a0b082605a170c9a06e0604d1ac316be3":[48,6,0,3],
 "dd/dde/structzelda3__message.html#a10ba5902a30138ea1839c4f02b0a8215":[48,6,0,6],
 "dd/dde/structzelda3__message.html#a8e6473e55f809b8813e0b32e919ecbd5":[48,6,0,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX76 =
 "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html":[49,0,4,8,8],
 "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html#a4924d00fea7cc331fe75eaa49d827ca4":[49,0,4,8,8,2],
 "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html#a4924d00fea7cc331fe75eaa49d827ca4":[50,0,1,7,5,2],
-"dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html#a62e80e26c9c6eb15334b68102a1121b6":[50,0,1,7,5,3],
-"dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html#a62e80e26c9c6eb15334b68102a1121b6":[49,0,4,8,8,3]
+"dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html#a62e80e26c9c6eb15334b68102a1121b6":[50,0,1,7,5,3]
 };
