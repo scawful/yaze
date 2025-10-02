@@ -1,18 +1,57 @@
+# z3ed CLI Architecture & Design
+
 ## 1. Overview
 
-This document outlines a design for the evolution of `z3ed`, the command-line interface for the YAZE project. The goal is to transform `z3ed` from a collection of utility commands into a powerful, scriptable, and extensible tool for both manual and automated ROM hacking, with a forward-looking approach to AI-driven generative development.
+This document is the **source of truth** for the z3ed CLI architecture and design. It outlines the evolution of `z3ed`, the command-line interface for the YAZE project, from a collection of utility commands into a powerful, scriptable, and extensible tool for both manual and automated ROM hacking, with full support for AI-driven generative development.
 
-### 1.1. Current State
+**Related Documents**:
+- **[E6-z3ed-implementation-plan.md](E6-z3ed-implementation-plan.md)** - Implementation tracker, task backlog, and roadmap
+- **[E6-z3ed-reference.md](E6-z3ed-reference.md)** - Technical reference: commands, APIs, troubleshooting
+- **[README.md](README.md)** - Quick overview and documentation index
 
-`z3ed` has evolved significantly. The initial limitations regarding scope, inconsistent structure, basic TUI, and limited scriptability have largely been addressed through the implementation of resource-oriented commands, modular TUI components, and structured output. The focus has shifted towards building a robust foundation for AI-driven generative hacking.
+### 1.1. Current State (October 2, 2025)
+
+`z3ed` has successfully implemented its core infrastructure and is **production-ready on macOS**:
+
+**✅ Completed Features**:
+- **Resource-Oriented CLI**: Clean `z3ed <resource> <action>` command structure
+- **Resource Catalogue**: Machine-readable API specs in YAML/JSON for AI consumption
+- **Acceptance Workflow**: Full proposal lifecycle (create → review → accept/reject → commit)
+- **ImGuiTestHarness (IT-01)**: gRPC-based GUI automation with 6 RPC methods
+- **CLI Agent Test (IT-02)**: Natural language prompts → automated GUI testing
+- **ProposalDrawer GUI**: Integrated review interface in YAZE editor
+- **ROM Sandbox Manager**: Isolated testing environment for safe experimentation
+- **Proposal Registry**: Cross-session proposal tracking with disk persistence
+
+**🔄 In Progress**:
+- **E2E Validation**: Testing complete workflow (80% done, window detection needs fix)
+
+**📋 Planned Next**:
+- **Policy Evaluation Framework (AW-04)**: YAML-based constraints for proposal acceptance
+- **Windows Cross-Platform Testing**: Validate on Windows with vcpkg
+- **Production Readiness**: Telemetry, screenshot implementation, expanded test coverage
 
 ## 2. Design Goals
 
-The proposed redesign focuses on three core pillars:
+The z3ed CLI is built on three core pillars:
 
-1.  **Power & Usability for ROM Hackers**: Empower users with fine-grained control over all aspects of the ROM directly from the command line.
-2.  **Testability & Automation**: Provide robust commands for validating ROM integrity and automating complex testing scenarios.
-3.  **AI & Generative Hacking**: Establish a powerful, scriptable API that an AI agent (MCP) can use to perform complex, generative tasks on the ROM.
+1.  **Power & Usability for ROM Hackers**: Empower users with fine-grained control over all aspects of the ROM directly from the command line, supporting both interactive exploration and scripted automation.
+
+2.  **Testability & Automation**: Provide robust commands for validating ROM integrity, automating complex testing scenarios, and enabling reproducible workflows through scripting.
+
+3.  **AI & Generative Hacking**: Establish a powerful, scriptable API that an AI agent (LLM/MCP) can use to perform complex, generative tasks on the ROM, with human oversight and approval workflows.
+
+### 2.1. Key Architectural Decisions
+
+**Resource-Oriented Command Structure**: Adopted `z3ed <resource> <action>` pattern (similar to kubectl, gcloud) for clarity and extensibility.
+
+**Machine-Readable API**: All commands documented in `docs/api/z3ed-resources.yaml` with structured schemas for AI consumption.
+
+**Proposal-Based Workflow**: AI-generated changes are sandboxed and tracked as "proposals" requiring human review and acceptance.
+
+**gRPC Test Harness**: Embedded gRPC server in YAZE enables remote GUI automation for testing and AI-driven workflows.
+
+**Cross-Platform Foundation**: Core built for macOS/Linux with Windows support planned via vcpkg.
 
 ## 3. Proposed CLI Architecture: Resource-Oriented Commands
 
