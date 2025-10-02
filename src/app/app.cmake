@@ -131,6 +131,9 @@ target_link_libraries(
   ImGui
 )
 
+# Enable policy framework in main yaze target
+target_compile_definitions(yaze PRIVATE YAZE_ENABLE_POLICY_FRAMEWORK=1)
+
 # Increase stack size on Windows to prevent stack overflow during asset loading
 # Windows default is 1MB, macOS/Linux is typically 8MB
 # LoadAssets() loads 223 graphics sheets and initializes multiple editors
