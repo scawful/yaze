@@ -172,6 +172,8 @@ if (YAZE_BUILD_LIB)
     # CLI service sources (needed for ProposalDrawer)
     cli/service/proposal_registry.cc
     cli/service/rom_sandbox_manager.cc
+    cli/service/gui_automation_client.cc
+    cli/service/test_workflow_generator.cc
   )
   
   # Create full library for C API

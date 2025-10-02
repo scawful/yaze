@@ -4,6 +4,8 @@
 #include "cli/service/proposal_registry.h"
 #include "cli/service/resource_catalog.h"
 #include "cli/service/rom_sandbox_manager.h"
+#include "cli/service/gui_automation_client.h"
+#include "cli/service/test_workflow_generator.h"
 #include "util/macro.h"
 
 #include "absl/flags/declare.h"
@@ -352,88 +354,131 @@ absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
 }
 
 absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
-    if (arg_vec.size() < 2 || arg_vec[0] != "--test") {
-        return absl::InvalidArgumentError("Usage: agent test --test <test_name>");
+    // Parse arguments
+    std::string prompt;
+    std::string host = "localhost";
+    int port = 50052;
+    int timeout_sec = 30;
+    
+    for (size_t i = 0; i < arg_vec.size(); ++i) {
+        const std::string& token = arg_vec[i];
+        
+        if (token == "--prompt" && i + 1 < arg_vec.size()) {
+            prompt = arg_vec[++i];
+        } else if (token == "--host" && i + 1 < arg_vec.size()) {
+            host = arg_vec[++i];
+        } else if (token == "--port" && i + 1 < arg_vec.size()) {
+            port = std::stoi(arg_vec[++i]);
+        } else if (token == "--timeout" && i + 1 < arg_vec.size()) {
+            timeout_sec = std::stoi(arg_vec[++i]);
+        } else if (absl::StartsWith(token, "--prompt=")) {
+            prompt = token.substr(9);
+        } else if (absl::StartsWith(token, "--host=")) {
+            host = token.substr(7);
+        } else if (absl::StartsWith(token, "--port=")) {
+            port = std::stoi(token.substr(7));
+        } else if (absl::StartsWith(token, "--timeout=")) {
+            timeout_sec = std::stoi(token.substr(10));
+        }
     }
     
-#ifdef _WIN32
-    // Windows doesn't support fork/exec, so users must run tests directly
-    return absl::UnimplementedError(
-        "GUI test command is not supported on Windows. "
-        "Please run yaze_test.exe directly with --enable-ui-tests flag.");
-#else
-    // Unix-like systems (macOS, Linux) support fork/exec for process spawning
-    std::string test_name = arg_vec[1];
+    if (prompt.empty()) {
+        return absl::InvalidArgumentError(
+            "Usage: agent test --prompt \"<prompt>\" [--host <host>] [--port <port>] [--timeout <sec>]\n\n"
+            "Examples:\n"
+            "  z3ed agent test --prompt \"Open Overworld editor\"\n"
+            "  z3ed agent test --prompt \"Open Dungeon editor and verify it loads\"\n"
+            "  z3ed agent test --prompt \"Click Open ROM button\"");
+    }
     
-    // Get the executable path using platform-specific methods
-    char exe_path[1024];
-#ifdef __APPLE__
-    uint32_t size = sizeof(exe_path);
-    if (_NSGetExecutablePath(exe_path, &size) != 0) {
-        return absl::InternalError("Could not get executable path");
-    }
-#elif defined(__linux__)
-    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
-    if (len == -1) {
-        return absl::InternalError("Could not get executable path");
-    }
-    exe_path[len] = '\0';
-#else
+#ifndef YAZE_WITH_GRPC
     return absl::UnimplementedError(
-        "GUI test command is not supported on this platform. "
-        "Please run yaze_test directly with --enable-ui-tests flag.");
-#endif
-
-    // Extract directory from executable path
-    std::string exe_dir = std::string(exe_path);
-    exe_dir = exe_dir.substr(0, exe_dir.find_last_of("/"));
-    std::string yaze_test_path = exe_dir + "/yaze_test";
-
-    // Prepare command arguments for execv
-    std::vector<std::string> command_args;
-    command_args.push_back(yaze_test_path);
-    command_args.push_back("--enable-ui-tests");
-    command_args.push_back("--test=" + test_name);
-
-    std::vector<char*> argv;
-    for (const auto& arg : command_args) {
-        argv.push_back((char*)arg.c_str());
+        "GUI automation requires YAZE_WITH_GRPC=ON at build time.\n"
+        "Rebuild with: cmake -B build -DYAZE_WITH_GRPC=ON");
+#else
+    std::cout << "\n=== GUI Automation Test ===\n";
+    std::cout << "Prompt: " << prompt << "\n";
+    std::cout << "Server: " << host << ":" << port << "\n\n";
+    
+    // Generate workflow from prompt
+    TestWorkflowGenerator generator;
+    auto workflow_or = generator.GenerateWorkflow(prompt);
+    if (!workflow_or.ok()) {
+        return workflow_or.status();
     }
-    argv.push_back(nullptr);
-
-    // Fork and execute the test process
-    pid_t pid = fork();
-    if (pid == -1) {
-        return absl::InternalError("Failed to fork process");
+    auto workflow = workflow_or.value();
+    
+    std::cout << "Generated workflow:\n" << workflow.ToString() << "\n";
+    
+    // Connect to test harness
+    GuiAutomationClient client(absl::StrFormat("%s:%d", host, port));
+    auto connect_status = client.Connect();
+    if (!connect_status.ok()) {
+        return absl::UnavailableError(
+            absl::StrFormat(
+                "Failed to connect to test harness at %s:%d\n"
+                "Make sure YAZE is running with:\n"
+                "  ./yaze --enable_test_harness --test_harness_port=%d --rom_file=<rom>\n\n"
+                "Error: %s",
+                host, port, port, connect_status.message()));
     }
-
-    if (pid == 0) {
-        // Child process: execute the test binary
-        execv(yaze_test_path.c_str(), argv.data());
-        // If execv returns, it must have failed
-        _exit(EXIT_FAILURE);  // Use _exit in child process after failed exec
-    } else {
-        // Parent process: wait for child to complete
-        int status;
-        if (waitpid(pid, &status, 0) == -1) {
-            return absl::InternalError("Failed to wait for child process");
+    
+    std::cout << "✓ Connected to test harness\n\n";
+    
+    // Execute workflow
+    auto start_time = std::chrono::steady_clock::now();
+    int step_num = 0;
+    
+    for (const auto& step : workflow.steps) {
+        step_num++;
+        std::cout << absl::StrFormat("[%d/%d] %s ... ", step_num,
+                                     workflow.steps.size(), step.ToString());
+        std::cout.flush();
+        
+        absl::StatusOr<AutomationResult> result;
+        
+        switch (step.type) {
+            case TestStepType::kClick:
+                result = client.Click(step.target);
+                break;
+            case TestStepType::kType:
+                result = client.Type(step.target, step.text, step.clear_first);
+                break;
+            case TestStepType::kWait:
+                result = client.Wait(step.condition, step.timeout_ms);
+                break;
+            case TestStepType::kAssert:
+                result = client.Assert(step.condition);
+                break;
+            case TestStepType::kScreenshot:
+                result = client.Screenshot();
+                break;
         }
         
-        if (WIFEXITED(status)) {
-            int exit_code = WEXITSTATUS(status);
-            if (exit_code == 0) {
-                return absl::OkStatus();
-            } else {
-                return absl::InternalError(
-                    absl::StrFormat("yaze_test exited with code %d", exit_code));
-            }
-        } else if (WIFSIGNALED(status)) {
+        if (!result.ok()) {
+            std::cout << "✗ FAILED\n";
             return absl::InternalError(
-                absl::StrFormat("yaze_test terminated by signal %d", WTERMSIG(status)));
-        } else {
-            return absl::InternalError("yaze_test terminated abnormally");
+                absl::StrFormat("Step %d failed: %s", step_num,
+                                result.status().message()));
         }
+        
+        if (!result->success) {
+            std::cout << "✗ FAILED\n";
+            std::cout << "  Error: " << result->message << "\n";
+            return absl::InternalError(
+                absl::StrFormat("Step %d failed: %s", step_num, result->message));
+        }
+        
+        std::cout << absl::StrFormat("✓ (%lldms)\n",
+                                     result->execution_time.count());
     }
+    
+    auto end_time = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        end_time - start_time);
+    
+    std::cout << "\n✅ Test passed in " << elapsed.count() << "ms\n";
+    return absl::OkStatus();
 #endif
 }
 

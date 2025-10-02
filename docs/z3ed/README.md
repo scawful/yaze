@@ -90,9 +90,48 @@ Historical documentation (design decisions, phase completions, technical notes) 
 - **Testing** ✅: E2E test script operational (`scripts/test_harness_e2e.sh`)
 - **Documentation** ✅: Complete guides (QUICKSTART, PHASE3-COMPLETE)
 
-**See**: [IT-01-QUICKSTART.md](IT-01-QUICKSTART.md) for usage examples and [IT-01-PHASE3-COMPLETE.md](IT-01-PHASE3-COMPLETE.md) for implementation details
+**See**: [IT-01-QUICKSTART.md](IT-01-QUICKSTART.md) for usage examples
 
-### 📋 Priority 1: End-to-End Workflow Validation (ACTIVE)
+### ✅ IT-02: CLI Agent Test Command (COMPLETE) 🎉
+**Implementation Complete**: Natural language → automated GUI testing  
+**Time Invested**: 4 hours (design + implementation + documentation)  
+**Status**: Ready for validation
+
+**Components**:
+- **GuiAutomationClient**: gRPC wrapper for CLI usage (6 RPC methods)
+- **TestWorkflowGenerator**: Natural language prompt parser (4 pattern types)
+- **`z3ed agent test`**: End-to-end automation command
+
+**Supported Prompts**:
+1. "Open Overworld editor" → Click + Wait
+2. "Open Dungeon editor and verify it loads" → Click + Wait + Assert
+3. "Type 'zelda3.sfc' in filename input" → Click + Type
+4. "Click Open ROM button" → Single click
+
+**Example Usage**:
+```bash
+# Start YAZE with test harness
+./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \
+  --enable_test_harness \
+  --test_harness_port=50052 \
+  --rom_file=assets/zelda3.sfc &
+
+# Run automated test
+./build-grpc-test/bin/z3ed agent test \
+  --prompt "Open Overworld editor"
+
+# Output:
+# === GUI Automation Test ===
+# Prompt: Open Overworld editor
+# ...
+# [1/2] Click(button:Overworld) ... ✓ (125ms)
+# [2/2] Wait(window_visible:Overworld Editor, 5000ms) ... ✓ (1250ms)
+# ✅ Test passed in 1375ms
+```
+
+**See**: [IMPLEMENTATION_PROGRESS_OCT2.md](IMPLEMENTATION_PROGRESS_OCT2.md) for complete details
+
+### 📋 Priority 1: End-to-End Workflow Validation (NEXT)
 **Goal**: Test complete proposal lifecycle with real GUI and widgets  
 **Time Estimate**: 2-3 hours  
 **Status**: Ready to execute - all prerequisites complete
@@ -101,19 +140,10 @@ Historical documentation (design decisions, phase completions, technical notes) 
 1. Run E2E test script and validate all RPCs
 2. Test proposal workflow: Create → Review → Accept/Reject
 3. Test GUI automation with real YAZE widgets
-4. Document edge cases and troubleshooting
+4. Validate CLI agent test command with multiple prompts
+5. Document edge cases and troubleshooting
 
-**See**: [NEXT_PRIORITIES_OCT2.md](NEXT_PRIORITIES_OCT2.md) for detailed breakdown
-
-### 📋 Priority 2: CLI Agent Test Command (IT-02)
-**Goal**: Natural language prompt → automated GUI test workflow  
-**Time Estimate**: 4-6 hours  
-**Blocking**: Priority 1 completion
-
-**Implementation**:
-- gRPC client library for CLI usage
-- Test workflow generator (prompt parsing)
-- `z3ed agent test` command implementation
+**See**: [E2E_VALIDATION_GUIDE.md](E2E_VALIDATION_GUIDE.md) for detailed checklist
 
 ### 📋 Priority 3: Policy Evaluation Framework (AW-04)
 **Goal**: YAML-based constraint system for gating proposal acceptance  
