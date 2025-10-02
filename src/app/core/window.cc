@@ -45,6 +45,11 @@ absl::Status CreateWindow(Window& window, int flags) {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+  // Initialize ImGuiTestEngine after ImGui context is created
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+  test::TestManager::Get().InitializeUITesting();
+#endif
+
   ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(),
                                     Renderer::Get().renderer());
   ImGui_ImplSDLRenderer2_Init(Renderer::Get().renderer());

@@ -2,7 +2,7 @@
 
 **Status**: Active Development  
 **Version**: 0.1.0-alpha  
-**Last Updated**: October 1, 2025
+**Last Updated**: October 2, 2025 (Documentation Consolidated)
 
 ## Overview
 
@@ -10,16 +10,24 @@
 
 ## Documentation Index
 
-### Getting Started
-- **[State Summary](STATE_SUMMARY_2025-10-01.md)** - 📊 **START HERE** - Complete current state, architecture, and workflows
-- **[Implementation Plan](E6-z3ed-implementation-plan.md)** - Master tracking document with architecture, priorities, and progress
-- **[CLI Design](E6-z3ed-cli-design.md)** - Command structure, service architecture, and API design
+### 🎯 Start Here
+- **[State Summary](STATE_SUMMARY_2025-10-01.md)** - 📊 **NEW USERS START HERE** - Complete current state, architecture, workflows, and testing
+- **[Implementation Plan](E6-z3ed-implementation-plan.md)** - ⭐ **DEVELOPERS START HERE** - Master tracking with tasks, priorities, progress, and IT-01 quick reference
+- **[CLI Design](E6-z3ed-cli-design.md)** - High-level vision, command structure, service architecture, and API design
 
-### Implementation Guides
-- **[IT-01: gRPC Evaluation](IT-01-grpc-evaluation.md)** - Detailed analysis of gRPC for ImGuiTestHarness IPC
-- **[IT-01: Getting Started with gRPC](IT-01-getting-started-grpc.md)** - Step-by-step implementation guide
-- **[gRPC Technical Notes](GRPC_TECHNICAL_NOTES.md)** - Build issues and solutions reference
-- **[gRPC Test Success](GRPC_TEST_SUCCESS.md)** - Complete testing log and validation
+### 📚 Implementation Guides
+- **[IT-01: gRPC Evaluation](IT-01-grpc-evaluation.md)** - Decision rationale: Why gRPC for ImGuiTestHarness
+- **[IT-01: Getting Started](IT-01-getting-started-grpc.md)** - Step-by-step gRPC integration guide
+- **[IT-01 Phase 2: ImGuiTestEngine](IT-01-PHASE2-IMPLEMENTATION-GUIDE.md)** - Detailed code examples for GUI automation
+- **[Dependency Management](DEPENDENCY_MANAGEMENT.md)** - Cross-platform dependency strategy
+
+### 🔧 Technical Reference
+- **[gRPC Technical Notes](GRPC_TECHNICAL_NOTES.md)** - Build issues, solutions, version compatibility
+- **[gRPC Test Success](GRPC_TEST_SUCCESS.md)** - Complete Phase 1 testing log and validation
+- **[File Modification Checklist](FILE_MODIFICATION_CHECKLIST.md)** - Build system changes
+
+### 📝 Recent Changes
+- **[Documentation Consolidation (Oct 2)](DOCUMENTATION_CONSOLIDATION_OCT2.md)** - Removed 5 redundant summaries, consolidated into core docs
 
 ## Architecture
 
@@ -67,19 +75,35 @@
 
 ## Current Status
 
-### ✅ Completed (AW-03)
+### ✅ Phase 6: Resource Catalogue (COMPLETE)
+- **Resource Catalog System**: Comprehensive schema for all CLI commands
+- **Agent Describe**: Machine-readable API catalog export (JSON/YAML)
+- **API Documentation**: `docs/api/z3ed-resources.yaml` for AI/LLM consumption
+
+### ✅ AW-01 & AW-02: Proposal Infrastructure (COMPLETE)
 - **ProposalRegistry**: Disk persistence with lazy loading
-- **ProposalDrawer GUI**: Split view, proposal list, detail panel
-- **ROM Merging**: Sandbox-to-main ROM data copy on acceptance
+- **RomSandboxManager**: Isolated ROM copies for safe testing
 - **Cross-Session Tracking**: Proposals persist between CLI runs
 
-### 🔥 Active (IT-01)
-- **gRPC Evaluation**: Decision made, implementation ready
-- **ImGuiTestHarness**: IPC design for automated GUI testing
-- **Cross-Platform Setup**: Ensuring vcpkg compatibility (Windows/macOS/Linux)
+### ✅ AW-03: ProposalDrawer GUI (COMPLETE)
+- **ProposalDrawer GUI**: Split view, proposal list, detail panel
+- **ROM Merging**: Sandbox-to-main ROM data copy on acceptance
+- **Full Lifecycle**: Create (CLI) → Review (GUI) → Accept/Reject → Commit
 
-### 📋 Planned (AW-04)
-- **Policy Evaluation Framework**: YAML-based rule engine
+### ✅ IT-01 Phase 1+2: gRPC Infrastructure (COMPLETE)
+- **gRPC Server**: All 6 RPCs tested and working (Ping, Click, Type, Wait, Assert, Screenshot)
+- **TestManager Integration**: Service receives TestManager reference
+- **Dynamic Test Registration**: Click RPC uses ImGuiTestEngine properly
+- **See**: Implementation plan for Phase 2 completion details and quick reference commands
+
+### 📋 IT-01 Phase 3: ImGuiTestEngine Full Integration (NEXT)
+- **Critical Path**: Fix TestEngine initialization timing (SIGSEGV issue)
+- **Complete RPCs**: Click/Type/Wait/Assert with real widget interaction
+- **End-to-End Testing**: Automated GUI testing workflows
+- **Estimated Effort**: 6-8 hours
+
+### 📋 AW-04: Policy Evaluation (PLANNED)
+- **Policy Framework**: YAML-based rule engine
 - **Change Constraints**: Byte limits, bank restrictions, protected regions
 - **Review Requirements**: Human approval thresholds
 

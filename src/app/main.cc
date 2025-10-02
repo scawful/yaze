@@ -2,6 +2,7 @@
 #include "app/core/platform/app_delegate.h"
 #endif
 
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
 #include "app/core/controller.h"
@@ -11,6 +12,7 @@
 
 #ifdef YAZE_WITH_GRPC
 #include "app/core/imgui_test_harness_service.h"
+#include "app/test/test_manager.h"
 #endif
 
 /**
@@ -71,11 +73,14 @@ int main(int argc, char **argv) {
 #ifdef YAZE_WITH_GRPC
   // Start gRPC test harness server if requested
   if (FLAGS_enable_test_harness->Get()) {
+    // Get TestManager instance (initializes UI testing if available)
+    auto& test_manager = yaze::test::TestManager::Get();
+    
     auto& server = yaze::test::ImGuiTestHarnessServer::Instance();
     int port = FLAGS_test_harness_port->Get();
     
     std::cout << "\n🚀 Starting ImGui Test Harness on port " << port << "..." << std::endl;
-    auto status = server.Start(port);
+    auto status = server.Start(port, &test_manager);
     if (!status.ok()) {
       std::cerr << "❌ ERROR: Failed to start test harness server on port " << port << std::endl;
       std::cerr << "   " << status.message() << std::endl;

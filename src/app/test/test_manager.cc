@@ -64,10 +64,8 @@ TestManager& TestManager::Get() {
 }
 
 TestManager::TestManager() {
-// Initialize UI test engine
-#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-  InitializeUITesting();
-#endif
+  // Note: UI test engine initialization is deferred until ImGui context is ready
+  // Call InitializeUITesting() explicitly after ImGui::CreateContext()
 }
 
 TestManager::~TestManager() {
@@ -79,6 +77,12 @@ TestManager::~TestManager() {
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 void TestManager::InitializeUITesting() {
   if (!ui_test_engine_) {
+    // Check if ImGui context is ready
+    if (ImGui::GetCurrentContext() == nullptr) {
+      util::logf("[TestManager] Warning: ImGui context not ready, deferring test engine initialization");
+      return;
+    }
+    
     ui_test_engine_ = ImGuiTestEngine_CreateContext();
     if (ui_test_engine_) {
       ImGuiTestEngineIO& test_io = ImGuiTestEngine_GetIO(ui_test_engine_);
@@ -88,6 +92,7 @@ void TestManager::InitializeUITesting() {
       
       // Start the test engine
       ImGuiTestEngine_Start(ui_test_engine_, ImGui::GetCurrentContext());
+      util::logf("[TestManager] ImGuiTestEngine initialized successfully");
     }
   }
 }

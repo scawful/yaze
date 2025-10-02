@@ -4,11 +4,32 @@
 
 #include <chrono>
 #include <iostream>
+#include <thread>
 
 #include "absl/strings/str_format.h"
 #include "app/core/proto/imgui_test_harness.grpc.pb.h"
 #include "app/core/proto/imgui_test_harness.pb.h"
+#include "app/test/test_manager.h"
 #include "yaze.h"  // For YAZE_VERSION_STRING
+
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+#include "imgui_test_engine/imgui_te_engine.h"
+#include "imgui_test_engine/imgui_te_context.h"
+
+// Helper to register and run a test dynamically
+namespace {
+struct DynamicTestData {
+  std::function<void(ImGuiTestContext*)> test_func;
+};
+
+void RunDynamicTest(ImGuiTestContext* ctx) {
+  auto* data = (DynamicTestData*)ctx->Test->UserData;
+  if (data && data->test_func) {
+    data->test_func(ctx);
+  }
+}
+}  // namespace
+#endif
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/server_builder.h>
@@ -113,7 +134,110 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
                                                  ClickResponse* response) {
   auto start = std::chrono::steady_clock::now();
 
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+  // Validate test manager
+  if (!test_manager_) {
+    response->set_success(false);
+    response->set_message("TestManager not available");
+    return absl::OkStatus();
+  }
+
+  // Get ImGuiTestEngine
+  ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
+  if (!engine) {
+    response->set_success(false);
+    response->set_message("ImGuiTestEngine not initialized");
+    return absl::OkStatus();
+  }
+
   // Parse target: "button:Open ROM" -> type=button, label="Open ROM"
+  std::string target = request->target();
+  size_t colon_pos = target.find(':');
+
+  if (colon_pos == std::string::npos) {
+    response->set_success(false);
+    response->set_message("Invalid target format. Use 'type:label' (e.g. 'button:Open ROM')");
+    return absl::OkStatus();
+  }
+
+  std::string widget_type = target.substr(0, colon_pos);
+  std::string widget_label = target.substr(colon_pos + 1);
+
+  // Convert click type
+  ImGuiMouseButton mouse_button = ImGuiMouseButton_Left;
+  switch (request->type()) {
+    case ClickRequest::LEFT:
+      mouse_button = ImGuiMouseButton_Left;
+      break;
+    case ClickRequest::RIGHT:
+      mouse_button = ImGuiMouseButton_Right;
+      break;
+    case ClickRequest::MIDDLE:
+      mouse_button = ImGuiMouseButton_Middle;
+      break;
+    case ClickRequest::DOUBLE:
+      // Double click handled below
+      break;
+    default:
+      break;
+  }
+
+  // Create a dynamic test to perform the click
+  bool success = false;
+  std::string message;
+  
+  auto test_data = std::make_shared<DynamicTestData>();
+  test_data->test_func = [=, &success, &message](ImGuiTestContext* ctx) {
+    try {
+      if (request->type() == ClickRequest::DOUBLE) {
+        ctx->ItemDoubleClick(widget_label.c_str());
+      } else {
+        ctx->ItemClick(widget_label.c_str(), mouse_button);
+      }
+      success = true;
+      message = absl::StrFormat("Clicked %s '%s'", widget_type, widget_label);
+    } catch (const std::exception& e) {
+      success = false;
+      message = absl::StrFormat("Click failed: %s", e.what());
+    }
+  };
+
+  // Register and queue the test
+  std::string test_name = absl::StrFormat("grpc_click_%lld", 
+      std::chrono::system_clock::now().time_since_epoch().count());
+  
+  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
+  test->TestFunc = RunDynamicTest;
+  test->UserData = test_data.get();
+  
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
+  
+  // Wait for test to complete (with timeout)
+  auto timeout = std::chrono::seconds(5);
+  auto wait_start = std::chrono::steady_clock::now();
+  while (test->Output.Status == ImGuiTestStatus_Queued || test->Output.Status == ImGuiTestStatus_Running) {
+    if (std::chrono::steady_clock::now() - wait_start > timeout) {
+      success = false;
+      message = "Test timeout";
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  
+  if (test->Output.Status == ImGuiTestStatus_Success) {
+    success = true;
+  } else if (test->Output.Status != ImGuiTestStatus_Unknown) {
+    success = false;
+    if (message.empty()) {
+      message = "Test failed";
+    }
+  }
+  
+  // Cleanup
+  ImGuiTestEngine_UnregisterTest(engine, test);
+
+#else
+  // ImGuiTestEngine not available - stub implementation
   std::string target = request->target();
   size_t colon_pos = target.find(':');
 
@@ -125,16 +249,17 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
 
   std::string widget_type = target.substr(0, colon_pos);
   std::string widget_label = target.substr(colon_pos + 1);
+  bool success = true;
+  std::string message = absl::StrFormat("[STUB] Clicked %s '%s' (ImGuiTestEngine not available)", 
+                                       widget_type, widget_label);
+#endif
 
-  // TODO: Integrate with ImGuiTestEngine to actually perform the click
-  // For now, just simulate success
-
+  // Calculate execution time
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
 
-  response->set_success(true);
-  response->set_message(
-      absl::StrFormat("Clicked %s '%s'", widget_type, widget_label));
+  response->set_success(success);
+  response->set_message(message);
   response->set_execution_time_ms(elapsed.count());
 
   return absl::OkStatus();
@@ -144,14 +269,16 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
                                                 TypeResponse* response) {
   auto start = std::chrono::steady_clock::now();
 
-  // TODO: Implement actual text input via ImGuiTestEngine
-  
+  // TODO: Implement with ImGuiTestEngine dynamic tests like Click handler
+  bool success = true;
+  std::string message = absl::StrFormat("Typed '%s' into %s (implementation pending)",
+                                       request->text(), request->target());
+
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
 
-  response->set_success(true);
-  response->set_message(
-      absl::StrFormat("Typed '%s' into %s", request->text(), request->target()));
+  response->set_success(success);
+  response->set_message(message);
   response->set_execution_time_ms(elapsed.count());
 
   return absl::OkStatus();
@@ -161,28 +288,27 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
                                                 WaitResponse* response) {
   auto start = std::chrono::steady_clock::now();
 
-  // TODO: Implement actual condition polling
+  // TODO: Implement with ImGuiTestEngine dynamic tests
+  bool condition_met = true;
+  std::string message = absl::StrFormat("Condition '%s' met (implementation pending)",
+                                       request->condition());
 
-  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-      std::chrono::steady_clock::now() - start);
-
-  response->set_success(true);
-  response->set_message(
-      absl::StrFormat("Condition '%s' met", request->condition()));
-  response->set_elapsed_ms(elapsed.count());
+  response->set_success(condition_met);
+  response->set_message(message);
+  response->set_elapsed_ms(0);
 
   return absl::OkStatus();
 }
 
 absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
                                                   AssertResponse* response) {
-  // TODO: Implement actual assertion checking
-
+  // TODO: Implement with ImGuiTestEngine dynamic tests
   response->set_success(true);
   response->set_message(
-      absl::StrFormat("Assertion '%s' passed", request->condition()));
-  response->set_actual_value("(not implemented)");
-  response->set_expected_value("(not implemented)");
+      absl::StrFormat("Assertion '%s' passed (implementation pending)", 
+                     request->condition()));
+  response->set_actual_value("(pending)");
+  response->set_expected_value("");  // Set empty string instead of accessing non-existent field
 
   return absl::OkStatus();
 }
@@ -212,13 +338,17 @@ ImGuiTestHarnessServer::~ImGuiTestHarnessServer() {
   Shutdown();
 }
 
-absl::Status ImGuiTestHarnessServer::Start(int port) {
+absl::Status ImGuiTestHarnessServer::Start(int port, TestManager* test_manager) {
   if (server_) {
     return absl::FailedPreconditionError("Server already running");
   }
 
-  // Create the service implementation
-  service_ = std::make_unique<ImGuiTestHarnessServiceImpl>();
+  if (!test_manager) {
+    return absl::InvalidArgumentError("TestManager cannot be null");
+  }
+
+  // Create the service implementation with TestManager reference
+  service_ = std::make_unique<ImGuiTestHarnessServiceImpl>(test_manager);
 
   // Create the gRPC service wrapper (store as member to prevent it from going out of scope)
   grpc_service_ = std::make_unique<ImGuiTestHarnessServiceGrpc>(service_.get());
@@ -245,7 +375,7 @@ absl::Status ImGuiTestHarnessServer::Start(int port) {
   port_ = port;
 
   std::cout << "✓ ImGuiTestHarness gRPC server listening on " << server_address
-            << "\n";
+            << " (with TestManager integration)\n";
   std::cout << "  Use 'grpcurl -plaintext -d '{\"message\":\"test\"}' "
             << server_address << " yaze.test.ImGuiTestHarness/Ping' to test\n";
 

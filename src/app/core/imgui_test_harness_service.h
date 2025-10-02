@@ -20,6 +20,9 @@ class ServerContext;
 namespace yaze {
 namespace test {
 
+// Forward declare TestManager
+class TestManager;
+
 // Forward declare proto types
 class PingRequest;
 class PingResponse;
@@ -38,7 +41,9 @@ class ScreenshotResponse;
 // This class provides the actual RPC handlers for automated GUI testing
 class ImGuiTestHarnessServiceImpl {
  public:
-  ImGuiTestHarnessServiceImpl() = default;
+  // Constructor now takes TestManager reference for ImGuiTestEngine access
+  explicit ImGuiTestHarnessServiceImpl(TestManager* test_manager)
+      : test_manager_(test_manager) {}
   ~ImGuiTestHarnessServiceImpl() = default;
 
   // Disable copy and move
@@ -66,6 +71,9 @@ class ImGuiTestHarnessServiceImpl {
   // Capture a screenshot
   absl::Status Screenshot(const ScreenshotRequest* request,
                           ScreenshotResponse* response);
+
+ private:
+  TestManager* test_manager_;  // Non-owning pointer to access ImGuiTestEngine
 };
 
 // Forward declaration of the gRPC service wrapper
@@ -80,8 +88,9 @@ class ImGuiTestHarnessServer {
 
   // Start the gRPC server on the specified port
   // @param port The port to listen on (default 50051)
+  // @param test_manager Pointer to TestManager for ImGuiTestEngine access
   // @return OK status if server started successfully, error otherwise
-  absl::Status Start(int port = 50051);
+  absl::Status Start(int port, TestManager* test_manager);
 
   // Shutdown the server gracefully
   void Shutdown();
