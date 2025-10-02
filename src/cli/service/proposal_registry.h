@@ -108,6 +108,7 @@ class ProposalRegistry {
   ProposalRegistry();
 
   absl::Status EnsureRootExistsLocked();
+  absl::Status LoadProposalsFromDiskLocked();
   std::string GenerateProposalIdLocked();
   std::filesystem::path ProposalDirectory(absl::string_view proposal_id) const;
 

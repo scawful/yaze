@@ -14,25 +14,31 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 | Verification Pipeline | Build layered testing + CI coverage. | Phase 6+ | Integrates with harness + CLI suites. |
 | Telemetry & Learning | Capture signals to improve prompts + heuristics. | Phase 8 | Optional/opt-in features. |
 
-### Progress snapshot — 2025-10-01 final update (Phase 6 + AW-03 Complete + Graphics Fix)
+### Progress snapshot — 2025-10-01 (Phase 6 Complete, AW-03 Complete)
 
-- ✅ CLI global flag passthrough now preserves subcommand options, letting `agent describe` and palette routines accept both space-separated and `--flag=value` styles alongside the updated help text.
-- ✅ `agent describe --format yaml` writes catalog data end-to-end; JSON format also working correctly.
-- ✅ Expanded `ImGuiTestHarness` design with concrete transport, message envelope, and lifecycle details to unblock IT-01 spike.
-- ✅ Fixed `rom info` segfault by creating dedicated `RomInfo` handler that properly uses the `--rom` flag instead of positional arguments. Command now works correctly with flag-based dispatch.
-- ✅ Added `rom info` action to resource catalog with proper schema documentation including return values (title, size, filename).
-- ✅ Generated and committed `docs/api/z3ed-resources.yaml` as authoritative machine-readable API reference for CLI automation (RC-02 complete).
-- ✅ **Implemented `ProposalRegistry` service** for tracking agent-generated ROM modifications with metadata, diffs, logs, and screenshots.
-- ✅ **Integrated ProposalRegistry into `agent run` workflow** - all command executions are now logged and tracked.
-- ✅ **RomSandboxManager fully operational** with lifecycle management for proposal tracking.
-- ✅ **Enhanced `agent diff` command** to read and display proposal diffs from ProposalRegistry with detailed metadata, execution logs, and next-step guidance.
-- ✅ **Added `--proposal-id` flag to `agent diff`** for viewing specific proposals (not just latest pending).
-- ✅ **Implemented `agent list` command** to enumerate all proposals with status filtering and metadata display.
-- ✅ **Updated resource catalog** with agent list and diff actions including comprehensive argument and return schemas.
-- ✅ **Regenerated API documentation** (`docs/api/z3ed-resources.yaml`) with all new agent commands.
-- ✅ **Implemented ProposalDrawer ImGui component** with proposal list, detail view, and accept/reject/delete actions (AW-03).
-- ✅ **Fixed linker errors** by adding CLI service sources to app/emu/lib build targets in CMake configuration.
-- ✅ **Fixed RAII shutdown crash** in `PerformanceProfiler` - added shutdown flag and validity checks to prevent segfault during static destruction (see `docs/gfx-raii-shutdown-fix.md`).
+**Resource Catalogue (RC)** ✅ COMPLETE:
+- CLI flag passthrough and resource catalog system operational
+- `agent describe` exports YAML/JSON command schemas for AI consumption
+- `docs/api/z3ed-resources.yaml` generated and maintained
+- Fixed `rom info` segfault with dedicated handler
+
+**Acceptance Workflow (AW-01, AW-02, AW-03)** ✅ COMPLETE:
+- `ProposalRegistry` tracks agent modifications with metadata/diffs/logs
+- `RomSandboxManager` handles isolated ROM copies
+- `agent list` and `agent diff` commands operational
+- **ProposalDrawer ImGui GUI** implemented with list/detail views and accept/reject/delete actions
+- Integrated into EditorManager (`Debug → Agent Proposals` menu)
+- Fixed CMake linker errors across all app targets
+- **Known limitation**: ROM merging in `AcceptProposal()` not yet implemented (TODO)
+
+**Graphics System** ✅ FIXED:
+- Fixed RAII shutdown crash in `PerformanceProfiler` (static destruction order issue)
+- Added shutdown flag and validity checks - application now exits cleanly
+- Enables stable testing and performance monitoring for AI workflow
+
+**Agent Run** ✅ FIXED:
+- Added automatic ROM loading from `--rom` flag when not already loaded
+- Proper error messages guide users to specify ROM path
 
 ## 2. Task Backlog
 
@@ -59,23 +65,60 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 
 _Status Legend: Prototype · In Progress · Planned · Blocked · Done_
 
-## 3. Immediate Next Steps
+## 3. Immediate Next Steps (Week of Oct 1-7, 2025)
 
-1. ✅ **COMPLETED**: Automated catalog export into `docs/api/z3ed-resources.yaml` - both JSON and YAML formats work correctly (RC-02, RC-03).
-2. ✅ **COMPLETED**: Fixed `rom info` crash - created dedicated `RomInfo` handler that uses `FLAGS_rom` instead of positional arguments (RC-05).
-3. ✅ **COMPLETED**: Wired `RomSandboxManager` and `ProposalRegistry` into agent run workflow with full logging and metadata tracking (AW-01, AW-02).
-4. ✅ **COMPLETED**: Enhanced `agent diff` command to read and display proposal diffs from ProposalRegistry with formatted output, execution logs, and next-step guidance.
-5. ✅ **COMPLETED**: Added `agent list` command to enumerate all proposals with status filtering.
-6. ✅ **COMPLETED**: Added `--proposal-id` flag to `agent diff` for viewing specific proposals.
-7. ✅ **COMPLETED**: Updated resource catalog with agent list and diff actions including arguments and return schemas.
-8. ✅ **COMPLETED**: Implemented ProposalDrawer ImGui component with proposal list, detail view, and accept/reject/delete actions (AW-03).
-9. ✅ **COMPLETED**: Fixed RAII shutdown crash in `PerformanceProfiler` for clean application exit.
-10. **IN PROGRESS**: Test ProposalDrawer in running application with live proposals.
-11. **PLANNED**: Complete ROM merging in AcceptProposal method (AW-03 TODO).
-12. **PLANNED**: Spike IPC options for `ImGuiTestHarness` (socket vs. HTTP vs. shared memory) and document findings (IT-01).
-13. **PLANNED**: Integrate schema export with TUI command palette + help overlays (RC-04).
+### Priority 0: Debug & Stabilize (Active)
+1. **FIX**: Debug `stoi` crash in `agent run` command execution
+   - Error occurs when executing agent commands via ModernCLI
+   - Investigate command parsing and proposal creation flow
 
-## 4. Open Questions
+### Priority 1: Complete AW-03 (2-3 hours)
+2. **TEST**: ProposalDrawer with live proposals
+   - Create test proposals via CLI with working prompts
+   - Verify list view, detail view, filtering, refresh
+   - Test Accept/Reject/Delete actions
+   
+3. **IMPLEMENT**: ROM merging in `AcceptProposal()` method
+   - Add ROM reference to ProposalDrawer
+   - Load sandbox ROM and merge into main ROM
+   - Add save prompt after successful merge
+   - Test merge + undo/redo integration
+
+### Priority 2: Policy Evaluation (AW-04, 4-6 hours)
+4. **DESIGN**: Policy evaluation framework
+   - YAML-based policy configuration (`.yaze/policies/agent.yaml`)
+   - Policy types: test requirements, change constraints, review requirements
+   - PolicyEvaluator service for checking proposals against rules
+   
+5. **INTEGRATE**: Policy checks in ProposalDrawer UI
+   - Display policy violations in detail view
+   - Gate accept button based on policy results
+   - Show helpful messages for blocked proposals
+
+### Priority 3: Testing Infrastructure (VP-01, ongoing)
+6. **EXPAND**: CLI unit tests for agent commands
+7. **ADD**: Integration tests for proposal workflow
+
+### Later: ImGuiTestHarness (IT-01)
+- Spike IPC transport options (socket/HTTP/shared memory)
+- Design harness architecture
+- Create proof-of-concept
+
+## 4. Current Issues & Blockers
+
+### Active Issues
+1. **BLOCKER**: `std::invalid_argument: stoi: no conversion` crash in `agent run`
+   - Occurs when executing generated commands
+   - Blocks testing of ProposalDrawer with real proposals
+   - Needs immediate investigation
+
+### Known Limitations (Non-Blocking)
+1. ROM merging not implemented in `AcceptProposal()` - status updates only
+2. Large diffs truncated at 1000 lines
+3. ProposalDrawer lacks keyboard navigation
+4. Some timer warnings during shutdown (harmless but noisy)
+
+## 5. Open Questions
 
 - What serialization format should the proposal registry adopt for diff payloads (binary vs. textual vs. hybrid)?  \
 	➤ Decision: pursue a hybrid package (`.z3ed-diff`) that wraps binary tile/object deltas alongside a JSON metadata envelope (identifiers, texture descriptors, preview palette info). Capture format draft under RC/AW backlog.

@@ -6,6 +6,8 @@
 #include "cli/service/rom_sandbox_manager.h"
 #include "util/macro.h"
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/ascii.h"
@@ -17,6 +19,9 @@
 #include <cstdlib>  // For EXIT_FAILURE
 #include <fstream>
 #include <optional>
+
+// Declare the rom flag so we can access it
+ABSL_DECLARE_FLAG(std::string, rom);
 
 // Platform-specific includes for process management and executable path detection
 #if !defined(_WIN32)
@@ -106,9 +111,21 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec, Rom& rom)
     }
     std::string prompt = arg_vec[1];
     
-    // Save a sandbox copy of the ROM for proposal tracking.
+    // Load ROM if not already loaded
     if (!rom.is_loaded()) {
-        return absl::FailedPreconditionError("No ROM loaded");
+        std::string rom_path = absl::GetFlag(FLAGS_rom);
+        if (rom_path.empty()) {
+            return absl::FailedPreconditionError(
+                "No ROM loaded. Use --rom=<path> to specify ROM file.\n"
+                "Example: z3ed agent run --rom=zelda3.sfc --prompt \"Your prompt here\"");
+        }
+        
+        auto status = rom.LoadFromFile(rom_path);
+        if (!status.ok()) {
+            return absl::FailedPreconditionError(
+                absl::StrFormat("Failed to load ROM from '%s': %s", 
+                                rom_path, status.message()));
+        }
     }
 
     auto sandbox_or = RomSandboxManager::Instance().CreateSandbox(
