@@ -1,8 +1,10 @@
-#include "cli/z3ed.h"
 #include "app/core/project.h"
+#include "cli/z3ed.h"
 #include "core/platform/file_dialog.h"
 #include "util/bps.h"
+#ifndef _WIN32
 #include <glob.h>
+#endif
 
 namespace yaze {
 namespace cli {
@@ -19,7 +21,8 @@ absl::Status ProjectInit::Run(const std::vector<std::string>& arg_vec) {
     return status;
   }
 
-  std::cout << "✅ Successfully initialized project: " << project_name << std::endl;
+  std::cout << "✅ Successfully initialized project: " << project_name
+            << std::endl;
 
   return absl::OkStatus();
 }
@@ -37,15 +40,21 @@ absl::Status ProjectBuild::Run(const std::vector<std::string>& arg_vec) {
     return status;
   }
 
+#ifdef _WIN32
+  return absl::UnimplementedError(
+      "Project build with patches is not implemented on Windows yet.");
+#else
+
   // Apply BPS patches
   glob_t glob_result;
   std::string pattern = project.patches_folder + "/*.bps";
   glob(pattern.c_str(), GLOB_TILDE, NULL, &glob_result);
-  for(unsigned int i=0; i<glob_result.gl_pathc; ++i){
+  for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
     std::string patch_file = glob_result.gl_pathv[i];
     std::vector<uint8_t> patch_data;
     auto patch_contents = core::LoadFile(patch_file);
-    std::copy(patch_contents.begin(), patch_contents.end(), std::back_inserter(patch_data));
+    std::copy(patch_contents.begin(), patch_contents.end(),
+              std::back_inserter(patch_data));
     std::vector<uint8_t> patched_rom;
     util::ApplyBpsPatch(rom.vector(), patch_data, patched_rom);
     rom.LoadFromData(patched_rom);
@@ -55,12 +64,12 @@ absl::Status ProjectBuild::Run(const std::vector<std::string>& arg_vec) {
   glob_t glob_result_asm;
   std::string pattern_asm = project.patches_folder + "/*.asm";
   glob(pattern_asm.c_str(), GLOB_TILDE, NULL, &glob_result_asm);
-  for(unsigned int i=0; i<glob_result_asm.gl_pathc; ++i){
-      AsarPatch asar_patch;
-      auto status = asar_patch.Run({glob_result_asm.gl_pathv[i]});
-      if (!status.ok()) {
-          return status;
-      }
+  for (unsigned int i = 0; i < glob_result_asm.gl_pathc; ++i) {
+    AsarPatch asar_patch;
+    auto status = asar_patch.Run({glob_result_asm.gl_pathv[i]});
+    if (!status.ok()) {
+      return status;
+    }
   }
 
   std::string output_file = project.name + ".sfc";
@@ -73,8 +82,8 @@ absl::Status ProjectBuild::Run(const std::vector<std::string>& arg_vec) {
   std::cout << "   Output ROM: " << output_file << std::endl;
 
   return absl::OkStatus();
+#endif
 }
 
 }  // namespace cli
 }  // namespace yaze
-
