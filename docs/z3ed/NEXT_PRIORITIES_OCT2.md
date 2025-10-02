@@ -1,12 +1,94 @@
-# z3ed Next Priorities - October 2, 2025
+# z3ed Next Priorities - October 2, 2025 (Updated 10:15 PM)
 
-**Current Status**: IT-01 Complete ✅ | AW-03 Complete ✅ | Ready for E2E Validation
+**Current Status**: IT-02 Runtime Fix Complete ✅ | Ready for Quick Validation Testing
 
-This document outlines the immediate next steps for the z3ed agent workflow system after completing IT-01 Phase 3 (ImGuiTestEngine integration).
+This document outlines the immediate next steps for the z3ed agent workflow system after completing the IT-02 runtime fix.
 
 ---
 
-## Priority 1: End-to-End Workflow Validation (ACTIVE) 🔄
+## Priority 0: Quick Validation Testing (IMMEDIATE - TONIGHT) 🔄
+
+**Goal**: Validate that the runtime fix works correctly  
+**Time Estimate**: 15-20 minutes  
+**Status**: Ready to execute  
+**Blocking**: None - all code changes complete and compiled
+
+### Why This First?
+- Fast feedback on whether the fix actually works
+- Identifies any remaining issues early
+- Minimal time investment for critical validation
+- Enables moving forward with confidence
+
+### Task: Run Quick Test Sequence
+
+**Guide**: Follow [QUICK_TEST_RUNTIME_FIX.md](QUICK_TEST_RUNTIME_FIX.md)
+
+**6 Tests to Execute**:
+
+1. **Server Startup** (2 min)
+   ```bash
+   ./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \
+     --enable_test_harness \
+     --test_harness_port=50052 \
+     --rom_file=assets/zelda3.sfc &
+   ```
+   - ✓ Server starts without crashes
+   - ✓ Port 50052 listening
+
+2. **Ping RPC** (1 min)
+   ```bash
+   grpcurl -plaintext -import-path src/app/core/proto -proto imgui_test_harness.proto \
+     -d '{"message":"test"}' 127.0.0.1:50052 yaze.test.ImGuiTestHarness/Ping
+   ```
+   - ✓ JSON response received
+   - ✓ Version and timestamp present
+
+3. **Click RPC - Critical Test** (5 min)
+   ```bash
+   grpcurl -plaintext -import-path src/app/core/proto -proto imgui_test_harness.proto \
+     -d '{"target":"button:Overworld","type":"LEFT"}' \
+     127.0.0.1:50052 yaze.test.ImGuiTestHarness/Click
+   ```
+   - ✓ **NO ASSERTION FAILURE** (most important!)
+   - ✓ Overworld Editor opens
+   - ✓ Success response received
+
+4. **Multiple Clicks** (3 min)
+   - Click Overworld, Dungeon, Graphics buttons
+   - ✓ All succeed without crashes
+   - ✓ No memory issues
+
+5. **CLI Agent Test** (5 min)
+   ```bash
+   ./build-grpc-test/bin/z3ed agent test \
+     --prompt "Open Overworld editor"
+   ```
+   - ✓ Workflow generated
+   - ✓ All steps execute
+   - ✓ No errors
+
+6. **Graceful Shutdown** (1 min)
+   ```bash
+   killall yaze
+   ```
+   - ✓ Clean shutdown
+   - ✓ No hanging processes
+
+**Success Criteria**:
+- All 6 tests pass
+- No assertion failures
+- No crashes
+- Clean shutdown
+
+**If Tests Pass**:
+→ Move to Priority 1 (Full E2E Validation)
+
+**If Tests Fail**:
+→ Debug issues, check build artifacts, review logs
+
+---
+
+## Priority 1: End-to-End Workflow Validation (NEXT - TOMORROW)
 
 **Goal**: Validate the complete AI agent workflow from proposal creation through ROM commit  
 **Time Estimate**: 2-3 hours  
