@@ -1,9 +1,28 @@
-# z3ed Agentic Wo**Active Phase**:
-- **Policy Evaluation Framework (AW-04)**: YAML-based constraint system for gating proposal acceptance - implementation complete, ready for production testing.
+# z3ed Agentic Workflow Plan
+
+**Last Updated**: October 2, 2025
+**Status**: Core Infrastructure Complete | Test Harness Enhancement Phase 🎯
+
+> 📋 **Quick Start**: See [README.md](README.md) for essential links and project status.
+
+## Executive Summary
+
+The z3ed CLI and AI agent workflow system has completed major infrastructure milestones:
+
+**✅ Completed Phases**:
+- **Phase 6**: Resource Catalogue - Machine-readable API specs for AI consumption
+- **AW-01/02/03**: Acceptance Workflow - Proposal tracking, sandbox management, GUI review with ROM merging
+- **AW-04**: Policy Evaluation Framework - YAML-based constraint system for proposal acceptance
+- **IT-01**: ImGuiTestHarness - Full GUI automation via gRPC + ImGuiTestEngine (all 3 phases complete)
+- **IT-02**: CLI Agent Test - Natural language → automated GUI testing (implementation complete)
+
+**🔄 Active Phase**:
+- **Test Harness Enhancements (IT-05 to IT-09)**: Expanding from basic automation to comprehensive testing platform
 
 **📋 Next Phases**:
-- **Priority 1**: Production Testing - Validate policy enforcement with real ROM modification proposals.
-- **Priority 2**: Windows Cross-Platform Testing - Ensure z3ed works on Windows targets with gRPC integration.
+- **Priority 1**: Test Introspection API (IT-05) - Enable test status querying and result polling
+- **Priority 2**: Widget Discovery API (IT-06) - AI agents enumerate available GUI interactions
+- **Priority 3**: Test Recording & Replay (IT-07) - Capture workflows for regression testing
 
 **Recent Accomplishments** (Updated: January 2025):
 - **✅ Policy Framework Complete**: PolicyEvaluator service fully integrated with ProposalDrawer GUI
@@ -20,49 +39,17 @@
 - **Build System**: Hardened CMake configuration with reliable gRPC integration
 - **Proposal Workflow**: Agentic proposal system fully operational (create, list, diff, review in GUI)
 
-**Known Limitations** (Non-Blocking):
-- **Screenshot RPC**: Stub implementation (returns "not implemented" - planned for production phase)
-- **Widget Naming**: Documentation needed for icon prefixes and naming conventions
+**Known Limitations & Improvement Opportunities**:
+- **Screenshot RPC**: Stub implementation → needs SDL_Surface capture + PNG encoding
+- **Test Introspection**: No way to query test status, results, or queue → add GetTestStatus/ListTests RPCs
+- **Widget Discovery**: AI agents can't enumerate available widgets → add DiscoverWidgets RPC
+- **Test Recording**: No record/replay for regression testing → add RecordSession/ReplaySession RPCs
+- **Synchronous Wait**: Async tests return immediately → add blocking mode or result polling
+- **Error Context**: Test failures lack screenshots/state dumps → enhance error reporting
 - **Performance**: Tests add ~166ms per Wait call due to frame yielding (acceptable trade-off)
 - **YAML Parsing**: Simple parser implemented, consider yaml-cpp for complex scenarios
 
-**Time Investment**: 28.5 hours total (IT-01: 11h, IT-02: 7.5h, E2E: 2h, Policy: 6h, Docs: 2h)on Plan
-
-**Last Updated**: [Current Date]
-**Status**: Core Infrastructure Complete | E2E Validation In Progress 🎯
-
-> 📋 **Quick Start**: See [README.md](README.md) for essential links and project status.
-
-## Executive Summary
-
-The z3ed CLI and AI agent workflow system has completed major infrastructure milestones:
-
-**✅ Completed Phases**:
-- **Phase 6**: Resource Catalogue - Machine-readable API specs for AI consumption
-- **AW-01/02/03**: Acceptance Workflow - Proposal tracking, sandbox management, GUI review with ROM merging
-- **IT-01**: ImGuiTestHarness - Full GUI automation via gRPC + ImGuiTestEngine (all 3 phases complete)
-- **IT-02**: CLI Agent Test - Natural language → automated GUI testing (implementation complete)
-
-**🔄 Active Phase**:
-- **E2E Validation**: Testing complete proposal lifecycle with real GUI widgets (window detection debugging in progress)
-
-**📋 Next Phases**:
-- **Priority 1**: Complete E2E Validation - Fix window detection after menu actions (2-3 hours)
-- **Priority 2**: Policy Evaluation Framework (AW-04) - YAML-based constraints for proposal acceptance (6-8 hours)
-
-**Recent Accomplishments** (October 2, 2025):
-- IT-02 implementation complete with async test queue pattern
-- Build system fixes for z3ed target (gRPC integration)
-- Documentation consolidated into clean structure
-- E2E test script operational (5/6 RPCs working)
-- Menu interaction verified via ImGuiTestEngine
-
-**Known Issues**:
-- Window detection timing after menu clicks needs refinement
-- Screenshot RPC proto mismatch (non-critical)
-
-**Time Investment**: 20.5 hours total (IT-01: 11h, IT-02: 7.5h, Docs: 2h)  
-**Code Quality**: All targets compile cleanly, no crashes, partial test coverage
+**Time Investment**: 28.5 hours total (IT-01: 11h, IT-02: 7.5h, E2E: 2h, Policy: 6h, Docs: 2h)
 
 ## Quick Reference
 
@@ -94,83 +81,326 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 
 ## 1. Current Priorities (Week of Oct 2-8, 2025)
 
-**Status**: IT-01 Complete ✅ | IT-02 Complete ✅ | E2E Tests Running ⚡
+**Status**: Core Infrastructure Complete ✅ | Test Harness Enhancement Phase 🔧
 
-### Priority 0: E2E Test Validation (IMMEDIATE) 🎯
-**Goal**: Validate test harness with real YAZE widgets  
-**Time Estimate**: 30-60 minutes  
-**Status**: Test script running, needs real widget names
+### Priority 1: Test Harness Enhancements (IT-05 to IT-09) 🔧 ACTIVE
+**Goal**: Transform test harness from basic automation to comprehensive testing platform  
+**Time Estimate**: 20-25 hours total  
+**Blocking Dependency**: IT-01 Complete ✅
 
-**Current Results**: 
-- ✅ Ping RPC working
-- ⚠️ Tests 2-5 using fake widget names
-- 📋 Need to identify real widget names from YAZE source
-- 🔧 Screenshot RPC needs proto fix
+**Motivation**: Current test harness supports basic GUI automation but lacks features for:
+- **AI Agent Development**: No widget discovery API for LLMs to learn available interactions
+- **Regression Testing**: No recording/replay mechanism for test suite management
+- **CI/CD Integration**: No standardized test format for automated pipelines
+- **Debugging**: Limited error context when tests fail (no screenshots, state dumps)
+- **Test Management**: Can't query test status, results, or execution queue
 
-**Task Checklist**:
-1. ✅ **E2E Test Script**: Already created (`scripts/test_harness_e2e.sh`)
-2. 📋 **Manual Testing Workflow**:
-   - Start YAZE with test harness enabled
-   - Create proposal via CLI: `z3ed agent run "Test prompt" --sandbox`
-   - Verify proposal appears in ProposalDrawer GUI
-   - Test Accept → validate ROM merge and save prompt
-   - Test Reject → validate status update
-   - Test Delete → validate cleanup
-3. 📋 **Real Widget Testing**:
-   - Click actual YAZE buttons (Overworld, Dungeon, etc.)
-   - Type into real input fields
-   - Wait for actual windows to appear
-   - Assert on real widget states
-4. 📋 **Document Edge Cases**:
-   - Widget not found scenarios
-   - Timeout handling
-   - Error recovery patterns
-
-### Priority 2: CLI Agent Test Command (IT-02) 📋 NEXT
-**Goal**: Natural language → automated GUI testing via gRPC  
-**Time Estimate**: 4-6 hours  
-**Blocking Dependency**: Priority 1 completion
-
+#### IT-05: Test Introspection API (6-8 hours)
 **Implementation Tasks**:
-1. **Create `z3ed agent test` command**:
-   - Parse natural language prompt
-   - Generate RPC call sequence (Click → Wait → Assert)
-   - Execute via gRPC client
-   - Capture results and screenshots
+1. **Add GetTestStatus RPC**:
+   - Query status of queued/running tests by ID
+   - Return test state: queued, running, passed, failed, timeout
+   - Include execution time, error messages, assertion failures
    
-2. **Example Usage**:
-   ```bash
-   z3ed agent test --prompt "Open Overworld editor and verify it loads" \
-     --rom zelda3.sfc
+2. **Add ListTests RPC**:
+   - Enumerate all registered tests in ImGuiTestEngine
+   - Filter by category (grpc, unit, integration, e2e)
+   - Return test metadata: name, category, last run time, pass/fail count
    
-   # Generated workflow:
-   # 1. Click "button:Overworld"
-   # 2. Wait "window_visible:Overworld Editor" (5s)
-   # 3. Assert "visible:Overworld Editor"
-   # 4. Screenshot "full"
-   ```
+3. **Add GetTestResults RPC**:
+   - Retrieve detailed results for completed tests
+   - Include assertion logs, performance metrics, resource usage
+   - Support pagination for large result sets
 
-3. **Implementation Files**:
-   - `src/cli/handlers/agent.cc` - Add `HandleTestCommand()`
-   - `src/cli/service/gui_automation_client.{h,cc}` - gRPC client wrapper
-   - `src/cli/service/test_workflow_generator.{h,cc}` - Prompt → RPC translator
+**Example Usage**:
+```bash
+# Queue a test
+z3ed agent test --prompt "Open Overworld editor"
 
-### Priority 3: Policy Evaluation Framework (AW-04) 📋
-**Goal**: YAML-based constraint system for gating proposal acceptance  
-**Time Estimate**: 6-8 hours  
-**Blocking Dependency**: None (can work in parallel)
+# Poll for completion
+z3ed test status --test-id grpc_click_12345678
 
-> � **Detailed Guides**: See [NEXT_PRIORITIES_OCT2.md](NEXT_PRIORITIES_OCT2.md) for complete implementation breakdowns with code examples.
+# Retrieve results
+z3ed test results --test-id grpc_click_12345678 --format json
+```
 
----
+**API Schema**:
+```proto
+message GetTestStatusRequest {
+  string test_id = 1;
+}
 
-## 2. Workstreams Overview
+message GetTestStatusResponse {
+  enum Status { QUEUED = 0; RUNNING = 1; PASSED = 2; FAILED = 3; TIMEOUT = 4; }
+  Status status = 1;
+  int64 execution_time_ms = 2;
+  string error_message = 3;
+  repeated string assertion_failures = 4;
+}
 
-This plan decomposes the design additions into actionable engineering tasks. Each workstream contains milestones, blocking dependencies, and expected deliverables.
-1. `src/cli/handlers/rom.cc` - Added `RomInfo::Run` implementation
-2. `src/cli/z3ed.h` - Added `RomInfo` class declaration  
-3. `src/cli/modern_cli.cc` - Updated `HandleRomInfoCommand` routing
-4. `src/cli/service/resource_catalog.cc` - Added `rom info` schema entry
+message ListTestsRequest {
+  string category_filter = 1;  // Optional: "grpc", "unit", etc.
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListTestsResponse {
+  repeated TestInfo tests = 1;
+  string next_page_token = 2;
+}
+
+message TestInfo {
+  string test_id = 1;
+  string name = 2;
+  string category = 3;
+  int64 last_run_timestamp_ms = 4;
+  int32 total_runs = 5;
+  int32 pass_count = 6;
+  int32 fail_count = 7;
+}
+```
+
+#### IT-06: Widget Discovery API (4-6 hours)
+**Implementation Tasks**:
+1. **Add DiscoverWidgets RPC**:
+   - Enumerate all windows currently open in YAZE GUI
+   - List all interactive widgets (buttons, inputs, menus, tabs) per window
+   - Return widget metadata: ID, type, label, enabled state, position
+   - Support filtering by window name or widget type
+   
+2. **AI-Friendly Output Format**:
+   - JSON schema describing available interactions
+   - Natural language descriptions for each widget
+   - Suggested action templates (e.g., "Click button:{label}")
+
+**Example Usage**:
+```bash
+# Discover all widgets
+z3ed gui discover
+
+# Filter by window
+z3ed gui discover --window "Overworld"
+
+# Get only buttons
+z3ed gui discover --type button
+```
+
+**API Schema**:
+```proto
+message DiscoverWidgetsRequest {
+  string window_filter = 1;  // Optional: filter by window name
+  enum WidgetType { ALL = 0; BUTTON = 1; INPUT = 2; MENU = 3; TAB = 4; CHECKBOX = 5; }
+  WidgetType type_filter = 2;
+}
+
+message DiscoverWidgetsResponse {
+  repeated WindowInfo windows = 1;
+}
+
+message WindowInfo {
+  string name = 1;
+  bool is_visible = 2;
+  repeated WidgetInfo widgets = 3;
+}
+
+message WidgetInfo {
+  string id = 1;
+  string label = 2;
+  string type = 3;  // "button", "input", "menu", etc.
+  bool is_enabled = 4;
+  string position = 5;  // "x,y,width,height"
+  string suggested_action = 6;  // "Click button:Open ROM"
+}
+```
+
+**Benefits for AI Agents**:
+- LLMs can dynamically learn available GUI interactions
+- Agents can adapt to UI changes without hardcoded widget names
+- Natural language descriptions enable better prompt engineering
+
+#### IT-07: Test Recording & Replay (8-10 hours)
+**Implementation Tasks**:
+1. **Add StartRecording/StopRecording RPCs**:
+   - Capture all RPC calls during a session
+   - Record timing, parameters, and results
+   - Save to JSON test script format
+   
+2. **Add ReplayTest RPC**:
+   - Load JSON test script
+   - Execute recorded actions sequentially
+   - Validate expected results match actual results
+   - Support parameterization (e.g., replace ROM filename)
+   
+3. **Test Script Format**:
+   - Human-readable JSON with comments
+   - Support assertions and conditionals
+   - Enable test suite composition (call other scripts)
+
+**Example Workflow**:
+```bash
+# Start recording
+z3ed test record start --output overworld_test.json
+
+# Perform actions (manually or via agent)
+z3ed agent test --prompt "Open Overworld editor"
+z3ed agent test --prompt "Click tile at 10,20"
+
+# Stop recording
+z3ed test record stop
+
+# Replay test
+z3ed test replay overworld_test.json
+
+# Run in CI
+z3ed test replay tests/*.json --ci-mode
+```
+
+**JSON Test Script Example**:
+```json
+{
+  "name": "Overworld Editor Load Test",
+  "description": "Verify Overworld editor opens and tile selection works",
+  "steps": [
+    {
+      "action": "Click",
+      "target": "menuitem: Overworld Editor",
+      "expected_result": { "success": true }
+    },
+    {
+      "action": "Wait",
+      "condition": "window_visible:Overworld",
+      "timeout_ms": 5000
+    },
+    {
+      "action": "Assert",
+      "condition": "visible:Overworld",
+      "expected": { "success": true, "actual_value": "visible" }
+    }
+  ]
+}
+```
+
+#### IT-08: Enhanced Error Reporting (3-4 hours)
+**Implementation Tasks**:
+1. **Screenshot on Failure**:
+   - Implement Screenshot RPC (complete stub)
+   - Automatically capture screenshot when test fails
+   - Save to proposal directory or test results folder
+   
+2. **Widget State Dumps**:
+   - Capture full widget tree on assertion failure
+   - Include widget properties (enabled, visible, position, text)
+   - Generate HTML report with annotated screenshots
+   
+3. **Execution Context**:
+   - Log ImGui state: active window, focused widget, frame count
+   - Capture recent ImGui events (clicks, key presses, hovers)
+   - Include resource stats: memory, textures, framerate
+
+**Error Report Example**:
+```json
+{
+  "test_id": "grpc_assert_12345678",
+  "failure_time": "2025-10-02T14:23:45Z",
+  "assertion": "visible:Overworld",
+  "expected": "visible",
+  "actual": "hidden",
+  "screenshot": "/tmp/yaze_test_12345678.png",
+  "widget_state": {
+    "active_window": "Main Window",
+    "focused_widget": null,
+    "visible_windows": ["Main Window", "Debug"],
+    "overworld_window": { "exists": true, "visible": false, "position": "0,0,0,0" }
+  },
+  "execution_context": {
+    "frame_count": 1234,
+    "recent_events": ["Click: menuitem: Overworld Editor", "Wait: window_visible:Overworld"],
+    "resource_stats": { "memory_mb": 245, "textures": 12, "framerate": 60.0 }
+  }
+}
+```
+
+#### IT-09: CI/CD Integration (2-3 hours)
+**Implementation Tasks**:
+1. **Standardized Test Suite Format**:
+   - YAML/JSON format for test suite definitions
+   - Support test groups (smoke, regression, nightly)
+   - Enable parallel execution with dependencies
+   
+2. **CI-Friendly CLI**:
+   - `z3ed test run-suite tests/suite.yaml --ci-mode`
+   - Exit codes: 0 = all passed, 1 = failures, 2 = errors
+   - JUnit XML output for CI parsers
+   - GitHub Actions integration examples
+   
+3. **Documentation**:
+   - Add `.github/workflows/gui-tests.yml` example
+   - Create sample test suites for common scenarios
+   - Document best practices for flaky test handling
+
+**Test Suite Format**:
+```yaml
+name: YAZE GUI Test Suite
+description: Comprehensive tests for YAZE editor functionality
+version: 1.0
+
+config:
+  timeout_per_test: 30s
+  retry_on_failure: 2
+  parallel_execution: false
+
+test_groups:
+  - name: smoke
+    description: Fast tests for basic functionality
+    tests:
+      - tests/overworld_load.json
+      - tests/dungeon_load.json
+  
+  - name: regression
+    description: Full test suite for release validation
+    depends_on: [smoke]
+    tests:
+      - tests/palette_edit.json
+      - tests/sprite_load.json
+      - tests/rom_save.json
+```
+
+**GitHub Actions Integration**:
+```yaml
+name: GUI Tests
+on: [push, pull_request]
+
+jobs:
+  gui-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build YAZE with test harness
+        run: |
+          cmake -B build -DYAZE_WITH_GRPC=ON
+          cmake --build build --target yaze --target z3ed
+      - name: Start test harness
+        run: |
+          ./build/bin/yaze --enable_test_harness --headless &
+          sleep 5
+      - name: Run test suite
+        run: |
+          ./build/bin/z3ed test run-suite tests/suite.yaml --ci-mode
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: test-results/
+```
+
+### Priority 2: Windows Cross-Platform Testing 🪟
+**Goal**: Validate z3ed and test harness on Windows  
+**Time Estimate**: 8-10 hours  
+**Blocking Dependency**: IT-05 Complete (need stable API)
+
+> 📋 **Detailed Guides**: See [NEXT_PRIORITIES_OCT2.md](NEXT_PRIORITIES_OCT2.md) for complete implementation breakdowns with code examples.
+
 ---
 
 ## 2. Workstreams Overview
@@ -225,6 +455,11 @@ This plan decomposes the design additions into actionable engineering tasks. Eac
 | IT-02 | Implement CLI agent step translation (`imgui_action` → harness call). | ImGuiTest Bridge | Code | ✅ Done | `z3ed agent test` command with natural language prompts (7.5 hours) |
 | IT-03 | Provide synchronization primitives (`WaitForIdle`, etc.). | ImGuiTest Bridge | Code | ✅ Done | Wait RPC with condition polling already implemented in IT-01 Phase 3 |
 | IT-04 | Complete E2E validation with real YAZE widgets | ImGuiTest Bridge | Test | ✅ Done | IT-02 - All 5 functional tests passing, window detection fixed with yield buffer |
+| IT-05 | Add test introspection RPCs (GetTestStatus, ListTests, GetResults) | ImGuiTest Bridge | Code | 📋 Planned | IT-01 - Enable clients to poll test results and query execution state |
+| IT-06 | Implement widget discovery API for AI agents | ImGuiTest Bridge | Code | 📋 Planned | IT-01 - DiscoverWidgets RPC to enumerate windows, buttons, inputs |
+| IT-07 | Add test recording/replay for regression testing | ImGuiTest Bridge | Code | 📋 Planned | IT-05 - RecordSession/ReplaySession RPCs with JSON test scripts |
+| IT-08 | Enhance error reporting with screenshots and state dumps | ImGuiTest Bridge | Code | 📋 Planned | IT-01 - Capture widget state on failure for debugging |
+| IT-09 | Create standardized test suite format for CI integration | ImGuiTest Bridge | Infra | 📋 Planned | IT-07 - JSON/YAML test suite format compatible with CI/CD pipelines |
 | VP-01 | Expand CLI unit tests for new commands and sandbox flow. | Verification Pipeline | Test | 📋 Planned | RC/AW tasks |
 | VP-02 | Add harness integration tests with replay scripts. | Verification Pipeline | Test | 📋 Planned | IT tasks |
 | VP-03 | Create CI job running agent smoke tests with `YAZE_WITH_JSON`. | Verification Pipeline | Infra | 📋 Planned | VP-01, VP-02 |
@@ -234,10 +469,10 @@ This plan decomposes the design additions into actionable engineering tasks. Eac
 _Status Legend: 🔄 Active · 📋 Planned · ✅ Done_
 
 **Progress Summary**:
-- ✅ Completed: 11 tasks (61%)
-- 🔄 Active: 1 task (6%)
-- 📋 Planned: 6 tasks (33%)
-- **Total**: 18 tasks
+- ✅ Completed: 11 tasks (48%)
+- 🔄 Active: 1 task (4%)
+- 📋 Planned: 11 tasks (48%)
+- **Total**: 23 tasks (5 new test harness enhancements added)
 
 ## 3. Immediate Next Steps (Week of Oct 1-7, 2025)
 

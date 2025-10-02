@@ -59,7 +59,14 @@
 │  ├─ Type (text input)                                   │
 │  ├─ Wait (condition polling)                            │
 │  ├─ Assert (state validation)                           │
-│  └─ Screenshot (capture) [Stub]                         │
+│  ├─ Screenshot (capture) [Stub → IT-08]                 │
+│  ├─ GetTestStatus (query test execution) [IT-05]        │
+│  ├─ ListTests (enumerate tests) [IT-05]                 │
+│  ├─ GetTestResults (detailed results) [IT-05]           │
+│  ├─ DiscoverWidgets (widget enumeration) [IT-06]        │
+│  ├─ StartRecording (test recording) [IT-07]             │
+│  ├─ StopRecording (finish recording) [IT-07]            │
+│  └─ ReplayTest (execute test script) [IT-07]            │
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
@@ -226,13 +233,169 @@ Examples:
 **Prerequisites**:
 1. YAZE running with test harness:
    ```bash
-   ./yaze --enable_test_harness --test_harness_port=50052 --rom_file=zelda3.sfc &
+   ./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \
+     --enable_test_harness \
+     --test_harness_port=50052 \
+     --rom_file=assets/zelda3.sfc &
    ```
 2. z3ed built with gRPC support:
    ```bash
    cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON
-   cmake --build build-grpc-test --target z3ed
+   cmake --build build-grpc-test --target z3ed -j$(sysctl -n hw.ncpu)
    ```
+
+#### `agent gui` - GUI Introspection & Control (IT-05/IT-06)
+
+##### `agent gui discover` - Enumerate available widgets
+```bash
+z3ed agent gui discover [--window <name>] [--type <widget_type>] [--format <json|yaml>]
+
+Options:
+  --window <name>     Filter by window name (e.g. "Overworld")
+  --type <type>       Filter by widget type: button, input, menu, tab, checkbox
+  --format <format>   Output format: json or yaml (default: yaml)
+
+Examples:
+  # Discover all widgets
+  z3ed agent gui discover
+
+  # Find all buttons in Overworld editor
+  z3ed agent gui discover --window "Overworld" --type button
+
+  # Get JSON for AI consumption
+  z3ed agent gui discover --format json > widgets.json
+```
+
+**Output Example**:
+```yaml
+windows:
+  - name: Main Window
+    visible: true
+    widgets:
+      - id: menu_file
+        label: File
+        type: menu
+        enabled: true
+        suggested_action: "Click menuitem: File"
+  - name: Overworld
+    visible: true
+    widgets:
+      - id: btn_save
+        label: Save
+        type: button
+        enabled: true
+        position: "10,20,100,30"
+        suggested_action: "Click button:Save"
+```
+
+**Use Cases**:
+- AI agents discover available GUI interactions dynamically
+- Test scripts validate expected widgets are present
+- Documentation generation for GUI features
+
+##### `agent test status` - Query test execution state
+```bash
+z3ed agent test status --test-id <id> [--follow]
+
+Options:
+  --test-id <id>  Test ID from test command output
+  --follow        Continuously poll until test completes (blocking)
+
+Example:
+  z3ed agent test status --test-id grpc_click_12345678 --follow
+```
+
+**Output**:
+```yaml
+test_id: grpc_click_12345678
+status: PASSED
+execution_time_ms: 1234
+started_at: 2025-10-02T14:23:45Z
+completed_at: 2025-10-02T14:23:46Z
+assertions_passed: 3
+assertions_failed: 0
+```
+
+##### `agent test results` - Get detailed test results
+```bash
+z3ed agent test results --test-id <id> [--format <json|yaml>] [--include-logs]
+
+Options:
+  --test-id <id>      Test ID to retrieve results for
+  --format <format>   Output format (default: yaml)
+  --include-logs      Include full execution logs
+
+Example:
+  z3ed agent test results --test-id grpc_click_12345678 --include-logs
+```
+
+##### `agent test list` - List all tests
+```bash
+z3ed agent test list [--category <name>] [--status <filter>]
+
+Options:
+  --category <name>  Filter by category: grpc, unit, integration, e2e
+  --status <filter>  Filter by status: passed, failed, running, queued
+
+Example:
+  z3ed agent test list --category grpc --status failed
+```
+
+#### `agent test record` - Record test sessions (IT-07)
+
+##### `agent test record start` - Begin recording
+```bash
+z3ed agent test record start --output <file> [--description "..."]
+
+Options:
+  --output <file>         Output file for test script (JSON)
+  --description <text>    Human-readable test description
+
+Example:
+  z3ed agent test record start --output tests/overworld_load.json \
+    --description "Test Overworld editor loading"
+```
+
+##### `agent test record stop` - Finish recording
+```bash
+z3ed agent test record stop [--validate]
+
+Options:
+  --validate  Run recorded test immediately to verify it works
+
+Example:
+  z3ed agent test record stop --validate
+```
+
+#### `agent test replay` - Execute recorded tests
+```bash
+z3ed agent test replay <test_script> [--ci-mode] [--output-dir <dir>]
+
+Options:
+  --ci-mode           Exit with code 1 on failure, generate JUnit XML
+  --output-dir <dir>  Directory for test results (default: test-results/)
+
+Examples:
+  # Run single test
+  z3ed agent test replay tests/overworld_load.json
+
+  # Run test suite in CI
+  z3ed agent test replay tests/suite.yaml --ci-mode
+```
+
+#### `agent test suite` - Manage test suites (IT-09)
+```bash
+z3ed agent test suite <action> [options]
+
+Actions:
+  run <suite>     Run test suite (YAML/JSON)
+  create <name>   Create new test suite interactively
+  validate <file> Validate test suite format
+
+Examples:
+  z3ed agent test suite run tests/smoke.yaml
+  z3ed agent test suite validate tests/regression.yaml
+```
 
 ### ROM Commands
 

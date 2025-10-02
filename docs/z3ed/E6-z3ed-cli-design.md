@@ -24,7 +24,12 @@ This document is the **source of truth** for the z3ed CLI architecture and desig
 - **Proposal Registry**: Cross-session proposal tracking with disk persistence
 
 **🔄 In Progress**:
-- **E2E Validation**: Testing complete workflow (80% done, window detection needs fix)
+- **Test Harness Enhancements (IT-05 to IT-09)**: Expanding from basic automation to comprehensive testing platform
+  - Test introspection APIs for status/results polling
+  - Widget discovery for AI-driven interactions
+  - Test recording/replay for regression testing
+  - Enhanced error reporting with screenshots
+  - CI/CD integration with standardized test formats
 
 **📋 Planned Next**:
 - **Policy Evaluation Framework (AW-04)**: YAML-based constraints for proposal acceptance
@@ -50,6 +55,13 @@ The z3ed CLI is built on three core pillars:
 **Proposal-Based Workflow**: AI-generated changes are sandboxed and tracked as "proposals" requiring human review and acceptance.
 
 **gRPC Test Harness**: Embedded gRPC server in YAZE enables remote GUI automation for testing and AI-driven workflows.
+
+**Comprehensive Testing Platform**: Test harness evolved beyond basic automation to support:
+- **Widget Discovery**: AI agents can enumerate available GUI interactions dynamically
+- **Test Introspection**: Query test status, results, and execution queue in real-time
+- **Recording & Replay**: Capture test sessions as JSON scripts for regression testing
+- **CI/CD Integration**: Standardized test suite format with JUnit XML output
+- **Enhanced Debugging**: Screenshot capture, widget state dumps, and execution context on failures
 
 **Cross-Platform Foundation**: Core built for macOS/Linux with Windows support planned via vcpkg.
 
@@ -203,6 +215,257 @@ The `z3ed agent` command is the main entry point for the agent. It has the follo
 ### 8.3. AI Model & Protocol Strategy
 
 - **Models**: The framework will support both local and remote AI models, offering flexibility and catering to different user needs.
+
+---
+
+## 9. Test Harness Evolution: From Automation to Platform
+
+The ImGuiTestHarness has evolved from a basic GUI automation tool into a comprehensive testing platform that serves dual purposes: **AI-driven generative workflows** and **traditional GUI testing**.
+
+### 9.1. Current Capabilities (IT-01 to IT-04) ✅
+
+**Core Automation** (6 RPCs):
+- `Ping` - Health check and version verification
+- `Click` - Button, menu, and tab interactions
+- `Type` - Text input with focus management
+- `Wait` - Condition polling (window visibility, element state)
+- `Assert` - State validation (visible, enabled, exists)
+- `Screenshot` - Capture (stub, needs implementation)
+
+**Integration Points**:
+- ImGuiTestEngine dynamic test registration
+- Async test queue with frame-accurate timing
+- gRPC server embedded in YAZE process
+- Cross-platform build (macOS validated, Windows planned)
+
+**Proven Use Cases**:
+- Menu-driven editor opening (Overworld, Dungeon, etc.)
+- Window visibility validation
+- Multi-step workflows with timing dependencies
+- Natural language test prompts via `z3ed agent test`
+
+### 9.2. Limitations Identified
+
+**For AI Agents**:
+- ❌ Can't discover available widgets → must hardcode target names
+- ❌ No way to query test results → async tests return immediately with no status
+- ❌ No structured error context → failures lack screenshots and state dumps
+- ❌ Limited to predefined actions → can't learn new interaction patterns
+
+**For Traditional Testing**:
+- ❌ No test recording → can't capture manual workflows for regression
+- ❌ No test suite format → can't organize tests into smoke/regression/nightly groups
+- ❌ No CI integration → can't run tests in automated pipelines
+- ❌ No result persistence → test history lost between sessions
+- ❌ Poor debugging → failures don't capture visual or state context
+
+### 9.3. Enhancement Roadmap (IT-05 to IT-09)
+
+#### IT-05: Test Introspection API (6-8 hours)
+**Problem**: Tests execute asynchronously with no way to query status or results. Clients poll blindly or give up early.
+
+**Solution**: Add 3 new RPCs:
+- `GetTestStatus(test_id)` → Returns queued/running/passed/failed/timeout with execution time
+- `ListTests(category_filter)` → Enumerates all registered tests with metadata
+- `GetTestResults(test_id)` → Retrieves detailed results: logs, assertions, metrics
+
+**Benefits**:
+- AI agents can poll for test completion reliably
+- CLI can show real-time progress bars
+- Test history enables trend analysis (flaky tests, performance regressions)
+
+**Example Flow**:
+```bash
+# Queue test (returns immediately with test_id)
+TEST_ID=$(z3ed agent test --prompt "Open Overworld" --output json | jq -r '.test_id')
+
+# Poll until complete
+while true; do
+  STATUS=$(z3ed agent test status --test-id $TEST_ID --format json | jq -r '.status')
+  [[ "$STATUS" =~ ^(PASSED|FAILED|TIMEOUT)$ ]] && break
+  sleep 0.5
+done
+
+# Get results
+z3ed agent test results --test-id $TEST_ID --include-logs
+```
+
+#### IT-06: Widget Discovery API (4-6 hours)
+**Problem**: AI agents must know widget names in advance. Can't adapt to UI changes or learn new editors.
+
+**Solution**: Add `DiscoverWidgets` RPC:
+- Enumerates all windows currently open
+- Lists interactive widgets per window: buttons, inputs, menus, tabs
+- Returns metadata: ID, label, type, enabled state, position
+- Provides suggested action templates (e.g., "Click button:Save")
+
+**Benefits**:
+- AI agents discover GUI capabilities dynamically
+- Test scripts validate expected widgets exist
+- LLM prompts improved with natural language descriptions
+- Reduces brittleness from hardcoded widget names
+
+**Example Flow**:
+```python
+# AI agent workflow
+widgets = z3ed_client.DiscoverWidgets(window_filter="Overworld")
+
+# LLM prompt: "Which buttons are available in the Overworld editor?"
+available_actions = [w.suggested_action for w in widgets.buttons if w.is_enabled]
+
+# LLM generates: "Click button:Save Changes"
+z3ed_client.Click(target="button:Save Changes")
+```
+
+#### IT-07: Test Recording & Replay (8-10 hours)
+**Problem**: No way to capture manual workflows for regression. Testers repeat same actions every release.
+
+**Solution**: Add recording workflow:
+- `StartRecording(output_file)` → Begins capturing all RPC calls
+- `StopRecording()` → Saves to JSON test script
+- `ReplayTest(test_script)` → Executes recorded actions with validation
+
+**Test Script Format** (JSON):
+```json
+{
+  "name": "Overworld Tile Edit Test",
+  "steps": [
+    { "action": "Click", "target": "menuitem: Overworld Editor" },
+    { "action": "Wait", "condition": "window_visible:Overworld", "timeout_ms": 5000 },
+    { "action": "Click", "target": "button:Select Tile" },
+    { "action": "Assert", "condition": "enabled:button:Apply" }
+  ]
+}
+```
+
+**Benefits**:
+- QA engineers record test scenarios once, replay forever
+- Test scripts version controlled alongside code
+- Parameterized tests (e.g., test with different ROMs)
+- Foundation for test suite management (smoke, regression, nightly)
+
+#### IT-08: Enhanced Error Reporting (3-4 hours)
+**Problem**: Test failures lack context. Developer sees "Window not visible" but doesn't know why.
+
+**Solution**: Capture rich context on failure:
+- Screenshot (implement stub RPC)
+- Widget state dump (full hierarchy with properties)
+- Execution context (active window, recent events, resource stats)
+- HTML report generation with annotated screenshots
+
+**Example Error Report**:
+```json
+{
+  "test_id": "grpc_wait_12345678",
+  "failure_reason": "Timeout waiting for window_visible:Overworld",
+  "screenshot": "test-results/failure_12345678.png",
+  "widget_state": {
+    "visible_windows": ["Main Window", "Debug"],
+    "overworld_window": { "exists": true, "visible": false, "reason": "not_initialized" }
+  },
+  "execution_context": {
+    "last_click": "menuitem: Overworld Editor",
+    "frames_since_click": 150,
+    "resource_stats": { "memory_mb": 245, "framerate": 58.3 }
+  }
+}
+```
+
+**Benefits**:
+- Developers fix failing tests faster (visual + state context)
+- Flaky test debugging (see exact UI state at failure)
+- Test reports shareable with QA/PM (HTML with screenshots)
+
+#### IT-09: CI/CD Integration (2-3 hours)
+**Problem**: Tests run manually. No automated regression on PR/merge.
+
+**Solution**: Standardize test execution for CI:
+- YAML test suite format (groups, dependencies, parallel execution)
+- `z3ed test suite run` command with `--ci-mode`
+- JUnit XML output for CI parsers (Jenkins, GitHub Actions)
+- Exit codes: 0=pass, 1=fail, 2=error
+
+**GitHub Actions Example**:
+```yaml
+name: GUI Tests
+on: [push, pull_request]
+jobs:
+  gui-tests:
+    runs-on: macos-latest
+    steps:
+      - name: Build YAZE
+        run: cmake --build build --target yaze --target z3ed
+      - name: Start test harness
+        run: ./build/bin/yaze --enable_test_harness --headless &
+      - name: Run smoke tests
+        run: ./build/bin/z3ed test suite run tests/smoke.yaml --ci-mode
+      - name: Upload results
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: test-results/
+```
+
+**Benefits**:
+- Catch regressions before merge
+- Test history tracked in CI dashboard
+- Parallel execution for faster feedback
+- Flaky test detection (retry logic, failure rates)
+
+### 9.4. Unified Testing Vision
+
+The enhanced test harness serves three audiences:
+
+**For AI Agents** (Generative Workflows):
+- Widget discovery enables dynamic learning
+- Test introspection provides reliable feedback loops
+- Recording captures expert workflows for training data
+
+**For Developers** (Unit/Integration Testing):
+- Test suites organize tests by scope (smoke, regression, nightly)
+- CI integration catches regressions early
+- Rich error reporting speeds up debugging
+
+**For QA Engineers** (Manual Testing Automation):
+- Record manual workflows once, replay forever
+- Parameterized tests reduce maintenance burden
+- Visual test reports simplify communication
+
+**Shared Infrastructure**:
+- Single gRPC server handles all test types
+- Consistent test script format (JSON/YAML)
+- Common result storage and reporting
+- Cross-platform support (macOS, Windows, Linux)
+
+### 9.5. Implementation Priority
+
+**Phase 1: Foundation** (Already Complete ✅)
+- Core automation RPCs (Ping, Click, Type, Wait, Assert)
+- ImGuiTestEngine integration
+- gRPC server lifecycle
+- Basic E2E validation
+
+**Phase 2: Introspection & Discovery** (IT-05, IT-06 - 10-14 hours)
+- Test status/results querying
+- Widget enumeration API
+- Async test management
+- *Critical for AI agents*
+
+**Phase 3: Recording & Replay** (IT-07 - 8-10 hours)
+- Test script format
+- Recording workflow
+- Replay engine
+- *Unlocks regression testing*
+
+**Phase 4: Production Readiness** (IT-08, IT-09 - 5-7 hours)
+- Screenshot implementation
+- Error context capture
+- CI/CD integration
+- *Enables automated pipelines*
+
+**Total Estimated Effort**: 23-31 hours beyond current implementation
+
+---
   - **Local Models (macOS Setup)**: For privacy, offline use, and reduced operational costs, integration with local LLMs via [Ollama](https://ollama.ai/) is a priority. Users can easily install Ollama on macOS and pull models optimized for code generation, such as `codellama:7b`. The `z3ed` agent will communicate with Ollama's local API endpoint.
   - **Remote Models (Gemini API)**: For more complex tasks requiring advanced reasoning capabilities, integration with powerful remote models like the Gemini API will be available. Users will need to provide a `GEMINI_API_KEY` environment variable. A new `GeminiAIService` class will be implemented to handle the secure API requests and responses.
 - **Protocol**: A robust, yet simple, JSON-based protocol will be used for communication between `z3ed` and the AI model. This ensures structured data exchange, critical for reliable parsing and execution. The `z3ed` tool will serialize the user's prompt, current ROM context, available `z3ed` commands, and any relevant `ImGuiTestEngine` capabilities into a JSON object. The AI model will be expected to return a JSON object containing the sequence of commands to be executed, along with potential explanations or confidence scores.
