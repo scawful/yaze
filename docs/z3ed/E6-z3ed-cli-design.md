@@ -9,7 +9,7 @@ This document is the **source of truth** for the z3ed CLI architecture and desig
 - **[E6-z3ed-reference.md](E6-z3ed-reference.md)** - Technical reference: commands, APIs, troubleshooting
 - **[README.md](README.md)** - Quick overview and documentation index
 
-### 1.1. Current State (October 2, 2025)
+**Last Updated**: [Current Date]
 
 `z3ed` has successfully implemented its core infrastructure and is **production-ready on macOS**:
 
@@ -565,3 +565,22 @@ Allowing an LLM to drive the ImGui UI safely requires a structured bridge betwee
 - Experiment with reinforcement signals for local models (reward accepted plans, penalize rejected ones).
 - Explore collaborative agent sessions where multiple proposals merge or compete under defined heuristics.
 - Investigate deterministic replay of LLM outputs for reliable regression testing.
+
+### 7.4. Widget ID Management for Test Automation
+
+A key challenge in GUI test automation is the fragility of identifying widgets. Relying on human-readable labels (e.g., `"button:Overworld"`) makes tests brittle; a simple text change in the UI can break the entire test suite.
+
+To address this, the `z3ed` ecosystem includes a robust **Widget ID Management** system.
+
+**Goals**:
+-   **Decouple Tests from Labels**: Tests should refer to a stable, logical ID, not a display label.
+-   **Hierarchical and Scoped IDs**: Allow for organized and unique identification of widgets within complex, nested UIs.
+-   **Discoverability**: Enable the test harness to easily find and interact with widgets using these stable IDs.
+
+**Implementation**:
+-   **`WidgetIdRegistry`**: A central service that manages the mapping between stable, hierarchical IDs and the dynamic `ImGuiID`s used at runtime.
+-   **Hierarchical Naming**: Widget IDs are structured like paths (e.g., `/editors/overworld/toolbar/save_button`). This avoids collisions and provides context.
+-   **Registration**: Editor and tool developers are responsible for registering their interactive widgets with the `WidgetIdRegistry` upon creation.
+-   **Test Harness Integration**: The `ImGuiTestHarness` uses the registry to look up the current `ImGuiID` for a given stable ID, ensuring it always interacts with the correct widget, regardless of label changes or UI refactoring.
+
+This system is critical for the long-term maintainability of the automated E2E validation pipeline.

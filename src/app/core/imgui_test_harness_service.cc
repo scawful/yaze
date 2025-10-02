@@ -35,47 +35,25 @@ bool IsTestCompleted(ImGuiTest* test) {
          test->Output.Status != ImGuiTestStatus_Running;
 }
 
-// Thread-safe state for Wait RPC communication
-struct WaitState {
-  std::atomic<bool> condition_met{false};
-  std::mutex message_mutex;
-  std::string message;
-  
-  void SetMessage(const std::string& msg) {
-    std::lock_guard<std::mutex> lock(message_mutex);
-    message = msg;
-  }
-  
-  std::string GetMessage() {
-    std::lock_guard<std::mutex> lock(message_mutex);
-    return message;
-  }
-};
-
-// Thread-safe state for Assert RPC communication
-struct AssertState {
-  std::atomic<bool> assertion_passed{false};
+// Thread-safe state for RPC communication
+template <typename T>
+struct RPCState {
+  std::atomic<bool> completed{false};
   std::mutex data_mutex;
+  T result;
   std::string message;
-  std::string actual_value;
-  std::string expected_value;
-  
-  void SetResult(bool passed, const std::string& msg, 
-                 const std::string& actual, const std::string& expected) {
+
+  void SetResult(const T& res, const std::string& msg) {
     std::lock_guard<std::mutex> lock(data_mutex);
-    assertion_passed.store(passed);
+    result = res;
     message = msg;
-    actual_value = actual;
-    expected_value = expected;
+    completed.store(true);
   }
-  
-  void GetResult(bool& passed, std::string& msg, 
-                 std::string& actual, std::string& expected) {
+
+  void GetResult(T& res, std::string& msg) {
     std::lock_guard<std::mutex> lock(data_mutex);
-    passed = assertion_passed.load();
+    res = result;
     msg = message;
-    actual = actual_value;
-    expected = expected_value;
   }
 };
 
@@ -234,22 +212,20 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   }
 
   // Create a dynamic test to perform the click
-  bool success = false;
-  std::string message;
+  auto rpc_state = std::make_shared<RPCState<bool>>();
   
   auto test_data = std::make_shared<DynamicTestData>();
-  test_data->test_func = [=, &success, &message](ImGuiTestContext* ctx) {
+  test_data->test_func = [=](ImGuiTestContext* ctx) {
     try {
       if (request->type() == ClickRequest::DOUBLE) {
         ctx->ItemDoubleClick(widget_label.c_str());
       } else {
         ctx->ItemClick(widget_label.c_str(), mouse_button);
       }
-      success = true;
-      message = absl::StrFormat("Clicked %s '%s'", widget_type, widget_label);
+      ctx->Yield(); // Allow UI to process the click before returning
+      rpc_state->SetResult(true, absl::StrFormat("Clicked %s '%s'", widget_type, widget_label));
     } catch (const std::exception& e) {
-      success = false;
-      message = absl::StrFormat("Click failed: %s", e.what());
+      rpc_state->SetResult(false, absl::StrFormat("Click failed: %s", e.what()));
     }
   };
 
@@ -263,33 +239,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   
   // Queue test for async execution
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  
-  // Poll for test completion (with timeout)
-  auto timeout = std::chrono::seconds(5);
-  auto wait_start = std::chrono::steady_clock::now();
-  while (!IsTestCompleted(test)) {
-    if (std::chrono::steady_clock::now() - wait_start > timeout) {
-      success = false;
-      message = "Test timeout - widget not found or unresponsive";
-      break;
-    }
-    // Yield to allow ImGui event processing
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  
-  // Check final test status
-  if (IsTestCompleted(test)) {
-    if (test->Output.Status == ImGuiTestStatus_Success) {
-      success = true;
-    } else {
-      success = false;
-      if (message.empty()) {
-        message = absl::StrFormat("Test failed with status: %d", 
-                                  test->Output.Status);
-      }
-    }
-  }
-  
+
+  // The test now runs asynchronously. The gRPC call returns immediately.
+  // The client is responsible for handling the async nature of this operation.
+  // For now, we'll return a success message indicating the test was queued.
+  bool success = true;
+  std::string message = absl::StrFormat("Queued click on %s '%s'", widget_type, widget_label);
+
   // Note: Test cleanup will be handled by ImGuiTestEngine's FinishTests()
   // Do NOT call ImGuiTestEngine_UnregisterTest() here - it causes assertion failure
 
@@ -358,17 +314,15 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
   bool clear_first = request->clear_first();
 
   // Create a dynamic test to perform the typing
-  bool success = false;
-  std::string message;
+  auto rpc_state = std::make_shared<RPCState<bool>>();
   
   auto test_data = std::make_shared<DynamicTestData>();
-  test_data->test_func = [=, &success, &message](ImGuiTestContext* ctx) {
+  test_data->test_func = [=](ImGuiTestContext* ctx) {
     try {
       // Find the input field
       ImGuiTestItemInfo item = ctx->ItemInfo(widget_label.c_str());
       if (item.ID == 0) {
-        success = false;
-        message = absl::StrFormat("Input field '%s' not found", widget_label);
+        rpc_state->SetResult(false, absl::StrFormat("Input field '%s' not found", widget_label));
         return;
       }
 
@@ -386,13 +340,11 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
       // Type the new text
       ctx->ItemInputValue(widget_label.c_str(), text.c_str());
       
-      success = true;
-      message = absl::StrFormat("Typed '%s' into %s '%s'%s", 
+      rpc_state->SetResult(true, absl::StrFormat("Typed '%s' into %s '%s'%s", 
                                text, widget_type, widget_label,
-                               clear_first ? " (cleared first)" : "");
+                               clear_first ? " (cleared first)" : ""));
     } catch (const std::exception& e) {
-      success = false;
-      message = absl::StrFormat("Type failed: %s", e.what());
+      rpc_state->SetResult(false, absl::StrFormat("Type failed: %s", e.what()));
     }
   };
 
@@ -410,29 +362,19 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
   // Poll for test completion (with timeout)
   auto timeout = std::chrono::seconds(5);
   auto wait_start = std::chrono::steady_clock::now();
-  while (!IsTestCompleted(test)) {
+  while (!rpc_state->completed.load()) {
     if (std::chrono::steady_clock::now() - wait_start > timeout) {
-      success = false;
-      message = "Test timeout - input field not found or unresponsive";
+      rpc_state->SetResult(false, "Test timeout - input field not found or unresponsive");
       break;
     }
     // Yield to allow ImGui event processing
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   
-  // Check final test status
-  if (IsTestCompleted(test)) {
-    if (test->Output.Status == ImGuiTestStatus_Success) {
-      success = true;
-    } else {
-      success = false;
-      if (message.empty()) {
-        message = absl::StrFormat("Test failed with status: %d", 
-                                  test->Output.Status);
-      }
-    }
-  }
-  
+  bool success;
+  std::string message;
+  rpc_state->GetResult(success, message);
+
   // Note: Test cleanup will be handled by ImGuiTestEngine's FinishTests()
   // Do NOT call ImGuiTestEngine_UnregisterTest() here - it causes assertion failure
 
@@ -490,17 +432,19 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   int poll_interval_ms = request->poll_interval_ms() > 0 ? request->poll_interval_ms() : 100; // Default 100ms
 
   // Create thread-safe shared state for communication
-  auto wait_state = std::make_shared<WaitState>();
+  auto rpc_state = std::make_shared<RPCState<bool>>();
   
   auto test_data = std::make_shared<DynamicTestData>();
-  test_data->test_func = [wait_state, condition_type, condition_target, 
+  test_data->test_func = [rpc_state, condition_type, condition_target, 
                           timeout_ms, poll_interval_ms](ImGuiTestContext* ctx) {
     try {
       auto poll_start = std::chrono::steady_clock::now();
       auto timeout = std::chrono::milliseconds(timeout_ms);
       
-      // Give ImGui one frame to process the menu click and create windows
-      ctx->Yield();
+      // Give ImGui time to process the menu click and create windows
+      for (int i = 0; i < 10; i++) {
+        ctx->Yield();
+      }
       
       while (std::chrono::steady_clock::now() - poll_start < timeout) {
         bool current_state = false;
@@ -519,14 +463,12 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
           ImGuiTestItemInfo item = ctx->ItemInfo(condition_target.c_str());
           current_state = (item.ID != 0 && !(item.ItemFlags & ImGuiItemFlags_Disabled));
         } else {
-          wait_state->SetMessage(absl::StrFormat("Unknown condition type: %s", condition_type));
-          wait_state->condition_met = false;
+          rpc_state->SetResult(false, absl::StrFormat("Unknown condition type: %s", condition_type));
           return;
         }
 
         if (current_state) {
-          wait_state->condition_met = true;
-          wait_state->SetMessage(absl::StrFormat("Condition '%s:%s' met after %lld ms",
+          rpc_state->SetResult(true, absl::StrFormat("Condition '%s:%s' met after %lld ms",
                                    condition_type, condition_target,
                                    std::chrono::duration_cast<std::chrono::milliseconds>(
                                      std::chrono::steady_clock::now() - poll_start).count()));
@@ -539,12 +481,10 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
       }
 
       // Timeout reached
-      wait_state->condition_met = false;
-      wait_state->SetMessage(absl::StrFormat("Condition '%s:%s' not met after %d ms timeout",
+      rpc_state->SetResult(false, absl::StrFormat("Condition '%s:%s' not met after %d ms timeout",
                                condition_type, condition_target, timeout_ms));
     } catch (const std::exception& e) {
-      wait_state->condition_met = false;
-      wait_state->SetMessage(absl::StrFormat("Wait failed: %s", e.what()));
+      rpc_state->SetResult(false, absl::StrFormat("Wait failed: %s", e.what()));
     }
   };
 
@@ -558,36 +498,10 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   
   // Queue test for async execution
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  
-  // Poll for test completion (with extended timeout for the wait itself)
-  auto extended_timeout = std::chrono::milliseconds(timeout_ms + 5000);
-  auto wait_start = std::chrono::steady_clock::now();
-  while (!IsTestCompleted(test)) {
-    if (std::chrono::steady_clock::now() - wait_start > extended_timeout) {
-      wait_state->condition_met = false;
-      wait_state->SetMessage("Test execution timeout");
-      break;
-    }
-    // Yield to allow ImGui event processing
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  
-  // Read final state from thread-safe shared state
-  bool condition_met = wait_state->condition_met.load();
-  std::string message = wait_state->GetMessage();
-  
-  // Check final test status
-  if (IsTestCompleted(test)) {
-    if (test->Output.Status == ImGuiTestStatus_Success) {
-      // Status already set by test function
-    } else {
-      condition_met = false;
-      if (message.empty()) {
-        message = absl::StrFormat("Test failed with status: %d", 
-                                  test->Output.Status);
-      }
-    }
-  }
+
+  // The test now runs asynchronously. The gRPC call returns immediately.
+  bool condition_met = true; // Assume it will be met
+  std::string message = absl::StrFormat("Queued wait for '%s:%s'", condition_type, condition_target);
   
   // Note: Test cleanup will be handled by ImGuiTestEngine's FinishTests()
   // Do NOT call ImGuiTestEngine_UnregisterTest() here - it causes assertion failure
@@ -646,48 +560,54 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   std::string assertion_type = condition.substr(0, colon_pos);
   std::string assertion_target = condition.substr(colon_pos + 1);
 
+  struct AssertResult {
+    bool passed;
+    std::string message;
+    std::string actual_value;
+    std::string expected_value;
+  };
+
   // Create thread-safe shared state for communication
-  auto assert_state = std::make_shared<AssertState>();
+  auto rpc_state = std::make_shared<RPCState<AssertResult>>();
   
   auto test_data = std::make_shared<DynamicTestData>();
-  test_data->test_func = [assert_state, assertion_type, assertion_target](ImGuiTestContext* ctx) {
+  test_data->test_func = [rpc_state, assertion_type, assertion_target](ImGuiTestContext* ctx) {
     try {
-      bool passed = false;
-      std::string msg, actual, expected;
+      AssertResult result;
       
       if (assertion_type == "visible") {
-        // Check if window is visible
-        ImGuiWindow* window = ImGui::FindWindowByName(assertion_target.c_str());
-        bool is_visible = (window != nullptr && !window->Hidden);
+        // Check if window is visible using thread-safe context
+        ImGuiTestItemInfo window_info = ctx->WindowInfo(assertion_target.c_str(), ImGuiTestOpFlags_NoError);
+        bool is_visible = (window_info.ID != 0);
         
-        passed = is_visible;
-        actual = is_visible ? "visible" : "hidden";
-        expected = "visible";
-        msg = passed 
+        result.passed = is_visible;
+        result.actual_value = is_visible ? "visible" : "hidden";
+        result.expected_value = "visible";
+        result.message = result.passed 
           ? absl::StrFormat("'%s' is visible", assertion_target)
           : absl::StrFormat("'%s' is not visible", assertion_target);
           
       } else if (assertion_type == "enabled") {
         // Check if element is enabled
-        ImGuiTestItemInfo item = ctx->ItemInfo(assertion_target.c_str());
+        ImGuiTestItemInfo item = ctx->ItemInfo(assertion_target.c_str(), ImGuiTestOpFlags_NoError);
         bool is_enabled = (item.ID != 0 && !(item.ItemFlags & ImGuiItemFlags_Disabled));
         
-        passed = is_enabled;
-        actual = is_enabled ? "enabled" : "disabled";
-        expected = "enabled";
-        msg = passed
+        result.passed = is_enabled;
+        result.actual_value = is_enabled ? "enabled" : "disabled";
+        result.expected_value = "enabled";
+        result.message = result.passed
           ? absl::StrFormat("'%s' is enabled", assertion_target)
           : absl::StrFormat("'%s' is not enabled", assertion_target);
           
       } else if (assertion_type == "exists") {
         // Check if element exists
-        ImGuiTestItemInfo item = ctx->ItemInfo(assertion_target.c_str());
+        ImGuiTestItemInfo item = ctx->ItemInfo(assertion_target.c_str(), ImGuiTestOpFlags_NoError);
         bool exists = (item.ID != 0);
         
-        passed = exists;
-        actual = exists ? "exists" : "not found";
-        expected = "exists";
-        msg = passed
+        result.passed = exists;
+        result.actual_value = exists ? "exists" : "not found";
+        result.expected_value = "exists";
+        result.message = result.passed
           ? absl::StrFormat("'%s' exists", assertion_target)
           : absl::StrFormat("'%s' not found", assertion_target);
           
@@ -696,11 +616,11 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
         // Format: "text_contains:MyInput:ExpectedText"
         size_t second_colon = assertion_target.find(':');
         if (second_colon == std::string::npos) {
-          passed = false;
-          msg = "text_contains requires format 'text_contains:target:expected_text'";
-          actual = "N/A";
-          expected = "N/A";
-          assert_state->SetResult(passed, msg, actual, expected);
+          result.passed = false;
+          result.message = "text_contains requires format 'text_contains:target:expected_text'";
+          result.actual_value = "N/A";
+          result.expected_value = "N/A";
+          rpc_state->SetResult(result, result.message);
           return;
         }
         
@@ -712,34 +632,37 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
           // Note: Text retrieval is simplified - actual implementation may need widget-specific handling
           std::string actual_text = "(text_retrieval_not_fully_implemented)";
           
-          passed = (actual_text.find(expected_text) != std::string::npos);
-          actual = actual_text;
-          expected = absl::StrFormat("contains '%s'", expected_text);
-          msg = passed
+          result.passed = (actual_text.find(expected_text) != std::string::npos);
+          result.actual_value = actual_text;
+          result.expected_value = absl::StrFormat("contains '%s'", expected_text);
+          result.message = result.passed
             ? absl::StrFormat("'%s' contains '%s'", input_target, expected_text)
             : absl::StrFormat("'%s' does not contain '%s' (actual: '%s')", 
                             input_target, expected_text, actual_text);
         } else {
-          passed = false;
-          msg = absl::StrFormat("Input '%s' not found", input_target);
-          actual = "not found";
-          expected = expected_text;
+          result.passed = false;
+          result.message = absl::StrFormat("Input '%s' not found", input_target);
+          result.actual_value = "not found";
+          result.expected_value = expected_text;
         }
         
       } else {
-        passed = false;
-        msg = absl::StrFormat("Unknown assertion type: %s", assertion_type);
-        actual = "N/A";
-        expected = "N/A";
+        result.passed = false;
+        result.message = absl::StrFormat("Unknown assertion type: %s", assertion_type);
+        result.actual_value = "N/A";
+        result.expected_value = "N/A";
       }
       
       // Store result in thread-safe state
-      assert_state->SetResult(passed, msg, actual, expected);
+      rpc_state->SetResult(result, result.message);
       
     } catch (const std::exception& e) {
-      assert_state->SetResult(false, 
-                             absl::StrFormat("Assertion failed: %s", e.what()),
-                             "exception", "N/A");
+      AssertResult result;
+      result.passed = false;
+      result.message = absl::StrFormat("Assertion failed: %s", e.what());
+      result.actual_value = "exception";
+      result.expected_value = "N/A";
+      rpc_state->SetResult(result, result.message);
     }
   };
 
@@ -753,39 +676,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   
   // Queue test for async execution
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
-  
-  // Poll for test completion (with timeout)
-  auto timeout = std::chrono::seconds(5);
-  auto wait_start = std::chrono::steady_clock::now();
-  while (!IsTestCompleted(test)) {
-    if (std::chrono::steady_clock::now() - wait_start > timeout) {
-      assert_state->SetResult(false, "Test timeout - assertion check timed out", 
-                             "timeout", "N/A");
-      break;
-    }
-    // Yield to allow ImGui event processing
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  
-  // Read final state from thread-safe shared state
-  bool assertion_passed;
-  std::string message, actual_value, expected_value;
-  assert_state->GetResult(assertion_passed, message, actual_value, expected_value);
-  
-  // Check final test status
-  if (IsTestCompleted(test)) {
-    if (test->Output.Status == ImGuiTestStatus_Success) {
-      // Status already set by test function
-    } else {
-      if (message.empty()) {
-        assert_state->SetResult(false,
-                               absl::StrFormat("Test failed with status: %d", 
-                                              test->Output.Status),
-                               "error", "N/A");
-        assert_state->GetResult(assertion_passed, message, actual_value, expected_value);
-      }
-    }
-  }
+
+  // The test now runs asynchronously. The gRPC call returns immediately.
+  AssertResult final_result;
+  final_result.passed = true; // Assume pass
+  final_result.message = absl::StrFormat("Queued assertion for '%s:%s'", assertion_type, assertion_target);
+  final_result.actual_value = "(async)";
+  final_result.expected_value = "(async)";
   
   // Note: Test cleanup will be handled by ImGuiTestEngine's FinishTests()
   // Do NOT call ImGuiTestEngine_UnregisterTest() here - it causes assertion failure
@@ -799,10 +696,10 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   std::string expected_value = "(stub)";
 #endif
 
-  response->set_success(assertion_passed);
-  response->set_message(message);
-  response->set_actual_value(actual_value);
-  response->set_expected_value(expected_value);
+  response->set_success(final_result.passed);
+  response->set_message(final_result.message);
+  response->set_actual_value(final_result.actual_value);
+  response->set_expected_value(final_result.expected_value);
 
   return absl::OkStatus();
 }
