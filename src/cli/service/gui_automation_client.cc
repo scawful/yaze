@@ -62,7 +62,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Ping(
   
   AutomationResult result;
   result.success = true;
-  result.message = absl::StrFormat("Server version: %s (timestamp: %s)",
+  result.message = absl::StrFormat("Server version: %s (timestamp: %lld)",
                                    response.yaze_version(),
                                    response.timestamp_ms());
   result.execution_time = std::chrono::milliseconds(0);
@@ -111,7 +111,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Click(
   result.success = response.success();
   result.message = response.message();
   result.execution_time = std::chrono::milliseconds(
-      std::stoll(response.execution_time_ms()));
+      response.execution_time_ms());
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -144,7 +144,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Type(
   result.success = response.success();
   result.message = response.message();
   result.execution_time = std::chrono::milliseconds(
-      std::stoll(response.execution_time_ms()));
+      response.execution_time_ms());
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -177,7 +177,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Wait(
   result.success = response.success();
   result.message = response.message();
   result.execution_time = std::chrono::milliseconds(
-      std::stoll(response.elapsed_ms()));
+      response.elapsed_ms());
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -224,8 +224,9 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Screenshot(
   }
   
   yaze::test::ScreenshotRequest request;
-  request.set_region(region);
-  request.set_format(format);
+  request.set_window_title("");  // Empty = main window
+  request.set_output_path("/tmp/yaze_screenshot.png");  // Default path
+  request.set_format(yaze::test::ScreenshotRequest::PNG);  // Always PNG for now
   
   yaze::test::ScreenshotResponse response;
   grpc::ClientContext context;

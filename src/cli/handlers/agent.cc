@@ -4,8 +4,10 @@
 #include "cli/service/proposal_registry.h"
 #include "cli/service/resource_catalog.h"
 #include "cli/service/rom_sandbox_manager.h"
+#ifdef YAZE_WITH_GRPC
 #include "cli/service/gui_automation_client.h"
 #include "cli/service/test_workflow_generator.h"
+#endif
 #include "util/macro.h"
 
 #include "absl/flags/declare.h"

@@ -98,3 +98,29 @@ target_link_libraries(
   ImGuiTestEngine
   ImGui
 )
+
+# ============================================================================
+# Optional gRPC Support for CLI Agent Test Command
+# ============================================================================
+if(YAZE_WITH_GRPC)
+  message(STATUS "Adding gRPC support to z3ed CLI")
+  
+  # Generate C++ code from .proto using the helper function from cmake/grpc.cmake
+  target_add_protobuf(z3ed 
+    ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+  
+  # Add CLI gRPC service sources
+  target_sources(z3ed PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/cli/service/gui_automation_client.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/gui_automation_client.h
+    ${CMAKE_SOURCE_DIR}/src/cli/service/test_workflow_generator.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/test_workflow_generator.h)
+  
+  # Link gRPC libraries
+  target_link_libraries(z3ed PRIVATE
+    grpc++
+    grpc++_reflection
+    libprotobuf)
+  
+  message(STATUS "✓ gRPC CLI automation integrated")
+endif()
