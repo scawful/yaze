@@ -1,7 +1,7 @@
 var searchData=
 [
   ['y_0',['y',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a9f255833419702a2cec47230e4e84fe5',1,'yaze::zelda3::RoomObject::y()'],['../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#ad1f980a79a8b25336f7ba4636b8ad79c',1,'yaze::zelda3::RoomLayoutObject::y()'],['../d6/db1/classyaze_1_1zelda3_1_1Sprite.html#ae019782d3eb9d0552f39307dfacdb5e6',1,'yaze::zelda3::Sprite::y()']]],
-  ['yamlquote_1',['YamlQuote',['../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a77b209996f7b393e558179f0c5f2d0e3',1,'yaze::cli::anonymous_namespace{agent.cc}']]],
+  ['yamlquote_1',['YamlQuote',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a46743186d4f2968bccf1cf0cb7a57bfa',1,'yaze::cli::agent']]],
   ['yaze_5fapp_5fmain_2',['yaze_app_main',['../d0/de1/group__core.html#ga440a6545b01877e0afee7ba8a54ad27e',1,'yaze_app_main(int argc, char **argv):&#160;yaze.cc'],['../d0/de1/group__core.html#ga440a6545b01877e0afee7ba8a54ad27e',1,'yaze_app_main(int argc, char **argv):&#160;yaze.cc']]],
   ['yaze_5fcheck_5fversion_5fcompatibility_3',['yaze_check_version_compatibility',['../d0/de1/group__core.html#ga9cdce623ea2e4d9abdb3acf73a4e3f65',1,'yaze_check_version_compatibility(const char *expected_version):&#160;yaze.cc'],['../d0/de1/group__core.html#ga9cdce623ea2e4d9abdb3acf73a4e3f65',1,'yaze_check_version_compatibility(const char *expected_version):&#160;yaze.cc']]],
   ['yaze_5fconvert_5ftile_5fbpp_4',['yaze_convert_tile_bpp',['../d6/de0/group__graphics.html#ga7d96bf3b47eac12b1d44b5ccf2190a81',1,'yaze.h']]],

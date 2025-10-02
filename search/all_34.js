@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['📋_0',['Phase 3 (Next) 📋',['../d7/d42/md_docs_2z3ed_2WIDGET__ID__NEXT__ACTIONS.html#autotoc_md1533',1,'']]],
-  ['📋_20available_20presets_1',['📋 Available Presets',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md369',1,'']]],
-  ['📋_20for_20future_20agent_2',['📋 For Future Agent',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md604',1,'']]]
+  ['📊_20current_20metrics_0',['📊 Current Metrics',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md615',1,'']]],
+  ['📊_20strong_20overall_20performance_20results_20strong_1',['📊 &lt;strong&gt;Overall Performance Results&lt;/strong&gt;',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html#autotoc_md203',1,'']]],
+  ['📊_20strong_20validation_20results_20strong_2',['📊 &lt;strong&gt;Validation Results&lt;/strong&gt;',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html#autotoc_md159',1,'']]]
 ];

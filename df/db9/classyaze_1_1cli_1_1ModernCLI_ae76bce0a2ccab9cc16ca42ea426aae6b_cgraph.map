@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,71,194,111"/>
 <area shape="rect" id="Node000002" href="$d7/d3f/classyaze_1_1cli_1_1AsarPatch.html#a9a794ec4ea7297ca773bb280d1674c48" title=" " alt="" coords="242,78,404,104"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,88,226,88,226,94,194,94"/>
-<area shape="rect" id="Node000003" href="$dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper.html#ab2583f55b85ce00f473fbff231e94c4b" title="Apply an assembly patch to a ROM." alt="" coords="452,5,638,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="368,75,458,48,460,53,370,80"/>
-<area shape="rect" id="Node000008" href="$dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper.html#a2a62a0b6a9aeb2116b20bb7a2a716fdb" title="Initialize the Asar library." alt="" coords="452,71,638,111"/>
-<area shape="poly" id="edge3_Node000002_Node000008" title=" " alt="" coords="404,88,436,88,436,94,404,94"/>
-<area shape="rect" id="Node000009" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="475,136,616,161"/>
-<area shape="poly" id="edge4_Node000002_Node000009" title=" " alt="" coords="376,102,478,129,477,134,375,107"/>
+<area shape="rect" id="Node000003" href="$da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828" title="Apply an assembly patch to a ROM." alt="" coords="452,5,611,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="366,75,449,49,450,54,367,80"/>
+<area shape="rect" id="Node000008" href="$da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9696c9ed3e363b0a989213d0d0862010" title="Initialize the Asar library." alt="" coords="452,71,611,111"/>
+<area shape="poly" id="edge3_Node000002_Node000008" title=" " alt="" coords="404,88,437,88,437,94,404,94"/>
+<area shape="rect" id="Node000009" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="461,136,602,161"/>
+<area shape="poly" id="edge4_Node000002_Node000009" title=" " alt="" coords="373,102,468,128,467,133,372,107"/>
 </map>

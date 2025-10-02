@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('de/def/md_docs_2gfx__optimization__rec
   <div class="headertitle"><div class="title">YAZE Graphics System Optimization Recommendations</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md951"></a> </p>
-<h1><a class="anchor" id="autotoc_md952"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md957"></a> </p>
+<h1><a class="anchor" id="autotoc_md958"></a>
 Overview</h1>
 <p>This document provides comprehensive analysis and optimization recommendations for the YAZE graphics system, specifically targeting improvements for Link to the Past ROM hacking workflows.</p>
-<h1><a class="anchor" id="autotoc_md953"></a>
+<h1><a class="anchor" id="autotoc_md959"></a>
 Current Architecture Analysis</h1>
-<h2><a class="anchor" id="autotoc_md954"></a>
+<h2><a class="anchor" id="autotoc_md960"></a>
 Strengths</h2>
 <ol type="1">
 <li><b>Arena-based Resource Management</b>: Efficient SDL resource pooling</li>
@@ -115,9 +115,9 @@ Strengths</h2>
 <li><b>Palette Management</b>: Integrated SNES palette system</li>
 <li><b>Tile-based Editing</b>: Support for 8x8 and 16x16 tiles</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md955"></a>
+<h2><a class="anchor" id="autotoc_md961"></a>
 Performance Bottlenecks Identified</h2>
-<h3><a class="anchor" id="autotoc_md956"></a>
+<h3><a class="anchor" id="autotoc_md962"></a>
 1. Bitmap Class Issues</h3>
 <ul>
 <li><b>Linear Palette Search</b>: <code>SetPixel()</code> uses O(n) palette lookup</li>
@@ -125,25 +125,25 @@ Performance Bottlenecks Identified</h2>
 <li><b>Inefficient Texture Updates</b>: Full texture updates for single pixel changes</li>
 <li><b>Missing Bounds Optimization</b>: No early exit for out-of-bounds operations</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md957"></a>
+<h3><a class="anchor" id="autotoc_md963"></a>
 2. Arena Resource Management</h3>
 <ul>
 <li><b>Hash Map Overhead</b>: O(1) lookup but memory overhead for small collections</li>
 <li><b>No Resource Pooling</b>: Each allocation creates new SDL resources</li>
 <li><b>Missing Batch Operations</b>: No bulk texture/surface operations</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md958"></a>
+<h3><a class="anchor" id="autotoc_md964"></a>
 3. Tilemap Performance</h3>
 <ul>
 <li><b>Lazy Loading Inefficiency</b>: Tiles created on-demand without batching</li>
 <li><b>Memory Fragmentation</b>: Individual tile bitmaps cause memory fragmentation</li>
 <li><b>No Tile Caching Strategy</b>: No LRU or smart caching for frequently used tiles</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md959"></a>
+<h1><a class="anchor" id="autotoc_md965"></a>
 Optimization Recommendations</h1>
-<h2><a class="anchor" id="autotoc_md960"></a>
+<h2><a class="anchor" id="autotoc_md966"></a>
 1. Bitmap Class Optimizations</h2>
-<h3><a class="anchor" id="autotoc_md961"></a>
+<h3><a class="anchor" id="autotoc_md967"></a>
 A. Palette Lookup Optimization</h3>
 <div class="fragment"><div class="line"><span class="comment">// Current: O(n) linear search</span></div>
 <div class="line">uint8_t color_index = 0;</div>
@@ -174,7 +174,7 @@ A. Palette Lookup Optimization</h3>
 <div class="line">    <span class="keywordflow">return</span> (it != color_to_index_cache_.end()) ? it-&gt;second : 0;</div>
 <div class="line">  }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md962"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md968"></a>
 B. Dirty Region Tracking</h3>
 <div class="fragment"><div class="line"><span class="keyword">class </span>Bitmap {</div>
 <div class="line"><span class="keyword">private</span>:</div>
@@ -215,9 +215,9 @@ B. Dirty Region Tracking</h3>
 <div class="line">    dirty_region_.is_dirty = <span class="keyword">false</span>;</div>
 <div class="line">  }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md963"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md969"></a>
 2. Arena Resource Management Improvements</h2>
-<h3><a class="anchor" id="autotoc_md964"></a>
+<h3><a class="anchor" id="autotoc_md970"></a>
 A. Resource Pooling</h3>
 <div class="fragment"><div class="line"><span class="keyword">class </span>Arena {</div>
 <div class="line"><span class="keyword">private</span>:</div>
@@ -253,7 +253,7 @@ A. Resource Pooling</h3>
 <div class="line">    texture_pool_.available_textures_.push_back(texture);</div>
 <div class="line">  }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md965"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md971"></a>
 B. Batch Operations</h3>
 <div class="fragment"><div class="line"><span class="keyword">class </span>Arena {</div>
 <div class="line"><span class="keyword">public</span>:</div>
@@ -275,9 +275,9 @@ B. Batch Operations</h3>
 <div class="line">  </div>
 <div class="line">  BatchUpdate CreateBatch() { <span class="keywordflow">return</span> BatchUpdate{}; }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md966"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md972"></a>
 3. Tilemap Performance Enhancements</h2>
-<h3><a class="anchor" id="autotoc_md967"></a>
+<h3><a class="anchor" id="autotoc_md973"></a>
 A. Smart Tile Caching</h3>
 <div class="fragment"><div class="line"><span class="keyword">class </span>Tilemap {</div>
 <div class="line"><span class="keyword">private</span>:</div>
@@ -325,7 +325,7 @@ A. Smart Tile Caching</h3>
 <div class="line">  }</div>
 <div class="line">};</div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_add7dbc57103fdc10e6abf710863e940d"><div class="ttname"><a href="../../d0/d27/namespaceyaze_1_1gfx.html#add7dbc57103fdc10e6abf710863e940d">yaze::gfx::RenderTile</a></div><div class="ttdeci">void RenderTile(Tilemap &amp;tilemap, int tile_id)</div><div class="ttdef"><b>Definition</b> <a href="../../d6/de2/tilemap_8cc_source.html#l00033">tilemap.cc:33</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md968"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md974"></a>
 B. Atlas-based Rendering</h3>
 <div class="fragment"><div class="line"><span class="keyword">class </span>Tilemap {</div>
 <div class="line"><span class="keyword">public</span>:</div>
@@ -345,9 +345,9 @@ B. Atlas-based Rendering</h3>
 <div class="line">    core::Renderer::Get().RenderAtlas(atlas.texture(), src_rects, dst_rects);</div>
 <div class="line">  }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md969"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md975"></a>
 4. Editor-Specific Optimizations</h2>
-<h3><a class="anchor" id="autotoc_md970"></a>
+<h3><a class="anchor" id="autotoc_md976"></a>
 A. Graphics Editor Improvements</h3>
 <div class="fragment"><div class="line"><span class="keyword">class </span>GraphicsEditor {</div>
 <div class="line"><span class="keyword">private</span>:</div>
@@ -383,7 +383,7 @@ A. Graphics Editor Improvements</h3>
 <div class="line">    editing_state_.current_edit_region_.AddPoint(x, y);</div>
 <div class="line">  }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md971"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md977"></a>
 B. Palette Editor Optimizations</h3>
 <div class="fragment"><div class="line"><span class="keyword">class </span>PaletteEditor {</div>
 <div class="line"><span class="keyword">private</span>:</div>
@@ -412,9 +412,9 @@ B. Palette Editor Optimizations</h3>
 <div class="line">};</div>
 <div class="ttc" id="anamespaceyaze_1_1gui_html_a7133468eeb96ba6d81b2c91bc7118d1d"><div class="ttname"><a href="../../d3/dbf/namespaceyaze_1_1gui.html#a7133468eeb96ba6d81b2c91bc7118d1d">yaze::gui::ConvertSnesColorToImVec4</a></div><div class="ttdeci">ImVec4 ConvertSnesColorToImVec4(const gfx::SnesColor &amp;color)</div><div class="ttdef"><b>Definition</b> <a href="../../d3/de1/color_8cc_source.html#l00010">color.cc:10</a></div></div>
 <div class="ttc" id="astructsnes__color_html"><div class="ttname"><a href="../../df/d71/structsnes__color.html">snes_color</a></div><div class="ttdoc">SNES color in 15-bit RGB format (BGR555)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00208">yaze.h:208</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md972"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md978"></a>
 5. Memory Management Improvements</h2>
-<h3><a class="anchor" id="autotoc_md973"></a>
+<h3><a class="anchor" id="autotoc_md979"></a>
 A. Custom Allocator for Graphics Data</h3>
 <div class="fragment"><div class="line"><span class="keyword">class </span>GraphicsAllocator {</div>
 <div class="line"><span class="keyword">private</span>:</div>
@@ -437,7 +437,7 @@ A. Custom Allocator for Graphics Data</h3>
 <div class="line">  </div>
 <div class="line">  <span class="keywordtype">void</span> Reset() { offset_ = 0; }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md974"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md980"></a>
 B. Smart Pointer Management</h3>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><span class="keyword">class </span>GraphicsPtr {</div>
@@ -459,32 +459,32 @@ B. Smart Pointer Management</h3>
 <div class="line">  T&amp; operator*()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> *ptr_; }</div>
 <div class="line">  T* operator-&gt;()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> ptr_; }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md975"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md981"></a>
 Implementation Priority</h1>
-<h2><a class="anchor" id="autotoc_md976"></a>
+<h2><a class="anchor" id="autotoc_md982"></a>
 Phase 1 (High Impact, Low Risk)</h2>
 <ol type="1">
 <li><b>Palette Lookup Optimization</b>: Hash map for O(1) color lookups</li>
 <li><b>Dirty Region Tracking</b>: Only update changed areas</li>
 <li><b>Resource Pooling</b>: Reuse SDL textures and surfaces</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md977"></a>
+<h2><a class="anchor" id="autotoc_md983"></a>
 Phase 2 (Medium Impact, Medium Risk)</h2>
 <ol type="1">
 <li><b>Tile Caching System</b>: LRU cache for frequently used tiles</li>
 <li><b>Batch Operations</b>: Group texture updates</li>
 <li><b>Memory Pool Allocator</b>: Custom allocator for graphics data</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md978"></a>
+<h2><a class="anchor" id="autotoc_md984"></a>
 Phase 3 (High Impact, High Risk)</h2>
 <ol type="1">
 <li><b>Atlas-based Rendering</b>: Single draw calls for multiple tiles</li>
 <li><b>Multi-threaded Updates</b>: Background texture processing</li>
 <li><b>GPU-based Operations</b>: Move some operations to GPU</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md979"></a>
+<h1><a class="anchor" id="autotoc_md985"></a>
 Performance Metrics</h1>
-<h2><a class="anchor" id="autotoc_md980"></a>
+<h2><a class="anchor" id="autotoc_md986"></a>
 Target Improvements</h2>
 <ul>
 <li><b>Palette Lookup</b>: 100x faster (O(n) → O(1))</li>
@@ -492,7 +492,7 @@ Target Improvements</h2>
 <li><b>Memory Usage</b>: 30% reduction (resource pooling)</li>
 <li><b>Frame Rate</b>: 2x improvement (batch operations)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md981"></a>
+<h2><a class="anchor" id="autotoc_md987"></a>
 Measurement Tools</h2>
 <div class="fragment"><div class="line"><span class="keyword">class </span>PerformanceProfiler {</div>
 <div class="line"><span class="keyword">public</span>:</div>
@@ -515,7 +515,7 @@ Measurement Tools</h2>
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md982"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md988"></a>
 Conclusion</h1>
 <p>These optimizations will significantly improve the performance and responsiveness of the YAZE graphics system, particularly for ROM hacking workflows that involve frequent pixel manipulation, palette editing, and tile-based graphics editing. The phased approach ensures minimal risk while delivering substantial performance improvements. </p>
 </div></div><!-- contents -->

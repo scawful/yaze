@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/imgui_test_harness_service.h Source File</title>
+<title>yaze: src/app/core/service/imgui_test_harness_service.h Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d9/d30/imgui__test__harness__service_8
   <div class="headertitle"><div class="title">imgui_test_harness_service.h</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../d9/d30/imgui__test__harness__service_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_IMGUI_TEST_HARNESS_SERVICE_H_</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_CORE_IMGUI_TEST_HARNESS_SERVICE_H_</span></div>
+<a href="../../d9/d30/imgui__test__harness__service_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_SERVICE_IMGUI_TEST_HARNESS_SERVICE_H_</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_CORE_SERVICE_IMGUI_TEST_HARNESS_SERVICE_H_</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
@@ -111,8 +111,8 @@ $(document).ready(function(){initNavTree('d9/d30/imgui__test__harness__service_8
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;absl/status/statusor.h&quot;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/dcd/test__recorder_8h.html">app/core/test_recorder.h</a>&quot;</span></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;<a class="code" href="../../d6/d6a/widget__discovery__service_8h.html">app/core/widget_discovery_service.h</a>&quot;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="../../d6/d6a/widget__discovery__service_8h.html">app/core/service/widget_discovery_service.h</a>&quot;</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/dcd/test__recorder_8h.html">app/core/testing/test_recorder.h</a>&quot;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="comment">// Include grpcpp headers for unique_ptr&lt;Server&gt; in member variable</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &lt;grpcpp/server.h&gt;</span></div>
@@ -256,7 +256,7 @@ $(document).ready(function(){initNavTree('d9/d30/imgui__test__harness__service_8
 <div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span> </div>
 <div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_WITH_GRPC</span></div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_CORE_IMGUI_TEST_HARNESS_SERVICE_H_</span></div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_CORE_SERVICE_IMGUI_TEST_HARNESS_SERVICE_H_</span></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="atest__recorder_8h_html"><div class="ttname"><a href="../../d7/dcd/test__recorder_8h.html">test_recorder.h</a></div></div>
 <div class="ttc" id="awidget__discovery__service_8h_html"><div class="ttname"><a href="../../d6/d6a/widget__discovery__service_8h.html">widget_discovery_service.h</a></div></div>
@@ -265,7 +265,7 @@ $(document).ready(function(){initNavTree('d9/d30/imgui__test__harness__service_8
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../d9/d30/imgui__test__harness__service_8h.html">imgui_test_harness_service.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../dir_dc23f1be152b00b759caddf320e40b03.html">service</a></li><li class="navelem"><a class="el" href="../../d9/d30/imgui__test__harness__service_8h.html">imgui_test_harness_service.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/test_recorder.cc Source File</title>
+<title>yaze: src/app/core/testing/test_recorder.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('de/d52/test__recorder_8cc_source.html'
   <div class="headertitle"><div class="title">test_recorder.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../de/d52/test__recorder_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/dcd/test__recorder_8h.html">app/core/test_recorder.h</a>&quot;</span></div>
+<a href="../../de/d52/test__recorder_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/dcd/test__recorder_8h.html">app/core/testing/test_recorder.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
@@ -110,12 +110,11 @@ $(document).ready(function(){initNavTree('de/d52/test__recorder_8cc_source.html'
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;absl/strings/str_format.h&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;absl/time/clock.h&quot;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;absl/time/time.h&quot;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/dd4/test__script__parser_8h.html">app/core/test_script_parser.h</a>&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/dd4/test__script__parser_8h.html">app/core/testing/test_script_parser.h</a>&quot;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="../../d6/d5c/test__manager_8h.html">app/test/test_manager.h</a>&quot;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="foldopen" id="foldopen00014" data-start="{" data-end="}">
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="../../d4/d0a/namespaceyaze_1_1test.html">   14</a></span><span class="keyword">namespace </span>test {</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span>test {</div>
 <div class="foldopen" id="foldopen00015" data-start="{" data-end="}">
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="../../d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html">   15</a></span><span class="keyword">namespace </span>{</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
@@ -388,7 +387,6 @@ $(document).ready(function(){initNavTree('de/d52/test__recorder_8cc_source.html'
 </div>
 <div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span> </div>
 <div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>}  <span class="comment">// namespace test</span></div>
-</div>
 <div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html">yaze::test::TestManager</a></div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00154">test_manager.h:154</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a754e78e960ad976b47f434bf16313c24"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a754e78e960ad976b47f434bf16313c24">yaze::test::TestManager::GetHarnessTestExecution</a></div><div class="ttdeci">absl::StatusOr&lt; HarnessTestExecution &gt; GetHarnessTestExecution(const std::string &amp;test_id) const ABSL_LOCKS_EXCLUDED(harness_history_mutex_)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01402">test_manager.cc:1402</a></div></div>
@@ -471,7 +469,7 @@ $(document).ready(function(){initNavTree('de/d52/test__recorder_8cc_source.html'
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../de/d52/test__recorder_8cc.html">test_recorder.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../dir_dc60dacf73886317957ac427edbedd82.html">testing</a></li><li class="navelem"><a class="el" href="../../de/d52/test__recorder_8cc.html">test_recorder.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

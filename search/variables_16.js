@@ -9,7 +9,7 @@ var searchData=
   ['wanted_5fsamples_5f_6',['wanted_samples_',['../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a37182c65cc52ad1ad46e633cd7713606',1,'yaze::emu::Emulator']]],
   ['warning_7',['warning',['../d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a7905a15204d8d29dcbd9dcf1ec7c5b37',1,'yaze::gui::EnhancedTheme']]],
   ['warning_5flight_8',['warning_light',['../d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a1fb8df91b0348c6f856a42c528247535',1,'yaze::gui::EnhancedTheme']]],
-  ['warnings_9',['warnings',['../da/d57/structyaze_1_1cli_1_1PolicyResult.html#a28c62dd1ebf773a12822b15cfa2bb388',1,'yaze::cli::PolicyResult::warnings'],['../db/dd4/structyaze_1_1app_1_1core_1_1AsarPatchResult.html#ad9967f08ebdb0365a94e8bf3679fa8ac',1,'yaze::app::core::AsarPatchResult::warnings']]],
+  ['warnings_9',['warnings',['../da/d57/structyaze_1_1cli_1_1PolicyResult.html#a28c62dd1ebf773a12822b15cfa2bb388',1,'yaze::cli::PolicyResult::warnings'],['../de/d0c/structyaze_1_1core_1_1AsarPatchResult.html#ac86f8a46143c5a4965f0e86ba342c86e',1,'yaze::core::AsarPatchResult::warnings']]],
   ['was_5fconverted_10',['was_converted',['../d3/df6/structyaze_1_1gfx_1_1GraphicsSheetAnalysis.html#a64d613b482cc74ea085a07f948b1087e',1,'yaze::gfx::GraphicsSheetAnalysis']]],
   ['waves_11',['waves',['../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a8ba403fed74c4d702c988d3e3d1d31c5',1,'yaze::zelda3::music::Tracker']]],
   ['wbglog_12',['WBGLOG',['../d6/d20/namespaceyaze_1_1emu.html#a1c1bc02f32791d2b1ebb8a1775b68ca1',1,'yaze::emu']]],
@@ -51,7 +51,7 @@ var searchData=
   ['world_5f_48',['world_',['../d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a724801a58970d61afbd23b60111d3592',1,'yaze::zelda3::OverworldMap']]],
   ['world_5fid_49',['world_id',['../da/d93/structzelda3__overworld__map.html#a60b0c7857986ba600445293f9074f2df',1,'zelda3_overworld_map']]],
   ['wrap_5faround_50',['wrap_around',['../da/dfb/structyaze_1_1zelda3_1_1ScrollWheelConfig.html#a91609fcec879ae48fcca2b2ef1ededad',1,'yaze::zelda3::ScrollWheelConfig']]],
-  ['wrapper_5f_51',['wrapper_',['../d1/d6f/classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html#a8a52b855c0398c4384150f6156563900',1,'yaze::app::core::anonymous_namespace{asar_wrapper_test.cc}::AsarWrapperTest::wrapper_'],['../db/d76/classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html#aca6f0b8f094c89a031fd733e377fe61c',1,'yaze::test::integration::AsarRomIntegrationTest::wrapper_'],['../da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html#ade269af70aa9f78c9e41bb470f85d9c4',1,'yaze::test::integration::AsarIntegrationTest::wrapper_']]],
+  ['wrapper_5f_51',['wrapper_',['../da/d84/classyaze_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html#aa6deccd143328d4d8e50866161c64efa',1,'yaze::core::anonymous_namespace{asar_wrapper_test.cc}::AsarWrapperTest::wrapper_'],['../db/d76/classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html#ad98d3923ae251d41eaf06f444581b092',1,'yaze::test::integration::AsarRomIntegrationTest::wrapper_'],['../da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html#aafb3fe489f068be4475039c5e57c9642',1,'yaze::test::integration::AsarIntegrationTest::wrapper_']]],
   ['write_52',['write',['../df/d64/structyaze_1_1emu_1_1ApuCallbacks.html#a118835693d22ce17120819b07e97e529',1,'yaze::emu::ApuCallbacks']]],
   ['write_5fbyte_53',['write_byte',['../d0/d63/structyaze_1_1emu_1_1CpuCallbacks.html#aebfa8ed4f10eece2dd163c8105aa7458',1,'yaze::emu::CpuCallbacks']]]
 ];

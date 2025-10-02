@@ -1,5 +1,6 @@
 var namespaceyaze_1_1core =
 [
+    [ "anonymous_namespace{asar_wrapper_test.cc}", "da/d36/namespaceyaze_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03.html", "da/d36/namespaceyaze_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03" ],
     [ "anonymous_namespace{font_loader.cc}", "db/dc7/namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html", [
       [ "SetFontPath", "db/dc7/namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1", null ],
       [ "LoadFont", "db/dc7/namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#aeb026c1f2d88cd2c2d4ac9a283861bbe", null ],
@@ -12,6 +13,9 @@ var namespaceyaze_1_1core =
       [ "ParseFloat", "de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#a0369272ce2752af89286d11b1477d29c", null ],
       [ "ParseStringList", "de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#a8990b1b4fa967540cf11979bcaec8a7d", null ]
     ] ],
+    [ "AsarPatchResult", "de/d0c/structyaze_1_1core_1_1AsarPatchResult.html", "de/d0c/structyaze_1_1core_1_1AsarPatchResult" ],
+    [ "AsarSymbol", "de/da4/structyaze_1_1core_1_1AsarSymbol.html", "de/da4/structyaze_1_1core_1_1AsarSymbol" ],
+    [ "AsarWrapper", "da/dd2/classyaze_1_1core_1_1AsarWrapper.html", "da/dd2/classyaze_1_1core_1_1AsarWrapper" ],
     [ "Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", "d4/d84/classyaze_1_1core_1_1Controller" ],
     [ "FeatureFlags", "d8/d3f/classyaze_1_1core_1_1FeatureFlags.html", "d8/d3f/classyaze_1_1core_1_1FeatureFlags" ],
     [ "FileDialogWrapper", "d5/d6c/classyaze_1_1core_1_1FileDialogWrapper.html", null ],

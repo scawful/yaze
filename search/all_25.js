@@ -3,7 +3,7 @@ var searchData=
   ['_7eaiservice_0',['~AIService',['../d2/d2a/classyaze_1_1cli_1_1AIService.html#a55b5fceb48e11c1ffc74820689e3cae0',1,'yaze::cli::AIService']]],
   ['_7earena_1',['~Arena',['../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad7dfac47acae071316a9feeb1739c20c',1,'yaze::gfx::Arena']]],
   ['_7earenatestsuite_2',['~ArenaTestSuite',['../dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a301ec6a640890db8104e417a55f4bad4',1,'yaze::test::ArenaTestSuite']]],
-  ['_7easarwrapper_3',['~AsarWrapper',['../dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper.html#a3204e875673e4719106e5a121af12ba8',1,'yaze::app::core::AsarWrapper']]],
+  ['_7easarwrapper_3',['~AsarWrapper',['../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ad6ea68dd2f57310d3e545911b1d1da55',1,'yaze::core::AsarWrapper']]],
   ['_7eatlasrenderer_4',['~AtlasRenderer',['../d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html#af9005670d7a07f2287bf4105cb97925c',1,'yaze::gfx::AtlasRenderer']]],
   ['_7eaudioram_5',['~AudioRam',['../db/dc9/classyaze_1_1emu_1_1AudioRam.html#af839827fe2d3c9caffa31198eb4d3f73',1,'yaze::emu::AudioRam']]],
   ['_7ebgnba_6',['~BGNBA',['../da/d26/structyaze_1_1emu_1_1BGNBA.html#a747481461b1cab2e79c3ae46099797d4',1,'yaze::emu::BGNBA']]],

@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d3/d63/md_docs_2z3ed_2README.html','..
   <div class="headertitle"><div class="title">z3ed: AI-Powered CLI for YAZE</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1465"></a> <b>Status</b>: Active Development | Test Harness Enhancement Phase</p>
-<h1><a class="anchor" id="autotoc_md1466"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1471"></a> <b>Status</b>: Active Development | Test Harness Enhancement Phase</p>
+<h1><a class="anchor" id="autotoc_md1472"></a>
 Overview</h1>
 <p><code>z3ed</code> is a command-line interface for YAZE that enables AI-driven ROM modifications through a proposal-based workflow. It provides both human-accessible commands for developers and machine-readable APIs for LLM integration, forming the backbone of an agentic development ecosystem.</p>
 <p><b>Recent Focus</b>: Evolving the ImGuiTestHarness from basic GUI automation into a comprehensive testing platform that serves dual purposes:</p><ol type="1">
@@ -112,7 +112,7 @@ Overview</h1>
 <p><b>🤖 Why This Matters</b>: These enhancements are <b>critical for AI agent autonomy</b>. Without them, AI agents can't verify their changes worked (no test polling), discover UI elements dynamically (hardcoded names), learn from demonstrations (no recording), or debug failures (no screenshots). The test harness evolution enables <b>fully autonomous agents</b> that can execute → verify → self-correct without human intervention.</p>
 <p><b>📋 Implementation Status</b>: Core infrastructure complete (Phases 1-6, AW-01 to AW-04, IT-01 to IT-04). Currently in <b>Test Harness Enhancement Phase</b> (IT-05 to IT-09). See IMPLEMENTATION_CONTINUATION.md for the detailed roadmap and LLM integration plans (Ollama, Gemini, Claude).</p>
 <p>This directory contains the primary documentation for the <code>z3ed</code> system.</p>
-<h1><a class="anchor" id="autotoc_md1467"></a>
+<h1><a class="anchor" id="autotoc_md1473"></a>
 Core Documentation</h1>
 <p>Start here to understand the architecture, learn how to use the commands, and see the current development status.</p>
 <ol type="1">
@@ -133,9 +133,9 @@ Core Documentation</h1>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1468"></a>
+<h1><a class="anchor" id="autotoc_md1474"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md1469"></a>
+<h2><a class="anchor" id="autotoc_md1475"></a>
 Build z3ed</h2>
 <div class="fragment"><div class="line"># Basic build (without GUI automation support)</div>
 <div class="line">cmake --build build --target z3ed</div>
@@ -143,7 +143,7 @@ Build z3ed</h2>
 <div class="line"># Build with gRPC support (for GUI automation)</div>
 <div class="line">cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON</div>
 <div class="line">cmake --build build-grpc-test --target z3ed</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1470"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1476"></a>
 Common Commands</h2>
 <div class="fragment"><div class="line"># Create an agent proposal in a safe sandbox</div>
 <div class="line">z3ed agent run --prompt &quot;Make all soldier armor red&quot; --rom=zelda3.sfc --sandbox</div>
@@ -171,7 +171,7 @@ Common Commands</h2>
 <div class="line"># Query test execution status</div>
 <div class="line">z3ed agent test status --test-id grpc_click_12345678 --follow</div>
 </div><!-- fragment --><p>See the <b><a class="el" href="../../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html">Technical Reference</a></b> for a full command list.</p>
-<h1><a class="anchor" id="autotoc_md1471"></a>
+<h1><a class="anchor" id="autotoc_md1477"></a>
 Recent Enhancements</h1>
 <p><b>Latest Progress (Oct 2, 2025)</b></p><ul>
 <li>✅ Implemented server-side wiring for <code>GetTestStatus</code>, <code>ListTests</code>, and <code>GetTestResults</code> RPCs, including execution history tracking inside <code>TestManager</code>.</li>
@@ -186,7 +186,7 @@ Recent Enhancements</h1>
 <li><b>CI/CD Integration</b>: Standardized test suite format with JUnit XML output</li>
 </ul>
 <p>See <b><a href="../../E6-z3ed-cli-design.md#9-test-harness-evolution-from-automation-to-platform">E6-z3ed-cli-design.md § 9</a></b> for detailed architecture and implementation roadmap.</p>
-<h1><a class="anchor" id="autotoc_md1472"></a>
+<h1><a class="anchor" id="autotoc_md1478"></a>
 Quick Navigation</h1>
 <p><b>📖 Getting Started</b>:</p><ul>
 <li><b>New to z3ed?</b> Start with this <a class="el" href="../../d0/d30/md_README.html">README.md</a> then <a class="el" href="../../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html">E6-z3ed-cli-design.md</a></li>

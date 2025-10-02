@@ -1,6 +1,6 @@
 var namespaceyaze_1_1cli =
 [
-    [ "anonymous_namespace{agent.cc}", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03" ],
+    [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", "d8/dd3/namespaceyaze_1_1cli_1_1agent" ],
     [ "anonymous_namespace{gui_automation_client.cc}", "d7/dbb/namespaceyaze_1_1cli_1_1anonymous__namespace_02gui__automation__client_8cc_03.html", null ],
     [ "anonymous_namespace{proposal_registry.cc}", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html", [
       [ "DetermineDefaultRoot", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a935048446d732782954cb7db885d3e71", null ]

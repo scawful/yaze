@@ -101,16 +101,16 @@ $(document).ready(function(){initNavTree('d5/d7c/md_docs_2z3ed_2POLICY-IMPLEMENT
   <div class="headertitle"><div class="title">Policy Evaluation Framework - Implementation Complete ✅</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1388"></a> <b>Date</b>: October 2025 <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md1394"></a> <b>Date</b>: October 2025 <br  />
  <b>Task</b>: AW-04 - Policy Evaluation Framework <br  />
  <b>Status</b>: ✅ Complete - Ready for Production Testing <br  />
  <b>Time</b>: 6 hours actual (estimated 6-8 hours)</p>
-<h1><a class="anchor" id="autotoc_md1389"></a>
+<h1><a class="anchor" id="autotoc_md1395"></a>
 Overview</h1>
 <p>The Policy Evaluation Framework enables safe AI-driven ROM modifications by gating proposal acceptance based on YAML-configured constraints. This prevents the agent from making dangerous changes (corrupting ROM headers, exceeding byte limits, bypassing test requirements) while maintaining flexibility through configurable policies.</p>
-<h1><a class="anchor" id="autotoc_md1390"></a>
+<h1><a class="anchor" id="autotoc_md1396"></a>
 Implementation Summary</h1>
-<h2><a class="anchor" id="autotoc_md1391"></a>
+<h2><a class="anchor" id="autotoc_md1397"></a>
 Core Components</h2>
 <ol type="1">
 <li><b>PolicyEvaluator Service</b> (<code>src/cli/service/policy_evaluator.{h,cc}</code>)<ul>
@@ -152,7 +152,7 @@ Core Components</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1392"></a>
+<h2><a class="anchor" id="autotoc_md1398"></a>
 Build System Integration</h2>
 <ul>
 <li>Added <code><a class="el" href="../../d1/d57/policy__evaluator_8cc.html">cli/service/policy_evaluator.cc</a></code> to:<ul>
@@ -167,9 +167,9 @@ Build System Integration</h2>
 </li>
 <li>Clean build with no errors (warnings only for Abseil version mismatch)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1393"></a>
+<h1><a class="anchor" id="autotoc_md1399"></a>
 Code Changes</h1>
-<h2><a class="anchor" id="autotoc_md1394"></a>
+<h2><a class="anchor" id="autotoc_md1400"></a>
 Files Created (3 new files):</h2>
 <ol type="1">
 <li><b><a class="el" href="../../dd/dcc/AW-04-POLICY-FRAMEWORK_8md.html">docs/z3ed/AW-04-POLICY-FRAMEWORK.md</a></b> (1,234 lines)<ul>
@@ -199,7 +199,7 @@ Files Created (3 new files):</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1395"></a>
+<h2><a class="anchor" id="autotoc_md1401"></a>
 Files Modified (5 files):</h2>
 <ol type="1">
 <li><b><a class="el" href="../../d5/dca/proposal__drawer_8h.html">src/app/editor/system/proposal_drawer.h</a></b><ul>
@@ -236,9 +236,9 @@ Files Modified (5 files):</h2>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1396"></a>
+<h1><a class="anchor" id="autotoc_md1402"></a>
 Technical Details</h1>
-<h2><a class="anchor" id="autotoc_md1397"></a>
+<h2><a class="anchor" id="autotoc_md1403"></a>
 Conditional Compilation</h2>
 <p>The policy framework uses conditional compilation to allow building without policy support:</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#ifdef YAZE_ENABLE_POLICY_FRAMEWORK</span></div>
@@ -251,7 +251,7 @@ Conditional Compilation</h2>
 <li><code>yaze_emu</code> (emulator): Policy framework <b>disabled</b> (not needed)</li>
 <li><code>z3ed</code> (CLI): Policy framework <b>enabled</b> ✅</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1398"></a>
+<h2><a class="anchor" id="autotoc_md1404"></a>
 API Usage Patterns</h2>
 <p><b>StatusOr Error Handling</b>: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> proposal_result = registry.GetProposal(proposal_id);</div>
 <div class="line"><span class="keywordflow">if</span> (!proposal_result.ok()) {</div>
@@ -263,7 +263,7 @@ API Usage Patterns</h2>
 <div class="line">config_-&gt;version = std::string(absl::StripAsciiWhitespace(parts[1]));</div>
 </div><!-- fragment --><p><b>Singleton Pattern</b>: </p><div class="fragment"><div class="line">PolicyEvaluator&amp; evaluator = PolicyEvaluator::Get();</div>
 <div class="line">PolicyResult result = evaluator.EvaluateProposal(proposal_id);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1399"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1405"></a>
 Compilation Fixes Applied</h2>
 <ol type="1">
 <li><b>Include Paths</b>: Changed from <code>src/cli/service/...</code> to <code>cli/service/...</code></li>
@@ -272,9 +272,9 @@ Compilation Fixes Applied</h2>
 <li><b>String View</b>: Explicit <code>std::string()</code> cast for all absl::StripAsciiWhitespace() calls</li>
 <li><b>Conditional Compilation</b>: Wrapped policy code with <code>YAZE_ENABLE_POLICY_FRAMEWORK</code> to fix yaze_emu build</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1400"></a>
+<h1><a class="anchor" id="autotoc_md1406"></a>
 Testing Plan</h1>
-<h2><a class="anchor" id="autotoc_md1401"></a>
+<h2><a class="anchor" id="autotoc_md1407"></a>
 Phase 1: Manual Validation (Next Step)</h2>
 <ul>
 <li>[ ] Launch yaze GUI and open Proposal Drawer</li>
@@ -283,7 +283,7 @@ Phase 1: Manual Validation (Next Step)</h2>
 <li>[ ] Test warning override flow (confirmation dialog)</li>
 <li>[ ] Verify policy status display with all severity levels</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1402"></a>
+<h2><a class="anchor" id="autotoc_md1408"></a>
 Phase 2: Policy Testing</h2>
 <ul>
 <li>[ ] Test forbidden_range detection (ROM header protection)</li>
@@ -292,7 +292,7 @@ Phase 2: Policy Testing</h2>
 <li>[ ] Test review_requirement flagging (complex proposals)</li>
 <li>[ ] Test policy enable/disable toggle</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1403"></a>
+<h2><a class="anchor" id="autotoc_md1409"></a>
 Phase 3: Edge Cases</h2>
 <ul>
 <li>[ ] Invalid YAML syntax handling</li>
@@ -301,7 +301,7 @@ Phase 3: Edge Cases</h2>
 <li>[ ] Policy reload during runtime</li>
 <li>[ ] Multiple policies of same type</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1404"></a>
+<h2><a class="anchor" id="autotoc_md1410"></a>
 Phase 4: Unit Tests</h2>
 <ul>
 <li>[ ] PolicyEvaluator::ParsePolicyFile() unit tests</li>
@@ -309,7 +309,7 @@ Phase 4: Unit Tests</h2>
 <li>[ ] Severity categorization tests</li>
 <li>[ ] Integration tests with ProposalRegistry</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1405"></a>
+<h1><a class="anchor" id="autotoc_md1411"></a>
 Known Limitations</h1>
 <ol type="1">
 <li><b>YAML Parsing</b>: Simple custom parser implemented<ul>
@@ -333,7 +333,7 @@ Known Limitations</h1>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1406"></a>
+<h1><a class="anchor" id="autotoc_md1412"></a>
 Production Readiness Checklist</h1>
 <ul>
 <li>✅ Core implementation complete</li>
@@ -346,7 +346,7 @@ Production Readiness Checklist</h1>
 <li>⏳ Windows cross-platform validation</li>
 <li>⏳ Performance profiling</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1407"></a>
+<h1><a class="anchor" id="autotoc_md1413"></a>
 Next Steps</h1>
 <p><b>Immediate</b> (30 minutes):</p><ol type="1">
 <li>Launch yaze and test policy evaluation in ProposalDrawer</li>
@@ -364,7 +364,7 @@ Next Steps</h1>
 <li>Add policy reload command to CLI</li>
 <li>Performance profiling and optimization</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1408"></a>
+<h1><a class="anchor" id="autotoc_md1414"></a>
 References</h1>
 <ul>
 <li><b>Specification</b>: <a class="el" href="../../d9/dc3/md_docs_2z3ed_2AW-04-POLICY-FRAMEWORK.html">AW-04-POLICY-FRAMEWORK.md</a></li>

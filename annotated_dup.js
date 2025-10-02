@@ -4,19 +4,11 @@ var annotated_dup =
       [ "ParsedGlobals", "da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals.html", "da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals" ]
     ] ],
     [ "yaze", "dc/d46/namespaceyaze.html", [
-      [ "app", "d9/d75/namespaceyaze_1_1app.html", [
-        [ "core", "d2/d4d/namespaceyaze_1_1app_1_1core.html", [
-          [ "anonymous_namespace{asar_wrapper_test.cc}", "d9/d36/namespaceyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03.html", [
-            [ "AsarWrapperTest", "d1/d6f/classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html", "d1/d6f/classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest" ]
-          ] ],
-          [ "AsarPatchResult", "db/dd4/structyaze_1_1app_1_1core_1_1AsarPatchResult.html", "db/dd4/structyaze_1_1app_1_1core_1_1AsarPatchResult" ],
-          [ "AsarSymbol", "d4/d30/structyaze_1_1app_1_1core_1_1AsarSymbol.html", "d4/d30/structyaze_1_1app_1_1core_1_1AsarSymbol" ],
-          [ "AsarWrapper", "dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper.html", "dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper" ]
-        ] ]
-      ] ],
       [ "cli", "dd/d63/namespaceyaze_1_1cli.html", [
-        [ "anonymous_namespace{agent.cc}", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html", [
-          [ "DescribeOptions", "d9/da6/structyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03_1_1DescribeOptions.html", "d9/da6/structyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03_1_1DescribeOptions" ]
+        [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", [
+          [ "anonymous_namespace{general_commands.cc}", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html", [
+            [ "DescribeOptions", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions" ]
+          ] ]
         ] ],
         [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
         [ "AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", "d2/d2a/classyaze_1_1cli_1_1AIService" ],
@@ -85,6 +77,12 @@ var annotated_dup =
         [ "WidgetDescriptor", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor.html", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor" ]
       ] ],
       [ "core", "db/d33/namespaceyaze_1_1core.html", [
+        [ "anonymous_namespace{asar_wrapper_test.cc}", "da/d36/namespaceyaze_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03.html", [
+          [ "AsarWrapperTest", "da/d84/classyaze_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html", "da/d84/classyaze_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest" ]
+        ] ],
+        [ "AsarPatchResult", "de/d0c/structyaze_1_1core_1_1AsarPatchResult.html", "de/d0c/structyaze_1_1core_1_1AsarPatchResult" ],
+        [ "AsarSymbol", "de/da4/structyaze_1_1core_1_1AsarSymbol.html", "de/da4/structyaze_1_1core_1_1AsarSymbol" ],
+        [ "AsarWrapper", "da/dd2/classyaze_1_1core_1_1AsarWrapper.html", "da/dd2/classyaze_1_1core_1_1AsarWrapper" ],
         [ "Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", "d4/d84/classyaze_1_1core_1_1Controller" ],
         [ "FeatureFlags", "d8/d3f/classyaze_1_1core_1_1FeatureFlags.html", "d8/d3f/classyaze_1_1core_1_1FeatureFlags" ],
         [ "FileDialogWrapper", "d5/d6c/classyaze_1_1core_1_1FileDialogWrapper.html", null ],

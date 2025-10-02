@@ -1,6 +1,0 @@
-<map id="yaze::cli::anonymous_namespace{agent::cc}::HandlePlanCommand" name="yaze::cli::anonymous_namespace{agent::cc}::HandlePlanCommand">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,161,85"/>
-<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="42,29,43,19,50,10,64,5,83,3,105,5,118,12,116,17,103,10,83,8,65,10,53,15,48,21,48,29"/>
-<area shape="rect" id="Node000002" href="$df/d18/classyaze_1_1cli_1_1MockAIService.html#ac4c554f763599ecb4e6bf6fbca70851a" title=" " alt="" coords="209,37,370,78"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,55,193,55,193,60,161,60"/>
-</map>

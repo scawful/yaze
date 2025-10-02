@@ -101,14 +101,14 @@ $(document).ready(function(){initNavTree('d9/dc3/md_docs_2z3ed_2AW-04-POLICY-FRA
   <div class="headertitle"><div class="title">Policy Evaluation Framework (AW-04)</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1125"></a> <b>Status</b>: Implementation In Progress <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md1131"></a> <b>Status</b>: Implementation In Progress <br  />
  <b>Priority</b>: High (Next Phase) <br  />
  <b>Time Estimate</b>: 6-8 hours <br  />
  <b>Last Updated</b>: October 2, 2025</p>
-<h1><a class="anchor" id="autotoc_md1126"></a>
+<h1><a class="anchor" id="autotoc_md1132"></a>
 Overview</h1>
 <p>The Policy Evaluation Framework provides a YAML-based constraint system for gating proposal acceptance in the z3ed agent workflow. It ensures that AI-generated ROM modifications meet quality, safety, and testing requirements before being merged into the main ROM.</p>
-<h1><a class="anchor" id="autotoc_md1127"></a>
+<h1><a class="anchor" id="autotoc_md1133"></a>
 Goals</h1>
 <ol type="1">
 <li><b>Quality Gates</b>: Enforce minimum test pass rates and code quality standards</li>
@@ -117,7 +117,7 @@ Goals</h1>
 <li><b>Human Review</b>: Require manual review for large or complex changes</li>
 <li><b>Flexibility</b>: Allow policy overrides with confirmation and logging</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1128"></a>
+<h1><a class="anchor" id="autotoc_md1134"></a>
 Architecture</h1>
 <div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────┐</div>
 <div class="line">│ ProposalDrawer (GUI)                                    │</div>
@@ -140,9 +140,9 @@ Architecture</h1>
 <div class="line">│  ├─ review_requirements (human review triggers)        │</div>
 <div class="line">│  └─ forbidden_ranges (protected ROM regions)           │</div>
 <div class="line">└─────────────────────────────────────────────────────────┘</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1129"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1135"></a>
 YAML Policy Schema</h1>
-<h2><a class="anchor" id="autotoc_md1130"></a>
+<h2><a class="anchor" id="autotoc_md1136"></a>
 Example Policy File</h2>
 <div class="fragment"><div class="line"># .yaze/policies/agent.yaml</div>
 <div class="line">version: 1.0</div>
@@ -213,7 +213,7 @@ Example Policy File</h2>
 <div class="line">      - max_palettes_changed: 5</div>
 <div class="line">      - preserve_transparency: true  # Don&#39;t modify color index 0</div>
 <div class="line">    message: &quot;Palette changes exceed safety threshold&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1131"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1137"></a>
 Schema Definition</h2>
 <div class="fragment"><div class="line"># Policy file structure</div>
 <div class="line">version: string  # Semantic version (e.g., &quot;1.0&quot;)</div>
@@ -231,11 +231,11 @@ Schema Definition</h2>
 <div class="line">    conditions: array  # For review_requirement</div>
 <div class="line">    </div>
 <div class="line">    message: string  # User-facing error message</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1132"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1138"></a>
 Implementation Plan</h1>
-<h2><a class="anchor" id="autotoc_md1133"></a>
+<h2><a class="anchor" id="autotoc_md1139"></a>
 Phase 1: Core Infrastructure (2 hours)</h2>
-<h3><a class="anchor" id="autotoc_md1134"></a>
+<h3><a class="anchor" id="autotoc_md1140"></a>
 1.1 Create PolicyEvaluator Service</h3>
 <p><b>File</b>: <code><a class="el" href="../../db/dd6/policy__evaluator_8h.html">src/cli/service/policy_evaluator.h</a></code></p>
 <div class="fragment"><div class="line"><span class="preprocessor">#ifndef YAZE_CLI_SERVICE_POLICY_EVALUATOR_H</span></div>
@@ -370,7 +370,7 @@ Phase 1: Core Infrastructure (2 hours)</h2>
 <div class="ttc" id="astructyaze_1_1cli_1_1PolicyViolation_html_a5d92f84733796b4cdde5336512b7c6dc"><div class="ttname"><a href="../../d2/d16/structyaze_1_1cli_1_1PolicyViolation.html#a5d92f84733796b4cdde5336512b7c6dc">yaze::cli::PolicyViolation::details</a></div><div class="ttdeci">std::string details</div><div class="ttdef"><b>Definition</b> <a href="../../db/dd6/policy__evaluator_8h_source.html#l00027">policy_evaluator.h:27</a></div></div>
 <div class="ttc" id="astructyaze_1_1cli_1_1PolicyViolation_html_a659edc272cf9707d9ad89ca97dfd4327"><div class="ttname"><a href="../../d2/d16/structyaze_1_1cli_1_1PolicyViolation.html#a659edc272cf9707d9ad89ca97dfd4327">yaze::cli::PolicyViolation::policy_name</a></div><div class="ttdeci">std::string policy_name</div><div class="ttdef"><b>Definition</b> <a href="../../db/dd6/policy__evaluator_8h_source.html#l00024">policy_evaluator.h:24</a></div></div>
 <div class="ttc" id="astructyaze_1_1cli_1_1PolicyViolation_html_a9288c89834838fbddec62eaaa1afd36e"><div class="ttname"><a href="../../d2/d16/structyaze_1_1cli_1_1PolicyViolation.html#a9288c89834838fbddec62eaaa1afd36e">yaze::cli::PolicyViolation::severity</a></div><div class="ttdeci">PolicySeverity severity</div><div class="ttdef"><b>Definition</b> <a href="../../db/dd6/policy__evaluator_8h_source.html#l00025">policy_evaluator.h:25</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1135"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1141"></a>
 1.2 Create Policy Configuration Structures</h3>
 <p><b>File</b>: <code><a class="el" href="../../d1/d57/policy__evaluator_8cc.html">src/cli/service/policy_evaluator.cc</a></code> (partial)</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../db/dd6/policy__evaluator_8h.html">src/cli/service/policy_evaluator.h</a>&quot;</span></div>
@@ -544,12 +544,12 @@ Phase 1: Core Infrastructure (2 hours)</h2>
 <div class="ttc" id="astructyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_html_a796dd0e5126ee6c354ac46132a3fe239"><div class="ttname"><a href="../../d7/de7/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig.html#a796dd0e5126ee6c354ac46132a3fe239">yaze::cli::PolicyEvaluator::PolicyConfig::enabled</a></div><div class="ttdeci">bool enabled</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d57/policy__evaluator_8cc_source.html#l00017">policy_evaluator.cc:17</a></div></div>
 <div class="ttc" id="astructyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_html_a9be60a5146243ba2bb2bfce58d6edf9f"><div class="ttname"><a href="../../d7/de7/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig.html#a9be60a5146243ba2bb2bfce58d6edf9f">yaze::cli::PolicyEvaluator::PolicyConfig::review_requirements</a></div><div class="ttdeci">std::vector&lt; ReviewRequirement &gt; review_requirements</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d57/policy__evaluator_8cc_source.html#l00065">policy_evaluator.cc:65</a></div></div>
 <div class="ttc" id="astructyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_html_abc9bf1eed7d9a5d50ae2c5f693ffc7da"><div class="ttname"><a href="../../d7/de7/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig.html#abc9bf1eed7d9a5d50ae2c5f693ffc7da">yaze::cli::PolicyEvaluator::PolicyConfig::change_constraints</a></div><div class="ttdeci">std::vector&lt; ChangeConstraint &gt; change_constraints</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d57/policy__evaluator_8cc_source.html#l00063">policy_evaluator.cc:63</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1136"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1142"></a>
 Phase 2: Policy Evaluation Logic (2-3 hours)</h2>
 <p>Implement the core evaluation methods that check proposals against each policy type.</p>
-<h2><a class="anchor" id="autotoc_md1137"></a>
+<h2><a class="anchor" id="autotoc_md1143"></a>
 Phase 3: GUI Integration (2 hours)</h2>
-<h3><a class="anchor" id="autotoc_md1138"></a>
+<h3><a class="anchor" id="autotoc_md1144"></a>
 3.1 Update ProposalDrawer</h3>
 <p><b>File</b>: <code><a class="el" href="../../d1/d96/proposal__drawer_8cc.html">src/app/editor/system/proposal_drawer.cc</a></code></p>
 <p>Add policy status display and gating logic:</p>
@@ -645,9 +645,9 @@ Phase 3: GUI Integration (2 hours)</h2>
 <div class="line">        <span class="stringliteral">&quot;No policies configured&quot;</span>);</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1139"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1145"></a>
 Phase 4: Testing &amp; Documentation (1-2 hours)</h2>
-<h3><a class="anchor" id="autotoc_md1140"></a>
+<h3><a class="anchor" id="autotoc_md1146"></a>
 4.1 Example Policy File</h3>
 <p>Create <code>.yaze/policies/agent.yaml.example</code>:</p>
 <div class="fragment"><div class="line"># Example agent policy configuration</div>
@@ -687,7 +687,7 @@ Phase 4: Testing &amp; Documentation (1-2 hours)</h2>
 <div class="line">        end: 0xFFFF</div>
 <div class="line">        reason: &quot;ROM header&quot;</div>
 <div class="line">    message: &quot;Cannot modify ROM header&quot;</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1141"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1147"></a>
 4.2 Unit Tests</h3>
 <p>Create <code>test/cli/policy_evaluator_test.cc</code>:</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../db/dd6/policy__evaluator_8h.html">src/cli/service/policy_evaluator.h</a>&quot;</span></div>
@@ -716,7 +716,7 @@ Phase 4: Testing &amp; Documentation (1-2 hours)</h2>
 <div class="line">}  <span class="comment">// namespace cli</span></div>
 <div class="line">}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03_html_a8a4b8ed88b34f98740dd871905b3e979"><div class="ttname"><a href="../../d8/d01/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03.html#a8a4b8ed88b34f98740dd871905b3e979">yaze::cli::anonymous_namespace{resource_catalog_test.cc}::TEST</a></div><div class="ttdeci">TEST(ResourceCatalogTest, SerializeResourceIncludesReturnsArray)</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d72/resource__catalog__test_8cc_source.html#l00012">resource_catalog_test.cc:12</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1142"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1148"></a>
 Deliverables</h1>
 <ul>
 <li>[x] Policy evaluator service interface</li>
@@ -728,7 +728,7 @@ Deliverables</h1>
 <li>[ ] Unit tests</li>
 <li>[ ] Documentation and usage guide</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1143"></a>
+<h1><a class="anchor" id="autotoc_md1149"></a>
 Success Criteria</h1>
 <ol type="1">
 <li><b>Functional</b>:<ul>
@@ -753,7 +753,7 @@ Success Criteria</h1>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1144"></a>
+<h1><a class="anchor" id="autotoc_md1150"></a>
 Future Enhancements</h1>
 <ul>
 <li>Policy templates for common scenarios</li>

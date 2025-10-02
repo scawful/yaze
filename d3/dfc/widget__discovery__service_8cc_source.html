@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/widget_discovery_service.cc Source File</title>
+<title>yaze: src/app/core/service/widget_discovery_service.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('d3/dfc/widget__discovery__service_8cc_
   <div class="headertitle"><div class="title">widget_discovery_service.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../d3/dfc/widget__discovery__service_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d6/d6a/widget__discovery__service_8h.html">app/core/widget_discovery_service.h</a>&quot;</span></div>
+<a href="../../d3/dfc/widget__discovery__service_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d6/d6a/widget__discovery__service_8h.html">app/core/service/widget_discovery_service.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;map&gt;</span></div>
@@ -115,7 +115,8 @@ $(document).ready(function(){initNavTree('d3/dfc/widget__discovery__service_8cc_
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;absl/time/time.h&quot;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">namespace </span>test {</div>
+<div class="foldopen" id="foldopen00015" data-start="{" data-end="}">
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="../../d4/d0a/namespaceyaze_1_1test.html">   15</a></span><span class="keyword">namespace </span>test {</div>
 <div class="foldopen" id="foldopen00016" data-start="{" data-end="}">
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="../../d3/d52/namespaceyaze_1_1test_1_1anonymous__namespace_02widget__discovery__service_8cc_03.html">   16</a></span><span class="keyword">namespace </span>{</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
@@ -364,6 +365,7 @@ $(document).ready(function(){initNavTree('d3/dfc/widget__discovery__service_8cc_
 </div>
 <div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span> </div>
 <div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>}  <span class="comment">// namespace test</span></div>
+</div>
 <div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1gui_1_1WidgetIdRegistry_html_ab85cfb06bfb4cfb85a925e2a55245905"><div class="ttname"><a href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ab85cfb06bfb4cfb85a925e2a55245905">yaze::gui::WidgetIdRegistry::GetAllWidgets</a></div><div class="ttdeci">const std::unordered_map&lt; std::string, WidgetInfo &gt; &amp; GetAllWidgets() const</div><div class="ttdef"><b>Definition</b> <a href="../../d3/dd9/widget__id__registry_8h_source.html#l00086">widget_id_registry.h:86</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gui_1_1WidgetIdRegistry_html_ad97ad32dc8820f89ff7005108f836ffc"><div class="ttname"><a href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc">yaze::gui::WidgetIdRegistry::Instance</a></div><div class="ttdeci">static WidgetIdRegistry &amp; Instance()</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d10/widget__id__registry_8cc_source.html#l00052">widget_id_registry.cc:52</a></div></div>
@@ -382,7 +384,7 @@ $(document).ready(function(){initNavTree('d3/dfc/widget__discovery__service_8cc_
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../d3/dfc/widget__discovery__service_8cc.html">widget_discovery_service.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../dir_dc23f1be152b00b759caddf320e40b03.html">service</a></li><li class="navelem"><a class="el" href="../../d3/dfc/widget__discovery__service_8cc.html">widget_discovery_service.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

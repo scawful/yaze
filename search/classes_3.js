@@ -1,7 +1,7 @@
 var searchData=
 [
   ['decompress_0',['Decompress',['../dc/db3/classyaze_1_1cli_1_1Decompress.html',1,'yaze::cli']]],
-  ['describeoptions_1',['DescribeOptions',['../d9/da6/structyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03_1_1DescribeOptions.html',1,'yaze::cli::anonymous_namespace{agent.cc}']]],
+  ['describeoptions_1',['DescribeOptions',['../d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html',1,'yaze::cli::agent::anonymous_namespace{general_commands.cc}']]],
   ['destination_2',['destination',['../d0/dd9/structdestination.html',1,'']]],
   ['dictionaryentry_3',['DictionaryEntry',['../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html',1,'yaze::editor']]],
   ['dirtyregion_4',['DirtyRegion',['../d7/d95/structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html',1,'yaze::gfx::Bitmap']]],

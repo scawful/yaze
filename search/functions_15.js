@@ -2,7 +2,7 @@ var searchData=
 [
   ['v_5fpos_0',['v_pos',['../de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#a45ffcfde7453f96a93e8e5ae4414cba9',1,'yaze::emu::MemoryImpl::v_pos()'],['../d2/d5e/classyaze_1_1emu_1_1Memory.html#a8822e658b05dd7df7edc9c36d2038310',1,'yaze::emu::Memory::v_pos()']]],
   ['validate_1',['Validate',['../da/d5e/structyaze_1_1core_1_1YazeProject.html#a20b1e57b07c6db7acad023da53171abe',1,'yaze::core::YazeProject']]],
-  ['validateassembly_2',['ValidateAssembly',['../dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper.html#a5537cab2fa4270062bcc9b9316a207e0',1,'yaze::app::core::AsarWrapper']]],
+  ['validateassembly_2',['ValidateAssembly',['../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a5252e9b914bf6a5123491e21bbdca3d2',1,'yaze::core::AsarWrapper']]],
   ['validateassemblycomponent_3',['ValidateAssemblyComponent',['../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a647d436e3c168d5e1ba1b90243356d59',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
   ['validatechest_4',['ValidateChest',['../d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a490d13747405c4db8da6efc71d944e98',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['validatecompressionresult_5',['ValidateCompressionResult',['../d1/d4b/namespaceyaze_1_1gfx_1_1lc__lz2.html#afd4f301bf9cc31c188986af0db90ab75',1,'yaze::gfx::lc_lz2']]],

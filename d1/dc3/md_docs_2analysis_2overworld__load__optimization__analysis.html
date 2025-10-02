@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('d1/dc3/md_docs_2analysis_2overworld__l
   <div class="headertitle"><div class="title">Overworld::Load Performance Analysis and Optimization Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md173"></a> </p>
-<h1><a class="anchor" id="autotoc_md174"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md179"></a> </p>
+<h1><a class="anchor" id="autotoc_md180"></a>
 Current Performance Profile</h1>
 <p>Based on the performance report, <code>Overworld::Load</code> takes <b>2887.91ms (2.9 seconds)</b>, making it the primary bottleneck in ROM loading.</p>
-<h1><a class="anchor" id="autotoc_md175"></a>
+<h1><a class="anchor" id="autotoc_md181"></a>
 Detailed Analysis of Overworld::Load</h1>
-<h2><a class="anchor" id="autotoc_md176"></a>
+<h2><a class="anchor" id="autotoc_md182"></a>
 Current Implementation Breakdown</h2>
 <div class="fragment"><div class="line">absl::Status Overworld::Load(Rom* rom) {</div>
 <div class="line">  <span class="comment">// 1. Tile Assembly (CPU-bound)</span></div>
@@ -143,9 +143,9 @@ Current Implementation Breakdown</h2>
 <div class="line">  <a class="code hl_define" href="../../d4/d9e/macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a>(LoadSprites());            <span class="comment">// ~200-400ms</span></div>
 <div class="line">}</div>
 <div class="ttc" id="amacro_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="../../d4/d9e/macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d9e/macro_8h_source.html#l00053">macro.h:53</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md177"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md183"></a>
 Major Bottlenecks Identified</h1>
-<h2><a class="anchor" id="autotoc_md178"></a>
+<h2><a class="anchor" id="autotoc_md184"></a>
 1. &lt;strong&gt;DecompressAllMapTiles() - PRIMARY BOTTLENECK (~1.5-2.0 seconds)&lt;/strong&gt;</h2>
 <p><b>Current Implementation Issues:</b></p><ul>
 <li>Sequential processing of 160 overworld maps</li>
@@ -159,23 +159,23 @@ Major Bottlenecks Identified</h1>
 <div class="line">  <span class="keyword">auto</span> bytes2 = gfx::HyruleMagicDecompress(rom()-&gt;data() + p1, &amp;size2, 1);  <span class="comment">// ~5-10ms each</span></div>
 <div class="line">  OrganizeMapTiles(bytes, bytes2, i, sx, sy, ttpos);  <span class="comment">// ~2-5ms each</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md179"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md185"></a>
 2. &lt;strong&gt;AssembleMap32Tiles() - SECONDARY BOTTLENECK (~200-400ms)&lt;/strong&gt;</h2>
 <p><b>Current Implementation Issues:</b></p><ul>
 <li>Sequential processing of tile32 data</li>
 <li>Multiple ROM reads per tile</li>
 <li>Complex tile assembly logic</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md180"></a>
+<h2><a class="anchor" id="autotoc_md186"></a>
 3. &lt;strong&gt;AssembleMap16Tiles() - MODERATE BOTTLENECK (~100-200ms)&lt;/strong&gt;</h2>
 <p><b>Current Implementation Issues:</b></p><ul>
 <li>Sequential processing of tile16 data</li>
 <li>Multiple ROM reads per tile</li>
 <li>Tile info processing</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md181"></a>
+<h1><a class="anchor" id="autotoc_md187"></a>
 Optimization Strategies</h1>
-<h2><a class="anchor" id="autotoc_md182"></a>
+<h2><a class="anchor" id="autotoc_md188"></a>
 1. &lt;strong&gt;Parallelize Decompression Operations&lt;/strong&gt;</h2>
 <p><b>Strategy:</b> Process multiple maps concurrently during decompression</p>
 <div class="fragment"><div class="line">absl::Status DecompressAllMapTilesParallel() {</div>
@@ -205,7 +205,7 @@ Optimization Strategies</h1>
 <div class="line">  <span class="keywordflow">return</span> absl::OkStatus();</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Expected Improvement:</b> 60-80% reduction in decompression time (2.0s → 0.4-0.8s)</p>
-<h2><a class="anchor" id="autotoc_md183"></a>
+<h2><a class="anchor" id="autotoc_md189"></a>
 2. &lt;strong&gt;Optimize ROM Access Patterns&lt;/strong&gt;</h2>
 <p><b>Strategy:</b> Batch ROM reads and cache frequently accessed data</p>
 <div class="fragment"><div class="line"><span class="comment">// Cache ROM data in memory to reduce I/O overhead</span></div>
@@ -226,7 +226,7 @@ Optimization Strategies</h1>
 <div class="line">  }</div>
 <div class="line">};</div>
 </div><!-- fragment --><p><b>Expected Improvement:</b> 10-20% reduction in ROM access time</p>
-<h2><a class="anchor" id="autotoc_md184"></a>
+<h2><a class="anchor" id="autotoc_md190"></a>
 3. &lt;strong&gt;Implement Lazy Map Loading&lt;/strong&gt;</h2>
 <p><b>Strategy:</b> Only load maps that are immediately needed</p>
 <div class="fragment"><div class="line">absl::Status Overworld::LoadEssentialMaps() {</div>
@@ -245,7 +245,7 @@ Optimization Strategies</h1>
 <div class="line">  <span class="keywordflow">return</span> absl::OkStatus();</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Expected Improvement:</b> 70-80% reduction in initial loading time (2.9s → 0.6-0.9s)</p>
-<h2><a class="anchor" id="autotoc_md185"></a>
+<h2><a class="anchor" id="autotoc_md191"></a>
 4. &lt;strong&gt;Optimize HyruleMagicDecompress&lt;/strong&gt;</h2>
 <p><b>Strategy:</b> Profile and optimize the decompression algorithm</p>
 <p><b>Current Algorithm Complexity:</b></p><ul>
@@ -260,7 +260,7 @@ Optimization Strategies</h1>
 <li>Cache decompression results for identical data</li>
 </ul>
 <p><b>Expected Improvement:</b> 20-40% reduction in decompression time</p>
-<h2><a class="anchor" id="autotoc_md186"></a>
+<h2><a class="anchor" id="autotoc_md192"></a>
 5. &lt;strong&gt;Memory Pool Optimization&lt;/strong&gt;</h2>
 <p><b>Strategy:</b> Use memory pools for frequent allocations</p>
 <div class="fragment"><div class="line"><span class="keyword">class </span>DecompressionMemoryPool {</div>
@@ -282,32 +282,32 @@ Optimization Strategies</h1>
 <div class="line">    <span class="comment">// Return buffer to pool</span></div>
 <div class="line">  }</div>
 <div class="line">};</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md187"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md193"></a>
 Implementation Priority</h1>
-<h2><a class="anchor" id="autotoc_md188"></a>
+<h2><a class="anchor" id="autotoc_md194"></a>
 Phase 1: High Impact, Low Risk (Immediate)</h2>
 <ol type="1">
 <li><b>Parallelize DecompressAllMapTiles</b> - Biggest performance gain</li>
 <li><b>Implement lazy loading for non-essential maps</b></li>
 <li><b>Add performance monitoring to identify remaining bottlenecks</b></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md189"></a>
+<h2><a class="anchor" id="autotoc_md195"></a>
 Phase 2: Medium Impact, Medium Risk (Next)</h2>
 <ol type="1">
 <li><b>Optimize ROM access patterns</b></li>
 <li><b>Implement memory pooling for decompression</b></li>
 <li><b>Profile and optimize HyruleMagicDecompress</b></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md190"></a>
+<h2><a class="anchor" id="autotoc_md196"></a>
 Phase 3: Lower Impact, Higher Risk (Future)</h2>
 <ol type="1">
 <li><b>Rewrite decompression algorithm with SIMD</b></li>
 <li><b>Implement advanced caching strategies</b></li>
 <li><b>Consider alternative data formats for faster loading</b></li>
 </ol>
-<h1><a class="anchor" id="autotoc_md191"></a>
+<h1><a class="anchor" id="autotoc_md197"></a>
 Expected Performance Improvements</h1>
-<h2><a class="anchor" id="autotoc_md192"></a>
+<h2><a class="anchor" id="autotoc_md198"></a>
 Conservative Estimates</h2>
 <ul>
 <li><b>Current:</b> 2887ms total loading time</li>
@@ -315,7 +315,7 @@ Conservative Estimates</h2>
 <li><b>After Phase 2:</b> 500-800ms (70-80% improvement)</li>
 <li><b>After Phase 3:</b> 300-500ms (80-85% improvement)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md193"></a>
+<h2><a class="anchor" id="autotoc_md199"></a>
 Aggressive Estimates</h2>
 <ul>
 <li><b>Current:</b> 2887ms total loading time</li>
@@ -323,7 +323,7 @@ Aggressive Estimates</h2>
 <li><b>After Phase 2:</b> 300-500ms (80-85% improvement)</li>
 <li><b>After Phase 3:</b> 200-400ms (85-90% improvement)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md194"></a>
+<h1><a class="anchor" id="autotoc_md200"></a>
 Conclusion</h1>
 <p>The primary optimization opportunity is in <code>DecompressAllMapTiles()</code>, which represents the majority of the loading time. By implementing parallel processing and lazy loading, we can achieve significant performance improvements while maintaining code reliability.</p>
 <p>The optimizations should focus on:</p><ol type="1">

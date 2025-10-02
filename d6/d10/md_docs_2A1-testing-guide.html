@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('d6/d10/md_docs_2A1-testing-guide.html'
   <div class="headertitle"><div class="title">Testing Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md103"></a> Comprehensive testing framework with efficient CI/CD integration and ROM-dependent test separation.</p>
-<h1><a class="anchor" id="autotoc_md104"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md109"></a> Comprehensive testing framework with efficient CI/CD integration and ROM-dependent test separation.</p>
+<h1><a class="anchor" id="autotoc_md110"></a>
 Test Categories</h1>
-<h2><a class="anchor" id="autotoc_md105"></a>
+<h2><a class="anchor" id="autotoc_md111"></a>
 Stable Tests (STABLE)</h2>
 <p><b>Always run in CI/CD - Required for releases</b></p>
 <ul>
@@ -121,7 +121,7 @@ Stable Tests (STABLE)</h2>
 <li>No external dependencies (ROMs, complex setup)</li>
 <li>High reliability and deterministic results</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md106"></a>
+<h2><a class="anchor" id="autotoc_md112"></a>
 ROM-Dependent Tests (ROM_DEPENDENT)</h2>
 <p><b>Only run in development with available ROM files</b></p>
 <ul>
@@ -133,7 +133,7 @@ ROM-Dependent Tests (ROM_DEPENDENT)</h2>
 <li>Test real-world functionality</li>
 <li>Automatically skipped in CI if ROM files unavailable</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md107"></a>
+<h2><a class="anchor" id="autotoc_md113"></a>
 Experimental Tests (EXPERIMENTAL)</h2>
 <p><b>Run separately, allowed to fail</b></p>
 <ul>
@@ -147,7 +147,7 @@ Experimental Tests (EXPERIMENTAL)</h2>
 <li>Test advanced/experimental features</li>
 <li>Allowed to fail without blocking releases</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md108"></a>
+<h1><a class="anchor" id="autotoc_md114"></a>
 Command Line Usage</h1>
 <div class="fragment"><div class="line"># Run only stable tests (release-ready)</div>
 <div class="line">ctest --test-dir build --label-regex &quot;STABLE&quot;</div>
@@ -164,7 +164,7 @@ Command Line Usage</h1>
 <div class="line"># Run with specific preset</div>
 <div class="line">ctest --preset stable</div>
 <div class="line">ctest --preset experimental</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md109"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md115"></a>
 CMake Presets</h1>
 <div class="fragment"><div class="line"># Development workflow</div>
 <div class="line">cmake --preset dev</div>
@@ -180,9 +180,9 @@ CMake Presets</h1>
 <div class="line">cmake --preset release</div>
 <div class="line">cmake --build --preset release</div>
 <div class="line">ctest --preset stable</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md110"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md116"></a>
 Writing Tests</h1>
-<h2><a class="anchor" id="autotoc_md111"></a>
+<h2><a class="anchor" id="autotoc_md117"></a>
 Stable Tests</h2>
 <div class="fragment"><div class="line">TEST(SnesTileTest, UnpackBppTile) {</div>
 <div class="line">    std::vector&lt;uint8_t&gt; tile_data = {0xAA, 0x55, 0xAA, 0x55};</div>
@@ -190,7 +190,7 @@ Stable Tests</h2>
 <div class="line">    EXPECT_EQ(result.size(), 64);</div>
 <div class="line">    <span class="comment">// Test specific pixel values...</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md112"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md118"></a>
 ROM-Dependent Tests</h2>
 <div class="fragment"><div class="line"><a class="code hl_define" href="../../df/dfd/test__utils_8h.html#acde8466936427e1b1ba331bccb124a9e">YAZE_ROM_TEST</a>(AsarIntegration, RealRomPatching) {</div>
 <div class="line">    <span class="keyword">auto</span> rom_data = TestRomManager::LoadTestRom();</div>
@@ -205,15 +205,15 @@ ROM-Dependent Tests</h2>
 <div class="line">    EXPECT_TRUE(result.ok());</div>
 <div class="line">}</div>
 <div class="ttc" id="atest__utils_8h_html_acde8466936427e1b1ba331bccb124a9e"><div class="ttname"><a href="../../df/dfd/test__utils_8h.html#acde8466936427e1b1ba331bccb124a9e">YAZE_ROM_TEST</a></div><div class="ttdeci">#define YAZE_ROM_TEST(test_case_name, test_name)</div><div class="ttdoc">Test macro for ROM-dependent tests.</div><div class="ttdef"><b>Definition</b> <a href="../../df/dfd/test__utils_8h_source.html#l00135">test_utils.h:135</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md113"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md119"></a>
 Experimental Tests</h2>
 <div class="fragment"><div class="line">TEST(CpuTest, InstructionExecution) {</div>
 <div class="line">    <span class="comment">// Complex emulation tests</span></div>
 <div class="line">    <span class="comment">// May be timing-sensitive or platform-dependent</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md114"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md120"></a>
 CI/CD Integration</h1>
-<h2><a class="anchor" id="autotoc_md115"></a>
+<h2><a class="anchor" id="autotoc_md121"></a>
 GitHub Actions</h2>
 <div class="fragment"><div class="line"># Main CI pipeline</div>
 <div class="line">- name: Run Stable Tests</div>
@@ -223,7 +223,7 @@ GitHub Actions</h2>
 <div class="line">- name: Run Experimental Tests</div>
 <div class="line">  run: ctest --label-regex &quot;EXPERIMENTAL&quot;</div>
 <div class="line">  continue-on-error: true</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md116"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md122"></a>
 Test Execution Strategy</h2>
 <ol type="1">
 <li><b>Stable tests run first</b> - Quick feedback for developers</li>
@@ -231,9 +231,9 @@ Test Execution Strategy</h2>
 <li><b>ROM tests skipped</b> - No dependency on external files</li>
 <li><b>Selective test execution</b> - Only run relevant tests for changes</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md117"></a>
+<h1><a class="anchor" id="autotoc_md123"></a>
 Test Development Guidelines</h1>
-<h2><a class="anchor" id="autotoc_md118"></a>
+<h2><a class="anchor" id="autotoc_md124"></a>
 Writing Stable Tests</h2>
 <ul>
 <li><b>Fast execution</b>: Aim for &lt; 1 second per test</li>
@@ -241,7 +241,7 @@ Writing Stable Tests</h2>
 <li><b>Deterministic</b>: Same results every run</li>
 <li><b>Core functionality</b>: Test essential features only</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md119"></a>
+<h2><a class="anchor" id="autotoc_md125"></a>
 Writing ROM-Dependent Tests</h2>
 <ul>
 <li><b>Use TestRomManager</b>: Proper ROM file handling</li>
@@ -249,7 +249,7 @@ Writing ROM-Dependent Tests</h2>
 <li><b>Real-world scenarios</b>: Test with actual game data</li>
 <li><b>Label appropriately</b>: Always include ROM_DEPENDENT label</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md120"></a>
+<h2><a class="anchor" id="autotoc_md126"></a>
 Writing Experimental Tests</h2>
 <ul>
 <li><b>Complex scenarios</b>: Multi-component integration</li>
@@ -257,12 +257,12 @@ Writing Experimental Tests</h2>
 <li><b>Performance tests</b>: May vary by system</li>
 <li><b>GUI components</b>: May require display context</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md121"></a>
+<h1><a class="anchor" id="autotoc_md127"></a>
 E2E GUI Testing Framework</h1>
-<h2><a class="anchor" id="autotoc_md122"></a>
+<h2><a class="anchor" id="autotoc_md128"></a>
 Overview</h2>
 <p>An agent-friendly, end-to-end testing framework built on <code>ImGuiTestEngine</code> to automate UI interaction testing for the YAZE editor.</p>
-<h2><a class="anchor" id="autotoc_md123"></a>
+<h2><a class="anchor" id="autotoc_md129"></a>
 Architecture</h2>
 <p><b>Test Execution Flow</b>:</p><ol type="1">
 <li><code>z3ed test-gui</code> command invokes the modified <code>yaze_test</code> executable</li>
@@ -276,7 +276,7 @@ Architecture</h2>
 <li><code><a class="el" href="../../d2/d5c/canvas__selection__test_8cc.html">test/e2e/canvas_selection_test.cc</a></code> - Canvas interaction tests</li>
 <li><code><a class="el" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a></code> - High-level action wrappers (LoadRomInTest, OpenEditorInTest, etc.)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md124"></a>
+<h2><a class="anchor" id="autotoc_md130"></a>
 Writing E2E Tests</h2>
 <div class="fragment"><div class="line"><span class="comment">// Example: Canvas selection test</span></div>
 <div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a>&quot;</span></div>
@@ -300,7 +300,7 @@ Writing E2E Tests</h2>
 <div class="line">  };</div>
 <div class="line">}</div>
 <div class="ttc" id="atest__utils_8h_html"><div class="ttname"><a href="../../df/dfd/test__utils_8h.html">test_utils.h</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md125"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md131"></a>
 Helper Functions</h2>
 <p><b><a class="el" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a></b> provides high-level wrappers:</p><ul>
 <li><code>LoadRomInTest(ctx, rom_path)</code> - Load ROM file in test context</li>
@@ -308,7 +308,7 @@ Helper Functions</h2>
 <li><code>VerifyTileData(ctx, expected)</code> - Assert tile data correctness</li>
 <li><code>WaitForRender(ctx)</code> - Wait for rendering to complete</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md126"></a>
+<h2><a class="anchor" id="autotoc_md132"></a>
 Running GUI Tests</h2>
 <div class="fragment"><div class="line"># Run all E2E tests</div>
 <div class="line">z3ed test-gui --rom zelda3.sfc --test all</div>
@@ -318,7 +318,7 @@ Running GUI Tests</h2>
 <div class="line"> </div>
 <div class="line"># Run in headless mode (CI)</div>
 <div class="line">z3ed test-gui --rom zelda3.sfc --test all --headless</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md127"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md133"></a>
 Test Categories for E2E</h2>
 <ul>
 <li><b>Smoke Tests</b>: Basic functionality verification (window opens, ROM loads)</li>
@@ -326,7 +326,7 @@ Test Categories for E2E</h2>
 <li><b>Editor Tests</b>: Specific editor workflows (Overworld, Dungeon, Graphics)</li>
 <li><b>Integration Tests</b>: Multi-editor workflows and data persistence</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md128"></a>
+<h2><a class="anchor" id="autotoc_md134"></a>
 Development Status</h2>
 <ul>
 <li>✅ <b>Phase 1</b>: Core infrastructure &amp; test execution flow</li>
@@ -336,7 +336,7 @@ Development Status</h2>
 <li>⏳ <b>Phase 5</b>: Expand test coverage and fix identified bugs</li>
 <li>⏳ <b>Phase 6</b>: CI/CD integration with headless mode</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md129"></a>
+<h2><a class="anchor" id="autotoc_md135"></a>
 Best Practices</h2>
 <ol type="1">
 <li><b>Keep tests deterministic</b> - Use fixed delays and wait for specific states</li>
@@ -345,9 +345,9 @@ Best Practices</h2>
 <li><b>Verify visually</b> - Check rendered output, not just data structures</li>
 <li><b>Clean up state</b> - Reset between tests to prevent interference</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md130"></a>
+<h1><a class="anchor" id="autotoc_md136"></a>
 Performance and Maintenance</h1>
-<h2><a class="anchor" id="autotoc_md131"></a>
+<h2><a class="anchor" id="autotoc_md137"></a>
 Regular Review</h2>
 <ul>
 <li><b>Monthly review</b> of experimental test failures</li>
@@ -355,7 +355,7 @@ Regular Review</h2>
 <li><b>Deprecate obsolete tests</b> that no longer provide value</li>
 <li><b>Update test categorization</b> as features mature</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md132"></a>
+<h2><a class="anchor" id="autotoc_md138"></a>
 Performance Monitoring</h2>
 <ul>
 <li><b>Track test execution times</b> for CI efficiency</li>
@@ -363,7 +363,7 @@ Performance Monitoring</h2>
 <li><b>Monitor CI resource usage</b> and adjust parallelism</li>
 <li><b>Benchmark critical path tests</b> for performance regression</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md133"></a>
+<h2><a class="anchor" id="autotoc_md139"></a>
 E2E Test Maintenance</h2>
 <ul>
 <li><b>Update test helpers</b> as UI components change</li>

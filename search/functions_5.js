@@ -21,7 +21,7 @@ var searchData=
   ['findobjectsinarea_18',['FindObjectsInArea',['../de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#ae277b66a14e5914a9cf2625d1e4a878f',1,'yaze::zelda3::DungeonObjectEditor']]],
   ['findprojectsindirectory_19',['FindProjectsInDirectory',['../d9/d7f/classyaze_1_1core_1_1ProjectManager.html#ad4cb31ccc4859473d819113fe9e47376',1,'yaze::core::ProjectManager']]],
   ['findrealdictionaryentry_20',['FindRealDictionaryEntry',['../d1/d3e/namespaceyaze_1_1editor.html#a508cbba41214d784ba112a4c3f14ec78',1,'yaze::editor']]],
-  ['findsymbol_21',['FindSymbol',['../dd/dc9/classyaze_1_1app_1_1core_1_1AsarWrapper.html#a6d91d66dcff6efc153a6cb6278dc00f5',1,'yaze::app::core::AsarWrapper']]],
+  ['findsymbol_21',['FindSymbol',['../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a532beea9f0fe141b922bd47af6100415',1,'yaze::core::AsarWrapper']]],
   ['findwidgets_22',['FindWidgets',['../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ae3f4a7bad5b8027d85be447f2f65603b',1,'yaze::gui::WidgetIdRegistry']]],
   ['findwordend_23',['FindWordEnd',['../d0/d28/classTextEditor.html#a8171a76adf4e1fc6a699f60b60eb7902',1,'TextEditor']]],
   ['findwordstart_24',['FindWordStart',['../d0/d28/classTextEditor.html#a5111c6334e494708b38cabd576f42b71',1,'TextEditor']]],
@@ -35,7 +35,7 @@ var searchData=
   ['formatduration_32',['FormatDuration',['../d7/d4d/classyaze_1_1gui_1_1canvas_1_1CanvasUsageTracker.html#a2f4fbe8cdff478af1779801ec7100bd3',1,'yaze::gui::canvas::CanvasUsageTracker']]],
   ['formatisotimestamp_33',['FormatIsoTimestamp',['../de/da2/namespaceyaze_1_1test_1_1anonymous__namespace_02test__script__parser_8cc_03.html#aaca9fe7a895a2b507ab6315c5be0f70c',1,'yaze::test::anonymous_namespace{test_script_parser.cc}']]],
   ['formatmemory_34',['formatmemory',['../d6/dcb/classyaze_1_1gui_1_1canvas_1_1CanvasPerformanceIntegration.html#ab95bfe0ffc4da4c19bb994676192aceb',1,'yaze::gui::canvas::CanvasPerformanceIntegration::FormatMemory()'],['../d4/d6f/classyaze_1_1gfx_1_1PerformanceDashboard.html#a81e393c04b9771f80d09d79d2fcdc083',1,'yaze::gfx::PerformanceDashboard::FormatMemory()']]],
-  ['formatoptionaltime_35',['FormatOptionalTime',['../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a5d3109a656065cb966591303c9eab938',1,'yaze::cli::anonymous_namespace{agent.cc}']]],
+  ['formatoptionaltime_35',['FormatOptionalTime',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a26becb072f8972e42a5df41ca44821e9',1,'yaze::cli::agent']]],
   ['formattime_36',['formattime',['../d6/dcb/classyaze_1_1gui_1_1canvas_1_1CanvasPerformanceIntegration.html#ada3a5721e25b7207856f0e6371942530',1,'yaze::gui::canvas::CanvasPerformanceIntegration::FormatTime()'],['../d4/d6f/classyaze_1_1gfx_1_1PerformanceDashboard.html#a5d0b52ad4d946146259683e903947e22',1,'yaze::gfx::PerformanceDashboard::FormatTime()']]],
   ['freesurface_37',['FreeSurface',['../d4/de6/classyaze_1_1gfx_1_1Arena.html#aa0eb6d909ed3d9ce85a61488bb74a7c0',1,'yaze::gfx::Arena']]],
   ['freetexture_38',['FreeTexture',['../d4/de6/classyaze_1_1gfx_1_1Arena.html#ac2f43b16bb84a6c15db4ff6ecae6a57a',1,'yaze::gfx::Arena']]]
