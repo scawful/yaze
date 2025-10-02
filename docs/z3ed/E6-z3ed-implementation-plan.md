@@ -1,11 +1,17 @@
 # z3ed Agentic Wo**Active Phase**:
-- **E2E Validation**: Debugging and hardening the gRPC test harness to ensure reliable GUI automation.
+- **Policy Evaluation Framework (AW-04)**: YAML-based constraint system for gating proposal acceptance - implementation complete, ready for production testing.
 
 **📋 Next Phases**:
-- **Priority 1**: Complete E2E Validation by implementing identified fixes for window detection and thread safety.
-- **Priority 2**: Begin Policy Evaluation Framework (AW-04) - a YAML-based constraint system for proposal acceptance.
+- **Priority 1**: Production Testing - Validate policy enforcement with real ROM modification proposals.
+- **Priority 2**: Windows Cross-Platform Testing - Ensure z3ed works on Windows targets with gRPC integration.
 
-**Recent Accomplishments** (Updated: October 2, 2025):
+**Recent Accomplishments** (Updated: January 2025):
+- **✅ Policy Framework Complete**: PolicyEvaluator service fully integrated with ProposalDrawer GUI
+  - 4 policy types implemented: test_requirement, change_constraint, forbidden_range, review_requirement
+  - 3 severity levels: Info (informational), Warning (overridable), Critical (blocks acceptance)
+  - GUI displays color-coded violations (⛔ critical, ⚠️ warning, ℹ️ info)
+  - Accept button gating based on policy violations with override confirmation dialog
+  - Example policy configuration at `.yaze/policies/agent.yaml`
 - **✅ E2E Validation Complete**: All 5 functional RPC tests passing (Ping, Click, Type, Wait, Assert)
   - Window detection timing issue **resolved** with 10-frame yield buffer in Wait RPC
   - Thread safety issues **resolved** with shared_ptr state management
@@ -18,8 +24,9 @@
 - **Screenshot RPC**: Stub implementation (returns "not implemented" - planned for production phase)
 - **Widget Naming**: Documentation needed for icon prefixes and naming conventions
 - **Performance**: Tests add ~166ms per Wait call due to frame yielding (acceptable trade-off)
+- **YAML Parsing**: Simple parser implemented, consider yaml-cpp for complex scenarios
 
-**Time Investment**: 20.5 hours total (IT-01: 11h, IT-02: 7.5h, Docs: 2h)on Plan
+**Time Investment**: 28.5 hours total (IT-01: 11h, IT-02: 7.5h, E2E: 2h, Policy: 6h, Docs: 2h)on Plan
 
 **Last Updated**: [Current Date]
 **Status**: Core Infrastructure Complete | E2E Validation In Progress 🎯
@@ -212,7 +219,7 @@ This plan decomposes the design additions into actionable engineering tasks. Eac
 | AW-01 | Implement sandbox ROM cloning and tracking (`RomSandboxManager`). | Acceptance Workflow | Code | ✅ Done | ROM sandbox manager operational with lifecycle management |
 | AW-02 | Build proposal registry service storing diffs, logs, screenshots. | Acceptance Workflow | Code | ✅ Done | ProposalRegistry implemented with disk persistence |
 | AW-03 | Add ImGui drawer for proposals with accept/reject controls. | Acceptance Workflow | UX | ✅ Done | ProposalDrawer GUI complete with ROM merging |
-| AW-04 | Implement policy evaluation for gating accept buttons. | Acceptance Workflow | Code | 📋 Next | AW-03, Priority 1 - YAML policies + PolicyEvaluator (6-8 hours) |
+| AW-04 | Implement policy evaluation for gating accept buttons. | Acceptance Workflow | Code | ✅ Done | PolicyEvaluator service with 4 policy types (test, constraint, forbidden, review), GUI integration complete (6 hours) |
 | AW-05 | Draft `.z3ed-diff` hybrid schema (binary deltas + JSON metadata). | Acceptance Workflow | Design | 📋 Planned | AW-01 |
 | IT-01 | Create `ImGuiTestHarness` IPC service embedded in `yaze_test`. | ImGuiTest Bridge | Code | ✅ Done | Phase 1+2+3 Complete - Full GUI automation with gRPC + ImGuiTestEngine (11 hours) |
 | IT-02 | Implement CLI agent step translation (`imgui_action` → harness call). | ImGuiTest Bridge | Code | ✅ Done | `z3ed agent test` command with natural language prompts (7.5 hours) |

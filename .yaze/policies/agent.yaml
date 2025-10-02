@@ -1,0 +1,33 @@
+# Policy Configuration for z3ed Agent
+# This file controls which modifications the agent is allowed to make
+
+version: 1.0
+enabled: true
+
+policies:
+  - name: limit_changes
+    type: change_constraint
+    severity: warning
+    max_bytes: 1024
+    description: Warn if proposal modifies more than 1KB
+
+  - name: protect_header
+    type: forbidden_range
+    severity: critical
+    start: 0x00
+    end: 0x7F
+    description: Never allow modifications to ROM header
+
+  - name: require_tests
+    type: test_requirement
+    severity: critical
+    enabled: true
+    description: All proposals must include passing tests
+
+  - name: review_requirements
+    type: review_requirement
+    severity: warning
+    conditions:
+      - affects_multiple_systems
+      - modifies_core_logic
+    description: Flag proposals that need extra scrutiny
