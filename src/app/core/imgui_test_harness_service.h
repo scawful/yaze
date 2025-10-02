@@ -36,6 +36,12 @@ class AssertRequest;
 class AssertResponse;
 class ScreenshotRequest;
 class ScreenshotResponse;
+class GetTestStatusRequest;
+class GetTestStatusResponse;
+class ListTestsRequest;
+class ListTestsResponse;
+class GetTestResultsRequest;
+class GetTestResultsResponse;
 
 // Implementation of ImGuiTestHarness gRPC service
 // This class provides the actual RPC handlers for automated GUI testing
@@ -71,6 +77,14 @@ class ImGuiTestHarnessServiceImpl {
   // Capture a screenshot
   absl::Status Screenshot(const ScreenshotRequest* request,
                           ScreenshotResponse* response);
+
+  // Test introspection APIs
+  absl::Status GetTestStatus(const GetTestStatusRequest* request,
+                             GetTestStatusResponse* response);
+  absl::Status ListTests(const ListTestsRequest* request,
+                         ListTestsResponse* response);
+  absl::Status GetTestResults(const GetTestResultsRequest* request,
+                              GetTestResultsResponse* response);
 
  private:
   TestManager* test_manager_;  // Non-owning pointer to access ImGuiTestEngine

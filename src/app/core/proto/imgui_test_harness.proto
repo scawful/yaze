@@ -22,6 +22,11 @@ service ImGuiTestHarness {
   
   // Capture a screenshot
   rpc Screenshot(ScreenshotRequest) returns (ScreenshotResponse);
+
+  // Test introspection APIs (IT-05)
+  rpc GetTestStatus(GetTestStatusRequest) returns (GetTestStatusResponse);
+  rpc ListTests(ListTestsRequest) returns (ListTestsResponse);
+  rpc GetTestResults(GetTestResultsRequest) returns (GetTestResultsResponse);
 }
 
 // ============================================================================
@@ -43,14 +48,15 @@ message PingResponse {
 // ============================================================================
 
 message ClickRequest {
-  string target = 1;     // Target element (e.g., "button:Open ROM", "menu:File/Open")
+  string target = 1;     // Target element (e.g., "button:Open ROM")
   ClickType type = 2;    // Type of click
   
   enum ClickType {
-    LEFT = 0;       // Single left click
-    RIGHT = 1;      // Single right click
-    DOUBLE = 2;     // Double click
-    MIDDLE = 3;     // Middle mouse button
+    CLICK_TYPE_UNSPECIFIED = 0;  // Default/unspecified click type
+    CLICK_TYPE_LEFT = 1;         // Single left click
+    CLICK_TYPE_RIGHT = 2;        // Single right click
+    CLICK_TYPE_DOUBLE = 3;       // Double click
+    CLICK_TYPE_MIDDLE = 4;       // Middle mouse button
   }
 }
 
@@ -58,6 +64,7 @@ message ClickResponse {
   bool success = 1;              // Whether the click succeeded
   string message = 2;            // Human-readable result message
   int32 execution_time_ms = 3;   // Time taken to execute (for debugging)
+  string test_id = 4;            // Unique test identifier for introspection
 }
 
 // ============================================================================
@@ -74,6 +81,7 @@ message TypeResponse {
   bool success = 1;
   string message = 2;
   int32 execution_time_ms = 3;
+  string test_id = 4;
 }
 
 // ============================================================================
@@ -81,7 +89,7 @@ message TypeResponse {
 // ============================================================================
 
 message WaitRequest {
-  string condition = 1;   // Condition to wait for (e.g., "window:Overworld Editor", "enabled:button:Save")
+  string condition = 1;   // Condition to wait for (e.g., "window:Overworld")
   int32 timeout_ms = 2;   // Maximum time to wait (default 5000ms)
   int32 poll_interval_ms = 3;  // How often to check (default 100ms)
 }
@@ -90,6 +98,7 @@ message WaitResponse {
   bool success = 1;       // Whether condition was met before timeout
   string message = 2;
   int32 elapsed_ms = 3;   // Time taken before condition met (or timeout)
+  string test_id = 4;     // Unique test identifier for introspection
 }
 
 // ============================================================================
@@ -97,7 +106,7 @@ message WaitResponse {
 // ============================================================================
 
 message AssertRequest {
-  string condition = 1;   // Condition to assert (e.g., "visible:button:Save", "text:label:Version:0.3.2")
+  string condition = 1;   // Condition to assert (e.g., "visible:button:Save")
   string failure_message = 2;  // Custom message if assertion fails
 }
 
@@ -106,6 +115,7 @@ message AssertResponse {
   string message = 2;     // Diagnostic message
   string actual_value = 3;     // Actual value found (for debugging)
   string expected_value = 4;   // Expected value (for debugging)
+  string test_id = 5;          // Unique test identifier for introspection
 }
 
 // ============================================================================
@@ -118,8 +128,9 @@ message ScreenshotRequest {
   ImageFormat format = 3;   // Image format
   
   enum ImageFormat {
-    PNG = 0;
-    JPEG = 1;
+    IMAGE_FORMAT_UNSPECIFIED = 0;
+    IMAGE_FORMAT_PNG = 1;
+    IMAGE_FORMAT_JPEG = 2;
   }
 }
 
@@ -128,4 +139,86 @@ message ScreenshotResponse {
   string message = 2;
   string file_path = 3;   // Absolute path to saved screenshot
   int64 file_size_bytes = 4;
+}
+
+// ============================================================================
+// GetTestStatus - Query test execution state
+// ============================================================================
+
+message GetTestStatusRequest {
+  string test_id = 1;  // Test ID from Click/Type/Wait/Assert response
+}
+
+message GetTestStatusResponse {
+  enum Status {
+    STATUS_UNSPECIFIED = 0;  // Test ID not found or unspecified
+    STATUS_QUEUED = 1;       // Waiting to execute
+    STATUS_RUNNING = 2;      // Currently executing
+    STATUS_PASSED = 3;       // Completed successfully
+    STATUS_FAILED = 4;       // Assertion failed or error
+    STATUS_TIMEOUT = 5;      // Exceeded timeout
+  }
+
+  Status status = 1;
+  int64 queued_at_ms = 2;      // When test was queued
+  int64 started_at_ms = 3;     // When test started (0 if not started)
+  int64 completed_at_ms = 4;   // When test completed (0 if not complete)
+  int32 execution_time_ms = 5; // Total execution time
+  string error_message = 6;    // Error details if FAILED/TIMEOUT
+  repeated string assertion_failures = 7;  // Failed assertion details
+}
+
+// ============================================================================
+// ListTests - Enumerate available tests
+// ============================================================================
+
+message ListTestsRequest {
+  string category_filter = 1;  // Optional: "grpc", "unit", "integration", "e2e"
+  int32 page_size = 2;         // Number of results per page (default 100)
+  string page_token = 3;       // Pagination token from previous response
+}
+
+message ListTestsResponse {
+  repeated TestInfo tests = 1;
+  string next_page_token = 2;  // Token for next page (empty if no more)
+  int32 total_count = 3;       // Total number of matching tests
+}
+
+message TestInfo {
+  string test_id = 1;           // Unique test identifier
+  string name = 2;              // Human-readable test name
+  string category = 3;          // Category: grpc, unit, integration, e2e
+  int64 last_run_timestamp_ms = 4;  // When test last executed
+  int32 total_runs = 5;         // Total number of executions
+  int32 pass_count = 6;         // Number of successful runs
+  int32 fail_count = 7;         // Number of failed runs
+  int32 average_duration_ms = 8;  // Average execution time
+}
+
+// ============================================================================
+// GetTestResults - Retrieve detailed results
+// ============================================================================
+
+message GetTestResultsRequest {
+  string test_id = 1;
+  bool include_logs = 2;  // Include full execution logs
+}
+
+message GetTestResultsResponse {
+  bool success = 1;         // Overall test result
+  string test_name = 2;
+  string category = 3;
+  int64 executed_at_ms = 4;
+  int32 duration_ms = 5;
+  repeated AssertionResult assertions = 6;
+  repeated string logs = 7;  // If include_logs=true
+  map<string, int32> metrics = 8;  // e.g., "frame_count": 123
+}
+
+message AssertionResult {
+  string description = 1;
+  bool passed = 2;
+  string expected_value = 3;
+  string actual_value = 4;
+  string error_message = 5;
 }
