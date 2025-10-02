@@ -7,7 +7,7 @@ set(
   app/core/asar_wrapper.cc
 )
 
-if (WIN32 OR MINGW OR UNIX AND NOT APPLE)
+if (WIN32 OR MINGW OR (UNIX AND NOT APPLE))
   list(APPEND YAZE_APP_CORE_SRC
     app/core/platform/font_loader.cc
     app/core/platform/file_dialog.cc

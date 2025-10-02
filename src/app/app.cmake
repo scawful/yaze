@@ -63,7 +63,7 @@ else()
   )
   
   # Add asset files for Windows/Linux builds
-  if(WIN32 OR LINUX)
+  if(WIN32 OR UNIX)
     target_sources(yaze PRIVATE ${YAZE_RESOURCE_FILES})
     
     # Set up asset deployment for Visual Studio
