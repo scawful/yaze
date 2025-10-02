@@ -2,13 +2,19 @@
 #define YAZE_APP_TEST_TEST_MANAGER_H
 
 #include <chrono>
+#include <deque>
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/synchronization/mutex.h"
+#include "absl/strings/string_view.h"
+#include "absl/time/time.h"
 #include "app/rom.h"
 #include "imgui.h"
 #include "util/log.h"
@@ -111,6 +117,39 @@ struct ResourceStats {
   std::chrono::time_point<std::chrono::steady_clock> timestamp;
 };
 
+// Test harness execution tracking for gRPC automation (IT-05)
+enum class HarnessTestStatus {
+  kUnspecified,
+  kQueued,
+  kRunning,
+  kPassed,
+  kFailed,
+  kTimeout,
+};
+
+struct HarnessTestExecution {
+  std::string test_id;
+  std::string name;
+  std::string category;
+  HarnessTestStatus status = HarnessTestStatus::kUnspecified;
+  absl::Time queued_at;
+  absl::Time started_at;
+  absl::Time completed_at;
+  absl::Duration duration = absl::ZeroDuration();
+  std::string error_message;
+  std::vector<std::string> assertion_failures;
+  std::vector<std::string> logs;
+  std::map<std::string, int32_t> metrics;
+};
+
+struct HarnessTestSummary {
+  HarnessTestExecution latest_execution;
+  int total_runs = 0;
+  int pass_count = 0;
+  int fail_count = 0;
+  absl::Duration total_duration = absl::ZeroDuration();
+};
+
 // Main test manager - singleton
 class TestManager {
  public:
@@ -209,6 +248,29 @@ class TestManager {
   }
   // File dialog mode now uses global feature flags
 
+  // Harness test introspection (IT-05)
+  std::string RegisterHarnessTest(const std::string& name,
+                                  const std::string& category)
+      ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
+  void MarkHarnessTestRunning(const std::string& test_id)
+      ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
+  void MarkHarnessTestCompleted(
+      const std::string& test_id, HarnessTestStatus status,
+      const std::string& error_message = "",
+      const std::vector<std::string>& assertion_failures = {},
+      const std::vector<std::string>& logs = {},
+      const std::map<std::string, int32_t>& metrics = {})
+      ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
+  void AppendHarnessTestLog(const std::string& test_id,
+                            const std::string& log_entry)
+      ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
+  absl::StatusOr<HarnessTestExecution> GetHarnessTestExecution(
+      const std::string& test_id) const
+      ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
+  std::vector<HarnessTestSummary> ListHarnessTestSummaries(
+      const std::string& category_filter = "") const
+      ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
+
  private:
   TestManager();
   ~TestManager();
@@ -263,6 +325,31 @@ class TestManager {
 
   // Test selection and configuration
   std::unordered_map<std::string, bool> disabled_tests_;
+
+  // Harness test tracking
+  struct HarnessAggregate {
+  int total_runs = 0;
+  int pass_count = 0;
+  int fail_count = 0;
+  absl::Duration total_duration = absl::ZeroDuration();
+    std::string category;
+    absl::Time last_run;
+    HarnessTestExecution latest_execution;
+  };
+
+  std::unordered_map<std::string, HarnessTestExecution> harness_history_
+    ABSL_GUARDED_BY(harness_history_mutex_);
+  std::unordered_map<std::string, HarnessAggregate> harness_aggregates_
+    ABSL_GUARDED_BY(harness_history_mutex_);
+  std::deque<std::string> harness_history_order_
+    ABSL_GUARDED_BY(harness_history_mutex_);
+  size_t harness_history_limit_ = 200;
+  mutable absl::Mutex harness_history_mutex_;
+
+  std::string GenerateHarnessTestIdLocked(absl::string_view prefix)
+    ABSL_EXCLUSIVE_LOCKS_REQUIRED(harness_history_mutex_);
+  void TrimHarnessHistoryLocked()
+    ABSL_EXCLUSIVE_LOCKS_REQUIRED(harness_history_mutex_);
 };
 
 // Utility functions for test result formatting

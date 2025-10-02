@@ -96,21 +96,27 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 - **Test Management**: Can't query test status, results, or execution queue
 
 #### IT-05: Test Introspection API (6-8 hours)
-**Implementation Tasks**:
-1. **Add GetTestStatus RPC**:
-   - Query status of queued/running tests by ID
-   - Return test state: queued, running, passed, failed, timeout
-   - Include execution time, error messages, assertion failures
-   
-2. **Add ListTests RPC**:
-   - Enumerate all registered tests in ImGuiTestEngine
-   - Filter by category (grpc, unit, integration, e2e)
-   - Return test metadata: name, category, last run time, pass/fail count
-   
-3. **Add GetTestResults RPC**:
-   - Retrieve detailed results for completed tests
-   - Include assertion logs, performance metrics, resource usage
-   - Support pagination for large result sets
+**Status (Oct 2, 2025)**: 🟡 *Server-side RPCs implemented; CLI + E2E pending*
+
+**Progress**:
+- ✅ `imgui_test_harness.proto` expanded with GetTestStatus/ListTests/GetTestResults messages.
+- ✅ `TestManager` maintains execution history (queued→running→completed) with logs, metrics, and aggregates.
+- ✅ `ImGuiTestHarnessServiceImpl` exposes the three introspection RPCs with pagination, status conversion, and log/metric marshalling.
+- ⚠️ `agent` CLI commands (`test status`, `test list`, `test results`) still stubbed.
+- ⚠️ End-to-end introspection script (`scripts/test_introspection_e2e.sh`) not implemented; regression script `test_harness_e2e.sh` currently failing because it references the unfinished CLI.
+
+**Immediate Next Steps**:
+1. **Wire CLI Client Methods**
+  - Implement gRPC client wrappers for the new RPCs in the automation client.
+  - Add user-facing commands under `z3ed agent test ...` with JSON/YAML output options.
+2. **Author E2E Validation Script**
+  - Spin up harness, run Click/Assert workflow, poll via `agent test status`, fetch results.
+  - Update CI notes with the new script and expected output.
+3. **Documentation & Examples**
+  - Extend `E6-z3ed-reference.md` with full usage examples and sample outputs.
+  - Add troubleshooting section covering common errors (unknown test_id, timeout, etc.).
+4. **Stretch (Optional Before IT-06)**
+  - Capture assertion metadata (expected/actual) for richer `AssertionResult` payloads.
 
 **Example Usage**:
 ```bash

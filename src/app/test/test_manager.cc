@@ -1,7 +1,13 @@
 #include "app/test/test_manager.h"
 
+#include <algorithm>
+#include <random>
+
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_replace.h"
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "app/core/features.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/gfx/arena.h"
@@ -1279,6 +1285,200 @@ absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
     util::logf("ROM integrity check passed for: %s", test_rom->title().c_str());
     return absl::OkStatus();
   });
+}
+
+std::string TestManager::RegisterHarnessTest(const std::string& name,
+                                             const std::string& category) {
+  absl::MutexLock lock(&harness_history_mutex_);
+
+  const std::string sanitized_category = category.empty() ? "grpc" : category;
+  std::string test_id = GenerateHarnessTestIdLocked(sanitized_category);
+
+  HarnessTestExecution execution;
+  execution.test_id = test_id;
+  execution.name = name;
+  execution.category = sanitized_category;
+  execution.status = HarnessTestStatus::kQueued;
+  execution.queued_at = absl::Now();
+  execution.started_at = absl::InfinitePast();
+  execution.completed_at = absl::InfinitePast();
+
+  harness_history_[test_id] = execution;
+  harness_history_order_.push_back(test_id);
+  TrimHarnessHistoryLocked();
+
+  HarnessAggregate& aggregate = harness_aggregates_[name];
+  if (aggregate.category.empty()) {
+    aggregate.category = sanitized_category;
+  }
+  aggregate.last_run = execution.queued_at;
+  aggregate.latest_execution = execution;
+
+  return test_id;
+}
+
+void TestManager::MarkHarnessTestRunning(const std::string& test_id) {
+  absl::MutexLock lock(&harness_history_mutex_);
+
+  auto it = harness_history_.find(test_id);
+  if (it == harness_history_.end()) {
+    return;
+  }
+
+  HarnessTestExecution& execution = it->second;
+  execution.status = HarnessTestStatus::kRunning;
+  execution.started_at = absl::Now();
+
+  HarnessAggregate& aggregate = harness_aggregates_[execution.name];
+  if (aggregate.category.empty()) {
+    aggregate.category = execution.category;
+  }
+  aggregate.latest_execution = execution;
+}
+
+void TestManager::MarkHarnessTestCompleted(
+    const std::string& test_id, HarnessTestStatus status,
+    const std::string& error_message,
+    const std::vector<std::string>& assertion_failures,
+    const std::vector<std::string>& logs,
+    const std::map<std::string, int32_t>& metrics) {
+  absl::MutexLock lock(&harness_history_mutex_);
+
+  auto it = harness_history_.find(test_id);
+  if (it == harness_history_.end()) {
+    return;
+  }
+
+  HarnessTestExecution& execution = it->second;
+  execution.status = status;
+  if (execution.started_at == absl::InfinitePast()) {
+    execution.started_at = execution.queued_at;
+  }
+  execution.completed_at = absl::Now();
+  execution.duration = execution.completed_at - execution.started_at;
+  execution.error_message = error_message;
+  if (!assertion_failures.empty()) {
+    execution.assertion_failures = assertion_failures;
+  }
+  if (!logs.empty()) {
+    execution.logs.insert(execution.logs.end(), logs.begin(), logs.end());
+  }
+  if (!metrics.empty()) {
+    execution.metrics.insert(metrics.begin(), metrics.end());
+  }
+
+  HarnessAggregate& aggregate = harness_aggregates_[execution.name];
+  if (aggregate.category.empty()) {
+    aggregate.category = execution.category;
+  }
+  aggregate.total_runs += 1;
+  if (status == HarnessTestStatus::kPassed) {
+    aggregate.pass_count += 1;
+  } else if (status == HarnessTestStatus::kFailed ||
+             status == HarnessTestStatus::kTimeout) {
+    aggregate.fail_count += 1;
+  }
+  aggregate.total_duration += execution.duration;
+  aggregate.last_run = execution.completed_at;
+  aggregate.latest_execution = execution;
+}
+
+void TestManager::AppendHarnessTestLog(const std::string& test_id,
+                                       const std::string& log_entry) {
+  absl::MutexLock lock(&harness_history_mutex_);
+
+  auto it = harness_history_.find(test_id);
+  if (it == harness_history_.end()) {
+    return;
+  }
+
+  HarnessTestExecution& execution = it->second;
+  execution.logs.push_back(log_entry);
+
+  HarnessAggregate& aggregate = harness_aggregates_[execution.name];
+  aggregate.latest_execution.logs = execution.logs;
+}
+
+absl::StatusOr<HarnessTestExecution> TestManager::GetHarnessTestExecution(
+    const std::string& test_id) const {
+  absl::MutexLock lock(&harness_history_mutex_);
+
+  auto it = harness_history_.find(test_id);
+  if (it == harness_history_.end()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Test ID '%s' not found", test_id));
+  }
+
+  return it->second;
+}
+
+std::vector<HarnessTestSummary> TestManager::ListHarnessTestSummaries(
+    const std::string& category_filter) const {
+  absl::MutexLock lock(&harness_history_mutex_);
+  std::vector<HarnessTestSummary> summaries;
+  summaries.reserve(harness_aggregates_.size());
+
+  for (const auto& [name, aggregate] : harness_aggregates_) {
+    if (!category_filter.empty() && aggregate.category != category_filter) {
+      continue;
+    }
+
+    HarnessTestSummary summary;
+    summary.latest_execution = aggregate.latest_execution;
+    summary.total_runs = aggregate.total_runs;
+    summary.pass_count = aggregate.pass_count;
+    summary.fail_count = aggregate.fail_count;
+    summary.total_duration = aggregate.total_duration;
+    summaries.push_back(summary);
+  }
+
+  std::sort(summaries.begin(), summaries.end(),
+            [](const HarnessTestSummary& a, const HarnessTestSummary& b) {
+              absl::Time time_a = a.latest_execution.completed_at;
+              if (time_a == absl::InfinitePast()) {
+                time_a = a.latest_execution.queued_at;
+              }
+              absl::Time time_b = b.latest_execution.completed_at;
+              if (time_b == absl::InfinitePast()) {
+                time_b = b.latest_execution.queued_at;
+              }
+              return time_a > time_b;
+            });
+
+  return summaries;
+}
+
+std::string TestManager::GenerateHarnessTestIdLocked(absl::string_view prefix) {
+  static std::mt19937 rng(std::random_device{}());
+  static std::uniform_int_distribution<uint32_t> dist(0, 0xFFFFFF);
+
+  std::string sanitized = absl::StrReplaceAll(std::string(prefix),
+                                              {{" ", "_"}, {":", "_"}});
+  if (sanitized.empty()) {
+    sanitized = "test";
+  }
+
+  for (int attempt = 0; attempt < 8; ++attempt) {
+    std::string candidate =
+        absl::StrFormat("%s_%08x", sanitized, dist(rng));
+    if (harness_history_.find(candidate) == harness_history_.end()) {
+      return candidate;
+    }
+  }
+
+  return absl::StrFormat("%s_%lld", sanitized,
+                         static_cast<long long>(absl::ToUnixMillis(absl::Now())));
+}
+
+void TestManager::TrimHarnessHistoryLocked() {
+  while (harness_history_order_.size() > harness_history_limit_) {
+    const std::string& oldest_id = harness_history_order_.front();
+    auto it = harness_history_.find(oldest_id);
+    if (it != harness_history_.end()) {
+      harness_history_.erase(it);
+    }
+    harness_history_order_.pop_front();
+  }
 }
 
 }  // namespace test

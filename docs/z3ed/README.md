@@ -79,7 +79,12 @@ See the **[Technical Reference](E6-z3ed-reference.md)** for a full command list.
 
 ## Recent Enhancements
 
-**Test Harness Evolution** (Planned: IT-05 to IT-09):
+**Latest Progress (Oct 2, 2025)**
+- ✅ Implemented server-side wiring for `GetTestStatus`, `ListTests`, and `GetTestResults` RPCs, including execution history tracking inside `TestManager`.
+- ✅ Added gRPC status mapping helper to surface accurate error codes back to clients.
+- ⚠️ Pending CLI integration, end-to-end introspection tests, and documentation updates for new commands.
+
+**Test Harness Evolution** (In Progress: IT-05 to IT-09):
 - **Test Introspection**: Query test status, results, and execution history
 - **Widget Discovery**: AI agents can enumerate available GUI interactions dynamically
 - **Test Recording**: Capture manual workflows as JSON scripts for regression testing

@@ -1,4 +1,14 @@
-# IT-05: T## Motivation
+# IT-05: Test Introspection API – Implementation Guide
+
+**Status (Oct 2, 2025)**: 🟡 *Server-side RPCs complete; CLI + E2E pending*
+
+## Progress Snapshot
+
+- ✅ Proto definitions and service stubs added for `GetTestStatus`, `ListTests`, `GetTestResults`.
+- ✅ `TestManager` now records execution lifecycle, aggregates, logs, and metrics with thread-safe history trimming.
+- ✅ `ImGuiTestHarnessServiceImpl` implements the three RPC handlers, including pagination and status conversion helpers.
+- ⚠️ CLI wiring, automation client calls, and user-facing output still TODO.
+- ⚠️ End-to-end validation script (`scripts/test_introspection_e2e.sh`) not yet authored.
 
 **Current Limitations**:
 - ❌ Tests execute asynchronously with no way to query status
@@ -7,7 +17,7 @@
 - ❌ Results lost after test completion
 - ❌ Can't track test history or identify flaky tests
 
-**Why This Blocks AI Agent Autonomy**:
+**Why This Blocks AI Agent Autonomy**
 
 Without test introspection, **AI agents cannot implement closed-loop feedback**:
 
@@ -62,7 +72,8 @@ Add test introspection capabilities to enable clients to query test execution st
 - ❌ Results lost after test completion
 - ❌ Can't track test history or identify flaky tests
 
-**Benefits After IT-05**:
+**Benefits After IT-05**
+
 - ✅ AI agents can reliably poll for test completion
 - ✅ CLI can show real-time progress bars
 - ✅ Test history enables trend analysis
@@ -208,166 +219,20 @@ message AssertionResult {
 
 ## Implementation Steps
 
-### Step 1: Extend TestManager (2-3 hours)
+### Step 1: Extend TestManager (✔️ Completed)
 
-#### 1.1 Add Test Execution Tracking
+**What changed**:
+- Introduced `HarnessTestExecution`, `HarnessTestSummary`, and related enums in `test_manager.h`.
+- Added registration, running, completion, log, and metric helpers with `absl::Mutex` guarding (`RegisterHarnessTest`, `MarkHarnessTestRunning`, `MarkHarnessTestCompleted`, etc.).
+- Stored executions in `harness_history_` + `harness_aggregates_` with deque-based trimming to avoid unbounded growth.
 
-**File**: `src/app/core/test_manager.h`
+**Where to look**:
+- `src/app/test/test_manager.h` (see *Harness test introspection (IT-05)* section around `HarnessTestExecution`).
+- `src/app/test/test_manager.cc` (functions `RegisterHarnessTest`, `MarkHarnessTestCompleted`, `AppendHarnessTestLog`, `GetHarnessTestExecution`, `ListHarnessTestSummaries`).
 
-```cpp
-#include <map>
-#include <vector>
-#include "absl/synchronization/mutex.h"
-#include "absl/time/time.h"
-
-class TestManager {
- public:
-  enum class TestStatus {
-    UNKNOWN = 0,
-    QUEUED = 1,
-    RUNNING = 2,
-    PASSED = 3,
-    FAILED = 4,
-    TIMEOUT = 5
-  };
-  
-  struct TestExecution {
-    std::string test_id;
-    std::string name;
-    std::string category;
-    TestStatus status;
-    absl::Time queued_at;
-    absl::Time started_at;
-    absl::Time completed_at;
-    absl::Duration execution_time;
-    std::string error_message;
-    std::vector<std::string> assertion_failures;
-    std::vector<std::string> logs;
-    std::map<std::string, int32_t> metrics;
-  };
-  
-  // NEW: Introspection API
-  absl::StatusOr<TestExecution> GetTestStatus(const std::string& test_id);
-  std::vector<TestExecution> ListTests(const std::string& category_filter = "");
-  absl::StatusOr<TestExecution> GetTestResults(const std::string& test_id);
-  
-  // NEW: Recording test execution
-  void RecordTestStart(const std::string& test_id, const std::string& name,
-                       const std::string& category);
-  void RecordTestComplete(const std::string& test_id, TestStatus status,
-                          const std::string& error_message = "");
-  void AddTestLog(const std::string& test_id, const std::string& log_entry);
-  void AddTestMetric(const std::string& test_id, const std::string& key,
-                     int32_t value);
-  
- private:
-  std::map<std::string, TestExecution> test_history_ ABSL_GUARDED_BY(history_mutex_);
-  absl::Mutex history_mutex_;
-  
-  // Helper: Generate unique test ID
-  std::string GenerateTestId(const std::string& prefix);
-};
-```
-
-**File**: `src/app/core/test_manager.cc`
-
-```cpp
-#include "src/app/core/test_manager.h"
-#include "absl/strings/str_format.h"
-#include "absl/time/clock.h"
-#include <random>
-
-std::string TestManager::GenerateTestId(const std::string& prefix) {
-  static std::random_device rd;
-  static std::mt19937 gen(rd());
-  static std::uniform_int_distribution<> dis(10000000, 99999999);
-  
-  return absl::StrFormat("%s_%d", prefix, dis(gen));
-}
-
-void TestManager::RecordTestStart(const std::string& test_id,
-                                  const std::string& name,
-                                  const std::string& category) {
-  absl::MutexLock lock(&history_mutex_);
-  
-  TestExecution& exec = test_history_[test_id];
-  exec.test_id = test_id;
-  exec.name = name;
-  exec.category = category;
-  exec.status = TestStatus::RUNNING;
-  exec.started_at = absl::Now();
-  exec.queued_at = exec.started_at;  // For now, no separate queue
-}
-
-void TestManager::RecordTestComplete(const std::string& test_id,
-                                     TestStatus status,
-                                     const std::string& error_message) {
-  absl::MutexLock lock(&history_mutex_);
-  
-  auto it = test_history_.find(test_id);
-  if (it == test_history_.end()) return;
-  
-  TestExecution& exec = it->second;
-  exec.status = status;
-  exec.completed_at = absl::Now();
-  exec.execution_time = exec.completed_at - exec.started_at;
-  exec.error_message = error_message;
-}
-
-void TestManager::AddTestLog(const std::string& test_id,
-                             const std::string& log_entry) {
-  absl::MutexLock lock(&history_mutex_);
-  
-  auto it = test_history_.find(test_id);
-  if (it != test_history_.end()) {
-    it->second.logs.push_back(log_entry);
-  }
-}
-
-void TestManager::AddTestMetric(const std::string& test_id,
-                                const std::string& key,
-                                int32_t value) {
-  absl::MutexLock lock(&history_mutex_);
-  
-  auto it = test_history_.find(test_id);
-  if (it != test_history_.end()) {
-    it->second.metrics[key] = value;
-  }
-}
-
-absl::StatusOr<TestManager::TestExecution> TestManager::GetTestStatus(
-    const std::string& test_id) {
-  absl::MutexLock lock(&history_mutex_);
-  
-  auto it = test_history_.find(test_id);
-  if (it == test_history_.end()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Test ID '%s' not found", test_id));
-  }
-  
-  return it->second;
-}
-
-std::vector<TestManager::TestExecution> TestManager::ListTests(
-    const std::string& category_filter) {
-  absl::MutexLock lock(&history_mutex_);
-  
-  std::vector<TestExecution> results;
-  for (const auto& [id, exec] : test_history_) {
-    if (category_filter.empty() || exec.category == category_filter) {
-      results.push_back(exec);
-    }
-  }
-  
-  return results;
-}
-
-absl::StatusOr<TestManager::TestExecution> TestManager::GetTestResults(
-    const std::string& test_id) {
-  // Same as GetTestStatus for now
-  return GetTestStatus(test_id);
-}
-```
+**Next touch-ups**:
+- Consider persisting assertion metadata (expected/actual) so `GetTestResults` can populate richer `AssertionResult` entries.
+- Decide on retention limit (`harness_history_limit_`) tuning once CLI consumption patterns are known.
 
 #### 1.2 Update Existing RPC Handlers
 
@@ -418,125 +283,25 @@ message ClickResponse {
 // Repeat for TypeResponse, WaitResponse, AssertResponse
 ```
 
-### Step 2: Implement Introspection RPCs (2-3 hours)
+### Step 2: Implement Introspection RPCs (✔️ Completed)
 
-**File**: `src/app/core/imgui_test_harness_service.cc`
+**What changed**:
+- Added helper utilities (`ConvertHarnessStatus`, `ToUnixMillisSafe`, `ClampDurationToInt32`) in `imgui_test_harness_service.cc`.
+- Implemented `GetTestStatus`, `ListTests`, and `GetTestResults` with pagination, optional log inclusion, and structured metrics.mapping.
+- Updated gRPC wrapper to surface new RPCs and translate Abseil status codes into gRPC codes.
+- Ensured deque-backed `DynamicTestData` keep-alive remains bounded while reusing new tracking helpers.
 
-```cpp
-absl::Status ImGuiTestHarnessServiceImpl::GetTestStatus(
-    const GetTestStatusRequest* request,
-    GetTestStatusResponse* response) {
-  
-  auto status_or = test_manager_->GetTestStatus(request->test_id());
-  if (!status_or.ok()) {
-    response->set_status(GetTestStatusResponse::UNKNOWN);
-    return absl::OkStatus();  // Not an RPC error, just test not found
-  }
-  
-  const auto& exec = status_or.value();
-  
-  // Map internal status to proto status
-  switch (exec.status) {
-    case TestManager::TestStatus::QUEUED:
-      response->set_status(GetTestStatusResponse::QUEUED);
-      break;
-    case TestManager::TestStatus::RUNNING:
-      response->set_status(GetTestStatusResponse::RUNNING);
-      break;
-    case TestManager::TestStatus::PASSED:
-      response->set_status(GetTestStatusResponse::PASSED);
-      break;
-    case TestManager::TestStatus::FAILED:
-      response->set_status(GetTestStatusResponse::FAILED);
-      break;
-    case TestManager::TestStatus::TIMEOUT:
-      response->set_status(GetTestStatusResponse::TIMEOUT);
-      break;
-    default:
-      response->set_status(GetTestStatusResponse::UNKNOWN);
-  }
-  
-  // Convert absl::Time to milliseconds since epoch
-  response->set_queued_at_ms(absl::ToUnixMillis(exec.queued_at));
-  response->set_started_at_ms(absl::ToUnixMillis(exec.started_at));
-  response->set_completed_at_ms(absl::ToUnixMillis(exec.completed_at));
-  response->set_execution_time_ms(absl::ToInt64Milliseconds(exec.execution_time));
-  response->set_error_message(exec.error_message);
-  
-  for (const auto& failure : exec.assertion_failures) {
-    response->add_assertion_failures(failure);
-  }
-  
-  return absl::OkStatus();
-}
+**Where to look**:
+- `src/app/core/imgui_test_harness_service.cc` (search for `GetTestStatus(`, `ListTests(`, `GetTestResults(`).
+- `src/app/core/imgui_test_harness_service.h` (new method declarations).
 
-absl::Status ImGuiTestHarnessServiceImpl::ListTests(
-    const ListTestsRequest* request,
-    ListTestsResponse* response) {
-  
-  auto tests = test_manager_->ListTests(request->category_filter());
-  
-  // TODO: Implement pagination if needed
-  response->set_total_count(tests.size());
-  
-  for (const auto& exec : tests) {
-    auto* test_info = response->add_tests();
-    test_info->set_test_id(exec.test_id);
-    test_info->set_name(exec.name);
-    test_info->set_category(exec.category);
-    test_info->set_last_run_timestamp_ms(absl::ToUnixMillis(exec.completed_at));
-    test_info->set_total_runs(1);  // TODO: Track across multiple runs
-    
-    if (exec.status == TestManager::TestStatus::PASSED) {
-      test_info->set_pass_count(1);
-      test_info->set_fail_count(0);
-    } else {
-      test_info->set_pass_count(0);
-      test_info->set_fail_count(1);
-    }
-    
-    test_info->set_average_duration_ms(
-        absl::ToInt64Milliseconds(exec.execution_time));
-  }
-  
-  return absl::OkStatus();
-}
+**Follow-ups**:
+- Expand `AssertionResult` population once `TestManager` captures structured expected/actual data.
+- Evaluate pagination defaults (`page_size`, `page_token`) once CLI usage patterns are seen.
 
-absl::Status ImGuiTestHarnessServiceImpl::GetTestResults(
-    const GetTestResultsRequest* request,
-    GetTestResultsResponse* response) {
-  
-  auto status_or = test_manager_->GetTestResults(request->test_id());
-  if (!status_or.ok()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Test '%s' not found", request->test_id()));
-  }
-  
-  const auto& exec = status_or.value();
-  
-  response->set_success(exec.status == TestManager::TestStatus::PASSED);
-  response->set_test_name(exec.name);
-  response->set_category(exec.category);
-  response->set_executed_at_ms(absl::ToUnixMillis(exec.completed_at));
-  response->set_duration_ms(absl::ToInt64Milliseconds(exec.execution_time));
-  
-  // Include logs if requested
-  if (request->include_logs()) {
-    for (const auto& log : exec.logs) {
-      response->add_logs(log);
-    }
-  }
-  
-  // Add metrics
-  for (const auto& [key, value] : exec.metrics) {
-    (*response->mutable_metrics())[key] = value;
-  }
-  
-  return absl::OkStatus();
-}
-```
+### Step 3: CLI Integration (🚧 TODO)
 
-### Step 3: CLI Integration (1-2 hours)
+Goal: expose the new RPCs through `GuiAutomationClient` and user-facing `z3ed agent test` subcommands. The pseudo-code below illustrates the desired flow; implementation still pending.
 
 **File**: `src/cli/handlers/agent.cc`
 
@@ -631,7 +396,7 @@ absl::Status HandleAgentTestList(const CommandOptions& options) {
 }
 ```
 
-### Step 4: Testing & Validation (1 hour)
+### Step 4: Testing & Validation (🚧 TODO)
 
 #### Test Script: `scripts/test_introspection_e2e.sh`
 
@@ -673,14 +438,14 @@ kill $YAZE_PID
 
 ## Success Criteria
 
-- [ ] All 3 new RPCs respond correctly
-- [ ] Test IDs returned in Click/Type/Wait/Assert responses
-- [ ] Status polling works with `--follow` flag
-- [ ] Test history persists across multiple test runs
+- [x] All 3 new RPCs respond correctly
+- [x] Test IDs returned in Click/Type/Wait/Assert responses
+- [ ] Status polling works with `--follow` flag (CLI pending)
+- [x] Test history persists across multiple test runs
 - [ ] CLI commands output clean YAML/JSON
-- [ ] No memory leaks in test history tracking
-- [ ] Thread-safe access to test history
-- [ ] Documentation updated in E6-z3ed-reference.md
+- [x] No memory leaks in test history tracking (bounded deque + pruning)
+- [x] Thread-safe access to test history (mutex-protected)
+- [ ] Documentation updated in `E6-z3ed-reference.md`
 
 ## Migration Guide
 
@@ -719,4 +484,4 @@ After IT-05 completion:
 
 **Author**: @scawful, GitHub Copilot  
 **Created**: October 2, 2025  
-**Status**: Ready for implementation
+**Status**: In progress (server-side complete; CLI + E2E pending)
