@@ -2,7 +2,7 @@
 
 **Status**: Active Development  
 **Version**: 0.1.0-alpha  
-**Last Updated**: October 2, 2025 (Documentation Consolidated)
+**Last Updated**: October 2, 2025 (IT-01 Complete, E2E Validation Phase)
 
 ## Overview
 
@@ -10,24 +10,14 @@
 
 ## Documentation Index
 
-### 🎯 Start Here
-- **[State Summary](STATE_SUMMARY_2025-10-01.md)** - 📊 **NEW USERS START HERE** - Complete current state, architecture, workflows, and testing
-- **[Implementation Plan](E6-z3ed-implementation-plan.md)** - ⭐ **DEVELOPERS START HERE** - Master tracking with tasks, priorities, progress, and IT-01 quick reference
-- **[CLI Design](E6-z3ed-cli-design.md)** - High-level vision, command structure, service architecture, and API design
+### 🎯 Essential Documents (Start Here)
+1. **[Next Priorities](NEXT_PRIORITIES_OCT2.md)** - 🚀 **CURRENT WORK** - Detailed Priority 1-3 tasks with implementation guides
+2. **[Implementation Plan](E6-z3ed-implementation-plan.md)** - ⭐ **MASTER TRACKER** - Complete task backlog, progress, architecture
+3. **[CLI Design](E6-z3ed-cli-design.md)** - 📐 **DESIGN DOC** - High-level vision, command structure, workflows
+4. **[IT-01 Quickstart](IT-01-QUICKSTART.md)** - ⚡ **QUICK REFERENCE** - Test harness commands and examples
 
-### 📚 Implementation Guides
-- **[IT-01: gRPC Evaluation](IT-01-grpc-evaluation.md)** - Decision rationale: Why gRPC for ImGuiTestHarness
-- **[IT-01: Getting Started](IT-01-getting-started-grpc.md)** - Step-by-step gRPC integration guide
-- **[IT-01 Phase 2: ImGuiTestEngine](IT-01-PHASE2-IMPLEMENTATION-GUIDE.md)** - Detailed code examples for GUI automation
-- **[Dependency Management](DEPENDENCY_MANAGEMENT.md)** - Cross-platform dependency strategy
-
-### 🔧 Technical Reference
-- **[gRPC Technical Notes](GRPC_TECHNICAL_NOTES.md)** - Build issues, solutions, version compatibility
-- **[gRPC Test Success](GRPC_TEST_SUCCESS.md)** - Complete Phase 1 testing log and validation
-- **[File Modification Checklist](FILE_MODIFICATION_CHECKLIST.md)** - Build system changes
-
-### 📝 Recent Changes
-- **[Documentation Consolidation (Oct 2)](DOCUMENTATION_CONSOLIDATION_OCT2.md)** - Removed 5 redundant summaries, consolidated into core docs
+### � Archive
+Historical documentation (design decisions, phase completions, technical notes) moved to `archive/` folder for reference.
 
 ## Architecture
 
@@ -90,133 +80,116 @@
 - **ROM Merging**: Sandbox-to-main ROM data copy on acceptance
 - **Full Lifecycle**: Create (CLI) → Review (GUI) → Accept/Reject → Commit
 
-### ✅ IT-01 Phase 1+2: gRPC Infrastructure (COMPLETE)
-- **gRPC Server**: All 6 RPCs tested and working (Ping, Click, Type, Wait, Assert, Screenshot)
-- **TestManager Integration**: Service receives TestManager reference
-- **Dynamic Test Registration**: Click RPC uses ImGuiTestEngine properly
-- **See**: Implementation plan for Phase 2 completion details and quick reference commands
+### ✅ IT-01: ImGuiTestHarness (COMPLETE) 🎉
+**All 3 Phases Complete**: gRPC + TestManager + ImGuiTestEngine  
+**Time Invested**: 11 hours total (Phase 1: 4h, Phase 2: 4h, Phase 3: 3h)
 
-### 📋 IT-01 Phase 3: ImGuiTestEngine Full Integration (NEXT)
-- **Critical Path**: Fix TestEngine initialization timing (SIGSEGV issue)
-- **Complete RPCs**: Click/Type/Wait/Assert with real widget interaction
-- **End-to-End Testing**: Automated GUI testing workflows
-- **Estimated Effort**: 6-8 hours
+- **Phase 1** ✅: gRPC infrastructure with 6 RPC methods
+- **Phase 2** ✅: TestManager integration with dynamic test registration
+- **Phase 3** ✅: Full ImGuiTestEngine integration (Type/Wait/Assert RPCs)
+- **Testing** ✅: E2E test script operational (`scripts/test_harness_e2e.sh`)
+- **Documentation** ✅: Complete guides (QUICKSTART, PHASE3-COMPLETE)
 
-### 📋 AW-04: Policy Evaluation (PLANNED)
-- **Policy Framework**: YAML-based rule engine
-- **Change Constraints**: Byte limits, bank restrictions, protected regions
-- **Review Requirements**: Human approval thresholds
+**See**: [IT-01-QUICKSTART.md](IT-01-QUICKSTART.md) for usage examples and [IT-01-PHASE3-COMPLETE.md](IT-01-PHASE3-COMPLETE.md) for implementation details
+
+### 📋 Priority 1: End-to-End Workflow Validation (ACTIVE)
+**Goal**: Test complete proposal lifecycle with real GUI and widgets  
+**Time Estimate**: 2-3 hours  
+**Status**: Ready to execute - all prerequisites complete
+
+**Tasks**:
+1. Run E2E test script and validate all RPCs
+2. Test proposal workflow: Create → Review → Accept/Reject
+3. Test GUI automation with real YAZE widgets
+4. Document edge cases and troubleshooting
+
+**See**: [NEXT_PRIORITIES_OCT2.md](NEXT_PRIORITIES_OCT2.md) for detailed breakdown
+
+### 📋 Priority 2: CLI Agent Test Command (IT-02)
+**Goal**: Natural language prompt → automated GUI test workflow  
+**Time Estimate**: 4-6 hours  
+**Blocking**: Priority 1 completion
+
+**Implementation**:
+- gRPC client library for CLI usage
+- Test workflow generator (prompt parsing)
+- `z3ed agent test` command implementation
+
+### 📋 Priority 3: Policy Evaluation Framework (AW-04)
+**Goal**: YAML-based constraint system for gating proposal acceptance  
+**Time Estimate**: 6-8 hours  
+**Blocking**: None (can work in parallel)
 
 ## Quick Start
 
-### Building z3ed
+### Build and Test
 ```bash
-cd /Users/scawful/Code/yaze
+# Build z3ed CLI
 cmake --build build --target z3ed -j8
+
+# Build YAZE with test harness
+cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON
+cmake --build build-grpc-test --target yaze -j$(sysctl -n hw.ncpu)
+
+# Run E2E tests
+./scripts/test_harness_e2e.sh
 ```
 
-### Running Commands
+### Create and Review Proposal
 ```bash
-# List all proposals (shows in-memory + disk proposals)
+# 1. Create proposal
+./build/bin/z3ed agent run "Test proposal" --sandbox
+
+# 2. List proposals
 ./build/bin/z3ed agent list
 
-# Create a proposal from AI prompt (with sandbox)
-./build/bin/z3ed agent run "Fix palette corruption in overworld tile $1234" --sandbox
-
-# Future: Test GUI operations
-./build/bin/z3ed agent test "Open ROM and navigate to Overworld Editor"
-```
-
-### Reviewing Proposals in GUI
-1. Launch YAZE: `./build/bin/yaze.app/Contents/MacOS/yaze`
-2. Open ROM: `File → Open ROM`
-3. Open drawer: `Debug → Agent Proposals` (or `Cmd+Shift+P`)
-4. Select proposal → Review diff/log → Click `Accept` or `Reject`
-
-## Key Files
-
-### CLI Entry Points
-- `src/cli/main.cc` - z3ed binary entry point
-- `src/cli/command_runner.cc` - Command dispatcher
-- `src/cli/handlers/agent_handler.cc` - Agent subcommand handler
-
-### Services
-- `src/cli/service/proposal_registry.{h,cc}` - Proposal tracking singleton
-- `src/cli/service/rom_sandbox_manager.{h,cc}` - Isolated ROM copies
-- `src/cli/service/policy_evaluator.{h,cc}` - (Planned) Policy rules engine
-
-### GUI Integration
-- `src/app/editor/system/proposal_drawer.{h,cc}` - Right-side proposal panel
-- `src/app/editor/editor_manager.{h,cc}` - Integration point for drawer
-
-### Configuration
-- `.yaze/policies/agent.yaml` - (Planned) Policy rules
-- `docs/api/z3ed-resources.yaml` - API catalog and examples
-
-## Development Workflow
-
-### Adding a New Feature
-1. Update `E6-z3ed-implementation-plan.md` with task estimate
-2. Create implementation branch: `git checkout -b feature/task-name`
-3. Implement code following YAZE style guide
-4. Update documentation in this folder
-5. Test with real proposals
-6. Create PR and link to implementation plan section
-
-### Testing Changes
-```bash
-# Build and test CLI
-cmake --build build --target z3ed -j8
-./build/bin/z3ed agent list
-
-# Build and test GUI integration
-cmake --build build --target yaze -j8
+# 3. Review in GUI
 ./build/bin/yaze.app/Contents/MacOS/yaze
-
-# Future: Run automated tests
-cmake --build build --target yaze_test -j8
-./build/bin/yaze_test --gtest_filter=ProposalRegistry*
+# Open: Debug → Agent Proposals
 ```
 
-## Next Steps
+### Test Harness Usage
+```bash
+# Start YAZE with test harness
+./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \
+  --enable_test_harness \
+  --test_harness_port=50052 \
+  --rom_file=assets/zelda3.sfc &
 
-### Immediate (This Week)
-1. **IT-01 Phase 1**: Add gRPC to vcpkg with careful cross-platform setup
-2. **IT-01 Phase 2**: Implement Ping service and test on macOS
-3. **Documentation**: Update this README as implementation progresses
+# Test individual RPCs (see IT-01-QUICKSTART.md for full reference)
+grpcurl -plaintext -import-path src/app/core/proto -proto imgui_test_harness.proto \
+  -d '{"message":"test"}' 127.0.0.1:50052 yaze.test.ImGuiTestHarness/Ping
+```
 
-### Short Term (Next 2 Weeks)
-1. **IT-01 Complete**: Full gRPC service with Click/Type/Wait/Assert
-2. **Windows Testing**: Validate vcpkg setup on Windows VM
-3. **AW-04 Design**: Policy YAML schema and PolicyEvaluator API
+## Key Files & Components
 
-### Long Term (Next Month)
-1. **Policy Framework**: Complete AW-04 implementation
-2. **CLI Testing**: Integration tests for agent workflow
-3. **Production Readiness**: Error handling, logging, telemetry
+**Core Services**:
+- `src/cli/service/proposal_registry.{h,cc}` - Proposal tracking and persistence
+- `src/cli/service/rom_sandbox_manager.{h,cc}` - Isolated ROM copies
+- `src/cli/service/resource_catalog.{h,cc}` - Machine-readable API specs
 
-## Contributing
+**GUI Integration**:
+- `src/app/editor/system/proposal_drawer.{h,cc}` - Proposal review panel
+- `src/app/core/imgui_test_harness_service.{h,cc}` - gRPC test automation server
 
-See parent `docs/B1-contributing.md` for general contribution guidelines.
+**CLI Handlers**:
+- `src/cli/handlers/agent.cc` - Agent subcommand (run, list, diff, describe)
+- `src/cli/handlers/rom.cc` - ROM commands (info, validate, diff)
 
-### z3ed-Specific Guidelines
-- **CLI Design**: Follow existing `z3ed agent` subcommand pattern
-- **Services**: Use singleton pattern with `Instance()` accessor
-- **Error Handling**: Return `absl::Status` or `absl::StatusOr<T>`
-- **Documentation**: Update this README and implementation plan
-- **Testing**: Add test cases before merging (when test harness ready)
+**Configuration**:
+- `docs/api/z3ed-resources.yaml` - Generated API catalog for AI/LLM
+- `.yaze/policies/agent.yaml` - (Planned) Policy rules
 
-## Resources
+## Development Guidelines
 
-- **Parent Docs**: `../` (YAZE editor documentation)
-- **API Catalog**: `../api/z3ed-resources.yaml`
-- **Build Guide**: `../02-build-instructions.md`
-- **Platform Compatibility**: `../B2-platform-compatibility.md`
+See `docs/B1-contributing.md` for general guidelines.
 
-## License
-
-Same as YAZE - See `../../LICENSE` for details.
+**z3ed-Specific**:
+- Use singleton pattern for services (`Instance()` accessor)
+- Return `absl::Status` or `absl::StatusOr<T>` for error handling
+- Update `NEXT_PRIORITIES_OCT2.md` when starting new work
+- Update `E6-z3ed-implementation-plan.md` task backlog when completing tasks
 
 ---
 
-**Questions?** Open an issue or discuss in #yaze-dev Discord channel.
+**Questions?** Open an issue or see implementation plan for detailed architecture.

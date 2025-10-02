@@ -1,83 +1,164 @@
 # z3ed Agentic Workflow Implementation Plan
 
-_Last updated: 2025-10-01 (final update - Phas## 3. Immediate Next Steps (Week of Oct 2-8, 2025)
+**Last Updated**: October 2, 2025  
+**Status**: IT-01 Complete ✅ | AW-03 Complete ✅ | E2E Validation Phase
 
-### Priority 0: Testing & Validation (Active)
-1. **TEST**: Complete end-to-end proposal workflow
-   - Launch YAZE and verify ProposalDrawer displays live proposals
-   - Test Accept action → verify ROM merge and save prompt
-   - Test Reject and Delete actions
-   - Validate filtering and refresh functionality
+> 📋 **See Also**: [NEXT_PRIORITIES_OCT2.md](NEXT_PRIORITIES_OCT2.md) for detailed implementation guides for current priorities.
 
-### Priority 1: ImGuiTestHarness Phase 3 (IT-01) 📋 NEXT
-**Rationale**: Complete full GUI automation for AI-driven workflows  
-**Status**: Phase 1+2 Complete ✅ | Phase 3 Planned 📋
+## Executive Summary
 
-**See Full Details Below**: Phase 3 section with implementation tasksIT-01 Phase 1 complete)_
+The z3ed CLI and AI agent workflow system has completed major infrastructure milestones:
 
-> 📊 **Quick Reference**: See [STATE_SUMMARY_2025-10-01.md](STATE_SUMMARY_2025-10-01.md) for a comprehensive overview of current architecture, workflows, and status.
+**✅ Completed Phases**:
+- **Phase 6**: Resource Catalogue - Machine-readable API specs for AI consumption
+- **AW-01/02/03**: Acceptance Workflow - Proposal tracking, sandbox management, GUI review with ROM merging
+- **IT-01**: ImGuiTestHarness - Full GUI automation via gRPC + ImGuiTestEngine (all 3 phases complete)
 
-This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-design.md`) into actionable engineering tasks. Each workstream contains milestones, owners (TBD), blocking dependencies, and expected deliverables.
+**🔄 Active Phase**:
+- **Priority 1**: End-to-End Workflow Validation - Test complete proposal lifecycle with real GUI
 
-**Files Modified/Created**
+**📋 Next Phases**:
+- **Priority 2**: CLI Agent Test Command (IT-02) - Natural language → automated GUI testing
+- **Priority 3**: Policy Evaluation Framework (AW-04) - YAML-based constraints for proposal acceptance
 
-**Phase 6 (Resource Catalogue)**:
+## Quick Reference
+
+**Start Test Harness**:
+```bash
+./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \
+  --enable_test_harness \
+  --test_harness_port=50052 \
+  --rom_file=assets/zelda3.sfc &
+```
+
+**Test All RPCs**:
+```bash
+./scripts/test_harness_e2e.sh
+```
+
+**Create Proposal**:
+```bash
+./build/bin/z3ed agent run "Test prompt" --sandbox
+./build/bin/z3ed agent list
+./build/bin/z3ed agent diff --proposal-id <ID>
+```
+
+**Review in GUI**:
+- Open YAZE → `Debug → Agent Proposals`
+- Select proposal → Review → Accept/Reject/Delete
+
+---
+
+## 1. Current Priorities (Week of Oct 2-8, 2025)
+
+**Status**: Phase 1 Complete ✅ | Phase 2 Complete ✅ | Phase 3 Complete ✅
+
+### Priority 1: End-to-End Workflow Validation (ACTIVE) 🔄
+**Goal**: Validate complete AI agent workflow from proposal creation to ROM commit  
+**Time Estimate**: 2-3 hours  
+**Status**: Ready to execute
+
+**Task Checklist**:
+1. ✅ **E2E Test Script**: Already created (`scripts/test_harness_e2e.sh`)
+2. 📋 **Manual Testing Workflow**:
+   - Start YAZE with test harness enabled
+   - Create proposal via CLI: `z3ed agent run "Test prompt" --sandbox`
+   - Verify proposal appears in ProposalDrawer GUI
+   - Test Accept → validate ROM merge and save prompt
+   - Test Reject → validate status update
+   - Test Delete → validate cleanup
+3. 📋 **Real Widget Testing**:
+   - Click actual YAZE buttons (Overworld, Dungeon, etc.)
+   - Type into real input fields
+   - Wait for actual windows to appear
+   - Assert on real widget states
+4. 📋 **Document Edge Cases**:
+   - Widget not found scenarios
+   - Timeout handling
+   - Error recovery patterns
+
+### Priority 2: CLI Agent Test Command (IT-02) 📋 NEXT
+**Goal**: Natural language → automated GUI testing via gRPC  
+**Time Estimate**: 4-6 hours  
+**Blocking Dependency**: Priority 1 completion
+
+**Implementation Tasks**:
+1. **Create `z3ed agent test` command**:
+   - Parse natural language prompt
+   - Generate RPC call sequence (Click → Wait → Assert)
+   - Execute via gRPC client
+   - Capture results and screenshots
+   
+2. **Example Usage**:
+   ```bash
+   z3ed agent test --prompt "Open Overworld editor and verify it loads" \
+     --rom zelda3.sfc
+   
+   # Generated workflow:
+   # 1. Click "button:Overworld"
+   # 2. Wait "window_visible:Overworld Editor" (5s)
+   # 3. Assert "visible:Overworld Editor"
+   # 4. Screenshot "full"
+   ```
+
+3. **Implementation Files**:
+   - `src/cli/handlers/agent.cc` - Add `HandleTestCommand()`
+   - `src/cli/service/gui_automation_client.{h,cc}` - gRPC client wrapper
+   - `src/cli/service/test_workflow_generator.{h,cc}` - Prompt → RPC translator
+
+### Priority 3: Policy Evaluation Framework (AW-04) 📋
+**Goal**: YAML-based constraint system for gating proposal acceptance  
+**Time Estimate**: 6-8 hours  
+**Blocking Dependency**: None (can work in parallel)
+
+> � **Detailed Guides**: See [NEXT_PRIORITIES_OCT2.md](NEXT_PRIORITIES_OCT2.md) for complete implementation breakdowns with code examples.
+
+---
+
+## 2. Workstreams Overview
+
+This plan decomposes the design additions into actionable engineering tasks. Each workstream contains milestones, blocking dependencies, and expected deliverables.
 1. `src/cli/handlers/rom.cc` - Added `RomInfo::Run` implementation
 2. `src/cli/z3ed.h` - Added `RomInfo` class declaration  
 3. `src/cli/modern_cli.cc` - Updated `HandleRomInfoCommand` routing
 4. `src/cli/service/resource_catalog.cc` - Added `rom info` schema entry
-5. `docs/api/z3ed-resources.yaml` - Generated comprehensive API catalog, owners (TBD), blocking dependencies, and expected deliverables.
+---
 
-## 1. Workstreams Overview
+## 2. Workstreams Overview
 
-| Workstream | Goal | Milestone Target | Notes |
-|------------|------|------------------|-------|
-| Resource Catalogue | Provide authoritative machine-readable specs for CLI resources. | Phase 6 | Schema now captures effects/returns metadata for palette/overworld/rom/patch/dungeon; automation pending. |
-| Acceptance Workflow | Enable human review/approval of agent proposals in ImGui. | Phase 7 | Sandbox manager prototype landed; UI work pending. |
-| ImGuiTest Bridge | Allow agents to drive ImGui via `ImGuiTestEngine`. | Phase 6 | Requires harness IPC transport. |
-| Verification Pipeline | Build layered testing + CI coverage. | Phase 6+ | Integrates with harness + CLI suites. |
-| Telemetry & Learning | Capture signals to improve prompts + heuristics. | Phase 8 | Optional/opt-in features. |
+| Workstream | Goal | Status | Notes |
+|------------|------|--------|-------|
+| Resource Catalogue | Machine-readable CLI specs for AI consumption | ✅ Complete | `docs/api/z3ed-resources.yaml` generated |
+| Acceptance Workflow | Human review/approval of agent proposals | ✅ Complete | ProposalDrawer with ROM merging operational |
+| ImGuiTest Bridge | Automated GUI testing via gRPC | ✅ Complete | All 3 phases done (11 hours) |
+| Verification Pipeline | Layered testing + CI coverage | 📋 In Progress | E2E validation phase |
+| Telemetry & Learning | Capture signals for improvement | 📋 Planned | Optional/opt-in (Phase 8) |
 
-### Progress snapshot — 2025-10-01 (Phase 6 Complete, AW-03 Complete, IT-01 Phase 1 Complete)
+### Completed Work Summary
 
-**Resource Catalogue (RC)** ✅ COMPLETE:
-- CLI flag passthrough and resource catalog system operational
-- `agent describe` exports YAML/JSON command schemas for AI consumption
-- `docs/api/z3ed-resources.yaml` generated and maintained
-- Fixed `rom info` segfault with dedicated handler
+**Resource Catalogue (RC)** ✅:
+- CLI flag passthrough and resource catalog system
+- `agent describe` exports YAML/JSON schemas
+- `docs/api/z3ed-resources.yaml` maintained
+- All ROM/Palette/Overworld/Dungeon/Patch commands documented
 
-**Acceptance Workflow (AW-01, AW-02, AW-03)** ✅ COMPLETE:
-- `ProposalRegistry` tracks agent modifications with metadata/diffs/logs
-- Proposal persistence: LoadProposalsFromDiskLocked() enables cross-session tracking
-- `RomSandboxManager` handles isolated ROM copies
-- `agent list` and `agent diff` commands operational
-- **ProposalDrawer ImGui GUI** fully implemented:
-  - List/detail split view with filtering and refresh
-  - Accept/Reject/Delete actions with confirmation dialogs
-  - **ROM merging complete**: AcceptProposal() loads sandbox ROM and merges into main ROM
-  - Integrated into EditorManager (`Debug → Agent Proposals` menu)
-  - Ready for end-to-end testing with live proposals
+**Acceptance Workflow (AW-01/02/03)** ✅:
+- `ProposalRegistry` with disk persistence and cross-session tracking
+- `RomSandboxManager` for isolated ROM copies
+- `agent list` and `agent diff` commands
+- **ProposalDrawer GUI**: List/detail views, Accept/Reject/Delete, ROM merging
+- Integrated into EditorManager (`Debug → Agent Proposals`)
 
-**Graphics System** ✅ FIXED:
-- Fixed RAII shutdown crash in `PerformanceProfiler` (static destruction order issue)
-- Added shutdown flag and validity checks - application now exits cleanly
-- Enables stable testing and performance monitoring for AI workflow
+**ImGuiTestHarness (IT-01)** ✅:
+- Phase 1: gRPC infrastructure (6 RPC methods)
+- Phase 2: TestManager integration with dynamic tests
+- Phase 3: Full ImGuiTestEngine (Type/Wait/Assert RPCs)
+- E2E test script: `scripts/test_harness_e2e.sh`
+- Documentation: IT-01-QUICKSTART.md
 
-**Agent Run** ✅ FIXED:
-- Added automatic ROM loading from `--rom` flag when not already loaded
-- Proper error messages guide users to specify ROM path
+---
 
-**Active Work (Oct 1-7, 2025)**:
-- **Priority 1**: ImGuiTestHarness (IT-01) - ✅ Phase 1 Complete (gRPC tested), Phase 2 Active (ImGuiTestEngine integration)
-- **Priority 2**: Policy Evaluation (AW-04) - YAML-based constraint system
-
-**Recent Completion (Oct 1, 2025)**:
-- ✅ gRPC test harness fully operational with all 6 RPCs validated
-- ✅ Server lifecycle management (Start/Shutdown) working
-- ✅ Cross-platform build verified (macOS ARM64, gRPC v1.62.0)
-- ✅ All stub handlers returning success responses
-
-## 2. Task Backlog
+## 3. Task Backlog
 
 | ID | Task | Workstream | Type | Status | Dependencies |
 |----|------|------------|------|--------|--------------|
@@ -91,9 +172,9 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 | AW-03 | Add ImGui drawer for proposals with accept/reject controls. | Acceptance Workflow | UX | Done | ProposalDrawer GUI complete with ROM merging |
 | AW-04 | Implement policy evaluation for gating accept buttons. | Acceptance Workflow | Code | In Progress | AW-03, Priority 2 - YAML policies + PolicyEvaluator |
 | AW-05 | Draft `.z3ed-diff` hybrid schema (binary deltas + JSON metadata). | Acceptance Workflow | Design | Planned | AW-01 |
-| IT-01 | Create `ImGuiTestHarness` IPC service embedded in `yaze_test`. | ImGuiTest Bridge | Code | Done | Phase 1+2 Complete, Phase 3 Planned (full integration) |
-| IT-02 | Implement CLI agent step translation (`imgui_action` → harness call). | ImGuiTest Bridge | Code | Planned | IT-01 Phase 3 |
-| IT-03 | Provide synchronization primitives (`WaitForIdle`, etc.). | ImGuiTest Bridge | Code | Planned | IT-01 Phase 3 |
+| IT-01 | Create `ImGuiTestHarness` IPC service embedded in `yaze_test`. | ImGuiTest Bridge | Code | Done | ✅ Phase 1+2+3 Complete - Full GUI automation with gRPC + ImGuiTestEngine |
+| IT-02 | Implement CLI agent step translation (`imgui_action` → harness call). | ImGuiTest Bridge | Code | In Progress | IT-01, `z3ed agent test` command with natural language prompts |
+| IT-03 | Provide synchronization primitives (`WaitForIdle`, etc.). | ImGuiTest Bridge | Code | Done | ✅ Wait RPC with condition polling already implemented in IT-01 Phase 3 |
 | VP-01 | Expand CLI unit tests for new commands and sandbox flow. | Verification Pipeline | Test | Planned | RC/AW tasks |
 | VP-02 | Add harness integration tests with replay scripts. | Verification Pipeline | Test | Planned | IT tasks |
 | VP-03 | Create CI job running agent smoke tests with `YAZE_WITH_JSON`. | Verification Pipeline | Infra | Planned | VP-01, VP-02 |
@@ -169,36 +250,44 @@ grpcurl -plaintext -d '{"message":"test"}' \
 - ❌→✅ Port conflicts (use port 50052, `killall yaze` to cleanup)
 - ❌→✅ Flag naming (documented correct underscore format)
 
-#### Phase 3: Full ImGuiTestEngine Integration 📋 PLANNED (6-8 hours)
+#### Phase 3: Full ImGuiTestEngine Integration ✅ COMPLETE (Oct 2, 2025)
 **Goal**: Complete implementation of all GUI automation RPCs
 
-**Critical Path**:
-1. **ImGuiTestEngine Initialization Timing** (1 hour)
-   - Move `InitializeUITesting()` out of TestManager constructor
-   - Call after `ImGui::CreateContext()` in Window initialization
-   - Verify TestEngine binding to ImGui context
-   - Fix SIGSEGV issue from Phase 2
+**Completed Tasks**:
+1. ✅ **Type RPC Implementation** - Full text input automation
+   - ItemInfo API usage corrected (returns by value, not pointer)
+   - Focus management with ItemClick before typing
+   - Clear-first functionality with keyboard shortcuts
+   - Dynamic test registration with timeout handling
 
-2. **Complete Click RPC** (2 hours)
-   - Implement dynamic test execution properly
-   - Handle test queue and status polling
-   - Add error handling for widget not found
-   - Test with real YAZE widgets (buttons, menus)
+2. ✅ **Wait RPC Implementation** - Condition polling with timeout
+   - Three condition types: window_visible, element_visible, element_enabled
+   - Configurable timeout (default 5000ms) and poll interval (default 100ms)
+   - Proper Yield() calls to allow ImGui event processing
+   - Extended timeout for test execution
 
-3. **Implement Type RPC** (1-2 hours)
-   - Use `ctx->ItemInputValue()` for text input
-   - Handle clear_first flag with Ctrl+A/Cmd+A selection
-   - Support special keys (Enter, Tab, Escape)
+3. ✅ **Assert RPC Implementation** - State validation with structured responses
+   - Multiple assertion types: visible, enabled, exists, text_contains
+   - Actual vs expected value reporting
+   - Detailed error messages for debugging
+   - text_contains partially implemented (text retrieval needs refinement)
 
-4. **Implement Wait RPC** (2 hours)
-   - Add polling loop with configurable timeout and interval
-   - Support: window_visible, element_visible, element_enabled conditions
-   - Proper sleep between polls to avoid CPU spinning
+4. ✅ **API Compatibility Fixes**
+   - Corrected ItemInfo usage (by value, check ID != 0)
+   - Fixed flag names (ItemFlags instead of StatusFlags)
+   - Proper visibility checks using RectClipped dimensions
+   - All dynamic tests properly registered and cleaned up
 
-5. **Implement Assert RPC** (1-2 hours)
-   - Query widget state via ItemInfo
-   - Return actual vs expected values
-   - Support multiple assertion types (visible, enabled, color, etc.)
+**Testing**: 
+- Build successful on macOS ARM64
+- All RPCs respond correctly
+- Test script created: `scripts/test_harness_e2e.sh`
+- See `IT-01-PHASE3-COMPLETE.md` for full implementation details
+
+**Known Limitations**:
+- Screenshot RPC not implemented (placeholder stub)
+- text_contains assertion uses placeholder text retrieval
+- Need end-to-end workflow testing with real YAZE widgets
 
 6. **End-to-End Testing** (1 hour)
    - Create shell script workflow: start server → click button → wait for window → type text → assert state
@@ -748,7 +837,25 @@ The foundational infrastructure for proposal tracking and review is now operatio
 
 ## 6. References
 
-- `docs/E6-z3ed-cli-design.md` - Overall CLI design and architecture
+**Active Documentation**:
+- `E6-z3ed-cli-design.md` - Overall CLI design and architecture
+- `NEXT_PRIORITIES_OCT2.md` - Current work priorities with detailed implementation guides
+- `IT-01-QUICKSTART.md` - Test harness quick reference
 - `docs/api/z3ed-resources.yaml` - Machine-readable API reference (generated)
-- `src/cli/service/resource_catalog.h` - Resource catalog implementation
-- `src/cli/service/resource_catalog.cc` - Schema definitions and serialization
+
+**Source Code**:
+- `src/cli/service/` - Core services (proposal registry, sandbox manager, resource catalog)
+- `src/app/editor/system/proposal_drawer.{h,cc}` - GUI review panel
+- `src/app/core/imgui_test_harness_service.{h,cc}` - gRPC automation server
+
+**Historical Documentation** (archived):
+- `archive/STATE_SUMMARY_*.md` - Historical state snapshots
+- `archive/IT-01-PHASE*-COMPLETE.md` - Phase completion reports
+- `archive/*-grpc-*.md` - gRPC design decisions and technical notes
+- `archive/PROGRESS_SUMMARY_*.md` - Daily progress logs
+
+---
+
+**Last Updated**: October 2, 2025  
+**Contributors**: @scawful, GitHub Copilot  
+**License**: Same as YAZE (see ../../LICENSE)
