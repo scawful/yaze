@@ -48,7 +48,10 @@ The Policy Evaluation Framework enables safe AI-driven ROM modifications by gati
 
 - Added `cli/service/policy_evaluator.cc` to:
   - `src/cli/z3ed.cmake` (z3ed CLI target)
-  - `src/app/app.cmake` (yaze GUI target, both macOS and Windows/Linux)
+  - `src/app/app.cmake` (yaze GUI target, with `YAZE_ENABLE_POLICY_FRAMEWORK=1`)
+- **Conditional Compilation**: Policy framework only enabled in main `yaze` target
+  - `yaze_emu` (emulator) builds without policy support
+  - Uses `#ifdef YAZE_ENABLE_POLICY_FRAMEWORK` to wrap optional code
 - Clean build with no errors (warnings only for Abseil version mismatch)
 
 ## Code Changes
@@ -93,14 +96,37 @@ The Policy Evaluation Framework enables safe AI-driven ROM modifications by gati
    - Added: `cli/service/policy_evaluator.cc` to z3ed sources
 
 4. **src/app/app.cmake**
-   - Added: `cli/service/policy_evaluator.cc` to yaze sources (macOS + Windows/Linux)
+   - Added: `cli/service/policy_evaluator.cc` to yaze sources
+   - Added: `YAZE_ENABLE_POLICY_FRAMEWORK=1` compile definition
+   - Note: `yaze_emu` target does NOT include policy framework (optional feature)
 
-5. **docs/z3ed/E6-z3ed-implementation-plan.md**
+5. **src/app/editor/system/proposal_drawer.cc**
+   - Wrapped policy code with `#ifdef YAZE_ENABLE_POLICY_FRAMEWORK`
+   - Gracefully degrades when policy framework disabled
+
+6. **docs/z3ed/E6-z3ed-implementation-plan.md**
    - Updated: AW-04 status from "📋 Next" to "✅ Done"
    - Updated: Active phase to Policy Framework complete
    - Updated: Time investment to 28.5 hours total
 
 ## Technical Details
+
+### Conditional Compilation
+
+The policy framework uses conditional compilation to allow building without policy support:
+
+```cpp
+#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
+  auto& policy_eval = cli::PolicyEvaluator::GetInstance();
+  auto policy_result = policy_eval.EvaluateProposal(p.id);
+  // ... policy evaluation logic ...
+#endif
+```
+
+**Build Targets**:
+- `yaze` (main editor): Policy framework **enabled** ✅
+- `yaze_emu` (emulator): Policy framework **disabled** (not needed)
+- `z3ed` (CLI): Policy framework **enabled** ✅
 
 ### API Usage Patterns
 
@@ -132,6 +158,7 @@ PolicyResult result = evaluator.EvaluateProposal(proposal_id);
 2. **StatusOr API**: Used `.ok()` and `.value()` instead of `.has_value()`
 3. **String Numbers**: Added `#include "absl/strings/numbers.h"` for SimpleAtoi
 4. **String View**: Explicit `std::string()` cast for all absl::StripAsciiWhitespace() calls
+5. **Conditional Compilation**: Wrapped policy code with `YAZE_ENABLE_POLICY_FRAMEWORK` to fix yaze_emu build
 
 ## Testing Plan
 

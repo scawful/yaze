@@ -9,7 +9,11 @@
 #include "imgui/imgui.h"
 #include "app/gui/icons.h"
 #include "cli/service/rom_sandbox_manager.h"
-#include "cli/service/policy_evaluator.h"  // NEW: Policy evaluation support
+
+// Policy evaluation support (optional, only in main yaze build)
+#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
+#include "cli/service/policy_evaluator.h"
+#endif
 
 namespace yaze {
 namespace editor {
@@ -93,6 +97,7 @@ void ProposalDrawer::Draw() {
     ImGui::EndPopup();
   }
 
+#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
   // Policy override dialog (NEW)
   if (show_override_dialog_) {
     ImGui::OpenPopup("Override Policy");
@@ -122,6 +127,8 @@ void ProposalDrawer::Draw() {
     }
     ImGui::EndPopup();
   }
+#endif  // YAZE_ENABLE_POLICY_FRAMEWORK
+
 }
 
 void ProposalDrawer::DrawProposalList() {
@@ -251,7 +258,9 @@ void ProposalDrawer::DrawProposalDetail() {
   }
 
   // Policy Status section (NEW)
+#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
   DrawPolicyStatus();
+#endif
 
   // Action buttons
   ImGui::Separator();
@@ -270,6 +279,7 @@ void ProposalDrawer::DrawStatusFilter() {
 }
 
 void ProposalDrawer::DrawPolicyStatus() {
+#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
   if (!selected_proposal_) return;
 
   const auto& p = *selected_proposal_;
@@ -362,6 +372,7 @@ void ProposalDrawer::DrawPolicyStatus() {
       }
     }
   }
+#endif  // YAZE_ENABLE_POLICY_FRAMEWORK
 }
 
 void ProposalDrawer::DrawActionButtons() {
@@ -374,6 +385,7 @@ void ProposalDrawer::DrawActionButtons() {
   bool can_accept = true;
   bool needs_override = false;
   
+#ifdef YAZE_ENABLE_POLICY_FRAMEWORK
   if (is_pending) {
     auto& policy_eval = cli::PolicyEvaluator::GetInstance();
     if (policy_eval.IsEnabled()) {
@@ -385,6 +397,7 @@ void ProposalDrawer::DrawActionButtons() {
       }
     }
   }
+#endif  // YAZE_ENABLE_POLICY_FRAMEWORK
 
   // Accept button (only for pending proposals, gated by policy)
   if (is_pending) {
