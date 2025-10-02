@@ -17,14 +17,14 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 - **IT-02**: CLI Agent Test - Natural language → automated GUI testing (implementation complete)
 
 **🔄 Active Phase**:
-- **Test Harness Enhancements (IT-05 to IT-09)**: Expanding from basic automation to comprehensive testing platform
+- **Test Harness Enhancements (IT-05 to IT-09)**: Expanding from basic automation to comprehensive testing platform with a renewed emphasis on system-wide error reporting
 
 **📋 Next Phases**:
 - **Priority 1**: Test Introspection API (IT-05) - Enable test status querying and result polling
 - **Priority 2**: Widget Discovery API (IT-06) - AI agents enumerate available GUI interactions
-- **Priority 3**: Test Recording & Replay (IT-07) - Capture workflows for regression testing
+- **Priority 3**: Enhanced Error Reporting (IT-08+) - Holistic improvements spanning z3ed, ImGuiTestHarness, EditorManager, and core application services
 
-**Recent Accomplishments** (Updated: January 2025):
+**Recent Accomplishments** (Updated: October 2025):
 - **✅ Policy Framework Complete**: PolicyEvaluator service fully integrated with ProposalDrawer GUI
   - 4 policy types implemented: test_requirement, change_constraint, forbidden_range, review_requirement
   - 3 severity levels: Info (informational), Warning (overridable), Critical (blocks acceptance)
@@ -36,6 +36,7 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
   - Thread safety issues **resolved** with shared_ptr state management
   - Test harness validated on macOS ARM64 with real YAZE GUI interactions
 - **gRPC Test Harness (IT-01 & IT-02)**: Full implementation complete with natural language → GUI testing
+- **✅ Test Recording & Replay (IT-07)**: JSON recorder/replayer implemented, CLI and harness wired, end-to-end regression workflow captured in `scripts/test_record_replay_e2e.sh`
 - **Build System**: Hardened CMake configuration with reliable gRPC integration
 - **Proposal Workflow**: Agentic proposal system fully operational (create, list, diff, review in GUI)
 
@@ -84,16 +85,16 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 **Status**: Core Infrastructure Complete ✅ | Test Harness Enhancement Phase 🔧
 
 ### Priority 1: Test Harness Enhancements (IT-05 to IT-09) 🔧 ACTIVE
-**Goal**: Transform test harness from basic automation to comprehensive testing platform  
-**Time Estimate**: 20-25 hours total  
+**Goal**: Transform test harness from basic automation to comprehensive testing platform **and deliver holistic error reporting across YAZE**  
+**Time Estimate**: 20-25 hours total (7.5h completed in IT-07)  
 **Blocking Dependency**: IT-01 Complete ✅
 
-**Motivation**: Current test harness supports basic GUI automation but lacks features for:
-- **AI Agent Development**: No widget discovery API for LLMs to learn available interactions
-- **Regression Testing**: No recording/replay mechanism for test suite management
-- **CI/CD Integration**: No standardized test format for automated pipelines
-- **Debugging**: Limited error context when tests fail (no screenshots, state dumps)
-- **Test Management**: Can't query test status, results, or execution queue
+**Motivation**: The harness now supports AI workflows, regression capture, and automation—but error surfaces remain shallow:
+- **AI Agent Development**: Still needs widget discovery for adaptive planning
+- **Regression Testing**: Recording/replay finished; reporting pipeline must surface actionable failures
+- **CI/CD Integration**: Requires reliable artifacts (logs, screenshots, structured context)
+- **Debugging**: Failures lack screenshots, widget hierarchies, and EditorManager state snapshots
+- **Application Consistency**: z3ed, EditorManager, and core services emit heterogeneous error formats
 
 #### IT-05: Test Introspection API (6-8 hours)
 **Status (Oct 2, 2025)**: 🟡 *Server-side RPCs implemented; CLI + E2E pending*
@@ -224,84 +225,42 @@ message WidgetInfo {
 - Agents can adapt to UI changes without hardcoded widget names
 - Natural language descriptions enable better prompt engineering
 
-#### IT-07: Test Recording & Replay (8-10 hours)
-**Implementation Tasks**:
-1. **Add StartRecording/StopRecording RPCs**:
-   - Capture all RPC calls during a session
-   - Record timing, parameters, and results
-   - Save to JSON test script format
-   
-2. **Add ReplayTest RPC**:
-   - Load JSON test script
-   - Execute recorded actions sequentially
-   - Validate expected results match actual results
-   - Support parameterization (e.g., replace ROM filename)
-   
-3. **Test Script Format**:
-   - Human-readable JSON with comments
-   - Support assertions and conditionals
-   - Enable test suite composition (call other scripts)
+#### IT-07: Test Recording & Replay ✅ COMPLETE (Oct 2, 2025)
+**Highlights**:
+- Implemented `StartRecording`, `StopRecording`, and `ReplayTest` RPCs with persistent JSON scripts
+- Added CLI commands: `z3ed test record start|stop`, `z3ed test replay`
+- Scripts stored in `tests/gui/` with metadata (name, tags, assertions, timing hints)
+- Added regression coverage via `scripts/test_record_replay_e2e.sh`
+- Documentation updates in `E6-z3ed-reference.md` and new quick-start snippets in README
+- Confirmed compatibility with natural language prompts generated by the agent workflow
 
-**Example Workflow**:
-```bash
-# Start recording
-z3ed test record start --output overworld_test.json
+**Outcome**: Recording/replay is production-ready; focus shifts to surfacing rich failure diagnostics (IT-08).
 
-# Perform actions (manually or via agent)
-z3ed agent test --prompt "Open Overworld editor"
-z3ed agent test --prompt "Click tile at 10,20"
+#### IT-08: Enhanced Error Reporting (5-7 hours)
+**Objective**: Deliver a unified, high-signal error reporting pipeline spanning ImGuiTestHarness, z3ed CLI, EditorManager, and core application services.
 
-# Stop recording
-z3ed test record stop
+**Implementation Tracks**:
+1. **Harness-Level Diagnostics**
+  - Implement Screenshot RPC (convert stub into working SDL capture pipeline)
+  - Auto-capture screenshots, widget tree dumps, and recent ImGui events on failure
+  - Serialize results to both structured JSON (for automation) and human-friendly HTML bundles
+  - Persist artifacts under `test-results/<test_id>/` with timestamped directories
 
-# Replay test
-z3ed test replay overworld_test.json
+2. **CLI Experience Improvements**
+  - Standardize error envelopes in z3ed (`absl::Status` + structured payload)
+  - Surface artifact paths, summarized failure reason, and next-step hints in CLI output
+  - Add `--format html` / `--format json` flags to `z3ed agent test results` to emit richer context
+  - Integrate with recording workflow: replay failures using captured state for fast reproduction
 
-# Run in CI
-z3ed test replay tests/*.json --ci-mode
-```
+3. **EditorManager & Application Integration**
+  - Introduce shared `ErrorAnnotatedResult` utility exposing `status`, `context`, `actionable_hint`
+  - Adapt EditorManager subsystems (ProposalDrawer, OverworldEditor, DungeonEditor) to adopt the shared structure
+  - Add in-app failure overlay (ImGui modal) that references harness artifacts when available
+  - Hook proposal acceptance/replay flows to display enriched diagnostics when sandbox merges fail
 
-**JSON Test Script Example**:
-```json
-{
-  "name": "Overworld Editor Load Test",
-  "description": "Verify Overworld editor opens and tile selection works",
-  "steps": [
-    {
-      "action": "Click",
-      "target": "menuitem: Overworld Editor",
-      "expected_result": { "success": true }
-    },
-    {
-      "action": "Wait",
-      "condition": "window_visible:Overworld",
-      "timeout_ms": 5000
-    },
-    {
-      "action": "Assert",
-      "condition": "visible:Overworld",
-      "expected": { "success": true, "actual_value": "visible" }
-    }
-  ]
-}
-```
-
-#### IT-08: Enhanced Error Reporting (3-4 hours)
-**Implementation Tasks**:
-1. **Screenshot on Failure**:
-   - Implement Screenshot RPC (complete stub)
-   - Automatically capture screenshot when test fails
-   - Save to proposal directory or test results folder
-   
-2. **Widget State Dumps**:
-   - Capture full widget tree on assertion failure
-   - Include widget properties (enabled, visible, position, text)
-   - Generate HTML report with annotated screenshots
-   
-3. **Execution Context**:
-   - Log ImGui state: active window, focused widget, frame count
-   - Capture recent ImGui events (clicks, key presses, hovers)
-   - Include resource stats: memory, textures, framerate
+4. **Telemetry & Storage Hooks** (Stretch)
+  - Optionally emit error metadata to a ring buffer for future analytics/telemetry workstreams
+  - Provide CLI flag `--error-artifact-dir` to customize storage (supports CI separation)
 
 **Error Report Example**:
 ```json
@@ -321,7 +280,12 @@ z3ed test replay tests/*.json --ci-mode
   "execution_context": {
     "frame_count": 1234,
     "recent_events": ["Click: menuitem: Overworld Editor", "Wait: window_visible:Overworld"],
-    "resource_stats": { "memory_mb": 245, "textures": 12, "framerate": 60.0 }
+    "resource_stats": { "memory_mb": 245, "textures": 12, "framerate": 60.0 },
+    "editor_manager_snapshot": {
+      "active_module": "OverworldEditor",
+      "dirty_buffers": ["overworld_layer_1"],
+      "last_error": null
+    }
   }
 }
 ```
@@ -463,8 +427,10 @@ jobs:
 | IT-04 | Complete E2E validation with real YAZE widgets | ImGuiTest Bridge | Test | ✅ Done | IT-02 - All 5 functional tests passing, window detection fixed with yield buffer |
 | IT-05 | Add test introspection RPCs (GetTestStatus, ListTests, GetResults) | ImGuiTest Bridge | Code | 📋 Planned | IT-01 - Enable clients to poll test results and query execution state |
 | IT-06 | Implement widget discovery API for AI agents | ImGuiTest Bridge | Code | 📋 Planned | IT-01 - DiscoverWidgets RPC to enumerate windows, buttons, inputs |
-| IT-07 | Add test recording/replay for regression testing | ImGuiTest Bridge | Code | 📋 Planned | IT-05 - RecordSession/ReplaySession RPCs with JSON test scripts |
-| IT-08 | Enhance error reporting with screenshots and state dumps | ImGuiTest Bridge | Code | 📋 Planned | IT-01 - Capture widget state on failure for debugging |
+| IT-07 | Add test recording/replay for regression testing | ImGuiTest Bridge | Code | ✅ Done | IT-05 - RecordSession/ReplaySession RPCs with JSON test scripts |
+| IT-08 | Enhance error reporting with screenshots and state dumps | ImGuiTest Bridge | Code | � Active | IT-01 - Capture widget state on failure for debugging |
+| IT-08a | Adopt shared error envelope across CLI & services | ImGuiTest Bridge | Code | 🔄 Active | IT-08 |
+| IT-08b | EditorManager diagnostic overlay & logging | ImGuiTest Bridge | UX | 📋 Planned | IT-08 |
 | IT-09 | Create standardized test suite format for CI integration | ImGuiTest Bridge | Infra | 📋 Planned | IT-07 - JSON/YAML test suite format compatible with CI/CD pipelines |
 | VP-01 | Expand CLI unit tests for new commands and sandbox flow. | Verification Pipeline | Test | 📋 Planned | RC/AW tasks |
 | VP-02 | Add harness integration tests with replay scripts. | Verification Pipeline | Test | 📋 Planned | IT tasks |
@@ -495,7 +461,7 @@ _Status Legend: 🔄 Active · 📋 Planned · ✅ Done_
    - 📋 Next: Test widget discovery and update test harness
    - See: [WIDGET_ID_REFACTORING_PROGRESS.md](WIDGET_ID_REFACTORING_PROGRESS.md)
 
-### Priority 1: ImGuiTestHarness Foundation (IT-01) ✅ PHASE 2 COMPLETE
+### Priority 1: ImGuiTestHarness Foundation (IT-01) ✅ COMPLETE
 **Rationale**: Required for automated GUI testing and remote control of YAZE for AI workflows  
 **Decision**: ✅ **Use gRPC** - Production-grade, cross-platform, type-safe (see `IT-01-grpc-evaluation.md`)
 
@@ -599,9 +565,10 @@ grpcurl -plaintext -d '{"message":"test"}' \
 
 #### Phase 4: CLI Integration & Windows Testing (4-5 hours)
 7. **CLI Client** (`z3ed agent test`)
-   - Generate gRPC calls from AI prompts
-   - Natural language → ImGui action translation
-   - Screenshot capture for LLM feedback
+  - Generate gRPC calls from AI prompts
+  - Natural language → ImGui action translation
+  - Screenshot capture for LLM feedback
+  - Emit structured error envelopes with artifact links (IT-08)
 
 8. **Windows Testing**
    - Detailed build instructions for vcpkg setup
@@ -992,7 +959,7 @@ A summary of files created or changed during the implementation of the core `z3e
 **GUI & Application Integration**:
 - `src/app/editor/system/proposal_drawer.{h,cc}`
 - `src/app/editor/editor_manager.{h,cc}`
-- `src/app/core/imgui_test_harness_service.{h,cc}`
+- `src/app/core/service/imgui_test_harness_service.{h,cc}`
 - `src/app/core/proto/imgui_test_harness.proto`
 
 **Build System (CMake)**:
@@ -1027,7 +994,7 @@ A summary of files created or changed during the implementation of the core `z3e
 **Source Code**:
 - `src/cli/service/` - Core services (proposal registry, sandbox manager, resource catalog)
 - `src/app/editor/system/proposal_drawer.{h,cc}` - GUI review panel
-- `src/app/core/imgui_test_harness_service.{h,cc}` - gRPC automation server
+- `src/app/core/service/imgui_test_harness_service.{h,cc}` - gRPC automation server
 
 ---
 

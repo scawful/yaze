@@ -1,4 +1,4 @@
-#include "app/core/imgui_test_harness_service.h"
+#include "app/core/service/imgui_test_harness_service.h"
 
 #ifdef YAZE_WITH_GRPC
 
@@ -21,7 +21,7 @@
 #include "absl/time/time.h"
 #include "app/core/proto/imgui_test_harness.grpc.pb.h"
 #include "app/core/proto/imgui_test_harness.pb.h"
-#include "app/core/test_script_parser.h"
+#include "app/core/testing/test_script_parser.h"
 #include "app/test/test_manager.h"
 #include "yaze.h"  // For YAZE_VERSION_STRING
 

@@ -7,7 +7,6 @@
 #include <filesystem>
 
 namespace yaze {
-namespace app {
 namespace core {
 namespace {
 
@@ -321,5 +320,4 @@ TEST_F(AsarWrapperTest, CreatePatchNotImplemented) {
 
 }  // namespace
 }  // namespace core
-}  // namespace app
 }  // namespace yaze

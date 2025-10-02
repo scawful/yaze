@@ -818,7 +818,7 @@ message NewResponse {
 }
 ```
 
-2. **Implement Handler** (`src/app/core/imgui_test_harness_service.cc`)
+2. **Implement Handler** (`src/app/core/service/imgui_test_harness_service.cc`)
 ```cpp
 grpc::Status ImGuiTestHarnessServiceImpl::NewOperation(
     grpc::ServerContext* context,

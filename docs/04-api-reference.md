@@ -59,7 +59,7 @@ yaze_status yaze_save_message(zelda3_rom* rom, const zelda3_message* message);
 
 ### AsarWrapper (`src/app/core/asar_wrapper.h`)
 ```cpp
-namespace yaze::app::core {
+namespace yaze::core {
 
 class AsarWrapper {
 public:

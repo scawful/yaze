@@ -11,7 +11,6 @@
 #include "absl/status/statusor.h"
 
 namespace yaze {
-namespace app {
 namespace core {
 
 /**
@@ -206,7 +205,6 @@ class AsarWrapper {
 };
 
 }  // namespace core
-}  // namespace app
 }  // namespace yaze
 
 #endif  // YAZE_APP_CORE_ASAR_WRAPPER_H

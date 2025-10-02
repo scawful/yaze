@@ -236,7 +236,7 @@ message AssertionResult {
 
 #### 1.2 Update Existing RPC Handlers
 
-**File**: `src/app/core/imgui_test_harness_service.cc`
+**File**: `src/app/core/service/imgui_test_harness_service.cc`
 
 Modify Click, Type, Wait, Assert handlers to record test execution:
 
@@ -292,8 +292,8 @@ message ClickResponse {
 - Ensured deque-backed `DynamicTestData` keep-alive remains bounded while reusing new tracking helpers.
 
 **Where to look**:
-- `src/app/core/imgui_test_harness_service.cc` (search for `GetTestStatus(`, `ListTests(`, `GetTestResults(`).
-- `src/app/core/imgui_test_harness_service.h` (new method declarations).
+- `src/app/core/service/imgui_test_harness_service.cc` (search for `GetTestStatus(`, `ListTests(`, `GetTestResults(`).
+- `src/app/core/service/imgui_test_harness_service.h` (new method declarations).
 
 **Follow-ups**:
 - Expand `AssertionResult` population once `TestManager` captures structured expected/actual data.
@@ -476,7 +476,7 @@ After IT-05 completion:
 
 - **Proto Definition**: `src/app/core/proto/imgui_test_harness.proto`
 - **Test Manager**: `src/app/core/test_manager.{h,cc}`
-- **RPC Service**: `src/app/core/imgui_test_harness_service.{h,cc}`
+- **RPC Service**: `src/app/core/service/imgui_test_harness_service.{h,cc}`
 - **CLI Handlers**: `src/cli/handlers/agent.cc`
 - **Main Plan**: `docs/z3ed/E6-z3ed-implementation-plan.md`
 

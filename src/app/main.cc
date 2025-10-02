@@ -11,7 +11,7 @@
 #include "util/log.h"
 
 #ifdef YAZE_WITH_GRPC
-#include "app/core/imgui_test_harness_service.h"
+#include "app/core/service/imgui_test_harness_service.h"
 #include "app/test/test_manager.h"
 #endif
 

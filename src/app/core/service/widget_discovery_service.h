@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_WIDGET_DISCOVERY_SERVICE_H_
-#define YAZE_APP_CORE_WIDGET_DISCOVERY_SERVICE_H_
+#ifndef YAZE_APP_CORE_SERVICE_WIDGET_DISCOVERY_SERVICE_H_
+#define YAZE_APP_CORE_SERVICE_WIDGET_DISCOVERY_SERVICE_H_
 
 #include <string>
 #include <vector>
@@ -44,4 +44,4 @@ class WidgetDiscoveryService {
 }  // namespace test
 }  // namespace yaze
 
-#endif  // YAZE_APP_CORE_WIDGET_DISCOVERY_SERVICE_H_
+#endif  // YAZE_APP_CORE_SERVICE_WIDGET_DISCOVERY_SERVICE_H_

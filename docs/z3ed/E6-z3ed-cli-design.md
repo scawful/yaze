@@ -27,8 +27,8 @@ This document is the **source of truth** for the z3ed CLI architecture and desig
 - **Test Harness Enhancements (IT-05 to IT-09)**: Expanding from basic automation to comprehensive testing platform
   - Test introspection APIs for status/results polling
   - Widget discovery for AI-driven interactions
-  - Test recording/replay for regression testing
-  - Enhanced error reporting with screenshots
+  - **✅ Test recording/replay for regression testing**
+  - Enhanced error reporting with screenshots and application-wide diagnostics
   - CI/CD integration with standardized test formats
 
 **📋 Planned Next**:
@@ -317,64 +317,23 @@ available_actions = [w.suggested_action for w in widgets.buttons if w.is_enabled
 z3ed_client.Click(target="button:Save Changes")
 ```
 
-#### IT-07: Test Recording & Replay (8-10 hours)
-**Problem**: No way to capture manual workflows for regression. Testers repeat same actions every release.
+#### IT-07: Test Recording & Replay ✅ COMPLETE
+**Outcome**: Recording workflow, replay runner, and JSON script format shipped alongside CLI commands (`z3ed test record start|stop`, `z3ed test replay`). Regression coverage captured in `scripts/test_record_replay_e2e.sh`; documentation updated with quick-start examples. Focus now shifts to error diagnostics and artifact surfacing (IT-08).
 
-**Solution**: Add recording workflow:
-- `StartRecording(output_file)` → Begins capturing all RPC calls
-- `StopRecording()` → Saves to JSON test script
-- `ReplayTest(test_script)` → Executes recorded actions with validation
+#### IT-08: Holistic Error Reporting (5-7 hours)
+**Problem**: Errors surface differently across the CLI, ImGuiTestHarness, and EditorManager. Failures lack actionable context, slowing down triage and AI agent autonomy.
 
-**Test Script Format** (JSON):
-```json
-{
-  "name": "Overworld Tile Edit Test",
-  "steps": [
-    { "action": "Click", "target": "menuitem: Overworld Editor" },
-    { "action": "Wait", "condition": "window_visible:Overworld", "timeout_ms": 5000 },
-    { "action": "Click", "target": "button:Select Tile" },
-    { "action": "Assert", "condition": "enabled:button:Apply" }
-  ]
-}
-```
+**Solution Themes**:
+- **Harness Diagnostics**: Implement the Screenshot RPC, capture widget tree/state, and bundle execution context for every failed run.
+- **Structured Error Envelope**: Introduce a shared `ErrorAnnotatedResult` format (status + metadata + hints) adopted by z3ed, harness services, and EditorManager subsystems.
+- **Artifact Surfacing**: Persist artifacts under `test-results/<test_id>/`; expose paths in CLI output and in-app overlays.
+- **Developer Experience**: Provide HTML + JSON result formats, actionable hints (“Re-run with --follow”, “Open screenshot: …”), and cross-links to recorded sessions for replay.
 
 **Benefits**:
-- QA engineers record test scenarios once, replay forever
-- Test scripts version controlled alongside code
-- Parameterized tests (e.g., test with different ROMs)
-- Foundation for test suite management (smoke, regression, nightly)
-
-#### IT-08: Enhanced Error Reporting (3-4 hours)
-**Problem**: Test failures lack context. Developer sees "Window not visible" but doesn't know why.
-
-**Solution**: Capture rich context on failure:
-- Screenshot (implement stub RPC)
-- Widget state dump (full hierarchy with properties)
-- Execution context (active window, recent events, resource stats)
-- HTML report generation with annotated screenshots
-
-**Example Error Report**:
-```json
-{
-  "test_id": "grpc_wait_12345678",
-  "failure_reason": "Timeout waiting for window_visible:Overworld",
-  "screenshot": "test-results/failure_12345678.png",
-  "widget_state": {
-    "visible_windows": ["Main Window", "Debug"],
-    "overworld_window": { "exists": true, "visible": false, "reason": "not_initialized" }
-  },
-  "execution_context": {
-    "last_click": "menuitem: Overworld Editor",
-    "frames_since_click": 150,
-    "resource_stats": { "memory_mb": 245, "framerate": 58.3 }
-  }
-}
-```
-
-**Benefits**:
-- Developers fix failing tests faster (visual + state context)
-- Flaky test debugging (see exact UI state at failure)
-- Test reports shareable with QA/PM (HTML with screenshots)
+- Faster debugging with consistent, high-signal failure context
+- AI agents can reason about structured errors and attempt self-healing
+- EditorManager gains on-screen diagnostics tied to harness artifacts
+- Lays groundwork for future telemetry and CI reporting
 
 #### IT-09: CI/CD Integration (2-3 hours)
 **Problem**: Tests run manually. No automated regression on PR/merge.

@@ -52,7 +52,7 @@ absl::Status AsarPatch::Run(const std::vector<std::string>& arg_vec) {
     return absl::AbortedError("Failed to load ROM.");
   }
 
-  app::core::AsarWrapper wrapper;
+  core::AsarWrapper wrapper;
   auto init_status = wrapper.Initialize();
   if (!init_status.ok()) {
     return init_status;

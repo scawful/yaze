@@ -20,7 +20,7 @@ z3ed validate my_patch.asm
 ```cpp
 #include "app/core/asar_wrapper.h"
 
-yaze::app::core::AsarWrapper wrapper;
+yaze::core::AsarWrapper wrapper;
 wrapper.Initialize();
 
 // Apply patch to ROM

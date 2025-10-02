@@ -3,7 +3,7 @@ syntax = "proto3";
 package yaze.test;
 
 // ImGuiTestHarness service for remote GUI testing
-// This service allows z3ed CLI to interact with YAZE's GUI for automated testing
+// Allows z3ed CLI to interact with YAZE's GUI for automated testing
 service ImGuiTestHarness {
   // Health check - verifies the service is running
   rpc Ping(PingRequest) returns (PingResponse);

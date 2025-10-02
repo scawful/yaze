@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_TEST_RECORDER_H_
-#define YAZE_APP_CORE_TEST_RECORDER_H_
+#ifndef YAZE_APP_CORE_TESTING_TEST_RECORDER_H_
+#define YAZE_APP_CORE_TESTING_TEST_RECORDER_H_
 
 #include <map>
 #include <string>
@@ -52,7 +52,7 @@ class TestRecorder {
     std::vector<std::string> assertion_failures;
     std::string expected_value;
     std::string actual_value;
-  HarnessTestStatus final_status = HarnessTestStatus::kUnspecified;
+    HarnessTestStatus final_status = HarnessTestStatus::kUnspecified;
     std::string final_error_message;
     std::map<std::string, int32_t> metrics;
     absl::Time captured_at = absl::InfinitePast();
@@ -118,4 +118,4 @@ class TestRecorder {
 }  // namespace test
 }  // namespace yaze
 
-#endif  // YAZE_APP_CORE_TEST_RECORDER_H_
+#endif  // YAZE_APP_CORE_TESTING_TEST_RECORDER_H_

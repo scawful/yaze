@@ -12,7 +12,6 @@
 #include "asar-dll-bindings/c/asar.h"
 
 namespace yaze {
-namespace app {
 namespace core {
 
 AsarWrapper::AsarWrapper() : initialized_(false) {}
@@ -293,5 +292,4 @@ AsarSymbol AsarWrapper::ConvertAsarSymbol(const void* asar_symbol_data) const {
 }
 
 }  // namespace core
-}  // namespace app
 }  // namespace yaze
