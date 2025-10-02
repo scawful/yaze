@@ -92,44 +92,31 @@ Historical documentation (design decisions, phase completions, technical notes) 
 
 **See**: [IT-01-QUICKSTART.md](IT-01-QUICKSTART.md) for usage examples
 
-### ✅ IT-02: CLI Agent Test Command (COMPLETE) 🎉
+### ✅ IT-02: CLI Agent Test Command (IMPLEMENTATION COMPLETE) 🎉
 **Implementation Complete**: Natural language → automated GUI testing  
-**Time Invested**: 4 hours (design + implementation + documentation)  
-**Status**: Ready for validation
+**Time Invested**: 6 hours (design + implementation + build fixes)  
+**Status**: Build successful, runtime issue discovered
 
-**Components**:
-- **GuiAutomationClient**: gRPC wrapper for CLI usage (6 RPC methods)
-- **TestWorkflowGenerator**: Natural language prompt parser (4 pattern types)
-- **`z3ed agent test`**: End-to-end automation command
+**See**: [IMPLEMENTATION_STATUS_OCT2_PM.md](IMPLEMENTATION_STATUS_OCT2_PM.md) for complete details
 
-**Supported Prompts**:
-1. "Open Overworld editor" → Click + Wait
-2. "Open Dungeon editor and verify it loads" → Click + Wait + Assert
-3. "Type 'zelda3.sfc' in filename input" → Click + Type
-4. "Click Open ROM button" → Single click
+**Components Completed**:
+- ✅ GuiAutomationClient: gRPC wrapper for CLI usage (6 RPC methods)
+- ✅ TestWorkflowGenerator: Natural language prompt parser (4 pattern types)
+- ✅ `z3ed agent test`: End-to-end automation command
+- ✅ Build system integration (gRPC proto generation, includes, linking)
+- ✅ Conditional compilation guards for optional gRPC features
 
-**Example Usage**:
-```bash
-# Start YAZE with test harness
-./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \
-  --enable_test_harness \
-  --test_harness_port=50052 \
-  --rom_file=assets/zelda3.sfc &
+**Known Issue**:
+- ImGuiTestEngine assertion failure during test cleanup
+- Root cause: Synchronous test execution + immediate unregister violates engine assumptions
+- Solution: Refactor to use async test queue (see status document)
 
-# Run automated test
-./build-grpc-test/bin/z3ed agent test \
-  --prompt "Open Overworld editor"
+### 📋 Priority 1: Fix Runtime Issue (NEXT) 🔄
+**Goal**: Resolve ImGuiTestEngine test lifecycle issue
+**Time Estimate**: 2-3 hours  
+**Status**: Ready to implement
 
-# Output:
-# === GUI Automation Test ===
-# Prompt: Open Overworld editor
-# ...
-# [1/2] Click(button:Overworld) ... ✓ (125ms)
-# [2/2] Wait(window_visible:Overworld Editor, 5000ms) ... ✓ (1250ms)
-# ✅ Test passed in 1375ms
-```
-
-**See**: [IMPLEMENTATION_PROGRESS_OCT2.md](IMPLEMENTATION_PROGRESS_OCT2.md) for complete details
+**Approach**: Refactor RPC handlers to use asynchronous test queue instead of synchronous execution
 
 ### 📋 Priority 1: End-to-End Workflow Validation (NEXT)
 **Goal**: Test complete proposal lifecycle with real GUI and widgets  
