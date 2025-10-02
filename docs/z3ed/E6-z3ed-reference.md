@@ -316,6 +316,29 @@ assertions_passed: 3
 assertions_failed: 0
 ```
 
+**Usage Example**:
+```bash
+$ z3ed agent test status --test-id grpc_wait_20251002T182455 --follow
+=== Test Status ===
+Test ID: grpc_wait_20251002T182455
+Server: localhost:50052
+Follow mode: polling every 1000ms
+
+Status: RUNNING
+Queued At: 2025-10-02T18:24:55Z
+Started At: 2025-10-02T18:24:55Z
+Completed At: n/a
+Execution Time (ms): 432
+Assertion Failures: 0
+---
+Status: PASSED
+Queued At: 2025-10-02T18:24:55Z
+Started At: 2025-10-02T18:24:55Z
+Completed At: 2025-10-02T18:24:55Z
+Execution Time (ms): 612
+Assertion Failures: 0
+```
+
 ##### `agent test results` - Get detailed test results
 ```bash
 z3ed agent test results --test-id <id> [--format <json|yaml>] [--include-logs]
@@ -329,6 +352,45 @@ Example:
   z3ed agent test results --test-id grpc_click_12345678 --include-logs
 ```
 
+**Usage Example (YAML)**:
+```bash
+$ z3ed agent test results --test-id grpc_assert_20251002T182500 --include-logs
+test_id: grpc_assert_20251002T182500
+success: true
+name: "grpc assert Overworld"
+category: "grpc"
+executed_at: 2025-10-02T18:25:00Z
+duration_ms: 118
+assertions:
+  - description: "Overworld window visible"
+    passed: true
+logs:
+  - "[2025-10-02T18:25:00Z] Queued assertion"
+  - "[2025-10-02T18:25:00Z] Assertion passed"
+metrics:
+  execution_frames: 2
+```
+
+**Usage Example (JSON)**:
+```bash
+$ z3ed agent test results --test-id grpc_assert_20251002T182500 --format json
+{
+  "test_id": "grpc_assert_20251002T182500",
+  "success": true,
+  "name": "grpc assert Overworld",
+  "category": "grpc",
+  "executed_at": "2025-10-02T18:25:00Z",
+  "duration_ms": 118,
+  "assertions": [
+    {"description": "Overworld window visible", "passed": true}
+  ],
+  "logs": [],
+  "metrics": {
+    "execution_frames": 2
+  }
+}
+```
+
 ##### `agent test list` - List all tests
 ```bash
 z3ed agent test list [--category <name>] [--status <filter>]
@@ -339,6 +401,30 @@ Options:
 
 Example:
   z3ed agent test list --category grpc --status failed
+```
+
+**Usage Example**:
+```bash
+$ z3ed agent test list --category grpc --limit 3
+=== Harness Test Catalog ===
+Server: localhost:50052
+Category filter: grpc
+
+Test ID: grpc_click_20251002T182440
+  Name: grpc click Open Overworld
+  Category: grpc
+  Last Run: 2025-10-02T18:24:41Z
+  Runs: 5 (5 pass / 0 fail)
+  Average Duration (ms): 327
+
+Test ID: grpc_wait_20251002T182455
+  Name: grpc wait Overworld visible
+  Category: grpc
+  Last Run: 2025-10-02T18:24:55Z
+  Runs: 5 (5 pass / 0 fail)
+  Average Duration (ms): 614
+
+Displayed 2 test(s) (catalog size: 42).
 ```
 
 #### `agent test record` - Record test sessions (IT-07)

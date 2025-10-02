@@ -6,9 +6,12 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/time/time.h"
 
 #include <chrono>
+#include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -39,6 +42,82 @@ struct AutomationResult {
   std::chrono::milliseconds execution_time;
   std::string actual_value;    // For assertions
   std::string expected_value;  // For assertions
+  std::string test_id;         // Test execution identifier (for introspection)
+};
+
+/**
+ * @brief Execution status codes returned by the harness
+ */
+enum class TestRunStatus {
+  kUnknown,
+  kQueued,
+  kRunning,
+  kPassed,
+  kFailed,
+  kTimeout
+};
+
+/**
+ * @brief Detailed information about an individual test execution
+ */
+struct TestStatusDetails {
+  std::string test_id;
+  TestRunStatus status = TestRunStatus::kUnknown;
+  std::optional<absl::Time> queued_at;
+  std::optional<absl::Time> started_at;
+  std::optional<absl::Time> completed_at;
+  int execution_time_ms = 0;
+  std::string error_message;
+  std::vector<std::string> assertion_failures;
+};
+
+/**
+ * @brief Aggregated metadata about a harness test
+ */
+struct HarnessTestSummary {
+  std::string test_id;
+  std::string name;
+  std::string category;
+  std::optional<absl::Time> last_run_at;
+  int total_runs = 0;
+  int pass_count = 0;
+  int fail_count = 0;
+  int average_duration_ms = 0;
+};
+
+/**
+ * @brief Result container for ListTests RPC
+ */
+struct ListTestsResult {
+  std::vector<HarnessTestSummary> tests;
+  std::string next_page_token;
+  int total_count = 0;
+};
+
+/**
+ * @brief Individual assertion outcome within a harness test
+ */
+struct AssertionOutcome {
+  std::string description;
+  bool passed = false;
+  std::string expected_value;
+  std::string actual_value;
+  std::string error_message;
+};
+
+/**
+ * @brief Detailed execution results for a specific harness test
+ */
+struct TestResultDetails {
+  std::string test_id;
+  bool success = false;
+  std::string test_name;
+  std::string category;
+  std::optional<absl::Time> executed_at;
+  int duration_ms = 0;
+  std::vector<AssertionOutcome> assertions;
+  std::vector<std::string> logs;
+  std::map<std::string, int> metrics;
 };
 
 /**
@@ -127,6 +206,24 @@ class GuiAutomationClient {
    */
   absl::StatusOr<AutomationResult> Screenshot(const std::string& region = "full",
                                                const std::string& format = "PNG");
+
+  /**
+   * @brief Fetch the current execution status for a harness test
+   */
+  absl::StatusOr<TestStatusDetails> GetTestStatus(const std::string& test_id);
+
+  /**
+   * @brief Enumerate harness tests with optional filtering
+   */
+  absl::StatusOr<ListTestsResult> ListTests(const std::string& category_filter = "",
+                                            int page_size = 100,
+                                            const std::string& page_token = "");
+
+  /**
+   * @brief Retrieve detailed results for a harness test execution
+   */
+  absl::StatusOr<TestResultDetails> GetTestResults(const std::string& test_id,
+                                                   bool include_logs = false);
 
   /**
    * @brief Check if client is connected

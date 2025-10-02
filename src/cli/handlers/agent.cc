@@ -18,11 +18,15 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_replace.h"
 #include "absl/time/time.h"
 
 #include <cstdlib>  // For EXIT_FAILURE
 #include <fstream>
 #include <optional>
+#include <thread>
+
+#include <algorithm>
 
 // Declare the rom flag so we can access it
 ABSL_DECLARE_FLAG(std::string, rom);
@@ -52,6 +56,103 @@ struct DescribeOptions {
     std::string version = "0.1.0";
     std::optional<std::string> last_updated;
 };
+
+std::string FormatOptionalTime(const std::optional<absl::Time>& time) {
+    if (!time.has_value()) {
+        return "n/a";
+    }
+    return absl::FormatTime("%Y-%m-%dT%H:%M:%SZ", *time, absl::UTCTimeZone());
+}
+
+std::string TestRunStatusToString(TestRunStatus status) {
+    switch (status) {
+        case TestRunStatus::kQueued:
+            return "QUEUED";
+        case TestRunStatus::kRunning:
+            return "RUNNING";
+        case TestRunStatus::kPassed:
+            return "PASSED";
+        case TestRunStatus::kFailed:
+            return "FAILED";
+        case TestRunStatus::kTimeout:
+            return "TIMEOUT";
+        case TestRunStatus::kUnknown:
+        default:
+            return "UNKNOWN";
+    }
+}
+
+bool IsTerminalStatus(TestRunStatus status) {
+    switch (status) {
+        case TestRunStatus::kQueued:
+        case TestRunStatus::kRunning:
+            return false;
+        case TestRunStatus::kPassed:
+        case TestRunStatus::kFailed:
+        case TestRunStatus::kTimeout:
+        case TestRunStatus::kUnknown:
+        default:
+            return true;
+    }
+}
+
+std::optional<TestRunStatus> ParseStatusFilter(absl::string_view value) {
+    std::string lower = std::string(absl::AsciiStrToLower(value));
+    if (lower == "queued") return TestRunStatus::kQueued;
+    if (lower == "running") return TestRunStatus::kRunning;
+    if (lower == "passed") return TestRunStatus::kPassed;
+    if (lower == "failed") return TestRunStatus::kFailed;
+    if (lower == "timeout") return TestRunStatus::kTimeout;
+    if (lower == "unknown") return TestRunStatus::kUnknown;
+    return std::nullopt;
+}
+
+std::string HarnessAddress(const std::string& host, int port) {
+    return absl::StrFormat("%s:%d", host, port);
+}
+
+std::string JsonEscape(absl::string_view value) {
+    std::string out;
+    out.reserve(value.size() + 8);
+    for (unsigned char c : value) {
+        switch (c) {
+            case '\\':
+                out += "\\\\";
+                break;
+            case '"':
+                out += "\\\"";
+                break;
+            case '\b':
+                out += "\\b";
+                break;
+            case '\f':
+                out += "\\f";
+                break;
+            case '\n':
+                out += "\\n";
+                break;
+            case '\r':
+                out += "\\r";
+                break;
+            case '\t':
+                out += "\\t";
+                break;
+            default:
+                if (c < 0x20) {
+                    absl::StrAppend(&out, absl::StrFormat("\\\\u%04X", static_cast<int>(c)));
+                } else {
+                    out.push_back(static_cast<char>(c));
+                }
+        }
+    }
+    return out;
+}
+
+std::string YamlQuote(absl::string_view value) {
+    std::string escaped(value);
+    absl::StrReplaceAll({{"\\", "\\\\"}, {"\"", "\\\""}}, &escaped);
+    return absl::StrCat("\"", escaped, "\"");
+}
 
 absl::StatusOr<DescribeOptions> ParseDescribeArgs(
         const std::vector<std::string>& args) {
@@ -355,7 +456,7 @@ absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
     return absl::OkStatus();
 }
 
-absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
+absl::Status HandleTestRunCommand(const std::vector<std::string>& arg_vec) {
     // Parse arguments
     std::string prompt;
     std::string host = "localhost";
@@ -413,7 +514,7 @@ absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
     std::cout << "Generated workflow:\n" << workflow.ToString() << "\n";
     
     // Connect to test harness
-    GuiAutomationClient client(absl::StrFormat("%s:%d", host, port));
+    GuiAutomationClient client(HarnessAddress(host, port));
     auto connect_status = client.Connect();
     if (!connect_status.ok()) {
         return absl::UnavailableError(
@@ -430,6 +531,7 @@ absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
     // Execute workflow
     auto start_time = std::chrono::steady_clock::now();
     int step_num = 0;
+    std::vector<std::string> emitted_test_ids;
     
     for (const auto& step : workflow.steps) {
         step_num++;
@@ -471,8 +573,13 @@ absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
                 absl::StrFormat("Step %d failed: %s", step_num, result->message));
         }
         
-        std::cout << absl::StrFormat("✓ (%lldms)\n",
+        std::cout << absl::StrFormat("✓ (%lldms)",
                                      result->execution_time.count());
+        if (!result->test_id.empty()) {
+            std::cout << " [Test ID: " << result->test_id << "]";
+            emitted_test_ids.push_back(result->test_id);
+        }
+        std::cout << "\n";
     }
     
     auto end_time = std::chrono::steady_clock::now();
@@ -480,8 +587,470 @@ absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
         end_time - start_time);
     
     std::cout << "\n✅ Test passed in " << elapsed.count() << "ms\n";
+
+    if (!emitted_test_ids.empty()) {
+        std::cout << "Latest Test ID: " << emitted_test_ids.back() << "\n";
+        if (emitted_test_ids.size() > 1) {
+            std::cout << "Captured Test IDs:\n";
+            for (const auto& id : emitted_test_ids) {
+                std::cout << "  - " << id << "\n";
+            }
+        }
+        std::cout << "Use 'z3ed agent test status --test-id " << emitted_test_ids.back()
+                  << "' for live status updates." << std::endl;
+    }
+
     return absl::OkStatus();
 #endif
+}
+
+absl::Status HandleTestStatusCommand(const std::vector<std::string>& arg_vec) {
+    std::string host = "localhost";
+    int port = 50052;
+    std::string test_id;
+    bool follow = false;
+    int interval_ms = 1000;
+
+    for (size_t i = 0; i < arg_vec.size(); ++i) {
+        const std::string& token = arg_vec[i];
+
+        if (token == "--test-id" && i + 1 < arg_vec.size()) {
+            test_id = arg_vec[++i];
+        } else if (absl::StartsWith(token, "--test-id=")) {
+            test_id = token.substr(10);
+        } else if (token == "--host" && i + 1 < arg_vec.size()) {
+            host = arg_vec[++i];
+        } else if (absl::StartsWith(token, "--host=")) {
+            host = token.substr(7);
+        } else if (token == "--port" && i + 1 < arg_vec.size()) {
+            port = std::stoi(arg_vec[++i]);
+        } else if (absl::StartsWith(token, "--port=")) {
+            port = std::stoi(token.substr(7));
+        } else if (token == "--follow") {
+            follow = true;
+        } else if ((token == "--interval" || token == "--interval-ms") &&
+                   i + 1 < arg_vec.size()) {
+            interval_ms = std::max(100, std::stoi(arg_vec[++i]));
+        } else if (absl::StartsWith(token, "--interval=") ||
+                   absl::StartsWith(token, "--interval-ms=")) {
+            size_t prefix = token.find('=');
+            interval_ms = std::max(100, std::stoi(token.substr(prefix + 1)));
+        }
+    }
+
+    if (test_id.empty()) {
+        return absl::InvalidArgumentError(
+            "Usage: agent test status --test-id <id> [--follow] [--host <host>] [--port <port>] [--interval-ms <ms>]");
+    }
+
+#ifndef YAZE_WITH_GRPC
+    return absl::UnimplementedError(
+        "GUI automation requires YAZE_WITH_GRPC=ON at build time.\n"
+        "Rebuild with: cmake -B build -DYAZE_WITH_GRPC=ON");
+#else
+    GuiAutomationClient client(HarnessAddress(host, port));
+    RETURN_IF_ERROR(client.Connect());
+
+    std::cout << "\n=== Test Status ===\n";
+    std::cout << "Test ID: " << test_id << "\n";
+    std::cout << "Server: " << HarnessAddress(host, port) << "\n";
+    if (follow) {
+        std::cout << "Follow mode: polling every " << interval_ms << "ms\n";
+    }
+    std::cout << "\n";
+
+    bool first_iteration = true;
+    while (true) {
+        ASSIGN_OR_RETURN(auto details, client.GetTestStatus(test_id));
+
+        if (!first_iteration) {
+            std::cout << "---\n";
+        }
+
+        std::cout << "Status: " << TestRunStatusToString(details.status) << "\n";
+        std::cout << "Queued At: " << FormatOptionalTime(details.queued_at) << "\n";
+        std::cout << "Started At: " << FormatOptionalTime(details.started_at) << "\n";
+        std::cout << "Completed At: " << FormatOptionalTime(details.completed_at) << "\n";
+        std::cout << "Execution Time (ms): " << details.execution_time_ms << "\n";
+        if (!details.error_message.empty()) {
+            std::cout << "Error: " << details.error_message << "\n";
+        }
+
+        if (!details.assertion_failures.empty()) {
+            std::cout << "Assertion Failures (" << details.assertion_failures.size()
+                      << "):\n";
+            for (const auto& failure : details.assertion_failures) {
+                std::cout << "  - " << failure << "\n";
+            }
+        } else {
+            std::cout << "Assertion Failures: 0\n";
+        }
+
+        if (!follow || IsTerminalStatus(details.status)) {
+            break;
+        }
+
+        first_iteration = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(interval_ms));
+    }
+
+    return absl::OkStatus();
+#endif
+}
+
+absl::Status HandleTestListCommand(const std::vector<std::string>& arg_vec) {
+    std::string host = "localhost";
+    int port = 50052;
+    std::string category_filter;
+    std::optional<TestRunStatus> status_filter;
+    int page_size = 100;
+    int limit = -1;
+    bool fetch_all = false;
+
+    for (size_t i = 0; i < arg_vec.size(); ++i) {
+        const std::string& token = arg_vec[i];
+
+        if (token == "--host" && i + 1 < arg_vec.size()) {
+            host = arg_vec[++i];
+        } else if (absl::StartsWith(token, "--host=")) {
+            host = token.substr(7);
+        } else if (token == "--port" && i + 1 < arg_vec.size()) {
+            port = std::stoi(arg_vec[++i]);
+        } else if (absl::StartsWith(token, "--port=")) {
+            port = std::stoi(token.substr(7));
+        } else if (token == "--category" && i + 1 < arg_vec.size()) {
+            category_filter = arg_vec[++i];
+        } else if (absl::StartsWith(token, "--category=")) {
+            category_filter = token.substr(11);
+        } else if (token == "--status" && i + 1 < arg_vec.size()) {
+            auto parsed = ParseStatusFilter(arg_vec[++i]);
+            if (!parsed.has_value()) {
+                return absl::InvalidArgumentError(
+                    "Invalid status filter. Expected: queued, running, passed, failed, timeout, unknown");
+            }
+            status_filter = parsed;
+        } else if (absl::StartsWith(token, "--status=")) {
+            auto parsed = ParseStatusFilter(token.substr(9));
+            if (!parsed.has_value()) {
+                return absl::InvalidArgumentError(
+                    "Invalid status filter. Expected: queued, running, passed, failed, timeout, unknown");
+            }
+            status_filter = parsed;
+        } else if (token == "--page-size" && i + 1 < arg_vec.size()) {
+            page_size = std::max(1, std::stoi(arg_vec[++i]));
+        } else if (absl::StartsWith(token, "--page-size=")) {
+            page_size = std::max(1, std::stoi(token.substr(12)));
+        } else if (token == "--limit" && i + 1 < arg_vec.size()) {
+            limit = std::stoi(arg_vec[++i]);
+        } else if (absl::StartsWith(token, "--limit=")) {
+            limit = std::stoi(token.substr(8));
+        } else if (token == "--all") {
+            fetch_all = true;
+        }
+    }
+
+    if (fetch_all) {
+        limit = -1;
+    }
+
+#ifndef YAZE_WITH_GRPC
+    return absl::UnimplementedError(
+        "GUI automation requires YAZE_WITH_GRPC=ON at build time.\n"
+        "Rebuild with: cmake -B build -DYAZE_WITH_GRPC=ON");
+#else
+    GuiAutomationClient client(HarnessAddress(host, port));
+    RETURN_IF_ERROR(client.Connect());
+
+    std::cout << "\n=== Harness Test Catalog ===\n";
+    std::cout << "Server: " << HarnessAddress(host, port) << "\n";
+    if (!category_filter.empty()) {
+        std::cout << "Category filter: " << category_filter << "\n";
+    }
+    if (status_filter.has_value()) {
+        std::cout << "Status filter: "
+                  << TestRunStatusToString(status_filter.value()) << "\n";
+    }
+    std::cout << "\n";
+
+    std::vector<HarnessTestSummary> collected;
+    collected.reserve(limit > 0 ? limit : page_size);
+    std::string page_token;
+    int total_count = 0;
+
+    while (true) {
+        int request_page_size = page_size > 0 ? page_size : 100;
+        if (limit > 0) {
+            int remaining = limit - static_cast<int>(collected.size());
+            if (remaining <= 0) {
+                break;
+            }
+            request_page_size = std::min(request_page_size, remaining);
+        }
+
+        ASSIGN_OR_RETURN(auto batch,
+                         client.ListTests(category_filter, request_page_size,
+                                          page_token));
+
+        total_count = batch.total_count;
+
+        for (const auto& summary : batch.tests) {
+            if (status_filter.has_value()) {
+                ASSIGN_OR_RETURN(auto details,
+                                 client.GetTestStatus(summary.test_id));
+                if (details.status != status_filter.value()) {
+                    continue;
+                }
+            }
+
+            collected.push_back(summary);
+            if (limit > 0 && static_cast<int>(collected.size()) >= limit) {
+                break;
+            }
+        }
+
+        if (limit > 0 && static_cast<int>(collected.size()) >= limit) {
+            break;
+        }
+
+        if (batch.next_page_token.empty()) {
+            break;
+        }
+        page_token = batch.next_page_token;
+    }
+
+    if (collected.empty()) {
+        std::cout << "No tests found for the specified filters." << std::endl;
+        return absl::OkStatus();
+    }
+
+    for (const auto& summary : collected) {
+        std::cout << "Test ID: " << summary.test_id << "\n";
+        std::cout << "  Name: " << summary.name << "\n";
+        std::cout << "  Category: " << summary.category << "\n";
+        std::cout << "  Last Run: " << FormatOptionalTime(summary.last_run_at)
+                  << "\n";
+        std::cout << "  Runs: " << summary.total_runs << " ("
+                  << summary.pass_count << " pass / " << summary.fail_count
+                  << " fail)\n";
+        std::cout << "  Average Duration (ms): " << summary.average_duration_ms
+                  << "\n\n";
+    }
+
+    std::cout << "Displayed " << collected.size() << " test(s)";
+    if (total_count > 0) {
+        std::cout << " (catalog size: " << total_count << ")";
+    }
+    std::cout << "." << std::endl;
+
+    return absl::OkStatus();
+#endif
+}
+
+absl::Status HandleTestResultsCommand(const std::vector<std::string>& arg_vec) {
+    std::string host = "localhost";
+    int port = 50052;
+    std::string test_id;
+    bool include_logs = false;
+    std::string format = "yaml";
+
+    for (size_t i = 0; i < arg_vec.size(); ++i) {
+        const std::string& token = arg_vec[i];
+
+        if (token == "--test-id" && i + 1 < arg_vec.size()) {
+            test_id = arg_vec[++i];
+        } else if (absl::StartsWith(token, "--test-id=")) {
+            test_id = token.substr(10);
+        } else if (token == "--host" && i + 1 < arg_vec.size()) {
+            host = arg_vec[++i];
+        } else if (absl::StartsWith(token, "--host=")) {
+            host = token.substr(7);
+        } else if (token == "--port" && i + 1 < arg_vec.size()) {
+            port = std::stoi(arg_vec[++i]);
+        } else if (absl::StartsWith(token, "--port=")) {
+            port = std::stoi(token.substr(7));
+        } else if (token == "--include-logs") {
+            include_logs = true;
+        } else if (token == "--format" && i + 1 < arg_vec.size()) {
+            format = absl::AsciiStrToLower(arg_vec[++i]);
+        } else if (absl::StartsWith(token, "--format=")) {
+            format = absl::AsciiStrToLower(token.substr(9));
+        }
+    }
+
+    if (test_id.empty()) {
+        return absl::InvalidArgumentError(
+            "Usage: agent test results --test-id <id> [--include-logs] [--format yaml|json] [--host <host>] [--port <port>]");
+    }
+
+    if (format != "yaml" && format != "json") {
+        return absl::InvalidArgumentError("--format must be either 'yaml' or 'json'");
+    }
+
+#ifndef YAZE_WITH_GRPC
+    return absl::UnimplementedError(
+        "GUI automation requires YAZE_WITH_GRPC=ON at build time.\n"
+        "Rebuild with: cmake -B build -DYAZE_WITH_GRPC=ON");
+#else
+    GuiAutomationClient client(HarnessAddress(host, port));
+    RETURN_IF_ERROR(client.Connect());
+
+    ASSIGN_OR_RETURN(auto details,
+                     client.GetTestResults(test_id, include_logs));
+
+    if (format == "json") {
+        std::cout << "{\n";
+        std::cout << "  \"test_id\": \"" << JsonEscape(details.test_id)
+                  << "\",\n";
+        std::cout << "  \"success\": " << (details.success ? "true" : "false")
+                  << ",\n";
+        std::cout << "  \"name\": \"" << JsonEscape(details.test_name)
+                  << "\",\n";
+        std::cout << "  \"category\": \"" << JsonEscape(details.category)
+                  << "\",\n";
+        std::cout << "  \"executed_at\": \""
+                  << JsonEscape(FormatOptionalTime(details.executed_at))
+                  << "\",\n";
+        std::cout << "  \"duration_ms\": " << details.duration_ms << ",\n";
+
+        std::cout << "  \"assertions\": ";
+        if (details.assertions.empty()) {
+            std::cout << "[],\n";
+        } else {
+            std::cout << "[\n";
+            for (size_t i = 0; i < details.assertions.size(); ++i) {
+                const auto& assertion = details.assertions[i];
+                std::cout << "    {\"description\": \""
+                          << JsonEscape(assertion.description)
+                          << "\", \"passed\": "
+                          << (assertion.passed ? "true" : "false");
+                if (!assertion.expected_value.empty()) {
+                    std::cout << ", \"expected\": \""
+                              << JsonEscape(assertion.expected_value) << "\"";
+                }
+                if (!assertion.actual_value.empty()) {
+                    std::cout << ", \"actual\": \""
+                              << JsonEscape(assertion.actual_value) << "\"";
+                }
+                if (!assertion.error_message.empty()) {
+                    std::cout << ", \"error\": \""
+                              << JsonEscape(assertion.error_message) << "\"";
+                }
+                std::cout << "}";
+                if (i + 1 < details.assertions.size()) {
+                    std::cout << ",";
+                }
+                std::cout << "\n";
+            }
+            std::cout << "  ],\n";
+        }
+
+        std::cout << "  \"logs\": ";
+        if (include_logs && !details.logs.empty()) {
+            std::cout << "[\n";
+            for (size_t i = 0; i < details.logs.size(); ++i) {
+                std::cout << "    \"" << JsonEscape(details.logs[i]) << "\"";
+                if (i + 1 < details.logs.size()) {
+                    std::cout << ",";
+                }
+                std::cout << "\n";
+            }
+            std::cout << "  ],\n";
+        } else {
+            std::cout << "[],\n";
+        }
+
+        std::cout << "  \"metrics\": ";
+        if (!details.metrics.empty()) {
+            std::cout << "{\n";
+            size_t index = 0;
+            for (const auto& [key, value] : details.metrics) {
+                std::cout << "    \"" << JsonEscape(key) << "\": " << value;
+                if (index + 1 < details.metrics.size()) {
+                    std::cout << ",";
+                }
+                std::cout << "\n";
+                ++index;
+            }
+            std::cout << "  }\n";
+        } else {
+            std::cout << "{}\n";
+        }
+
+        std::cout << "}" << std::endl;
+    } else {
+        std::cout << "test_id: " << details.test_id << "\n";
+        std::cout << "success: " << (details.success ? "true" : "false")
+                  << "\n";
+        std::cout << "name: " << YamlQuote(details.test_name) << "\n";
+        std::cout << "category: " << YamlQuote(details.category) << "\n";
+        std::cout << "executed_at: " << FormatOptionalTime(details.executed_at)
+                  << "\n";
+        std::cout << "duration_ms: " << details.duration_ms << "\n";
+
+        if (details.assertions.empty()) {
+            std::cout << "assertions: []\n";
+        } else {
+            std::cout << "assertions:\n";
+            for (const auto& assertion : details.assertions) {
+                std::cout << "  - description: "
+                          << YamlQuote(assertion.description) << "\n";
+                std::cout << "    passed: "
+                          << (assertion.passed ? "true" : "false") << "\n";
+                if (!assertion.expected_value.empty()) {
+                    std::cout << "    expected: "
+                              << YamlQuote(assertion.expected_value) << "\n";
+                }
+                if (!assertion.actual_value.empty()) {
+                    std::cout << "    actual: "
+                              << YamlQuote(assertion.actual_value) << "\n";
+                }
+                if (!assertion.error_message.empty()) {
+                    std::cout << "    error: "
+                              << YamlQuote(assertion.error_message) << "\n";
+                }
+            }
+        }
+
+        if (include_logs && !details.logs.empty()) {
+            std::cout << "logs:\n";
+            for (const auto& log : details.logs) {
+                std::cout << "  - " << YamlQuote(log) << "\n";
+            }
+        } else {
+            std::cout << "logs: []\n";
+        }
+
+        if (details.metrics.empty()) {
+            std::cout << "metrics: {}\n";
+        } else {
+            std::cout << "metrics:\n";
+            for (const auto& [key, value] : details.metrics) {
+                std::cout << "  " << key << ": " << value << "\n";
+            }
+        }
+    }
+
+    return absl::OkStatus();
+#endif
+}
+
+absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
+    if (!arg_vec.empty()) {
+        const std::string& subcommand = arg_vec[0];
+        std::vector<std::string> tail(arg_vec.begin() + 1, arg_vec.end());
+
+        if (subcommand == "status") {
+            return HandleTestStatusCommand(tail);
+        }
+        if (subcommand == "list") {
+            return HandleTestListCommand(tail);
+        }
+        if (subcommand == "results") {
+            return HandleTestResultsCommand(tail);
+        }
+    }
+
+    return HandleTestRunCommand(arg_vec);
 }
 
 absl::Status HandleLearnCommand() {

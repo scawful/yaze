@@ -44,23 +44,22 @@ void KeepDynamicTestData(const std::shared_ptr<DynamicTestData>& data) {
   }
 }
 
-GetTestStatusResponse::Status ConvertHarnessStatus(
-    TestManager::HarnessTestStatus status) {
-  using ProtoStatus = GetTestStatusResponse::Status;
+::yaze::test::GetTestStatusResponse_Status ConvertHarnessStatus(
+    ::yaze::test::HarnessTestStatus status) {
   switch (status) {
-    case TestManager::HarnessTestStatus::kQueued:
-      return ProtoStatus::STATUS_QUEUED;
-    case TestManager::HarnessTestStatus::kRunning:
-      return ProtoStatus::STATUS_RUNNING;
-    case TestManager::HarnessTestStatus::kPassed:
-      return ProtoStatus::STATUS_PASSED;
-    case TestManager::HarnessTestStatus::kFailed:
-      return ProtoStatus::STATUS_FAILED;
-    case TestManager::HarnessTestStatus::kTimeout:
-      return ProtoStatus::STATUS_TIMEOUT;
-    case TestManager::HarnessTestStatus::kUnspecified:
+    case ::yaze::test::HarnessTestStatus::kQueued:
+      return ::yaze::test::GetTestStatusResponse::STATUS_QUEUED;
+    case ::yaze::test::HarnessTestStatus::kRunning:
+      return ::yaze::test::GetTestStatusResponse::STATUS_RUNNING;
+    case ::yaze::test::HarnessTestStatus::kPassed:
+      return ::yaze::test::GetTestStatusResponse::STATUS_PASSED;
+    case ::yaze::test::HarnessTestStatus::kFailed:
+      return ::yaze::test::GetTestStatusResponse::STATUS_FAILED;
+    case ::yaze::test::HarnessTestStatus::kTimeout:
+      return ::yaze::test::GetTestStatusResponse::STATUS_TIMEOUT;
+    case ::yaze::test::HarnessTestStatus::kUnspecified:
     default:
-      return ProtoStatus::STATUS_UNSPECIFIED;
+      return ::yaze::test::GetTestStatusResponse::STATUS_UNSPECIFIED;
   }
 }
 
@@ -296,8 +295,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
     response->set_success(false);
     response->set_message(message);
     response->set_execution_time_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(
-        test_id, TestManager::HarnessTestStatus::kFailed, message);
+  test_manager_->MarkHarnessTestCompleted(
+    test_id, HarnessTestStatus::kFailed, message);
     return absl::OkStatus();
   }
 
@@ -311,8 +310,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
     response->set_success(false);
     response->set_message(message);
     response->set_execution_time_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(
-        test_id, TestManager::HarnessTestStatus::kFailed, message);
+  test_manager_->MarkHarnessTestCompleted(
+    test_id, HarnessTestStatus::kFailed, message);
     test_manager_->AppendHarnessTestLog(test_id, message);
     return absl::OkStatus();
   }
@@ -353,16 +352,16 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
       const std::string success_message =
           absl::StrFormat("Clicked %s '%s'", widget_type, widget_label);
       manager->AppendHarnessTestLog(captured_id, success_message);
-      manager->MarkHarnessTestCompleted(
-          captured_id, TestManager::HarnessTestStatus::kPassed,
-          success_message);
+    manager->MarkHarnessTestCompleted(captured_id,
+                    HarnessTestStatus::kPassed,
+                    success_message);
     } catch (const std::exception& e) {
       const std::string error_message =
           absl::StrFormat("Click failed: %s", e.what());
       manager->AppendHarnessTestLog(captured_id, error_message);
-      manager->MarkHarnessTestCompleted(
-          captured_id, TestManager::HarnessTestStatus::kFailed,
-          error_message);
+    manager->MarkHarnessTestCompleted(captured_id,
+                    HarnessTestStatus::kFailed,
+                    error_message);
     }
   };
 
@@ -397,8 +396,9 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
     response->set_success(false);
     response->set_message(message);
     response->set_execution_time_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(
-        test_id, TestManager::HarnessTestStatus::kFailed, message);
+  test_manager_->MarkHarnessTestCompleted(test_id,
+                      HarnessTestStatus::kFailed,
+                      message);
     test_manager_->AppendHarnessTestLog(test_id, message);
     return absl::OkStatus();
   }
@@ -410,8 +410,9 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
       widget_type, widget_label);
 
   test_manager_->MarkHarnessTestRunning(test_id);
-  test_manager_->MarkHarnessTestCompleted(
-      test_id, TestManager::HarnessTestStatus::kPassed, message);
+  test_manager_->MarkHarnessTestCompleted(test_id,
+                                          HarnessTestStatus::kPassed,
+                                          message);
   test_manager_->AppendHarnessTestLog(test_id, message);
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -450,8 +451,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
     response->set_success(false);
     response->set_message(message);
     response->set_execution_time_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(
-        test_id, TestManager::HarnessTestStatus::kFailed, message);
+  test_manager_->MarkHarnessTestCompleted(
+    test_id, HarnessTestStatus::kFailed, message);
     return absl::OkStatus();
   }
 
@@ -465,8 +466,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
     response->set_success(false);
     response->set_message(message);
     response->set_execution_time_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(
-        test_id, TestManager::HarnessTestStatus::kFailed, message);
+  test_manager_->MarkHarnessTestCompleted(
+    test_id, HarnessTestStatus::kFailed, message);
     test_manager_->AppendHarnessTestLog(test_id, message);
     return absl::OkStatus();
   }
@@ -480,7 +481,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
   auto test_data = std::make_shared<DynamicTestData>();
   TestManager* manager = test_manager_;
   test_data->test_func = [manager, captured_id = test_id, widget_type,
-                          widget_label, clear_first, text](
+                          widget_label, clear_first, text, rpc_state](
                              ImGuiTestContext* ctx) {
     manager->MarkHarnessTestRunning(captured_id);
     try {
@@ -489,9 +490,9 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
         std::string error_message =
             absl::StrFormat("Input field '%s' not found", widget_label);
         manager->AppendHarnessTestLog(captured_id, error_message);
-        manager->MarkHarnessTestCompleted(
-            captured_id, TestManager::HarnessTestStatus::kFailed,
-            error_message);
+    manager->MarkHarnessTestCompleted(captured_id,
+                      HarnessTestStatus::kFailed,
+                      error_message);
         rpc_state->SetResult(false, error_message);
         return;
       }
@@ -508,17 +509,17 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
           "Typed '%s' into %s '%s'%s", text, widget_type, widget_label,
           clear_first ? " (cleared first)" : "");
       manager->AppendHarnessTestLog(captured_id, success_message);
-      manager->MarkHarnessTestCompleted(
-          captured_id, TestManager::HarnessTestStatus::kPassed,
-          success_message);
+    manager->MarkHarnessTestCompleted(captured_id,
+                    HarnessTestStatus::kPassed,
+                    success_message);
       rpc_state->SetResult(true, success_message);
     } catch (const std::exception& e) {
       std::string error_message =
           absl::StrFormat("Type failed: %s", e.what());
       manager->AppendHarnessTestLog(captured_id, error_message);
-      manager->MarkHarnessTestCompleted(
-          captured_id, TestManager::HarnessTestStatus::kFailed,
-          error_message);
+    manager->MarkHarnessTestCompleted(captured_id,
+                    HarnessTestStatus::kFailed,
+                    error_message);
       rpc_state->SetResult(false, error_message);
     }
   };
@@ -542,8 +543,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
       std::string error_message =
           "Test timeout - input field not found or unresponsive";
       manager->AppendHarnessTestLog(test_id, error_message);
-      manager->MarkHarnessTestCompleted(
-          test_id, TestManager::HarnessTestStatus::kTimeout, error_message);
+    manager->MarkHarnessTestCompleted(
+      test_id, HarnessTestStatus::kTimeout, error_message);
       rpc_state->SetResult(false, error_message);
       break;
     }
@@ -568,8 +569,9 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
   std::string message = absl::StrFormat(
       "[STUB] Typed '%s' into %s (ImGuiTestEngine not available)",
       request->text(), request->target());
-  test_manager_->MarkHarnessTestCompleted(
-      test_id, TestManager::HarnessTestStatus::kPassed, message);
+  test_manager_->MarkHarnessTestCompleted(test_id,
+                                          HarnessTestStatus::kPassed,
+                                          message);
   test_manager_->AppendHarnessTestLog(test_id, message);
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -609,8 +611,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
     response->set_success(false);
     response->set_message(message);
     response->set_elapsed_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(
-        test_id, TestManager::HarnessTestStatus::kFailed, message);
+  test_manager_->MarkHarnessTestCompleted(
+    test_id, HarnessTestStatus::kFailed, message);
     return absl::OkStatus();
   }
 
@@ -624,8 +626,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
     response->set_success(false);
     response->set_message(message);
     response->set_elapsed_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(
-        test_id, TestManager::HarnessTestStatus::kFailed, message);
+  test_manager_->MarkHarnessTestCompleted(
+    test_id, HarnessTestStatus::kFailed, message);
     test_manager_->AppendHarnessTestLog(test_id, message);
     return absl::OkStatus();
   }
@@ -672,9 +674,9 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
           std::string error_message =
               absl::StrFormat("Unknown condition type: %s", condition_type);
           manager->AppendHarnessTestLog(captured_id, error_message);
-          manager->MarkHarnessTestCompleted(
-              captured_id, TestManager::HarnessTestStatus::kFailed,
-              error_message);
+      manager->MarkHarnessTestCompleted(captured_id,
+                      HarnessTestStatus::kFailed,
+                      error_message);
           return;
         }
 
@@ -685,9 +687,9 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
               "Condition '%s:%s' met after %lld ms", condition_type,
               condition_target, static_cast<long long>(elapsed_ms.count()));
           manager->AppendHarnessTestLog(captured_id, success_message);
-          manager->MarkHarnessTestCompleted(
-              captured_id, TestManager::HarnessTestStatus::kPassed,
-              success_message);
+      manager->MarkHarnessTestCompleted(captured_id,
+                      HarnessTestStatus::kPassed,
+                      success_message);
           return;
         }
 
@@ -700,16 +702,16 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
           "Condition '%s:%s' not met after %d ms timeout", condition_type,
           condition_target, timeout_ms);
       manager->AppendHarnessTestLog(captured_id, timeout_message);
-      manager->MarkHarnessTestCompleted(
-          captured_id, TestManager::HarnessTestStatus::kTimeout,
-          timeout_message);
+    manager->MarkHarnessTestCompleted(captured_id,
+                    HarnessTestStatus::kTimeout,
+                    timeout_message);
     } catch (const std::exception& e) {
       std::string error_message =
           absl::StrFormat("Wait failed: %s", e.what());
       manager->AppendHarnessTestLog(captured_id, error_message);
-      manager->MarkHarnessTestCompleted(
-          captured_id, TestManager::HarnessTestStatus::kFailed,
-          error_message);
+    manager->MarkHarnessTestCompleted(captured_id,
+                    HarnessTestStatus::kFailed,
+                    error_message);
     }
   };
 
@@ -739,8 +741,9 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   std::string message = absl::StrFormat(
       "[STUB] Condition '%s' met (ImGuiTestEngine not available)",
       request->condition());
-  test_manager_->MarkHarnessTestCompleted(
-      test_id, TestManager::HarnessTestStatus::kPassed, message);
+  test_manager_->MarkHarnessTestCompleted(test_id,
+                                          HarnessTestStatus::kPassed,
+                                          message);
   test_manager_->AppendHarnessTestLog(test_id, message);
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -777,8 +780,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
     response->set_message(message);
     response->set_actual_value("N/A");
     response->set_expected_value("N/A");
-    test_manager_->MarkHarnessTestCompleted(
-        test_id, TestManager::HarnessTestStatus::kFailed, message);
+  test_manager_->MarkHarnessTestCompleted(
+    test_id, HarnessTestStatus::kFailed, message);
     return absl::OkStatus();
   }
 
@@ -791,8 +794,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
     response->set_message(message);
     response->set_actual_value("N/A");
     response->set_expected_value("N/A");
-    test_manager_->MarkHarnessTestCompleted(
-        test_id, TestManager::HarnessTestStatus::kFailed, message);
+  test_manager_->MarkHarnessTestCompleted(
+    test_id, HarnessTestStatus::kFailed, message);
     test_manager_->AppendHarnessTestLog(test_id, message);
     return absl::OkStatus();
   }
@@ -806,11 +809,11 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
                           assertion_target](ImGuiTestContext* ctx) {
     manager->MarkHarnessTestRunning(captured_id);
 
-    auto complete_with =
-        [manager, captured_id](bool passed, const std::string& message,
-                               const std::string& actual,
-                               const std::string& expected,
-                               TestManager::HarnessTestStatus status) {
+  auto complete_with =
+    [manager, captured_id](bool passed, const std::string& message,
+                 const std::string& actual,
+                 const std::string& expected,
+                 HarnessTestStatus status) {
           manager->AppendHarnessTestLog(captured_id, message);
           if (!actual.empty() || !expected.empty()) {
             manager->AppendHarnessTestLog(
@@ -866,7 +869,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
           std::string error_message =
               "text_contains requires format 'text_contains:target:expected_text'";
           complete_with(false, error_message, "N/A", "N/A",
-                        TestManager::HarnessTestStatus::kFailed);
+                        HarnessTestStatus::kFailed);
           return;
         }
 
@@ -894,21 +897,21 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
       } else {
         std::string error_message =
             absl::StrFormat("Unknown assertion type: %s", assertion_type);
-        complete_with(false, error_message, "N/A", "N/A",
-                      TestManager::HarnessTestStatus::kFailed);
+  complete_with(false, error_message, "N/A", "N/A",
+          HarnessTestStatus::kFailed);
         return;
       }
 
       complete_with(passed, message, actual_value, expected_value,
-                    passed ? TestManager::HarnessTestStatus::kPassed
-                           : TestManager::HarnessTestStatus::kFailed);
+                    passed ? HarnessTestStatus::kPassed
+                           : HarnessTestStatus::kFailed);
     } catch (const std::exception& e) {
       std::string error_message =
           absl::StrFormat("Assertion failed: %s", e.what());
       manager->AppendHarnessTestLog(captured_id, error_message);
-      manager->MarkHarnessTestCompleted(
-          captured_id, TestManager::HarnessTestStatus::kFailed,
-          error_message);
+      manager->MarkHarnessTestCompleted(captured_id,
+                                        HarnessTestStatus::kFailed,
+                                        error_message);
     }
   };
 
@@ -936,8 +939,9 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   std::string message = absl::StrFormat(
       "[STUB] Assertion '%s' passed (ImGuiTestEngine not available)",
       request->condition());
-  test_manager_->MarkHarnessTestCompleted(
-      test_id, TestManager::HarnessTestStatus::kPassed, message);
+  test_manager_->MarkHarnessTestCompleted(test_id,
+                                          HarnessTestStatus::kPassed,
+                                          message);
   test_manager_->AppendHarnessTestLog(test_id, message);
 
   response->set_success(true);
@@ -1099,7 +1103,7 @@ absl::Status ImGuiTestHarnessServiceImpl::GetTestResults(
 
   const auto& execution = execution_or.value();
   response->set_success(
-      execution.status == TestManager::HarnessTestStatus::kPassed);
+    execution.status == HarnessTestStatus::kPassed);
   response->set_test_name(execution.name);
   response->set_category(execution.category);
 

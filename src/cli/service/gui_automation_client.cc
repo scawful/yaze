@@ -4,9 +4,45 @@
 #include "cli/service/gui_automation_client.h"
 
 #include "absl/strings/str_format.h"
+#include "absl/time/time.h"
+
+#include <utility>
 
 namespace yaze {
 namespace cli {
+
+namespace {
+
+#ifdef YAZE_WITH_GRPC
+std::optional<absl::Time> OptionalTimeFromMillis(int64_t millis) {
+  if (millis <= 0) {
+    return std::nullopt;
+  }
+  return absl::FromUnixMillis(millis);
+}
+
+TestRunStatus ConvertStatusProto(
+    yaze::test::GetTestStatusResponse::Status status) {
+  using ProtoStatus = yaze::test::GetTestStatusResponse::Status;
+  switch (status) {
+    case ProtoStatus::GetTestStatusResponse_Status_STATUS_QUEUED:
+      return TestRunStatus::kQueued;
+    case ProtoStatus::GetTestStatusResponse_Status_STATUS_RUNNING:
+      return TestRunStatus::kRunning;
+    case ProtoStatus::GetTestStatusResponse_Status_STATUS_PASSED:
+      return TestRunStatus::kPassed;
+    case ProtoStatus::GetTestStatusResponse_Status_STATUS_FAILED:
+      return TestRunStatus::kFailed;
+    case ProtoStatus::GetTestStatusResponse_Status_STATUS_TIMEOUT:
+      return TestRunStatus::kTimeout;
+    case ProtoStatus::GetTestStatusResponse_Status_STATUS_UNSPECIFIED:
+    default:
+      return TestRunStatus::kUnknown;
+  }
+}
+#endif  // YAZE_WITH_GRPC
+
+}  // namespace
 
 GuiAutomationClient::GuiAutomationClient(const std::string& server_address)
     : server_address_(server_address) {}
@@ -66,6 +102,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Ping(
                                    response.yaze_version(),
                                    response.timestamp_ms());
   result.execution_time = std::chrono::milliseconds(0);
+  result.test_id.clear();
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -84,16 +121,20 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Click(
   
   switch (type) {
     case ClickType::kLeft:
-      request.set_type(yaze::test::ClickRequest::LEFT);
+      request.set_type(
+          yaze::test::ClickRequest::CLICK_TYPE_LEFT);
       break;
     case ClickType::kRight:
-      request.set_type(yaze::test::ClickRequest::RIGHT);
+      request.set_type(
+          yaze::test::ClickRequest::CLICK_TYPE_RIGHT);
       break;
     case ClickType::kMiddle:
-      request.set_type(yaze::test::ClickRequest::MIDDLE);
+      request.set_type(
+          yaze::test::ClickRequest::CLICK_TYPE_MIDDLE);
       break;
     case ClickType::kDouble:
-      request.set_type(yaze::test::ClickRequest::DOUBLE);
+      request.set_type(
+          yaze::test::ClickRequest::CLICK_TYPE_DOUBLE);
       break;
   }
   
@@ -112,6 +153,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Click(
   result.message = response.message();
   result.execution_time = std::chrono::milliseconds(
       response.execution_time_ms());
+  result.test_id = response.test_id();
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -145,6 +187,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Type(
   result.message = response.message();
   result.execution_time = std::chrono::milliseconds(
       response.execution_time_ms());
+  result.test_id = response.test_id();
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -178,6 +221,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Wait(
   result.message = response.message();
   result.execution_time = std::chrono::milliseconds(
       response.elapsed_ms());
+  result.test_id = response.test_id();
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -210,6 +254,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Assert(
   result.actual_value = response.actual_value();
   result.expected_value = response.expected_value();
   result.execution_time = std::chrono::milliseconds(0);
+  result.test_id = response.test_id();
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -226,7 +271,8 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Screenshot(
   yaze::test::ScreenshotRequest request;
   request.set_window_title("");  // Empty = main window
   request.set_output_path("/tmp/yaze_screenshot.png");  // Default path
-  request.set_format(yaze::test::ScreenshotRequest::PNG);  // Always PNG for now
+  request.set_format(
+      yaze::test::ScreenshotRequest::IMAGE_FORMAT_PNG);  // Always PNG for now
   
   yaze::test::ScreenshotResponse response;
   grpc::ClientContext context;
@@ -242,6 +288,152 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Screenshot(
   result.success = response.success();
   result.message = response.message();
   result.execution_time = std::chrono::milliseconds(0);
+  result.test_id.clear();
+  return result;
+#else
+  return absl::UnimplementedError("gRPC not available");
+#endif
+}
+
+absl::StatusOr<TestStatusDetails> GuiAutomationClient::GetTestStatus(
+    const std::string& test_id) {
+#ifdef YAZE_WITH_GRPC
+  if (!stub_) {
+    return absl::FailedPreconditionError("Not connected. Call Connect() first.");
+  }
+
+  yaze::test::GetTestStatusRequest request;
+  request.set_test_id(test_id);
+
+  yaze::test::GetTestStatusResponse response;
+  grpc::ClientContext context;
+
+  grpc::Status status = stub_->GetTestStatus(&context, request, &response);
+
+  if (!status.ok()) {
+    return absl::InternalError(
+        absl::StrFormat("GetTestStatus RPC failed: %s", status.error_message()));
+  }
+
+  TestStatusDetails details;
+  details.test_id = test_id;
+  details.status = ConvertStatusProto(response.status());
+  details.queued_at = OptionalTimeFromMillis(response.queued_at_ms());
+  details.started_at = OptionalTimeFromMillis(response.started_at_ms());
+  details.completed_at = OptionalTimeFromMillis(response.completed_at_ms());
+  details.execution_time_ms = response.execution_time_ms();
+  details.error_message = response.error_message();
+  details.assertion_failures.assign(response.assertion_failures().begin(),
+                                    response.assertion_failures().end());
+  return details;
+#else
+  return absl::UnimplementedError("gRPC not available");
+#endif
+}
+
+absl::StatusOr<ListTestsResult> GuiAutomationClient::ListTests(
+    const std::string& category_filter, int page_size,
+    const std::string& page_token) {
+#ifdef YAZE_WITH_GRPC
+  if (!stub_) {
+    return absl::FailedPreconditionError("Not connected. Call Connect() first.");
+  }
+
+  yaze::test::ListTestsRequest request;
+  if (!category_filter.empty()) {
+    request.set_category_filter(category_filter);
+  }
+  if (page_size > 0) {
+    request.set_page_size(page_size);
+  }
+  if (!page_token.empty()) {
+    request.set_page_token(page_token);
+  }
+
+  yaze::test::ListTestsResponse response;
+  grpc::ClientContext context;
+
+  grpc::Status status = stub_->ListTests(&context, request, &response);
+
+  if (!status.ok()) {
+    return absl::InternalError(
+        absl::StrFormat("ListTests RPC failed: %s", status.error_message()));
+  }
+
+  ListTestsResult result;
+  result.total_count = response.total_count();
+  result.next_page_token = response.next_page_token();
+  result.tests.reserve(response.tests_size());
+
+  for (const auto& test_info : response.tests()) {
+    HarnessTestSummary summary;
+    summary.test_id = test_info.test_id();
+    summary.name = test_info.name();
+    summary.category = test_info.category();
+    summary.last_run_at =
+        OptionalTimeFromMillis(test_info.last_run_timestamp_ms());
+    summary.total_runs = test_info.total_runs();
+    summary.pass_count = test_info.pass_count();
+    summary.fail_count = test_info.fail_count();
+    summary.average_duration_ms = test_info.average_duration_ms();
+    result.tests.push_back(std::move(summary));
+  }
+
+  return result;
+#else
+  return absl::UnimplementedError("gRPC not available");
+#endif
+}
+
+absl::StatusOr<TestResultDetails> GuiAutomationClient::GetTestResults(
+    const std::string& test_id, bool include_logs) {
+#ifdef YAZE_WITH_GRPC
+  if (!stub_) {
+    return absl::FailedPreconditionError("Not connected. Call Connect() first.");
+  }
+
+  yaze::test::GetTestResultsRequest request;
+  request.set_test_id(test_id);
+  request.set_include_logs(include_logs);
+
+  yaze::test::GetTestResultsResponse response;
+  grpc::ClientContext context;
+
+  grpc::Status status = stub_->GetTestResults(&context, request, &response);
+
+  if (!status.ok()) {
+    return absl::InternalError(
+        absl::StrFormat("GetTestResults RPC failed: %s",
+                        status.error_message()));
+  }
+
+  TestResultDetails result;
+  result.test_id = test_id;
+  result.success = response.success();
+  result.test_name = response.test_name();
+  result.category = response.category();
+  result.executed_at = OptionalTimeFromMillis(response.executed_at_ms());
+  result.duration_ms = response.duration_ms();
+
+  result.assertions.reserve(response.assertions_size());
+  for (const auto& assertion : response.assertions()) {
+    AssertionOutcome outcome;
+    outcome.description = assertion.description();
+    outcome.passed = assertion.passed();
+    outcome.expected_value = assertion.expected_value();
+    outcome.actual_value = assertion.actual_value();
+    outcome.error_message = assertion.error_message();
+    result.assertions.push_back(std::move(outcome));
+  }
+
+  if (include_logs) {
+    result.logs.assign(response.logs().begin(), response.logs().end());
+  }
+
+  for (const auto& metric : response.metrics()) {
+    result.metrics.emplace(metric.first, metric.second);
+  }
+
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
