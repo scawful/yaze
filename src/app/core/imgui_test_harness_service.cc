@@ -181,6 +181,12 @@ class ImGuiTestHarnessServiceGrpc final : public ImGuiTestHarness::Service {
     return ConvertStatus(impl_->GetTestResults(request, response));
   }
 
+  grpc::Status DiscoverWidgets(grpc::ServerContext* context,
+                               const DiscoverWidgetsRequest* request,
+                               DiscoverWidgetsResponse* response) override {
+    return ConvertStatus(impl_->DiscoverWidgets(request, response));
+  }
+
  private:
   static grpc::Status ConvertStatus(const absl::Status& status) {
     if (status.ok()) {
@@ -1143,6 +1149,25 @@ absl::Status ImGuiTestHarnessServiceImpl::GetTestResults(
     (*metrics_map)[key] = value;
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status ImGuiTestHarnessServiceImpl::DiscoverWidgets(
+    const DiscoverWidgetsRequest* request,
+    DiscoverWidgetsResponse* response) {
+  if (!request) {
+    return absl::InvalidArgumentError("request cannot be null");
+  }
+  if (!response) {
+    return absl::InvalidArgumentError("response cannot be null");
+  }
+
+  if (!test_manager_) {
+    return absl::FailedPreconditionError("TestManager not available");
+  }
+
+  widget_discovery_service_.CollectWidgets(/*ctx=*/nullptr, *request,
+                                           response);
   return absl::OkStatus();
 }
 

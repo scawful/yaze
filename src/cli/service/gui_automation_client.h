@@ -9,6 +9,7 @@
 #include "absl/time/time.h"
 
 #include <chrono>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <optional>
@@ -120,6 +121,59 @@ struct TestResultDetails {
   std::map<std::string, int> metrics;
 };
 
+enum class WidgetTypeFilter {
+  kUnspecified,
+  kAll,
+  kButton,
+  kInput,
+  kMenu,
+  kTab,
+  kCheckbox,
+  kSlider,
+  kCanvas,
+  kSelectable,
+  kOther,
+};
+
+struct WidgetBoundingBox {
+  float min_x = 0.0f;
+  float min_y = 0.0f;
+  float max_x = 0.0f;
+  float max_y = 0.0f;
+};
+
+struct WidgetDescriptor {
+  std::string path;
+  std::string label;
+  std::string type;
+  std::string description;
+  std::string suggested_action;
+  bool visible = true;
+  bool enabled = true;
+  WidgetBoundingBox bounds;
+  uint32_t widget_id = 0;
+};
+
+struct DiscoveredWindowInfo {
+  std::string name;
+  bool visible = true;
+  std::vector<WidgetDescriptor> widgets;
+};
+
+struct DiscoverWidgetsQuery {
+  std::string window_filter;
+  WidgetTypeFilter type_filter = WidgetTypeFilter::kUnspecified;
+  std::string path_prefix;
+  bool include_invisible = false;
+  bool include_disabled = false;
+};
+
+struct DiscoverWidgetsResult {
+  std::vector<DiscoveredWindowInfo> windows;
+  int total_widgets = 0;
+  std::optional<absl::Time> generated_at;
+};
+
 /**
  * @brief Client for automating YAZE GUI through gRPC
  * 
@@ -224,6 +278,9 @@ class GuiAutomationClient {
    */
   absl::StatusOr<TestResultDetails> GetTestResults(const std::string& test_id,
                                                    bool include_logs = false);
+
+  absl::StatusOr<DiscoverWidgetsResult> DiscoverWidgets(
+      const DiscoverWidgetsQuery& query);
 
   /**
    * @brief Check if client is connected

@@ -8,6 +8,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/core/widget_discovery_service.h"
 
 // Include grpcpp headers for unique_ptr<Server> in member variable
 #include <grpcpp/server.h>
@@ -42,6 +43,8 @@ class ListTestsRequest;
 class ListTestsResponse;
 class GetTestResultsRequest;
 class GetTestResultsResponse;
+class DiscoverWidgetsRequest;
+class DiscoverWidgetsResponse;
 
 // Implementation of ImGuiTestHarness gRPC service
 // This class provides the actual RPC handlers for automated GUI testing
@@ -85,9 +88,12 @@ class ImGuiTestHarnessServiceImpl {
                          ListTestsResponse* response);
   absl::Status GetTestResults(const GetTestResultsRequest* request,
                               GetTestResultsResponse* response);
+  absl::Status DiscoverWidgets(const DiscoverWidgetsRequest* request,
+                               DiscoverWidgetsResponse* response);
 
  private:
   TestManager* test_manager_;  // Non-owning pointer to access ImGuiTestEngine
+  WidgetDiscoveryService widget_discovery_service_;
 };
 
 // Forward declaration of the gRPC service wrapper

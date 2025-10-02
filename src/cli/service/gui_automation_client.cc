@@ -21,6 +21,35 @@ std::optional<absl::Time> OptionalTimeFromMillis(int64_t millis) {
   return absl::FromUnixMillis(millis);
 }
 
+yaze::test::WidgetType ConvertWidgetTypeFilterToProto(WidgetTypeFilter filter) {
+  using ProtoType = yaze::test::WidgetType;
+  switch (filter) {
+    case WidgetTypeFilter::kAll:
+      return ProtoType::WIDGET_TYPE_ALL;
+    case WidgetTypeFilter::kButton:
+      return ProtoType::WIDGET_TYPE_BUTTON;
+    case WidgetTypeFilter::kInput:
+      return ProtoType::WIDGET_TYPE_INPUT;
+    case WidgetTypeFilter::kMenu:
+      return ProtoType::WIDGET_TYPE_MENU;
+    case WidgetTypeFilter::kTab:
+      return ProtoType::WIDGET_TYPE_TAB;
+    case WidgetTypeFilter::kCheckbox:
+      return ProtoType::WIDGET_TYPE_CHECKBOX;
+    case WidgetTypeFilter::kSlider:
+      return ProtoType::WIDGET_TYPE_SLIDER;
+    case WidgetTypeFilter::kCanvas:
+      return ProtoType::WIDGET_TYPE_CANVAS;
+    case WidgetTypeFilter::kSelectable:
+      return ProtoType::WIDGET_TYPE_SELECTABLE;
+    case WidgetTypeFilter::kOther:
+      return ProtoType::WIDGET_TYPE_OTHER;
+    case WidgetTypeFilter::kUnspecified:
+    default:
+      return ProtoType::WIDGET_TYPE_UNSPECIFIED;
+  }
+}
+
 TestRunStatus ConvertStatusProto(
     yaze::test::GetTestStatusResponse::Status status) {
   using ProtoStatus = yaze::test::GetTestStatusResponse::Status;
@@ -436,6 +465,74 @@ absl::StatusOr<TestResultDetails> GuiAutomationClient::GetTestResults(
 
   return result;
 #else
+  return absl::UnimplementedError("gRPC not available");
+#endif
+}
+
+absl::StatusOr<DiscoverWidgetsResult> GuiAutomationClient::DiscoverWidgets(
+    const DiscoverWidgetsQuery& query) {
+#ifdef YAZE_WITH_GRPC
+  if (!stub_) {
+    return absl::FailedPreconditionError("Not connected. Call Connect() first.");
+  }
+
+  yaze::test::DiscoverWidgetsRequest request;
+  if (!query.window_filter.empty()) {
+    request.set_window_filter(query.window_filter);
+  }
+  request.set_type_filter(ConvertWidgetTypeFilterToProto(query.type_filter));
+  if (!query.path_prefix.empty()) {
+    request.set_path_prefix(query.path_prefix);
+  }
+  request.set_include_invisible(query.include_invisible);
+  request.set_include_disabled(query.include_disabled);
+
+  yaze::test::DiscoverWidgetsResponse response;
+  grpc::ClientContext context;
+  grpc::Status status = stub_->DiscoverWidgets(&context, request, &response);
+
+  if (!status.ok()) {
+    return absl::InternalError(
+        absl::StrFormat("DiscoverWidgets RPC failed: %s",
+                        status.error_message()));
+  }
+
+  DiscoverWidgetsResult result;
+  result.total_widgets = response.total_widgets();
+  if (response.generated_at_ms() > 0) {
+    result.generated_at = OptionalTimeFromMillis(response.generated_at_ms());
+  }
+
+  result.windows.reserve(response.windows_size());
+  for (const auto& window_proto : response.windows()) {
+    DiscoveredWindowInfo window_info;
+    window_info.name = window_proto.name();
+    window_info.visible = window_proto.visible();
+    window_info.widgets.reserve(window_proto.widgets_size());
+
+    for (const auto& widget_proto : window_proto.widgets()) {
+      WidgetDescriptor widget;
+      widget.path = widget_proto.path();
+      widget.label = widget_proto.label();
+      widget.type = widget_proto.type();
+      widget.description = widget_proto.description();
+      widget.suggested_action = widget_proto.suggested_action();
+      widget.visible = widget_proto.visible();
+      widget.enabled = widget_proto.enabled();
+      widget.bounds.min_x = widget_proto.bounds().min_x();
+      widget.bounds.min_y = widget_proto.bounds().min_y();
+      widget.bounds.max_x = widget_proto.bounds().max_x();
+      widget.bounds.max_y = widget_proto.bounds().max_y();
+      widget.widget_id = widget_proto.widget_id();
+      window_info.widgets.push_back(std::move(widget));
+    }
+
+    result.windows.push_back(std::move(window_info));
+  }
+
+  return result;
+#else
+  (void)query;
   return absl::UnimplementedError("gRPC not available");
 #endif
 }
