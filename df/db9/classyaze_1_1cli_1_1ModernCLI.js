@@ -3,6 +3,7 @@ var classyaze_1_1cli_1_1ModernCLI =
     [ "ModernCLI", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a927f1cc0020ff6b5a9d5a8a40d6d568e", null ],
     [ "Run", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a27044c21202e6f14553e7150de89eb53", null ],
     [ "GetCommandHandler", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a0a85c4731d61a6a26114953d1d63d569", null ],
+    [ "PrintTopLevelHelp", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#aaf3ee9771848185cc9abbb934ae10053", null ],
     [ "SetupCommands", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a7eca5c1ea2d7713cff409387373b4b07", null ],
     [ "ShowHelp", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#ad60ee322bbde31938708cb76f1c2cf06", null ],
     [ "HandleAsarPatchCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#ae76bce0a2ccab9cc16ca42ea426aae6b", null ],

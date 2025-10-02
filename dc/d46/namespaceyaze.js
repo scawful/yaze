@@ -1,5 +1,10 @@
 var namespaceyaze =
 [
+    [ "anonymous_namespace{rom.cc}", "d4/dbf/namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html", [
+      [ "MaybeStripSmcHeader", "d4/dbf/namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#aa13a5ca04b2cc3f5f5fe321bc9ad9f6c", null ],
+      [ "kBaseRomSize", "d4/dbf/namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#aedd16f67611c771b9f9640f5dbf8e405", null ],
+      [ "kHeaderSize", "d4/dbf/namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#abad830783ccf3b4922d02f277b9152f0", null ]
+    ] ],
     [ "app", "d9/d75/namespaceyaze_1_1app.html", "d9/d75/namespaceyaze_1_1app" ],
     [ "cli", "dd/d63/namespaceyaze_1_1cli.html", "dd/d63/namespaceyaze_1_1cli" ],
     [ "core", "db/d33/namespaceyaze_1_1core.html", "db/d33/namespaceyaze_1_1core" ],
@@ -11,6 +16,7 @@ var namespaceyaze =
     [ "util", "d4/de1/namespaceyaze_1_1util.html", "d4/de1/namespaceyaze_1_1util" ],
     [ "zelda3", "d5/d1f/namespaceyaze_1_1zelda3.html", "d5/d1f/namespaceyaze_1_1zelda3" ],
     [ "Rom", "d6/d30/classyaze_1_1Rom.html", "d6/d30/classyaze_1_1Rom" ],
+    [ "RomLoadOptions", "db/d22/structyaze_1_1RomLoadOptions.html", "db/d22/structyaze_1_1RomLoadOptions" ],
     [ "Transaction", "df/d26/classyaze_1_1Transaction.html", "df/d26/classyaze_1_1Transaction" ],
     [ "GetGraphicsAddress", "dc/d46/namespaceyaze.html#acf543dde4eeff4bc273d61a4ffda5d41", null ],
     [ "Load2BppGraphics", "dc/d46/namespaceyaze.html#a3167c1c857f5e405cb39a492529d6557", null ],

@@ -99,6 +99,7 @@ $(document).ready(function(){initNavTree('d2/d0e/agent_8cc.html','../../'); init
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">agent.cc File Reference</div></div>
@@ -107,14 +108,35 @@ $(document).ready(function(){initNavTree('d2/d0e/agent_8cc.html','../../'); init
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d3/dfa/z3ed_8h_source.html">cli/z3ed.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d8/d43/modern__cli_8h_source.html">cli/modern_cli.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d52/ai__service_8h_source.html">cli/service/ai_service.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">cli/service/proposal_registry.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d9/d7d/resource__catalog_8h_source.html">cli/service/resource_catalog.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d0/d7b/rom__sandbox__manager_8h_source.html">cli/service/rom_sandbox_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">cli/service/gui_automation_client.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d8/dfb/test__workflow__generator_8h_source.html">cli/service/test_workflow_generator.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d4/d9e/macro_8h_source.html">util/macro.h</a>&quot;</code><br />
+<code>#include &quot;absl/flags/declare.h&quot;</code><br />
+<code>#include &quot;absl/flags/flag.h&quot;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
+<code>#include &quot;absl/status/statusor.h&quot;</code><br />
+<code>#include &quot;absl/strings/ascii.h&quot;</code><br />
+<code>#include &quot;absl/strings/match.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
+<code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &lt;cstdlib&gt;</code><br />
+<code>#include &lt;fstream&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;sys/types.h&gt;</code><br />
 <code>#include &lt;sys/wait.h&gt;</code><br />
 <code>#include &lt;unistd.h&gt;</code><br />
 </div>
 <p><a href="../../d2/d0e/agent_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/da6/structyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03_1_1DescribeOptions.html">yaze::cli::anonymous_namespace{agent.cc}::DescribeOptions</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:dc/d46/namespaceyaze" id="r_dc/d46/namespaceyaze"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d46/namespaceyaze.html">yaze</a></td></tr>
@@ -128,21 +150,58 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:aa9c3df97146a4533c1c78f5ac7c9e36e" id="r_aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d0e/agent_8cc.html#aa9c3df97146a4533c1c78f5ac7c9e36e">ABSL_DECLARE_FLAG</a> (std::string, rom)</td></tr>
+<tr class="separator:aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a023bcafac6e3159bcd1f20fc4d9a5923" id="r_a023bcafac6e3159bcd1f20fc4d9a5923"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d9/da6/structyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03_1_1DescribeOptions.html">DescribeOptions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a023bcafac6e3159bcd1f20fc4d9a5923">yaze::cli::anonymous_namespace{agent.cc}::ParseDescribeArgs</a> (const std::vector&lt; std::string &gt; &amp;args)</td></tr>
+<tr class="separator:a023bcafac6e3159bcd1f20fc4d9a5923"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae5fd189a8b8dbdae56ba73cc0a88d22f" id="r_ae5fd189a8b8dbdae56ba73cc0a88d22f"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#ae5fd189a8b8dbdae56ba73cc0a88d22f">yaze::cli::anonymous_namespace{agent.cc}::HandleRunCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
 <tr class="separator:ae5fd189a8b8dbdae56ba73cc0a88d22f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5310facf8ae56ab064d2e872d1a38eb8" id="r_a5310facf8ae56ab064d2e872d1a38eb8"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a5310facf8ae56ab064d2e872d1a38eb8">yaze::cli::anonymous_namespace{agent.cc}::HandlePlanCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
 <tr class="separator:a5310facf8ae56ab064d2e872d1a38eb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0a149e7b6215c1ee352e889b893f8317" id="r_a0a149e7b6215c1ee352e889b893f8317"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a0a149e7b6215c1ee352e889b893f8317">yaze::cli::anonymous_namespace{agent.cc}::HandleDiffCommand</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
-<tr class="separator:a0a149e7b6215c1ee352e889b893f8317"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a087375fb87d54944f850f6a1acbdfa2d" id="r_a087375fb87d54944f850f6a1acbdfa2d"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a087375fb87d54944f850f6a1acbdfa2d">yaze::cli::anonymous_namespace{agent.cc}::HandleDiffCommand</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom, const std::vector&lt; std::string &gt; &amp;args)</td></tr>
+<tr class="separator:a087375fb87d54944f850f6a1acbdfa2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80f496407dfa389e7715ca9abc74a3fb" id="r_a80f496407dfa389e7715ca9abc74a3fb"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a80f496407dfa389e7715ca9abc74a3fb">yaze::cli::anonymous_namespace{agent.cc}::HandleTestCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
 <tr class="separator:a80f496407dfa389e7715ca9abc74a3fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f190809c56bc67ef2e8457b669354fa" id="r_a0f190809c56bc67ef2e8457b669354fa"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a0f190809c56bc67ef2e8457b669354fa">yaze::cli::anonymous_namespace{agent.cc}::HandleLearnCommand</a> ()</td></tr>
 <tr class="separator:a0f190809c56bc67ef2e8457b669354fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa1f4369d91926c9c06ed2a87a5d5cba9" id="r_aa1f4369d91926c9c06ed2a87a5d5cba9"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#aa1f4369d91926c9c06ed2a87a5d5cba9">yaze::cli::anonymous_namespace{agent.cc}::HandleListCommand</a> ()</td></tr>
+<tr class="separator:aa1f4369d91926c9c06ed2a87a5d5cba9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4e9398d7a9a32e999b5213669ca55a16" id="r_a4e9398d7a9a32e999b5213669ca55a16"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a4e9398d7a9a32e999b5213669ca55a16">yaze::cli::anonymous_namespace{agent.cc}::HandleCommitCommand</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
 <tr class="separator:a4e9398d7a9a32e999b5213669ca55a16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a879ea3e55eff1b324655827b5214d0e2" id="r_a879ea3e55eff1b324655827b5214d0e2"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a879ea3e55eff1b324655827b5214d0e2">yaze::cli::anonymous_namespace{agent.cc}::HandleRevertCommand</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
 <tr class="separator:a879ea3e55eff1b324655827b5214d0e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a297b6edee3906b2f3f8fc73164a837dd" id="r_a297b6edee3906b2f3f8fc73164a837dd"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a297b6edee3906b2f3f8fc73164a837dd">yaze::cli::anonymous_namespace{agent.cc}::HandleDescribeCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
+<tr class="separator:a297b6edee3906b2f3f8fc73164a837dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="aa9c3df97146a4533c1c78f5ac7c9e36e" name="aa9c3df97146a4533c1c78f5ac7c9e36e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9c3df97146a4533c1c78f5ac7c9e36e">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_DECLARE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">rom&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

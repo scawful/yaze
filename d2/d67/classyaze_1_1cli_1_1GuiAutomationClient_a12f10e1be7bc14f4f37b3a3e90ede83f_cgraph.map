@@ -1,0 +1,5 @@
+<map id="yaze::cli::GuiAutomationClient::Connect" name="yaze::cli::GuiAutomationClient::Connect">
+<area shape="rect" id="Node000001" title="Connect to the test harness server." alt="" coords="5,5,164,46"/>
+<area shape="rect" id="Node000002" href="$d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a1f289db5b295a546a4e944caf88e9fea" title="Check if the server is reachable and responsive." alt="" coords="212,5,370,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,23,196,23,196,28,164,28"/>
+</map>

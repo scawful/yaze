@@ -26,5 +26,6 @@ var searchData=
   ['atlasrenderer_23',['AtlasRenderer',['../d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html',1,'yaze::gfx']]],
   ['atlasstats_24',['AtlasStats',['../d2/dea/structyaze_1_1gfx_1_1AtlasStats.html',1,'yaze::gfx']]],
   ['audioram_25',['AudioRam',['../db/dc9/classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu']]],
-  ['audioramimpl_26',['AudioRamImpl',['../d5/da7/classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]]
+  ['audioramimpl_26',['AudioRamImpl',['../d5/da7/classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]],
+  ['automationresult_27',['AutomationResult',['../d4/daf/structyaze_1_1cli_1_1AutomationResult.html',1,'yaze::cli']]]
 ];

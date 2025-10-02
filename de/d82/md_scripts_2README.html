@@ -101,19 +101,19 @@ $(document).ready(function(){initNavTree('de/d82/md_scripts_2README.html','../..
   <div class="headertitle"><div class="title">yaze Build Scripts</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1189"></a> This directory contains build and setup scripts for YAZE development on different platforms.</p>
-<h1><a class="anchor" id="autotoc_md1190"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1949"></a> This directory contains build and setup scripts for YAZE development on different platforms.</p>
+<h1><a class="anchor" id="autotoc_md1950"></a>
 Windows Scripts</h1>
-<h2><a class="anchor" id="autotoc_md1191"></a>
+<h2><a class="anchor" id="autotoc_md1951"></a>
 vcpkg Setup (Optional)</h2>
 <ul>
 <li>**<code>setup-vcpkg-windows.ps1</code>** - Setup vcpkg for SDL2 dependency (PowerShell)</li>
 <li>**<code>setup-vcpkg-windows.bat</code>** - Setup vcpkg for SDL2 dependency (Batch)</li>
 </ul>
 <p><b>Note</b>: vcpkg is optional. YAZE uses bundled dependencies by default.</p>
-<h1><a class="anchor" id="autotoc_md1192"></a>
+<h1><a class="anchor" id="autotoc_md1952"></a>
 Windows Build Workflow</h1>
-<h2><a class="anchor" id="autotoc_md1193"></a>
+<h2><a class="anchor" id="autotoc_md1953"></a>
 Recommended: Visual Studio CMake Mode</h2>
 <p><b>YAZE uses Visual Studio's native CMake support - no project generation needed.</b></p>
 <ol type="1">
@@ -124,7 +124,7 @@ Recommended: Visual Studio CMake Mode</h2>
 <li><b>Select configuration</b> (Debug/Release) from toolbar</li>
 <li><b>Press F5</b> to build and run</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1194"></a>
+<h2><a class="anchor" id="autotoc_md1954"></a>
 Command Line Build</h2>
 <div class="fragment"><div class="line"># Standard CMake workflow</div>
 <div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
@@ -132,16 +132,16 @@ Command Line Build</h2>
 <div class="line"> </div>
 <div class="line"># Run the application</div>
 <div class="line">.\build\bin\Debug\yaze.exe</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1195"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1955"></a>
 Compiler Notes</h2>
 <p>The CMake configuration is designed to work with <b>MSVC</b> (Visual Studio's compiler). The build system includes automatic workarounds for C++23 compatibility:</p><ul>
 <li>Abseil int128 is automatically excluded on Windows</li>
 <li>C++23 deprecation warnings are properly silenced</li>
 <li>Platform-specific definitions are handled automatically</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1196"></a>
+<h1><a class="anchor" id="autotoc_md1956"></a>
 Quick Start (Windows)</h1>
-<h2><a class="anchor" id="autotoc_md1197"></a>
+<h2><a class="anchor" id="autotoc_md1957"></a>
 Option 1: Visual Studio (Recommended)</h2>
 <ol type="1">
 <li>Open Visual Studio 2022</li>
@@ -150,20 +150,20 @@ Option 1: Visual Studio (Recommended)</h2>
 <li>Select configuration (Debug/Release)</li>
 <li>Press F5 to build and run</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1198"></a>
+<h2><a class="anchor" id="autotoc_md1958"></a>
 Option 2: Command Line</h2>
 <div class="fragment"><div class="line"># Standard CMake build</div>
 <div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
 <div class="line">cmake --build build --config Debug</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1199"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1959"></a>
 Option 3: With vcpkg (Optional)</h2>
 <div class="fragment"><div class="line"># Setup vcpkg for SDL2</div>
 <div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
 <div class="line"> </div>
 <div class="line"># Then build normally in Visual Studio or command line</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1200"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1960"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md1201"></a>
+<h2><a class="anchor" id="autotoc_md1961"></a>
 Common Issues</h2>
 <ol type="1">
 <li><b>PowerShell Execution Policy</b> <div class="fragment"><div class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</div>
@@ -189,14 +189,14 @@ Common Issues</h2>
 <li><b>Missing Git Submodules</b> <div class="fragment"><div class="line">git submodule update --init --recursive</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1202"></a>
+<h2><a class="anchor" id="autotoc_md1962"></a>
 Getting Help</h2>
 <ol type="1">
 <li>Check the <a class="el" href="../../d9/d41/md_docs_202-build-instructions.html">Build Instructions</a></li>
 <li>Review CMake output for specific error messages</li>
 <li>Ensure all prerequisites are installed (Visual Studio 2022 with C++ workload)</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1203"></a>
+<h1><a class="anchor" id="autotoc_md1963"></a>
 Other Scripts</h1>
 <ul>
 <li>**<code>create_release.sh</code>** - Create GitHub releases (Linux/macOS)</li>

@@ -1,10 +1,13 @@
 <map id="yaze::gfx::ScopedTimer::ScopedTimer" name="yaze::gfx::ScopedTimer::ScopedTimer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,26,159,67"/>
-<area shape="rect" id="Node000002" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="445,5,662,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,23,206,12,321,4,429,6,429,11,321,9,207,17,152,28"/>
-<area shape="rect" id="Node000003" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#acd3939c958a489fce176f44acf79d7ea" title="Check if performance monitoring is enabled." alt="" coords="207,26,397,67"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,44,191,44,191,49,159,49"/>
-<area shape="rect" id="Node000004" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a171cf20283195c9fb8da3abd8db09311" title="Start timing an operation." alt="" coords="207,91,397,132"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="153,64,217,84,216,89,152,70"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="397,33,429,29,430,35,398,38"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,62,159,103"/>
+<area shape="rect" id="Node000002" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="445,36,662,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,59,155,34,206,14,244,7,283,4,361,6,434,16,494,29,493,34,433,21,361,11,283,9,245,12,207,20,157,39,114,64"/>
+<area shape="rect" id="Node000003" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#acd3939c958a489fce176f44acf79d7ea" title="Check if performance monitoring is enabled." alt="" coords="207,29,397,69"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,68,191,63,191,68,160,73"/>
+<area shape="rect" id="Node000004" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ac414eb6afa646a57ce4de8379f6626dd" title="Check if the profiler is in a valid state (not shutting down) This prevents crashes during static des..." alt="" coords="207,94,397,135"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="160,91,191,96,191,101,159,96"/>
+<area shape="rect" id="Node000005" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a171cf20283195c9fb8da3abd8db09311" title="Start timing an operation." alt="" coords="207,159,397,200"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="122,101,208,144,225,151,223,156,206,149,119,106"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="397,46,429,46,429,52,397,52"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="382,91,486,64,487,69,384,96"/>
 </map>

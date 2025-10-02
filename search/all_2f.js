@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['📈_20strong_20performance_20impact_20analysis_20strong_0',['📈 &lt;strong&gt;Performance Impact Analysis&lt;/strong&gt;',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html#autotoc_md218',1,'']]]
+  ['🎓_20key_20design_20decisions_0',['🎓 Key Design Decisions',['../d9/d74/md_docs_2z3ed_2SESSION__SUMMARY__OCT2.html#autotoc_md1889',1,'']]],
+  ['🎓_20lessons_20learned_1',['🎓 Lessons Learned',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md600',1,'']]]
 ];

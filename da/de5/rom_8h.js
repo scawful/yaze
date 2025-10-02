@@ -1,5 +1,6 @@
 var rom_8h =
 [
+    [ "yaze::RomLoadOptions", "db/d22/structyaze_1_1RomLoadOptions.html", "db/d22/structyaze_1_1RomLoadOptions" ],
     [ "yaze::Rom", "d6/d30/classyaze_1_1Rom.html", "d6/d30/classyaze_1_1Rom" ],
     [ "yaze::Rom::SaveSettings", "d9/d36/structyaze_1_1Rom_1_1SaveSettings.html", "d9/d36/structyaze_1_1Rom_1_1SaveSettings" ],
     [ "yaze::Rom::WriteAction", "d6/dea/structyaze_1_1Rom_1_1WriteAction.html", "d6/dea/structyaze_1_1Rom_1_1WriteAction" ],

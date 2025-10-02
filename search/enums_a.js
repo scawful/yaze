@@ -5,5 +5,6 @@ var searchData=
   ['placementtype_2',['PlacementType',['../db/d00/classyaze_1_1editor_1_1DungeonToolset.html#ac9170fbc1d88691828b594c519f8ad40',1,'yaze::editor::DungeonToolset']]],
   ['platform_3',['Platform',['../db/d33/namespaceyaze_1_1core.html#abd79a1a62112b429e30153eb19ffa648',1,'yaze::core']]],
   ['prefix_4',['Prefix',['../da/df6/structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589d',1,'yaze::util::HexStringParams']]],
-  ['projectformat_5',['ProjectFormat',['../db/d33/namespaceyaze_1_1core.html#a1142e14777c50b720b0e9e102bff707e',1,'yaze::core']]]
+  ['projectformat_5',['ProjectFormat',['../db/d33/namespaceyaze_1_1core.html#a1142e14777c50b720b0e9e102bff707e',1,'yaze::core']]],
+  ['proposalstatus_6',['ProposalStatus',['../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ff',1,'yaze::cli::ProposalRegistry']]]
 ];

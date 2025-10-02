@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🍎_20macos_20arm64_20presets_20recommended_20for_20apple_20silicon_0',['🍎 macOS ARM64 Presets (Recommended for Apple Silicon)',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md365',1,'']]]
+  ['⭐_20updated_0',['E6-z3ed-implementation-plan.md ⭐ UPDATED',['../d0/d46/md_docs_2z3ed_2archive_2DOCUMENTATION__CONSOLIDATION__OCT2.html#autotoc_md1215',1,'']]]
 ];

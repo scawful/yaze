@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['🔄_0',['Phase 2: Integrate Components 🔄',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md785',1,'']]],
-  ['🔄_20in_20progress_1',['🔄 In Progress',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md781',1,'']]]
+  ['📖_20documentation_0',['📖 Documentation',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md619',1,'']]]
 ];

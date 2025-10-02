@@ -1,5 +1,8 @@
 var annotated_dup =
 [
+    [ "anonymous_namespace{cli_main.cc}", "da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html", [
+      [ "ParsedGlobals", "da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals.html", "da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals" ]
+    ] ],
     [ "yaze", "dc/d46/namespaceyaze.html", [
       [ "app", "d9/d75/namespaceyaze_1_1app.html", [
         [ "core", "d2/d4d/namespaceyaze_1_1app_1_1core.html", [
@@ -12,11 +15,15 @@ var annotated_dup =
         ] ]
       ] ],
       [ "cli", "dd/d63/namespaceyaze_1_1cli.html", [
+        [ "anonymous_namespace{agent.cc}", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html", [
+          [ "DescribeOptions", "d9/da6/structyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03_1_1DescribeOptions.html", "d9/da6/structyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03_1_1DescribeOptions" ]
+        ] ],
         [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
         [ "AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", "d2/d2a/classyaze_1_1cli_1_1AIService" ],
         [ "ApplyPatch", "dd/d64/classyaze_1_1cli_1_1ApplyPatch.html", "dd/d64/classyaze_1_1cli_1_1ApplyPatch" ],
         [ "AsarPatch", "d7/d3f/classyaze_1_1cli_1_1AsarPatch.html", "d7/d3f/classyaze_1_1cli_1_1AsarPatch" ],
         [ "AsarPatchComponent", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent.html", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent" ],
+        [ "AutomationResult", "d4/daf/structyaze_1_1cli_1_1AutomationResult.html", "d4/daf/structyaze_1_1cli_1_1AutomationResult" ],
         [ "Backup", "d5/d4f/classyaze_1_1cli_1_1Backup.html", "d5/d4f/classyaze_1_1cli_1_1Backup" ],
         [ "CommandHandler", "dd/d80/classyaze_1_1cli_1_1CommandHandler.html", "dd/d80/classyaze_1_1cli_1_1CommandHandler" ],
         [ "CommandInfo", "dd/d22/structyaze_1_1cli_1_1CommandInfo.html", "dd/d22/structyaze_1_1cli_1_1CommandInfo" ],
@@ -32,6 +39,7 @@ var annotated_dup =
         [ "GeminiAIService", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html", "db/d2d/classyaze_1_1cli_1_1GeminiAIService" ],
         [ "GfxExport", "dd/d8b/classyaze_1_1cli_1_1GfxExport.html", "dd/d8b/classyaze_1_1cli_1_1GfxExport" ],
         [ "GfxImport", "d2/d55/classyaze_1_1cli_1_1GfxImport.html", "d2/d55/classyaze_1_1cli_1_1GfxImport" ],
+        [ "GuiAutomationClient", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient" ],
         [ "MockAIService", "df/d18/classyaze_1_1cli_1_1MockAIService.html", "df/d18/classyaze_1_1cli_1_1MockAIService" ],
         [ "ModernCLI", "df/db9/classyaze_1_1cli_1_1ModernCLI.html", "df/db9/classyaze_1_1cli_1_1ModernCLI" ],
         [ "Open", "de/d8f/classyaze_1_1cli_1_1Open.html", "de/d8f/classyaze_1_1cli_1_1Open" ],
@@ -44,12 +52,22 @@ var annotated_dup =
         [ "PcToSnesCommand", "dd/d06/classyaze_1_1cli_1_1PcToSnesCommand.html", "dd/d06/classyaze_1_1cli_1_1PcToSnesCommand" ],
         [ "ProjectBuild", "d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html", "d4/d4b/classyaze_1_1cli_1_1ProjectBuild" ],
         [ "ProjectInit", "d9/d3b/classyaze_1_1cli_1_1ProjectInit.html", "d9/d3b/classyaze_1_1cli_1_1ProjectInit" ],
+        [ "ProposalRegistry", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry" ],
         [ "ReadFromRom", "d1/d72/classyaze_1_1cli_1_1ReadFromRom.html", "d1/d72/classyaze_1_1cli_1_1ReadFromRom" ],
+        [ "ResourceAction", "dc/d64/structyaze_1_1cli_1_1ResourceAction.html", "dc/d64/structyaze_1_1cli_1_1ResourceAction" ],
+        [ "ResourceArgument", "da/dc6/structyaze_1_1cli_1_1ResourceArgument.html", "da/dc6/structyaze_1_1cli_1_1ResourceArgument" ],
+        [ "ResourceCatalog", "d4/d02/classyaze_1_1cli_1_1ResourceCatalog.html", "d4/d02/classyaze_1_1cli_1_1ResourceCatalog" ],
+        [ "ResourceSchema", "d8/d29/structyaze_1_1cli_1_1ResourceSchema.html", "d8/d29/structyaze_1_1cli_1_1ResourceSchema" ],
         [ "RomDiff", "d1/d9c/classyaze_1_1cli_1_1RomDiff.html", "d1/d9c/classyaze_1_1cli_1_1RomDiff" ],
         [ "RomGenerateGolden", "d2/d4a/classyaze_1_1cli_1_1RomGenerateGolden.html", "d2/d4a/classyaze_1_1cli_1_1RomGenerateGolden" ],
+        [ "RomInfo", "d2/de6/classyaze_1_1cli_1_1RomInfo.html", "d2/de6/classyaze_1_1cli_1_1RomInfo" ],
+        [ "RomSandboxManager", "d5/dbc/classyaze_1_1cli_1_1RomSandboxManager.html", "d5/dbc/classyaze_1_1cli_1_1RomSandboxManager" ],
         [ "RomValidate", "d6/d8e/classyaze_1_1cli_1_1RomValidate.html", "d6/d8e/classyaze_1_1cli_1_1RomValidate" ],
         [ "SnesToPcCommand", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand.html", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand" ],
         [ "SpriteCreate", "da/d30/classyaze_1_1cli_1_1SpriteCreate.html", "da/d30/classyaze_1_1cli_1_1SpriteCreate" ],
+        [ "TestStep", "d6/d4b/structyaze_1_1cli_1_1TestStep.html", "d6/d4b/structyaze_1_1cli_1_1TestStep" ],
+        [ "TestWorkflow", "de/d85/structyaze_1_1cli_1_1TestWorkflow.html", "de/d85/structyaze_1_1cli_1_1TestWorkflow" ],
+        [ "TestWorkflowGenerator", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator.html", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator" ],
         [ "Tile16Transfer", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer" ],
         [ "TuiComponent", "dc/d6b/classyaze_1_1cli_1_1TuiComponent.html", "dc/d6b/classyaze_1_1cli_1_1TuiComponent" ]
       ] ],
@@ -124,6 +142,7 @@ var annotated_dup =
         [ "ParsedElement", "da/d5e/structyaze_1_1editor_1_1ParsedElement.html", "da/d5e/structyaze_1_1editor_1_1ParsedElement" ],
         [ "PopupManager", "d3/d8d/classyaze_1_1editor_1_1PopupManager.html", "d3/d8d/classyaze_1_1editor_1_1PopupManager" ],
         [ "PopupParams", "df/dc2/structyaze_1_1editor_1_1PopupParams.html", "df/dc2/structyaze_1_1editor_1_1PopupParams" ],
+        [ "ProposalDrawer", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer" ],
         [ "ScreenEditor", "db/dcc/classyaze_1_1editor_1_1ScreenEditor.html", "db/dcc/classyaze_1_1editor_1_1ScreenEditor" ],
         [ "SettingsEditor", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html", "dd/d00/classyaze_1_1editor_1_1SettingsEditor" ],
         [ "Shortcut", "d5/d87/structyaze_1_1editor_1_1Shortcut.html", "d5/d87/structyaze_1_1editor_1_1Shortcut" ],
@@ -460,6 +479,7 @@ var annotated_dup =
         [ "TitleScreen", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen" ]
       ] ],
       [ "Rom", "d6/d30/classyaze_1_1Rom.html", "d6/d30/classyaze_1_1Rom" ],
+      [ "RomLoadOptions", "db/d22/structyaze_1_1RomLoadOptions.html", "db/d22/structyaze_1_1RomLoadOptions" ],
       [ "Transaction", "df/d26/classyaze_1_1Transaction.html", "df/d26/classyaze_1_1Transaction" ]
     ] ],
     [ "AppDelegate", "d3/d3e/classAppDelegate.html", null ],

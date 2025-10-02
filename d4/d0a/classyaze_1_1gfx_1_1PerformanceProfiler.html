@@ -170,6 +170,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:acd3939c958a489fce176f44acf79d7ea" id="r_acd3939c958a489fce176f44acf79d7ea"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#acd3939c958a489fce176f44acf79d7ea">IsEnabled</a> ()</td></tr>
 <tr class="memdesc:acd3939c958a489fce176f44acf79d7ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if performance monitoring is enabled.  <br /></td></tr>
 <tr class="separator:acd3939c958a489fce176f44acf79d7ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac414eb6afa646a57ce4de8379f6626dd" id="r_ac414eb6afa646a57ce4de8379f6626dd"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ac414eb6afa646a57ce4de8379f6626dd">IsValid</a> ()</td></tr>
+<tr class="memdesc:ac414eb6afa646a57ce4de8379f6626dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if the profiler is in a valid state (not shutting down) This prevents crashes during static destruction order issues.  <br /></td></tr>
+<tr class="separator:ac414eb6afa646a57ce4de8379f6626dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-types" name="pri-types"></a>
 Private Types</h2></td></tr>
@@ -201,6 +204,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a8322a60bf0a8800b147f083e25988b51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a22349c4394996d54100330bcb812b708" id="r_a22349c4394996d54100330bcb812b708"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a22349c4394996d54100330bcb812b708">enabled_</a> = true</td></tr>
 <tr class="separator:a22349c4394996d54100330bcb812b708"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f1f57e7179a797616332079ea398c1f" id="r_a0f1f57e7179a797616332079ea398c1f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a0f1f57e7179a797616332079ea398c1f">is_shutting_down_</a> = false</td></tr>
+<tr class="separator:a0f1f57e7179a797616332079ea398c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Unified performance profiler for all YAZE operations. </p>
@@ -250,7 +255,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00155">155</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00163">163</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
 
 </div>
 </div>
@@ -274,7 +279,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00156">156</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00164">164</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
 
 </div>
 </div>
@@ -304,7 +309,17 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">19</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00158">active_timers_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00161">operation_counts_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00159">operation_times_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00160">operation_totals_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00166">active_timers_</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00014">Get()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00172">is_shutting_down_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00169">operation_counts_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00167">operation_times_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00168">operation_totals_</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_a4eb6e3203ddb5bfbf232bc9761a03450_cgraph.png" border="0" usemap="#ad4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_a4eb6e3203ddb5bfbf232bc9761a03450_cgraph" alt=""/></div>
+<map name="ad4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_a4eb6e3203ddb5bfbf232bc9761a03450_cgraph" id="ad4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_a4eb6e3203ddb5bfbf232bc9761a03450_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,196,46"/>
+<area shape="rect" href="../../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="244,13,461,39"/>
+<area shape="poly" title=" " alt="" coords="196,23,228,23,228,28,196,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -334,7 +349,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00014">14</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00350">yaze::gfx::PerformanceDashboard::CollectMetrics()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00061">IsEnabled()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01701">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d1/de8/canvas__modals_8cc_source.html#l00133">yaze::gui::canvas::CanvasModals::RenderAdvancedPropertiesModal()</a>, <a class="el" href="../../df/db2/canvas__context__menu_8cc_source.html#l00345">yaze::gui::canvas::CanvasContextMenu::RenderPerformanceMenu()</a>, <a class="el" href="../../d1/de8/canvas__modals_8cc_source.html#l00477">yaze::gui::canvas::CanvasModals::RenderPerformanceModal()</a>, <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00310">yaze::gfx::PerformanceDashboard::RenderRecommendations()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00265">yaze::gfx::ScopedTimer::ScopedTimer()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00054">SetEnabled()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00018">yaze::gfx::GraphicsOptimizationBenchmarks::SetUp()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00025">yaze::gfx::GraphicsOptimizationBenchmarks::TearDown()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00310">yaze::gfx::TEST_F()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00373">yaze::gfx::TEST_F()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00265">yaze::gfx::TEST_F()</a>, <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00427">yaze::gfx::PerformanceDashboard::UpdateOptimizationStatus()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00272">yaze::gfx::ScopedTimer::~ScopedTimer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00350">yaze::gfx::PerformanceDashboard::CollectMetrics()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00061">IsEnabled()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00069">IsValid()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01714">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">PerformanceProfiler()</a>, <a class="el" href="../../d1/de8/canvas__modals_8cc_source.html#l00133">yaze::gui::canvas::CanvasModals::RenderAdvancedPropertiesModal()</a>, <a class="el" href="../../df/db2/canvas__context__menu_8cc_source.html#l00345">yaze::gui::canvas::CanvasContextMenu::RenderPerformanceMenu()</a>, <a class="el" href="../../d1/de8/canvas__modals_8cc_source.html#l00477">yaze::gui::canvas::CanvasModals::RenderPerformanceModal()</a>, <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00310">yaze::gfx::PerformanceDashboard::RenderRecommendations()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00273">yaze::gfx::ScopedTimer::ScopedTimer()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00054">SetEnabled()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00018">yaze::gfx::GraphicsOptimizationBenchmarks::SetUp()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00025">yaze::gfx::GraphicsOptimizationBenchmarks::TearDown()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00310">yaze::gfx::TEST_F()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00373">yaze::gfx::TEST_F()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00265">yaze::gfx::TEST_F()</a>, <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00427">yaze::gfx::PerformanceDashboard::UpdateOptimizationStatus()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00280">yaze::gfx::ScopedTimer::~ScopedTimer()</a>.</p>
 
 </div>
 </div>
@@ -367,7 +382,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00054">54</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00163">enabled_</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00014">Get()</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00171">enabled_</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00014">Get()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00310">yaze::gfx::PerformanceDashboard::RenderRecommendations()</a>.</p>
 <div class="dynheader">
@@ -410,15 +425,58 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00061">61</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00163">enabled_</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00014">Get()</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00171">enabled_</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00014">Get()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00310">yaze::gfx::PerformanceDashboard::RenderRecommendations()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00265">yaze::gfx::ScopedTimer::ScopedTimer()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00272">yaze::gfx::ScopedTimer::~ScopedTimer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00310">yaze::gfx::PerformanceDashboard::RenderRecommendations()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00273">yaze::gfx::ScopedTimer::ScopedTimer()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00280">yaze::gfx::ScopedTimer::~ScopedTimer()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_acd3939c958a489fce176f44acf79d7ea_cgraph.png" border="0" usemap="#ad4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_acd3939c958a489fce176f44acf79d7ea_cgraph" alt=""/></div>
 <map name="ad4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_acd3939c958a489fce176f44acf79d7ea_cgraph" id="ad4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_acd3939c958a489fce176f44acf79d7ea_cgraph">
 <area shape="rect" title="Check if performance monitoring is enabled." alt="" coords="5,5,196,46"/>
+<area shape="rect" href="../../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="244,13,461,39"/>
+<area shape="poly" title=" " alt="" coords="196,23,228,23,228,28,196,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ac414eb6afa646a57ce4de8379f6626dd" name="ac414eb6afa646a57ce4de8379f6626dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac414eb6afa646a57ce4de8379f6626dd">&#9670;&#160;</a></span>IsValid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static bool yaze::gfx::PerformanceProfiler::IsValid </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Check if the profiler is in a valid state (not shutting down) This prevents crashes during static destruction order issues. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00069">69</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00014">Get()</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00172">is_shutting_down_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00273">yaze::gfx::ScopedTimer::ScopedTimer()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00280">yaze::gfx::ScopedTimer::~ScopedTimer()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_ac414eb6afa646a57ce4de8379f6626dd_cgraph.png" border="0" usemap="#ad4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_ac414eb6afa646a57ce4de8379f6626dd_cgraph" alt=""/></div>
+<map name="ad4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_ac414eb6afa646a57ce4de8379f6626dd_cgraph" id="ad4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler_ac414eb6afa646a57ce4de8379f6626dd_cgraph">
+<area shape="rect" title="Check if the profiler is in a valid state (not shutting down) This prevents crashes during static des..." alt="" coords="5,5,196,46"/>
 <area shape="rect" href="../../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="244,13,461,39"/>
 <area shape="poly" title=" " alt="" coords="196,23,228,23,228,28,196,28"/>
 </map>
@@ -451,11 +509,11 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section note"><dt>Note</dt><dd>Multiple operations can be timed simultaneously </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00028">28</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00033">33</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00158">active_timers_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00163">enabled_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00166">active_timers_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00171">enabled_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00172">is_shutting_down_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00265">yaze::gfx::ScopedTimer::ScopedTimer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00273">yaze::gfx::ScopedTimer::ScopedTimer()</a>.</p>
 
 </div>
 </div>
@@ -484,11 +542,11 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section note"><dt>Note</dt><dd>Must match a previously started timer </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00034">34</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00039">39</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00158">active_timers_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00163">enabled_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00161">operation_counts_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00159">operation_times_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00160">operation_totals_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00166">active_timers_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00171">enabled_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00172">is_shutting_down_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00169">operation_counts_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00167">operation_times_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00168">operation_totals_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00272">yaze::gfx::ScopedTimer::~ScopedTimer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00280">yaze::gfx::ScopedTimer::~ScopedTimer()</a>.</p>
 
 </div>
 </div>
@@ -508,11 +566,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00058">58</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00066">66</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00087">yaze::gfx::PerformanceProfiler::TimingStats::avg_time_us</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00252">CalculateMedian()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00086">yaze::gfx::PerformanceProfiler::TimingStats::max_time_us</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00088">yaze::gfx::PerformanceProfiler::TimingStats::median_time_us</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00085">yaze::gfx::PerformanceProfiler::TimingStats::min_time_us</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00159">operation_times_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00160">operation_totals_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00090">yaze::gfx::PerformanceProfiler::TimingStats::sample_count</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00089">yaze::gfx::PerformanceProfiler::TimingStats::total_time_ms</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00095">yaze::gfx::PerformanceProfiler::TimingStats::avg_time_us</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00260">CalculateMedian()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00094">yaze::gfx::PerformanceProfiler::TimingStats::max_time_us</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00096">yaze::gfx::PerformanceProfiler::TimingStats::median_time_us</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00093">yaze::gfx::PerformanceProfiler::TimingStats::min_time_us</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00167">operation_times_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00168">operation_totals_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00098">yaze::gfx::PerformanceProfiler::TimingStats::sample_count</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00097">yaze::gfx::PerformanceProfiler::TimingStats::total_time_ms</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00090">GenerateReport()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00098">GenerateReport()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -551,9 +609,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Formatted performance report string </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00090">90</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00098">98</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00163">enabled_</a>, <a class="el" href="../../d9/dc6/memory__pool_8cc_source.html#l00012">yaze::gfx::MemoryPool::Get()</a>, <a class="el" href="../../d9/dc6/memory__pool_8cc_source.html#l00091">yaze::gfx::MemoryPool::GetMemoryStats()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00058">GetStats()</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00159">operation_times_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00171">enabled_</a>, <a class="el" href="../../d9/dc6/memory__pool_8cc_source.html#l00012">yaze::gfx::MemoryPool::Get()</a>, <a class="el" href="../../d9/dc6/memory__pool_8cc_source.html#l00091">yaze::gfx::MemoryPool::GetMemoryStats()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00066">GetStats()</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00167">operation_times_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00310">yaze::gfx::PerformanceDashboard::RenderRecommendations()</a>.</p>
 <div class="dynheader">
@@ -592,9 +650,9 @@ Here is the call graph for this function:</div>
 
 <p>Clear all timing data. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00174">174</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00182">182</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00158">active_timers_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00161">operation_counts_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00159">operation_times_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00160">operation_totals_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00166">active_timers_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00169">operation_counts_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00167">operation_times_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00168">operation_totals_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d4/d9f/performance__dashboard_8cc_source.html#l00310">yaze::gfx::PerformanceDashboard::RenderRecommendations()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00018">yaze::gfx::GraphicsOptimizationBenchmarks::SetUp()</a>, and <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00025">yaze::gfx::GraphicsOptimizationBenchmarks::TearDown()</a>.</p>
 
@@ -624,9 +682,9 @@ Here is the call graph for this function:</div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00181">181</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00189">189</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00158">active_timers_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00161">operation_counts_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00159">operation_times_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00160">operation_totals_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00166">active_timers_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00169">operation_counts_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00167">operation_times_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00168">operation_totals_</a>.</p>
 
 </div>
 </div>
@@ -648,9 +706,9 @@ Here is the call graph for this function:</div>
 <p>Get list of all tracked operations. </p>
 <dl class="section return"><dt>Returns</dt><dd>Vector of operation names </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00188">188</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00196">196</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00159">operation_times_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00167">operation_times_</a>.</p>
 
 </div>
 </div>
@@ -679,9 +737,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>True if operation is being timed </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00197">197</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00205">205</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00158">active_timers_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00166">active_timers_</a>.</p>
 
 </div>
 </div>
@@ -710,9 +768,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Average time in milliseconds </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00201">201</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00209">209</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00161">operation_counts_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00160">operation_totals_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00169">operation_counts_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00168">operation_totals_</a>.</p>
 
 </div>
 </div>
@@ -741,9 +799,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Total time in milliseconds </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00213">213</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00221">221</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00160">operation_totals_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00168">operation_totals_</a>.</p>
 
 </div>
 </div>
@@ -772,9 +830,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Number of measurements </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00218">218</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00226">226</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00161">operation_counts_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00169">operation_counts_</a>.</p>
 
 </div>
 </div>
@@ -795,11 +853,11 @@ Here is the call graph for this function:</div>
 
 <p>Print a summary of all operations to console. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00223">223</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00231">231</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00161">operation_counts_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00159">operation_times_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00160">operation_totals_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00169">operation_counts_</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00167">operation_times_</a>, and <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00168">operation_totals_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01701">yaze::editor::EditorManager::LoadAssets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01714">yaze::editor::EditorManager::LoadAssets()</a>.</p>
 
 </div>
 </div>
@@ -836,9 +894,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Median value </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00252">252</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00260">260</a> of file <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html">performance_profiler.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00058">GetStats()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00066">GetStats()</a>.</p>
 
 </div>
 </div>
@@ -863,9 +921,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00158">158</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00166">166</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00174">Clear()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00181">ClearOperation()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00034">EndTimer()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00197">IsTiming()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">PerformanceProfiler()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00028">StartTimer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00182">Clear()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00189">ClearOperation()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00039">EndTimer()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00205">IsTiming()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">PerformanceProfiler()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00033">StartTimer()</a>.</p>
 
 </div>
 </div>
@@ -889,9 +947,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00159">159</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00167">167</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00174">Clear()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00181">ClearOperation()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00034">EndTimer()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00090">GenerateReport()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00188">GetOperationNames()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00058">GetStats()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">PerformanceProfiler()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00223">PrintSummary()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00182">Clear()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00189">ClearOperation()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00039">EndTimer()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00098">GenerateReport()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00196">GetOperationNames()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00066">GetStats()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">PerformanceProfiler()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00231">PrintSummary()</a>.</p>
 
 </div>
 </div>
@@ -915,9 +973,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00160">160</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00168">168</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00174">Clear()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00181">ClearOperation()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00034">EndTimer()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00201">GetAverageTime()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00058">GetStats()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00213">GetTotalTime()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">PerformanceProfiler()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00223">PrintSummary()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00182">Clear()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00189">ClearOperation()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00039">EndTimer()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00209">GetAverageTime()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00066">GetStats()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00221">GetTotalTime()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">PerformanceProfiler()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00231">PrintSummary()</a>.</p>
 
 </div>
 </div>
@@ -941,9 +999,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00161">161</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00169">169</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00174">Clear()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00181">ClearOperation()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00034">EndTimer()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00201">GetAverageTime()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00218">GetOperationCount()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">PerformanceProfiler()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00223">PrintSummary()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00182">Clear()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00189">ClearOperation()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00039">EndTimer()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00209">GetAverageTime()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00226">GetOperationCount()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">PerformanceProfiler()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00231">PrintSummary()</a>.</p>
 
 </div>
 </div>
@@ -967,9 +1025,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00163">163</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00171">171</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00034">EndTimer()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00090">GenerateReport()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00061">IsEnabled()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00054">SetEnabled()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00028">StartTimer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00039">EndTimer()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00098">GenerateReport()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00061">IsEnabled()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00054">SetEnabled()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00033">StartTimer()</a>.</p>
+
+</div>
+</div>
+<a id="a0f1f57e7179a797616332079ea398c1f" name="a0f1f57e7179a797616332079ea398c1f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f1f57e7179a797616332079ea398c1f">&#9670;&#160;</a></span>is_shutting_down_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gfx::PerformanceProfiler::is_shutting_down_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00172">172</a> of file <a class="el" href="../../dd/db2/performance__profiler_8h_source.html">performance_profiler.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00039">EndTimer()</a>, <a class="el" href="../../dd/db2/performance__profiler_8h_source.html#l00069">IsValid()</a>, <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00019">PerformanceProfiler()</a>, and <a class="el" href="../../d5/da6/performance__profiler_8cc_source.html#l00033">StartTimer()</a>.</p>
 
 </div>
 </div>

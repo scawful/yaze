@@ -1,10 +1,13 @@
 <map id="yaze::gfx::ScopedTimer::~ScopedTimer" name="yaze::gfx::ScopedTimer::~ScopedTimer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,159,103"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,159,133"/>
 <area shape="rect" id="Node000002" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a82266eed252e0c24c4b2adaa73775bba" title="End timing an operation." alt="" coords="207,5,397,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,60,206,48,208,53,160,66"/>
-<area shape="rect" id="Node000003" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="445,100,662,125"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,85,430,102,429,107,159,90"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,89,233,50,235,55,137,94"/>
+<area shape="rect" id="Node000003" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a62212835ba0bed1452ec453c7cbf11ca" title=" " alt="" coords="445,128,662,153"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="159,107,207,106,302,102,397,106,486,121,485,126,397,111,302,107,207,111,159,112"/>
 <area shape="rect" id="Node000004" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#acd3939c958a489fce176f44acf79d7ea" title="Check if performance monitoring is enabled." alt="" coords="207,120,397,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="160,100,208,113,206,118,159,106"/>
-<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="397,127,429,123,430,129,398,132"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="160,119,191,124,191,129,159,125"/>
+<area shape="rect" id="Node000005" href="$d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ac414eb6afa646a57ce4de8379f6626dd" title="Check if the profiler is in a valid state (not shutting down) This prevents crashes during static des..." alt="" coords="207,185,397,226"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="124,131,208,170,225,177,223,182,206,175,122,136"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="397,138,429,138,429,143,397,143"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="382,182,486,155,487,160,384,187"/>
 </map>

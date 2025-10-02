@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['build_20instructions_0',['Build Instructions',['../d9/d41/md_docs_202-build-instructions.html',1,'']]],
-  ['build_20presets_20guide_1',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]],
-  ['build_20scripts_2',['yaze Build Scripts',['../de/d82/md_scripts_2README.html',1,'']]]
+  ['3_3a_20imguitestengine_20integration_20complete_20✅_0',['IT-01 Phase 3: ImGuiTestEngine Integration - COMPLETE ✅',['../d7/dc6/md_docs_2z3ed_2archive_2IT-01-PHASE3-COMPLETE.html',1,'']]]
 ];

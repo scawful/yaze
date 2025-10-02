@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🎓_20lessons_20learned_0',['🎓 Lessons Learned',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md600',1,'']]]
+  ['🆕_0',['Phase 3: Full Integration ✅ (Oct 2) 🆕',['../d9/de0/md_docs_2z3ed_2archive_2STATE__SUMMARY__2025-10-02.html#autotoc_md1555',1,'']]]
 ];

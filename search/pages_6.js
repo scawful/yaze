@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['editor_0',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
-  ['editor_20design_20plan_1',['Dungeon Editor Design Plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'']]],
-  ['editor_20guide_2',['Dungeon Editor Guide',['../dd/d33/md_docs_2E2-dungeon-editor-guide.html',1,'']]],
-  ['editor_20palette_20system_3',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]]
+  ['build_20instructions_0',['Build Instructions',['../d9/d41/md_docs_202-build-instructions.html',1,'']]],
+  ['build_20presets_20guide_1',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]],
+  ['build_20scripts_2',['yaze Build Scripts',['../de/d82/md_scripts_2README.html',1,'']]]
 ];

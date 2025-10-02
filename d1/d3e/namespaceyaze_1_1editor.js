@@ -59,6 +59,7 @@ var namespaceyaze_1_1editor =
     [ "ParsedElement", "da/d5e/structyaze_1_1editor_1_1ParsedElement.html", "da/d5e/structyaze_1_1editor_1_1ParsedElement" ],
     [ "PopupManager", "d3/d8d/classyaze_1_1editor_1_1PopupManager.html", "d3/d8d/classyaze_1_1editor_1_1PopupManager" ],
     [ "PopupParams", "df/dc2/structyaze_1_1editor_1_1PopupParams.html", "df/dc2/structyaze_1_1editor_1_1PopupParams" ],
+    [ "ProposalDrawer", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer" ],
     [ "ScreenEditor", "db/dcc/classyaze_1_1editor_1_1ScreenEditor.html", "db/dcc/classyaze_1_1editor_1_1ScreenEditor" ],
     [ "SettingsEditor", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html", "dd/d00/classyaze_1_1editor_1_1SettingsEditor" ],
     [ "Shortcut", "d5/d87/structyaze_1_1editor_1_1Shortcut.html", "d5/d87/structyaze_1_1editor_1_1Shortcut" ],

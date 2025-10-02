@@ -117,6 +117,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a27044c21202e6f14553e7150de89eb53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a85c4731d61a6a26114953d1d63d569" id="r_a0a85c4731d61a6a26114953d1d63d569"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../dd/d80/classyaze_1_1cli_1_1CommandHandler.html">CommandHandler</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/db9/classyaze_1_1cli_1_1ModernCLI.html#a0a85c4731d61a6a26114953d1d63d569">GetCommandHandler</a> (const std::string &amp;name)</td></tr>
 <tr class="separator:a0a85c4731d61a6a26114953d1d63d569"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf3ee9771848185cc9abbb934ae10053" id="r_aaf3ee9771848185cc9abbb934ae10053"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/db9/classyaze_1_1cli_1_1ModernCLI.html#aaf3ee9771848185cc9abbb934ae10053">PrintTopLevelHelp</a> () const</td></tr>
+<tr class="separator:aaf3ee9771848185cc9abbb934ae10053"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -191,9 +193,9 @@ Private Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00018">18</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00019">19</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -240,11 +242,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00237">237</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00250">250</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/d43/modern__cli_8h_source.html#l00028">commands_</a>, and <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00204">ShowHelp()</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/d43/modern__cli_8h_source.html#l00029">commands_</a>, <a class="el" href="../../d8/d43/modern__cli_8h_source.html#l00019">yaze::cli::CommandInfo::handler</a>, and <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00216">ShowHelp()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00021">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00093">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -274,7 +276,40 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00264">264</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00293">293</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+
+</div>
+</div>
+<a id="aaf3ee9771848185cc9abbb934ae10053" name="aaf3ee9771848185cc9abbb934ae10053"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaf3ee9771848185cc9abbb934ae10053">&#9670;&#160;</a></span>PrintTopLevelHelp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::cli::ModernCLI::PrintTopLevelHelp </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00246">246</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00216">ShowHelp()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00093">main()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../df/db9/classyaze_1_1cli_1_1ModernCLI_aaf3ee9771848185cc9abbb934ae10053_cgraph.png" border="0" usemap="#adf/db9/classyaze_1_1cli_1_1ModernCLI_aaf3ee9771848185cc9abbb934ae10053_cgraph" alt=""/></div>
+<map name="adf/db9/classyaze_1_1cli_1_1ModernCLI_aaf3ee9771848185cc9abbb934ae10053_cgraph" id="adf/db9/classyaze_1_1cli_1_1ModernCLI_aaf3ee9771848185cc9abbb934ae10053_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,142,46"/>
+<area shape="rect" href="../../df/db9/classyaze_1_1cli_1_1ModernCLI.html#ad60ee322bbde31938708cb76f1c2cf06" title=" " alt="" coords="190,5,326,46"/>
+<area shape="poly" title=" " alt="" coords="142,23,174,23,174,28,142,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -301,11 +336,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">22</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">23</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/d43/modern__cli_8h_source.html#l00028">commands_</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00317">HandleAgentCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00281">HandleAsarPatchCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00286">HandleBpsPatchCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00366">HandleCommandPaletteCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00346">HandleDungeonExportCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00351">HandleDungeonListObjectsCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00296">HandleExtractSymbolsCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00356">HandleGfxExportCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00361">HandleGfxImportCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00396">HandleOverworldGetTileCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00401">HandleOverworldSetTileCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00371">HandlePaletteExportCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00381">HandlePaletteImportCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00322">HandleProjectBuildCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00327">HandleProjectInitCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00386">HandleRomDiffCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00332">HandleRomGenerateGoldenCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00291">HandleRomInfoCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00391">HandleRomValidateCommand()</a>, and <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00406">HandleSpriteCreateCommand()</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/d43/modern__cli_8h_source.html#l00029">commands_</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00346">HandleAgentCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00310">HandleAsarPatchCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00315">HandleBpsPatchCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00395">HandleCommandPaletteCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00375">HandleDungeonExportCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00380">HandleDungeonListObjectsCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00325">HandleExtractSymbolsCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00385">HandleGfxExportCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00390">HandleGfxImportCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00425">HandleOverworldGetTileCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00430">HandleOverworldSetTileCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00405">HandlePaletteCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00400">HandlePaletteExportCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00410">HandlePaletteImportCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00351">HandleProjectBuildCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00356">HandleProjectInitCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00415">HandleRomDiffCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00361">HandleRomGenerateGoldenCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00320">HandleRomInfoCommand()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00420">HandleRomValidateCommand()</a>, and <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00435">HandleSpriteCreateCommand()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00018">ModernCLI()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00019">ModernCLI()</a>.</p>
 
 </div>
 </div>
@@ -332,11 +367,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00204">204</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00216">216</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/d43/modern__cli_8h_source.html#l00028">commands_</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/d43/modern__cli_8h_source.html#l00029">commands_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00237">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00246">PrintTopLevelHelp()</a>, and <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00250">Run()</a>.</p>
 
 </div>
 </div>
@@ -364,11 +399,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00281">281</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00310">310</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d0/d67/patch_8cc_source.html#l00039">yaze::cli::AsarPatch::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -412,25 +447,26 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00286">286</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00315">315</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d0/d67/patch_8cc_source.html#l00016">yaze::cli::ApplyPatch::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../df/db9/classyaze_1_1cli_1_1ModernCLI_a5f7e4318495872ca7e4caeb76badc547_cgraph.png" border="0" usemap="#adf/db9/classyaze_1_1cli_1_1ModernCLI_a5f7e4318495872ca7e4caeb76badc547_cgraph" alt=""/></div>
 <map name="adf/db9/classyaze_1_1cli_1_1ModernCLI_a5f7e4318495872ca7e4caeb76badc547_cgraph" id="adf/db9/classyaze_1_1cli_1_1ModernCLI_a5f7e4318495872ca7e4caeb76badc547_cgraph">
-<area shape="rect" title=" " alt="" coords="5,47,190,88"/>
-<area shape="rect" href="../../dd/d64/classyaze_1_1cli_1_1ApplyPatch.html#a80e7bf5abc2bc47a79d095a75912b044" title=" " alt="" coords="238,55,405,80"/>
-<area shape="poly" title=" " alt="" coords="190,65,222,65,222,70,190,70"/>
+<area shape="rect" title=" " alt="" coords="5,71,190,112"/>
+<area shape="rect" href="../../dd/d64/classyaze_1_1cli_1_1ApplyPatch.html#a80e7bf5abc2bc47a79d095a75912b044" title=" " alt="" coords="238,79,405,104"/>
+<area shape="poly" title=" " alt="" coords="190,89,222,89,222,94,190,94"/>
 <area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#a02f0b319c52c7737a993173bb2a6a435" title=" " alt="" coords="454,5,619,31"/>
-<area shape="poly" title=" " alt="" coords="380,51,461,32,463,38,381,57"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="453,55,619,80"/>
-<area shape="poly" title=" " alt="" coords="405,65,437,65,437,70,405,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="482,104,591,130"/>
-<area shape="poly" title=" " alt="" coords="381,78,467,98,465,103,380,84"/>
+<area shape="poly" title=" " alt="" coords="355,76,452,40,472,33,473,38,454,45,357,81"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="453,79,619,104"/>
+<area shape="poly" title=" " alt="" coords="405,89,437,89,437,94,405,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="482,128,591,154"/>
+<area shape="poly" title=" " alt="" coords="381,102,467,122,465,127,380,108"/>
+<area shape="poly" title=" " alt="" coords="500,80,493,70,498,60,512,54,536,52,562,55,576,62,573,66,561,60,536,57,513,59,501,64,499,69,505,77"/>
 </map>
 </div>
 
@@ -460,11 +496,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00296">296</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00325">325</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../db/d17/asar__wrapper_8cc_source.html#l00161">yaze::app::core::AsarWrapper::ExtractSymbols()</a>, <a class="el" href="../../db/d17/asar__wrapper_8cc_source.html#l00026">yaze::app::core::AsarWrapper::Initialize()</a>, and <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -506,11 +542,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00317">317</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00346">346</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00230">yaze::cli::Agent::Run()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00615">yaze::cli::Agent::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -548,11 +584,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00322">322</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00351">351</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d0/d4b/cli_2handlers_2project_8cc_source.html#l00027">yaze::cli::ProjectBuild::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -565,8 +601,9 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="396,51,480,32,481,38,398,57"/>
 <area shape="rect" href="../../db/d33/namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c" title=" " alt="" coords="489,55,623,80"/>
 <area shape="poly" title=" " alt="" coords="422,65,474,65,474,70,422,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db" title=" " alt="" coords="470,104,642,130"/>
-<area shape="poly" title=" " alt="" coords="398,78,481,97,480,103,396,84"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db" title=" " alt="" coords="470,128,642,154"/>
+<area shape="poly" title=" " alt="" coords="378,78,501,120,500,125,377,83"/>
+<area shape="poly" title=" " alt="" coords="520,129,512,119,517,110,532,103,556,101,583,104,597,111,594,116,582,109,556,107,533,109,520,113,518,119,524,126"/>
 </map>
 </div>
 
@@ -596,11 +633,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00327">327</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00356">356</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d0/d4b/cli_2handlers_2project_8cc_source.html#l00010">yaze::cli::ProjectInit::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -640,25 +677,26 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00291">291</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00320">320</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/dfa/z3ed_8h_source.html#l00152">yaze::cli::Open::Run()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d1a/cli_2handlers_2rom_8cc_source.html#l00011">yaze::cli::RomInfo::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../df/db9/classyaze_1_1cli_1_1ModernCLI_aa4c93dc9816540185f71613042bbb7a8_cgraph.png" border="0" usemap="#adf/db9/classyaze_1_1cli_1_1ModernCLI_aa4c93dc9816540185f71613042bbb7a8_cgraph" alt=""/></div>
 <map name="adf/db9/classyaze_1_1cli_1_1ModernCLI_aa4c93dc9816540185f71613042bbb7a8_cgraph" id="adf/db9/classyaze_1_1cli_1_1ModernCLI_aa4c93dc9816540185f71613042bbb7a8_cgraph">
-<area shape="rect" title=" " alt="" coords="5,47,182,88"/>
-<area shape="rect" href="../../de/d8f/classyaze_1_1cli_1_1Open.html#a9a61d83b48edfd26a2d5da0b929d19bb" title=" " alt="" coords="230,55,362,80"/>
-<area shape="poly" title=" " alt="" coords="182,65,214,65,214,70,182,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="410,5,576,31"/>
-<area shape="poly" title=" " alt="" coords="350,51,423,33,425,38,351,57"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="439,55,548,80"/>
-<area shape="poly" title=" " alt="" coords="363,65,423,65,423,70,363,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="440,104,547,130"/>
-<area shape="poly" title=" " alt="" coords="351,78,425,97,424,102,350,84"/>
+<area shape="rect" title=" " alt="" coords="5,63,182,103"/>
+<area shape="rect" href="../../d2/de6/classyaze_1_1cli_1_1RomInfo.html#a385e8b1f4b2988afc9db576191530f94" title=" " alt="" coords="230,70,380,96"/>
+<area shape="poly" title=" " alt="" coords="182,80,214,80,214,86,182,86"/>
+<area shape="rect" href="../../db/d22/structyaze_1_1RomLoadOptions.html#a82d6dede19f2d0f03386b3d59df2da3e" title=" " alt="" coords="434,5,588,46"/>
+<area shape="poly" title=" " alt="" coords="353,67,420,48,422,53,355,72"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="441,70,582,96"/>
+<area shape="poly" title=" " alt="" coords="380,80,425,80,425,86,380,86"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="428,144,594,169"/>
+<area shape="poly" title=" " alt="" coords="344,94,459,135,457,140,343,99"/>
+<area shape="poly" title=" " alt="" coords="477,145,470,135,474,125,488,119,511,117,537,120,549,126,547,131,535,125,511,122,489,124,478,129,475,134,481,142"/>
 </map>
 </div>
 
@@ -688,25 +726,26 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00332">332</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00361">361</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/dfa/z3ed_8h_source.html#l00152">yaze::cli::Open::Run()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/dfa/z3ed_8h_source.html#l00157">yaze::cli::Open::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../df/db9/classyaze_1_1cli_1_1ModernCLI_a90ea7a689b8a3eb8048c9a2e11440ee8_cgraph.png" border="0" usemap="#adf/db9/classyaze_1_1cli_1_1ModernCLI_a90ea7a689b8a3eb8048c9a2e11440ee8_cgraph" alt=""/></div>
 <map name="adf/db9/classyaze_1_1cli_1_1ModernCLI_a90ea7a689b8a3eb8048c9a2e11440ee8_cgraph" id="adf/db9/classyaze_1_1cli_1_1ModernCLI_a90ea7a689b8a3eb8048c9a2e11440ee8_cgraph">
-<area shape="rect" title=" " alt="" coords="5,47,254,88"/>
-<area shape="rect" href="../../de/d8f/classyaze_1_1cli_1_1Open.html#a9a61d83b48edfd26a2d5da0b929d19bb" title=" " alt="" coords="302,55,434,80"/>
-<area shape="poly" title=" " alt="" coords="254,65,286,65,286,70,254,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="482,5,648,31"/>
-<area shape="poly" title=" " alt="" coords="422,51,495,33,497,38,423,57"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="511,55,620,80"/>
-<area shape="poly" title=" " alt="" coords="435,65,495,65,495,70,435,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="512,104,619,130"/>
-<area shape="poly" title=" " alt="" coords="423,78,497,97,496,102,422,84"/>
+<area shape="rect" title=" " alt="" coords="5,87,254,127"/>
+<area shape="rect" href="../../de/d8f/classyaze_1_1cli_1_1Open.html#a9a61d83b48edfd26a2d5da0b929d19bb" title=" " alt="" coords="302,94,434,120"/>
+<area shape="poly" title=" " alt="" coords="254,104,286,104,286,110,254,110"/>
+<area shape="rect" href="../../db/d22/structyaze_1_1RomLoadOptions.html#a82d6dede19f2d0f03386b3d59df2da3e" title=" " alt="" coords="488,5,642,46"/>
+<area shape="poly" title=" " alt="" coords="398,91,481,55,495,50,497,55,483,60,400,96"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="482,94,648,120"/>
+<area shape="poly" title=" " alt="" coords="435,104,466,104,466,110,435,110"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="511,144,620,169"/>
+<area shape="poly" title=" " alt="" coords="423,118,497,137,495,142,422,123"/>
+<area shape="poly" title=" " alt="" coords="532,95,526,86,530,76,543,70,565,68,589,70,602,77,599,82,588,75,565,73,544,75,533,80,531,85,536,92"/>
 </map>
 </div>
 
@@ -736,26 +775,26 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00386">386</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00415">415</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d1a/cli_2handlers_2rom_8cc_source.html#l00054">yaze::cli::RomDiff::Run()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d1a/cli_2handlers_2rom_8cc_source.html#l00073">yaze::cli::RomDiff::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../df/db9/classyaze_1_1cli_1_1ModernCLI_a6ecbacd9a8ca97bf245bec88d0b6832c_cgraph.png" border="0" usemap="#adf/db9/classyaze_1_1cli_1_1ModernCLI_a6ecbacd9a8ca97bf245bec88d0b6832c_cgraph" alt=""/></div>
 <map name="adf/db9/classyaze_1_1cli_1_1ModernCLI_a6ecbacd9a8ca97bf245bec88d0b6832c_cgraph" id="adf/db9/classyaze_1_1cli_1_1ModernCLI_a6ecbacd9a8ca97bf245bec88d0b6832c_cgraph">
-<area shape="rect" title=" " alt="" coords="5,49,179,89"/>
-<area shape="rect" href="../../d1/d9c/classyaze_1_1cli_1_1RomDiff.html#a54e05379b4ea584836a4eea6fd5cea7f" title=" " alt="" coords="227,56,374,82"/>
-<area shape="poly" title=" " alt="" coords="179,66,211,66,211,72,179,72"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="422,5,588,31"/>
-<area shape="poly" title=" " alt="" coords="355,53,435,33,436,38,356,58"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="636,31,759,56"/>
-<area shape="poly" title=" " alt="" coords="374,61,621,46,621,51,375,67"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="451,107,560,132"/>
-<area shape="poly" title=" " alt="" coords="356,80,436,100,435,105,355,85"/>
-<area shape="poly" title=" " alt="" coords="589,26,621,31,620,36,588,32"/>
+<area shape="rect" title=" " alt="" coords="5,87,179,127"/>
+<area shape="rect" href="../../d1/d9c/classyaze_1_1cli_1_1RomDiff.html#a54e05379b4ea584836a4eea6fd5cea7f" title=" " alt="" coords="227,94,374,120"/>
+<area shape="poly" title=" " alt="" coords="179,104,211,104,211,110,179,110"/>
+<area shape="rect" href="../../db/d22/structyaze_1_1RomLoadOptions.html#a82d6dede19f2d0f03386b3d59df2da3e" title=" " alt="" coords="428,5,582,46"/>
+<area shape="poly" title=" " alt="" coords="333,91,421,55,435,50,437,55,423,60,335,96"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="422,94,588,120"/>
+<area shape="poly" title=" " alt="" coords="375,104,406,104,406,110,375,110"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="451,144,560,169"/>
+<area shape="poly" title=" " alt="" coords="358,118,436,137,435,142,356,123"/>
+<area shape="poly" title=" " alt="" coords="471,95,464,86,468,76,482,70,505,68,530,70,543,77,541,82,529,75,505,73,484,75,472,80,470,85,475,92"/>
 </map>
 </div>
 
@@ -785,11 +824,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00346">346</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00375">375</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00012">yaze::cli::DungeonExport::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -802,8 +841,9 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="416,67,494,48,495,53,418,72"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="524,70,665,96"/>
 <area shape="poly" title=" " alt="" coords="457,80,508,80,508,86,457,86"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="511,120,677,145"/>
-<area shape="poly" title=" " alt="" coords="426,94,516,113,515,118,425,99"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="511,144,677,169"/>
+<area shape="poly" title=" " alt="" coords="406,94,537,136,536,141,404,99"/>
+<area shape="poly" title=" " alt="" coords="556,145,548,135,553,125,568,119,594,117,623,120,637,126,635,131,621,125,594,122,570,124,556,129,553,134,560,141"/>
 </map>
 </div>
 
@@ -833,11 +873,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00351">351</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00380">380</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00044">yaze::cli::DungeonListObjects::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -881,11 +921,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00356">356</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00385">385</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d7/dfd/gfx_8cc_source.html#l00012">yaze::cli::GfxExport::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -898,8 +938,9 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="373,51,452,33,453,38,374,57"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="455,55,596,80"/>
 <area shape="poly" title=" " alt="" coords="394,65,439,65,439,70,394,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="442,104,608,130"/>
-<area shape="poly" title=" " alt="" coords="374,78,453,97,452,102,373,84"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="442,128,608,154"/>
+<area shape="poly" title=" " alt="" coords="356,78,472,120,471,125,354,83"/>
+<area shape="poly" title=" " alt="" coords="490,129,483,119,487,110,502,103,525,101,551,104,564,111,562,116,549,109,525,107,503,109,491,113,489,119,494,126"/>
 </map>
 </div>
 
@@ -929,11 +970,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00361">361</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00390">390</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d7/dfd/gfx_8cc_source.html#l00049">yaze::cli::GfxImport::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -977,11 +1018,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00366">366</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00395">395</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d9/dd4/handlers_2command__palette_8cc_source.html#l00009">yaze::cli::CommandPalette::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1019,25 +1060,26 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00371">371</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00400">400</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../de/d6a/palette_8cc_source.html#l00040">yaze::cli::PaletteExport::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../df/db9/classyaze_1_1cli_1_1ModernCLI_a8cf1aee2a40461c285584ab8bb519bed_cgraph.png" border="0" usemap="#adf/db9/classyaze_1_1cli_1_1ModernCLI_a8cf1aee2a40461c285584ab8bb519bed_cgraph" alt=""/></div>
 <map name="adf/db9/classyaze_1_1cli_1_1ModernCLI_a8cf1aee2a40461c285584ab8bb519bed_cgraph" id="adf/db9/classyaze_1_1cli_1_1ModernCLI_a8cf1aee2a40461c285584ab8bb519bed_cgraph">
-<area shape="rect" title=" " alt="" coords="5,47,210,88"/>
-<area shape="rect" href="../../da/d77/classyaze_1_1cli_1_1PaletteExport.html#ae7ff17c016b9eb8fe237e27efb3d626a" title=" " alt="" coords="258,55,436,80"/>
-<area shape="poly" title=" " alt="" coords="210,65,242,65,242,70,210,70"/>
+<area shape="rect" title=" " alt="" coords="5,71,210,112"/>
+<area shape="rect" href="../../da/d77/classyaze_1_1cli_1_1PaletteExport.html#ae7ff17c016b9eb8fe237e27efb3d626a" title=" " alt="" coords="258,79,436,104"/>
+<area shape="poly" title=" " alt="" coords="210,89,242,89,242,94,210,94"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="497,5,638,31"/>
-<area shape="poly" title=" " alt="" coords="407,51,491,32,492,38,408,57"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="484,55,650,80"/>
-<area shape="poly" title=" " alt="" coords="436,65,468,65,468,70,436,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="505,105,630,145"/>
-<area shape="poly" title=" " alt="" coords="400,78,490,102,488,107,399,84"/>
+<area shape="poly" title=" " alt="" coords="382,76,483,40,503,33,504,39,485,45,384,81"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="484,79,650,104"/>
+<area shape="poly" title=" " alt="" coords="436,89,468,89,468,94,436,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="505,129,630,169"/>
+<area shape="poly" title=" " alt="" coords="400,102,490,126,488,131,399,108"/>
+<area shape="poly" title=" " alt="" coords="531,80,523,70,528,60,543,54,567,52,594,55,608,62,605,66,593,60,567,57,544,59,531,64,529,69,535,77"/>
 </map>
 </div>
 
@@ -1067,11 +1109,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00381">381</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00410">410</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../de/d6a/palette_8cc_source.html#l00090">yaze::cli::PaletteImport::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1084,8 +1126,9 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="409,51,493,32,494,38,410,57"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="499,55,640,80"/>
 <area shape="poly" title=" " alt="" coords="438,65,483,65,483,70,438,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="486,104,652,130"/>
-<area shape="poly" title=" " alt="" coords="410,78,494,97,493,103,409,84"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="486,128,652,154"/>
+<area shape="poly" title=" " alt="" coords="391,78,514,120,513,125,389,83"/>
+<area shape="poly" title=" " alt="" coords="532,129,525,119,530,110,545,103,569,101,596,104,610,111,608,116,595,109,569,107,546,109,533,113,531,119,537,126"/>
 </map>
 </div>
 
@@ -1115,9 +1158,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00376">376</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00405">405</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../de/d6a/palette_8cc_source.html#l00016">yaze::cli::Palette::Run()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1159,25 +1204,26 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00391">391</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00420">420</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d1a/cli_2handlers_2rom_8cc_source.html#l00011">yaze::cli::RomValidate::Run()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d1a/cli_2handlers_2rom_8cc_source.html#l00030">yaze::cli::RomValidate::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../df/db9/classyaze_1_1cli_1_1ModernCLI_a4af7a24df3bed4b87d79d721851d89c3_cgraph.png" border="0" usemap="#adf/db9/classyaze_1_1cli_1_1ModernCLI_a4af7a24df3bed4b87d79d721851d89c3_cgraph" alt=""/></div>
 <map name="adf/db9/classyaze_1_1cli_1_1ModernCLI_a4af7a24df3bed4b87d79d721851d89c3_cgraph" id="adf/db9/classyaze_1_1cli_1_1ModernCLI_a4af7a24df3bed4b87d79d721851d89c3_cgraph">
-<area shape="rect" title=" " alt="" coords="5,47,207,88"/>
-<area shape="rect" href="../../d6/d8e/classyaze_1_1cli_1_1RomValidate.html#a38dee653d5d8aaa5dfc0d437014af5a2" title=" " alt="" coords="255,55,430,80"/>
-<area shape="poly" title=" " alt="" coords="207,65,239,65,239,70,207,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="491,5,632,31"/>
-<area shape="poly" title=" " alt="" coords="402,51,486,32,487,38,403,57"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="478,55,644,80"/>
-<area shape="poly" title=" " alt="" coords="430,65,462,65,462,70,430,70"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="507,104,616,130"/>
-<area shape="poly" title=" " alt="" coords="403,78,492,99,491,104,402,84"/>
+<area shape="rect" title=" " alt="" coords="5,63,207,103"/>
+<area shape="rect" href="../../d6/d8e/classyaze_1_1cli_1_1RomValidate.html#a38dee653d5d8aaa5dfc0d437014af5a2" title=" " alt="" coords="255,70,430,96"/>
+<area shape="poly" title=" " alt="" coords="207,80,239,80,239,86,207,86"/>
+<area shape="rect" href="../../db/d22/structyaze_1_1RomLoadOptions.html#a82d6dede19f2d0f03386b3d59df2da3e" title=" " alt="" coords="484,5,638,46"/>
+<area shape="poly" title=" " alt="" coords="394,67,468,47,470,52,395,72"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="491,70,632,96"/>
+<area shape="poly" title=" " alt="" coords="430,80,475,80,475,86,430,86"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="478,144,644,169"/>
+<area shape="poly" title=" " alt="" coords="384,94,506,135,505,140,382,99"/>
+<area shape="poly" title=" " alt="" coords="525,145,518,135,522,125,537,119,561,117,588,120,602,126,599,131,586,125,561,122,538,124,526,129,523,134,529,141"/>
 </map>
 </div>
 
@@ -1207,11 +1253,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00396">396</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00425">425</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../df/d93/cli_2handlers_2overworld_8cc_source.html#l00011">yaze::cli::OverworldGetTile::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1255,11 +1301,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00401">401</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00430">430</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../df/d93/cli_2handlers_2overworld_8cc_source.html#l00041">yaze::cli::OverworldSetTile::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1272,8 +1318,9 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="436,59,543,33,544,38,437,65"/>
 <area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a0ea7c62cb7b2f6a9338e778f0243be4e" title=" " alt="" coords="536,55,691,96"/>
 <area shape="poly" title=" " alt="" coords="483,73,520,73,520,78,483,78"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="530,120,696,146"/>
-<area shape="poly" title=" " alt="" coords="437,86,544,113,543,118,436,92"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="530,144,696,170"/>
+<area shape="poly" title=" " alt="" coords="421,86,561,136,559,141,420,91"/>
+<area shape="poly" title=" " alt="" coords="575,145,567,135,572,126,587,119,613,117,641,120,656,127,654,132,640,125,613,123,589,125,575,129,572,135,579,142"/>
 </map>
 </div>
 
@@ -1303,11 +1350,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00406">406</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00435">435</a> of file <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html">modern_cli.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d6/d25/cli_2handlers_2sprite_8cc_source.html#l00008">yaze::cli::SpriteCreate::Run()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1340,9 +1387,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d43/modern__cli_8h_source.html#l00028">28</a> of file <a class="el" href="../../d8/d43/modern__cli_8h_source.html">modern_cli.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d43/modern__cli_8h_source.html#l00029">29</a> of file <a class="el" href="../../d8/d43/modern__cli_8h_source.html">modern_cli.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00027">yaze::cli::anonymous_namespace{agent.cc}::HandleRunCommand()</a>, <a class="el" href="../../d7/da8/tui_2command__palette_8cc_source.html#l00014">yaze::cli::CommandPaletteComponent::Render()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00237">Run()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00022">SetupCommands()</a>, and <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00204">ShowHelp()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00110">yaze::cli::anonymous_namespace{agent.cc}::HandleRunCommand()</a>, <a class="el" href="../../d7/da8/tui_2command__palette_8cc_source.html#l00014">yaze::cli::CommandPaletteComponent::Render()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00250">Run()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00023">SetupCommands()</a>, and <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00216">ShowHelp()</a>.</p>
 
 </div>
 </div>

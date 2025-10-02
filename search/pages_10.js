@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['vs_20yaze_20c_20overworld_20implementation_20analysis_0',['ZScream C# vs YAZE C++ Overworld Implementation Analysis',['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'']]],
-  ['vs_20yaze_20overworld_20analysis_1',['Comprehensive ZScream vs YAZE Overworld Analysis',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html',1,'']]]
+  ['next_20priorities_20october_202_202025_0',['z3ed Next Priorities - October 2, 2025',['../de/dd3/md_docs_2z3ed_2NEXT__PRIORITIES__OCT2.html',1,'']]],
+  ['notes_1',['gRPC Technical Notes',['../d3/d75/md_docs_2z3ed_2archive_2GRPC__TECHNICAL__NOTES.html',1,'']]]
 ];

@@ -1,11 +1,19 @@
 var searchData=
 [
-  ['deprecated_20list_0',['Deprecated List',['../da/d58/deprecated.html',1,'']]],
-  ['design_20plan_1',['Dungeon Editor Design Plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'']]],
-  ['documentation_2',['documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'Release Workflows Documentation'],['../d3/d4c/md_docs_2index.html',1,'yaze Documentation']]],
-  ['dungeon_20editor_20design_20plan_3',['Dungeon Editor Design Plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'']]],
-  ['dungeon_20editor_20guide_4',['Dungeon Editor Guide',['../dd/d33/md_docs_2E2-dungeon-editor-guide.html',1,'']]],
-  ['dungeon_20object_20system_5',['Dungeon Object System',['../da/d11/md_docs_2E5-dungeon-object-system.html',1,'']]],
-  ['dungeoneditor_20parallel_20optimization_20implementation_6',['DungeonEditor Parallel Optimization Implementation',['../d7/d30/md_docs_2analysis_2dungeon__parallel__optimization__summary.html',1,'']]],
-  ['dungeoneditor_20refactoring_20plan_7',['DungeonEditor Refactoring Plan',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html',1,'']]]
+  ['agent_20implementation_20session_20summary_0',['z3ed Agent Implementation - Session Summary',['../d9/d74/md_docs_2z3ed_2SESSION__SUMMARY__OCT2.html',1,'']]],
+  ['agent_20test_20command_20quick_20reference_1',['z3ed Agent Test Command - Quick Reference',['../d2/d6d/md_docs_2z3ed_2AGENT__TEST__QUICKREF.html',1,'']]],
+  ['agentic_20workflow_20implementation_20plan_2',['z3ed Agentic Workflow Implementation Plan',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html',1,'']]],
+  ['ai_20powered_20cli_20for_20yaze_3',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
+  ['analysis_4',['analysis',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html',1,'Comprehensive ZScream vs YAZE Overworld Analysis'],['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'ZScream C# vs YAZE C++ Overworld Implementation Analysis']]],
+  ['analysis_20and_20optimization_5',['Renderer Class Performance Analysis and Optimization',['../dd/d7c/md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
+  ['analysis_20and_20optimization_20plan_6',['Overworld::Load Performance Analysis and Optimization Plan',['../d1/dc3/md_docs_2analysis_2overworld__load__optimization__analysis.html',1,'']]],
+  ['and_20optimization_7',['Renderer Class Performance Analysis and Optimization',['../dd/d7c/md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
+  ['and_20optimization_20plan_8',['Overworld::Load Performance Analysis and Optimization Plan',['../d1/dc3/md_docs_2analysis_2overworld__load__optimization__analysis.html',1,'']]],
+  ['another_20zelda3_20editor_9',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
+  ['api_20reference_10',['API Reference',['../dd/d96/md_docs_204-api-reference.html',1,'']]],
+  ['archive_11',['z3ed Documentation Archive',['../da/d52/md_docs_2z3ed_2archive_2README.html',1,'']]],
+  ['asar_2065816_20assembler_20integration_12',['Asar 65816 Assembler Integration',['../d2/dd3/md_docs_203-asar-integration.html',1,'']]],
+  ['asm_20style_20guide_13',['Asm Style Guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'']]],
+  ['assembler_20integration_14',['Asar 65816 Assembler Integration',['../d2/dd3/md_docs_203-asar-integration.html',1,'']]],
+  ['atlas_20rendering_20implementation_20yaze_20graphics_20optimizations_15',['Atlas Rendering Implementation - YAZE Graphics Optimizations',['../db/d26/md_docs_2atlas__rendering__implementation.html',1,'']]]
 ];

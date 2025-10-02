@@ -1,0 +1,9 @@
+<map id="src/cli/service/test_workflow_generator.h" name="src/cli/service/test_workflow_generator.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="127,5,278,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,152,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,49,112,88,109,83,170,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="176,94,229,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,46,205,78,200,78,200,46"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="254,94,311,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="224,45,261,81,258,85,220,48"/>
+</map>

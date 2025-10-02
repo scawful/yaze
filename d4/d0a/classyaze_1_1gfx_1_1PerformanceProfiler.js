@@ -20,5 +20,6 @@ var classyaze_1_1gfx_1_1PerformanceProfiler =
     [ "operation_times_", "d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ade1dda2ddac87ef17e917c54258e6668", null ],
     [ "operation_totals_", "d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ad59f68893ba7cbf9af495f2c77795015", null ],
     [ "operation_counts_", "d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a8322a60bf0a8800b147f083e25988b51", null ],
-    [ "enabled_", "d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a22349c4394996d54100330bcb812b708", null ]
+    [ "enabled_", "d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a22349c4394996d54100330bcb812b708", null ],
+    [ "is_shutting_down_", "d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a0f1f57e7179a797616332079ea398c1f", null ]
 ];

@@ -3,5 +3,15 @@ var dir_cd557cd98d3609a5460b7bf9ac42fb88 =
     [ "ai_service.cc", "d2/d3c/ai__service_8cc.html", null ],
     [ "ai_service.h", "d7/d52/ai__service_8h.html", "d7/d52/ai__service_8h" ],
     [ "gemini_ai_service.cc", "df/df3/gemini__ai__service_8cc.html", null ],
-    [ "gemini_ai_service.h", "d3/d22/gemini__ai__service_8h.html", "d3/d22/gemini__ai__service_8h" ]
+    [ "gemini_ai_service.h", "d3/d22/gemini__ai__service_8h.html", "d3/d22/gemini__ai__service_8h" ],
+    [ "gui_automation_client.cc", "dd/db4/gui__automation__client_8cc.html", null ],
+    [ "gui_automation_client.h", "d1/d51/gui__automation__client_8h.html", "d1/d51/gui__automation__client_8h" ],
+    [ "proposal_registry.cc", "db/d01/proposal__registry_8cc.html", "db/d01/proposal__registry_8cc" ],
+    [ "proposal_registry.h", "d4/d3d/proposal__registry_8h.html", "d4/d3d/proposal__registry_8h" ],
+    [ "resource_catalog.cc", "d6/d24/resource__catalog_8cc.html", "d6/d24/resource__catalog_8cc" ],
+    [ "resource_catalog.h", "d9/d7d/resource__catalog_8h.html", "d9/d7d/resource__catalog_8h" ],
+    [ "rom_sandbox_manager.cc", "dc/d3a/rom__sandbox__manager_8cc.html", "dc/d3a/rom__sandbox__manager_8cc" ],
+    [ "rom_sandbox_manager.h", "d0/d7b/rom__sandbox__manager_8h.html", "d0/d7b/rom__sandbox__manager_8h" ],
+    [ "test_workflow_generator.cc", "db/d09/test__workflow__generator_8cc.html", null ],
+    [ "test_workflow_generator.h", "d8/dfb/test__workflow__generator_8h.html", "d8/dfb/test__workflow__generator_8h" ]
 ];

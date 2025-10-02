@@ -99,45 +99,53 @@ $(document).ready(function(){initNavTree('d5/d48/cli__main_8cc.html','../../'); 
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">cli_main.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;iostream&gt;</code><br />
+<div class="textblock"><code>#include &lt;cstdlib&gt;</code><br />
+<code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
+<code>#include &lt;string_view&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/flags/flag.h&quot;</code><br />
-<code>#include &quot;absl/flags/parse.h&quot;</code><br />
-<code>#include &quot;absl/status/status.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
+<code>#include &quot;absl/strings/match.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d8/d43/modern__cli_8h_source.html">cli/modern_cli.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/dab/tui_8h_source.html">cli/tui.h</a>&quot;</code><br />
+<code>#include &quot;yaze_config.h&quot;</code><br />
 </div>
 <p><a href="../../d5/d48/cli__main_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals.html">anonymous_namespace{cli_main.cc}::ParsedGlobals</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03" id="r_da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html">anonymous_namespace{cli_main.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ad1f607cfb6c65380d2957cdfca942205" id="r_ad1f607cfb6c65380d2957cdfca942205"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#ad1f607cfb6c65380d2957cdfca942205">ABSL_FLAG</a> (bool, tui, false, &quot;Launch Text User Interface&quot;)</td></tr>
 <tr class="separator:ad1f607cfb6c65380d2957cdfca942205"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91812729dacce6b1853f0e70048b936c" id="r_a91812729dacce6b1853f0e70048b936c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a91812729dacce6b1853f0e70048b936c">ABSL_FLAG</a> (std::string, rom, &quot;&quot;, &quot;Path to the ROM file&quot;)</td></tr>
 <tr class="separator:a91812729dacce6b1853f0e70048b936c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae2ea10bc626ef49b17b7da4de75743e4" id="r_ae2ea10bc626ef49b17b7da4de75743e4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#ae2ea10bc626ef49b17b7da4de75743e4">ABSL_FLAG</a> (std::string, output, &quot;&quot;, &quot;Output file path&quot;)</td></tr>
-<tr class="separator:ae2ea10bc626ef49b17b7da4de75743e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab0bb452024d100028135ed05bb28de3d" id="r_ab0bb452024d100028135ed05bb28de3d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#ab0bb452024d100028135ed05bb28de3d">ABSL_FLAG</a> (bool, verbose, false, &quot;Enable verbose output&quot;)</td></tr>
-<tr class="separator:ab0bb452024d100028135ed05bb28de3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b9507a5005613a1e0e359925488c352" id="r_a3b9507a5005613a1e0e359925488c352"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a3b9507a5005613a1e0e359925488c352">ABSL_FLAG</a> (bool, dry_run, false, &quot;Perform operations without making changes&quot;)</td></tr>
-<tr class="separator:a3b9507a5005613a1e0e359925488c352"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68b91cdb98329ee0335befccc5a9bbc2" id="r_a68b91cdb98329ee0335befccc5a9bbc2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a68b91cdb98329ee0335befccc5a9bbc2">ABSL_FLAG</a> (bool, backup, true, &quot;Create a backup before modifying files&quot;)</td></tr>
-<tr class="separator:a68b91cdb98329ee0335befccc5a9bbc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a500d3ada8dcadc8a5fcc7bde7a950082" id="r_a500d3ada8dcadc8a5fcc7bde7a950082"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a500d3ada8dcadc8a5fcc7bde7a950082">ABSL_FLAG</a> (std::string, test, &quot;&quot;, &quot;Name of the test to run&quot;)</td></tr>
-<tr class="separator:a500d3ada8dcadc8a5fcc7bde7a950082"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ab7020aedd81cf5176ebb5e7d58907b" id="r_a4ab7020aedd81cf5176ebb5e7d58907b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a4ab7020aedd81cf5176ebb5e7d58907b">ABSL_FLAG</a> (bool, show_gui, false, &quot;Show the test engine GUI&quot;)</td></tr>
-<tr class="separator:a4ab7020aedd81cf5176ebb5e7d58907b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9e15e6f0cb42ef0d7e8e09d14c1429e" id="r_af9e15e6f0cb42ef0d7e8e09d14c1429e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals.html">ParsedGlobals</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html#af9e15e6f0cb42ef0d7e8e09d14c1429e">anonymous_namespace{cli_main.cc}::ParseGlobalFlags</a> (int argc, char *argv[])</td></tr>
+<tr class="separator:af9e15e6f0cb42ef0d7e8e09d14c1429e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2d343cff7ca205e9a15c30caa0fd444" id="r_ad2d343cff7ca205e9a15c30caa0fd444"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html#ad2d343cff7ca205e9a15c30caa0fd444">anonymous_namespace{cli_main.cc}::PrintVersion</a> ()</td></tr>
+<tr class="separator:ad2d343cff7ca205e9a15c30caa0fd444"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97" id="r_a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">main</a> (int argc, char *argv[])</td></tr>
 <tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ad1f607cfb6c65380d2957cdfca942205" name="ad1f607cfb6c65380d2957cdfca942205"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1f607cfb6c65380d2957cdfca942205">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[1/8]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1f607cfb6c65380d2957cdfca942205">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -177,7 +185,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="a91812729dacce6b1853f0e70048b936c" name="a91812729dacce6b1853f0e70048b936c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91812729dacce6b1853f0e70048b936c">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/8]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a91812729dacce6b1853f0e70048b936c">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -216,246 +224,6 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ae2ea10bc626ef49b17b7da4de75743e4" name="ae2ea10bc626ef49b17b7da4de75743e4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae2ea10bc626ef49b17b7da4de75743e4">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[3/8]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">ABSL_FLAG </td>
-          <td>(</td>
-          <td class="paramtype">std::string&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">output&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;&quot;&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;Output file path&quot;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab0bb452024d100028135ed05bb28de3d" name="ab0bb452024d100028135ed05bb28de3d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab0bb452024d100028135ed05bb28de3d">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[4/8]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">ABSL_FLAG </td>
-          <td>(</td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">verbose&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">false&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;Enable verbose output&quot;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a3b9507a5005613a1e0e359925488c352" name="a3b9507a5005613a1e0e359925488c352"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3b9507a5005613a1e0e359925488c352">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[5/8]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">ABSL_FLAG </td>
-          <td>(</td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">dry_run&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">false&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;Perform operations without making changes&quot;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a68b91cdb98329ee0335befccc5a9bbc2" name="a68b91cdb98329ee0335befccc5a9bbc2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a68b91cdb98329ee0335befccc5a9bbc2">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[6/8]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">ABSL_FLAG </td>
-          <td>(</td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">backup&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">true&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;Create a backup before modifying files&quot;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a500d3ada8dcadc8a5fcc7bde7a950082" name="a500d3ada8dcadc8a5fcc7bde7a950082"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a500d3ada8dcadc8a5fcc7bde7a950082">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[7/8]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">ABSL_FLAG </td>
-          <td>(</td>
-          <td class="paramtype">std::string&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">test&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;&quot;&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;Name of the test to run&quot;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a4ab7020aedd81cf5176ebb5e7d58907b" name="a4ab7020aedd81cf5176ebb5e7d58907b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ab7020aedd81cf5176ebb5e7d58907b">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[8/8]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">ABSL_FLAG </td>
-          <td>(</td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">show_gui&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">false&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;Show the test engine GUI&quot;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a0ddf1224851353fc92bfbff6f499fa97" name="a0ddf1224851353fc92bfbff6f499fa97"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0ddf1224851353fc92bfbff6f499fa97">&#9670;&#160;</a></span>main()</h2>
 
@@ -482,26 +250,9 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00021">21</a> of file <a class="el" href="../../d5/d48/cli__main_8cc_source.html">cli_main.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00093">93</a> of file <a class="el" href="../../d5/d48/cli__main_8cc_source.html">cli_main.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00237">yaze::cli::ModernCLI::Run()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00833">yaze::cli::ShowMain()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d5/d48/cli__main_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph.png" border="0" usemap="#ad5/d48/cli__main_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph" alt=""/></div>
-<map name="ad5/d48/cli__main_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph" id="ad5/d48/cli__main_8cc_a0ddf1224851353fc92bfbff6f499fa97_cgraph">
-<area shape="rect" title=" " alt="" coords="5,50,55,76"/>
-<area shape="rect" href="../../df/db9/classyaze_1_1cli_1_1ModernCLI.html#a27044c21202e6f14553e7150de89eb53" title=" " alt="" coords="103,13,268,39"/>
-<area shape="poly" title=" " alt="" coords="55,55,114,40,115,45,56,60"/>
-<area shape="rect" href="../../dd/d63/namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3" title=" " alt="" coords="119,86,252,112"/>
-<area shape="poly" title=" " alt="" coords="56,66,113,80,112,85,55,71"/>
-<area shape="rect" href="../../df/db9/classyaze_1_1cli_1_1ModernCLI.html#ad60ee322bbde31938708cb76f1c2cf06" title=" " alt="" coords="334,5,470,46"/>
-<area shape="poly" title=" " alt="" coords="268,23,319,23,319,28,268,28"/>
-<area shape="poly" title=" " alt="" coords="159,87,154,78,157,68,168,62,185,60,204,62,214,69,211,73,202,67,185,65,169,67,161,71,159,77,163,84"/>
-<area shape="rect" href="../../dc/d14/classyaze_1_1cli_1_1CommandPaletteComponent.html#aeb8a54099b646157b43493a3316e8072" title=" " alt="" coords="316,79,488,119"/>
-<area shape="poly" title=" " alt="" coords="252,96,301,96,301,102,252,102"/>
-</map>
-</div>
+<p class="reference">References <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00028">anonymous_namespace{cli_main.cc}::ParseGlobalFlags()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00246">yaze::cli::ModernCLI::PrintTopLevelHelp()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00085">anonymous_namespace{cli_main.cc}::PrintVersion()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00250">yaze::cli::ModernCLI::Run()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00833">yaze::cli::ShowMain()</a>.</p>
 
 </div>
 </div>

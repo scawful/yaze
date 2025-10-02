@@ -13,6 +13,7 @@ var z3ed_8h =
     [ "yaze::cli::PaletteImport", "d7/d47/classyaze_1_1cli_1_1PaletteImport.html", "d7/d47/classyaze_1_1cli_1_1PaletteImport" ],
     [ "yaze::cli::DungeonExport", "d7/dc5/classyaze_1_1cli_1_1DungeonExport.html", "d7/dc5/classyaze_1_1cli_1_1DungeonExport" ],
     [ "yaze::cli::DungeonListObjects", "da/dc4/classyaze_1_1cli_1_1DungeonListObjects.html", "da/dc4/classyaze_1_1cli_1_1DungeonListObjects" ],
+    [ "yaze::cli::RomInfo", "d2/de6/classyaze_1_1cli_1_1RomInfo.html", "d2/de6/classyaze_1_1cli_1_1RomInfo" ],
     [ "yaze::cli::RomValidate", "d6/d8e/classyaze_1_1cli_1_1RomValidate.html", "d6/d8e/classyaze_1_1cli_1_1RomValidate" ],
     [ "yaze::cli::RomDiff", "d1/d9c/classyaze_1_1cli_1_1RomDiff.html", "d1/d9c/classyaze_1_1cli_1_1RomDiff" ],
     [ "yaze::cli::RomGenerateGolden", "d2/d4a/classyaze_1_1cli_1_1RomGenerateGolden.html", "d2/d4a/classyaze_1_1cli_1_1RomGenerateGolden" ],

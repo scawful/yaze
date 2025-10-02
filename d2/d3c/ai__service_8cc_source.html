@@ -109,23 +109,30 @@ $(document).ready(function(){initNavTree('d2/d3c/ai__service_8cc_source.html','.
 <div class="foldopen" id="foldopen00006" data-start="{" data-end="}">
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno"><a class="line" href="../../df/d18/classyaze_1_1cli_1_1MockAIService.html#ac4c554f763599ecb4e6bf6fbca70851a">    6</a></span>absl::StatusOr&lt;std::vector&lt;std::string&gt;&gt; <a class="code hl_function" href="../../df/d18/classyaze_1_1cli_1_1MockAIService.html#ac4c554f763599ecb4e6bf6fbca70851a">MockAIService::GetCommands</a>(</div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span>    <span class="keyword">const</span> std::string&amp; prompt) {</div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span>  <span class="keywordflow">if</span> (prompt == <span class="stringliteral">&quot;Make all the soldiers in Hyrule Castle wear red armor.&quot;</span>) {</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>    <span class="keywordflow">return</span> std::vector&lt;std::string&gt;{</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>        <span class="stringliteral">&quot;palette export --group sprites_aux1 --id 4 --to soldier_palette.col&quot;</span>,</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>        <span class="stringliteral">&quot;palette set-color --file soldier_palette.col --index 5 --color \&quot;#FF0000\&quot;&quot;</span>,</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>        <span class="stringliteral">&quot;palette import --group sprites_aux1 --id 4 --from soldier_palette.col&quot;</span>};</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (prompt.find(<span class="stringliteral">&quot;Place a tree at coordinates&quot;</span>) != std::string::npos) {</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>      <span class="comment">// Example prompt: &quot;Place a tree at coordinates (10, 20) on the light world map&quot;</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>      <span class="comment">// For simplicity, we&#39;ll hardcode the tile id for a tree</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>      <span class="keywordflow">return</span> std::vector&lt;std::string&gt;{<span class="stringliteral">&quot;overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E&quot;</span>};</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  }</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;Prompt not supported by mock AI service.&quot;</span>);</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>}</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span>  <span class="comment">// NOTE: These commands use positional arguments (not --flags) because</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>  <span class="comment">// the command handlers haven&#39;t been updated to parse flags yet.</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>  <span class="comment">// TODO: Update handlers to use absl::flags parsing</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  </div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>  <span class="keywordflow">if</span> (prompt == <span class="stringliteral">&quot;Make all the soldiers in Hyrule Castle wear red armor.&quot;</span>) {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    <span class="comment">// Simplified command sequence - just export then import</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    <span class="comment">// (In reality, you&#39;d modify the palette file between export and import)</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    <span class="keywordflow">return</span> std::vector&lt;std::string&gt;{</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>        <span class="stringliteral">&quot;palette export sprites_aux1 4 soldier_palette.col&quot;</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>        <span class="comment">// Would normally modify soldier_palette.col here to change colors</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>        <span class="comment">// Then import it back</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    };</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (prompt == <span class="stringliteral">&quot;Place a tree&quot;</span>) {</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>      <span class="comment">// Example: Place a tree on the light world map</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>      <span class="comment">// Command format: map_id x y tile_id (hex)</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>      <span class="keywordflow">return</span> std::vector&lt;std::string&gt;{<span class="stringliteral">&quot;overworld set-tile 0 10 20 0x02E&quot;</span>};</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  }</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;Prompt not supported by mock AI service. Try: &#39;Make all the soldiers in Hyrule Castle wear red armor.&#39; or &#39;Place a tree&#39;&quot;</span>);</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>}</div>
 </div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>}  <span class="comment">// namespace cli</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}  <span class="comment">// namespace cli</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
 <div class="ttc" id="aai__service_8h_html"><div class="ttname"><a href="../../d7/d52/ai__service_8h.html">ai_service.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1MockAIService_html_ac4c554f763599ecb4e6bf6fbca70851a"><div class="ttname"><a href="../../df/d18/classyaze_1_1cli_1_1MockAIService.html#ac4c554f763599ecb4e6bf6fbca70851a">yaze::cli::MockAIService::GetCommands</a></div><div class="ttdeci">absl::StatusOr&lt; std::vector&lt; std::string &gt; &gt; GetCommands(const std::string &amp;prompt) override</div><div class="ttdef"><b>Definition</b> <a href="../../d2/d3c/ai__service_8cc_source.html#l00006">ai_service.cc:6</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>

@@ -7,6 +7,8 @@ var dir_6786299e5fb540707e8551af9d97f855 =
     [ "history_manager.h", "d4/d82/history__manager_8h.html", "d4/d82/history__manager_8h" ],
     [ "popup_manager.cc", "d8/de0/popup__manager_8cc.html", null ],
     [ "popup_manager.h", "dd/da4/popup__manager_8h.html", "dd/da4/popup__manager_8h" ],
+    [ "proposal_drawer.cc", "d1/d96/proposal__drawer_8cc.html", null ],
+    [ "proposal_drawer.h", "d5/dca/proposal__drawer_8h.html", "d5/dca/proposal__drawer_8h" ],
     [ "settings_editor.cc", "d6/dbd/settings__editor_8cc.html", null ],
     [ "settings_editor.h", "d9/d0a/settings__editor_8h.html", "d9/d0a/settings__editor_8h" ],
     [ "shortcut_manager.cc", "d3/d0d/shortcut__manager_8cc.html", "d3/d0d/shortcut__manager_8cc" ],

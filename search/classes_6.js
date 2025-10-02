@@ -16,5 +16,6 @@ var searchData=
   ['graphicsoptimizer_13',['GraphicsOptimizer',['../d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html',1,'yaze::gfx']]],
   ['graphicssheetanalysis_14',['GraphicsSheetAnalysis',['../d3/df6/structyaze_1_1gfx_1_1GraphicsSheetAnalysis.html',1,'yaze::gfx']]],
   ['graphicssheetinfo_15',['GraphicsSheetInfo',['../dc/d69/structyaze_1_1zelda3_1_1ObjectRenderer_1_1GraphicsCache_1_1GraphicsSheetInfo.html',1,'yaze::zelda3::ObjectRenderer::GraphicsCache']]],
-  ['gridsettings_16',['GridSettings',['../d1/d46/structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html',1,'yaze::gui::BackgroundRenderer']]]
+  ['gridsettings_16',['GridSettings',['../d1/d46/structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html',1,'yaze::gui::BackgroundRenderer']]],
+  ['guiautomationclient_17',['GuiAutomationClient',['../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html',1,'yaze::cli']]]
 ];

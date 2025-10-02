@@ -1,13 +1,28 @@
 var namespaceyaze_1_1cli =
 [
-    [ "anonymous_namespace{agent.cc}", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html", [
-      [ "HandleRunCommand", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#ae5fd189a8b8dbdae56ba73cc0a88d22f", null ],
-      [ "HandlePlanCommand", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a5310facf8ae56ab064d2e872d1a38eb8", null ],
-      [ "HandleDiffCommand", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a0a149e7b6215c1ee352e889b893f8317", null ],
-      [ "HandleTestCommand", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a80f496407dfa389e7715ca9abc74a3fb", null ],
-      [ "HandleLearnCommand", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a0f190809c56bc67ef2e8457b669354fa", null ],
-      [ "HandleCommitCommand", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a4e9398d7a9a32e999b5213669ca55a16", null ],
-      [ "HandleRevertCommand", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a879ea3e55eff1b324655827b5214d0e2", null ]
+    [ "anonymous_namespace{agent.cc}", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03" ],
+    [ "anonymous_namespace{proposal_registry.cc}", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html", [
+      [ "DetermineDefaultRoot", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a935048446d732782954cb7db885d3e71", null ]
+    ] ],
+    [ "anonymous_namespace{resource_catalog.cc}", "da/ded/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog_8cc_03.html", [
+      [ "MakePaletteSchema", "da/ded/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog_8cc_03.html#a20e95fcdbd9218f292e08633fe9299d7", null ],
+      [ "MakeRomSchema", "da/ded/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog_8cc_03.html#af3ff64439f68346dc8d90ed83ffcb328", null ],
+      [ "MakePatchSchema", "da/ded/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog_8cc_03.html#a08ea7f66716a39c90662aa00a0af7865", null ],
+      [ "MakeOverworldSchema", "da/ded/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog_8cc_03.html#a3329c5ea507cb66f89be502f6bc84ffd", null ],
+      [ "MakeDungeonSchema", "da/ded/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog_8cc_03.html#afe5f98893325908dd0994c5a9e400985", null ],
+      [ "MakeAgentSchema", "da/ded/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog_8cc_03.html#a74b4499aab7ee2955d118ec0b081bcd3", null ]
+    ] ],
+    [ "anonymous_namespace{resource_catalog_test.cc}", "d8/d01/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03.html", [
+      [ "TEST", "d8/d01/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03.html#a8a4b8ed88b34f98740dd871905b3e979", null ],
+      [ "TEST", "d8/d01/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03.html#ae85fb3c7b00faa816c2c733d9bd70e34", null ],
+      [ "TEST", "d8/d01/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03.html#aac3a17ef588265540d821fbd8a0fc3bc", null ],
+      [ "TEST", "d8/d01/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03.html#a27e571b1b99dc0adfaa36dc0ee77d577", null ],
+      [ "TEST", "d8/d01/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03.html#aeef7516b2eacc1ca77cf1603c9fff524", null ],
+      [ "TEST", "d8/d01/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03.html#a927288120abe03ece67d37e55557c482", null ]
+    ] ],
+    [ "anonymous_namespace{rom_sandbox_manager.cc}", "dc/d0a/namespaceyaze_1_1cli_1_1anonymous__namespace_02rom__sandbox__manager_8cc_03.html", [
+      [ "DetermineDefaultRoot", "dc/d0a/namespaceyaze_1_1cli_1_1anonymous__namespace_02rom__sandbox__manager_8cc_03.html#a6dbbd77ab3bd1ddc72684dd4f19590c3", null ],
+      [ "ResolveUniqueDirectory", "dc/d0a/namespaceyaze_1_1cli_1_1anonymous__namespace_02rom__sandbox__manager_8cc_03.html#a0ed1e5dd353eff931db3a8a0c757e616", null ]
     ] ],
     [ "anonymous_namespace{tui.cc}", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html", [
       [ "SwitchComponents", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c", null ],
@@ -30,6 +45,7 @@ var namespaceyaze_1_1cli =
     [ "ApplyPatch", "dd/d64/classyaze_1_1cli_1_1ApplyPatch.html", "dd/d64/classyaze_1_1cli_1_1ApplyPatch" ],
     [ "AsarPatch", "d7/d3f/classyaze_1_1cli_1_1AsarPatch.html", "d7/d3f/classyaze_1_1cli_1_1AsarPatch" ],
     [ "AsarPatchComponent", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent.html", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent" ],
+    [ "AutomationResult", "d4/daf/structyaze_1_1cli_1_1AutomationResult.html", "d4/daf/structyaze_1_1cli_1_1AutomationResult" ],
     [ "Backup", "d5/d4f/classyaze_1_1cli_1_1Backup.html", "d5/d4f/classyaze_1_1cli_1_1Backup" ],
     [ "CommandHandler", "dd/d80/classyaze_1_1cli_1_1CommandHandler.html", "dd/d80/classyaze_1_1cli_1_1CommandHandler" ],
     [ "CommandInfo", "dd/d22/structyaze_1_1cli_1_1CommandInfo.html", "dd/d22/structyaze_1_1cli_1_1CommandInfo" ],
@@ -45,6 +61,7 @@ var namespaceyaze_1_1cli =
     [ "GeminiAIService", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html", "db/d2d/classyaze_1_1cli_1_1GeminiAIService" ],
     [ "GfxExport", "dd/d8b/classyaze_1_1cli_1_1GfxExport.html", "dd/d8b/classyaze_1_1cli_1_1GfxExport" ],
     [ "GfxImport", "d2/d55/classyaze_1_1cli_1_1GfxImport.html", "d2/d55/classyaze_1_1cli_1_1GfxImport" ],
+    [ "GuiAutomationClient", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient" ],
     [ "MockAIService", "df/d18/classyaze_1_1cli_1_1MockAIService.html", "df/d18/classyaze_1_1cli_1_1MockAIService" ],
     [ "ModernCLI", "df/db9/classyaze_1_1cli_1_1ModernCLI.html", "df/db9/classyaze_1_1cli_1_1ModernCLI" ],
     [ "Open", "de/d8f/classyaze_1_1cli_1_1Open.html", "de/d8f/classyaze_1_1cli_1_1Open" ],
@@ -57,14 +74,37 @@ var namespaceyaze_1_1cli =
     [ "PcToSnesCommand", "dd/d06/classyaze_1_1cli_1_1PcToSnesCommand.html", "dd/d06/classyaze_1_1cli_1_1PcToSnesCommand" ],
     [ "ProjectBuild", "d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html", "d4/d4b/classyaze_1_1cli_1_1ProjectBuild" ],
     [ "ProjectInit", "d9/d3b/classyaze_1_1cli_1_1ProjectInit.html", "d9/d3b/classyaze_1_1cli_1_1ProjectInit" ],
+    [ "ProposalRegistry", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry" ],
     [ "ReadFromRom", "d1/d72/classyaze_1_1cli_1_1ReadFromRom.html", "d1/d72/classyaze_1_1cli_1_1ReadFromRom" ],
+    [ "ResourceAction", "dc/d64/structyaze_1_1cli_1_1ResourceAction.html", "dc/d64/structyaze_1_1cli_1_1ResourceAction" ],
+    [ "ResourceArgument", "da/dc6/structyaze_1_1cli_1_1ResourceArgument.html", "da/dc6/structyaze_1_1cli_1_1ResourceArgument" ],
+    [ "ResourceCatalog", "d4/d02/classyaze_1_1cli_1_1ResourceCatalog.html", "d4/d02/classyaze_1_1cli_1_1ResourceCatalog" ],
+    [ "ResourceSchema", "d8/d29/structyaze_1_1cli_1_1ResourceSchema.html", "d8/d29/structyaze_1_1cli_1_1ResourceSchema" ],
     [ "RomDiff", "d1/d9c/classyaze_1_1cli_1_1RomDiff.html", "d1/d9c/classyaze_1_1cli_1_1RomDiff" ],
     [ "RomGenerateGolden", "d2/d4a/classyaze_1_1cli_1_1RomGenerateGolden.html", "d2/d4a/classyaze_1_1cli_1_1RomGenerateGolden" ],
+    [ "RomInfo", "d2/de6/classyaze_1_1cli_1_1RomInfo.html", "d2/de6/classyaze_1_1cli_1_1RomInfo" ],
+    [ "RomSandboxManager", "d5/dbc/classyaze_1_1cli_1_1RomSandboxManager.html", "d5/dbc/classyaze_1_1cli_1_1RomSandboxManager" ],
     [ "RomValidate", "d6/d8e/classyaze_1_1cli_1_1RomValidate.html", "d6/d8e/classyaze_1_1cli_1_1RomValidate" ],
     [ "SnesToPcCommand", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand.html", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand" ],
     [ "SpriteCreate", "da/d30/classyaze_1_1cli_1_1SpriteCreate.html", "da/d30/classyaze_1_1cli_1_1SpriteCreate" ],
+    [ "TestStep", "d6/d4b/structyaze_1_1cli_1_1TestStep.html", "d6/d4b/structyaze_1_1cli_1_1TestStep" ],
+    [ "TestWorkflow", "de/d85/structyaze_1_1cli_1_1TestWorkflow.html", "de/d85/structyaze_1_1cli_1_1TestWorkflow" ],
+    [ "TestWorkflowGenerator", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator.html", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator" ],
     [ "Tile16Transfer", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer" ],
     [ "TuiComponent", "dc/d6b/classyaze_1_1cli_1_1TuiComponent.html", "dc/d6b/classyaze_1_1cli_1_1TuiComponent" ],
+    [ "ClickType", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2c", [
+      [ "kLeft", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2d5fde1d924910a2a01ecd8e70a87c28", null ],
+      [ "kRight", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2dd2b017192f8a09367d48c7648213c9", null ],
+      [ "kMiddle", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2cab3199775e825c139b44e3e9ccf3cbc7e", null ],
+      [ "kDouble", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca7fb3efa35444cd88d5a31dc125ca9c28", null ]
+    ] ],
+    [ "TestStepType", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fce", [
+      [ "kClick", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcea307b2f90e031951851ef07da7fe12144", null ],
+      [ "kType", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcead554146c5ee004ffbbf78a5acc40af0b", null ],
+      [ "kWait", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcea0ee3f6e6cda68e5b4670f70c31130ec8", null ],
+      [ "kAssert", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcea2146194a4ced927d6327c1625c175554", null ],
+      [ "kScreenshot", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcea429a434247f5746aaad06e840a522a35", null ]
+    ] ],
     [ "MainMenuEntry", "dd/d63/namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395", [
       [ "kLoadRom", "dd/d63/namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a0904aa5cd86ead4695a80b68d96d331b", null ],
       [ "kApplyAsarPatch", "dd/d63/namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395a9978b1e85e90363034e4108b61d4bd8c", null ],

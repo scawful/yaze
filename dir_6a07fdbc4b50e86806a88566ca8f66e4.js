@@ -1,5 +1,6 @@
 var dir_6a07fdbc4b50e86806a88566ca8f66e4 =
 [
+    [ "cli", "dir_3252533bbb7f10028d0de96ebd85fe2d.html", "dir_3252533bbb7f10028d0de96ebd85fe2d" ],
     [ "core", "dir_954a5bd03df9557752202397461995b0.html", "dir_954a5bd03df9557752202397461995b0" ],
     [ "gfx", "dir_b1d1af1f4982b49b56b14eaa0176ca82.html", "dir_b1d1af1f4982b49b56b14eaa0176ca82" ],
     [ "rom", "dir_7cbea7b471159ce9444eb0d89fbd5d6e.html", "dir_7cbea7b471159ce9444eb0d89fbd5d6e" ],
