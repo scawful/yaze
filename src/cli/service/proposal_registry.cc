@@ -1,8 +1,10 @@
 #include "cli/service/proposal_registry.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <fstream>
+#include <iostream>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -58,6 +60,99 @@ absl::Status ProposalRegistry::EnsureRootExistsLocked() {
           ": ", ec.message()));
     }
   }
+  return absl::OkStatus();
+}
+
+absl::Status ProposalRegistry::LoadProposalsFromDiskLocked() {
+  std::error_code ec;
+  
+  // Check if root directory exists
+  if (!std::filesystem::exists(root_directory_, ec)) {
+    return absl::OkStatus();  // No proposals to load
+  }
+
+  // Iterate over all directories in the root
+  for (const auto& entry : std::filesystem::directory_iterator(root_directory_, ec)) {
+    if (ec) {
+      continue;  // Skip entries that cause errors
+    }
+    
+    if (!entry.is_directory()) {
+      continue;  // Skip non-directories
+    }
+
+    std::string proposal_id = entry.path().filename().string();
+    
+    // Skip if already loaded (shouldn't happen, but be defensive)
+    if (proposals_.find(proposal_id) != proposals_.end()) {
+      continue;
+    }
+
+    // Reconstruct metadata from directory contents
+    // Since we don't have a metadata.json file, we need to infer what we can
+    std::filesystem::path log_path = entry.path() / "execution.log";
+    std::filesystem::path diff_path = entry.path() / "diff.txt";
+    
+    // Check if log file exists to determine if this is a valid proposal
+    if (!std::filesystem::exists(log_path, ec)) {
+      continue;  // Not a valid proposal directory
+    }
+
+    // Extract timestamp from proposal ID (format: proposal-20251001T200215-1)
+    absl::Time created_at = absl::Now();  // Default to now if parsing fails
+    if (proposal_id.starts_with("proposal-")) {
+      std::string time_str = proposal_id.substr(9, 15);  // Extract YYYYMMDDTHHmmSS
+      std::string error;
+      if (absl::ParseTime("%Y%m%dT%H%M%S", time_str, &created_at, &error)) {
+        // Successfully parsed time
+      }
+    }
+
+    // Get file modification time as a fallback
+    auto ftime = std::filesystem::last_write_time(log_path, ec);
+    if (!ec) {
+      auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+          ftime - std::filesystem::file_time_type::clock::now() +
+          std::chrono::system_clock::now());
+      auto time_t_value = std::chrono::system_clock::to_time_t(sctp);
+      created_at = absl::FromTimeT(time_t_value);
+    }
+
+    // Create minimal metadata for this proposal
+    ProposalMetadata metadata{
+        .id = proposal_id,
+        .sandbox_id = "",  // Unknown - not stored in logs
+        .description = "Loaded from disk",
+        .prompt = "",  // Unknown - not stored in logs
+        .status = ProposalStatus::kPending,
+        .created_at = created_at,
+        .reviewed_at = std::nullopt,
+        .diff_path = diff_path,
+        .log_path = log_path,
+        .screenshots = {},
+        .bytes_changed = 0,
+        .commands_executed = 0,
+    };
+
+    // Count diff size if it exists
+    if (std::filesystem::exists(diff_path, ec) && !ec) {
+      metadata.bytes_changed = static_cast<int>(
+          std::filesystem::file_size(diff_path, ec));
+    }
+
+    // Scan for screenshots
+    for (const auto& file : std::filesystem::directory_iterator(entry.path(), ec)) {
+      if (ec) continue;
+      if (file.path().extension() == ".png" || 
+          file.path().extension() == ".jpg" ||
+          file.path().extension() == ".jpeg") {
+        metadata.screenshots.push_back(file.path());
+      }
+    }
+
+    proposals_[proposal_id] = metadata;
+  }
+
   return absl::OkStatus();
 }
 
@@ -208,7 +303,20 @@ ProposalRegistry::GetProposal(const std::string& proposal_id) const {
 
 std::vector<ProposalRegistry::ProposalMetadata>
 ProposalRegistry::ListProposals(std::optional<ProposalStatus> filter_status) const {
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
+  
+  // Load proposals from disk if we haven't already
+  if (proposals_.empty()) {
+    // Cast away const for loading - this is a lazy initialization pattern
+    auto* self = const_cast<ProposalRegistry*>(this);
+    auto status = self->LoadProposalsFromDiskLocked();
+    if (!status.ok()) {
+      // Log error but continue - return empty list if loading fails
+      std::cerr << "Warning: Failed to load proposals from disk: " 
+                << status.message() << "\n";
+    }
+  }
+  
   std::vector<ProposalMetadata> result;
   
   for (const auto& [id, metadata] : proposals_) {
