@@ -330,7 +330,7 @@ absl::Status ModernCLI::HandleRomInfoCommand(const std::vector<std::string>& arg
 
 absl::Status ModernCLI::HandleExtractSymbolsCommand(const std::vector<std::string>& args) {
     // Use the AsarWrapper to extract symbols
-    yaze::app::core::AsarWrapper wrapper;
+    yaze::core::AsarWrapper wrapper;
     RETURN_IF_ERROR(wrapper.Initialize());
     
     auto symbols_result = wrapper.ExtractSymbols(args[0]);

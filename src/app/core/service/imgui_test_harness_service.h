@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_IMGUI_TEST_HARNESS_SERVICE_H_
-#define YAZE_APP_CORE_IMGUI_TEST_HARNESS_SERVICE_H_
+#ifndef YAZE_APP_CORE_SERVICE_IMGUI_TEST_HARNESS_SERVICE_H_
+#define YAZE_APP_CORE_SERVICE_IMGUI_TEST_HARNESS_SERVICE_H_
 
 #ifdef YAZE_WITH_GRPC
 
@@ -8,8 +8,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/core/test_recorder.h"
-#include "app/core/widget_discovery_service.h"
+#include "app/core/service/widget_discovery_service.h"
+#include "app/core/testing/test_recorder.h"
 
 // Include grpcpp headers for unique_ptr<Server> in member variable
 #include <grpcpp/server.h>
@@ -153,4 +153,4 @@ class ImGuiTestHarnessServer {
 }  // namespace yaze
 
 #endif  // YAZE_WITH_GRPC
-#endif  // YAZE_APP_CORE_IMGUI_TEST_HARNESS_SERVICE_H_
+#endif  // YAZE_APP_CORE_SERVICE_IMGUI_TEST_HARNESS_SERVICE_H_

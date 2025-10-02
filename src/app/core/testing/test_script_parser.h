@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_TEST_SCRIPT_PARSER_H_
-#define YAZE_APP_CORE_TEST_SCRIPT_PARSER_H_
+#ifndef YAZE_APP_CORE_TESTING_TEST_SCRIPT_PARSER_H_
+#define YAZE_APP_CORE_TESTING_TEST_SCRIPT_PARSER_H_
 
 #include <map>
 #include <string>
@@ -50,4 +50,4 @@ class TestScriptParser {
 }  // namespace test
 }  // namespace yaze
 
-#endif  // YAZE_APP_CORE_TEST_SCRIPT_PARSER_H_
+#endif  // YAZE_APP_CORE_TESTING_TEST_SCRIPT_PARSER_H_

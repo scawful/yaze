@@ -236,14 +236,14 @@ if(YAZE_WITH_GRPC)
   
   # Add service implementation sources
   target_sources(yaze PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/app/core/imgui_test_harness_service.cc
-    ${CMAKE_SOURCE_DIR}/src/app/core/imgui_test_harness_service.h
-    ${CMAKE_SOURCE_DIR}/src/app/core/test_recorder.cc
-    ${CMAKE_SOURCE_DIR}/src/app/core/test_recorder.h
-    ${CMAKE_SOURCE_DIR}/src/app/core/test_script_parser.cc
-    ${CMAKE_SOURCE_DIR}/src/app/core/test_script_parser.h
-    ${CMAKE_SOURCE_DIR}/src/app/core/widget_discovery_service.cc
-    ${CMAKE_SOURCE_DIR}/src/app/core/widget_discovery_service.h)
+    ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.cc
+    ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.h
+    ${CMAKE_SOURCE_DIR}/src/app/core/service/widget_discovery_service.cc
+    ${CMAKE_SOURCE_DIR}/src/app/core/service/widget_discovery_service.h
+    ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.cc
+    ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.h
+    ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.cc
+    ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.h)
 
   target_include_directories(yaze PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/json/include)

@@ -1,4 +1,4 @@
-#include "app/core/widget_discovery_service.h"
+#include "app/core/service/widget_discovery_service.h"
 
 #include <algorithm>
 #include <map>

@@ -391,7 +391,7 @@ ls build-grpc-test/_deps/grpc-src/
 ```
 src/app/core/
   ├── proto/imgui_test_harness.proto         # gRPC service definition
-  ├── imgui_test_harness_service.{h,cc}      # RPC implementation
+  ├── core/service/imgui_test_harness_service.{h,cc}      # RPC implementation
   └── test_manager.{h,cc}                    # Test execution management
 
 src/cli/

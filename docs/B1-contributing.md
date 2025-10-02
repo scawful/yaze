@@ -41,7 +41,7 @@ ctest --preset stable
 #include "app/core/asar_wrapper.h"
 
 // Namespace usage
-namespace yaze::app::editor {
+namespace yaze::editor {
 
 class ExampleClass {
 public:

@@ -35,7 +35,7 @@ ftxui::Component AsarPatchComponent::Render() {
     }
 
     try {
-      app::core::AsarWrapper wrapper;
+      core::AsarWrapper wrapper;
       auto init_status = wrapper.Initialize();
       if (!init_status.ok()) {
         app_context.error_message = absl::StrCat("Failed to initialize Asar: ", init_status.message());

@@ -3584,7 +3584,7 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
   util::logf("Applying ZSCustomOverworld ASM v%d to ROM...", target_version);
 
   // Initialize Asar wrapper
-  auto asar_wrapper = std::make_unique<app::core::AsarWrapper>();
+  auto asar_wrapper = std::make_unique<core::AsarWrapper>();
   RETURN_IF_ERROR(asar_wrapper->Initialize());
 
   // Create backup of ROM data

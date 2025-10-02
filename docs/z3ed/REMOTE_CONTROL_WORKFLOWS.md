@@ -201,7 +201,7 @@ z3ed agent discover --pattern "*/button:*"
 
 ### Test Harness Changes
 
-**File**: `src/app/core/imgui_test_harness_service.cc`
+**File**: `src/app/core/service/imgui_test_harness_service.cc`
 
 **Changes**:
 1. Added widget registry include
@@ -390,7 +390,7 @@ steps:
 - [E2E_VALIDATION_GUIDE.md](E2E_VALIDATION_GUIDE.md)
 
 **Code Files**:
-- `src/app/core/imgui_test_harness_service.cc` - Test harness implementation
+- `src/app/core/service/imgui_test_harness_service.cc` - Test harness implementation
 - `src/app/gui/widget_id_registry.{h,cc}` - Widget registry
 - `src/app/editor/overworld/overworld_editor.cc` - Widget registrations
 - `scripts/test_remote_control.sh` - Test script
