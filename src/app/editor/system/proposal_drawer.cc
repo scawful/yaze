@@ -9,6 +9,7 @@
 #include "imgui/imgui.h"
 #include "app/gui/icons.h"
 #include "cli/service/rom_sandbox_manager.h"
+#include "cli/service/policy_evaluator.h"  // NEW: Policy evaluation support
 
 namespace yaze {
 namespace editor {
@@ -87,6 +88,36 @@ void ProposalDrawer::Draw() {
     }
     ImGui::SameLine();
     if (ImGui::Button("No", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
+  // Policy override dialog (NEW)
+  if (show_override_dialog_) {
+    ImGui::OpenPopup("Override Policy");
+    show_override_dialog_ = false;
+  }
+
+  if (ImGui::BeginPopupModal("Override Policy", nullptr, 
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), 
+                      ICON_MD_WARNING " Policy Override Required");
+    ImGui::Separator();
+    ImGui::TextWrapped("This proposal has policy warnings.");
+    ImGui::TextWrapped("Do you want to override and accept anyway?");
+    ImGui::Spacing();
+    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), 
+                      "Note: This action will be logged.");
+    ImGui::Separator();
+
+    if (ImGui::Button("Override and Accept", ImVec2(150, 0))) {
+      confirm_action_ = "accept";
+      show_confirm_dialog_ = true;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(150, 0))) {
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
@@ -219,6 +250,9 @@ void ProposalDrawer::DrawProposalDetail() {
     }
   }
 
+  // Policy Status section (NEW)
+  DrawPolicyStatus();
+
   // Action buttons
   ImGui::Separator();
   DrawActionButtons();
@@ -235,18 +269,147 @@ void ProposalDrawer::DrawStatusFilter() {
   }
 }
 
+void ProposalDrawer::DrawPolicyStatus() {
+  if (!selected_proposal_) return;
+
+  const auto& p = *selected_proposal_;
+  
+  // Only evaluate policies for pending proposals
+  if (p.status != cli::ProposalRegistry::ProposalStatus::kPending) {
+    return;
+  }
+
+  if (ImGui::CollapsingHeader("Policy Status", ImGuiTreeNodeFlags_DefaultOpen)) {
+    auto& policy_eval = cli::PolicyEvaluator::GetInstance();
+    
+    if (!policy_eval.IsEnabled()) {
+      ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), 
+                        ICON_MD_INFO " No policies configured");
+      ImGui::TextWrapped("Create .yaze/policies/agent.yaml to enable policy evaluation");
+      return;
+    }
+
+    // Evaluate proposal against policies
+    auto policy_result = policy_eval.EvaluateProposal(p.id);
+    
+    if (!policy_result.ok()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), 
+                        ICON_MD_ERROR " Policy evaluation failed");
+      ImGui::TextWrapped("%s", policy_result.status().message().data());
+      return;
+    }
+
+    const auto& result = policy_result.value();
+
+    // Overall status
+    if (result.is_clean()) {
+      ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), 
+                        ICON_MD_CHECK_CIRCLE " All policies passed");
+    } else if (result.passed) {
+      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), 
+                        ICON_MD_WARNING " Passed with warnings");
+    } else {
+      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), 
+                        ICON_MD_CANCEL " Critical violations found");
+    }
+
+    ImGui::Separator();
+
+    // Show critical violations
+    if (!result.critical_violations.empty()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), 
+                        ICON_MD_BLOCK " Critical Violations:");
+      for (const auto& violation : result.critical_violations) {
+        ImGui::Bullet();
+        ImGui::TextWrapped("%s: %s", violation.policy_name.c_str(), 
+                          violation.message.c_str());
+        if (!violation.details.empty()) {
+          ImGui::Indent();
+          ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", 
+                            violation.details.c_str());
+          ImGui::Unindent();
+        }
+      }
+      ImGui::Separator();
+    }
+
+    // Show warnings
+    if (!result.warnings.empty()) {
+      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), 
+                        ICON_MD_WARNING " Warnings:");
+      for (const auto& violation : result.warnings) {
+        ImGui::Bullet();
+        ImGui::TextWrapped("%s: %s", violation.policy_name.c_str(), 
+                          violation.message.c_str());
+        if (!violation.details.empty()) {
+          ImGui::Indent();
+          ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", 
+                            violation.details.c_str());
+          ImGui::Unindent();
+        }
+      }
+      ImGui::Separator();
+    }
+
+    // Show info messages
+    if (!result.info.empty()) {
+      ImGui::TextColored(ImVec4(0.5f, 0.5f, 1.0f, 1.0f), 
+                        ICON_MD_INFO " Information:");
+      for (const auto& violation : result.info) {
+        ImGui::Bullet();
+        ImGui::TextWrapped("%s: %s", violation.policy_name.c_str(), 
+                          violation.message.c_str());
+      }
+    }
+  }
+}
+
 void ProposalDrawer::DrawActionButtons() {
   if (!selected_proposal_) return;
 
   const auto& p = *selected_proposal_;
   bool is_pending = p.status == cli::ProposalRegistry::ProposalStatus::kPending;
 
-  // Accept button (only for pending proposals)
+  // Evaluate policies to determine if Accept button should be enabled
+  bool can_accept = true;
+  bool needs_override = false;
+  
   if (is_pending) {
+    auto& policy_eval = cli::PolicyEvaluator::GetInstance();
+    if (policy_eval.IsEnabled()) {
+      auto policy_result = policy_eval.EvaluateProposal(p.id);
+      if (policy_result.ok()) {
+        const auto& result = policy_result.value();
+        can_accept = !result.has_critical_violations();
+        needs_override = result.can_accept_with_override();
+      }
+    }
+  }
+
+  // Accept button (only for pending proposals, gated by policy)
+  if (is_pending) {
+    if (!can_accept) {
+      ImGui::BeginDisabled();
+    }
+    
     if (ImGui::Button(ICON_MD_CHECK " Accept", ImVec2(-1, 0))) {
-      confirm_action_ = "accept";
-      confirm_proposal_id_ = p.id;
-      show_confirm_dialog_ = true;
+      if (needs_override) {
+        // Show override confirmation dialog
+        show_override_dialog_ = true;
+        confirm_proposal_id_ = p.id;
+      } else {
+        // Proceed directly to accept confirmation
+        confirm_action_ = "accept";
+        confirm_proposal_id_ = p.id;
+        show_confirm_dialog_ = true;
+      }
+    }
+    
+    if (!can_accept) {
+      ImGui::EndDisabled();
+      ImGui::SameLine();
+      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), 
+                        "(Blocked by policy)");
     }
 
     // Reject button (only for pending proposals)

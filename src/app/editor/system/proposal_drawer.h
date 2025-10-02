@@ -48,6 +48,7 @@ class ProposalDrawer {
  private:
   void DrawProposalList();
   void DrawProposalDetail();
+  void DrawPolicyStatus();  // NEW: Display policy evaluation results
   void DrawStatusFilter();
   void DrawActionButtons();
   
@@ -83,6 +84,7 @@ class ProposalDrawer {
   // UI state
   float drawer_width_ = 400.0f;
   bool show_confirm_dialog_ = false;
+  bool show_override_dialog_ = false;  // NEW: Policy override confirmation
   std::string confirm_action_;
   std::string confirm_proposal_id_;
   

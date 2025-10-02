@@ -46,6 +46,7 @@ add_executable(
   cli/service/proposal_registry.cc
   cli/service/resource_catalog.cc
   cli/service/rom_sandbox_manager.cc
+  cli/service/policy_evaluator.cc
   cli/service/gemini_ai_service.cc
   app/rom.cc
   app/core/project.cc
