@@ -9,6 +9,10 @@
 #include "util/flag.h"
 #include "util/log.h"
 
+#ifdef YAZE_WITH_GRPC
+#include "app/core/imgui_test_harness_service.h"
+#endif
+
 /**
  * @namespace yaze
  * @brief Main namespace for the application.
@@ -19,6 +23,14 @@ using namespace yaze;
 DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
 DEFINE_FLAG(std::string, log_file, "", "Output log file path for debugging.");
 DEFINE_FLAG(bool, debug, false, "Enable debug logging and verbose output.");
+
+#ifdef YAZE_WITH_GRPC
+// gRPC test harness flags
+DEFINE_FLAG(bool, enable_test_harness, false,
+            "Start gRPC test harness server for automated GUI testing.");
+DEFINE_FLAG(int, test_harness_port, 50051,
+            "Port for gRPC test harness server (default: 50051).");
+#endif
 
 int main(int argc, char **argv) {
   absl::InitializeSymbolizer(argv[0]);
@@ -56,6 +68,24 @@ int main(int argc, char **argv) {
     rom_filename = FLAGS_rom_file->Get();
   }
 
+#ifdef YAZE_WITH_GRPC
+  // Start gRPC test harness server if requested
+  if (FLAGS_enable_test_harness->Get()) {
+    auto& server = yaze::test::ImGuiTestHarnessServer::Instance();
+    int port = FLAGS_test_harness_port->Get();
+    
+    std::cout << "\n🚀 Starting ImGui Test Harness on port " << port << "..." << std::endl;
+    auto status = server.Start(port);
+    if (!status.ok()) {
+      std::cerr << "❌ ERROR: Failed to start test harness server on port " << port << std::endl;
+      std::cerr << "   " << status.message() << std::endl;
+      return 1;
+    }
+    std::cout << "✅ Test harness ready on 127.0.0.1:" << port << std::endl;
+    std::cout << "   Available RPCs: Ping, Click, Type, Wait, Assert, Screenshot\n" << std::endl;
+  }
+#endif
+
 #ifdef __APPLE__
   return yaze_run_cocoa_app_delegate(rom_filename.c_str());
 #elif defined(_WIN32)
@@ -75,6 +105,11 @@ int main(int argc, char **argv) {
     controller->DoRender();
   }
   controller->OnExit();
+
+#ifdef YAZE_WITH_GRPC
+  // Shutdown gRPC server if running
+  yaze::test::ImGuiTestHarnessServer::Instance().Shutdown();
+#endif
 
   return EXIT_SUCCESS;
 }

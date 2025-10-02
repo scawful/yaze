@@ -68,6 +68,9 @@ class ImGuiTestHarnessServiceImpl {
                           ScreenshotResponse* response);
 };
 
+// Forward declaration of the gRPC service wrapper
+class ImGuiTestHarnessServiceGrpc;
+
 // Singleton server managing the gRPC service
 // This class manages the lifecycle of the gRPC server
 class ImGuiTestHarnessServer {
@@ -91,7 +94,7 @@ class ImGuiTestHarnessServer {
 
  private:
   ImGuiTestHarnessServer() = default;
-  ~ImGuiTestHarnessServer() { Shutdown(); }
+  ~ImGuiTestHarnessServer();  // Defined in .cc file to allow incomplete type deletion
 
   // Disable copy and move
   ImGuiTestHarnessServer(const ImGuiTestHarnessServer&) = delete;
@@ -99,6 +102,7 @@ class ImGuiTestHarnessServer {
 
   std::unique_ptr<grpc::Server> server_;
   std::unique_ptr<ImGuiTestHarnessServiceImpl> service_;
+  std::unique_ptr<ImGuiTestHarnessServiceGrpc> grpc_service_;
   int port_ = 0;
 };
 

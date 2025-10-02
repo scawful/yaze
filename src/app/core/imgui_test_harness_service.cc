@@ -208,6 +208,10 @@ ImGuiTestHarnessServer& ImGuiTestHarnessServer::Instance() {
   return *instance;
 }
 
+ImGuiTestHarnessServer::~ImGuiTestHarnessServer() {
+  Shutdown();
+}
+
 absl::Status ImGuiTestHarnessServer::Start(int port) {
   if (server_) {
     return absl::FailedPreconditionError("Server already running");
@@ -216,19 +220,19 @@ absl::Status ImGuiTestHarnessServer::Start(int port) {
   // Create the service implementation
   service_ = std::make_unique<ImGuiTestHarnessServiceImpl>();
 
-  // Create the gRPC service wrapper
-  auto grpc_service = std::make_unique<ImGuiTestHarnessServiceGrpc>(service_.get());
+  // Create the gRPC service wrapper (store as member to prevent it from going out of scope)
+  grpc_service_ = std::make_unique<ImGuiTestHarnessServiceGrpc>(service_.get());
 
-  std::string server_address = absl::StrFormat("127.0.0.1:%d", port);
+  std::string server_address = absl::StrFormat("0.0.0.0:%d", port);
 
   grpc::ServerBuilder builder;
 
-  // Listen on localhost only (security)
+  // Listen on all interfaces (use 0.0.0.0 to avoid IPv6/IPv4 binding conflicts)
   builder.AddListeningPort(server_address,
                            grpc::InsecureServerCredentials());
 
   // Register service
-  builder.RegisterService(grpc_service.get());
+  builder.RegisterService(grpc_service_.get());
 
   // Build and start
   server_ = builder.BuildAndStart();

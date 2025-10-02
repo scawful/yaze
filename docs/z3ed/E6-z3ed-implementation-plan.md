@@ -1,8 +1,12 @@
 # z3ed Agentic Workflow Implementation Plan
 
-_Last updated: 2025-10-01 (final update - Phase 6 + AW-02 complete)_
+_Last updated: 2025-10-01 (final update - Phase 6 + AW-03 + IT-01 Phase 1 complete)_
 
-This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-design.md`) into actionable engineering tasks. Each workstream contains mi**Files Modified/Created**
+> 📊 **Quick Reference**: See [STATE_SUMMARY_2025-10-01.md](STATE_SUMMARY_2025-10-01.md) for a comprehensive overview of current architecture, workflows, and status.
+
+This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-design.md`) into actionable engineering tasks. Each workstream contains milestones, owners (TBD), blocking dependencies, and expected deliverables.
+
+**Files Modified/Created**
 
 **Phase 6 (Resource Catalogue)**:
 1. `src/cli/handlers/rom.cc` - Added `RomInfo::Run` implementation
@@ -21,7 +25,7 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 | Verification Pipeline | Build layered testing + CI coverage. | Phase 6+ | Integrates with harness + CLI suites. |
 | Telemetry & Learning | Capture signals to improve prompts + heuristics. | Phase 8 | Optional/opt-in features. |
 
-### Progress snapshot — 2025-10-01 (Phase 6 Complete, AW-03 Complete, IT-01 & AW-04 Active)
+### Progress snapshot — 2025-10-01 (Phase 6 Complete, AW-03 Complete, IT-01 Phase 1 Complete)
 
 **Resource Catalogue (RC)** ✅ COMPLETE:
 - CLI flag passthrough and resource catalog system operational
@@ -51,8 +55,14 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 - Proper error messages guide users to specify ROM path
 
 **Active Work (Oct 1-7, 2025)**:
-- **Priority 1**: ImGuiTestHarness (IT-01) - Design spike for IPC architecture
+- **Priority 1**: ImGuiTestHarness (IT-01) - ✅ Phase 1 Complete (gRPC tested), Phase 2 Active (ImGuiTestEngine integration)
 - **Priority 2**: Policy Evaluation (AW-04) - YAML-based constraint system
+
+**Recent Completion (Oct 1, 2025)**:
+- ✅ gRPC test harness fully operational with all 6 RPCs validated
+- ✅ Server lifecycle management (Start/Shutdown) working
+- ✅ Cross-platform build verified (macOS ARM64, gRPC v1.62.0)
+- ✅ All stub handlers returning success responses
 
 ## 2. Task Backlog
 
@@ -68,7 +78,7 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 | AW-03 | Add ImGui drawer for proposals with accept/reject controls. | Acceptance Workflow | UX | Done | ProposalDrawer GUI complete with ROM merging |
 | AW-04 | Implement policy evaluation for gating accept buttons. | Acceptance Workflow | Code | In Progress | AW-03, Priority 2 - YAML policies + PolicyEvaluator |
 | AW-05 | Draft `.z3ed-diff` hybrid schema (binary deltas + JSON metadata). | Acceptance Workflow | Design | Planned | AW-01 |
-| IT-01 | Create `ImGuiTestHarness` IPC service embedded in `yaze_test`. | ImGuiTest Bridge | Code | In Progress | Priority 1 - Design spike + IPC transport |
+| IT-01 | Create `ImGuiTestHarness` IPC service embedded in `yaze_test`. | ImGuiTest Bridge | Code | In Progress | Phase 1 Done (gRPC), Phase 2 Active (ImGuiTestEngine) |
 | IT-02 | Implement CLI agent step translation (`imgui_action` → harness call). | ImGuiTest Bridge | Code | Planned | IT-01 |
 | IT-03 | Provide synchronization primitives (`WaitForIdle`, etc.). | ImGuiTest Bridge | Code | Planned | IT-01 |
 | VP-01 | Expand CLI unit tests for new commands and sandbox flow. | Verification Pipeline | Test | Planned | RC/AW tasks |
