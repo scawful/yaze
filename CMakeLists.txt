@@ -55,6 +55,9 @@ option(YAZE_ENABLE_EXPERIMENTAL_TESTS "Enable experimental/unstable tests" ON)
 option(YAZE_ENABLE_UI_TESTS "Enable ImGui Test Engine UI testing" ON)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
 
+# Optional gRPC support for ImGuiTestHarness (z3ed agent mode)
+option(YAZE_WITH_GRPC "Enable gRPC-based ImGuiTestHarness for automated GUI testing (experimental)" OFF)
+
 # Configure minimal builds for CI/CD
 if(YAZE_MINIMAL_BUILD)
   set(YAZE_ENABLE_UI_TESTS OFF CACHE BOOL "Disabled for minimal build" FORCE)
@@ -183,6 +186,24 @@ endif()
 
 # Abseil Standard Specifications
 include(cmake/absl.cmake)
+
+# Optional gRPC support
+if(YAZE_WITH_GRPC)
+  message(STATUS "✓ gRPC support enabled (FetchContent will download and build from source)")
+  message(STATUS "  Note: First build takes 15-20 minutes to compile gRPC + Protobuf")
+  message(STATUS "  Versions: gRPC v1.62.0, Protobuf (bundled), Abseil (bundled)")
+  
+  # Include existing gRPC infrastructure
+  include(cmake/grpc.cmake)
+  
+  # Pass to source code
+  add_compile_definitions(YAZE_WITH_GRPC)
+  
+  set(YAZE_HAS_GRPC TRUE)
+else()
+  message(STATUS "○ gRPC support disabled (set -DYAZE_WITH_GRPC=ON to enable)")
+  set(YAZE_HAS_GRPC FALSE)
+endif()
 
 # SDL2 and PNG
 include(cmake/sdl2.cmake)

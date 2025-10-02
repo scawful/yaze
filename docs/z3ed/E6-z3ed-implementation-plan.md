@@ -88,35 +88,39 @@ _Status Legend: Prototype · In Progress · Planned · Blocked · Done_
    - Test Reject and Delete actions
    - Validate filtering and refresh functionality
 
-### Priority 1: ImGuiTestHarness Foundation (IT-01, 6-8 hours) 🔥 NEW PRIORITY
-**Rationale**: Required for automated GUI testing and remote control of YAZE for AI workflows
+### Priority 1: ImGuiTestHarness Foundation (IT-01, 10-14 hours) 🔥 ACTIVE
+**Rationale**: Required for automated GUI testing and remote control of YAZE for AI workflows  
+**Decision**: ✅ **Use gRPC** - Production-grade, cross-platform, type-safe (see `docs/IT-01-grpc-evaluation.md`)
 
-2. **DESIGN SPIKE**: ImGuiTestHarness Architecture
-   - Evaluate IPC transport options:
-     - **Socket/Unix Domain Socket**: Low overhead, platform-specific
-     - **HTTP/REST**: Universal, easier debugging, more overhead
-     - **Shared Memory**: Fastest, most complex
-     - **stdin/stdout pipe**: Simplest, limited to synchronous calls
-   - Decision criteria: cross-platform support, latency, debugging ease
-   - Prototype preferred approach with simple "click button" test
+2. **SETUP**: Add gRPC to build system (1-2 hours)
+   - Add gRPC + Protobuf to vcpkg.json
+   - Update CMakeLists.txt with conditional gRPC support
+   - Test build on macOS with `YAZE_WITH_GRPC=ON`
+   - Verify protobuf code generation works
 
-3. **IMPLEMENT**: Basic IPC Service
-   - Embed IPC listener in `yaze_test` or main `yaze` binary (conditional compile)
-   - Protocol: JSON-RPC style commands (click, type, wait, assert)
-   - Security: localhost-only, optional shared secret
-   - Example commands:
-     ```json
-     {"cmd": "click", "target": "button:Open ROM"}
-     {"cmd": "type", "target": "input:filename", "value": "zelda3.sfc"}
-     {"cmd": "wait", "condition": "window_visible:Overworld Editor"}
-     {"cmd": "assert", "condition": "color_at:100,200", "value": "#FF0000"}
-     ```
+3. **PROTOTYPE**: Minimal gRPC service (2-3 hours)
+   - Define basic .proto with Ping, Click operations
+   - Implement `ImGuiTestHarnessServiceImpl::Ping()`
+   - Implement `ImGuiTestHarnessServer` singleton
+   - Test with grpcurl: `grpcurl -d '{"message":"hello"}' localhost:50051 ...`
 
-4. **INTEGRATE**: CLI Agent Translation Layer
-   - `z3ed agent test` generates ImGui action sequences
-   - Translates natural language → test commands → IPC calls
-   - Example: "open overworld editor" → `click(menu:Editors→Overworld)`
-   - Capture screenshots for LLM feedback loop
+4. **IMPLEMENT**: Core Operations (4-6 hours)
+   - Complete .proto schema (Click, Type, Wait, Assert, Screenshot)
+   - Implement all RPC handlers with ImGuiTestEngine integration
+   - Add target parsing ("button:Open ROM" → widget lookup)
+   - Error handling and timeout support
+
+5. **INTEGRATE**: CLI Client (2-3 hours)
+   - `z3ed agent test --prompt "..."` generates gRPC calls
+   - AI translates natural language → ImGui actions → RPC requests
+   - Capture screenshots for LLM feedback
+   - Example: "open overworld editor" → `Click(target="menu:Editors→Overworld")`
+
+6. **WINDOWS TESTING**: Cross-platform verification (2-3 hours)
+   - Create detailed Windows build instructions (vcpkg setup)
+   - Test on Windows VM or with contributor
+   - Add Windows CI job to GitHub Actions
+   - Document troubleshooting for common Windows issues
 
 ### Priority 2: Policy Evaluation Framework (AW-04, 4-6 hours)
 5. **DESIGN**: YAML-based Policy Configuration
