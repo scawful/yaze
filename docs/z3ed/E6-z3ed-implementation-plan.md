@@ -5,18 +5,19 @@
 - **Priority 1**: Complete E2E Validation by implementing identified fixes for window detection and thread safety.
 - **Priority 2**: Begin Policy Evaluation Framework (AW-04) - a YAML-based constraint system for proposal acceptance.
 
-**Recent Accomplishments**:
-- **gRPC Test Harness (IT-01 & IT-02)**: Core implementation of all 6 RPCs (Ping, Click, Type, Wait, Assert, Screenshot) is complete, enabling automated GUI testing from natural language prompts.
-- **Root Cause Analysis**: Identified key sources of test flakiness, including a window-creation timing issue and a thread-safety bug in RPC handlers. Solutions have been designed.
-- **Build System**: Hardened the CMake build for reliable gRPC integration.
-- **Proposal Workflow**: The agentic proposal system (create, list, diff, review in GUI) is fully operational.
+**Recent Accomplishments** (Updated: October 2, 2025):
+- **✅ E2E Validation Complete**: All 5 functional RPC tests passing (Ping, Click, Type, Wait, Assert)
+  - Window detection timing issue **resolved** with 10-frame yield buffer in Wait RPC
+  - Thread safety issues **resolved** with shared_ptr state management
+  - Test harness validated on macOS ARM64 with real YAZE GUI interactions
+- **gRPC Test Harness (IT-01 & IT-02)**: Full implementation complete with natural language → GUI testing
+- **Build System**: Hardened CMake configuration with reliable gRPC integration
+- **Proposal Workflow**: Agentic proposal system fully operational (create, list, diff, review in GUI)
 
-**Known Issues**:
-- **Test Flakiness**: The e2e test script (`test_harness_e2e.sh`) is flaky due to a timing issue where `Click` actions that open new windows return before the window is interactable.
-  - **Solution**: The `Click` RPC handler must call `ctx->Yield()` after performing the click to allow the ImGui frame to update before the RPC returns.
-- **RPC Handler Crashes**: The `Wait` and `Assert` RPCs can crash due to unsafe state sharing between the gRPC thread and the test engine thread.
-  - **Solution**: A thread-safe pattern using a `std::shared_ptr` to a state struct must be implemented for these handlers.
-- **Screenshot RPC**: The Screenshot RPC is a non-functional stub.
+**Known Limitations** (Non-Blocking):
+- **Screenshot RPC**: Stub implementation (returns "not implemented" - planned for production phase)
+- **Widget Naming**: Documentation needed for icon prefixes and naming conventions
+- **Performance**: Tests add ~166ms per Wait call due to frame yielding (acceptable trade-off)
 
 **Time Investment**: 20.5 hours total (IT-01: 11h, IT-02: 7.5h, Docs: 2h)on Plan
 
@@ -216,7 +217,7 @@ This plan decomposes the design additions into actionable engineering tasks. Eac
 | IT-01 | Create `ImGuiTestHarness` IPC service embedded in `yaze_test`. | ImGuiTest Bridge | Code | ✅ Done | Phase 1+2+3 Complete - Full GUI automation with gRPC + ImGuiTestEngine (11 hours) |
 | IT-02 | Implement CLI agent step translation (`imgui_action` → harness call). | ImGuiTest Bridge | Code | ✅ Done | `z3ed agent test` command with natural language prompts (7.5 hours) |
 | IT-03 | Provide synchronization primitives (`WaitForIdle`, etc.). | ImGuiTest Bridge | Code | ✅ Done | Wait RPC with condition polling already implemented in IT-01 Phase 3 |
-| IT-04 | Complete E2E validation with real YAZE widgets | ImGuiTest Bridge | Test | 🔄 Active | IT-02, Fix window detection after menu actions (2-3 hours) |
+| IT-04 | Complete E2E validation with real YAZE widgets | ImGuiTest Bridge | Test | ✅ Done | IT-02 - All 5 functional tests passing, window detection fixed with yield buffer |
 | VP-01 | Expand CLI unit tests for new commands and sandbox flow. | Verification Pipeline | Test | 📋 Planned | RC/AW tasks |
 | VP-02 | Add harness integration tests with replay scripts. | Verification Pipeline | Test | 📋 Planned | IT tasks |
 | VP-03 | Create CI job running agent smoke tests with `YAZE_WITH_JSON`. | Verification Pipeline | Infra | 📋 Planned | VP-01, VP-02 |
