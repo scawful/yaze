@@ -2,22 +2,74 @@
 
 YAZE uses CMake 3.16+ with modern target-based configuration. The project includes comprehensive Windows support with Visual Studio integration, vcpkg package management, and automated setup scripts.
 
+## ⚡ Build Environment Verification
+
+**Before building for the first time, run the verification script to ensure your environment is properly configured:**
+
+### Windows (PowerShell)
+```powershell
+.\scripts\verify-build-environment.ps1
+
+# With automatic fixes
+.\scripts\verify-build-environment.ps1 -FixIssues
+
+# Clean CMake cache
+.\scripts\verify-build-environment.ps1 -CleanCache
+
+# Verbose output
+.\scripts\verify-build-environment.ps1 -Verbose
+```
+
+### macOS/Linux
+```bash
+./scripts/verify-build-environment.sh
+
+# With automatic fixes
+./scripts/verify-build-environment.sh --fix
+
+# Clean CMake cache
+./scripts/verify-build-environment.sh --clean
+
+# Verbose output
+./scripts/verify-build-environment.sh --verbose
+```
+
+**The verification script checks:**
+- ✓ CMake 3.16+ installation
+- ✓ Git and submodule synchronization
+- ✓ C++ compiler (GCC 13+, Clang 16+, MSVC 2019+)
+- ✓ Platform-specific dependencies (GTK+3 on Linux, Xcode on macOS)
+- ✓ CMake cache freshness
+- ✓ Dependency compatibility (gRPC, httplib, nlohmann/json)
+- ✓ Visual Studio 2022 detection (Windows only)
+
 ## Quick Start
 
 ### macOS (Apple Silicon)
 ```bash
+# Verify environment first
+./scripts/verify-build-environment.sh
+
+# Build
 cmake --preset debug
 cmake --build build
 ```
 
 ### Linux
 ```bash
+# Verify environment first
+./scripts/verify-build-environment.sh
+
+# Build
 cmake -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
 ```
 
 ### Windows (Visual Studio CMake Workflow)
 ```powershell
+# Verify environment first
+.\scripts\verify-build-environment.ps1
+
 # Recommended: Use Visual Studio's built-in CMake support
 # 1. Open Visual Studio 2022
 # 2. Select "Open a local folder" 
@@ -44,10 +96,43 @@ cmake --build build
 - C++23 compiler (GCC 13+, Clang 16+, MSVC 2019+)
 - Git with submodule support
 
-### Bundled Libraries
-- SDL2, ImGui, Abseil, Asar, GoogleTest
-- Native File Dialog Extended (NFD)
-- All dependencies included in repository
+### Bundled Libraries (Header-Only & Source)
+**Core Libraries:**
+- **SDL2** - Graphics and input handling
+- **ImGui** - Immediate mode GUI framework
+- **Abseil** - Google's C++ standard library extensions
+- **Asar** - 65816 assembler for SNES
+- **GoogleTest** - C++ testing framework
+
+**Third-Party Header-Only Libraries:**
+- **nlohmann/json** (third_party/json) - Modern C++ JSON library
+- **cpp-httplib** (third_party/httplib) - HTTP client/server library
+
+**Optional Libraries:**
+- **Native File Dialog Extended (NFD)** - Native file dialogs (excluded in minimal builds)
+- **gRPC** - Remote procedure call framework (optional, disabled by default)
+
+### Dependency Isolation
+
+YAZE uses careful dependency isolation to prevent conflicts:
+
+**gRPC Configuration (when enabled with -DYAZE_WITH_GRPC=ON):**
+- Uses FetchContent to build from source
+- Isolated from system protobuf/abseil installations
+- Automatically disables system package detection
+- Compatible with Clang 18 and C++23
+
+**Header-Only Libraries:**
+- nlohmann/json and cpp-httplib are header-only
+- No linking required, zero binary conflicts
+- Included via git submodules in third_party/
+
+**Submodule Management:**
+All dependencies are included as git submodules for:
+- ✅ Version consistency across all platforms
+- ✅ No external package manager required
+- ✅ Reproducible builds
+- ✅ Offline development capability
 
 ## Platform Setup
 
@@ -396,6 +481,66 @@ All Windows CI/CD builds include automatic fallback mechanisms:
 - x64 (64-bit)
 
 ## Troubleshooting
+
+### Build Environment Issues
+
+**CMake Configuration Fails:**
+```bash
+# Run verification script to diagnose
+./scripts/verify-build-environment.sh --verbose
+
+# Common fixes
+git submodule update --init --recursive
+./scripts/verify-build-environment.sh --clean --fix
+```
+
+**Git Submodules Missing or Out of Sync:**
+```bash
+# Sync and update all submodules
+git submodule sync --recursive
+git submodule update --init --recursive
+
+# Verify submodules are present
+./scripts/verify-build-environment.sh
+```
+
+**Old CMake Cache Causing Issues:**
+```bash
+# Clean cache with verification script
+./scripts/verify-build-environment.sh --clean
+
+# Or manually
+rm -rf build build_test build-grpc-test
+cmake -B build -DCMAKE_BUILD_TYPE=Debug
+```
+
+### Dependency Conflicts
+
+**gRPC Conflicts with System Packages:**
+The project automatically isolates gRPC (when enabled) from system packages:
+- `CMAKE_DISABLE_FIND_PACKAGE_Protobuf=TRUE`
+- `CMAKE_DISABLE_FIND_PACKAGE_absl=TRUE`
+- gRPC builds its own protobuf and abseil
+
+**If you see protobuf/abseil version conflicts:**
+```bash
+# Verify isolation is configured
+grep CMAKE_DISABLE_FIND_PACKAGE cmake/grpc.cmake
+
+# Clean and reconfigure
+./scripts/verify-build-environment.sh --clean --fix
+```
+
+**httplib or nlohmann/json Missing:**
+These are header-only libraries in git submodules:
+```bash
+# Update submodules
+git submodule update --init third_party/json third_party/httplib
+
+# Verify
+ls -la third_party/json/include/
+ls -la third_party/httplib/httplib.h
+```
 
 ### Windows CMake Issues
 
