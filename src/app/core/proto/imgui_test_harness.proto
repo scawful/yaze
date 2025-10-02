@@ -30,6 +30,11 @@ service ImGuiTestHarness {
 
   // Widget discovery API (IT-06)
   rpc DiscoverWidgets(DiscoverWidgetsRequest) returns (DiscoverWidgetsResponse);
+
+  // Test recording & replay (IT-07)
+  rpc StartRecording(StartRecordingRequest) returns (StartRecordingResponse);
+  rpc StopRecording(StopRecordingRequest) returns (StopRecordingResponse);
+  rpc ReplayTest(ReplayTestRequest) returns (ReplayTestResponse);
 }
 
 // ============================================================================
@@ -231,11 +236,16 @@ message AssertionResult {
 // ============================================================================
 
 message DiscoverWidgetsRequest {
-  string window_filter = 1;   // Optional: Limit to a window name (case-insensitive)
-  WidgetType type_filter = 2; // Optional: Limit to widget type
-  string path_prefix = 3;     // Optional: Require widget path to start with prefix
-  bool include_invisible = 4; // Include widgets that are currently not visible
-  bool include_disabled = 5;  // Include widgets that are currently disabled
+  // Optional: Limit to a window name (case-insensitive)
+  string window_filter = 1;
+  // Optional: Limit to widget type
+  WidgetType type_filter = 2;
+  // Optional: Require widget path to start with prefix
+  string path_prefix = 3;
+  // Include widgets that are currently not visible
+  bool include_invisible = 4;
+  // Include widgets that are currently disabled
+  bool include_disabled = 5;
 }
 
 enum WidgetType {
@@ -260,11 +270,16 @@ message WidgetBounds {
 }
 
 message DiscoveredWidget {
-  string path = 1;              // Full hierarchical path (e.g. Overworld/Toolset/button:Pan)
-  string label = 2;             // Human-readable label (e.g. Pan)
-  string type = 3;              // Widget type string (button, input, ...)
-  string description = 4;       // Description provided by registry (if any)
-  string suggested_action = 5;  // Suggested action for automation (e.g. "Click button:Pan")
+  // Full hierarchical path (e.g. Overworld/Toolset/button:Pan)
+  string path = 1;
+  // Human-readable label (e.g. Pan)
+  string label = 2;
+  // Widget type string (button, input, ...)
+  string type = 3;
+  // Description provided by registry (if any)
+  string description = 4;
+  // Suggested action for automation (e.g. "Click button:Pan")
+  string suggested_action = 5;
   bool visible = 6;             // Currently visible in UI
   bool enabled = 7;             // Currently enabled for interaction
   WidgetBounds bounds = 8;      // Bounding rectangle in screen coordinates
@@ -272,13 +287,61 @@ message DiscoveredWidget {
 }
 
 message DiscoveredWindow {
-  string name = 1;                      // Window name (first segment of path)
-  bool visible = 2;                     // Whether the window is currently visible
-  repeated DiscoveredWidget widgets = 3;  // Widgets contained in this window
+  // Window name (first segment of path)
+  string name = 1;
+  // Whether the window is currently visible
+  bool visible = 2;
+  // Widgets contained in this window
+  repeated DiscoveredWidget widgets = 3;
 }
 
 message DiscoverWidgetsResponse {
   repeated DiscoveredWindow windows = 1;
   int32 total_widgets = 2;              // Total number of widgets returned
   int64 generated_at_ms = 3;            // Snapshot timestamp (Unix ms)
+}
+
+// ============================================================================
+// Test Recording & Replay (IT-07)
+// ============================================================================
+
+message StartRecordingRequest {
+  string output_path = 1;     // Where to store the JSON script
+  string session_name = 2;    // Optional friendly name for the recording
+  string description = 3;     // Optional description stored alongside metadata
+}
+
+message StartRecordingResponse {
+  bool success = 1;
+  string message = 2;
+  string recording_id = 3;    // Identifier required when stopping
+  int64 started_at_ms = 4;
+}
+
+message StopRecordingRequest {
+  string recording_id = 1;    // Recording session to stop
+  bool discard = 2;           // If true, delete steps instead of writing file
+}
+
+message StopRecordingResponse {
+  bool success = 1;
+  string message = 2;
+  string output_path = 3;     // Final location of saved script (if any)
+  int32 step_count = 4;       // Total steps captured during session
+  int64 duration_ms = 5;      // Duration of the recording session
+}
+
+message ReplayTestRequest {
+  string script_path = 1;                      // Path to JSON script
+  bool ci_mode = 2;                            // Suppress interactive prompts
+  map<string, string> parameter_overrides = 3; // Optional parameter overrides
+}
+
+message ReplayTestResponse {
+  bool success = 1;
+  string message = 2;
+  string replay_session_id = 3;
+  int32 steps_executed = 4;
+  repeated AssertionResult assertions = 5;  // Aggregated assertion outcomes
+  repeated string logs = 6;                 // Replay log entries
 }

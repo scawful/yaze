@@ -8,6 +8,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/core/test_recorder.h"
 #include "app/core/widget_discovery_service.h"
 
 // Include grpcpp headers for unique_ptr<Server> in member variable
@@ -45,6 +46,12 @@ class GetTestResultsRequest;
 class GetTestResultsResponse;
 class DiscoverWidgetsRequest;
 class DiscoverWidgetsResponse;
+class StartRecordingRequest;
+class StartRecordingResponse;
+class StopRecordingRequest;
+class StopRecordingResponse;
+class ReplayTestRequest;
+class ReplayTestResponse;
 
 // Implementation of ImGuiTestHarness gRPC service
 // This class provides the actual RPC handlers for automated GUI testing
@@ -52,7 +59,7 @@ class ImGuiTestHarnessServiceImpl {
  public:
   // Constructor now takes TestManager reference for ImGuiTestEngine access
   explicit ImGuiTestHarnessServiceImpl(TestManager* test_manager)
-      : test_manager_(test_manager) {}
+    : test_manager_(test_manager), test_recorder_(test_manager) {}
   ~ImGuiTestHarnessServiceImpl() = default;
 
   // Disable copy and move
@@ -90,10 +97,17 @@ class ImGuiTestHarnessServiceImpl {
                               GetTestResultsResponse* response);
   absl::Status DiscoverWidgets(const DiscoverWidgetsRequest* request,
                                DiscoverWidgetsResponse* response);
+  absl::Status StartRecording(const StartRecordingRequest* request,
+                              StartRecordingResponse* response);
+  absl::Status StopRecording(const StopRecordingRequest* request,
+                             StopRecordingResponse* response);
+  absl::Status ReplayTest(const ReplayTestRequest* request,
+                          ReplayTestResponse* response);
 
  private:
   TestManager* test_manager_;  // Non-owning pointer to access ImGuiTestEngine
   WidgetDiscoveryService widget_discovery_service_;
+  TestRecorder test_recorder_;
 };
 
 // Forward declaration of the gRPC service wrapper
