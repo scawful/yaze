@@ -28,6 +28,12 @@ void RunDynamicTest(ImGuiTestContext* ctx) {
     data->test_func(ctx);
   }
 }
+
+// Helper to check if a test has completed (not queued or running)
+bool IsTestCompleted(ImGuiTest* test) {
+  return test->Output.Status != ImGuiTestStatus_Queued &&
+         test->Output.Status != ImGuiTestStatus_Running;
+}
 }  // namespace
 #endif
 
@@ -202,7 +208,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
     }
   };
 
-  // Register and queue the test
+  // Register the test
   std::string test_name = absl::StrFormat("grpc_click_%lld", 
       std::chrono::system_clock::now().time_since_epoch().count());
   
@@ -210,31 +216,37 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   test->TestFunc = RunDynamicTest;
   test->UserData = test_data.get();
   
+  // Queue test for async execution
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
   
-  // Wait for test to complete (with timeout)
+  // Poll for test completion (with timeout)
   auto timeout = std::chrono::seconds(5);
   auto wait_start = std::chrono::steady_clock::now();
-  while (test->Output.Status == ImGuiTestStatus_Queued || test->Output.Status == ImGuiTestStatus_Running) {
+  while (!IsTestCompleted(test)) {
     if (std::chrono::steady_clock::now() - wait_start > timeout) {
       success = false;
-      message = "Test timeout";
+      message = "Test timeout - widget not found or unresponsive";
       break;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    // Yield to allow ImGui event processing
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   
-  if (test->Output.Status == ImGuiTestStatus_Success) {
-    success = true;
-  } else if (test->Output.Status != ImGuiTestStatus_Unknown) {
-    success = false;
-    if (message.empty()) {
-      message = "Test failed";
+  // Check final test status
+  if (IsTestCompleted(test)) {
+    if (test->Output.Status == ImGuiTestStatus_Success) {
+      success = true;
+    } else {
+      success = false;
+      if (message.empty()) {
+        message = absl::StrFormat("Test failed with status: %d", 
+                                  test->Output.Status);
+      }
     }
   }
   
-  // Cleanup
-  ImGuiTestEngine_UnregisterTest(engine, test);
+  // Note: Test cleanup will be handled by ImGuiTestEngine's FinishTests()
+  // Do NOT call ImGuiTestEngine_UnregisterTest() here - it causes assertion failure
 
 #else
   // ImGuiTestEngine not available - stub implementation
@@ -339,7 +351,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
     }
   };
 
-  // Register and queue the test
+  // Register the test
   std::string test_name = absl::StrFormat("grpc_type_%lld", 
       std::chrono::system_clock::now().time_since_epoch().count());
   
@@ -347,31 +359,37 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
   test->TestFunc = RunDynamicTest;
   test->UserData = test_data.get();
   
+  // Queue test for async execution
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
   
-  // Wait for test to complete (with timeout)
+  // Poll for test completion (with timeout)
   auto timeout = std::chrono::seconds(5);
   auto wait_start = std::chrono::steady_clock::now();
-  while (test->Output.Status == ImGuiTestStatus_Queued || test->Output.Status == ImGuiTestStatus_Running) {
+  while (!IsTestCompleted(test)) {
     if (std::chrono::steady_clock::now() - wait_start > timeout) {
       success = false;
-      message = "Test timeout";
+      message = "Test timeout - input field not found or unresponsive";
       break;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    // Yield to allow ImGui event processing
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   
-  if (test->Output.Status == ImGuiTestStatus_Success) {
-    success = true;
-  } else if (test->Output.Status != ImGuiTestStatus_Unknown) {
-    success = false;
-    if (message.empty()) {
-      message = "Test failed";
+  // Check final test status
+  if (IsTestCompleted(test)) {
+    if (test->Output.Status == ImGuiTestStatus_Success) {
+      success = true;
+    } else {
+      success = false;
+      if (message.empty()) {
+        message = absl::StrFormat("Test failed with status: %d", 
+                                  test->Output.Status);
+      }
     }
   }
   
-  // Cleanup
-  ImGuiTestEngine_UnregisterTest(engine, test);
+  // Note: Test cleanup will be handled by ImGuiTestEngine's FinishTests()
+  // Do NOT call ImGuiTestEngine_UnregisterTest() here - it causes assertion failure
 
 #else
   // ImGuiTestEngine not available - stub implementation
@@ -479,7 +497,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
     }
   };
 
-  // Register and queue the test
+  // Register the test
   std::string test_name = absl::StrFormat("grpc_wait_%lld", 
       std::chrono::system_clock::now().time_since_epoch().count());
   
@@ -487,31 +505,37 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   test->TestFunc = RunDynamicTest;
   test->UserData = test_data.get();
   
+  // Queue test for async execution
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
   
-  // Wait for test to complete (with extended timeout for the wait itself)
+  // Poll for test completion (with extended timeout for the wait itself)
   auto extended_timeout = std::chrono::milliseconds(timeout_ms + 5000);
   auto wait_start = std::chrono::steady_clock::now();
-  while (test->Output.Status == ImGuiTestStatus_Queued || test->Output.Status == ImGuiTestStatus_Running) {
+  while (!IsTestCompleted(test)) {
     if (std::chrono::steady_clock::now() - wait_start > extended_timeout) {
       condition_met = false;
       message = "Test execution timeout";
       break;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    // Yield to allow ImGui event processing
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   
-  if (test->Output.Status == ImGuiTestStatus_Success) {
-    // Status already set by test function
-  } else if (test->Output.Status != ImGuiTestStatus_Unknown) {
-    condition_met = false;
-    if (message.empty()) {
-      message = "Test failed";
+  // Check final test status
+  if (IsTestCompleted(test)) {
+    if (test->Output.Status == ImGuiTestStatus_Success) {
+      // Status already set by test function
+    } else {
+      condition_met = false;
+      if (message.empty()) {
+        message = absl::StrFormat("Test failed with status: %d", 
+                                  test->Output.Status);
+      }
     }
   }
   
-  // Cleanup
-  ImGuiTestEngine_UnregisterTest(engine, test);
+  // Note: Test cleanup will be handled by ImGuiTestEngine's FinishTests()
+  // Do NOT call ImGuiTestEngine_UnregisterTest() here - it causes assertion failure
 
 #else
   // ImGuiTestEngine not available - stub implementation
@@ -661,7 +685,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
     }
   };
 
-  // Register and queue the test
+  // Register the test
   std::string test_name = absl::StrFormat("grpc_assert_%lld", 
       std::chrono::system_clock::now().time_since_epoch().count());
   
@@ -669,33 +693,39 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   test->TestFunc = RunDynamicTest;
   test->UserData = test_data.get();
   
+  // Queue test for async execution
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
   
-  // Wait for test to complete (with timeout)
+  // Poll for test completion (with timeout)
   auto timeout = std::chrono::seconds(5);
   auto wait_start = std::chrono::steady_clock::now();
-  while (test->Output.Status == ImGuiTestStatus_Queued || test->Output.Status == ImGuiTestStatus_Running) {
+  while (!IsTestCompleted(test)) {
     if (std::chrono::steady_clock::now() - wait_start > timeout) {
       assertion_passed = false;
-      message = "Test timeout";
+      message = "Test timeout - assertion check timed out";
       actual_value = "timeout";
       expected_value = "N/A";
       break;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    // Yield to allow ImGui event processing
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   
-  if (test->Output.Status == ImGuiTestStatus_Success) {
-    // Status already set by test function
-  } else if (test->Output.Status != ImGuiTestStatus_Unknown) {
-    assertion_passed = false;
-    if (message.empty()) {
-      message = "Test failed";
+  // Check final test status
+  if (IsTestCompleted(test)) {
+    if (test->Output.Status == ImGuiTestStatus_Success) {
+      // Status already set by test function
+    } else {
+      assertion_passed = false;
+      if (message.empty()) {
+        message = absl::StrFormat("Test failed with status: %d", 
+                                  test->Output.Status);
+      }
     }
   }
   
-  // Cleanup
-  ImGuiTestEngine_UnregisterTest(engine, test);
+  // Note: Test cleanup will be handled by ImGuiTestEngine's FinishTests()
+  // Do NOT call ImGuiTestEngine_UnregisterTest() here - it causes assertion failure
 
 #else
   // ImGuiTestEngine not available - stub implementation
