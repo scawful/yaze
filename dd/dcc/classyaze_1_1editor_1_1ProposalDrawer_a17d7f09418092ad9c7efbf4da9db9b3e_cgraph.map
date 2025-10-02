@@ -1,5 +1,10 @@
 <map id="yaze::editor::ProposalDrawer::DrawProposalDetail" name="yaze::editor::ProposalDrawer::DrawProposalDetail">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,189,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,189,79"/>
 <area shape="rect" id="Node000002" href="$dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a5608c12dc598b8a336b7e49d02e197ab" title=" " alt="" coords="237,5,420,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,23,221,23,221,28,189,28"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,43,221,38,221,44,189,48"/>
+<area shape="rect" id="Node000004" href="$dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1d14311464dc64aa00c8f56ba83a22b1" title=" " alt="" coords="237,71,420,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="189,69,221,74,221,79,188,74"/>
+<area shape="rect" id="Node000003" href="$d5/d67/classyaze_1_1cli_1_1PolicyEvaluator.html#a55e6ffff6b2ba3c3e98bbdbbcd6d7d1b" title=" " alt="" coords="468,39,629,79"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="420,37,453,42,452,47,420,42"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="420,75,452,70,453,76,420,80"/>
 </map>

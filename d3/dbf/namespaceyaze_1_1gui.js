@@ -37,6 +37,8 @@ var namespaceyaze_1_1gui =
     [ "TextBox", "d5/d66/structyaze_1_1gui_1_1TextBox.html", "d5/d66/structyaze_1_1gui_1_1TextBox" ],
     [ "ThemeManager", "d3/d27/classyaze_1_1gui_1_1ThemeManager.html", "d3/d27/classyaze_1_1gui_1_1ThemeManager" ],
     [ "UnsortedAsset", "d5/dc4/structyaze_1_1gui_1_1UnsortedAsset.html", "d5/dc4/structyaze_1_1gui_1_1UnsortedAsset" ],
+    [ "WidgetIdRegistry", "d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html", "d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry" ],
+    [ "WidgetIdScope", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope.html", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope" ],
     [ "CanvasConfig", "d3/dbf/namespaceyaze_1_1gui.html#a32b7e27e5f89cae86628531480b524bf", null ],
     [ "CanvasSelection", "d3/dbf/namespaceyaze_1_1gui.html#ac8e038b350474c4d9db26d3a88e90afb", null ],
     [ "CanvasPaletteManager", "d3/dbf/namespaceyaze_1_1gui.html#af22a4185c96c877ef11d03856e2d0c3b", null ],

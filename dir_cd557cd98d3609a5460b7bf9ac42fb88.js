@@ -6,6 +6,8 @@ var dir_cd557cd98d3609a5460b7bf9ac42fb88 =
     [ "gemini_ai_service.h", "d3/d22/gemini__ai__service_8h.html", "d3/d22/gemini__ai__service_8h" ],
     [ "gui_automation_client.cc", "dd/db4/gui__automation__client_8cc.html", null ],
     [ "gui_automation_client.h", "d1/d51/gui__automation__client_8h.html", "d1/d51/gui__automation__client_8h" ],
+    [ "policy_evaluator.cc", "d1/d57/policy__evaluator_8cc.html", "d1/d57/policy__evaluator_8cc" ],
+    [ "policy_evaluator.h", "db/dd6/policy__evaluator_8h.html", "db/dd6/policy__evaluator_8h" ],
     [ "proposal_registry.cc", "db/d01/proposal__registry_8cc.html", "db/d01/proposal__registry_8cc" ],
     [ "proposal_registry.h", "d4/d3d/proposal__registry_8h.html", "d4/d3d/proposal__registry_8h" ],
     [ "resource_catalog.cc", "d6/d24/resource__catalog_8cc.html", "d6/d24/resource__catalog_8cc" ],

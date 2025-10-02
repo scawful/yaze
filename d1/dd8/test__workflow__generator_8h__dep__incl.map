@@ -1,7 +1,5 @@
 <map id="src/cli/service/test_workflow_generator.h" name="src/cli/service/test_workflow_generator.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="103,5,254,46"/>
-<area shape="rect" id="Node000002" href="$d2/d0e/agent_8cc.html" title=" " alt="" coords="5,102,168,127"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,59,101,103,97,99,145,55"/>
-<area shape="rect" id="Node000003" href="$db/d09/test__workflow__generator_8cc.html" title=" " alt="" coords="192,94,349,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="212,55,252,92,248,96,208,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="9,5,159,46"/>
+<area shape="rect" id="Node000002" href="$db/d09/test__workflow__generator_8cc.html" title=" " alt="" coords="5,94,163,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,62,87,94,81,94,81,62"/>
 </map>

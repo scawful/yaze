@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['🔗_20quick_20links_0',['🔗 Quick Links',['../d9/d74/md_docs_2z3ed_2SESSION__SUMMARY__OCT2.html#autotoc_md1921',1,'']]]
+  ['🛠️_20ide_20integration_0',['🛠️ IDE Integration',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md371',1,'']]],
+  ['🛠️_20technical_20improvements_1',['🛠️ Technical Improvements',['../d0/d30/md_README.html#autotoc_md1445',1,'']]]
 ];

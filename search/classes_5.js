@@ -9,5 +9,6 @@ var searchData=
   ['flagsmenu_6',['FlagsMenu',['../d0/dd0/structyaze_1_1core_1_1FlagsMenu.html',1,'yaze::core']]],
   ['folderitem_7',['FolderItem',['../da/d6e/structyaze_1_1editor_1_1FolderItem.html',1,'yaze::editor']]],
   ['fontconfig_8',['FontConfig',['../d6/d2f/structyaze_1_1core_1_1FontConfig.html',1,'yaze::core']]],
-  ['fontstate_9',['FontState',['../d6/df8/structyaze_1_1core_1_1FontState.html',1,'yaze::core']]]
+  ['fontstate_9',['FontState',['../d6/df8/structyaze_1_1core_1_1FontState.html',1,'yaze::core']]],
+  ['forbiddenrange_10',['ForbiddenRange',['../d9/dbf/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ForbiddenRange.html',1,'yaze::cli::PolicyEvaluator::PolicyConfig']]]
 ];

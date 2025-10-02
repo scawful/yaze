@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['⭐_20updated_0',['E6-z3ed-implementation-plan.md ⭐ UPDATED',['../d0/d46/md_docs_2z3ed_2archive_2DOCUMENTATION__CONSOLIDATION__OCT2.html#autotoc_md1215',1,'']]]
+  ['❌_0',['DON&apos;T ❌',['../d2/db2/md_docs_2CANVAS__GUIDE.html#autotoc_md562',1,'']]]
 ];

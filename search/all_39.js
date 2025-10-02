@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['📦_20what_20was_20created_0',['📦 What Was Created',['../d9/d74/md_docs_2z3ed_2SESSION__SUMMARY__OCT2.html#autotoc_md1866',1,'']]]
+  ['🔑_20key_20files_20reference_0',['🔑 Key Files Reference',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md610',1,'']]]
 ];

@@ -170,7 +170,7 @@ $(document).ready(function(){initNavTree('dd/db4/gui__automation__client_8cc_sou
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  </div>
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = absl::StrFormat(<span class="stringliteral">&quot;Server version: %s (timestamp: %s)&quot;</span>,</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = absl::StrFormat(<span class="stringliteral">&quot;Server version: %s (timestamp: %lld)&quot;</span>,</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>                                   response.yaze_version(),</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>                                   response.timestamp_ms());</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(0);</div>
@@ -221,7 +221,7 @@ $(document).ready(function(){initNavTree('dd/db4/gui__automation__client_8cc_sou
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
 <div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
 <div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      std::stoll(response.execution_time_ms()));</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      response.execution_time_ms());</div>
 <div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  <span class="keywordflow">return</span> result;</div>
 <div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span><span class="preprocessor">#else</span></div>
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
@@ -256,7 +256,7 @@ $(document).ready(function(){initNavTree('dd/db4/gui__automation__client_8cc_sou
 <div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
 <div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
 <div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>      std::stoll(response.execution_time_ms()));</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>      response.execution_time_ms());</div>
 <div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <span class="keywordflow">return</span> result;</div>
 <div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span><span class="preprocessor">#else</span></div>
 <div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
@@ -291,7 +291,7 @@ $(document).ready(function(){initNavTree('dd/db4/gui__automation__client_8cc_sou
 <div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
 <div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
 <div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      std::stoll(response.elapsed_ms()));</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      response.elapsed_ms());</div>
 <div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>  <span class="keywordflow">return</span> result;</div>
 <div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span><span class="preprocessor">#else</span></div>
 <div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
@@ -342,32 +342,33 @@ $(document).ready(function(){initNavTree('dd/db4/gui__automation__client_8cc_sou
 <div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>  }</div>
 <div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  </div>
 <div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  yaze::test::ScreenshotRequest request;</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  request.set_region(region);</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  request.set_format(format);</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  </div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  yaze::test::ScreenshotResponse response;</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>  grpc::ClientContext context;</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  </div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  grpc::Status status = stub_-&gt;Screenshot(&amp;context, request, &amp;response);</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  </div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        absl::StrFormat(<span class="stringliteral">&quot;Screenshot RPC failed: %s&quot;</span>, status.error_message()));</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  }</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  </div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(0);</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>}</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  request.set_window_title(<span class="stringliteral">&quot;&quot;</span>);  <span class="comment">// Empty = main window</span></div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  request.set_output_path(<span class="stringliteral">&quot;/tmp/yaze_screenshot.png&quot;</span>);  <span class="comment">// Default path</span></div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  request.set_format(yaze::test::ScreenshotRequest::PNG);  <span class="comment">// Always PNG for now</span></div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  </div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>  yaze::test::ScreenshotResponse response;</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  grpc::ClientContext context;</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  </div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  grpc::Status status = stub_-&gt;Screenshot(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  </div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>        absl::StrFormat(<span class="stringliteral">&quot;Screenshot RPC failed: %s&quot;</span>, status.error_message()));</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  }</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  </div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(0);</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>}</div>
 </div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span> </div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>}  <span class="comment">// namespace cli</span></div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span> </div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>}  <span class="comment">// namespace cli</span></div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a0fd08060bebe26b42660c32d82ecdf95"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a0fd08060bebe26b42660c32d82ecdf95">yaze::cli::GuiAutomationClient::Screenshot</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Screenshot(const std::string &amp;region=&quot;full&quot;, const std::string &amp;format=&quot;PNG&quot;)</div><div class="ttdoc">Capture a screenshot.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00219">gui_automation_client.cc:219</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a12f10e1be7bc14f4f37b3a3e90ede83f"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a12f10e1be7bc14f4f37b3a3e90ede83f">yaze::cli::GuiAutomationClient::Connect</a></div><div class="ttdeci">absl::Status Connect()</div><div class="ttdoc">Connect to the test harness server.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00014">gui_automation_client.cc:14</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a1f289db5b295a546a4e944caf88e9fea"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a1f289db5b295a546a4e944caf88e9fea">yaze::cli::GuiAutomationClient::Ping</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Ping(const std::string &amp;message=&quot;ping&quot;)</div><div class="ttdoc">Check if the server is reachable and responsive.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00043">gui_automation_client.cc:43</a></div></div>

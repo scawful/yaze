@@ -72,6 +72,9 @@ var namespaceyaze_1_1cli =
     [ "PaletteExport", "da/d77/classyaze_1_1cli_1_1PaletteExport.html", "da/d77/classyaze_1_1cli_1_1PaletteExport" ],
     [ "PaletteImport", "d7/d47/classyaze_1_1cli_1_1PaletteImport.html", "d7/d47/classyaze_1_1cli_1_1PaletteImport" ],
     [ "PcToSnesCommand", "dd/d06/classyaze_1_1cli_1_1PcToSnesCommand.html", "dd/d06/classyaze_1_1cli_1_1PcToSnesCommand" ],
+    [ "PolicyEvaluator", "d5/d67/classyaze_1_1cli_1_1PolicyEvaluator.html", "d5/d67/classyaze_1_1cli_1_1PolicyEvaluator" ],
+    [ "PolicyResult", "da/d57/structyaze_1_1cli_1_1PolicyResult.html", "da/d57/structyaze_1_1cli_1_1PolicyResult" ],
+    [ "PolicyViolation", "d2/d16/structyaze_1_1cli_1_1PolicyViolation.html", "d2/d16/structyaze_1_1cli_1_1PolicyViolation" ],
     [ "ProjectBuild", "d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html", "d4/d4b/classyaze_1_1cli_1_1ProjectBuild" ],
     [ "ProjectInit", "d9/d3b/classyaze_1_1cli_1_1ProjectInit.html", "d9/d3b/classyaze_1_1cli_1_1ProjectInit" ],
     [ "ProposalRegistry", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry" ],
@@ -97,6 +100,11 @@ var namespaceyaze_1_1cli =
       [ "kRight", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2dd2b017192f8a09367d48c7648213c9", null ],
       [ "kMiddle", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2cab3199775e825c139b44e3e9ccf3cbc7e", null ],
       [ "kDouble", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca7fb3efa35444cd88d5a31dc125ca9c28", null ]
+    ] ],
+    [ "PolicySeverity", "dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16", [
+      [ "kInfo", "dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16a176a473e63c17ccdac91640c67f149bf", null ],
+      [ "kWarning", "dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16aec0da41f4e48b52c362303eb27ed5dee", null ],
+      [ "kCritical", "dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16a5a20548c220f372fc701cae6de94040b", null ]
     ] ],
     [ "TestStepType", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fce", [
       [ "kClick", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcea307b2f90e031951851ef07da7fe12144", null ],

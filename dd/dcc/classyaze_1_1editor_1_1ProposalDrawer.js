@@ -16,6 +16,7 @@ var classyaze_1_1editor_1_1ProposalDrawer =
     [ "IsVisible", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a11017f90202637a319008b327d03f2a9", null ],
     [ "DrawProposalList", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a0243612aa77d6448482d234f7624a2ef", null ],
     [ "DrawProposalDetail", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a17d7f09418092ad9c7efbf4da9db9b3e", null ],
+    [ "DrawPolicyStatus", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1d14311464dc64aa00c8f56ba83a22b1", null ],
     [ "DrawStatusFilter", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a2691990c914d19cd39cbe790817fd083", null ],
     [ "DrawActionButtons", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a5608c12dc598b8a336b7e49d02e197ab", null ],
     [ "AcceptProposal", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a083b32e7bcbfa240957522293c776603", null ],
@@ -34,6 +35,7 @@ var classyaze_1_1editor_1_1ProposalDrawer =
     [ "log_display_lines_", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1ac2a9e828f497220b4b54a424280a1c", null ],
     [ "drawer_width_", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a446577e370d4066262065174408df762", null ],
     [ "show_confirm_dialog_", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a8526feefeafa2a206f2050f5973cd4a9", null ],
+    [ "show_override_dialog_", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#aefd8bdd07453f90ca015ca427187fb11", null ],
     [ "confirm_action_", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a992105506dee8747b203e2cddefb3935", null ],
     [ "confirm_proposal_id_", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#ad0d16dd94c2edf2f6a8ccdec0420b272", null ],
     [ "rom_", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a013ae57e0f87a7c69bb125d24eda99cc", null ]

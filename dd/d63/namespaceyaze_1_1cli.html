@@ -196,6 +196,12 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d06/classyaze_1_1cli_1_1PcToSnesCommand.html">PcToSnesCommand</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a PC address to a SNES address.  <a href="../../dd/d06/classyaze_1_1cli_1_1PcToSnesCommand.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d67/classyaze_1_1cli_1_1PolicyEvaluator.html">PolicyEvaluator</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d57/structyaze_1_1cli_1_1PolicyResult.html">PolicyResult</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d16/structyaze_1_1cli_1_1PolicyViolation.html">PolicyViolation</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html">ProjectBuild</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d3b/classyaze_1_1cli_1_1ProjectInit.html">ProjectInit</a></td></tr>
@@ -251,6 +257,11 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:ad37153091199fceacd3cde06eccd7c2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of click action to perform.  <a href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2c">More...</a><br /></td></tr>
 <tr class="separator:ad37153091199fceacd3cde06eccd7c2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c9d838871edcd8b94461f8013be2b16" id="r_a0c9d838871edcd8b94461f8013be2b16"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16">PolicySeverity</a> { <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16a176a473e63c17ccdac91640c67f149bf">kInfo</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16aec0da41f4e48b52c362303eb27ed5dee">kWarning</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16a5a20548c220f372fc701cae6de94040b">kCritical</a>
+ }</td></tr>
+<tr class="separator:a0c9d838871edcd8b94461f8013be2b16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0be616999fa8e675f482f53ca1830fce" id="r_a0be616999fa8e675f482f53ca1830fce"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fce">TestStepType</a> { <br />
 &#160;&#160;<a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcea307b2f90e031951851ef07da7fe12144">kClick</a>
 , <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcead554146c5ee004ffbbf78a5acc40af0b">kType</a>
@@ -342,6 +353,35 @@ Variables</h2></td></tr>
 </table>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00026">26</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
+
+</div>
+</div>
+<a id="a0c9d838871edcd8b94461f8013be2b16" name="a0c9d838871edcd8b94461f8013be2b16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c9d838871edcd8b94461f8013be2b16">&#9670;&#160;</a></span>PolicySeverity</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16">yaze::cli::PolicySeverity</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a0c9d838871edcd8b94461f8013be2b16a176a473e63c17ccdac91640c67f149bf" name="a0c9d838871edcd8b94461f8013be2b16a176a473e63c17ccdac91640c67f149bf"></a>kInfo&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a0c9d838871edcd8b94461f8013be2b16aec0da41f4e48b52c362303eb27ed5dee" name="a0c9d838871edcd8b94461f8013be2b16aec0da41f4e48b52c362303eb27ed5dee"></a>kWarning&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a0c9d838871edcd8b94461f8013be2b16a5a20548c220f372fc701cae6de94040b" name="a0c9d838871edcd8b94461f8013be2b16a5a20548c220f372fc701cae6de94040b"></a>kCritical&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="../../db/dd6/policy__evaluator_8h_source.html#l00016">16</a> of file <a class="el" href="../../db/dd6/policy__evaluator_8h_source.html">policy_evaluator.h</a>.</p>
 
 </div>
 </div>

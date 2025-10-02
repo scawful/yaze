@@ -15,8 +15,6 @@ var searchData=
   ['graphics_5feditor_2eh_12',['graphics_editor.h',['../dc/d9b/graphics__editor_8h.html',1,'']]],
   ['graphics_5foptimizer_2ecc_13',['graphics_optimizer.cc',['../dc/db4/graphics__optimizer_8cc.html',1,'']]],
   ['graphics_5foptimizer_2eh_14',['graphics_optimizer.h',['../dd/d54/graphics__optimizer_8h.html',1,'']]],
-  ['grpc_5ftechnical_5fnotes_2emd_15',['GRPC_TECHNICAL_NOTES.md',['../d0/dc3/GRPC__TECHNICAL__NOTES_8md.html',1,'']]],
-  ['grpc_5ftest_5fsuccess_2emd_16',['GRPC_TEST_SUCCESS.md',['../da/dc2/GRPC__TEST__SUCCESS_8md.html',1,'']]],
-  ['gui_5fautomation_5fclient_2ecc_17',['gui_automation_client.cc',['../dd/db4/gui__automation__client_8cc.html',1,'']]],
-  ['gui_5fautomation_5fclient_2eh_18',['gui_automation_client.h',['../d1/d51/gui__automation__client_8h.html',1,'']]]
+  ['gui_5fautomation_5fclient_2ecc_15',['gui_automation_client.cc',['../dd/db4/gui__automation__client_8cc.html',1,'']]],
+  ['gui_5fautomation_5fclient_2eh_16',['gui_automation_client.h',['../d1/d51/gui__automation__client_8h.html',1,'']]]
 ];

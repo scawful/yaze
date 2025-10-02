@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['📚_20architecture_20review_0',['📚 Architecture Review',['../df/d63/md_docs_2z3ed_2archive_2IT-01-PHASE2-IMPLEMENTATION-GUIDE.html#autotoc_md1375',1,'']]],
-  ['📚_20documentation_20consolidated_1',['📚 Documentation (Consolidated)',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md589',1,'']]],
-  ['📚_20documentation_20updates_2',['📚 Documentation Updates',['../d9/d74/md_docs_2z3ed_2SESSION__SUMMARY__OCT2.html#autotoc_md1910',1,'']]],
-  ['📚_20references_3',['📚 References',['../df/d63/md_docs_2z3ed_2archive_2IT-01-PHASE2-IMPLEMENTATION-GUIDE.html#autotoc_md1408',1,'']]]
+  ['🔄_0',['🔄',['../d7/d42/md_docs_2z3ed_2WIDGET__ID__NEXT__ACTIONS.html#autotoc_md1430',1,'Phase 2 (Current) 🔄'],['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md785',1,'Phase 2: Integrate Components 🔄']]],
+  ['🔄_20in_20progress_1',['🔄 In Progress',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md781',1,'']]]
 ];

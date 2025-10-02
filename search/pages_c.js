@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['harness_20implementation_20complete_20✅_0',['gRPC Test Harness - Implementation Complete ✅',['../d8/d6e/md_docs_2z3ed_2archive_2GRPC__TEST__SUCCESS.html',1,'']]]
+  ['next_20actions_0',['Widget ID Refactoring - Next Actions',['../d7/d42/md_docs_2z3ed_2WIDGET__ID__NEXT__ACTIONS.html',1,'']]]
 ];

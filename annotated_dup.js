@@ -50,6 +50,9 @@ var annotated_dup =
         [ "PaletteExport", "da/d77/classyaze_1_1cli_1_1PaletteExport.html", "da/d77/classyaze_1_1cli_1_1PaletteExport" ],
         [ "PaletteImport", "d7/d47/classyaze_1_1cli_1_1PaletteImport.html", "d7/d47/classyaze_1_1cli_1_1PaletteImport" ],
         [ "PcToSnesCommand", "dd/d06/classyaze_1_1cli_1_1PcToSnesCommand.html", "dd/d06/classyaze_1_1cli_1_1PcToSnesCommand" ],
+        [ "PolicyEvaluator", "d5/d67/classyaze_1_1cli_1_1PolicyEvaluator.html", "d5/d67/classyaze_1_1cli_1_1PolicyEvaluator" ],
+        [ "PolicyResult", "da/d57/structyaze_1_1cli_1_1PolicyResult.html", "da/d57/structyaze_1_1cli_1_1PolicyResult" ],
+        [ "PolicyViolation", "d2/d16/structyaze_1_1cli_1_1PolicyViolation.html", "d2/d16/structyaze_1_1cli_1_1PolicyViolation" ],
         [ "ProjectBuild", "d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html", "d4/d4b/classyaze_1_1cli_1_1ProjectBuild" ],
         [ "ProjectInit", "d9/d3b/classyaze_1_1cli_1_1ProjectInit.html", "d9/d3b/classyaze_1_1cli_1_1ProjectInit" ],
         [ "ProposalRegistry", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry" ],
@@ -356,7 +359,9 @@ var annotated_dup =
         [ "Text", "d7/dc7/structyaze_1_1gui_1_1Text.html", "d7/dc7/structyaze_1_1gui_1_1Text" ],
         [ "TextBox", "d5/d66/structyaze_1_1gui_1_1TextBox.html", "d5/d66/structyaze_1_1gui_1_1TextBox" ],
         [ "ThemeManager", "d3/d27/classyaze_1_1gui_1_1ThemeManager.html", "d3/d27/classyaze_1_1gui_1_1ThemeManager" ],
-        [ "UnsortedAsset", "d5/dc4/structyaze_1_1gui_1_1UnsortedAsset.html", "d5/dc4/structyaze_1_1gui_1_1UnsortedAsset" ]
+        [ "UnsortedAsset", "d5/dc4/structyaze_1_1gui_1_1UnsortedAsset.html", "d5/dc4/structyaze_1_1gui_1_1UnsortedAsset" ],
+        [ "WidgetIdRegistry", "d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html", "d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry" ],
+        [ "WidgetIdScope", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope.html", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope" ]
       ] ],
       [ "test", "d4/d0a/namespaceyaze_1_1test.html", [
         [ "integration", "d3/dec/namespaceyaze_1_1test_1_1integration.html", [
