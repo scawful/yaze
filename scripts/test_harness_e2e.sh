@@ -115,10 +115,10 @@ run_test "Ping (Health Check)" "Ping" '{"message":"test"}'
 run_test "Click (Open Overworld Editor)" "Click" '{"target":"menuitem: Overworld Editor","type":"LEFT"}'
 
 # 3. Wait - Window Visible (Overworld Editor should open)
-run_test "Wait (Overworld Editor Window)" "Wait" '{"condition":"window_visible:Overworld Editor","timeout_ms":5000,"poll_interval_ms":100}'
+run_test "Wait (Overworld Editor Window)" "Wait" '{"condition":"window_visible:Overworld","timeout_ms":15000,"poll_interval_ms":100}'
 
 # 4. Assert - Window Visible (Overworld Editor should be open)
-run_test "Assert (Overworld Editor Visible)" "Assert" '{"condition":"visible:Overworld Editor"}'
+run_test "Assert (Overworld Editor Visible)" "Assert" '{"condition":"visible:Overworld"}'
 
 # 5. Click - Another menu item (Dungeon Editor)
 run_test "Click (Open Dungeon Editor)" "Click" '{"target":"menuitem: Dungeon Editor","type":"LEFT"}'

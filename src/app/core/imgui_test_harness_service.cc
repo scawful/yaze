@@ -52,6 +52,33 @@ struct WaitState {
   }
 };
 
+// Thread-safe state for Assert RPC communication
+struct AssertState {
+  std::atomic<bool> assertion_passed{false};
+  std::mutex data_mutex;
+  std::string message;
+  std::string actual_value;
+  std::string expected_value;
+  
+  void SetResult(bool passed, const std::string& msg, 
+                 const std::string& actual, const std::string& expected) {
+    std::lock_guard<std::mutex> lock(data_mutex);
+    assertion_passed.store(passed);
+    message = msg;
+    actual_value = actual;
+    expected_value = expected;
+  }
+  
+  void GetResult(bool& passed, std::string& msg, 
+                 std::string& actual, std::string& expected) {
+    std::lock_guard<std::mutex> lock(data_mutex);
+    passed = assertion_passed.load();
+    msg = message;
+    actual = actual_value;
+    expected = expected_value;
+  }
+};
+
 }  // namespace
 #endif
 
@@ -619,24 +646,24 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   std::string assertion_type = condition.substr(0, colon_pos);
   std::string assertion_target = condition.substr(colon_pos + 1);
 
-  // Create a dynamic test to check the assertion
-  bool assertion_passed = false;
-  std::string message;
-  std::string actual_value;
-  std::string expected_value;
+  // Create thread-safe shared state for communication
+  auto assert_state = std::make_shared<AssertState>();
   
   auto test_data = std::make_shared<DynamicTestData>();
-  test_data->test_func = [=, &assertion_passed, &message, &actual_value, &expected_value](ImGuiTestContext* ctx) {
+  test_data->test_func = [assert_state, assertion_type, assertion_target](ImGuiTestContext* ctx) {
     try {
+      bool passed = false;
+      std::string msg, actual, expected;
+      
       if (assertion_type == "visible") {
         // Check if window is visible
         ImGuiWindow* window = ImGui::FindWindowByName(assertion_target.c_str());
         bool is_visible = (window != nullptr && !window->Hidden);
         
-        assertion_passed = is_visible;
-        actual_value = is_visible ? "visible" : "hidden";
-        expected_value = "visible";
-        message = assertion_passed 
+        passed = is_visible;
+        actual = is_visible ? "visible" : "hidden";
+        expected = "visible";
+        msg = passed 
           ? absl::StrFormat("'%s' is visible", assertion_target)
           : absl::StrFormat("'%s' is not visible", assertion_target);
           
@@ -645,10 +672,10 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
         ImGuiTestItemInfo item = ctx->ItemInfo(assertion_target.c_str());
         bool is_enabled = (item.ID != 0 && !(item.ItemFlags & ImGuiItemFlags_Disabled));
         
-        assertion_passed = is_enabled;
-        actual_value = is_enabled ? "enabled" : "disabled";
-        expected_value = "enabled";
-        message = assertion_passed
+        passed = is_enabled;
+        actual = is_enabled ? "enabled" : "disabled";
+        expected = "enabled";
+        msg = passed
           ? absl::StrFormat("'%s' is enabled", assertion_target)
           : absl::StrFormat("'%s' is not enabled", assertion_target);
           
@@ -657,10 +684,10 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
         ImGuiTestItemInfo item = ctx->ItemInfo(assertion_target.c_str());
         bool exists = (item.ID != 0);
         
-        assertion_passed = exists;
-        actual_value = exists ? "exists" : "not found";
-        expected_value = "exists";
-        message = assertion_passed
+        passed = exists;
+        actual = exists ? "exists" : "not found";
+        expected = "exists";
+        msg = passed
           ? absl::StrFormat("'%s' exists", assertion_target)
           : absl::StrFormat("'%s' not found", assertion_target);
           
@@ -669,10 +696,11 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
         // Format: "text_contains:MyInput:ExpectedText"
         size_t second_colon = assertion_target.find(':');
         if (second_colon == std::string::npos) {
-          assertion_passed = false;
-          message = "text_contains requires format 'text_contains:target:expected_text'";
-          actual_value = "N/A";
-          expected_value = "N/A";
+          passed = false;
+          msg = "text_contains requires format 'text_contains:target:expected_text'";
+          actual = "N/A";
+          expected = "N/A";
+          assert_state->SetResult(passed, msg, actual, expected);
           return;
         }
         
@@ -684,32 +712,34 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
           // Note: Text retrieval is simplified - actual implementation may need widget-specific handling
           std::string actual_text = "(text_retrieval_not_fully_implemented)";
           
-          assertion_passed = (actual_text.find(expected_text) != std::string::npos);
-          actual_value = actual_text;
-          expected_value = absl::StrFormat("contains '%s'", expected_text);
-          message = assertion_passed
+          passed = (actual_text.find(expected_text) != std::string::npos);
+          actual = actual_text;
+          expected = absl::StrFormat("contains '%s'", expected_text);
+          msg = passed
             ? absl::StrFormat("'%s' contains '%s'", input_target, expected_text)
             : absl::StrFormat("'%s' does not contain '%s' (actual: '%s')", 
                             input_target, expected_text, actual_text);
         } else {
-          assertion_passed = false;
-          message = absl::StrFormat("Input '%s' not found", input_target);
-          actual_value = "not found";
-          expected_value = expected_text;
+          passed = false;
+          msg = absl::StrFormat("Input '%s' not found", input_target);
+          actual = "not found";
+          expected = expected_text;
         }
         
       } else {
-        assertion_passed = false;
-        message = absl::StrFormat("Unknown assertion type: %s", assertion_type);
-        actual_value = "N/A";
-        expected_value = "N/A";
+        passed = false;
+        msg = absl::StrFormat("Unknown assertion type: %s", assertion_type);
+        actual = "N/A";
+        expected = "N/A";
       }
       
+      // Store result in thread-safe state
+      assert_state->SetResult(passed, msg, actual, expected);
+      
     } catch (const std::exception& e) {
-      assertion_passed = false;
-      message = absl::StrFormat("Assertion failed: %s", e.what());
-      actual_value = "exception";
-      expected_value = "N/A";
+      assert_state->SetResult(false, 
+                             absl::StrFormat("Assertion failed: %s", e.what()),
+                             "exception", "N/A");
     }
   };
 
@@ -729,25 +759,30 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   auto wait_start = std::chrono::steady_clock::now();
   while (!IsTestCompleted(test)) {
     if (std::chrono::steady_clock::now() - wait_start > timeout) {
-      assertion_passed = false;
-      message = "Test timeout - assertion check timed out";
-      actual_value = "timeout";
-      expected_value = "N/A";
+      assert_state->SetResult(false, "Test timeout - assertion check timed out", 
+                             "timeout", "N/A");
       break;
     }
     // Yield to allow ImGui event processing
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   
+  // Read final state from thread-safe shared state
+  bool assertion_passed;
+  std::string message, actual_value, expected_value;
+  assert_state->GetResult(assertion_passed, message, actual_value, expected_value);
+  
   // Check final test status
   if (IsTestCompleted(test)) {
     if (test->Output.Status == ImGuiTestStatus_Success) {
       // Status already set by test function
     } else {
-      assertion_passed = false;
       if (message.empty()) {
-        message = absl::StrFormat("Test failed with status: %d", 
-                                  test->Output.Status);
+        assert_state->SetResult(false,
+                               absl::StrFormat("Test failed with status: %d", 
+                                              test->Output.Status),
+                               "error", "N/A");
+        assert_state->GetResult(assertion_passed, message, actual_value, expected_value);
       }
     }
   }
