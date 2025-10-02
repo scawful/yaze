@@ -248,44 +248,54 @@ Examples:
 
 ##### `agent gui discover` - Enumerate available widgets
 ```bash
-z3ed agent gui discover [--window <name>] [--type <widget_type>] [--format <json|yaml>]
+z3ed agent gui discover \
+  [--host <name>] [--port <port>] \
+  [--window <name>] [--path-prefix <path>] \
+  [--type <widget_type>] [--include-invisible] [--include-disabled] \
+  [--format <table|json>] [--limit <n>]
 
 Options:
-  --window <name>     Filter by window name (e.g. "Overworld")
-  --type <type>       Filter by widget type: button, input, menu, tab, checkbox
-  --format <format>   Output format: json or yaml (default: yaml)
+  --host <name>          Harness host (default: localhost)
+  --port <port>          Harness port (default: 50052)
+  --window <name>        Filter by window name (case-insensitive substring)
+  --path-prefix <path>   Require widget path to start with prefix
+  --type <type>          Filter widget type: button, input, menu, tab,
+                         checkbox, slider, canvas, selectable, other
+  --include-invisible    Include widgets whose parent window is hidden
+  --include-disabled     Include widgets flagged as disabled
+  --format <mode>        Output as `table` (default) or `json`
+  --limit <n>            Maximum widgets to display (useful for large UIs)
 
 Examples:
-  # Discover all widgets
+  # Discover all widgets currently registered
   z3ed agent gui discover
 
-  # Find all buttons in Overworld editor
+  # Focus on buttons inside the Overworld editor window
   z3ed agent gui discover --window "Overworld" --type button
 
-  # Get JSON for AI consumption
-  z3ed agent gui discover --format json > widgets.json
+  # Export a JSON snapshot for an automation agent (showing first 50 widgets)
+  z3ed agent gui discover --format json --limit 50 > widgets.json
 ```
 
-**Output Example**:
-```yaml
-windows:
-  - name: Main Window
-    visible: true
-    widgets:
-      - id: menu_file
-        label: File
-        type: menu
-        enabled: true
-        suggested_action: "Click menuitem: File"
-  - name: Overworld
-    visible: true
-    widgets:
-      - id: btn_save
-        label: Save
-        type: button
-        enabled: true
-        position: "10,20,100,30"
-        suggested_action: "Click button:Save"
+**Table Output Example**:
+```
+=== Widget Discovery ===
+Server: localhost:50052
+Window filter: Overworld
+Type filter: button
+Include invisible: no
+Include disabled: no
+
+Window: Overworld (visible)
+  • [button] Save
+    Path: Overworld/Toolbar/button:Save
+    Suggested: Click button:Save
+    State: visible, enabled
+    Bounds: (24.0, 64.0) → (112.0, 92.0)
+    Widget ID: 0x13fc41a2
+
+Widgets shown: 3 of 18 (truncated)
+Snapshot: 2025-01-16 19:42:05
 ```
 
 **Use Cases**:

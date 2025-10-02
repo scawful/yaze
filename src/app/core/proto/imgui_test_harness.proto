@@ -27,6 +27,9 @@ service ImGuiTestHarness {
   rpc GetTestStatus(GetTestStatusRequest) returns (GetTestStatusResponse);
   rpc ListTests(ListTestsRequest) returns (ListTestsResponse);
   rpc GetTestResults(GetTestResultsRequest) returns (GetTestResultsResponse);
+
+  // Widget discovery API (IT-06)
+  rpc DiscoverWidgets(DiscoverWidgetsRequest) returns (DiscoverWidgetsResponse);
 }
 
 // ============================================================================
@@ -221,4 +224,61 @@ message AssertionResult {
   string expected_value = 3;
   string actual_value = 4;
   string error_message = 5;
+}
+
+// ============================================================================
+// DiscoverWidgets - Enumerate discoverable GUI widgets
+// ============================================================================
+
+message DiscoverWidgetsRequest {
+  string window_filter = 1;   // Optional: Limit to a window name (case-insensitive)
+  WidgetType type_filter = 2; // Optional: Limit to widget type
+  string path_prefix = 3;     // Optional: Require widget path to start with prefix
+  bool include_invisible = 4; // Include widgets that are currently not visible
+  bool include_disabled = 5;  // Include widgets that are currently disabled
+}
+
+enum WidgetType {
+  WIDGET_TYPE_UNSPECIFIED = 0;
+  WIDGET_TYPE_ALL = 1;
+  WIDGET_TYPE_BUTTON = 2;
+  WIDGET_TYPE_INPUT = 3;
+  WIDGET_TYPE_MENU = 4;
+  WIDGET_TYPE_TAB = 5;
+  WIDGET_TYPE_CHECKBOX = 6;
+  WIDGET_TYPE_SLIDER = 7;
+  WIDGET_TYPE_CANVAS = 8;
+  WIDGET_TYPE_SELECTABLE = 9;
+  WIDGET_TYPE_OTHER = 10;
+}
+
+message WidgetBounds {
+  float min_x = 1;
+  float min_y = 2;
+  float max_x = 3;
+  float max_y = 4;
+}
+
+message DiscoveredWidget {
+  string path = 1;              // Full hierarchical path (e.g. Overworld/Toolset/button:Pan)
+  string label = 2;             // Human-readable label (e.g. Pan)
+  string type = 3;              // Widget type string (button, input, ...)
+  string description = 4;       // Description provided by registry (if any)
+  string suggested_action = 5;  // Suggested action for automation (e.g. "Click button:Pan")
+  bool visible = 6;             // Currently visible in UI
+  bool enabled = 7;             // Currently enabled for interaction
+  WidgetBounds bounds = 8;      // Bounding rectangle in screen coordinates
+  uint32 widget_id = 9;         // ImGui ID (debugging / direct access)
+}
+
+message DiscoveredWindow {
+  string name = 1;                      // Window name (first segment of path)
+  bool visible = 2;                     // Whether the window is currently visible
+  repeated DiscoveredWidget widgets = 3;  // Widgets contained in this window
+}
+
+message DiscoverWidgetsResponse {
+  repeated DiscoveredWindow windows = 1;
+  int32 total_widgets = 2;              // Total number of widgets returned
+  int64 generated_at_ms = 3;            // Snapshot timestamp (Unix ms)
 }
