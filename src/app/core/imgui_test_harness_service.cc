@@ -9,15 +9,19 @@
 #include <limits>
 #include <thread>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/base/thread_annotations.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_replace.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/core/proto/imgui_test_harness.grpc.pb.h"
 #include "app/core/proto/imgui_test_harness.pb.h"
+#include "app/core/test_script_parser.h"
 #include "app/test/test_manager.h"
 #include "yaze.h"  // For YAZE_VERSION_STRING
 
@@ -125,6 +129,136 @@ struct RPCState {
 namespace yaze {
 namespace test {
 
+namespace {
+
+std::string ClickTypeToString(ClickRequest::ClickType type) {
+  switch (type) {
+    case ClickRequest::CLICK_TYPE_RIGHT:
+      return "right";
+    case ClickRequest::CLICK_TYPE_MIDDLE:
+      return "middle";
+    case ClickRequest::CLICK_TYPE_DOUBLE:
+      return "double";
+    case ClickRequest::CLICK_TYPE_LEFT:
+    case ClickRequest::CLICK_TYPE_UNSPECIFIED:
+    default:
+      return "left";
+  }
+}
+
+ClickRequest::ClickType ClickTypeFromString(absl::string_view type) {
+  const std::string lower = absl::AsciiStrToLower(std::string(type));
+  if (lower == "right") {
+    return ClickRequest::CLICK_TYPE_RIGHT;
+  }
+  if (lower == "middle") {
+    return ClickRequest::CLICK_TYPE_MIDDLE;
+  }
+  if (lower == "double" || lower == "double_click" || lower == "dbl") {
+    return ClickRequest::CLICK_TYPE_DOUBLE;
+  }
+  return ClickRequest::CLICK_TYPE_LEFT;
+}
+
+HarnessTestStatus HarnessStatusFromString(absl::string_view status) {
+  const std::string lower = absl::AsciiStrToLower(std::string(status));
+  if (lower == "passed" || lower == "success") {
+    return HarnessTestStatus::kPassed;
+  }
+  if (lower == "failed" || lower == "fail") {
+    return HarnessTestStatus::kFailed;
+  }
+  if (lower == "timeout") {
+    return HarnessTestStatus::kTimeout;
+  }
+  if (lower == "queued") {
+    return HarnessTestStatus::kQueued;
+  }
+  if (lower == "running") {
+    return HarnessTestStatus::kRunning;
+  }
+  return HarnessTestStatus::kUnspecified;
+}
+
+const char* HarnessStatusToString(HarnessTestStatus status) {
+  switch (status) {
+    case HarnessTestStatus::kPassed:
+      return "passed";
+    case HarnessTestStatus::kFailed:
+      return "failed";
+    case HarnessTestStatus::kTimeout:
+      return "timeout";
+    case HarnessTestStatus::kQueued:
+      return "queued";
+    case HarnessTestStatus::kRunning:
+      return "running";
+    case HarnessTestStatus::kUnspecified:
+    default:
+      return "unknown";
+  }
+}
+
+std::string ApplyOverrides(
+    const std::string& value,
+    const absl::flat_hash_map<std::string, std::string>& overrides) {
+  if (overrides.empty() || value.empty()) {
+    return value;
+  }
+  std::string result = value;
+  for (const auto& [key, replacement] : overrides) {
+    const std::string placeholder = absl::StrCat("{{", key, "}}");
+    result = absl::StrReplaceAll(result, {{placeholder, replacement}});
+  }
+  return result;
+}
+
+void MaybeRecordStep(TestRecorder* recorder, TestRecorder::RecordedStep step) {
+  if (!recorder || !recorder->IsRecording()) {
+    return;
+  }
+  if (step.captured_at == absl::InfinitePast()) {
+    step.captured_at = absl::Now();
+  }
+  recorder->RecordStep(step);
+}
+
+absl::Status WaitForHarnessTestCompletion(TestManager* manager,
+                                          const std::string& test_id,
+                                          HarnessTestExecution* execution) {
+  if (!manager) {
+    return absl::FailedPreconditionError("TestManager unavailable");
+  }
+  if (test_id.empty()) {
+    return absl::InvalidArgumentError("Missing harness test identifier");
+  }
+
+  const absl::Time deadline = absl::Now() + absl::Seconds(20);
+  while (absl::Now() < deadline) {
+    absl::StatusOr<HarnessTestExecution> current =
+        manager->GetHarnessTestExecution(test_id);
+    if (!current.ok()) {
+      absl::SleepFor(absl::Milliseconds(75));
+      continue;
+    }
+
+    if (execution) {
+      *execution = std::move(current.value());
+    }
+
+    if (current->status == HarnessTestStatus::kQueued ||
+        current->status == HarnessTestStatus::kRunning) {
+      absl::SleepFor(absl::Milliseconds(75));
+      continue;
+    }
+    return absl::OkStatus();
+  }
+
+  return absl::DeadlineExceededError(absl::StrFormat(
+      "Harness test %s did not reach a terminal state", test_id));
+}
+
+}  // namespace
+
 // gRPC service wrapper that forwards to our implementation
 class ImGuiTestHarnessServiceGrpc final : public ImGuiTestHarness::Service {
  public:
@@ -185,6 +319,24 @@ class ImGuiTestHarnessServiceGrpc final : public ImGuiTestHarness::Service {
                                const DiscoverWidgetsRequest* request,
                                DiscoverWidgetsResponse* response) override {
     return ConvertStatus(impl_->DiscoverWidgets(request, response));
+  }
+
+  grpc::Status StartRecording(grpc::ServerContext* context,
+                              const StartRecordingRequest* request,
+                              StartRecordingResponse* response) override {
+    return ConvertStatus(impl_->StartRecording(request, response));
+  }
+
+  grpc::Status StopRecording(grpc::ServerContext* context,
+                             const StopRecordingRequest* request,
+                             StopRecordingResponse* response) override {
+    return ConvertStatus(impl_->StopRecording(request, response));
+  }
+
+  grpc::Status ReplayTest(grpc::ServerContext* context,
+                          const ReplayTestRequest* request,
+                          ReplayTestResponse* response) override {
+    return ConvertStatus(impl_->ReplayTest(request, response));
   }
 
  private:
@@ -276,19 +428,37 @@ absl::Status ImGuiTestHarnessServiceImpl::Ping(const PingRequest* request,
 }
 
 absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
-                                                 ClickResponse* response) {
+                                                ClickResponse* response) {
   auto start = std::chrono::steady_clock::now();
+
+  TestRecorder::RecordedStep recorded_step;
+  recorded_step.type = TestRecorder::ActionType::kClick;
+  if (request) {
+    recorded_step.target = request->target();
+    recorded_step.click_type = ClickTypeToString(request->type());
+  }
+
+  auto finalize = [&](const absl::Status& status) {
+    recorded_step.success = response->success();
+    recorded_step.message = response->message();
+    recorded_step.execution_time_ms = response->execution_time_ms();
+    recorded_step.test_id = response->test_id();
+    MaybeRecordStep(&test_recorder_, recorded_step);
+    return status;
+  };
 
   if (!test_manager_) {
     response->set_success(false);
     response->set_message("TestManager not available");
     response->set_execution_time_ms(0);
-    return absl::FailedPreconditionError("TestManager not available");
+    return finalize(
+        absl::FailedPreconditionError("TestManager not available"));
   }
 
   const std::string test_id = test_manager_->RegisterHarnessTest(
       absl::StrFormat("Click: %s", request->target()), "grpc");
   response->set_test_id(test_id);
+  recorded_step.test_id = test_id;
   test_manager_->AppendHarnessTestLog(
       test_id, absl::StrCat("Queued click request: ", request->target()));
 
@@ -303,7 +473,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
     response->set_execution_time_ms(elapsed.count());
   test_manager_->MarkHarnessTestCompleted(
     test_id, HarnessTestStatus::kFailed, message);
-    return absl::OkStatus();
+    return finalize(absl::OkStatus());
   }
 
   std::string target = request->target();
@@ -319,7 +489,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   test_manager_->MarkHarnessTestCompleted(
     test_id, HarnessTestStatus::kFailed, message);
     test_manager_->AppendHarnessTestLog(test_id, message);
-    return absl::OkStatus();
+    return finalize(absl::OkStatus());
   }
 
   std::string widget_type = target.substr(0, colon_pos);
@@ -406,7 +576,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
                       HarnessTestStatus::kFailed,
                       message);
     test_manager_->AppendHarnessTestLog(test_id, message);
-    return absl::OkStatus();
+    return finalize(absl::OkStatus());
   }
 
   std::string widget_type = target.substr(0, colon_pos);
@@ -428,23 +598,42 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   response->set_execution_time_ms(elapsed.count());
 #endif
 
-  return absl::OkStatus();
+  return finalize(absl::OkStatus());
 }
 
 absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
-                                                TypeResponse* response) {
+                                               TypeResponse* response) {
   auto start = std::chrono::steady_clock::now();
+
+  TestRecorder::RecordedStep recorded_step;
+  recorded_step.type = TestRecorder::ActionType::kType;
+  if (request) {
+    recorded_step.target = request->target();
+    recorded_step.text = request->text();
+    recorded_step.clear_first = request->clear_first();
+  }
+
+  auto finalize = [&](const absl::Status& status) {
+    recorded_step.success = response->success();
+    recorded_step.message = response->message();
+    recorded_step.execution_time_ms = response->execution_time_ms();
+    recorded_step.test_id = response->test_id();
+    MaybeRecordStep(&test_recorder_, recorded_step);
+    return status;
+  };
 
   if (!test_manager_) {
     response->set_success(false);
     response->set_message("TestManager not available");
     response->set_execution_time_ms(0);
-    return absl::FailedPreconditionError("TestManager not available");
+    return finalize(
+        absl::FailedPreconditionError("TestManager not available"));
   }
 
   const std::string test_id = test_manager_->RegisterHarnessTest(
       absl::StrFormat("Type: %s", request->target()), "grpc");
   response->set_test_id(test_id);
+  recorded_step.test_id = test_id;
   test_manager_->AppendHarnessTestLog(
       test_id, absl::StrFormat("Queued type request: %s", request->target()));
 
@@ -459,7 +648,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
     response->set_execution_time_ms(elapsed.count());
   test_manager_->MarkHarnessTestCompleted(
     test_id, HarnessTestStatus::kFailed, message);
-    return absl::OkStatus();
+    return finalize(absl::OkStatus());
   }
 
   std::string target = request->target();
@@ -475,7 +664,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
   test_manager_->MarkHarnessTestCompleted(
     test_id, HarnessTestStatus::kFailed, message);
     test_manager_->AppendHarnessTestLog(test_id, message);
-    return absl::OkStatus();
+    return finalize(absl::OkStatus());
   }
 
   std::string widget_type = target.substr(0, colon_pos);
@@ -587,23 +776,41 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
   response->set_execution_time_ms(elapsed.count());
 #endif
 
-  return absl::OkStatus();
+  return finalize(absl::OkStatus());
 }
 
 absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
-                                                WaitResponse* response) {
+                                               WaitResponse* response) {
   auto start = std::chrono::steady_clock::now();
+
+  TestRecorder::RecordedStep recorded_step;
+  recorded_step.type = TestRecorder::ActionType::kWait;
+  if (request) {
+    recorded_step.condition = request->condition();
+    recorded_step.timeout_ms = request->timeout_ms();
+  }
+
+  auto finalize = [&](const absl::Status& status) {
+    recorded_step.success = response->success();
+    recorded_step.message = response->message();
+    recorded_step.execution_time_ms = response->elapsed_ms();
+    recorded_step.test_id = response->test_id();
+    MaybeRecordStep(&test_recorder_, recorded_step);
+    return status;
+  };
 
   if (!test_manager_) {
     response->set_success(false);
     response->set_message("TestManager not available");
     response->set_elapsed_ms(0);
-    return absl::FailedPreconditionError("TestManager not available");
+    return finalize(
+        absl::FailedPreconditionError("TestManager not available"));
   }
 
   const std::string test_id = test_manager_->RegisterHarnessTest(
       absl::StrFormat("Wait: %s", request->condition()), "grpc");
   response->set_test_id(test_id);
+  recorded_step.test_id = test_id;
   test_manager_->AppendHarnessTestLog(
       test_id, absl::StrFormat("Queued wait condition: %s",
                                request->condition()));
@@ -619,7 +826,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
     response->set_elapsed_ms(elapsed.count());
   test_manager_->MarkHarnessTestCompleted(
     test_id, HarnessTestStatus::kFailed, message);
-    return absl::OkStatus();
+    return finalize(absl::OkStatus());
   }
 
   std::string condition = request->condition();
@@ -635,7 +842,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   test_manager_->MarkHarnessTestCompleted(
     test_id, HarnessTestStatus::kFailed, message);
     test_manager_->AppendHarnessTestLog(test_id, message);
-    return absl::OkStatus();
+    return finalize(absl::OkStatus());
   }
 
   std::string condition_type = condition.substr(0, colon_pos);
@@ -759,22 +966,40 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   response->set_elapsed_ms(elapsed.count());
 #endif
 
-  return absl::OkStatus();
+  return finalize(absl::OkStatus());
 }
 
 absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
-                                                  AssertResponse* response) {
+                                                 AssertResponse* response) {
+  TestRecorder::RecordedStep recorded_step;
+  recorded_step.type = TestRecorder::ActionType::kAssert;
+  if (request) {
+    recorded_step.condition = request->condition();
+  }
+
+  auto finalize = [&](const absl::Status& status) {
+    recorded_step.success = response->success();
+    recorded_step.message = response->message();
+    recorded_step.expected_value = response->expected_value();
+    recorded_step.actual_value = response->actual_value();
+    recorded_step.test_id = response->test_id();
+    MaybeRecordStep(&test_recorder_, recorded_step);
+    return status;
+  };
+
   if (!test_manager_) {
     response->set_success(false);
     response->set_message("TestManager not available");
     response->set_actual_value("N/A");
     response->set_expected_value("N/A");
-    return absl::FailedPreconditionError("TestManager not available");
+    return finalize(
+        absl::FailedPreconditionError("TestManager not available"));
   }
 
   const std::string test_id = test_manager_->RegisterHarnessTest(
       absl::StrFormat("Assert: %s", request->condition()), "grpc");
   response->set_test_id(test_id);
+  recorded_step.test_id = test_id;
   test_manager_->AppendHarnessTestLog(
       test_id, absl::StrFormat("Queued assertion: %s", request->condition()));
 
@@ -788,7 +1013,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
     response->set_expected_value("N/A");
   test_manager_->MarkHarnessTestCompleted(
     test_id, HarnessTestStatus::kFailed, message);
-    return absl::OkStatus();
+    return finalize(absl::OkStatus());
   }
 
   std::string condition = request->condition();
@@ -803,7 +1028,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   test_manager_->MarkHarnessTestCompleted(
     test_id, HarnessTestStatus::kFailed, message);
     test_manager_->AppendHarnessTestLog(test_id, message);
-    return absl::OkStatus();
+    return finalize(absl::OkStatus());
   }
 
   std::string assertion_type = condition.substr(0, colon_pos);
@@ -956,7 +1181,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   response->set_expected_value("(stub)");
 #endif
 
-  return absl::OkStatus();
+  return finalize(absl::OkStatus());
 }
 
 absl::Status ImGuiTestHarnessServiceImpl::Screenshot(
@@ -1169,6 +1394,335 @@ absl::Status ImGuiTestHarnessServiceImpl::DiscoverWidgets(
   widget_discovery_service_.CollectWidgets(/*ctx=*/nullptr, *request,
                                            response);
   return absl::OkStatus();
+}
+
+absl::Status ImGuiTestHarnessServiceImpl::StartRecording(
+    const StartRecordingRequest* request, StartRecordingResponse* response) {
+  if (!request) {
+    return absl::InvalidArgumentError("request cannot be null");
+  }
+  if (!response) {
+    return absl::InvalidArgumentError("response cannot be null");
+  }
+
+  TestRecorder::RecordingOptions options;
+  options.output_path = request->output_path();
+  options.session_name = request->session_name();
+  options.description = request->description();
+
+  if (options.output_path.empty()) {
+    response->set_success(false);
+    response->set_message("output_path is required to start recording");
+    return absl::InvalidArgumentError("output_path cannot be empty");
+  }
+
+  absl::StatusOr<std::string> recording_id = test_recorder_.Start(options);
+  if (!recording_id.ok()) {
+    response->set_success(false);
+    response->set_message(std::string(recording_id.status().message()));
+    return recording_id.status();
+  }
+
+  response->set_success(true);
+  response->set_message("Recording started");
+  response->set_recording_id(*recording_id);
+  response->set_started_at_ms(absl::ToUnixMillis(absl::Now()));
+  return absl::OkStatus();
+}
+
+absl::Status ImGuiTestHarnessServiceImpl::StopRecording(
+    const StopRecordingRequest* request, StopRecordingResponse* response) {
+  if (!request) {
+    return absl::InvalidArgumentError("request cannot be null");
+  }
+  if (!response) {
+    return absl::InvalidArgumentError("response cannot be null");
+  }
+
+  absl::StatusOr<TestRecorder::StopRecordingSummary> summary =
+      test_recorder_.Stop(request->recording_id(), request->discard());
+  if (!summary.ok()) {
+    response->set_success(false);
+    response->set_message(std::string(summary.status().message()));
+    return summary.status();
+  }
+
+  response->set_success(true);
+  if (summary->saved) {
+    response->set_message("Recording saved");
+  } else {
+    response->set_message("Recording discarded");
+  }
+  response->set_output_path(summary->output_path);
+  response->set_step_count(summary->step_count);
+  response->set_duration_ms(absl::ToInt64Milliseconds(summary->duration));
+  return absl::OkStatus();
+}
+
+absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
+    const ReplayTestRequest* request, ReplayTestResponse* response) {
+  if (!request) {
+    return absl::InvalidArgumentError("request cannot be null");
+  }
+  if (!response) {
+    return absl::InvalidArgumentError("response cannot be null");
+  }
+
+  response->clear_logs();
+  response->clear_assertions();
+
+  if (request->script_path().empty()) {
+    response->set_success(false);
+    response->set_message("script_path is required");
+    return absl::InvalidArgumentError("script_path cannot be empty");
+  }
+
+  absl::StatusOr<TestScript> script_or =
+      TestScriptParser::ParseFromFile(request->script_path());
+  if (!script_or.ok()) {
+    response->set_success(false);
+    response->set_message(std::string(script_or.status().message()));
+    return script_or.status();
+  }
+  TestScript script = std::move(*script_or);
+
+  absl::flat_hash_map<std::string, std::string> overrides;
+  for (const auto& entry : request->parameter_overrides()) {
+    overrides[entry.first] = entry.second;
+  }
+
+  response->set_replay_session_id(
+      absl::StrFormat("replay_%s",
+                      absl::FormatTime("%Y%m%dT%H%M%S", absl::Now(),
+                                       absl::UTCTimeZone())));
+
+  auto suspension = test_recorder_.Suspend();
+
+  std::vector<std::string> logs;
+  logs.reserve(script.steps.size() * 2 + 4);
+
+  bool overall_success = true;
+  std::string overall_message = "Replay completed successfully";
+  int steps_executed = 0;
+  absl::Status overall_rpc_status = absl::OkStatus();
+
+  for (const auto& step : script.steps) {
+    ++steps_executed;
+    std::string action_label =
+        absl::StrFormat("Step %d: %s", steps_executed, step.action);
+    logs.push_back(action_label);
+
+    absl::Status status = absl::OkStatus();
+    bool step_success = false;
+    std::string step_message;
+    HarnessTestExecution execution;
+    bool have_execution = false;
+
+    if (step.action == "click") {
+      ClickRequest sub_request;
+      sub_request.set_target(ApplyOverrides(step.target, overrides));
+      sub_request.set_type(ClickTypeFromString(step.click_type));
+      ClickResponse sub_response;
+      status = Click(&sub_request, &sub_response);
+      step_success = sub_response.success();
+      step_message = sub_response.message();
+      if (status.ok() && !sub_response.test_id().empty()) {
+        absl::Status wait_status = WaitForHarnessTestCompletion(
+            test_manager_, sub_response.test_id(), &execution);
+        if (wait_status.ok()) {
+          have_execution = true;
+          if (!execution.error_message.empty()) {
+            step_message = execution.error_message;
+          }
+        } else {
+          status = wait_status;
+          step_success = false;
+          step_message = std::string(wait_status.message());
+        }
+      }
+    } else if (step.action == "type") {
+      TypeRequest sub_request;
+      sub_request.set_target(ApplyOverrides(step.target, overrides));
+      sub_request.set_text(ApplyOverrides(step.text, overrides));
+      sub_request.set_clear_first(step.clear_first);
+      TypeResponse sub_response;
+      status = Type(&sub_request, &sub_response);
+      step_success = sub_response.success();
+      step_message = sub_response.message();
+      if (status.ok() && !sub_response.test_id().empty()) {
+        absl::Status wait_status = WaitForHarnessTestCompletion(
+            test_manager_, sub_response.test_id(), &execution);
+        if (wait_status.ok()) {
+          have_execution = true;
+          if (!execution.error_message.empty()) {
+            step_message = execution.error_message;
+          }
+        } else {
+          status = wait_status;
+          step_success = false;
+          step_message = std::string(wait_status.message());
+        }
+      }
+    } else if (step.action == "wait") {
+      WaitRequest sub_request;
+      sub_request.set_condition(ApplyOverrides(step.condition, overrides));
+      if (step.timeout_ms > 0) {
+        sub_request.set_timeout_ms(step.timeout_ms);
+      }
+      WaitResponse sub_response;
+      status = Wait(&sub_request, &sub_response);
+      step_success = sub_response.success();
+      step_message = sub_response.message();
+      if (status.ok() && !sub_response.test_id().empty()) {
+        absl::Status wait_status = WaitForHarnessTestCompletion(
+            test_manager_, sub_response.test_id(), &execution);
+        if (wait_status.ok()) {
+          have_execution = true;
+          if (!execution.error_message.empty()) {
+            step_message = execution.error_message;
+          }
+        } else {
+          status = wait_status;
+          step_success = false;
+          step_message = std::string(wait_status.message());
+        }
+      }
+    } else if (step.action == "assert") {
+      AssertRequest sub_request;
+      sub_request.set_condition(ApplyOverrides(step.condition, overrides));
+      AssertResponse sub_response;
+      status = Assert(&sub_request, &sub_response);
+      step_success = sub_response.success();
+      step_message = sub_response.message();
+      if (status.ok() && !sub_response.test_id().empty()) {
+        absl::Status wait_status = WaitForHarnessTestCompletion(
+            test_manager_, sub_response.test_id(), &execution);
+        if (wait_status.ok()) {
+          have_execution = true;
+          if (!execution.error_message.empty()) {
+            step_message = execution.error_message;
+          }
+        } else {
+          status = wait_status;
+          step_success = false;
+          step_message = std::string(wait_status.message());
+        }
+      }
+    } else if (step.action == "screenshot") {
+      ScreenshotRequest sub_request;
+      sub_request.set_window_title(ApplyOverrides(step.target, overrides));
+      if (!step.region.empty()) {
+        sub_request.set_output_path(ApplyOverrides(step.region, overrides));
+      }
+      ScreenshotResponse sub_response;
+      status = Screenshot(&sub_request, &sub_response);
+      step_success = sub_response.success();
+      step_message = sub_response.message();
+    } else {
+      status = absl::InvalidArgumentError(
+          absl::StrFormat("Unsupported action '%s'", step.action));
+      step_message = std::string(status.message());
+    }
+
+    auto* assertion = response->add_assertions();
+    assertion->set_description(
+        absl::StrFormat("Step %d (%s)", steps_executed, step.action));
+
+    if (!status.ok()) {
+      assertion->set_passed(false);
+      assertion->set_error_message(std::string(status.message()));
+      overall_success = false;
+      overall_message = step_message;
+      logs.push_back(absl::StrFormat("  Error: %s", status.message()));
+      overall_rpc_status = status;
+      break;
+    }
+
+    bool expectations_met = (step_success == step.expect_success);
+    std::string expectation_error;
+
+    if (!expectations_met) {
+      expectation_error = absl::StrFormat(
+          "Expected success=%s but got %s",
+          step.expect_success ? "true" : "false",
+          step_success ? "true" : "false");
+    }
+
+    if (!step.expect_status.empty()) {
+      HarnessTestStatus expected_status =
+          HarnessStatusFromString(step.expect_status);
+      if (!have_execution) {
+        expectations_met = false;
+        if (!expectation_error.empty()) {
+          expectation_error.append("; ");
+        }
+        expectation_error.append("No execution details available");
+      } else if (expected_status != HarnessTestStatus::kUnspecified &&
+                 execution.status != expected_status) {
+        expectations_met = false;
+        if (!expectation_error.empty()) {
+          expectation_error.append("; ");
+        }
+        expectation_error.append(absl::StrFormat(
+            "Expected status %s but observed %s",
+            step.expect_status, HarnessStatusToString(execution.status)));
+      }
+      if (have_execution) {
+        assertion->set_actual_value(HarnessStatusToString(execution.status));
+        assertion->set_expected_value(step.expect_status);
+      }
+    }
+
+    if (!step.expect_message.empty()) {
+      std::string actual_message = step_message;
+      if (have_execution && !execution.error_message.empty()) {
+        actual_message = execution.error_message;
+      }
+      if (actual_message.find(step.expect_message) == std::string::npos) {
+        expectations_met = false;
+        if (!expectation_error.empty()) {
+          expectation_error.append("; ");
+        }
+        expectation_error.append(absl::StrFormat(
+            "Expected message containing '%s' but got '%s'",
+            step.expect_message, actual_message));
+      }
+    }
+
+    if (!expectations_met) {
+      assertion->set_passed(false);
+      assertion->set_error_message(expectation_error);
+      overall_success = false;
+      overall_message = expectation_error;
+      logs.push_back(absl::StrFormat("  Failed expectations: %s",
+                                     expectation_error));
+      if (request->ci_mode()) {
+        break;
+      }
+    } else {
+      assertion->set_passed(true);
+      logs.push_back(absl::StrFormat("  Result: %s", step_message));
+    }
+
+    if (have_execution && !execution.assertion_failures.empty()) {
+      for (const auto& failure : execution.assertion_failures) {
+        logs.push_back(absl::StrFormat("  Assertion failure: %s", failure));
+      }
+    }
+
+    if (!overall_success && request->ci_mode()) {
+      break;
+    }
+  }
+
+  response->set_steps_executed(steps_executed);
+  response->set_success(overall_success);
+  response->set_message(overall_message);
+  for (const auto& log_entry : logs) {
+    response->add_logs(log_entry);
+  }
+
+  return overall_rpc_status;
 }
 
 // ============================================================================
