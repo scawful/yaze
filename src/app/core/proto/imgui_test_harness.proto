@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package yaze.test;
+
+// ImGuiTestHarness service for remote GUI testing
+// This service allows z3ed CLI to interact with YAZE's GUI for automated testing
+service ImGuiTestHarness {
+  // Health check - verifies the service is running
+  rpc Ping(PingRequest) returns (PingResponse);
+  
+  // Click a button or interactive element
+  rpc Click(ClickRequest) returns (ClickResponse);
+  
+  // Type text into an input field
+  rpc Type(TypeRequest) returns (TypeResponse);
+  
+  // Wait for a condition to be true
+  rpc Wait(WaitRequest) returns (WaitResponse);
+  
+  // Assert that a condition is true
+  rpc Assert(AssertRequest) returns (AssertResponse);
+  
+  // Capture a screenshot
+  rpc Screenshot(ScreenshotRequest) returns (ScreenshotResponse);
+}
+
+// ============================================================================
+// Ping - Health Check
+// ============================================================================
+
+message PingRequest {
+  string message = 1;  // Message to echo back
+}
+
+message PingResponse {
+  string message = 1;         // Echoed message with "Pong: " prefix
+  int64 timestamp_ms = 2;     // Server timestamp in milliseconds
+  string yaze_version = 3;    // YAZE version string (e.g., "0.3.2")
+}
+
+// ============================================================================
+// Click - Interact with GUI elements
+// ============================================================================
+
+message ClickRequest {
+  string target = 1;     // Target element (e.g., "button:Open ROM", "menu:File/Open")
+  ClickType type = 2;    // Type of click
+  
+  enum ClickType {
+    LEFT = 0;       // Single left click
+    RIGHT = 1;      // Single right click
+    DOUBLE = 2;     // Double click
+    MIDDLE = 3;     // Middle mouse button
+  }
+}
+
+message ClickResponse {
+  bool success = 1;              // Whether the click succeeded
+  string message = 2;            // Human-readable result message
+  int32 execution_time_ms = 3;   // Time taken to execute (for debugging)
+}
+
+// ============================================================================
+// Type - Send keyboard input
+// ============================================================================
+
+message TypeRequest {
+  string target = 1;     // Target input field (e.g., "textbox:File Path")
+  string text = 2;       // Text to type
+  bool clear_first = 3;  // Clear existing text before typing
+}
+
+message TypeResponse {
+  bool success = 1;
+  string message = 2;
+  int32 execution_time_ms = 3;
+}
+
+// ============================================================================
+// Wait - Poll for conditions
+// ============================================================================
+
+message WaitRequest {
+  string condition = 1;   // Condition to wait for (e.g., "window:Overworld Editor", "enabled:button:Save")
+  int32 timeout_ms = 2;   // Maximum time to wait (default 5000ms)
+  int32 poll_interval_ms = 3;  // How often to check (default 100ms)
+}
+
+message WaitResponse {
+  bool success = 1;       // Whether condition was met before timeout
+  string message = 2;
+  int32 elapsed_ms = 3;   // Time taken before condition met (or timeout)
+}
+
+// ============================================================================
+// Assert - Validate GUI state
+// ============================================================================
+
+message AssertRequest {
+  string condition = 1;   // Condition to assert (e.g., "visible:button:Save", "text:label:Version:0.3.2")
+  string failure_message = 2;  // Custom message if assertion fails
+}
+
+message AssertResponse {
+  bool success = 1;       // Whether assertion passed
+  string message = 2;     // Diagnostic message
+  string actual_value = 3;     // Actual value found (for debugging)
+  string expected_value = 4;   // Expected value (for debugging)
+}
+
+// ============================================================================
+// Screenshot - Capture window state
+// ============================================================================
+
+message ScreenshotRequest {
+  string window_title = 1;  // Window to capture (empty = main window)
+  string output_path = 2;   // Where to save screenshot
+  ImageFormat format = 3;   // Image format
+  
+  enum ImageFormat {
+    PNG = 0;
+    JPEG = 1;
+  }
+}
+
+message ScreenshotResponse {
+  bool success = 1;
+  string message = 2;
+  string file_path = 3;   // Absolute path to saved screenshot
+  int64 file_size_bytes = 4;
+}

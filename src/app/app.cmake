@@ -219,3 +219,26 @@ if(NOT APPLE)
   endif()
 endif()
 
+# ============================================================================
+# Optional gRPC Support for ImGuiTestHarness
+# ============================================================================
+if(YAZE_WITH_GRPC)
+  message(STATUS "Adding gRPC ImGuiTestHarness to yaze target")
+  
+  # Generate C++ code from .proto using the helper function from cmake/grpc.cmake
+  target_add_protobuf(yaze 
+    ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+  
+  # Add service implementation sources
+  target_sources(yaze PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/app/core/imgui_test_harness_service.cc
+    ${CMAKE_SOURCE_DIR}/src/app/core/imgui_test_harness_service.h)
+  
+  # Link gRPC libraries
+  target_link_libraries(yaze PRIVATE
+    grpc++
+    grpc++_reflection
+    libprotobuf)
+  
+  message(STATUS "✓ gRPC ImGuiTestHarness integrated")
+endif()
