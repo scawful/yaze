@@ -47,14 +47,22 @@ z3ed is a command-line interface for YAZE that enables AI-driven ROM modificatio
    - Success criteria
    - Issue reporting
 
+### Implementation Guides
+
+7. **[IMGUI_ID_MANAGEMENT_REFACTORING.md](IMGUI_ID_MANAGEMENT_REFACTORING.md)** - GUI ID management refactoring
+   - Hierarchical widget ID system
+   - Widget registry for test automation
+   - Migration guide for editors
+   - Integration with z3ed agent
+
 ### Status Documents
 
-7. **[PROJECT_STATUS_OCT2.md](PROJECT_STATUS_OCT2.md)** - Current project status
+8. **[PROJECT_STATUS_OCT2.md](PROJECT_STATUS_OCT2.md)** - Current project status
    - Component completion percentages
    - Performance metrics
    - Known limitations
 
-8. **[NEXT_PRIORITIES_OCT2.md](NEXT_PRIORITIES_OCT2.md)** - Detailed next steps
+9. **[NEXT_PRIORITIES_OCT2.md](NEXT_PRIORITIES_OCT2.md)** - Detailed next steps
    - Priority 0-3 task breakdowns
    - Implementation guides
    - Time estimates
@@ -121,6 +129,9 @@ docs/z3ed/
 │   ├── IT-01-QUICKSTART.md          [Test Harness]
 │   ├── AGENT_TEST_QUICKREF.md       [CLI Agent Test]
 │   └── E2E_VALIDATION_GUIDE.md      [Validation]
+│
+├── Implementation Guides (1 file)
+│   └── IMGUI_ID_MANAGEMENT_REFACTORING.md [GUI ID System]
 │
 ├── Status Documents (4 files)
 │   ├── README.md                    [This file]
