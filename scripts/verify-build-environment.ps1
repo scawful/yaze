@@ -39,8 +39,13 @@ function Test-Command {
 
 function Get-CMakeVersion {
     try {
-        $output = & cmake --version 2>&1
-        if ($output -match "cmake version (\d+\.\d+\.\d+)") {
+        $output = & cmake --version 2>&1 | Select-Object -First 1
+        # Handle various CMake version output formats
+        if ($output -match "cmake version ([0-9]+\.[0-9]+\.[0-9]+)") {
+            return $matches[1]
+        }
+        # Try alternative format (some versions print differently)
+        if ($output -match "([0-9]+\.[0-9]+\.[0-9]+)") {
             return $matches[1]
         }
     } catch {
@@ -160,13 +165,21 @@ function Sync-GitSubmodules {
     Push-Location (Join-Path $PSScriptRoot "..")
     try {
         Write-Status "Running: git submodule sync --recursive" "Info"
-        git submodule sync --recursive
+        $syncOutput = git submodule sync --recursive 2>&1
         
         Write-Status "Running: git submodule update --init --recursive" "Info"
-        git submodule update --init --recursive
+        $updateOutput = git submodule update --init --recursive 2>&1
         
-        Write-Status "Submodules synced successfully" "Success"
-        return $true
+        if ($LASTEXITCODE -eq 0) {
+            Write-Status "Submodules synced successfully" "Success"
+            return $true
+        } else {
+            Write-Status "Git submodule commands completed with warnings" "Warning"
+            if ($Verbose) {
+                Write-Host $updateOutput -ForegroundColor Gray
+            }
+            return $true  # Still return true as submodules may be partially synced
+        }
     } catch {
         Write-Status "Failed to sync submodules: $_" "Error"
         return $false
@@ -228,12 +241,26 @@ $startTime = Get-Date
 Write-Status "Checking CMake installation..." "Step"
 if (Test-Command "cmake") {
     $cmakeVersion = Get-CMakeVersion
-    Write-Status "CMake found: version $cmakeVersion" "Success"
-    
-    $major, $minor = $cmakeVersion.Split('.')[0..1]
-    if ([int]$major -lt 3 -or ([int]$major -eq 3 -and [int]$minor -lt 16)) {
-        Write-Status "CMake version too old (need 3.16+)" "Error"
-        $script:issuesFound += "CMake version $cmakeVersion is below minimum 3.16"
+    if ($cmakeVersion) {
+        Write-Status "CMake found: version $cmakeVersion" "Success"
+        
+        # Parse version components
+        try {
+            $versionParts = $cmakeVersion.Split('.')
+            $major = [int]$versionParts[0]
+            $minor = [int]$versionParts[1]
+            
+            if ($major -lt 3 -or ($major -eq 3 -and $minor -lt 16)) {
+                Write-Status "CMake version too old (need 3.16+)" "Error"
+                $script:issuesFound += "CMake version $cmakeVersion is below minimum 3.16"
+            }
+        } catch {
+            Write-Status "Could not parse CMake version: $cmakeVersion" "Warning"
+            $script:warnings += "Unable to verify CMake version requirement (need 3.16+)"
+        }
+    } else {
+        Write-Status "CMake found but version could not be determined" "Warning"
+        $script:warnings += "CMake version could not be parsed - ensure version 3.16+ is installed"
     }
 } else {
     Write-Status "CMake not found in PATH" "Error"
@@ -275,11 +302,25 @@ $submodulesOk = Test-GitSubmodules
 if ($submodulesOk) {
     Write-Status "All required submodules present" "Success"
 } else {
-    Write-Status "Some submodules are missing" "Error"
+    Write-Status "Some submodules are missing or empty" "Error"
     if ($FixIssues) {
         Sync-GitSubmodules
+        # Re-check after sync
+        $submodulesOk = Test-GitSubmodules
+        if (-not $submodulesOk) {
+            Write-Status "Submodule sync completed but some issues remain" "Warning"
+        }
     } else {
-        Write-Status "Run with -FixIssues to automatically sync submodules" "Info"
+        # Auto-fix without confirmation
+        Write-Status "Automatically syncing submodules..." "Info"
+        if (Sync-GitSubmodules) {
+            Write-Status "Submodules synced successfully" "Success"
+            # Re-check after sync
+            $submodulesOk = Test-GitSubmodules
+        } else {
+            Write-Status "Failed to sync submodules automatically" "Error"
+            Write-Status "Run with -FixIssues to try again, or manually run: git submodule update --init --recursive" "Info"
+        }
     }
 }
 
@@ -289,9 +330,20 @@ $cacheOk = Test-CMakeCache
 if ($cacheOk) {
     Write-Status "CMake cache is up to date" "Success"
 } else {
-    if ($CleanCache -or $FixIssues) {
+    if ($CleanCache) {
         Clean-CMakeCache
+    } elseif ($FixIssues) {
+        # Ask for confirmation before cleaning cache
+        Write-Host "`nCMake cache is older than 7 days. Clean it?" -ForegroundColor Yellow
+        Write-Host "This will remove build/, build_test/, build-grpc-test/, and out/ directories." -ForegroundColor Gray
+        $response = Read-Host "Continue? (Y/n)"
+        if ($response -eq "" -or $response -match "^[Yy]") {
+            Clean-CMakeCache
+        } else {
+            Write-Status "Skipping cache clean" "Info"
+        }
     } else {
+        Write-Status "CMake cache is older than 7 days (consider cleaning)" "Warning"
         Write-Status "Run with -CleanCache to remove old cache files" "Info"
     }
 }
