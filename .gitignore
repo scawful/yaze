@@ -4,7 +4,6 @@ build/
 .vscode/
 disasm/
 src/etc
-src/lib/
 checks.json
 assets/lib/libasar.dll
 cmake/yaze.plist.in
