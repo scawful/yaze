@@ -269,10 +269,116 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
                                                 TypeResponse* response) {
   auto start = std::chrono::steady_clock::now();
 
-  // TODO: Implement with ImGuiTestEngine dynamic tests like Click handler
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+  // Validate test manager
+  if (!test_manager_) {
+    response->set_success(false);
+    response->set_message("TestManager not available");
+    return absl::OkStatus();
+  }
+
+  // Get ImGuiTestEngine
+  ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
+  if (!engine) {
+    response->set_success(false);
+    response->set_message("ImGuiTestEngine not initialized");
+    return absl::OkStatus();
+  }
+
+  // Parse target: "input:Filename" -> type=input, label="Filename"
+  std::string target = request->target();
+  size_t colon_pos = target.find(':');
+
+  if (colon_pos == std::string::npos) {
+    response->set_success(false);
+    response->set_message("Invalid target format. Use 'type:label' (e.g. 'input:Filename')");
+    return absl::OkStatus();
+  }
+
+  std::string widget_type = target.substr(0, colon_pos);
+  std::string widget_label = target.substr(colon_pos + 1);
+  std::string text = request->text();
+  bool clear_first = request->clear_first();
+
+  // Create a dynamic test to perform the typing
+  bool success = false;
+  std::string message;
+  
+  auto test_data = std::make_shared<DynamicTestData>();
+  test_data->test_func = [=, &success, &message](ImGuiTestContext* ctx) {
+    try {
+      // Find the input field
+      ImGuiTestItemInfo item = ctx->ItemInfo(widget_label.c_str());
+      if (item.ID == 0) {
+        success = false;
+        message = absl::StrFormat("Input field '%s' not found", widget_label);
+        return;
+      }
+
+      // Click to focus the input field first
+      ctx->ItemClick(widget_label.c_str());
+      
+      // Clear existing text if requested
+      if (clear_first) {
+        // Select all (Ctrl+A or Cmd+A depending on platform)
+        ctx->KeyPress(ImGuiMod_Shortcut | ImGuiKey_A);
+        // Delete selected text
+        ctx->KeyPress(ImGuiKey_Delete);
+      }
+
+      // Type the new text
+      ctx->ItemInputValue(widget_label.c_str(), text.c_str());
+      
+      success = true;
+      message = absl::StrFormat("Typed '%s' into %s '%s'%s", 
+                               text, widget_type, widget_label,
+                               clear_first ? " (cleared first)" : "");
+    } catch (const std::exception& e) {
+      success = false;
+      message = absl::StrFormat("Type failed: %s", e.what());
+    }
+  };
+
+  // Register and queue the test
+  std::string test_name = absl::StrFormat("grpc_type_%lld", 
+      std::chrono::system_clock::now().time_since_epoch().count());
+  
+  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
+  test->TestFunc = RunDynamicTest;
+  test->UserData = test_data.get();
+  
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
+  
+  // Wait for test to complete (with timeout)
+  auto timeout = std::chrono::seconds(5);
+  auto wait_start = std::chrono::steady_clock::now();
+  while (test->Output.Status == ImGuiTestStatus_Queued || test->Output.Status == ImGuiTestStatus_Running) {
+    if (std::chrono::steady_clock::now() - wait_start > timeout) {
+      success = false;
+      message = "Test timeout";
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  
+  if (test->Output.Status == ImGuiTestStatus_Success) {
+    success = true;
+  } else if (test->Output.Status != ImGuiTestStatus_Unknown) {
+    success = false;
+    if (message.empty()) {
+      message = "Test failed";
+    }
+  }
+  
+  // Cleanup
+  ImGuiTestEngine_UnregisterTest(engine, test);
+
+#else
+  // ImGuiTestEngine not available - stub implementation
   bool success = true;
-  std::string message = absl::StrFormat("Typed '%s' into %s (implementation pending)",
+  std::string message = absl::StrFormat("[STUB] Typed '%s' into %s (ImGuiTestEngine not available)",
                                        request->text(), request->target());
+#endif
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
@@ -288,27 +394,322 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
                                                 WaitResponse* response) {
   auto start = std::chrono::steady_clock::now();
 
-  // TODO: Implement with ImGuiTestEngine dynamic tests
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+  // Validate test manager
+  if (!test_manager_) {
+    response->set_success(false);
+    response->set_message("TestManager not available");
+    return absl::OkStatus();
+  }
+
+  // Get ImGuiTestEngine
+  ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
+  if (!engine) {
+    response->set_success(false);
+    response->set_message("ImGuiTestEngine not initialized");
+    return absl::OkStatus();
+  }
+
+  // Parse condition: "window_visible:Overworld Editor" -> check if window is visible
+  std::string condition = request->condition();
+  size_t colon_pos = condition.find(':');
+
+  if (colon_pos == std::string::npos) {
+    response->set_success(false);
+    response->set_message("Invalid condition format. Use 'type:target' (e.g. 'window_visible:Overworld Editor')");
+    return absl::OkStatus();
+  }
+
+  std::string condition_type = condition.substr(0, colon_pos);
+  std::string condition_target = condition.substr(colon_pos + 1);
+  
+  int timeout_ms = request->timeout_ms() > 0 ? request->timeout_ms() : 5000; // Default 5s
+  int poll_interval_ms = request->poll_interval_ms() > 0 ? request->poll_interval_ms() : 100; // Default 100ms
+
+  // Create a dynamic test to poll the condition
+  bool condition_met = false;
+  std::string message;
+  
+  auto test_data = std::make_shared<DynamicTestData>();
+  test_data->test_func = [=, &condition_met, &message](ImGuiTestContext* ctx) {
+    try {
+      auto poll_start = std::chrono::steady_clock::now();
+      auto timeout = std::chrono::milliseconds(timeout_ms);
+      
+      while (std::chrono::steady_clock::now() - poll_start < timeout) {
+        bool current_state = false;
+
+        // Check the condition type
+        if (condition_type == "window_visible") {
+          ImGuiWindow* window = ImGui::FindWindowByName(condition_target.c_str());
+          current_state = (window != nullptr && !window->Hidden);
+        } else if (condition_type == "element_visible") {
+          ImGuiTestItemInfo item = ctx->ItemInfo(condition_target.c_str());
+          current_state = (item.ID != 0 && item.RectClipped.GetWidth() > 0 && item.RectClipped.GetHeight() > 0);
+        } else if (condition_type == "element_enabled") {
+          ImGuiTestItemInfo item = ctx->ItemInfo(condition_target.c_str());
+          current_state = (item.ID != 0 && !(item.ItemFlags & ImGuiItemFlags_Disabled));
+        } else {
+          message = absl::StrFormat("Unknown condition type: %s", condition_type);
+          condition_met = false;
+          return;
+        }
+
+        if (current_state) {
+          condition_met = true;
+          message = absl::StrFormat("Condition '%s:%s' met after %lld ms",
+                                   condition_type, condition_target,
+                                   std::chrono::duration_cast<std::chrono::milliseconds>(
+                                     std::chrono::steady_clock::now() - poll_start).count());
+          return;
+        }
+
+        // Sleep before next poll
+        std::this_thread::sleep_for(std::chrono::milliseconds(poll_interval_ms));
+        ctx->Yield(); // Let ImGui process events
+      }
+
+      // Timeout reached
+      condition_met = false;
+      message = absl::StrFormat("Condition '%s:%s' not met after %d ms timeout",
+                               condition_type, condition_target, timeout_ms);
+    } catch (const std::exception& e) {
+      condition_met = false;
+      message = absl::StrFormat("Wait failed: %s", e.what());
+    }
+  };
+
+  // Register and queue the test
+  std::string test_name = absl::StrFormat("grpc_wait_%lld", 
+      std::chrono::system_clock::now().time_since_epoch().count());
+  
+  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
+  test->TestFunc = RunDynamicTest;
+  test->UserData = test_data.get();
+  
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
+  
+  // Wait for test to complete (with extended timeout for the wait itself)
+  auto extended_timeout = std::chrono::milliseconds(timeout_ms + 5000);
+  auto wait_start = std::chrono::steady_clock::now();
+  while (test->Output.Status == ImGuiTestStatus_Queued || test->Output.Status == ImGuiTestStatus_Running) {
+    if (std::chrono::steady_clock::now() - wait_start > extended_timeout) {
+      condition_met = false;
+      message = "Test execution timeout";
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  
+  if (test->Output.Status == ImGuiTestStatus_Success) {
+    // Status already set by test function
+  } else if (test->Output.Status != ImGuiTestStatus_Unknown) {
+    condition_met = false;
+    if (message.empty()) {
+      message = "Test failed";
+    }
+  }
+  
+  // Cleanup
+  ImGuiTestEngine_UnregisterTest(engine, test);
+
+#else
+  // ImGuiTestEngine not available - stub implementation
   bool condition_met = true;
-  std::string message = absl::StrFormat("Condition '%s' met (implementation pending)",
+  std::string message = absl::StrFormat("[STUB] Condition '%s' met (ImGuiTestEngine not available)",
                                        request->condition());
+#endif
+
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+      std::chrono::steady_clock::now() - start);
 
   response->set_success(condition_met);
   response->set_message(message);
-  response->set_elapsed_ms(0);
+  response->set_elapsed_ms(elapsed.count());
 
   return absl::OkStatus();
 }
 
 absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
                                                   AssertResponse* response) {
-  // TODO: Implement with ImGuiTestEngine dynamic tests
-  response->set_success(true);
-  response->set_message(
-      absl::StrFormat("Assertion '%s' passed (implementation pending)", 
-                     request->condition()));
-  response->set_actual_value("(pending)");
-  response->set_expected_value("");  // Set empty string instead of accessing non-existent field
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+  // Validate test manager
+  if (!test_manager_) {
+    response->set_success(false);
+    response->set_message("TestManager not available");
+    response->set_actual_value("N/A");
+    response->set_expected_value("N/A");
+    return absl::OkStatus();
+  }
+
+  // Get ImGuiTestEngine
+  ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
+  if (!engine) {
+    response->set_success(false);
+    response->set_message("ImGuiTestEngine not initialized");
+    response->set_actual_value("N/A");
+    response->set_expected_value("N/A");
+    return absl::OkStatus();
+  }
+
+  // Parse condition: "visible:Main Window" -> check if element is visible
+  std::string condition = request->condition();
+  size_t colon_pos = condition.find(':');
+
+  if (colon_pos == std::string::npos) {
+    response->set_success(false);
+    response->set_message("Invalid condition format. Use 'type:target' (e.g. 'visible:Main Window')");
+    response->set_actual_value("N/A");
+    response->set_expected_value("N/A");
+    return absl::OkStatus();
+  }
+
+  std::string assertion_type = condition.substr(0, colon_pos);
+  std::string assertion_target = condition.substr(colon_pos + 1);
+
+  // Create a dynamic test to check the assertion
+  bool assertion_passed = false;
+  std::string message;
+  std::string actual_value;
+  std::string expected_value;
+  
+  auto test_data = std::make_shared<DynamicTestData>();
+  test_data->test_func = [=, &assertion_passed, &message, &actual_value, &expected_value](ImGuiTestContext* ctx) {
+    try {
+      if (assertion_type == "visible") {
+        // Check if window is visible
+        ImGuiWindow* window = ImGui::FindWindowByName(assertion_target.c_str());
+        bool is_visible = (window != nullptr && !window->Hidden);
+        
+        assertion_passed = is_visible;
+        actual_value = is_visible ? "visible" : "hidden";
+        expected_value = "visible";
+        message = assertion_passed 
+          ? absl::StrFormat("'%s' is visible", assertion_target)
+          : absl::StrFormat("'%s' is not visible", assertion_target);
+          
+      } else if (assertion_type == "enabled") {
+        // Check if element is enabled
+        ImGuiTestItemInfo item = ctx->ItemInfo(assertion_target.c_str());
+        bool is_enabled = (item.ID != 0 && !(item.ItemFlags & ImGuiItemFlags_Disabled));
+        
+        assertion_passed = is_enabled;
+        actual_value = is_enabled ? "enabled" : "disabled";
+        expected_value = "enabled";
+        message = assertion_passed
+          ? absl::StrFormat("'%s' is enabled", assertion_target)
+          : absl::StrFormat("'%s' is not enabled", assertion_target);
+          
+      } else if (assertion_type == "exists") {
+        // Check if element exists
+        ImGuiTestItemInfo item = ctx->ItemInfo(assertion_target.c_str());
+        bool exists = (item.ID != 0);
+        
+        assertion_passed = exists;
+        actual_value = exists ? "exists" : "not found";
+        expected_value = "exists";
+        message = assertion_passed
+          ? absl::StrFormat("'%s' exists", assertion_target)
+          : absl::StrFormat("'%s' not found", assertion_target);
+          
+      } else if (assertion_type == "text_contains") {
+        // Check if text input contains expected text (requires expected_value in condition)
+        // Format: "text_contains:MyInput:ExpectedText"
+        size_t second_colon = assertion_target.find(':');
+        if (second_colon == std::string::npos) {
+          assertion_passed = false;
+          message = "text_contains requires format 'text_contains:target:expected_text'";
+          actual_value = "N/A";
+          expected_value = "N/A";
+          return;
+        }
+        
+        std::string input_target = assertion_target.substr(0, second_colon);
+        std::string expected_text = assertion_target.substr(second_colon + 1);
+        
+        ImGuiTestItemInfo item = ctx->ItemInfo(input_target.c_str());
+        if (item.ID != 0) {
+          // Note: Text retrieval is simplified - actual implementation may need widget-specific handling
+          std::string actual_text = "(text_retrieval_not_fully_implemented)";
+          
+          assertion_passed = (actual_text.find(expected_text) != std::string::npos);
+          actual_value = actual_text;
+          expected_value = absl::StrFormat("contains '%s'", expected_text);
+          message = assertion_passed
+            ? absl::StrFormat("'%s' contains '%s'", input_target, expected_text)
+            : absl::StrFormat("'%s' does not contain '%s' (actual: '%s')", 
+                            input_target, expected_text, actual_text);
+        } else {
+          assertion_passed = false;
+          message = absl::StrFormat("Input '%s' not found", input_target);
+          actual_value = "not found";
+          expected_value = expected_text;
+        }
+        
+      } else {
+        assertion_passed = false;
+        message = absl::StrFormat("Unknown assertion type: %s", assertion_type);
+        actual_value = "N/A";
+        expected_value = "N/A";
+      }
+      
+    } catch (const std::exception& e) {
+      assertion_passed = false;
+      message = absl::StrFormat("Assertion failed: %s", e.what());
+      actual_value = "exception";
+      expected_value = "N/A";
+    }
+  };
+
+  // Register and queue the test
+  std::string test_name = absl::StrFormat("grpc_assert_%lld", 
+      std::chrono::system_clock::now().time_since_epoch().count());
+  
+  ImGuiTest* test = IM_REGISTER_TEST(engine, "grpc", test_name.c_str());
+  test->TestFunc = RunDynamicTest;
+  test->UserData = test_data.get();
+  
+  ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
+  
+  // Wait for test to complete (with timeout)
+  auto timeout = std::chrono::seconds(5);
+  auto wait_start = std::chrono::steady_clock::now();
+  while (test->Output.Status == ImGuiTestStatus_Queued || test->Output.Status == ImGuiTestStatus_Running) {
+    if (std::chrono::steady_clock::now() - wait_start > timeout) {
+      assertion_passed = false;
+      message = "Test timeout";
+      actual_value = "timeout";
+      expected_value = "N/A";
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  
+  if (test->Output.Status == ImGuiTestStatus_Success) {
+    // Status already set by test function
+  } else if (test->Output.Status != ImGuiTestStatus_Unknown) {
+    assertion_passed = false;
+    if (message.empty()) {
+      message = "Test failed";
+    }
+  }
+  
+  // Cleanup
+  ImGuiTestEngine_UnregisterTest(engine, test);
+
+#else
+  // ImGuiTestEngine not available - stub implementation
+  bool assertion_passed = true;
+  std::string message = absl::StrFormat("[STUB] Assertion '%s' passed (ImGuiTestEngine not available)",
+                                       request->condition());
+  std::string actual_value = "(stub)";
+  std::string expected_value = "(stub)";
+#endif
+
+  response->set_success(assertion_passed);
+  response->set_message(message);
+  response->set_actual_value(actual_value);
+  response->set_expected_value(expected_value);
 
   return absl::OkStatus();
 }
