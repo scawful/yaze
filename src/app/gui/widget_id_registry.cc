@@ -8,6 +8,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
+#include "imgui/imgui_internal.h"  // For ImGuiContext internals
 
 namespace yaze {
 namespace gui {
@@ -16,13 +17,19 @@ namespace gui {
 thread_local std::vector<std::string> WidgetIdScope::id_stack_;
 
 WidgetIdScope::WidgetIdScope(const std::string& name) : name_(name) {
-  ImGui::PushID(name.c_str());
-  id_stack_.push_back(name);
+  // Only push ID if we're in an active ImGui frame with a valid window
+  // This prevents crashes during editor initialization before ImGui begins its frame
+  ImGuiContext* ctx = ImGui::GetCurrentContext();
+  if (ctx && ctx->CurrentWindow && !ctx->Windows.empty()) {
+    ImGui::PushID(name.c_str());
+    id_stack_.push_back(name);
+  }
 }
 
 WidgetIdScope::~WidgetIdScope() {
-  ImGui::PopID();
-  if (!id_stack_.empty()) {
+  // Only pop if we successfully pushed
+  if (!id_stack_.empty() && id_stack_.back() == name_) {
+    ImGui::PopID();
     id_stack_.pop_back();
   }
 }

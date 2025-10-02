@@ -34,6 +34,24 @@ bool IsTestCompleted(ImGuiTest* test) {
   return test->Output.Status != ImGuiTestStatus_Queued &&
          test->Output.Status != ImGuiTestStatus_Running;
 }
+
+// Thread-safe state for Wait RPC communication
+struct WaitState {
+  std::atomic<bool> condition_met{false};
+  std::mutex message_mutex;
+  std::string message;
+  
+  void SetMessage(const std::string& msg) {
+    std::lock_guard<std::mutex> lock(message_mutex);
+    message = msg;
+  }
+  
+  std::string GetMessage() {
+    std::lock_guard<std::mutex> lock(message_mutex);
+    return message;
+  }
+};
+
 }  // namespace
 #endif
 
@@ -444,41 +462,47 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   int timeout_ms = request->timeout_ms() > 0 ? request->timeout_ms() : 5000; // Default 5s
   int poll_interval_ms = request->poll_interval_ms() > 0 ? request->poll_interval_ms() : 100; // Default 100ms
 
-  // Create a dynamic test to poll the condition
-  bool condition_met = false;
-  std::string message;
+  // Create thread-safe shared state for communication
+  auto wait_state = std::make_shared<WaitState>();
   
   auto test_data = std::make_shared<DynamicTestData>();
-  test_data->test_func = [=, &condition_met, &message](ImGuiTestContext* ctx) {
+  test_data->test_func = [wait_state, condition_type, condition_target, 
+                          timeout_ms, poll_interval_ms](ImGuiTestContext* ctx) {
     try {
       auto poll_start = std::chrono::steady_clock::now();
       auto timeout = std::chrono::milliseconds(timeout_ms);
       
+      // Give ImGui one frame to process the menu click and create windows
+      ctx->Yield();
+      
       while (std::chrono::steady_clock::now() - poll_start < timeout) {
         bool current_state = false;
 
-        // Check the condition type
+        // Check the condition type using thread-safe ctx methods
         if (condition_type == "window_visible") {
-          ImGuiWindow* window = ImGui::FindWindowByName(condition_target.c_str());
-          current_state = (window != nullptr && !window->Hidden);
+          // Use ctx->WindowInfo instead of ImGui::FindWindowByName for thread safety
+          ImGuiTestItemInfo window_info = ctx->WindowInfo(condition_target.c_str(), 
+                                                          ImGuiTestOpFlags_NoError);
+          current_state = (window_info.ID != 0);
         } else if (condition_type == "element_visible") {
           ImGuiTestItemInfo item = ctx->ItemInfo(condition_target.c_str());
-          current_state = (item.ID != 0 && item.RectClipped.GetWidth() > 0 && item.RectClipped.GetHeight() > 0);
+          current_state = (item.ID != 0 && item.RectClipped.GetWidth() > 0 && 
+                          item.RectClipped.GetHeight() > 0);
         } else if (condition_type == "element_enabled") {
           ImGuiTestItemInfo item = ctx->ItemInfo(condition_target.c_str());
           current_state = (item.ID != 0 && !(item.ItemFlags & ImGuiItemFlags_Disabled));
         } else {
-          message = absl::StrFormat("Unknown condition type: %s", condition_type);
-          condition_met = false;
+          wait_state->SetMessage(absl::StrFormat("Unknown condition type: %s", condition_type));
+          wait_state->condition_met = false;
           return;
         }
 
         if (current_state) {
-          condition_met = true;
-          message = absl::StrFormat("Condition '%s:%s' met after %lld ms",
+          wait_state->condition_met = true;
+          wait_state->SetMessage(absl::StrFormat("Condition '%s:%s' met after %lld ms",
                                    condition_type, condition_target,
                                    std::chrono::duration_cast<std::chrono::milliseconds>(
-                                     std::chrono::steady_clock::now() - poll_start).count());
+                                     std::chrono::steady_clock::now() - poll_start).count()));
           return;
         }
 
@@ -488,12 +512,12 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
       }
 
       // Timeout reached
-      condition_met = false;
-      message = absl::StrFormat("Condition '%s:%s' not met after %d ms timeout",
-                               condition_type, condition_target, timeout_ms);
+      wait_state->condition_met = false;
+      wait_state->SetMessage(absl::StrFormat("Condition '%s:%s' not met after %d ms timeout",
+                               condition_type, condition_target, timeout_ms));
     } catch (const std::exception& e) {
-      condition_met = false;
-      message = absl::StrFormat("Wait failed: %s", e.what());
+      wait_state->condition_met = false;
+      wait_state->SetMessage(absl::StrFormat("Wait failed: %s", e.what()));
     }
   };
 
@@ -513,13 +537,17 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   auto wait_start = std::chrono::steady_clock::now();
   while (!IsTestCompleted(test)) {
     if (std::chrono::steady_clock::now() - wait_start > extended_timeout) {
-      condition_met = false;
-      message = "Test execution timeout";
+      wait_state->condition_met = false;
+      wait_state->SetMessage("Test execution timeout");
       break;
     }
     // Yield to allow ImGui event processing
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
+  
+  // Read final state from thread-safe shared state
+  bool condition_met = wait_state->condition_met.load();
+  std::string message = wait_state->GetMessage();
   
   // Check final test status
   if (IsTestCompleted(test)) {
