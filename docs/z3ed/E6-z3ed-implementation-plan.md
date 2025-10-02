@@ -220,6 +220,12 @@ _Status Legend: 🔄 Active · 📋 Planned · ✅ Done_
    - Test Reject and Delete actions
    - Validate filtering and refresh functionality
 
+2. **Widget ID Refactoring** (Started Oct 2, 2025) 🎯 NEW
+   - ✅ Added widget_id_registry to build system
+   - ✅ Registered 13 Overworld toolset buttons with hierarchical IDs
+   - 📋 Next: Test widget discovery and update test harness
+   - See: [WIDGET_ID_REFACTORING_PROGRESS.md](WIDGET_ID_REFACTORING_PROGRESS.md)
+
 ### Priority 1: ImGuiTestHarness Foundation (IT-01) ✅ PHASE 2 COMPLETE
 **Rationale**: Required for automated GUI testing and remote control of YAZE for AI workflows  
 **Decision**: ✅ **Use gRPC** - Production-grade, cross-platform, type-safe (see `IT-01-grpc-evaluation.md`)

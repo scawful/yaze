@@ -11,6 +11,7 @@ set(
   app/gui/theme_manager.cc
   app/gui/background_renderer.cc
   app/gui/bpp_format_ui.cc
+  app/gui/widget_id_registry.cc
   # Canvas system components
   app/gui/canvas/canvas_modals.cc
   app/gui/canvas/canvas_context_menu.cc
