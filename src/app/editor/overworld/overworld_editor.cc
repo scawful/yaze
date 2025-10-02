@@ -25,6 +25,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
+#include "app/gui/widget_id_registry.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
 #include "app/zelda3/overworld/overworld.h"
@@ -54,6 +55,12 @@ void OverworldEditor::Initialize() {
   // Setup overworld canvas context menu
   SetupOverworldCanvasContextMenu();
 
+  // Setup widget ID scope for Overworld editor
+  // This enables test automation to reference widgets like:
+  // "Overworld/Toolset/button:Pan" or "Overworld/Toolset/button:DrawTile"
+  gui::WidgetIdScope overworld_scope("Overworld");
+  gui::WidgetIdScope toolset_scope("Toolset");
+
   // Core editing tools
   gui::AddTableColumn(toolset_table_, "##Pan", [&]() {
     if (Selectable(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN)) {
@@ -61,44 +68,69 @@ void OverworldEditor::Initialize() {
       ow_map_canvas_.set_draggable(true);
     }
     HOVER_HINT("Pan (1) - Middle click and drag");
+    // Register this widget for test automation
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:Pan", "button", ImGui::GetItemID(),
+        "Pan tool - Middle click and drag to move the overworld canvas");
   });
   gui::AddTableColumn(toolset_table_, "##DrawTile", [&]() {
     if (Selectable(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE)) {
       current_mode = EditingMode::DRAW_TILE;
     }
     HOVER_HINT("Draw Tile (2)");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:DrawTile", "button", ImGui::GetItemID(),
+        "Draw Tile tool - Paint tiles on the overworld map");
   });
   gui::AddTableColumn(toolset_table_, "##Entrances", [&]() {
     if (Selectable(ICON_MD_DOOR_FRONT, current_mode == EditingMode::ENTRANCES))
       current_mode = EditingMode::ENTRANCES;
     HOVER_HINT("Entrances (3)");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:Entrances", "button", ImGui::GetItemID(),
+        "Entrances tool - Edit overworld entrances");
   });
   gui::AddTableColumn(toolset_table_, "##Exits", [&]() {
     if (Selectable(ICON_MD_DOOR_BACK, current_mode == EditingMode::EXITS))
       current_mode = EditingMode::EXITS;
     HOVER_HINT("Exits (4)");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:Exits", "button", ImGui::GetItemID(),
+        "Exits tool - Edit overworld exits");
   });
   gui::AddTableColumn(toolset_table_, "##Items", [&]() {
     if (Selectable(ICON_MD_GRASS, current_mode == EditingMode::ITEMS))
       current_mode = EditingMode::ITEMS;
     HOVER_HINT("Items (5)");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:Items", "button", ImGui::GetItemID(),
+        "Items tool - Place items on the overworld");
   });
   gui::AddTableColumn(toolset_table_, "##Sprites", [&]() {
     if (Selectable(ICON_MD_PEST_CONTROL_RODENT,
                    current_mode == EditingMode::SPRITES))
       current_mode = EditingMode::SPRITES;
     HOVER_HINT("Sprites (6)");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:Sprites", "button", ImGui::GetItemID(),
+        "Sprites tool - Edit overworld sprites");
   });
   gui::AddTableColumn(toolset_table_, "##Transports", [&]() {
     if (Selectable(ICON_MD_ADD_LOCATION,
                    current_mode == EditingMode::TRANSPORTS))
       current_mode = EditingMode::TRANSPORTS;
     HOVER_HINT("Transports (7)");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:Transports", "button", ImGui::GetItemID(),
+        "Transports tool - Configure transport locations");
   });
   gui::AddTableColumn(toolset_table_, "##Music", [&]() {
     if (Selectable(ICON_MD_MUSIC_NOTE, current_mode == EditingMode::MUSIC))
       current_mode = EditingMode::MUSIC;
     HOVER_HINT("Music (8)");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:Music", "button", ImGui::GetItemID(),
+        "Music tool - Configure overworld music");
   });
 
   // View controls
@@ -106,16 +138,25 @@ void OverworldEditor::Initialize() {
     if (Button(ICON_MD_ZOOM_OUT))
       ow_map_canvas_.ZoomOut();
     HOVER_HINT("Zoom Out");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:ZoomOut", "button", ImGui::GetItemID(),
+        "Zoom Out - Decrease canvas zoom level");
   });
   gui::AddTableColumn(toolset_table_, "##ZoomIn", [&]() {
     if (Button(ICON_MD_ZOOM_IN))
       ow_map_canvas_.ZoomIn();
     HOVER_HINT("Zoom In");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:ZoomIn", "button", ImGui::GetItemID(),
+        "Zoom In - Increase canvas zoom level");
   });
   gui::AddTableColumn(toolset_table_, "##Fullscreen", [&]() {
     if (Button(ICON_MD_OPEN_IN_FULL))
       overworld_canvas_fullscreen_ = !overworld_canvas_fullscreen_;
     HOVER_HINT("Fullscreen Canvas (F11)");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:Fullscreen", "button", ImGui::GetItemID(),
+        "Fullscreen - Toggle fullscreen canvas view (F11)");
   });
 
   // Quick access tools
@@ -123,12 +164,18 @@ void OverworldEditor::Initialize() {
     if (Button(ICON_MD_GRID_VIEW))
       show_tile16_editor_ = !show_tile16_editor_;
     HOVER_HINT("Tile16 Editor (Ctrl+T)");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:Tile16Editor", "button", ImGui::GetItemID(),
+        "Tile16 Editor - Open the Tile16 editor window (Ctrl+T)");
   });
   gui::AddTableColumn(toolset_table_, "##CopyMap", [&]() {
     if (Button(ICON_MD_CONTENT_COPY)) {
       status_ = absl::UnimplementedError("PNG export functionality removed");
     }
     HOVER_HINT("Copy Map to Clipboard");
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "Overworld/Toolset/button:CopyMap", "button", ImGui::GetItemID(),
+        "Copy Map - Copy map to clipboard");
   });
 }
 
