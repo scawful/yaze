@@ -1,9 +1,29 @@
-# z3ed Agentic Workflow Implementation Plan
+# z3ed Agentic Wo**Active Phase**:
+- **E2E Validation**: Debugging and hardening the gRPC test harness to ensure reliable GUI automation.
 
-**Last Updated**: October 2, 2025 (10:30 PM)  
-**Status**: IT-01 Complete ✅ | IT-02 Complete ✅ | E2E Validation Ready 🎯
+**📋 Next Phases**:
+- **Priority 1**: Complete E2E Validation by implementing identified fixes for window detection and thread safety.
+- **Priority 2**: Begin Policy Evaluation Framework (AW-04) - a YAML-based constraint system for proposal acceptance.
 
-> 📋 **Quick Start**: See [README.md](README.md) for essential links and [NEXT_PRIORITIES_OCT2.md](NEXT_PRIORITIES_OCT2.md) for detailed task guides.
+**Recent Accomplishments**:
+- **gRPC Test Harness (IT-01 & IT-02)**: Core implementation of all 6 RPCs (Ping, Click, Type, Wait, Assert, Screenshot) is complete, enabling automated GUI testing from natural language prompts.
+- **Root Cause Analysis**: Identified key sources of test flakiness, including a window-creation timing issue and a thread-safety bug in RPC handlers. Solutions have been designed.
+- **Build System**: Hardened the CMake build for reliable gRPC integration.
+- **Proposal Workflow**: The agentic proposal system (create, list, diff, review in GUI) is fully operational.
+
+**Known Issues**:
+- **Test Flakiness**: The e2e test script (`test_harness_e2e.sh`) is flaky due to a timing issue where `Click` actions that open new windows return before the window is interactable.
+  - **Solution**: The `Click` RPC handler must call `ctx->Yield()` after performing the click to allow the ImGui frame to update before the RPC returns.
+- **RPC Handler Crashes**: The `Wait` and `Assert` RPCs can crash due to unsafe state sharing between the gRPC thread and the test engine thread.
+  - **Solution**: A thread-safe pattern using a `std::shared_ptr` to a state struct must be implemented for these handlers.
+- **Screenshot RPC**: The Screenshot RPC is a non-functional stub.
+
+**Time Investment**: 20.5 hours total (IT-01: 11h, IT-02: 7.5h, Docs: 2h)on Plan
+
+**Last Updated**: [Current Date]
+**Status**: Core Infrastructure Complete | E2E Validation In Progress 🎯
+
+> 📋 **Quick Start**: See [README.md](README.md) for essential links and project status.
 
 ## Executive Summary
 
@@ -687,194 +707,72 @@ User: "Make soldiers wear red armor"
 - Can we reuse existing regression test infrastructure for nightly ImGui runs or should we spin up a dedicated binary?  \
 	➤ Investigate during the ImGuiTestHarness spike; compare extending `yaze_test` jobs versus introducing a lightweight automation runner.
 
-## 5. Completed Work Summary
+## 4. Work History & Key Decisions
+
+This section provides a high-level summary of completed workstreams and major architectural decisions.
 
 ### Resource Catalogue Workstream (RC) - ✅ COMPLETE
+- **Outcome**: A machine-readable API specification for all `z3ed` commands.
+- **Artifact**: `docs/api/z3ed-resources.yaml` is the generated source of truth.
+- **Details**: Implemented a schema system and serialization for all CLI resources (ROM, Palette, Agent, etc.), enabling AI consumption.
 
-The Resource Catalogue workstream has been successfully completed, providing a foundation for AI-driven automation:
+### Acceptance Workflow (AW-01, AW-02, AW-03) - ✅ COMPLETE
+- **Outcome**: A complete, human-in-the-loop proposal review system.
+- **Components**:
+    - `RomSandboxManager`: For creating isolated ROM copies.
+    - `ProposalRegistry`: For tracking proposals, diffs, and logs with disk persistence.
+    - `ProposalDrawer`: An ImGui panel for reviewing, accepting, and rejecting proposals, with full ROM merging capabilities.
+- **Integration**: The `agent run`, `agent list`, and `agent diff` commands are fully integrated with the registry. The GUI and CLI share the same underlying proposal data.
 
-**Implementation Details**:
-- Created comprehensive schema system in `src/cli/service/resource_catalog.{h,cc}`
-- Implemented resource catalog for: ROM, Patch, Palette, Overworld, Dungeon, and Agent commands
-- Each resource includes: name, description, actions, arguments, effects, and return values
-- Built dual-format serialization: JSON (compact) and YAML (human-readable)
-
-**Key Fixes**:
-- Fixed `rom info` segfault by creating dedicated `RomInfo` handler using `FLAGS_rom`
-- Added `rom info` action to resource schema with proper metadata
-- Ensured all ROM commands consistently use flag-based dispatch
-
-**Generated Artifacts**:
-- `docs/api/z3ed-resources.yaml` - Authoritative machine-readable API reference
-- Both JSON and YAML output formats validated and working
-- Resource filtering capability (`--resource <name>`) operational
-
-**Command Examples**:
-```bash
-# View all resources in YAML
-z3ed agent describe --format yaml
-
-# Get specific resource as JSON
-z3ed agent describe --format json --resource rom
-
-# Generate documentation file
-z3ed agent describe --format yaml --output docs/api/z3ed-resources.yaml
-```
-
-**Testing Results**:
-All commands tested and verified working:
-- ✅ `z3ed rom info --rom=zelda3.sfc` - displays title, size, filename
-- ✅ `z3ed rom validate --rom=zelda3.sfc` - verifies checksum and header
-- ✅ `z3ed agent describe --format yaml` - outputs complete catalog
-- ✅ `z3ed agent describe --format json --resource rom` - filters by resource
-
-### Acceptance Workflow (AW-01, AW-02) - ✅ CORE COMPLETE
-
-The foundational infrastructure for proposal tracking and review is now operational:
-
-**RomSandboxManager Implementation** (AW-01):
-- Singleton service managing isolated ROM copies for agent proposals
-- Sandboxes created in `YAZE_SANDBOX_ROOT` (env var) or system temp directory
-- Automatic directory creation and ROM file cloning
-- Active sandbox tracking for current agent session
-- Cleanup utilities for removing old sandboxes
-
-**ProposalRegistry Implementation** (AW-02):
-- Comprehensive tracking of agent-generated ROM modifications
-- Stores proposal metadata: ID, sandbox ID, prompt, description, timestamps
-- Records execution diffs in `diff.txt` within proposal directory
-- Appends command execution logs to `execution.log` with timestamps
-- Support for screenshot attachments (path tracking)
-- Proposal lifecycle: Pending → Accepted/Rejected
-- Query capabilities: get by ID, list all, filter by status, find latest pending
-
-**Agent Run Integration**:
-- `agent run` now creates sandbox + proposal automatically
-- All command executions logged with timestamps and status
-- Success/failure outcomes captured in proposal logs
-- User feedback includes proposal ID and sandbox path for review
-- Foundation ready for `agent diff`, `agent commit`, `agent revert` enhancements
-
-**Agent Diff Enhancement** (Completed Oct 1, 2025):
-- Reads proposal diffs from ProposalRegistry automatically
-- Displays detailed metadata: proposal ID, status, timestamps, command count
-- Shows diff content from proposal directory
-- Displays execution log (first 50 lines, with truncation for long logs)
-- Provides next-step guidance (commit/revert/GUI review)
-- Supports `--proposal-id` flag to view specific proposals
-- Fallback to legacy diff behavior if no proposals found
-
-**Agent List Command** (New - Oct 1, 2025):
-- Enumerates all proposals in the registry
-- Shows proposal ID, status, creation time, prompt, and stats
-- Indicates pending/accepted/rejected status for each proposal
-- Provides guidance on using `agent diff` to view details
-- Empty state message guides users to create proposals with `agent run`
-
-**Resource Catalog Updates**:
-- Added `agent list` action with returns schema
-- Added `agent diff` action with arguments (`--proposal-id`) and returns schema
-- Updated agent resource description to include listing and diffing capabilities
-- Regenerated `docs/api/z3ed-resources.yaml` with new agent actions
-
-**ProposalDrawer GUI Component** (Completed Oct 1, 2025):
-- ImGui right-side drawer for proposal review (AW-03)
-- Split view: proposal list (top) + detail view (bottom)
-- List view: table with ID, status, prompt columns; colored status indicators
-- Detail view: collapsible sections for metadata/diff/log; syntax-aware display
-- Action buttons: Accept, Reject, Delete with confirmation dialogs
-- Status filtering (All/Pending/Accepted/Rejected)
-- Integrated into EditorManager with Debug → Agent Proposals menu
-- Accept/Reject updates ProposalRegistry status
-- Delete removes proposal from registry and filesystem
-- TODO: Implement actual ROM merging in AcceptProposal method
-
-**Proposal Persistence Fix** (Completed Oct 1, 2025):
-- Fixed ProposalRegistry to load proposals from disk on first access
-- Added `LoadProposalsFromDiskLocked()` method scanning proposal root directory
-- Lazy loading implementation in `ListProposals()` for automatic registry population
-- Reconstructs metadata from filesystem: ID, timestamps, log/diff paths, screenshots
-- Parses creation time from proposal ID format (`proposal-20251001T200215-1`)
-- Enables cross-session proposal tracking - `agent list` now finds all proposals
-- ProposalDrawer can now display proposals created via CLI `agent run`
-
-**CMake Build Integration**:
-- Added `cli/service/proposal_registry.cc` and `cli/service/rom_sandbox_manager.cc` to all app targets
-- Fixed linker errors by including CLI service sources in:
-  - `yaze` (main GUI app)
-  - `yaze_emu` (emulator standalone)
-  - `yaze_core` (testing library)
-  - `yaze_c` (C API library)
-- All targets now build successfully with ProposalDrawer dependencies
-
-**Architecture Benefits**:
-- Clean separation: RomSandboxManager (file ops) ↔ ProposalRegistry (metadata)
-- Thread-safe with mutex protection for concurrent access
-- Extensible design ready for ImGui review UI (AW-03)
-- Proposal persistence enables post-session review and auditing
-- Proposal-centric workflow enables human-in-the-loop review
-- GUI and CLI both have full access to proposal system
-
-**Next Steps for AW Workstream**:
-- Test ProposalDrawer in running application
-- Complete ROM merging in AcceptProposal method
-- AW-04: Policy evaluation for gating mutations
-- AW-05: `.z3ed-diff` hybrid format design
+### ImGuiTestHarness (IT-01, IT-02) - ✅ CORE COMPLETE
+- **Outcome**: A gRPC-based service for automated GUI testing.
+- **Decision**: Chose **gRPC** for its performance, cross-platform support, and type safety.
+- **Features**: Implemented 6 core RPCs: `Ping`, `Click`, `Type`, `Wait`, `Assert`, and a stubbed `Screenshot`.
+- **Integration**: The `z3ed agent test` command can translate natural language prompts into a sequence of gRPC calls to execute tests.
 
 ### Files Modified/Created
+A summary of files created or changed during the implementation of the core `z3ed` infrastructure.
 
-**Phase 6 (Resource Catalogue)**:
-1. `src/cli/handlers/rom.cc` - Added `RomInfo::Run` implementation
-2. `src/cli/z3ed.h` - Added `RomInfo` class declaration  
-3. `src/cli/modern_cli.cc` - Updated `HandleRomInfoCommand` routing
-4. `src/cli/service/resource_catalog.cc` - Added `rom info` schema entry
-5. `docs/api/z3ed-resources.yaml` - Generated comprehensive API catalog
+**Core Services & CLI Handlers**:
+- `src/cli/service/proposal_registry.{h,cc}`
+- `src/cli/service/rom_sandbox_manager.{h,cc}`
+- `src/cli/service/resource_catalog.{h,cc}`
+- `src/cli/handlers/agent.cc`
+- `src/cli/handlers/rom.cc`
 
-**AW-01 & AW-02 (Proposal Tracking)**:
-6. `src/cli/service/proposal_registry.h` - New proposal tracking service interface
-7. `src/cli/service/proposal_registry.cc` - Implementation with full lifecycle management
-8. `src/cli/handlers/agent.cc` - Integrated ProposalRegistry into agent run workflow
+**GUI & Application Integration**:
+- `src/app/editor/system/proposal_drawer.{h,cc}`
+- `src/app/editor/editor_manager.{h,cc}`
+- `src/app/core/imgui_test_harness_service.{h,cc}`
+- `src/app/core/proto/imgui_test_harness.proto`
 
-**Agent Diff & List Enhancement**:
-9. `src/cli/handlers/agent.cc` - Enhanced HandleDiffCommand with proposal reading, added HandleListCommand
-10. `src/cli/service/resource_catalog.cc` - Added agent list/diff actions with schemas
-11. `docs/api/z3ed-resources.yaml` - Regenerated with new agent commands
-12. `docs/E6-z3ed-cli-design.md` - Updated Section 8.1 with list/diff documentation
+**Build System (CMake)**:
+- `src/app/app.cmake`
+- `src/app/emu/emu.cmake`
+- `src/cli/z3ed.cmake`
+- `src/CMakeLists.txt`
 
-**AW-03 (ProposalDrawer GUI)**:
-13. `src/app/editor/system/proposal_drawer.h` - Complete drawer interface with Draw/Accept/Reject/Delete
-14. `src/app/editor/system/proposal_drawer.cc` - Full implementation (~350 lines) with list/detail views
-15. `src/app/editor/editor_manager.h` - Added ProposalDrawer member and include
-16. `src/app/editor/editor_manager.cc` - Added menu item and Draw() call in Update loop
-17. `src/CMakeLists.txt` - Added proposal_drawer files to System Editor source group
-18. `src/app/app.cmake` - Added CLI service sources to yaze target (both Apple and non-Apple builds)
-19. `src/app/emu/emu.cmake` - Added CLI service sources to yaze_emu target
-20. `src/CMakeLists.txt` - Added CLI service sources to yaze_core library sources
-9. `src/cli/z3ed.cmake` - Added proposal_registry.cc to build
-10. `docs/E6-z3ed-implementation-plan.md` - Updated progress and task statuses
+**Documentation & API Specs**:
+- `docs/api/z3ed-resources.yaml`
+- `docs/z3ed/E6-z3ed-cli-design.md`
+- `docs/z3ed/E6-z3ed-implementation-plan.md`
+- `docs/z3ed/E6-z3ed-reference.md`
+- `docs/z3ed/README.md`
 
-**Agent Diff & List (Oct 1, 2025)**:
-21. `src/cli/handlers/agent.cc` - Enhanced `HandleDiffCommand` with proposal reading, added `HandleListCommand`
-22. `src/cli/service/resource_catalog.cc` - Added agent list and diff actions to schema
-23. `docs/api/z3ed-resources.yaml` - Regenerated with new agent commands
+## 5. Open Questions
 
-**Proposal Persistence Fix (Oct 1, 2025)**:
-24. `src/cli/service/proposal_registry.h` - Added `LoadProposalsFromDiskLocked()` declaration
-25. `src/cli/service/proposal_registry.cc` - Implemented disk loading with timestamp parsing and metadata reconstruction
-26. `src/cli/service/proposal_registry.cc` - Modified `ListProposals()` to lazy-load proposals from disk
-
-**ROM Merging Implementation (Oct 1, 2025)**:
-27. `src/app/editor/system/proposal_drawer.h` - Added `SetRom()` method and `Rom*` member for merge operations
-28. `src/app/editor/system/proposal_drawer.cc` - Implemented full ROM merging in `AcceptProposal()` with sandbox loading
-29. `src/app/editor/editor_manager.cc` - Added `SetRom(current_rom_)` call before drawing ProposalDrawer
-30. `src/app/editor/system/proposal_drawer.cc` - Added RomSandboxManager include for sandbox path resolution
+- What serialization format should the proposal registry adopt for diff payloads (binary vs. textual vs. hybrid)?  \
+	➤ Decision: pursue a hybrid package (`.z3ed-diff`) that wraps binary tile/object deltas alongside a JSON metadata envelope (identifiers, texture descriptors, preview palette info). Capture format draft under RC/AW backlog.
+- How should the harness authenticate escalation requests for mutation actions?  \
+	➤ Still open—evaluate shared-secret vs. interactive user prompt in the harness spike (IT-01).
+- Can we reuse existing regression test infrastructure for nightly ImGui runs or should we spin up a dedicated binary?  \
+	➤ Investigate during the ImGuiTestHarness spike; compare extending `yaze_test` jobs versus introducing a lightweight automation runner.
 
 ## 6. References
 
 **Active Documentation**:
 - `E6-z3ed-cli-design.md` - Overall CLI design and architecture
-- `NEXT_PRIORITIES_OCT2.md` - Current work priorities with detailed implementation guides
-- `IT-01-QUICKSTART.md` - Test harness quick reference
+- `E6-z3ed-reference.md` - Technical command and API reference
 - `docs/api/z3ed-resources.yaml` - Machine-readable API reference (generated)
 
 **Source Code**:
@@ -882,14 +780,8 @@ The foundational infrastructure for proposal tracking and review is now operatio
 - `src/app/editor/system/proposal_drawer.{h,cc}` - GUI review panel
 - `src/app/core/imgui_test_harness_service.{h,cc}` - gRPC automation server
 
-**Historical Documentation** (archived):
-- `archive/STATE_SUMMARY_*.md` - Historical state snapshots
-- `archive/IT-01-PHASE*-COMPLETE.md` - Phase completion reports
-- `archive/*-grpc-*.md` - gRPC design decisions and technical notes
-- `archive/PROGRESS_SUMMARY_*.md` - Daily progress logs
-
 ---
 
-**Last Updated**: October 2, 2025  
-**Contributors**: @scawful, GitHub Copilot  
+**Last Updated**: [Current Date]
+**Contributors**: @scawful, GitHub Copilot
 **License**: Same as YAZE (see ../../LICENSE)

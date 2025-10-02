@@ -1,7 +1,7 @@
 # z3ed CLI Technical Reference
 
 **Version**: 0.1.0-alpha  
-**Last Updated**: October 2, 2025  
+**Last Updated**: [Current Date]  
 **Status**: Production Ready (macOS), Windows Testing Pending
 
 ---
@@ -668,7 +668,29 @@ kill <PID>
 3. Wait for window to be visible first
 4. Use Assert to check widget exists
 
-#### Build Errors - Boolean Flag
+##### Widget Not Found or Stale State
+
+**Problem**: A `Wait` or `Assert` RPC fails with a "Widget Not Found" or "Window Not Found" error, even though a preceding `Click` action should have made it appear. This is a common issue in the e2e test script.
+
+**Root Cause**: This is an `ImGui` frame timing issue. The `Click` RPC may return *before* the ImGui frame containing the new window or widget has been rendered. The subsequent `Wait` or `Assert` call then executes on a stale frame, failing to find the element.
+
+**Solution**:
+- **In the Test Harness Code**: The RPC handler that performs the action (e.g., `Click`) must call `ctx->Yield()` on the `ImGuiTestContext` *after* performing the click. This pauses the RPC and allows the test engine to render the next frame, ensuring the UI state is up-to-date before the RPC returns and the next test step begins.
+
+#### Crashes in `Wait` or `Assert` RPCs
+
+**Problem**: The application crashes with a `SIGSEGV` (segmentation fault) when running `Wait` or `Assert` RPCs.
+
+**Root Cause**: This is a thread-safety issue. The gRPC server runs its handlers on a separate thread pool from the main thread where the ImGui Test Engine runs. Sharing state (like the test context or condition parameters) directly between these threads without synchronization is unsafe.
+
+**Solution**:
+- **In the Test Harness Code**: Implement a thread-safe pattern for these RPCs.
+    1.  Define a state structure (e.g., `struct WaitState`) to hold all necessary data for the operation.
+    2.  In the RPC handler, allocate this structure as a `std::shared_ptr`.
+    3.  Register a dynamic test with the ImGui Test Engine and pass the `shared_ptr` to the test's lambda function.
+    4.  The test function can then safely access the state data on the main thread to perform its checks. The `shared_ptr` manages the lifetime of the state across threads.
+
+### Build Errors - Boolean Flag
 
 **Problem**: `std::stringstream >> bool` doesn't parse "true"/"false"
 

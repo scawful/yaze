@@ -86,7 +86,9 @@ endif()
 if (YAZE_BUILD_APP)
   include(app/app.cmake)
 endif()
-if (YAZE_BUILD_EMU)
+# Conditionally build the emulator, but not when gRPC is enabled for app-only testing
+# Conditionally build the emulator, but not when gRPC is enabled for app-only testing
+if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC)
   include(app/emu/emu.cmake)
 endif()
 if (YAZE_BUILD_Z3ED)
@@ -172,7 +174,7 @@ if (YAZE_BUILD_LIB)
     # CLI service sources (needed for ProposalDrawer)
     cli/service/proposal_registry.cc
     cli/service/rom_sandbox_manager.cc
-    cli/service/gui_automation_client.cc
+    # cli/service/gui_automation_client.cc # Moved to yaze_c
     cli/service/test_workflow_generator.cc
   )
   
@@ -182,6 +184,7 @@ if (YAZE_BUILD_LIB)
     ${YAZE_CORE_SOURCES}
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
+    cli/service/gui_automation_client.cc
   )
   
   # Add emulator sources (required for comprehensive testing)
@@ -228,6 +231,16 @@ if (YAZE_BUILD_LIB)
     ImGui
   )
 
+  if(YAZE_WITH_GRPC)
+    target_add_protobuf(yaze_core 
+      ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+
+    target_link_libraries(yaze_core PRIVATE
+      grpc++
+      grpc++_reflection
+      libprotobuf)
+  endif()
+
   # Configure full C API library
   target_include_directories(
     yaze_c PUBLIC
@@ -255,6 +268,16 @@ if (YAZE_BUILD_LIB)
     ImGui
   )
   
+  if(YAZE_WITH_GRPC)
+    target_add_protobuf(yaze_c 
+      ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+
+    target_link_libraries(yaze_c PRIVATE
+      grpc++
+      grpc++_reflection
+      libprotobuf)
+  endif()
+
   # Conditionally link ImGui Test Engine and set definitions
   if(YAZE_ENABLE_UI_TESTS AND TARGET ImGuiTestEngine)
     target_link_libraries(yaze_c PRIVATE ImGuiTestEngine)
