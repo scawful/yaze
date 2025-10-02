@@ -2,7 +2,14 @@
 
 _Last updated: 2025-10-01 (final update - Phase 6 + AW-02 complete)_
 
-This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-design.md`) into actionable engineering tasks. Each workstream contains milestones, owners (TBD), blocking dependencies, and expected deliverables.
+This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-design.md`) into actionable engineering tasks. Each workstream contains mi**Files Modified/Created**
+
+**Phase 6 (Resource Catalogue)**:
+1. `src/cli/handlers/rom.cc` - Added `RomInfo::Run` implementation
+2. `src/cli/z3ed.h` - Added `RomInfo` class declaration  
+3. `src/cli/modern_cli.cc` - Updated `HandleRomInfoCommand` routing
+4. `src/cli/service/resource_catalog.cc` - Added `rom info` schema entry
+5. `docs/api/z3ed-resources.yaml` - Generated comprehensive API catalog, owners (TBD), blocking dependencies, and expected deliverables.
 
 ## 1. Workstreams Overview
 
@@ -14,7 +21,7 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 | Verification Pipeline | Build layered testing + CI coverage. | Phase 6+ | Integrates with harness + CLI suites. |
 | Telemetry & Learning | Capture signals to improve prompts + heuristics. | Phase 8 | Optional/opt-in features. |
 
-### Progress snapshot — 2025-10-01 (Phase 6 Complete, AW-03 Complete)
+### Progress snapshot — 2025-10-01 (Phase 6 Complete, AW-03 Complete, IT-01 & AW-04 Active)
 
 **Resource Catalogue (RC)** ✅ COMPLETE:
 - CLI flag passthrough and resource catalog system operational
@@ -24,12 +31,15 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 
 **Acceptance Workflow (AW-01, AW-02, AW-03)** ✅ COMPLETE:
 - `ProposalRegistry` tracks agent modifications with metadata/diffs/logs
+- Proposal persistence: LoadProposalsFromDiskLocked() enables cross-session tracking
 - `RomSandboxManager` handles isolated ROM copies
 - `agent list` and `agent diff` commands operational
-- **ProposalDrawer ImGui GUI** implemented with list/detail views and accept/reject/delete actions
-- Integrated into EditorManager (`Debug → Agent Proposals` menu)
-- Fixed CMake linker errors across all app targets
-- **Known limitation**: ROM merging in `AcceptProposal()` not yet implemented (TODO)
+- **ProposalDrawer ImGui GUI** fully implemented:
+  - List/detail split view with filtering and refresh
+  - Accept/Reject/Delete actions with confirmation dialogs
+  - **ROM merging complete**: AcceptProposal() loads sandbox ROM and merges into main ROM
+  - Integrated into EditorManager (`Debug → Agent Proposals` menu)
+  - Ready for end-to-end testing with live proposals
 
 **Graphics System** ✅ FIXED:
 - Fixed RAII shutdown crash in `PerformanceProfiler` (static destruction order issue)
@@ -39,6 +49,10 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 **Agent Run** ✅ FIXED:
 - Added automatic ROM loading from `--rom` flag when not already loaded
 - Proper error messages guide users to specify ROM path
+
+**Active Work (Oct 1-7, 2025)**:
+- **Priority 1**: ImGuiTestHarness (IT-01) - Design spike for IPC architecture
+- **Priority 2**: Policy Evaluation (AW-04) - YAML-based constraint system
 
 ## 2. Task Backlog
 
@@ -50,11 +64,11 @@ This plan decomposes the design additions (Sections 11–15 of `E6-z3ed-cli-desi
 | RC-04 | Integrate schema export with TUI command palette + help overlays. | Resource Catalogue | UX | Planned | RC-03 |
 | RC-05 | Harden CLI command routing/flag parsing to unblock agent automation. | Resource Catalogue | Code | Done | Fixed rom info handler to use FLAGS_rom |
 | AW-01 | Implement sandbox ROM cloning and tracking (`RomSandboxManager`). | Acceptance Workflow | Code | Done | ROM sandbox manager operational with lifecycle management |
-| AW-02 | Build proposal registry service storing diffs, logs, screenshots. | Acceptance Workflow | Code | Done | ProposalRegistry implemented and integrated with agent run workflow |
-| AW-03 | Add ImGui drawer for proposals with accept/reject controls. | Acceptance Workflow | UX | Done | ProposalDrawer GUI complete with list, detail, and action buttons |
-| AW-04 | Implement policy evaluation for gating accept buttons. | Acceptance Workflow | Code | Planned | AW-03 |
+| AW-02 | Build proposal registry service storing diffs, logs, screenshots. | Acceptance Workflow | Code | Done | ProposalRegistry implemented with disk persistence |
+| AW-03 | Add ImGui drawer for proposals with accept/reject controls. | Acceptance Workflow | UX | Done | ProposalDrawer GUI complete with ROM merging |
+| AW-04 | Implement policy evaluation for gating accept buttons. | Acceptance Workflow | Code | In Progress | AW-03, Priority 2 - YAML policies + PolicyEvaluator |
 | AW-05 | Draft `.z3ed-diff` hybrid schema (binary deltas + JSON metadata). | Acceptance Workflow | Design | Planned | AW-01 |
-| IT-01 | Create `ImGuiTestHarness` IPC service embedded in `yaze_test`. | ImGuiTest Bridge | Code | Planned | Harness transport decision |
+| IT-01 | Create `ImGuiTestHarness` IPC service embedded in `yaze_test`. | ImGuiTest Bridge | Code | In Progress | Priority 1 - Design spike + IPC transport |
 | IT-02 | Implement CLI agent step translation (`imgui_action` → harness call). | ImGuiTest Bridge | Code | Planned | IT-01 |
 | IT-03 | Provide synchronization primitives (`WaitForIdle`, etc.). | ImGuiTest Bridge | Code | Planned | IT-01 |
 | VP-01 | Expand CLI unit tests for new commands and sandbox flow. | Verification Pipeline | Test | Planned | RC/AW tasks |
@@ -67,56 +81,338 @@ _Status Legend: Prototype · In Progress · Planned · Blocked · Done_
 
 ## 3. Immediate Next Steps (Week of Oct 1-7, 2025)
 
-### Priority 0: Debug & Stabilize (Active)
-1. **FIX**: Debug `stoi` crash in `agent run` command execution
-   - Error occurs when executing agent commands via ModernCLI
-   - Investigate command parsing and proposal creation flow
+### Priority 0: Testing & Validation (Active)
+1. **TEST**: Complete end-to-end proposal workflow
+   - Launch YAZE and verify ProposalDrawer displays live proposals
+   - Test Accept action → verify ROM merge and save prompt
+   - Test Reject and Delete actions
+   - Validate filtering and refresh functionality
 
-### Priority 1: Complete AW-03 (2-3 hours)
-2. **TEST**: ProposalDrawer with live proposals
-   - Create test proposals via CLI with working prompts
-   - Verify list view, detail view, filtering, refresh
-   - Test Accept/Reject/Delete actions
-   
-3. **IMPLEMENT**: ROM merging in `AcceptProposal()` method
-   - Add ROM reference to ProposalDrawer
-   - Load sandbox ROM and merge into main ROM
-   - Add save prompt after successful merge
-   - Test merge + undo/redo integration
+### Priority 1: ImGuiTestHarness Foundation (IT-01, 6-8 hours) 🔥 NEW PRIORITY
+**Rationale**: Required for automated GUI testing and remote control of YAZE for AI workflows
 
-### Priority 2: Policy Evaluation (AW-04, 4-6 hours)
-4. **DESIGN**: Policy evaluation framework
-   - YAML-based policy configuration (`.yaze/policies/agent.yaml`)
-   - Policy types: test requirements, change constraints, review requirements
-   - PolicyEvaluator service for checking proposals against rules
-   
-5. **INTEGRATE**: Policy checks in ProposalDrawer UI
-   - Display policy violations in detail view
-   - Gate accept button based on policy results
-   - Show helpful messages for blocked proposals
+2. **DESIGN SPIKE**: ImGuiTestHarness Architecture
+   - Evaluate IPC transport options:
+     - **Socket/Unix Domain Socket**: Low overhead, platform-specific
+     - **HTTP/REST**: Universal, easier debugging, more overhead
+     - **Shared Memory**: Fastest, most complex
+     - **stdin/stdout pipe**: Simplest, limited to synchronous calls
+   - Decision criteria: cross-platform support, latency, debugging ease
+   - Prototype preferred approach with simple "click button" test
 
-### Priority 3: Testing Infrastructure (VP-01, ongoing)
-6. **EXPAND**: CLI unit tests for agent commands
-7. **ADD**: Integration tests for proposal workflow
+3. **IMPLEMENT**: Basic IPC Service
+   - Embed IPC listener in `yaze_test` or main `yaze` binary (conditional compile)
+   - Protocol: JSON-RPC style commands (click, type, wait, assert)
+   - Security: localhost-only, optional shared secret
+   - Example commands:
+     ```json
+     {"cmd": "click", "target": "button:Open ROM"}
+     {"cmd": "type", "target": "input:filename", "value": "zelda3.sfc"}
+     {"cmd": "wait", "condition": "window_visible:Overworld Editor"}
+     {"cmd": "assert", "condition": "color_at:100,200", "value": "#FF0000"}
+     ```
 
-### Later: ImGuiTestHarness (IT-01)
-- Spike IPC transport options (socket/HTTP/shared memory)
-- Design harness architecture
-- Create proof-of-concept
+4. **INTEGRATE**: CLI Agent Translation Layer
+   - `z3ed agent test` generates ImGui action sequences
+   - Translates natural language → test commands → IPC calls
+   - Example: "open overworld editor" → `click(menu:Editors→Overworld)`
+   - Capture screenshots for LLM feedback loop
+
+### Priority 2: Policy Evaluation Framework (AW-04, 4-6 hours)
+5. **DESIGN**: YAML-based Policy Configuration
+   ```yaml
+   # .yaze/policies/agent.yaml
+   version: 1.0
+   policies:
+     - name: require_tests
+       type: test_requirement
+       enabled: true
+       rules:
+         - test_suite: "overworld_rendering"
+           min_pass_rate: 0.95
+         - test_suite: "palette_integrity"
+           min_pass_rate: 1.0
+     
+     - name: limit_change_scope
+       type: change_constraint
+       enabled: true
+       rules:
+         - max_bytes_changed: 10240  # 10KB
+         - allowed_banks: [0x00, 0x01, 0x0E]  # Graphics banks only
+         - forbidden_ranges:
+           - start: 0xFFB0  # ROM header
+             end: 0xFFFF
+     
+     - name: human_review_required
+       type: review_requirement
+       enabled: true
+       rules:
+         - if: bytes_changed > 1024
+           then: require_diff_review: true
+         - if: commands_executed > 10
+           then: require_log_review: true
+   ```
+
+6. **IMPLEMENT**: PolicyEvaluator Service
+   - `src/cli/service/policy_evaluator.{h,cc}`
+   - Singleton service loads policies from `.yaze/policies/`
+   - `EvaluateProposal(proposal_id) -> PolicyResult`
+   - Returns: pass/fail + list of violations with severity
+   - Hook into ProposalRegistry lifecycle
+
+7. **INTEGRATE**: Policy UI in ProposalDrawer
+   - Add "Policy Status" section in detail view
+   - Display violations with icons: ⛔ Critical, ⚠️ Warning, ℹ️ Info
+   - Gate Accept button: disabled if critical violations exist
+   - Show helpful messages: "Accept blocked: Test pass rate 0.85 < 0.95"
+   - Allow policy overrides with confirmation: "Override policy? This action will be logged."
+
+### Priority 3: Documentation & Consolidation (2-3 hours)
+8. **CONSOLIDATE**: Merge standalone docs into main plan
+   - ✅ AW-03 summary → already in main plan, delete standalone doc
+   - Check for other AW-* or task-specific docs to merge
+   - Update main plan with architecture diagrams
+
+9. **CREATE**: Architecture Flow Diagram
+   - Visual representation of proposal lifecycle
+   - Component interaction diagram
+   - Add to implementation plan
+
+### Later: Advanced Features
+- VP-01: Expand CLI unit tests
+- VP-02: Integration tests with replay scripts
+- TL-01: Telemetry capture for learning
 
 ## 4. Current Issues & Blockers
 
 ### Active Issues
-1. **BLOCKER**: `std::invalid_argument: stoi: no conversion` crash in `agent run`
-   - Occurs when executing generated commands
-   - Blocks testing of ProposalDrawer with real proposals
-   - Needs immediate investigation
+None - all blocking issues resolved as of Oct 1, 2025
 
 ### Known Limitations (Non-Blocking)
-1. ROM merging not implemented in `AcceptProposal()` - status updates only
-2. Large diffs truncated at 1000 lines
-3. ProposalDrawer lacks keyboard navigation
-4. Some timer warnings during shutdown (harmless but noisy)
+1. ProposalDrawer lacks keyboard navigation
+2. Large diffs/logs truncated at 1000 lines (consider pagination)
+3. Proposals don't persist full metadata to disk (prompt, description, sandbox_id reconstructed)
+4. No policy evaluation yet (AW-04)
+
+## 5. Architecture Overview
+
+### 5.1. Proposal Lifecycle Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. CREATION (CLI: z3ed agent run)                               │
+├─────────────────────────────────────────────────────────────────┤
+│ User Prompt                                                      │
+│      ↓                                                           │
+│ MockAIService / GeminiAIService                                 │
+│      ↓ (generates commands)                                     │
+│ ["palette export ...", "overworld set-tile ..."]                │
+│      ↓                                                           │
+│ RomSandboxManager::CreateSandbox(rom)                           │
+│      ↓ (creates isolated copy)                                  │
+│ /tmp/yaze/sandboxes/<timestamp>/zelda3.sfc                      │
+│      ↓                                                           │
+│ Execute commands on sandbox ROM                                 │
+│      ↓ (logs each command)                                      │
+│ ProposalRegistry::CreateProposal(sandbox_id, prompt, desc)      │
+│      ↓ (creates proposal directory)                             │
+│ /tmp/yaze/proposals/proposal-<timestamp>-<seq>/                 │
+│   ├─ execution.log (command outputs)                            │
+│   ├─ diff.txt (if generated)                                    │
+│   └─ screenshots/ (if any)                                      │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 2. DISCOVERY (CLI: z3ed agent list)                             │
+├─────────────────────────────────────────────────────────────────┤
+│ ProposalRegistry::ListProposals()                               │
+│      ↓ (lazy loads from disk)                                   │
+│ LoadProposalsFromDiskLocked()                                   │
+│      ↓ (scans /tmp/yaze/proposals/)                             │
+│ Reconstructs metadata from filesystem                           │
+│      ↓ (parses timestamps, reads logs)                          │
+│ Returns vector<ProposalMetadata>                                │
+│      ↓                                                           │
+│ Display table: ID | Status | Created | Prompt | Stats           │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 3. REVIEW (GUI: Debug → Agent Proposals)                        │
+├─────────────────────────────────────────────────────────────────┤
+│ ProposalDrawer::Draw()                                          │
+│      ↓ (called every frame from EditorManager)                  │
+│ ProposalDrawer::RefreshProposals()                              │
+│      ↓ (calls ProposalRegistry::ListProposals)                  │
+│ Display proposal list (selectable table)                        │
+│      ↓ (user clicks proposal)                                   │
+│ ProposalDrawer::SelectProposal(id)                              │
+│      ↓ (loads detail content)                                   │
+│ Read execution.log and diff.txt from proposal directory         │
+│      ↓                                                           │
+│ Display detail view:                                            │
+│   ├─ Metadata (sandbox_id, timestamp, stats)                   │
+│   ├─ Diff (syntax highlighted)                                  │
+│   └─ Log (command execution trace)                              │
+│      ↓                                                           │
+│ User decides: [Accept] [Reject] [Delete]                        │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 4. ACCEPTANCE (GUI: Click "Accept" button)                      │
+├─────────────────────────────────────────────────────────────────┤
+│ ProposalDrawer::AcceptProposal(proposal_id)                     │
+│      ↓                                                           │
+│ Get proposal metadata (includes sandbox_id)                     │
+│      ↓                                                           │
+│ RomSandboxManager::ListSandboxes()                              │
+│      ↓ (find sandbox by ID)                                     │
+│ sandbox_rom_path = sandbox.rom_path                             │
+│      ↓                                                           │
+│ Load sandbox ROM from disk                                      │
+│      ↓                                                           │
+│ rom_->WriteVector(0, sandbox_rom.vector())                      │
+│      ↓ (copies entire sandbox ROM → main ROM)                   │
+│ ROM marked dirty (save prompt appears)                          │
+│      ↓                                                           │
+│ ProposalRegistry::UpdateStatus(id, kAccepted)                   │
+│      ↓                                                           │
+│ User: File → Save ROM                                           │
+│      ↓                                                           │
+│ Changes committed ✅                                            │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ 5. REJECTION (GUI: Click "Reject" button)                       │
+├─────────────────────────────────────────────────────────────────┤
+│ ProposalDrawer::RejectProposal(proposal_id)                     │
+│      ↓                                                           │
+│ ProposalRegistry::UpdateStatus(id, kRejected)                   │
+│      ↓                                                           │
+│ Proposal preserved for audit trail                              │
+│ Sandbox ROM left untouched (can be cleaned up later)            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 5.2. Component Interaction Diagram
+
+```
+┌────────────────────┐
+│   CLI Layer        │
+│  (z3ed commands)   │
+└────────┬───────────┘
+         │
+         ├──► agent run ──────────┐
+         ├──► agent list ─────────┤
+         └──► agent diff ─────────┤
+                                  │
+         ┌────────────────────────▼──────────────────────┐
+         │         CLI Service Layer                     │
+         ├───────────────────────────────────────────────┤
+         │  ┌─────────────────────────────────────────┐  │
+         │  │ ProposalRegistry (Singleton)            │  │
+         │  │  • CreateProposal()                     │  │
+         │  │  • ListProposals()                      │  │
+         │  │  • GetProposal()                        │  │
+         │  │  • UpdateStatus()                       │  │
+         │  │  • RemoveProposal()                     │  │
+         │  │  • LoadProposalsFromDiskLocked()        │  │
+         │  └────────────┬────────────────────────────┘  │
+         │               │                               │
+         │  ┌────────────▼────────────────────────────┐  │
+         │  │ RomSandboxManager (Singleton)          │  │
+         │  │  • CreateSandbox()                     │  │
+         │  │  • ActiveSandbox()                     │  │
+         │  │  • ListSandboxes()                     │  │
+         │  │  • RemoveSandbox()                     │  │
+         │  └────────────┬────────────────────────────┘  │
+         └───────────────┼────────────────────────────────┘
+                         │
+         ┌───────────────▼────────────────────────────────┐
+         │         Filesystem Layer                       │
+         ├────────────────────────────────────────────────┤
+         │  /tmp/yaze/proposals/                          │
+         │    └─ proposal-<timestamp>-<seq>/              │
+         │         ├─ execution.log                       │
+         │         ├─ diff.txt                            │
+         │         └─ screenshots/                        │
+         │                                                │
+         │  /tmp/yaze/sandboxes/                          │
+         │    └─ <timestamp>-<seq>/                       │
+         │         └─ zelda3.sfc (isolated ROM copy)      │
+         └────────────────────────────────────────────────┘
+                         ▲
+                         │
+         ┌───────────────┴────────────────────────────────┐
+         │         GUI Layer                              │
+         ├────────────────────────────────────────────────┤
+         │  ┌─────────────────────────────────────────┐   │
+         │  │ EditorManager                           │   │
+         │  │  • current_rom_                         │   │
+         │  │  • proposal_drawer_                     │   │
+         │  │  • Update() { proposal_drawer_.Draw() } │   │
+         │  └────────────┬────────────────────────────┘   │
+         │               │                                │
+         │  ┌────────────▼────────────────────────────┐   │
+         │  │ ProposalDrawer                          │   │
+         │  │  • rom_ (ptr to EditorManager's ROM)    │   │
+         │  │  • Draw()                               │   │
+         │  │  • DrawProposalList()                   │   │
+         │  │  • DrawProposalDetail()                 │   │
+         │  │  • AcceptProposal() ← ROM MERGE         │   │
+         │  │  • RejectProposal()                     │   │
+         │  │  • DeleteProposal()                     │   │
+         │  └─────────────────────────────────────────┘   │
+         └────────────────────────────────────────────────┘
+```
+
+### 5.3. Data Flow: Agent Run to ROM Merge
+
+```
+User: "Make soldiers wear red armor"
+         │
+         ▼
+┌────────────────────────┐
+│ MockAIService          │ Generates: ["palette export sprites_aux1 4 soldier.col"]
+└────────┬───────────────┘
+         │
+         ▼
+┌────────────────────────┐
+│ RomSandboxManager      │ Creates: /tmp/.../sandboxes/20251001T200215-1/zelda3.sfc
+└────────┬───────────────┘
+         │
+         ▼
+┌────────────────────────┐
+│ Command Executor       │ Runs: palette export on sandbox ROM
+└────────┬───────────────┘
+         │
+         ▼
+┌────────────────────────┐
+│ ProposalRegistry       │ Creates: proposal-20251001T200215-1/
+│                        │   • execution.log: "[timestamp] palette export succeeded"
+└────────┬───────────────┘   • diff.txt: (if diff generated)
+         │
+         │ Time passes... user launches GUI
+         ▼
+┌────────────────────────┐
+│ ProposalDrawer loads   │ Reads: /tmp/.../proposals/proposal-*/
+│                        │ Displays: List of proposals
+└────────┬───────────────┘
+         │
+         │ User clicks "Accept"
+         ▼
+┌────────────────────────┐
+│ AcceptProposal()       │ 1. Find sandbox ROM: /tmp/.../sandboxes/.../zelda3.sfc
+│                        │ 2. Load sandbox ROM
+│                        │ 3. rom_->WriteVector(0, sandbox_rom.vector())
+│                        │ 4. Main ROM now contains all sandbox changes
+│                        │ 5. ROM marked dirty
+└────────┬───────────────┘
+         │
+         ▼
+┌────────────────────────┐
+│ User: File → Save      │ Changes persisted to disk ✅
+└────────────────────────┘
+```
 
 ## 5. Open Questions
 
@@ -229,6 +525,15 @@ The foundational infrastructure for proposal tracking and review is now operatio
 - Delete removes proposal from registry and filesystem
 - TODO: Implement actual ROM merging in AcceptProposal method
 
+**Proposal Persistence Fix** (Completed Oct 1, 2025):
+- Fixed ProposalRegistry to load proposals from disk on first access
+- Added `LoadProposalsFromDiskLocked()` method scanning proposal root directory
+- Lazy loading implementation in `ListProposals()` for automatic registry population
+- Reconstructs metadata from filesystem: ID, timestamps, log/diff paths, screenshots
+- Parses creation time from proposal ID format (`proposal-20251001T200215-1`)
+- Enables cross-session proposal tracking - `agent list` now finds all proposals
+- ProposalDrawer can now display proposals created via CLI `agent run`
+
 **CMake Build Integration**:
 - Added `cli/service/proposal_registry.cc` and `cli/service/rom_sandbox_manager.cc` to all app targets
 - Fixed linker errors by including CLI service sources in:
@@ -285,9 +590,20 @@ The foundational infrastructure for proposal tracking and review is now operatio
 10. `docs/E6-z3ed-implementation-plan.md` - Updated progress and task statuses
 
 **Agent Diff & List (Oct 1, 2025)**:
-11. `src/cli/handlers/agent.cc` - Enhanced `HandleDiffCommand` with proposal reading, added `HandleListCommand`
-12. `src/cli/service/resource_catalog.cc` - Added agent list and diff actions to schema
-13. `docs/api/z3ed-resources.yaml` - Regenerated with new agent commands
+21. `src/cli/handlers/agent.cc` - Enhanced `HandleDiffCommand` with proposal reading, added `HandleListCommand`
+22. `src/cli/service/resource_catalog.cc` - Added agent list and diff actions to schema
+23. `docs/api/z3ed-resources.yaml` - Regenerated with new agent commands
+
+**Proposal Persistence Fix (Oct 1, 2025)**:
+24. `src/cli/service/proposal_registry.h` - Added `LoadProposalsFromDiskLocked()` declaration
+25. `src/cli/service/proposal_registry.cc` - Implemented disk loading with timestamp parsing and metadata reconstruction
+26. `src/cli/service/proposal_registry.cc` - Modified `ListProposals()` to lazy-load proposals from disk
+
+**ROM Merging Implementation (Oct 1, 2025)**:
+27. `src/app/editor/system/proposal_drawer.h` - Added `SetRom()` method and `Rom*` member for merge operations
+28. `src/app/editor/system/proposal_drawer.cc` - Implemented full ROM merging in `AcceptProposal()` with sandbox loading
+29. `src/app/editor/editor_manager.cc` - Added `SetRom(current_rom_)` call before drawing ProposalDrawer
+30. `src/app/editor/system/proposal_drawer.cc` - Added RomSandboxManager include for sandbox path resolution
 
 ## 6. References
 

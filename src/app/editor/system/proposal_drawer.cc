@@ -8,6 +8,7 @@
 #include "absl/time/time.h"
 #include "imgui/imgui.h"
 #include "app/gui/icons.h"
+#include "cli/service/rom_sandbox_manager.h"
 
 namespace yaze {
 namespace editor {
@@ -320,12 +321,74 @@ void ProposalDrawer::SelectProposal(const std::string& proposal_id) {
 
 absl::Status ProposalDrawer::AcceptProposal(const std::string& proposal_id) {
   auto& registry = cli::ProposalRegistry::Instance();
+  
+  // Get proposal metadata to find sandbox
+  auto proposal_or = registry.GetProposal(proposal_id);
+  if (!proposal_or.ok()) {
+    return proposal_or.status();
+  }
+  
+  const auto& proposal = *proposal_or;
+  
+  // Check if ROM is available
+  if (!rom_) {
+    return absl::FailedPreconditionError(
+        "No ROM loaded. Cannot merge proposal changes.");
+  }
+  
+  // Find sandbox ROM path using the sandbox_id from the proposal
+  auto& sandbox_mgr = cli::RomSandboxManager::Instance();
+  auto sandboxes = sandbox_mgr.ListSandboxes();
+  
+  std::filesystem::path sandbox_rom_path;
+  for (const auto& sandbox : sandboxes) {
+    if (sandbox.id == proposal.sandbox_id) {
+      sandbox_rom_path = sandbox.rom_path;
+      break;
+    }
+  }
+  
+  if (sandbox_rom_path.empty()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Sandbox ROM not found for proposal %s (sandbox: %s)",
+                       proposal_id, proposal.sandbox_id));
+  }
+  
+  // Verify sandbox ROM exists
+  std::error_code ec;
+  if (!std::filesystem::exists(sandbox_rom_path, ec)) {
+    return absl::NotFoundError(
+        absl::StrFormat("Sandbox ROM file does not exist: %s",
+                       sandbox_rom_path.string()));
+  }
+  
+  // Load sandbox ROM data
+  Rom sandbox_rom;
+  auto load_status = sandbox_rom.LoadFromFile(sandbox_rom_path.string());
+  if (!load_status.ok()) {
+    return absl::InternalError(
+        absl::StrFormat("Failed to load sandbox ROM: %s",
+                       load_status.message()));
+  }
+  
+  // Merge sandbox ROM data into main ROM
+  // Copy the entire ROM data vector from sandbox to main ROM
+  const auto& sandbox_data = sandbox_rom.vector();
+  auto merge_status = rom_->WriteVector(0, sandbox_data);
+  if (!merge_status.ok()) {
+    return absl::InternalError(
+        absl::StrFormat("Failed to merge sandbox ROM data: %s",
+                       merge_status.message()));
+  }
+  
+  // Update proposal status
   auto status = registry.UpdateStatus(
       proposal_id, cli::ProposalRegistry::ProposalStatus::kAccepted);
   
   if (status.ok()) {
-    // TODO: Merge changes into main ROM
-    // This will require integration with the ROM editor
+    // Mark ROM as dirty so save prompts appear
+    // Note: Rom tracks dirty state internally via Write operations
+    // The WriteVector call above already marked it as dirty
   }
   
   needs_refresh_ = true;

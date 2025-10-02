@@ -1146,6 +1146,7 @@ void EditorManager::DrawMenuBar() {
 #endif
 
   // Agent proposal drawer
+  proposal_drawer_.SetRom(current_rom_);
   proposal_drawer_.Draw();
 
   // Welcome screen (accessible from View menu)
