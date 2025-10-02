@@ -8,6 +8,10 @@
 #include "cli/service/proposal_registry.h"
 
 namespace yaze {
+class Rom;
+}
+
+namespace yaze {
 namespace editor {
 
 /**
@@ -28,6 +32,9 @@ class ProposalDrawer {
  public:
   ProposalDrawer();
   ~ProposalDrawer() = default;
+
+  // Set the ROM instance to merge proposals into
+  void SetRom(Rom* rom) { rom_ = rom; }
 
   // Render the proposal drawer UI
   void Draw();
@@ -78,6 +85,9 @@ class ProposalDrawer {
   bool show_confirm_dialog_ = false;
   std::string confirm_action_;
   std::string confirm_proposal_id_;
+  
+  // ROM reference for merging
+  Rom* rom_ = nullptr;
 };
 
 }  // namespace editor
