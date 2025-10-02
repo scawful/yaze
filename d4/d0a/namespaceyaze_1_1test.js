@@ -12,6 +12,20 @@ var namespaceyaze_1_1test =
     [ "anonymous_namespace{snes_palette_test.cc}", "d1/dfa/namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html", [
       [ "test_convert", "d1/dfa/namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#a0492926f27e09c79e929ad1165ae19a5", null ]
     ] ],
+    [ "anonymous_namespace{test_recorder.cc}", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html", [
+      [ "HarnessStatusToString", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html#a548f3448d4583d652e5940e0410ced67", null ],
+      [ "kTestCompletionTimeout", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html#ac27791eabfd94dbf2b5f3ed829bebe8f", null ],
+      [ "kPollInterval", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html#a49a20ad191167cf33ea7e86b6ead55c4", null ]
+    ] ],
+    [ "anonymous_namespace{test_script_parser.cc}", "de/da2/namespaceyaze_1_1test_1_1anonymous__namespace_02test__script__parser_8cc_03.html", [
+      [ "FormatIsoTimestamp", "de/da2/namespaceyaze_1_1test_1_1anonymous__namespace_02test__script__parser_8cc_03.html#aaca9fe7a895a2b507ab6315c5be0f70c", null ],
+      [ "ParseIsoTimestamp", "de/da2/namespaceyaze_1_1test_1_1anonymous__namespace_02test__script__parser_8cc_03.html#aef7046e0e13529e668caa72421cf3006", null ],
+      [ "WriteExpectSection", "de/da2/namespaceyaze_1_1test_1_1anonymous__namespace_02test__script__parser_8cc_03.html#a72d2a29e53657e15997cfde306b29f4f", null ],
+      [ "PopulateStepNode", "de/da2/namespaceyaze_1_1test_1_1anonymous__namespace_02test__script__parser_8cc_03.html#a8a312fbf8bf11e94ba9e4a8472a70182", null ],
+      [ "ParseStep", "de/da2/namespaceyaze_1_1test_1_1anonymous__namespace_02test__script__parser_8cc_03.html#a35c7ae360d540077626654ff4dced74d", null ],
+      [ "kSupportedSchemaVersion", "de/da2/namespaceyaze_1_1test_1_1anonymous__namespace_02test__script__parser_8cc_03.html#ab0bc67084e1f6ca9eb28a2e67f02e13c", null ]
+    ] ],
+    [ "anonymous_namespace{widget_discovery_service.cc}", "d3/d52/namespaceyaze_1_1test_1_1anonymous__namespace_02widget__discovery__service_8cc_03.html", "d3/d52/namespaceyaze_1_1test_1_1anonymous__namespace_02widget__discovery__service_8cc_03" ],
     [ "gui", "d7/d79/namespaceyaze_1_1test_1_1gui.html", [
       [ "LoadRomInTest", "d7/d79/namespaceyaze_1_1test_1_1gui.html#ae62d5a7e55450297c7b7efdb5c9448bc", null ],
       [ "OpenEditorInTest", "d7/d79/namespaceyaze_1_1test_1_1gui.html#af12c501448079ffb3ab9d73d71237882", null ]
@@ -42,12 +56,17 @@ var namespaceyaze_1_1test =
     [ "TestDungeonObjects", "d9/dd3/classyaze_1_1test_1_1TestDungeonObjects.html", "d9/dd3/classyaze_1_1test_1_1TestDungeonObjects" ],
     [ "TestEditor", "d0/ddd/classyaze_1_1test_1_1TestEditor.html", "d0/ddd/classyaze_1_1test_1_1TestEditor" ],
     [ "TestManager", "da/d3e/classyaze_1_1test_1_1TestManager.html", "da/d3e/classyaze_1_1test_1_1TestManager" ],
+    [ "TestRecorder", "d2/def/classyaze_1_1test_1_1TestRecorder.html", "d2/def/classyaze_1_1test_1_1TestRecorder" ],
     [ "TestResult", "d9/d97/structyaze_1_1test_1_1TestResult.html", "d9/d97/structyaze_1_1test_1_1TestResult" ],
     [ "TestResults", "d2/d60/structyaze_1_1test_1_1TestResults.html", "d2/d60/structyaze_1_1test_1_1TestResults" ],
     [ "TestRomManager", "dd/d7e/classyaze_1_1test_1_1TestRomManager.html", null ],
+    [ "TestScript", "dc/d21/structyaze_1_1test_1_1TestScript.html", "dc/d21/structyaze_1_1test_1_1TestScript" ],
+    [ "TestScriptParser", "d9/d12/classyaze_1_1test_1_1TestScriptParser.html", null ],
+    [ "TestScriptStep", "d1/deb/structyaze_1_1test_1_1TestScriptStep.html", "d1/deb/structyaze_1_1test_1_1TestScriptStep" ],
     [ "TestSuite", "d1/de0/classyaze_1_1test_1_1TestSuite.html", "d1/de0/classyaze_1_1test_1_1TestSuite" ],
     [ "UITestSuite", "df/d1d/classyaze_1_1test_1_1UITestSuite.html", "df/d1d/classyaze_1_1test_1_1UITestSuite" ],
     [ "UnitTestSuite", "d0/d9d/classyaze_1_1test_1_1UnitTestSuite.html", "d0/d9d/classyaze_1_1test_1_1UnitTestSuite" ],
+    [ "WidgetDiscoveryService", "dd/dc0/classyaze_1_1test_1_1WidgetDiscoveryService.html", "dd/dc0/classyaze_1_1test_1_1WidgetDiscoveryService" ],
     [ "ZSCustomOverworldTestSuite", "dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html", "dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite" ],
     [ "ZSCustomOverworldUpgradeTest", "d1/de2/classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest.html", "d1/de2/classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest" ],
     [ "TestStatus", "d4/d0a/namespaceyaze_1_1test.html#a24fd08ea41d8314e6fccdb0fdcd9f072", [

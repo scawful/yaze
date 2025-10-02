@@ -11,6 +11,7 @@ var classyaze_1_1cli_1_1GuiAutomationClient =
     [ "GetTestStatus", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a269fdb5906d1883ad34530924ed55a44", null ],
     [ "ListTests", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#ae079f3d49ca72ef3d1b28e11b4944cf8", null ],
     [ "GetTestResults", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a72d9b2d2128808009b16fc23fb8ebc34", null ],
+    [ "DiscoverWidgets", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a421651cffa30e9475bf0a4f4ada5d0d5", null ],
     [ "IsConnected", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a596edfa4834ae583be2f6cd2511501b2", null ],
     [ "ServerAddress", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a65d8a81a645f9990237b0ef8486f5ba7", null ],
     [ "server_address_", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#af2d46ba96418f989a160477ca2c26a90", null ],

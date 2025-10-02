@@ -34,6 +34,9 @@ var annotated_dup =
         [ "Context", "d0/d13/structyaze_1_1cli_1_1Context.html", "d0/d13/structyaze_1_1cli_1_1Context" ],
         [ "CreatePatch", "d7/d65/classyaze_1_1cli_1_1CreatePatch.html", "d7/d65/classyaze_1_1cli_1_1CreatePatch" ],
         [ "Decompress", "dc/db3/classyaze_1_1cli_1_1Decompress.html", "dc/db3/classyaze_1_1cli_1_1Decompress" ],
+        [ "DiscoveredWindowInfo", "d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo.html", "d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo" ],
+        [ "DiscoverWidgetsQuery", "d1/d3b/structyaze_1_1cli_1_1DiscoverWidgetsQuery.html", "d1/d3b/structyaze_1_1cli_1_1DiscoverWidgetsQuery" ],
+        [ "DiscoverWidgetsResult", "dc/d5a/structyaze_1_1cli_1_1DiscoverWidgetsResult.html", "dc/d5a/structyaze_1_1cli_1_1DiscoverWidgetsResult" ],
         [ "DungeonExport", "d7/dc5/classyaze_1_1cli_1_1DungeonExport.html", "d7/dc5/classyaze_1_1cli_1_1DungeonExport" ],
         [ "DungeonListObjects", "da/dc4/classyaze_1_1cli_1_1DungeonListObjects.html", "da/dc4/classyaze_1_1cli_1_1DungeonListObjects" ],
         [ "Expand", "d7/d30/classyaze_1_1cli_1_1Expand.html", "d7/d30/classyaze_1_1cli_1_1Expand" ],
@@ -77,7 +80,9 @@ var annotated_dup =
         [ "TestWorkflow", "de/d85/structyaze_1_1cli_1_1TestWorkflow.html", "de/d85/structyaze_1_1cli_1_1TestWorkflow" ],
         [ "TestWorkflowGenerator", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator.html", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator" ],
         [ "Tile16Transfer", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer" ],
-        [ "TuiComponent", "dc/d6b/classyaze_1_1cli_1_1TuiComponent.html", "dc/d6b/classyaze_1_1cli_1_1TuiComponent" ]
+        [ "TuiComponent", "dc/d6b/classyaze_1_1cli_1_1TuiComponent.html", "dc/d6b/classyaze_1_1cli_1_1TuiComponent" ],
+        [ "WidgetBoundingBox", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox.html", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox" ],
+        [ "WidgetDescriptor", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor.html", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor" ]
       ] ],
       [ "core", "db/d33/namespaceyaze_1_1core.html", [
         [ "Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", "d4/d84/classyaze_1_1core_1_1Controller" ],
@@ -369,6 +374,9 @@ var annotated_dup =
         [ "WidgetIdScope", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope.html", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope" ]
       ] ],
       [ "test", "d4/d0a/namespaceyaze_1_1test.html", [
+        [ "anonymous_namespace{widget_discovery_service.cc}", "d3/d52/namespaceyaze_1_1test_1_1anonymous__namespace_02widget__discovery__service_8cc_03.html", [
+          [ "WindowEntry", "d3/d85/structyaze_1_1test_1_1anonymous__namespace_02widget__discovery__service_8cc_03_1_1WindowEntry.html", "d3/d85/structyaze_1_1test_1_1anonymous__namespace_02widget__discovery__service_8cc_03_1_1WindowEntry" ]
+        ] ],
         [ "integration", "d3/dec/namespaceyaze_1_1test_1_1integration.html", [
           [ "AsarIntegrationTest", "da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html", "da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest" ],
           [ "AsarRomIntegrationTest", "db/d76/classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html", "db/d76/classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest" ]
@@ -398,12 +406,17 @@ var annotated_dup =
         [ "TestDungeonObjects", "d9/dd3/classyaze_1_1test_1_1TestDungeonObjects.html", "d9/dd3/classyaze_1_1test_1_1TestDungeonObjects" ],
         [ "TestEditor", "d0/ddd/classyaze_1_1test_1_1TestEditor.html", "d0/ddd/classyaze_1_1test_1_1TestEditor" ],
         [ "TestManager", "da/d3e/classyaze_1_1test_1_1TestManager.html", "da/d3e/classyaze_1_1test_1_1TestManager" ],
+        [ "TestRecorder", "d2/def/classyaze_1_1test_1_1TestRecorder.html", "d2/def/classyaze_1_1test_1_1TestRecorder" ],
         [ "TestResult", "d9/d97/structyaze_1_1test_1_1TestResult.html", "d9/d97/structyaze_1_1test_1_1TestResult" ],
         [ "TestResults", "d2/d60/structyaze_1_1test_1_1TestResults.html", "d2/d60/structyaze_1_1test_1_1TestResults" ],
         [ "TestRomManager", "dd/d7e/classyaze_1_1test_1_1TestRomManager.html", null ],
+        [ "TestScript", "dc/d21/structyaze_1_1test_1_1TestScript.html", "dc/d21/structyaze_1_1test_1_1TestScript" ],
+        [ "TestScriptParser", "d9/d12/classyaze_1_1test_1_1TestScriptParser.html", null ],
+        [ "TestScriptStep", "d1/deb/structyaze_1_1test_1_1TestScriptStep.html", "d1/deb/structyaze_1_1test_1_1TestScriptStep" ],
         [ "TestSuite", "d1/de0/classyaze_1_1test_1_1TestSuite.html", "d1/de0/classyaze_1_1test_1_1TestSuite" ],
         [ "UITestSuite", "df/d1d/classyaze_1_1test_1_1UITestSuite.html", "df/d1d/classyaze_1_1test_1_1UITestSuite" ],
         [ "UnitTestSuite", "d0/d9d/classyaze_1_1test_1_1UnitTestSuite.html", "d0/d9d/classyaze_1_1test_1_1UnitTestSuite" ],
+        [ "WidgetDiscoveryService", "dd/dc0/classyaze_1_1test_1_1WidgetDiscoveryService.html", "dd/dc0/classyaze_1_1test_1_1WidgetDiscoveryService" ],
         [ "ZSCustomOverworldTestSuite", "dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html", "dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite" ],
         [ "ZSCustomOverworldUpgradeTest", "d1/de2/classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest.html", "d1/de2/classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest" ]
       ] ],

@@ -326,40 +326,50 @@ Agent Commands</h2>
 &lt;tt&gt;agent gui&lt;/tt&gt; - GUI Introspection &amp; Control (IT-05/IT-06)</h3>
 <h4><a class="anchor" id="autotoc_md1285"></a>
 &lt;tt&gt;agent gui discover&lt;/tt&gt; - Enumerate available widgets</h4>
-<div class="fragment"><div class="line">z3ed agent gui discover [--window &lt;name&gt;] [--type &lt;widget_type&gt;] [--format &lt;json|yaml&gt;]</div>
+<div class="fragment"><div class="line">z3ed agent gui discover \</div>
+<div class="line">  [--host &lt;name&gt;] [--port &lt;port&gt;] \</div>
+<div class="line">  [--window &lt;name&gt;] [--path-prefix &lt;path&gt;] \</div>
+<div class="line">  [--type &lt;widget_type&gt;] [--include-invisible] [--include-disabled] \</div>
+<div class="line">  [--format &lt;table|json&gt;] [--limit &lt;n&gt;]</div>
 <div class="line"> </div>
 <div class="line">Options:</div>
-<div class="line">  --window &lt;name&gt;     Filter by window name (e.g. &quot;Overworld&quot;)</div>
-<div class="line">  --type &lt;type&gt;       Filter by widget type: button, input, menu, tab, checkbox</div>
-<div class="line">  --format &lt;format&gt;   Output format: json or yaml (default: yaml)</div>
+<div class="line">  --host &lt;name&gt;          Harness host (default: localhost)</div>
+<div class="line">  --port &lt;port&gt;          Harness port (default: 50052)</div>
+<div class="line">  --window &lt;name&gt;        Filter by window name (case-insensitive substring)</div>
+<div class="line">  --path-prefix &lt;path&gt;   Require widget path to start with prefix</div>
+<div class="line">  --type &lt;type&gt;          Filter widget type: button, input, menu, tab,</div>
+<div class="line">                         checkbox, slider, canvas, selectable, other</div>
+<div class="line">  --include-invisible    Include widgets whose parent window is hidden</div>
+<div class="line">  --include-disabled     Include widgets flagged as disabled</div>
+<div class="line">  --format &lt;mode&gt;        Output as `table` (default) or `json`</div>
+<div class="line">  --limit &lt;n&gt;            Maximum widgets to display (useful for large UIs)</div>
 <div class="line"> </div>
 <div class="line">Examples:</div>
-<div class="line">  # Discover all widgets</div>
+<div class="line">  # Discover all widgets currently registered</div>
 <div class="line">  z3ed agent gui discover</div>
 <div class="line"> </div>
-<div class="line">  # Find all buttons in Overworld editor</div>
+<div class="line">  # Focus on buttons inside the Overworld editor window</div>
 <div class="line">  z3ed agent gui discover --window &quot;Overworld&quot; --type button</div>
 <div class="line"> </div>
-<div class="line">  # Get JSON for AI consumption</div>
-<div class="line">  z3ed agent gui discover --format json &gt; widgets.json</div>
-</div><!-- fragment --><p><b>Output Example</b>: </p><div class="fragment"><div class="line">windows:</div>
-<div class="line">  - name: Main Window</div>
-<div class="line">    visible: true</div>
-<div class="line">    widgets:</div>
-<div class="line">      - id: menu_file</div>
-<div class="line">        label: File</div>
-<div class="line">        type: menu</div>
-<div class="line">        enabled: true</div>
-<div class="line">        suggested_action: &quot;Click menuitem: File&quot;</div>
-<div class="line">  - name: Overworld</div>
-<div class="line">    visible: true</div>
-<div class="line">    widgets:</div>
-<div class="line">      - id: btn_save</div>
-<div class="line">        label: Save</div>
-<div class="line">        type: button</div>
-<div class="line">        enabled: true</div>
-<div class="line">        position: &quot;10,20,100,30&quot;</div>
-<div class="line">        suggested_action: &quot;Click button:Save&quot;</div>
+<div class="line">  # Export a JSON snapshot for an automation agent (showing first 50 widgets)</div>
+<div class="line">  z3ed agent gui discover --format json --limit 50 &gt; widgets.json</div>
+</div><!-- fragment --><p><b>Table Output Example</b>: </p><div class="fragment"><div class="line">=== Widget Discovery ===</div>
+<div class="line">Server: localhost:50052</div>
+<div class="line">Window filter: Overworld</div>
+<div class="line">Type filter: button</div>
+<div class="line">Include invisible: no</div>
+<div class="line">Include disabled: no</div>
+<div class="line"> </div>
+<div class="line">Window: Overworld (visible)</div>
+<div class="line">  • [button] Save</div>
+<div class="line">    Path: Overworld/Toolbar/button:Save</div>
+<div class="line">    Suggested: Click button:Save</div>
+<div class="line">    State: visible, enabled</div>
+<div class="line">    Bounds: (24.0, 64.0) → (112.0, 92.0)</div>
+<div class="line">    Widget ID: 0x13fc41a2</div>
+<div class="line"> </div>
+<div class="line">Widgets shown: 3 of 18 (truncated)</div>
+<div class="line">Snapshot: 2025-01-16 19:42:05</div>
 </div><!-- fragment --><p><b>Use Cases</b>:</p><ul>
 <li>AI agents discover available GUI interactions dynamically</li>
 <li>Test scripts validate expected widgets are present</li>

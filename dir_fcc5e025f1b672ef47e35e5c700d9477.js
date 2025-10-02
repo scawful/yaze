@@ -10,6 +10,12 @@ var dir_fcc5e025f1b672ef47e35e5c700d9477 =
     [ "imgui_test_harness_service.h", "d9/d30/imgui__test__harness__service_8h.html", null ],
     [ "project.cc", "db/d6c/app_2core_2project_8cc.html", "db/d6c/app_2core_2project_8cc" ],
     [ "project.h", "dc/d8d/project_8h.html", "dc/d8d/project_8h" ],
+    [ "test_recorder.cc", "de/d52/test__recorder_8cc.html", "de/d52/test__recorder_8cc" ],
+    [ "test_recorder.h", "d7/dcd/test__recorder_8h.html", "d7/dcd/test__recorder_8h" ],
+    [ "test_script_parser.cc", "d6/dba/test__script__parser_8cc.html", "d6/dba/test__script__parser_8cc" ],
+    [ "test_script_parser.h", "d2/dd4/test__script__parser_8h.html", "d2/dd4/test__script__parser_8h" ],
+    [ "widget_discovery_service.cc", "d3/dfc/widget__discovery__service_8cc.html", "d3/dfc/widget__discovery__service_8cc" ],
+    [ "widget_discovery_service.h", "d6/d6a/widget__discovery__service_8h.html", "d6/d6a/widget__discovery__service_8h" ],
     [ "window.cc", "d7/d60/window_8cc.html", "d7/d60/window_8cc" ],
     [ "window.h", "d3/df1/window_8h.html", "d3/df1/window_8h" ]
 ];

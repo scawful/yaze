@@ -57,6 +57,9 @@ var namespaceyaze_1_1cli =
     [ "Context", "d0/d13/structyaze_1_1cli_1_1Context.html", "d0/d13/structyaze_1_1cli_1_1Context" ],
     [ "CreatePatch", "d7/d65/classyaze_1_1cli_1_1CreatePatch.html", "d7/d65/classyaze_1_1cli_1_1CreatePatch" ],
     [ "Decompress", "dc/db3/classyaze_1_1cli_1_1Decompress.html", "dc/db3/classyaze_1_1cli_1_1Decompress" ],
+    [ "DiscoveredWindowInfo", "d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo.html", "d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo" ],
+    [ "DiscoverWidgetsQuery", "d1/d3b/structyaze_1_1cli_1_1DiscoverWidgetsQuery.html", "d1/d3b/structyaze_1_1cli_1_1DiscoverWidgetsQuery" ],
+    [ "DiscoverWidgetsResult", "dc/d5a/structyaze_1_1cli_1_1DiscoverWidgetsResult.html", "dc/d5a/structyaze_1_1cli_1_1DiscoverWidgetsResult" ],
     [ "DungeonExport", "d7/dc5/classyaze_1_1cli_1_1DungeonExport.html", "d7/dc5/classyaze_1_1cli_1_1DungeonExport" ],
     [ "DungeonListObjects", "da/dc4/classyaze_1_1cli_1_1DungeonListObjects.html", "da/dc4/classyaze_1_1cli_1_1DungeonListObjects" ],
     [ "Expand", "d7/d30/classyaze_1_1cli_1_1Expand.html", "d7/d30/classyaze_1_1cli_1_1Expand" ],
@@ -101,6 +104,8 @@ var namespaceyaze_1_1cli =
     [ "TestWorkflowGenerator", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator.html", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator" ],
     [ "Tile16Transfer", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer" ],
     [ "TuiComponent", "dc/d6b/classyaze_1_1cli_1_1TuiComponent.html", "dc/d6b/classyaze_1_1cli_1_1TuiComponent" ],
+    [ "WidgetBoundingBox", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox.html", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox" ],
+    [ "WidgetDescriptor", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor.html", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor" ],
     [ "ClickType", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2c", [
       [ "kLeft", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2d5fde1d924910a2a01ecd8e70a87c28", null ],
       [ "kRight", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2dd2b017192f8a09367d48c7648213c9", null ],
@@ -114,6 +119,19 @@ var namespaceyaze_1_1cli =
       [ "kPassed", "dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a2e1165dab7cbb5e985ea3b1e5d64f619", null ],
       [ "kFailed", "dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536ab62fa3c9492b6dae76c23d6dfa466611", null ],
       [ "kTimeout", "dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a7f27861ff1d3f550c6aa77150d7edabd", null ]
+    ] ],
+    [ "WidgetTypeFilter", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807", [
+      [ "kUnspecified", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a8536661e94a42d4d95dcb9058b9936b5", null ],
+      [ "kAll", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a34bdbffdb1c0e1b603f58fc0d49548b6", null ],
+      [ "kButton", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a2973b376fddab10ff52d558664132bef", null ],
+      [ "kInput", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807ae22aedaa9915a19ef49578764f6dea64", null ],
+      [ "kMenu", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a3ff3255763404f286cc75aa78972601c", null ],
+      [ "kTab", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a0fa3a54d8627d575611d75e3c4288834", null ],
+      [ "kCheckbox", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a90bd63525fa6f50caf90d91c426e018b", null ],
+      [ "kSlider", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a08021cb2f91cbbc1554e1ee45e619487", null ],
+      [ "kCanvas", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a3f2d6b56c099e8012e7d551ff55d8443", null ],
+      [ "kSelectable", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a288e3fc77c73d759773ef3b92eeff4b3", null ],
+      [ "kOther", "dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a341b8a8f03cf33821c46aa5c3aad4b7a", null ]
     ] ],
     [ "PolicySeverity", "dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16", [
       [ "kInfo", "dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16a176a473e63c17ccdac91640c67f149bf", null ],

@@ -101,90 +101,99 @@ $(document).ready(function(){initNavTree('d0/d4b/cli_2handlers_2project_8cc_sour
   <div class="headertitle"><div class="title">project.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../d0/d4b/cli_2handlers_2project_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d3/dfa/z3ed_8h.html">cli/z3ed.h</a>&quot;</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#include &quot;<a class="code" href="../../dc/d8d/project_8h.html">app/core/project.h</a>&quot;</span></div>
+<a href="../../d0/d4b/cli_2handlers_2project_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../dc/d8d/project_8h.html">app/core/project.h</a>&quot;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#include &quot;<a class="code" href="../../d3/dfa/z3ed_8h.html">cli/z3ed.h</a>&quot;</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &quot;<a class="code" href="../../d0/d77/file__dialog_8h.html">core/platform/file_dialog.h</a>&quot;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;<a class="code" href="../../db/d90/bps_8h.html">util/bps.h</a>&quot;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;glob.h&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span>cli {</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="foldopen" id="foldopen00010" data-start="{" data-end="}">
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno"><a class="line" href="../../d9/d3b/classyaze_1_1cli_1_1ProjectInit.html#aa244cc97d77fe918e55713c13d63698a">   10</a></span>absl::Status <a class="code hl_function" href="../../d9/d3b/classyaze_1_1cli_1_1ProjectInit.html#aa244cc97d77fe918e55713c13d63698a">ProjectInit::Run</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>  <span class="keywordflow">if</span> (arg_vec.empty()) {</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(<span class="stringliteral">&quot;Usage: project init &lt;project_name&gt;&quot;</span>);</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  }</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  std::string project_name = arg_vec[0];</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <a class="code hl_struct" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html">core::YazeProject</a> project;</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <span class="keyword">auto</span> status = project.<a class="code hl_function" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#aa254bb42ffd51d5e0f2527549835912f">Create</a>(project_name, <span class="stringliteral">&quot;.&quot;</span>);</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keywordflow">return</span> status;</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  }</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;✅ Successfully initialized project: &quot;</span> &lt;&lt; project_name &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#ifndef _WIN32</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;glob.h&gt;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span>cli {</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
+<div class="foldopen" id="foldopen00012" data-start="{" data-end="}">
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="../../d9/d3b/classyaze_1_1cli_1_1ProjectInit.html#aa244cc97d77fe918e55713c13d63698a">   12</a></span>absl::Status <a class="code hl_function" href="../../d9/d3b/classyaze_1_1cli_1_1ProjectInit.html#aa244cc97d77fe918e55713c13d63698a">ProjectInit::Run</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  <span class="keywordflow">if</span> (arg_vec.empty()) {</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(<span class="stringliteral">&quot;Usage: project init &lt;project_name&gt;&quot;</span>);</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>  }</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  std::string project_name = arg_vec[0];</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <a class="code hl_struct" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html">core::YazeProject</a> project;</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <span class="keyword">auto</span> status = project.<a class="code hl_function" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#aa254bb42ffd51d5e0f2527549835912f">Create</a>(project_name, <span class="stringliteral">&quot;.&quot;</span>);</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="keywordflow">return</span> status;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  }</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>}</div>
-</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;✅ Successfully initialized project: &quot;</span> &lt;&lt; project_name</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>            &lt;&lt; std::endl;</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="foldopen" id="foldopen00027" data-start="{" data-end="}">
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="../../d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html#a824703ea5f9ee2bcab688929550cae2c">   27</a></span>absl::Status <a class="code hl_function" href="../../d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html#a824703ea5f9ee2bcab688929550cae2c">ProjectBuild::Run</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <a class="code hl_struct" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html">core::YazeProject</a> project;</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keyword">auto</span> status = project.<a class="code hl_function" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#a01c9181e16416e9999014de5ea21f9c4">Open</a>(<span class="stringliteral">&quot;.&quot;</span>);</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="keywordflow">return</span> status;</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  }</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <a class="code hl_class" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> rom;</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  status = rom.<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f">LoadFromFile</a>(project.<a class="code hl_variable" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#acb4db62c673fc40cbbcd426d312d8912">rom_filename</a>);</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keywordflow">return</span> status;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  }</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="comment">// Apply BPS patches</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  glob_t glob_result;</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  std::string pattern = project.<a class="code hl_variable" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#afa66b31008bbc3e6d98f45f57181c261">patches_folder</a> + <span class="stringliteral">&quot;/*.bps&quot;</span>;</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>  glob(pattern.c_str(), GLOB_TILDE, NULL, &amp;glob_result);</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keywordflow">for</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0; i&lt;glob_result.gl_pathc; ++i){</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    std::string patch_file = glob_result.gl_pathv[i];</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    std::vector&lt;uint8_t&gt; patch_data;</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keyword">auto</span> patch_contents = <a class="code hl_function" href="../../db/d33/namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c">core::LoadFile</a>(patch_file);</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    std::copy(patch_contents.begin(), patch_contents.end(), std::back_inserter(patch_data));</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    std::vector&lt;uint8_t&gt; patched_rom;</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <a class="code hl_function" href="../../d4/de1/namespaceyaze_1_1util.html#a02f0b319c52c7737a993173bb2a6a435">util::ApplyBpsPatch</a>(rom.<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">vector</a>(), patch_data, patched_rom);</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    rom.<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db">LoadFromData</a>(patched_rom);</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  }</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  <span class="comment">// Run asar on assembly files</span></div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  glob_t glob_result_asm;</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  std::string pattern_asm = project.<a class="code hl_variable" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#afa66b31008bbc3e6d98f45f57181c261">patches_folder</a> + <span class="stringliteral">&quot;/*.asm&quot;</span>;</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  glob(pattern_asm.c_str(), GLOB_TILDE, NULL, &amp;glob_result_asm);</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  <span class="keywordflow">for</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0; i&lt;glob_result_asm.gl_pathc; ++i){</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>      <a class="code hl_class" href="../../d7/d3f/classyaze_1_1cli_1_1AsarPatch.html">AsarPatch</a> asar_patch;</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>      <span class="keyword">auto</span> status = asar_patch.<a class="code hl_function" href="../../d7/d3f/classyaze_1_1cli_1_1AsarPatch.html#a9a794ec4ea7297ca773bb280d1674c48">Run</a>({glob_result_asm.gl_pathv[i]});</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>      <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>          <span class="keywordflow">return</span> status;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      }</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  }</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  std::string output_file = project.<a class="code hl_variable" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#aa942293834608b59213f5d09a47f485e">name</a> + <span class="stringliteral">&quot;.sfc&quot;</span>;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  status = rom.<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#a85481fc21993edbc298608a66cb70ba9">SaveToFile</a>({.save_new = <span class="keyword">true</span>, .filename = output_file});</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="keywordflow">return</span> status;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  }</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;✅ Successfully built project: &quot;</span> &lt;&lt; project.<a class="code hl_variable" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#aa942293834608b59213f5d09a47f485e">name</a> &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;   Output ROM: &quot;</span> &lt;&lt; output_file &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>}</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}</div>
 </div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>}  <span class="comment">// namespace cli</span></div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="foldopen" id="foldopen00030" data-start="{" data-end="}">
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="../../d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html#a824703ea5f9ee2bcab688929550cae2c">   30</a></span>absl::Status <a class="code hl_function" href="../../d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html#a824703ea5f9ee2bcab688929550cae2c">ProjectBuild::Run</a>(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; arg_vec) {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  <a class="code hl_struct" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html">core::YazeProject</a> project;</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="keyword">auto</span> status = project.<a class="code hl_function" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#a01c9181e16416e9999014de5ea21f9c4">Open</a>(<span class="stringliteral">&quot;.&quot;</span>);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keywordflow">return</span> status;</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  }</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <a class="code hl_class" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> rom;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  status = rom.<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f">LoadFromFile</a>(project.<a class="code hl_variable" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#acb4db62c673fc40cbbcd426d312d8912">rom_filename</a>);</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordflow">return</span> status;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  }</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#ifdef _WIN32</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keywordflow">return</span> absl::UnimplementedError(</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>      <span class="stringliteral">&quot;Project build with patches is not implemented on Windows yet.&quot;</span>);</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  <span class="comment">// Apply BPS patches</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  glob_t glob_result;</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  std::string pattern = project.<a class="code hl_variable" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#afa66b31008bbc3e6d98f45f57181c261">patches_folder</a> + <span class="stringliteral">&quot;/*.bps&quot;</span>;</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  glob(pattern.c_str(), GLOB_TILDE, NULL, &amp;glob_result);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; glob_result.gl_pathc; ++i) {</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    std::string patch_file = glob_result.gl_pathv[i];</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    std::vector&lt;uint8_t&gt; patch_data;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keyword">auto</span> patch_contents = <a class="code hl_function" href="../../db/d33/namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c">core::LoadFile</a>(patch_file);</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    std::copy(patch_contents.begin(), patch_contents.end(),</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>              std::back_inserter(patch_data));</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    std::vector&lt;uint8_t&gt; patched_rom;</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <a class="code hl_function" href="../../d4/de1/namespaceyaze_1_1util.html#a02f0b319c52c7737a993173bb2a6a435">util::ApplyBpsPatch</a>(rom.<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">vector</a>(), patch_data, patched_rom);</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    rom.<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db">LoadFromData</a>(patched_rom);</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  }</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  <span class="comment">// Run asar on assembly files</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  glob_t glob_result_asm;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  std::string pattern_asm = project.<a class="code hl_variable" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#afa66b31008bbc3e6d98f45f57181c261">patches_folder</a> + <span class="stringliteral">&quot;/*.asm&quot;</span>;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  glob(pattern_asm.c_str(), GLOB_TILDE, NULL, &amp;glob_result_asm);</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; glob_result_asm.gl_pathc; ++i) {</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <a class="code hl_class" href="../../d7/d3f/classyaze_1_1cli_1_1AsarPatch.html">AsarPatch</a> asar_patch;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="keyword">auto</span> status = asar_patch.<a class="code hl_function" href="../../d7/d3f/classyaze_1_1cli_1_1AsarPatch.html#a9a794ec4ea7297ca773bb280d1674c48">Run</a>({glob_result_asm.gl_pathv[i]});</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>      <span class="keywordflow">return</span> status;</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    }</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  }</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  std::string output_file = project.<a class="code hl_variable" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#aa942293834608b59213f5d09a47f485e">name</a> + <span class="stringliteral">&quot;.sfc&quot;</span>;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  status = rom.<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#a85481fc21993edbc298608a66cb70ba9">SaveToFile</a>({.save_new = <span class="keyword">true</span>, .filename = output_file});</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keywordflow">return</span> status;</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  }</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;✅ Successfully built project: &quot;</span> &lt;&lt; project.<a class="code hl_variable" href="../../da/d5e/structyaze_1_1core_1_1YazeProject.html#aa942293834608b59213f5d09a47f485e">name</a> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;   Output ROM: &quot;</span> &lt;&lt; output_file &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>}</div>
+</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>}  <span class="comment">// namespace cli</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="abps_8h_html"><div class="ttname"><a href="../../db/d90/bps_8h.html">bps.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html">yaze::Rom</a></div><div class="ttdoc">The Rom class is used to load, save, and modify Rom data.</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00071">rom.h:71</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a109e86fd24dca5861a67f22f78d53d3f"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f">yaze::Rom::LoadFromFile</a></div><div class="ttdeci">absl::Status LoadFromFile(const std::string &amp;filename, bool z3_load=true)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d79/app_2rom_8cc_source.html#l00270">rom.cc:270</a></div></div>
@@ -193,8 +202,8 @@ $(document).ready(function(){initNavTree('d0/d4b/cli_2handlers_2project_8cc_sour
 <div class="ttc" id="aclassyaze_1_1Rom_html_a85481fc21993edbc298608a66cb70ba9"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a85481fc21993edbc298608a66cb70ba9">yaze::Rom::SaveToFile</a></div><div class="ttdeci">absl::Status SaveToFile(const SaveSettings &amp;settings)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d79/app_2rom_8cc_source.html#l00481">rom.cc:481</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1AsarPatch_html"><div class="ttname"><a href="../../d7/d3f/classyaze_1_1cli_1_1AsarPatch.html">yaze::cli::AsarPatch</a></div><div class="ttdef"><b>Definition</b> <a href="../../d3/dfa/z3ed_8h_source.html#l00044">z3ed.h:44</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1AsarPatch_html_a9a794ec4ea7297ca773bb280d1674c48"><div class="ttname"><a href="../../d7/d3f/classyaze_1_1cli_1_1AsarPatch.html#a9a794ec4ea7297ca773bb280d1674c48">yaze::cli::AsarPatch::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d67/patch_8cc_source.html#l00039">patch.cc:39</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1ProjectBuild_html_a824703ea5f9ee2bcab688929550cae2c"><div class="ttname"><a href="../../d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html#a824703ea5f9ee2bcab688929550cae2c">yaze::cli::ProjectBuild::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d4b/cli_2handlers_2project_8cc_source.html#l00027">project.cc:27</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1ProjectInit_html_aa244cc97d77fe918e55713c13d63698a"><div class="ttname"><a href="../../d9/d3b/classyaze_1_1cli_1_1ProjectInit.html#aa244cc97d77fe918e55713c13d63698a">yaze::cli::ProjectInit::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d4b/cli_2handlers_2project_8cc_source.html#l00010">project.cc:10</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1ProjectBuild_html_a824703ea5f9ee2bcab688929550cae2c"><div class="ttname"><a href="../../d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html#a824703ea5f9ee2bcab688929550cae2c">yaze::cli::ProjectBuild::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d4b/cli_2handlers_2project_8cc_source.html#l00030">project.cc:30</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1ProjectInit_html_aa244cc97d77fe918e55713c13d63698a"><div class="ttname"><a href="../../d9/d3b/classyaze_1_1cli_1_1ProjectInit.html#aa244cc97d77fe918e55713c13d63698a">yaze::cli::ProjectInit::Run</a></div><div class="ttdeci">absl::Status Run(const std::vector&lt; std::string &gt; &amp;arg_vec) override</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d4b/cli_2handlers_2project_8cc_source.html#l00012">project.cc:12</a></div></div>
 <div class="ttc" id="afile__dialog_8h_html"><div class="ttname"><a href="../../d0/d77/file__dialog_8h.html">file_dialog.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1core_html_a52189778cda85a731116f50ab603ca6c"><div class="ttname"><a href="../../db/d33/namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c">yaze::core::LoadFile</a></div><div class="ttdeci">std::string LoadFile(const std::string &amp;filename)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/ddf/file__dialog_8cc_source.html#l00037">file_dialog.cc:37</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1util_html_a02f0b319c52c7737a993173bb2a6a435"><div class="ttname"><a href="../../d4/de1/namespaceyaze_1_1util.html#a02f0b319c52c7737a993173bb2a6a435">yaze::util::ApplyBpsPatch</a></div><div class="ttdeci">absl::Status ApplyBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;output)</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d8f/bps_8cc_source.html#l00079">bps.cc:79</a></div></div>

@@ -1,0 +1,14 @@
+<map id="yaze::cli::anonymous_namespace{agent::cc}::HandleGuiCommand" name="yaze::cli::anonymous_namespace{agent::cc}::HandleGuiCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,161,119"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="39,63,39,53,47,44,62,38,83,37,107,39,121,46,119,51,105,44,83,42,63,44,50,48,44,55,44,63"/>
+<area shape="rect" id="Node000002" href="$dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#a34c2b8af13fd5bf2e4443fd931e3a877" title=" " alt="" coords="209,63,407,119"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="161,88,193,88,193,94,161,94"/>
+<area shape="poly" id="edge5_Node000002_Node000002" title=" " alt="" coords="264,63,264,53,272,44,287,38,308,37,332,39,346,46,344,51,330,44,308,42,288,44,275,48,269,55,269,63"/>
+<area shape="rect" id="Node000003" href="$d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a12f10e1be7bc14f4f37b3a3e90ede83f" title="Connect to the test harness server." alt="" coords="455,5,613,46"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="406,60,446,48,447,53,407,65"/>
+<area shape="rect" id="Node000005" href="$d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a421651cffa30e9475bf0a4f4ada5d0d5" title=" " alt="" coords="455,71,613,111"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="407,88,439,88,439,94,407,94"/>
+<area shape="rect" id="Node000006" href="$dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html#ae1f86d3e7c6b7e82dc260a05e4c016c3" title=" " alt="" coords="457,159,612,215"/>
+<area shape="poly" id="edge6_Node000002_Node000006" title=" " alt="" coords="376,117,454,150,452,155,374,122"/>
+<area shape="poly" id="edge7_Node000006_Node000006" title=" " alt="" coords="490,159,490,149,498,140,513,134,534,133,558,135,573,142,570,147,557,140,534,138,514,140,501,144,495,151,495,159"/>
+</map>

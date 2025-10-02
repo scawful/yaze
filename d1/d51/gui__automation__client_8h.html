@@ -109,6 +109,7 @@ $(document).ready(function(){initNavTree('d1/d51/gui__automation__client_8h.html
 <code>#include &quot;absl/status/statusor.h&quot;</code><br />
 <code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &lt;chrono&gt;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;map&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
@@ -149,6 +150,16 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html">yaze::cli::TestResultDetails</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detailed execution results for a specific harness test.  <a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox.html">yaze::cli::WidgetBoundingBox</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d85/structyaze_1_1cli_1_1WidgetDescriptor.html">yaze::cli::WidgetDescriptor</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo.html">yaze::cli::DiscoveredWindowInfo</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3b/structyaze_1_1cli_1_1DiscoverWidgetsQuery.html">yaze::cli::DiscoverWidgetsQuery</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d5a/structyaze_1_1cli_1_1DiscoverWidgetsResult.html">yaze::cli::DiscoverWidgetsResult</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html">yaze::cli::GuiAutomationClient</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Client for automating YAZE GUI through gRPC.  <a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -183,6 +194,23 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:ac2dd1cd8208462d16360cd77b564e536"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execution status codes returned by the harness.  <a href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536">More...</a><br /></td></tr>
 <tr class="separator:ac2dd1cd8208462d16360cd77b564e536"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8939ba98dedba4fb2d1e4b0a56c02807" id="r_a8939ba98dedba4fb2d1e4b0a56c02807"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807">yaze::cli::WidgetTypeFilter</a> { <br />
+&#160;&#160;<a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a8536661e94a42d4d95dcb9058b9936b5">yaze::cli::kUnspecified</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a34bdbffdb1c0e1b603f58fc0d49548b6">yaze::cli::kAll</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a2973b376fddab10ff52d558664132bef">yaze::cli::kButton</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807ae22aedaa9915a19ef49578764f6dea64">yaze::cli::kInput</a>
+, <br />
+&#160;&#160;<a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a3ff3255763404f286cc75aa78972601c">yaze::cli::kMenu</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a0fa3a54d8627d575611d75e3c4288834">yaze::cli::kTab</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a90bd63525fa6f50caf90d91c426e018b">yaze::cli::kCheckbox</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a08021cb2f91cbbc1554e1ee45e619487">yaze::cli::kSlider</a>
+, <br />
+&#160;&#160;<a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a3f2d6b56c099e8012e7d551ff55d8443">yaze::cli::kCanvas</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a288e3fc77c73d759773ef3b92eeff4b3">yaze::cli::kSelectable</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a8939ba98dedba4fb2d1e4b0a56c02807a341b8a8f03cf33821c46aa5c3aad4b7a">yaze::cli::kOther</a>
+<br />
+ }</td></tr>
+<tr class="separator:a8939ba98dedba4fb2d1e4b0a56c02807"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
