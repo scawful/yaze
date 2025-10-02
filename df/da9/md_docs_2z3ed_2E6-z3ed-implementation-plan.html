@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: z3ed Agentic Wo**Active Phase**:</title>
+<title>yaze: z3ed Agentic Workflow Plan</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -98,15 +98,30 @@ $(document).ready(function(){initNavTree('df/da9/md_docs_2z3ed_2E6-z3ed-implemen
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">z3ed Agentic Wo**Active Phase**:</div></div>
+  <div class="headertitle"><div class="title">z3ed Agentic Workflow Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1212"></a></p><ul>
-<li><b>Policy Evaluation Framework (AW-04)</b>: YAML-based constraint system for gating proposal acceptance - implementation complete, ready for production testing.</li>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1225"></a> <b>Last Updated</b>: October 2, 2025 <b>Status</b>: Core Infrastructure Complete | Test Harness Enhancement Phase 🎯</p>
+<blockquote class="doxtable">
+<p>&zwj;📋 <b>Quick Start</b>: See <a class="el" href="../../d0/d30/md_README.html">README.md</a> for essential links and project status. </p>
+</blockquote>
+<h1><a class="anchor" id="autotoc_md1226"></a>
+Executive Summary</h1>
+<p>The z3ed CLI and AI agent workflow system has completed major infrastructure milestones:</p>
+<p><b>✅ Completed Phases</b>:</p><ul>
+<li><b>Phase 6</b>: Resource Catalogue - Machine-readable API specs for AI consumption</li>
+<li><b>AW-01/02/03</b>: Acceptance Workflow - Proposal tracking, sandbox management, GUI review with ROM merging</li>
+<li><b>AW-04</b>: Policy Evaluation Framework - YAML-based constraint system for proposal acceptance</li>
+<li><b>IT-01</b>: ImGuiTestHarness - Full GUI automation via gRPC + ImGuiTestEngine (all 3 phases complete)</li>
+<li><b>IT-02</b>: CLI Agent Test - Natural language → automated GUI testing (implementation complete)</li>
+</ul>
+<p><b>🔄 Active Phase</b>:</p><ul>
+<li><b>Test Harness Enhancements (IT-05 to IT-09)</b>: Expanding from basic automation to comprehensive testing platform</li>
 </ul>
 <p><b>📋 Next Phases</b>:</p><ul>
-<li><b>Priority 1</b>: Production Testing - Validate policy enforcement with real ROM modification proposals.</li>
-<li><b>Priority 2</b>: Windows Cross-Platform Testing - Ensure z3ed works on Windows targets with gRPC integration.</li>
+<li><b>Priority 1</b>: Test Introspection API (IT-05) - Enable test status querying and result polling</li>
+<li><b>Priority 2</b>: Widget Discovery API (IT-06) - AI agents enumerate available GUI interactions</li>
+<li><b>Priority 3</b>: Test Recording &amp; Replay (IT-07) - Capture workflows for regression testing</li>
 </ul>
 <p><b>Recent Accomplishments</b> (Updated: January 2025):</p><ul>
 <li><b>✅ Policy Framework Complete</b>: PolicyEvaluator service fully integrated with ProposalDrawer GUI<ul>
@@ -127,47 +142,18 @@ $(document).ready(function(){initNavTree('df/da9/md_docs_2z3ed_2E6-z3ed-implemen
 <li><b>Build System</b>: Hardened CMake configuration with reliable gRPC integration</li>
 <li><b>Proposal Workflow</b>: Agentic proposal system fully operational (create, list, diff, review in GUI)</li>
 </ul>
-<p><b>Known Limitations</b> (Non-Blocking):</p><ul>
-<li><b>Screenshot RPC</b>: Stub implementation (returns "not implemented" - planned for production phase)</li>
-<li><b>Widget Naming</b>: Documentation needed for icon prefixes and naming conventions</li>
+<p><b>Known Limitations &amp; Improvement Opportunities</b>:</p><ul>
+<li><b>Screenshot RPC</b>: Stub implementation → needs SDL_Surface capture + PNG encoding</li>
+<li><b>Test Introspection</b>: No way to query test status, results, or queue → add GetTestStatus/ListTests RPCs</li>
+<li><b>Widget Discovery</b>: AI agents can't enumerate available widgets → add DiscoverWidgets RPC</li>
+<li><b>Test Recording</b>: No record/replay for regression testing → add RecordSession/ReplaySession RPCs</li>
+<li><b>Synchronous Wait</b>: Async tests return immediately → add blocking mode or result polling</li>
+<li><b>Error Context</b>: Test failures lack screenshots/state dumps → enhance error reporting</li>
 <li><b>Performance</b>: Tests add ~166ms per Wait call due to frame yielding (acceptable trade-off)</li>
 <li><b>YAML Parsing</b>: Simple parser implemented, consider yaml-cpp for complex scenarios</li>
 </ul>
-<p><b>Time Investment</b>: 28.5 hours total (IT-01: 11h, IT-02: 7.5h, E2E: 2h, Policy: 6h, Docs: 2h)on Plan</p>
-<p><b>Last Updated</b>: [Current Date] <b>Status</b>: Core Infrastructure Complete | E2E Validation In Progress 🎯</p>
-<blockquote class="doxtable">
-<p>&zwj;📋 <b>Quick Start</b>: See <a class="el" href="../../d0/d30/md_README.html">README.md</a> for essential links and project status. </p>
-</blockquote>
-<h1><a class="anchor" id="autotoc_md1213"></a>
-Executive Summary</h1>
-<p>The z3ed CLI and AI agent workflow system has completed major infrastructure milestones:</p>
-<p><b>✅ Completed Phases</b>:</p><ul>
-<li><b>Phase 6</b>: Resource Catalogue - Machine-readable API specs for AI consumption</li>
-<li><b>AW-01/02/03</b>: Acceptance Workflow - Proposal tracking, sandbox management, GUI review with ROM merging</li>
-<li><b>IT-01</b>: ImGuiTestHarness - Full GUI automation via gRPC + ImGuiTestEngine (all 3 phases complete)</li>
-<li><b>IT-02</b>: CLI Agent Test - Natural language → automated GUI testing (implementation complete)</li>
-</ul>
-<p><b>🔄 Active Phase</b>:</p><ul>
-<li><b>E2E Validation</b>: Testing complete proposal lifecycle with real GUI widgets (window detection debugging in progress)</li>
-</ul>
-<p><b>📋 Next Phases</b>:</p><ul>
-<li><b>Priority 1</b>: Complete E2E Validation - Fix window detection after menu actions (2-3 hours)</li>
-<li><b>Priority 2</b>: Policy Evaluation Framework (AW-04) - YAML-based constraints for proposal acceptance (6-8 hours)</li>
-</ul>
-<p><b>Recent Accomplishments</b> (October 2, 2025):</p><ul>
-<li>IT-02 implementation complete with async test queue pattern</li>
-<li>Build system fixes for z3ed target (gRPC integration)</li>
-<li>Documentation consolidated into clean structure</li>
-<li>E2E test script operational (5/6 RPCs working)</li>
-<li>Menu interaction verified via ImGuiTestEngine</li>
-</ul>
-<p><b>Known Issues</b>:</p><ul>
-<li>Window detection timing after menu clicks needs refinement</li>
-<li>Screenshot RPC proto mismatch (non-critical)</li>
-</ul>
-<p><b>Time Investment</b>: 20.5 hours total (IT-01: 11h, IT-02: 7.5h, Docs: 2h) <br  />
- <b>Code Quality</b>: All targets compile cleanly, no crashes, partial test coverage</p>
-<h1><a class="anchor" id="autotoc_md1214"></a>
+<p><b>Time Investment</b>: 28.5 hours total (IT-01: 11h, IT-02: 7.5h, E2E: 2h, Policy: 6h, Docs: 2h)</p>
+<h1><a class="anchor" id="autotoc_md1227"></a>
 Quick Reference</h1>
 <p><b>Start Test Harness</b>: </p><div class="fragment"><div class="line">./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \</div>
 <div class="line">  --enable_test_harness \</div>
@@ -182,95 +168,328 @@ Quick Reference</h1>
 <li>Select proposal → Review → Accept/Reject/Delete</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1216"></a>
+<h1><a class="anchor" id="autotoc_md1229"></a>
 1. Current Priorities (Week of Oct 2-8, 2025)</h1>
-<p><b>Status</b>: IT-01 Complete ✅ | IT-02 Complete ✅ | E2E Tests Running ⚡</p>
-<h2><a class="anchor" id="autotoc_md1217"></a>
-Priority 0: E2E Test Validation (IMMEDIATE) 🎯</h2>
-<p><b>Goal</b>: Validate test harness with real YAZE widgets <br  />
- <b>Time Estimate</b>: 30-60 minutes <br  />
- <b>Status</b>: Test script running, needs real widget names</p>
-<p><b>Current Results</b>:</p><ul>
-<li>✅ Ping RPC working</li>
-<li>⚠️ Tests 2-5 using fake widget names</li>
-<li>📋 Need to identify real widget names from YAZE source</li>
-<li>🔧 Screenshot RPC needs proto fix</li>
+<p><b>Status</b>: Core Infrastructure Complete ✅ | Test Harness Enhancement Phase 🔧</p>
+<h2><a class="anchor" id="autotoc_md1230"></a>
+Priority 1: Test Harness Enhancements (IT-05 to IT-09) 🔧 ACTIVE</h2>
+<p><b>Goal</b>: Transform test harness from basic automation to comprehensive testing platform <br  />
+ <b>Time Estimate</b>: 20-25 hours total <br  />
+ <b>Blocking Dependency</b>: IT-01 Complete ✅</p>
+<p><b>Motivation</b>: Current test harness supports basic GUI automation but lacks features for:</p><ul>
+<li><b>AI Agent Development</b>: No widget discovery API for LLMs to learn available interactions</li>
+<li><b>Regression Testing</b>: No recording/replay mechanism for test suite management</li>
+<li><b>CI/CD Integration</b>: No standardized test format for automated pipelines</li>
+<li><b>Debugging</b>: Limited error context when tests fail (no screenshots, state dumps)</li>
+<li><b>Test Management</b>: Can't query test status, results, or execution queue</li>
 </ul>
-<p><b>Task Checklist</b>:</p><ol type="1">
-<li>✅ <b>E2E Test Script</b>: Already created (<code>scripts/test_harness_e2e.sh</code>)</li>
-<li>📋 <b>Manual Testing Workflow</b>:<ul>
-<li>Start YAZE with test harness enabled</li>
-<li>Create proposal via CLI: <code>z3ed agent run "Test prompt" --sandbox</code></li>
-<li>Verify proposal appears in ProposalDrawer GUI</li>
-<li>Test Accept → validate ROM merge and save prompt</li>
-<li>Test Reject → validate status update</li>
-<li>Test Delete → validate cleanup</li>
+<h3><a class="anchor" id="autotoc_md1231"></a>
+IT-05: Test Introspection API (6-8 hours)</h3>
+<p><b>Status (Oct 2, 2025)</b>: 🟡 <em>Server-side RPCs implemented; CLI + E2E pending</em></p>
+<p><b>Progress</b>:</p><ul>
+<li>✅ <code>imgui_test_harness.proto</code> expanded with GetTestStatus/ListTests/GetTestResults messages.</li>
+<li>✅ <code>TestManager</code> maintains execution history (queued→running→completed) with logs, metrics, and aggregates.</li>
+<li>✅ <code>ImGuiTestHarnessServiceImpl</code> exposes the three introspection RPCs with pagination, status conversion, and log/metric marshalling.</li>
+<li>⚠️ <code>agent</code> CLI commands (<code>test status</code>, <code>test list</code>, <code>test results</code>) still stubbed.</li>
+<li>⚠️ End-to-end introspection script (<code>scripts/test_introspection_e2e.sh</code>) not implemented; regression script <code>test_harness_e2e.sh</code> currently failing because it references the unfinished CLI.</li>
+</ul>
+<p><b>Immediate Next Steps</b>:</p><ol type="1">
+<li><b>Wire CLI Client Methods</b><ul>
+<li>Implement gRPC client wrappers for the new RPCs in the automation client.</li>
+<li>Add user-facing commands under <code>z3ed agent test ...</code> with JSON/YAML output options.</li>
 </ul>
 </li>
-<li>📋 <b>Real Widget Testing</b>:<ul>
-<li>Click actual YAZE buttons (Overworld, Dungeon, etc.)</li>
-<li>Type into real input fields</li>
-<li>Wait for actual windows to appear</li>
-<li>Assert on real widget states</li>
+<li><b>Author E2E Validation Script</b><ul>
+<li>Spin up harness, run Click/Assert workflow, poll via <code>agent test status</code>, fetch results.</li>
+<li>Update CI notes with the new script and expected output.</li>
 </ul>
 </li>
-<li>📋 <b>Document Edge Cases</b>:<ul>
-<li>Widget not found scenarios</li>
-<li>Timeout handling</li>
-<li>Error recovery patterns</li>
+<li><b>Documentation &amp; Examples</b><ul>
+<li>Extend <code><a class="el" href="../../db/d7d/E6-z3ed-reference_8md.html">E6-z3ed-reference.md</a></code> with full usage examples and sample outputs.</li>
+<li>Add troubleshooting section covering common errors (unknown test_id, timeout, etc.).</li>
+</ul>
+</li>
+<li><b>Stretch (Optional Before IT-06)</b><ul>
+<li>Capture assertion metadata (expected/actual) for richer <code>AssertionResult</code> payloads.</li>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1218"></a>
-Priority 2: CLI Agent Test Command (IT-02) 📋 NEXT</h2>
-<p><b>Goal</b>: Natural language → automated GUI testing via gRPC <br  />
- <b>Time Estimate</b>: 4-6 hours <br  />
- <b>Blocking Dependency</b>: Priority 1 completion</p>
-<p><b>Implementation Tasks</b>:</p><ol type="1">
-<li><b>Create <code>z3ed agent test</code> command</b>:<ul>
-<li>Parse natural language prompt</li>
-<li>Generate RPC call sequence (Click → Wait → Assert)</li>
-<li>Execute via gRPC client</li>
-<li>Capture results and screenshots</li>
-</ul>
-</li>
-<li><b>Example Usage</b>: <div class="fragment"><div class="line">z3ed agent test --prompt &quot;Open Overworld editor and verify it loads&quot; \</div>
-<div class="line">  --rom zelda3.sfc</div>
+<p><b>Example Usage</b>: </p><div class="fragment"><div class="line"># Queue a test</div>
+<div class="line">z3ed agent test --prompt &quot;Open Overworld editor&quot;</div>
 <div class="line"> </div>
-<div class="line"># Generated workflow:</div>
-<div class="line"># 1. Click &quot;button:Overworld&quot;</div>
-<div class="line"># 2. Wait &quot;window_visible:Overworld Editor&quot; (5s)</div>
-<div class="line"># 3. Assert &quot;visible:Overworld Editor&quot;</div>
-<div class="line"># 4. Screenshot &quot;full&quot;</div>
-</div><!-- fragment --></li>
-<li><b>Implementation Files</b>:<ul>
-<li><code><a class="el" href="../../d2/d0e/agent_8cc.html">src/cli/handlers/agent.cc</a></code> - Add <code>HandleTestCommand()</code></li>
-<li><code>src/cli/service/gui_automation_client.{h,cc}</code> - gRPC client wrapper</li>
-<li><code>src/cli/service/test_workflow_generator.{h,cc}</code> - Prompt → RPC translator</li>
+<div class="line"># Poll for completion</div>
+<div class="line">z3ed test status --test-id grpc_click_12345678</div>
+<div class="line"> </div>
+<div class="line"># Retrieve results</div>
+<div class="line">z3ed test results --test-id grpc_click_12345678 --format json</div>
+</div><!-- fragment --><p><b>API Schema</b>: </p><div class="fragment"><div class="line">message GetTestStatusRequest {</div>
+<div class="line">  string test_id = 1;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">message GetTestStatusResponse {</div>
+<div class="line">  enum Status { QUEUED = 0; RUNNING = 1; PASSED = 2; FAILED = 3; TIMEOUT = 4; }</div>
+<div class="line">  Status status = 1;</div>
+<div class="line">  int64 execution_time_ms = 2;</div>
+<div class="line">  string error_message = 3;</div>
+<div class="line">  repeated string assertion_failures = 4;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">message ListTestsRequest {</div>
+<div class="line">  string category_filter = 1;  // Optional: &quot;grpc&quot;, &quot;unit&quot;, etc.</div>
+<div class="line">  int32 page_size = 2;</div>
+<div class="line">  string page_token = 3;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">message ListTestsResponse {</div>
+<div class="line">  repeated TestInfo tests = 1;</div>
+<div class="line">  string next_page_token = 2;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">message TestInfo {</div>
+<div class="line">  string test_id = 1;</div>
+<div class="line">  string name = 2;</div>
+<div class="line">  string category = 3;</div>
+<div class="line">  int64 last_run_timestamp_ms = 4;</div>
+<div class="line">  int32 total_runs = 5;</div>
+<div class="line">  int32 pass_count = 6;</div>
+<div class="line">  int32 fail_count = 7;</div>
+<div class="line">}</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1232"></a>
+IT-06: Widget Discovery API (4-6 hours)</h3>
+<p><b>Implementation Tasks</b>:</p><ol type="1">
+<li><b>Add DiscoverWidgets RPC</b>:<ul>
+<li>Enumerate all windows currently open in YAZE GUI</li>
+<li>List all interactive widgets (buttons, inputs, menus, tabs) per window</li>
+<li>Return widget metadata: ID, type, label, enabled state, position</li>
+<li>Support filtering by window name or widget type</li>
+</ul>
+</li>
+<li><b>AI-Friendly Output Format</b>:<ul>
+<li>JSON schema describing available interactions</li>
+<li>Natural language descriptions for each widget</li>
+<li>Suggested action templates (e.g., "Click button:{label}")</li>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1219"></a>
-Priority 3: Policy Evaluation Framework (AW-04) 📋</h2>
-<p><b>Goal</b>: YAML-based constraint system for gating proposal acceptance <br  />
- <b>Time Estimate</b>: 6-8 hours <br  />
- <b>Blocking Dependency</b>: None (can work in parallel)</p>
-<blockquote class="doxtable">
-<p>&zwj;� <b>Detailed Guides</b>: See NEXT_PRIORITIES_OCT2.md for complete implementation breakdowns with code examples. </p>
-</blockquote>
-<h1><a class="anchor" id="autotoc_md1220"></a>
-&lt;/blockquote&gt;</h1>
-<h1><a class="anchor" id="autotoc_md1221"></a>
-2. Workstreams Overview</h1>
-<p>This plan decomposes the design additions into actionable engineering tasks. Each workstream contains milestones, blocking dependencies, and expected deliverables.</p><ol type="1">
-<li><code><a class="el" href="../../d4/d1a/cli_2handlers_2rom_8cc.html">src/cli/handlers/rom.cc</a></code> - Added <code>RomInfo::Run</code> implementation</li>
-<li><code><a class="el" href="../../d3/dfa/z3ed_8h.html">src/cli/z3ed.h</a></code> - Added <code>RomInfo</code> class declaration <br  />
+<p><b>Example Usage</b>: </p><div class="fragment"><div class="line"># Discover all widgets</div>
+<div class="line">z3ed gui discover</div>
+<div class="line"> </div>
+<div class="line"># Filter by window</div>
+<div class="line">z3ed gui discover --window &quot;Overworld&quot;</div>
+<div class="line"> </div>
+<div class="line"># Get only buttons</div>
+<div class="line">z3ed gui discover --type button</div>
+</div><!-- fragment --><p><b>API Schema</b>: </p><div class="fragment"><div class="line">message DiscoverWidgetsRequest {</div>
+<div class="line">  string window_filter = 1;  // Optional: filter by window name</div>
+<div class="line">  enum WidgetType { ALL = 0; BUTTON = 1; INPUT = 2; MENU = 3; TAB = 4; CHECKBOX = 5; }</div>
+<div class="line">  WidgetType type_filter = 2;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">message DiscoverWidgetsResponse {</div>
+<div class="line">  repeated WindowInfo windows = 1;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">message WindowInfo {</div>
+<div class="line">  string name = 1;</div>
+<div class="line">  bool is_visible = 2;</div>
+<div class="line">  repeated WidgetInfo widgets = 3;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">message WidgetInfo {</div>
+<div class="line">  string id = 1;</div>
+<div class="line">  string label = 2;</div>
+<div class="line">  string type = 3;  // &quot;button&quot;, &quot;input&quot;, &quot;menu&quot;, etc.</div>
+<div class="line">  bool is_enabled = 4;</div>
+<div class="line">  string position = 5;  // &quot;x,y,width,height&quot;</div>
+<div class="line">  string suggested_action = 6;  // &quot;Click button:Open ROM&quot;</div>
+<div class="line">}</div>
+</div><!-- fragment --><p><b>Benefits for AI Agents</b>:</p><ul>
+<li>LLMs can dynamically learn available GUI interactions</li>
+<li>Agents can adapt to UI changes without hardcoded widget names</li>
+<li>Natural language descriptions enable better prompt engineering</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md1233"></a>
+IT-07: Test Recording &amp; Replay (8-10 hours)</h3>
+<p><b>Implementation Tasks</b>:</p><ol type="1">
+<li><b>Add StartRecording/StopRecording RPCs</b>:<ul>
+<li>Capture all RPC calls during a session</li>
+<li>Record timing, parameters, and results</li>
+<li>Save to JSON test script format</li>
+</ul>
 </li>
-<li><code><a class="el" href="../../dc/d8b/modern__cli_8cc.html">src/cli/modern_cli.cc</a></code> - Updated <code>HandleRomInfoCommand</code> routing </li>
+<li><b>Add ReplayTest RPC</b>:<ul>
+<li>Load JSON test script</li>
+<li>Execute recorded actions sequentially</li>
+<li>Validate expected results match actual results</li>
+<li>Support parameterization (e.g., replace ROM filename)</li>
+</ul>
+</li>
+<li><b>Test Script Format</b>:<ul>
+<li>Human-readable JSON with comments</li>
+<li>Support assertions and conditionals</li>
+<li>Enable test suite composition (call other scripts)</li>
+</ul>
+</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1222"></a>
-4. &lt;tt&gt;src/cli/service/resource_catalog.cc&lt;/tt&gt; - Added &lt;tt&gt;rom info&lt;/tt&gt; schema entry</h1>
-<h1><a class="anchor" id="autotoc_md1223"></a>
+<p><b>Example Workflow</b>: </p><div class="fragment"><div class="line"># Start recording</div>
+<div class="line">z3ed test record start --output overworld_test.json</div>
+<div class="line"> </div>
+<div class="line"># Perform actions (manually or via agent)</div>
+<div class="line">z3ed agent test --prompt &quot;Open Overworld editor&quot;</div>
+<div class="line">z3ed agent test --prompt &quot;Click tile at 10,20&quot;</div>
+<div class="line"> </div>
+<div class="line"># Stop recording</div>
+<div class="line">z3ed test record stop</div>
+<div class="line"> </div>
+<div class="line"># Replay test</div>
+<div class="line">z3ed test replay overworld_test.json</div>
+<div class="line"> </div>
+<div class="line"># Run in CI</div>
+<div class="line">z3ed test replay tests/*.json --ci-mode</div>
+</div><!-- fragment --><p><b>JSON Test Script Example</b>: </p><div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;name&quot;: &quot;Overworld Editor Load Test&quot;,</div>
+<div class="line">  &quot;description&quot;: &quot;Verify Overworld editor opens and tile selection works&quot;,</div>
+<div class="line">  &quot;steps&quot;: [</div>
+<div class="line">    {</div>
+<div class="line">      &quot;action&quot;: &quot;Click&quot;,</div>
+<div class="line">      &quot;target&quot;: &quot;menuitem: Overworld Editor&quot;,</div>
+<div class="line">      &quot;expected_result&quot;: { &quot;success&quot;: true }</div>
+<div class="line">    },</div>
+<div class="line">    {</div>
+<div class="line">      &quot;action&quot;: &quot;Wait&quot;,</div>
+<div class="line">      &quot;condition&quot;: &quot;window_visible:Overworld&quot;,</div>
+<div class="line">      &quot;timeout_ms&quot;: 5000</div>
+<div class="line">    },</div>
+<div class="line">    {</div>
+<div class="line">      &quot;action&quot;: &quot;Assert&quot;,</div>
+<div class="line">      &quot;condition&quot;: &quot;visible:Overworld&quot;,</div>
+<div class="line">      &quot;expected&quot;: { &quot;success&quot;: true, &quot;actual_value&quot;: &quot;visible&quot; }</div>
+<div class="line">    }</div>
+<div class="line">  ]</div>
+<div class="line">}</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1234"></a>
+IT-08: Enhanced Error Reporting (3-4 hours)</h3>
+<p><b>Implementation Tasks</b>:</p><ol type="1">
+<li><b>Screenshot on Failure</b>:<ul>
+<li>Implement Screenshot RPC (complete stub)</li>
+<li>Automatically capture screenshot when test fails</li>
+<li>Save to proposal directory or test results folder</li>
+</ul>
+</li>
+<li><b>Widget State Dumps</b>:<ul>
+<li>Capture full widget tree on assertion failure</li>
+<li>Include widget properties (enabled, visible, position, text)</li>
+<li>Generate HTML report with annotated screenshots</li>
+</ul>
+</li>
+<li><b>Execution Context</b>:<ul>
+<li>Log <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> state: active window, focused widget, frame count</li>
+<li>Capture recent <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> events (clicks, key presses, hovers)</li>
+<li>Include resource stats: memory, textures, framerate</li>
+</ul>
+</li>
+</ol>
+<p><b>Error Report Example</b>: </p><div class="fragment"><div class="line">{</div>
+<div class="line">  &quot;test_id&quot;: &quot;grpc_assert_12345678&quot;,</div>
+<div class="line">  &quot;failure_time&quot;: &quot;2025-10-02T14:23:45Z&quot;,</div>
+<div class="line">  &quot;assertion&quot;: &quot;visible:Overworld&quot;,</div>
+<div class="line">  &quot;expected&quot;: &quot;visible&quot;,</div>
+<div class="line">  &quot;actual&quot;: &quot;hidden&quot;,</div>
+<div class="line">  &quot;screenshot&quot;: &quot;/tmp/yaze_test_12345678.png&quot;,</div>
+<div class="line">  &quot;widget_state&quot;: {</div>
+<div class="line">    &quot;active_window&quot;: &quot;Main Window&quot;,</div>
+<div class="line">    &quot;focused_widget&quot;: null,</div>
+<div class="line">    &quot;visible_windows&quot;: [&quot;Main Window&quot;, &quot;Debug&quot;],</div>
+<div class="line">    &quot;overworld_window&quot;: { &quot;exists&quot;: true, &quot;visible&quot;: false, &quot;position&quot;: &quot;0,0,0,0&quot; }</div>
+<div class="line">  },</div>
+<div class="line">  &quot;execution_context&quot;: {</div>
+<div class="line">    &quot;frame_count&quot;: 1234,</div>
+<div class="line">    &quot;recent_events&quot;: [&quot;Click: menuitem: Overworld Editor&quot;, &quot;Wait: window_visible:Overworld&quot;],</div>
+<div class="line">    &quot;resource_stats&quot;: { &quot;memory_mb&quot;: 245, &quot;textures&quot;: 12, &quot;framerate&quot;: 60.0 }</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1235"></a>
+IT-09: CI/CD Integration (2-3 hours)</h3>
+<p><b>Implementation Tasks</b>:</p><ol type="1">
+<li><b>Standardized Test Suite Format</b>:<ul>
+<li>YAML/JSON format for test suite definitions</li>
+<li>Support test groups (smoke, regression, nightly)</li>
+<li>Enable parallel execution with dependencies</li>
+</ul>
+</li>
+<li><b>CI-Friendly CLI</b>:<ul>
+<li><code>z3ed test run-suite tests/suite.yaml --ci-mode</code></li>
+<li>Exit codes: 0 = all passed, 1 = failures, 2 = errors</li>
+<li>JUnit XML output for CI parsers</li>
+<li>GitHub Actions integration examples</li>
+</ul>
+</li>
+<li><b>Documentation</b>:<ul>
+<li>Add <code>.github/workflows/gui-tests.yml</code> example</li>
+<li>Create sample test suites for common scenarios</li>
+<li>Document best practices for flaky test handling</li>
+</ul>
+</li>
+</ol>
+<p><b>Test Suite Format</b>: </p><div class="fragment"><div class="line">name: YAZE GUI Test Suite</div>
+<div class="line">description: Comprehensive tests for YAZE editor functionality</div>
+<div class="line">version: 1.0</div>
+<div class="line"> </div>
+<div class="line">config:</div>
+<div class="line">  timeout_per_test: 30s</div>
+<div class="line">  retry_on_failure: 2</div>
+<div class="line">  parallel_execution: false</div>
+<div class="line"> </div>
+<div class="line">test_groups:</div>
+<div class="line">  - name: smoke</div>
+<div class="line">    description: Fast tests for basic functionality</div>
+<div class="line">    tests:</div>
+<div class="line">      - tests/overworld_load.json</div>
+<div class="line">      - tests/dungeon_load.json</div>
+<div class="line">  </div>
+<div class="line">  - name: regression</div>
+<div class="line">    description: Full test suite for release validation</div>
+<div class="line">    depends_on: [smoke]</div>
+<div class="line">    tests:</div>
+<div class="line">      - tests/palette_edit.json</div>
+<div class="line">      - tests/sprite_load.json</div>
+<div class="line">      - tests/rom_save.json</div>
+</div><!-- fragment --><p><b>GitHub Actions Integration</b>: </p><div class="fragment"><div class="line">name: GUI Tests</div>
+<div class="line">on: [push, pull_request]</div>
+<div class="line"> </div>
+<div class="line">jobs:</div>
+<div class="line">  gui-tests:</div>
+<div class="line">    runs-on: macos-latest</div>
+<div class="line">    steps:</div>
+<div class="line">      - uses: actions/checkout@v2</div>
+<div class="line">      - name: Build YAZE with test harness</div>
+<div class="line">        run: |</div>
+<div class="line">          cmake -B build -DYAZE_WITH_GRPC=ON</div>
+<div class="line">          cmake --build build --target yaze --target z3ed</div>
+<div class="line">      - name: Start test harness</div>
+<div class="line">        run: |</div>
+<div class="line">          ./build/bin/yaze --enable_test_harness --headless &amp;</div>
+<div class="line">          sleep 5</div>
+<div class="line">      - name: Run test suite</div>
+<div class="line">        run: |</div>
+<div class="line">          ./build/bin/z3ed test run-suite tests/suite.yaml --ci-mode</div>
+<div class="line">      - name: Upload test results</div>
+<div class="line">        if: always()</div>
+<div class="line">        uses: actions/upload-artifact@v2</div>
+<div class="line">        with:</div>
+<div class="line">          name: test-results</div>
+<div class="line">          path: test-results/</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1236"></a>
+Priority 2: Windows Cross-Platform Testing 🪟</h2>
+<p><b>Goal</b>: Validate z3ed and test harness on Windows <br  />
+ <b>Time Estimate</b>: 8-10 hours <br  />
+ <b>Blocking Dependency</b>: IT-05 Complete (need stable API)</p>
+<blockquote class="doxtable">
+<p>&zwj;📋 <b>Detailed Guides</b>: See NEXT_PRIORITIES_OCT2.md for complete implementation breakdowns with code examples. </p>
+</blockquote>
+<h1><a class="anchor" id="autotoc_md1237"></a>
+&lt;/blockquote&gt;</h1>
+<h1><a class="anchor" id="autotoc_md1238"></a>
 2. Workstreams Overview</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -286,7 +505,7 @@ Priority 3: Policy Evaluation Framework (AW-04) 📋</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Telemetry &amp; Learning   </td><td class="markdownTableBodyNone">Capture signals for improvement   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">Optional/opt-in (Phase 8)   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md1224"></a>
+<h2><a class="anchor" id="autotoc_md1239"></a>
 Completed Work Summary</h2>
 <p><b>Resource Catalogue (RC)</b> ✅:</p><ul>
 <li>CLI flag passthrough and resource catalog system</li>
@@ -309,7 +528,7 @@ Completed Work Summary</h2>
 <li>Documentation: IT-01-QUICKSTART.md</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1226"></a>
+<h1><a class="anchor" id="autotoc_md1241"></a>
 3. Task Backlog</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -343,26 +562,36 @@ Completed Work Summary</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">IT-04   </td><td class="markdownTableBodyNone">Complete E2E validation with real YAZE widgets   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Test   </td><td class="markdownTableBodyNone">✅ Done   </td><td class="markdownTableBodyNone">IT-02 - All 5 functional tests passing, window detection fixed with yield buffer    </td></tr>
 <tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">IT-05   </td><td class="markdownTableBodyNone">Add test introspection RPCs (GetTestStatus, ListTests, GetResults)   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">IT-01 - Enable clients to poll test results and query execution state    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">IT-06   </td><td class="markdownTableBodyNone">Implement widget discovery API for AI agents   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">IT-01 - DiscoverWidgets RPC to enumerate windows, buttons, inputs    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">IT-07   </td><td class="markdownTableBodyNone">Add test recording/replay for regression testing   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">IT-05 - RecordSession/ReplaySession RPCs with JSON test scripts    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone">IT-08   </td><td class="markdownTableBodyNone">Enhance error reporting with screenshots and state dumps   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">IT-01 - Capture widget state on failure for debugging    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">IT-09   </td><td class="markdownTableBodyNone">Create standardized test suite format for CI integration   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Infra   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">IT-07 - JSON/YAML test suite format compatible with CI/CD pipelines    </td></tr>
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">VP-01   </td><td class="markdownTableBodyNone">Expand CLI unit tests for new commands and sandbox flow.   </td><td class="markdownTableBodyNone">Verification Pipeline   </td><td class="markdownTableBodyNone">Test   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">RC/AW tasks    </td></tr>
-<tr class="markdownTableRowEven">
+<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">VP-02   </td><td class="markdownTableBodyNone">Add harness integration tests with replay scripts.   </td><td class="markdownTableBodyNone">Verification Pipeline   </td><td class="markdownTableBodyNone">Test   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">IT tasks    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">VP-03   </td><td class="markdownTableBodyNone">Create CI job running agent smoke tests with <code>YAZE_WITH_JSON</code>.   </td><td class="markdownTableBodyNone">Verification Pipeline   </td><td class="markdownTableBodyNone">Infra   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">VP-01, VP-02    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">TL-01   </td><td class="markdownTableBodyNone">Capture accept/reject metadata and push to telemetry log.   </td><td class="markdownTableBodyNone">Telemetry &amp; Learning   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">AW tasks    </td></tr>
+<td class="markdownTableBodyNone">VP-03   </td><td class="markdownTableBodyNone">Create CI job running agent smoke tests with <code>YAZE_WITH_JSON</code>.   </td><td class="markdownTableBodyNone">Verification Pipeline   </td><td class="markdownTableBodyNone">Infra   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">VP-01, VP-02    </td></tr>
 <tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone">TL-01   </td><td class="markdownTableBodyNone">Capture accept/reject metadata and push to telemetry log.   </td><td class="markdownTableBodyNone">Telemetry &amp; Learning   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">AW tasks    </td></tr>
+<tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">TL-02   </td><td class="markdownTableBodyNone">Build anonymized metrics exporter + opt-in toggle.   </td><td class="markdownTableBodyNone">Telemetry &amp; Learning   </td><td class="markdownTableBodyNone">Infra   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">TL-01   </td></tr>
 </table>
 <p><em>Status Legend: 🔄 Active · 📋 Planned · ✅ Done</em></p>
 <p><b>Progress Summary</b>:</p><ul>
-<li>✅ Completed: 11 tasks (61%)</li>
-<li>🔄 Active: 1 task (6%)</li>
-<li>📋 Planned: 6 tasks (33%)</li>
-<li><b>Total</b>: 18 tasks</li>
+<li>✅ Completed: 11 tasks (48%)</li>
+<li>🔄 Active: 1 task (4%)</li>
+<li>📋 Planned: 11 tasks (48%)</li>
+<li><b>Total</b>: 23 tasks (5 new test harness enhancements added)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1227"></a>
+<h1><a class="anchor" id="autotoc_md1242"></a>
 3. Immediate Next Steps (Week of Oct 1-7, 2025)</h1>
-<h2><a class="anchor" id="autotoc_md1228"></a>
+<h2><a class="anchor" id="autotoc_md1243"></a>
 Priority 0: Testing &amp; Validation (Active)</h2>
 <ol type="1">
 <li><b>TEST</b>: Complete end-to-end proposal workflow<ul>
@@ -380,12 +609,12 @@ Priority 0: Testing &amp; Validation (Active)</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1229"></a>
+<h2><a class="anchor" id="autotoc_md1244"></a>
 Priority 1: ImGuiTestHarness Foundation (IT-01) ✅ PHASE 2 COMPLETE</h2>
 <p><b>Rationale</b>: Required for automated GUI testing and remote control of YAZE for AI workflows <br  />
  <b>Decision</b>: ✅ <b>Use gRPC</b> - Production-grade, cross-platform, type-safe (see <code>IT-01-grpc-evaluation.md</code>)</p>
 <p><b>Status</b>: Phase 1 Complete ✅ | Phase 2 Complete ✅ | Phase 3 Planned �</p>
-<h3><a class="anchor" id="autotoc_md1230"></a>
+<h3><a class="anchor" id="autotoc_md1245"></a>
 Phase 1: gRPC Infrastructure ✅ COMPLETE</h3>
 <ul>
 <li>✅ Add gRPC to build system via FetchContent</li>
@@ -396,7 +625,7 @@ Phase 1: gRPC Infrastructure ✅ COMPLETE</h3>
 <li>✅ Cross-platform build verified (macOS ARM64)</li>
 </ul>
 <p><b>See</b>: <code>GRPC_TEST_SUCCESS.md</code> for Phase 1 completion details</p>
-<h3><a class="anchor" id="autotoc_md1231"></a>
+<h3><a class="anchor" id="autotoc_md1246"></a>
 Phase 2: ImGuiTestEngine Integration ✅ COMPLETE</h3>
 <p><b>Goal</b>: Replace stub RPC handlers with actual GUI automation <br  />
  <b>Status</b>: Infrastructure complete, dynamic test registration implemented <br  />
@@ -434,7 +663,7 @@ Phase 2: ImGuiTestEngine Integration ✅ COMPLETE</h3>
 <li>❌→✅ Port conflicts (use port 50052, <code>killall yaze</code> to cleanup)</li>
 <li>❌→✅ Flag naming (documented correct underscore format)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1232"></a>
+<h3><a class="anchor" id="autotoc_md1247"></a>
 Phase 3: Full ImGuiTestEngine Integration ✅ COMPLETE (Oct 2, 2025)</h3>
 <p><b>Goal</b>: Complete implementation of all GUI automation RPCs</p>
 <p><b>Completed Tasks</b>:</p><ol type="1">
@@ -486,7 +715,7 @@ Phase 3: Full ImGuiTestEngine Integration ✅ COMPLETE (Oct 2, 2025)</h3>
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md1233"></a>
+<h3><a class="anchor" id="autotoc_md1248"></a>
 Phase 4: CLI Integration &amp; Windows Testing (4-5 hours)</h3>
 <ol type="1">
 <li><b>CLI Client</b> (<code>z3ed agent test</code>)<ul>
@@ -503,7 +732,7 @@ Phase 4: CLI Integration &amp; Windows Testing (4-5 hours)</h3>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1234"></a>
+<h2><a class="anchor" id="autotoc_md1249"></a>
 IT-01 Quick Reference</h2>
 <p><b>Start YAZE with Test Harness</b>: </p><div class="fragment"><div class="line">./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \</div>
 <div class="line">  --enable_test_harness \</div>
@@ -537,7 +766,7 @@ IT-01 Quick Reference</h2>
 <li><b>Connection refused</b>: Check server started with <code>lsof -i :50052</code></li>
 <li><b>Unrecognized flag</b>: Use underscores not hyphens (e.g., <code>--rom_file</code> not <code>--rom</code>)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1235"></a>
+<h2><a class="anchor" id="autotoc_md1250"></a>
 Priority 2: Policy Evaluation Framework (AW-04, 4-6 hours)</h2>
 <ol type="1">
 <li><b>DESIGN</b>: YAML-based Policy Configuration <div class="fragment"><div class="line"># .yaze/policies/agent.yaml</div>
@@ -588,7 +817,7 @@ Priority 2: Policy Evaluation Framework (AW-04, 4-6 hours)</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1236"></a>
+<h2><a class="anchor" id="autotoc_md1251"></a>
 Priority 3: Documentation &amp; Consolidation (2-3 hours)</h2>
 <ol type="1">
 <li><b>CONSOLIDATE</b>: Merge standalone docs into main plan<ul>
@@ -604,19 +833,19 @@ Priority 3: Documentation &amp; Consolidation (2-3 hours)</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1237"></a>
+<h2><a class="anchor" id="autotoc_md1252"></a>
 Later: Advanced Features</h2>
 <ul>
 <li>VP-01: Expand CLI unit tests</li>
 <li>VP-02: Integration tests with replay scripts</li>
 <li>TL-01: Telemetry capture for learning</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1238"></a>
+<h1><a class="anchor" id="autotoc_md1253"></a>
 4. Current Issues &amp; Blockers</h1>
-<h2><a class="anchor" id="autotoc_md1239"></a>
+<h2><a class="anchor" id="autotoc_md1254"></a>
 Active Issues</h2>
 <p>None - all blocking issues resolved as of Oct 1, 2025</p>
-<h2><a class="anchor" id="autotoc_md1240"></a>
+<h2><a class="anchor" id="autotoc_md1255"></a>
 Known Limitations (Non-Blocking)</h2>
 <ol type="1">
 <li>ProposalDrawer lacks keyboard navigation</li>
@@ -624,9 +853,9 @@ Known Limitations (Non-Blocking)</h2>
 <li>Proposals don't persist full metadata to disk (prompt, description, sandbox_id reconstructed)</li>
 <li>No policy evaluation yet (AW-04)</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1241"></a>
+<h1><a class="anchor" id="autotoc_md1256"></a>
 5. Architecture Overview</h1>
-<h2><a class="anchor" id="autotoc_md1242"></a>
+<h2><a class="anchor" id="autotoc_md1257"></a>
 5.1. Proposal Lifecycle Flow</h2>
 <div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────────────┐</div>
 <div class="line">│ 1. CREATION (CLI: z3ed agent run)                               │</div>
@@ -720,7 +949,7 @@ Known Limitations (Non-Blocking)</h2>
 <div class="line">│ Proposal preserved for audit trail                              │</div>
 <div class="line">│ Sandbox ROM left untouched (can be cleaned up later)            │</div>
 <div class="line">└─────────────────────────────────────────────────────────────────┘</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1243"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1258"></a>
 5.2. Component Interaction Diagram</h2>
 <div class="fragment"><div class="line">┌────────────────────┐</div>
 <div class="line">│   CLI Layer        │</div>
@@ -789,7 +1018,7 @@ Known Limitations (Non-Blocking)</h2>
 <div class="line">         │  │  • DeleteProposal()                     │   │</div>
 <div class="line">         │  └─────────────────────────────────────────┘   │</div>
 <div class="line">         └────────────────────────────────────────────────┘</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1244"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1259"></a>
 5.3. Data Flow: Agent Run to ROM Merge</h2>
 <div class="fragment"><div class="line">User: &quot;Make soldiers wear red armor&quot;</div>
 <div class="line">         │</div>
@@ -835,24 +1064,24 @@ Known Limitations (Non-Blocking)</h2>
 <div class="line">┌────────────────────────┐</div>
 <div class="line">│ User: File → Save      │ Changes persisted to disk ✅</div>
 <div class="line">└────────────────────────┘</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1245"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1260"></a>
 5. Open Questions</h1>
 <ul>
 <li>What serialization format should the proposal registry adopt for diff payloads (binary vs. textual vs. hybrid)? \ ➤ Decision: pursue a hybrid package (<code>.z3ed-diff</code>) that wraps binary tile/object deltas alongside a JSON metadata envelope (identifiers, texture descriptors, preview palette info). Capture format draft under RC/AW backlog.</li>
 <li>How should the harness authenticate escalation requests for mutation actions? \ ➤ Still open—evaluate shared-secret vs. interactive user prompt in the harness spike (IT-01).</li>
 <li>Can we reuse existing regression test infrastructure for nightly <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> runs or should we spin up a dedicated binary? \ ➤ Investigate during the ImGuiTestHarness spike; compare extending <code>yaze_test</code> jobs versus introducing a lightweight automation runner.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1246"></a>
+<h1><a class="anchor" id="autotoc_md1261"></a>
 4. Work History &amp; Key Decisions</h1>
 <p>This section provides a high-level summary of completed workstreams and major architectural decisions.</p>
-<h2><a class="anchor" id="autotoc_md1247"></a>
+<h2><a class="anchor" id="autotoc_md1262"></a>
 Resource Catalogue Workstream (RC) - ✅ COMPLETE</h2>
 <ul>
 <li><b>Outcome</b>: A machine-readable API specification for all <code>z3ed</code> commands.</li>
 <li><b>Artifact</b>: <code>docs/api/z3ed-resources.yaml</code> is the generated source of truth.</li>
 <li><b>Details</b>: Implemented a schema system and serialization for all CLI resources (ROM, Palette, Agent, etc.), enabling AI consumption.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1248"></a>
+<h2><a class="anchor" id="autotoc_md1263"></a>
 Acceptance Workflow (AW-01, AW-02, AW-03) - ✅ COMPLETE</h2>
 <ul>
 <li><b>Outcome</b>: A complete, human-in-the-loop proposal review system.</li>
@@ -864,7 +1093,7 @@ Acceptance Workflow (AW-01, AW-02, AW-03) - ✅ COMPLETE</h2>
 </li>
 <li><b>Integration</b>: The <code>agent run</code>, <code>agent list</code>, and <code>agent diff</code> commands are fully integrated with the registry. The GUI and CLI share the same underlying proposal data.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1249"></a>
+<h2><a class="anchor" id="autotoc_md1264"></a>
 ImGuiTestHarness (IT-01, IT-02) - ✅ CORE COMPLETE</h2>
 <ul>
 <li><b>Outcome</b>: A gRPC-based service for automated GUI testing.</li>
@@ -872,7 +1101,7 @@ ImGuiTestHarness (IT-01, IT-02) - ✅ CORE COMPLETE</h2>
 <li><b>Features</b>: Implemented 6 core RPCs: <code>Ping</code>, <code>Click</code>, <code>Type</code>, <code>Wait</code>, <code>Assert</code>, and a stubbed <code>Screenshot</code>.</li>
 <li><b>Integration</b>: The <code>z3ed agent test</code> command can translate natural language prompts into a sequence of gRPC calls to execute tests.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1250"></a>
+<h2><a class="anchor" id="autotoc_md1265"></a>
 Files Modified/Created</h2>
 <p>A summary of files created or changed during the implementation of the core <code>z3ed</code> infrastructure.</p>
 <p><b>Core Services &amp; CLI Handlers</b>:</p><ul>
@@ -901,14 +1130,14 @@ Files Modified/Created</h2>
 <li><code><a class="el" href="../../db/d7d/E6-z3ed-reference_8md.html">docs/z3ed/E6-z3ed-reference.md</a></code></li>
 <li><code><a class="el" href="../../de/d12/docs_2z3ed_2README_8md.html">docs/z3ed/README.md</a></code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1251"></a>
+<h1><a class="anchor" id="autotoc_md1266"></a>
 5. Open Questions</h1>
 <ul>
 <li>What serialization format should the proposal registry adopt for diff payloads (binary vs. textual vs. hybrid)? \ ➤ Decision: pursue a hybrid package (<code>.z3ed-diff</code>) that wraps binary tile/object deltas alongside a JSON metadata envelope (identifiers, texture descriptors, preview palette info). Capture format draft under RC/AW backlog.</li>
 <li>How should the harness authenticate escalation requests for mutation actions? \ ➤ Still open—evaluate shared-secret vs. interactive user prompt in the harness spike (IT-01).</li>
 <li>Can we reuse existing regression test infrastructure for nightly <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> runs or should we spin up a dedicated binary? \ ➤ Investigate during the ImGuiTestHarness spike; compare extending <code>yaze_test</code> jobs versus introducing a lightweight automation runner.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1252"></a>
+<h1><a class="anchor" id="autotoc_md1267"></a>
 6. References</h1>
 <p><b>Active Documentation</b>:</p><ul>
 <li><code><a class="el" href="../../d3/d33/E6-z3ed-cli-design_8md.html">E6-z3ed-cli-design.md</a></code> - Overall CLI design and architecture</li>

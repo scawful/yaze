@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['⚠️_0',['⚠️',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html#autotoc_md864',1,'Active Issues ⚠️'],['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html#autotoc_md1334',1,'Linux - Should Work ⚠️'],['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html#autotoc_md1333',1,'macOS (Intel) - Should Work ⚠️']]],
-  ['⚠️_20outstanding_20issue_3a_20rectangle_20selection_20wrapping_1',['⚠️ Outstanding Issue: Rectangle Selection Wrapping',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md577',1,'']]],
-  ['⚠️_20strong_20key_20differences_20found_20strong_2',['⚠️ &lt;strong&gt;Key Differences Found&lt;/strong&gt;',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html#autotoc_md144',1,'']]]
+  ['⏳_20pending_0',['⏳ Pending',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md782',1,'']]]
 ];

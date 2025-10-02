@@ -107,8 +107,11 @@ $(document).ready(function(){initNavTree('d1/d51/gui__automation__client_8h.html
 <div class="contents">
 <div class="textblock"><code>#include &quot;absl/status/status.h&quot;</code><br />
 <code>#include &quot;absl/status/statusor.h&quot;</code><br />
+<code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &lt;chrono&gt;</code><br />
+<code>#include &lt;map&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -116,9 +119,11 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d5/db7/gui__automation__client_8h__dep__incl.png" border="0" usemap="#asrc_2cli_2service_2gui__automation__client_8hdep" alt=""/></div>
 <map name="asrc_2cli_2service_2gui__automation__client_8hdep" id="asrc_2cli_2service_2gui__automation__client_8hdep">
-<area shape="rect" title=" " alt="" coords="9,5,149,46"/>
-<area shape="rect" href="../../dd/db4/gui__automation__client_8cc.html" title=" " alt="" coords="5,94,153,135"/>
-<area shape="poly" title=" " alt="" coords="82,62,82,94,76,94,76,62"/>
+<area shape="rect" title=" " alt="" coords="106,5,246,46"/>
+<area shape="rect" href="../../d2/d0e/agent_8cc.html" title=" " alt="" coords="5,102,168,127"/>
+<area shape="poly" title=" " alt="" coords="146,59,101,103,97,99,143,55"/>
+<area shape="rect" href="../../dd/db4/gui__automation__client_8cc.html" title=" " alt="" coords="192,94,339,135"/>
+<area shape="poly" title=" " alt="" coords="209,55,247,92,243,95,205,59"/>
 </map>
 </div>
 </div>
@@ -128,6 +133,21 @@ This graph shows which files directly or indirectly include this file:</div>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">yaze::cli::AutomationResult</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result of a GUI automation action.  <a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html">yaze::cli::TestStatusDetails</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detailed information about an individual test execution.  <a href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html">yaze::cli::HarnessTestSummary</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Aggregated metadata about a harness test.  <a href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html">yaze::cli::ListTestsResult</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Result container for ListTests RPC.  <a href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html">yaze::cli::AssertionOutcome</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Individual assertion outcome within a harness test.  <a href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html">yaze::cli::TestResultDetails</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detailed execution results for a specific harness test.  <a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html">yaze::cli::GuiAutomationClient</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Client for automating YAZE GUI through gRPC.  <a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#details">More...</a><br /></td></tr>
@@ -151,6 +171,18 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:ad37153091199fceacd3cde06eccd7c2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of click action to perform.  <a href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2c">More...</a><br /></td></tr>
 <tr class="separator:ad37153091199fceacd3cde06eccd7c2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2dd1cd8208462d16360cd77b564e536" id="r_ac2dd1cd8208462d16360cd77b564e536"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536">yaze::cli::TestRunStatus</a> { <br />
+&#160;&#160;<a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a25c2dc47991b3df171ed5192bcf70390">yaze::cli::kUnknown</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a023506f9e1203a14ea275f5e6acb2e1a">yaze::cli::kQueued</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a2fc7fbf0d19294f85dd3880460dd3c0a">yaze::cli::kRunning</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a2e1165dab7cbb5e985ea3b1e5d64f619">yaze::cli::kPassed</a>
+, <br />
+&#160;&#160;<a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536ab62fa3c9492b6dae76c23d6dfa466611">yaze::cli::kFailed</a>
+, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a7f27861ff1d3f550c6aa77150d7edabd">yaze::cli::kTimeout</a>
+<br />
+ }</td></tr>
+<tr class="memdesc:ac2dd1cd8208462d16360cd77b564e536"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execution status codes returned by the harness.  <a href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536">More...</a><br /></td></tr>
+<tr class="separator:ac2dd1cd8208462d16360cd77b564e536"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -4,7 +4,10 @@ var test__manager_8h =
     [ "yaze::test::TestResults", "d2/d60/structyaze_1_1test_1_1TestResults.html", "d2/d60/structyaze_1_1test_1_1TestResults" ],
     [ "yaze::test::TestSuite", "d1/de0/classyaze_1_1test_1_1TestSuite.html", "d1/de0/classyaze_1_1test_1_1TestSuite" ],
     [ "yaze::test::ResourceStats", "d3/db6/structyaze_1_1test_1_1ResourceStats.html", "d3/db6/structyaze_1_1test_1_1ResourceStats" ],
+    [ "yaze::test::HarnessTestExecution", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution.html", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution" ],
+    [ "yaze::test::HarnessTestSummary", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary.html", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary" ],
     [ "yaze::test::TestManager", "da/d3e/classyaze_1_1test_1_1TestManager.html", "da/d3e/classyaze_1_1test_1_1TestManager" ],
+    [ "yaze::test::TestManager::HarnessAggregate", "dc/d71/structyaze_1_1test_1_1TestManager_1_1HarnessAggregate.html", "dc/d71/structyaze_1_1test_1_1TestManager_1_1HarnessAggregate" ],
     [ "TestStatus", "d6/d5c/test__manager_8h.html#a24fd08ea41d8314e6fccdb0fdcd9f072", [
       [ "kNotRun", "d6/d5c/test__manager_8h.html#a24fd08ea41d8314e6fccdb0fdcd9f072a8983357689cc2645e40d3e2a29696391", null ],
       [ "kRunning", "d6/d5c/test__manager_8h.html#a24fd08ea41d8314e6fccdb0fdcd9f072a2fc7fbf0d19294f85dd3880460dd3c0a", null ],
@@ -18,6 +21,14 @@ var test__manager_8h =
       [ "kUI", "d6/d5c/test__manager_8h.html#a0cda2abf7030eef1095ab53508a246aeac1b6bc9a2bba1e49fa85f16d38524e20", null ],
       [ "kPerformance", "d6/d5c/test__manager_8h.html#a0cda2abf7030eef1095ab53508a246aeaa566f7318735301730fac1cad8addd3b", null ],
       [ "kMemory", "d6/d5c/test__manager_8h.html#a0cda2abf7030eef1095ab53508a246aea10bc3eeea6471cd730616a1dda9e2cd4", null ]
+    ] ],
+    [ "HarnessTestStatus", "d6/d5c/test__manager_8h.html#a0d815abcfee12ca155f245c971134a8c", [
+      [ "kUnspecified", "d6/d5c/test__manager_8h.html#a0d815abcfee12ca155f245c971134a8ca8536661e94a42d4d95dcb9058b9936b5", null ],
+      [ "kQueued", "d6/d5c/test__manager_8h.html#a0d815abcfee12ca155f245c971134a8ca023506f9e1203a14ea275f5e6acb2e1a", null ],
+      [ "kRunning", "d6/d5c/test__manager_8h.html#a0d815abcfee12ca155f245c971134a8ca2fc7fbf0d19294f85dd3880460dd3c0a", null ],
+      [ "kPassed", "d6/d5c/test__manager_8h.html#a0d815abcfee12ca155f245c971134a8ca2e1165dab7cbb5e985ea3b1e5d64f619", null ],
+      [ "kFailed", "d6/d5c/test__manager_8h.html#a0d815abcfee12ca155f245c971134a8cab62fa3c9492b6dae76c23d6dfa466611", null ],
+      [ "kTimeout", "d6/d5c/test__manager_8h.html#a0d815abcfee12ca155f245c971134a8ca7f27861ff1d3f550c6aa77150d7edabd", null ]
     ] ],
     [ "TestStatusToString", "d6/d5c/test__manager_8h.html#a058eaf5116bdab8de369f76e7a0af0d2", null ],
     [ "TestCategoryToString", "d6/d5c/test__manager_8h.html#a68a6024d219a6e3927991ad286dd1500", null ],

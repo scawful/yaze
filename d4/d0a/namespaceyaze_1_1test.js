@@ -24,6 +24,8 @@ var namespaceyaze_1_1test =
     [ "E2ERomDependentTest", "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html", "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest" ],
     [ "E2ETestSuite", "d0/d20/classyaze_1_1test_1_1E2ETestSuite.html", "d0/d20/classyaze_1_1test_1_1E2ETestSuite" ],
     [ "EditorIntegrationTest", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest" ],
+    [ "HarnessTestExecution", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution.html", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution" ],
+    [ "HarnessTestSummary", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary.html", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary" ],
     [ "IntegratedTestSuite", "d4/d70/classyaze_1_1test_1_1IntegratedTestSuite.html", "d4/d70/classyaze_1_1test_1_1IntegratedTestSuite" ],
     [ "MessageRomTest", "d2/df4/classyaze_1_1test_1_1MessageRomTest.html", "d2/df4/classyaze_1_1test_1_1MessageRomTest" ],
     [ "MockRom", "df/df5/classyaze_1_1test_1_1MockRom.html", "df/df5/classyaze_1_1test_1_1MockRom" ],
@@ -61,6 +63,14 @@ var namespaceyaze_1_1test =
       [ "kUI", "d4/d0a/namespaceyaze_1_1test.html#a0cda2abf7030eef1095ab53508a246aeac1b6bc9a2bba1e49fa85f16d38524e20", null ],
       [ "kPerformance", "d4/d0a/namespaceyaze_1_1test.html#a0cda2abf7030eef1095ab53508a246aeaa566f7318735301730fac1cad8addd3b", null ],
       [ "kMemory", "d4/d0a/namespaceyaze_1_1test.html#a0cda2abf7030eef1095ab53508a246aea10bc3eeea6471cd730616a1dda9e2cd4", null ]
+    ] ],
+    [ "HarnessTestStatus", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8c", [
+      [ "kUnspecified", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca8536661e94a42d4d95dcb9058b9936b5", null ],
+      [ "kQueued", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca023506f9e1203a14ea275f5e6acb2e1a", null ],
+      [ "kRunning", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca2fc7fbf0d19294f85dd3880460dd3c0a", null ],
+      [ "kPassed", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca2e1165dab7cbb5e985ea3b1e5d64f619", null ],
+      [ "kFailed", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8cab62fa3c9492b6dae76c23d6dfa466611", null ],
+      [ "kTimeout", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca7f27861ff1d3f550c6aa77150d7edabd", null ]
     ] ],
     [ "TestMode", "d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817", [
       [ "kAll", "d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a34bdbffdb1c0e1b603f58fc0d49548b6", null ],

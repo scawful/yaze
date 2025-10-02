@@ -101,12 +101,18 @@ $(document).ready(function(){initNavTree('d3/d63/md_docs_2z3ed_2README.html','..
   <div class="headertitle"><div class="title">z3ed: AI-Powered CLI for YAZE</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1366"></a> <b>Status</b>: Active Development</p>
-<h1><a class="anchor" id="autotoc_md1367"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1465"></a> <b>Status</b>: Active Development | Test Harness Enhancement Phase</p>
+<h1><a class="anchor" id="autotoc_md1466"></a>
 Overview</h1>
 <p><code>z3ed</code> is a command-line interface for YAZE that enables AI-driven ROM modifications through a proposal-based workflow. It provides both human-accessible commands for developers and machine-readable APIs for LLM integration, forming the backbone of an agentic development ecosystem.</p>
+<p><b>Recent Focus</b>: Evolving the ImGuiTestHarness from basic GUI automation into a comprehensive testing platform that serves dual purposes:</p><ol type="1">
+<li><b>AI-Driven Workflows</b>: Widget discovery, test introspection, and dynamic interaction learning</li>
+<li><b>Traditional GUI Testing</b>: Test recording/replay, CI/CD integration, and regression testing</li>
+</ol>
+<p><b>🤖 Why This Matters</b>: These enhancements are <b>critical for AI agent autonomy</b>. Without them, AI agents can't verify their changes worked (no test polling), discover UI elements dynamically (hardcoded names), learn from demonstrations (no recording), or debug failures (no screenshots). The test harness evolution enables <b>fully autonomous agents</b> that can execute → verify → self-correct without human intervention.</p>
+<p><b>📋 Implementation Status</b>: Core infrastructure complete (Phases 1-6, AW-01 to AW-04, IT-01 to IT-04). Currently in <b>Test Harness Enhancement Phase</b> (IT-05 to IT-09). See IMPLEMENTATION_CONTINUATION.md for the detailed roadmap and LLM integration plans (Ollama, Gemini, Claude).</p>
 <p>This directory contains the primary documentation for the <code>z3ed</code> system.</p>
-<h1><a class="anchor" id="autotoc_md1368"></a>
+<h1><a class="anchor" id="autotoc_md1467"></a>
 Core Documentation</h1>
 <p>Start here to understand the architecture, learn how to use the commands, and see the current development status.</p>
 <ol type="1">
@@ -122,10 +128,14 @@ Core Documentation</h1>
 <li>The project's task backlog, roadmap, progress tracking, and a list of known issues. Check this document for current priorities and to see what's next.</li>
 </ul>
 </li>
+<li><b>IMPLEMENTATION_CONTINUATION.md</b> - <b>Current Phase &amp; Next Steps</b> ⭐<ul>
+<li>Detailed continuation plan for test harness enhancements (IT-05 to IT-09). Start here to resume implementation with clear task breakdowns and success criteria.</li>
+</ul>
+</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1369"></a>
+<h1><a class="anchor" id="autotoc_md1468"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md1370"></a>
+<h2><a class="anchor" id="autotoc_md1469"></a>
 Build z3ed</h2>
 <div class="fragment"><div class="line"># Basic build (without GUI automation support)</div>
 <div class="line">cmake --build build --target z3ed</div>
@@ -133,7 +143,7 @@ Build z3ed</h2>
 <div class="line"># Build with gRPC support (for GUI automation)</div>
 <div class="line">cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON</div>
 <div class="line">cmake --build build-grpc-test --target z3ed</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1371"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1470"></a>
 Common Commands</h2>
 <div class="fragment"><div class="line"># Create an agent proposal in a safe sandbox</div>
 <div class="line">z3ed agent run --prompt &quot;Make all soldier armor red&quot; --rom=zelda3.sfc --sandbox</div>
@@ -146,7 +156,51 @@ Common Commands</h2>
 <div class="line"> </div>
 <div class="line"># Run an automated GUI test (requires test harness to be running)</div>
 <div class="line">z3ed agent test --prompt &quot;Open the Overworld editor and verify it loads&quot;</div>
-</div><!-- fragment --><p>See the <b><a class="el" href="../../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html">Technical Reference</a></b> for a full command list. </p>
+<div class="line"> </div>
+<div class="line"># Discover available GUI widgets for AI interaction</div>
+<div class="line">z3ed agent gui discover --window &quot;Overworld&quot; --type button</div>
+<div class="line"> </div>
+<div class="line"># Record a test session for regression testing</div>
+<div class="line">z3ed agent test record start --output tests/overworld_load.json</div>
+<div class="line"># ... perform actions ...</div>
+<div class="line">z3ed agent test record stop</div>
+<div class="line"> </div>
+<div class="line"># Replay recorded test</div>
+<div class="line">z3ed agent test replay tests/overworld_load.json</div>
+<div class="line"> </div>
+<div class="line"># Query test execution status</div>
+<div class="line">z3ed agent test status --test-id grpc_click_12345678 --follow</div>
+</div><!-- fragment --><p>See the <b><a class="el" href="../../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html">Technical Reference</a></b> for a full command list.</p>
+<h1><a class="anchor" id="autotoc_md1471"></a>
+Recent Enhancements</h1>
+<p><b>Latest Progress (Oct 2, 2025)</b></p><ul>
+<li>✅ Implemented server-side wiring for <code>GetTestStatus</code>, <code>ListTests</code>, and <code>GetTestResults</code> RPCs, including execution history tracking inside <code>TestManager</code>.</li>
+<li>✅ Added gRPC status mapping helper to surface accurate error codes back to clients.</li>
+<li>⚠️ Pending CLI integration, end-to-end introspection tests, and documentation updates for new commands.</li>
+</ul>
+<p><b>Test Harness Evolution</b> (In Progress: IT-05 to IT-09):</p><ul>
+<li><b>Test Introspection</b>: Query test status, results, and execution history</li>
+<li><b>Widget Discovery</b>: AI agents can enumerate available GUI interactions dynamically</li>
+<li><b>Test Recording</b>: Capture manual workflows as JSON scripts for regression testing</li>
+<li><b>Enhanced Debugging</b>: Screenshot capture, widget state dumps, execution context on failures</li>
+<li><b>CI/CD Integration</b>: Standardized test suite format with JUnit XML output</li>
+</ul>
+<p>See <b><a href="../../E6-z3ed-cli-design.md#9-test-harness-evolution-from-automation-to-platform">E6-z3ed-cli-design.md § 9</a></b> for detailed architecture and implementation roadmap.</p>
+<h1><a class="anchor" id="autotoc_md1472"></a>
+Quick Navigation</h1>
+<p><b>📖 Getting Started</b>:</p><ul>
+<li><b>New to z3ed?</b> Start with this <a class="el" href="../../d0/d30/md_README.html">README.md</a> then <a class="el" href="../../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html">E6-z3ed-cli-design.md</a></li>
+<li><b>Want to use z3ed?</b> See <a class="el" href="../../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html">QUICK_REFERENCE.md</a> for all commands</li>
+<li><b>Resume implementation?</b> Read IMPLEMENTATION_CONTINUATION.md</li>
+</ul>
+<p><b>🔧 Implementation Guides</b>:</p><ul>
+<li><a class="el" href="../../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html">IT-05-IMPLEMENTATION-GUIDE.md</a> - Test Introspection API (next priority)</li>
+<li>STATUS_REPORT_OCT2.md - Complete progress summary</li>
+</ul>
+<p><b>📚 Reference</b>:</p><ul>
+<li><a class="el" href="../../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html">E6-z3ed-reference.md</a> - Technical reference and API docs</li>
+<li><a class="el" href="../../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html">E6-z3ed-implementation-plan.md</a> - Task backlog and roadmap </li>
+</ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

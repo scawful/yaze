@@ -20,12 +20,13 @@ var searchData=
   ['asarwrappertest_17',['AsarWrapperTest',['../d1/d6f/classyaze_1_1app_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html',1,'yaze::app::core::anonymous_namespace{asar_wrapper_test.cc}']]],
   ['asmparser_18',['AsmParser',['../da/dbc/classyaze_1_1emu_1_1AsmParser.html',1,'yaze::emu']]],
   ['assemblyeditor_19',['AssemblyEditor',['../d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html',1,'yaze::editor']]],
-  ['assetobject_20',['AssetObject',['../d5/d23/structyaze_1_1gui_1_1AssetObject.html',1,'yaze::gui']]],
-  ['atlas_21',['Atlas',['../d0/d6d/structyaze_1_1gfx_1_1AtlasRenderer_1_1Atlas.html',1,'yaze::gfx::AtlasRenderer']]],
-  ['atlasentry_22',['AtlasEntry',['../d9/d8e/structyaze_1_1gfx_1_1AtlasRenderer_1_1AtlasEntry.html',1,'yaze::gfx::AtlasRenderer']]],
-  ['atlasrenderer_23',['AtlasRenderer',['../d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html',1,'yaze::gfx']]],
-  ['atlasstats_24',['AtlasStats',['../d2/dea/structyaze_1_1gfx_1_1AtlasStats.html',1,'yaze::gfx']]],
-  ['audioram_25',['AudioRam',['../db/dc9/classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu']]],
-  ['audioramimpl_26',['AudioRamImpl',['../d5/da7/classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]],
-  ['automationresult_27',['AutomationResult',['../d4/daf/structyaze_1_1cli_1_1AutomationResult.html',1,'yaze::cli']]]
+  ['assertionoutcome_20',['AssertionOutcome',['../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html',1,'yaze::cli']]],
+  ['assetobject_21',['AssetObject',['../d5/d23/structyaze_1_1gui_1_1AssetObject.html',1,'yaze::gui']]],
+  ['atlas_22',['Atlas',['../d0/d6d/structyaze_1_1gfx_1_1AtlasRenderer_1_1Atlas.html',1,'yaze::gfx::AtlasRenderer']]],
+  ['atlasentry_23',['AtlasEntry',['../d9/d8e/structyaze_1_1gfx_1_1AtlasRenderer_1_1AtlasEntry.html',1,'yaze::gfx::AtlasRenderer']]],
+  ['atlasrenderer_24',['AtlasRenderer',['../d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html',1,'yaze::gfx']]],
+  ['atlasstats_25',['AtlasStats',['../d2/dea/structyaze_1_1gfx_1_1AtlasStats.html',1,'yaze::gfx']]],
+  ['audioram_26',['AudioRam',['../db/dc9/classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu']]],
+  ['audioramimpl_27',['AudioRamImpl',['../d5/da7/classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]],
+  ['automationresult_28',['AutomationResult',['../d4/daf/structyaze_1_1cli_1_1AutomationResult.html',1,'yaze::cli']]]
 ];

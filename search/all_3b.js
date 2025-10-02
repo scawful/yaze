@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🔬_0',['Windows - Experimental 🔬',['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html#autotoc_md1335',1,'']]]
+  ['🔑_20key_20files_20reference_0',['🔑 Key Files Reference',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md610',1,'']]]
 ];

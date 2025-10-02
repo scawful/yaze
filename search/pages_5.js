@@ -1,19 +1,12 @@
 var searchData=
 [
-  ['c_20vs_20yaze_20c_20overworld_20implementation_20analysis_0',['ZScream C# vs YAZE C++ Overworld Implementation Analysis',['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'']]],
-  ['canvas_20refactoring_20current_20status_20future_20work_1',['Canvas Refactoring - Current Status &amp; Future Work',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html',1,'']]],
-  ['canvas_20system_20comprehensive_20guide_2',['Canvas System - Comprehensive Guide',['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'']]],
-  ['changelog_3',['Changelog',['../d7/d6f/md_docs_2C1-changelog.html',1,'']]],
-  ['class_20performance_20analysis_20and_20optimization_4',['Renderer Class Performance Analysis and Optimization',['../dd/d7c/md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
-  ['cli_20architecture_20design_5',['z3ed CLI Architecture &amp; Design',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html',1,'']]],
-  ['cli_20for_20yaze_6',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
-  ['cli_20technical_20reference_7',['z3ed CLI Technical Reference',['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html',1,'']]],
-  ['compatibility_20improvements_8',['Platform Compatibility Improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'']]],
-  ['complete_20✅_9',['Policy Evaluation Framework - Implementation Complete ✅',['../d5/d7c/md_docs_2z3ed_2POLICY-IMPLEMENTATION-SUMMARY.html',1,'']]],
-  ['complete_20implementation_10',['YAZE Graphics System Optimizations - Complete Implementation',['../d6/df4/md_docs_2gfx__optimizations__complete.html',1,'']]],
-  ['comprehensive_20guide_11',['Canvas System - Comprehensive Guide',['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'']]],
-  ['comprehensive_20zscream_20vs_20yaze_20overworld_20analysis_12',['Comprehensive ZScream vs YAZE Overworld Analysis',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html',1,'']]],
-  ['contributing_13',['Contributing',['../dd/d5b/md_docs_2B1-contributing.html',1,'']]],
-  ['control_20agent_20workflows_14',['Remote Control Agent Workflows',['../d3/d61/md_docs_2z3ed_2REMOTE__CONTROL__WORKFLOWS.html',1,'']]],
-  ['current_20status_20future_20work_15',['Canvas Refactoring - Current Status &amp; Future Work',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html',1,'']]]
+  ['deprecated_20list_0',['Deprecated List',['../da/d58/deprecated.html',1,'']]],
+  ['design_1',['z3ed CLI Architecture &amp; Design',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html',1,'']]],
+  ['design_20plan_2',['Dungeon Editor Design Plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'']]],
+  ['documentation_3',['documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'Release Workflows Documentation'],['../d3/d4c/md_docs_2index.html',1,'yaze Documentation']]],
+  ['dungeon_20editor_20design_20plan_4',['Dungeon Editor Design Plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'']]],
+  ['dungeon_20editor_20guide_5',['Dungeon Editor Guide',['../dd/d33/md_docs_2E2-dungeon-editor-guide.html',1,'']]],
+  ['dungeon_20object_20system_6',['Dungeon Object System',['../da/d11/md_docs_2E5-dungeon-object-system.html',1,'']]],
+  ['dungeoneditor_20parallel_20optimization_20implementation_7',['DungeonEditor Parallel Optimization Implementation',['../d7/d30/md_docs_2analysis_2dungeon__parallel__optimization__summary.html',1,'']]],
+  ['dungeoneditor_20refactoring_20plan_8',['DungeonEditor Refactoring Plan',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html',1,'']]]
 ];

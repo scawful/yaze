@@ -1,11 +1,11 @@
 var searchData=
 [
-  ['tagkey_0',['TagKey',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468',1,'yaze::zelda3']]],
-  ['testcategory_1',['TestCategory',['../d4/d0a/namespaceyaze_1_1test.html#a0cda2abf7030eef1095ab53508a246ae',1,'yaze::test']]],
-  ['testmode_2',['TestMode',['../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817',1,'yaze::test']]],
-  ['teststatus_3',['TestStatus',['../d4/d0a/namespaceyaze_1_1test.html#a24fd08ea41d8314e6fccdb0fdcd9f072',1,'yaze::test']]],
-  ['teststeptype_4',['TestStepType',['../dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fce',1,'yaze::cli']]],
-  ['tileinteractionmode_5',['TileInteractionMode',['../db/dc3/namespaceyaze_1_1gui_1_1canvas.html#a7cd25682920de9e3b6559931b14f461e',1,'yaze::gui::canvas']]],
-  ['toasttype_6',['ToastType',['../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7',1,'yaze::editor']]],
-  ['type_7',['Type',['../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6',1,'yaze::zelda3::RoomLayoutObject']]]
+  ['selectionmode_0',['SelectionMode',['../d0/d28/classTextEditor.html#aed0b92add3785d71e009dbf66b78490d',1,'TextEditor']]],
+  ['size_1',['Size',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822',1,'yaze::emu::BackgroundLayer']]],
+  ['sorting_2',['Sorting',['../d5/d1f/namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747',1,'yaze::zelda3']]],
+  ['specialobjecttype_3',['SpecialObjectType',['../d5/d1f/namespaceyaze_1_1zelda3.html#a479da514040cddc99b5da1235244c421',1,'yaze::zelda3']]],
+  ['spriteitemcolumnid_4',['SpriteItemColumnID',['../d1/d3e/namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80',1,'yaze::editor']]],
+  ['spritesize_5',['SpriteSize',['../d6/d20/namespaceyaze_1_1emu.html#ab2d8079bb5330aedfb062604d2a0168a',1,'yaze::emu']]],
+  ['spritetype_6',['SpriteType',['../d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ae1cdb8859922d1caa4a46f01d83c7c7e',1,'yaze::zelda3::DungeonEditorSystem']]],
+  ['statusfilter_7',['StatusFilter',['../dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a6ff771686a21c2dc51538fbc25c59b8a',1,'yaze::editor::ProposalDrawer']]]
 ];

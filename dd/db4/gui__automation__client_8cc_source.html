@@ -107,291 +107,540 @@ $(document).ready(function(){initNavTree('dd/db4/gui__automation__client_8cc_sou
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;<a class="code" href="../../d1/d51/gui__automation__client_8h.html">cli/service/gui_automation_client.h</a>&quot;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;absl/strings/str_format.h&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span>cli {</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;absl/time/time.h&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
-<div class="foldopen" id="foldopen00011" data-start="{" data-end="}">
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a369bc54276ebd32d0f3cda19c1a2de4d">   11</a></span><a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a369bc54276ebd32d0f3cda19c1a2de4d">GuiAutomationClient::GuiAutomationClient</a>(<span class="keyword">const</span> std::string&amp; server_address)</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>    : server_address_(server_address) {}</div>
-</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span>cli {</div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
 <div class="foldopen" id="foldopen00014" data-start="{" data-end="}">
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a12f10e1be7bc14f4f37b3a3e90ede83f">   14</a></span>absl::Status <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a12f10e1be7bc14f4f37b3a3e90ede83f">GuiAutomationClient::Connect</a>() {</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>  <span class="keyword">auto</span> channel = grpc::CreateChannel(<a class="code hl_variable" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#af2d46ba96418f989a160477ca2c26a90">server_address_</a>,</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>                                     grpc::InsecureChannelCredentials());</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <span class="keywordflow">if</span> (!channel) {</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keywordflow">return</span> absl::InternalError(<span class="stringliteral">&quot;Failed to create gRPC channel&quot;</span>);</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="../../d7/dbb/namespaceyaze_1_1cli_1_1anonymous__namespace_02gui__automation__client_8cc_03.html">   14</a></span><span class="keyword">namespace </span>{</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>std::optional&lt;absl::Time&gt; OptionalTimeFromMillis(int64_t millis) {</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <span class="keywordflow">if</span> (millis &lt;= 0) {</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keywordflow">return</span> std::nullopt;</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  }</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  stub_ = yaze::test::ImGuiTestHarness::NewStub(channel);</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  <span class="keywordflow">if</span> (!stub_) {</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    <span class="keywordflow">return</span> absl::InternalError(<span class="stringliteral">&quot;Failed to create gRPC stub&quot;</span>);</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  }</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="comment">// Test connection with a ping</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a1f289db5b295a546a4e944caf88e9fea">Ping</a>(<span class="stringliteral">&quot;connection_test&quot;</span>);</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keywordflow">if</span> (!result.ok()) {</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordflow">return</span> absl::UnavailableError(</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>        absl::StrFormat(<span class="stringliteral">&quot;Failed to connect to test harness at %s: %s&quot;</span>,</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>                        <a class="code hl_variable" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#af2d46ba96418f989a160477ca2c26a90">server_address_</a>, result.status().message()));</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  }</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <a class="code hl_variable" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#ae1832a2b78160fe22464f5f08cf8f863">connected_</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  <span class="keywordflow">return</span> absl::UnimplementedError(</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>      <span class="stringliteral">&quot;GUI automation requires YAZE_WITH_GRPC=ON at build time&quot;</span>);</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>}</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <span class="keywordflow">return</span> absl::FromUnixMillis(millis);</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>}</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><a class="code hl_enumeration" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536">TestRunStatus</a> ConvertStatusProto(</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    yaze::test::GetTestStatusResponse::Status status) {</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <span class="keyword">using </span>ProtoStatus = yaze::test::GetTestStatusResponse::Status;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keywordflow">switch</span> (status) {</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keywordflow">case</span> ProtoStatus::GetTestStatusResponse_Status_STATUS_QUEUED:</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>      <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a023506f9e1203a14ea275f5e6acb2e1a">TestRunStatus::kQueued</a>;</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordflow">case</span> ProtoStatus::GetTestStatusResponse_Status_STATUS_RUNNING:</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>      <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a2fc7fbf0d19294f85dd3880460dd3c0a">TestRunStatus::kRunning</a>;</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="keywordflow">case</span> ProtoStatus::GetTestStatusResponse_Status_STATUS_PASSED:</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>      <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a2e1165dab7cbb5e985ea3b1e5d64f619">TestRunStatus::kPassed</a>;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keywordflow">case</span> ProtoStatus::GetTestStatusResponse_Status_STATUS_FAILED:</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>      <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536ab62fa3c9492b6dae76c23d6dfa466611">TestRunStatus::kFailed</a>;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keywordflow">case</span> ProtoStatus::GetTestStatusResponse_Status_STATUS_TIMEOUT:</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>      <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a7f27861ff1d3f550c6aa77150d7edabd">TestRunStatus::kTimeout</a>;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keywordflow">case</span> ProtoStatus::GetTestStatusResponse_Status_STATUS_UNSPECIFIED:</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keywordflow">default</span>:</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>      <span class="keywordflow">return</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a25c2dc47991b3df171ed5192bcf70390">TestRunStatus::kUnknown</a>;</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  }</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>}</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>}  <span class="comment">// namespace</span></div>
 </div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="foldopen" id="foldopen00043" data-start="{" data-end="}">
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a1f289db5b295a546a4e944caf88e9fea">   43</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a1f289db5b295a546a4e944caf88e9fea">GuiAutomationClient::Ping</a>(</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keyword">const</span> std::string&amp; message) {</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="keywordflow">if</span> (!stub_) {</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  }</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  yaze::test::PingRequest request;</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  request.set_message(message);</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  yaze::test::PingResponse response;</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  grpc::ClientContext context;</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  </div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  grpc::Status status = stub_-&gt;Ping(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="foldopen" id="foldopen00047" data-start="{" data-end="}">
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a369bc54276ebd32d0f3cda19c1a2de4d">   47</a></span><a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a369bc54276ebd32d0f3cda19c1a2de4d">GuiAutomationClient::GuiAutomationClient</a>(<span class="keyword">const</span> std::string&amp; server_address)</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    : server_address_(server_address) {}</div>
+</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
+<div class="foldopen" id="foldopen00050" data-start="{" data-end="}">
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a12f10e1be7bc14f4f37b3a3e90ede83f">   50</a></span>absl::Status <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a12f10e1be7bc14f4f37b3a3e90ede83f">GuiAutomationClient::Connect</a>() {</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <span class="keyword">auto</span> channel = grpc::CreateChannel(<a class="code hl_variable" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#af2d46ba96418f989a160477ca2c26a90">server_address_</a>,</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                                     grpc::InsecureChannelCredentials());</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  <span class="keywordflow">if</span> (!channel) {</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordflow">return</span> absl::InternalError(<span class="stringliteral">&quot;Failed to create gRPC channel&quot;</span>);</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  }</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  </div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        absl::StrFormat(<span class="stringliteral">&quot;Ping RPC failed: %s&quot;</span>, status.error_message()));</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  stub_ = yaze::test::ImGuiTestHarness::NewStub(channel);</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  <span class="keywordflow">if</span> (!stub_) {</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keywordflow">return</span> absl::InternalError(<span class="stringliteral">&quot;Failed to create gRPC stub&quot;</span>);</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  }</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  </div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = absl::StrFormat(<span class="stringliteral">&quot;Server version: %s (timestamp: %lld)&quot;</span>,</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>                                   response.yaze_version(),</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>                                   response.timestamp_ms());</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(0);</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>}</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  <span class="comment">// Test connection with a ping</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  <span class="keyword">auto</span> result = <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a1f289db5b295a546a4e944caf88e9fea">Ping</a>(<span class="stringliteral">&quot;connection_test&quot;</span>);</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keywordflow">if</span> (!result.ok()) {</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keywordflow">return</span> absl::UnavailableError(</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        absl::StrFormat(<span class="stringliteral">&quot;Failed to connect to test harness at %s: %s&quot;</span>,</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>                        <a class="code hl_variable" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#af2d46ba96418f989a160477ca2c26a90">server_address_</a>, result.status().message()));</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  }</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  </div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  <a class="code hl_variable" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#ae1832a2b78160fe22464f5f08cf8f863">connected_</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  <span class="keywordflow">return</span> absl::UnimplementedError(</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      <span class="stringliteral">&quot;GUI automation requires YAZE_WITH_GRPC=ON at build time&quot;</span>);</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>}</div>
 </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="foldopen" id="foldopen00075" data-start="{" data-end="}">
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#acfd5eb095b0cafd0e3fea1a792be0150">   75</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#acfd5eb095b0cafd0e3fea1a792be0150">GuiAutomationClient::Click</a>(</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keyword">const</span> std::string&amp; target, <a class="code hl_enumeration" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2c">ClickType</a> type) {</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  <span class="keywordflow">if</span> (!stub_) {</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  }</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  </div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  yaze::test::ClickRequest request;</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  request.set_target(target);</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  </div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  <span class="keywordflow">switch</span> (type) {</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2d5fde1d924910a2a01ecd8e70a87c28">ClickType::kLeft</a>:</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>      request.set_type(yaze::test::ClickRequest::LEFT);</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2dd2b017192f8a09367d48c7648213c9">ClickType::kRight</a>:</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      request.set_type(yaze::test::ClickRequest::RIGHT);</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2cab3199775e825c139b44e3e9ccf3cbc7e">ClickType::kMiddle</a>:</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>      request.set_type(yaze::test::ClickRequest::MIDDLE);</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca7fb3efa35444cd88d5a31dc125ca9c28">ClickType::kDouble</a>:</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      request.set_type(yaze::test::ClickRequest::DOUBLE);</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  }</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  </div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  yaze::test::ClickResponse response;</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  grpc::ClientContext context;</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>  </div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  grpc::Status status = stub_-&gt;Click(&amp;context, request, &amp;response);</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  </div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        absl::StrFormat(<span class="stringliteral">&quot;Click RPC failed: %s&quot;</span>, status.error_message()));</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  }</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>  </div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      response.execution_time_ms());</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>}</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
+<div class="foldopen" id="foldopen00079" data-start="{" data-end="}">
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a1f289db5b295a546a4e944caf88e9fea">   79</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a1f289db5b295a546a4e944caf88e9fea">GuiAutomationClient::Ping</a>(</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="keyword">const</span> std::string&amp; message) {</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  <span class="keywordflow">if</span> (!stub_) {</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  }</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  </div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  yaze::test::PingRequest request;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  request.set_message(message);</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  </div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  yaze::test::PingResponse response;</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  grpc::ClientContext context;</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  </div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  grpc::Status status = stub_-&gt;Ping(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  </div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>        absl::StrFormat(<span class="stringliteral">&quot;Ping RPC failed: %s&quot;</span>, status.error_message()));</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  }</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  </div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = absl::StrFormat(<span class="stringliteral">&quot;Server version: %s (timestamp: %lld)&quot;</span>,</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                                   response.yaze_version(),</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>                                   response.timestamp_ms());</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(0);</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a05882e104e1570670ab78cc6ee372b23">test_id</a>.clear();</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>}</div>
 </div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
-<div class="foldopen" id="foldopen00121" data-start="{" data-end="}">
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a40885181ae461c9d94786865acc1d7ad">  121</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a40885181ae461c9d94786865acc1d7ad">GuiAutomationClient::Type</a>(</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    <span class="keyword">const</span> std::string&amp; target, <span class="keyword">const</span> std::string&amp; text, <span class="keywordtype">bool</span> clear_first) {</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <span class="keywordflow">if</span> (!stub_) {</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>  }</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  </div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  yaze::test::TypeRequest request;</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  request.set_target(target);</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  request.set_text(text);</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  request.set_clear_first(clear_first);</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  </div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  yaze::test::TypeResponse response;</div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  grpc::ClientContext context;</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  </div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  grpc::Status status = stub_-&gt;Type(&amp;context, request, &amp;response);</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  </div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>        absl::StrFormat(<span class="stringliteral">&quot;Type RPC failed: %s&quot;</span>, status.error_message()));</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>  }</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  </div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>      response.execution_time_ms());</div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>}</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
+<div class="foldopen" id="foldopen00112" data-start="{" data-end="}">
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#acfd5eb095b0cafd0e3fea1a792be0150">  112</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#acfd5eb095b0cafd0e3fea1a792be0150">GuiAutomationClient::Click</a>(</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    <span class="keyword">const</span> std::string&amp; target, <a class="code hl_enumeration" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2c">ClickType</a> type) {</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  <span class="keywordflow">if</span> (!stub_) {</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  }</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>  </div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>  yaze::test::ClickRequest request;</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  request.set_target(target);</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  </div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  <span class="keywordflow">switch</span> (type) {</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2d5fde1d924910a2a01ecd8e70a87c28">ClickType::kLeft</a>:</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>      request.set_type(</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>          yaze::test::ClickRequest::CLICK_TYPE_LEFT);</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2dd2b017192f8a09367d48c7648213c9">ClickType::kRight</a>:</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>      request.set_type(</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>          yaze::test::ClickRequest::CLICK_TYPE_RIGHT);</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2cab3199775e825c139b44e3e9ccf3cbc7e">ClickType::kMiddle</a>:</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>      request.set_type(</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>          yaze::test::ClickRequest::CLICK_TYPE_MIDDLE);</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca7fb3efa35444cd88d5a31dc125ca9c28">ClickType::kDouble</a>:</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>      request.set_type(</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>          yaze::test::ClickRequest::CLICK_TYPE_DOUBLE);</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>  }</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>  </div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>  yaze::test::ClickResponse response;</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  grpc::ClientContext context;</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  </div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  grpc::Status status = stub_-&gt;Click(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>  </div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>        absl::StrFormat(<span class="stringliteral">&quot;Click RPC failed: %s&quot;</span>, status.error_message()));</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  }</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  </div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>      response.execution_time_ms());</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a05882e104e1570670ab78cc6ee372b23">test_id</a> = response.test_id();</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>}</div>
 </div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span> </div>
-<div class="foldopen" id="foldopen00154" data-start="{" data-end="}">
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a5cf47e01d88482a234458a59034be557">  154</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a5cf47e01d88482a234458a59034be557">GuiAutomationClient::Wait</a>(</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    <span class="keyword">const</span> std::string&amp; condition, <span class="keywordtype">int</span> timeout_ms, <span class="keywordtype">int</span> poll_interval_ms) {</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  <span class="keywordflow">if</span> (!stub_) {</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  }</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  </div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  yaze::test::WaitRequest request;</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  request.set_condition(condition);</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  request.set_timeout_ms(timeout_ms);</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>  request.set_poll_interval_ms(poll_interval_ms);</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>  </div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>  yaze::test::WaitResponse response;</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>  grpc::ClientContext context;</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  </div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  grpc::Status status = stub_-&gt;Wait(&amp;context, request, &amp;response);</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  </div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>        absl::StrFormat(<span class="stringliteral">&quot;Wait RPC failed: %s&quot;</span>, status.error_message()));</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  }</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  </div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      response.elapsed_ms());</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>  <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>}</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
+<div class="foldopen" id="foldopen00163" data-start="{" data-end="}">
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a40885181ae461c9d94786865acc1d7ad">  163</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a40885181ae461c9d94786865acc1d7ad">GuiAutomationClient::Type</a>(</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    <span class="keyword">const</span> std::string&amp; target, <span class="keyword">const</span> std::string&amp; text, <span class="keywordtype">bool</span> clear_first) {</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>  <span class="keywordflow">if</span> (!stub_) {</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  }</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  </div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  yaze::test::TypeRequest request;</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>  request.set_target(target);</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>  request.set_text(text);</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>  request.set_clear_first(clear_first);</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>  </div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>  yaze::test::TypeResponse response;</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  grpc::ClientContext context;</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  </div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  grpc::Status status = stub_-&gt;Type(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  </div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>        absl::StrFormat(<span class="stringliteral">&quot;Type RPC failed: %s&quot;</span>, status.error_message()));</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>  }</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>  </div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>      response.execution_time_ms());</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a05882e104e1570670ab78cc6ee372b23">test_id</a> = response.test_id();</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>}</div>
 </div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span> </div>
-<div class="foldopen" id="foldopen00187" data-start="{" data-end="}">
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#aab7cf24de814e6c8e2f56a3c833a181d">  187</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#aab7cf24de814e6c8e2f56a3c833a181d">GuiAutomationClient::Assert</a>(</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keyword">const</span> std::string&amp; condition) {</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>  <span class="keywordflow">if</span> (!stub_) {</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>  }</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  </div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>  yaze::test::AssertRequest request;</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>  request.set_condition(condition);</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>  </div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>  yaze::test::AssertResponse response;</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  grpc::ClientContext context;</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>  </div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>  grpc::Status status = stub_-&gt;Assert(&amp;context, request, &amp;response);</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>  </div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>        absl::StrFormat(<span class="stringliteral">&quot;Assert RPC failed: %s&quot;</span>, status.error_message()));</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  }</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  </div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#ab03646717bd02128cbd5c07a6f21b200">actual_value</a> = response.actual_value();</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaa3b50cc3954d5a4d0d05e77e9c687cb">expected_value</a> = response.expected_value();</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(0);</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>}</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span> </div>
+<div class="foldopen" id="foldopen00197" data-start="{" data-end="}">
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a5cf47e01d88482a234458a59034be557">  197</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a5cf47e01d88482a234458a59034be557">GuiAutomationClient::Wait</a>(</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    <span class="keyword">const</span> std::string&amp; condition, <span class="keywordtype">int</span> timeout_ms, <span class="keywordtype">int</span> poll_interval_ms) {</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>  <span class="keywordflow">if</span> (!stub_) {</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>  }</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>  </div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  yaze::test::WaitRequest request;</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  request.set_condition(condition);</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  request.set_timeout_ms(timeout_ms);</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  request.set_poll_interval_ms(poll_interval_ms);</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  </div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  yaze::test::WaitResponse response;</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  grpc::ClientContext context;</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  </div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  grpc::Status status = stub_-&gt;Wait(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  </div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>        absl::StrFormat(<span class="stringliteral">&quot;Wait RPC failed: %s&quot;</span>, status.error_message()));</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>  }</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  </div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>      response.elapsed_ms());</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a05882e104e1570670ab78cc6ee372b23">test_id</a> = response.test_id();</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>}</div>
 </div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span> </div>
-<div class="foldopen" id="foldopen00219" data-start="{" data-end="}">
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a0fd08060bebe26b42660c32d82ecdf95">  219</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a0fd08060bebe26b42660c32d82ecdf95">GuiAutomationClient::Screenshot</a>(</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    <span class="keyword">const</span> std::string&amp; region, <span class="keyword">const</span> std::string&amp; format) {</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>  <span class="keywordflow">if</span> (!stub_) {</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>  }</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  </div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  yaze::test::ScreenshotRequest request;</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  request.set_window_title(<span class="stringliteral">&quot;&quot;</span>);  <span class="comment">// Empty = main window</span></div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  request.set_output_path(<span class="stringliteral">&quot;/tmp/yaze_screenshot.png&quot;</span>);  <span class="comment">// Default path</span></div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  request.set_format(yaze::test::ScreenshotRequest::PNG);  <span class="comment">// Always PNG for now</span></div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  </div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>  yaze::test::ScreenshotResponse response;</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  grpc::ClientContext context;</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  </div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  grpc::Status status = stub_-&gt;Screenshot(&amp;context, request, &amp;response);</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  </div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>        absl::StrFormat(<span class="stringliteral">&quot;Screenshot RPC failed: %s&quot;</span>, status.error_message()));</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  }</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span> </div>
+<div class="foldopen" id="foldopen00231" data-start="{" data-end="}">
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#aab7cf24de814e6c8e2f56a3c833a181d">  231</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#aab7cf24de814e6c8e2f56a3c833a181d">GuiAutomationClient::Assert</a>(</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>    <span class="keyword">const</span> std::string&amp; condition) {</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  <span class="keywordflow">if</span> (!stub_) {</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>  }</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  </div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  yaze::test::AssertRequest request;</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  request.set_condition(condition);</div>
 <div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  </div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(0);</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>}</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  yaze::test::AssertResponse response;</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  grpc::ClientContext context;</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>  </div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  grpc::Status status = stub_-&gt;Assert(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  </div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>        absl::StrFormat(<span class="stringliteral">&quot;Assert RPC failed: %s&quot;</span>, status.error_message()));</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>  }</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>  </div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#ab03646717bd02128cbd5c07a6f21b200">actual_value</a> = response.actual_value();</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaa3b50cc3954d5a4d0d05e77e9c687cb">expected_value</a> = response.expected_value();</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(0);</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a05882e104e1570670ab78cc6ee372b23">test_id</a> = response.test_id();</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>}</div>
 </div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span> </div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>}  <span class="comment">// namespace cli</span></div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a0fd08060bebe26b42660c32d82ecdf95"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a0fd08060bebe26b42660c32d82ecdf95">yaze::cli::GuiAutomationClient::Screenshot</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Screenshot(const std::string &amp;region=&quot;full&quot;, const std::string &amp;format=&quot;PNG&quot;)</div><div class="ttdoc">Capture a screenshot.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00219">gui_automation_client.cc:219</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a12f10e1be7bc14f4f37b3a3e90ede83f"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a12f10e1be7bc14f4f37b3a3e90ede83f">yaze::cli::GuiAutomationClient::Connect</a></div><div class="ttdeci">absl::Status Connect()</div><div class="ttdoc">Connect to the test harness server.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00014">gui_automation_client.cc:14</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a1f289db5b295a546a4e944caf88e9fea"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a1f289db5b295a546a4e944caf88e9fea">yaze::cli::GuiAutomationClient::Ping</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Ping(const std::string &amp;message=&quot;ping&quot;)</div><div class="ttdoc">Check if the server is reachable and responsive.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00043">gui_automation_client.cc:43</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a369bc54276ebd32d0f3cda19c1a2de4d"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a369bc54276ebd32d0f3cda19c1a2de4d">yaze::cli::GuiAutomationClient::GuiAutomationClient</a></div><div class="ttdeci">GuiAutomationClient(const std::string &amp;server_address)</div><div class="ttdoc">Construct a new GUI automation client.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00011">gui_automation_client.cc:11</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a40885181ae461c9d94786865acc1d7ad"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a40885181ae461c9d94786865acc1d7ad">yaze::cli::GuiAutomationClient::Type</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Type(const std::string &amp;target, const std::string &amp;text, bool clear_first=false)</div><div class="ttdoc">Type text into an input field.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00121">gui_automation_client.cc:121</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a5cf47e01d88482a234458a59034be557"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a5cf47e01d88482a234458a59034be557">yaze::cli::GuiAutomationClient::Wait</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Wait(const std::string &amp;condition, int timeout_ms=5000, int poll_interval_ms=100)</div><div class="ttdoc">Wait for a condition to be met.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00154">gui_automation_client.cc:154</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_aab7cf24de814e6c8e2f56a3c833a181d"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#aab7cf24de814e6c8e2f56a3c833a181d">yaze::cli::GuiAutomationClient::Assert</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Assert(const std::string &amp;condition)</div><div class="ttdoc">Assert a GUI state condition.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00187">gui_automation_client.cc:187</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_acfd5eb095b0cafd0e3fea1a792be0150"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#acfd5eb095b0cafd0e3fea1a792be0150">yaze::cli::GuiAutomationClient::Click</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Click(const std::string &amp;target, ClickType type=ClickType::kLeft)</div><div class="ttdoc">Click a GUI element.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00075">gui_automation_client.cc:75</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_ae1832a2b78160fe22464f5f08cf8f863"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#ae1832a2b78160fe22464f5f08cf8f863">yaze::cli::GuiAutomationClient::connected_</a></div><div class="ttdeci">bool connected_</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00146">gui_automation_client.h:146</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_af2d46ba96418f989a160477ca2c26a90"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#af2d46ba96418f989a160477ca2c26a90">yaze::cli::GuiAutomationClient::server_address_</a></div><div class="ttdeci">std::string server_address_</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00145">gui_automation_client.h:145</a></div></div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span> </div>
+<div class="foldopen" id="foldopen00264" data-start="{" data-end="}">
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a0fd08060bebe26b42660c32d82ecdf95">  264</a></span>absl::StatusOr&lt;AutomationResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a0fd08060bebe26b42660c32d82ecdf95">GuiAutomationClient::Screenshot</a>(</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <span class="keyword">const</span> std::string&amp; region, <span class="keyword">const</span> std::string&amp; format) {</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>  <span class="keywordflow">if</span> (!stub_) {</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>  }</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>  </div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>  yaze::test::ScreenshotRequest request;</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>  request.set_window_title(<span class="stringliteral">&quot;&quot;</span>);  <span class="comment">// Empty = main window</span></div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>  request.set_output_path(<span class="stringliteral">&quot;/tmp/yaze_screenshot.png&quot;</span>);  <span class="comment">// Default path</span></div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>  request.set_format(</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>      yaze::test::ScreenshotRequest::IMAGE_FORMAT_PNG);  <span class="comment">// Always PNG for now</span></div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>  </div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>  yaze::test::ScreenshotResponse response;</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>  grpc::ClientContext context;</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>  </div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>  grpc::Status status = stub_-&gt;Screenshot(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>  </div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        absl::StrFormat(<span class="stringliteral">&quot;Screenshot RPC failed: %s&quot;</span>, status.error_message()));</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>  }</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>  </div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>  <a class="code hl_struct" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">AutomationResult</a> result;</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">success</a> = response.success();</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">message</a> = response.message();</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">execution_time</a> = std::chrono::milliseconds(0);</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>  result.<a class="code hl_variable" href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a05882e104e1570670ab78cc6ee372b23">test_id</a>.clear();</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>}</div>
+</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span> </div>
+<div class="foldopen" id="foldopen00298" data-start="{" data-end="}">
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a269fdb5906d1883ad34530924ed55a44">  298</a></span>absl::StatusOr&lt;TestStatusDetails&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a269fdb5906d1883ad34530924ed55a44">GuiAutomationClient::GetTestStatus</a>(</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    <span class="keyword">const</span> std::string&amp; test_id) {</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>  <span class="keywordflow">if</span> (!stub_) {</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>  }</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span> </div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>  yaze::test::GetTestStatusRequest request;</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>  request.set_test_id(test_id);</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span> </div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>  yaze::test::GetTestStatusResponse response;</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>  grpc::ClientContext context;</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span> </div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>  grpc::Status status = stub_-&gt;GetTestStatus(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span> </div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        absl::StrFormat(<span class="stringliteral">&quot;GetTestStatus RPC failed: %s&quot;</span>, status.error_message()));</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>  }</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span> </div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>  <a class="code hl_struct" href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html">TestStatusDetails</a> details;</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>  details.<a class="code hl_variable" href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#ab21a7b7a25a86d9b30f8e2813d0c991d">test_id</a> = test_id;</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>  details.<a class="code hl_variable" href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#aa7d05ced207e2f4a9d5fa264c5cdc1d0">status</a> = ConvertStatusProto(response.status());</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>  details.<a class="code hl_variable" href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#afbfb69d94c0287f41beb01319e948821">queued_at</a> = OptionalTimeFromMillis(response.queued_at_ms());</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>  details.<a class="code hl_variable" href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#acbc3cef5c19ae8b74ad0dc492edc3a86">started_at</a> = OptionalTimeFromMillis(response.started_at_ms());</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>  details.<a class="code hl_variable" href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#a6446edb9578f3a6ede12d83695d94435">completed_at</a> = OptionalTimeFromMillis(response.completed_at_ms());</div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>  details.<a class="code hl_variable" href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#ab4aafc338e3d2b8b8be1e87c2382bb04">execution_time_ms</a> = response.execution_time_ms();</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>  details.<a class="code hl_variable" href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#ad30393de1b144432f146bafa0e8f47d9">error_message</a> = response.error_message();</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>  details.<a class="code hl_variable" href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#a5837ea012862980773f0f3c7ec560fe6">assertion_failures</a>.assign(response.assertion_failures().begin(),</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>                                    response.assertion_failures().end());</div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>  <span class="keywordflow">return</span> details;</div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>}</div>
+</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span> </div>
+<div class="foldopen" id="foldopen00334" data-start="{" data-end="}">
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#ae079f3d49ca72ef3d1b28e11b4944cf8">  334</a></span>absl::StatusOr&lt;ListTestsResult&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#ae079f3d49ca72ef3d1b28e11b4944cf8">GuiAutomationClient::ListTests</a>(</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>    <span class="keyword">const</span> std::string&amp; category_filter, <span class="keywordtype">int</span> page_size,</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>    <span class="keyword">const</span> std::string&amp; page_token) {</div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>  <span class="keywordflow">if</span> (!stub_) {</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>  }</div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span> </div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>  yaze::test::ListTestsRequest request;</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>  <span class="keywordflow">if</span> (!category_filter.empty()) {</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>    request.set_category_filter(category_filter);</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>  }</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>  <span class="keywordflow">if</span> (page_size &gt; 0) {</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>    request.set_page_size(page_size);</div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>  }</div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>  <span class="keywordflow">if</span> (!page_token.empty()) {</div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>    request.set_page_token(page_token);</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>  }</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span> </div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>  yaze::test::ListTestsResponse response;</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>  grpc::ClientContext context;</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span> </div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>  grpc::Status status = stub_-&gt;ListTests(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span> </div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>        absl::StrFormat(<span class="stringliteral">&quot;ListTests RPC failed: %s&quot;</span>, status.error_message()));</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>  }</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span> </div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>  <a class="code hl_struct" href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html">ListTestsResult</a> result;</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>  result.<a class="code hl_variable" href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#aaf8ed30f393028832080c8c116ce6e6a">total_count</a> = response.total_count();</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>  result.<a class="code hl_variable" href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#a2ccdbf83de08b3821d3c0c4d2242799b">next_page_token</a> = response.next_page_token();</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>  result.<a class="code hl_variable" href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#a3f900c92a64716cb483fde2e6f5e4e4b">tests</a>.reserve(response.tests_size());</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span> </div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; test_info : response.tests()) {</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>    <a class="code hl_struct" href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html">HarnessTestSummary</a> summary;</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>    summary.<a class="code hl_variable" href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#aeb33231c1d61ead86d7a3f72f882e4b0">test_id</a> = test_info.test_id();</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>    summary.<a class="code hl_variable" href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#af9c2ebf69090da4056b63240e9be37d6">name</a> = test_info.name();</div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>    summary.<a class="code hl_variable" href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#a364f78c202933e635010c3262a839c85">category</a> = test_info.category();</div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>    summary.<a class="code hl_variable" href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#aadb52b363e7c4b1519c542b366d3eb70">last_run_at</a> =</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>        OptionalTimeFromMillis(test_info.last_run_timestamp_ms());</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>    summary.<a class="code hl_variable" href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#a96454862b81fd3e47d11d1cce24694d5">total_runs</a> = test_info.total_runs();</div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>    summary.<a class="code hl_variable" href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#a9de4b0d2debd68150c8038e023a24dbc">pass_count</a> = test_info.pass_count();</div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>    summary.<a class="code hl_variable" href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#a3bb7e4bbdc8bdab7b2fd0f4606a6cd28">fail_count</a> = test_info.fail_count();</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>    summary.<a class="code hl_variable" href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#aaa27fc0e35b67744ff486c6f9fa2cfb8">average_duration_ms</a> = test_info.average_duration_ms();</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>    result.<a class="code hl_variable" href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#a3f900c92a64716cb483fde2e6f5e4e4b">tests</a>.push_back(std::move(summary));</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>  }</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span> </div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>}</div>
+</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span> </div>
+<div class="foldopen" id="foldopen00388" data-start="{" data-end="}">
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno"><a class="line" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a72d9b2d2128808009b16fc23fb8ebc34">  388</a></span>absl::StatusOr&lt;TestResultDetails&gt; <a class="code hl_function" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a72d9b2d2128808009b16fc23fb8ebc34">GuiAutomationClient::GetTestResults</a>(</div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>    <span class="keyword">const</span> std::string&amp; test_id, <span class="keywordtype">bool</span> include_logs) {</div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>  <span class="keywordflow">if</span> (!stub_) {</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Not connected. Call Connect() first.&quot;</span>);</div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>  }</div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span> </div>
+<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span>  yaze::test::GetTestResultsRequest request;</div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>  request.set_test_id(test_id);</div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>  request.set_include_logs(include_logs);</div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span> </div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>  yaze::test::GetTestResultsResponse response;</div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>  grpc::ClientContext context;</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span> </div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>  grpc::Status status = stub_-&gt;GetTestResults(&amp;context, request, &amp;response);</div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span> </div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>  <span class="keywordflow">if</span> (!status.ok()) {</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span>        absl::StrFormat(<span class="stringliteral">&quot;GetTestResults RPC failed: %s&quot;</span>,</div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>                        status.error_message()));</div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>  }</div>
+<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span> </div>
+<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>  <a class="code hl_struct" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html">TestResultDetails</a> result;</div>
+<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>  result.<a class="code hl_variable" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a0f4218ac51a30a6d65d530bc9ade7935">test_id</a> = test_id;</div>
+<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>  result.<a class="code hl_variable" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#acf561f9e261ad7a7af82fae1a25bdf1e">success</a> = response.success();</div>
+<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>  result.<a class="code hl_variable" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a31a5ba0df70e5a38e6e25fd2ab545bbb">test_name</a> = response.test_name();</div>
+<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>  result.<a class="code hl_variable" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#afe3fc807a0cc6e2148a748df36670f92">category</a> = response.category();</div>
+<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span>  result.<a class="code hl_variable" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a061ee42a961b44ad7b9bea451b3c0280">executed_at</a> = OptionalTimeFromMillis(response.executed_at_ms());</div>
+<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>  result.<a class="code hl_variable" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#aff457eead402860cb1442c1fdf1249bd">duration_ms</a> = response.duration_ms();</div>
+<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span> </div>
+<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>  result.<a class="code hl_variable" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a0c4b6fe87187f97e36b0005e073a43b2">assertions</a>.reserve(response.assertions_size());</div>
+<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; assertion : response.assertions()) {</div>
+<div class="line"><a id="l00420" name="l00420"></a><span class="lineno">  420</span>    <a class="code hl_struct" href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html">AssertionOutcome</a> outcome;</div>
+<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>    outcome.<a class="code hl_variable" href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#a81106e8f1d6dbb2c792855608bf405e0">description</a> = assertion.description();</div>
+<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>    outcome.<a class="code hl_variable" href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#addf2d6cb54dc0e127a174c37130fc08f">passed</a> = assertion.passed();</div>
+<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span>    outcome.<a class="code hl_variable" href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#af2621ae8ca56a7d2a8c140d9c88293cf">expected_value</a> = assertion.expected_value();</div>
+<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>    outcome.<a class="code hl_variable" href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#a84ad6216e32d55b05fb663204bdd68df">actual_value</a> = assertion.actual_value();</div>
+<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>    outcome.<a class="code hl_variable" href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#a41fe595dc90b78ae3d7e5364b61dbbe9">error_message</a> = assertion.error_message();</div>
+<div class="line"><a id="l00426" name="l00426"></a><span class="lineno">  426</span>    result.<a class="code hl_variable" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a0c4b6fe87187f97e36b0005e073a43b2">assertions</a>.push_back(std::move(outcome));</div>
+<div class="line"><a id="l00427" name="l00427"></a><span class="lineno">  427</span>  }</div>
+<div class="line"><a id="l00428" name="l00428"></a><span class="lineno">  428</span> </div>
+<div class="line"><a id="l00429" name="l00429"></a><span class="lineno">  429</span>  <span class="keywordflow">if</span> (include_logs) {</div>
+<div class="line"><a id="l00430" name="l00430"></a><span class="lineno">  430</span>    result.<a class="code hl_variable" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a5bebd5d7400eb39f6e139336bec2a38f">logs</a>.assign(response.logs().begin(), response.logs().end());</div>
+<div class="line"><a id="l00431" name="l00431"></a><span class="lineno">  431</span>  }</div>
+<div class="line"><a id="l00432" name="l00432"></a><span class="lineno">  432</span> </div>
+<div class="line"><a id="l00433" name="l00433"></a><span class="lineno">  433</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; metric : response.metrics()) {</div>
+<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>    result.<a class="code hl_variable" href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a0c29eee97004ccb7ed5ea0ad2b1d827e">metrics</a>.emplace(metric.first, metric.second);</div>
+<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>  }</div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span> </div>
+<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;gRPC not available&quot;</span>);</div>
+<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00441" name="l00441"></a><span class="lineno">  441</span>}</div>
+</div>
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span> </div>
+<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span>}  <span class="comment">// namespace cli</span></div>
+<div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a0fd08060bebe26b42660c32d82ecdf95"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a0fd08060bebe26b42660c32d82ecdf95">yaze::cli::GuiAutomationClient::Screenshot</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Screenshot(const std::string &amp;region=&quot;full&quot;, const std::string &amp;format=&quot;PNG&quot;)</div><div class="ttdoc">Capture a screenshot.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00264">gui_automation_client.cc:264</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a12f10e1be7bc14f4f37b3a3e90ede83f"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a12f10e1be7bc14f4f37b3a3e90ede83f">yaze::cli::GuiAutomationClient::Connect</a></div><div class="ttdeci">absl::Status Connect()</div><div class="ttdoc">Connect to the test harness server.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00050">gui_automation_client.cc:50</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a1f289db5b295a546a4e944caf88e9fea"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a1f289db5b295a546a4e944caf88e9fea">yaze::cli::GuiAutomationClient::Ping</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Ping(const std::string &amp;message=&quot;ping&quot;)</div><div class="ttdoc">Check if the server is reachable and responsive.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00079">gui_automation_client.cc:79</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a269fdb5906d1883ad34530924ed55a44"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a269fdb5906d1883ad34530924ed55a44">yaze::cli::GuiAutomationClient::GetTestStatus</a></div><div class="ttdeci">absl::StatusOr&lt; TestStatusDetails &gt; GetTestStatus(const std::string &amp;test_id)</div><div class="ttdoc">Fetch the current execution status for a harness test.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00298">gui_automation_client.cc:298</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a369bc54276ebd32d0f3cda19c1a2de4d"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a369bc54276ebd32d0f3cda19c1a2de4d">yaze::cli::GuiAutomationClient::GuiAutomationClient</a></div><div class="ttdeci">GuiAutomationClient(const std::string &amp;server_address)</div><div class="ttdoc">Construct a new GUI automation client.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00047">gui_automation_client.cc:47</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a40885181ae461c9d94786865acc1d7ad"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a40885181ae461c9d94786865acc1d7ad">yaze::cli::GuiAutomationClient::Type</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Type(const std::string &amp;target, const std::string &amp;text, bool clear_first=false)</div><div class="ttdoc">Type text into an input field.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00163">gui_automation_client.cc:163</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a5cf47e01d88482a234458a59034be557"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a5cf47e01d88482a234458a59034be557">yaze::cli::GuiAutomationClient::Wait</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Wait(const std::string &amp;condition, int timeout_ms=5000, int poll_interval_ms=100)</div><div class="ttdoc">Wait for a condition to be met.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00197">gui_automation_client.cc:197</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_a72d9b2d2128808009b16fc23fb8ebc34"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a72d9b2d2128808009b16fc23fb8ebc34">yaze::cli::GuiAutomationClient::GetTestResults</a></div><div class="ttdeci">absl::StatusOr&lt; TestResultDetails &gt; GetTestResults(const std::string &amp;test_id, bool include_logs=false)</div><div class="ttdoc">Retrieve detailed results for a harness test execution.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00388">gui_automation_client.cc:388</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_aab7cf24de814e6c8e2f56a3c833a181d"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#aab7cf24de814e6c8e2f56a3c833a181d">yaze::cli::GuiAutomationClient::Assert</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Assert(const std::string &amp;condition)</div><div class="ttdoc">Assert a GUI state condition.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00231">gui_automation_client.cc:231</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_acfd5eb095b0cafd0e3fea1a792be0150"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#acfd5eb095b0cafd0e3fea1a792be0150">yaze::cli::GuiAutomationClient::Click</a></div><div class="ttdeci">absl::StatusOr&lt; AutomationResult &gt; Click(const std::string &amp;target, ClickType type=ClickType::kLeft)</div><div class="ttdoc">Click a GUI element.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00112">gui_automation_client.cc:112</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_ae079f3d49ca72ef3d1b28e11b4944cf8"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#ae079f3d49ca72ef3d1b28e11b4944cf8">yaze::cli::GuiAutomationClient::ListTests</a></div><div class="ttdeci">absl::StatusOr&lt; ListTestsResult &gt; ListTests(const std::string &amp;category_filter=&quot;&quot;, int page_size=100, const std::string &amp;page_token=&quot;&quot;)</div><div class="ttdoc">Enumerate harness tests with optional filtering.</div><div class="ttdef"><b>Definition</b> <a href="../../dd/db4/gui__automation__client_8cc_source.html#l00334">gui_automation_client.cc:334</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_ae1832a2b78160fe22464f5f08cf8f863"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#ae1832a2b78160fe22464f5f08cf8f863">yaze::cli::GuiAutomationClient::connected_</a></div><div class="ttdeci">bool connected_</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00243">gui_automation_client.h:243</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html_af2d46ba96418f989a160477ca2c26a90"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#af2d46ba96418f989a160477ca2c26a90">yaze::cli::GuiAutomationClient::server_address_</a></div><div class="ttdeci">std::string server_address_</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00242">gui_automation_client.h:242</a></div></div>
 <div class="ttc" id="agui__automation__client_8h_html"><div class="ttname"><a href="../../d1/d51/gui__automation__client_8h.html">gui_automation_client.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1cli_html_ad37153091199fceacd3cde06eccd7c2c"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2c">yaze::cli::ClickType</a></div><div class="ttdeci">ClickType</div><div class="ttdoc">Type of click action to perform.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00026">gui_automation_client.h:26</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html_ac2dd1cd8208462d16360cd77b564e536"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536">yaze::cli::TestRunStatus</a></div><div class="ttdeci">TestRunStatus</div><div class="ttdoc">Execution status codes returned by the harness.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00051">gui_automation_client.h:51</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html_ac2dd1cd8208462d16360cd77b564e536a023506f9e1203a14ea275f5e6acb2e1a"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a023506f9e1203a14ea275f5e6acb2e1a">yaze::cli::TestRunStatus::kQueued</a></div><div class="ttdeci">@ kQueued</div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html_ac2dd1cd8208462d16360cd77b564e536a25c2dc47991b3df171ed5192bcf70390"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a25c2dc47991b3df171ed5192bcf70390">yaze::cli::TestRunStatus::kUnknown</a></div><div class="ttdeci">@ kUnknown</div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html_ac2dd1cd8208462d16360cd77b564e536a2e1165dab7cbb5e985ea3b1e5d64f619"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a2e1165dab7cbb5e985ea3b1e5d64f619">yaze::cli::TestRunStatus::kPassed</a></div><div class="ttdeci">@ kPassed</div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html_ac2dd1cd8208462d16360cd77b564e536a2fc7fbf0d19294f85dd3880460dd3c0a"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a2fc7fbf0d19294f85dd3880460dd3c0a">yaze::cli::TestRunStatus::kRunning</a></div><div class="ttdeci">@ kRunning</div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html_ac2dd1cd8208462d16360cd77b564e536a7f27861ff1d3f550c6aa77150d7edabd"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a7f27861ff1d3f550c6aa77150d7edabd">yaze::cli::TestRunStatus::kTimeout</a></div><div class="ttdeci">@ kTimeout</div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html_ac2dd1cd8208462d16360cd77b564e536ab62fa3c9492b6dae76c23d6dfa466611"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536ab62fa3c9492b6dae76c23d6dfa466611">yaze::cli::TestRunStatus::kFailed</a></div><div class="ttdeci">@ kFailed</div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html_ad37153091199fceacd3cde06eccd7c2c"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2c">yaze::cli::ClickType</a></div><div class="ttdeci">ClickType</div><div class="ttdoc">Type of click action to perform.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00029">gui_automation_client.h:29</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ad37153091199fceacd3cde06eccd7c2ca2d5fde1d924910a2a01ecd8e70a87c28"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2d5fde1d924910a2a01ecd8e70a87c28">yaze::cli::ClickType::kLeft</a></div><div class="ttdeci">@ kLeft</div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ad37153091199fceacd3cde06eccd7c2ca2dd2b017192f8a09367d48c7648213c9"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2dd2b017192f8a09367d48c7648213c9">yaze::cli::ClickType::kRight</a></div><div class="ttdeci">@ kRight</div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ad37153091199fceacd3cde06eccd7c2ca7fb3efa35444cd88d5a31dc125ca9c28"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca7fb3efa35444cd88d5a31dc125ca9c28">yaze::cli::ClickType::kDouble</a></div><div class="ttdeci">@ kDouble</div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ad37153091199fceacd3cde06eccd7c2cab3199775e825c139b44e3e9ccf3cbc7e"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2cab3199775e825c139b44e3e9ccf3cbc7e">yaze::cli::ClickType::kMiddle</a></div><div class="ttdeci">@ kMiddle</div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
-<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">yaze::cli::AutomationResult</a></div><div class="ttdoc">Result of a GUI automation action.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00036">gui_automation_client.h:36</a></div></div>
-<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_a3901855ef9d847a0c0c6f4569c3a2217"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">yaze::cli::AutomationResult::success</a></div><div class="ttdeci">bool success</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00037">gui_automation_client.h:37</a></div></div>
-<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_a678dc94d76959d92268d584582bba1de"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">yaze::cli::AutomationResult::execution_time</a></div><div class="ttdeci">std::chrono::milliseconds execution_time</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00039">gui_automation_client.h:39</a></div></div>
-<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_aaa3b50cc3954d5a4d0d05e77e9c687cb"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaa3b50cc3954d5a4d0d05e77e9c687cb">yaze::cli::AutomationResult::expected_value</a></div><div class="ttdeci">std::string expected_value</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00041">gui_automation_client.h:41</a></div></div>
-<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_aaba7802bf04951254e89e0d7c32f913b"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">yaze::cli::AutomationResult::message</a></div><div class="ttdeci">std::string message</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00038">gui_automation_client.h:38</a></div></div>
-<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_ab03646717bd02128cbd5c07a6f21b200"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#ab03646717bd02128cbd5c07a6f21b200">yaze::cli::AutomationResult::actual_value</a></div><div class="ttdeci">std::string actual_value</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00040">gui_automation_client.h:40</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AssertionOutcome_html"><div class="ttname"><a href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html">yaze::cli::AssertionOutcome</a></div><div class="ttdoc">Individual assertion outcome within a harness test.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00100">gui_automation_client.h:100</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AssertionOutcome_html_a41fe595dc90b78ae3d7e5364b61dbbe9"><div class="ttname"><a href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#a41fe595dc90b78ae3d7e5364b61dbbe9">yaze::cli::AssertionOutcome::error_message</a></div><div class="ttdeci">std::string error_message</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00105">gui_automation_client.h:105</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AssertionOutcome_html_a81106e8f1d6dbb2c792855608bf405e0"><div class="ttname"><a href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#a81106e8f1d6dbb2c792855608bf405e0">yaze::cli::AssertionOutcome::description</a></div><div class="ttdeci">std::string description</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00101">gui_automation_client.h:101</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AssertionOutcome_html_a84ad6216e32d55b05fb663204bdd68df"><div class="ttname"><a href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#a84ad6216e32d55b05fb663204bdd68df">yaze::cli::AssertionOutcome::actual_value</a></div><div class="ttdeci">std::string actual_value</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00104">gui_automation_client.h:104</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AssertionOutcome_html_addf2d6cb54dc0e127a174c37130fc08f"><div class="ttname"><a href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#addf2d6cb54dc0e127a174c37130fc08f">yaze::cli::AssertionOutcome::passed</a></div><div class="ttdeci">bool passed</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00102">gui_automation_client.h:102</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AssertionOutcome_html_af2621ae8ca56a7d2a8c140d9c88293cf"><div class="ttname"><a href="../../d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html#af2621ae8ca56a7d2a8c140d9c88293cf">yaze::cli::AssertionOutcome::expected_value</a></div><div class="ttdeci">std::string expected_value</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00103">gui_automation_client.h:103</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html">yaze::cli::AutomationResult</a></div><div class="ttdoc">Result of a GUI automation action.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00039">gui_automation_client.h:39</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_a05882e104e1570670ab78cc6ee372b23"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a05882e104e1570670ab78cc6ee372b23">yaze::cli::AutomationResult::test_id</a></div><div class="ttdeci">std::string test_id</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00045">gui_automation_client.h:45</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_a3901855ef9d847a0c0c6f4569c3a2217"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a3901855ef9d847a0c0c6f4569c3a2217">yaze::cli::AutomationResult::success</a></div><div class="ttdeci">bool success</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00040">gui_automation_client.h:40</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_a678dc94d76959d92268d584582bba1de"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#a678dc94d76959d92268d584582bba1de">yaze::cli::AutomationResult::execution_time</a></div><div class="ttdeci">std::chrono::milliseconds execution_time</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00042">gui_automation_client.h:42</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_aaa3b50cc3954d5a4d0d05e77e9c687cb"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaa3b50cc3954d5a4d0d05e77e9c687cb">yaze::cli::AutomationResult::expected_value</a></div><div class="ttdeci">std::string expected_value</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00044">gui_automation_client.h:44</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_aaba7802bf04951254e89e0d7c32f913b"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#aaba7802bf04951254e89e0d7c32f913b">yaze::cli::AutomationResult::message</a></div><div class="ttdeci">std::string message</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00041">gui_automation_client.h:41</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AutomationResult_html_ab03646717bd02128cbd5c07a6f21b200"><div class="ttname"><a href="../../d4/daf/structyaze_1_1cli_1_1AutomationResult.html#ab03646717bd02128cbd5c07a6f21b200">yaze::cli::AutomationResult::actual_value</a></div><div class="ttdeci">std::string actual_value</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00043">gui_automation_client.h:43</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1HarnessTestSummary_html"><div class="ttname"><a href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html">yaze::cli::HarnessTestSummary</a></div><div class="ttdoc">Aggregated metadata about a harness test.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00077">gui_automation_client.h:77</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1HarnessTestSummary_html_a364f78c202933e635010c3262a839c85"><div class="ttname"><a href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#a364f78c202933e635010c3262a839c85">yaze::cli::HarnessTestSummary::category</a></div><div class="ttdeci">std::string category</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00080">gui_automation_client.h:80</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1HarnessTestSummary_html_a3bb7e4bbdc8bdab7b2fd0f4606a6cd28"><div class="ttname"><a href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#a3bb7e4bbdc8bdab7b2fd0f4606a6cd28">yaze::cli::HarnessTestSummary::fail_count</a></div><div class="ttdeci">int fail_count</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00084">gui_automation_client.h:84</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1HarnessTestSummary_html_a96454862b81fd3e47d11d1cce24694d5"><div class="ttname"><a href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#a96454862b81fd3e47d11d1cce24694d5">yaze::cli::HarnessTestSummary::total_runs</a></div><div class="ttdeci">int total_runs</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00082">gui_automation_client.h:82</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1HarnessTestSummary_html_a9de4b0d2debd68150c8038e023a24dbc"><div class="ttname"><a href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#a9de4b0d2debd68150c8038e023a24dbc">yaze::cli::HarnessTestSummary::pass_count</a></div><div class="ttdeci">int pass_count</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00083">gui_automation_client.h:83</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1HarnessTestSummary_html_aaa27fc0e35b67744ff486c6f9fa2cfb8"><div class="ttname"><a href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#aaa27fc0e35b67744ff486c6f9fa2cfb8">yaze::cli::HarnessTestSummary::average_duration_ms</a></div><div class="ttdeci">int average_duration_ms</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00085">gui_automation_client.h:85</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1HarnessTestSummary_html_aadb52b363e7c4b1519c542b366d3eb70"><div class="ttname"><a href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#aadb52b363e7c4b1519c542b366d3eb70">yaze::cli::HarnessTestSummary::last_run_at</a></div><div class="ttdeci">std::optional&lt; absl::Time &gt; last_run_at</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00081">gui_automation_client.h:81</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1HarnessTestSummary_html_aeb33231c1d61ead86d7a3f72f882e4b0"><div class="ttname"><a href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#aeb33231c1d61ead86d7a3f72f882e4b0">yaze::cli::HarnessTestSummary::test_id</a></div><div class="ttdeci">std::string test_id</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00078">gui_automation_client.h:78</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1HarnessTestSummary_html_af9c2ebf69090da4056b63240e9be37d6"><div class="ttname"><a href="../../db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#af9c2ebf69090da4056b63240e9be37d6">yaze::cli::HarnessTestSummary::name</a></div><div class="ttdeci">std::string name</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00079">gui_automation_client.h:79</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1ListTestsResult_html"><div class="ttname"><a href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html">yaze::cli::ListTestsResult</a></div><div class="ttdoc">Result container for ListTests RPC.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00091">gui_automation_client.h:91</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1ListTestsResult_html_a2ccdbf83de08b3821d3c0c4d2242799b"><div class="ttname"><a href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#a2ccdbf83de08b3821d3c0c4d2242799b">yaze::cli::ListTestsResult::next_page_token</a></div><div class="ttdeci">std::string next_page_token</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00093">gui_automation_client.h:93</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1ListTestsResult_html_a3f900c92a64716cb483fde2e6f5e4e4b"><div class="ttname"><a href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#a3f900c92a64716cb483fde2e6f5e4e4b">yaze::cli::ListTestsResult::tests</a></div><div class="ttdeci">std::vector&lt; HarnessTestSummary &gt; tests</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00092">gui_automation_client.h:92</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1ListTestsResult_html_aaf8ed30f393028832080c8c116ce6e6a"><div class="ttname"><a href="../../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#aaf8ed30f393028832080c8c116ce6e6a">yaze::cli::ListTestsResult::total_count</a></div><div class="ttdeci">int total_count</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00094">gui_automation_client.h:94</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestResultDetails_html"><div class="ttname"><a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html">yaze::cli::TestResultDetails</a></div><div class="ttdoc">Detailed execution results for a specific harness test.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00111">gui_automation_client.h:111</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestResultDetails_html_a061ee42a961b44ad7b9bea451b3c0280"><div class="ttname"><a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a061ee42a961b44ad7b9bea451b3c0280">yaze::cli::TestResultDetails::executed_at</a></div><div class="ttdeci">std::optional&lt; absl::Time &gt; executed_at</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00116">gui_automation_client.h:116</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestResultDetails_html_a0c29eee97004ccb7ed5ea0ad2b1d827e"><div class="ttname"><a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a0c29eee97004ccb7ed5ea0ad2b1d827e">yaze::cli::TestResultDetails::metrics</a></div><div class="ttdeci">std::map&lt; std::string, int &gt; metrics</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00120">gui_automation_client.h:120</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestResultDetails_html_a0c4b6fe87187f97e36b0005e073a43b2"><div class="ttname"><a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a0c4b6fe87187f97e36b0005e073a43b2">yaze::cli::TestResultDetails::assertions</a></div><div class="ttdeci">std::vector&lt; AssertionOutcome &gt; assertions</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00118">gui_automation_client.h:118</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestResultDetails_html_a0f4218ac51a30a6d65d530bc9ade7935"><div class="ttname"><a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a0f4218ac51a30a6d65d530bc9ade7935">yaze::cli::TestResultDetails::test_id</a></div><div class="ttdeci">std::string test_id</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00112">gui_automation_client.h:112</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestResultDetails_html_a31a5ba0df70e5a38e6e25fd2ab545bbb"><div class="ttname"><a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a31a5ba0df70e5a38e6e25fd2ab545bbb">yaze::cli::TestResultDetails::test_name</a></div><div class="ttdeci">std::string test_name</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00114">gui_automation_client.h:114</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestResultDetails_html_a5bebd5d7400eb39f6e139336bec2a38f"><div class="ttname"><a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#a5bebd5d7400eb39f6e139336bec2a38f">yaze::cli::TestResultDetails::logs</a></div><div class="ttdeci">std::vector&lt; std::string &gt; logs</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00119">gui_automation_client.h:119</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestResultDetails_html_acf561f9e261ad7a7af82fae1a25bdf1e"><div class="ttname"><a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#acf561f9e261ad7a7af82fae1a25bdf1e">yaze::cli::TestResultDetails::success</a></div><div class="ttdeci">bool success</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00113">gui_automation_client.h:113</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestResultDetails_html_afe3fc807a0cc6e2148a748df36670f92"><div class="ttname"><a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#afe3fc807a0cc6e2148a748df36670f92">yaze::cli::TestResultDetails::category</a></div><div class="ttdeci">std::string category</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00115">gui_automation_client.h:115</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestResultDetails_html_aff457eead402860cb1442c1fdf1249bd"><div class="ttname"><a href="../../d4/db9/structyaze_1_1cli_1_1TestResultDetails.html#aff457eead402860cb1442c1fdf1249bd">yaze::cli::TestResultDetails::duration_ms</a></div><div class="ttdeci">int duration_ms</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00117">gui_automation_client.h:117</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestStatusDetails_html"><div class="ttname"><a href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html">yaze::cli::TestStatusDetails</a></div><div class="ttdoc">Detailed information about an individual test execution.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00063">gui_automation_client.h:63</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestStatusDetails_html_a5837ea012862980773f0f3c7ec560fe6"><div class="ttname"><a href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#a5837ea012862980773f0f3c7ec560fe6">yaze::cli::TestStatusDetails::assertion_failures</a></div><div class="ttdeci">std::vector&lt; std::string &gt; assertion_failures</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00071">gui_automation_client.h:71</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestStatusDetails_html_a6446edb9578f3a6ede12d83695d94435"><div class="ttname"><a href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#a6446edb9578f3a6ede12d83695d94435">yaze::cli::TestStatusDetails::completed_at</a></div><div class="ttdeci">std::optional&lt; absl::Time &gt; completed_at</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00068">gui_automation_client.h:68</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestStatusDetails_html_aa7d05ced207e2f4a9d5fa264c5cdc1d0"><div class="ttname"><a href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#aa7d05ced207e2f4a9d5fa264c5cdc1d0">yaze::cli::TestStatusDetails::status</a></div><div class="ttdeci">TestRunStatus status</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00065">gui_automation_client.h:65</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestStatusDetails_html_ab21a7b7a25a86d9b30f8e2813d0c991d"><div class="ttname"><a href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#ab21a7b7a25a86d9b30f8e2813d0c991d">yaze::cli::TestStatusDetails::test_id</a></div><div class="ttdeci">std::string test_id</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00064">gui_automation_client.h:64</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestStatusDetails_html_ab4aafc338e3d2b8b8be1e87c2382bb04"><div class="ttname"><a href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#ab4aafc338e3d2b8b8be1e87c2382bb04">yaze::cli::TestStatusDetails::execution_time_ms</a></div><div class="ttdeci">int execution_time_ms</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00069">gui_automation_client.h:69</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestStatusDetails_html_acbc3cef5c19ae8b74ad0dc492edc3a86"><div class="ttname"><a href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#acbc3cef5c19ae8b74ad0dc492edc3a86">yaze::cli::TestStatusDetails::started_at</a></div><div class="ttdeci">std::optional&lt; absl::Time &gt; started_at</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00067">gui_automation_client.h:67</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestStatusDetails_html_ad30393de1b144432f146bafa0e8f47d9"><div class="ttname"><a href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#ad30393de1b144432f146bafa0e8f47d9">yaze::cli::TestStatusDetails::error_message</a></div><div class="ttdeci">std::string error_message</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00070">gui_automation_client.h:70</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1TestStatusDetails_html_afbfb69d94c0287f41beb01319e948821"><div class="ttname"><a href="../../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#afbfb69d94c0287f41beb01319e948821">yaze::cli::TestStatusDetails::queued_at</a></div><div class="ttdeci">std::optional&lt; absl::Time &gt; queued_at</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00066">gui_automation_client.h:66</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

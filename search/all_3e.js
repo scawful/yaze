@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['🛠️_20ide_20integration_0',['🛠️ IDE Integration',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md371',1,'']]],
-  ['🛠️_20technical_20improvements_1',['🛠️ Technical Improvements',['../d0/d30/md_README.html#autotoc_md1446',1,'']]]
+  ['🔬_0',['Windows - Experimental 🔬',['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html#autotoc_md1360',1,'']]]
 ];

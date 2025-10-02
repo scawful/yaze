@@ -1,6 +1,7 @@
 var namespaceyaze_1_1cli =
 [
     [ "anonymous_namespace{agent.cc}", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03.html", "dd/d48/namespaceyaze_1_1cli_1_1anonymous__namespace_02agent_8cc_03" ],
+    [ "anonymous_namespace{gui_automation_client.cc}", "d7/dbb/namespaceyaze_1_1cli_1_1anonymous__namespace_02gui__automation__client_8cc_03.html", null ],
     [ "anonymous_namespace{proposal_registry.cc}", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html", [
       [ "DetermineDefaultRoot", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a935048446d732782954cb7db885d3e71", null ]
     ] ],
@@ -45,6 +46,7 @@ var namespaceyaze_1_1cli =
     [ "ApplyPatch", "dd/d64/classyaze_1_1cli_1_1ApplyPatch.html", "dd/d64/classyaze_1_1cli_1_1ApplyPatch" ],
     [ "AsarPatch", "d7/d3f/classyaze_1_1cli_1_1AsarPatch.html", "d7/d3f/classyaze_1_1cli_1_1AsarPatch" ],
     [ "AsarPatchComponent", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent.html", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent" ],
+    [ "AssertionOutcome", "d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html", "d4/dae/structyaze_1_1cli_1_1AssertionOutcome" ],
     [ "AutomationResult", "d4/daf/structyaze_1_1cli_1_1AutomationResult.html", "d4/daf/structyaze_1_1cli_1_1AutomationResult" ],
     [ "Backup", "d5/d4f/classyaze_1_1cli_1_1Backup.html", "d5/d4f/classyaze_1_1cli_1_1Backup" ],
     [ "CommandHandler", "dd/d80/classyaze_1_1cli_1_1CommandHandler.html", "dd/d80/classyaze_1_1cli_1_1CommandHandler" ],
@@ -62,6 +64,8 @@ var namespaceyaze_1_1cli =
     [ "GfxExport", "dd/d8b/classyaze_1_1cli_1_1GfxExport.html", "dd/d8b/classyaze_1_1cli_1_1GfxExport" ],
     [ "GfxImport", "d2/d55/classyaze_1_1cli_1_1GfxImport.html", "d2/d55/classyaze_1_1cli_1_1GfxImport" ],
     [ "GuiAutomationClient", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient" ],
+    [ "HarnessTestSummary", "db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html", "db/d43/structyaze_1_1cli_1_1HarnessTestSummary" ],
+    [ "ListTestsResult", "d7/dce/structyaze_1_1cli_1_1ListTestsResult.html", "d7/dce/structyaze_1_1cli_1_1ListTestsResult" ],
     [ "MockAIService", "df/d18/classyaze_1_1cli_1_1MockAIService.html", "df/d18/classyaze_1_1cli_1_1MockAIService" ],
     [ "ModernCLI", "df/db9/classyaze_1_1cli_1_1ModernCLI.html", "df/db9/classyaze_1_1cli_1_1ModernCLI" ],
     [ "Open", "de/d8f/classyaze_1_1cli_1_1Open.html", "de/d8f/classyaze_1_1cli_1_1Open" ],
@@ -90,6 +94,8 @@ var namespaceyaze_1_1cli =
     [ "RomValidate", "d6/d8e/classyaze_1_1cli_1_1RomValidate.html", "d6/d8e/classyaze_1_1cli_1_1RomValidate" ],
     [ "SnesToPcCommand", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand.html", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand" ],
     [ "SpriteCreate", "da/d30/classyaze_1_1cli_1_1SpriteCreate.html", "da/d30/classyaze_1_1cli_1_1SpriteCreate" ],
+    [ "TestResultDetails", "d4/db9/structyaze_1_1cli_1_1TestResultDetails.html", "d4/db9/structyaze_1_1cli_1_1TestResultDetails" ],
+    [ "TestStatusDetails", "dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html", "dd/d5e/structyaze_1_1cli_1_1TestStatusDetails" ],
     [ "TestStep", "d6/d4b/structyaze_1_1cli_1_1TestStep.html", "d6/d4b/structyaze_1_1cli_1_1TestStep" ],
     [ "TestWorkflow", "de/d85/structyaze_1_1cli_1_1TestWorkflow.html", "de/d85/structyaze_1_1cli_1_1TestWorkflow" ],
     [ "TestWorkflowGenerator", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator.html", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator" ],
@@ -100,6 +106,14 @@ var namespaceyaze_1_1cli =
       [ "kRight", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2dd2b017192f8a09367d48c7648213c9", null ],
       [ "kMiddle", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2cab3199775e825c139b44e3e9ccf3cbc7e", null ],
       [ "kDouble", "dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca7fb3efa35444cd88d5a31dc125ca9c28", null ]
+    ] ],
+    [ "TestRunStatus", "dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536", [
+      [ "kUnknown", "dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a25c2dc47991b3df171ed5192bcf70390", null ],
+      [ "kQueued", "dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a023506f9e1203a14ea275f5e6acb2e1a", null ],
+      [ "kRunning", "dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a2fc7fbf0d19294f85dd3880460dd3c0a", null ],
+      [ "kPassed", "dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a2e1165dab7cbb5e985ea3b1e5d64f619", null ],
+      [ "kFailed", "dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536ab62fa3c9492b6dae76c23d6dfa466611", null ],
+      [ "kTimeout", "dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536a7f27861ff1d3f550c6aa77150d7edabd", null ]
     ] ],
     [ "PolicySeverity", "dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16", [
       [ "kInfo", "dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16a176a473e63c17ccdac91640c67f149bf", null ],

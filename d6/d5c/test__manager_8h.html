@@ -107,12 +107,18 @@ $(document).ready(function(){initNavTree('d6/d5c/test__manager_8h.html','../../'
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;chrono&gt;</code><br />
+<code>#include &lt;deque&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
+<code>#include &lt;map&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
+<code>#include &quot;absl/status/statusor.h&quot;</code><br />
+<code>#include &quot;absl/synchronization/mutex.h&quot;</code><br />
+<code>#include &quot;absl/strings/string_view.h&quot;</code><br />
+<code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
 <code>#include &quot;imgui.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d7f/log_8h_source.html">util/log.h</a>&quot;</code><br />
@@ -129,7 +135,13 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db6/structyaze_1_1test_1_1ResourceStats.html">yaze::test::ResourceStats</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dc3/structyaze_1_1test_1_1HarnessTestExecution.html">yaze::test::HarnessTestExecution</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d06/structyaze_1_1test_1_1HarnessTestSummary.html">yaze::test::HarnessTestSummary</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html">yaze::test::TestManager</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/structyaze_1_1test_1_1TestManager_1_1HarnessAggregate.html">yaze::test::TestManager::HarnessAggregate</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -165,6 +177,17 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:a0cda2abf7030eef1095ab53508a246ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d815abcfee12ca155f245c971134a8c" id="r_a0d815abcfee12ca155f245c971134a8c"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8c">yaze::test::HarnessTestStatus</a> { <br />
+&#160;&#160;<a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca8536661e94a42d4d95dcb9058b9936b5">yaze::test::kUnspecified</a>
+, <a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca023506f9e1203a14ea275f5e6acb2e1a">yaze::test::kQueued</a>
+, <a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca2fc7fbf0d19294f85dd3880460dd3c0a">yaze::test::kRunning</a>
+, <a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca2e1165dab7cbb5e985ea3b1e5d64f619">yaze::test::kPassed</a>
+, <br />
+&#160;&#160;<a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8cab62fa3c9492b6dae76c23d6dfa466611">yaze::test::kFailed</a>
+, <a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca7f27861ff1d3f550c6aa77150d7edabd">yaze::test::kTimeout</a>
+<br />
+ }</td></tr>
+<tr class="separator:a0d815abcfee12ca155f245c971134a8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>

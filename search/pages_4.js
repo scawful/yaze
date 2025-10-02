@@ -1,6 +1,20 @@
 var searchData=
 [
-  ['build_20instructions_0',['Build Instructions',['../d9/d41/md_docs_202-build-instructions.html',1,'']]],
-  ['build_20presets_20guide_1',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]],
-  ['build_20scripts_2',['yaze Build Scripts',['../de/d82/md_scripts_2README.html',1,'']]]
+  ['c_20vs_20yaze_20c_20overworld_20implementation_20analysis_0',['ZScream C# vs YAZE C++ Overworld Implementation Analysis',['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'']]],
+  ['canvas_20refactoring_20current_20status_20future_20work_1',['Canvas Refactoring - Current Status &amp; Future Work',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html',1,'']]],
+  ['canvas_20system_20comprehensive_20guide_2',['Canvas System - Comprehensive Guide',['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'']]],
+  ['card_3',['z3ed Quick Reference Card',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html',1,'']]],
+  ['changelog_4',['Changelog',['../d7/d6f/md_docs_2C1-changelog.html',1,'']]],
+  ['class_20performance_20analysis_20and_20optimization_5',['Renderer Class Performance Analysis and Optimization',['../dd/d7c/md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
+  ['cli_20architecture_20design_6',['z3ed CLI Architecture &amp; Design',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html',1,'']]],
+  ['cli_20for_20yaze_7',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
+  ['cli_20technical_20reference_8',['z3ed CLI Technical Reference',['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html',1,'']]],
+  ['compatibility_20improvements_9',['Platform Compatibility Improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'']]],
+  ['complete_20✅_10',['Policy Evaluation Framework - Implementation Complete ✅',['../d5/d7c/md_docs_2z3ed_2POLICY-IMPLEMENTATION-SUMMARY.html',1,'']]],
+  ['complete_20implementation_11',['YAZE Graphics System Optimizations - Complete Implementation',['../d6/df4/md_docs_2gfx__optimizations__complete.html',1,'']]],
+  ['comprehensive_20guide_12',['Canvas System - Comprehensive Guide',['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'']]],
+  ['comprehensive_20zscream_20vs_20yaze_20overworld_20analysis_13',['Comprehensive ZScream vs YAZE Overworld Analysis',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html',1,'']]],
+  ['contributing_14',['Contributing',['../dd/d5b/md_docs_2B1-contributing.html',1,'']]],
+  ['control_20agent_20workflows_15',['Remote Control Agent Workflows',['../d3/d61/md_docs_2z3ed_2REMOTE__CONTROL__WORKFLOWS.html',1,'']]],
+  ['current_20status_20future_20work_16',['Canvas Refactoring - Current Status &amp; Future Work',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html',1,'']]]
 ];
