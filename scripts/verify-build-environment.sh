@@ -86,7 +86,12 @@ check_command() {
 }
 
 get_cmake_version() {
-    cmake --version 2>/dev/null | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown"
+    local version=$(cmake --version 2>/dev/null | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+    if [ -n "$version" ]; then
+        echo "$version"
+    else
+        echo "unknown"
+    fi
 }
 
 check_git_submodules() {
@@ -248,15 +253,27 @@ start_time=$(date +%s)
 print_status step "Checking CMake installation..."
 if check_command cmake; then
     cmake_version=$(get_cmake_version)
-    print_status success "CMake found: version $cmake_version"
     
-    # Check version
-    major=$(echo "$cmake_version" | cut -d. -f1)
-    minor=$(echo "$cmake_version" | cut -d. -f2)
-    
-    if [ "$major" -lt 3 ] || ([ "$major" -eq 3 ] && [ "$minor" -lt 16 ]); then
-        print_status error "CMake version too old (need 3.16+)"
-        issues_found+=("CMake version $cmake_version is below minimum 3.16")
+    if [ "$cmake_version" != "unknown" ]; then
+        print_status success "CMake found: version $cmake_version"
+        
+        # Check version
+        major=$(echo "$cmake_version" | cut -d. -f1)
+        minor=$(echo "$cmake_version" | cut -d. -f2)
+        
+        # Validate that we got numeric values
+        if [[ "$major" =~ ^[0-9]+$ ]] && [[ "$minor" =~ ^[0-9]+$ ]]; then
+            if [ "$major" -lt 3 ] || ([ "$major" -eq 3 ] && [ "$minor" -lt 16 ]); then
+                print_status error "CMake version too old (need 3.16+)"
+                issues_found+=("CMake version $cmake_version is below minimum 3.16")
+            fi
+        else
+            print_status warning "Could not parse CMake version: $cmake_version"
+            warnings+=("Unable to verify CMake version requirement (need 3.16+)")
+        fi
+    else
+        print_status warning "CMake found but version could not be determined"
+        warnings+=("CMake version could not be parsed - ensure version 3.16+ is installed")
     fi
 else
     print_status error "CMake not found in PATH"
@@ -305,11 +322,24 @@ print_status step "Checking git submodules..."
 if check_git_submodules; then
     print_status success "All required submodules present"
 else
-    print_status error "Some submodules are missing"
+    print_status error "Some submodules are missing or empty"
     if [ $FIX_ISSUES -eq 1 ]; then
         sync_git_submodules
+        # Re-check after sync
+        if ! check_git_submodules; then
+            print_status warning "Submodule sync completed but some issues remain"
+        fi
     else
-        print_status info "Run with --fix to automatically sync submodules"
+        # Auto-fix without confirmation
+        print_status info "Automatically syncing submodules..."
+        if sync_git_submodules; then
+            print_status success "Submodules synced successfully"
+            # Re-check after sync
+            check_git_submodules
+        else
+            print_status error "Failed to sync submodules automatically"
+            print_status info "Run with --fix to try again, or manually run: git submodule update --init --recursive"
+        fi
     fi
 fi
 
@@ -318,9 +348,22 @@ print_status step "Checking CMake cache..."
 if check_cmake_cache; then
     print_status success "CMake cache is up to date"
 else
-    if [ $CLEAN_CACHE -eq 1 ] || [ $FIX_ISSUES -eq 1 ]; then
+    if [ $CLEAN_CACHE -eq 1 ]; then
         clean_cmake_cache
+    elif [ $FIX_ISSUES -eq 1 ]; then
+        # Ask for confirmation before cleaning cache
+        echo ""
+        echo -e "${YELLOW}CMake cache is older than 7 days. Clean it?${NC}"
+        echo -e "${CYAN}This will remove build/, build_test/, and build-grpc-test/ directories.${NC}"
+        read -p "Continue? (Y/n) " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+            clean_cmake_cache
+        else
+            print_status info "Skipping cache clean"
+        fi
     else
+        print_status warning "CMake cache is older than 7 days (consider cleaning)"
         print_status info "Run with --clean to remove old cache files"
     fi
 fi

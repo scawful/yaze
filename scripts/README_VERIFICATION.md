@@ -26,22 +26,27 @@ Comprehensive build environment verification script that checks:
 - ✅ **Git Installation** - With submodule support
 - ✅ **C++ Compiler** - GCC 13+, Clang 16+, or MSVC 2019+
 - ✅ **Platform Tools** - Xcode (macOS), Visual Studio (Windows), build-essential (Linux)
-- ✅ **Git Submodules** - All dependencies synchronized
+- ✅ **Git Submodules** - All dependencies synchronized (auto-fixes if missing/empty)
 - ✅ **CMake Cache** - Freshness check (warns if >7 days old)
 - ✅ **Dependency Compatibility** - gRPC isolation, httplib, nlohmann/json
 - ✅ **CMake Configuration** - Test configuration (verbose mode only)
+
+**Automatic Fixes:**
+The script now automatically fixes common issues without requiring `-FixIssues`:
+- 🔧 **Missing/Empty Submodules** - Automatically runs `git submodule update --init --recursive`
+- 🔧 **Old CMake Cache** - Prompts for confirmation when using `-FixIssues` (auto-skips otherwise)
 
 #### Usage
 
 **Windows:**
 ```powershell
-# Basic verification
+# Basic verification (auto-fixes submodules)
 .\scripts\verify-build-environment.ps1
 
-# With automatic fixes (sync submodules, clean cache)
+# With interactive fixes (prompts for cache cleaning)
 .\scripts\verify-build-environment.ps1 -FixIssues
 
-# Clean old CMake cache files
+# Force clean old CMake cache (no prompts)
 .\scripts\verify-build-environment.ps1 -CleanCache
 
 # Verbose output (includes CMake configuration test)
@@ -53,13 +58,13 @@ Comprehensive build environment verification script that checks:
 
 **macOS/Linux:**
 ```bash
-# Basic verification
+# Basic verification (auto-fixes submodules)
 ./scripts/verify-build-environment.sh
 
-# With automatic fixes
+# With interactive fixes (prompts for cache cleaning)
 ./scripts/verify-build-environment.sh --fix
 
-# Clean old CMake cache files
+# Force clean old CMake cache (no prompts)
 ./scripts/verify-build-environment.sh --clean
 
 # Verbose output
@@ -134,6 +139,45 @@ cmake --build build
 
 # Should report: "Build Environment Ready for Development!"
 ```
+
+## Automatic Fixes
+
+The script automatically fixes common issues when detected:
+
+### Always Auto-Fixed (No Confirmation Required)
+
+1. **Missing/Empty Git Submodules**
+   ```bash
+   git submodule sync --recursive
+   git submodule update --init --recursive
+   ```
+   - Runs automatically when submodules are missing or empty
+   - No user confirmation required
+   - Re-verifies after sync to ensure success
+
+### Fixed with `-FixIssues` / `--fix` Flag
+
+2. **Clean Old CMake Cache** (with confirmation prompt)
+   - Prompts user before removing build directories
+   - Only when cache is older than 7 days
+   - User can choose to skip
+
+### Fixed with `-CleanCache` / `--clean` Flag
+
+3. **Force Clean CMake Cache** (no confirmation)
+   - Removes `build/`, `build_test/`, `build-grpc-test/`
+   - Removes Visual Studio cache (`out/`)
+   - No prompts, immediate cleanup
+
+### Optional Verbose Tests
+
+When run with `--verbose` or `-Verbose`:
+
+4. **Test CMake Configuration**
+   - Creates temporary build directory
+   - Tests minimal configuration
+   - Reports success/failure
+   - Cleans up test directory
 
 ## Integration with Visual Studio
 
