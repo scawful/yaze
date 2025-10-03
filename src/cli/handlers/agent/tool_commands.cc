@@ -45,7 +45,7 @@ absl::StatusOr<Rom> LoadRomFromFlag() {
 }  // namespace
 
 absl::Status HandleResourceListCommand(
-    const std::vector<std::string>& arg_vec) {
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
   std::string type;
   std::string format = "table";
 
@@ -73,13 +73,20 @@ absl::Status HandleResourceListCommand(
         "Usage: agent resource-list --type <type> [--format <table|json>]");
   }
 
-  auto rom_or = LoadRomFromFlag();
-  if (!rom_or.ok()) {
-    return rom_or.status();
+  Rom rom_storage;
+  Rom* rom = nullptr;
+  if (rom_context != nullptr && rom_context->is_loaded()) {
+    rom = rom_context;
+  } else {
+    auto rom_or = LoadRomFromFlag();
+    if (!rom_or.ok()) {
+      return rom_or.status();
+    }
+    rom_storage = std::move(rom_or.value());
+    rom = &rom_storage;
   }
-  Rom rom = std::move(rom_or.value());
 
-  ResourceContextBuilder context_builder(&rom);
+  ResourceContextBuilder context_builder(rom);
   auto labels_or = context_builder.GetLabels(type);
   if (!labels_or.ok()) {
     return labels_or.status();
@@ -108,7 +115,7 @@ absl::Status HandleResourceListCommand(
 }
 
 absl::Status HandleDungeonListSpritesCommand(
-    const std::vector<std::string>& arg_vec) {
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
   std::string room_id_str;
   std::string format = "table";
 
@@ -142,13 +149,20 @@ absl::Status HandleDungeonListSpritesCommand(
         "Invalid room ID format. Must be hex.");
   }
 
-  auto rom_or = LoadRomFromFlag();
-  if (!rom_or.ok()) {
-    return rom_or.status();
+  Rom rom_storage;
+  Rom* rom = nullptr;
+  if (rom_context != nullptr && rom_context->is_loaded()) {
+    rom = rom_context;
+  } else {
+    auto rom_or = LoadRomFromFlag();
+    if (!rom_or.ok()) {
+      return rom_or.status();
+    }
+    rom_storage = std::move(rom_or.value());
+    rom = &rom_storage;
   }
-  Rom rom = std::move(rom_or.value());
 
-  auto room = zelda3::LoadRoomFromRom(&rom, room_id);
+  auto room = zelda3::LoadRoomFromRom(rom, room_id);
   const auto& sprites = room.GetSprites();
 
   if (format == "json") {

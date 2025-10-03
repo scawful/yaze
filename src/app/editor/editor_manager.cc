@@ -933,6 +933,10 @@ absl::Status EditorManager::Update() {
   }
 #ifdef YAZE_WITH_GRPC
   if (show_agent_chat_widget_) {
+    Rom* rom_context =
+        (current_rom_ != nullptr && current_rom_->is_loaded()) ? current_rom_
+                                                               : nullptr;
+    agent_chat_widget_.SetRomContext(rom_context);
     agent_chat_widget_.Draw();
   }
 #endif

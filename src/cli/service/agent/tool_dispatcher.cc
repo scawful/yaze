@@ -35,9 +35,9 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(
 
   absl::Status status;
   if (tool_call.tool_name == "resource-list") {
-    status = HandleResourceListCommand(args);
+    status = HandleResourceListCommand(args, rom_context_);
   } else if (tool_call.tool_name == "dungeon-list-sprites") {
-    status = HandleDungeonListSpritesCommand(args);
+    status = HandleDungeonListSpritesCommand(args, rom_context_);
   } else {
     status = absl::UnimplementedError(
         absl::StrFormat("Unknown tool: %s", tool_call.tool_name));

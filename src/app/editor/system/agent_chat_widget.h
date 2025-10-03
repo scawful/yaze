@@ -6,6 +6,9 @@
 #include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {
+
+class Rom;
+
 namespace editor {
 
 class AgentChatWidget {
@@ -13,6 +16,8 @@ class AgentChatWidget {
   AgentChatWidget();
  
   void Draw();
+
+  void SetRomContext(Rom* rom);
 
   bool* active() { return &active_; }
   void set_active(bool active) { active_ = active; }
@@ -22,6 +27,7 @@ class AgentChatWidget {
   char input_buffer_[1024];
   bool active_ = false;
   std::string title_;
+  size_t last_history_size_ = 0;
 };
 
 }  // namespace editor
