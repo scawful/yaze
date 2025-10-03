@@ -163,6 +163,17 @@ if(NOT YAZE_MINIMAL_BUILD AND YAZE_ENABLE_ROM_TESTS AND NOT DEFINED ENV{GITHUB_A
     ImGui
   )
   
+  # Windows stack size configuration for extract_vanilla_values
+  if(WIN32)
+    if(MSVC)
+      target_link_options(extract_vanilla_values PRIVATE /STACK:16777216)
+    elseif(MINGW OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      target_link_options(extract_vanilla_values PRIVATE -Wl,--stack,16777216)
+    else()
+      target_link_options(extract_vanilla_values PRIVATE -Wl,--stack,16777216)
+    endif()
+  endif()
+  
   # Add rom_patch_utility as a separate executable
   add_executable(
     rom_patch_utility
@@ -196,6 +207,17 @@ if(NOT YAZE_MINIMAL_BUILD AND YAZE_ENABLE_ROM_TESTS AND NOT DEFINED ENV{GITHUB_A
     ${CMAKE_DL_LIBS}
     ImGui
   )
+  
+  # Windows stack size configuration for rom_patch_utility
+  if(WIN32)
+    if(MSVC)
+      target_link_options(rom_patch_utility PRIVATE /STACK:16777216)
+    elseif(MINGW OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      target_link_options(rom_patch_utility PRIVATE -Wl,--stack,16777216)
+    else()
+      target_link_options(rom_patch_utility PRIVATE -Wl,--stack,16777216)
+    endif()
+  endif()
 endif()
 
   # Configure test executable only when tests are enabled
@@ -256,12 +278,18 @@ endif()
   elseif(WIN32)
       target_compile_definitions(yaze_test PRIVATE "WINDOWS")
       # Increase stack size on Windows to prevent stack overflow during tests
+      # Use 16MB stack to handle deep call stacks in tests and test discovery
+      message(STATUS "Configuring Windows stack size for yaze_test to 16MB")
       if(MSVC)
-        target_link_options(yaze_test PRIVATE /STACK:8388608)  # 8MB stack
-      elseif(MINGW)
-        target_link_options(yaze_test PRIVATE -Wl,--stack,8388608)
+        target_link_options(yaze_test PRIVATE /STACK:16777216)  # 16MB stack
+        message(STATUS "  Using MSVC linker flag: /STACK:16777216")
+      elseif(MINGW OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_link_options(yaze_test PRIVATE -Wl,--stack,16777216)  # 16MB stack
+        message(STATUS "  Using MinGW/GNU linker flag: -Wl,--stack,16777216")
       else()
-        target_link_options(yaze_test PRIVATE -Wl,-w)
+        # Fallback for other compilers
+        target_link_options(yaze_test PRIVATE -Wl,--stack,16777216)
+        message(STATUS "  Using fallback linker flag: -Wl,--stack,16777216")
       endif()
   endif()
 endif()
@@ -272,7 +300,17 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
   include(GoogleTest)
   
   # Discover all tests with default properties
-  gtest_discover_tests(yaze_test)
+  # On Windows, use NO_PRETTY_TYPES and increased timeout to prevent stack overflow during discovery
+  if(WIN32)
+    gtest_discover_tests(yaze_test
+      DISCOVERY_TIMEOUT 60
+      NO_PRETTY_TYPES
+      PROPERTIES
+        TIMEOUT 300
+    )
+  else()
+    gtest_discover_tests(yaze_test)
+  endif()
 else()
   # Tests are disabled - don't build test executable or discover tests
   message(STATUS "Tests disabled - skipping test executable and discovery")
