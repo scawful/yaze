@@ -1,4 +1,4 @@
-#include "cli/service/ai_service.h"
+#include "cli/service/ai/ai_service.h"
 
 namespace yaze {
 namespace cli {

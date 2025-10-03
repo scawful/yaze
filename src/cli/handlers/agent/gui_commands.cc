@@ -13,7 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
 #include "cli/handlers/agent/common.h"
-#include "cli/service/gui_automation_client.h"
+#include "cli/service/gui/gui_automation_client.h"
 #include "util/macro.h"
 
 namespace yaze {

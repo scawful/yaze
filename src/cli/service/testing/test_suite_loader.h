@@ -5,7 +5,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
-#include "cli/service/test_suite.h"
+#include "cli/service/testing/test_suite.h"
 
 namespace yaze {
 namespace cli {

@@ -6,8 +6,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "cli/service/ai_service.h"
-#include "cli/service/prompt_builder.h"
+#include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/prompt_builder.h"
 
 namespace yaze {
 namespace cli {

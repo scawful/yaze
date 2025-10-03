@@ -8,11 +8,11 @@
 #include "absl/time/time.h"
 #include "imgui/imgui.h"
 #include "app/gui/icons.h"
-#include "cli/service/rom_sandbox_manager.h"
+#include "cli/service/rom/rom_sandbox_manager.h"
 
 // Policy evaluation support (optional, only in main yaze build)
 #ifdef YAZE_ENABLE_POLICY_FRAMEWORK
-#include "cli/service/policy_evaluator.h"
+#include "cli/service/planning/policy_evaluator.h"
 #endif
 
 namespace yaze {

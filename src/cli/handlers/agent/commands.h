@@ -17,6 +17,7 @@ absl::Status HandleRunCommand(const std::vector<std::string>& args,
 absl::Status HandlePlanCommand(const std::vector<std::string>& args);
 absl::Status HandleDiffCommand(Rom& rom,
 							   const std::vector<std::string>& args);
+absl::Status HandleAcceptCommand(const std::vector<std::string>& args, Rom& rom);
 absl::Status HandleTestCommand(const std::vector<std::string>& args);
 absl::Status HandleGuiCommand(const std::vector<std::string>& args);
 absl::Status HandleLearnCommand();

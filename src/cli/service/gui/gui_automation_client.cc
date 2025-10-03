@@ -1,7 +1,7 @@
 // gui_automation_client.cc
 // Implementation of gRPC client for YAZE GUI automation
 
-#include "cli/service/gui_automation_client.h"
+#include "cli/service/gui/gui_automation_client.h"
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"

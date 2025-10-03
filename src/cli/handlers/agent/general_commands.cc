@@ -18,12 +18,13 @@
 #include "absl/strings/str_replace.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/modern_cli.h"
-#include "cli/service/ai_service.h"
-#include "cli/service/ollama_ai_service.h"
-#include "cli/service/gemini_ai_service.h"
-#include "cli/service/proposal_registry.h"
-#include "cli/service/resource_catalog.h"
-#include "cli/service/rom_sandbox_manager.h"
+#include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/ollama_ai_service.h"
+#include "cli/service/ai/gemini_ai_service.h"
+#include "cli/service/planning/proposal_registry.h"
+#include "cli/service/planning/tile16_proposal_generator.h"
+#include "cli/service/resources/resource_catalog.h"
+#include "cli/service/rom/rom_sandbox_manager.h"
 #include "cli/z3ed.h"
 #include "util/macro.h"
 
@@ -174,109 +175,84 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
     if (rom_path.empty()) {
       return absl::FailedPreconditionError(
           "No ROM loaded. Use --rom=<path> to specify ROM file.\n"
-          "Example: z3ed agent run --rom=zelda3.sfc --prompt \"Your prompt here\"");
+          "Example: z3ed agent run --rom=zelda3.sfc --prompt \"Your prompt "
+          "here\"");
     }
 
     auto status = rom.LoadFromFile(rom_path);
     if (!status.ok()) {
-      return absl::FailedPreconditionError(
-          absl::StrFormat("Failed to load ROM from '%s': %s", rom_path,
-                          status.message()));
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Failed to load ROM from '%s': %s", rom_path, status.message()));
     }
   }
 
-  auto sandbox_or = RomSandboxManager::Instance().CreateSandbox(rom,
-                                                                "agent-run");
+  // 1. Create a sandbox ROM to apply changes to
+  auto sandbox_or =
+      RomSandboxManager::Instance().CreateSandbox(rom, "agent-run");
   if (!sandbox_or.ok()) {
     return sandbox_or.status();
   }
   auto sandbox = sandbox_or.value();
 
-  auto proposal_or = ProposalRegistry::Instance().CreateProposal(
-      sandbox.id, prompt, "Agent-generated ROM modifications");
+  // 2. Get commands from the AI service
+  auto ai_service = CreateAIService(); // Use service factory
+  auto commands_or = ai_service->GetCommands(prompt);
+  if (!commands_or.ok()) {
+    return commands_or.status();
+  }
+  std::vector<std::string> commands = commands_or.value();
+
+  // 3. Generate a structured proposal from the commands
+  Tile16ProposalGenerator generator;
+  auto proposal_or = generator.GenerateFromCommands(
+      prompt, commands, "ollama", &rom); // Pass original ROM to get old tiles
   if (!proposal_or.ok()) {
     return proposal_or.status();
   }
   auto proposal = proposal_or.value();
 
-  RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
-      proposal.id, absl::StrCat("Starting agent run with prompt: ", prompt)));
-
-  auto ai_service = CreateAIService();  // Use service factory
-  auto commands_or = ai_service->GetCommands(prompt);
-  if (!commands_or.ok()) {
-    RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
-        proposal.id,
-        absl::StrCat("AI service error: ", commands_or.status().message())));
-    return commands_or.status();
-  }
-  std::vector<std::string> commands = commands_or.value();
-
-  RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
-      proposal.id, absl::StrCat("Generated ", commands.size(),
-                                " commands")));
-
-  ModernCLI cli;
-  int commands_executed = 0;
-  for (const auto& command : commands) {
-    RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
-        proposal.id, absl::StrCat("Executing: ", command)));
-
-    std::vector<std::string> command_parts;
-    std::string current_part;
-    bool in_quotes = false;
-    for (char c : command) {
-      if (c == '"') {
-        in_quotes = !in_quotes;
-      } else if (c == ' ' && !in_quotes) {
-        command_parts.push_back(current_part);
-        current_part.clear();
-      } else {
-        current_part += c;
-      }
-    }
-    command_parts.push_back(current_part);
-
-    if (command_parts.size() < 2) {
-      auto error_msg = absl::StrFormat("Malformed command: %s", command);
-      RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(proposal.id,
-                                                             error_msg));
-      return absl::InvalidArgumentError(error_msg);
-    }
-
-    std::string cmd_name = command_parts[0] + " " + command_parts[1];
-    std::vector<std::string> cmd_args(command_parts.begin() + 2,
-                                      command_parts.end());
-
-    auto it = cli.commands_.find(cmd_name);
-    if (it != cli.commands_.end()) {
-      auto status = it->second.handler(cmd_args);
-      if (!status.ok()) {
-        RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
-            proposal.id, absl::StrCat("Command failed: ", status.message())));
-        return status;
-      }
-      commands_executed++;
-      RETURN_IF_ERROR(
-          ProposalRegistry::Instance().AppendLog(proposal.id,
-                                                 "Command succeeded"));
-    } else {
-      auto error_msg = absl::StrCat("Unknown command: ", cmd_name);
-      RETURN_IF_ERROR(
-          ProposalRegistry::Instance().AppendLog(proposal.id, error_msg));
-      return absl::NotFoundError(error_msg);
-    }
+  // 4. Apply the proposal to the sandbox ROM for preview
+  Rom sandbox_rom;
+  auto load_status = sandbox_rom.LoadFromFile(sandbox.rom_path.string());
+  if (!load_status.ok()) {
+    return absl::InternalError(absl::StrCat(
+        "Failed to load sandbox ROM: ", load_status.message()));
   }
 
-  RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
-      proposal.id,
-      absl::StrCat("Completed execution of ", commands_executed,
-                   " commands")));
+  auto apply_status = generator.ApplyProposal(proposal, &sandbox_rom);
+  if (!apply_status.ok()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to apply proposal to sandbox ROM: ",
+                     apply_status.message()));
+  }
 
-  std::cout << "✅ Agent run completed successfully." << std::endl;
+  // 5. Save the sandbox ROM to persist the changes for diffing
+  auto save_status = sandbox_rom.SaveToFile({.save_new = false});
+  if (!save_status.ok()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to save sandbox ROM: ", save_status.message()));
+  }
+
+  // 6. Save the proposal metadata for later use (accept/reject)
+  // For now, we'll just use the proposal generator's save function.
+  // A better approach would be to integrate with ProposalRegistry.
+  auto proposal_path =
+      RomSandboxManager::Instance().RootDirectory() / (proposal.id + ".json");
+  auto save_proposal_status = generator.SaveProposal(proposal, proposal_path.string());
+  if (!save_proposal_status.ok()) {
+    return absl::InternalError(absl::StrCat("Failed to save proposal file: ",
+                                           save_proposal_status.message()));
+  }
+
+  std::cout << "✅ Agent successfully planned and executed changes in a sandbox."
+            << std::endl;
   std::cout << "   Proposal ID: " << proposal.id << std::endl;
-  std::cout << "   Sandbox: " << sandbox.rom_path << std::endl;
-  std::cout << "   Use 'z3ed agent diff' to review changes" << std::endl;
+  std::cout << "   Sandbox ROM: " << sandbox.rom_path << std::endl;
+  std::cout << "   Proposal file: " << proposal_path << std::endl;
+  std::cout << "\nTo review the changes, run:\n";
+  std::cout << "  z3ed agent diff --proposal-id " << proposal.id << std::endl;
+  std::cout << "\nTo accept the changes, run:\n";
+  std::cout << "  z3ed agent accept --proposal-id " << proposal.id << std::endl;
 
   return absl::OkStatus();
 }
@@ -294,10 +270,20 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& arg_vec) {
   }
   std::vector<std::string> commands = commands_or.value();
 
-  std::cout << "AI Agent Plan:" << std::endl;
-  for (const auto& command : commands) {
-    std::cout << "  - " << command << std::endl;
+  // Create a proposal from the commands
+  Tile16ProposalGenerator generator;
+  auto proposal_or =
+      generator.GenerateFromCommands(prompt, commands, "ollama", nullptr);
+  if (!proposal_or.ok()) {
+    return proposal_or.status();
   }
+  auto proposal = proposal_or.value();
+
+  // TODO: Save the proposal to disk using ProposalRegistry
+  // For now, just print it.
+  std::cout << "AI Agent Plan (Proposal ID: " << proposal.id << "):\n";
+  std::cout << proposal.ToJson() << std::endl;
+
   return absl::OkStatus();
 }
 
@@ -539,6 +525,56 @@ absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec) {
   }
 
   std::cout << payload << std::endl;
+  return absl::OkStatus();
+}
+
+absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,
+                                 Rom& rom) {
+  if (arg_vec.empty() || arg_vec[0] != "--proposal-id") {
+    return absl::InvalidArgumentError(
+        "Usage: agent accept --proposal-id <proposal_id>");
+  }
+  std::string proposal_id = arg_vec[1];
+
+  // 1. Load the proposal from disk.
+  Tile16ProposalGenerator generator;
+  auto proposal_path =
+      RomSandboxManager::Instance().RootDirectory() / (proposal_id + ".json");
+  auto proposal_or = generator.LoadProposal(proposal_path.string());
+  if (!proposal_or.ok()) {
+    return absl::InternalError(absl::StrCat("Failed to load proposal file '",
+                                           proposal_path.string(),
+                                           "': ", proposal_or.status().message()));
+  }
+  auto proposal = proposal_or.value();
+
+  // 2. Ensure the main ROM is loaded.
+  if (!rom.is_loaded()) {
+    return absl::FailedPreconditionError(
+        "No ROM loaded. Use --rom=<path> to specify the ROM to apply changes to.");
+  }
+
+  // 3. Apply the proposal to the main ROM.
+  auto apply_status = generator.ApplyProposal(proposal, &rom);
+  if (!apply_status.ok()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to apply proposal to main ROM: ",
+                     apply_status.message()));
+  }
+
+  // 4. Save the changes to the main ROM file.
+  auto save_status = rom.SaveToFile({.save_new = false});
+  if (!save_status.ok()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to save changes to main ROM: ",
+                     save_status.message()));
+  }
+
+  std::cout << "✅ Proposal '" << proposal_id << "' accepted and applied to '"
+            << rom.filename() << "'." << std::endl;
+
+  // TODO: Clean up sandbox and proposal files.
+
   return absl::OkStatus();
 }
 

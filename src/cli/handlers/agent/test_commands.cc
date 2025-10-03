@@ -9,8 +9,8 @@
 #include "cli/handlers/agent/common.h"
 
 #ifdef YAZE_WITH_GRPC
-#include "cli/service/gui_automation_client.h"
-#include "cli/service/test_workflow_generator.h"
+#include "cli/service/gui/gui_automation_client.h"
+#include "cli/service/testing/test_workflow_generator.h"
 #endif
 
 namespace yaze {

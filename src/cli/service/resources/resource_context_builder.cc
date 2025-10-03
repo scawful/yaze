@@ -1,4 +1,4 @@
-#include "cli/service/resource_context_builder.h"
+#include "cli/service/resources/resource_context_builder.h"
 
 #include <sstream>
 
