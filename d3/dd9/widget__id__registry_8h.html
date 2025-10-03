@@ -105,40 +105,28 @@ $(document).ready(function(){initNavTree('d3/dd9/widget__id__registry_8h.html','
   <div class="headertitle"><div class="title">widget_id_registry.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;string&gt;</code><br />
+<div class="textblock"><code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
+<code>#include &quot;absl/strings/string_view.h&quot;</code><br />
+<code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &quot;imgui/imgui.h&quot;</code><br />
-</div><div class="textblock"><div class="dynheader">
-Include dependency graph for widget_id_registry.h:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d6/da5/widget__id__registry_8h__incl.png" border="0" usemap="#asrc_2app_2gui_2widget__id__registry_8h" alt=""/></div>
-<map name="asrc_2app_2gui_2widget__id__registry_8h" id="asrc_2app_2gui_2widget__id__registry_8h">
-<area shape="rect" title=" " alt="" coords="127,5,254,46"/>
-<area shape="rect" title=" " alt="" coords="5,94,59,120"/>
-<area shape="poly" title=" " alt="" coords="152,49,71,89,69,84,150,44"/>
-<area shape="rect" title=" " alt="" coords="82,94,193,120"/>
-<area shape="poly" title=" " alt="" coords="180,48,156,83,152,80,175,45"/>
-<area shape="rect" title=" " alt="" coords="217,94,274,120"/>
-<area shape="poly" title=" " alt="" coords="206,45,230,79,226,83,202,48"/>
-<area shape="rect" title=" " alt="" coords="298,94,395,120"/>
-<area shape="poly" title=" " alt="" coords="231,44,310,84,308,89,228,49"/>
-</map>
-</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d4/da3/widget__id__registry_8h__dep__incl.png" border="0" usemap="#asrc_2app_2gui_2widget__id__registry_8hdep" alt=""/></div>
 <map name="asrc_2app_2gui_2widget__id__registry_8hdep" id="asrc_2app_2gui_2widget__id__registry_8hdep">
-<area shape="rect" title=" " alt="" coords="233,5,361,46"/>
-<area shape="rect" href="../../d6/d6a/widget__discovery__service_8h.html" title=" " alt="" coords="9,94,193,135"/>
-<area shape="poly" title=" " alt="" coords="240,55,147,96,145,91,238,50"/>
-<area shape="rect" href="../../d9/d8a/overworld__editor_8cc.html" title=" " alt="" coords="217,94,377,135"/>
-<area shape="poly" title=" " alt="" coords="300,62,300,94,294,94,294,62"/>
-<area shape="rect" href="../../d3/d10/widget__id__registry_8cc.html" title=" " alt="" coords="401,94,529,135"/>
-<area shape="poly" title=" " alt="" coords="350,51,428,91,426,96,347,56"/>
-<area shape="rect" href="../../d3/dfc/widget__discovery__service_8cc.html" title=" " alt="" coords="5,183,197,223"/>
-<area shape="poly" title=" " alt="" coords="104,150,104,182,98,182,98,150"/>
+<area shape="rect" title=" " alt="" coords="323,5,450,46"/>
+<area shape="rect" href="../../da/d0c/controller_8cc.html" title=" " alt="" coords="5,102,173,127"/>
+<area shape="poly" title=" " alt="" coords="308,52,132,103,130,98,307,47"/>
+<area shape="rect" href="../../d6/d6a/widget__discovery__service_8h.html" title=" " alt="" coords="197,94,381,135"/>
+<area shape="poly" title=" " alt="" coords="355,58,313,96,309,92,351,54"/>
+<area shape="rect" href="../../d9/d8a/overworld__editor_8cc.html" title=" " alt="" coords="405,94,565,135"/>
+<area shape="poly" title=" " alt="" coords="422,54,464,92,461,96,418,58"/>
+<area shape="rect" href="../../d3/d10/widget__id__registry_8cc.html" title=" " alt="" coords="589,94,717,135"/>
+<area shape="poly" title=" " alt="" coords="462,49,593,91,592,96,461,54"/>
 </map>
 </div>
 </div>
@@ -151,6 +139,10 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html">yaze::gui::WidgetIdRegistry</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Centralized registry for discoverable GUI widgets.  <a href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html">yaze::gui::WidgetIdRegistry::WidgetBounds</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html">yaze::gui::WidgetIdRegistry::WidgetMetadata</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/db7/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetInfo.html">yaze::gui::WidgetIdRegistry::WidgetInfo</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -190,7 +182,7 @@ Macros</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00105">105</a> of file <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html">widget_id_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00149">149</a> of file <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html">widget_id_registry.h</a>.</p>
 
 </div>
 </div>
@@ -227,7 +219,7 @@ Macros</h2></td></tr>
 <div class="line">    }                                                                          \</div>
 <div class="line">  } <span class="keywordflow">while</span> (0)</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00108">108</a> of file <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html">widget_id_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00152">152</a> of file <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html">widget_id_registry.h</a>.</p>
 
 </div>
 </div>
@@ -255,7 +247,7 @@ Macros</h2></td></tr>
 <div class="line">    }                                                                          \</div>
 <div class="line">  } <span class="keywordflow">while</span> (0)</div>
 </div><!-- fragment -->
-<p class="definition">Definition at line <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00119">119</a> of file <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html">widget_id_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00163">163</a> of file <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html">widget_id_registry.h</a>.</p>
 
 </div>
 </div>

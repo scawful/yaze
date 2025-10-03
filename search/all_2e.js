@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🎉_20strong_20massive_20performance_20improvements_20achieved_20strong_0',['🎉 &lt;strong&gt;Massive Performance Improvements Achieved!&lt;/strong&gt;',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html#autotoc_md202',1,'']]]
+  ['�_20in_20progress_20—_20telemetry_20available_0',['Widget Discovery (IT-06) � IN PROGRESS — telemetry available',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1573',1,'']]]
 ];

@@ -13,6 +13,12 @@ var namespaceyaze_1_1core =
       [ "ParseFloat", "de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#a0369272ce2752af89286d11b1477d29c", null ],
       [ "ParseStringList", "de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#a8990b1b4fa967540cf11979bcaec8a7d", null ]
     ] ],
+    [ "anonymous_namespace{widget_state_capture.cc}", "d5/dd1/namespaceyaze_1_1core_1_1anonymous__namespace_02widget__state__capture_8cc_03.html", [
+      [ "EscapeJsonString", "d5/dd1/namespaceyaze_1_1core_1_1anonymous__namespace_02widget__state__capture_8cc_03.html#a47bd14908358bda6b3cf9fe0cd095a92", null ],
+      [ "BoolToJson", "d5/dd1/namespaceyaze_1_1core_1_1anonymous__namespace_02widget__state__capture_8cc_03.html#a1ab981120c71e813fb69880db5c5e626", null ],
+      [ "FormatFloat", "d5/dd1/namespaceyaze_1_1core_1_1anonymous__namespace_02widget__state__capture_8cc_03.html#aa0da7cf3c3d6df4effb940215596dc92", null ],
+      [ "FormatFloatCompact", "d5/dd1/namespaceyaze_1_1core_1_1anonymous__namespace_02widget__state__capture_8cc_03.html#ad52f4714ac10570d596eed861dc72604", null ]
+    ] ],
     [ "AsarPatchResult", "de/d0c/structyaze_1_1core_1_1AsarPatchResult.html", "de/d0c/structyaze_1_1core_1_1AsarPatchResult" ],
     [ "AsarSymbol", "de/da4/structyaze_1_1core_1_1AsarSymbol.html", "de/da4/structyaze_1_1core_1_1AsarSymbol" ],
     [ "AsarWrapper", "da/dd2/classyaze_1_1core_1_1AsarWrapper.html", "da/dd2/classyaze_1_1core_1_1AsarWrapper" ],

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🔬_0',['Windows - Experimental 🔬',['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html#autotoc_md1348',1,'']]]
+  ['🔜_20planned_0',['🔜 planned',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1572',1,'Test Introspection (IT-05) 🔜 PLANNED'],['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1574',1,'Test Recording (IT-07) 🔜 PLANNED']]]
 ];

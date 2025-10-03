@@ -21,6 +21,6 @@ var dir_8fca90320bcc7393a52982c8dc104a2a =
     [ "style.h", "de/d12/style_8h.html", "de/d12/style_8h" ],
     [ "theme_manager.cc", "dd/d4c/theme__manager_8cc.html", "dd/d4c/theme__manager_8cc" ],
     [ "theme_manager.h", "d8/d65/theme__manager_8h.html", "d8/d65/theme__manager_8h" ],
-    [ "widget_id_registry.cc", "d3/d10/widget__id__registry_8cc.html", null ],
+    [ "widget_id_registry.cc", "d3/d10/widget__id__registry_8cc.html", "d3/d10/widget__id__registry_8cc" ],
     [ "widget_id_registry.h", "d3/dd9/widget__id__registry_8h.html", "d3/dd9/widget__id__registry_8h" ]
 ];

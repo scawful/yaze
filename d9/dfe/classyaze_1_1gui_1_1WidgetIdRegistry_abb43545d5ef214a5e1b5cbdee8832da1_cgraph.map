@@ -1,0 +1,8 @@
+<map id="yaze::gui::WidgetIdRegistry::RegisterWidget" name="yaze::gui::WidgetIdRegistry::RegisterWidget">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,180,46"/>
+<area shape="rect" id="Node000002" href="$d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="450,5,624,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,20,228,19,402,19,434,20,434,25,402,24,228,24,180,25"/>
+<area shape="rect" id="Node000003" href="$d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a23c22ac119fb015547d1dccfde58cfab" title=" " alt="" coords="228,33,402,74"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,34,212,38,212,43,180,39"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="402,40,434,36,435,41,403,45"/>
+</map>

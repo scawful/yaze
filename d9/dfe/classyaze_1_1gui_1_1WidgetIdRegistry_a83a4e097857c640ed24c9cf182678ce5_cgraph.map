@@ -1,0 +1,7 @@
+<map id="yaze::gui::WidgetIdRegistry::EndFrame" name="yaze::gui::WidgetIdRegistry::EndFrame">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,180,46"/>
+<area shape="rect" id="Node000002" href="$d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ac8ffd2ca0f25a2e40f9fbdf445f946b5" title=" " alt="" coords="228,5,402,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,23,212,23,212,28,180,28"/>
+<area shape="rect" id="Node000003" href="$d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a47645cda7d4718a101765a15fac88b72" title=" " alt="" coords="450,5,624,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="402,23,434,23,434,28,402,28"/>
+</map>

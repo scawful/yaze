@@ -99,18 +99,25 @@ $(document).ready(function(){initNavTree('d3/d10/widget__id__registry_8cc.html',
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">widget_id_registry.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html">widget_id_registry.h</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;chrono&gt;</code><br />
+<code>#include &lt;cstdio&gt;</code><br />
+<code>#include &lt;ctime&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
+<code>#include &quot;absl/strings/ascii.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_join.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_split.h&quot;</code><br />
+<code>#include &quot;absl/strings/strip.h&quot;</code><br />
+<code>#include &quot;absl/time/clock.h&quot;</code><br />
 <code>#include &quot;imgui/imgui_internal.h&quot;</code><br />
 </div>
 <p><a href="../../d3/d10/widget__id__registry_8cc_source.html">Go to the source code of this file.</a></p>
@@ -123,6 +130,19 @@ Namespaces</h2></td></tr>
 <tr class="memitem:d3/dbf/namespaceyaze_1_1gui" id="r_d3/dbf/namespaceyaze_1_1gui"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html">yaze::gui</a></td></tr>
 <tr class="memdesc:d3/dbf/namespaceyaze_1_1gui"><td class="mdescLeft">&#160;</td><td class="mdescRight">Graphical User Interface (GUI) components for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03" id="r_d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html">yaze::gui::anonymous_namespace{widget_id_registry.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a005b815a4933b9c459fc316d8f5307cd" id="r_a005b815a4933b9c459fc316d8f5307cd"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html#a005b815a4933b9c459fc316d8f5307cd">yaze::gui::anonymous_namespace{widget_id_registry.cc}::ExtractWindowFromPath</a> (absl::string_view path)</td></tr>
+<tr class="separator:a005b815a4933b9c459fc316d8f5307cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02871e7d2fb74e6712d9a35f2f7ae745" id="r_a02871e7d2fb74e6712d9a35f2f7ae745"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html#a02871e7d2fb74e6712d9a35f2f7ae745">yaze::gui::anonymous_namespace{widget_id_registry.cc}::ExtractLabelFromPath</a> (absl::string_view path)</td></tr>
+<tr class="separator:a02871e7d2fb74e6712d9a35f2f7ae745"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3e0b72c732f6834431095c160c72193" id="r_ad3e0b72c732f6834431095c160c72193"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html#ad3e0b72c732f6834431095c160c72193">yaze::gui::anonymous_namespace{widget_id_registry.cc}::FormatTimestampUTC</a> (const absl::Time &amp;timestamp)</td></tr>
+<tr class="separator:ad3e0b72c732f6834431095c160c72193"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed8e0511d2d2ed009733d41ea5fe037b" id="r_aed8e0511d2d2ed009733d41ea5fe037b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html">WidgetIdRegistry::WidgetBounds</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html#aed8e0511d2d2ed009733d41ea5fe037b">yaze::gui::anonymous_namespace{widget_id_registry.cc}::BoundsFromImGui</a> (const ImRect &amp;rect)</td></tr>
+<tr class="separator:aed8e0511d2d2ed009733d41ea5fe037b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

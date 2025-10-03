@@ -202,15 +202,15 @@ Test Introspection (IT-05) 🔜 PLANNED</h3>
 <div class="line"># List all tests</div>
 <div class="line">z3ed agent test list --category grpc</div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md1573"></a>
-Widget Discovery (IT-06) 🔜 PLANNED</h3>
+Widget Discovery (IT-06) � IN PROGRESS — telemetry available</h3>
 <div class="fragment"><div class="line"># Discover all widgets</div>
 <div class="line">z3ed agent gui discover</div>
 <div class="line"> </div>
 <div class="line"># Filter by window</div>
 <div class="line">z3ed agent gui discover --window &quot;Overworld&quot;</div>
 <div class="line"> </div>
-<div class="line"># Get only buttons</div>
-<div class="line">z3ed agent gui discover --type button --format json</div>
+<div class="line"># Get only buttons and include hidden/disabled widgets for AI diffing</div>
+<div class="line">z3ed agent gui discover --type button --include-invisible --include-disabled --format json</div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md1574"></a>
 Test Recording (IT-07) 🔜 PLANNED</h3>
 <div class="fragment"><div class="line"># Start recording</div>
@@ -404,7 +404,7 @@ Widget Not Found</h2>
 <div class="line"># 3. Assert widget exists</div>
 <div class="line">grpcurl ... Assert &#39;{&quot;condition&quot;:&quot;exists:button:XYZ&quot;}&#39;</div>
 <div class="line"> </div>
-<div class="line"># 4. Use widget discovery (IT-06, planned)</div>
+<div class="line"># 4. Use widget discovery (IT-06 telemetry)</div>
 <div class="line">z3ed agent gui discover --window &quot;WindowName&quot;</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md1598"></a>
 Build Errors</h2>

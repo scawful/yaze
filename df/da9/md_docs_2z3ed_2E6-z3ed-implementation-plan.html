@@ -295,29 +295,46 @@ IT-06: Widget Discovery API (4-6 hours)</h3>
 <div class="line"> </div>
 <div class="line"># Get only buttons</div>
 <div class="line">z3ed gui discover --type button</div>
-</div><!-- fragment --><p><b>API Schema</b>: </p><div class="fragment"><div class="line">message DiscoverWidgetsRequest {</div>
-<div class="line">  string window_filter = 1;  // Optional: filter by window name</div>
-<div class="line">  enum WidgetType { ALL = 0; BUTTON = 1; INPUT = 2; MENU = 3; TAB = 4; CHECKBOX = 5; }</div>
+</div><!-- fragment --><p><b>API Schema (current)</b>: </p><div class="fragment"><div class="line">message DiscoverWidgetsRequest {</div>
+<div class="line">  string window_filter = 1;</div>
 <div class="line">  WidgetType type_filter = 2;</div>
+<div class="line">  string path_prefix = 3;</div>
+<div class="line">  bool include_invisible = 4;</div>
+<div class="line">  bool include_disabled = 5;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">message WidgetBounds {</div>
+<div class="line">  float min_x = 1;</div>
+<div class="line">  float min_y = 2;</div>
+<div class="line">  float max_x = 3;</div>
+<div class="line">  float max_y = 4;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">message DiscoveredWidget {</div>
+<div class="line">  string path = 1;</div>
+<div class="line">  string label = 2;</div>
+<div class="line">  string type = 3;</div>
+<div class="line">  string description = 4;</div>
+<div class="line">  string suggested_action = 5;</div>
+<div class="line">  bool visible = 6;</div>
+<div class="line">  bool enabled = 7;</div>
+<div class="line">  WidgetBounds bounds = 8;</div>
+<div class="line">  uint32 widget_id = 9;</div>
+<div class="line">  int64 last_seen_frame = 10;</div>
+<div class="line">  int64 last_seen_at_ms = 11;</div>
+<div class="line">  bool stale = 12;</div>
+<div class="line">}</div>
+<div class="line"> </div>
+<div class="line">message DiscoveredWindow {</div>
+<div class="line">  string name = 1;</div>
+<div class="line">  bool visible = 2;</div>
+<div class="line">  repeated DiscoveredWidget widgets = 3;</div>
 <div class="line">}</div>
 <div class="line"> </div>
 <div class="line">message DiscoverWidgetsResponse {</div>
-<div class="line">  repeated WindowInfo windows = 1;</div>
-<div class="line">}</div>
-<div class="line"> </div>
-<div class="line">message WindowInfo {</div>
-<div class="line">  string name = 1;</div>
-<div class="line">  bool is_visible = 2;</div>
-<div class="line">  repeated WidgetInfo widgets = 3;</div>
-<div class="line">}</div>
-<div class="line"> </div>
-<div class="line">message WidgetInfo {</div>
-<div class="line">  string id = 1;</div>
-<div class="line">  string label = 2;</div>
-<div class="line">  string type = 3;  // &quot;button&quot;, &quot;input&quot;, &quot;menu&quot;, etc.</div>
-<div class="line">  bool is_enabled = 4;</div>
-<div class="line">  string position = 5;  // &quot;x,y,width,height&quot;</div>
-<div class="line">  string suggested_action = 6;  // &quot;Click button:Open ROM&quot;</div>
+<div class="line">  repeated DiscoveredWindow windows = 1;</div>
+<div class="line">  int32 total_widgets = 2;</div>
+<div class="line">  int64 generated_at_ms = 3;</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Benefits for AI Agents</b>:</p><ul>
 <li>LLMs can dynamically learn available GUI interactions</li>

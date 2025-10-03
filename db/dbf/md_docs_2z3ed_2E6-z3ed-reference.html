@@ -344,6 +344,12 @@ Agent Commands</h2>
 <div class="line">  --format &lt;mode&gt;        Output as `table` (default) or `json`</div>
 <div class="line">  --limit &lt;n&gt;            Maximum widgets to display (useful for large UIs)</div>
 <div class="line"> </div>
+<div class="line">Each discovered widget now reports:</div>
+<div class="line">- Current visibility/enablement and bounding box (when available)</div>
+<div class="line">- Last observed frame number and UTC timestamp</div>
+<div class="line">- A `stale` flag when the widget hasn&#39;t appeared in the current frame</div>
+<div class="line">- Its underlying ImGui ID for low-level automation</div>
+<div class="line"> </div>
 <div class="line">Examples:</div>
 <div class="line">  # Discover all widgets currently registered</div>
 <div class="line">  z3ed agent gui discover</div>
@@ -366,10 +372,13 @@ Agent Commands</h2>
 <div class="line">    Suggested: Click button:Save</div>
 <div class="line">    State: visible, enabled</div>
 <div class="line">    Bounds: (24.0, 64.0) → (112.0, 92.0)</div>
+<div class="line">  Last seen: frame 18432 @ 2025-01-16 19:42:05</div>
 <div class="line">    Widget ID: 0x13fc41a2</div>
 <div class="line"> </div>
 <div class="line">Widgets shown: 3 of 18 (truncated)</div>
 <div class="line">Snapshot: 2025-01-16 19:42:05</div>
+<div class="line"> </div>
+<div class="line">_Widgets that have not appeared in the current frame are marked `[STALE]` in the table output._</div>
 </div><!-- fragment --><p><b>Use Cases</b>:</p><ul>
 <li>AI agents discover available GUI interactions dynamically</li>
 <li>Test scripts validate expected widgets are present</li>

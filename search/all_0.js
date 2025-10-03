@@ -45,7 +45,7 @@ var searchData=
   ['05_3a_20test_20introspection_20api_20–_20implementation_20guide_42',['IT-05: Test Introspection API – Implementation Guide',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html',1,'']]],
   ['05_3a_20test_20introspection_20api_206_208_20hours_43',['05: test introspection api 6 8 hours',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1216',1,'IT-05: Test Introspection API (6-8 hours)'],['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1161',1,'IT-05: Test Introspection API (6-8 hours)']]],
   ['06_44',['&lt;tt&gt;agent gui&lt;/tt&gt; - GUI Introspection &amp; Control (IT-05/IT-06)',['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html#autotoc_md1272',1,'']]],
-  ['06_20🔜_20planned_45',['Widget Discovery (IT-06) 🔜 PLANNED',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1573',1,'']]],
+  ['06_20�_20in_20progress_20—_20telemetry_20available_45',['Widget Discovery (IT-06) � IN PROGRESS — telemetry available',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1573',1,'']]],
   ['06_3a_20widget_20discovery_20api_204_206_20hours_46',['06: widget discovery api 4 6 hours',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1162',1,'IT-06: Widget Discovery API (4-6 hours)'],['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1217',1,'IT-06: Widget Discovery API (4-6 hours)']]],
   ['07_47',['&lt;tt&gt;agent test record&lt;/tt&gt; - Record test sessions (IT-07)',['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html#autotoc_md1277',1,'']]],
   ['07_20🔜_20planned_48',['Test Recording (IT-07) 🔜 PLANNED',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1574',1,'']]],

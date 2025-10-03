@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🚧_20todo_0',['🚧 todo',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html#autotoc_md1369',1,'Step 3: CLI Integration (🚧 TODO)'],['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html#autotoc_md1370',1,'Step 4: Testing &amp; Validation (🚧 TODO)']]]
+  ['🙏_20acknowledgments_0',['🙏 Acknowledgments',['../d0/d30/md_README.html#autotoc_md1638',1,'']]]
 ];

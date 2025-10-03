@@ -6,6 +6,12 @@ var namespaceyaze_1_1gui =
     [ "anonymous_namespace{style.cc}", "df/dd7/namespaceyaze_1_1gui_1_1anonymous__namespace_02style_8cc_03.html", [
       [ "ParseColor", "df/dd7/namespaceyaze_1_1gui_1_1anonymous__namespace_02style_8cc_03.html#a81e571437cbb87acc15065daeddcbb19", null ]
     ] ],
+    [ "anonymous_namespace{widget_id_registry.cc}", "d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html", [
+      [ "ExtractWindowFromPath", "d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html#a005b815a4933b9c459fc316d8f5307cd", null ],
+      [ "ExtractLabelFromPath", "d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html#a02871e7d2fb74e6712d9a35f2f7ae745", null ],
+      [ "FormatTimestampUTC", "d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html#ad3e0b72c732f6834431095c160c72193", null ],
+      [ "BoundsFromImGui", "d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html#aed8e0511d2d2ed009733d41ea5fe037b", null ]
+    ] ],
     [ "canvas", "db/dc3/namespaceyaze_1_1gui_1_1canvas.html", "db/dc3/namespaceyaze_1_1gui_1_1canvas" ],
     [ "CanvasUtils", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils" ],
     [ "AssetObject", "d5/d23/structyaze_1_1gui_1_1AssetObject.html", "d5/d23/structyaze_1_1gui_1_1AssetObject" ],
