@@ -40,11 +40,20 @@ z3ed agent plan --prompt "Place a tree at position 10, 10 on map 0"
 # Execute in sandbox with auto-approval
 z3ed agent run --prompt "Create a 3x3 water pond at 15, 20" --rom zelda3.sfc --sandbox
 
+# Chat with the agent in the terminal (FTXUI prototype)
+z3ed agent chat
+
 # List all proposals
 z3ed agent list
 
 # View proposal details
 z3ed agent diff --proposal <id>
+
+# Inspect project metadata for the LLM toolchain
+z3ed agent resource-list --type dungeon --format json
+
+# Dump sprite placements for a dungeon room
+z3ed agent dungeon-list-sprites --room 0x012
 ```
 
 ### GUI Testing Commands
@@ -219,6 +228,11 @@ AI agent features require:
 - ✅ Consolidated status into AGENTIC-PLAN-STATUS.md
 - ✅ Updated README with clear dependency requirements
 - ✅ Added Windows compatibility notes
+
+### Conversational Loop
+- ✅ Tool dispatcher defaults to JSON when invoked by the agent, keeping outputs machine-readable.
+- ✅ Conversational service now replays tool results without recursion, improving chat stability.
+- ✅ Mock AI service issues sample tool calls so the loop can be exercised without a live LLM.
 
 ## Troubleshooting
 

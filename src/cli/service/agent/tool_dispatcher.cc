@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "cli/handlers/agent/commands.h"
 
@@ -13,9 +14,18 @@ namespace agent {
 absl::StatusOr<std::string> ToolDispatcher::Dispatch(
     const ToolCall& tool_call) {
   std::vector<std::string> args;
+  bool has_format = false;
   for (const auto& [key, value] : tool_call.args) {
     args.push_back(absl::StrFormat("--%s", key));
     args.push_back(value);
+    if (absl::EqualsIgnoreCase(key, "format")) {
+      has_format = true;
+    }
+  }
+
+  if (!has_format) {
+    args.push_back("--format");
+    args.push_back("json");
   }
 
   // Capture stdout
