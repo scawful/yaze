@@ -35,6 +35,7 @@ target_link_libraries(yaze_core_lib PUBLIC
   yaze_util
   yaze_gfx
   yaze_common
+  ImGui
   asar-static
   ${ABSL_TARGETS}
   ${SDL_TARGETS}

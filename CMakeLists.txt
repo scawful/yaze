@@ -126,6 +126,17 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Windows")
 
 endif()
 
+# Abseil provider selection: default to bundled libraries on macOS to avoid
+# deployment target mismatches with system packages, but let other platforms
+# use their package managers unless overridden.
+set(_yaze_default_force_absl OFF)
+if(YAZE_PLATFORM_MACOS)
+    set(_yaze_default_force_absl ON)
+endif()
+option(YAZE_FORCE_BUNDLED_ABSL
+             "Force building the bundled Abseil submodule instead of finding a system package"
+             ${_yaze_default_force_absl})
+
 # Create a common interface target for shared settings
 add_library(yaze_common INTERFACE)
 target_compile_features(yaze_common INTERFACE cxx_std_23)

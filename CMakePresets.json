@@ -18,7 +18,8 @@
         "YAZE_BUILD_APP": "ON",
         "YAZE_BUILD_LIB": "ON",
         "YAZE_BUILD_EMU": "OFF",
-        "YAZE_BUILD_Z3ED": "ON"
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_USE_MODULAR_BUILD": "ON"
       }
     },
     {

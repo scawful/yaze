@@ -99,22 +99,21 @@ else()
 endif()
 
 if(YAZE_USE_MODULAR_BUILD)
-  target_link_libraries(yaze PRIVATE
-    yaze_util
-    yaze_gfx
-    yaze_gui
-    yaze_zelda3
-    yaze_core_lib
-    yaze_editor
-  )
+  set(_yaze_modular_links yaze_editor)
 
   if(TARGET yaze_agent)
-    target_link_libraries(yaze PRIVATE yaze_agent)
+    list(APPEND _yaze_modular_links yaze_agent)
   endif()
 
   if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC AND TARGET yaze_emulator)
-    target_link_libraries(yaze PRIVATE yaze_emulator)
+    list(APPEND _yaze_modular_links yaze_emulator)
   endif()
+
+  # Link once against the editor library and allow its PUBLIC dependencies
+  # (core, gfx, util, absl, etc.) to propagate transitively. This avoids
+  # duplicate static archives on the link line while keeping absl symbols
+  # available for main and other entry points.
+  target_link_libraries(yaze PRIVATE ${_yaze_modular_links})
 else()
   target_link_libraries(yaze PRIVATE yaze_core)
 endif()
