@@ -122,6 +122,17 @@ void PromptBuilder::LoadDefaultExamples() {
        "Yes, I can validate the ROM for you.",
        {"rom validate"},
        "Validation ensures ROM integrity after tile modifications"});
+
+  // ==========================================================================
+  // Q&A / Tool Use
+  // ==========================================================================
+  examples_.push_back(
+      {"What dungeons are in this project?",
+       "I can list the dungeons for you. Let me check the resource labels.",
+       {},
+       "The user is asking a question. I need to use the `resource-list` tool "
+       "to find the answer.",
+       {{"resource-list", {{"type", "dungeon"}}}}});
 }
 
 absl::Status PromptBuilder::LoadResourceCatalogue(const std::string& yaml_path) {
@@ -197,6 +208,18 @@ std::string PromptBuilder::BuildFewShotExamplesSection() {
     oss << "**Commands:**\n";
     oss << "```json\n{";
     oss << "  \"text_response\": \"" << example.text_response << "\",\n";
+    oss << "  \"tool_calls\": [";
+    std::vector<std::string> tool_calls;
+    for (const auto& call : example.tool_calls) {
+      std::vector<std::string> args;
+      for (const auto& [key, value] : call.args) {
+        args.push_back("\"" + key + "\": \"" + value + "\"");
+      }
+      tool_calls.push_back("{\"tool_name\": \"" + call.tool_name +
+                           "\", \"args\": {" + absl::StrJoin(args, ", ") + "}}");
+    }
+    oss << absl::StrJoin(tool_calls, ", ");
+    oss << "],\n";
     oss << "  \"commands\": [";
 
     std::vector<std::string> quoted_cmds;
@@ -220,12 +243,14 @@ std::string PromptBuilder::BuildConstraintsSection() {
 1. **Output Format:** You MUST respond with ONLY a JSON object with the following structure:
    {
      "text_response": "Your natural language reply to the user.",
+     "tool_calls": [{ "tool_name": "tool_name", "args": { "arg1": "value1" } }],
      "commands": ["command1", "command2"],
      "reasoning": "Your thought process."
    }
    - `text_response` is for conversational replies.
-   - `commands` is for executable z3ed commands. It can be an empty array.
-   - NO explanatory text before or after the JSON object.
+   - `tool_calls` is for asking questions about the ROM. Use the available tools.
+   - `commands` is for generating commands to modify the ROM.
+   - All fields are optional.
 
 2. **Command Syntax:** Follow the exact syntax shown in examples
    - Use correct flag names (--group, --id, --to, --from, etc.)

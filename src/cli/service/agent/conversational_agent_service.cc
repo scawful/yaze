@@ -34,6 +34,21 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
     response_text += "\n\nCommands:\n" + absl::StrJoin(agent_response.commands, "\n");
   }
 
+  // If the agent requested a tool call, dispatch it.
+  if (!agent_response.tool_calls.empty()) {
+    for (const auto& tool_call : agent_response.tool_calls) {
+      auto tool_result_or = tool_dispatcher_.Dispatch(tool_call);
+      if (tool_result_or.ok()) {
+        // Add the tool result to the history and send back to the AI.
+        history_.push_back({ChatMessage::Sender::kAgent, tool_result_or.value(), absl::Now()});
+        return SendMessage(""); // Re-prompt the AI with the new context.
+      } else {
+        // Handle tool execution error.
+        return absl::InternalError(absl::StrCat("Tool execution failed: ", tool_result_or.status().message()));
+      }
+    }
+  }
+
   ChatMessage chat_response = {ChatMessage::Sender::kAgent, response_text,
                                absl::Now()};
 
