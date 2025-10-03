@@ -16,6 +16,8 @@
 
 This directory contains the primary documentation for the `z3ed` system.
 
+**📋 Documentation Status**: Consolidated (Oct 2, 2025) - 10 core files, 6,547 lines
+
 ## Core Documentation
 
 Start here to understand the architecture, learn how to use the commands, and see the current development status.
@@ -90,6 +92,7 @@ See the **[Technical Reference](E6-z3ed-reference.md)** for a full command list.
   - Successfully tested via gRPC (5.3MB output files)
   - Foundation for auto-capture on test failures
   - AI agents can now capture visual context for debugging
+- ✅ IT-07 Test Recording & Replay Complete: Regression testing workflow operational
 - ✅ Server-side wiring for test lifecycle tracking inside `TestManager`
 - ✅ gRPC status mapping helper to surface accurate error codes back to clients
 - ✅ CLI integration with YAML/JSON output formats
@@ -97,11 +100,11 @@ See the **[Technical Reference](E6-z3ed-reference.md)** for a full command list.
 
 **Next Priority**: IT-08b (Auto-capture on failure) + IT-08c (Widget state dumps) to complete enhanced error reporting
 
-**Test Harness Evolution** (In Progress: IT-05 to IT-09 | 76% Complete):
+**Test Harness Evolution** (In Progress: IT-05 to IT-09 | 78% Complete):
 - **Test Introspection**: ✅ Query test status, results, and execution history
 - **Widget Discovery**: ✅ AI agents can enumerate available GUI interactions dynamically
 - **Test Recording**: ✅ Capture manual workflows as JSON scripts for regression testing
-- **Enhanced Debugging**: 🔄 Screenshot capture (✅), widget state dumps (📋), execution context on failures (📋)
+- **Enhanced Debugging**: 🔄 Screenshot capture (✅ IT-08a), widget state dumps (📋 IT-08c), execution context on failures (📋 IT-08b)
 - **CI/CD Integration**: 📋 Standardized test suite format with JUnit XML output
 
 See **[E6-z3ed-cli-design.md § 9](E6-z3ed-cli-design.md#9-test-harness-evolution-from-automation-to-platform)** for detailed architecture and implementation roadmap.
@@ -111,12 +114,13 @@ See **[E6-z3ed-cli-design.md § 9](E6-z3ed-cli-design.md#9-test-harness-evolutio
 **📖 Getting Started**:
 - **New to z3ed?** Start with this [README.md](README.md) then [E6-z3ed-cli-design.md](E6-z3ed-cli-design.md)
 - **Want to use z3ed?** See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for all commands
-- **Resume implementation?** Read [IMPLEMENTATION_CONTINUATION.md](IMPLEMENTATION_CONTINUATION.md)
 
 **🔧 Implementation Guides**:
-- [IT-05-IMPLEMENTATION-GUIDE.md](IT-05-IMPLEMENTATION-GUIDE.md) - Test Introspection API (next priority)
-- [STATUS_REPORT_OCT2.md](STATUS_REPORT_OCT2.md) - Complete progress summary
+- [IT-05-IMPLEMENTATION-GUIDE.md](IT-05-IMPLEMENTATION-GUIDE.md) - Test Introspection API (complete ✅)
+- [IT-08-IMPLEMENTATION-GUIDE.md](IT-08-IMPLEMENTATION-GUIDE.md) - Enhanced Error Reporting (in progress 🔄)
+- [IMPLEMENTATION_CONTINUATION.md](IMPLEMENTATION_CONTINUATION.md) - Detailed continuation plan for current phase
 
 **📚 Reference**:
 - [E6-z3ed-reference.md](E6-z3ed-reference.md) - Technical reference and API docs
 - [E6-z3ed-implementation-plan.md](E6-z3ed-implementation-plan.md) - Task backlog and roadmap
+- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) - Quick command reference

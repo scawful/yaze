@@ -25,6 +25,10 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 - **Priority 3**: Enhanced Error Reporting (IT-08+) - Holistic improvements spanning z3ed, ImGuiTestHarness, EditorManager, and core application services
 
 **Recent Accomplishments** (Updated: October 2025):
+- **✅ IT-08a Screenshot RPC Complete**: SDL-based screenshot capture operational
+  - Captures 1536x864 BMP files via SDL_RenderReadPixels
+  - Successfully tested via gRPC (5.3MB output files)
+  - Foundation for auto-capture on test failures
 - **✅ Policy Framework Complete**: PolicyEvaluator service fully integrated with ProposalDrawer GUI
   - 4 policy types implemented: test_requirement, change_constraint, forbidden_range, review_requirement
   - 3 severity levels: Info (informational), Warning (overridable), Critical (blocks acceptance)
@@ -41,8 +45,8 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 - **Proposal Workflow**: Agentic proposal system fully operational (create, list, diff, review in GUI)
 
 **Known Limitations & Improvement Opportunities**:
-- **Screenshot RPC**: Stub implementation → needs SDL_Surface capture + PNG encoding
-- **Test Introspection**: No way to query test status, results, or queue → add GetTestStatus/ListTests RPCs
+- **Screenshot Auto-Capture**: Manual RPC only → needs integration with TestManager failure detection
+- **Test Introspection**: ✅ Complete - GetTestStatus/ListTests/GetResults RPCs operational
 - **Widget Discovery**: AI agents can't enumerate available widgets → add DiscoverWidgets RPC
 - **Test Recording**: No record/replay for regression testing → add RecordSession/ReplaySession RPCs
 - **Synchronous Wait**: Async tests return immediately → add blocking mode or result polling
@@ -236,13 +240,15 @@ message WidgetInfo {
 
 **Outcome**: Recording/replay is production-ready; focus shifts to surfacing rich failure diagnostics (IT-08).
 
-#### IT-08: Enhanced Error Reporting (5-7 hours)
+#### IT-08: Enhanced Error Reporting (5-7 hours) 🔄 ACTIVE
+**Status**: IT-08a Complete ✅ | IT-08b In Progress 🔄
 **Objective**: Deliver a unified, high-signal error reporting pipeline spanning ImGuiTestHarness, z3ed CLI, EditorManager, and core application services.
 
 **Implementation Tracks**:
 1. **Harness-Level Diagnostics**
-  - Implement Screenshot RPC (convert stub into working SDL capture pipeline)
-  - Auto-capture screenshots, widget tree dumps, and recent ImGui events on failure
+  - ✅ IT-08a: Screenshot RPC implemented (SDL-based, BMP format, 1536x864)
+  - 📋 IT-08b: Auto-capture screenshots on test failure
+  - 📋 IT-08c: Widget tree dumps and recent ImGui events on failure
   - Serialize results to both structured JSON (for automation) and human-friendly HTML bundles
   - Persist artifacts under `test-results/<test_id>/` with timestamped directories
 
@@ -516,9 +522,10 @@ z3ed collab replay session_2025_10_02.yaml --speed 2x
 | IT-05 | Add test introspection RPCs (GetTestStatus, ListTests, GetResults) | ImGuiTest Bridge | Code | ✅ Done | IT-01 - Enable clients to poll test results and query execution state (Oct 2, 2025) |
 | IT-06 | Implement widget discovery API for AI agents | ImGuiTest Bridge | Code | 📋 Planned | IT-01 - DiscoverWidgets RPC to enumerate windows, buttons, inputs |
 | IT-07 | Add test recording/replay for regression testing | ImGuiTest Bridge | Code | ✅ Done | IT-05 - RecordSession/ReplaySession RPCs with JSON test scripts |
-| IT-08 | Enhance error reporting with screenshots and state dumps | ImGuiTest Bridge | Code | � Active | IT-01 - Capture widget state on failure for debugging |
-| IT-08a | Adopt shared error envelope across CLI & services | ImGuiTest Bridge | Code | 🔄 Active | IT-08 |
-| IT-08b | EditorManager diagnostic overlay & logging | ImGuiTest Bridge | UX | 📋 Planned | IT-08 |
+| IT-08 | Enhance error reporting with screenshots and state dumps | ImGuiTest Bridge | Code | 🔄 Active | IT-01 - Capture widget state on failure for debugging |
+| IT-08a | Screenshot RPC implementation (SDL capture) | ImGuiTest Bridge | Code | ✅ Done | IT-01 - Screenshot capture complete (Oct 2, 2025) |
+| IT-08b | Auto-capture screenshots on test failure | ImGuiTest Bridge | Code | 🔄 Active | IT-08a - Integrate with TestManager |
+| IT-08c | Widget state dumps and execution context | ImGuiTest Bridge | Code | 📋 Planned | IT-08b - Enhanced failure diagnostics |
 | IT-09 | Create standardized test suite format for CI integration | ImGuiTest Bridge | Infra | 📋 Planned | IT-07 - JSON/YAML test suite format compatible with CI/CD pipelines |
 | IT-10 | Collaborative editing & multiplayer sessions with shared AI | Collaboration | Feature | 📋 Planned | IT-05, IT-08 - Real-time multi-user editing with live cursors, shared proposals (12-15 hours) |
 | VP-01 | Expand CLI unit tests for new commands and sandbox flow. | Verification Pipeline | Test | 📋 Planned | RC/AW tasks |
