@@ -16,20 +16,21 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
+#include "app/zelda3/dungeon/room.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/modern_cli.h"
 #include "cli/service/ai/ai_service.h"
-#include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
+#include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/planning/proposal_registry.h"
 #include "cli/service/planning/tile16_proposal_generator.h"
 #include "cli/service/resources/resource_catalog.h"
+#include "cli/service/resources/resource_context_builder.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
 #include "cli/z3ed.h"
 #include "util/macro.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
-
 
 namespace yaze {
 namespace cli {
@@ -40,59 +41,61 @@ namespace {
 // Helper: Select AI service based on environment variables
 std::unique_ptr<AIService> CreateAIService() {
   // Priority: Ollama (local) > Gemini (remote) > Mock (testing)
-  
+
   const char* provider_env = std::getenv("YAZE_AI_PROVIDER");
   const char* gemini_key = std::getenv("GEMINI_API_KEY");
   const char* ollama_model = std::getenv("OLLAMA_MODEL");
   const char* gemini_model = std::getenv("GEMINI_MODEL");
-  
+
   // Explicit provider selection
   if (provider_env && std::string(provider_env) == "ollama") {
     OllamaConfig config;
-    
+
     // Allow model override via env
     if (ollama_model && std::strlen(ollama_model) > 0) {
       config.model = ollama_model;
     }
-    
+
     auto service = std::make_unique<OllamaAIService>(config);
-    
+
     // Health check
     if (auto status = service->CheckAvailability(); !status.ok()) {
       std::cerr << "⚠️  Ollama unavailable: " << status.message() << std::endl;
       std::cerr << "   Falling back to MockAIService" << std::endl;
       return std::make_unique<MockAIService>();
     }
-    
+
     std::cout << "🤖 Using Ollama AI with model: " << config.model << std::endl;
     return service;
   }
-  
+
   // Gemini if API key provided
   if (gemini_key && std::strlen(gemini_key) > 0) {
     GeminiConfig config(gemini_key);
-    
+
     // Allow model override via env
     if (gemini_model && std::strlen(gemini_model) > 0) {
       config.model = gemini_model;
     }
-    
+
     auto service = std::make_unique<GeminiAIService>(config);
-    
+
     // Health check
     if (auto status = service->CheckAvailability(); !status.ok()) {
       std::cerr << "⚠️  Gemini unavailable: " << status.message() << std::endl;
       std::cerr << "   Falling back to MockAIService" << std::endl;
       return std::make_unique<MockAIService>();
     }
-    
+
     std::cout << "🤖 Using Gemini AI with model: " << config.model << std::endl;
     return service;
   }
-  
+
   // Default: Mock service for testing
   std::cout << "🤖 Using MockAIService (no LLM configured)" << std::endl;
-  std::cout << "   Tip: Set YAZE_AI_PROVIDER=ollama or GEMINI_API_KEY to enable LLM" << std::endl;
+  std::cout
+      << "   Tip: Set YAZE_AI_PROVIDER=ollama or GEMINI_API_KEY to enable LLM"
+      << std::endl;
   return std::make_unique<MockAIService>();
 }
 
@@ -195,7 +198,7 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   auto sandbox = sandbox_or.value();
 
   // 2. Get commands from the AI service
-  auto ai_service = CreateAIService(); // Use service factory
+  auto ai_service = CreateAIService();  // Use service factory
   auto commands_or = ai_service->GetCommands(prompt);
   if (!commands_or.ok()) {
     return commands_or.status();
@@ -205,7 +208,7 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   // 3. Generate a structured proposal from the commands
   Tile16ProposalGenerator generator;
   auto proposal_or = generator.GenerateFromCommands(
-      prompt, commands, "ollama", &rom); // Pass original ROM to get old tiles
+      prompt, commands, "ollama", &rom);  // Pass original ROM to get old tiles
   if (!proposal_or.ok()) {
     return proposal_or.status();
   }
@@ -215,15 +218,14 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   Rom sandbox_rom;
   auto load_status = sandbox_rom.LoadFromFile(sandbox.rom_path.string());
   if (!load_status.ok()) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to load sandbox ROM: ", load_status.message()));
+    return absl::InternalError(
+        absl::StrCat("Failed to load sandbox ROM: ", load_status.message()));
   }
 
   auto apply_status = generator.ApplyProposal(proposal, &sandbox_rom);
   if (!apply_status.ok()) {
-    return absl::InternalError(
-        absl::StrCat("Failed to apply proposal to sandbox ROM: ",
-                     apply_status.message()));
+    return absl::InternalError(absl::StrCat(
+        "Failed to apply proposal to sandbox ROM: ", apply_status.message()));
   }
 
   // 5. Save the sandbox ROM to persist the changes for diffing
@@ -238,14 +240,16 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   // A better approach would be to integrate with ProposalRegistry.
   auto proposal_path =
       RomSandboxManager::Instance().RootDirectory() / (proposal.id + ".json");
-  auto save_proposal_status = generator.SaveProposal(proposal, proposal_path.string());
+  auto save_proposal_status =
+      generator.SaveProposal(proposal, proposal_path.string());
   if (!save_proposal_status.ok()) {
     return absl::InternalError(absl::StrCat("Failed to save proposal file: ",
-                                           save_proposal_status.message()));
+                                            save_proposal_status.message()));
   }
 
-  std::cout << "✅ Agent successfully planned and executed changes in a sandbox."
-            << std::endl;
+  std::cout
+      << "✅ Agent successfully planned and executed changes in a sandbox."
+      << std::endl;
   std::cout << "   Proposal ID: " << proposal.id << std::endl;
   std::cout << "   Sandbox ROM: " << sandbox.rom_path << std::endl;
   std::cout << "   Proposal file: " << proposal_path << std::endl;
@@ -262,7 +266,7 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& arg_vec) {
     return absl::InvalidArgumentError("Usage: agent plan --prompt <prompt>");
   }
   std::string prompt = arg_vec[1];
-  
+
   auto ai_service = CreateAIService();  // Use service factory
   auto commands_or = ai_service->GetCommands(prompt);
   if (!commands_or.ok()) {
@@ -287,8 +291,7 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& arg_vec) {
   return absl::OkStatus();
 }
 
-absl::Status HandleDiffCommand(Rom& rom,
-                               const std::vector<std::string>& args) {
+absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
   std::optional<std::string> proposal_id;
   for (size_t i = 0; i < args.size(); ++i) {
     const std::string& token = args[i];
@@ -329,10 +332,8 @@ absl::Status HandleDiffCommand(Rom& rom,
         break;
     }
     std::cout << "\n";
-    std::cout << "Created: " << absl::FormatTime(proposal.created_at)
-              << "\n";
-    std::cout << "Commands Executed: " << proposal.commands_executed
-              << "\n";
+    std::cout << "Created: " << absl::FormatTime(proposal.created_at) << "\n";
+    std::cout << "Commands Executed: " << proposal.commands_executed << "\n";
     std::cout << "Bytes Changed: " << proposal.bytes_changed << "\n\n";
 
     if (std::filesystem::exists(proposal.diff_path)) {
@@ -384,7 +385,8 @@ absl::Status HandleDiffCommand(Rom& rom,
     auto sandbox_or = RomSandboxManager::Instance().ActiveSandbox();
     if (!sandbox_or.ok()) {
       return absl::NotFoundError(
-          "No pending proposals found and no active sandbox. Run 'z3ed agent run' first.");
+          "No pending proposals found and no active sandbox. Run 'z3ed agent "
+          "run' first.");
     }
     RomDiff diff_handler;
     auto status =
@@ -431,8 +433,7 @@ absl::Status HandleListCommand() {
         break;
     }
     std::cout << "\n";
-    std::cout << "  Created: " << absl::FormatTime(proposal.created_at)
-              << "\n";
+    std::cout << "  Created: " << absl::FormatTime(proposal.created_at) << "\n";
     std::cout << "  Prompt: " << proposal.prompt << "\n";
     std::cout << "  Commands: " << proposal.commands_executed << "\n";
     std::cout << "  Bytes Changed: " << proposal.bytes_changed << "\n";
@@ -492,17 +493,17 @@ absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec) {
       payload = catalog.SerializeResources(catalog.AllResources());
     }
   } else {
-    std::string last_updated = options.last_updated.has_value()
-                                   ? *options.last_updated
-                                   : absl::FormatTime("%Y-%m-%d", absl::Now(),
-                                                      absl::LocalTimeZone());
+    std::string last_updated =
+        options.last_updated.has_value()
+            ? *options.last_updated
+            : absl::FormatTime("%Y-%m-%d", absl::Now(), absl::LocalTimeZone());
     if (resource_schema.has_value()) {
       std::vector<ResourceSchema> schemas{*resource_schema};
-      payload = catalog.SerializeResourcesAsYaml(
-          schemas, options.version, last_updated);
+      payload = catalog.SerializeResourcesAsYaml(schemas, options.version,
+                                                 last_updated);
     } else {
-      payload = catalog.SerializeResourcesAsYaml(
-          catalog.AllResources(), options.version, last_updated);
+      payload = catalog.SerializeResourcesAsYaml(catalog.AllResources(),
+                                                 options.version, last_updated);
     }
   }
 
@@ -515,16 +516,170 @@ absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec) {
     out << payload;
     out.close();
     if (!out) {
-      return absl::InternalError(absl::StrFormat(
-          "Failed to write schema to %s", *options.output_path));
+      return absl::InternalError(absl::StrFormat("Failed to write schema to %s",
+                                                 *options.output_path));
     }
     std::cout << absl::StrFormat("Wrote %s schema to %s", options.format,
-                                  *options.output_path)
+                                 *options.output_path)
               << std::endl;
     return absl::OkStatus();
   }
 
   std::cout << payload << std::endl;
+  return absl::OkStatus();
+}
+
+absl::Status HandleResourceListCommand(
+    const std::vector<std::string>& arg_vec) {
+  std::string type;
+  std::string format = "table";
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--type") {
+      if (i + 1 < arg_vec.size()) {
+        type = arg_vec[++i];
+      } else {
+        return absl::InvalidArgumentError("--type requires a value.");
+      }
+    } else if (absl::StartsWith(token, "--type=")) {
+      type = token.substr(7);
+    } else if (token == "--format") {
+      if (i + 1 < arg_vec.size()) {
+        format = arg_vec[++i];
+      } else {
+        return absl::InvalidArgumentError("--format requires a value.");
+      }
+    } else if (absl::StartsWith(token, "--format=")) {
+      format = token.substr(9);
+    }
+  }
+
+  if (type.empty()) {
+    return absl::InvalidArgumentError(
+        "Usage: agent resource-list --type <type> [--format <table|json>]");
+  }
+
+  // 1. Load the ROM
+  std::string rom_path = absl::GetFlag(FLAGS_rom);
+  if (rom_path.empty()) {
+    return absl::FailedPreconditionError(
+        "No ROM loaded. Use --rom=<path> to specify ROM file.");
+  }
+  Rom rom;
+  auto status = rom.LoadFromFile(rom_path);
+  if (!status.ok()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Failed to load ROM from '%s': %s", rom_path, status.message()));
+  }
+
+  // 2. Get labels using ResourceContextBuilder
+  ResourceContextBuilder context_builder(&rom);
+  auto labels_or = context_builder.GetLabels(type);
+  if (!labels_or.ok()) {
+    return labels_or.status();
+  }
+  auto labels = labels_or.value();
+
+  // 3. Format and print output
+  if (format == "json") {
+    std::cout << "{\n";
+    bool first = true;
+    for (const auto& [key, value] : labels) {
+      if (!first) {
+        std::cout << ",\n";
+      }
+      std::cout << "  \"" << key << "\": \"" << value << "\"";
+      first = false;
+    }
+    std::cout << "\n}\n";
+  } else {  // Table format
+    std::cout << "=== " << absl::AsciiStrToUpper(type) << " Labels ===\n";
+    for (const auto& [key, value] : labels) {
+      std::cout << absl::StrFormat("  %-10s : %s\n", key, value);
+    }
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status HandleDungeonListSpritesCommand(
+    const std::vector<std::string>& arg_vec) {
+  std::string room_id_str;
+  std::string format = "table";
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--room") {
+      if (i + 1 < arg_vec.size()) {
+        room_id_str = arg_vec[++i];
+      } else {
+        return absl::InvalidArgumentError("--room requires a value.");
+      }
+    } else if (absl::StartsWith(token, "--room=")) {
+      room_id_str = token.substr(7);
+    } else if (token == "--format") {
+      if (i + 1 < arg_vec.size()) {
+        format = arg_vec[++i];
+      } else {
+        return absl::InvalidArgumentError("--format requires a value.");
+      }
+    } else if (absl::StartsWith(token, "--format=")) {
+      format = token.substr(9);
+    }
+  }
+
+  if (room_id_str.empty()) {
+    return absl::InvalidArgumentError(
+        "Usage: agent dungeon-list-sprites --room <id> [--format "
+        "<table|json>]");
+  }
+
+  int room_id;
+  if (!absl::SimpleHexAtoi(room_id_str, &room_id)) {
+    return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
+  }
+
+  // 1. Load the ROM
+  std::string rom_path = absl::GetFlag(FLAGS_rom);
+  if (rom_path.empty()) {
+    return absl::FailedPreconditionError(
+        "No ROM loaded. Use --rom=<path> to specify ROM file.");
+  }
+  Rom rom;
+  auto status = rom.LoadFromFile(rom_path);
+  if (!status.ok()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Failed to load ROM from '%s': %s", rom_path, status.message()));
+  }
+
+  // 2. Load dungeon room and get sprites
+  auto room = zelda3::LoadRoomFromRom(&rom, room_id);
+  const auto& sprites = room.GetSprites();
+
+  // 3. Format and print output
+  if (format == "json") {
+    std::cout << "[\n";
+    for (size_t i = 0; i < sprites.size(); ++i) {
+      const auto& sprite = sprites[i];
+      std::cout << "  {\n";
+      std::cout << "    \"id\": " << sprite.id() << ",\n";
+      std::cout << "    \"x\": " << sprite.x() << ",\n";
+      std::cout << "    \"y\": " << sprite.y() << "\n";
+      std::cout << "  }" << (i == sprites.size() - 1 ? "" : ",");
+      std::cout << "\n";
+    }
+    std::cout << "]\n";
+  } else {  // Table format
+    std::cout << "=== Sprites in Room " << room_id_str << " ===\n";
+    std::cout << absl::StrFormat("%-10s %-5s %-5s\n", "ID (Hex)", "X", "Y");
+    std::cout << std::string(22, '-') << "\n";
+    for (const auto& sprite : sprites) {
+      std::cout << absl::StrFormat("0x%-8X %-5d %-5d\n", sprite.id(),
+                                   sprite.x(), sprite.y());
+    }
+  }
+
   return absl::OkStatus();
 }
 
@@ -542,32 +697,31 @@ absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,
       RomSandboxManager::Instance().RootDirectory() / (proposal_id + ".json");
   auto proposal_or = generator.LoadProposal(proposal_path.string());
   if (!proposal_or.ok()) {
-    return absl::InternalError(absl::StrCat("Failed to load proposal file '",
-                                           proposal_path.string(),
-                                           "': ", proposal_or.status().message()));
+    return absl::InternalError(
+        absl::StrCat("Failed to load proposal file '", proposal_path.string(),
+                     "': ", proposal_or.status().message()));
   }
   auto proposal = proposal_or.value();
 
   // 2. Ensure the main ROM is loaded.
   if (!rom.is_loaded()) {
     return absl::FailedPreconditionError(
-        "No ROM loaded. Use --rom=<path> to specify the ROM to apply changes to.");
+        "No ROM loaded. Use --rom=<path> to specify the ROM to apply changes "
+        "to.");
   }
 
   // 3. Apply the proposal to the main ROM.
   auto apply_status = generator.ApplyProposal(proposal, &rom);
   if (!apply_status.ok()) {
-    return absl::InternalError(
-        absl::StrCat("Failed to apply proposal to main ROM: ",
-                     apply_status.message()));
+    return absl::InternalError(absl::StrCat(
+        "Failed to apply proposal to main ROM: ", apply_status.message()));
   }
 
   // 4. Save the changes to the main ROM file.
   auto save_status = rom.SaveToFile({.save_new = false});
   if (!save_status.ok()) {
-    return absl::InternalError(
-        absl::StrCat("Failed to save changes to main ROM: ",
-                     save_status.message()));
+    return absl::InternalError(absl::StrCat(
+        "Failed to save changes to main ROM: ", save_status.message()));
   }
 
   std::cout << "✅ Proposal '" << proposal_id << "' accepted and applied to '"

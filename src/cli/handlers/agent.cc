@@ -59,6 +59,12 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   if (subcommand == "describe") {
     return agent::HandleDescribeCommand(subcommand_args);
   }
+  if (subcommand == "resource-list") {
+    return agent::HandleResourceListCommand(subcommand_args);
+  }
+  if (subcommand == "dungeon-list-sprites") {
+    return agent::HandleDungeonListSpritesCommand(subcommand_args);
+  }
 
   return absl::InvalidArgumentError(std::string(agent::kUsage));
 }
