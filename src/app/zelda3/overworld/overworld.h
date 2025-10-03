@@ -257,8 +257,10 @@ class Overworld {
   auto current_graphics() const {
     return overworld_maps_[current_map_].current_graphics();
   }
+  const std::vector<OverworldEntrance> &entrances() const { return all_entrances_; }
   auto &entrances() { return all_entrances_; }
   auto mutable_entrances() { return &all_entrances_; }
+  const std::vector<OverworldEntrance> &holes() const { return all_holes_; }
   auto &holes() { return all_holes_; }
   auto mutable_holes() { return &all_holes_; }
   auto deleted_entrances() const { return deleted_entrances_; }

@@ -33,6 +33,7 @@ add_executable(
   cli/handlers/palette.cc
   cli/handlers/rom.cc
   cli/handlers/overworld.cc
+  cli/handlers/overworld_inspect.cc
   cli/handlers/sprite.cc
   cli/tui/tui_component.h
   cli/tui/asar_patch.cc
