@@ -232,12 +232,6 @@ AI agent features require:
 - ✅ Inline tile16 reference for AI knowledge
 - ✅ Practical multi-step examples (water ponds, paths, patterns)
 
-### Documentation Consolidation
-- ✅ Removed 10 outdated/redundant documents
-- ✅ Consolidated status into AGENTIC-PLAN-STATUS.md
-- ✅ Updated README with clear dependency requirements
-- ✅ Added Windows compatibility notes
-
 ### Conversational Loop
 - ✅ Tool dispatcher defaults to JSON when invoked by the agent, keeping outputs machine-readable.
 - ✅ Conversational service now replays tool results without recursion, improving chat stability.

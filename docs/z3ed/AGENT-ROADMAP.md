@@ -114,6 +114,6 @@ We have made significant progress in laying the foundation for the conversationa
 The linker error is fixed. Both the CLI and GUI targets now link against `yaze_agent`, so the shared agent handlers (`HandleResourceListCommand`, `HandleDungeonListSpritesCommand`, etc.) compile once and are available to `ToolDispatcher` everywhere.
 
 ### 🚀 Next Steps
-1.  **Share ROM Context with the Agent**: Inject the active GUI ROM into `ConversationalAgentService` so tool calls work even when `--rom` flags are unavailable.
+1.  **Share ROM Context with the Agent**: Inject the active GUI ROM into `ConversationalAgentService` so tool calls work even when `--rom` flags are unavailable. Analyze the `src/app/rom.cc` and `src/app/rom.h` and `src/app/editor/editor_manager.cc` files for guidance on accessing the current project/ROM.
 2.  **Surface Tool Output in the UI**: Present JSON/table responses in the chat widgets with formatting instead of raw text dumps.
-3.  **Expand Tool Coverage**: Add the next batch of read-only utilities (`dungeon get-info`, `overworld find-tile`) now that the tooling loop is stable.
+3.  **Expand Tool Coverage**: Analyze the yaze source code to identify Overworld features which can be implemented as tool calls and would be useful. Dungeon editing does not render in the GUI yet, so we will hold off on dungeon tools for now. Check `src/app/editor/overworld/` for the GUI interface, `src/app/zelda3/overworld/` for the core logic. We could also explore dialogue editing help as tool calls by looking at `src/app/editor/message/` since the MessageEditor is functional in the GUI.
