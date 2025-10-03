@@ -1,6 +1,7 @@
 #include "app/core/service/widget_discovery_service.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <map>
 #include <string>
 #include <utility>
@@ -17,7 +18,7 @@ namespace {
 
 struct WindowEntry {
   int index = -1;
-  bool visible = true;
+  bool visible = false;
 };
 
 }  // namespace
@@ -57,39 +58,17 @@ void WidgetDiscoveryService::CollectWidgets(
       continue;
     }
 
-    const std::string window_name = ExtractWindowName(path);
+    const std::string window_name =
+        info.window_name.empty() ? ExtractWindowName(path) : info.window_name;
     if (!MatchesWindow(window_name, window_filter_lower)) {
       continue;
     }
 
-    auto [it, inserted] = window_lookup.emplace(window_name, WindowEntry{});
-    WindowEntry& entry = it->second;
+    const std::string label =
+        info.label.empty() ? ExtractLabel(path) : info.label;
 
-    if (inserted) {
-#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-      if (ctx) {
-        ImGuiTestItemInfo window_info =
-            ctx->WindowInfo(window_name.c_str(), ImGuiTestOpFlags_NoError);
-        entry.visible = (window_info.ID != 0);
-      }
-#endif
-    }
-
-    if (!include_invisible && !entry.visible) {
-      continue;
-    }
-
-    if (entry.index == -1) {
-      DiscoveredWindow* window_proto = response->add_windows();
-      entry.index = response->windows_size() - 1;
-      window_proto->set_name(window_name);
-      window_proto->set_visible(entry.visible);
-    }
-
-    const std::string label = ExtractLabel(path);
-
-    bool widget_enabled = true;
-    bool widget_visible = entry.visible;
+    bool widget_enabled = info.enabled;
+    bool widget_visible = info.visible;
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
     bool has_item_info = false;
@@ -103,7 +82,17 @@ void WidgetDiscoveryService::CollectWidgets(
         widget_enabled = (item_info.ItemFlags & ImGuiItemFlags_Disabled) == 0;
       }
     }
+#else
+    (void)ctx;
 #endif
+
+    auto [it, inserted] = window_lookup.emplace(window_name, WindowEntry{});
+    WindowEntry& entry = it->second;
+    if (inserted) {
+      entry.visible = widget_visible;
+    } else {
+      entry.visible = entry.visible || widget_visible;
+    }
 
     if (!include_invisible && !widget_visible) {
       continue;
@@ -112,7 +101,16 @@ void WidgetDiscoveryService::CollectWidgets(
       continue;
     }
 
+    if (entry.index == -1) {
+      DiscoveredWindow* window_proto = response->add_windows();
+      entry.index = response->windows_size() - 1;
+      window_proto->set_name(window_name);
+      window_proto->set_visible(entry.visible);
+    }
+
     auto* window_proto = response->mutable_windows(entry.index);
+    window_proto->set_visible(entry.visible);
+
     auto* widget_proto = window_proto->add_widgets();
     widget_proto->set_path(path);
     widget_proto->set_label(label);
@@ -126,19 +124,34 @@ void WidgetDiscoveryService::CollectWidgets(
       widget_proto->set_description(info.description);
     }
 
-    WidgetBounds* bounds = widget_proto->mutable_bounds();
+    if (info.bounds.valid) {
+      WidgetBounds* bounds = widget_proto->mutable_bounds();
+      bounds->set_min_x(info.bounds.min_x);
+      bounds->set_min_y(info.bounds.min_y);
+      bounds->set_max_x(info.bounds.max_x);
+      bounds->set_max_y(info.bounds.max_y);
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-    if (ctx && has_item_info) {
+    } else if (ctx && has_item_info) {
+      WidgetBounds* bounds = widget_proto->mutable_bounds();
       bounds->set_min_x(item_info.RectFull.Min.x);
       bounds->set_min_y(item_info.RectFull.Min.y);
       bounds->set_max_x(item_info.RectFull.Max.x);
       bounds->set_max_y(item_info.RectFull.Max.y);
     } else {
       (void)ctx;
-    }
 #else
-    (void)ctx;
+    } else {
+      (void)ctx;
 #endif
+    }
+
+    widget_proto->set_last_seen_frame(info.last_seen_frame);
+    int64_t last_seen_ms = 0;
+    if (info.last_seen_time != absl::Time()) {
+      last_seen_ms = absl::ToUnixMillis(info.last_seen_time);
+    }
+    widget_proto->set_last_seen_at_ms(last_seen_ms);
+    widget_proto->set_stale(info.stale_frame_count > 0);
 
     ++total_widgets;
   }

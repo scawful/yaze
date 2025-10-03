@@ -227,11 +227,31 @@ absl::Status HandleGuiDiscoverCommand(const std::vector<std::string>& arg_vec) {
                   << (widget.visible ? "true" : "false") << ",\n";
         std::cout << "          \"enabled\": "
                   << (widget.enabled ? "true" : "false") << ",\n";
-        std::cout << "          \"bounds\": { \"min\": [" << widget.bounds.min_x
-                  << ", " << widget.bounds.min_y << "], \"max\": ["
-                  << widget.bounds.max_x << ", " << widget.bounds.max_y
-                  << "] },\n";
-        std::cout << "          \"widgetId\": " << widget.widget_id << "\n";
+        if (widget.has_bounds) {
+          std::cout << "          \"bounds\": { \"min\": ["
+                    << widget.bounds.min_x << ", " << widget.bounds.min_y
+                    << "], \"max\": [" << widget.bounds.max_x << ", "
+                    << widget.bounds.max_y << "] },\n";
+        } else {
+          std::cout << "          \"bounds\": null,\n";
+        }
+        std::cout << "          \"widgetId\": " << widget.widget_id << ",\n";
+        std::cout << "          \"lastSeenFrame\": "
+                  << widget.last_seen_frame << ",\n";
+        std::cout << "          \"lastSeenAt\": ";
+        if (widget.last_seen_at.has_value()) {
+          std::cout
+              << "\""
+              << JsonEscape(absl::FormatTime("%Y-%m-%dT%H:%M:%SZ",
+                                              *widget.last_seen_at,
+                                              absl::UTCTimeZone()))
+              << "\"";
+        } else {
+          std::cout << "null";
+        }
+        std::cout << ",\n";
+        std::cout << "          \"stale\": "
+                  << (widget.stale ? "true" : "false") << "\n";
         std::cout << "        }";
         if (i + 1 < window.widgets.size()) {
           std::cout << ",";
@@ -284,9 +304,24 @@ absl::Status HandleGuiDiscoverCommand(const std::vector<std::string>& arg_vec) {
       std::cout << "    Suggested: " << widget.suggested_action << "\n";
       std::cout << "    State: " << (widget.visible ? "visible" : "hidden")
                 << ", " << (widget.enabled ? "enabled" : "disabled") << "\n";
-      std::cout << absl::StrFormat("    Bounds: (%.1f, %.1f) → (%.1f, %.1f)\n",
-                                   widget.bounds.min_x, widget.bounds.min_y,
-                                   widget.bounds.max_x, widget.bounds.max_y);
+      if (widget.has_bounds) {
+        std::cout << absl::StrFormat(
+            "    Bounds: (%.1f, %.1f) → (%.1f, %.1f)\n", widget.bounds.min_x,
+            widget.bounds.min_y, widget.bounds.max_x, widget.bounds.max_y);
+      } else {
+        std::cout << "    Bounds: (not available)\n";
+      }
+      std::cout << "    Last seen: frame " << widget.last_seen_frame;
+      if (widget.last_seen_at.has_value()) {
+        std::cout << " @ "
+                  << absl::FormatTime("%Y-%m-%d %H:%M:%S",
+                                      *widget.last_seen_at,
+                                      absl::LocalTimeZone());
+      }
+      if (widget.stale) {
+        std::cout << " [STALE]";
+      }
+      std::cout << "\n";
       std::cout << "    Widget ID: 0x" << std::hex << widget.widget_id
                 << std::dec << "\n";
     }

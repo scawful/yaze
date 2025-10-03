@@ -266,6 +266,12 @@ Options:
   --format <mode>        Output as `table` (default) or `json`
   --limit <n>            Maximum widgets to display (useful for large UIs)
 
+Each discovered widget now reports:
+- Current visibility/enablement and bounding box (when available)
+- Last observed frame number and UTC timestamp
+- A `stale` flag when the widget hasn't appeared in the current frame
+- Its underlying ImGui ID for low-level automation
+
 Examples:
   # Discover all widgets currently registered
   z3ed agent gui discover
@@ -292,10 +298,13 @@ Window: Overworld (visible)
     Suggested: Click button:Save
     State: visible, enabled
     Bounds: (24.0, 64.0) → (112.0, 92.0)
+  Last seen: frame 18432 @ 2025-01-16 19:42:05
     Widget ID: 0x13fc41a2
 
 Widgets shown: 3 of 18 (truncated)
 Snapshot: 2025-01-16 19:42:05
+
+_Widgets that have not appeared in the current frame are marked `[STALE]` in the table output._
 ```
 
 **Use Cases**:

@@ -202,31 +202,48 @@ z3ed gui discover --window "Overworld"
 z3ed gui discover --type button
 ```
 
-**API Schema**:
+**API Schema (current)**:
 ```proto
 message DiscoverWidgetsRequest {
-  string window_filter = 1;  // Optional: filter by window name
-  enum WidgetType { ALL = 0; BUTTON = 1; INPUT = 2; MENU = 3; TAB = 4; CHECKBOX = 5; }
+  string window_filter = 1;
   WidgetType type_filter = 2;
+  string path_prefix = 3;
+  bool include_invisible = 4;
+  bool include_disabled = 5;
+}
+
+message WidgetBounds {
+  float min_x = 1;
+  float min_y = 2;
+  float max_x = 3;
+  float max_y = 4;
+}
+
+message DiscoveredWidget {
+  string path = 1;
+  string label = 2;
+  string type = 3;
+  string description = 4;
+  string suggested_action = 5;
+  bool visible = 6;
+  bool enabled = 7;
+  WidgetBounds bounds = 8;
+  uint32 widget_id = 9;
+  int64 last_seen_frame = 10;
+  int64 last_seen_at_ms = 11;
+  bool stale = 12;
+}
+
+message DiscoveredWindow {
+  string name = 1;
+  bool visible = 2;
+  repeated DiscoveredWidget widgets = 3;
 }
 
 message DiscoverWidgetsResponse {
-  repeated WindowInfo windows = 1;
-}
-
-message WindowInfo {
-  string name = 1;
-  bool is_visible = 2;
-  repeated WidgetInfo widgets = 3;
-}
-
-message WidgetInfo {
-  string id = 1;
-  string label = 2;
-  string type = 3;  // "button", "input", "menu", etc.
-  bool is_enabled = 4;
-  string position = 5;  // "x,y,width,height"
-  string suggested_action = 6;  // "Click button:Open ROM"
+  repeated DiscoveredWindow windows = 1;
+  int32 total_widgets = 2;
+  int64 generated_at_ms = 3;
 }
 ```
 

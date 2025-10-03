@@ -152,6 +152,10 @@ struct WidgetDescriptor {
   bool enabled = true;
   WidgetBoundingBox bounds;
   uint32_t widget_id = 0;
+  bool has_bounds = false;
+  int64_t last_seen_frame = -1;
+  std::optional<absl::Time> last_seen_at;
+  bool stale = false;
 };
 
 struct DiscoveredWindowInfo {

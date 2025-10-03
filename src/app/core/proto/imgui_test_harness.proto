@@ -290,6 +290,9 @@ message DiscoveredWidget {
   bool enabled = 7;             // Currently enabled for interaction
   WidgetBounds bounds = 8;      // Bounding rectangle in screen coordinates
   uint32 widget_id = 9;         // ImGui ID (debugging / direct access)
+  int64 last_seen_frame = 10;   // Frame number when widget was last observed
+  int64 last_seen_at_ms = 11;   // Wall-clock timestamp of last observation
+  bool stale = 12;              // True if widget not seen in the current frame
 }
 
 message DiscoveredWindow {
