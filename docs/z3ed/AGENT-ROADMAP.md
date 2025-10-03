@@ -1,7 +1,5 @@
 # z3ed Agent Roadmap
 
-**Latest Update**: October 3, 2025
-
 This document outlines the strategic vision and concrete next steps for the `z3ed` AI agent, focusing on a transition from a command-line tool to a fully interactive, conversational assistant for ROM hacking.
 
 ## Core Vision: The Conversational ROM Hacking Assistant
@@ -57,44 +55,38 @@ This vision will be realized through a shared interface available in both the `z
     6. User uses the `agent diff` and `agent accept` commands (or UI equivalents) to review and apply the changes.
 - **Status**: The proposal workflow itself is mostly implemented. This task involves integrating it with the new conversational service.
 
-## Consolidated Next Steps
+## Next Steps
 
-### Immediate Priorities (Next Session)
-1.  **Share ROM Context with the Agent**:
-    - Inject the active GUI/TUI ROM instance into `ConversationalAgentService`.
-    - Ensure tool calls succeed without requiring `--rom` flags when running inside the editor.
-2.  **Expand Overworld Tool Coverage**:
+### Immediate Priorities
+1.  **Expand Overworld Tool Coverage**:
     - Add read-only commands for tile searches, area summaries, and teleport destinations.
     - Guarantee each tool returns both JSON and human-readable summaries for the chat renderers.
-3.  **Document & Test the New Tooling**:
+2.  **Document & Test the New Tooling**:
     - Update the main `README.md` and relevant docs to cover the new chat formatting.
     - Add regression tests (unit or golden JSON fixtures) for the new Overworld tools.
 
-### Short-Term Goals (This Week)
-1.  **Polish the TUI Chat Experience**:
+3.  **Polish the TUI Chat Experience**:
     - Tighten keyboard shortcuts, scrolling, and copy-to-clipboard behaviour.
     - Align log file output with on-screen formatting for easier debugging.
-2.  **Integrate Tool Use with LLM**:
+4.  **Integrate Tool Use with LLM**:
     - Modify the `AIService` to support function calling/tool use.
     - Teach the agent to call the new read-only commands to answer questions.
-3.  **Land Overworld Tooling**:
+5.  **Land Overworld Tooling**:
     - Ship at least two Overworld inspection commands with comprehensive tests.
-    - Record example transcripts demonstrating tool usage in both TUI and GUI.
 
-### Long-Term Vision (Next Week and Beyond)
-1.  **Build GUI Chat Widget**:
+6.  **Build GUI Chat Widget**:
     - Create the ImGui component.
     - Ensure it shares the same backend service as the TUI.
-2.  **Full Integration with Proposal System**:
+7.  **Full Integration with Proposal System**:
     - Implement the logic for the agent to transition from conversation to proposal generation.
-3.  **Expand Tool Arsenal**:
+8.  **Expand Tool Arsenal**:
     - Continuously add new read-only commands to give the agent more capabilities to inspect the ROM.
-4.  **Multi-Modal Agent**:
+9.  **Multi-Modal Agent**:
     - Explore the possibility of the agent generating and displaying images (e.g., a map of a dungeon room) in the chat.
-5.  **Advanced Configuration**:
+10.  **Advanced Configuration**:
     - Implement environment variables for selecting AI providers and models (e.g., `YAZE_AI_PROVIDER`, `OLLAMA_MODEL`).
     - Add CLI flags for overriding the provider and model on a per-command basis.
-6.  **Performance and Cost-Saving**:
+11.  **Performance and Cost-Saving**:
     - Implement a response cache to reduce latency and API costs.
     - Add token usage tracking and reporting.
 
@@ -110,6 +102,7 @@ We have made significant progress in laying the foundation for the conversationa
 - **Tool Use Foundation**: The `ToolDispatcher` is implemented, and the AI services are aware of the new tool call format.
  - **Tool Loop Improvements**: Conversational flow now handles multi-step tool calls with default JSON output, allowing results to feed back into the chat without recursion.
 - **Structured Tool Output Rendering**: Both the TUI and GUI chat widgets now display tables and JSON payloads with friendly formatting, drastically improving readability.
+- **Overworld Inspection Suite**: Added `overworld describe-map` and `overworld list-warps` commands producing text/JSON summaries for map metadata and warp points, with agent tooling hooks.
 
 ### ✅ Build Configuration Issue Resolved
 The linker error is fixed. Both the CLI and GUI targets now link against `yaze_agent`, so the shared agent handlers (`HandleResourceListCommand`, `HandleDungeonListSpritesCommand`, etc.) compile once and are available to `ToolDispatcher` everywhere.
@@ -117,4 +110,3 @@ The linker error is fixed. Both the CLI and GUI targets now link against `yaze_a
 ### 🚀 Next Steps
 1.  **Share ROM Context with the Agent**: Inject the active GUI ROM into `ConversationalAgentService` so tool calls work even when `--rom` flags are unavailable. Analyze the `src/app/rom.cc` and `src/app/rom.h` and `src/app/editor/editor_manager.cc` files for guidance on accessing the current project/ROM.
 2.  **Expand Tool Coverage**: Target Overworld navigation helpers (`overworld find-tile`, `overworld list-warps`, region summaries) and dialogue inspectors. Prioritize commands that unblock common level-design questions and emit concise table/JSON payloads.
-3.  **Publish Usage Examples**: Capture transcripts and screenshots that highlight structured chat output, then weave them into the docs so contributors can see the intended UX.

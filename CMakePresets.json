@@ -17,7 +17,7 @@
         "YAZE_BUILD_TESTS": "ON",
         "YAZE_BUILD_APP": "ON",
         "YAZE_BUILD_LIB": "ON",
-        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_EMU": "OFF",
         "YAZE_BUILD_Z3ED": "ON"
       }
     },
@@ -50,17 +50,44 @@
       "inherits": "debug",
       "cacheVariables": {
         "YAZE_ENABLE_ROM_TESTS": "ON",
-        "YAZE_TEST_ROM_PATH": "${sourceDir}/build/bin/zelda3.sfc"
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
       }
     },
     {
       "name": "macos-dev",
-      "displayName": "macOS Development (ARM64)",
+      "displayName": "macOS debug (ARM64)",
       "description": "macOS ARM64 development build with ROM testing",
       "inherits": "macos-debug",
       "cacheVariables": {
         "YAZE_ENABLE_ROM_TESTS": "ON",
-        "YAZE_TEST_ROM_PATH": "${sourceDir}/build/bin/zelda3.sfc"
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
+      }
+    },
+    {
+      "name": "macos-dev-z3ed-ai",
+      "displayName": "macOS debug z3ed agent (ARM64)",
+      "description": "macOS ARM64 development build with ROM testing",
+      "inherits": "macos-debug",
+      "cacheVariables": {
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc",
+        "YAZE_WITH_JSON": "ON",
+        "YAZE_WITH_GRPC": "ON",
+        "YAZE_BUILD_Z3ED": "ON"
+      }
+    },
+    {
+      "name": "macos-agent-test",
+      "displayName": "macOS z3ed agent test (ARM64)",
+      "description": "macOS ARM64 build for exercising the z3ed agent with JSON/GRPC",
+      "inherits": "macos-debug",
+      "cacheVariables": {
+        "YAZE_WITH_JSON": "ON",
+        "YAZE_WITH_GRPC": "ON",
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
       }
     },
     {
@@ -220,6 +247,20 @@
       }
     },
     {
+      "name": "windows-agent-test",
+      "displayName": "Windows z3ed agent test",
+      "description": "Windows build for exercising the z3ed agent with JSON/GRPC",
+      "inherits": "windows-debug",
+      "cacheVariables": {
+        "YAZE_WITH_JSON": "ON",
+        "YAZE_WITH_GRPC": "ON",
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
+      }
+    },
+    {
       "name": "windows-arm64-debug",
       "displayName": "Windows ARM64 Debug",
       "description": "Windows ARM64-specific debug configuration with vcpkg",
@@ -351,6 +392,11 @@
       "displayName": "macOS Release Build (Universal)"
     },
     {
+      "name": "macos-agent-test",
+      "configurePreset": "macos-agent-test",
+      "displayName": "macOS z3ed Agent Test Build"
+    },
+    {
       "name": "fast",
       "configurePreset": "debug",
       "displayName": "Fast Debug Build",
@@ -359,32 +405,44 @@
     {
       "name": "windows-debug",
       "configurePreset": "windows-debug",
-      "displayName": "Windows Debug Build"
+      "displayName": "Windows Debug Build",
+      "configuration": "Debug"
     },
     {
       "name": "windows-release",
       "configurePreset": "windows-release",
-      "displayName": "Windows Release Build"
+      "displayName": "Windows Release Build",
+      "configuration": "Release"
     },
     {
       "name": "windows-dev",
       "configurePreset": "windows-dev",
-      "displayName": "Windows Development Build"
+      "displayName": "Windows Development Build",
+      "configuration": "Debug"
     },
     {
       "name": "windows-arm64-debug",
       "configurePreset": "windows-arm64-debug",
-      "displayName": "Windows ARM64 Debug Build"
+      "displayName": "Windows ARM64 Debug Build",
+      "configuration": "Debug"
     },
     {
       "name": "windows-arm64-release",
       "configurePreset": "windows-arm64-release",
-      "displayName": "Windows ARM64 Release Build"
+      "displayName": "Windows ARM64 Release Build",
+      "configuration": "Release"
     },
     {
       "name": "windows-arm64-dev",
       "configurePreset": "windows-arm64-dev",
-      "displayName": "Windows ARM64 Development Build"
+      "displayName": "Windows ARM64 Development Build",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-agent-test",
+      "configurePreset": "windows-agent-test",
+      "displayName": "Windows z3ed Agent Test Build",
+      "configuration": "Debug"
     }
   ],
   "testPresets": [
