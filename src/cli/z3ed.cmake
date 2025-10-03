@@ -83,6 +83,29 @@ if(YAZE_WITH_JSON)
   list(APPEND Z3ED_SRC_FILES cli/service/prompt_builder.cc)
 endif()
 
+# ============================================================================
+# SSL/HTTPS Support (Required for Gemini API and future collaborative features)
+# ============================================================================
+option(YAZE_WITH_SSL "Build with OpenSSL support for HTTPS" ON)
+if(YAZE_WITH_SSL OR YAZE_WITH_JSON)
+  # Find OpenSSL on the system
+  find_package(OpenSSL REQUIRED)
+  
+  # Define the SSL support macro for httplib
+  target_compile_definitions(z3ed PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
+  
+  # Link OpenSSL libraries
+  target_link_libraries(z3ed PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+  
+  # On macOS, also enable Keychain cert support
+  if(APPLE)
+    target_compile_definitions(z3ed PRIVATE CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN)
+    target_link_libraries(z3ed PRIVATE "-framework CoreFoundation" "-framework Security")
+  endif()
+  
+  message(STATUS "✓ SSL/HTTPS support enabled for z3ed")
+endif()
+
 target_include_directories(
   z3ed PUBLIC
   ${CMAKE_SOURCE_DIR}/src/lib/

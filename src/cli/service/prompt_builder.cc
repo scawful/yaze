@@ -14,63 +14,116 @@ PromptBuilder::PromptBuilder() {
 }
 
 void PromptBuilder::LoadDefaultExamples() {
-  // Palette manipulation examples
-  examples_.push_back({
-      "Change the color at index 5 in palette 0 to red",
-      {
-          "palette export --group overworld --id 0 --to temp_palette.json",
-          "palette set-color --file temp_palette.json --index 5 --color 0xFF0000",
-          "palette import --group overworld --id 0 --from temp_palette.json"
-      },
-      "Export palette, modify specific color, then import back"
-  });
+  // ==========================================================================
+  // OVERWORLD TILE16 EDITING - Primary Focus
+  // ==========================================================================
   
+  // Single tile placement
   examples_.push_back({
-      "Make all soldiers red",
-      {
-          "palette export --group sprite --id 3 --to soldier_palette.json",
-          "palette set-color --file soldier_palette.json --index 1 --color 0xFF0000",
-          "palette set-color --file soldier_palette.json --index 2 --color 0xCC0000",
-          "palette import --group sprite --id 3 --from soldier_palette.json"
-      },
-      "Modify multiple colors in a sprite palette"
-  });
-  
-  // Overworld manipulation examples
-  examples_.push_back({
-      "Place a tree at coordinates (10, 20) on map 0",
+      "Place a tree at position 10, 20 on the Light World map",
       {
           "overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E"
       },
-      "Tree tile ID is 0x02E in ALTTP"
+      "Single tile16 placement. Tree tile ID is 0x02E in vanilla ALTTP"
   });
   
+  // Area/region editing
   examples_.push_back({
-      "Put a house at position 5, 5",
+      "Create a 3x3 water pond at coordinates 15, 10",
       {
-          "overworld set-tile --map 0 --x 5 --y 5 --tile 0x0C0",
-          "overworld set-tile --map 0 --x 6 --y 5 --tile 0x0C1",
-          "overworld set-tile --map 0 --x 5 --y 6 --tile 0x0D0",
-          "overworld set-tile --map 0 --x 6 --y 6 --tile 0x0D1"
+          "overworld set-tile --map 0 --x 15 --y 10 --tile 0x14C",
+          "overworld set-tile --map 0 --x 16 --y 10 --tile 0x14D",
+          "overworld set-tile --map 0 --x 17 --y 10 --tile 0x14C",
+          "overworld set-tile --map 0 --x 15 --y 11 --tile 0x14D",
+          "overworld set-tile --map 0 --x 16 --y 11 --tile 0x14D",
+          "overworld set-tile --map 0 --x 17 --y 11 --tile 0x14D",
+          "overworld set-tile --map 0 --x 15 --y 12 --tile 0x14E",
+          "overworld set-tile --map 0 --x 16 --y 12 --tile 0x14E",
+          "overworld set-tile --map 0 --x 17 --y 12 --tile 0x14E"
       },
-      "Houses require 4 tiles (2x2 grid)"
+      "Water areas use different edge tiles: 0x14C (top), 0x14D (middle), 0x14E (bottom)"
   });
   
-  // Validation examples
+  // Path/line creation
   examples_.push_back({
-      "Validate the ROM",
+      "Add a dirt path from position 5,5 to 5,15",
+      {
+          "overworld set-tile --map 0 --x 5 --y 5 --tile 0x022",
+          "overworld set-tile --map 0 --x 5 --y 6 --tile 0x022",
+          "overworld set-tile --map 0 --x 5 --y 7 --tile 0x022",
+          "overworld set-tile --map 0 --x 5 --y 8 --tile 0x022",
+          "overworld set-tile --map 0 --x 5 --y 9 --tile 0x022",
+          "overworld set-tile --map 0 --x 5 --y 10 --tile 0x022",
+          "overworld set-tile --map 0 --x 5 --y 11 --tile 0x022",
+          "overworld set-tile --map 0 --x 5 --y 12 --tile 0x022",
+          "overworld set-tile --map 0 --x 5 --y 13 --tile 0x022",
+          "overworld set-tile --map 0 --x 5 --y 14 --tile 0x022",
+          "overworld set-tile --map 0 --x 5 --y 15 --tile 0x022"
+      },
+      "Linear paths are created by placing tiles sequentially. Dirt tile is 0x022"
+  });
+  
+  // Forest/tree grouping
+  examples_.push_back({
+      "Plant a row of trees horizontally at y=8 from x=20 to x=25",
+      {
+          "overworld set-tile --map 0 --x 20 --y 8 --tile 0x02E",
+          "overworld set-tile --map 0 --x 21 --y 8 --tile 0x02E",
+          "overworld set-tile --map 0 --x 22 --y 8 --tile 0x02E",
+          "overworld set-tile --map 0 --x 23 --y 8 --tile 0x02E",
+          "overworld set-tile --map 0 --x 24 --y 8 --tile 0x02E",
+          "overworld set-tile --map 0 --x 25 --y 8 --tile 0x02E"
+      },
+      "Tree rows create natural barriers and visual boundaries"
+  });
+  
+  // ==========================================================================
+  // DUNGEON EDITING - Label-Aware Operations
+  // ==========================================================================
+  
+  // Sprite placement (label-aware)
+  examples_.push_back({
+      "Add 3 soldiers to the Eastern Palace entrance room",
+      {
+          "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 5 --y 3",
+          "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 10 --y 3",
+          "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 7 --y 8"
+      },
+      "Dungeon ID 0x02 is Eastern Palace. Sprite 0x41 is soldier. Spread placement for balance"
+  });
+  
+  // Object placement
+  examples_.push_back({
+      "Place a chest in the Hyrule Castle treasure room",
+      {
+          "dungeon add-chest --dungeon 0x00 --room 0x60 --x 7 --y 5 --item 0x12 --big false"
+      },
+      "Dungeon 0x00 is Hyrule Castle. Item 0x12 is a small key. Position centered in room"
+  });
+  
+  // ==========================================================================
+  // COMMON TILE16 REFERENCE (for AI knowledge)
+  // ==========================================================================
+  // Grass: 0x020
+  // Dirt: 0x022
+  // Tree: 0x02E
+  // Water (top): 0x14C
+  // Water (middle): 0x14D
+  // Water (bottom): 0x14E
+  // Bush: 0x003
+  // Rock: 0x004
+  // Flower: 0x021
+  // Sand: 0x023
+  // Deep Water: 0x14F
+  // Shallow Water: 0x150
+  
+  // Validation example (still useful)
+  examples_.push_back({
+      "Check if my overworld changes are valid",
       {
           "rom validate"
       },
-      "Simple validation command"
-  });
-  
-  examples_.push_back({
-      "Check if my changes are valid",
-      {
-          "rom validate"
-      },
-      "Validation ensures ROM integrity"
+      "Validation ensures ROM integrity after tile modifications"
   });
 }
 
