@@ -24,7 +24,10 @@ absl::Status HandleLearnCommand();
 absl::Status HandleListCommand();
 absl::Status HandleCommitCommand(Rom& rom);
 absl::Status HandleRevertCommand(Rom& rom);
-absl::Status HandleDescribeCommand(const std::vector<std::string>& args);
+absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec);
+absl::Status HandleResourceListCommand(const std::vector<std::string>& arg_vec);
+absl::Status HandleDungeonListSpritesCommand(
+    const std::vector<std::string>& arg_vec);
 
 }  // namespace agent
 }  // namespace cli
