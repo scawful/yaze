@@ -16,7 +16,7 @@ Phase 2 focused on fixing and enhancing the existing `GeminiAIService` implement
 **Implementation:**
 - Created `GeminiConfig` struct with comprehensive settings:
   - `api_key`: API authentication
-  - `model`: Defaults to `gemini-1.5-flash` (faster, cheaper than pro)
+  - `model`: Defaults to `gemini-2.5-flash` (faster, cheaper than pro)
   - `temperature`: Response randomness control (default: 0.7)
   - `max_output_tokens`: Response length limit (default: 2048)
   - `system_instruction`: Custom system prompt support
@@ -117,13 +117,13 @@ for (const auto& line : lines) {
 **Changes:**
 - Old: `/v1beta/models/gemini-pro:generateContent`
 - New: `/v1beta/models/{model}:generateContent` (configurable)
-- Default model: `gemini-1.5-flash` (recommended for production)
+- Default model: `gemini-2.5-flash` (recommended for production)
 
 **Model Comparison:**
 
 | Model | Speed | Cost | Best For |
 |-------|-------|------|----------|
-| gemini-1.5-flash | Fast | Low | Production, quick responses |
+| gemini-2.5-flash | Fast | Low | Production, quick responses |
 | gemini-1.5-pro | Slower | Higher | Complex reasoning, high accuracy |
 | gemini-pro | Legacy | Medium | Deprecated, use flash instead |
 
@@ -188,7 +188,7 @@ for (const auto& line : lines) {
 - **Testability:** Health check allows testing without making generation requests
 
 ### Performance
-- **Faster Model:** gemini-1.5-flash is 2x faster than pro
+- **Faster Model:** gemini-2.5-flash is 2x faster than pro
 - **Timeout Configuration:** 30s timeout for generation, 5s for health check
 - **Token Limits:** Configurable max_output_tokens prevents runaway costs
 
@@ -263,7 +263,7 @@ $ cmake --build build --target z3ed
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `GEMINI_API_KEY` | Yes | - | API authentication key |
-| `GEMINI_MODEL` | No | `gemini-1.5-flash` | Model to use |
+| `GEMINI_MODEL` | No | `gemini-2.5-flash` | Model to use |
 | `YAZE_AI_PROVIDER` | No | auto-detect | Force provider selection |
 
 **Get API Key:** https://makersuite.google.com/app/apikey
@@ -301,7 +301,7 @@ export GEMINI_API_KEY="your-api-key-here"
 | **Speed** | Variable (model-dependent) | Fast (flash), slower (pro) |
 | **Privacy** | Complete | Sent to Google |
 | **Setup** | Requires installation | API key only |
-| **Models** | qwen2.5-coder, llama, etc. | gemini-1.5-flash/pro |
+| **Models** | qwen2.5-coder, llama, etc. | gemini-2.5-flash/pro |
 | **Offline** | ✅ Yes | ❌ No |
 | **Internet** | ❌ Not required | ✅ Required |
 | **Best For** | Development, privacy-sensitive | Production, quick setup |

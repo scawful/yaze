@@ -14,7 +14,7 @@ namespace cli {
 
 struct GeminiConfig {
   std::string api_key;
-  std::string model = "gemini-1.5-flash";  // Default to flash model
+  std::string model = "gemini-2.5-flash";  // Default to flash model
   float temperature = 0.7f;
   int max_output_tokens = 2048;
   std::string system_instruction;

@@ -39,7 +39,7 @@
 - ✅ Added `GeminiConfig` struct for flexibility
 - ✅ Implemented health check system
 - ✅ Enhanced JSON parsing with fallbacks
-- ✅ Switched to `gemini-1.5-flash` (faster, cheaper)
+- ✅ Switched to `gemini-2.5-flash` (faster, cheaper)
 - ✅ Added markdown code block stripping
 - ✅ Graceful error handling with actionable messages
 - ✅ Service factory integration

@@ -70,7 +70,7 @@ pass "GEMINI_API_KEY is set"
 # Test 3: Verify Gemini model availability
 echo ""
 echo "Test 3: Verify Gemini model availability"
-GEMINI_MODEL="${GEMINI_MODEL:-gemini-1.5-flash}"
+GEMINI_MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
 echo "   Testing with model: $GEMINI_MODEL"
 
 # Quick API check
