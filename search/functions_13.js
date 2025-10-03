@@ -71,7 +71,7 @@ var searchData=
   ['trimharnesshistorylocked_68',['TrimHarnessHistoryLocked',['../da/d3e/classyaze_1_1test_1_1TestManager.html#a2409be0114ce93166356857aaa252ab2',1,'yaze::test::TestManager']]],
   ['trimresourcehistory_69',['TrimResourceHistory',['../da/d3e/classyaze_1_1test_1_1TestManager.html#aac8ba5225045f940a57ed1f7bfa1e774',1,'yaze::test::TestManager']]],
   ['trimstaleentries_70',['TrimStaleEntries',['../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ac8ffd2ca0f25a2e40f9fbdf445f946b5',1,'yaze::gui::WidgetIdRegistry']]],
-  ['trimwhitespace_71',['TrimWhitespace',['../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a479da6dd9f2e4ff76f7a625b05ac006b',1,'yaze::cli::agent::anonymous_namespace{test_commands.cc}']]],
+  ['trimwhitespace_71',['TrimWhitespace',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a7552656b92ab22328e2089e8b53d038f',1,'yaze::cli::agent']]],
   ['tryparsebyte_72',['TryParseByte',['../da/dbc/classyaze_1_1emu_1_1AsmParser.html#a6ebefb8ac2822d8030c691b1a3ce2402',1,'yaze::emu::AsmParser']]],
   ['tryparsehex_73',['TryParseHex',['../da/dbc/classyaze_1_1emu_1_1AsmParser.html#a2dc4cfff44721a57acc183a7e122a9b0',1,'yaze::emu::AsmParser']]],
   ['tsb_74',['tsb',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a91fa3f2a2be7dd1b784e967ad421d1dd',1,'yaze::emu::Cpu::TSB(uint16_t address)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a7d149e83459d55b4519e0d7fa765b3ed',1,'yaze::emu::Cpu::Tsb(uint32_t low, uint32_t high)']]],

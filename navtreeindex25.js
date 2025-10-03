@@ -1,7 +1,17 @@
 var NAVTREEINDEX25 =
 {
-"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#afc168478b710ec714fd0b52c033be7b4":[62,0,1,4,25,11],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ac38e2183600ee2d903edf20fd23eb35b":[62,0,1,4,25,1],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ac38e2183600ee2d903edf20fd23eb35b":[61,0,4,5,27,1],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ad59f68893ba7cbf9af495f2c77795015":[62,0,1,4,25,18],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ad59f68893ba7cbf9af495f2c77795015":[61,0,4,5,27,18],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ade1dda2ddac87ef17e917c54258e6668":[61,0,4,5,27,17],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ade1dda2ddac87ef17e917c54258e6668":[62,0,1,4,25,17],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ae01a65ee37324935981abd7b6dbdfcd3":[62,0,1,4,25,13],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ae01a65ee37324935981abd7b6dbdfcd3":[61,0,4,5,27,13],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#af51c84e7b22b5cbbc0c04bc4f3f2488f":[61,0,4,5,27,15],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#af51c84e7b22b5cbbc0c04bc4f3f2488f":[62,0,1,4,25,15],
 "d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#afc168478b710ec714fd0b52c033be7b4":[61,0,4,5,27,11],
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#afc168478b710ec714fd0b52c033be7b4":[62,0,1,4,25,11],
 "d4/d0a/namespaceyaze_1_1test.html":[61,0,4,7],
 "d4/d0a/namespaceyaze_1_1test.html#a00f4a0a38efe3556268802db22d9a722":[61,0,4,7,67],
 "d4/d0a/namespaceyaze_1_1test.html#a056da21b811700468814682012bdfe6d":[61,0,4,7,221],
@@ -239,15 +249,5 @@ var NAVTREEINDEX25 =
 "d4/d12/compression__test_8cc.html#afdc17efba505293c96aeb8793f341060":[63,0,4,3,2,0,24],
 "d4/d12/compression__test_8cc.html#afef760a422e5f5f3f155f11b419ef8c6":[63,0,4,3,2,0,17],
 "d4/d12/compression__test_8cc_source.html":[63,0,4,3,2,0],
-"d4/d13/bitmap_8cc.html":[63,0,3,0,3,6],
-"d4/d13/bitmap_8cc.html#a88d0646ee27ae9755070c4e936cb36bf":[63,0,3,0,3,6,1],
-"d4/d13/bitmap_8cc_source.html":[63,0,3,0,3,6],
-"d4/d1a/cli_2handlers_2rom_8cc.html":[63,0,3,1,0,10],
-"d4/d1a/cli_2handlers_2rom_8cc.html#aa9c3df97146a4533c1c78f5ac7c9e36e":[63,0,3,1,0,10,0],
-"d4/d1a/cli_2handlers_2rom_8cc_source.html":[63,0,3,1,0,10],
-"d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html":[61,0,4,9,22,0],
-"d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html":[62,0,1,8,17,0],
-"d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html#a70748828c09b41a8d0b8735b9aae59fe":[61,0,4,9,22,0,0],
-"d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html#a70748828c09b41a8d0b8735b9aae59fe":[62,0,1,8,17,0,0],
-"d4/d2a/asar__integration__test_8cc.html":[63,0,4,1,1]
+"d4/d13/bitmap_8cc.html":[63,0,3,0,3,6]
 };

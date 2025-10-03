@@ -8,9 +8,6 @@ var annotated_dup =
         [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", [
           [ "anonymous_namespace{general_commands.cc}", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html", [
             [ "DescribeOptions", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions" ]
-          ] ],
-          [ "anonymous_namespace{test_commands.cc}", "dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html", [
-            [ "ReplayCommandOptions", "d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions.html", "d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions" ]
           ] ]
         ] ],
         [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],

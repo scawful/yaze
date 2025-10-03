@@ -360,7 +360,6 @@ var hierarchy =
     [ "yaze::test::TestRecorder::RecordingOptions", "d9/dcd/structyaze_1_1test_1_1TestRecorder_1_1RecordingOptions.html", null ],
     [ "yaze::gfx::RenderCommand", "d8/de1/structyaze_1_1gfx_1_1RenderCommand.html", null ],
     [ "yaze::core::Renderer", "da/d81/classyaze_1_1core_1_1Renderer.html", null ],
-    [ "yaze::cli::agent::anonymous_namespace{test_commands.cc}::ReplayCommandOptions", "d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions.html", null ],
     [ "yaze::cli::ReplayTestResult", "dc/d57/structyaze_1_1cli_1_1ReplayTestResult.html", null ],
     [ "yaze::cli::ResourceAction", "dc/d64/structyaze_1_1cli_1_1ResourceAction.html", null ],
     [ "yaze::cli::ResourceArgument", "da/dc6/structyaze_1_1cli_1_1ResourceArgument.html", null ],

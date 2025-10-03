@@ -231,7 +231,7 @@ var searchData=
   ['mcursorpositionchanged_228',['mCursorPositionChanged',['../d0/d28/classTextEditor.html#acdb2f6b634833d777d9263f0a253c38a',1,'TextEditor']]],
   ['md_20tt_229',['9. &lt;tt&gt;/docs/gfx_optimization_recommendations.md&lt;/tt&gt;',['../d9/df4/md_docs_2gfx__improvements__summary.html#autotoc_md940',1,'']]],
   ['mdeclaration_230',['mDeclaration',['../d6/dcb/structTextEditor_1_1Identifier.html#ae3be0995cbd2d21feeb354e722861b4a',1,'TextEditor::Identifier']]],
-  ['mdown_231',['mdown',['../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ad11ecb022fe8028407980e751708d0ee',1,'yaze::zelda3::TitleScreen::mDown'],['../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a66f53fad482f85ed6d119e0378173058',1,'yaze::zelda3::TitleScreen::mdown']]],
+  ['mdown_231',['mdown',['../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a66f53fad482f85ed6d119e0378173058',1,'yaze::zelda3::TitleScreen::mdown'],['../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#ad11ecb022fe8028407980e751708d0ee',1,'yaze::zelda3::TitleScreen::mDown']]],
   ['measured_20performance_20gains_232',['Measured Performance Gains',['../db/d26/md_docs_2atlas__rendering__implementation.html#autotoc_md311',1,'']]],
   ['measurement_20tools_233',['measurement tools',['../d3/d7b/md_docs_2gfx__optimizations__implemented.html#autotoc_md1039',1,'Measurement Tools'],['../d6/df4/md_docs_2gfx__optimizations__complete.html#autotoc_md1004',1,'Measurement Tools'],['../de/def/md_docs_2gfx__optimization__recommendations.html#autotoc_md987',1,'Measurement Tools']]],
   ['measurements_234',['Current Measurements',['../d9/d6b/md_docs_2B5-stability-improvements.html#autotoc_md477',1,'']]],

@@ -1,31 +1,4 @@
 var test__commands_8cc =
 [
-    [ "yaze::cli::agent::anonymous_namespace{test_commands.cc}::ReplayCommandOptions", "d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions.html", "d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions" ],
-    [ "AttachExitCode", "d7/d2d/test__commands_8cc.html#a64f5dcf93b0b087cb62b4a0f012285b9", null ],
-    [ "TrimWhitespace", "d7/d2d/test__commands_8cc.html#a479da6dd9f2e4ff76f7a625b05ac006b", null ],
-    [ "IsInteractiveInput", "d7/d2d/test__commands_8cc.html#ab48ba1084e58bc382dac4595b5920639", null ],
-    [ "PromptWithDefault", "d7/d2d/test__commands_8cc.html#af8097c1c48511237c40ef39b1fc30b3e", null ],
-    [ "PromptRequired", "d7/d2d/test__commands_8cc.html#a18c4ef700684e43d72a03983aaee9602", null ],
-    [ "PromptInt", "d7/d2d/test__commands_8cc.html#af4b2e58c4a76947c433bbbe89b26fae4", null ],
-    [ "PromptYesNo", "d7/d2d/test__commands_8cc.html#ab750922cb38c660a83e97d2b342516fb", null ],
-    [ "ParseCommaSeparated", "d7/d2d/test__commands_8cc.html#adc6fc3981998ba66ebb87dceda2eeabc", null ],
-    [ "ParseKeyValueEntry", "d7/d2d/test__commands_8cc.html#ad733955da4ff07d06e5d6fc73bb5d1df", null ],
-    [ "DeriveTestNameFromPath", "d7/d2d/test__commands_8cc.html#a75e4fa82f6d8c84623f84cef7666bc1f", null ],
-    [ "OutcomeToLabel", "d7/d2d/test__commands_8cc.html#af7221a5846c3b201c74c6a07063b867e", null ],
-    [ "BuildWidgetCatalogJson", "d7/d2d/test__commands_8cc.html#a178804826ec3524f8060a24dc13610b5", null ],
-    [ "WriteWidgetCatalog", "d7/d2d/test__commands_8cc.html#a62852d2390376ecaaf4fbb991b8183a1", null ],
-    [ "ParseReplayArgs", "d7/d2d/test__commands_8cc.html#a32e76713f99352d0b8267382aaf6e42a", null ],
-    [ "PrintReplayTextSummary", "d7/d2d/test__commands_8cc.html#a58748232264792d33cee8b43eb7648cc", null ],
-    [ "PrintReplayJsonSummary", "d7/d2d/test__commands_8cc.html#a36027942a9e4f41a98a6b33bc88a3fbc", null ],
-    [ "HandleTestReplayCommand", "d7/d2d/test__commands_8cc.html#a00d8ad0d0a955bdd0f063cb9a23d7bca", null ],
-    [ "HandleTestRunCommand", "d7/d2d/test__commands_8cc.html#a8c62749448db7748429f5c0450357588", null ],
-    [ "HandleTestStatusCommand", "d7/d2d/test__commands_8cc.html#aa45d9bd1f2f448d4be2c37bfba31d423", null ],
-    [ "HandleTestListCommand", "d7/d2d/test__commands_8cc.html#a7705fb8ccc82dbe78233ebddeb23736a", null ],
-    [ "HandleTestResultsCommand", "d7/d2d/test__commands_8cc.html#a8c8ad081b5a981a1b160932ae654f088", null ],
-    [ "HandleTestSuiteRunCommand", "d7/d2d/test__commands_8cc.html#aeed1e3472047d8d590c2cf609943fd5d", null ],
-    [ "HandleTestSuiteValidateCommand", "d7/d2d/test__commands_8cc.html#ad3ccd49bc300273a76c4b45376c8786f", null ],
-    [ "HandleTestSuiteCreateCommand", "d7/d2d/test__commands_8cc.html#afb1479042f19b0180fdf690b2bb8b9e1", null ],
-    [ "HandleTestSuiteCommand", "d7/d2d/test__commands_8cc.html#a98d4b6998569adb30f5375a7a3f74716", null ],
-    [ "HandleTestCommand", "d7/d2d/test__commands_8cc.html#a6e1a358a5b38165cc05d6c964ed78e49", null ],
-    [ "kExitCodePayloadKey", "d7/d2d/test__commands_8cc.html#a3e508a015e0a2b9261e73e59dfd2306d", null ]
+    [ "HandleTestCommand", "d7/d2d/test__commands_8cc.html#a6e1a358a5b38165cc05d6c964ed78e49", null ]
 ];
