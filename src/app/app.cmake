@@ -258,7 +258,9 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.cc
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.h
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.cc
-    ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.h)
+    ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.h
+    ${CMAKE_SOURCE_DIR}/src/app/core/widget_state_capture.cc
+    ${CMAKE_SOURCE_DIR}/src/app/core/widget_state_capture.h)
 
   target_include_directories(yaze PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/json/include)
