@@ -96,44 +96,48 @@ z3ed agent plan --prompt "test"
 
 **Note**: Gemini requires OpenSSL (HTTPS). Build with `-DYAZE_WITH_GRPC=ON -DYAZE_WITH_JSON=ON` to enable SSL support. OpenSSL is auto-detected on macOS/Linux. Windows users can use Ollama instead.
 
+### Example Prompts
+Here are some example prompts you can try with either Ollama or Gemini:
+
+**Overworld Tile16 Editing**:
+- `"Place a tree at position 10, 20 on map 0"`
+- `"Create a 3x3 water pond at coordinates 15, 10"`
+- `"Add a dirt path from position 5,5 to 5,15"`
+- `"Plant a row of trees horizontally at y=8 from x=20 to x=25"`
+
+**Dungeon Editing (Label-Aware)**:
+- `"Add 3 soldiers to the Eastern Palace entrance room"`
+- `"Place a chest in Hyrule Castle treasure room"`
+
 ## Core Documentation
 
 ### Essential Reads
-1. **[E6-z3ed-cli-design.md](E6-z3ed-cli-design.md)** - Architecture, design philosophy, agentic workflow framework
-2. **[E6-z3ed-reference.md](E6-z3ed-reference.md)** - Complete command reference and API documentation
-3. **[AGENTIC-PLAN-STATUS.md](AGENTIC-PLAN-STATUS.md)** - Current implementation status and roadmap
+1. **[AGENT-ROADMAP.md](AGENT-ROADMAP.md)** - The primary source of truth for the AI agent's strategic vision, architecture, and next steps.
+2. **[E6-z3ed-cli-design.md](E6-z3ed-cli-design.md)** - Detailed architecture and design philosophy.
+3. **[E6-z3ed-reference.md](E6-z3ed-reference.md)** - Complete command reference and API documentation.
 
 ### Quick References
-- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Condensed command cheatsheet
-- **[QUICK-START-GEMINI.md](QUICK-START-GEMINI.md)** - Gemini API setup and testing guide
-- **[OVERWORLD-DUNGEON-AI-PLAN.md](OVERWORLD-DUNGEON-AI-PLAN.md)** - Tile16 editing strategy and ResourceLabels integration
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Condensed command cheatsheet.
+- **[QUICK-START-GEMINI.md](QUICK-START-GEMINI.md)** - Gemini API setup and testing guide.
 
 ### Implementation Guides
-- **[LLM-INTEGRATION-PLAN.md](LLM-INTEGRATION-PLAN.md)** - LLM integration roadmap (Ollama, Gemini, Claude)
-- **[LLM-IMPLEMENTATION-CHECKLIST.md](LLM-IMPLEMENTATION-CHECKLIST.md)** - Step-by-step implementation tasks
-- **[IT-05-IMPLEMENTATION-GUIDE.md](IT-05-IMPLEMENTATION-GUIDE.md)** - Test introspection API (complete ✅)
-- **[IT-08-IMPLEMENTATION-GUIDE.md](IT-08-IMPLEMENTATION-GUIDE.md)** - Enhanced error reporting (complete ✅)
+- **[LLM-INTEGRATION-PLAN.md](LLM-INTEGRATION-PLAN.md)** - (Archive) Original LLM integration roadmap.
+- **[IT-05-IMPLEMENTATION-GUIDE.md](IT-05-IMPLEMENTATION-GUIDE.md)** - Test introspection API (complete ✅).
+- **[IT-08-IMPLEMENTATION-GUIDE.md](IT-08-IMPLEMENTATION-GUIDE.md)** - Enhanced error reporting (complete ✅).
 
 ## Current Status (October 2025)
 
-### ✅ Complete
-- **CLI Infrastructure**: Command parsing, handlers, TUI components
-- **Proposal System**: Sandbox creation, diff generation, accept/reject workflow
-- **AI Services**: Ollama integration, Gemini integration, PromptBuilder
-- **GUI Automation**: Widget discovery, test recording/replay, gRPC harness
-- **Test Introspection**: Status polling, results query, execution history
-- **Error Reporting**: Screenshots, failure context, widget state dumps
+The project is currently focused on implementing a conversational AI agent. See [AGENT-ROADMAP.md](AGENT-ROADMAP.md) for a detailed breakdown of what's complete, in progress, and planned.
 
 ### 🔄 In Progress
-- **Tile16 Editing Workflow**: Accept/reject for overworld canvas edits
-- **ResourceLabels Integration**: User-defined names for AI context
-- **Dungeon Editing Support**: Object/sprite placement via AI
+- **Conversational Agent**: Building a chat-like interface for the TUI and GUI.
+- **Agent "Tools"**: Adding more read-only commands for the agent to inspect the ROM.
+- **ResourceLabels Integration**: Integrating user-defined names for AI context.
 
 ### 📋 Planned
-- **Visual Diff Generation**: Before/after screenshots for proposals
-- **Batch Operations**: Multiple tile16 changes in single proposal
-- **Pattern Library**: Pre-defined tile patterns (rivers, forests, etc.)
-- **Claude Integration**: Anthropic API support
+- **GUI Chat Widget**: A shared chat interface for the main `yaze` application.
+- **Dungeon Editing Support**: Object/sprite placement via AI.
+- **Visual Diff Generation**: Before/after screenshots for proposals.
 
 ## AI Editing Focus Areas
 
@@ -246,38 +250,6 @@ AI agent features require:
 - Provide map context ("Light World", "map 0")
 - Check ResourceLabels are loaded for your project
 
-## Contributing
-
-### Adding AI Prompt Examples
-Edit `src/cli/service/prompt_builder.cc` → `LoadDefaultExamples()`
-- Add practical, multi-step examples
-- Include explanation of tile IDs and reasoning
-- Test with both Ollama and Gemini
-
-### Adding CLI Commands
-1. Create handler in `src/cli/handlers/<category>.cc`
-2. Register in command dispatcher
-3. Add to `E6-z3ed-reference.md` documentation
-4. Add example prompt to `prompt_builder.cc`
-
-### Testing
-```bash
-# Run unit tests
-cd build-grpc-test && ctest --output-on-failure
-
-# Test AI integration
-./bin/z3ed agent plan --prompt "test prompt" --verbose
-```
-
----
-
-**Getting Help**:
-- Read [E6-z3ed-cli-design.md](E6-z3ed-cli-design.md) for architecture
-- Check [AGENTIC-PLAN-STATUS.md](AGENTIC-PLAN-STATUS.md) for current status
-- Review [QUICK-START-GEMINI.md](QUICK-START-GEMINI.md) for AI setup
-
-**Quick Test** (verifies AI is working):
-```bash
-export GEMINI_API_KEY="your-key"  # or start ollama serve
-./build-grpc-test/bin/z3ed agent plan --prompt "Place a tree at 10, 10"
-```
+#### Gemini-Specific Issues
+- **"Cannot reach Gemini API"**: Check your internet connection, API key, and that you've built with SSL support.
+- **"Invalid Gemini API key"**: Regenerate your key at `aistudio.google.com/apikey`.
