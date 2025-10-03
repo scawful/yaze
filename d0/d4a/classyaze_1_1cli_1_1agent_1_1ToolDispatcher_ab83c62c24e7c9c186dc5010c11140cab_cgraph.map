@@ -1,11 +1,11 @@
 <map id="yaze::cli::agent::ToolDispatcher::Dispatch" name="yaze::cli::agent::ToolDispatcher::Dispatch">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,203,79"/>
-<area shape="rect" id="Node000002" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a112a9239569f967959da09a6e624d046" title=" " alt="" coords="251,5,445,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,43,235,38,236,44,203,48"/>
-<area shape="rect" id="Node000050" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab9bca766e994d7cd3f8328569233fd5e" title=" " alt="" coords="269,71,427,111"/>
-<area shape="poly" id="edge3_Node000001_Node000050" title=" " alt="" coords="203,69,254,76,253,81,203,75"/>
-<area shape="rect" id="Node000003" href="$d5/d1f/namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9" title=" " alt="" coords="493,13,709,39"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="445,23,477,23,477,28,445,28"/>
-<area shape="rect" id="Node000051" href="$de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#af61f4024c088140c465896da8849a46e" title="Get labels for a specific resource category." alt="" coords="516,71,687,111"/>
-<area shape="poly" id="edge4_Node000050_Node000051" title=" " alt="" coords="427,88,500,88,500,94,427,94"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,203,145"/>
+<area shape="rect" id="Node000002" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a78262ef9b80b22c88525796f93d573e8" title=" " alt="" coords="261,5,456,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,101,250,57,271,49,273,54,252,61,149,106"/>
+<area shape="rect" id="Node000051" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#afa0f337ee6668976e1cb1434794efddd" title=" " alt="" coords="251,71,466,111"/>
+<area shape="poly" id="edge2_Node000001_Node000051" title=" " alt="" coords="203,109,235,105,235,110,203,114"/>
+<area shape="rect" id="Node000082" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#af2e9836c9423d36a3b1c2bab9e8dcbcc" title=" " alt="" coords="259,136,458,177"/>
+<area shape="poly" id="edge3_Node000001_Node000082" title=" " alt="" coords="203,134,244,139,243,145,203,139"/>
+<area shape="rect" id="Node000088" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a1ca1e4283e12e1d22bd7c455a9958ecb" title=" " alt="" coords="280,201,437,242"/>
+<area shape="poly" id="edge4_Node000001_Node000088" title=" " alt="" coords="150,143,252,186,273,194,271,199,250,191,148,148"/>
 </map>

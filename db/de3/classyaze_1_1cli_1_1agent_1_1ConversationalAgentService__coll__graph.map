@@ -1,5 +1,8 @@
 <map id="yaze::cli::agent::ConversationalAgentService" name="yaze::cli::agent::ConversationalAgentService">
-<area shape="rect" id="Node000001" title=" " alt="" coords="6,94,202,135"/>
-<area shape="rect" id="Node000002" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html" title=" " alt="" coords="5,5,203,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,46,107,93,101,93,101,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,183,202,223"/>
+<area shape="rect" id="Node000002" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html" title=" " alt="" coords="148,94,345,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,131,135,184,132,180,214,126"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="23,5,104,31"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="59,46,54,81,57,119,71,152,90,181,85,184,67,155,52,120,48,81,53,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,36,222,91,219,96,102,41"/>
 </map>

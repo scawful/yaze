@@ -1,5 +1,6 @@
 var namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03 =
 [
     [ "DescribeOptions", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions" ],
+    [ "EnsureRomLoaded", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html#ae2e998725fdbd0f474904cf8d4f9bbc6", null ],
     [ "ParseDescribeArgs", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html#ad45792c6e00bfd5e60f63ecf17dc70e4", null ]
 ];

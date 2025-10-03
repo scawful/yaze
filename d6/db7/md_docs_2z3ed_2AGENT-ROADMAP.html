@@ -101,8 +101,7 @@ $(document).ready(function(){initNavTree('d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.ht
   <div class="headertitle"><div class="title">z3ed Agent Roadmap</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1131"></a> <b>Latest Update</b>: October 3, 2025</p>
-<p>This document outlines the strategic vision and concrete next steps for the <code>z3ed</code> AI agent, focusing on a transition from a command-line tool to a fully interactive, conversational assistant for ROM hacking.</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1131"></a> This document outlines the strategic vision and concrete next steps for the <code>z3ed</code> AI agent, focusing on a transition from a command-line tool to a fully interactive, conversational assistant for ROM hacking.</p>
 <h1><a class="anchor" id="autotoc_md1132"></a>
 Core Vision: The Conversational ROM Hacking Assistant</h1>
 <p>The next evolution of the <code>z3ed</code> agent is to create a chat-like interface where users can interact with the AI in a more natural and exploratory way. Instead of just issuing a single command, users will be able to have a dialogue with the agent to inspect the ROM, ask questions, and iteratively build up a set of changes.</p>
@@ -127,7 +126,7 @@ Technical Implementation Plan</h1>
 <li>Integration with existing <code>AIService</code> implementations (Ollama, Gemini).</li>
 </ul>
 </li>
-<li><b>Status</b>: Not started.</li>
+<li><b>Status</b>: In progress — baseline service exists with chat history, tool loop handling, and structured response parsing. Next up: wiring in live ROM context and richer session state.</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md1136"></a>
 2. Read-Only "Tools" for the Agent</h2>
@@ -146,7 +145,7 @@ Technical Implementation Plan</h1>
 <li><code>overworld blend-tiles --map &lt;id&gt; --pattern &lt;name&gt; --density &lt;percent&gt;</code></li>
 </ul>
 </li>
-<li><b>Status</b>: Some commands exist (<code>overworld get-tile</code>), but the suite needs to be expanded.</li>
+<li><b>Status</b>: Foundational commands (<code>resource-list</code>, <code>dungeon-list-sprites</code>) are live with JSON output. Focus is shifting to high-value Overworld and dialogue inspection tools.</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md1137"></a>
 3. TUI and GUI Chat Interfaces</h2>
@@ -157,7 +156,7 @@ Technical Implementation Plan</h1>
 <li><b>GUI</b>: A new <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> widget that can be docked into the main <code>yaze</code> application window.</li>
 </ul>
 </li>
-<li><b>Status</b>: Not started.</li>
+<li><b>Status</b>: In progress — CLI/TUI and GUI chat widgets exist, now rendering tables/JSON with readable formatting. Need to improve input ergonomics and synchronized history navigation.</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md1138"></a>
 4. Integration with the Proposal Workflow</h2>
@@ -175,35 +174,23 @@ Technical Implementation Plan</h1>
 <li><b>Status</b>: The proposal workflow itself is mostly implemented. This task involves integrating it with the new conversational service.</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md1139"></a>
-Consolidated Next Steps</h1>
+Next Steps</h1>
 <h2><a class="anchor" id="autotoc_md1140"></a>
-Immediate Priorities (Next Session)</h2>
+Immediate Priorities</h2>
 <ol type="1">
-<li><b>Implement Read-Only Agent Tools</b>:<ul>
-<li>Add <code>resource list</code> command.</li>
-<li>Add <code>dungeon list-sprites</code> command.</li>
-<li>Ensure all new commands have JSON output options for machine readability.</li>
+<li><b>Expand Overworld Tool Coverage</b>:<ul>
+<li>Add read-only commands for tile searches, area summaries, and teleport destinations.</li>
+<li>Guarantee each tool returns both JSON and human-readable summaries for the chat renderers.</li>
 </ul>
 </li>
-<li><b>Stub out <code>ConversationalAgentService</code></b>:<ul>
-<li>Create the basic class structure.</li>
-<li>Implement simple chat history management.</li>
+<li><b>Document &amp; Test the New Tooling</b>:<ul>
+<li>Update the main <code>README.md</code> and relevant docs to cover the new chat formatting.</li>
+<li>Add regression tests (unit or golden JSON fixtures) for the new Overworld tools.</li>
 </ul>
 </li>
-<li><b>Update <code>README.md</code> and Consolidate Docs</b>:<ul>
-<li>Update the main <code>README.md</code> to reflect this new roadmap.</li>
-<li>Remove <code>IMPLEMENTATION-SESSION-OCT3-CONTINUED.md</code>.</li>
-<li>Merge any other scattered planning documents into this roadmap.</li>
-</ul>
-</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md1141"></a>
-Short-Term Goals (This Week)</h2>
-<ol type="1">
-<li><b>Build TUI Chat Interface</b>:<ul>
-<li>Create the FTXUI component.</li>
-<li>Connect it to the <code>ConversationalAgentService</code>.</li>
-<li>Implement basic input/output.</li>
+<li><b>Polish the TUI Chat Experience</b>:<ul>
+<li>Tighten keyboard shortcuts, scrolling, and copy-to-clipboard behaviour.</li>
+<li>Align log file output with on-screen formatting for easier debugging.</li>
 </ul>
 </li>
 <li><b>Integrate Tool Use with LLM</b>:<ul>
@@ -211,10 +198,10 @@ Short-Term Goals (This Week)</h2>
 <li>Teach the agent to call the new read-only commands to answer questions.</li>
 </ul>
 </li>
-</ol>
-<h2><a class="anchor" id="autotoc_md1142"></a>
-Long-Term Vision (Next Week and Beyond)</h2>
-<ol type="1">
+<li><b>Land Overworld Tooling</b>:<ul>
+<li>Ship at least two Overworld inspection commands with comprehensive tests.</li>
+</ul>
+</li>
 <li><b>Build GUI Chat Widget</b>:<ul>
 <li>Create the <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> component.</li>
 <li>Ensure it shares the same backend service as the TUI.</li>
@@ -243,10 +230,10 @@ Long-Term Vision (Next Week and Beyond)</h2>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1143"></a>
+<h1><a class="anchor" id="autotoc_md1141"></a>
 Current Status &amp; Next Steps (As of Oct 3, Session 2)</h1>
 <p>We have made significant progress in laying the foundation for the conversational agent.</p>
-<h2><a class="anchor" id="autotoc_md1144"></a>
+<h2><a class="anchor" id="autotoc_md1142"></a>
 ✅ Completed</h2>
 <ul>
 <li><b>Initial <code>ConversationalAgentService</code></b>: The basic service is in place.</li>
@@ -257,16 +244,17 @@ Current Status &amp; Next Steps (As of Oct 3, Session 2)</h1>
 <li><b>Tool Loop Improvements</b>: Conversational flow now handles multi-step tool calls with default JSON output, allowing results to feed back into the chat without recursion.</li>
 </ul>
 </li>
+<li><b>Structured Tool Output Rendering</b>: Both the TUI and GUI chat widgets now display tables and JSON payloads with friendly formatting, drastically improving readability.</li>
+<li><b>Overworld Inspection Suite</b>: Added <code>overworld describe-map</code> and <code>overworld list-warps</code> commands producing text/JSON summaries for map metadata and warp points, with agent tooling hooks.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1145"></a>
+<h2><a class="anchor" id="autotoc_md1143"></a>
 ✅ Build Configuration Issue Resolved</h2>
 <p>The linker error is fixed. Both the CLI and GUI targets now link against <code>yaze_agent</code>, so the shared agent handlers (<code>HandleResourceListCommand</code>, <code>HandleDungeonListSpritesCommand</code>, etc.) compile once and are available to <code>ToolDispatcher</code> everywhere.</p>
-<h2><a class="anchor" id="autotoc_md1146"></a>
+<h2><a class="anchor" id="autotoc_md1144"></a>
 🚀 Next Steps</h2>
 <ol type="1">
 <li><b>Share ROM Context with the Agent</b>: Inject the active GUI ROM into <code>ConversationalAgentService</code> so tool calls work even when <code>--rom</code> flags are unavailable. Analyze the <code><a class="el" href="../../d4/d79/app_2rom_8cc.html">src/app/rom.cc</a></code> and <code><a class="el" href="../../da/de5/rom_8h.html">src/app/rom.h</a></code> and <code><a class="el" href="../../d0/dd9/editor__manager_8cc.html">src/app/editor/editor_manager.cc</a></code> files for guidance on accessing the current project/ROM.</li>
-<li><b>Surface Tool Output in the UI</b>: Present JSON/table responses in the chat widgets with formatting instead of raw text dumps.</li>
-<li><b>Expand Tool Coverage</b>: Analyze the yaze source code to identify Overworld features which can be implemented as tool calls and would be useful. Dungeon editing does not render in the GUI yet, so we will hold off on dungeon tools for now. Check <code>src/app/editor/overworld/</code> for the GUI interface, <code>src/app/zelda3/overworld/</code> for the core logic. We could also explore dialogue editing help as tool calls by looking at <code>src/app/editor/message/</code> since the MessageEditor is functional in the GUI. </li>
+<li><b>Expand Tool Coverage</b>: Target Overworld navigation helpers (<code>overworld find-tile</code>, <code>overworld list-warps</code>, region summaries) and dialogue inspectors. Prioritize commands that unblock common level-design questions and emit concise table/JSON payloads. </li>
 </ol>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

@@ -1,0 +1,10 @@
+<map id="yaze::cli::agent::HandleResourceListCommand" name="yaze::cli::agent::HandleResourceListCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,163,68"/>
+<area shape="rect" id="Node000002" href="$de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#af61f4024c088140c465896da8849a46e" title="Get labels for a specific resource category." alt="" coords="211,55,382,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,55,195,59,195,65,162,60"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="430,5,571,31"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="163,39,414,22,414,27,163,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="370,52,437,33,438,38,372,57"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#aaf2600f3334bb925086268e63e225418" title=" " alt="" coords="433,55,569,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="383,73,417,73,417,78,383,78"/>
+</map>

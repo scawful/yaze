@@ -13,6 +13,11 @@ var annotated_dup =
           [ "ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService" ],
           [ "ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher" ]
         ] ],
+        [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", [
+          [ "MapSummary", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary" ],
+          [ "WarpEntry", "d1/d67/structyaze_1_1cli_1_1overworld_1_1WarpEntry.html", "d1/d67/structyaze_1_1cli_1_1overworld_1_1WarpEntry" ],
+          [ "WarpQuery", "d0/dcb/structyaze_1_1cli_1_1overworld_1_1WarpQuery.html", "d0/dcb/structyaze_1_1cli_1_1overworld_1_1WarpQuery" ]
+        ] ],
         [ "tui", "da/d0b/namespaceyaze_1_1cli_1_1tui.html", [
           [ "ChatTUI", "d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html", "d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI" ]
         ] ],
@@ -52,8 +57,10 @@ var annotated_dup =
         [ "OllamaAIService", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService" ],
         [ "OllamaConfig", "d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html", "d0/d3d/structyaze_1_1cli_1_1OllamaConfig" ],
         [ "Open", "de/d8f/classyaze_1_1cli_1_1Open.html", "de/d8f/classyaze_1_1cli_1_1Open" ],
+        [ "OverworldDescribeMap", "d6/dbf/classyaze_1_1cli_1_1OverworldDescribeMap.html", "d6/dbf/classyaze_1_1cli_1_1OverworldDescribeMap" ],
         [ "OverworldFindTile", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile.html", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile" ],
         [ "OverworldGetTile", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile.html", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile" ],
+        [ "OverworldListWarps", "d7/d5d/classyaze_1_1cli_1_1OverworldListWarps.html", "d7/d5d/classyaze_1_1cli_1_1OverworldListWarps" ],
         [ "OverworldSetTile", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile.html", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile" ],
         [ "Palette", "d3/d6c/classyaze_1_1cli_1_1Palette.html", "d3/d6c/classyaze_1_1cli_1_1Palette" ],
         [ "PaletteEditorComponent", "d8/d3c/classyaze_1_1cli_1_1PaletteEditorComponent.html", "d8/d3c/classyaze_1_1cli_1_1PaletteEditorComponent" ],

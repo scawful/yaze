@@ -1,0 +1,25 @@
+var structyaze_1_1cli_1_1overworld_1_1MapSummary =
+[
+    [ "map_id", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#aa95e486aa14d00a9cbc036ec91de5eb4", null ],
+    [ "world", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#ab338de92cbe7e590f1bcf18b888e363d", null ],
+    [ "local_index", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a7a3861e7ef6b014ac9ca7baf3793c8da", null ],
+    [ "map_x", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#ad4ed6e549874382c7dfe643bb64f908a", null ],
+    [ "map_y", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#afb88a4a387953422c693014f1a360ec9", null ],
+    [ "is_large_map", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#ad6ad27f5393ffe5d06f3297257b31304", null ],
+    [ "parent_map", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a474d27d56b4398075a3f2580938cc14a", null ],
+    [ "large_quadrant", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a1f0e26506b7463ef13525c08a31441ed", null ],
+    [ "area_size", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a8f03affb1e8daf2e8b50296fea0a9885", null ],
+    [ "message_id", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a1383deb55f75291eb24a01b2250bf6dd", null ],
+    [ "area_graphics", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a9e30350e40f6fdf9600302b55c7a01a4", null ],
+    [ "area_palette", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a3631855e5905415504c6814b5650fa40", null ],
+    [ "main_palette", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#ae9ad32ccab85c461298a7c71fb272e59", null ],
+    [ "animated_gfx", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a08ee5c08c4c08b556fc6da4e1761364f", null ],
+    [ "subscreen_overlay", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#ae79fac6d49c1809fc6303efbd9028bd7", null ],
+    [ "area_specific_bg_color", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a07df9a47875e6bda83e2c3f440b34974", null ],
+    [ "sprite_graphics", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a4453e0c0e8cd71493abac522ba3c282c", null ],
+    [ "sprite_palettes", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#ab385a931301b08f9bd139cd5afb8ba5b", null ],
+    [ "area_music", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#ac3c54e6396f0a436298baaa389d804b3", null ],
+    [ "static_graphics", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a6f945c9d815f972ba1ad5048275c984c", null ],
+    [ "has_overlay", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a80b078809394ccf8bc5dc1d7e2264168", null ],
+    [ "overlay_id", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a0fb5a7f6f16323a5b4cd64c7efb35609", null ]
+];

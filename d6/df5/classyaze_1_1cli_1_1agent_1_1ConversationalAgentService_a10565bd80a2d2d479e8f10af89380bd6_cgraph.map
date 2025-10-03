@@ -1,9 +1,11 @@
 <map id="yaze::cli::agent::ConversationalAgentService::SendMessage" name="yaze::cli::agent::ConversationalAgentService::SendMessage">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,202,79"/>
-<area shape="rect" id="Node000002" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#ab83c62c24e7c9c186dc5010c11140cab" title=" " alt="" coords="250,39,447,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,56,234,56,234,62,202,62"/>
-<area shape="rect" id="Node000003" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a112a9239569f967959da09a6e624d046" title=" " alt="" coords="495,5,689,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="447,43,479,38,480,44,448,48"/>
-<area shape="rect" id="Node000051" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab9bca766e994d7cd3f8328569233fd5e" title=" " alt="" coords="514,71,671,111"/>
-<area shape="poly" id="edge3_Node000002_Node000051" title=" " alt="" coords="448,69,498,76,498,81,447,75"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,202,111"/>
+<area shape="rect" id="Node000002" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#ab83c62c24e7c9c186dc5010c11140cab" title=" " alt="" coords="250,71,447,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,88,234,88,234,94,202,94"/>
+<area shape="rect" id="Node000003" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a78262ef9b80b22c88525796f93d573e8" title=" " alt="" coords="506,5,700,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="430,67,505,48,507,53,431,73"/>
+<area shape="rect" id="Node000052" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#afa0f337ee6668976e1cb1434794efddd" title=" " alt="" coords="495,71,710,111"/>
+<area shape="poly" id="edge3_Node000002_Node000052" title=" " alt="" coords="447,88,479,88,479,94,447,94"/>
+<area shape="rect" id="Node000083" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#af2e9836c9423d36a3b1c2bab9e8dcbcc" title=" " alt="" coords="504,136,702,177"/>
+<area shape="poly" id="edge4_Node000002_Node000083" title=" " alt="" coords="431,109,507,129,505,134,430,115"/>
 </map>

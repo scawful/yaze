@@ -6,10 +6,6 @@ var namespaceyaze_1_1cli =
     ] ],
     [ "anonymous_namespace{gui_automation_client.cc}", "d7/dbb/namespaceyaze_1_1cli_1_1anonymous__namespace_02gui__automation__client_8cc_03.html", null ],
     [ "anonymous_namespace{overworld.cc}", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html", [
-      [ "ParseNumeric", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a82b12914c3c5457cbf601dd52a458f55", null ],
-      [ "WorldFromString", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#ab47915be99cce7255d62b7ccd623df0c", null ],
-      [ "WorldFromMapId", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a2f0f084ea319997126b57917e32d7298", null ],
-      [ "WorldName", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a6653dd0494617c7b636abc296bbefffa", null ],
       [ "kFindTileUsage", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a2e83a1746497c566f03baff74f6904cc", null ]
     ] ],
     [ "anonymous_namespace{proposal_registry.cc}", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html", [
@@ -87,6 +83,7 @@ var namespaceyaze_1_1cli =
       [ "HexViewerComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec", null ],
       [ "MainMenuComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548", null ]
     ] ],
+    [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", "d5/d93/namespaceyaze_1_1cli_1_1overworld" ],
     [ "tui", "da/d0b/namespaceyaze_1_1cli_1_1tui.html", "da/d0b/namespaceyaze_1_1cli_1_1tui" ],
     [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
     [ "AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", "db/d5f/structyaze_1_1cli_1_1AgentResponse" ],
@@ -124,8 +121,10 @@ var namespaceyaze_1_1cli =
     [ "OllamaAIService", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService" ],
     [ "OllamaConfig", "d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html", "d0/d3d/structyaze_1_1cli_1_1OllamaConfig" ],
     [ "Open", "de/d8f/classyaze_1_1cli_1_1Open.html", "de/d8f/classyaze_1_1cli_1_1Open" ],
+    [ "OverworldDescribeMap", "d6/dbf/classyaze_1_1cli_1_1OverworldDescribeMap.html", "d6/dbf/classyaze_1_1cli_1_1OverworldDescribeMap" ],
     [ "OverworldFindTile", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile.html", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile" ],
     [ "OverworldGetTile", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile.html", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile" ],
+    [ "OverworldListWarps", "d7/d5d/classyaze_1_1cli_1_1OverworldListWarps.html", "d7/d5d/classyaze_1_1cli_1_1OverworldListWarps" ],
     [ "OverworldSetTile", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile.html", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile" ],
     [ "Palette", "d3/d6c/classyaze_1_1cli_1_1Palette.html", "d3/d6c/classyaze_1_1cli_1_1Palette" ],
     [ "PaletteEditorComponent", "d8/d3c/classyaze_1_1cli_1_1PaletteEditorComponent.html", "d8/d3c/classyaze_1_1cli_1_1PaletteEditorComponent" ],

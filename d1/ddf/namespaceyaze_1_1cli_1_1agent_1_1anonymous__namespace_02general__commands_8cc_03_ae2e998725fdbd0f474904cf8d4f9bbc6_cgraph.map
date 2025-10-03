@@ -1,0 +1,13 @@
+<map id="yaze::cli::agent::anonymous_namespace{general_commands::cc}::EnsureRomLoaded" name="yaze::cli::agent::anonymous_namespace{general_commands::cc}::EnsureRomLoaded">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,218,85"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="65,29,66,19,74,10,89,5,112,3,136,5,152,12,149,17,135,10,111,8,91,10,77,15,71,21,70,29"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="278,7,420,33"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="218,38,263,31,263,36,219,43"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="266,80,432,106"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="219,71,250,76,249,81,218,76"/>
+<area shape="poly" id="edge6_Node000003_Node000003" title=" " alt="" coords="314,82,307,72,311,62,326,56,349,54,374,56,387,63,385,68,373,61,349,59,327,61,315,66,313,71,318,78"/>
+<area shape="rect" id="Node000004" href="$db/d22/structyaze_1_1RomLoadOptions.html#a1cd666da7b6dbab5e4318c737b3972bd" title=" " alt="" coords="480,44,634,84"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="432,79,464,74,465,79,433,84"/>
+<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="490,108,624,134"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="433,102,475,108,475,113,432,107"/>
+</map>

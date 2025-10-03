@@ -99,15 +99,22 @@ $(document).ready(function(){initNavTree('d3/d5c/conversational__agent__service_
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">conversational_agent_service.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d1/dad/conversational__agent__service_8h_source.html">cli/service/agent/conversational_agent_service.h</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cctype&gt;</code><br />
+<code>#include &lt;set&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_join.h&quot;</code><br />
 <code>#include &quot;absl/time/clock.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d9/d37/service__factory_8h_source.html">cli/service/ai/service_factory.h</a>&quot;</code><br />
+<code>#include &quot;nlohmann/json.hpp&quot;</code><br />
 </div>
 <p><a href="../../d3/d5c/conversational__agent__service_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -121,6 +128,21 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:d8/dd3/namespaceyaze_1_1cli_1_1agent" id="r_d8/dd3/namespaceyaze_1_1cli_1_1agent"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html">yaze::cli::agent</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03" id="r_d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a50039bc5b956a117864932b60d76f65a" id="r_a50039bc5b956a117864932b60d76f65a"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a50039bc5b956a117864932b60d76f65a">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::TrimWhitespace</a> (const std::string &amp;input)</td></tr>
+<tr class="separator:a50039bc5b956a117864932b60d76f65a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0548a61f882b63d453ea1dd303186a2" id="r_ab0548a61f882b63d453ea1dd303186a2"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#ab0548a61f882b63d453ea1dd303186a2">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::JsonValueToString</a> (const nlohmann::json &amp;value)</td></tr>
+<tr class="separator:ab0548a61f882b63d453ea1dd303186a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb9a96efbf6106ec9661ea0a5eabfe3a" id="r_adb9a96efbf6106ec9661ea0a5eabfe3a"><td class="memItemLeft" align="right" valign="top">std::set&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#adb9a96efbf6106ec9661ea0a5eabfe3a">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::CollectObjectKeys</a> (const nlohmann::json &amp;array)</td></tr>
+<tr class="separator:adb9a96efbf6106ec9661ea0a5eabfe3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a419c7f2142bc028b821dbfaa81f06d4c" id="r_a419c7f2142bc028b821dbfaa81f06d4c"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="../../df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html">ChatMessage::TableData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a419c7f2142bc028b821dbfaa81f06d4c">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::BuildTableData</a> (const nlohmann::json &amp;data)</td></tr>
+<tr class="separator:a419c7f2142bc028b821dbfaa81f06d4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a16212129b67df04b03660abb86754cc7" id="r_a16212129b67df04b03660abb86754cc7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">ChatMessage</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a16212129b67df04b03660abb86754cc7">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::CreateMessage</a> (<a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2">ChatMessage::Sender</a> sender, const std::string &amp;content)</td></tr>
+<tr class="separator:a16212129b67df04b03660abb86754cc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

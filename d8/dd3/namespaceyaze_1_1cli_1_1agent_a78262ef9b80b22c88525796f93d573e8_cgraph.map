@@ -1,0 +1,11 @@
+<map id="yaze::cli::agent::HandleDungeonListSpritesCommand" name="yaze::cli::agent::HandleDungeonListSpritesCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,200,64"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="285,5,427,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,31,269,24,270,29,200,36"/>
+<area shape="rect" id="Node000003" href="$d5/d1f/namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9" title=" " alt="" coords="248,55,464,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,50,232,53,232,58,200,55"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="522,25,633,51"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="457,51,506,45,507,50,458,57"/>
+<area shape="rect" id="Node000005" href="$d7/df6/classyaze_1_1zelda3_1_1Room.html#ab91c6845dc02590938f77c85ad2ff96c" title=" " alt="" coords="512,75,642,116"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="462,78,497,83,496,88,462,84"/>
+</map>

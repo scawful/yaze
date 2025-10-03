@@ -26,6 +26,8 @@ var classyaze_1_1cli_1_1ModernCLI =
     [ "HandleRomValidateCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a4af7a24df3bed4b87d79d721851d89c3", null ],
     [ "HandleOverworldGetTileCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#adc6bed8f882ec77e527963d2fbe823e7", null ],
     [ "HandleOverworldFindTileCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a80433bcd0842419fcb60c982d8cb4523", null ],
+    [ "HandleOverworldDescribeMapCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#aa8316359147dd0981342b66536c0d065", null ],
+    [ "HandleOverworldListWarpsCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a6c0e34013ebae447b3cf7cfdd7faf7b2", null ],
     [ "HandleOverworldSetTileCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a1f9503b3057447fe54a33228e848f354", null ],
     [ "HandleSpriteCreateCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#acc43a4b1ee0b60ad35cf3461cb3929ed", null ],
     [ "commands_", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#af4ca9e6038548fc54f17cb2fa1750fb9", null ]

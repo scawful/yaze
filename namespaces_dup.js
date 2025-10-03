@@ -1,5 +1,11 @@
 var namespaces_dup =
 [
+    [ "anonymous_namespace{agent_chat_widget.cc}", "df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html", [
+      [ "RenderTable", "df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#aa1d23c9345a5677fd9aa0a63467ee9c0", null ],
+      [ "kUserColor", "df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#ab26cba70366865790dc6e683d774a6fc", null ],
+      [ "kAgentColor", "df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#aaea43c6de41da70af235ab7afdf339d9", null ],
+      [ "kJsonTextColor", "df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a1f70a3de6f83b5b8bbb32bd2c8915742", null ]
+    ] ],
     [ "anonymous_namespace{cli_main.cc}", "da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html", "da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03" ],
     [ "extract_changelog", "df/d6c/namespaceextract__changelog.html", [
       [ "extract_version_changelog", "df/d6c/namespaceextract__changelog.html#af0484ad211279dc459fc067553a0f98f", null ],

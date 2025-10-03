@@ -1,7 +1,11 @@
 <map id="yaze::cli::tui::ChatTUI" name="yaze::cli::tui::ChatTUI">
-<area shape="rect" id="Node000001" title=" " alt="" coords="33,198,175,223"/>
-<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html" title=" " alt="" coords="6,94,202,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,150,107,197,101,197,101,150"/>
-<area shape="rect" id="Node000003" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html" title=" " alt="" coords="5,5,203,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,46,107,93,101,93,101,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,286,147,312"/>
+<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html" title=" " alt="" coords="70,183,266,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,236,89,288,86,284,136,233"/>
+<area shape="rect" id="Node000003" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html" title=" " alt="" coords="239,94,436,120"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="304,130,205,185,202,180,301,125"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="93,5,174,31"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="119,45,92,90,67,145,62,163,60,183,60,223,75,285,69,286,55,224,55,183,57,162,62,143,87,88,114,43"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="138,46,148,119,164,182,159,183,143,120,133,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="177,35,310,91,308,96,175,40"/>
 </map>

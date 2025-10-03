@@ -1,0 +1,10 @@
+<map id="yaze::cli::overworld::anonymous_namespace{overworld_inspect::cc}::PopulateCommonWarpFields" name="yaze::cli::overworld::anonymous_namespace{overworld_inspect::cc}::PopulateCommonWarpFields">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,89,201,160"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="57,88,60,78,69,70,83,65,103,63,127,65,141,73,139,78,125,71,103,68,84,70,71,74,65,81,63,89"/>
+<area shape="rect" id="Node000002" href="$d0/d27/namespaceyaze_1_1cli_1_1overworld_1_1anonymous__namespace_02overworld__inspect_8cc_03.html#a2352897478589c29aadc9adb70533ad4" title=" " alt="" coords="249,29,416,100"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,96,233,88,234,93,202,102"/>
+<area shape="rect" id="Node000003" href="$d0/d27/namespaceyaze_1_1cli_1_1overworld_1_1anonymous__namespace_02overworld__inspect_8cc_03.html#a0452cac923a70c413dd3a4434febe470" title=" " alt="" coords="249,148,416,219"/>
+<area shape="poly" id="edge4_Node000001_Node000003" title=" " alt="" coords="202,147,234,156,233,161,200,152"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="287,28,289,18,298,10,312,5,332,3,356,5,371,13,368,18,354,11,332,8,314,10,301,14,294,21,292,29"/>
+<area shape="poly" id="edge5_Node000003_Node000003" title=" " alt="" coords="287,147,289,137,298,129,312,123,332,121,356,124,371,131,368,136,354,129,332,127,314,128,301,133,294,140,292,148"/>
+</map>

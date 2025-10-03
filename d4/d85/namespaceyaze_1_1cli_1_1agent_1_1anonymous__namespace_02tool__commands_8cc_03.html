@@ -108,6 +108,8 @@ $(document).ready(function(){initNavTree('d4/d85/namespaceyaze_1_1cli_1_1agent_1
 Functions</h2></td></tr>
 <tr class="memitem:aacabbc0ab80e144c2a381ebad5dbf938" id="r_aacabbc0ab80e144c2a381ebad5dbf938"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#aacabbc0ab80e144c2a381ebad5dbf938">LoadRomFromFlag</a> ()</td></tr>
 <tr class="separator:aacabbc0ab80e144c2a381ebad5dbf938"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfae29bd727b8759e06d2e7a728e72a8" id="r_abfae29bd727b8759e06d2e7a728e72a8"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#abfae29bd727b8759e06d2e7a728e72a8">LoadRomFromPathOrFlag</a> (const std::optional&lt; std::string &gt; &amp;override_path)</td></tr>
+<tr class="separator:abfae29bd727b8759e06d2e7a728e72a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="aacabbc0ab80e144c2a381ebad5dbf938" name="aacabbc0ab80e144c2a381ebad5dbf938"></a>
@@ -125,11 +127,11 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00028">28</a> of file <a class="el" href="../../de/df2/tool__commands_8cc_source.html">tool_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00033">33</a> of file <a class="el" href="../../de/df2/tool__commands_8cc_source.html">tool_commands.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00270">yaze::Rom::LoadFromFile()</a>, and <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00028">LoadRomFromFlag()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00270">yaze::Rom::LoadFromFile()</a>, and <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00033">LoadRomFromFlag()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00028">LoadRomFromFlag()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00033">LoadRomFromFlag()</a>, and <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00050">LoadRomFromPathOrFlag()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -146,6 +148,50 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="412,80,454,80,454,86,412,86"/>
 <area shape="rect" href="../../db/d22/structyaze_1_1RomLoadOptions.html#ae5ef5a33c1a6dc9293477a533ddc9809" title=" " alt="" coords="459,120,613,161"/>
 <area shape="poly" title=" " alt="" coords="378,94,446,113,444,118,377,99"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="abfae29bd727b8759e06d2e7a728e72a8" name="abfae29bd727b8759e06d2e7a728e72a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abfae29bd727b8759e06d2e7a728e72a8">&#9670;&#160;</a></span>LoadRomFromPathOrFlag()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &gt; yaze::cli::agent::anonymous_namespace{tool_commands.cc}::LoadRomFromPathOrFlag </td>
+          <td>(</td>
+          <td class="paramtype">const std::optional&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>override_path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00050">50</a> of file <a class="el" href="../../de/df2/tool__commands_8cc_source.html">tool_commands.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00270">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00033">LoadRomFromFlag()</a>, and <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00050">LoadRomFromPathOrFlag()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00050">LoadRomFromPathOrFlag()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03_abfae29bd727b8759e06d2e7a728e72a8_cgraph.png" border="0" usemap="#ad4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03_abfae29bd727b8759e06d2e7a728e72a8_cgraph" alt=""/></div>
+<map name="ad4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03_abfae29bd727b8759e06d2e7a728e72a8_cgraph" id="ad4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03_abfae29bd727b8759e06d2e7a728e72a8_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,209,85"/>
+<area shape="poly" title=" " alt="" coords="59,29,60,19,68,10,84,5,107,3,133,5,148,12,146,17,131,10,107,8,85,10,71,15,65,21,64,29"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="496,44,662,70"/>
+<area shape="poly" title=" " alt="" coords="209,39,256,35,352,30,448,35,489,39,488,44,448,40,352,35,257,40,209,44"/>
+<area shape="rect" href="../../d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#aacabbc0ab80e144c2a381ebad5dbf938" title=" " alt="" coords="257,73,448,129"/>
+<area shape="poly" title=" " alt="" coords="210,73,242,79,241,84,209,78"/>
+<area shape="poly" title=" " alt="" coords="544,46,538,36,542,26,556,20,579,18,605,20,618,27,615,32,603,25,579,23,557,25,545,30,543,35,549,42"/>
+<area shape="rect" href="../../db/d22/structyaze_1_1RomLoadOptions.html#a1cd666da7b6dbab5e4318c737b3972bd" title=" " alt="" coords="710,8,865,48"/>
+<area shape="poly" title=" " alt="" coords="663,43,694,38,695,43,663,48"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="720,72,855,98"/>
+<area shape="poly" title=" " alt="" coords="663,66,706,72,705,77,663,71"/>
+<area shape="poly" title=" " alt="" coords="448,80,494,71,495,76,449,85"/>
+<area shape="poly" title=" " alt="" coords="308,73,308,63,316,54,331,49,352,47,376,49,391,56,389,61,375,54,352,52,332,54,319,59,313,65,313,73"/>
 </map>
 </div>
 
