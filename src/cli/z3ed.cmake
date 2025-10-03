@@ -47,6 +47,7 @@ add_executable(
   cli/handlers/agent/test_commands.cc
   cli/handlers/agent/gui_commands.cc
   cli/service/ai_service.cc
+  cli/service/ollama_ai_service.cc
   cli/service/proposal_registry.cc
   cli/service/resource_catalog.cc
   cli/service/rom_sandbox_manager.cc

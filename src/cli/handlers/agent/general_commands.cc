@@ -19,6 +19,8 @@
 #include "cli/handlers/agent/common.h"
 #include "cli/modern_cli.h"
 #include "cli/service/ai_service.h"
+#include "cli/service/ollama_ai_service.h"
+#include "cli/service/gemini_ai_service.h"
 #include "cli/service/proposal_registry.h"
 #include "cli/service/resource_catalog.h"
 #include "cli/service/rom_sandbox_manager.h"
@@ -33,6 +35,48 @@ namespace cli {
 namespace agent {
 
 namespace {
+
+// Helper: Select AI service based on environment variables
+std::unique_ptr<AIService> CreateAIService() {
+  // Priority: Ollama (local) > Gemini (remote) > Mock (testing)
+  
+  const char* provider_env = std::getenv("YAZE_AI_PROVIDER");
+  const char* gemini_key = std::getenv("GEMINI_API_KEY");
+  const char* ollama_model = std::getenv("OLLAMA_MODEL");
+  
+  // Explicit provider selection
+  if (provider_env && std::string(provider_env) == "ollama") {
+    OllamaConfig config;
+    
+    // Allow model override via env
+    if (ollama_model && std::strlen(ollama_model) > 0) {
+      config.model = ollama_model;
+    }
+    
+    auto service = std::make_unique<OllamaAIService>(config);
+    
+    // Health check
+    if (auto status = service->CheckAvailability(); !status.ok()) {
+      std::cerr << "⚠️  Ollama unavailable: " << status.message() << std::endl;
+      std::cerr << "   Falling back to MockAIService" << std::endl;
+      return std::make_unique<MockAIService>();
+    }
+    
+    std::cout << "🤖 Using Ollama AI with model: " << config.model << std::endl;
+    return service;
+  }
+  
+  // Gemini if API key provided
+  if (gemini_key && std::strlen(gemini_key) > 0) {
+    std::cout << "🤖 Using Gemini AI (remote)" << std::endl;
+    return std::make_unique<GeminiAIService>(gemini_key);
+  }
+  
+  // Default: Mock service for testing
+  std::cout << "🤖 Using MockAIService (no LLM configured)" << std::endl;
+  std::cout << "   Tip: Set YAZE_AI_PROVIDER=ollama or GEMINI_API_KEY to enable LLM" << std::endl;
+  return std::make_unique<MockAIService>();
+}
 
 struct DescribeOptions {
   std::optional<std::string> resource;
@@ -141,8 +185,8 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
       proposal.id, absl::StrCat("Starting agent run with prompt: ", prompt)));
 
-  MockAIService ai_service;
-  auto commands_or = ai_service.GetCommands(prompt);
+  auto ai_service = CreateAIService();  // Use service factory
+  auto commands_or = ai_service->GetCommands(prompt);
   if (!commands_or.ok()) {
     RETURN_IF_ERROR(ProposalRegistry::Instance().AppendLog(
         proposal.id,
@@ -225,8 +269,9 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& arg_vec) {
     return absl::InvalidArgumentError("Usage: agent plan --prompt <prompt>");
   }
   std::string prompt = arg_vec[1];
-  MockAIService ai_service;
-  auto commands_or = ai_service.GetCommands(prompt);
+  
+  auto ai_service = CreateAIService();  // Use service factory
+  auto commands_or = ai_service->GetCommands(prompt);
   if (!commands_or.ok()) {
     return commands_or.status();
   }
