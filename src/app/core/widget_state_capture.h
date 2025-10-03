@@ -4,7 +4,12 @@
 #include <string>
 #include <vector>
 
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+#include "imgui.h"
+#include "imgui_internal.h"
+#else
 #include "imgui/imgui.h"
+#endif
 
 namespace yaze {
 namespace core {
@@ -36,6 +41,8 @@ struct WidgetState {
 
 // Capture current ImGui widget state for debugging
 // Returns JSON-formatted string representing the widget hierarchy and state
+// When ImGui internals are unavailable (UI test engine disabled), returns a
+// short diagnostic JSON payload.
 std::string CaptureWidgetState();
 
 // Serialize widget state to JSON format

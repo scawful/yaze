@@ -1,6 +1,12 @@
 #include "app/core/widget_state_capture.h"
 
 #include "absl/strings/str_format.h"
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+#include "imgui.h"
+#include "imgui_internal.h"
+#else
+#include "imgui/imgui.h"
+#endif
 #include "nlohmann/json.hpp"
 
 namespace yaze {
@@ -9,12 +15,13 @@ namespace core {
 std::string CaptureWidgetState() {
   WidgetState state;
   
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   // Check if ImGui context is available
   ImGuiContext* ctx = ImGui::GetCurrentContext();
   if (!ctx) {
     return R"({"error": "ImGui context not available"})";
   }
-  
+
   ImGuiIO& io = ImGui::GetIO();
   
   // Capture frame information
@@ -70,6 +77,13 @@ std::string CaptureWidgetState() {
   state.shift_pressed = io.KeyShift;
   state.alt_pressed = io.KeyAlt;
   
+#else
+  // When UI test engine / ImGui internals aren't available, provide a minimal
+  // payload so downstream systems still receive structured JSON. This keeps
+  // builds that exclude the UI test engine (e.g., Windows release) working.
+  return R"({"warning": "Widget state capture unavailable (UI test engine disabled)"})";
+#endif
+
   return SerializeWidgetStateToJson(state);
 }
 
