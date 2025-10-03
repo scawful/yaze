@@ -121,7 +121,7 @@ z3ed agent test results --test-id grpc_click_12345678 --include-logs
 z3ed agent test list --category grpc
 ```
 
-#### Widget Discovery (IT-06) 🔜 PLANNED
+#### Widget Discovery (IT-06) � IN PROGRESS — telemetry available
 ```bash
 # Discover all widgets
 z3ed agent gui discover
@@ -129,8 +129,8 @@ z3ed agent gui discover
 # Filter by window
 z3ed agent gui discover --window "Overworld"
 
-# Get only buttons
-z3ed agent gui discover --type button --format json
+# Get only buttons and include hidden/disabled widgets for AI diffing
+z3ed agent gui discover --type button --include-invisible --include-disabled --format json
 ```
 
 #### Test Recording (IT-07) 🔜 PLANNED
@@ -365,7 +365,7 @@ grpcurl ... Wait '{"condition":"window_visible:WindowName"}'
 # 3. Assert widget exists
 grpcurl ... Assert '{"condition":"exists:button:XYZ"}'
 
-# 4. Use widget discovery (IT-06, planned)
+# 4. Use widget discovery (IT-06 telemetry)
 z3ed agent gui discover --window "WindowName"
 ```
 

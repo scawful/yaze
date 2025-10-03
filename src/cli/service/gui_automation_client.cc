@@ -519,11 +519,19 @@ absl::StatusOr<DiscoverWidgetsResult> GuiAutomationClient::DiscoverWidgets(
       widget.suggested_action = widget_proto.suggested_action();
       widget.visible = widget_proto.visible();
       widget.enabled = widget_proto.enabled();
-      widget.bounds.min_x = widget_proto.bounds().min_x();
-      widget.bounds.min_y = widget_proto.bounds().min_y();
-      widget.bounds.max_x = widget_proto.bounds().max_x();
-      widget.bounds.max_y = widget_proto.bounds().max_y();
+      widget.has_bounds = widget_proto.has_bounds();
+      if (widget.has_bounds) {
+        widget.bounds.min_x = widget_proto.bounds().min_x();
+        widget.bounds.min_y = widget_proto.bounds().min_y();
+        widget.bounds.max_x = widget_proto.bounds().max_x();
+        widget.bounds.max_y = widget_proto.bounds().max_y();
+      } else {
+        widget.bounds = WidgetBoundingBox();
+      }
       widget.widget_id = widget_proto.widget_id();
+      widget.last_seen_frame = widget_proto.last_seen_frame();
+      widget.last_seen_at = OptionalTimeFromMillis(widget_proto.last_seen_at_ms());
+      widget.stale = widget_proto.stale();
       window_info.widgets.push_back(std::move(widget));
     }
 

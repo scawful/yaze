@@ -7,6 +7,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/gui/background_renderer.h"
 #include "app/gui/theme_manager.h"
+#include "app/gui/widget_id_registry.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -65,7 +66,10 @@ absl::Status Controller::OnLoad() {
 
   ImGui::End();
 #endif
-  RETURN_IF_ERROR(editor_manager_.Update());
+  gui::WidgetIdRegistry::Instance().BeginFrame();
+  absl::Status update_status = editor_manager_.Update();
+  gui::WidgetIdRegistry::Instance().EndFrame();
+  RETURN_IF_ERROR(update_status);
   return absl::OkStatus();
 }
 
