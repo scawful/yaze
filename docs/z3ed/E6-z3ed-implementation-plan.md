@@ -364,6 +364,94 @@ jobs:
           path: test-results/
 ```
 
+---
+
+#### IT-10: Collaborative Editing & Multiplayer Sessions (12-15 hours)
+**Implementation Tasks**:
+1. **Collaboration Server**:
+   - WebSocket server for real-time client communication
+   - Session management (create, join, authentication)
+   - Edit event broadcasting to all connected clients
+   - Conflict resolution (last-write-wins with timestamps)
+   
+2. **Collaboration Client**:
+   - Connect to remote sessions via WebSocket
+   - Send local edits to server
+   - Receive and apply remote edits
+   - ROM state synchronization on join
+   
+3. **Edit Event Protocol**:
+   - Protobuf definitions for edit events (tile, sprite, palette, map)
+   - Cursor position tracking
+   - AI proposal sharing and voting
+   - Session state messages
+   
+4. **GUI Integration**:
+   - Status bar showing connected users
+   - Collaboration panel (user list, activity feed)
+   - Live cursor rendering (color-coded per user)
+   - Proposal voting UI (Accept/Reject/Discuss)
+   
+5. **Session Recording & Replay**:
+   - Record all events to YAML/JSON file
+   - Replay engine with timeline controls
+   - Export session summaries for review
+
+**CLI Commands**:
+```bash
+# Host a collaborative session
+z3ed collab host --port 5000 --password "dev123"
+
+# Join a session
+z3ed collab join yaze://connect/192.168.1.100:5000
+
+# List active sessions (LAN discovery)
+z3ed collab list
+
+# Disconnect from session
+z3ed collab disconnect
+
+# Replay recorded session
+z3ed collab replay session_2025_10_02.yaml --speed 2x
+```
+
+**User Stories**:
+- **US-1**: As a ROM hacker, I want to host a collaborative session so my teammates can join and work together
+- **US-2**: As a collaborator, I want to see other users' edits in real-time so we stay synchronized
+- **US-3**: As a team lead, I want to use AI agents with my team so we can all benefit from automation (shared proposals with majority voting)
+- **US-4**: As a collaborator, I want to see where other users are working so we don't conflict (live cursors)
+- **US-5**: As a project manager, I want to record collaborative sessions so we can review work later
+
+**Benefits**:
+- **Real-Time Collaboration**: Multiple users can edit the same ROM simultaneously
+- **Shared AI Assistance**: Team votes on AI proposals before execution
+- **Conflict Prevention**: Live cursors show where teammates are working
+- **Audit Trail**: Session recording for review and compliance
+- **Remote Teams**: Connect over LAN or internet (with optional encryption)
+
+**Technical Architecture**:
+```
+┌──────────────┐     ┌─────────────────┐     ┌──────────────┐
+│  Client A    │────►│  Collab Server  │◄────│  Client B    │
+│  (Host)      │     │  (WebSocket)    │     │              │
+└──────────────┘     │                 │     └──────────────┘
+                     │  - Session Mgmt │
+                     │  - Event Broker │     ┌──────────────┐
+                     │  - Conflict Res │◄────│  Client C    │
+                     └─────────────────┘     └──────────────┘
+```
+
+**Security Considerations**:
+- Optional password protection for sessions
+- Read-only vs read-write access levels
+- ROM checksum verification (prevents desync)
+- Rate limiting (prevent spam/DOS)
+- Optional TLS/SSL encryption for public internet
+
+**See**: [IT-10-COLLABORATIVE-EDITING.md](IT-10-COLLABORATIVE-EDITING.md) for complete specification
+
+---
+
 ### Priority 2: Windows Cross-Platform Testing 🪟
 **Goal**: Validate z3ed and test harness on Windows  
 **Time Estimate**: 8-10 hours  
@@ -432,6 +520,7 @@ jobs:
 | IT-08a | Adopt shared error envelope across CLI & services | ImGuiTest Bridge | Code | 🔄 Active | IT-08 |
 | IT-08b | EditorManager diagnostic overlay & logging | ImGuiTest Bridge | UX | 📋 Planned | IT-08 |
 | IT-09 | Create standardized test suite format for CI integration | ImGuiTest Bridge | Infra | 📋 Planned | IT-07 - JSON/YAML test suite format compatible with CI/CD pipelines |
+| IT-10 | Collaborative editing & multiplayer sessions with shared AI | Collaboration | Feature | 📋 Planned | IT-05, IT-08 - Real-time multi-user editing with live cursors, shared proposals (12-15 hours) |
 | VP-01 | Expand CLI unit tests for new commands and sandbox flow. | Verification Pipeline | Test | 📋 Planned | RC/AW tasks |
 | VP-02 | Add harness integration tests with replay scripts. | Verification Pipeline | Test | 📋 Planned | IT tasks |
 | VP-03 | Create CI job running agent smoke tests with `YAZE_WITH_JSON`. | Verification Pipeline | Infra | 📋 Planned | VP-01, VP-02 |
@@ -441,10 +530,10 @@ jobs:
 _Status Legend: 🔄 Active · 📋 Planned · ✅ Done_
 
 **Progress Summary**:
-- ✅ Completed: 11 tasks (48%)
+- ✅ Completed: 11 tasks (46%)
 - 🔄 Active: 1 task (4%)
-- 📋 Planned: 11 tasks (48%)
-- **Total**: 23 tasks (5 new test harness enhancements added)
+- 📋 Planned: 12 tasks (50%)
+- **Total**: 24 tasks (6 test harness enhancements + 1 collaborative feature)
 
 ## 3. Immediate Next Steps (Week of Oct 1-7, 2025)
 
