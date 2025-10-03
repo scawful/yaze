@@ -5,7 +5,7 @@
 #include <string>
 
 #include "absl/time/time.h"
-#include "cli/service/gui_automation_client.h"
+#include "cli/service/gui/gui_automation_client.h"
 
 namespace yaze {
 namespace cli {

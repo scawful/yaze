@@ -1,4 +1,4 @@
-#include "cli/service/test_suite_reporter.h"
+#include "cli/service/testing/test_suite_reporter.h"
 
 #include <filesystem>
 #include <fstream>

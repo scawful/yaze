@@ -6,6 +6,8 @@
 #include <map>
 
 #include "absl/status/statusor.h"
+#include "cli/service/resources/resource_context_builder.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace cli {
@@ -30,6 +32,8 @@ class PromptBuilder {
  public:
   PromptBuilder();
   
+  void SetRom(Rom* rom) { rom_ = rom; }
+
   // Load z3ed command documentation from resources
   absl::Status LoadResourceCatalogue(const std::string& yaml_path);
   
@@ -62,6 +66,8 @@ class PromptBuilder {
   
   void LoadDefaultExamples();
   
+  Rom* rom_ = nullptr;
+  std::unique_ptr<ResourceContextBuilder> resource_context_builder_;
   std::map<std::string, std::string> command_docs_;  // Command name -> docs
   std::vector<FewShotExample> examples_;
   int verbosity_ = 1;

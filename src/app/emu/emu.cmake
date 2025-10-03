@@ -15,8 +15,8 @@ if (NOT YAZE_MINIMAL_BUILD AND APPLE)
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
     # CLI service sources (needed for ProposalDrawer)
-    cli/service/proposal_registry.cc
-    cli/service/rom_sandbox_manager.cc
+    cli/service/planning/proposal_registry.cc
+    cli/service/rom/rom_sandbox_manager.cc
   )
   target_link_libraries(yaze_emu PUBLIC ${COCOA_LIBRARY})
 elseif(NOT YAZE_MINIMAL_BUILD)
@@ -33,8 +33,8 @@ elseif(NOT YAZE_MINIMAL_BUILD)
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
     # CLI service sources (needed for ProposalDrawer)
-    cli/service/proposal_registry.cc
-    cli/service/rom_sandbox_manager.cc
+    cli/service/planning/proposal_registry.cc
+    cli/service/rom/rom_sandbox_manager.cc
   )
 endif()
 

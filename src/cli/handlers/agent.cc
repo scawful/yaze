@@ -12,7 +12,7 @@ namespace agent {
 namespace {
 
 constexpr absl::string_view kUsage =
-    "Usage: agent <run|plan|diff|test|gui|learn|list|commit|revert|describe> "
+    "Usage: agent <run|plan|diff|accept|test|gui|learn|list|commit|revert|describe> "
     "[options]";
 
 }  // namespace
@@ -34,6 +34,9 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   }
   if (subcommand == "diff") {
     return agent::HandleDiffCommand(rom_, subcommand_args);
+  }
+  if (subcommand == "accept") {
+    return agent::HandleAcceptCommand(subcommand_args, rom_);
   }
   if (subcommand == "test") {
     return agent::HandleTestCommand(subcommand_args);

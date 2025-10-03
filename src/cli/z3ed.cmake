@@ -47,25 +47,25 @@ add_executable(
   cli/handlers/agent/test_common.cc
   cli/handlers/agent/test_commands.cc
   cli/handlers/agent/gui_commands.cc
-  cli/service/ai_service.cc
-  cli/service/ollama_ai_service.cc
-  cli/service/prompt_builder.cc
-  cli/service/proposal_registry.cc
-  cli/service/resource_catalog.cc
-  cli/service/rom_sandbox_manager.cc
-  cli/service/policy_evaluator.cc
-  cli/service/test_suite.h
-  cli/service/test_suite_loader.cc
-  cli/service/test_suite_loader.h
-  cli/service/test_suite_reporter.cc
-  cli/service/test_suite_reporter.h
-  cli/service/test_suite_writer.cc
-  cli/service/test_suite_writer.h
-  cli/service/gemini_ai_service.cc
-  cli/service/tile16_proposal_generator.h
-  cli/service/tile16_proposal_generator.cc
-  cli/service/resource_context_builder.h
-  cli/service/resource_context_builder.cc
+  cli/service/ai/ai_service.cc
+  cli/service/ai/ollama_ai_service.cc
+  cli/service/ai/prompt_builder.cc
+  cli/service/planning/proposal_registry.cc
+  cli/service/resources/resource_catalog.cc
+  cli/service/rom/rom_sandbox_manager.cc
+  cli/service/planning/policy_evaluator.cc
+  cli/service/testing/test_suite.h
+  cli/service/testing/test_suite_loader.cc
+  cli/service/testing/test_suite_loader.h
+  cli/service/testing/test_suite_reporter.cc
+  cli/service/testing/test_suite_reporter.h
+  cli/service/testing/test_suite_writer.cc
+  cli/service/testing/test_suite_writer.h
+  cli/service/ai/gemini_ai_service.cc
+  cli/service/planning/tile16_proposal_generator.h
+  cli/service/planning/tile16_proposal_generator.cc
+  cli/service/resources/resource_context_builder.h
+  cli/service/resources/resource_context_builder.cc
   app/rom.cc
   app/core/project.cc
   app/core/asar_wrapper.cc
@@ -83,8 +83,8 @@ if(YAZE_WITH_JSON)
   add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/json ${CMAKE_BINARY_DIR}/third_party/json)
   target_compile_definitions(z3ed PRIVATE YAZE_WITH_JSON)
   target_link_libraries(z3ed PRIVATE nlohmann_json::nlohmann_json)
-  list(APPEND Z3ED_SRC_FILES cli/service/gemini_ai_service.cc)
-  list(APPEND Z3ED_SRC_FILES cli/service/prompt_builder.cc)
+  list(APPEND Z3ED_SRC_FILES cli/service/ai/gemini_ai_service.cc)
+  list(APPEND Z3ED_SRC_FILES cli/service/ai/prompt_builder.cc)
 endif()
 
 # ============================================================================
@@ -162,10 +162,10 @@ if(YAZE_WITH_GRPC)
   
   # Add CLI gRPC service sources
   target_sources(z3ed PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/cli/service/gui_automation_client.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/gui_automation_client.h
-    ${CMAKE_SOURCE_DIR}/src/cli/service/test_workflow_generator.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/test_workflow_generator.h)
+    ${CMAKE_SOURCE_DIR}/src/cli/service/gui/gui_automation_client.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/gui/gui_automation_client.h
+    ${CMAKE_SOURCE_DIR}/src/cli/service/testing/test_workflow_generator.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/testing/test_workflow_generator.h)
   
   # Link gRPC libraries
   target_link_libraries(z3ed PRIVATE

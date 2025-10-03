@@ -1,4 +1,4 @@
-#include "cli/service/policy_evaluator.h"
+#include "cli/service/planning/policy_evaluator.h"
 
 #include <fstream>
 #include <sstream>
@@ -6,7 +6,7 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
-#include "cli/service/proposal_registry.h"
+#include "cli/service/planning/proposal_registry.h"
 
 namespace yaze {
 namespace cli {

@@ -44,7 +44,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       unit/zelda3/dungeon_component_unit_test.cc
 
       # CLI Services (for catalog serialization tests)
-      ../src/cli/service/resource_catalog.cc
+      ../src/cli/service/resources/resource_catalog.cc
       
       # Integration Tests
       integration/asar_integration_test.cc
@@ -98,7 +98,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       unit/zelda3/dungeon_component_unit_test.cc
 
       # CLI Services (for catalog serialization tests)
-      ../src/cli/service/resource_catalog.cc
+      ../src/cli/service/resources/resource_catalog.cc
       
       # Integration Tests
       integration/asar_integration_test.cc

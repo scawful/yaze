@@ -1,7 +1,7 @@
 // test_workflow_generator.cc
 // Implementation of natural language to test workflow conversion
 
-#include "cli/service/test_workflow_generator.h"
+#include "cli/service/testing/test_workflow_generator.h"
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"

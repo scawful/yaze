@@ -1,4 +1,4 @@
-#include "cli/service/proposal_registry.h"
+#include "cli/service/planning/proposal_registry.h"
 
 #include <algorithm>
 #include <chrono>

@@ -19,9 +19,9 @@ if (APPLE)
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
     # CLI service sources (needed for ProposalDrawer)
-    cli/service/proposal_registry.cc
-    cli/service/rom_sandbox_manager.cc
-    cli/service/policy_evaluator.cc
+    cli/service/planning/proposal_registry.cc
+    cli/service/rom/rom_sandbox_manager.cc
+    cli/service/planning/policy_evaluator.cc
     # Bundled Resources
     ${YAZE_RESOURCE_FILES}
   )
@@ -58,9 +58,9 @@ else()
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
     # CLI service sources (needed for ProposalDrawer)
-    cli/service/proposal_registry.cc
-    cli/service/rom_sandbox_manager.cc
-    cli/service/policy_evaluator.cc
+    cli/service/planning/proposal_registry.cc
+    cli/service/rom/rom_sandbox_manager.cc
+    cli/service/planning/policy_evaluator.cc
   )
   
   # Add asset files for Windows/Linux builds

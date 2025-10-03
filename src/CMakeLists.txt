@@ -172,10 +172,10 @@ if (YAZE_BUILD_LIB)
     ${YAZE_GUI_SRC}
     ${YAZE_UTIL_SRC}
     # CLI service sources (needed for ProposalDrawer)
-    cli/service/proposal_registry.cc
-    cli/service/rom_sandbox_manager.cc
+    cli/service/planning/proposal_registry.cc
+    cli/service/rom/rom_sandbox_manager.cc
     # cli/service/gui_automation_client.cc # Moved to yaze_c
-    cli/service/test_workflow_generator.cc
+    cli/service/testing/test_workflow_generator.cc
   )
   
   # Create full library for C API
@@ -184,7 +184,7 @@ if (YAZE_BUILD_LIB)
     ${YAZE_CORE_SOURCES}
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
-    cli/service/gui_automation_client.cc
+    cli/service/gui/gui_automation_client.cc
   )
   
   # Add emulator sources (required for comprehensive testing)

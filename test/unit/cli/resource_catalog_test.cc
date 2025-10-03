@@ -1,4 +1,4 @@
-#include "cli/service/resource_catalog.h"
+#include "cli/service/resources/resource_catalog.h"
 
 #include <algorithm>
 #include <string>

@@ -1,4 +1,4 @@
-#include "cli/service/ollama_ai_service.h"
+#include "cli/service/ai/ollama_ai_service.h"
 
 #include <cstdlib>
 

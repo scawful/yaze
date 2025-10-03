@@ -1,4 +1,4 @@
-#include "cli/service/prompt_builder.h"
+#include "cli/service/ai/prompt_builder.h"
 
 #include <fstream>
 #include <sstream>
@@ -248,9 +248,20 @@ std::string PromptBuilder::BuildConstraintsSection() {
 
 std::string PromptBuilder::BuildContextSection(const RomContext& context) {
   std::ostringstream oss;
-  
+
   oss << "# Current ROM Context\n\n";
-  
+
+  // Use ResourceContextBuilder if a ROM is available
+  if (rom_ && rom_->is_loaded()) {
+    if (!resource_context_builder_) {
+      resource_context_builder_ = std::make_unique<ResourceContextBuilder>(rom_);
+    }
+    auto resource_context_or = resource_context_builder_->BuildResourceContext();
+    if (resource_context_or.ok()) {
+      oss << resource_context_or.value();
+    }
+  }
+
   if (context.rom_loaded) {
     oss << "- **ROM Loaded:** Yes (" << context.rom_path << ")\n";
   } else {

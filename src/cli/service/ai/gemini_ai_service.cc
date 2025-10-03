@@ -1,4 +1,4 @@
-#include "cli/service/gemini_ai_service.h"
+#include "cli/service/ai/gemini_ai_service.h"
 
 #include <cstdlib>
 #include <iostream>

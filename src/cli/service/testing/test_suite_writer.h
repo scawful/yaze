@@ -4,7 +4,7 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "cli/service/test_suite.h"
+#include "cli/service/testing/test_suite.h"
 
 namespace yaze {
 namespace cli {

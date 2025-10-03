@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "cli/service/proposal_registry.h"
+#include "cli/service/planning/proposal_registry.h"
 
 namespace yaze {
 class Rom;
