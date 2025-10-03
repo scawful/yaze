@@ -739,6 +739,30 @@ absl::Status HandleTestResultsCommand(const std::vector<std::string>& arg_vec) {
       std::cout << "[],\n";
     }
 
+    std::cout << "  \"screenshot_path\": ";
+    if (details.screenshot_path.empty()) {
+      std::cout << "null,\n";
+    } else {
+      std::cout << "\"" << JsonEscape(details.screenshot_path) << "\",\n";
+    }
+
+    std::cout << "  \"screenshot_size_bytes\": "
+              << details.screenshot_size_bytes << ",\n";
+
+    std::cout << "  \"failure_context\": ";
+    if (details.failure_context.empty()) {
+      std::cout << "null,\n";
+    } else {
+      std::cout << "\"" << JsonEscape(details.failure_context) << "\",\n";
+    }
+
+    std::cout << "  \"widget_state\": ";
+    if (details.widget_state.empty()) {
+      std::cout << "null,\n";
+    } else {
+      std::cout << "\"" << JsonEscape(details.widget_state) << "\",\n";
+    }
+
     std::cout << "  \"metrics\": ";
     if (!details.metrics.empty()) {
       std::cout << "{\n";
@@ -806,6 +830,27 @@ absl::Status HandleTestResultsCommand(const std::vector<std::string>& arg_vec) {
       for (const auto& [key, value] : details.metrics) {
         std::cout << "  " << key << ": " << value << "\n";
       }
+    }
+
+    if (details.screenshot_path.empty()) {
+      std::cout << "screenshot_path: null\n";
+    } else {
+      std::cout << "screenshot_path: "
+                << YamlQuote(details.screenshot_path) << "\n";
+    }
+    std::cout << "screenshot_size_bytes: " << details.screenshot_size_bytes
+              << "\n";
+    if (details.failure_context.empty()) {
+      std::cout << "failure_context: null\n";
+    } else {
+      std::cout << "failure_context: "
+                << YamlQuote(details.failure_context) << "\n";
+    }
+    if (details.widget_state.empty()) {
+      std::cout << "widget_state: null\n";
+    } else {
+      std::cout << "widget_state: " << YamlQuote(details.widget_state)
+                << "\n";
     }
   }
 

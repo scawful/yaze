@@ -119,6 +119,10 @@ struct TestResultDetails {
   std::vector<AssertionOutcome> assertions;
   std::vector<std::string> logs;
   std::map<std::string, int> metrics;
+  std::string screenshot_path;
+  int64_t screenshot_size_bytes = 0;
+  std::string failure_context;
+  std::string widget_state;
 };
 
 enum class WidgetTypeFilter {

@@ -107,27 +107,23 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 - **Application Consistency**: z3ed, EditorManager, and core services emit heterogeneous error formats
 
 #### IT-05: Test Introspection API (6-8 hours)
-**Status (Oct 2, 2025)**: 🟡 *Server-side RPCs implemented; CLI + E2E pending*
+**Status (Oct 2, 2025)**: ✅ Completed
 
-**Progress**:
-- ✅ `imgui_test_harness.proto` expanded with GetTestStatus/ListTests/GetTestResults messages.
-- ✅ `TestManager` maintains execution history (queued→running→completed) with logs, metrics, and aggregates.
-- ✅ `ImGuiTestHarnessServiceImpl` exposes the three introspection RPCs with pagination, status conversion, and log/metric marshalling.
-- ⚠️ `agent` CLI commands (`test status`, `test list`, `test results`) still stubbed.
-- ⚠️ End-to-end introspection script (`scripts/test_introspection_e2e.sh`) not implemented; regression script `test_harness_e2e.sh` currently failing because it references the unfinished CLI.
+**Highlights**:
+- `imgui_test_harness.proto` now exposes `GetTestStatus`, `ListTests`, and
+  `GetTestResults` RPCs backed by `TestManager`'s execution history.
+- CLI commands (`z3ed agent test status|list|results`) are fully wired with
+  JSON/YAML formatting, follow-mode polling, and filtering options.
+- `GuiAutomationClient` provides typed wrappers for introspection APIs so agent
+  workflows can poll status programmatically.
+- Regression coverage lives in `scripts/test_harness_e2e.sh`; a slimmer
+  introspection smoke (`scripts/test_introspection_e2e.sh`) is queued for CI
+  automation but manual verification paths are documented.
 
-**Immediate Next Steps**:
-1. **Wire CLI Client Methods**
-  - Implement gRPC client wrappers for the new RPCs in the automation client.
-  - Add user-facing commands under `z3ed agent test ...` with JSON/YAML output options.
-2. **Author E2E Validation Script**
-  - Spin up harness, run Click/Assert workflow, poll via `agent test status`, fetch results.
-  - Update CI notes with the new script and expected output.
-3. **Documentation & Examples**
-  - Extend `E6-z3ed-reference.md` with full usage examples and sample outputs.
-  - Add troubleshooting section covering common errors (unknown test_id, timeout, etc.).
-4. **Stretch (Optional Before IT-06)**
-  - Capture assertion metadata (expected/actual) for richer `AssertionResult` payloads.
+**Future Enhancements**:
+- Capture richer assertion metadata (expected/actual pairs) for improved
+  failure messaging when the underlying harness exposes it.
+- Add pagination helpers to CLI once history volume grows (low priority).
 
 **Example Usage**:
 ```bash
@@ -270,16 +266,16 @@ message DiscoverWidgetsResponse {
 **Implementation Tracks**:
 1. **Harness-Level Diagnostics**
   - ✅ IT-08a: Screenshot RPC implemented (SDL-based, BMP format, 1536x864)
-  - ✅ IT-08b: Auto-capture screenshots and context on test failure
-  - � IT-08c: Widget tree dumps and recent ImGui events on failure (NEXT)
-  - Serialize results to both structured JSON (for automation) and human-friendly HTML bundles
-  - Persist artifacts under `test-results/<test_id>/` with timestamped directories
+  - ✅ IT-08b: Auto-capture screenshots and context on test failure using shared
+    helper that writes to `${TMPDIR}/yaze/test-results/<test_id>/`
+  - ✅ IT-08c: Widget tree JSON dumps emitted alongside failure context
+  - ⏳ HTML bundle exporter (screenshots + widget tree) remains a stretch goal
 
 2. **CLI Experience Improvements**
+  - Surface artifact paths, failure context, and widget state in CLI output (DONE)
   - Standardize error envelopes in z3ed (`absl::Status` + structured payload)
-  - Surface artifact paths, summarized failure reason, and next-step hints in CLI output
-  - Add `--format html` / `--format json` flags to `z3ed agent test results` to emit richer context
-  - Integrate with recording workflow: replay failures using captured state for fast reproduction
+  - Add `--format html` flag to emit rich bundles (planned)
+  - Integrate with recording workflow: replay failures using captured state (planned)
 
 3. **EditorManager & Application Integration**
   - Introduce shared `ErrorAnnotatedResult` utility exposing `status`, `context`, `actionable_hint`
@@ -299,7 +295,7 @@ message DiscoverWidgetsResponse {
   "assertion": "visible:Overworld",
   "expected": "visible",
   "actual": "hidden",
-  "screenshot": "/tmp/yaze_test_12345678.png",
+  "screenshot": "/tmp/yaze/test-results/grpc_assert_12345678/failure_1696357220000.bmp",
   "widget_state": {
     "active_window": "Main Window",
     "focused_widget": null,

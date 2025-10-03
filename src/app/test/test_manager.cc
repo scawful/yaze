@@ -1,14 +1,17 @@
 #include "app/test/test_manager.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <random>
 
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "app/core/service/screenshot_utils.h"
 #include "app/core/widget_state_capture.h"
 #include "app/core/features.h"
 #include "app/core/platform/file_dialog.h"
@@ -35,6 +38,25 @@ class EditorManager;
 
 namespace yaze {
 namespace test {
+
+namespace {
+
+std::string GenerateFailureScreenshotPath(const std::string& test_id) {
+  std::filesystem::path base_dir =
+      std::filesystem::temp_directory_path() / "yaze" / "test-results" /
+      test_id;
+  std::error_code ec;
+  std::filesystem::create_directories(base_dir, ec);
+
+  const int64_t timestamp_ms = absl::ToUnixMillis(absl::Now());
+  std::filesystem::path file_path =
+      base_dir /
+      std::filesystem::path(absl::StrFormat(
+          "failure_%lld.bmp", static_cast<long long>(timestamp_ms)));
+  return file_path.string();
+}
+
+}  // namespace
 
 // Utility function implementations
 const char* TestStatusToString(TestStatus status) {
@@ -1636,68 +1658,117 @@ void TestManager::TrimHarnessHistoryLocked() {
 void TestManager::CaptureFailureContext(const std::string& test_id) {
   // IT-08b: Capture failure diagnostics
   // Note: This method is called with the harness_history_mutex_ unlocked
-  // to avoid deadlock when Screenshot RPC calls back into TestManager
+  // to avoid deadlock when Screenshot helper touches SDL state.
 
-  absl::MutexLock lock(&harness_history_mutex_);
-  auto it = harness_history_.find(test_id);
-  if (it == harness_history_.end()) {
-    return;
-  }
-
-  HarnessTestExecution& execution = it->second;
-
-  // 1. Capture execution context (frame count, active window, etc.)
+  // 1. Capture execution context metadata from ImGui.
+  std::string failure_context;
   ImGuiContext* ctx = ImGui::GetCurrentContext();
   if (ctx != nullptr) {
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-  ImGuiWindow* current_window = ctx->CurrentWindow;
-  ImGuiWindow* nav_window = ctx->NavWindow;
-  ImGuiWindow* hovered_window = ctx->HoveredWindow;
+    ImGuiWindow* current_window = ctx->CurrentWindow;
+    ImGuiWindow* nav_window = ctx->NavWindow;
+    ImGuiWindow* hovered_window = ctx->HoveredWindow;
 
-  const char* current_name =
-    (current_window && current_window->Name) ? current_window->Name : "none";
-  const char* nav_name =
-    (nav_window && nav_window->Name) ? nav_window->Name : "none";
-  const char* hovered_name =
-    (hovered_window && hovered_window->Name) ? hovered_window->Name : "none";
+    const char* current_name =
+        (current_window && current_window->Name) ? current_window->Name : "none";
+    const char* nav_name =
+        (nav_window && nav_window->Name) ? nav_window->Name : "none";
+    const char* hovered_name = (hovered_window && hovered_window->Name)
+                                    ? hovered_window->Name
+                                    : "none";
 
-  ImGuiID active_id = ImGui::GetActiveID();
-  ImGuiID hovered_id = ImGui::GetHoveredID();
-  execution.failure_context =
-    absl::StrFormat(
-      "frame=%d current_window=%s nav_window=%s hovered_window=%s active_id=0x%08X hovered_id=0x%08X",
-      ImGui::GetFrameCount(), current_name, nav_name, hovered_name,
-      active_id, hovered_id);
+    ImGuiID active_id = ImGui::GetActiveID();
+    ImGuiID hovered_id = ImGui::GetHoveredID();
+    failure_context = absl::StrFormat(
+        "frame=%d current_window=%s nav_window=%s hovered_window=%s "
+        "active_id=0x%08X hovered_id=0x%08X",
+        ImGui::GetFrameCount(), current_name, nav_name, hovered_name,
+        active_id, hovered_id);
 #else
-  execution.failure_context =
-    absl::StrFormat("frame=%d", ImGui::GetFrameCount());
+    failure_context =
+        absl::StrFormat("frame=%d", ImGui::GetFrameCount());
 #endif
   } else {
-  execution.failure_context = "ImGui context not available";
+    failure_context = "ImGui context not available";
   }
 
-  // 2. Screenshot capture would happen here via gRPC call
-  // Note: Screenshot RPC implementation is in ImGuiTestHarnessServiceImpl
-  // The screenshot_path will be set by the RPC handler when it completes
-  // For now, we just set a placeholder path to indicate where it should be saved
-  if (execution.screenshot_path.empty()) {
-    execution.screenshot_path =
-        absl::StrFormat("/tmp/yaze_test_%s_failure.bmp", test_id);
-    execution.screenshot_size_bytes = 0;
+  std::string artifact_path;
+  {
+    absl::MutexLock lock(&harness_history_mutex_);
+    auto it = harness_history_.find(test_id);
+    if (it == harness_history_.end()) {
+      return;
+    }
+
+    HarnessTestExecution& execution = it->second;
+    execution.failure_context = failure_context;
+    if (execution.screenshot_path.empty()) {
+      execution.screenshot_path = GenerateFailureScreenshotPath(test_id);
+    }
+    artifact_path = execution.screenshot_path;
   }
 
-  // 3. Widget state capture (IT-08c)
-  execution.widget_state = core::CaptureWidgetState();
+  // 2. Capture widget state snapshot (IT-08c) and failure screenshot.
+  std::string widget_state = core::CaptureWidgetState();
+#if defined(YAZE_WITH_GRPC)
+  absl::StatusOr<ScreenshotArtifact> screenshot_artifact =
+      CaptureHarnessScreenshot(artifact_path);
+#endif
 
-  // Keep aggregate cache in sync with the latest execution snapshot.
-  auto aggregate_it = harness_aggregates_.find(execution.name);
-  if (aggregate_it != harness_aggregates_.end()) {
-    aggregate_it->second.latest_execution = execution;
+  {
+    absl::MutexLock lock(&harness_history_mutex_);
+    auto it = harness_history_.find(test_id);
+    if (it == harness_history_.end()) {
+      return;
+    }
+
+    HarnessTestExecution& execution = it->second;
+    execution.failure_context = failure_context;
+    execution.widget_state = widget_state;
+
+#if defined(YAZE_WITH_GRPC)
+    if (screenshot_artifact.ok()) {
+      execution.screenshot_path = screenshot_artifact->file_path;
+      execution.screenshot_size_bytes = screenshot_artifact->file_size_bytes;
+      execution.logs.push_back(absl::StrFormat(
+          "[auto-capture] Failure screenshot saved to %s (%lld bytes)",
+          execution.screenshot_path,
+          static_cast<long long>(execution.screenshot_size_bytes)));
+    } else {
+      execution.logs.push_back(absl::StrFormat(
+          "[auto-capture] Screenshot capture failed: %s",
+          screenshot_artifact.status().message()));
+    }
+#else
+    execution.logs.push_back(
+        "[auto-capture] Screenshot capture unavailable (YAZE_WITH_GRPC=OFF)");
+#endif
+
+    // Keep aggregate cache in sync with the latest execution snapshot.
+    auto aggregate_it = harness_aggregates_.find(execution.name);
+    if (aggregate_it != harness_aggregates_.end()) {
+      aggregate_it->second.latest_execution = execution;
+    }
   }
 
-  util::logf("[TestManager] Captured failure context for test %s: %s",
-             test_id.c_str(), execution.failure_context.c_str());
-  util::logf("[TestManager] Widget state: %s", execution.widget_state.c_str());
+#if defined(YAZE_WITH_GRPC)
+  if (screenshot_artifact.ok()) {
+    util::logf("[TestManager] Captured failure context for test %s: %s",
+               test_id.c_str(), failure_context.c_str());
+    util::logf("[TestManager] Failure screenshot stored at %s (%lld bytes)",
+               screenshot_artifact->file_path.c_str(),
+               static_cast<long long>(screenshot_artifact->file_size_bytes));
+  } else {
+    util::logf("[TestManager] Failed to capture screenshot for test %s: %s",
+               test_id.c_str(),
+               screenshot_artifact.status().ToString().c_str());
+  }
+#else
+  util::logf(
+      "[TestManager] Screenshot capture unavailable (YAZE_WITH_GRPC=OFF) for test %s",
+      test_id.c_str());
+#endif
+  util::logf("[TestManager] Widget state: %s", widget_state.c_str());
 }
 
 }  // namespace test
