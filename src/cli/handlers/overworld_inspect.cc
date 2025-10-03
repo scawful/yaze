@@ -295,6 +295,97 @@ absl::StatusOr<std::vector<WarpEntry>> CollectWarpEntries(
   return entries;
 }
 
+absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
+    zelda3::Overworld& overworld, uint16_t tile_id,
+    const TileSearchOptions& options) {
+  if (options.map_id.has_value()) {
+    RETURN_IF_ERROR(ValidateMapId(*options.map_id));
+  }
+  if (options.world.has_value()) {
+    if (*options.world < 0 || *options.world > 2) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Unknown world index: %d", *options.world));
+    }
+  }
+
+  if (options.map_id.has_value() && options.world.has_value()) {
+    ASSIGN_OR_RETURN(int inferred_world,
+                     InferWorldFromMapId(*options.map_id));
+    if (inferred_world != *options.world) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat(
+              "Map 0x%02X belongs to the %s World but --world requested %s",
+              *options.map_id, WorldName(inferred_world),
+              WorldName(*options.world)));
+    }
+  }
+
+  std::vector<int> worlds;
+  if (options.world.has_value()) {
+    worlds.push_back(*options.world);
+  } else if (options.map_id.has_value()) {
+    ASSIGN_OR_RETURN(int inferred_world,
+                     InferWorldFromMapId(*options.map_id));
+    worlds.push_back(inferred_world);
+  } else {
+    worlds = {0, 1, 2};
+  }
+
+  std::vector<TileMatch> matches;
+
+  for (int world : worlds) {
+    int world_start = 0;
+    int world_maps = 0;
+    switch (world) {
+      case 0:
+        world_start = 0x00;
+        world_maps = 0x40;
+        break;
+      case 1:
+        world_start = 0x40;
+        world_maps = 0x40;
+        break;
+      case 2:
+        world_start = 0x80;
+        world_maps = 0x20;
+        break;
+      default:
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Unknown world index: %d", world));
+    }
+
+    overworld.set_current_world(world);
+
+    for (int local_map = 0; local_map < world_maps; ++local_map) {
+      int map_id = world_start + local_map;
+      if (options.map_id.has_value() && map_id != *options.map_id) {
+        continue;
+      }
+
+      int map_x_index = local_map % 8;
+      int map_y_index = local_map / 8;
+
+      int global_x_start = map_x_index * 32;
+      int global_y_start = map_y_index * 32;
+
+      for (int local_y = 0; local_y < 32; ++local_y) {
+        for (int local_x = 0; local_x < 32; ++local_x) {
+          int global_x = global_x_start + local_x;
+          int global_y = global_y_start + local_y;
+
+          uint16_t current_tile = overworld.GetTile(global_x, global_y);
+          if (current_tile == tile_id) {
+            matches.push_back({map_id, world, local_x, local_y, global_x,
+                               global_y});
+          }
+        }
+      }
+    }
+  }
+
+  return matches;
+}
+
 }  // namespace overworld
 }  // namespace cli
 }  // namespace yaze
