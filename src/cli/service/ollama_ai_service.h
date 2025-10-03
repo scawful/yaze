@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "cli/service/ai_service.h"
+#include "cli/service/prompt_builder.h"
 
 namespace yaze {
 namespace cli {
@@ -18,6 +19,7 @@ struct OllamaConfig {
   float temperature = 0.1;                          // Low temp for deterministic commands
   int max_tokens = 2048;                            // Sufficient for command lists
   std::string system_prompt;                        // Injected from resource catalogue
+  bool use_enhanced_prompting = true;               // Enable few-shot examples
 };
 
 class OllamaAIService : public AIService {
@@ -36,6 +38,7 @@ class OllamaAIService : public AIService {
 
  private:
   OllamaConfig config_;
+  PromptBuilder prompt_builder_;
   
   // Build system prompt from resource catalogue
   std::string BuildSystemPrompt();

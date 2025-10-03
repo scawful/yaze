@@ -19,30 +19,23 @@ namespace cli {
 
 GeminiAIService::GeminiAIService(const GeminiConfig& config) 
     : config_(config) {
+  // Load command documentation into prompt builder
+  prompt_builder_.LoadResourceCatalogue("");  // TODO: Pass actual yaml path when available
+  
   if (config_.system_instruction.empty()) {
-    config_.system_instruction = BuildSystemInstruction();
+    // Use enhanced prompting by default
+    if (config_.use_enhanced_prompting) {
+      config_.system_instruction = prompt_builder_.BuildSystemInstructionWithExamples();
+    } else {
+      config_.system_instruction = BuildSystemInstruction();
+    }
   }
 }
 
 std::string GeminiAIService::BuildSystemInstruction() {
-  return R"(You are an expert ROM hacking assistant for The Legend of Zelda: A Link to the Past.
-
-Your task is to generate a sequence of z3ed CLI commands to achieve the user's request.
-
-CRITICAL: Respond ONLY with a JSON array of strings. Each string must be a complete z3ed command.
-
-Available z3ed commands:
-- palette export --group <group> --id <id> --to <file>
-- palette import --group <group> --id <id> --from <file>
-- palette set-color --file <file> --index <index> --color <hex_color>
-- overworld set-tile --map <map_id> --x <x> --y <y> --tile <tile_id>
-- sprite set-position --id <id> --x <x> --y <y>
-- dungeon set-room-tile --room <room_id> --x <x> --y <y> --tile <tile_id>
-
-Example response format:
-["z3ed palette export --group overworld --id 0 --to palette.json", "z3ed palette set-color --file palette.json --index 5 --color 0xFF0000"]
-
-Do not include explanations, markdown formatting, or code blocks. Only the JSON array.)";
+  // Fallback prompt if enhanced prompting is disabled
+  // Use PromptBuilder's basic system instruction
+  return prompt_builder_.BuildSystemInstruction();
 }
 
 absl::Status GeminiAIService::CheckAvailability() {

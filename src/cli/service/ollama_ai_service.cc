@@ -31,52 +31,23 @@ namespace yaze {
 namespace cli {
 
 OllamaAIService::OllamaAIService(const OllamaConfig& config) : config_(config) {
+  // Load command documentation into prompt builder
+  prompt_builder_.LoadResourceCatalogue("");  // TODO: Pass actual yaml path when available
+  
   if (config_.system_prompt.empty()) {
-    config_.system_prompt = BuildSystemPrompt();
+    // Use enhanced prompting by default
+    if (config_.use_enhanced_prompting) {
+      config_.system_prompt = prompt_builder_.BuildSystemInstructionWithExamples();
+    } else {
+      config_.system_prompt = BuildSystemPrompt();
+    }
   }
 }
 
 std::string OllamaAIService::BuildSystemPrompt() {
-  // TODO: Eventually load from docs/api/z3ed-resources.yaml for full command catalogue
-  // For now, use a comprehensive hardcoded prompt
-  return R"(You are an expert ROM hacking assistant for The Legend of Zelda: A Link to the Past.
-Your role is to generate PRECISE z3ed CLI commands to fulfill user requests.
-
-CRITICAL RULES:
-1. Output ONLY a JSON array of command strings
-2. Each command must follow exact z3ed syntax
-3. Commands must be executable without modification
-4. Use only commands from the available command set
-5. Include all required arguments with proper flags
-
-AVAILABLE COMMANDS:
-- rom info --rom <path>
-- rom validate --rom <path>
-- rom diff --rom1 <path1> --rom2 <path2>
-- palette export --group <group> --id <id> --to <file>
-- palette import --group <group> --id <id> --from <file>
-- palette set-color --file <file> --index <index> --color <hex_color>
-- overworld get-tile --map <map_id> --x <x> --y <y>
-- overworld set-tile --map <map_id> --x <x> --y <y> --tile <tile_id>
-- dungeon export-room --room <room_id> --to <file>
-- dungeon import-room --room <room_id> --from <file>
-
-RESPONSE FORMAT:
-["command1", "command2", "command3"]
-
-EXAMPLE 1:
-User: "Validate the ROM"
-Response: ["rom validate --rom zelda3.sfc"]
-
-EXAMPLE 2:
-User: "Make all soldier armors red"
-Response: ["palette export --group sprites --id soldier --to /tmp/soldier.pal", "palette set-color --file /tmp/soldier.pal --index 5 --color FF0000", "palette import --group sprites --id soldier --from /tmp/soldier.pal"]
-
-EXAMPLE 3:
-User: "Export the first overworld palette"
-Response: ["palette export --group overworld --id 0 --to /tmp/ow_pal_0.pal"]
-
-Begin your response now.)";
+  // Fallback prompt if enhanced prompting is disabled
+  // Use PromptBuilder's basic system instruction
+  return prompt_builder_.BuildSystemInstruction();
 }
 
 absl::Status OllamaAIService::CheckAvailability() {
