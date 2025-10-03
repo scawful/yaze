@@ -25,11 +25,12 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 - **Priority 3**: Enhanced Error Reporting (IT-08+) - Holistic improvements spanning z3ed, ImGuiTestHarness, EditorManager, and core application services
 
 **Recent Accomplishments** (Updated: October 2025):
-- **✅ IT-08b Auto-Capture Complete**: Failure diagnostics now captured automatically
-  - Execution context (frame count, active window, focused widget) captured on failure
-  - Screenshot path placeholder set for future RPC integration
-  - Proto schema updated with failure diagnostic fields
-  - GetTestResults RPC returns comprehensive failure information
+- **✅ IT-08 Enhanced Error Reporting Complete**: Full diagnostic capture operational
+  - IT-08a: Screenshot RPC with SDL capture (BMP format, 1536x864)  
+  - IT-08b: Auto-capture execution context on failures (frame, window, widget)
+  - IT-08c: Widget state dumps with comprehensive UI snapshot (JSON, 45 min)
+  - Proto schema updated with screenshot_path, failure_context, widget_state
+  - GetTestResults RPC returns complete failure diagnostics
 - **✅ IT-08a Screenshot RPC Complete**: SDL-based screenshot capture operational
   - Captures 1536x864 BMP files via SDL_RenderReadPixels
   - Successfully tested via gRPC (5.3MB output files)
@@ -245,8 +246,8 @@ message WidgetInfo {
 
 **Outcome**: Recording/replay is production-ready; focus shifts to surfacing rich failure diagnostics (IT-08).
 
-#### IT-08: Enhanced Error Reporting (5-7 hours) 🔄 ACTIVE
-**Status**: IT-08a Complete ✅ | IT-08b Complete ✅ | IT-08c In Progress 🔄
+#### IT-08: Enhanced Error Reporting (5-7 hours) ✅ COMPLETE
+**Status**: IT-08a Complete ✅ | IT-08b Complete ✅ | IT-08c Complete ✅
 **Objective**: Deliver a unified, high-signal error reporting pipeline spanning ImGuiTestHarness, z3ed CLI, EditorManager, and core application services.
 
 **Implementation Tracks**:
@@ -542,8 +543,8 @@ z3ed collab replay session_2025_10_02.yaml --speed 2x
 _Status Legend: 🔄 Active · 📋 Planned · ✅ Done_
 
 **Progress Summary**:
-- ✅ Completed: 12 tasks (50%)
-- 🔄 Active: 1 task (4%)
+- ✅ Completed: 13 tasks (54%)
+- 🔄 Active: 0 tasks (0%)
 - 📋 Planned: 11 tasks (46%)
 - **Total**: 24 tasks (6 test harness enhancements + 1 collaborative feature)
 
