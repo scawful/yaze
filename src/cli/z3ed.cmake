@@ -56,6 +56,8 @@ add_executable(
   cli/service/test_suite_loader.h
   cli/service/test_suite_reporter.cc
   cli/service/test_suite_reporter.h
+  cli/service/test_suite_writer.cc
+  cli/service/test_suite_writer.h
   cli/service/gemini_ai_service.cc
   app/rom.cc
   app/core/project.cc

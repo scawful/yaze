@@ -3,10 +3,13 @@
 #include <algorithm>
 #include <chrono>
 #include <cctype>
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
+#include <system_error>
 #include <optional>
 #include <set>
 #include <sstream>
@@ -36,8 +39,15 @@
 #include "cli/service/test_suite.h"
 #include "cli/service/test_suite_loader.h"
 #include "cli/service/test_suite_reporter.h"
+#include "cli/service/test_suite_writer.h"
 #include "cli/service/test_workflow_generator.h"
 #include "util/macro.h"
+
+#if defined(_WIN32)
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace yaze {
 namespace cli {
@@ -53,6 +63,126 @@ void AttachExitCode(absl::Status* status, int exit_code) {
   }
   status->SetPayload(kExitCodePayloadKey,
                      absl::Cord(std::to_string(exit_code)));
+}
+
+std::string TrimWhitespace(absl::string_view value) {
+  return std::string(absl::StripAsciiWhitespace(value));
+}
+
+bool IsInteractiveInput() {
+#if defined(_WIN32)
+  return _isatty(_fileno(stdin)) != 0;
+#else
+  return isatty(fileno(stdin)) != 0;
+#endif
+}
+
+std::string PromptWithDefault(const std::string& prompt,
+                              const std::string& default_value,
+                              bool allow_empty = true) {
+  while (true) {
+    std::cout << prompt;
+    if (!default_value.empty()) {
+      std::cout << " [" << default_value << "]";
+    }
+    std::cout << ": ";
+    std::cout.flush();
+
+    std::string line;
+    if (!std::getline(std::cin, line)) {
+      return default_value;
+    }
+    std::string trimmed = TrimWhitespace(line);
+    if (!trimmed.empty()) {
+      return trimmed;
+    }
+    if (!default_value.empty()) {
+      return default_value;
+    }
+    if (allow_empty) {
+      return std::string();
+    }
+    std::cout << "  Value is required." << std::endl;
+  }
+}
+
+std::string PromptRequired(const std::string& prompt,
+                           const std::string& default_value = std::string()) {
+  return PromptWithDefault(prompt, default_value, /*allow_empty=*/false);
+}
+
+int PromptInt(const std::string& prompt, int default_value, int min_value) {
+  while (true) {
+    std::string default_str = absl::StrCat(default_value);
+    std::string input = PromptWithDefault(prompt, default_str);
+    if (input.empty()) {
+      return default_value;
+    }
+    int value = 0;
+    if (absl::SimpleAtoi(input, &value) && value >= min_value) {
+      return value;
+    }
+    std::cout << "  Enter an integer >= " << min_value << "." << std::endl;
+  }
+}
+
+bool PromptYesNo(const std::string& prompt, bool default_value) {
+  while (true) {
+    std::cout << prompt << " [" << (default_value ? "Y/n" : "y/N")
+              << "]: ";
+    std::cout.flush();
+    std::string line;
+    if (!std::getline(std::cin, line)) {
+      return default_value;
+    }
+    std::string trimmed = TrimWhitespace(line);
+    if (trimmed.empty()) {
+      return default_value;
+    }
+    char c = static_cast<char>(std::tolower(static_cast<unsigned char>(trimmed[0])));
+    if (c == 'y') {
+      return true;
+    }
+    if (c == 'n') {
+      return false;
+    }
+    std::cout << "  Please respond with 'y' or 'n'." << std::endl;
+  }
+}
+
+std::vector<std::string> ParseCommaSeparated(absl::string_view input) {
+  std::vector<std::string> values;
+  for (absl::string_view token : absl::StrSplit(input, ',')) {
+    std::string trimmed = TrimWhitespace(token);
+    if (!trimmed.empty()) {
+      values.push_back(trimmed);
+    }
+  }
+  return values;
+}
+
+bool ParseKeyValueEntry(const std::string& input, std::string* key,
+                        std::string* value) {
+  size_t equals = input.find('=');
+  if (equals == std::string::npos) {
+    return false;
+  }
+  *key = TrimWhitespace(absl::string_view(input.data(), equals));
+  *value = TrimWhitespace(absl::string_view(input.data() + equals + 1,
+                                            input.size() - equals - 1));
+  return !key->empty();
+}
+
+std::string DeriveTestNameFromPath(const std::string& path) {
+  if (path.empty()) {
+    return "";
+  }
+  std::filesystem::path fs_path(path);
+  std::string stem = fs_path.stem().string();
+  if (!stem.empty()) {
+    return stem;
+  }
+  return path;
 }
 
 std::string OutcomeToLabel(TestCaseOutcome outcome) {
@@ -1967,10 +2097,209 @@ absl::Status HandleTestSuiteValidateCommand(
   return absl::OkStatus();
 }
 
+absl::Status HandleTestSuiteCreateCommand(
+    const std::vector<std::string>& arg_vec) {
+  if (!IsInteractiveInput()) {
+    return absl::FailedPreconditionError(
+        "agent test suite create requires an interactive terminal");
+  }
+
+  std::string target_arg;
+  bool force = false;
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--force") {
+      force = true;
+      continue;
+    }
+    if (absl::StartsWith(token, "--force=")) {
+      std::string value = TrimWhitespace(token.substr(8));
+      absl::AsciiStrToLower(&value);
+      force = (value == "1" || value == "true" || value == "yes" ||
+               value == "on");
+      continue;
+    }
+    if (absl::StartsWith(token, "--")) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Unknown flag for agent test suite create: ", token));
+    }
+    if (!target_arg.empty()) {
+      return absl::InvalidArgumentError(
+          "agent test suite create accepts a single <name> or <path>");
+    }
+    target_arg = token;
+  }
+
+  if (target_arg.empty()) {
+    return absl::InvalidArgumentError(
+        "Usage: agent test suite create <name|path> [--force]");
+  }
+
+  std::filesystem::path output_path(target_arg);
+  bool looks_like_path = target_arg.find('/') != std::string::npos ||
+                         target_arg.find('\\') != std::string::npos ||
+                         target_arg.find('.') != std::string::npos;
+  if (!looks_like_path) {
+    output_path = std::filesystem::path("tests") /
+                  std::filesystem::path(target_arg + ".yaml");
+  } else if (output_path.extension().empty()) {
+    output_path.replace_extension(".yaml");
+  }
+
+  std::string extension = output_path.extension().string();
+  absl::AsciiStrToLower(&extension);
+  if (!extension.empty() && extension != ".yaml" && extension != ".yml") {
+    return absl::InvalidArgumentError(
+        "Only .yaml/.yml suites are supported.");
+  }
+  if (extension == ".yml") {
+    output_path.replace_extension(".yaml");
+  }
+
+  std::string default_suite_name = output_path.stem().string();
+  if (default_suite_name.empty()) {
+    default_suite_name = "New Suite";
+  }
+
+  std::error_code exists_ec;
+  if (!force && std::filesystem::exists(output_path, exists_ec) && !exists_ec) {
+    std::string question =
+        absl::StrCat("File ", output_path.string(),
+                     " already exists. Overwrite?");
+    if (!PromptYesNo(question, false)) {
+      return absl::CancelledError("Suite creation cancelled by user");
+    }
+    force = true;
+  }
+
+  std::cout << "=== Test Suite Metadata ===" << std::endl;
+  TestSuiteDefinition suite;
+  suite.name = TrimWhitespace(PromptRequired("Suite name", default_suite_name));
+  if (suite.name.empty()) {
+    suite.name = default_suite_name;
+  }
+  suite.description = TrimWhitespace(
+      PromptWithDefault("Suite description", std::string()));
+  suite.version = TrimWhitespace(PromptWithDefault("Suite version", "1.0"));
+  if (suite.version.empty()) {
+    suite.version = "1.0";
+  }
+  suite.config.timeout_seconds =
+      PromptInt("Timeout per test (seconds)", 30, 0);
+  suite.config.retry_on_failure =
+      PromptInt("Retries per test", 0, 0);
+  suite.config.parallel_execution =
+      PromptYesNo("Enable parallel execution?", false);
+
+  std::cout << "\n=== Define Test Groups ===" << std::endl;
+  while (true) {
+    std::string group_name = TrimWhitespace(
+        PromptWithDefault("Add group name (leave blank to finish)",
+                          std::string()));
+    if (group_name.empty()) {
+      break;
+    }
+
+    TestGroupDefinition group;
+    group.name = group_name;
+    group.description = TrimWhitespace(
+        PromptWithDefault("  Group description", std::string()));
+    std::string deps_input = TrimWhitespace(
+        PromptWithDefault("  Depends on (comma separated)",
+                          std::string()));
+    group.depends_on = ParseCommaSeparated(deps_input);
+
+    std::cout << "    Adding tests for group '" << group.name << "'" << std::endl;
+    while (true) {
+      std::string script_prompt =
+          absl::StrCat("    Test script path (JSON) [blank to finish group] ");
+      std::string script_path = TrimWhitespace(
+          PromptWithDefault(script_prompt, std::string()));
+      if (script_path.empty()) {
+        break;
+      }
+
+      TestCaseDefinition test;
+      test.group_name = group.name;
+      test.script_path = script_path;
+
+      std::string default_test_name = DeriveTestNameFromPath(script_path);
+      std::string name_input = TrimWhitespace(
+          PromptWithDefault("      Display name", default_test_name));
+      test.name = name_input.empty() ? default_test_name : name_input;
+      test.description = TrimWhitespace(
+          PromptWithDefault("      Test description", std::string()));
+      std::string tags_input = TrimWhitespace(
+          PromptWithDefault("      Tags (comma separated)", std::string()));
+      test.tags = ParseCommaSeparated(tags_input);
+
+      while (true) {
+        std::string param_input = TrimWhitespace(PromptWithDefault(
+            "      Parameter key=value (blank to finish)", std::string()));
+        if (param_input.empty()) {
+          break;
+        }
+        std::string key;
+        std::string value;
+        if (!ParseKeyValueEntry(param_input, &key, &value)) {
+          std::cout << "        Expected key=value" << std::endl;
+          continue;
+        }
+        test.parameters[key] = value;
+      }
+
+      if (test.id.empty()) {
+        test.id = absl::StrCat(group.name, ":", test.name);
+      }
+
+      std::error_code file_check_ec;
+      if (!std::filesystem::exists(script_path, file_check_ec) || file_check_ec) {
+        std::cout << "        (warning: file not found)" << std::endl;
+      }
+
+      group.tests.push_back(std::move(test));
+      std::cout << std::endl;
+    }
+
+    if (group.tests.empty()) {
+      if (!PromptYesNo("  No tests added. Keep empty group?", false)) {
+        continue;
+      }
+    }
+
+    suite.groups.push_back(std::move(group));
+    std::cout << std::endl;
+  }
+
+  if (suite.groups.empty()) {
+    if (!PromptYesNo("No groups defined. Create empty suite anyway?", false)) {
+      return absl::CancelledError("Suite creation cancelled");
+    }
+  }
+
+  int total_tests = 0;
+  for (const auto& group : suite.groups) {
+    total_tests += static_cast<int>(group.tests.size());
+  }
+
+  absl::Status write_status =
+      WriteTestSuiteToFile(suite, output_path.string(), force);
+  if (!write_status.ok()) {
+    return write_status;
+  }
+
+  std::cout << "\nCreated suite '" << suite.name << "' at "
+            << output_path.string() << "\n";
+  std::cout << "  Groups: " << suite.groups.size() << "\n";
+  std::cout << "  Tests: " << total_tests << "\n";
+
+  return absl::OkStatus();
+}
+
 absl::Status HandleTestSuiteCommand(const std::vector<std::string>& arg_vec) {
   if (arg_vec.empty()) {
     return absl::InvalidArgumentError(
-        "Usage: agent test suite <run|validate> [options]");
+        "Usage: agent test suite <run|validate|create> [options]");
   }
 
   const std::string& action = arg_vec[0];
@@ -1983,8 +2312,7 @@ absl::Status HandleTestSuiteCommand(const std::vector<std::string>& arg_vec) {
     return HandleTestSuiteValidateCommand(tail);
   }
   if (action == "create") {
-    return absl::UnimplementedError(
-        "agent test suite create is not implemented yet");
+    return HandleTestSuiteCreateCommand(tail);
   }
 
   return absl::InvalidArgumentError(

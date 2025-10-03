@@ -31,6 +31,12 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
   - IT-08c: Widget state dumps with comprehensive UI snapshot (JSON, 45 min)
   - Proto schema updated with screenshot_path, failure_context, widget_state
   - GetTestResults RPC returns complete failure diagnostics
+- **✅ IT-09 CLI Suite Commands Landed**: End-to-end suite orchestration for CI
+  - `agent test suite run` handles groups, tags, params, retries, and emits
+    summaries plus default JUnit XML under `test-results/junit/`
+  - `agent test suite validate` performs structural linting with exit codes
+  - NEW `agent test suite create` interactive builder writes YAML suites to
+    `tests/<name>.yaml` (with `--force` overwrite) and guides group/test entry
 - **✅ IT-08a Screenshot RPC Complete**: SDL-based screenshot capture operational
   - Captures 1536x864 BMP files via SDL_RenderReadPixels
   - Successfully tested via gRPC (5.3MB output files)
@@ -315,23 +321,30 @@ message DiscoverWidgetsResponse {
 }
 ```
 
-#### IT-09: CI/CD Integration (2-3 hours)
-**Implementation Tasks**:
-1. **Standardized Test Suite Format**:
-   - YAML/JSON format for test suite definitions
-   - Support test groups (smoke, regression, nightly)
-   - Enable parallel execution with dependencies
-   
-2. **CI-Friendly CLI**:
-   - `z3ed test run-suite tests/suite.yaml --ci-mode`
-   - Exit codes: 0 = all passed, 1 = failures, 2 = errors
-   - JUnit XML output for CI parsers
-   - GitHub Actions integration examples
-   
-3. **Documentation**:
-   - Add `.github/workflows/gui-tests.yml` example
-   - Create sample test suites for common scenarios
-   - Document best practices for flaky test handling
+#### IT-09: CI/CD Integration ✅ CLI Tooling Shipped
+**Delivered (Oct 3, 2025)**:
+1. **Standardized Suite Runtime**
+  - YAML suite parser/loader with group dependencies and retry semantics
+  - `z3ed agent test suite run` exposes `--group`, `--tag`, `--param`,
+    `--retries`, `--ci-mode`, and `--junit`
+  - Automatic JUnit XML emission to `test-results/junit/<suite>.xml`
+
+2. **Validation & Authoring UX**
+  - `z3ed agent test suite validate` surfaces structural linting with
+    annotated exit codes (0 pass, 1 fail, 2 error)
+  - NEW `z3ed agent test suite create <name>` interactive flow scaffolds
+    suites under `tests/`, prompting for metadata, groups, replay scripts,
+    tags, and key=value parameters (with `--force` overwrite support)
+
+3. **Reporting**
+  - Text and JSON summaries include per-test assertions and retry outcomes
+  - Default output directory layout ready for CI artifact upload
+
+**Next Steps** (post-CLI follow-through):
+- Publish canonical `tests/smoke.yaml` / `tests/regression.yaml` samples
+- Add `.github/workflows/gui-tests.yml` template referencing the new runner
+- Document flaky-test mitigation patterns, including recommended retry counts
+- Wire suite execution output into docs/CI dashboards for quick triage
 
 **Test Suite Format**:
 ```yaml
@@ -541,11 +554,11 @@ z3ed collab replay session_2025_10_02.yaml --speed 2x
 | IT-05 | Add test introspection RPCs (GetTestStatus, ListTests, GetResults) | ImGuiTest Bridge | Code | ✅ Done | IT-01 - Enable clients to poll test results and query execution state (Oct 2, 2025) |
 | IT-06 | Implement widget discovery API for AI agents | ImGuiTest Bridge | Code | 📋 Planned | IT-01 - DiscoverWidgets RPC to enumerate windows, buttons, inputs |
 | IT-07 | Add test recording/replay for regression testing | ImGuiTest Bridge | Code | ✅ Done | IT-05 - RecordSession/ReplaySession RPCs with JSON test scripts |
-| IT-08 | Enhance error reporting with screenshots and state dumps | ImGuiTest Bridge | Code | 🔄 Active | IT-01 - Capture widget state on failure for debugging (67% complete: IT-08a ✅, IT-08b ✅, IT-08c 🔄) |
+| IT-08 | Enhance error reporting with screenshots and state dumps | ImGuiTest Bridge | Code | ✅ Done | IT-01 - Screenshot RPC, auto-capture, widget state dumps complete (Oct 2, 2025) |
 | IT-08a | Screenshot RPC implementation (SDL capture) | ImGuiTest Bridge | Code | ✅ Done | IT-01 - Screenshot capture complete (Oct 2, 2025) |
 | IT-08b | Auto-capture screenshots on test failure | ImGuiTest Bridge | Code | ✅ Done | IT-08a - Integrated with TestManager (Oct 2, 2025) |
-| IT-08c | Widget state dumps and execution context | ImGuiTest Bridge | Code | � Active | IT-08b - Enhanced failure diagnostics (NEXT PRIORITY) |
-| IT-09 | Create standardized test suite format for CI integration | ImGuiTest Bridge | Infra | 📋 Planned | IT-07 - JSON/YAML test suite format compatible with CI/CD pipelines |
+| IT-08c | Widget state dumps and execution context | ImGuiTest Bridge | Code | ✅ Done | IT-08b - Enhanced failure diagnostics (Oct 2, 2025) |
+| IT-09 | Create standardized test suite format for CI integration | ImGuiTest Bridge | Infra | ✅ Done | IT-07 - CLI suite run/validate/create commands, JUnit output |
 | IT-10 | Collaborative editing & multiplayer sessions with shared AI | Collaboration | Feature | 📋 Planned | IT-05, IT-08 - Real-time multi-user editing with live cursors, shared proposals (12-15 hours) |
 | VP-01 | Expand CLI unit tests for new commands and sandbox flow. | Verification Pipeline | Test | 📋 Planned | RC/AW tasks |
 | VP-02 | Add harness integration tests with replay scripts. | Verification Pipeline | Test | 📋 Planned | IT tasks |

@@ -81,7 +81,11 @@ See the **[Technical Reference](E6-z3ed-reference.md)** for a full command list.
 
 ## Recent Enhancements
 
-**Recent Progress (Oct 2, 2025)**
+**Recent Progress (Oct 3, 2025)**
+- ✅ IT-09 CLI Test Suite Tooling Complete: run/validate/create commands + JUnit output
+  - Full suite runner with group/tag filters, parametrization, retries, and CI-friendly exit codes
+  - Interactive `agent test suite create` scaffolds YAML definitions in `tests/`
+  - Default JUnit reports under `test-results/junit/` for CI upload
 - ✅ IT-08 Enhanced Error Reporting Complete: Full diagnostic capture on test failures
   - IT-08a: Screenshot RPC with SDL capture (BMP format, 1536x864)
   - IT-08b: Auto-capture execution context on failures (frame, window, widget)
