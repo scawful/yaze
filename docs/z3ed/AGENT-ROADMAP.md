@@ -97,3 +97,24 @@ This vision will be realized through a shared interface available in both the `z
 6.  **Performance and Cost-Saving**:
     - Implement a response cache to reduce latency and API costs.
     - Add token usage tracking and reporting.
+
+## Current Status & Next Steps (As of Oct 3, Session 2)
+
+We have made significant progress in laying the foundation for the conversational agent.
+
+### ✅ Completed
+- **Initial `ConversationalAgentService`**: The basic service is in place.
+- **TUI Chat Stub**: A functional `agent chat` command exists.
+- **GUI Chat Widget Stub**: An `AgentChatWidget` is integrated into the main GUI.
+- **Initial Agent "Tools"**: `resource-list` and `dungeon-list-sprites` commands are implemented.
+- **Tool Use Foundation**: The `ToolDispatcher` is implemented, and the AI services are aware of the new tool call format.
+
+### ⚠️ Current Blocker: Build Configuration
+We are currently facing a linker error when building the main `yaze` application with gRPC support. The `ToolDispatcher` is unable to find the definitions for the `HandleResourceListCommand` and `HandleDungeonListSpritesCommand` functions.
+
+**Root Cause**: These handler functions are only compiled as part of the `z3ed` target, not the `yaze` target. The `ToolDispatcher`, which is now included in the `yaze` build, depends on them.
+
+### 🚀 Next Steps
+1.  **Resolve the Build Issue**: The immediate next step is to fix the linker error. This will likely involve a thoughtful refactoring of our CMake configuration to better share sources between the `yaze` and `z3ed` targets.
+2.  **Simplify CMake Structure**: As discussed, the current structure of including `.cmake` files from various subdirectories is becoming difficult to manage. We should consider flattening this into a more centralized source list in the main `src/CMakeLists.txt`.
+3.  **Continue with Tool Integration**: Once the build is fixed, we can proceed with integrating the tool execution results back into the conversational loop.

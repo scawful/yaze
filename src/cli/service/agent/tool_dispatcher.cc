@@ -1,5 +1,8 @@
 #include "cli/service/agent/tool_dispatcher.h"
 
+#include <iostream>
+#include <sstream>
+
 #include "absl/strings/str_format.h"
 #include "cli/handlers/agent/commands.h"
 
@@ -15,24 +18,29 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(
     args.push_back(value);
   }
 
+  // Capture stdout
+  std::stringstream buffer;
+  auto old_cout_buf = std::cout.rdbuf();
+  std::cout.rdbuf(buffer.rdbuf());
+
+  absl::Status status;
   if (tool_call.tool_name == "resource-list") {
-    // Note: This is a simplified approach for now. A more robust solution
-    // would capture stdout instead of relying on the handler to return a string.
-    auto status = HandleResourceListCommand(args);
-    if (!status.ok()) {
-      return status;
-    }
-    return "Successfully listed resources.";
+    status = HandleResourceListCommand(args);
   } else if (tool_call.tool_name == "dungeon-list-sprites") {
-    auto status = HandleDungeonListSpritesCommand(args);
-    if (!status.ok()) {
-      return status;
-    }
-    return "Successfully listed sprites.";
+    status = HandleDungeonListSpritesCommand(args);
+  } else {
+    status = absl::UnimplementedError(
+        absl::StrFormat("Unknown tool: %s", tool_call.tool_name));
   }
 
-  return absl::UnimplementedError(
-      absl::StrFormat("Unknown tool: %s", tool_call.tool_name));
+  // Restore stdout
+  std::cout.rdbuf(old_cout_buf);
+
+  if (!status.ok()) {
+    return status;
+  }
+
+  return buffer.str();
 }
 
 }  // namespace agent

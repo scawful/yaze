@@ -83,6 +83,10 @@ else()
   message(STATUS "NFD disabled for minimal build")
 endif()
 
+if(YAZE_BUILD_APP OR YAZE_BUILD_Z3ED)
+  include(cli/agent.cmake)
+endif()
+
 if (YAZE_BUILD_APP)
   include(app/app.cmake)
 endif()
@@ -171,9 +175,6 @@ if (YAZE_BUILD_LIB)
     ${YAZE_APP_EMU_SRC}
     ${YAZE_GUI_SRC}
     ${YAZE_UTIL_SRC}
-    # CLI service sources (needed for ProposalDrawer)
-    cli/service/planning/proposal_registry.cc
-    cli/service/rom/rom_sandbox_manager.cc
     # cli/service/gui_automation_client.cc # Moved to yaze_c
     cli/service/testing/test_workflow_generator.cc
   )
@@ -225,6 +226,7 @@ if (YAZE_BUILD_LIB)
   target_link_libraries(
     yaze_core PUBLIC
     asar-static
+    yaze_agent
     ${ABSL_TARGETS}
     ${SDL_TARGETS}
     ${CMAKE_DL_LIBS}

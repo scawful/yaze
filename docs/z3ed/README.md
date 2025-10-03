@@ -116,15 +116,6 @@ Here are some example prompts you can try with either Ollama or Gemini:
 2. **[E6-z3ed-cli-design.md](E6-z3ed-cli-design.md)** - Detailed architecture and design philosophy.
 3. **[E6-z3ed-reference.md](E6-z3ed-reference.md)** - Complete command reference and API documentation.
 
-### Quick References
-- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Condensed command cheatsheet.
-- **[QUICK-START-GEMINI.md](QUICK-START-GEMINI.md)** - Gemini API setup and testing guide.
-
-### Implementation Guides
-- **[LLM-INTEGRATION-PLAN.md](LLM-INTEGRATION-PLAN.md)** - (Archive) Original LLM integration roadmap.
-- **[IT-05-IMPLEMENTATION-GUIDE.md](IT-05-IMPLEMENTATION-GUIDE.md)** - Test introspection API (complete ✅).
-- **[IT-08-IMPLEMENTATION-GUIDE.md](IT-08-IMPLEMENTATION-GUIDE.md)** - Enhanced error reporting (complete ✅).
-
 ## Current Status (October 2025)
 
 The project is currently focused on implementing a conversational AI agent. See [AGENT-ROADMAP.md](AGENT-ROADMAP.md) for a detailed breakdown of what's complete, in progress, and planned.

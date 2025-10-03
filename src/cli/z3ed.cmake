@@ -48,13 +48,6 @@ add_executable(
   cli/handlers/agent/test_common.cc
   cli/handlers/agent/test_commands.cc
   cli/handlers/agent/gui_commands.cc
-  cli/service/ai/ai_service.cc
-  cli/service/ai/ollama_ai_service.cc
-  cli/service/ai/prompt_builder.cc
-  cli/service/planning/proposal_registry.cc
-  cli/service/resources/resource_catalog.cc
-  cli/service/rom/rom_sandbox_manager.cc
-  cli/service/planning/policy_evaluator.cc
   cli/service/testing/test_suite.h
   cli/service/testing/test_suite_loader.cc
   cli/service/testing/test_suite_loader.h
@@ -62,17 +55,11 @@ add_executable(
   cli/service/testing/test_suite_reporter.h
   cli/service/testing/test_suite_writer.cc
   cli/service/testing/test_suite_writer.h
-  cli/service/ai/gemini_ai_service.cc
   cli/service/planning/tile16_proposal_generator.h
-  cli/service/planning/tile16_proposal_generator.cc
   cli/service/resources/resource_context_builder.h
-  cli/service/resources/resource_context_builder.cc
   cli/service/agent/conversational_agent_service.h
-  cli/service/agent/conversational_agent_service.cc
   cli/service/ai/service_factory.h
-  cli/service/ai/service_factory.cc
   cli/service/agent/tool_dispatcher.h
-  cli/service/agent/tool_dispatcher.cc
   app/rom.cc
   app/core/project.cc
   app/core/asar_wrapper.cc
@@ -85,13 +72,8 @@ add_executable(
   ${IMGUI_SRC}
 )
 
-option(YAZE_WITH_JSON "Build with JSON support" OFF)
 if(YAZE_WITH_JSON)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/json ${CMAKE_BINARY_DIR}/third_party/json)
   target_compile_definitions(z3ed PRIVATE YAZE_WITH_JSON)
-  target_link_libraries(z3ed PRIVATE nlohmann_json::nlohmann_json)
-  list(APPEND Z3ED_SRC_FILES cli/service/ai/gemini_ai_service.cc)
-  list(APPEND Z3ED_SRC_FILES cli/service/ai/prompt_builder.cc)
 endif()
 
 # ============================================================================
@@ -144,6 +126,7 @@ target_include_directories(
 target_link_libraries(
   z3ed PUBLIC
   asar-static
+  yaze_agent
   ftxui::component
   ftxui::screen
   ftxui::dom

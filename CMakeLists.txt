@@ -55,8 +55,16 @@ option(YAZE_ENABLE_EXPERIMENTAL_TESTS "Enable experimental/unstable tests" ON)
 option(YAZE_ENABLE_UI_TESTS "Enable ImGui Test Engine UI testing" ON)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
 
+# Optional JSON support (required for Gemini and structured agent responses)
+option(YAZE_WITH_JSON "Enable JSON support for AI integrations" OFF)
+
 # Optional gRPC support for ImGuiTestHarness (z3ed agent mode)
 option(YAZE_WITH_GRPC "Enable gRPC-based ImGuiTestHarness for automated GUI testing (experimental)" OFF)
+
+if(YAZE_WITH_GRPC AND NOT YAZE_WITH_JSON)
+    message(STATUS "Enabling JSON support because gRPC is enabled")
+    set(YAZE_WITH_JSON ON CACHE BOOL "Enable JSON support" FORCE)
+endif()
 
 # Configure minimal builds for CI/CD
 if(YAZE_MINIMAL_BUILD)
@@ -120,6 +128,12 @@ endif()
 # Create a common interface target for shared settings
 add_library(yaze_common INTERFACE)
 target_compile_features(yaze_common INTERFACE cxx_std_23)
+target_include_directories(yaze_common INTERFACE ${CMAKE_SOURCE_DIR}/third_party/httplib)
+
+if(YAZE_WITH_JSON)
+    set(JSON_BuildTests OFF CACHE INTERNAL "Disable nlohmann_json tests")
+    add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/json ${CMAKE_BINARY_DIR}/third_party/json EXCLUDE_FROM_ALL)
+endif()
 
 # Platform-specific configurations
 if(YAZE_PLATFORM_LINUX)
@@ -180,7 +194,6 @@ else()
     target_compile_definitions(yaze_common INTERFACE 
         _SILENCE_CXX23_DEPRECATION_WARNING
         _SILENCE_ALL_CXX23_DEPRECATION_WARNINGS
-        ABSL_HAVE_INTRINSIC_INT128=1  # Enable intrinsic int128 support
     )
 endif()
 
