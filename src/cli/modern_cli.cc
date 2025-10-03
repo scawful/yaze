@@ -65,6 +65,7 @@ void ModernCLI::SetupCommands() {
                "  test status:  status --test-id <id> [--follow] [--host <host>] [--port <port>]\n"
                "  test list:    list [--category <name>] [--status <state>] [--limit <n>] [--host <host>] [--port <port>]\n"
                "  test results: results --test-id <id> [--include-logs] [--format yaml|json] [--host <host>] [--port <port>]\n"
+               "  test suite:   suite <run|validate|create> [options]\n"
                "  gui discover: discover [--window <name>] [--type <widget>] [--path-prefix <path>]\n"
                "                 [--include-invisible] [--include-disabled] [--format table|json] [--limit <n>]\n"
                "  describe options: [--resource <name>] [--format json|yaml] [--output <path>]\n"

@@ -335,14 +335,27 @@ z3ed_client.Click(target="button:Save Changes")
 - EditorManager gains on-screen diagnostics tied to harness artifacts
 - Lays groundwork for future telemetry and CI reporting
 
-#### IT-09: CI/CD Integration (2-3 hours)
+#### IT-09: CI/CD Integration ✅ CLI Foundations Complete
 **Problem**: Tests run manually. No automated regression on PR/merge.
 
-**Solution**: Standardize test execution for CI:
-- YAML test suite format (groups, dependencies, parallel execution)
-- `z3ed test suite run` command with `--ci-mode`
-- JUnit XML output for CI parsers (Jenkins, GitHub Actions)
-- Exit codes: 0=pass, 1=fail, 2=error
+**Shipped**:
+- YAML test suite runtime with dependency-aware execution and retry handling
+- `z3ed agent test suite run` supports `--group`, `--tag`, `--param`,
+    `--retries`, `--ci-mode`, and automatic JUnit XML emission under
+    `test-results/junit/`
+- `z3ed agent test suite validate` performs structural linting and surfaces
+    exit codes (0 pass, 1 fail, 2 error)
+- NEW `z3ed agent test suite create` interactive builder generates suites
+    (defaulting to `tests/<name>.yaml`), with prompts for groups, replay scripts,
+    tags, and key=value parameters. `--force` enables overwrite flows.
+
+**Next Integration Steps**:
+- Publish canonical `tests/smoke.yaml` / `tests/regression.yaml` templates in
+    the repo
+- Add GitHub Actions example wiring harness referencing the new runner
+- Document best practices for mapping suite tags to CI stages (smoke,
+    regression, nightly)
+- Wire run summaries into docs (`docs/testing/`) with badge-ready status tables
 
 **GitHub Actions Example**:
 ```yaml

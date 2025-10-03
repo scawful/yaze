@@ -494,12 +494,23 @@ z3ed agent test suite <action> [options]
 
 Actions:
   run <suite>     Run test suite (YAML/JSON)
-  create <name>   Create new test suite interactively
+  create <name>   Create new test suite interactively (writes tests/<name>.yaml)
   validate <file> Validate test suite format
+
+Options for `create`:
+  --force         Overwrite the target file without prompting
+
+The create workflow walks you through suite metadata, groups, and tests. If
+you pass a bare name (e.g., `smoke`), the suite is written to
+`tests/smoke.yaml`; supplying a path like `ci/regression.yaml` preserves the
+directory. Use the prompts to add groups, associate JSON replay scripts, tags,
+and key=value parameters. The CLI warns if referenced scripts are missing but
+still records them so you can author them later.
 
 Examples:
   z3ed agent test suite run tests/smoke.yaml
   z3ed agent test suite validate tests/regression.yaml
+  z3ed agent test suite create smoke
 ```
 
 ### ROM Commands
