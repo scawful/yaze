@@ -246,14 +246,15 @@ target_sources(yaze PRIVATE
   ${CMAKE_SOURCE_DIR}/src/app/core/widget_state_capture.cc
   ${CMAKE_SOURCE_DIR}/src/app/core/widget_state_capture.h)
 
-target_include_directories(yaze PRIVATE
-  ${CMAKE_SOURCE_DIR}/third_party/json/include)
-
 # ============================================================================
 # Optional gRPC Support for ImGuiTestHarness
 # ============================================================================
 if(YAZE_WITH_GRPC)
   message(STATUS "Adding gRPC ImGuiTestHarness to yaze target")
+
+  target_include_directories(yaze PRIVATE
+    ${CMAKE_SOURCE_DIR}/third_party/json/include)
+  target_compile_definitions(yaze PRIVATE YAZE_WITH_JSON)
   
   # Generate C++ code from .proto using the helper function from cmake/grpc.cmake
   target_add_protobuf(yaze 
