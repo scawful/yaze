@@ -98,7 +98,26 @@ else()
   target_compile_definitions(yaze PRIVATE YAZE_ENABLE_NFD=0)
 endif()
 
-target_link_libraries(yaze PRIVATE yaze_core)
+if(YAZE_USE_MODULAR_BUILD)
+  target_link_libraries(yaze PRIVATE
+    yaze_util
+    yaze_gfx
+    yaze_gui
+    yaze_zelda3
+    yaze_core_lib
+    yaze_editor
+  )
+
+  if(TARGET yaze_agent)
+    target_link_libraries(yaze PRIVATE yaze_agent)
+  endif()
+
+  if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC AND TARGET yaze_emulator)
+    target_link_libraries(yaze PRIVATE yaze_emulator)
+  endif()
+else()
+  target_link_libraries(yaze PRIVATE yaze_core)
+endif()
 
 # Enable policy framework in main yaze target
 target_compile_definitions(yaze PRIVATE YAZE_ENABLE_POLICY_FRAMEWORK=1)
@@ -224,22 +243,24 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/third_party/json/include)
   target_compile_definitions(yaze PRIVATE YAZE_WITH_JSON)
   
-  # Generate C++ code from .proto using the helper function from cmake/grpc.cmake
-  target_add_protobuf(yaze 
-    ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
-  
-  # Add service implementation sources
-  target_sources(yaze PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.cc
-    ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.h
-    ${CMAKE_SOURCE_DIR}/src/app/core/service/screenshot_utils.cc
-    ${CMAKE_SOURCE_DIR}/src/app/core/service/screenshot_utils.h
-    ${CMAKE_SOURCE_DIR}/src/app/core/service/widget_discovery_service.cc
-    ${CMAKE_SOURCE_DIR}/src/app/core/service/widget_discovery_service.h
-    ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.cc
-    ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.h
-    ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.cc
-    ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.h)
+  if(NOT YAZE_USE_MODULAR_BUILD)
+    # Generate C++ code from .proto using the helper function from cmake/grpc.cmake
+    target_add_protobuf(yaze 
+      ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+
+    # Add service implementation sources
+    target_sources(yaze PRIVATE
+      ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.cc
+      ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.h
+      ${CMAKE_SOURCE_DIR}/src/app/core/service/screenshot_utils.cc
+      ${CMAKE_SOURCE_DIR}/src/app/core/service/screenshot_utils.h
+      ${CMAKE_SOURCE_DIR}/src/app/core/service/widget_discovery_service.cc
+      ${CMAKE_SOURCE_DIR}/src/app/core/service/widget_discovery_service.h
+      ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.cc
+      ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.h
+      ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.cc
+      ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.h)
+  endif()
   
   # Link gRPC libraries
   target_link_libraries(yaze PRIVATE

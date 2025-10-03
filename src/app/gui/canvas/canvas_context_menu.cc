@@ -9,7 +9,7 @@
 #include "app/gui/enhanced_palette_editor.h"
 #include "app/gui/bpp_format_ui.h"
 #include "app/gui/icons.h"
-#include "gui/canvas/canvas_modals.h"
+#include "app/gui/canvas/canvas_modals.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

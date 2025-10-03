@@ -253,7 +253,26 @@ endif()
 
   # Link core library for essential functionality (BPS, ASAR, etc.)
   if(YAZE_BUILD_LIB)
-    target_link_libraries(yaze_test yaze_core)
+    if(YAZE_USE_MODULAR_BUILD)
+      target_link_libraries(yaze_test
+        yaze_util
+        yaze_gfx
+        yaze_gui
+        yaze_zelda3
+        yaze_core_lib
+        yaze_editor
+      )
+
+      if(TARGET yaze_agent)
+        target_link_libraries(yaze_test yaze_agent)
+      endif()
+
+      if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC AND TARGET yaze_emulator)
+        target_link_libraries(yaze_test yaze_emulator)
+      endif()
+    else()
+      target_link_libraries(yaze_test yaze_core)
+    endif()
   endif()
 
   # Conditionally link ImGuiTestEngine only when UI tests are enabled

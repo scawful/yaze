@@ -9,7 +9,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/icons.h"
-#include "gui/canvas/canvas_modals.h"
+#include "app/gui/canvas/canvas_modals.h"
 #include "canvas_usage_tracker.h"
 #include "imgui/imgui.h"
 
