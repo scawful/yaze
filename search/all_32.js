@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🎓_20lessons_20learned_0',['🎓 Lessons Learned',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md606',1,'']]]
+  ['📈_20strong_20performance_20impact_20analysis_20strong_0',['📈 &lt;strong&gt;Performance Impact Analysis&lt;/strong&gt;',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html#autotoc_md224',1,'']]]
 ];

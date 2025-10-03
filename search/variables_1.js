@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['b_0',['b',['../d8/d72/structyaze_1_1emu_1_1Color.html#ae21f87ce751f581f450d28d405247800',1,'yaze::emu::Color::b'],['../d9/dd4/structyaze_1_1emu_1_1Spc700_1_1Flags.html#a37ad3b16c25497c840b84b6375280a16',1,'yaze::emu::Spc700::Flags::B']]],
+  ['b_0',['b',['../d9/dd4/structyaze_1_1emu_1_1Spc700_1_1Flags.html#a37ad3b16c25497c840b84b6375280a16',1,'yaze::emu::Spc700::Flags::B'],['../d8/d72/structyaze_1_1emu_1_1Color.html#ae21f87ce751f581f450d28d405247800',1,'yaze::emu::Color::b']]],
   ['b1_1',['b1',['../d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a3defc654952bb759cb80c8c410db299c',1,'yaze::zelda3::music::SpcCommand']]],
   ['b2_2',['b2',['../d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a631845029edd5d39b402d64ba609577b',1,'yaze::zelda3::music::SpcCommand']]],
   ['b_5faddr_3',['b_addr',['../d0/d16/structyaze_1_1emu_1_1DmaChannel.html#afa8ce2714ca5b33c903611841b1842b6',1,'yaze::emu::DmaChannel']]],

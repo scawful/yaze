@@ -101,143 +101,259 @@ $(document).ready(function(){initNavTree('d3/d63/md_docs_2z3ed_2README.html','..
   <div class="headertitle"><div class="title">z3ed: AI-Powered CLI for YAZE</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1885"></a> <b>Status</b>: Active Development | Test Harness Enhancement Phase</p>
-<h1><a class="anchor" id="autotoc_md1886"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1377"></a> <b>Status</b>: Active Development | AI Integration Phase <br  />
+ <b>Latest Update</b>: October 3, 2025</p>
+<h1><a class="anchor" id="autotoc_md1378"></a>
 Overview</h1>
-<p><code>z3ed</code> is a command-line interface for YAZE that enables AI-driven ROM modifications through a proposal-based workflow. It provides both human-accessible commands for developers and machine-readable APIs for LLM integration, forming the backbone of an agentic development ecosystem.</p>
-<p><b>Recent Focus</b>: Evolving the ImGuiTestHarness from basic GUI automation into a comprehensive testing platform that serves dual purposes:</p><ol type="1">
-<li><b>AI-Driven Workflows</b>: Widget discovery, test introspection, and dynamic interaction learning</li>
-<li><b>Traditional GUI Testing</b>: Test recording/replay, CI/CD integration, and regression testing</li>
+<p><code>z3ed</code> is a command-line interface for YAZE that enables AI-driven ROM modifications through a proposal-based workflow. It provides both human-accessible commands for developers and machine-readable APIs for LLM integration.</p>
+<p><b>Core Capabilities</b>:</p><ol type="1">
+<li><b>AI-Driven Editing</b>: Natural language prompts → ROM modifications (overworld tile16, dungeon objects, sprites, palettes)</li>
+<li><b>GUI Test Automation</b>: Widget discovery, test recording/replay, introspection for debugging</li>
+<li><b>Proposal System</b>: Safe sandbox editing with accept/reject workflow</li>
+<li><b>Multiple AI Backends</b>: Ollama (local), Gemini (cloud), Claude (planned)</li>
 </ol>
-<p><b>🤖 Why This Matters</b>: These enhancements are <b>critical for AI agent autonomy</b>. Without them, AI agents can't verify their changes worked (no test polling), discover UI elements dynamically (hardcoded names), learn from demonstrations (no recording), or debug failures (no screenshots). The test harness evolution enables <b>fully autonomous agents</b> that can execute → verify → self-correct without human intervention.</p>
-<p><b>📋 Implementation Status</b>: Core infrastructure complete (Phases 1-6, AW-01 to AW-04, IT-01 to IT-09). Currently focusing on <b>LLM Integration</b> to enable practical AI-driven workflows. See <a class="el" href="../../de/da5/md_docs_2z3ed_2LLM-INTEGRATION-PLAN.html">LLM-INTEGRATION-PLAN.md</a> for the detailed roadmap (Ollama, Gemini, Claude).</p>
-<p>This directory contains the primary documentation for the <code>z3ed</code> system.</p>
-<p><b>📋 Documentation Status</b>: Consolidated (Oct 2, 2025) - 10 core files, 6,547 lines</p>
-<h1><a class="anchor" id="autotoc_md1887"></a>
-Core Documentation</h1>
-<p>Start here to understand the architecture, learn how to use the commands, and see the current development status.</p>
-<ol type="1">
-<li><b><a class="el" href="../../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html">E6-z3ed-cli-design.md</a></b> - <b>Design &amp; Architecture</b><ul>
-<li>The "source of truth" for the system's architecture, design goals, and the agentic workflow framework. Read this first to understand <em>why</em> the system is built the way it is.</li>
-</ul>
-</li>
-<li><b><a class="el" href="../../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html">E6-z3ed-reference.md</a></b> - <b>Technical Reference &amp; Guides</b><ul>
-<li>A complete command reference, API documentation, implementation guides, and troubleshooting tips. Use this as your day-to-day manual for working with <code>z3ed</code>.</li>
-</ul>
-</li>
-<li><b><a class="el" href="../../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html">E6-z3ed-implementation-plan.md</a></b> - <b>Roadmap &amp; Status</b><ul>
-<li>The project's task backlog, roadmap, progress tracking, and a list of known issues. Check this document for current priorities and to see what's next.</li>
-</ul>
-</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md1888"></a>
+<h1><a class="anchor" id="autotoc_md1379"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md1889"></a>
-Build z3ed</h2>
-<div class="fragment"><div class="line"># Basic build (without GUI automation support)</div>
+<h2><a class="anchor" id="autotoc_md1380"></a>
+Build Options</h2>
+<div class="fragment"><div class="line"># Basic z3ed (CLI only, no AI/testing features)</div>
 <div class="line">cmake --build build --target z3ed</div>
 <div class="line"> </div>
-<div class="line"># Build with gRPC support (for GUI automation)</div>
-<div class="line">cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON</div>
+<div class="line"># Full build with AI agent and testing suite</div>
+<div class="line">cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON -DYAZE_WITH_JSON=ON</div>
 <div class="line">cmake --build build-grpc-test --target z3ed</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1890"></a>
-Common Commands</h2>
-<div class="fragment"><div class="line"># Create an agent proposal in a safe sandbox</div>
-<div class="line">z3ed agent run --prompt &quot;Make all soldier armor red&quot; --rom=zelda3.sfc --sandbox</div>
+</div><!-- fragment --><p><b>Dependencies for Full Build</b>:</p><ul>
+<li>gRPC (GUI automation)</li>
+<li>nlohmann/json (AI service communication)</li>
+<li>OpenSSL (optional, for Gemini HTTPS - auto-detected on macOS/Linux)</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md1381"></a>
+AI Agent Commands</h2>
+<div class="fragment"><div class="line"># Generate commands from natural language prompt</div>
+<div class="line">z3ed agent plan --prompt &quot;Place a tree at position 10, 10 on map 0&quot;</div>
 <div class="line"> </div>
-<div class="line"># List all active and past proposals</div>
+<div class="line"># Execute in sandbox with auto-approval</div>
+<div class="line">z3ed agent run --prompt &quot;Create a 3x3 water pond at 15, 20&quot; --rom zelda3.sfc --sandbox</div>
+<div class="line"> </div>
+<div class="line"># List all proposals</div>
 <div class="line">z3ed agent list</div>
 <div class="line"> </div>
-<div class="line"># View the changes for the latest proposal</div>
-<div class="line">z3ed agent diff</div>
+<div class="line"># View proposal details</div>
+<div class="line">z3ed agent diff --proposal &lt;id&gt;</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1382"></a>
+GUI Testing Commands</h2>
+<div class="fragment"><div class="line"># Run automated test</div>
+<div class="line">z3ed agent test --prompt &quot;Open Overworld editor and verify it loads&quot;</div>
 <div class="line"> </div>
-<div class="line"># Run an automated GUI test (requires test harness to be running)</div>
-<div class="line">z3ed agent test --prompt &quot;Open the Overworld editor and verify it loads&quot;</div>
+<div class="line"># Query test status</div>
+<div class="line">z3ed agent test status --test-id &lt;id&gt; --follow</div>
 <div class="line"> </div>
-<div class="line"># Discover available GUI widgets for AI interaction</div>
-<div class="line">z3ed agent gui discover --window &quot;Overworld&quot; --type button</div>
-<div class="line"> </div>
-<div class="line"># Record a test session for regression testing</div>
-<div class="line">z3ed agent test record start --output tests/overworld_load.json</div>
-<div class="line"># ... perform actions ...</div>
+<div class="line"># Record manual workflow</div>
+<div class="line">z3ed agent test record start --output tests/my_test.json</div>
+<div class="line"># ... perform actions in GUI ...</div>
 <div class="line">z3ed agent test record stop</div>
 <div class="line"> </div>
 <div class="line"># Replay recorded test</div>
-<div class="line">z3ed agent test replay tests/overworld_load.json</div>
+<div class="line">z3ed agent test replay tests/my_test.json</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1383"></a>
+AI Service Setup</h1>
+<h2><a class="anchor" id="autotoc_md1384"></a>
+Ollama (Local LLM - Recommended for Development)</h2>
+<div class="fragment"><div class="line"># Install Ollama</div>
+<div class="line">brew install ollama  # macOS</div>
+<div class="line"># or download from https://ollama.com</div>
 <div class="line"> </div>
-<div class="line"># Query test execution status</div>
-<div class="line">z3ed agent test status --test-id grpc_click_12345678 --follow</div>
-</div><!-- fragment --><p>See the <b><a class="el" href="../../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html">Technical Reference</a></b> for a full command list.</p>
-<h1><a class="anchor" id="autotoc_md1891"></a>
-Recent Enhancements</h1>
-<p><b>LLM Integration Priority Shift (Oct 3, 2025)</b> 🤖</p><ul>
-<li>📋 Deprioritized IT-10 (Collaborative Editing) in favor of practical LLM integration</li>
-<li>📄 Created comprehensive implementation plan for Ollama, Gemini, and Claude integration</li>
-<li>✅ New documentation: <a class="el" href="../../de/da5/md_docs_2z3ed_2LLM-INTEGRATION-PLAN.html">LLM-INTEGRATION-PLAN.md</a>, <a class="el" href="../../d2/d74/md_docs_2z3ed_2LLM-IMPLEMENTATION-CHECKLIST.html">LLM-IMPLEMENTATION-CHECKLIST.md</a>, <a class="el" href="../../d5/d60/md_docs_2z3ed_2LLM-INTEGRATION-SUMMARY.html">LLM-INTEGRATION-SUMMARY.md</a></li>
-<li>🚀 Ready to enable real AI-driven ROM modifications with natural language prompts</li>
-<li><b>Estimated effort</b>: 12-15 hours across 4 phases</li>
-<li><b>Why now</b>: All infrastructure complete (CLI, proposals, sandbox, GUI automation) - only LLM connection missing</li>
+<div class="line"># Pull recommended model</div>
+<div class="line">ollama pull qwen2.5-coder:7b</div>
+<div class="line"> </div>
+<div class="line"># Start server</div>
+<div class="line">ollama serve</div>
+<div class="line"> </div>
+<div class="line"># z3ed will auto-detect Ollama at localhost:11434</div>
+<div class="line">z3ed agent plan --prompt &quot;test&quot;</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1385"></a>
+Gemini (Google Cloud API)</h2>
+<div class="fragment"><div class="line"># Get API key from https://aistudio.google.com/apikey</div>
+<div class="line">export GEMINI_API_KEY=&quot;your-key-here&quot;</div>
+<div class="line"> </div>
+<div class="line"># z3ed will auto-select Gemini when key is set</div>
+<div class="line">z3ed agent plan --prompt &quot;test&quot;</div>
+</div><!-- fragment --><p><b>Note</b>: Gemini requires OpenSSL (HTTPS). Build with <code>-DYAZE_WITH_GRPC=ON -DYAZE_WITH_JSON=ON</code> to enable SSL support. OpenSSL is auto-detected on macOS/Linux. Windows users can use Ollama instead.</p>
+<h2><a class="anchor" id="autotoc_md1386"></a>
+Example Prompts</h2>
+<p>Here are some example prompts you can try with either Ollama or Gemini:</p>
+<p><b>Overworld Tile16 Editing</b>:</p><ul>
+<li><code>"Place a tree at position 10, 20 on map 0"</code></li>
+<li><code>"Create a 3x3 water pond at coordinates 15, 10"</code></li>
+<li><code>"Add a dirt path from position 5,5 to 5,15"</code></li>
+<li><code>"Plant a row of trees horizontally at y=8 from x=20 to x=25"</code></li>
 </ul>
-<p><b>Recent Progress (Oct 3, 2025)</b></p><ul>
-<li>✅ IT-09 CLI Test Suite Tooling Complete: run/validate/create commands + JUnit output<ul>
-<li>Full suite runner with group/tag filters, parametrization, retries, and CI-friendly exit codes</li>
-<li>Interactive <code>agent test suite create</code> scaffolds YAML definitions in <code>tests/</code></li>
-<li>Default JUnit reports under <code>test-results/junit/</code> for CI upload</li>
+<p><b>Dungeon Editing (Label-Aware)</b>:</p><ul>
+<li><code>"Add 3 soldiers to the Eastern Palace entrance room"</code></li>
+<li><code>"Place a chest in Hyrule Castle treasure room"</code></li>
 </ul>
-</li>
-<li>✅ IT-08 Enhanced Error Reporting Complete: Full diagnostic capture on test failures<ul>
-<li>IT-08a: Screenshot RPC with SDL capture (BMP format, 1536x864)</li>
-<li>IT-08b: Auto-capture execution context on failures (frame, window, widget)</li>
-<li>IT-08c: Widget state dumps with comprehensive UI snapshot (JSON format)</li>
-<li>Proto schema supports screenshot_path, failure_context, and widget_state</li>
-<li>GetTestResults RPC returns full failure diagnostics for debugging</li>
+<h1><a class="anchor" id="autotoc_md1387"></a>
+Core Documentation</h1>
+<h2><a class="anchor" id="autotoc_md1388"></a>
+Essential Reads</h2>
+<ol type="1">
+<li><b><a class="el" href="../../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html">AGENT-ROADMAP.md</a></b> - The primary source of truth for the AI agent's strategic vision, architecture, and next steps.</li>
+<li><b><a class="el" href="../../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html">E6-z3ed-cli-design.md</a></b> - Detailed architecture and design philosophy.</li>
+<li><b><a class="el" href="../../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html">E6-z3ed-reference.md</a></b> - Complete command reference and API documentation.</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md1389"></a>
+Quick References</h2>
+<ul>
+<li><b>QUICK_REFERENCE.md</b> - Condensed command cheatsheet.</li>
+<li><b>QUICK-START-GEMINI.md</b> - Gemini API setup and testing guide.</li>
 </ul>
-</li>
-<li>✅ IT-05 Implementation Complete: Test introspection API fully operational<ul>
-<li>GetTestStatus, ListTests, and GetTestResults RPCs implemented and tested</li>
-<li>CLI commands (<code>z3ed agent test {status,list,results}</code>) fully functional</li>
-<li>E2E validation script confirms production readiness</li>
-<li>Thread-safe execution history with bounded memory management</li>
+<h2><a class="anchor" id="autotoc_md1390"></a>
+Implementation Guides</h2>
+<ul>
+<li><b>LLM-INTEGRATION-PLAN.md</b> - (Archive) Original LLM integration roadmap.</li>
+<li><b>IT-05-IMPLEMENTATION-GUIDE.md</b> - Test introspection API (complete ✅).</li>
+<li><b>IT-08-IMPLEMENTATION-GUIDE.md</b> - Enhanced error reporting (complete ✅).</li>
 </ul>
-</li>
-<li>✅ IT-08a Screenshot RPC Complete: Visual debugging now available<ul>
-<li>SDL-based screenshot capture implemented (1536x864 BMP format)</li>
-<li>Successfully tested via gRPC (5.3MB output files)</li>
-<li>Foundation for auto-capture on test failures</li>
-<li>AI agents can now capture visual context for debugging</li>
+<h1><a class="anchor" id="autotoc_md1391"></a>
+Current Status (October 2025)</h1>
+<p>The project is currently focused on implementing a conversational AI agent. See <a class="el" href="../../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html">AGENT-ROADMAP.md</a> for a detailed breakdown of what's complete, in progress, and planned.</p>
+<h2><a class="anchor" id="autotoc_md1392"></a>
+🔄 In Progress</h2>
+<ul>
+<li><b>Conversational Agent</b>: Building a chat-like interface for the TUI and GUI.</li>
+<li><b>Agent "Tools"</b>: Adding more read-only commands for the agent to inspect the ROM.</li>
+<li><b>ResourceLabels Integration</b>: Integrating user-defined names for AI context.</li>
 </ul>
-</li>
-<li>✅ IT-07 Test Recording &amp; Replay Complete: Regression testing workflow operational</li>
-<li>✅ Server-side wiring for test lifecycle tracking inside <code>TestManager</code></li>
-<li>✅ gRPC status mapping helper to surface accurate error codes back to clients</li>
-<li>✅ CLI integration with YAML/JSON output formats</li>
-<li>✅ End-to-end introspection tests with comprehensive validation</li>
+<h2><a class="anchor" id="autotoc_md1393"></a>
+📋 Planned</h2>
+<ul>
+<li><b>GUI Chat Widget</b>: A shared chat interface for the main <code>yaze</code> application.</li>
+<li><b>Dungeon Editing Support</b>: Object/sprite placement via AI.</li>
+<li><b>Visual Diff Generation</b>: Before/after screenshots for proposals.</li>
 </ul>
-<p><b>Next Priority</b>: IT-08b (Auto-capture on failure) + IT-08c (Widget state dumps) to complete enhanced error reporting</p>
-<p><b>Test Harness Evolution</b> (In Progress: IT-05 to IT-09 | 78% Complete):</p><ul>
-<li><b>Test Introspection</b>: ✅ Query test status, results, and execution history</li>
-<li><b>Widget Discovery</b>: ✅ AI agents can enumerate available GUI interactions dynamically</li>
-<li><b>Test Recording</b>: ✅ Capture manual workflows as JSON scripts for regression testing</li>
-<li><b>Enhanced Debugging</b>: 🔄 Screenshot capture (✅ IT-08a), widget state dumps (📋 IT-08c), execution context on failures (📋 IT-08b)</li>
-<li><b>CI/CD Integration</b>: 📋 Standardized test suite format with JUnit XML output</li>
+<h1><a class="anchor" id="autotoc_md1394"></a>
+AI Editing Focus Areas</h1>
+<p>z3ed is optimized for practical ROM editing workflows:</p>
+<h2><a class="anchor" id="autotoc_md1395"></a>
+Overworld Tile16 Editing ⭐ PRIMARY FOCUS</h2>
+<p><b>Why</b>: Simple data model (uint16 IDs), visual feedback, reversible, safe</p><ul>
+<li>Single tile placement (trees, rocks, bushes)</li>
+<li>Area creation (water ponds, dirt patches)</li>
+<li>Path creation (connecting points with tiles)</li>
+<li>Pattern generation (tree rows, forests, boundaries)</li>
 </ul>
-<p>See <b><a href="../../E6-z3ed-cli-design.md#9-test-harness-evolution-from-automation-to-platform">E6-z3ed-cli-design.md § 9</a></b> for detailed architecture and implementation roadmap.</p>
-<h1><a class="anchor" id="autotoc_md1892"></a>
-Quick Navigation</h1>
-<p><b>📖 Getting Started</b>:</p><ul>
-<li><b>New to z3ed?</b> Start with this <a class="el" href="../../d0/d30/md_README.html">README.md</a> then <a class="el" href="../../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html">E6-z3ed-cli-design.md</a></li>
-<li><b>Want to use z3ed?</b> See <a class="el" href="../../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html">QUICK_REFERENCE.md</a> for all commands</li>
-<li><b>Setting up AI agents?</b> See <a class="el" href="../../de/da5/md_docs_2z3ed_2LLM-INTEGRATION-PLAN.html">LLM-INTEGRATION-PLAN.md</a> for Ollama/Gemini/Claude setup</li>
+<h2><a class="anchor" id="autotoc_md1396"></a>
+Dungeon Editing</h2>
+<ul>
+<li>Sprite placement with label awareness ("eastern palace entrance")</li>
+<li>Object placement (chests, doors, switches)</li>
+<li>Entrance configuration</li>
+<li>Room property editing</li>
 </ul>
-<p><b>🔧 Implementation Guides</b>:</p><ul>
-<li><a class="el" href="../../d2/d74/md_docs_2z3ed_2LLM-IMPLEMENTATION-CHECKLIST.html">LLM-IMPLEMENTATION-CHECKLIST.md</a> - Step-by-step LLM integration tasks ⭐ START HERE</li>
-<li><a class="el" href="../../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html">IT-05-IMPLEMENTATION-GUIDE.md</a> - Test Introspection API (complete ✅)</li>
-<li><a class="el" href="../../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html">IT-08-IMPLEMENTATION-GUIDE.md</a> - Enhanced Error Reporting (complete ✅)</li>
+<h2><a class="anchor" id="autotoc_md1397"></a>
+Palette Editing</h2>
+<ul>
+<li>Color modification by index</li>
+<li>Sprite palette adjustments</li>
+<li>Export/import workflows</li>
 </ul>
-<p><b>📚 Reference</b>:</p><ul>
-<li><a class="el" href="../../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html">E6-z3ed-reference.md</a> - Technical reference and API docs</li>
-<li><a class="el" href="../../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html">E6-z3ed-implementation-plan.md</a> - Task backlog and roadmap</li>
-<li><a class="el" href="../../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html">QUICK_REFERENCE.md</a> - Quick command reference </li>
+<h2><a class="anchor" id="autotoc_md1398"></a>
+Additional Capabilities</h2>
+<ul>
+<li>Sprite data editing</li>
+<li>Compression/decompression</li>
+<li>ROM validation</li>
+<li>Patch application</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md1399"></a>
+Example Workflows</h1>
+<h2><a class="anchor" id="autotoc_md1400"></a>
+Basic Tile16 Edit</h2>
+<div class="fragment"><div class="line"># AI generates command</div>
+<div class="line">z3ed agent plan --prompt &quot;Place a tree at 10, 10&quot;</div>
+<div class="line"># Output: overworld set-tile --map 0 --x 10 --y 10 --tile 0x02E</div>
+<div class="line"> </div>
+<div class="line"># Execute manually</div>
+<div class="line">z3ed overworld set-tile --map 0 --x 10 --y 10 --tile 0x02E</div>
+<div class="line"> </div>
+<div class="line"># Or auto-execute with sandbox</div>
+<div class="line">z3ed agent run --prompt &quot;Place a tree at 10, 10&quot; --rom zelda3.sfc --sandbox</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1401"></a>
+Complex Multi-Step Edit</h2>
+<div class="fragment"><div class="line"># AI generates multiple commands</div>
+<div class="line">z3ed agent plan --prompt &quot;Create a 3x3 water pond at 15, 20&quot;</div>
+<div class="line"> </div>
+<div class="line"># Review proposal</div>
+<div class="line">z3ed agent diff --latest</div>
+<div class="line"> </div>
+<div class="line"># Accept and apply</div>
+<div class="line">z3ed agent accept --latest</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1402"></a>
+Label-Aware Dungeon Edit</h2>
+<div class="fragment"><div class="line"># AI uses ResourceLabels from your project</div>
+<div class="line">z3ed agent plan --prompt &quot;Add 3 soldiers to my custom fortress entrance&quot;</div>
+<div class="line"># AI explains: &quot;Using label &#39;custom_fortress&#39; for dungeon 0x04&quot;</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1403"></a>
+Dependencies Guard</h1>
+<p>AI agent features require:</p><ul>
+<li><code>YAZE_WITH_GRPC=ON</code> - GUI automation and test harness</li>
+<li><code>YAZE_WITH_JSON=ON</code> - AI service communication</li>
+<li>OpenSSL (optional) - Gemini HTTPS support (auto-detected)</li>
+</ul>
+<p><b>Windows Compatibility</b>: Build without gRPC/JSON for basic z3ed functionality. Use Ollama (localhost) instead of Gemini for AI features without SSL dependency.</p>
+<h1><a class="anchor" id="autotoc_md1404"></a>
+Recent Changes (Oct 3, 2025)</h1>
+<h2><a class="anchor" id="autotoc_md1405"></a>
+SSL/HTTPS Support</h2>
+<ul>
+<li>✅ OpenSSL now optional (guarded by YAZE_WITH_GRPC + YAZE_WITH_JSON)</li>
+<li>✅ Graceful degradation when OpenSSL not found (Ollama still works)</li>
+<li>✅ Windows builds work without SSL dependencies</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md1406"></a>
+Prompt Engineering</h2>
+<ul>
+<li>✅ Refocused examples on tile16 editing workflows</li>
+<li>✅ Added dungeon editing with label awareness</li>
+<li>✅ Inline tile16 reference for AI knowledge</li>
+<li>✅ Practical multi-step examples (water ponds, paths, patterns)</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md1407"></a>
+Documentation Consolidation</h2>
+<ul>
+<li>✅ Removed 10 outdated/redundant documents</li>
+<li>✅ Consolidated status into AGENTIC-PLAN-STATUS.md</li>
+<li>✅ Updated README with clear dependency requirements</li>
+<li>✅ Added Windows compatibility notes</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md1408"></a>
+Troubleshooting</h1>
+<h2><a class="anchor" id="autotoc_md1409"></a>
+"OpenSSL not found" warning</h2>
+<p><b>Impact</b>: Gemini API won't work (HTTPS required) <br  />
+ <b>Solutions</b>:</p><ul>
+<li>Use Ollama instead (no SSL needed, runs locally)</li>
+<li>Install OpenSSL: <code>brew install openssl</code> (macOS) or <code>apt-get install libssl-dev</code> (Linux)</li>
+<li>Windows: Build without gRPC/JSON, use Ollama</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md1410"></a>
+"gRPC not available" error</h2>
+<p><b>Impact</b>: GUI testing and automation disabled <br  />
+ <b>Solution</b>: Rebuild with <code>-DYAZE_WITH_GRPC=ON</code></p>
+<h2><a class="anchor" id="autotoc_md1411"></a>
+AI generates invalid commands</h2>
+<p><b>Causes</b>: Vague prompt, unfamiliar tile IDs, missing context <br  />
+ <b>Solutions</b>:</p><ul>
+<li>Use specific coordinates and tile types</li>
+<li>Reference tile16 IDs from documentation</li>
+<li>Provide map context ("Light World", "map 0")</li>
+<li>Check ResourceLabels are loaded for your project</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md1412"></a>
+Gemini-Specific Issues</h3>
+<ul>
+<li>**"Cannot reach Gemini API"**: Check your internet connection, API key, and that you've built with SSL support.</li>
+<li>**"Invalid Gemini API key"**: Regenerate your key at <code>aistudio.google.com/apikey</code>. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

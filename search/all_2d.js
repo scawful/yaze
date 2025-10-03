@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['✔️_20completed_0',['✔️ completed',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html#autotoc_md1374',1,'Step 1: Extend TestManager (✔️ Completed)'],['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html#autotoc_md1376',1,'Step 2: Implement Introspection RPCs (✔️ Completed)']]]
+  ['🍎_20macos_20arm64_20presets_20recommended_20for_20apple_20silicon_0',['🍎 macOS ARM64 Presets (Recommended for Apple Silicon)',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md371',1,'']]]
 ];

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/cli/service/ollama_ai_service.h Source File</title>
+<title>yaze: src/cli/service/ai/ollama_ai_service.h Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -109,8 +109,8 @@ $(document).ready(function(){initNavTree('da/d1c/ollama__ai__service_8h_source.h
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;absl/status/statusor.h&quot;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/d52/ai__service_8h.html">cli/service/ai_service.h</a>&quot;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../df/d04/prompt__builder_8h.html">cli/service/prompt_builder.h</a>&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/d52/ai__service_8h.html">cli/service/ai/ai_service.h</a>&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../df/d04/prompt__builder_8h.html">cli/service/ai/prompt_builder.h</a>&quot;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span>cli {</div>
@@ -168,7 +168,7 @@ $(document).ready(function(){initNavTree('da/d1c/ollama__ai__service_8h_source.h
 <div class="ttc" id="aclassyaze_1_1cli_1_1OllamaAIService_html_aa47ce9da469009ae96b4109bb67df309"><div class="ttname"><a href="../../dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#aa47ce9da469009ae96b4109bb67df309">yaze::cli::OllamaAIService::ParseOllamaResponse</a></div><div class="ttdeci">absl::StatusOr&lt; std::string &gt; ParseOllamaResponse(const std::string &amp;json_response)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d17/ollama__ai__service_8cc_source.html#l00146">ollama_ai_service.cc:146</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1OllamaAIService_html_ac6ac158faef88066545d0c001c2fb4bc"><div class="ttname"><a href="../../dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#ac6ac158faef88066545d0c001c2fb4bc">yaze::cli::OllamaAIService::BuildSystemPrompt</a></div><div class="ttdeci">std::string BuildSystemPrompt()</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d17/ollama__ai__service_8cc_source.html#l00047">ollama_ai_service.cc:47</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1OllamaAIService_html_ad2ae1595bd4640fd40390dc6edeaac4f"><div class="ttname"><a href="../../dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#ad2ae1595bd4640fd40390dc6edeaac4f">yaze::cli::OllamaAIService::GetCommands</a></div><div class="ttdeci">absl::StatusOr&lt; std::vector&lt; std::string &gt; &gt; GetCommands(const std::string &amp;prompt) override</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d17/ollama__ai__service_8cc_source.html#l00167">ollama_ai_service.cc:167</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1PromptBuilder_html"><div class="ttname"><a href="../../d2/d20/classyaze_1_1cli_1_1PromptBuilder.html">yaze::cli::PromptBuilder</a></div><div class="ttdef"><b>Definition</b> <a href="../../df/d04/prompt__builder_8h_source.html#l00029">prompt_builder.h:29</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1PromptBuilder_html"><div class="ttname"><a href="../../d2/d20/classyaze_1_1cli_1_1PromptBuilder.html">yaze::cli::PromptBuilder</a></div><div class="ttdef"><b>Definition</b> <a href="../../df/d04/prompt__builder_8h_source.html#l00031">prompt_builder.h:31</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="aprompt__builder_8h_html"><div class="ttname"><a href="../../df/d04/prompt__builder_8h.html">prompt_builder.h</a></div></div>
 <div class="ttc" id="astructyaze_1_1cli_1_1OllamaConfig_html"><div class="ttname"><a href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html">yaze::cli::OllamaConfig</a></div><div class="ttdef"><b>Definition</b> <a href="../../da/d1c/ollama__ai__service_8h_source.html#l00016">ollama_ai_service.h:16</a></div></div>
@@ -183,7 +183,7 @@ $(document).ready(function(){initNavTree('da/d1c/ollama__ai__service_8h_source.h
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_b78fdfbbb632ce54d070469d6a721373.html">cli</a></li><li class="navelem"><a class="el" href="../../dir_cd557cd98d3609a5460b7bf9ac42fb88.html">service</a></li><li class="navelem"><a class="el" href="../../da/d1c/ollama__ai__service_8h.html">ollama_ai_service.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_b78fdfbbb632ce54d070469d6a721373.html">cli</a></li><li class="navelem"><a class="el" href="../../dir_cd557cd98d3609a5460b7bf9ac42fb88.html">service</a></li><li class="navelem"><a class="el" href="../../dir_03f03d6dd7c4cb105c1df01ebfc347e8.html">ai</a></li><li class="navelem"><a class="el" href="../../da/d1c/ollama__ai__service_8h.html">ollama_ai_service.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

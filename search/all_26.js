@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['—_20telemetry_20available_0',['Widget Discovery (IT-06) � IN PROGRESS — telemetry available',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1846',1,'']]]
+  ['⏳_20pending_0',['⏳ Pending',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md788',1,'']]]
 ];

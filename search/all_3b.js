@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['📝_20files_20changed_20summary_0',['📝 Files Changed Summary',['../d9/df7/md_docs_2z3ed_2LLM-PROGRESS-UPDATE.html#autotoc_md1723',1,'']]],
-  ['📝_20notes_1',['📝 Notes',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md382',1,'']]]
+  ['🔑_20key_20files_20reference_0',['🔑 Key Files Reference',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md616',1,'']]]
 ];

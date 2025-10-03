@@ -43,5 +43,6 @@ var searchData=
   ['formattime_40',['formattime',['../d6/dcb/classyaze_1_1gui_1_1canvas_1_1CanvasPerformanceIntegration.html#ada3a5721e25b7207856f0e6371942530',1,'yaze::gui::canvas::CanvasPerformanceIntegration::FormatTime()'],['../d4/d6f/classyaze_1_1gfx_1_1PerformanceDashboard.html#a5d0b52ad4d946146259683e903947e22',1,'yaze::gfx::PerformanceDashboard::FormatTime()']]],
   ['formattimestamputc_41',['FormatTimestampUTC',['../d4/d52/namespaceyaze_1_1gui_1_1anonymous__namespace_02widget__id__registry_8cc_03.html#ad3e0b72c732f6834431095c160c72193',1,'yaze::gui::anonymous_namespace{widget_id_registry.cc}']]],
   ['freesurface_42',['FreeSurface',['../d4/de6/classyaze_1_1gfx_1_1Arena.html#aa0eb6d909ed3d9ce85a61488bb74a7c0',1,'yaze::gfx::Arena']]],
-  ['freetexture_43',['FreeTexture',['../d4/de6/classyaze_1_1gfx_1_1Arena.html#ac2f43b16bb84a6c15db4ff6ecae6a57a',1,'yaze::gfx::Arena']]]
+  ['freetexture_43',['FreeTexture',['../d4/de6/classyaze_1_1gfx_1_1Arena.html#ac2f43b16bb84a6c15db4ff6ecae6a57a',1,'yaze::gfx::Arena']]],
+  ['fromjson_44',['FromJson',['../d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html#aeebd94b02a5aa2510050a5351acac332',1,'yaze::cli::Tile16Proposal']]]
 ];

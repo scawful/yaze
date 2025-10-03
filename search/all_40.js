@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['🔜_20planned_0',['🔜 planned',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1845',1,'Test Introspection (IT-05) 🔜 PLANNED'],['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1847',1,'Test Recording (IT-07) 🔜 PLANNED']]]
+  ['🛠️_20ide_20integration_0',['🛠️ IDE Integration',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md377',1,'']]],
+  ['🛠️_20technical_20improvements_1',['🛠️ Technical Improvements',['../d0/d30/md_README.html#autotoc_md1418',1,'']]]
 ];

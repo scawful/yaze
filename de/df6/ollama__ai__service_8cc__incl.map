@@ -1,11 +1,11 @@
-<map id="src/cli/service/ollama_ai_service.cc" name="src/cli/service/ollama_ai_service.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="172,5,316,46"/>
-<area shape="rect" id="Node000002" href="$da/d1c/ollama__ai__service_8h.html" title=" " alt="" coords="5,94,128,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,49,121,89,119,85,202,44"/>
-<area shape="rect" id="Node000010" title=" " alt="" coords="152,102,211,127"/>
-<area shape="poly" id="edge2_Node000001_Node000010" title=" " alt="" coords="232,48,201,91,196,88,227,45"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="235,102,378,127"/>
-<area shape="poly" id="edge3_Node000001_Node000011" title=" " alt="" coords="260,45,291,88,287,91,256,48"/>
-<area shape="rect" id="Node000012" title=" " alt="" coords="402,102,563,127"/>
-<area shape="poly" id="edge4_Node000001_Node000012" title=" " alt="" coords="299,44,435,93,434,98,297,49"/>
+<map id="src/cli/service/ai/ollama_ai_service.cc" name="src/cli/service/ai/ollama_ai_service.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="184,5,331,46"/>
+<area shape="rect" id="Node000002" href="$da/d1c/ollama__ai__service_8h.html" title=" " alt="" coords="5,94,142,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,49,130,90,128,85,215,44"/>
+<area shape="rect" id="Node000034" title=" " alt="" coords="165,102,225,127"/>
+<area shape="poly" id="edge2_Node000001_Node000034" title=" " alt="" coords="245,48,214,91,210,88,241,45"/>
+<area shape="rect" id="Node000042" title=" " alt="" coords="249,102,391,127"/>
+<area shape="poly" id="edge3_Node000001_Node000042" title=" " alt="" coords="274,45,305,88,301,91,270,48"/>
+<area shape="rect" id="Node000021" title=" " alt="" coords="416,102,577,127"/>
+<area shape="poly" id="edge4_Node000001_Node000021" title=" " alt="" coords="313,44,449,93,447,98,311,49"/>
 </map>

@@ -123,12 +123,13 @@ $(document).ready(function(){initNavTree('d9/d8d/general__commands_8cc.html','..
 <code>#include &quot;absl/strings/str_replace.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d6/dbc/cli_2handlers_2agent_2common_8h_source.html">cli/handlers/agent/common.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d8/d43/modern__cli_8h_source.html">cli/modern_cli.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d7/d52/ai__service_8h_source.html">cli/service/ai_service.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../da/d1c/ollama__ai__service_8h_source.html">cli/service/ollama_ai_service.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html">cli/service/gemini_ai_service.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">cli/service/proposal_registry.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d9/d7d/resource__catalog_8h_source.html">cli/service/resource_catalog.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d0/d7b/rom__sandbox__manager_8h_source.html">cli/service/rom_sandbox_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d7/d52/ai__service_8h_source.html">cli/service/ai/ai_service.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/d1c/ollama__ai__service_8h_source.html">cli/service/ai/ollama_ai_service.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html">cli/service/ai/gemini_ai_service.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">cli/service/planning/proposal_registry.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html">cli/service/planning/tile16_proposal_generator.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d9/d7d/resource__catalog_8h_source.html">cli/service/resources/resource_catalog.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d0/d7b/rom__sandbox__manager_8h_source.html">cli/service/rom/rom_sandbox_manager.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d3/dfa/z3ed_8h_source.html">cli/z3ed.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d4/d9e/macro_8h_source.html">util/macro.h</a>&quot;</code><br />
 </div>
@@ -176,6 +177,8 @@ Functions</h2></td></tr>
 <tr class="separator:ac2a2ccb930ec7a842d23197aa6a43a51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab38d737f28d3d64b29b1accf378fa7bc" id="r_ab38d737f28d3d64b29b1accf378fa7bc"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab38d737f28d3d64b29b1accf378fa7bc">yaze::cli::agent::HandleDescribeCommand</a> (const std::vector&lt; std::string &gt; &amp;args)</td></tr>
 <tr class="separator:ab38d737f28d3d64b29b1accf378fa7bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ff357fa1f94a07051d15276d26264b3" id="r_a2ff357fa1f94a07051d15276d26264b3"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a2ff357fa1f94a07051d15276d26264b3">yaze::cli::agent::HandleAcceptCommand</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
+<tr class="separator:a2ff357fa1f94a07051d15276d26264b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="aa9c3df97146a4533c1c78f5ac7c9e36e" name="aa9c3df97146a4533c1c78f5ac7c9e36e"></a>

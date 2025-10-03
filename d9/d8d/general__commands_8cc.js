@@ -11,5 +11,6 @@ var general__commands_8cc =
     [ "HandleListCommand", "d9/d8d/general__commands_8cc.html#aedb92c4f15ff24a3558fab3df8252ddb", null ],
     [ "HandleCommitCommand", "d9/d8d/general__commands_8cc.html#a748d73993407c29f729a58d7d109514b", null ],
     [ "HandleRevertCommand", "d9/d8d/general__commands_8cc.html#ac2a2ccb930ec7a842d23197aa6a43a51", null ],
-    [ "HandleDescribeCommand", "d9/d8d/general__commands_8cc.html#ab38d737f28d3d64b29b1accf378fa7bc", null ]
+    [ "HandleDescribeCommand", "d9/d8d/general__commands_8cc.html#ab38d737f28d3d64b29b1accf378fa7bc", null ],
+    [ "HandleAcceptCommand", "d9/d8d/general__commands_8cc.html#a2ff357fa1f94a07051d15276d26264b3", null ]
 ];

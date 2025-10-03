@@ -1,11 +1,11 @@
-<map id="src/cli/service/test_suite.h" name="src/cli/service/test_suite.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="157,5,286,46"/>
-<area shape="rect" id="Node000002" href="$dd/daf/test__suite__loader_8h.html" title=" " alt="" coords="5,94,134,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,56,105,96,103,91,173,51"/>
-<area shape="rect" id="Node000004" href="$d3/d4d/test__suite__reporter_8h.html" title=" " alt="" coords="157,94,286,135"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="224,62,224,94,219,94,219,62"/>
-<area shape="rect" id="Node000006" href="$db/d63/test__suite__writer_8h.html" title=" " alt="" coords="309,94,438,135"/>
-<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="270,51,340,91,338,96,268,56"/>
-<area shape="rect" id="Node000003" href="$d8/d00/test__suite__loader_8cc.html" title=" " alt="" coords="5,183,134,223"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="72,150,72,182,67,182,67,150"/>
+<map id="src/cli/service/testing/test_suite.h" name="src/cli/service/testing/test_suite.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="175,5,320,46"/>
+<area shape="rect" id="Node000002" href="$dd/daf/test__suite__loader_8h.html" title=" " alt="" coords="5,94,151,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,56,117,96,115,91,194,51"/>
+<area shape="rect" id="Node000004" href="$d3/d4d/test__suite__reporter_8h.html" title=" " alt="" coords="175,94,320,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="250,62,250,94,245,94,245,62"/>
+<area shape="rect" id="Node000006" href="$db/d63/test__suite__writer_8h.html" title=" " alt="" coords="344,94,489,135"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="301,51,380,91,377,96,298,56"/>
+<area shape="rect" id="Node000003" href="$d8/d00/test__suite__loader_8cc.html" title=" " alt="" coords="5,183,151,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="81,150,81,182,75,182,75,150"/>
 </map>

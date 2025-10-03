@@ -1,9 +1,11 @@
 <map id="src/cli/handlers/agent/common.h" name="src/cli/handlers/agent/common.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="180,5,325,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="267,5,412,46"/>
 <area shape="rect" id="Node000002" href="$da/d35/common_8cc.html" title=" " alt="" coords="5,94,151,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,56,119,96,116,91,198,51"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="266,54,138,96,137,91,265,49"/>
 <area shape="rect" id="Node000003" href="$d9/d8d/general__commands_8cc.html" title=" " alt="" coords="175,94,330,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="255,62,255,94,250,94,250,62"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="311,59,274,95,270,92,307,55"/>
 <area shape="rect" id="Node000004" href="$d5/d03/gui__commands_8cc.html" title=" " alt="" coords="355,94,500,135"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="307,51,389,91,387,96,305,56"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="372,55,409,92,406,95,368,59"/>
+<area shape="rect" id="Node000005" href="$d7/d2d/test__commands_8cc.html" title=" " alt="" coords="524,94,669,135"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="413,49,539,91,537,96,411,54"/>
 </map>

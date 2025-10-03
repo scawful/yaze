@@ -10,6 +10,7 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "HandleRunCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a4c88dbe6c96f20bba8fd432738e1a528", null ],
     [ "HandlePlanCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#af164e32341de8c5ac58d6836bb3bc483", null ],
     [ "HandleDiffCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab7fbe1f4946d07411f70942eed73a58e", null ],
+    [ "HandleAcceptCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a2ff357fa1f94a07051d15276d26264b3", null ],
     [ "HandleTestCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6e1a358a5b38165cc05d6c964ed78e49", null ],
     [ "HandleGuiCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a1aa4bfa94e362a7dcfbe69e0fae9af1c", null ],
     [ "HandleLearnCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a7b1928126b1405fc4750106b308fa146", null ],

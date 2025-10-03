@@ -1,6 +1,7 @@
 var classyaze_1_1cli_1_1PromptBuilder =
 [
     [ "PromptBuilder", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a540d2e1a1ce02ba780d2250e91d4012d", null ],
+    [ "SetRom", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a1a7b6783413d15fd2e37b7292dfeb17c", null ],
     [ "LoadResourceCatalogue", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ae455cada92d2f170884bdbcb61e4d05f", null ],
     [ "BuildSystemInstruction", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ac1332dae27f0b86a89cda12abd56f972", null ],
     [ "BuildSystemInstructionWithExamples", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a7850a60cd6750e09e6f6e3d4a294dc10", null ],
@@ -13,6 +14,8 @@ var classyaze_1_1cli_1_1PromptBuilder =
     [ "BuildContextSection", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a9f523cdb750ab354a806b8f925f10f02", null ],
     [ "BuildConstraintsSection", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a2da095a88e6633015fa73785afdfe439", null ],
     [ "LoadDefaultExamples", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a86b3f267dcf2b55e809cbfb6e7b1d988", null ],
+    [ "rom_", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ad16149c4c084b207c1586237c6342a02", null ],
+    [ "resource_context_builder_", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a43367abf78f46983712f4ea8db62ef41", null ],
     [ "command_docs_", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a200d4003e0be3686c91444e8a89c3e0d", null ],
     [ "examples_", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a1a84e0182f087ff24b870058a88676bc", null ],
     [ "verbosity_", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a304362418828a39157fe3cbe63b091ad", null ],

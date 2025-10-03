@@ -1,9 +1,9 @@
-<map id="src/cli/service/resource_catalog.h" name="src/cli/service/resource_catalog.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="185,5,341,46"/>
+<map id="src/cli/service/resources/resource_catalog.h" name="src/cli/service/resources/resource_catalog.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="185,5,349,46"/>
 <area shape="rect" id="Node000002" href="$d9/d8d/general__commands_8cc.html" title=" " alt="" coords="5,94,161,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,55,125,96,123,91,207,51"/>
-<area shape="rect" id="Node000003" href="$d6/d24/resource__catalog_8cc.html" title=" " alt="" coords="185,94,341,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,62,266,94,260,94,260,62"/>
-<area shape="rect" id="Node000004" href="$d3/d72/resource__catalog__test_8cc.html" title=" " alt="" coords="365,94,505,135"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="317,51,397,91,395,96,314,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,55,126,96,123,91,210,50"/>
+<area shape="rect" id="Node000003" href="$d6/d24/resource__catalog_8cc.html" title=" " alt="" coords="185,94,349,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="270,62,270,94,264,94,264,62"/>
+<area shape="rect" id="Node000004" href="$d3/d72/resource__catalog__test_8cc.html" title=" " alt="" coords="373,94,513,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="322,51,404,91,402,96,320,56"/>
 </map>

@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['📚_20documentation_20consolidated_0',['📚 Documentation (Consolidated)',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md595',1,'']]]
+  ['🔍_20known_20working_20patterns_0',['🔍 Known Working Patterns',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md602',1,'']]],
+  ['🔍_20strong_20additional_20findings_20strong_1',['🔍 &lt;strong&gt;Additional Findings&lt;/strong&gt;',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html#autotoc_md154',1,'']]],
+  ['🔍_20troubleshooting_2',['🔍 Troubleshooting',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md381',1,'']]]
 ];

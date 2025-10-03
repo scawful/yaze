@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-desi
   <div class="headertitle"><div class="title">z3ed CLI Architecture &amp; Design</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1131"></a> </p>
-<h1><a class="anchor" id="autotoc_md1132"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1143"></a> </p>
+<h1><a class="anchor" id="autotoc_md1144"></a>
 1. Overview</h1>
 <p>This document is the <b>source of truth</b> for the z3ed CLI architecture and design. It outlines the evolution of <code>z3ed</code>, the command-line interface for the YAZE project, from a collection of utility commands into a powerful, scriptable, and extensible tool for both manual and automated ROM hacking, with full support for AI-driven generative development.</p>
 <p><b>Related Documents</b>:</p><ul>
@@ -137,7 +137,7 @@ $(document).ready(function(){initNavTree('d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-desi
 <li><b>Windows Cross-Platform Testing</b>: Validate on Windows with vcpkg</li>
 <li><b>Production Readiness</b>: Telemetry, screenshot implementation, expanded test coverage</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1133"></a>
+<h1><a class="anchor" id="autotoc_md1145"></a>
 2. Design Goals</h1>
 <p>The z3ed CLI is built on three core pillars:</p>
 <ol type="1">
@@ -145,7 +145,7 @@ $(document).ready(function(){initNavTree('d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-desi
 <li><b>Testability &amp; Automation</b>: Provide robust commands for validating ROM integrity, automating complex testing scenarios, and enabling reproducible workflows through scripting.</li>
 <li><b>AI &amp; Generative Hacking</b>: Establish a powerful, scriptable API that an AI agent (LLM/MCP) can use to perform complex, generative tasks on the ROM, with human oversight and approval workflows.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1134"></a>
+<h2><a class="anchor" id="autotoc_md1146"></a>
 2.1. Key Architectural Decisions</h2>
 <p><b>Resource-Oriented Command Structure</b>: Adopted <code>z3ed &lt;resource&gt; &lt;action&gt;</code> pattern (similar to kubectl, gcloud) for clarity and extensibility.</p>
 <p><b>Machine-Readable API</b>: All commands documented in <code>docs/api/z3ed-resources.yaml</code> with structured schemas for AI consumption.</p>
@@ -159,10 +159,10 @@ $(document).ready(function(){initNavTree('d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-desi
 <li><b>Enhanced Debugging</b>: Screenshot capture, widget state dumps, and execution context on failures</li>
 </ul>
 <p><b>Cross-Platform Foundation</b>: Core built for macOS/Linux with Windows support planned via vcpkg.</p>
-<h1><a class="anchor" id="autotoc_md1135"></a>
+<h1><a class="anchor" id="autotoc_md1147"></a>
 3. Proposed CLI Architecture: Resource-Oriented Commands</h1>
 <p>The CLI has adopted a <code>z3ed &lt;resource&gt; &lt;action&gt; [options]</code> structure, similar to modern CLIs like <code>gcloud</code> or <code>kubectl</code>, improving clarity and extensibility.</p>
-<h2><a class="anchor" id="autotoc_md1136"></a>
+<h2><a class="anchor" id="autotoc_md1148"></a>
 3.1. Top-Level Resources</h2>
 <ul>
 <li><code>rom</code>: Commands for interacting with the ROM file itself.</li>
@@ -176,12 +176,12 @@ $(document).ready(function(){initNavTree('d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-desi
 <li><code>tui</code>: The entrypoint for the enhanced Text User Interface.</li>
 <li><code>agent</code>: Commands for interacting with the AI agent.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1137"></a>
+<h2><a class="anchor" id="autotoc_md1149"></a>
 3.2. Example Command Mapping</h2>
 <p>The command mapping has been successfully implemented, transitioning from the old flat structure to the new resource-oriented approach.</p>
-<h1><a class="anchor" id="autotoc_md1138"></a>
+<h1><a class="anchor" id="autotoc_md1150"></a>
 4. New Features &amp; Commands</h1>
-<h2><a class="anchor" id="autotoc_md1139"></a>
+<h2><a class="anchor" id="autotoc_md1151"></a>
 4.1. For the ROM Hacker (Power &amp; Scriptability)</h2>
 <p>These commands focus on exporting data to and from the original SCAD (Nintendo Super Famicom/SNES CAD) binary formats found in the gigaleak, as well as other relevant binary formats. This enables direct interaction with development assets, version control, and sharing. Many of these commands have been implemented or are in progress.</p>
 <ul>
@@ -189,13 +189,13 @@ $(document).ready(function(){initNavTree('d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-desi
 <li><b>Overworld Editing</b>: Commands for getting, setting tiles, listing, and moving sprites.</li>
 <li><b>Graphics &amp; Palettes</b>: Commands for exporting/importing sheets and palettes.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1140"></a>
+<h2><a class="anchor" id="autotoc_md1152"></a>
 4.2. For Testing &amp; Automation</h2>
 <ul>
 <li><b>ROM Validation &amp; Comparison</b>: <code>z3ed rom validate</code>, <code>z3ed rom diff</code>, and <code>z3ed rom generate-golden</code> have been implemented.</li>
 <li><b>Test Execution</b>: <code>z3ed test run</code> and <code>z3ed test list-suites</code> are in progress.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1141"></a>
+<h1><a class="anchor" id="autotoc_md1153"></a>
 5. TUI Enhancements</h1>
 <p>The <code>--tui</code> flag now launches a significantly enhanced, interactive terminal application built with FTXUI. The TUI has been decomposed into a set of modular components, with each command handler responsible for its own TUI representation, making it more extensible and easier to maintain.</p>
 <ul>
@@ -205,36 +205,36 @@ $(document).ready(function(){initNavTree('d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-desi
 <li><b>Command Palette</b>: In progress.</li>
 <li><b>Tabbed Layout</b>: Implemented.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1142"></a>
+<h1><a class="anchor" id="autotoc_md1154"></a>
 6. Generative &amp; Agentic Workflows (MCP Integration)</h1>
 <p>The redesigned CLI serves as the foundational API for an AI-driven Model-Code-Program (MCP) loop. The AI agent's "program" is a script of <code>z3ed</code> commands.</p>
-<h2><a class="anchor" id="autotoc_md1143"></a>
+<h2><a class="anchor" id="autotoc_md1155"></a>
 6.1. The Generative Workflow</h2>
 <p>The generative workflow has been refined to incorporate more detailed planning and verification steps, leveraging the <code>z3ed agent</code> commands.</p>
-<h2><a class="anchor" id="autotoc_md1144"></a>
+<h2><a class="anchor" id="autotoc_md1156"></a>
 6.2. Key Enablers</h2>
 <ul>
 <li><b>Granular Commands</b>: The CLI provides commands to manipulate data within the binary formats (e.g., <code>palette set-color</code>, <code>gfx set-pixel</code>), abstracting complexity from the AI agent.</li>
 <li><b>Idempotency</b>: Commands are designed to be idempotent where possible.</li>
 <li><b>SpriteBuilder CLI</b>: Deprioritized for now, pending further research and development of the underlying assembly generation capabilities.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1145"></a>
+<h1><a class="anchor" id="autotoc_md1157"></a>
 7. Implementation Roadmap</h1>
-<h2><a class="anchor" id="autotoc_md1146"></a>
+<h2><a class="anchor" id="autotoc_md1158"></a>
 Phase 1: Core CLI &amp; TUI Foundation (Done)</h2>
 <ul>
 <li><b>CLI Structure</b>: Implemented.</li>
 <li><b>Command Migration</b>: Implemented.</li>
 <li><b>TUI Decomposition</b>: Implemented.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1147"></a>
+<h2><a class="anchor" id="autotoc_md1159"></a>
 Phase 2: Interactive TUI &amp; Command Palette (Done)</h2>
 <ul>
 <li><b>Interactive Palette Editor</b>: Implemented.</li>
 <li><b>Interactive Hex Viewer</b>: Implemented.</li>
 <li><b>Command Palette</b>: Implemented.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1148"></a>
+<h2><a class="anchor" id="autotoc_md1160"></a>
 Phase 3: Testing &amp; Project Management (Done)</h2>
 <ul>
 <li>**<code>rom validate</code>**: Implemented.</li>
@@ -242,7 +242,7 @@ Phase 3: Testing &amp; Project Management (Done)</h2>
 <li>**<code>rom generate-golden</code>**: Implemented.</li>
 <li><b>Project Scaffolding</b>: Implemented.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1149"></a>
+<h2><a class="anchor" id="autotoc_md1161"></a>
 Phase 4: Agentic Framework &amp; Generative AI (In Progress)</h2>
 <ul>
 <li>**<code>z3ed agent</code> command**: ✅ Implemented with <code>run</code>, <code>plan</code>, <code>diff</code>, <code>test</code>, <code>commit</code>, <code>revert</code>, <code>describe</code>, <code>learn</code>, and <code>list</code> subcommands.</li>
@@ -259,7 +259,7 @@ Phase 4: Agentic Framework &amp; Generative AI (In Progress)</h2>
 <li><b>Granular Data Commands</b>: Partially complete - rom, palette, overworld, dungeon commands operational.</li>
 <li><b>SpriteBuilder CLI</b>: Deprioritized.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1150"></a>
+<h2><a class="anchor" id="autotoc_md1162"></a>
 Phase 5: Code Structure &amp; UX Improvements (Completed)</h2>
 <ul>
 <li><b>Modular Architecture</b>: Refactored CLI handlers into clean, focused modules with proper separation of concerns.</li>
@@ -269,7 +269,7 @@ Phase 5: Code Structure &amp; UX Improvements (Completed)</h2>
 <li><b>Build System</b>: Streamlined CMake configuration with proper dependency management and conditional compilation.</li>
 <li><b>Code Quality</b>: Resolved linting errors and improved code maintainability through better header organization and forward declarations.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1151"></a>
+<h2><a class="anchor" id="autotoc_md1163"></a>
 Phase 6: Resource Catalogue &amp; API Documentation (✅ Completed - Oct 1, 2025)</h2>
 <ul>
 <li><b>Resource Schema System</b>: ✅ Comprehensive schema definitions for all CLI resources (ROM, Patch, Palette, Overworld, Dungeon, Agent).</li>
@@ -292,10 +292,10 @@ Phase 6: Resource Catalogue &amp; API Documentation (✅ Completed - Oct 1, 2025
 <li>✅ Help system integration verified with updated command listings</li>
 <li>✅ Build system validated on macOS (arm64) with no critical warnings</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1152"></a>
+<h1><a class="anchor" id="autotoc_md1164"></a>
 8. Agentic Framework Architecture - Advanced Dive</h1>
 <p>The agentic framework is designed to allow an AI agent to make edits to the ROM based on high-level natural language prompts. The framework is built around the <code>z3ed</code> CLI and the <code>ImGuiTestEngine</code>. This section provides a more advanced look into its architecture and future development.</p>
-<h2><a class="anchor" id="autotoc_md1153"></a>
+<h2><a class="anchor" id="autotoc_md1165"></a>
 8.1. The &lt;tt&gt;z3ed agent&lt;/tt&gt; Command</h2>
 <p>The <code>z3ed agent</code> command is the main entry point for the agent. It has the following subcommands:</p>
 <ul>
@@ -309,7 +309,7 @@ Phase 6: Resource Catalogue &amp; API Documentation (✅ Completed - Oct 1, 2025
 <li><code>describe [--resource &lt;name&gt;]</code>: Returns machine-readable schemas for CLI commands, enabling AI/LLM integration.</li>
 <li><code>learn --description "..."</code>: Records a sequence of user actions (CLI commands and GUI interactions) and associates them with a natural language description, allowing the agent to learn new workflows.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1154"></a>
+<h2><a class="anchor" id="autotoc_md1166"></a>
 8.2. The Agentic Loop (MCP) - Detailed Workflow</h2>
 <ol type="1">
 <li><b>Model (Planner)</b>: The agent receives a high-level natural language prompt. It leverages an LLM to break down this goal into a detailed, executable plan. This plan is a sequence of <code>z3ed</code> CLI commands, potentially interleaved with <code>ImGuiTestEngine</code> test steps for intermediate verification. The LLM's prompt includes the user's request, a comprehensive list of available <code>z3ed</code> commands (with their parameters and expected effects), and relevant contextual information about the current ROM state (e.g., loaded ROM, project files, current editor view).</li>
@@ -317,16 +317,16 @@ Phase 6: Resource Catalogue &amp; API Documentation (✅ Completed - Oct 1, 2025
 <li><b>Program (Execution Engine)</b>: The <code>z3ed agent</code> parses the JSON plan and executes each command sequentially. For <code>z3ed</code> commands, it directly invokes the corresponding internal <code>CommandHandler</code> methods. For <code>ImGuiTestEngine</code> steps, it launches the <code>yaze_test</code> executable with the appropriate test arguments. The output (stdout, stderr, exit codes) of each executed command is captured. This output, along with any visual feedback from <code>ImGuiTestEngine</code> (e.g., screenshots), can be fed back to the LLM for iterative refinement of the plan.</li>
 <li><b>Verification (Tester)</b>: The <code>ImGuiTestEngine</code> plays a critical role here. After the agent executes a sequence of commands, it can generate and run a specific <code>ImGuiTestEngine</code> script. This script can interact with the YAZE GUI (e.g., open a specific editor, navigate to a location, assert visual properties) to verify that the changes were applied correctly and as intended. The results of these tests (pass/fail, detailed logs, comparison screenshots) are reported back to the user and can be used by the LLM to self-correct or refine its strategy.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1155"></a>
+<h2><a class="anchor" id="autotoc_md1167"></a>
 8.3. AI Model &amp; Protocol Strategy</h2>
 <ul>
 <li><b>Models</b>: The framework will support both local and remote AI models, offering flexibility and catering to different user needs.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1157"></a>
+<h1><a class="anchor" id="autotoc_md1169"></a>
 9. Test Harness Evolution: From Automation to Platform</h1>
 <p>The ImGuiTestHarness has evolved from a basic GUI automation tool into a comprehensive testing platform that serves dual purposes: <b>AI-driven generative workflows</b> and <b>traditional GUI testing</b>.</p>
-<h2><a class="anchor" id="autotoc_md1158"></a>
+<h2><a class="anchor" id="autotoc_md1170"></a>
 9.1. Current Capabilities (IT-01 to IT-04) ✅</h2>
 <p><b>Core Automation</b> (6 RPCs):</p><ul>
 <li><code>Ping</code> - Health check and version verification</li>
@@ -348,7 +348,7 @@ Phase 6: Resource Catalogue &amp; API Documentation (✅ Completed - Oct 1, 2025
 <li>Multi-step workflows with timing dependencies</li>
 <li>Natural language test prompts via <code>z3ed agent test</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1159"></a>
+<h2><a class="anchor" id="autotoc_md1171"></a>
 9.2. Limitations Identified</h2>
 <p><b>For AI Agents</b>:</p><ul>
 <li>❌ Can't discover available widgets → must hardcode target names</li>
@@ -363,9 +363,9 @@ Phase 6: Resource Catalogue &amp; API Documentation (✅ Completed - Oct 1, 2025
 <li>❌ No result persistence → test history lost between sessions</li>
 <li>❌ Poor debugging → failures don't capture visual or state context</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1160"></a>
+<h2><a class="anchor" id="autotoc_md1172"></a>
 9.3. Enhancement Roadmap (IT-05 to IT-09)</h2>
-<h3><a class="anchor" id="autotoc_md1161"></a>
+<h3><a class="anchor" id="autotoc_md1173"></a>
 IT-05: Test Introspection API (6-8 hours)</h3>
 <p><b>Problem</b>: Tests execute asynchronously with no way to query status or results. Clients poll blindly or give up early.</p>
 <p><b>Solution</b>: Add 3 new RPCs:</p><ul>
@@ -390,7 +390,7 @@ IT-05: Test Introspection API (6-8 hours)</h3>
 <div class="line"> </div>
 <div class="line"># Get results</div>
 <div class="line">z3ed agent test results --test-id $TEST_ID --include-logs</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1162"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1174"></a>
 IT-06: Widget Discovery API (4-6 hours)</h3>
 <p><b>Problem</b>: AI agents must know widget names in advance. Can't adapt to UI changes or learn new editors.</p>
 <p><b>Solution</b>: Add <code>DiscoverWidgets</code> RPC:</p><ul>
@@ -413,10 +413,10 @@ IT-06: Widget Discovery API (4-6 hours)</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment"># LLM generates: &quot;Click button:Save Changes&quot;</span></div>
 <div class="line">z3ed_client.Click(target=<span class="stringliteral">&quot;button:Save Changes&quot;</span>)</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1163"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1175"></a>
 IT-07: Test Recording &amp; Replay ✅ COMPLETE</h3>
 <p><b>Outcome</b>: Recording workflow, replay runner, and JSON script format shipped alongside CLI commands (<code>z3ed test record start|stop</code>, <code>z3ed test replay</code>). Regression coverage captured in <code>scripts/test_record_replay_e2e.sh</code>; documentation updated with quick-start examples. Focus now shifts to error diagnostics and artifact surfacing (IT-08).</p>
-<h3><a class="anchor" id="autotoc_md1164"></a>
+<h3><a class="anchor" id="autotoc_md1176"></a>
 IT-08: Holistic Error Reporting (5-7 hours)</h3>
 <p><b>Problem</b>: Errors surface differently across the CLI, ImGuiTestHarness, and EditorManager. Failures lack actionable context, slowing down triage and AI agent autonomy.</p>
 <p><b>Solution Themes</b>:</p><ul>
@@ -431,7 +431,7 @@ IT-08: Holistic Error Reporting (5-7 hours)</h3>
 <li>EditorManager gains on-screen diagnostics tied to harness artifacts</li>
 <li>Lays groundwork for future telemetry and CI reporting</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1165"></a>
+<h3><a class="anchor" id="autotoc_md1177"></a>
 IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <p><b>Problem</b>: Tests run manually. No automated regression on PR/merge.</p>
 <p><b>Shipped</b>:</p><ul>
@@ -469,7 +469,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li>Parallel execution for faster feedback</li>
 <li>Flaky test detection (retry logic, failure rates)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1166"></a>
+<h2><a class="anchor" id="autotoc_md1178"></a>
 9.4. Unified Testing Vision</h2>
 <p>The enhanced test harness serves three audiences:</p>
 <p><b>For AI Agents</b> (Generative Workflows):</p><ul>
@@ -493,7 +493,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li>Common result storage and reporting</li>
 <li>Cross-platform support (macOS, Windows, Linux)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1167"></a>
+<h2><a class="anchor" id="autotoc_md1179"></a>
 9.5. Implementation Priority</h2>
 <p><b>Phase 1: Foundation</b> (Already Complete ✅)</p><ul>
 <li>Core automation RPCs (Ping, Click, Type, Wait, Assert)</li>
@@ -526,7 +526,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Remote Models (Gemini API)</b>: For more complex tasks requiring advanced reasoning capabilities, integration with powerful remote models like the Gemini API will be available. Users will need to provide a <code>GEMINI_API_KEY</code> environment variable. A new <code>GeminiAIService</code> class will be implemented to handle the secure API requests and responses.</li>
 </ul>
 <p><b>Protocol</b>: A robust, yet simple, JSON-based protocol will be used for communication between <code>z3ed</code> and the AI model. This ensures structured data exchange, critical for reliable parsing and execution. The <code>z3ed</code> tool will serialize the user's prompt, current ROM context, available <code>z3ed</code> commands, and any relevant <code>ImGuiTestEngine</code> capabilities into a JSON object. The AI model will be expected to return a JSON object containing the sequence of commands to be executed, along with potential explanations or confidence scores.</p>
-<h2><a class="anchor" id="autotoc_md1169"></a>
+<h2><a class="anchor" id="autotoc_md1181"></a>
 8.4. GUI Integration &amp; User Experience</h2>
 <ul>
 <li><b>Agent Control Panel</b>: A dedicated TUI/GUI panel will be created for managing the agent. This panel will serve as the primary interface for users to interact with the AI. It will feature:<ul>
@@ -550,14 +550,14 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1170"></a>
+<h2><a class="anchor" id="autotoc_md1182"></a>
 8.5. Testing &amp; Verification</h2>
 <ul>
 <li>**<code>ImGuiTestEngine</code> Integration**: The agent will be able to dynamically generate and execute <code>ImGuiTestEngine</code> tests. This allows for automated visual verification of the agent's work, ensuring that changes are not only functionally correct but also visually appealing and consistent with design principles. The agent can be trained to generate test scripts that assert specific pixel colors, UI element positions, or overall visual layouts.</li>
 <li><b>Mock Testing Framework</b>: A robust "mock" mode will be implemented for the <code>z3ed agent</code>. In this mode, the agent will simulate the execution of commands without modifying the actual ROM. This is crucial for safe and fast testing of the agent's planning and command generation capabilities. The existing <code>MockRom</code> class will be extended to fully support all <code>z3ed</code> commands, providing a consistent interface for both real and mock execution.</li>
 <li><b>User-Facing Tests</b>: A "tutorial" or "challenge" mode will be created where users can test the agent with a series of predefined tasks. This will serve as an educational tool for users to understand the agent's capabilities and provide a way to benchmark its performance against specific ROM hacking challenges.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1171"></a>
+<h2><a class="anchor" id="autotoc_md1183"></a>
 8.6. Safety &amp; Sandboxing</h2>
 <ul>
 <li><b>Dry Run Mode</b>: The agent will always offer a "dry run" mode, where it only shows the commands it would execute without making any actual changes to the ROM. This provides a critical safety net for users.</li>
@@ -565,10 +565,10 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Resource Limits</b>: The agent will operate within defined resource limits (e.g., maximum number of commands per plan, maximum data modification size) to prevent unintended extensive changes or infinite loops.</li>
 <li><b>Human Oversight</b>: Given the inherent unpredictability of AI models, human oversight will be a fundamental principle. The interactive planning and diff editing UIs are designed to keep the user in control at all times.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1172"></a>
+<h2><a class="anchor" id="autotoc_md1184"></a>
 8.7. Optional JSON Dependency</h2>
 <p>To avoid breaking platform builds where a JSON library is not available or desired, the JSON-related code will be conditionally compiled using a preprocessor macro (e.g., <code>YAZE_WITH_JSON</code>). When this macro is not defined, the agentic features that rely on JSON will be disabled. The <code>nlohmann/json</code> library will be added as a submodule to the project and included in the build only when <code>YAZE_WITH_JSON</code> is defined.</p>
-<h2><a class="anchor" id="autotoc_md1173"></a>
+<h2><a class="anchor" id="autotoc_md1185"></a>
 8.8. Contextual Awareness &amp; Feedback Loop</h2>
 <ul>
 <li><b>Contextual Information</b>: The agent's prompts to the LLM will be enriched with comprehensive contextual information, including:<ul>
@@ -580,23 +580,23 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 </li>
 <li><b>Feedback Loop for Learning</b>: The results of <code>ImGuiTestEngine</code> verifications and user accept/reject actions will form a crucial feedback loop. This data can be used to fine-tune the LLM or train smaller, specialized models to improve the agent's planning and command generation capabilities over time.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1174"></a>
+<h2><a class="anchor" id="autotoc_md1186"></a>
 8.9. Error Handling and Recovery</h2>
 <ul>
 <li><b>Robust Error Reporting</b>: The agent will provide clear and actionable error messages when commands fail or unexpected situations arise.</li>
 <li><b>Rollback Mechanisms</b>: The <code>revert</code> command provides a basic rollback. More advanced mechanisms, such as transactional changes or snapshotting, could be explored for complex multi-step operations.</li>
 <li><b>Interactive Debugging</b>: In case of errors, the agent could pause execution and allow the user to inspect the current state, modify the plan, or provide corrective instructions.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1175"></a>
+<h2><a class="anchor" id="autotoc_md1187"></a>
 8.10. Extensibility</h2>
 <ul>
 <li><b>Modular Command Handlers</b>: The <code>z3ed</code> CLI's modular design allows for easy addition of new commands, which automatically become available to the AI agent.</li>
 <li><b>Pluggable AI Models</b>: The <code>AIService</code> interface enables seamless integration of different AI models (local or remote) without modifying the core agent logic.</li>
 <li><b>Custom Test Generation</b>: Users or developers can extend the <code>ImGuiTestEngine</code> capabilities to create custom verification tests for specific hacking scenarios.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1176"></a>
+<h1><a class="anchor" id="autotoc_md1188"></a>
 9. UX Improvements and Architectural Decisions</h1>
-<h2><a class="anchor" id="autotoc_md1177"></a>
+<h2><a class="anchor" id="autotoc_md1189"></a>
 9.1. TUI Component Architecture</h2>
 <p>The TUI system has been redesigned around a consistent component architecture:</p>
 <ul>
@@ -604,7 +604,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Component Composition</b>: Complex UIs are built by composing simpler components, making the code more maintainable and testable.</li>
 <li><b>Event Handling</b>: Standardized event handling patterns across all components for consistent user experience.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1178"></a>
+<h2><a class="anchor" id="autotoc_md1190"></a>
 9.2. Command Handler Unification</h2>
 <p>The CLI and TUI systems now share a unified command handler architecture:</p>
 <ul>
@@ -612,7 +612,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Shared State Management</b>: Common functionality like ROM loading and validation is centralized in the base <code>CommandHandler</code> class.</li>
 <li><b>Consistent Error Handling</b>: All commands use <code>absl::Status</code> for uniform error reporting across CLI and TUI modes.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1179"></a>
+<h2><a class="anchor" id="autotoc_md1191"></a>
 9.3. Interface Consolidation</h2>
 <p>Several interfaces have been combined and simplified:</p>
 <ul>
@@ -620,7 +620,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Integrated Help System</b>: Help information is accessible from both CLI and TUI modes with consistent formatting.</li>
 <li><b>Streamlined Navigation</b>: Reduced cognitive load by consolidating related functionality into single interfaces.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1180"></a>
+<h2><a class="anchor" id="autotoc_md1192"></a>
 9.4. Code Organization Improvements</h2>
 <p>The codebase has been restructured for better maintainability:</p>
 <ul>
@@ -628,7 +628,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Namespace Management</b>: Clean namespace usage to avoid conflicts and improve code clarity.</li>
 <li><b>Build System Optimization</b>: Streamlined CMake configuration with conditional compilation for optional features.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1181"></a>
+<h2><a class="anchor" id="autotoc_md1193"></a>
 9.5. Future UX Enhancements</h2>
 <p>Based on the current architecture, several UX improvements are planned:</p>
 <ul>
@@ -637,9 +637,9 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Undo/Redo System</b>: Command history tracking for safer experimentation.</li>
 <li><b>Batch Operations</b>: Support for executing multiple related commands as a single operation.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1182"></a>
+<h1><a class="anchor" id="autotoc_md1194"></a>
 10. Implementation Status and Code Quality</h1>
-<h2><a class="anchor" id="autotoc_md1183"></a>
+<h2><a class="anchor" id="autotoc_md1195"></a>
 10.1. Recent Refactoring Improvements (January 2025)</h2>
 <p>The z3ed CLI underwent significant refactoring to improve code quality, fix linting errors, and enhance maintainability.</p>
 <p><b>Issues Resolved</b>:</p><ul>
@@ -659,7 +659,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li>Simplified constructors and <code>RunTUI</code> methods</li>
 <li>Maintained clean separation between CLI and TUI execution paths</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1184"></a>
+<h2><a class="anchor" id="autotoc_md1196"></a>
 10.2. File Organization</h2>
 <div class="fragment"><div class="line">src/cli/</div>
 <div class="line">  ├── cli_main.cc          (Entry point - defines FLAGS)</div>
@@ -687,7 +687,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <div class="line">      ├── asar_patch.{h,cc}</div>
 <div class="line">      ├── palette_editor.{h,cc}</div>
 <div class="line">      └── command_palette.{h,cc}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1185"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1197"></a>
 10.3. Code Quality Improvements</h2>
 <p><b>Removed Problematic Patterns</b>:</p><ul>
 <li>Eliminated returning raw pointers to temporary objects in <code>GetCommandHandler</code></li>
@@ -704,7 +704,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li>Fixed <code>PaletteGroup::set_palette()</code> → direct pointer manipulation</li>
 <li>Fixed <code>Bitmap::mutable_vector()</code> → <code>Bitmap::set_data()</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1186"></a>
+<h2><a class="anchor" id="autotoc_md1198"></a>
 10.4. TUI Component System</h2>
 <p><b>Implemented Components</b>:</p><ul>
 <li><code>TuiComponent</code> interface for consistent UI components</li>
@@ -717,7 +717,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li>Centralized error handling with dedicated error screen</li>
 <li>Direct component function calls instead of handler indirection</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1187"></a>
+<h2><a class="anchor" id="autotoc_md1199"></a>
 10.5. Known Limitations</h2>
 <p><b>Remaining Warnings (Non-Critical)</b>:</p><ul>
 <li>Unused parameter warnings (mostly for stub implementations)</li>
@@ -725,7 +725,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li>Copy-construction warnings (minor performance considerations)</li>
 <li>Virtual destructor warnings in third-party zelda3 classes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1188"></a>
+<h2><a class="anchor" id="autotoc_md1200"></a>
 10.6. Future Code Quality Goals</h2>
 <ol type="1">
 <li><b>Complete TUI Components</b>: Finish implementing all planned TUI components with full functionality</li>
@@ -735,7 +735,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Performance</b>: Address copy-construction warnings by using const references</li>
 <li><b>Testing</b>: Expand unit test coverage for command handlers</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1189"></a>
+<h1><a class="anchor" id="autotoc_md1201"></a>
 11. Agent-Ready API Surface Area</h1>
 <p>To unlock deeper agentic workflows, the CLI and application layers must expose a well-documented, machine-consumable API surface that mirrors the capabilities available in the GUI editors. The following initiatives expand the command coverage and standardize access for both humans and AI agents:</p>
 <ul>
@@ -776,10 +776,10 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Write Guard Hooks</b>: All mutation-oriented commands will publish <code>PreChange</code> and <code>PostChange</code> events onto an internal bus (backed by <code>absl::Notification</code> + ring buffer). The agent loop subscribes to the bus to build a change proposal timeline used in review UIs and acceptance workflows.</li>
 <li><b>Replayable Scripts</b>: Standardize a TOML-based script format (<code>.z3edscript</code>) that records CLI invocations with metadata (ROM hash, duration, success). Agents can emit scripts, humans can replay them via <code>z3ed script run &lt;file&gt;</code>.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1190"></a>
+<h1><a class="anchor" id="autotoc_md1202"></a>
 12. Acceptance &amp; Review Workflow</h1>
 <p>An explicit accept/reject system keeps humans in control while encouraging rapid agent iteration.</p>
-<h2><a class="anchor" id="autotoc_md1191"></a>
+<h2><a class="anchor" id="autotoc_md1203"></a>
 12.1. Change Proposal Lifecycle</h2>
 <ol type="1">
 <li><b>Draft</b>: Agent executes commands in a sandbox ROM (auto-cloned using <code>Rom::SaveToFile</code> with <code>save_new=true</code>). All diffs, test logs, and screenshots are attached to a proposal ID.</li>
@@ -787,7 +787,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Decision</b>: Accepting merges the delta into the primary ROM and commits associated assets. Rejecting discards the sandbox ROM and emits feedback signals (tagged reasons) that can be fed back to future LLM prompts.</li>
 <li><b>Archive</b>: Accepted proposals are archived with metadata for provenance; rejected ones are stored briefly for analytics before being pruned.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1192"></a>
+<h2><a class="anchor" id="autotoc_md1204"></a>
 12.2. UI Extensions</h2>
 <ul>
 <li><b>Proposal Drawer</b>: Adds a right-hand drawer in the <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> dashboard listing open proposals with filters (resource type, test pass/fail, age).</li>
@@ -795,17 +795,17 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Feedback Composer</b>: Provide quick tags (“Incorrect palette”, “Misplaced sprite”, “Regression detected”) and optional freeform text. Feedback is serialized into the agent telemetry channel.</li>
 <li><b>Undo/Redo Enhancements</b>: Accepted proposals push onto the global undo stack with descriptive labels, enabling rapid rollback during exploratory sessions.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1193"></a>
+<h2><a class="anchor" id="autotoc_md1205"></a>
 12.3. Policy Configuration</h2>
 <ul>
 <li><b>Gatekeeping Rules</b>: Define YAML-driven policies (e.g., “require passing <code>agent smoke</code> and <code>palette regression</code> suites before accept button activates”). Rules live in <code>.yaze/policies/agent.yaml</code> and are evaluated by the dashboard.</li>
 <li><b>Access Control</b>: Integrate project roles so only maintainers can finalize proposals while contributors can submit drafts.</li>
 <li><b>Telemetry Opt-In</b>: Provide toggles for sharing anonymized proposal statistics to improve default prompts and heuristics.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1194"></a>
+<h1><a class="anchor" id="autotoc_md1206"></a>
 13. ImGuiTestEngine Control Bridge</h1>
 <p>Allowing an LLM to drive the <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> UI safely requires a structured bridge between generated plans and the <code>ImGuiTestEngine</code> runtime.</p>
-<h2><a class="anchor" id="autotoc_md1195"></a>
+<h2><a class="anchor" id="autotoc_md1207"></a>
 13.1. Bridge Architecture</h2>
 <ul>
 <li><b>Test Harness API</b>: Expose a lightweight gRPC/IPC service (<code>ImGuiTestHarness</code>) that accepts serialized input events (click, drag, key, text), query requests (widget tree, screenshot), and expectations (assert widget text equals …). The service runs inside <code>yaze_test</code> when started with <code>--automation=sock</code>. Agents connect via domain sockets (macOS/Linux) or named pipes (Windows).</li>
@@ -813,7 +813,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Synchronization Primitives</b>: Provide <code>WaitForIdle</code>, <code>WaitForCondition</code>, and <code>Delay</code> primitives so LLMs can coordinate with frame updates. Each primitive enforces timeouts and returns explicit success/failure statuses.</li>
 <li><b>State Queries</b>: Implement reflection endpoints retrieving <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> widget hierarchy, enabling the agent to confirm UI states before issuing the next action—mirroring how <code>ImGuiTestEngine</code> DSL scripts work today.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1196"></a>
+<h3><a class="anchor" id="autotoc_md1208"></a>
 13.1.1. Transport &amp; Envelope</h3>
 <ul>
 <li><b>Session bootstrap</b>: <code>yaze_test --automation=&lt;socket path&gt;</code> spins up the harness and prints a connection URI. The CLI or external agent opens a persistent stream (Unix domain socket on macOS/Linux, named pipe + overlapped IO on Windows). TLS is out-of-scope; trust is derived from local IPC.</li>
@@ -828,7 +828,7 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 </div><!-- fragment --> Binary blobs (e.g., screenshots) follow immediately after the JSON payload in the same frame to avoid out-of-band coordination.</li>
 <li><b>Streaming semantics</b>: Responses reuse the <code>id</code> field and include <code>status</code>, <code>error</code>, and optional attachments. Long-running operations (<code>WaitForCondition</code>) stream periodic <code>progress</code> updates before returning <code>status: "ok"</code> or <code>status: "timeout"</code>.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1197"></a>
+<h3><a class="anchor" id="autotoc_md1209"></a>
 13.1.2. Harness Runtime Lifecycle</h3>
 <ol type="1">
 <li><b>Attach</b>: Agent sends a <code>control</code> message (<code>{"command":"attach"}</code>) to lock in a session. Harness responds with negotiated capabilities (available input devices, screenshot formats, rate limits).</li>
@@ -837,53 +837,53 @@ IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <li><b>Query &amp; assert</b>: Agent interleaves <code>query</code> messages (<code>get_widget_tree</code>, <code>capture_screenshot</code>, <code>read_value</code>) and <code>expect</code> messages (<code>assert_property</code>, <code>assert_pixel</code>). Harness routes these to existing ImGuiTestEngine inspectors, lifting the results into structured JSON.</li>
 <li><b>Detach</b>: Agent issues <code>{"command":"detach"}</code> (or connection closes). Harness flushes pending frames, releases sandbox locks, and tears down the socket.</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md1198"></a>
+<h3><a class="anchor" id="autotoc_md1210"></a>
 13.1.3. Integration with &lt;tt&gt;z3ed agent&lt;/tt&gt;</h3>
 <ul>
 <li><b>Plan annotation</b>: The CLI plan schema gains a new step kind <code>imgui_action</code> with fields <code>harness_uri</code>, <code>actions[]</code>, and optional <code>expect[]</code>. During execution <code>z3ed agent run</code> opens the harness stream, feeds each action, and short-circuits on first failure.</li>
 <li><b>Sandbox awareness</b>: Harness sessions inherit the active sandbox ROM path from <code>RomSandboxManager</code>, ensuring UI assertions operate on the same data snapshot as CLI mutations.</li>
 <li><b>Telemetry hooks</b>: Every harness response is appended to the proposal timeline (see §12) with thumbnails for screenshots. Failures bubble up as structured errors with hints (<code>"missing_widget": "Palette/Cell[12]"</code>).</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1199"></a>
+<h2><a class="anchor" id="autotoc_md1211"></a>
 13.2. Safety &amp; Sandboxing</h2>
 <ul>
 <li><b>Read-Only Default</b>: Harness sessions start in read-only mode; mutation commands must explicitly request escalation after presenting a plan (triggering a UI prompt for the user to authorize). Without authorization, only <code>capture</code> and <code>assert</code> operations succeed.</li>
 <li><b>Rate Limiting</b>: Cap concurrent interactions and enforce per-step quotas to prevent runaway agents.</li>
 <li><b>Logging</b>: Every harness call is logged and linked to the proposal ID, with playback available inside the acceptance UI.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1200"></a>
+<h2><a class="anchor" id="autotoc_md1212"></a>
 13.3. Script Generation Strategy</h2>
 <ul>
 <li><b>Template Library</b>: Publish a library of canonical <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> action sequences (open file, expand tree, focus palette editor). Plans reference templates via IDs to reduce LLM token usage and improve reliability.</li>
 <li><b>Auto-Healing</b>: When a widget lookup fails, the harness can suggest closest matches (Levenshtein distance) so the agent can retry with corrected IDs.</li>
 <li><b>Hybrid Execution</b>: Encourage plans that mix CLI operations for bulk edits and <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> actions for visual verification, minimizing UI-driven mutations.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1201"></a>
+<h1><a class="anchor" id="autotoc_md1213"></a>
 14. Test &amp; Verification Strategy</h1>
-<h2><a class="anchor" id="autotoc_md1202"></a>
+<h2><a class="anchor" id="autotoc_md1214"></a>
 14.1. Layered Test Suites</h2>
 <ul>
 <li><b>CLI Unit Tests</b>: Extend <code>test/cli/</code> with high-coverage tests for new resource handlers using sandbox ROM fixtures.</li>
 <li><b>Harness Integration Tests</b>: Add <code>test/ui/automation/</code> cases that spin up the harness, replay canned plans, and validate deterministic behavior.</li>
 <li><b>End-to-End Agent Scenarios</b>: Create golden scenarios (e.g., “Recolor Link tunic”, “Shift Dungeon Chest”) that exercise command + UI flows, verifying ROM diffs, UI captures, and pass/fail criteria.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1203"></a>
+<h2><a class="anchor" id="autotoc_md1215"></a>
 14.2. Continuous Verification</h2>
 <ul>
 <li><b>CI Pipelines</b>: Introduce dedicated CI jobs for agent features, enabling <code>YAZE_WITH_JSON</code> builds, running harness smoke suites, and publishing artifacts (diffs, screenshots) on failure.</li>
 <li><b>Nightly Regression</b>: Schedule nightly runs of expensive <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> scenarios and long-running CLI scripts with hardware acceleration (Apple Metal) to detect flaky interactions.</li>
 <li><b>Fuzzing Hooks</b>: Instrument command parsers with libFuzzer harnesses to catch malformed LLM output early.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1204"></a>
+<h2><a class="anchor" id="autotoc_md1216"></a>
 14.3. Telemetry-Informed Testing</h2>
 <ul>
 <li><b>Flake Tracker</b>: Aggregate harness failures by widget/action to prioritize stabilization.</li>
 <li><b>Adaptive Test Selection</b>: Use proposal metadata to select relevant regression suites dynamically (e.g., palette-focused proposals trigger palette regression tests).</li>
 <li><b>Feedback Loop</b>: Feed test outcomes back into prompt engineering, e.g., annotate prompts with known flaky commands so the LLM favors safer alternatives.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1205"></a>
+<h1><a class="anchor" id="autotoc_md1217"></a>
 15. Expanded Roadmap (Phase 6+)</h1>
-<h2><a class="anchor" id="autotoc_md1206"></a>
+<h2><a class="anchor" id="autotoc_md1218"></a>
 Phase 6: Agent Workflow Foundations (Planned)</h2>
 <ul>
 <li>Implement resource catalogue tooling and <code>agent describe</code> schemas.</li>
@@ -891,7 +891,7 @@ Phase 6: Agent Workflow Foundations (Planned)</h2>
 <li>Finalize ImGuiTestHarness MVP with read-only verification.</li>
 <li>Expand CLI surface with sprite/object manipulation commands flagged as agent-safe.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1207"></a>
+<h2><a class="anchor" id="autotoc_md1219"></a>
 Phase 7: Controlled Mutation &amp; Review (Planned)</h2>
 <ul>
 <li>Enable harness mutation mode with user authorization prompts.</li>
@@ -899,7 +899,7 @@ Phase 7: Controlled Mutation &amp; Review (Planned)</h2>
 <li>Wire policy engine for gating accept buttons.</li>
 <li>Launch initial telemetry dashboards (opt-in) for agent performance metrics.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1208"></a>
+<h2><a class="anchor" id="autotoc_md1220"></a>
 Phase 8: Learning &amp; Self-Improvement (Exploratory)</h2>
 <ul>
 <li>Capture accept/reject rationales to train prompt selectors.</li>
@@ -907,7 +907,7 @@ Phase 8: Learning &amp; Self-Improvement (Exploratory)</h2>
 <li>Explore collaborative agent sessions where multiple proposals merge or compete under defined heuristics.</li>
 <li>Investigate deterministic replay of LLM outputs for reliable regression testing.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1209"></a>
+<h2><a class="anchor" id="autotoc_md1221"></a>
 7.4. Widget ID Management for Test Automation</h2>
 <p>A key challenge in GUI test automation is the fragility of identifying widgets. Relying on human-readable labels (e.g., <code>"button:Overworld"</code>) makes tests brittle; a simple text change in the UI can break the entire test suite.</p>
 <p>To address this, the <code>z3ed</code> ecosystem includes a robust <b>Widget ID Management</b> system.</p>

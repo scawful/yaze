@@ -1,4 +1,25 @@
 var searchData=
 [
-  ['quick_5freference_2emd_0',['QUICK_REFERENCE.md',['../dc/d09/QUICK__REFERENCE_8md.html',1,'']]]
+  ['readme_2emd_0',['readme.md',['../de/d12/docs_2z3ed_2README_8md.html',1,'(Global Namespace)'],['../da/ddd/README_8md.html',1,'(Global Namespace)'],['../db/d08/scripts_2README_8md.html',1,'(Global Namespace)'],['../dd/dee/test_2README_8md.html',1,'(Global Namespace)']]],
+  ['readme_5fverification_2emd_1',['README_VERIFICATION.md',['../da/d61/README__VERIFICATION_8md.html',1,'']]],
+  ['renderer_5foptimization_5fanalysis_2emd_2',['renderer_optimization_analysis.md',['../d2/dfd/renderer__optimization__analysis_8md.html',1,'']]],
+  ['resource_5fcatalog_2ecc_3',['resource_catalog.cc',['../d6/d24/resource__catalog_8cc.html',1,'']]],
+  ['resource_5fcatalog_2eh_4',['resource_catalog.h',['../d9/d7d/resource__catalog_8h.html',1,'']]],
+  ['resource_5fcatalog_5ftest_2ecc_5',['resource_catalog_test.cc',['../d3/d72/resource__catalog__test_8cc.html',1,'']]],
+  ['resource_5fcontext_5fbuilder_2ecc_6',['resource_context_builder.cc',['../da/dbe/resource__context__builder_8cc.html',1,'']]],
+  ['resource_5fcontext_5fbuilder_2eh_7',['resource_context_builder.h',['../d5/d28/resource__context__builder_8h.html',1,'']]],
+  ['rom_2ecc_8',['rom.cc',['../d4/d1a/cli_2handlers_2rom_8cc.html',1,'(Global Namespace)'],['../d4/d79/app_2rom_8cc.html',1,'(Global Namespace)']]],
+  ['rom_2eh_9',['rom.h',['../da/de5/rom_8h.html',1,'']]],
+  ['rom_5fdependent_5ftest_5fsuite_2eh_10',['rom_dependent_test_suite.h',['../d5/d98/rom__dependent__test__suite_8h.html',1,'']]],
+  ['rom_5fpatch_5futility_2ecc_11',['rom_patch_utility.cc',['../da/db0/rom__patch__utility_8cc.html',1,'']]],
+  ['rom_5fsandbox_5fmanager_2ecc_12',['rom_sandbox_manager.cc',['../dc/d3a/rom__sandbox__manager_8cc.html',1,'']]],
+  ['rom_5fsandbox_5fmanager_2eh_13',['rom_sandbox_manager.h',['../d0/d7b/rom__sandbox__manager_8h.html',1,'']]],
+  ['rom_5ftest_2ecc_14',['rom_test.cc',['../d6/d74/rom__test_8cc.html',1,'']]],
+  ['room_2ecc_15',['room.cc',['../d5/d1b/room_8cc.html',1,'']]],
+  ['room_2eh_16',['room.h',['../d9/dc0/room_8h.html',1,'']]],
+  ['room_5fentrance_2eh_17',['room_entrance.h',['../d1/d8a/room__entrance_8h.html',1,'']]],
+  ['room_5flayout_2ecc_18',['room_layout.cc',['../da/d12/room__layout_8cc.html',1,'']]],
+  ['room_5flayout_2eh_19',['room_layout.h',['../da/d96/room__layout_8h.html',1,'']]],
+  ['room_5fobject_2ecc_20',['room_object.cc',['../d5/da0/room__object_8cc.html',1,'']]],
+  ['room_5fobject_2eh_21',['room_object.h',['../d0/dff/room__object_8h.html',1,'']]]
 ];
