@@ -147,6 +147,11 @@ class OverworldSetTile : public CommandHandler {
   absl::Status Run(const std::vector<std::string>& arg_vec) override;
 };
 
+class OverworldFindTile : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
 class SpriteCreate : public CommandHandler {
  public:
   absl::Status Run(const std::vector<std::string>& arg_vec) override;

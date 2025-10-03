@@ -52,6 +52,7 @@ class ModernCLI {
   absl::Status HandlePaletteCommand(const std::vector<std::string>& args);
   absl::Status HandleRomValidateCommand(const std::vector<std::string>& args);
   absl::Status HandleOverworldGetTileCommand(const std::vector<std::string>& args);
+  absl::Status HandleOverworldFindTileCommand(const std::vector<std::string>& args);
   absl::Status HandleOverworldSetTileCommand(const std::vector<std::string>& args);
   absl::Status HandleSpriteCreateCommand(const std::vector<std::string>& args);
 };
