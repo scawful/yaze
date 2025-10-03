@@ -9,15 +9,6 @@ if (APPLE)
     yaze
     MACOSX_BUNDLE
     app/main.cc
-    app/rom.cc
-    ${YAZE_APP_EMU_SRC}
-    ${YAZE_APP_CORE_SRC}
-    ${YAZE_APP_EDITOR_SRC}
-    ${YAZE_APP_GFX_SRC}
-    ${YAZE_APP_ZELDA3_SRC}
-    ${YAZE_UTIL_SRC}
-    ${YAZE_GUI_SRC}
-    ${IMGUI_SRC}
     # Bundled Resources
     ${YAZE_RESOURCE_FILES}
   )
@@ -44,15 +35,6 @@ else()
   add_executable(
     yaze
     app/main.cc
-    app/rom.cc
-    ${YAZE_APP_EMU_SRC}
-    ${YAZE_APP_CORE_SRC}
-    ${YAZE_APP_EDITOR_SRC}
-    ${YAZE_APP_GFX_SRC}
-    ${YAZE_APP_ZELDA3_SRC}
-    ${YAZE_UTIL_SRC}
-    ${YAZE_GUI_SRC}
-    ${IMGUI_SRC}
   )
   
   # Add asset files for Windows/Linux builds
@@ -116,16 +98,7 @@ else()
   target_compile_definitions(yaze PRIVATE YAZE_ENABLE_NFD=0)
 endif()
 
-target_link_libraries(
-  yaze PUBLIC
-  asar-static
-  ${ABSL_TARGETS}
-  ${SDL_TARGETS}
-  ${CMAKE_DL_LIBS}
-  ImGui
-)
-
-target_link_libraries(yaze PRIVATE yaze_agent)
+target_link_libraries(yaze PRIVATE yaze_core)
 
 # Enable policy framework in main yaze target
 target_compile_definitions(yaze PRIVATE YAZE_ENABLE_POLICY_FRAMEWORK=1)

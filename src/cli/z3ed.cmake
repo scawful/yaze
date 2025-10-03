@@ -22,7 +22,6 @@ if(NOT yaml-cpp_FOUND)
   if(NOT yaml-cpp_POPULATED)
     FetchContent_Populate(yaml-cpp)
 
-    # Ensure compatibility with newer CMake versions by adjusting minimum requirement
     set(_yaml_cpp_cmakelists "${yaml-cpp_SOURCE_DIR}/CMakeLists.txt")
     if(EXISTS "${_yaml_cpp_cmakelists}")
       file(READ "${_yaml_cpp_cmakelists}" _yaml_cpp_cmake_contents)
@@ -44,16 +43,6 @@ if(NOT yaml-cpp_FOUND)
   endif()
 endif()
 
-# Platform-specific file dialog sources
-if(APPLE)
-  set(FILE_DIALOG_SRC 
-    app/core/platform/file_dialog.cc   # Utility functions (all platforms)
-    app/core/platform/file_dialog.mm   # macOS-specific dialogs
-  )
-else()
-  set(FILE_DIALOG_SRC app/core/platform/file_dialog.cc)
-endif()
-
 add_executable(
   z3ed
   cli/cli_main.cc
@@ -68,42 +57,22 @@ add_executable(
   cli/handlers/overworld.cc
   cli/handlers/overworld_inspect.cc
   cli/handlers/sprite.cc
-  cli/tui/tui_component.h
-  cli/tui/asar_patch.cc
-  cli/tui/palette_editor.cc
-  cli/tui/command_palette.cc
-  cli/tui/chat_tui.cc
-  cli/modern_cli.cc
-  cli/handlers/command_palette.cc
   cli/handlers/project.cc
+  cli/handlers/command_palette.cc
   cli/handlers/agent.cc
   cli/handlers/agent/common.cc
   cli/handlers/agent/general_commands.cc
   cli/handlers/agent/test_common.cc
   cli/handlers/agent/test_commands.cc
   cli/handlers/agent/gui_commands.cc
-  cli/service/testing/test_suite.h
+  cli/modern_cli.cc
+  cli/tui/asar_patch.cc
+  cli/tui/palette_editor.cc
+  cli/tui/command_palette.cc
+  cli/tui/chat_tui.cc
   cli/service/testing/test_suite_loader.cc
-  cli/service/testing/test_suite_loader.h
   cli/service/testing/test_suite_reporter.cc
-  cli/service/testing/test_suite_reporter.h
   cli/service/testing/test_suite_writer.cc
-  cli/service/testing/test_suite_writer.h
-  cli/service/planning/tile16_proposal_generator.h
-  cli/service/resources/resource_context_builder.h
-  cli/service/agent/conversational_agent_service.h
-  cli/service/ai/service_factory.h
-  cli/service/agent/tool_dispatcher.h
-  app/rom.cc
-  app/core/project.cc
-  app/core/asar_wrapper.cc
-  ${FILE_DIALOG_SRC}
-  ${YAZE_APP_EMU_SRC}
-  ${YAZE_APP_GFX_SRC}
-  ${YAZE_APP_ZELDA3_SRC}
-  ${YAZE_UTIL_SRC}
-  ${YAZE_GUI_SRC}
-  ${IMGUI_SRC}
 )
 
 if(YAZE_WITH_JSON)
@@ -141,38 +110,22 @@ else()
 endif()
 
 target_include_directories(
-  z3ed PUBLIC
-  ${CMAKE_SOURCE_DIR}/src/lib/
-  ${CMAKE_SOURCE_DIR}/src/app/
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
-  ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
-  ${CMAKE_SOURCE_DIR}/incl/
-  ${CMAKE_SOURCE_DIR}/src/
-  ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+  z3ed PRIVATE
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/incl
   ${CMAKE_SOURCE_DIR}/third_party/httplib
-  ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR}
   ${PROJECT_BINARY_DIR}
 )
 
 target_link_libraries(
-  z3ed PUBLIC
-  asar-static
-  yaze_agent
-  yaml-cpp
+  z3ed PRIVATE
+  yaze_core
   ftxui::component
   ftxui::screen
   ftxui::dom
   absl::flags
   absl::flags_parse
-  ${ABSL_TARGETS}
-  ${SDL_TARGETS}
-  ${PNG_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  ImGuiTestEngine
-  ImGui
 )
 
 # ============================================================================

@@ -182,19 +182,8 @@ if (YAZE_BUILD_LIB)
   # Create full library for C API
   set(YAZE_C_SOURCES
     ./yaze.cc
-    ${YAZE_CORE_SOURCES}
-    ${YAZE_GUI_SRC}
-    ${IMGUI_SRC}
     cli/service/gui/gui_automation_client.cc
   )
-  
-  # Add emulator sources (required for comprehensive testing)
-  list(APPEND YAZE_C_SOURCES ${YAZE_APP_EMU_SRC})
-  
-  # Only add ImGui Test Engine sources if UI tests are enabled
-  if(YAZE_ENABLE_UI_TESTS)
-    list(APPEND YAZE_C_SOURCES ${IMGUI_TEST_ENGINE_SOURCES})
-  endif()
   
   # Create the core library (static for testing)
   add_library(yaze_core STATIC ${YAZE_CORE_SOURCES})
