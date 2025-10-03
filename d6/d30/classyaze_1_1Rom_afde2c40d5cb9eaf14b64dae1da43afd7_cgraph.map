@@ -1,7 +1,5 @@
 <map id="yaze::Rom::SaveAllPalettes" name="yaze::Rom::SaveAllPalettes">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,42,185,68"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,185,39"/>
 <area shape="rect" id="Node000002" href="$d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html#a40a66b477eec40339a17508a0e3c1160" title=" " alt="" coords="233,5,410,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,41,217,37,217,42,185,46"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="260,70,383,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,63,245,71,244,76,184,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,23,217,23,217,28,185,28"/>
 </map>

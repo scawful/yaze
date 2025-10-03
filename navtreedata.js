@@ -1489,7 +1489,7 @@ var NAVTREE =
           [ "IT-06: Widget Discovery API (4-6 hours)", "d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1162", null ],
           [ "IT-07: Test Recording & Replay ✅ COMPLETE", "d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1163", null ],
           [ "IT-08: Holistic Error Reporting (5-7 hours)", "d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1164", null ],
-          [ "IT-09: CI/CD Integration (2-3 hours)", "d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1165", null ]
+          [ "IT-09: CI/CD Integration ✅ CLI Foundations Complete", "d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1165", null ]
         ] ],
         [ "9.4. Unified Testing Vision", "d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1166", null ],
         [ "9.5. Implementation Priority", "d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1167", null ],
@@ -1552,7 +1552,7 @@ var NAVTREE =
           [ "IT-06: Widget Discovery API (4-6 hours)", "df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1217", null ],
           [ "IT-07: Test Recording & Replay ✅ COMPLETE (Oct 2, 2025)", "df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1218", null ],
           [ "IT-08: Enhanced Error Reporting (5-7 hours) ✅ COMPLETE", "df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1219", null ],
-          [ "IT-09: CI/CD Integration (2-3 hours)", "df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1220", null ],
+          [ "IT-09: CI/CD Integration ✅ CLI Tooling Shipped", "df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1220", null ],
           [ "IT-10: Collaborative Editing & Multiplayer Sessions (12-15 hours)", "df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1222", null ]
         ] ],
         [ "Priority 2: Windows Cross-Platform Testing 🪟", "df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1224", null ]
@@ -1736,325 +1736,316 @@ var NAVTREE =
       [ "IT-08a: Screenshot RPC ✅ COMPLETE", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1381", [
         [ "Implementation Summary", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1382", null ],
         [ "What Was Built", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1383", null ],
-        [ "Technical Implementation", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1384", null ],
-        [ "Testing Results", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1385", null ]
+        [ "Technical Implementation", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1384", null ]
       ] ],
-      [ "Design Decisions", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1387", [
-        [ "Why BMP Format?", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1388", null ],
-        [ "SDL Backend Integration", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1389", null ]
-      ] ],
-      [ "Integration with Test System", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1391", [
-        [ "Current Usage (Manual RPC)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1392", null ],
-        [ "Next Step: Auto-Capture on Failure", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1393", null ]
-      ] ],
-      [ "IT-08b: Auto-Capture on Test Failure ✅ COMPLETE", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1396", [
-        [ "Implementation Summary", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1397", null ],
-        [ "What Was Built", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1398", null ],
-        [ "Technical Implementation", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1399", null ],
-        [ "Testing", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1400", null ],
-        [ "Success Criteria", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1401", null ],
-        [ "Next Steps", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1402", null ]
-      ] ],
-      [ "IT-08b: Auto-Capture on Test Failure 🔄 IN PROGRESS", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1404", [
-        [ "Implementation Plan", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1405", [
-          [ "Step 1: Modify TestManager (30 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1406", null ],
-          [ "Step 2: Update TestHistory Structure (15 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1407", null ],
-          [ "Step 3: Update GetTestResults RPC (30 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1408", null ],
-          [ "Step 4: Update Proto Schema (15 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1409", null ]
+      [ "Build (needs YAZE_WITH_GRPC=ON)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1385", null ],
+      [ "Start harness", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1386", null ],
+      [ "Queue a failing automation step", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1387", null ],
+      [ "Fetch diagnostics", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1388", null ],
+      [ "Inspect artifact directory", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1389", [
+        [ "IT-08b: Auto-Capture on Test Failure 🔄 IN PROGRESS", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1397", [
+          [ "Next Steps", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1390", null ],
+          [ "Technical Implementation", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1392", null ],
+          [ "Testing", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1393", null ],
+          [ "Success Criteria", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1394", null ],
+          [ "Retro Notes", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1395", null ],
+          [ "Implementation Plan", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1398", [
+            [ "Step 1: Modify TestManager (30 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1399", null ],
+            [ "Step 2: Update TestHistory Structure (15 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1400", null ],
+            [ "Step 3: Update GetTestResults RPC (30 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1401", null ],
+            [ "Step 4: Update Proto Schema (15 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1402", null ]
+          ] ],
+          [ "Testing", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1403", null ],
+          [ "Success Criteria", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1404", null ]
         ] ],
-        [ "Testing", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1410", null ],
-        [ "Success Criteria", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1411", null ]
-      ] ],
-      [ "IT-08c: Widget State Dumps ✅ COMPLETE", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1413", [
-        [ "Implementation Summary", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1414", null ],
-        [ "What Was Built", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1415", null ],
-        [ "Technical Implementation", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1416", null ],
-        [ "Output Example", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1417", null ],
-        [ "Testing", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1418", null ],
-        [ "Success Criteria", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1419", null ],
-        [ "Benefits for Debugging", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1420", null ]
-      ] ],
-      [ "IT-08c: Widget State Dumps 📋 PLANNED", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1422", [
-        [ "Implementation Plan", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1423", [
-          [ "Step 1: Create Widget State Capture Utility (30 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1424", null ],
-          [ "Step 2: Integrate with TestManager (15 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1425", null ]
+        [ "IT-08c: Widget State Dumps ✅ COMPLETE", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1406", [
+          [ "Implementation Summary", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1407", null ],
+          [ "What Was Built", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1408", null ],
+          [ "Technical Implementation", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1409", null ],
+          [ "Output Example", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1410", null ],
+          [ "Testing", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1411", null ],
+          [ "Success Criteria", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1412", null ],
+          [ "Benefits for Debugging", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1413", null ]
         ] ],
-        [ "Output Example", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1426", null ]
-      ] ],
-      [ "IT-08d: Error Envelope Standardization 📋 PLANNED", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1428", [
-        [ "Proposed Error Envelope", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1429", null ],
-        [ "Integration Points", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1430", null ]
-      ] ],
-      [ "IT-08e: CLI Error Improvements 📋 PLANNED", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1432", [
-        [ "Enhanced CLI Output", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1433", null ]
-      ] ],
-      [ "Progress Tracking", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1435", [
-        [ "Completed ✅", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1436", null ],
-        [ "In Progress 🔄", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1437", null ],
-        [ "Planned 📋", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1438", null ],
-        [ "Time Investment", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1439", null ]
-      ] ],
-      [ "Next Steps", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1441", null ],
-      [ "References", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1443", null ]
+        [ "IT-08c: Widget State Dumps 📋 PLANNED", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1415", [
+          [ "Implementation Plan", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1416", [
+            [ "Step 1: Create Widget State Capture Utility (30 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1417", null ],
+            [ "Step 2: Integrate with TestManager (15 minutes)", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1418", null ]
+          ] ],
+          [ "Output Example", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1419", null ]
+        ] ],
+        [ "IT-08d: Error Envelope Standardization 📋 PLANNED", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1421", [
+          [ "Proposed Error Envelope", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1422", null ],
+          [ "Integration Points", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1423", null ]
+        ] ],
+        [ "IT-08e: CLI Error Improvements 📋 PLANNED", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1425", [
+          [ "Enhanced CLI Output", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1426", null ]
+        ] ],
+        [ "Progress Tracking", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1428", [
+          [ "Completed ✅", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1429", null ],
+          [ "In Progress 🔄", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1430", null ],
+          [ "Planned 📋", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1431", null ],
+          [ "Time Investment", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1432", null ]
+        ] ],
+        [ "Next Steps", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1434", null ],
+        [ "References", "d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1436", null ]
+      ] ]
     ] ],
     [ "IT-08b: Auto-Capture on Test Failure - Implementation Guide", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html", [
-      [ "Overview", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1448", null ],
-      [ "Implementation Steps", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1450", [
-        [ "Step 1: Update TestHistory Structure (15 minutes)", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1451", null ],
-        [ "Step 2: Add CaptureFailureContext Method (30 minutes)", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1452", null ],
-        [ "Step 3: Integrate with MarkHarnessTestCompleted (15 minutes)", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1453", null ],
-        [ "Step 4: Update GetTestResults RPC (30 minutes)", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1454", null ]
+      [ "Overview", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1441", null ],
+      [ "Implementation Steps", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1443", [
+        [ "Step 1: Update TestHistory Structure (15 minutes)", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1444", null ],
+        [ "Step 2: Add CaptureFailureContext Method (30 minutes)", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1445", null ],
+        [ "Step 3: Integrate with MarkHarnessTestCompleted (15 minutes)", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1446", null ]
       ] ],
-      [ "Testing", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1456", [
-        [ "Build and Start Test Harness", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1457", null ],
-        [ "Trigger Test Failure", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1458", null ],
-        [ "Verify Screenshot Captured", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1459", null ],
-        [ "Query Test Results", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1460", null ],
-        [ "End-to-End Test Script", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1461", null ]
+      [ "Validation", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1448", null ],
+      [ "Follow-Up", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1450", [
+        [ "Query Test Results", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1451", null ],
+        [ "End-to-End Test Script", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1452", null ]
       ] ],
-      [ "Success Criteria", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1463", null ],
-      [ "Files Modified", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1465", null ],
-      [ "Next Steps", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1467", null ]
+      [ "Success Criteria", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1454", null ],
+      [ "Files Modified", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1456", null ],
+      [ "Next Steps", "d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html#autotoc_md1458", null ]
     ] ],
     [ "IT-10: Collaborative Editing & Multiplayer Sessions", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html", [
-      [ "Vision", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1471", null ],
-      [ "User Stories", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1473", [
-        [ "US-1: Session Host & Join", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1474", null ],
-        [ "US-2: Real-Time Edit Synchronization", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1476", null ],
-        [ "US-3: Shared AI Agent", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1478", null ],
-        [ "US-4: Live Cursors & Annotations", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1480", null ],
-        [ "US-5: Session Recording & Replay", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1482", null ]
+      [ "Vision", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1462", null ],
+      [ "User Stories", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1464", [
+        [ "US-1: Session Host & Join", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1465", null ],
+        [ "US-2: Real-Time Edit Synchronization", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1467", null ],
+        [ "US-3: Shared AI Agent", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1469", null ],
+        [ "US-4: Live Cursors & Annotations", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1471", null ],
+        [ "US-5: Session Recording & Replay", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1473", null ]
       ] ],
-      [ "Architecture", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1484", [
-        [ "Components", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1485", [
-          [ "1. Collaboration Server (New)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1486", null ],
-          [ "2. Collaboration Client (New)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1488", null ],
-          [ "3. Edit Event Protocol (New)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1490", null ],
-          [ "4. Conflict Resolution System", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1492", null ],
-          [ "5. GUI Integration", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1494", null ]
+      [ "Architecture", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1475", [
+        [ "Components", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1476", [
+          [ "1. Collaboration Server (New)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1477", null ],
+          [ "2. Collaboration Client (New)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1479", null ],
+          [ "3. Edit Event Protocol (New)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1481", null ],
+          [ "4. Conflict Resolution System", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1483", null ],
+          [ "5. GUI Integration", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1485", null ]
         ] ]
       ] ],
-      [ "CLI Commands", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1496", [
-        [ "Session Management", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1497", null ],
-        [ "Session Replay", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1498", null ]
+      [ "CLI Commands", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1487", [
+        [ "Session Management", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1488", null ],
+        [ "Session Replay", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1489", null ]
       ] ],
-      [ "Implementation Plan", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1500", [
-        [ "Phase 1: Core Networking (4-5 hours)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1501", null ],
-        [ "Phase 2: Edit Synchronization (3-4 hours)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1503", null ],
-        [ "Phase 3: GUI Integration (2-3 hours)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1505", null ],
-        [ "Phase 4: AI Agent Sharing (2-3 hours)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1507", null ],
-        [ "Phase 5: Session Recording & Replay (1-2 hours)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1509", null ]
+      [ "Implementation Plan", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1491", [
+        [ "Phase 1: Core Networking (4-5 hours)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1492", null ],
+        [ "Phase 2: Edit Synchronization (3-4 hours)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1494", null ],
+        [ "Phase 3: GUI Integration (2-3 hours)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1496", null ],
+        [ "Phase 4: AI Agent Sharing (2-3 hours)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1498", null ],
+        [ "Phase 5: Session Recording & Replay (1-2 hours)", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1500", null ]
       ] ],
-      [ "Security & Safety Considerations", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1511", [
-        [ "Authentication", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1512", null ],
-        [ "Authorization", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1514", null ],
-        [ "Data Integrity", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1516", null ],
-        [ "Network Security", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1518", null ]
+      [ "Security & Safety Considerations", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1502", [
+        [ "Authentication", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1503", null ],
+        [ "Authorization", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1505", null ],
+        [ "Data Integrity", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1507", null ],
+        [ "Network Security", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1509", null ]
       ] ],
-      [ "Testing Strategy", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1520", [
-        [ "Unit Tests", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1521", null ],
-        [ "Integration Tests", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1523", null ],
-        [ "E2E Tests", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1525", null ]
+      [ "Testing Strategy", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1511", [
+        [ "Unit Tests", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1512", null ],
+        [ "Integration Tests", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1514", null ],
+        [ "E2E Tests", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1516", null ]
       ] ],
-      [ "Performance Considerations", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1527", [
-        [ "Bandwidth Usage", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1528", null ],
-        [ "Latency Targets", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1530", null ]
+      [ "Performance Considerations", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1518", [
+        [ "Bandwidth Usage", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1519", null ],
+        [ "Latency Targets", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1521", null ]
       ] ],
-      [ "Future Enhancements", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1532", [
-        [ "Voice Chat Integration", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1533", null ],
-        [ "Persistent Sessions", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1535", null ],
-        [ "Cloud-Hosted Sessions", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1537", null ],
-        [ "Integration with Version Control", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1539", null ]
+      [ "Future Enhancements", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1523", [
+        [ "Voice Chat Integration", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1524", null ],
+        [ "Persistent Sessions", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1526", null ],
+        [ "Cloud-Hosted Sessions", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1528", null ],
+        [ "Integration with Version Control", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1530", null ]
       ] ],
-      [ "Success Metrics", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1541", [
-        [ "Adoption Metrics", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1542", null ],
-        [ "Technical Metrics", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1543", null ],
-        [ "User Satisfaction", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1544", null ]
+      [ "Success Metrics", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1532", [
+        [ "Adoption Metrics", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1533", null ],
+        [ "Technical Metrics", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1534", null ],
+        [ "User Satisfaction", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1535", null ]
       ] ],
-      [ "Risks & Mitigation", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1546", [
-        [ "Risk 1: Network Latency", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1547", null ],
-        [ "Risk 2: Data Corruption", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1549", null ],
-        [ "Risk 3: Security Vulnerabilities", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1551", null ],
-        [ "Risk 4: Scalability", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1553", null ]
+      [ "Risks & Mitigation", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1537", [
+        [ "Risk 1: Network Latency", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1538", null ],
+        [ "Risk 2: Data Corruption", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1540", null ],
+        [ "Risk 3: Security Vulnerabilities", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1542", null ],
+        [ "Risk 4: Scalability", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1544", null ]
       ] ],
-      [ "Summary", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1555", null ]
+      [ "Summary", "de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1546", null ]
     ] ],
     [ "z3ed Quick Reference Card", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html", [
-      [ "Build & Setup", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1559", [
-        [ "Build with gRPC Support", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1560", null ],
-        [ "Start Test Harness", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1561", null ]
+      [ "Build & Setup", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1550", [
+        [ "Build with gRPC Support", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1551", null ],
+        [ "Start Test Harness", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1552", null ]
       ] ],
-      [ "CLI Commands", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1563", [
-        [ "Agent Workflow", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1564", [
-          [ "Create Proposal", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1565", null ],
-          [ "List Proposals", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1566", null ],
-          [ "View Diff", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1567", null ],
-          [ "Review in GUI", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1568", null ],
-          [ "Export API Schema", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1569", null ]
+      [ "CLI Commands", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1554", [
+        [ "Agent Workflow", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1555", [
+          [ "Create Proposal", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1556", null ],
+          [ "List Proposals", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1557", null ],
+          [ "View Diff", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1558", null ],
+          [ "Review in GUI", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1559", null ],
+          [ "Export API Schema", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1560", null ]
         ] ],
-        [ "Agent Testing (IT-02)", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1570", [
-          [ "Run Natural Language Test", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1571", null ],
-          [ "Test Introspection (IT-05) 🔜 PLANNED", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1572", null ],
-          [ "Widget Discovery (IT-06) � IN PROGRESS — telemetry available", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1573", null ],
-          [ "Test Recording (IT-07) 🔜 PLANNED", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1574", null ]
+        [ "Agent Testing (IT-02)", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1561", [
+          [ "Run Natural Language Test", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1562", null ],
+          [ "Test Introspection (IT-05) 🔜 PLANNED", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1563", null ],
+          [ "Widget Discovery (IT-06) � IN PROGRESS — telemetry available", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1564", null ],
+          [ "Test Recording (IT-07) 🔜 PLANNED", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1565", null ]
         ] ],
-        [ "ROM Commands", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1575", null ],
-        [ "Palette Commands", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1576", null ],
-        [ "Overworld Commands", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1577", null ],
-        [ "Dungeon Commands", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1578", null ]
+        [ "ROM Commands", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1566", null ],
+        [ "Palette Commands", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1567", null ],
+        [ "Overworld Commands", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1568", null ],
+        [ "Dungeon Commands", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1569", null ]
       ] ],
-      [ "gRPC Testing with grpcurl", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1580", [
-        [ "Setup", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1581", null ],
-        [ "Core RPCs", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1582", [
-          [ "Ping (Health Check)", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1583", null ],
-          [ "Click", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1584", null ],
-          [ "Type", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1585", null ],
-          [ "Wait", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1586", null ],
-          [ "Assert", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1587", null ],
-          [ "Screenshot (Stub)", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1588", null ]
+      [ "gRPC Testing with grpcurl", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1571", [
+        [ "Setup", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1572", null ],
+        [ "Core RPCs", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1573", [
+          [ "Ping (Health Check)", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1574", null ],
+          [ "Click", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1575", null ],
+          [ "Type", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1576", null ],
+          [ "Wait", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1577", null ],
+          [ "Assert", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1578", null ],
+          [ "Screenshot (Stub)", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1579", null ]
         ] ]
       ] ],
-      [ "E2E Testing", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1590", [
-        [ "Run Full Test Suite", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1591", null ],
-        [ "Manual Workflow Test", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1592", null ]
+      [ "E2E Testing", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1581", [
+        [ "Run Full Test Suite", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1582", null ],
+        [ "Manual Workflow Test", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1583", null ]
       ] ],
-      [ "Troubleshooting", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1594", [
-        [ "Port Already in Use", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1595", null ],
-        [ "Connection Refused", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1596", null ],
-        [ "Widget Not Found", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1597", null ],
-        [ "Build Errors", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1598", null ]
+      [ "Troubleshooting", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1585", [
+        [ "Port Already in Use", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1586", null ],
+        [ "Connection Refused", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1587", null ],
+        [ "Widget Not Found", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1588", null ],
+        [ "Build Errors", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1589", null ]
       ] ],
-      [ "File Locations", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1600", [
-        [ "Core Files", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1601", null ],
-        [ "Build Artifacts", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1602", null ]
+      [ "File Locations", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1591", [
+        [ "Core Files", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1592", null ],
+        [ "Build Artifacts", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1593", null ]
       ] ],
-      [ "Environment Variables", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1604", null ],
-      [ "Platform Support", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1606", null ],
-      [ "Next Steps", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1608", null ],
-      [ "Resources", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1610", null ]
+      [ "Environment Variables", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1595", null ],
+      [ "Platform Support", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1597", null ],
+      [ "Next Steps", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1599", null ],
+      [ "Resources", "dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1601", null ]
     ] ],
     [ "z3ed: AI-Powered CLI for YAZE", "d3/d63/md_docs_2z3ed_2README.html", [
-      [ "Overview", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1613", null ],
-      [ "Core Documentation", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1614", null ],
-      [ "Quick Start", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1615", [
-        [ "Build z3ed", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1616", null ],
-        [ "Common Commands", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1617", null ]
+      [ "Overview", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1604", null ],
+      [ "Core Documentation", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1605", null ],
+      [ "Quick Start", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1606", [
+        [ "Build z3ed", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1607", null ],
+        [ "Common Commands", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1608", null ]
       ] ],
-      [ "Recent Enhancements", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1618", null ],
-      [ "Quick Navigation", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1619", null ]
+      [ "Recent Enhancements", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1609", null ],
+      [ "Quick Navigation", "d3/d63/md_docs_2z3ed_2README.html#autotoc_md1610", null ]
     ] ],
     [ "yaze - Yet Another Zelda3 Editor", "d0/d30/md_README.html", [
-      [ "Version 0.3.2 - Release", "d0/d30/md_README.html#autotoc_md1621", [
-        [ "🛠️ Technical Improvements", "d0/d30/md_README.html#autotoc_md1625", null ]
+      [ "Version 0.3.2 - Release", "d0/d30/md_README.html#autotoc_md1612", [
+        [ "🛠️ Technical Improvements", "d0/d30/md_README.html#autotoc_md1616", null ]
       ] ],
-      [ "Quick Start", "d0/d30/md_README.html#autotoc_md1626", [
-        [ "Build", "d0/d30/md_README.html#autotoc_md1627", null ],
-        [ "Applications", "d0/d30/md_README.html#autotoc_md1628", null ]
+      [ "Quick Start", "d0/d30/md_README.html#autotoc_md1617", [
+        [ "Build", "d0/d30/md_README.html#autotoc_md1618", null ],
+        [ "Applications", "d0/d30/md_README.html#autotoc_md1619", null ]
       ] ],
-      [ "Usage", "d0/d30/md_README.html#autotoc_md1629", [
-        [ "GUI Editor", "d0/d30/md_README.html#autotoc_md1630", null ],
-        [ "Command Line Tool", "d0/d30/md_README.html#autotoc_md1631", null ],
-        [ "C++ API", "d0/d30/md_README.html#autotoc_md1632", null ]
+      [ "Usage", "d0/d30/md_README.html#autotoc_md1620", [
+        [ "GUI Editor", "d0/d30/md_README.html#autotoc_md1621", null ],
+        [ "Command Line Tool", "d0/d30/md_README.html#autotoc_md1622", null ],
+        [ "C++ API", "d0/d30/md_README.html#autotoc_md1623", null ]
       ] ],
-      [ "Documentation", "d0/d30/md_README.html#autotoc_md1633", null ],
-      [ "Supported Platforms", "d0/d30/md_README.html#autotoc_md1634", null ],
-      [ "ROM Compatibility", "d0/d30/md_README.html#autotoc_md1635", null ],
-      [ "Contributing", "d0/d30/md_README.html#autotoc_md1636", null ],
-      [ "License", "d0/d30/md_README.html#autotoc_md1637", null ],
-      [ "🙏 Acknowledgments", "d0/d30/md_README.html#autotoc_md1638", null ],
-      [ "📸 Screenshots", "d0/d30/md_README.html#autotoc_md1639", null ]
+      [ "Documentation", "d0/d30/md_README.html#autotoc_md1624", null ],
+      [ "Supported Platforms", "d0/d30/md_README.html#autotoc_md1625", null ],
+      [ "ROM Compatibility", "d0/d30/md_README.html#autotoc_md1626", null ],
+      [ "Contributing", "d0/d30/md_README.html#autotoc_md1627", null ],
+      [ "License", "d0/d30/md_README.html#autotoc_md1628", null ],
+      [ "🙏 Acknowledgments", "d0/d30/md_README.html#autotoc_md1629", null ],
+      [ "📸 Screenshots", "d0/d30/md_README.html#autotoc_md1630", null ]
     ] ],
     [ "yaze Build Scripts", "de/d82/md_scripts_2README.html", [
-      [ "Windows Scripts", "de/d82/md_scripts_2README.html#autotoc_md1642", [
-        [ "vcpkg Setup (Optional)", "de/d82/md_scripts_2README.html#autotoc_md1643", null ]
+      [ "Windows Scripts", "de/d82/md_scripts_2README.html#autotoc_md1633", [
+        [ "vcpkg Setup (Optional)", "de/d82/md_scripts_2README.html#autotoc_md1634", null ]
       ] ],
-      [ "Windows Build Workflow", "de/d82/md_scripts_2README.html#autotoc_md1644", [
-        [ "Recommended: Visual Studio CMake Mode", "de/d82/md_scripts_2README.html#autotoc_md1645", null ],
-        [ "Command Line Build", "de/d82/md_scripts_2README.html#autotoc_md1646", null ],
-        [ "Compiler Notes", "de/d82/md_scripts_2README.html#autotoc_md1647", null ]
+      [ "Windows Build Workflow", "de/d82/md_scripts_2README.html#autotoc_md1635", [
+        [ "Recommended: Visual Studio CMake Mode", "de/d82/md_scripts_2README.html#autotoc_md1636", null ],
+        [ "Command Line Build", "de/d82/md_scripts_2README.html#autotoc_md1637", null ],
+        [ "Compiler Notes", "de/d82/md_scripts_2README.html#autotoc_md1638", null ]
       ] ],
-      [ "Quick Start (Windows)", "de/d82/md_scripts_2README.html#autotoc_md1648", [
-        [ "Option 1: Visual Studio (Recommended)", "de/d82/md_scripts_2README.html#autotoc_md1649", null ],
-        [ "Option 2: Command Line", "de/d82/md_scripts_2README.html#autotoc_md1650", null ],
-        [ "Option 3: With vcpkg (Optional)", "de/d82/md_scripts_2README.html#autotoc_md1651", null ]
+      [ "Quick Start (Windows)", "de/d82/md_scripts_2README.html#autotoc_md1639", [
+        [ "Option 1: Visual Studio (Recommended)", "de/d82/md_scripts_2README.html#autotoc_md1640", null ],
+        [ "Option 2: Command Line", "de/d82/md_scripts_2README.html#autotoc_md1641", null ],
+        [ "Option 3: With vcpkg (Optional)", "de/d82/md_scripts_2README.html#autotoc_md1642", null ]
       ] ],
-      [ "Troubleshooting", "de/d82/md_scripts_2README.html#autotoc_md1652", [
-        [ "Common Issues", "de/d82/md_scripts_2README.html#autotoc_md1653", null ],
-        [ "Getting Help", "de/d82/md_scripts_2README.html#autotoc_md1654", null ]
+      [ "Troubleshooting", "de/d82/md_scripts_2README.html#autotoc_md1643", [
+        [ "Common Issues", "de/d82/md_scripts_2README.html#autotoc_md1644", null ],
+        [ "Getting Help", "de/d82/md_scripts_2README.html#autotoc_md1645", null ]
       ] ],
-      [ "Other Scripts", "de/d82/md_scripts_2README.html#autotoc_md1655", null ]
+      [ "Other Scripts", "de/d82/md_scripts_2README.html#autotoc_md1646", null ]
     ] ],
     [ "YAZE Build Environment Verification Scripts", "dc/db4/md_scripts_2README__VERIFICATION.html", [
-      [ "Quick Start", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1657", [
-        [ "Verify Build Environment", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1658", null ]
+      [ "Quick Start", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1648", [
+        [ "Verify Build Environment", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1649", null ]
       ] ],
-      [ "Scripts Overview", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1659", [
-        [ "<tt>verify-build-environment.ps1</tt> / <tt>.sh</tt>", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1660", [
-          [ "Usage", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1661", null ],
-          [ "Exit Codes", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1662", null ]
+      [ "Scripts Overview", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1650", [
+        [ "<tt>verify-build-environment.ps1</tt> / <tt>.sh</tt>", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1651", [
+          [ "Usage", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1652", null ],
+          [ "Exit Codes", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1653", null ]
         ] ]
       ] ],
-      [ "Common Workflows", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1663", [
-        [ "First-Time Setup", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1664", null ],
-        [ "After Pulling Changes", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1665", null ],
-        [ "Troubleshooting Build Issues", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1666", null ],
-        [ "Before Opening Pull Request", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1667", null ]
+      [ "Common Workflows", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1654", [
+        [ "First-Time Setup", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1655", null ],
+        [ "After Pulling Changes", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1656", null ],
+        [ "Troubleshooting Build Issues", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1657", null ],
+        [ "Before Opening Pull Request", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1658", null ]
       ] ],
-      [ "Automatic Fixes", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1668", [
-        [ "Always Auto-Fixed (No Confirmation Required)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1669", null ],
-        [ "Fixed with <tt>-FixIssues</tt> / <tt>--fix</tt> Flag", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1670", null ],
-        [ "Fixed with <tt>-CleanCache</tt> / <tt>--clean</tt> Flag", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1671", null ],
-        [ "Optional Verbose Tests", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1672", null ]
+      [ "Automatic Fixes", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1659", [
+        [ "Always Auto-Fixed (No Confirmation Required)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1660", null ],
+        [ "Fixed with <tt>-FixIssues</tt> / <tt>--fix</tt> Flag", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1661", null ],
+        [ "Fixed with <tt>-CleanCache</tt> / <tt>--clean</tt> Flag", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1662", null ],
+        [ "Optional Verbose Tests", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1663", null ]
       ] ],
-      [ "Integration with Visual Studio", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1673", null ],
-      [ "What Gets Checked", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1674", [
-        [ "CMake (Required)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1675", null ],
-        [ "Git (Required)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1676", null ],
-        [ "Compilers (Required)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1677", null ],
-        [ "Platform Dependencies", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1678", null ],
-        [ "CMake Cache", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1679", null ],
-        [ "Dependencies", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1680", null ]
+      [ "Integration with Visual Studio", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1664", null ],
+      [ "What Gets Checked", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1665", [
+        [ "CMake (Required)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1666", null ],
+        [ "Git (Required)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1667", null ],
+        [ "Compilers (Required)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1668", null ],
+        [ "Platform Dependencies", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1669", null ],
+        [ "CMake Cache", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1670", null ],
+        [ "Dependencies", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1671", null ]
       ] ],
-      [ "Automatic Fixes", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1681", null ],
-      [ "CI/CD Integration", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1682", null ],
-      [ "Troubleshooting", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1683", [
-        [ "Script Reports \"CMake Not Found\"", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1684", null ],
-        [ "\"Git Submodules Missing\"", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1685", null ],
-        [ "\"CMake Cache Too Old\"", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1686", null ],
-        [ "\"Visual Studio Not Found\" (Windows)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1687", null ],
-        [ "Script Fails on Network Issues (gRPC)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1688", null ]
+      [ "Automatic Fixes", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1672", null ],
+      [ "CI/CD Integration", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1673", null ],
+      [ "Troubleshooting", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1674", [
+        [ "Script Reports \"CMake Not Found\"", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1675", null ],
+        [ "\"Git Submodules Missing\"", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1676", null ],
+        [ "\"CMake Cache Too Old\"", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1677", null ],
+        [ "\"Visual Studio Not Found\" (Windows)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1678", null ],
+        [ "Script Fails on Network Issues (gRPC)", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1679", null ]
       ] ],
-      [ "See Also", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1689", null ]
+      [ "See Also", "dc/db4/md_scripts_2README__VERIFICATION.html#autotoc_md1680", null ]
     ] ],
     [ "yaze Test Suite", "d0/d46/md_test_2README.html", [
-      [ "Directory Structure", "d0/d46/md_test_2README.html#autotoc_md1691", null ],
-      [ "Test Categories", "d0/d46/md_test_2README.html#autotoc_md1692", [
-        [ "Unit Tests (<tt>unit/</tt>)", "d0/d46/md_test_2README.html#autotoc_md1693", null ],
-        [ "Integration Tests (<tt>integration/</tt>)", "d0/d46/md_test_2README.html#autotoc_md1694", null ],
-        [ "End-to-End Tests (<tt>e2e/</tt>)", "d0/d46/md_test_2README.html#autotoc_md1695", null ]
+      [ "Directory Structure", "d0/d46/md_test_2README.html#autotoc_md1682", null ],
+      [ "Test Categories", "d0/d46/md_test_2README.html#autotoc_md1683", [
+        [ "Unit Tests (<tt>unit/</tt>)", "d0/d46/md_test_2README.html#autotoc_md1684", null ],
+        [ "Integration Tests (<tt>integration/</tt>)", "d0/d46/md_test_2README.html#autotoc_md1685", null ],
+        [ "End-to-End Tests (<tt>e2e/</tt>)", "d0/d46/md_test_2README.html#autotoc_md1686", null ]
       ] ],
-      [ "Enhanced Test Runner", "d0/d46/md_test_2README.html#autotoc_md1696", [
-        [ "Usage Examples", "d0/d46/md_test_2README.html#autotoc_md1697", null ],
-        [ "Test Modes", "d0/d46/md_test_2README.html#autotoc_md1698", null ],
-        [ "Options", "d0/d46/md_test_2README.html#autotoc_md1699", null ]
+      [ "Enhanced Test Runner", "d0/d46/md_test_2README.html#autotoc_md1687", [
+        [ "Usage Examples", "d0/d46/md_test_2README.html#autotoc_md1688", null ],
+        [ "Test Modes", "d0/d46/md_test_2README.html#autotoc_md1689", null ],
+        [ "Options", "d0/d46/md_test_2README.html#autotoc_md1690", null ]
       ] ],
-      [ "E2E ROM Testing", "d0/d46/md_test_2README.html#autotoc_md1700", [
-        [ "Test Cases", "d0/d46/md_test_2README.html#autotoc_md1701", null ]
+      [ "E2E ROM Testing", "d0/d46/md_test_2README.html#autotoc_md1691", [
+        [ "Test Cases", "d0/d46/md_test_2README.html#autotoc_md1692", null ]
       ] ],
-      [ "ZSCustomOverworld Upgrade Testing", "d0/d46/md_test_2README.html#autotoc_md1702", [
-        [ "Supported Upgrades", "d0/d46/md_test_2README.html#autotoc_md1703", null ],
-        [ "Test Cases", "d0/d46/md_test_2README.html#autotoc_md1704", null ],
-        [ "Version-Specific Features", "d0/d46/md_test_2README.html#autotoc_md1705", [
-          [ "Vanilla", "d0/d46/md_test_2README.html#autotoc_md1706", null ],
-          [ "v2", "d0/d46/md_test_2README.html#autotoc_md1707", null ],
-          [ "v3", "d0/d46/md_test_2README.html#autotoc_md1708", null ]
+      [ "ZSCustomOverworld Upgrade Testing", "d0/d46/md_test_2README.html#autotoc_md1693", [
+        [ "Supported Upgrades", "d0/d46/md_test_2README.html#autotoc_md1694", null ],
+        [ "Test Cases", "d0/d46/md_test_2README.html#autotoc_md1695", null ],
+        [ "Version-Specific Features", "d0/d46/md_test_2README.html#autotoc_md1696", [
+          [ "Vanilla", "d0/d46/md_test_2README.html#autotoc_md1697", null ],
+          [ "v2", "d0/d46/md_test_2README.html#autotoc_md1698", null ],
+          [ "v3", "d0/d46/md_test_2README.html#autotoc_md1699", null ]
         ] ]
       ] ],
-      [ "Environment Variables", "d0/d46/md_test_2README.html#autotoc_md1709", null ],
-      [ "CI/CD Integration", "d0/d46/md_test_2README.html#autotoc_md1710", null ],
-      [ "Deprecated Tests", "d0/d46/md_test_2README.html#autotoc_md1711", null ],
-      [ "Best Practices", "d0/d46/md_test_2README.html#autotoc_md1712", null ],
-      [ "AI Agent Testing", "d0/d46/md_test_2README.html#autotoc_md1713", null ]
+      [ "Environment Variables", "d0/d46/md_test_2README.html#autotoc_md1700", null ],
+      [ "CI/CD Integration", "d0/d46/md_test_2README.html#autotoc_md1701", null ],
+      [ "Deprecated Tests", "d0/d46/md_test_2README.html#autotoc_md1702", null ],
+      [ "Best Practices", "d0/d46/md_test_2README.html#autotoc_md1703", null ],
+      [ "AI Agent Testing", "d0/d46/md_test_2README.html#autotoc_md1704", null ]
     ] ],
     [ "Deprecated List", "da/d58/deprecated.html", null ],
     [ "Todo List", "dd/da0/todo.html", null ],
@@ -2106,98 +2097,99 @@ var NAVTREEINDEX =
 "d0/d8d/snes__tile_8h.html#aa50c94ff8a438c8d1f9d8a74115c5304",
 "d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0aa417c4bc0c4411826af3a501f608fca4",
 "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#afdb37a27be63828463ec77cb203676ee",
-"d1/d3e/namespaceyaze_1_1editor.html#aa063454756da9a9d06099a81ce314c2e",
-"d1/d5e/structyaze_1_1emu_1_1STAT78.html#a87d1e07981819e72b7d56cecbfbdcf89",
-"d1/daf/compression_8h.html#abd4f6d920d64eaf1da8cbd56479721ad",
-"d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb",
-"d2/d07/classyaze_1_1emu_1_1Spc700.html#aaaa5925cb3350f190c21bacba8efd4f5",
-"d2/d46/classyaze_1_1editor_1_1PaletteEditor.html#ab9ef8cdc27780b2941f86b801b31c02f",
-"d2/d71/structyaze_1_1gui_1_1canvas_1_1CanvasModals_1_1ModalState.html",
-"d2/dd3/md_docs_203-asar-integration.html#autotoc_md79",
-"d2/df2/integrated__test__suite_8h.html",
-"d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4",
-"d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#ac18abb70efd7b720cfb8aba5c9c1422c",
-"d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a0b6167feba98d64a924b3d946ad2d217",
-"d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#adac2da0e5bfc87f31ae50e5c4c3edd2e",
-"d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#aabb5310703f9b83fb67c7b265b2f41ed",
-"d3/d8a/classyaze_1_1editor_1_1CommandManager.html",
-"d3/d9d/classyaze_1_1zelda3_1_1GameEntity.html#a4ba4e9a6d4f44e028042cf18214f8756",
-"d3/dbf/namespaceyaze_1_1gui.html#a63cf2c84b704f70ba84ef7a1691e1b85",
-"d3/ded/classyaze_1_1emu_1_1Ppu.html#a5ae6104c9b63b8ee606c71ee660ff926",
-"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a817f266e05736cf9588653ca13c7ebf4",
-"d4/d12/compression__test_8cc.html#acc77db7170c43fcdb3afc011685f371e",
-"d4/d6f/classyaze_1_1gfx_1_1PerformanceDashboard.html#ad42ea864d39b2178107637162c892dbd",
-"d4/d9e/macro_8h.html#a9a548e9537ecb0675b887fec6654d2d3",
-"d4/dda/structyaze_1_1emu_1_1CGWSEL.html#a7bba753237dc8918638100bf8e80c456",
-"d5/d1e/classTextEditor_1_1UndoRecord.html#aebc5c6eb74dcd288b7dec42c7de4a648",
-"d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468aaa014ddb4fb91b991037a01d8c76b986",
-"d5/d1f/namespaceyaze_1_1zelda3.html#ae553b04402f4fae6b1151c68e6e05685",
-"d5/d61/structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html",
-"d5/da1/structyaze_1_1cli_1_1ProposalRegistry_1_1ProposalMetadata.html#a540916782ea75eeb44d9270004b14397",
-"d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1208",
-"d6/d20/namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a4fb43c0a77502c0cd46f01c14787fa75",
-"d6/d2f/classyaze_1_1zelda3_1_1OverworldExit.html#aa2a84c487b9f3f9b807b613dd44b1472",
-"d6/d3c/classyaze_1_1zelda3_1_1Inventory.html#ad76d5f631ded2c8d98a3ec4784c63a62",
-"d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf",
-"d6/dbd/settings__editor_8cc.html",
-"d6/df1/structyaze_1_1emu_1_1OAMAddress.html#a1c24190a6ec10552970cc29b620d33bf",
-"d7/d4d/classyaze_1_1gui_1_1canvas_1_1CanvasUsageTracker.html#a27e51241af8174dc10f02e87c9ec503a",
-"d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a80a5b314bf39886d42dc7ddd3ae2fab2",
-"d7/d6f/md_docs_2C1-changelog.html",
-"d7/d9c/overworld_8h.html#a70c6666dde2ca529f626d335716d2e7e",
-"d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#a2ccdbf83de08b3821d3c0c4d2242799b",
-"d7/df6/classyaze_1_1zelda3_1_1Room.html#ab954b065cce75d4d9eadca8be10a32d3",
-"d7/dfb/classyaze_1_1editor_1_1OverworldEditorManager.html#ae6cdfb340a1acb2c591cc40a805e961b",
-"d8/d43/sprite__position__test_8cc.html#a30bef1fbc7b2d7044911b9e0e2159ab9",
-"d8/d7c/structyaze_1_1gfx_1_1SheetOptimizationData.html#abe3aa98207fa34be481b9f0dfd170c80",
-"d8/db7/classyaze_1_1zelda3_1_1Subtype1.html#a12abf6dddbbf34ef9916d362d404cdb3",
-"d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#ae063ef5bea652de0be5647b37b076c47",
-"d9/d41/md_docs_202-build-instructions.html#autotoc_md11",
-"d9/d87/overworld__item_8h.html#ac401d7c6822f926faa417937770d08fa",
-"d9/dc0/room_8h.html#afb47ec71853bc72be86c1b0c481a3496",
-"d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a0597c89dde252676d3f7347c1ff42c2a",
-"d9/dd3/classyaze_1_1test_1_1TestDungeonObjects.html#ae54e6f33061f4c58bc1d418f62a1d906",
-"da/d0c/controller_8cc_source.html",
-"da/d2c/classyaze_1_1gui_1_1Canvas.html#a790f3ebecc655c19929d6ede556e1fc1",
-"da/d37/hyrule__magic_8cc.html#a8ab3b57fbac6827915afd65b2f687eb1",
-"da/d5e/structyaze_1_1core_1_1YazeProject.html#a4f915b08b3b16950eaf6a019e3092066",
-"da/d93/structzelda3__overworld__map.html#a60b0c7857986ba600445293f9074f2df",
-"da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9696c9ed3e363b0a989213d0d0862010",
-"db/d0a/structyaze_1_1gfx_1_1Tilemap.html",
-"db/d5d/ui__constants_8h.html#ae3aa9be01563c24c6ba60be060f31fe6",
-"db/d82/classyaze_1_1editor_1_1Tile16Editor.html#ad5e20a964051af720ba62cd72f46c694",
-"db/db3/structyaze_1_1emu_1_1MnemonicModeHash.html#a68c1dc0d57f64e1c3047940134111c9d",
-"db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#adc9fef95b9b01d662a0ab8951f45e876",
-"dc/d01/classyaze_1_1emu_1_1Dsp.html#aad2c9d62a6c0c320bdae6acab052f5c6",
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#a6df417c71b3d310543f5bf5ba808ac1f",
-"dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#a3137d1466b84f0fefc457673fae71a9e",
-"dc/d82/md_docs_2E3-dungeon-editor-design.html#autotoc_md725",
-"dc/dd1/structyaze_1_1editor_1_1MessagePreview.html#abf6cc53c1b88d9e202cdf45b8219647f",
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a5765d7be546bde8375e6004b5915251f",
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#ae33fc6ff9c6117f0d65f98b405de6afa",
-"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a9e31d2cdbb2d802bf8f2a8f458cb8edf",
-"dd/d3f/structyaze_1_1zelda3_1_1MouseConfig.html#a1acf8599c5cfaac1be7adb90a5854fee",
-"dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa999e1b181ff36a65c7fd5a32e4e627d8",
-"dd/d96/md_docs_204-api-reference.html#autotoc_md102",
-"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#a671904aefd8d26287ee701903fbc78ea",
-"de/d07/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ReviewRequirement.html",
-"de/d3d/yaze__test_8cc.html#a48974bc37811e72ae810e23d0f38b817a5fd47ec26e3287ea852c40bdb687b01d",
-"de/d82/classyaze_1_1util_1_1NotifyValue.html#a5df895f128eeeb3a1ad6ca944dd9e948",
-"de/dab/classyaze_1_1zelda3_1_1ObjectRenderer_1_1ObjectParser.html#ac000f5b37ffc12e04648ccd0b8d3dc3b",
-"de/dbf/icons_8h.html#a19239e2de13b217c6cf28cb4dd48f2bd",
-"de/dbf/icons_8h.html#a38272ddec68ebf0bb9a3286829a43bb2",
-"de/dbf/icons_8h.html#a5246f710db7826254ec6d669df6482bd",
-"de/dbf/icons_8h.html#a7094f4761240ae206d48aa8d64785d68",
-"de/dbf/icons_8h.html#a8fe058eba3e49adcbddfff72bc3a0614",
-"de/dbf/icons_8h.html#aad9e75585e36c58ee7548671f9636177",
-"de/dbf/icons_8h.html#acb03e33c4faabd9efb4a60d178ab1eef",
-"de/dbf/icons_8h.html#ae6783c3e2dd5fe358da82a66683fa2e5",
-"de/dd1/dungeon__integration__test_8cc_source.html",
-"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#acaabbf711d0fc4d8341a9070d149ca4b",
-"df/d1d/classyaze_1_1test_1_1UITestSuite.html#a9f36de46ed4d6e66d863276b2b4204d5",
-"df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html",
-"df/ded/sprite__builder__test_8cc.html",
-"globals_defs_s.html"
+"d1/d3e/namespaceyaze_1_1editor.html#a9cd369e38dc99a9b89db9a5c185b4fc1",
+"d1/d5e/structyaze_1_1emu_1_1STAT78.html#a7a20d2353e82aa560d71dc783fd96ec9",
+"d1/daf/compression_8h.html#a825a501247f069bad8b8fa15f1d67f57",
+"d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#a87c61b7d91a2135d802cc0219e2b4c29",
+"d2/d07/classyaze_1_1emu_1_1Spc700.html#a76a74b4095ac1f6d651593d90fa740da",
+"d2/d39/classyaze_1_1gui_1_1MultiSelect.html#afb7db7dd8e4560885680ddaaeb73549b",
+"d2/d60/structyaze_1_1test_1_1TestResults.html#a17c7507df532093fd331b4434c521313",
+"d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html#a341ca17481d1b473e183ceff662db613",
+"d2/def/classyaze_1_1test_1_1TestRecorder.html#a59ba3283e35acacdf06fd0cf052c8545",
+"d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#abd676f793e1a3df40105db48e533c5ce",
+"d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#aa854f2a5293bfed1173f2cf18afb8849",
+"d3/d30/structyaze_1_1gui_1_1canvas_1_1CanvasPerformanceMetrics.html#ab2fd895e645e9eddfdb25e763634bf3e",
+"d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ab78bdba499d5e53d5892006e48d7f80f",
+"d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a1b74adef15313ceea74dc30263e93b89",
+"d3/d81/group__dungeon.html#ga9ecfc19156f8f627881db2f6c16190ef",
+"d3/d94/structyaze_1_1gui_1_1canvas_1_1CanvasContextMenu_1_1ContextMenuItem.html#ab4fdff8843b47cdd8ae2883cf98bcde4",
+"d3/dbf/canvas__usage__tracker_8h.html#a11c32674d05f23d59e00b23ee6c9c60ca71b0b09b1cc5014cd7e9b9b8eac59c69",
+"d3/ded/classyaze_1_1emu_1_1Ppu.html#a2df45663238a5cd712cb7208f15374ee",
+"d4/d02/classyaze_1_1cli_1_1ResourceCatalog.html#a248d68f7134a6821fcf6bd877b40b02f",
+"d4/d0a/namespaceyaze_1_1test.html#acf556b006d6d9fbaf0b050e55c86ffc4",
+"d4/d68/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a82dfa975a7401bfae34638db0833019f",
+"d4/d8e/tui_8cc.html#a42e2b26b5b0aaf880b0d9c4c4a255d09",
+"d4/dcf/canvas_8h.html#aa7b9cc1741455bb4ffc5ba758912a465a20e39deb41b95e8150718fbb7ce02774",
+"d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#ae8a926ef1b98ec18dbe883e46074398b",
+"d5/d1f/namespaceyaze_1_1zelda3.html#a5ce27ca80434a42b0843ac3fcf513581",
+"d5/d1f/namespaceyaze_1_1zelda3.html#ab856ab8bbcaa17a82b9243a480c43c6f",
+"d5/d46/classyaze_1_1gfx_1_1PoolAllocator.html#a5a487a79ba83f7054fac84fd3365b66b",
+"d5/d95/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html#ae3bb9fdd47c9330a4c28beeec96469fd",
+"d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1133",
+"d6/d04/structyaze_1_1emu_1_1WOBJSEL.html#aa823e2778c4414f98b906503b54e770e",
+"d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a7eb7aa79440908836322572c0121c43b",
+"d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a3f3c216f891a78be9d5f289d2c13e2cc",
+"d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md580",
+"d6/db1/classyaze_1_1zelda3_1_1Sprite.html#ab0989d4b8500c77e63b95411c635d794",
+"d6/dcf/snes__tile__test_8cc.html#a09d506bccffd0952de360a353439505c",
+"d7/d2d/test__commands_8cc.html#a6e1a358a5b38165cc05d6c964ed78e49",
+"d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a2d4a14d11dd5edd43772fe385fd88991",
+"d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ae1cdb8859922d1caa4a46f01d83c7c7ea2f51257655b6634f7b1a1828e3607c85",
+"d7/d85/classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html#a7e8e9b679801ceb86b6e431bcdf58474",
+"d7/dc5/classyaze_1_1util_1_1Flag.html#a427a7e6699feacdfaa3f7b4dfacb2392",
+"d7/df6/classyaze_1_1zelda3_1_1Room.html#a3bcac007ee24cbe7b5b3f182511ae137",
+"d7/dfa/classyaze_1_1zelda3_1_1ObjectRenderer.html#ade7e2294dc105d921e92c11c1d40fa0f",
+"d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html#autotoc_md285",
+"d8/d5f/classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html#a355231802aae7b52c726b0df4047423a",
+"d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#aabd90daa8c29e0a2b38287f70b33bbd0",
+"d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a4c88dbe6c96f20bba8fd432738e1a528",
+"d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#afb365588dfacf2b7d5e29c7d939b7ea5",
+"d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo.html#abcce6512d9b46b9ed8163bf01e20f94a",
+"d9/dbd/canvas__utils__moved_8h_source.html",
+"d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a6b9e9841d16c98a3fbab7d6b5a170944",
+"d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a8bf79f77aeb50dc40c648ee5ea997169",
+"d9/df4/md_docs_2gfx__improvements__summary.html#autotoc_md946",
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd",
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#ac6d2a15c340e837634f462b3311ad9a6",
+"da/d3e/classyaze_1_1test_1_1TestManager.html#accb083bc4e5f9205954fa5c0059e4ba5",
+"da/d6b/compress_8cc.html",
+"da/dbc/classyaze_1_1emu_1_1AsmParser.html#a6ebefb8ac2822d8030c691b1a3ce2402",
+"da/ded/widget__state__capture_8cc.html#a47bd14908358bda6b3cf9fe0cd095a92",
+"db/d33/namespaceyaze_1_1core.html#abc62834eb5824227302b2f2e7f5b375d",
+"db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a293eda8e9f8020e4021af9036d43ccda",
+"db/d9c/message__data_8h.html#a21e1869b2d34d14502246beaca8f4f4e",
+"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#a7cd25682920de9e3b6559931b14f461ea2439143197e5b645f47dffd06a77a807",
+"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a0e0f774fbd05970e01b1a33f9eca1b43",
+"dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md911",
+"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ae143e980f615c02473c5e72e6b45e08c",
+"dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#a6587e9a344de43467670e53b66752f13",
+"dc/da6/structyaze_1_1emu_1_1VMADDH.html",
+"dc/dee/snes__color_8cc.html#a68d9e4162aa4c03b5061b60c3da6947a",
+"dc/df4/classyaze_1_1emu_1_1Cpu.html#a88704ff8f5c9a7975c38476d98888b2b",
+"dc/dfb/structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html#abf29a678db3372e8afd90815a422908d",
+"dd/d12/classyaze_1_1editor_1_1EditorManager.html#ae9a431666f10d2734518acc911e504b7",
+"dd/d44/structyaze_1_1gui_1_1GfxSheetAssetBrowser.html#a4de9befc9abfdd17f678aa35ed476728",
+"dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2dd2b017192f8a09367d48c7648213c9",
+"dd/da8/structyaze_1_1emu_1_1TileMapLocation.html#a83d4691418a6aea07f658dc0cf4c4dbd",
+"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#a728e925cc68d6c08332b2f55f4146715a45ff522dd1a6dbb9b6295e73dcedf2e3",
+"de/d0c/structyaze_1_1core_1_1AsarPatchResult.html#a9c435a1db23c1a4f6f7380da4984f1da",
+"de/d3d/yaze__test_8cc.html#a48974bc37811e72ae810e23d0f38b817ade8900e4c323b0c667bfd5ca5ecf9e5c",
+"de/d7d/structyaze_1_1editor_1_1ExampleAppPropertyEditor.html#ae2750b4483df501436973dfd754e0e0d",
+"de/dab/classyaze_1_1zelda3_1_1ObjectRenderer_1_1ObjectParser.html",
+"de/dbf/icons_8h.html#a16f77ff0c34deea46666f329b4ffa184",
+"de/dbf/icons_8h.html#a35fd4cf3d8c6f3de07ed37aae244a604",
+"de/dbf/icons_8h.html#a50364c2026307cc9924a52d810d757a6",
+"de/dbf/icons_8h.html#a6d3710452ecb209088f4401c0564c8bd",
+"de/dbf/icons_8h.html#a8d7cc90acab11b1922bdb800ee201fcb",
+"de/dbf/icons_8h.html#aab9057e6b23cd0b12ba28ffec119b1f4",
+"de/dbf/icons_8h.html#ac8fcdcef0597ecefdd898ad769e71c25",
+"de/dbf/icons_8h.html#ae43ac3d0b58bf2241918342e609f8284",
+"de/dbf/icons_8h.html#aff3f711015252f199c905616262c3dd8",
+"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#aad2c5c0e9bc2c463b72796e372e2e661",
+"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#ae356b1ef12101cdb617fcaf5d2eacb67",
+"df/d6c/namespaceextract__changelog.html#af0484ad211279dc459fc067553a0f98f",
+"df/dcb/hex_8cc.html#a8df6570682bdbc23efde15272b1b1494",
+"functions_vars_u.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

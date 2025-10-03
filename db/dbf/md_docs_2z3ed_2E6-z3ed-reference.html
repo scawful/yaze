@@ -534,12 +534,23 @@ Agent Commands</h2>
 <div class="line"> </div>
 <div class="line">Actions:</div>
 <div class="line">  run &lt;suite&gt;     Run test suite (YAML/JSON)</div>
-<div class="line">  create &lt;name&gt;   Create new test suite interactively</div>
+<div class="line">  create &lt;name&gt;   Create new test suite interactively (writes tests/&lt;name&gt;.yaml)</div>
 <div class="line">  validate &lt;file&gt; Validate test suite format</div>
+<div class="line"> </div>
+<div class="line">Options for `create`:</div>
+<div class="line">  --force         Overwrite the target file without prompting</div>
+<div class="line"> </div>
+<div class="line">The create workflow walks you through suite metadata, groups, and tests. If</div>
+<div class="line">you pass a bare name (e.g., `smoke`), the suite is written to</div>
+<div class="line">`tests/smoke.yaml`; supplying a path like `ci/regression.yaml` preserves the</div>
+<div class="line">directory. Use the prompts to add groups, associate JSON replay scripts, tags,</div>
+<div class="line">and key=value parameters. The CLI warns if referenced scripts are missing but</div>
+<div class="line">still records them so you can author them later.</div>
 <div class="line"> </div>
 <div class="line">Examples:</div>
 <div class="line">  z3ed agent test suite run tests/smoke.yaml</div>
 <div class="line">  z3ed agent test suite validate tests/regression.yaml</div>
+<div class="line">  z3ed agent test suite create smoke</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md1282"></a>
 ROM Commands</h2>
 <h3><a class="anchor" id="autotoc_md1283"></a>

@@ -7,12 +7,7 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "anonymous_namespace{gui_commands.cc}", "d3/d47/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02gui__commands_8cc_03.html", [
       [ "HandleGuiDiscoverCommand", "d3/d47/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02gui__commands_8cc_03.html#a7241457d6dd22a00fd53178092478187", null ]
     ] ],
-    [ "anonymous_namespace{test_commands.cc}", "dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html", [
-      [ "HandleTestRunCommand", "dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a8c62749448db7748429f5c0450357588", null ],
-      [ "HandleTestStatusCommand", "dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#aa45d9bd1f2f448d4be2c37bfba31d423", null ],
-      [ "HandleTestListCommand", "dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a7705fb8ccc82dbe78233ebddeb23736a", null ],
-      [ "HandleTestResultsCommand", "dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a8c8ad081b5a981a1b160932ae654f088", null ]
-    ] ],
+    [ "anonymous_namespace{test_commands.cc}", "dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html", "dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03" ],
     [ "HandleRunCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a4c88dbe6c96f20bba8fd432738e1a528", null ],
     [ "HandlePlanCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#af164e32341de8c5ac58d6836bb3bc483", null ],
     [ "HandleDiffCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab7fbe1f4946d07411f70942eed73a58e", null ],

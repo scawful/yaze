@@ -8,6 +8,9 @@ var annotated_dup =
         [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", [
           [ "anonymous_namespace{general_commands.cc}", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html", [
             [ "DescribeOptions", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions" ]
+          ] ],
+          [ "anonymous_namespace{test_commands.cc}", "dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html", [
+            [ "ReplayCommandOptions", "d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions.html", "d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions" ]
           ] ]
         ] ],
         [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
@@ -55,6 +58,7 @@ var annotated_dup =
         [ "ProjectInit", "d9/d3b/classyaze_1_1cli_1_1ProjectInit.html", "d9/d3b/classyaze_1_1cli_1_1ProjectInit" ],
         [ "ProposalRegistry", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry" ],
         [ "ReadFromRom", "d1/d72/classyaze_1_1cli_1_1ReadFromRom.html", "d1/d72/classyaze_1_1cli_1_1ReadFromRom" ],
+        [ "ReplayTestResult", "dc/d57/structyaze_1_1cli_1_1ReplayTestResult.html", "dc/d57/structyaze_1_1cli_1_1ReplayTestResult" ],
         [ "ResourceAction", "dc/d64/structyaze_1_1cli_1_1ResourceAction.html", "dc/d64/structyaze_1_1cli_1_1ResourceAction" ],
         [ "ResourceArgument", "da/dc6/structyaze_1_1cli_1_1ResourceArgument.html", "da/dc6/structyaze_1_1cli_1_1ResourceArgument" ],
         [ "ResourceCatalog", "d4/d02/classyaze_1_1cli_1_1ResourceCatalog.html", "d4/d02/classyaze_1_1cli_1_1ResourceCatalog" ],
@@ -66,9 +70,15 @@ var annotated_dup =
         [ "RomValidate", "d6/d8e/classyaze_1_1cli_1_1RomValidate.html", "d6/d8e/classyaze_1_1cli_1_1RomValidate" ],
         [ "SnesToPcCommand", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand.html", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand" ],
         [ "SpriteCreate", "da/d30/classyaze_1_1cli_1_1SpriteCreate.html", "da/d30/classyaze_1_1cli_1_1SpriteCreate" ],
+        [ "TestCaseDefinition", "d1/df7/structyaze_1_1cli_1_1TestCaseDefinition.html", "d1/df7/structyaze_1_1cli_1_1TestCaseDefinition" ],
+        [ "TestCaseRunResult", "dd/d80/structyaze_1_1cli_1_1TestCaseRunResult.html", "dd/d80/structyaze_1_1cli_1_1TestCaseRunResult" ],
+        [ "TestGroupDefinition", "dd/d7e/structyaze_1_1cli_1_1TestGroupDefinition.html", "dd/d7e/structyaze_1_1cli_1_1TestGroupDefinition" ],
         [ "TestResultDetails", "d4/db9/structyaze_1_1cli_1_1TestResultDetails.html", "d4/db9/structyaze_1_1cli_1_1TestResultDetails" ],
         [ "TestStatusDetails", "dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html", "dd/d5e/structyaze_1_1cli_1_1TestStatusDetails" ],
         [ "TestStep", "d6/d4b/structyaze_1_1cli_1_1TestStep.html", "d6/d4b/structyaze_1_1cli_1_1TestStep" ],
+        [ "TestSuiteConfig", "de/d77/structyaze_1_1cli_1_1TestSuiteConfig.html", "de/d77/structyaze_1_1cli_1_1TestSuiteConfig" ],
+        [ "TestSuiteDefinition", "de/d68/structyaze_1_1cli_1_1TestSuiteDefinition.html", "de/d68/structyaze_1_1cli_1_1TestSuiteDefinition" ],
+        [ "TestSuiteRunSummary", "d1/d9d/structyaze_1_1cli_1_1TestSuiteRunSummary.html", "d1/d9d/structyaze_1_1cli_1_1TestSuiteRunSummary" ],
         [ "TestWorkflow", "de/d85/structyaze_1_1cli_1_1TestWorkflow.html", "de/d85/structyaze_1_1cli_1_1TestWorkflow" ],
         [ "TestWorkflowGenerator", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator.html", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator" ],
         [ "Tile16Transfer", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer" ],

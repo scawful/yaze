@@ -99,30 +99,64 @@ $(document).ready(function(){initNavTree('d7/d2d/test__commands_8cc.html','../..
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">test_commands.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d5/d90/commands_8h_source.html">cli/handlers/agent/commands.h</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;chrono&gt;</code><br />
+<code>#include &lt;cctype&gt;</code><br />
+<code>#include &lt;cstdio&gt;</code><br />
+<code>#include &lt;filesystem&gt;</code><br />
+<code>#include &lt;fstream&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;limits&gt;</code><br />
+<code>#include &lt;map&gt;</code><br />
+<code>#include &lt;system_error&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;set&gt;</code><br />
+<code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;thread&gt;</code><br />
+<code>#include &lt;unordered_set&gt;</code><br />
+<code>#include &lt;unordered_map&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
 <code>#include &quot;absl/status/statusor.h&quot;</code><br />
 <code>#include &quot;absl/strings/ascii.h&quot;</code><br />
+<code>#include &quot;absl/strings/cord.h&quot;</code><br />
 <code>#include &quot;absl/strings/match.h&quot;</code><br />
+<code>#include &quot;absl/strings/numbers.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_join.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_split.h&quot;</code><br />
+<code>#include &quot;absl/strings/string_view.h&quot;</code><br />
+<code>#include &quot;absl/strings/strip.h&quot;</code><br />
+<code>#include &quot;absl/time/clock.h&quot;</code><br />
 <code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d6/dbc/cli_2handlers_2agent_2common_8h_source.html">cli/handlers/agent/common.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">cli/service/gui_automation_client.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d6/d7a/test__suite_8h_source.html">cli/service/test_suite.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dd/daf/test__suite__loader_8h_source.html">cli/service/test_suite_loader.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d3/d4d/test__suite__reporter_8h_source.html">cli/service/test_suite_reporter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../db/d63/test__suite__writer_8h_source.html">cli/service/test_suite_writer.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d8/dfb/test__workflow__generator_8h_source.html">cli/service/test_workflow_generator.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d4/d9e/macro_8h_source.html">util/macro.h</a>&quot;</code><br />
+<code>#include &lt;unistd.h&gt;</code><br />
 </div>
 <p><a href="../../d7/d2d/test__commands_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions.html">yaze::cli::agent::anonymous_namespace{test_commands.cc}::ReplayCommandOptions</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:dc/d46/namespaceyaze" id="r_dc/d46/namespaceyaze"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d46/namespaceyaze.html">yaze</a></td></tr>
@@ -138,6 +172,40 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a64f5dcf93b0b087cb62b4a0f012285b9" id="r_a64f5dcf93b0b087cb62b4a0f012285b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a64f5dcf93b0b087cb62b4a0f012285b9">yaze::cli::agent::anonymous_namespace{test_commands.cc}::AttachExitCode</a> (absl::Status *status, int exit_code)</td></tr>
+<tr class="separator:a64f5dcf93b0b087cb62b4a0f012285b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a479da6dd9f2e4ff76f7a625b05ac006b" id="r_a479da6dd9f2e4ff76f7a625b05ac006b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a479da6dd9f2e4ff76f7a625b05ac006b">yaze::cli::agent::anonymous_namespace{test_commands.cc}::TrimWhitespace</a> (absl::string_view value)</td></tr>
+<tr class="separator:a479da6dd9f2e4ff76f7a625b05ac006b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab48ba1084e58bc382dac4595b5920639" id="r_ab48ba1084e58bc382dac4595b5920639"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#ab48ba1084e58bc382dac4595b5920639">yaze::cli::agent::anonymous_namespace{test_commands.cc}::IsInteractiveInput</a> ()</td></tr>
+<tr class="separator:ab48ba1084e58bc382dac4595b5920639"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8097c1c48511237c40ef39b1fc30b3e" id="r_af8097c1c48511237c40ef39b1fc30b3e"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#af8097c1c48511237c40ef39b1fc30b3e">yaze::cli::agent::anonymous_namespace{test_commands.cc}::PromptWithDefault</a> (const std::string &amp;prompt, const std::string &amp;default_value, bool allow_empty=true)</td></tr>
+<tr class="separator:af8097c1c48511237c40ef39b1fc30b3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18c4ef700684e43d72a03983aaee9602" id="r_a18c4ef700684e43d72a03983aaee9602"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a18c4ef700684e43d72a03983aaee9602">yaze::cli::agent::anonymous_namespace{test_commands.cc}::PromptRequired</a> (const std::string &amp;prompt, const std::string &amp;default_value=std::string())</td></tr>
+<tr class="separator:a18c4ef700684e43d72a03983aaee9602"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4b2e58c4a76947c433bbbe89b26fae4" id="r_af4b2e58c4a76947c433bbbe89b26fae4"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#af4b2e58c4a76947c433bbbe89b26fae4">yaze::cli::agent::anonymous_namespace{test_commands.cc}::PromptInt</a> (const std::string &amp;prompt, int default_value, int min_value)</td></tr>
+<tr class="separator:af4b2e58c4a76947c433bbbe89b26fae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab750922cb38c660a83e97d2b342516fb" id="r_ab750922cb38c660a83e97d2b342516fb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#ab750922cb38c660a83e97d2b342516fb">yaze::cli::agent::anonymous_namespace{test_commands.cc}::PromptYesNo</a> (const std::string &amp;prompt, bool default_value)</td></tr>
+<tr class="separator:ab750922cb38c660a83e97d2b342516fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc6fc3981998ba66ebb87dceda2eeabc" id="r_adc6fc3981998ba66ebb87dceda2eeabc"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#adc6fc3981998ba66ebb87dceda2eeabc">yaze::cli::agent::anonymous_namespace{test_commands.cc}::ParseCommaSeparated</a> (absl::string_view input)</td></tr>
+<tr class="separator:adc6fc3981998ba66ebb87dceda2eeabc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad733955da4ff07d06e5d6fc73bb5d1df" id="r_ad733955da4ff07d06e5d6fc73bb5d1df"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#ad733955da4ff07d06e5d6fc73bb5d1df">yaze::cli::agent::anonymous_namespace{test_commands.cc}::ParseKeyValueEntry</a> (const std::string &amp;input, std::string *key, std::string *value)</td></tr>
+<tr class="separator:ad733955da4ff07d06e5d6fc73bb5d1df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75e4fa82f6d8c84623f84cef7666bc1f" id="r_a75e4fa82f6d8c84623f84cef7666bc1f"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a75e4fa82f6d8c84623f84cef7666bc1f">yaze::cli::agent::anonymous_namespace{test_commands.cc}::DeriveTestNameFromPath</a> (const std::string &amp;path)</td></tr>
+<tr class="separator:a75e4fa82f6d8c84623f84cef7666bc1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7221a5846c3b201c74c6a07063b867e" id="r_af7221a5846c3b201c74c6a07063b867e"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#af7221a5846c3b201c74c6a07063b867e">yaze::cli::agent::anonymous_namespace{test_commands.cc}::OutcomeToLabel</a> (<a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#af8e72af06684da4456850f7f3690e96a">TestCaseOutcome</a> outcome)</td></tr>
+<tr class="separator:af7221a5846c3b201c74c6a07063b867e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a178804826ec3524f8060a24dc13610b5" id="r_a178804826ec3524f8060a24dc13610b5"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a178804826ec3524f8060a24dc13610b5">yaze::cli::agent::anonymous_namespace{test_commands.cc}::BuildWidgetCatalogJson</a> (const <a class="el" href="../../dc/d5a/structyaze_1_1cli_1_1DiscoverWidgetsResult.html">DiscoverWidgetsResult</a> &amp;catalog)</td></tr>
+<tr class="separator:a178804826ec3524f8060a24dc13610b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62852d2390376ecaaf4fbb991b8183a1" id="r_a62852d2390376ecaaf4fbb991b8183a1"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a62852d2390376ecaaf4fbb991b8183a1">yaze::cli::agent::anonymous_namespace{test_commands.cc}::WriteWidgetCatalog</a> (const <a class="el" href="../../dc/d5a/structyaze_1_1cli_1_1DiscoverWidgetsResult.html">DiscoverWidgetsResult</a> &amp;catalog, const std::string &amp;output_path)</td></tr>
+<tr class="separator:a62852d2390376ecaaf4fbb991b8183a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32e76713f99352d0b8267382aaf6e42a" id="r_a32e76713f99352d0b8267382aaf6e42a"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions.html">ReplayCommandOptions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a32e76713f99352d0b8267382aaf6e42a">yaze::cli::agent::anonymous_namespace{test_commands.cc}::ParseReplayArgs</a> (const std::vector&lt; std::string &gt; &amp;args)</td></tr>
+<tr class="separator:a32e76713f99352d0b8267382aaf6e42a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58748232264792d33cee8b43eb7648cc" id="r_a58748232264792d33cee8b43eb7648cc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a58748232264792d33cee8b43eb7648cc">yaze::cli::agent::anonymous_namespace{test_commands.cc}::PrintReplayTextSummary</a> (const <a class="el" href="../../d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions.html">ReplayCommandOptions</a> &amp;options, const <a class="el" href="../../dc/d57/structyaze_1_1cli_1_1ReplayTestResult.html">ReplayTestResult</a> &amp;result)</td></tr>
+<tr class="separator:a58748232264792d33cee8b43eb7648cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36027942a9e4f41a98a6b33bc88a3fbc" id="r_a36027942a9e4f41a98a6b33bc88a3fbc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a36027942a9e4f41a98a6b33bc88a3fbc">yaze::cli::agent::anonymous_namespace{test_commands.cc}::PrintReplayJsonSummary</a> (const <a class="el" href="../../d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions.html">ReplayCommandOptions</a> &amp;options, const <a class="el" href="../../dc/d57/structyaze_1_1cli_1_1ReplayTestResult.html">ReplayTestResult</a> &amp;result)</td></tr>
+<tr class="separator:a36027942a9e4f41a98a6b33bc88a3fbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00d8ad0d0a955bdd0f063cb9a23d7bca" id="r_a00d8ad0d0a955bdd0f063cb9a23d7bca"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a00d8ad0d0a955bdd0f063cb9a23d7bca">yaze::cli::agent::anonymous_namespace{test_commands.cc}::HandleTestReplayCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
+<tr class="separator:a00d8ad0d0a955bdd0f063cb9a23d7bca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c62749448db7748429f5c0450357588" id="r_a8c62749448db7748429f5c0450357588"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a8c62749448db7748429f5c0450357588">yaze::cli::agent::anonymous_namespace{test_commands.cc}::HandleTestRunCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
 <tr class="separator:a8c62749448db7748429f5c0450357588"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa45d9bd1f2f448d4be2c37bfba31d423" id="r_aa45d9bd1f2f448d4be2c37bfba31d423"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#aa45d9bd1f2f448d4be2c37bfba31d423">yaze::cli::agent::anonymous_namespace{test_commands.cc}::HandleTestStatusCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
@@ -146,8 +214,21 @@ Functions</h2></td></tr>
 <tr class="separator:a7705fb8ccc82dbe78233ebddeb23736a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c8ad081b5a981a1b160932ae654f088" id="r_a8c8ad081b5a981a1b160932ae654f088"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a8c8ad081b5a981a1b160932ae654f088">yaze::cli::agent::anonymous_namespace{test_commands.cc}::HandleTestResultsCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
 <tr class="separator:a8c8ad081b5a981a1b160932ae654f088"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeed1e3472047d8d590c2cf609943fd5d" id="r_aeed1e3472047d8d590c2cf609943fd5d"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#aeed1e3472047d8d590c2cf609943fd5d">yaze::cli::agent::anonymous_namespace{test_commands.cc}::HandleTestSuiteRunCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
+<tr class="separator:aeed1e3472047d8d590c2cf609943fd5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3ccd49bc300273a76c4b45376c8786f" id="r_ad3ccd49bc300273a76c4b45376c8786f"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#ad3ccd49bc300273a76c4b45376c8786f">yaze::cli::agent::anonymous_namespace{test_commands.cc}::HandleTestSuiteValidateCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
+<tr class="separator:ad3ccd49bc300273a76c4b45376c8786f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb1479042f19b0180fdf690b2bb8b9e1" id="r_afb1479042f19b0180fdf690b2bb8b9e1"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#afb1479042f19b0180fdf690b2bb8b9e1">yaze::cli::agent::anonymous_namespace{test_commands.cc}::HandleTestSuiteCreateCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
+<tr class="separator:afb1479042f19b0180fdf690b2bb8b9e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98d4b6998569adb30f5375a7a3f74716" id="r_a98d4b6998569adb30f5375a7a3f74716"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a98d4b6998569adb30f5375a7a3f74716">yaze::cli::agent::anonymous_namespace{test_commands.cc}::HandleTestSuiteCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
+<tr class="separator:a98d4b6998569adb30f5375a7a3f74716"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e1a358a5b38165cc05d6c964ed78e49" id="r_a6e1a358a5b38165cc05d6c964ed78e49"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6e1a358a5b38165cc05d6c964ed78e49">yaze::cli::agent::HandleTestCommand</a> (const std::vector&lt; std::string &gt; &amp;args)</td></tr>
 <tr class="separator:a6e1a358a5b38165cc05d6c964ed78e49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a3e508a015e0a2b9261e73e59dfd2306d" id="r_a3e508a015e0a2b9261e73e59dfd2306d"><td class="memItemLeft" align="right" valign="top">constexpr char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d71/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03.html#a3e508a015e0a2b9261e73e59dfd2306d">yaze::cli::agent::anonymous_namespace{test_commands.cc}::kExitCodePayloadKey</a> [] = &quot;yaze.cli.exit_code&quot;</td></tr>
+<tr class="separator:a3e508a015e0a2b9261e73e59dfd2306d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

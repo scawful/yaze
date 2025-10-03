@@ -133,6 +133,12 @@ Executive Summary</h1>
 <li>GetTestResults RPC returns complete failure diagnostics</li>
 </ul>
 </li>
+<li><b>✅ IT-09 CLI Suite Commands Landed</b>: End-to-end suite orchestration for CI<ul>
+<li><code>agent test suite run</code> handles groups, tags, params, retries, and emits summaries plus default JUnit XML under <code>test-results/junit/</code></li>
+<li><code>agent test suite validate</code> performs structural linting with exit codes</li>
+<li>NEW <code>agent test suite create</code> interactive builder writes YAML suites to <code>tests/&lt;name&gt;.yaml</code> (with <code>--force</code> overwrite) and guides group/test entry</li>
+</ul>
+</li>
 <li><b>✅ IT-08a Screenshot RPC Complete</b>: SDL-based screenshot capture operational<ul>
 <li>Captures 1536x864 BMP files via SDL_RenderReadPixels</li>
 <li>Successfully tested via gRPC (5.3MB output files)</li>
@@ -201,35 +207,17 @@ Priority 1: Test Harness Enhancements (IT-05 to IT-09) 🔧 ACTIVE</h2>
 </ul>
 <h3><a class="anchor" id="autotoc_md1216"></a>
 IT-05: Test Introspection API (6-8 hours)</h3>
-<p><b>Status (Oct 2, 2025)</b>: 🟡 <em>Server-side RPCs implemented; CLI + E2E pending</em></p>
-<p><b>Progress</b>:</p><ul>
-<li>✅ <code>imgui_test_harness.proto</code> expanded with GetTestStatus/ListTests/GetTestResults messages.</li>
-<li>✅ <code>TestManager</code> maintains execution history (queued→running→completed) with logs, metrics, and aggregates.</li>
-<li>✅ <code>ImGuiTestHarnessServiceImpl</code> exposes the three introspection RPCs with pagination, status conversion, and log/metric marshalling.</li>
-<li>⚠️ <code>agent</code> CLI commands (<code>test status</code>, <code>test list</code>, <code>test results</code>) still stubbed.</li>
-<li>⚠️ End-to-end introspection script (<code>scripts/test_introspection_e2e.sh</code>) not implemented; regression script <code>test_harness_e2e.sh</code> currently failing because it references the unfinished CLI.</li>
+<p><b>Status (Oct 2, 2025)</b>: ✅ Completed</p>
+<p><b>Highlights</b>:</p><ul>
+<li><code>imgui_test_harness.proto</code> now exposes <code>GetTestStatus</code>, <code>ListTests</code>, and <code>GetTestResults</code> RPCs backed by <code>TestManager</code>'s execution history.</li>
+<li>CLI commands (<code>z3ed agent test status|list|results</code>) are fully wired with JSON/YAML formatting, follow-mode polling, and filtering options.</li>
+<li><code>GuiAutomationClient</code> provides typed wrappers for introspection APIs so agent workflows can poll status programmatically.</li>
+<li>Regression coverage lives in <code>scripts/test_harness_e2e.sh</code>; a slimmer introspection smoke (<code>scripts/test_introspection_e2e.sh</code>) is queued for CI automation but manual verification paths are documented.</li>
 </ul>
-<p><b>Immediate Next Steps</b>:</p><ol type="1">
-<li><b>Wire CLI Client Methods</b><ul>
-<li>Implement gRPC client wrappers for the new RPCs in the automation client.</li>
-<li>Add user-facing commands under <code>z3ed agent test ...</code> with JSON/YAML output options.</li>
+<p><b>Future Enhancements</b>:</p><ul>
+<li>Capture richer assertion metadata (expected/actual pairs) for improved failure messaging when the underlying harness exposes it.</li>
+<li>Add pagination helpers to CLI once history volume grows (low priority).</li>
 </ul>
-</li>
-<li><b>Author E2E Validation Script</b><ul>
-<li>Spin up harness, run Click/Assert workflow, poll via <code>agent test status</code>, fetch results.</li>
-<li>Update CI notes with the new script and expected output.</li>
-</ul>
-</li>
-<li><b>Documentation &amp; Examples</b><ul>
-<li>Extend <code><a class="el" href="../../db/d7d/E6-z3ed-reference_8md.html">E6-z3ed-reference.md</a></code> with full usage examples and sample outputs.</li>
-<li>Add troubleshooting section covering common errors (unknown test_id, timeout, etc.).</li>
-</ul>
-</li>
-<li><b>Stretch (Optional Before IT-06)</b><ul>
-<li>Capture assertion metadata (expected/actual) for richer <code>AssertionResult</code> payloads.</li>
-</ul>
-</li>
-</ol>
 <p><b>Example Usage</b>: </p><div class="fragment"><div class="line"># Queue a test</div>
 <div class="line">z3ed agent test --prompt &quot;Open Overworld editor&quot;</div>
 <div class="line"> </div>
@@ -358,17 +346,16 @@ IT-08: Enhanced Error Reporting (5-7 hours) ✅ COMPLETE</h3>
 <p><b>Implementation Tracks</b>:</p><ol type="1">
 <li><b>Harness-Level Diagnostics</b><ul>
 <li>✅ IT-08a: Screenshot RPC implemented (SDL-based, BMP format, 1536x864)</li>
-<li>✅ IT-08b: Auto-capture screenshots and context on test failure</li>
-<li>� IT-08c: Widget tree dumps and recent <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> events on failure (NEXT)</li>
-<li>Serialize results to both structured JSON (for automation) and human-friendly HTML bundles</li>
-<li>Persist artifacts under <code>test-results/&lt;test_id&gt;/</code> with timestamped directories</li>
+<li>✅ IT-08b: Auto-capture screenshots and context on test failure using shared helper that writes to <code>${TMPDIR}/yaze/test-results/&lt;test_id&gt;/</code></li>
+<li>✅ IT-08c: Widget tree JSON dumps emitted alongside failure context</li>
+<li>⏳ HTML bundle exporter (screenshots + widget tree) remains a stretch goal</li>
 </ul>
 </li>
 <li><b>CLI Experience Improvements</b><ul>
+<li>Surface artifact paths, failure context, and widget state in CLI output (DONE)</li>
 <li>Standardize error envelopes in z3ed (<code>absl::Status</code> + structured payload)</li>
-<li>Surface artifact paths, summarized failure reason, and next-step hints in CLI output</li>
-<li>Add <code>--format html</code> / <code>--format json</code> flags to <code>z3ed agent test results</code> to emit richer context</li>
-<li>Integrate with recording workflow: replay failures using captured state for fast reproduction</li>
+<li>Add <code>--format html</code> flag to emit rich bundles (planned)</li>
+<li>Integrate with recording workflow: replay failures using captured state (planned)</li>
 </ul>
 </li>
 <li><b>EditorManager &amp; Application Integration</b><ul>
@@ -390,7 +377,7 @@ IT-08: Enhanced Error Reporting (5-7 hours) ✅ COMPLETE</h3>
 <div class="line">  &quot;assertion&quot;: &quot;visible:Overworld&quot;,</div>
 <div class="line">  &quot;expected&quot;: &quot;visible&quot;,</div>
 <div class="line">  &quot;actual&quot;: &quot;hidden&quot;,</div>
-<div class="line">  &quot;screenshot&quot;: &quot;/tmp/yaze_test_12345678.png&quot;,</div>
+<div class="line">  &quot;screenshot&quot;: &quot;/tmp/yaze/test-results/grpc_assert_12345678/failure_1696357220000.bmp&quot;,</div>
 <div class="line">  &quot;widget_state&quot;: {</div>
 <div class="line">    &quot;active_window&quot;: &quot;Main Window&quot;,</div>
 <div class="line">    &quot;focused_widget&quot;: null,</div>
@@ -409,28 +396,31 @@ IT-08: Enhanced Error Reporting (5-7 hours) ✅ COMPLETE</h3>
 <div class="line">  }</div>
 <div class="line">}</div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md1220"></a>
-IT-09: CI/CD Integration (2-3 hours)</h3>
-<p><b>Implementation Tasks</b>:</p><ol type="1">
-<li><b>Standardized Test Suite Format</b>:<ul>
-<li>YAML/JSON format for test suite definitions</li>
-<li>Support test groups (smoke, regression, nightly)</li>
-<li>Enable parallel execution with dependencies</li>
+IT-09: CI/CD Integration ✅ CLI Tooling Shipped</h3>
+<p><b>Delivered (Oct 3, 2025)</b>:</p><ol type="1">
+<li><b>Standardized Suite Runtime</b><ul>
+<li>YAML suite parser/loader with group dependencies and retry semantics</li>
+<li><code>z3ed agent test suite run</code> exposes <code>--group</code>, <code>--tag</code>, <code>--param</code>, <code>--retries</code>, <code>--ci-mode</code>, and <code>--junit</code></li>
+<li>Automatic JUnit XML emission to <code>test-results/junit/&lt;suite&gt;.xml</code></li>
 </ul>
 </li>
-<li><b>CI-Friendly CLI</b>:<ul>
-<li><code>z3ed test run-suite tests/suite.yaml --ci-mode</code></li>
-<li>Exit codes: 0 = all passed, 1 = failures, 2 = errors</li>
-<li>JUnit XML output for CI parsers</li>
-<li>GitHub Actions integration examples</li>
+<li><b>Validation &amp; Authoring UX</b><ul>
+<li><code>z3ed agent test suite validate</code> surfaces structural linting with annotated exit codes (0 pass, 1 fail, 2 error)</li>
+<li>NEW <code>z3ed agent test suite create &lt;name&gt;</code> interactive flow scaffolds suites under <code>tests/</code>, prompting for metadata, groups, replay scripts, tags, and key=value parameters (with <code>--force</code> overwrite support)</li>
 </ul>
 </li>
-<li><b>Documentation</b>:<ul>
-<li>Add <code>.github/workflows/gui-tests.yml</code> example</li>
-<li>Create sample test suites for common scenarios</li>
-<li>Document best practices for flaky test handling</li>
+<li><b>Reporting</b><ul>
+<li>Text and JSON summaries include per-test assertions and retry outcomes</li>
+<li>Default output directory layout ready for CI artifact upload</li>
 </ul>
 </li>
 </ol>
+<p><b>Next Steps</b> (post-CLI follow-through):</p><ul>
+<li>Publish canonical <code>tests/smoke.yaml</code> / <code>tests/regression.yaml</code> samples</li>
+<li>Add <code>.github/workflows/gui-tests.yml</code> template referencing the new runner</li>
+<li>Document flaky-test mitigation patterns, including recommended retry counts</li>
+<li>Wire suite execution output into docs/CI dashboards for quick triage</li>
+</ul>
 <p><b>Test Suite Format</b>: </p><div class="fragment"><div class="line">name: YAZE GUI Test Suite</div>
 <div class="line">description: Comprehensive tests for YAZE editor functionality</div>
 <div class="line">version: 1.0</div>
@@ -652,15 +642,15 @@ Completed Work Summary</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">IT-07   </td><td class="markdownTableBodyNone">Add test recording/replay for regression testing   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">✅ Done   </td><td class="markdownTableBodyNone">IT-05 - RecordSession/ReplaySession RPCs with JSON test scripts    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">IT-08   </td><td class="markdownTableBodyNone">Enhance error reporting with screenshots and state dumps   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">🔄 Active   </td><td class="markdownTableBodyNone">IT-01 - Capture widget state on failure for debugging (67% complete: IT-08a ✅, IT-08b ✅, IT-08c 🔄)    </td></tr>
+<td class="markdownTableBodyNone">IT-08   </td><td class="markdownTableBodyNone">Enhance error reporting with screenshots and state dumps   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">✅ Done   </td><td class="markdownTableBodyNone">IT-01 - Screenshot RPC, auto-capture, widget state dumps complete (Oct 2, 2025)    </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">IT-08a   </td><td class="markdownTableBodyNone">Screenshot RPC implementation (SDL capture)   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">✅ Done   </td><td class="markdownTableBodyNone">IT-01 - Screenshot capture complete (Oct 2, 2025)    </td></tr>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">IT-08b   </td><td class="markdownTableBodyNone">Auto-capture screenshots on test failure   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">✅ Done   </td><td class="markdownTableBodyNone">IT-08a - Integrated with TestManager (Oct 2, 2025)    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">IT-08c   </td><td class="markdownTableBodyNone">Widget state dumps and execution context   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">� Active   </td><td class="markdownTableBodyNone">IT-08b - Enhanced failure diagnostics (NEXT PRIORITY)    </td></tr>
+<td class="markdownTableBodyNone">IT-08c   </td><td class="markdownTableBodyNone">Widget state dumps and execution context   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Code   </td><td class="markdownTableBodyNone">✅ Done   </td><td class="markdownTableBodyNone">IT-08b - Enhanced failure diagnostics (Oct 2, 2025)    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">IT-09   </td><td class="markdownTableBodyNone">Create standardized test suite format for CI integration   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Infra   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">IT-07 - JSON/YAML test suite format compatible with CI/CD pipelines    </td></tr>
+<td class="markdownTableBodyNone">IT-09   </td><td class="markdownTableBodyNone">Create standardized test suite format for CI integration   </td><td class="markdownTableBodyNone">ImGuiTest Bridge   </td><td class="markdownTableBodyNone">Infra   </td><td class="markdownTableBodyNone">✅ Done   </td><td class="markdownTableBodyNone">IT-07 - CLI suite run/validate/create commands, JUnit output    </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">IT-10   </td><td class="markdownTableBodyNone">Collaborative editing &amp; multiplayer sessions with shared AI   </td><td class="markdownTableBodyNone">Collaboration   </td><td class="markdownTableBodyNone">Feature   </td><td class="markdownTableBodyNone">📋 Planned   </td><td class="markdownTableBodyNone">IT-05, IT-08 - Real-time multi-user editing with live cursors, shared proposals (12-15 hours)    </td></tr>
 <tr class="markdownTableRowEven">

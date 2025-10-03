@@ -19,7 +19,7 @@ var searchData=
   ['6_20strong_20item_20loading_20with_20asm_20version_20detection_20strong_16',['6. &lt;strong&gt;Item Loading with ASM Version Detection&lt;/strong&gt;',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html#autotoc_md149',1,'']]],
   ['6_20tt_20src_20app_20editor_20graphics_20graphics_5feditor_20cc_20tt_17',['6. &lt;tt&gt;/src/app/editor/graphics/graphics_editor.cc&lt;/tt&gt;',['../d9/df4/md_docs_2gfx__improvements__summary.html#autotoc_md936',1,'']]],
   ['6_20x_18',['0.6.X',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md641',1,'']]],
-  ['65816_20assembler_20integration_19',['65816 assembler integration',['../d2/dd3/md_docs_203-asar-integration.html',1,'Asar 65816 Assembler Integration'],['../d0/d30/md_README.html#autotoc_md1622',1,'Asar 65816 Assembler Integration']]],
+  ['65816_20assembler_20integration_19',['65816 assembler integration',['../d2/dd3/md_docs_203-asar-integration.html',1,'Asar 65816 Assembler Integration'],['../d0/d30/md_README.html#autotoc_md1613',1,'Asar 65816 Assembler Integration']]],
   ['6_3a_20agent_20workflow_20foundations_20planned_20',['Phase 6: Agent Workflow Foundations (Planned)',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1206',1,'']]],
   ['6_3a_20resource_20catalogue_20api_20documentation_20✅_20completed_20oct_201_202025_21',['Phase 6: Resource Catalogue &amp; API Documentation (✅ Completed - Oct 1, 2025)',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1151',1,'']]]
 ];

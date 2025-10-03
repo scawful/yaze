@@ -12,9 +12,9 @@ var searchData=
   ['5_20dependency_20caching_20optimization_9',['5. Dependency Caching Optimization',['../d9/d6b/md_docs_2B5-stability-improvements.html#autotoc_md465',1,'']]],
   ['5_20dungeonusagetracker_20tt_20dungeon_5fusage_5ftracker_20h_20cc_20tt_10',['5. DungeonUsageTracker (&lt;tt&gt;dungeon_usage_tracker.h/cc&lt;/tt&gt;)',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md763',1,'']]],
   ['5_20future_20ux_20enhancements_11',['9.5. Future UX Enhancements',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1181',1,'']]],
-  ['5_20gui_20integration_12',['5. GUI Integration',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1494',1,'']]],
+  ['5_20gui_20integration_12',['5. GUI Integration',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1485',1,'']]],
   ['5_20hole_20coordinate_20calculation_20with_200x400_20offset_13',['5. Hole Coordinate Calculation with 0x400 Offset',['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html#autotoc_md279',1,'']]],
-  ['5_20hours_14',['5 hours',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1501',1,'Phase 1: Core Networking (4-5 hours)'],['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1236',1,'Phase 4: CLI Integration &amp; Windows Testing (4-5 hours)']]],
+  ['5_20hours_14',['5 hours',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1492',1,'Phase 1: Core Networking (4-5 hours)'],['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1236',1,'Phase 4: CLI Integration &amp; Windows Testing (4-5 hours)']]],
   ['5_20implementation_20priority_15',['9.5. Implementation Priority',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1167',1,'']]],
   ['5_20known_20limitations_16',['10.5. Known Limitations',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1187',1,'']]],
   ['5_20large_20map_20problems_17',['5. Large Map Problems',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md918',1,'']]],
@@ -31,7 +31,7 @@ var searchData=
   ['5_20tui_20enhancements_28',['5. TUI Enhancements',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1141',1,'']]],
   ['5_20x_29',['0.5.X',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md639',1,'']]],
   ['5_3a_20code_20structure_20ux_20improvements_20completed_30',['Phase 5: Code Structure &amp; UX Improvements (Completed)',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1150',1,'']]],
-  ['5_3a_20session_20recording_20replay_31',['US-5: Session Recording &amp; Replay',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1482',1,'']]],
-  ['5_3a_20session_20recording_20replay_201_202_20hours_32',['Phase 5: Session Recording &amp; Replay (1-2 hours)',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1509',1,'']]],
+  ['5_3a_20session_20recording_20replay_31',['US-5: Session Recording &amp; Replay',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1473',1,'']]],
+  ['5_3a_20session_20recording_20replay_201_202_20hours_32',['Phase 5: Session Recording &amp; Replay (1-2 hours)',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1500',1,'']]],
   ['5_3a_20simplify_20canvas_20state_20refactoring_33',['Priority 5: Simplify Canvas State (Refactoring)',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md601',1,'']]]
 ];

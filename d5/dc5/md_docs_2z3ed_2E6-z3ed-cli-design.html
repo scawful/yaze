@@ -432,13 +432,19 @@ IT-08: Holistic Error Reporting (5-7 hours)</h3>
 <li>Lays groundwork for future telemetry and CI reporting</li>
 </ul>
 <h3><a class="anchor" id="autotoc_md1165"></a>
-IT-09: CI/CD Integration (2-3 hours)</h3>
+IT-09: CI/CD Integration ✅ CLI Foundations Complete</h3>
 <p><b>Problem</b>: Tests run manually. No automated regression on PR/merge.</p>
-<p><b>Solution</b>: Standardize test execution for CI:</p><ul>
-<li>YAML test suite format (groups, dependencies, parallel execution)</li>
-<li><code>z3ed test suite run</code> command with <code>--ci-mode</code></li>
-<li>JUnit XML output for CI parsers (Jenkins, GitHub Actions)</li>
-<li>Exit codes: 0=pass, 1=fail, 2=error</li>
+<p><b>Shipped</b>:</p><ul>
+<li>YAML test suite runtime with dependency-aware execution and retry handling</li>
+<li><code>z3ed agent test suite run</code> supports <code>--group</code>, <code>--tag</code>, <code>--param</code>, <code>--retries</code>, <code>--ci-mode</code>, and automatic JUnit XML emission under <code>test-results/junit/</code></li>
+<li><code>z3ed agent test suite validate</code> performs structural linting and surfaces exit codes (0 pass, 1 fail, 2 error)</li>
+<li>NEW <code>z3ed agent test suite create</code> interactive builder generates suites (defaulting to <code>tests/&lt;name&gt;.yaml</code>), with prompts for groups, replay scripts, tags, and key=value parameters. <code>--force</code> enables overwrite flows.</li>
+</ul>
+<p><b>Next Integration Steps</b>:</p><ul>
+<li>Publish canonical <code>tests/smoke.yaml</code> / <code>tests/regression.yaml</code> templates in the repo</li>
+<li>Add GitHub Actions example wiring harness referencing the new runner</li>
+<li>Document best practices for mapping suite tags to CI stages (smoke, regression, nightly)</li>
+<li>Wire run summaries into docs (<code>docs/testing/</code>) with badge-ready status tables</li>
 </ul>
 <p><b>GitHub Actions Example</b>: </p><div class="fragment"><div class="line">name: GUI Tests</div>
 <div class="line">on: [push, pull_request]</div>

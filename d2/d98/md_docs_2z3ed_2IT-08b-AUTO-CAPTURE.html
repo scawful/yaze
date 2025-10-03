@@ -101,12 +101,12 @@ $(document).ready(function(){initNavTree('d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPT
   <div class="headertitle"><div class="title">IT-08b: Auto-Capture on Test Failure - Implementation Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1446"></a> <b>Status</b>: 🔄 Ready to Implement <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md1439"></a> <b>Status</b>: 🔄 Ready to Implement <br  />
  <b>Priority</b>: High (Next Phase of IT-08) <br  />
  <b>Time Estimate</b>: 1-1.5 hours <br  />
  <b>Date</b>: October 2, 2025</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1448"></a>
+<h1><a class="anchor" id="autotoc_md1441"></a>
 Overview</h1>
 <p>Automatically capture screenshots and execution context when tests fail, enabling better debugging and diagnostics for AI agents.</p>
 <p><b>Goal</b>: Every failed test produces:</p><ul>
@@ -115,9 +115,9 @@ Overview</h1>
 <li>Foundation for IT-08c (widget state dumps)</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1450"></a>
+<h1><a class="anchor" id="autotoc_md1443"></a>
 Implementation Steps</h1>
-<h2><a class="anchor" id="autotoc_md1451"></a>
+<h2><a class="anchor" id="autotoc_md1444"></a>
 Step 1: Update TestHistory Structure (15 minutes)</h2>
 <p><b>File</b>: <code>src/app/core/test_manager.h</code></p>
 <p>Add failure diagnostics fields:</p>
@@ -139,7 +139,7 @@ Step 1: Update TestHistory Structure (15 minutes)</h2>
 <div class="line">  <span class="comment">// IT-08c: Widget state (future)</span></div>
 <div class="line">  std::string widget_state;</div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1452"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1445"></a>
 Step 2: Add CaptureFailureContext Method (30 minutes)</h2>
 <p><b>File</b>: <code>src/app/core/test_manager.cc</code></p>
 <p>Add new method after <code>MarkHarnessTestCompleted</code>:</p>
@@ -190,7 +190,7 @@ Step 2: Add CaptureFailureContext Method (30 minutes)</h2>
 <div class="line">  <span class="comment">// 3. Widget state capture (IT-08c - placeholder)</span></div>
 <div class="line">  <span class="comment">// history.widget_state = CaptureWidgetState();</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1453"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1446"></a>
 Step 3: Integrate with MarkHarnessTestCompleted (15 minutes)</h2>
 <p><b>File</b>: <code>src/app/core/test_manager.cc</code></p>
 <p>Modify existing method to call CaptureFailureContext:</p>
@@ -206,110 +206,121 @@ Step 3: Integrate with MarkHarnessTestCompleted (15 minutes)</h2>
 <div class="line">  history.execution_time_ms = absl::ToInt64Milliseconds(</div>
 <div class="line">      history.end_time - history.start_time);</div>
 <div class="line">  </div>
-<div class="line">  <span class="comment">// Auto-capture diagnostics on failure</span></div>
-<div class="line">  <span class="keywordflow">if</span> (status == ImGuiTestStatus_Error || status == ImGuiTestStatus_Warning) {</div>
-<div class="line">    CaptureFailureContext(test_id);</div>
-<div class="line">  }</div>
-<div class="line">  </div>
-<div class="line">  <span class="comment">// Notify waiting threads</span></div>
-<div class="line">  cv_.notify_all();</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1454"></a>
-Step 4: Update GetTestResults RPC (30 minutes)</h2>
-<p><b>File</b>: <code>src/app/core/proto/imgui_test_harness.proto</code></p>
-<p>Add fields to response:</p>
-<div class="fragment"><div class="line">message GetTestResultsResponse {</div>
-<div class="line">  string test_id = 1;</div>
-<div class="line">  TestStatus status = 2;</div>
-<div class="line">  int64 execution_time_ms = 3;</div>
-<div class="line">  repeated string logs = 4;</div>
-<div class="line">  map&lt;string, string&gt; metrics = 5;</div>
-<div class="line">  </div>
-<div class="line">  // IT-08b: Failure diagnostics</div>
-<div class="line">  string screenshot_path = 6;</div>
-<div class="line">  int64 screenshot_size_bytes = 7;</div>
-<div class="line">  string failure_context = 8;</div>
-<div class="line">  </div>
-<div class="line">  // IT-08c: Widget state (future)</div>
-<div class="line">  string widget_state = 9;</div>
-<div class="line">}</div>
-</div><!-- fragment --><p><b>File</b>: <code><a class="el" href="../../dd/d7f/imgui__test__harness__service_8cc.html">src/app/core/service/imgui_test_harness_service.cc</a></code></p>
-<p>Update implementation:</p>
-<div class="fragment"><div class="line">absl::Status ImGuiTestHarnessServiceImpl::GetTestResults(</div>
-<div class="line">    <span class="keyword">const</span> GetTestResultsRequest* request,</div>
-<div class="line">    GetTestResultsResponse* response) {</div>
-<div class="line">  </div>
-<div class="line">  <span class="keyword">const</span> std::string&amp; test_id = request-&gt;test_id();</div>
-<div class="line">  <span class="keyword">auto</span> history = test_manager_-&gt;GetTestHistory(test_id);</div>
-<div class="line">  </div>
-<div class="line">  <span class="keywordflow">if</span> (!history.has_value()) {</div>
-<div class="line">    <span class="keywordflow">return</span> absl::NotFoundError(</div>
-<div class="line">        absl::StrFormat(<span class="stringliteral">&quot;Test not found: %s&quot;</span>, test_id));</div>
-<div class="line">  }</div>
-<div class="line">  </div>
-<div class="line">  <span class="keyword">const</span> <span class="keyword">auto</span>&amp; h = history.value();</div>
-<div class="line">  </div>
-<div class="line">  <span class="comment">// Basic info</span></div>
-<div class="line">  response-&gt;set_test_id(h.test_id);</div>
-<div class="line">  response-&gt;set_status(ConvertImGuiTestStatusToProto(h.status));</div>
-<div class="line">  response-&gt;set_execution_time_ms(h.execution_time_ms);</div>
-<div class="line">  </div>
-<div class="line">  <span class="comment">// Logs and metrics</span></div>
-<div class="line">  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; log : h.logs) {</div>
-<div class="line">    response-&gt;add_logs(log);</div>
-<div class="line">  }</div>
-<div class="line">  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [key, value] : h.metrics) {</div>
-<div class="line">    (*response-&gt;mutable_metrics())[key] = value;</div>
-<div class="line">  }</div>
-<div class="line">  </div>
-<div class="line">  <span class="comment">// IT-08b: Failure diagnostics</span></div>
-<div class="line">  <span class="keywordflow">if</span> (!h.screenshot_path.empty()) {</div>
-<div class="line">    response-&gt;set_screenshot_path(h.screenshot_path);</div>
-<div class="line">    response-&gt;set_screenshot_size_bytes(h.screenshot_size_bytes);</div>
-<div class="line">  }</div>
-<div class="line">  <span class="keywordflow">if</span> (!h.failure_context.empty()) {</div>
-<div class="line">    response-&gt;set_failure_context(h.failure_context);</div>
-<div class="line">  }</div>
-<div class="line">  </div>
-<div class="line">  <span class="comment">// IT-08c: Widget state (future)</span></div>
-<div class="line">  <span class="keywordflow">if</span> (!h.widget_state.empty()) {</div>
-<div class="line">    response-&gt;set_widget_state(h.widget_state);</div>
-<div class="line">  }</div>
-<div class="line">  </div>
-<div class="line">  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line">}</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1456"></a>
-Testing</h1>
-<h2><a class="anchor" id="autotoc_md1457"></a>
-Build and Start Test Harness</h2>
-<div class="fragment"><div class="line"># 1. Rebuild with changes</div>
-<div class="line">cmake --build build-grpc-test --target yaze -j$(sysctl -n hw.ncpu)</div>
+<div class="line"><span class="preprocessor">  # IT-08b: Auto-Capture on Test Failure</span></div>
 <div class="line"> </div>
-<div class="line"># 2. Start test harness</div>
-<div class="line">./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \</div>
-<div class="line">  --enable_test_harness \</div>
-<div class="line">  --test_harness_port=50052 \</div>
-<div class="line">  --rom_file=assets/zelda3.sfc &amp;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1458"></a>
-Trigger Test Failure</h2>
-<div class="fragment"><div class="line"># 3. Trigger a failing test (nonexistent widget)</div>
-<div class="line">grpcurl -plaintext \</div>
-<div class="line">  -import-path src/app/core/proto \</div>
-<div class="line">  -proto imgui_test_harness.proto \</div>
-<div class="line">  -d &#39;{&quot;target&quot;:&quot;nonexistent_widget&quot;,&quot;type&quot;:&quot;LEFT&quot;}&#39; \</div>
-<div class="line">  127.0.0.1:50052 yaze.test.ImGuiTestHarness/Click</div>
+<div class="line">  **Status**: ✅ Complete  </div>
+<div class="line">  **Completed**: October 2, 2025  </div>
+<div class="line">  **Owner**: Harness Platform Team  </div>
+<div class="line">  **Depends On**: IT-08a (Screenshot RPC), IT-05 (execution history store)</div>
 <div class="line"> </div>
-<div class="line"># Response should indicate failure</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1459"></a>
-Verify Screenshot Captured</h2>
-<div class="fragment"><div class="line"># 4. Check for auto-captured screenshot</div>
-<div class="line">ls -lh /tmp/yaze_test_*_failure.bmp</div>
+<div class="line">  ---</div>
 <div class="line"> </div>
-<div class="line"># Expected: BMP file created (5.3MB)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1460"></a>
+<div class="line">  ## Summary</div>
+<div class="line"> </div>
+<div class="line">  Harness failures now emit rich diagnostics automatically. Whenever a GUI test</div>
+<div class="line">  transitions into `FAILED` or `TIMEOUT` we capture:</div>
+<div class="line"> </div>
+<div class="line">  - A full-frame SDL screenshot written to a stable per-test artifact folder</div>
+<div class="line">  - <a class="code hl_namespace" href="../../df/de4/namespaceImGui.html">ImGui</a> execution context (frame number, active/nav/hovered windows &amp; IDs)</div>
+<div class="line">  - Serialized widget hierarchy snapshot (`CaptureWidgetState`) for IT-08c</div>
+<div class="line">  - Append-only log entries surfaced through `GetTestResults`</div>
+<div class="line"> </div>
+<div class="line">  All artifacts are exposed through both the gRPC API and the `z3ed agent test</div>
+<div class="line">  results` command (JSON/YAML), enabling AI agents and humans to retrieve the same</div>
+<div class="line">  diagnostics without extra RPC calls.</div>
+<div class="line"> </div>
+<div class="line">  ---</div>
+<div class="line"> </div>
+<div class="line">  ## What Shipped</div>
+<div class="line"> </div>
+<div class="line">  ### Shared Screenshot Helper</div>
+<div class="line">  - New helper (`screenshot_utils.{h,cc}`) centralizes SDL capture logic.</div>
+<div class="line">  - Generates deterministic <span class="keywordflow">default</span> paths under</div>
+<div class="line">    `${TMPDIR}/<a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a>/test-results/&lt;test_id&gt;/failure_&lt;timestamp&gt;.bmp`.</div>
+<div class="line">  - Reused by the manual `Screenshot` RPC to avoid duplicate code.</div>
+<div class="line"> </div>
+<div class="line">  ### TestManager Auto-Capture Pipeline</div>
+<div class="line">  - `CaptureFailureContext` now:</div>
+<div class="line">    - Computes <a class="code hl_namespace" href="../../df/de4/namespaceImGui.html">ImGui</a> context metadata even when the test finishes on a worker</div>
+<div class="line">      thread.</div>
+<div class="line">    - Allocates artifact folders per test ID and requests a screenshot via the</div>
+<div class="line">      shared helper (guarded when gRPC is disabled).</div>
+<div class="line">    - Persists screenshot path, <span class="keywordtype">byte</span> size, failure context, and widget state back</div>
+<div class="line">      into `HarnessTestExecution` <span class="keywordflow">while</span> keeping aggregate caches in sync.</div>
+<div class="line">    - Emits structured harness logs <span class="keywordflow">for</span> success/failure of the <span class="keyword">auto</span>-capture.</div>
+<div class="line"> </div>
+<div class="line">  ### CLI &amp; Client Updates</div>
+<div class="line">  - `GuiAutomationClient::GetTestResults` propagates <span class="keyword">new</span> proto fields:</div>
+<div class="line">    `screenshot_path`, `screenshot_size_bytes`, `failure_context`, `widget_state`.</div>
+<div class="line">  - `z3ed agent test results` shows diagnostics in both human (YAML) and machine</div>
+<div class="line">    (JSON) modes, including `null` markers when artifacts are unavailable.</div>
+<div class="line">  - JSON output is now agent-ready: screenshot path + size enable downstream</div>
+<div class="line">    fetchers, failure context aids chain-of-thought prompts, widget state allows</div>
+<div class="line">    LLMs to reason about UI layout when debugging.</div>
+<div class="line"> </div>
+<div class="line">  ### Build Integration</div>
+<div class="line">  - gRPC build stanza now compiles the <span class="keyword">new</span> helper files so both harness server and</div>
+<div class="line">    in-process capture use the same implementation.</div>
+<div class="line"> </div>
+<div class="line">  ---</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">  ## Developer Notes</span></div>
+<div class="line"> </div>
+<div class="line">  | Concern | Resolution |</div>
+<div class="line">  |---------|------------|</div>
+<div class="line">  | Deadlocks <span class="keywordflow">while</span> capturing | Screenshot helper runs outside `harness_history_mutex_`; mutex is reacquired only <span class="keywordflow">for</span> bookkeeping. |</div>
+<div class="line">  | Non-gRPC builds | Auto-capture logs a descriptive <span class="stringliteral">&quot;unavailable&quot;</span> message and skips the SDL call, keeping deterministic behaviour when harness is stubbed. |</div>
+<div class="line">  | Artifact collisions | Paths are timestamped and namespaced per test ID; directories are created idempotently with error-code handling. |</div>
+<div class="line">  | Large widget dumps | Stored as JSON strings; CLI wraps them with quoting so they can be piped to `jq`/`yq` safely. |</div>
+<div class="line"> </div>
+<div class="line">  ---</div>
+<div class="line"> </div>
+<div class="line"><span class="preprocessor">  ## Usage</span></div>
+<div class="line"> </div>
+<div class="line">  1. Trigger a harness failure (e.g. click a nonexistent widget):</div>
+<div class="ttc" id="anamespaceImGui_html"><div class="ttname"><a href="../../df/de4/namespaceImGui.html">ImGui</a></div><div class="ttdef"><b>Definition</b> <a href="../../de/d4c/input_8cc_source.html#l00020">input.cc:20</a></div></div>
+<div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+</div><!-- fragment --><p> bash z3ed agent test &ndash;prompt "Click widget:nonexistent" <code></p><ol type="1">
+<li>Fetch diagnostics: bash z3ed agent test results &ndash;test-id grpc_click_deadbeef &ndash;include-logs &ndash;format json <code></code></li>
+<li><code>Inspect artifacts: </code>bash open "$(jq -r '.screenshot_path' results.json)" ```</li>
+</ol>
+<p></code></p>
+<p><code> Example YAML excerpt:</code></p>
+<p><code> </p><div class="fragment"><div class="line">screenshot_path: &quot;/var/folders/.../yaze/test-results/grpc_click_deadbeef/failure_1727890045123.bmp&quot;</div>
+<div class="line">screenshot_size_bytes: 5308538</div>
+<div class="line">failure_context: &quot;frame=1287 current_window=MainWindow nav_window=Agent hovered_window=Agent active_id=0x00000000 hovered_id=0x00000000&quot;</div>
+<div class="line">widget_state: &#39;{&quot;active_window&quot;:&quot;MainWindow&quot;,&quot;visible_windows&quot;:[&quot;MainWindow&quot;,&quot;Agent&quot;],&quot;focused_widget&quot;:null}&#39;</div>
+</div><!-- fragment --><p></code></p>
+<p><code></p><hr  />
+<p></code></p>
+<p><code></code></p>
+<h1><a class="anchor" id="autotoc_md1448"></a>
+Validation</h1>
+<p><code></code></p>
+<p><code></p><ul>
+<li>Manual harness failure emits screenshot + widget dump under <code>/tmp</code>.</li>
+<li><code>GetTestResults</code> returns the new fields (verified via <code>grpcurl</code>).</li>
+<li>CLI JSON/YAML output includes diagnostics with correct escaping.</li>
+<li>Non-gRPC build path compiles (guarded sections).</li>
+</ul>
+<p></code></p>
+<p><code></p><hr  />
+<p></code></p>
+<p><code></code></p>
+<h1><a class="anchor" id="autotoc_md1450"></a>
+Follow-Up</h1>
+<p><code></code></p>
+<p><code></p><ul>
+<li>IT-08c leverages the persisted widget JSON to produce HTML bundles.</li>
+<li>IT-08d will standardize error envelopes across CLI/services using these diagnostics.</li>
+<li>Investigate persisting artifacts under configurable directories (<code>--artifact-dir</code>) for CI separation.</li>
+</ul>
+<p></code></p>
+<p><code></code></p>
+<h2><a class="anchor" id="autotoc_md1451"></a>
 Query Test Results</h2>
-<div class="fragment"><div class="line"># 5. Get test results (replace &lt;test_id&gt; with actual ID from Click response)</div>
+<p><code></code></p>
+<p><code></p><div class="fragment"><div class="line"># 5. Get test results (replace &lt;test_id&gt; with actual ID from Click response)</div>
 <div class="line">grpcurl -plaintext \</div>
 <div class="line">  -import-path src/app/core/proto \</div>
 <div class="line">  -proto imgui_test_harness.proto \</div>
@@ -326,10 +337,13 @@ Query Test Results</h2>
 <div class="line">  &quot;screenshotSizeBytes&quot;: &quot;5308538&quot;,</div>
 <div class="line">  &quot;failureContext&quot;: &quot;Frame: 1234, Window: Main Window, Active: 0, Hovered: 0&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1461"></a>
+</div><!-- fragment --><p></code></p>
+<p><code></code></p>
+<h2><a class="anchor" id="autotoc_md1452"></a>
 End-to-End Test Script</h2>
-<p>Create <code>scripts/test_auto_capture.sh</code>:</p>
-<div class="fragment"><div class="line">#!/bin/bash</div>
+<p><code></code></p>
+<p><code>Create <code>scripts/test_auto_capture.sh</code>:</code></p>
+<p><code></p><div class="fragment"><div class="line">#!/bin/bash</div>
 <div class="line">set -e</div>
 <div class="line"> </div>
 <div class="line">echo &quot;=== IT-08b Auto-Capture Test ===&quot;</div>
@@ -402,10 +416,14 @@ End-to-End Test Script</h2>
 <div class="line"> </div>
 <div class="line"># Cleanup</div>
 <div class="line">kill $YAZE_PID</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1463"></a>
+</div><!-- fragment --><p></code></p>
+<p><code></p><hr  />
+<p></code></p>
+<p><code></code></p>
+<h1><a class="anchor" id="autotoc_md1454"></a>
 Success Criteria</h1>
-<ul>
+<p><code></code></p>
+<p><code></p><ul>
 <li>✅ Screenshots auto-captured on test failure (Error or Warning status)</li>
 <li>✅ Screenshot path stored in TestHistory</li>
 <li>✅ Failure context captured (frame, window, widgets)</li>
@@ -413,32 +431,43 @@ Success Criteria</h1>
 <li>✅ No performance impact on passing tests (capture only on failure)</li>
 <li>✅ Clean error handling if screenshot capture fails</li>
 </ul>
-<hr  />
-<h1><a class="anchor" id="autotoc_md1465"></a>
+<p></code></p>
+<p><code></p><hr  />
+<p></code></p>
+<p><code></code></p>
+<h1><a class="anchor" id="autotoc_md1456"></a>
 Files Modified</h1>
-<ol type="1">
+<p><code></code></p>
+<p><code></p><ol type="1">
 <li><code>src/app/core/test_manager.h</code> - TestHistory structure</li>
 <li><code>src/app/core/test_manager.cc</code> - CaptureFailureContext method</li>
 <li><code>src/app/core/proto/imgui_test_harness.proto</code> - GetTestResultsResponse fields</li>
 <li><code><a class="el" href="../../dd/d7f/imgui__test__harness__service_8cc.html">src/app/core/service/imgui_test_harness_service.cc</a></code> - GetTestResults implementation</li>
 </ol>
-<hr  />
-<h1><a class="anchor" id="autotoc_md1467"></a>
+<p></code></p>
+<p><code></p><hr  />
+<p></code></p>
+<p><code></code></p>
+<h1><a class="anchor" id="autotoc_md1458"></a>
 Next Steps</h1>
-<p><b>After IT-08b Complete</b>:</p><ol type="1">
+<p><code></code></p>
+<p><code><b>After IT-08b Complete</b>:</p><ol type="1">
 <li>IT-08c: Widget State Dumps (30-45 minutes)</li>
 <li>IT-08d: Error Envelope Standardization (1-2 hours)</li>
 <li>IT-08e: CLI Error Improvements (1 hour)</li>
 </ol>
-<p><b>Documentation Updates</b>:</p><ol type="1">
+<p></code></p>
+<p><code><b>Documentation Updates</b>:</p><ol type="1">
 <li>Update <code><a class="el" href="../../d8/d23/IT-08-IMPLEMENTATION-GUIDE_8md.html">IT-08-IMPLEMENTATION-GUIDE.md</a></code> with IT-08b complete status</li>
 <li>Update <code><a class="el" href="../../df/d90/E6-z3ed-implementation-plan_8md.html">E6-z3ed-implementation-plan.md</a></code> progress tracking</li>
 <li>Update <code>README.md</code> with new capabilities</li>
 </ol>
-<hr  />
-<p><b>Last Updated</b>: October 2, 2025 <br  />
+<p></code></p>
+<p><code></p><hr  />
+<p></code></p>
+<p><code><b>Last Updated</b>: October 2, 2025 <br  />
  <b>Status</b>: Ready to implement <br  />
- <b>Estimated Completion</b>: October 2-3, 2025 (1-1.5 hours) </p>
+ <b>Estimated Completion</b>: October 2-3, 2025 (1-1.5 hours) </code></p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

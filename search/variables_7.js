@@ -57,11 +57,12 @@ var searchData=
   ['horizontal_5ftilemap_5fcount_54',['horizontal_tilemap_count',['../d2/d99/structyaze_1_1emu_1_1BGSC.html#a0a2f84a4ad6c2eb6ade9358ab6f556a2',1,'yaze::emu::BGSC']]],
   ['horizontalirqtrigger_55',['horizontalIrqTrigger',['../d2/d03/structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#a5ebb527ee002b56a14edd02268f7e4af',1,'yaze::emu::CounterIrqNmiRegisters']]],
   ['horizontalscanlocation_56',['horizontalScanLocation',['../d2/d03/structyaze_1_1emu_1_1CounterIrqNmiRegisters.html#add5d5913078f3d5af987c118e92ad21a',1,'yaze::emu::CounterIrqNmiRegisters']]],
-  ['hover_5fhighlight_57',['hover_highlight',['../d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#abd676f793e1a3df40105db48e533c5ce',1,'yaze::gui::EnhancedTheme']]],
-  ['hover_5fpoints_5f_58',['hover_points_',['../dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#ada3f797461577e254365843c166522fe',1,'yaze::gui::canvas::CanvasInteractionHandler']]],
-  ['hovered_5fwidget_59',['hovered_widget',['../d1/d17/structyaze_1_1core_1_1WidgetState.html#af08fce08f27a0a911f117ee498b965d6',1,'yaze::core::WidgetState']]],
-  ['hscroll_60',['hScroll',['../dd/db7/structyaze_1_1emu_1_1BgLayer.html#a822da8bd7639b9e1cbf4170c4edcda9e',1,'yaze::emu::BgLayer']]],
-  ['hud_61',['hud',['../d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html#abf3c25ebba26b691bdd08f5b8ca2c90d',1,'yaze::gfx::PaletteGroupMap::hud'],['../d9/dee/structyaze_1_1gfx_1_1Paletteset.html#a4e691551109932639735b4390f69c98d',1,'yaze::gfx::Paletteset::hud']]],
-  ['hudpalettesmax_62',['HudPalettesMax',['../d0/d27/namespaceyaze_1_1gfx.html#a3155343d33ccb45cd53f737dd7289552',1,'yaze::gfx']]],
-  ['huge_5fblocks_5f_63',['huge_blocks_',['../dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#a68c098f3f7a12fc086357750ed784b96',1,'yaze::gfx::MemoryPool']]]
+  ['host_57',['host',['../d4/dc6/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02test__commands_8cc_03_1_1ReplayCommandOptions.html#aeb81af212104a19b42199eb2ab4c9f1b',1,'yaze::cli::agent::anonymous_namespace{test_commands.cc}::ReplayCommandOptions']]],
+  ['hover_5fhighlight_58',['hover_highlight',['../d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#abd676f793e1a3df40105db48e533c5ce',1,'yaze::gui::EnhancedTheme']]],
+  ['hover_5fpoints_5f_59',['hover_points_',['../dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#ada3f797461577e254365843c166522fe',1,'yaze::gui::canvas::CanvasInteractionHandler']]],
+  ['hovered_5fwidget_60',['hovered_widget',['../d1/d17/structyaze_1_1core_1_1WidgetState.html#af08fce08f27a0a911f117ee498b965d6',1,'yaze::core::WidgetState']]],
+  ['hscroll_61',['hScroll',['../dd/db7/structyaze_1_1emu_1_1BgLayer.html#a822da8bd7639b9e1cbf4170c4edcda9e',1,'yaze::emu::BgLayer']]],
+  ['hud_62',['hud',['../d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html#abf3c25ebba26b691bdd08f5b8ca2c90d',1,'yaze::gfx::PaletteGroupMap::hud'],['../d9/dee/structyaze_1_1gfx_1_1Paletteset.html#a4e691551109932639735b4390f69c98d',1,'yaze::gfx::Paletteset::hud']]],
+  ['hudpalettesmax_63',['HudPalettesMax',['../d0/d27/namespaceyaze_1_1gfx.html#a3155343d33ccb45cd53f737dd7289552',1,'yaze::gfx']]],
+  ['huge_5fblocks_5f_64',['huge_blocks_',['../dc/d55/classyaze_1_1gfx_1_1MemoryPool.html#a68c098f3f7a12fc086357750ed784b96',1,'yaze::gfx::MemoryPool']]]
 ];

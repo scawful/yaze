@@ -12,6 +12,9 @@ var namespaceyaze_1_1test =
     [ "anonymous_namespace{snes_palette_test.cc}", "d1/dfa/namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html", [
       [ "test_convert", "d1/dfa/namespaceyaze_1_1test_1_1anonymous__namespace_02snes__palette__test_8cc_03.html#a0492926f27e09c79e929ad1165ae19a5", null ]
     ] ],
+    [ "anonymous_namespace{test_manager.cc}", "d8/d93/namespaceyaze_1_1test_1_1anonymous__namespace_02test__manager_8cc_03.html", [
+      [ "GenerateFailureScreenshotPath", "d8/d93/namespaceyaze_1_1test_1_1anonymous__namespace_02test__manager_8cc_03.html#a9f2a4fa037a04b4add59e985a5df4a37", null ]
+    ] ],
     [ "anonymous_namespace{test_recorder.cc}", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html", [
       [ "HarnessStatusToString", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html#a548f3448d4583d652e5940e0410ced67", null ],
       [ "kTestCompletionTimeout", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html#ac27791eabfd94dbf2b5f3ed829bebe8f", null ],

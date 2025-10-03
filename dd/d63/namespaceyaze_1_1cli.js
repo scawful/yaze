@@ -25,6 +25,42 @@ var namespaceyaze_1_1cli =
       [ "DetermineDefaultRoot", "dc/d0a/namespaceyaze_1_1cli_1_1anonymous__namespace_02rom__sandbox__manager_8cc_03.html#a6dbbd77ab3bd1ddc72684dd4f19590c3", null ],
       [ "ResolveUniqueDirectory", "dc/d0a/namespaceyaze_1_1cli_1_1anonymous__namespace_02rom__sandbox__manager_8cc_03.html#a0ed1e5dd353eff931db3a8a0c757e616", null ]
     ] ],
+    [ "anonymous_namespace{test_suite_loader.cc}", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html", [
+      [ "Trim", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a2c59f64351a007d9e988d7a3e087fca2", null ],
+      [ "StripComment", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#add53f4cf50367fc23fb374b8ec30113c", null ],
+      [ "CountIndent", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#ae3e2ae358a521d59bdc21277057a963d", null ],
+      [ "ParseKeyValue", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a2f474c22d2905991f22d13c4057d8bee", null ],
+      [ "Unquote", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#aea723012151dd566291440b019478d19", null ],
+      [ "ParseInlineList", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a20f337fd8fd9feac60404dc2d0634750", null ],
+      [ "ParseInt", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a5a9a4534f75106e0580858f315504653", null ],
+      [ "ParseDurationSeconds", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#ae527a688d7f030cbc544cff64f7e5d26", null ],
+      [ "ParseBoolean", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#af35249dd0bb5f251c15dd28fac28dc1b", null ],
+      [ "DeriveTestName", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a26808f900069f7043bd923908ad8a630", null ],
+      [ "ParseScalarConfig", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a3f936990c8ccf087662cf8ba8f607fc8", null ],
+      [ "ParseStringListBlock", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a4688dd3bdc90a89dd261ddfbb1066d82", null ],
+      [ "ParseParametersBlock", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a1200be7b7b400f627568e8e51ce5cb4d", null ],
+      [ "ParseTestCaseEntry", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#aebbafed873819148c48f9355f4eb52b3", null ],
+      [ "ParseTestsBlock", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a46b860245fcee2d8aeab820fde9749db", null ],
+      [ "ParseGroupEntry", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a09b4ae26739f1c53e9b09a39a2af0d99", null ],
+      [ "ParseGroupBlock", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#ababad9e3ed8fd104715bcc8abf5fd1c1", null ],
+      [ "ParseConfigBlock", "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a283761f6182cdb3b12da1bd2a45c6e94", null ]
+    ] ],
+    [ "anonymous_namespace{test_suite_reporter.cc}", "d2/d06/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__reporter_8cc_03.html", [
+      [ "OutcomeToString", "d2/d06/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__reporter_8cc_03.html#ae74ac4d9d38dcaf3af087ce52f836f20", null ],
+      [ "EscapeXml", "d2/d06/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__reporter_8cc_03.html#ab93119a22f6e2e43225dc6567b88aae0", null ],
+      [ "JoinLogs", "d2/d06/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__reporter_8cc_03.html#ac155686362623ac3289716380a134680", null ],
+      [ "ComputeSummaryCounters", "d2/d06/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__reporter_8cc_03.html#a76bee6b14f8faf98f7fe906ae4318d86", null ],
+      [ "TotalDuration", "d2/d06/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__reporter_8cc_03.html#a3195c4a87a98bdc4078ce7dbae8cb3a5", null ]
+    ] ],
+    [ "anonymous_namespace{test_suite_writer.cc}", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html", [
+      [ "Indent", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#af2fbf7d61556059982c87b63ecc567c0", null ],
+      [ "QuoteYaml", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#a9cd3ece6572f68b6d4bf88914f615f69", null ],
+      [ "AppendLine", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#a1607877a9d9643ce652cc247fa6dec78", null ],
+      [ "AppendScalar", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#a82cdfa94cbf5fff64982128635fe060e", null ],
+      [ "FormatDuration", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#ad9fb9ff5cfc8984131cac5888e882954", null ],
+      [ "FormatBool", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#a7911c018df51a039b8893ae66c2c9e5e", null ],
+      [ "JoinQuotedList", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#a5b82b32512688509ce17f30191bcaf42", null ]
+    ] ],
     [ "anonymous_namespace{tui.cc}", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html", [
       [ "SwitchComponents", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c", null ],
       [ "HandleInput", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2c1dc8ab15f8e8bbcf375a362c11d942", null ],
@@ -86,6 +122,7 @@ var namespaceyaze_1_1cli =
     [ "ProjectInit", "d9/d3b/classyaze_1_1cli_1_1ProjectInit.html", "d9/d3b/classyaze_1_1cli_1_1ProjectInit" ],
     [ "ProposalRegistry", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry" ],
     [ "ReadFromRom", "d1/d72/classyaze_1_1cli_1_1ReadFromRom.html", "d1/d72/classyaze_1_1cli_1_1ReadFromRom" ],
+    [ "ReplayTestResult", "dc/d57/structyaze_1_1cli_1_1ReplayTestResult.html", "dc/d57/structyaze_1_1cli_1_1ReplayTestResult" ],
     [ "ResourceAction", "dc/d64/structyaze_1_1cli_1_1ResourceAction.html", "dc/d64/structyaze_1_1cli_1_1ResourceAction" ],
     [ "ResourceArgument", "da/dc6/structyaze_1_1cli_1_1ResourceArgument.html", "da/dc6/structyaze_1_1cli_1_1ResourceArgument" ],
     [ "ResourceCatalog", "d4/d02/classyaze_1_1cli_1_1ResourceCatalog.html", "d4/d02/classyaze_1_1cli_1_1ResourceCatalog" ],
@@ -97,9 +134,15 @@ var namespaceyaze_1_1cli =
     [ "RomValidate", "d6/d8e/classyaze_1_1cli_1_1RomValidate.html", "d6/d8e/classyaze_1_1cli_1_1RomValidate" ],
     [ "SnesToPcCommand", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand.html", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand" ],
     [ "SpriteCreate", "da/d30/classyaze_1_1cli_1_1SpriteCreate.html", "da/d30/classyaze_1_1cli_1_1SpriteCreate" ],
+    [ "TestCaseDefinition", "d1/df7/structyaze_1_1cli_1_1TestCaseDefinition.html", "d1/df7/structyaze_1_1cli_1_1TestCaseDefinition" ],
+    [ "TestCaseRunResult", "dd/d80/structyaze_1_1cli_1_1TestCaseRunResult.html", "dd/d80/structyaze_1_1cli_1_1TestCaseRunResult" ],
+    [ "TestGroupDefinition", "dd/d7e/structyaze_1_1cli_1_1TestGroupDefinition.html", "dd/d7e/structyaze_1_1cli_1_1TestGroupDefinition" ],
     [ "TestResultDetails", "d4/db9/structyaze_1_1cli_1_1TestResultDetails.html", "d4/db9/structyaze_1_1cli_1_1TestResultDetails" ],
     [ "TestStatusDetails", "dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html", "dd/d5e/structyaze_1_1cli_1_1TestStatusDetails" ],
     [ "TestStep", "d6/d4b/structyaze_1_1cli_1_1TestStep.html", "d6/d4b/structyaze_1_1cli_1_1TestStep" ],
+    [ "TestSuiteConfig", "de/d77/structyaze_1_1cli_1_1TestSuiteConfig.html", "de/d77/structyaze_1_1cli_1_1TestSuiteConfig" ],
+    [ "TestSuiteDefinition", "de/d68/structyaze_1_1cli_1_1TestSuiteDefinition.html", "de/d68/structyaze_1_1cli_1_1TestSuiteDefinition" ],
+    [ "TestSuiteRunSummary", "d1/d9d/structyaze_1_1cli_1_1TestSuiteRunSummary.html", "d1/d9d/structyaze_1_1cli_1_1TestSuiteRunSummary" ],
     [ "TestWorkflow", "de/d85/structyaze_1_1cli_1_1TestWorkflow.html", "de/d85/structyaze_1_1cli_1_1TestWorkflow" ],
     [ "TestWorkflowGenerator", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator.html", "de/da1/classyaze_1_1cli_1_1TestWorkflowGenerator" ],
     [ "Tile16Transfer", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer" ],
@@ -138,6 +181,12 @@ var namespaceyaze_1_1cli =
       [ "kWarning", "dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16aec0da41f4e48b52c362303eb27ed5dee", null ],
       [ "kCritical", "dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16a5a20548c220f372fc701cae6de94040b", null ]
     ] ],
+    [ "TestCaseOutcome", "dd/d63/namespaceyaze_1_1cli.html#af8e72af06684da4456850f7f3690e96a", [
+      [ "kPassed", "dd/d63/namespaceyaze_1_1cli.html#af8e72af06684da4456850f7f3690e96aa2e1165dab7cbb5e985ea3b1e5d64f619", null ],
+      [ "kFailed", "dd/d63/namespaceyaze_1_1cli.html#af8e72af06684da4456850f7f3690e96aab62fa3c9492b6dae76c23d6dfa466611", null ],
+      [ "kError", "dd/d63/namespaceyaze_1_1cli.html#af8e72af06684da4456850f7f3690e96aae3587c730cc1aa530fa4ddc9c4204e97", null ],
+      [ "kSkipped", "dd/d63/namespaceyaze_1_1cli.html#af8e72af06684da4456850f7f3690e96aaf83deabecb881f963501ddab928fb58a", null ]
+    ] ],
     [ "TestStepType", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fce", [
       [ "kClick", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcea307b2f90e031951851ef07da7fe12144", null ],
       [ "kType", "dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcead554146c5ee004ffbbf78a5acc40af0b", null ],
@@ -173,6 +222,13 @@ var namespaceyaze_1_1cli =
       [ "kMainMenu", "dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a90bfbb340d0004281b380b5058c652fd", null ],
       [ "kError", "dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33ae3587c730cc1aa530fa4ddc9c4204e97", null ]
     ] ],
+    [ "ParseTestSuiteDefinition", "dd/d63/namespaceyaze_1_1cli.html#ab2e4e0fdaf85f4c7c05572fa6ed7be18", null ],
+    [ "LoadTestSuiteFromFile", "dd/d63/namespaceyaze_1_1cli.html#a68b880dd4eae738940e4ac53f1dd64b9", null ],
+    [ "BuildTextSummary", "dd/d63/namespaceyaze_1_1cli.html#ac18aa41e75a53a40f653cb06b285d72c", null ],
+    [ "BuildJUnitReport", "dd/d63/namespaceyaze_1_1cli.html#a36072e7d1c470fb2ddc55805cd057d46", null ],
+    [ "WriteJUnitReport", "dd/d63/namespaceyaze_1_1cli.html#ad03dc6110c4d71ba4e652f667967c017", null ],
+    [ "BuildTestSuiteYaml", "dd/d63/namespaceyaze_1_1cli.html#a6662f52ece9ce40a05959c72d5211891", null ],
+    [ "WriteTestSuiteToFile", "dd/d63/namespaceyaze_1_1cli.html#ae51ea7d6bd3d5879beeb3775efdba4c0", null ],
     [ "ShowMain", "dd/d63/namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3", null ],
     [ "kMainMenuEntries", "dd/d63/namespaceyaze_1_1cli.html#a4faed45116bb119fd88fb89b6eaab816", null ]
 ];
