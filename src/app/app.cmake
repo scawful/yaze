@@ -18,10 +18,6 @@ if (APPLE)
     ${YAZE_UTIL_SRC}
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
-    # CLI service sources (needed for ProposalDrawer)
-    cli/service/planning/proposal_registry.cc
-    cli/service/rom/rom_sandbox_manager.cc
-    cli/service/planning/policy_evaluator.cc
     # Bundled Resources
     ${YAZE_RESOURCE_FILES}
   )
@@ -57,10 +53,6 @@ else()
     ${YAZE_UTIL_SRC}
     ${YAZE_GUI_SRC}
     ${IMGUI_SRC}
-    # CLI service sources (needed for ProposalDrawer)
-    cli/service/planning/proposal_registry.cc
-    cli/service/rom/rom_sandbox_manager.cc
-    cli/service/planning/policy_evaluator.cc
   )
   
   # Add asset files for Windows/Linux builds
@@ -132,6 +124,8 @@ target_link_libraries(
   ${CMAKE_DL_LIBS}
   ImGui
 )
+
+target_link_libraries(yaze PRIVATE yaze_agent)
 
 # Enable policy framework in main yaze target
 target_compile_definitions(yaze PRIVATE YAZE_ENABLE_POLICY_FRAMEWORK=1)
@@ -274,20 +268,6 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.cc
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.h)
   
-  # Add AI agent sources
-  target_sources(yaze PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/cli/service/agent/conversational_agent_service.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/ai/service_factory.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/ai/ai_service.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/ai/ollama_ai_service.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/ai/gemini_ai_service.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/ai/prompt_builder.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/planning/tile16_proposal_generator.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/resources/resource_context_builder.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/resources/resource_catalog.cc
-    ${CMAKE_SOURCE_DIR}/src/cli/service/agent/tool_dispatcher.cc
-  )
-
   # Link gRPC libraries
   target_link_libraries(yaze PRIVATE
     grpc++
