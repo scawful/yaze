@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "cli/service/ai_service.h"
+#include "cli/service/prompt_builder.h"
 
 namespace yaze {
 namespace cli {
@@ -17,6 +18,7 @@ struct GeminiConfig {
   float temperature = 0.7f;
   int max_output_tokens = 2048;
   std::string system_instruction;
+  bool use_enhanced_prompting = true;  // Enable few-shot examples
   
   GeminiConfig() = default;
   explicit GeminiConfig(const std::string& key) : api_key(key) {}
@@ -39,6 +41,7 @@ class GeminiAIService : public AIService {
       const std::string& response_body);
   
   GeminiConfig config_;
+  PromptBuilder prompt_builder_;
 };
 
 }  // namespace cli
