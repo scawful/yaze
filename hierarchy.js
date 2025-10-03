@@ -552,6 +552,7 @@ var hierarchy =
     [ "yaze::gui::WidgetIdRegistry", "d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html", null ],
     [ "yaze::gui::WidgetIdScope", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope.html", null ],
     [ "yaze::gui::WidgetIdRegistry::WidgetInfo", "d3/db7/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetInfo.html", null ],
+    [ "yaze::core::WidgetState", "d1/d17/structyaze_1_1core_1_1WidgetState.html", null ],
     [ "yaze::core::Window", "de/d86/structyaze_1_1core_1_1Window.html", null ],
     [ "yaze::test::anonymous_namespace{widget_discovery_service.cc}::WindowEntry", "d3/d85/structyaze_1_1test_1_1anonymous__namespace_02widget__discovery__service_8cc_03_1_1WindowEntry.html", null ],
     [ "yaze::emu::WindowLayer", "d2/def/structyaze_1_1emu_1_1WindowLayer.html", null ],

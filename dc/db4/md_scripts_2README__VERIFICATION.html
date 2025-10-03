@@ -101,16 +101,16 @@ $(document).ready(function(){initNavTree('dc/db4/md_scripts_2README__VERIFICATIO
   <div class="headertitle"><div class="title">YAZE Build Environment Verification Scripts</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1584"></a> This directory contains build environment verification and setup scripts for YAZE development.</p>
-<h1><a class="anchor" id="autotoc_md1585"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1656"></a> This directory contains build environment verification and setup scripts for YAZE development.</p>
+<h1><a class="anchor" id="autotoc_md1657"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md1586"></a>
+<h2><a class="anchor" id="autotoc_md1658"></a>
 Verify Build Environment</h2>
 <p><b>Windows (PowerShell):</b> </p><div class="fragment"><div class="line">.\scripts\verify-build-environment.ps1</div>
 </div><!-- fragment --><p><b>macOS/Linux:</b> </p><div class="fragment"><div class="line">./scripts/verify-build-environment.sh</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1587"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1659"></a>
 Scripts Overview</h1>
-<h2><a class="anchor" id="autotoc_md1588"></a>
+<h2><a class="anchor" id="autotoc_md1660"></a>
 &lt;tt&gt;verify-build-environment.ps1&lt;/tt&gt; / &lt;tt&gt;.sh&lt;/tt&gt;</h2>
 <p>Comprehensive build environment verification script that checks:</p>
 <ul>
@@ -118,20 +118,24 @@ Scripts Overview</h1>
 <li>✅ <b>Git Installation</b> - With submodule support</li>
 <li>✅ <b>C++ Compiler</b> - GCC 13+, Clang 16+, or MSVC 2019+</li>
 <li>✅ <b>Platform Tools</b> - Xcode (macOS), Visual Studio (Windows), build-essential (Linux)</li>
-<li>✅ <b>Git Submodules</b> - All dependencies synchronized</li>
+<li>✅ <b>Git Submodules</b> - All dependencies synchronized (auto-fixes if missing/empty)</li>
 <li>✅ <b>CMake Cache</b> - Freshness check (warns if &gt;7 days old)</li>
 <li>✅ <b>Dependency Compatibility</b> - gRPC isolation, httplib, nlohmann/json</li>
 <li>✅ <b>CMake Configuration</b> - Test configuration (verbose mode only)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1589"></a>
+<p><b>Automatic Fixes:</b> The script now automatically fixes common issues without requiring <code>-FixIssues</code>:</p><ul>
+<li>🔧 <b>Missing/Empty Submodules</b> - Automatically runs <code>git submodule update --init --recursive</code></li>
+<li>🔧 <b>Old CMake Cache</b> - Prompts for confirmation when using <code>-FixIssues</code> (auto-skips otherwise)</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md1661"></a>
 Usage</h3>
-<p><b>Windows:</b> </p><div class="fragment"><div class="line"># Basic verification</div>
+<p><b>Windows:</b> </p><div class="fragment"><div class="line"># Basic verification (auto-fixes submodules)</div>
 <div class="line">.\scripts\verify-build-environment.ps1</div>
 <div class="line"> </div>
-<div class="line"># With automatic fixes (sync submodules, clean cache)</div>
+<div class="line"># With interactive fixes (prompts for cache cleaning)</div>
 <div class="line">.\scripts\verify-build-environment.ps1 -FixIssues</div>
 <div class="line"> </div>
-<div class="line"># Clean old CMake cache files</div>
+<div class="line"># Force clean old CMake cache (no prompts)</div>
 <div class="line">.\scripts\verify-build-environment.ps1 -CleanCache</div>
 <div class="line"> </div>
 <div class="line"># Verbose output (includes CMake configuration test)</div>
@@ -139,13 +143,13 @@ Usage</h3>
 <div class="line"> </div>
 <div class="line"># Combined options</div>
 <div class="line">.\scripts\verify-build-environment.ps1 -FixIssues -Verbose</div>
-</div><!-- fragment --><p><b>macOS/Linux:</b> </p><div class="fragment"><div class="line"># Basic verification</div>
+</div><!-- fragment --><p><b>macOS/Linux:</b> </p><div class="fragment"><div class="line"># Basic verification (auto-fixes submodules)</div>
 <div class="line">./scripts/verify-build-environment.sh</div>
 <div class="line"> </div>
-<div class="line"># With automatic fixes</div>
+<div class="line"># With interactive fixes (prompts for cache cleaning)</div>
 <div class="line">./scripts/verify-build-environment.sh --fix</div>
 <div class="line"> </div>
-<div class="line"># Clean old CMake cache files</div>
+<div class="line"># Force clean old CMake cache (no prompts)</div>
 <div class="line">./scripts/verify-build-environment.sh --clean</div>
 <div class="line"> </div>
 <div class="line"># Verbose output</div>
@@ -153,15 +157,15 @@ Usage</h3>
 <div class="line"> </div>
 <div class="line"># Combined options</div>
 <div class="line">./scripts/verify-build-environment.sh --fix --verbose</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1590"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1662"></a>
 Exit Codes</h3>
 <ul>
 <li><code>0</code> - Success, environment ready for development</li>
 <li><code>1</code> - Issues found, manual intervention required</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1591"></a>
+<h1><a class="anchor" id="autotoc_md1663"></a>
 Common Workflows</h1>
-<h2><a class="anchor" id="autotoc_md1592"></a>
+<h2><a class="anchor" id="autotoc_md1664"></a>
 First-Time Setup</h2>
 <div class="fragment"><div class="line"># 1. Clone repository with submodules</div>
 <div class="line">git clone --recursive https://github.com/scawful/yaze.git</div>
@@ -178,7 +182,7 @@ First-Time Setup</h2>
 <div class="line"># OR</div>
 <div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug  # All platforms</div>
 <div class="line">cmake --build build</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1593"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1665"></a>
 After Pulling Changes</h2>
 <div class="fragment"><div class="line"># 1. Update submodules</div>
 <div class="line">git submodule update --init --recursive</div>
@@ -190,7 +194,7 @@ After Pulling Changes</h2>
 <div class="line">./scripts/verify-build-environment.sh --clean</div>
 <div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
 <div class="line">cmake --build build</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1594"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1666"></a>
 Troubleshooting Build Issues</h2>
 <div class="fragment"><div class="line"># 1. Clean everything and verify</div>
 <div class="line">./scripts/verify-build-environment.sh --clean --fix --verbose</div>
@@ -202,13 +206,60 @@ Troubleshooting Build Issues</h2>
 <div class="line">#    - Report any issues</div>
 <div class="line"> </div>
 <div class="line"># 3. Follow recommended actions in output</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1595"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1667"></a>
 Before Opening Pull Request</h2>
 <div class="fragment"><div class="line"># Verify clean build environment</div>
 <div class="line">./scripts/verify-build-environment.sh --verbose</div>
 <div class="line"> </div>
 <div class="line"># Should report: &quot;Build Environment Ready for Development!&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1596"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1668"></a>
+Automatic Fixes</h1>
+<p>The script automatically fixes common issues when detected:</p>
+<h2><a class="anchor" id="autotoc_md1669"></a>
+Always Auto-Fixed (No Confirmation Required)</h2>
+<ol type="1">
+<li><b>Missing/Empty Git Submodules</b> <div class="fragment"><div class="line">git submodule sync --recursive</div>
+<div class="line">git submodule update --init --recursive</div>
+</div><!-- fragment --><ul>
+<li>Runs automatically when submodules are missing or empty</li>
+<li>No user confirmation required</li>
+<li>Re-verifies after sync to ensure success</li>
+</ul>
+</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md1670"></a>
+Fixed with &lt;tt&gt;-FixIssues&lt;/tt&gt; / &lt;tt&gt;--fix&lt;/tt&gt; Flag</h2>
+<ol type="1">
+<li><b>Clean Old CMake Cache</b> (with confirmation prompt)<ul>
+<li>Prompts user before removing build directories</li>
+<li>Only when cache is older than 7 days</li>
+<li>User can choose to skip</li>
+</ul>
+</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md1671"></a>
+Fixed with &lt;tt&gt;-CleanCache&lt;/tt&gt; / &lt;tt&gt;--clean&lt;/tt&gt; Flag</h2>
+<ol type="1">
+<li><b>Force Clean CMake Cache</b> (no confirmation)<ul>
+<li>Removes <code>build/</code>, <code>build_test/</code>, <code>build-grpc-test/</code></li>
+<li>Removes Visual Studio cache (<code>out/</code>)</li>
+<li>No prompts, immediate cleanup</li>
+</ul>
+</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md1672"></a>
+Optional Verbose Tests</h2>
+<p>When run with <code>--verbose</code> or <code>-Verbose</code>:</p>
+<ol type="1">
+<li><b>Test CMake Configuration</b><ul>
+<li>Creates temporary build directory</li>
+<li>Tests minimal configuration</li>
+<li>Reports success/failure</li>
+<li>Cleans up test directory</li>
+</ul>
+</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md1673"></a>
 Integration with Visual Studio</h1>
 <p>The verification script integrates with Visual Studio CMake workflow:</p>
 <ol type="1">
@@ -225,16 +276,16 @@ Integration with Visual Studio</h1>
 <div class="line"># 3. Visual Studio detects CMakeLists.txt automatically</div>
 <div class="line"># 4. Select Debug/Release from toolbar</div>
 <div class="line"># 5. Press F5 to build and run</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1597"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1674"></a>
 What Gets Checked</h1>
-<h2><a class="anchor" id="autotoc_md1598"></a>
+<h2><a class="anchor" id="autotoc_md1675"></a>
 CMake (Required)</h2>
 <ul>
 <li>Minimum version 3.16</li>
 <li>Command available in PATH</li>
 <li>Compatible with project CMake files</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1599"></a>
+<h2><a class="anchor" id="autotoc_md1676"></a>
 Git (Required)</h2>
 <ul>
 <li>Git command available</li>
@@ -249,14 +300,14 @@ Git (Required)</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1600"></a>
+<h2><a class="anchor" id="autotoc_md1677"></a>
 Compilers (Required)</h2>
 <ul>
 <li><b>Windows</b>: Visual Studio 2019+ with C++ workload</li>
 <li><b>macOS</b>: Xcode Command Line Tools</li>
 <li><b>Linux</b>: GCC 13+ or Clang 16+, build-essential package</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1601"></a>
+<h2><a class="anchor" id="autotoc_md1678"></a>
 Platform Dependencies</h2>
 <p><b>Linux Specific:</b></p><ul>
 <li>GTK+3 development libraries (<code>libgtk-3-dev</code>)</li>
@@ -271,7 +322,7 @@ Platform Dependencies</h2>
 <li>Visual Studio 2022 recommended</li>
 <li>Windows SDK 10.0.19041.0 or later</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1602"></a>
+<h2><a class="anchor" id="autotoc_md1679"></a>
 CMake Cache</h2>
 <p>Checks for build directories:</p><ul>
 <li><code>build/</code> - Main build directory</li>
@@ -280,7 +331,7 @@ CMake Cache</h2>
 <li><code>out/</code> - Visual Studio CMake output</li>
 </ul>
 <p>Warns if cache files are older than 7 days.</p>
-<h2><a class="anchor" id="autotoc_md1603"></a>
+<h2><a class="anchor" id="autotoc_md1680"></a>
 Dependencies</h2>
 <p><b>gRPC Isolation (when enabled):</b></p><ul>
 <li>Verifies <code>CMAKE_DISABLE_FIND_PACKAGE_Protobuf=TRUE</code></li>
@@ -291,7 +342,7 @@ Dependencies</h2>
 <li><code>third_party/httplib</code> - cpp-httplib HTTP library</li>
 <li><code>third_party/json</code> - nlohmann/json library</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1604"></a>
+<h1><a class="anchor" id="autotoc_md1681"></a>
 Automatic Fixes</h1>
 <p>When run with <code>--fix</code> or <code>-FixIssues</code>:</p>
 <ol type="1">
@@ -311,7 +362,7 @@ Automatic Fixes</h1>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1605"></a>
+<h1><a class="anchor" id="autotoc_md1682"></a>
 CI/CD Integration</h1>
 <p>The verification script can be integrated into CI/CD pipelines:</p>
 <div class="fragment"><div class="line"># Example GitHub Actions step</div>
@@ -319,9 +370,9 @@ CI/CD Integration</h1>
 <div class="line">  run: |</div>
 <div class="line">    ./scripts/verify-build-environment.sh --verbose</div>
 <div class="line">  shell: bash</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1606"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1683"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md1607"></a>
+<h2><a class="anchor" id="autotoc_md1684"></a>
 Script Reports "CMake Not Found"</h2>
 <p><b>Windows:</b> </p><div class="fragment"><div class="line"># Check if CMake is installed</div>
 <div class="line">cmake --version</div>
@@ -336,7 +387,7 @@ Script Reports "CMake Not Found"</h2>
 <div class="line"># Install if missing</div>
 <div class="line">brew install cmake  # macOS</div>
 <div class="line">sudo apt install cmake  # Ubuntu/Debian</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1608"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1685"></a>
 "Git Submodules Missing"</h2>
 <div class="fragment"><div class="line"># Manually sync and update</div>
 <div class="line">git submodule sync --recursive</div>
@@ -344,26 +395,26 @@ Script Reports "CMake Not Found"</h2>
 <div class="line"> </div>
 <div class="line"># Or use fix option</div>
 <div class="line">./scripts/verify-build-environment.sh --fix</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1609"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1686"></a>
 "CMake Cache Too Old"</h2>
 <div class="fragment"><div class="line"># Clean automatically</div>
 <div class="line">./scripts/verify-build-environment.sh --clean</div>
 <div class="line"> </div>
 <div class="line"># Or manually</div>
 <div class="line">rm -rf build build_test build-grpc-test</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1610"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1687"></a>
 "Visual Studio Not Found" (Windows)</h2>
 <div class="fragment"><div class="line"># Install Visual Studio 2022 with C++ workload</div>
 <div class="line"># Download from: https://visualstudio.microsoft.com/</div>
 <div class="line"> </div>
 <div class="line"># Required workload:</div>
 <div class="line"># &quot;Desktop development with C++&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1611"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1688"></a>
 Script Fails on Network Issues (gRPC)</h2>
 <p>The script verifies configuration but doesn't download gRPC unless building with <code>-DYAZE_WITH_GRPC=ON</code>.</p>
 <p>If you encounter network issues: </p><div class="fragment"><div class="line"># Use minimal build (no gRPC)</div>
 <div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1612"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1689"></a>
 See Also</h1>
 <ul>
 <li><a class="el" href="../../d9/d41/md_docs_202-build-instructions.html">Build Instructions</a> - Complete build guide</li>

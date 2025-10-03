@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🔑_20key_20files_20reference_0',['🔑 Key Files Reference',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md616',1,'']]]
+  ['🔜_20planned_0',['🔜 planned',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1572',1,'Test Introspection (IT-05) 🔜 PLANNED'],['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1574',1,'Test Recording (IT-07) 🔜 PLANNED'],['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1573',1,'Widget Discovery (IT-06) 🔜 PLANNED']]]
 ];

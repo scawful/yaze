@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['📊_20current_20metrics_0',['📊 Current Metrics',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md615',1,'']]],
-  ['📊_20strong_20overall_20performance_20results_20strong_1',['📊 &lt;strong&gt;Overall Performance Results&lt;/strong&gt;',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html#autotoc_md203',1,'']]],
-  ['📊_20strong_20validation_20results_20strong_2',['📊 &lt;strong&gt;Validation Results&lt;/strong&gt;',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html#autotoc_md159',1,'']]]
+  ['📋_0',['Planned 📋',['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1438',1,'']]],
+  ['📋_20available_20presets_1',['📋 Available Presets',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md375',1,'']]],
+  ['📋_20for_20future_20agent_2',['📋 For Future Agent',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md610',1,'']]],
+  ['📋_20planned_3',['📋 planned',['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1422',1,'IT-08c: Widget State Dumps 📋 PLANNED'],['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1428',1,'IT-08d: Error Envelope Standardization 📋 PLANNED'],['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1432',1,'IT-08e: CLI Error Improvements 📋 PLANNED']]]
 ];

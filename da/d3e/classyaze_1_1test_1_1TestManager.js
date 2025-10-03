@@ -44,6 +44,7 @@ var classyaze_1_1test_1_1TestManager =
     [ "AppendHarnessTestLog", "da/d3e/classyaze_1_1test_1_1TestManager.html#afae4d4774f4b78417bfed23653598e9f", null ],
     [ "GetHarnessTestExecution", "da/d3e/classyaze_1_1test_1_1TestManager.html#a754e78e960ad976b47f434bf16313c24", null ],
     [ "ListHarnessTestSummaries", "da/d3e/classyaze_1_1test_1_1TestManager.html#a4451fb626335c12607dc1353051838ac", null ],
+    [ "CaptureFailureContext", "da/d3e/classyaze_1_1test_1_1TestManager.html#ac388d5c294ad7d81c955cda9e956995b", null ],
     [ "ExecuteTestSuite", "da/d3e/classyaze_1_1test_1_1TestManager.html#a7db45a242780d055d1d12cbc23df3d62", null ],
     [ "UpdateProgress", "da/d3e/classyaze_1_1test_1_1TestManager.html#ae7cbaf88ee1e98b4e2fa8c598fc21442", null ],
     [ "CollectResourceStats", "da/d3e/classyaze_1_1test_1_1TestManager.html#accb083bc4e5f9205954fa5c0059e4ba5", null ],

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['🚧_20todo_0',['🚧 todo',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html#autotoc_md1386',1,'Step 3: CLI Integration (🚧 TODO)'],['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html#autotoc_md1387',1,'Step 4: Testing &amp; Validation (🚧 TODO)']]]
+  ['🛠️_20ide_20integration_0',['🛠️ IDE Integration',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md377',1,'']]],
+  ['🛠️_20technical_20improvements_1',['🛠️ Technical Improvements',['../d0/d30/md_README.html#autotoc_md1625',1,'']]]
 ];

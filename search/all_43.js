@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['🛠️_20ide_20integration_0',['🛠️ IDE Integration',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md377',1,'']]],
-  ['🛠️_20technical_20improvements_1',['🛠️ Technical Improvements',['../d0/d30/md_README.html#autotoc_md1553',1,'']]]
+  ['🪟_0',['Priority 2: Windows Cross-Platform Testing 🪟',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1224',1,'']]]
 ];

@@ -97,6 +97,7 @@ var annotated_dup =
         [ "SDL_Deleter", "d3/d69/structyaze_1_1core_1_1SDL__Deleter.html", "d3/d69/structyaze_1_1core_1_1SDL__Deleter" ],
         [ "SDL_Surface_Deleter", "df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter.html", "df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter" ],
         [ "SDL_Texture_Deleter", "d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter.html", "d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter" ],
+        [ "WidgetState", "d1/d17/structyaze_1_1core_1_1WidgetState.html", "d1/d17/structyaze_1_1core_1_1WidgetState" ],
         [ "Window", "de/d86/structyaze_1_1core_1_1Window.html", "de/d86/structyaze_1_1core_1_1Window" ],
         [ "WorkspaceSettings", "d1/def/structyaze_1_1core_1_1WorkspaceSettings.html", "d1/def/structyaze_1_1core_1_1WorkspaceSettings" ],
         [ "YazeProject", "da/d5e/structyaze_1_1core_1_1YazeProject.html", "da/d5e/structyaze_1_1core_1_1YazeProject" ]

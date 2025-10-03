@@ -1,8 +1,11 @@
 var searchData=
 [
-  ['final_20summary_0',['YAZE Graphics Optimizations Project - Final Summary',['../d8/dfb/md_docs_2gfx__optimizations__project__summary.html',1,'']]],
-  ['for_20yaze_1',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
-  ['framework_20aw_2004_2',['Policy Evaluation Framework (AW-04)',['../d9/dc3/md_docs_2z3ed_2AW-04-POLICY-FRAMEWORK.html',1,'']]],
-  ['framework_20implementation_20complete_20✅_3',['Policy Evaluation Framework - Implementation Complete ✅',['../d5/d7c/md_docs_2z3ed_2POLICY-IMPLEMENTATION-SUMMARY.html',1,'']]],
-  ['future_20work_4',['Canvas Refactoring - Current Status &amp; Future Work',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html',1,'']]]
+  ['editing_20multiplayer_20sessions_0',['IT-10: Collaborative Editing &amp; Multiplayer Sessions',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html',1,'']]],
+  ['editor_1',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
+  ['editor_20design_20plan_2',['Dungeon Editor Design Plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'']]],
+  ['editor_20guide_3',['Dungeon Editor Guide',['../dd/d33/md_docs_2E2-dungeon-editor-guide.html',1,'']]],
+  ['editor_20palette_20system_4',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]],
+  ['enhanced_20error_20reporting_20implementation_20guide_5',['IT-08: Enhanced Error Reporting Implementation Guide',['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html',1,'']]],
+  ['environment_20verification_20scripts_6',['YAZE Build Environment Verification Scripts',['../dc/db4/md_scripts_2README__VERIFICATION.html',1,'']]],
+  ['error_20reporting_20implementation_20guide_7',['IT-08: Enhanced Error Reporting Implementation Guide',['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html',1,'']]]
 ];

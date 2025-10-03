@@ -25,6 +25,5 @@ var searchData=
   ['asset_5fbrowser_2eh_22',['asset_browser.h',['../d0/d16/asset__browser_8h.html',1,'']]],
   ['atlas_5frenderer_2ecc_23',['atlas_renderer.cc',['../dd/d53/atlas__renderer_8cc.html',1,'']]],
   ['atlas_5frenderer_2eh_24',['atlas_renderer.h',['../d1/d35/atlas__renderer_8h.html',1,'']]],
-  ['atlas_5frendering_5fimplementation_2emd_25',['atlas_rendering_implementation.md',['../dd/dc2/atlas__rendering__implementation_8md.html',1,'']]],
-  ['aw_2d04_2dpolicy_2dframework_2emd_26',['AW-04-POLICY-FRAMEWORK.md',['../dd/dcc/AW-04-POLICY-FRAMEWORK_8md.html',1,'']]]
+  ['atlas_5frendering_5fimplementation_2emd_25',['atlas_rendering_implementation.md',['../dd/dc2/atlas__rendering__implementation_8md.html',1,'']]]
 ];

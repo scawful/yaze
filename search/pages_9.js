@@ -1,16 +1,11 @@
 var searchData=
 [
-  ['id_20refactoring_20next_20actions_0',['Widget ID Refactoring - Next Actions',['../d7/d42/md_docs_2z3ed_2WIDGET__ID__NEXT__ACTIONS.html',1,'']]],
-  ['implementation_1',['implementation',['../d7/d30/md_docs_2analysis_2dungeon__parallel__optimization__summary.html',1,'DungeonEditor Parallel Optimization Implementation'],['../d6/df4/md_docs_2gfx__optimizations__complete.html',1,'YAZE Graphics System Optimizations - Complete Implementation']]],
-  ['implementation_20analysis_2',['ZScream C# vs YAZE C++ Overworld Implementation Analysis',['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'']]],
-  ['implementation_20complete_20✅_3',['Policy Evaluation Framework - Implementation Complete ✅',['../d5/d7c/md_docs_2z3ed_2POLICY-IMPLEMENTATION-SUMMARY.html',1,'']]],
-  ['implementation_20guide_4',['IT-05: Test Introspection API – Implementation Guide',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html',1,'']]],
-  ['implementation_20summary_5',['yaze Graphics System Optimizations - Implementation Summary',['../d3/d7b/md_docs_2gfx__optimizations__implemented.html',1,'']]],
-  ['implementation_20yaze_20graphics_20optimizations_6',['Atlas Rendering Implementation - YAZE Graphics Optimizations',['../db/d26/md_docs_2atlas__rendering__implementation.html',1,'']]],
-  ['improvements_7',['improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'Platform Compatibility Improvements'],['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'Stability, Testability &amp; Release Workflow Improvements']]],
-  ['improvements_20summary_8',['YAZE Graphics System Improvements Summary',['../d9/df4/md_docs_2gfx__improvements__summary.html',1,'']]],
-  ['instructions_9',['Build Instructions',['../d9/d41/md_docs_202-build-instructions.html',1,'']]],
-  ['integration_10',['Asar 65816 Assembler Integration',['../d2/dd3/md_docs_203-asar-integration.html',1,'']]],
-  ['introspection_20api_20–_20implementation_20guide_11',['IT-05: Test Introspection API – Implementation Guide',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html',1,'']]],
-  ['it_2005_3a_20test_20introspection_20api_20–_20implementation_20guide_12',['IT-05: Test Introspection API – Implementation Guide',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html',1,'']]]
+  ['getting_20started_0',['Getting Started',['../d0/d63/md_docs_201-getting-started.html',1,'']]],
+  ['graphics_20optimizations_1',['Atlas Rendering Implementation - YAZE Graphics Optimizations',['../db/d26/md_docs_2atlas__rendering__implementation.html',1,'']]],
+  ['graphics_20optimizations_20project_20final_20summary_2',['YAZE Graphics Optimizations Project - Final Summary',['../d8/dfb/md_docs_2gfx__optimizations__project__summary.html',1,'']]],
+  ['graphics_20system_20improvements_20summary_3',['YAZE Graphics System Improvements Summary',['../d9/df4/md_docs_2gfx__improvements__summary.html',1,'']]],
+  ['graphics_20system_20optimization_20recommendations_4',['YAZE Graphics System Optimization Recommendations',['../de/def/md_docs_2gfx__optimization__recommendations.html',1,'']]],
+  ['graphics_20system_20optimizations_20complete_20implementation_5',['YAZE Graphics System Optimizations - Complete Implementation',['../d6/df4/md_docs_2gfx__optimizations__complete.html',1,'']]],
+  ['graphics_20system_20optimizations_20implementation_20summary_6',['yaze Graphics System Optimizations - Implementation Summary',['../d3/d7b/md_docs_2gfx__optimizations__implemented.html',1,'']]],
+  ['guide_7',['guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'Asm Style Guide'],['../d7/d51/md_docs_2B3-build-presets.html',1,'Build Presets Guide'],['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'Canvas System - Comprehensive Guide'],['../dd/d33/md_docs_2E2-dungeon-editor-guide.html',1,'Dungeon Editor Guide'],['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html',1,'IT-05: Test Introspection API – Implementation Guide'],['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html',1,'IT-08: Enhanced Error Reporting Implementation Guide'],['../d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html',1,'IT-08b: Auto-Capture on Test Failure - Implementation Guide'],['../dc/d12/md_docs_2F1-overworld-loading.html',1,'Overworld Loading Guide'],['../d6/d10/md_docs_2A1-testing-guide.html',1,'Testing Guide'],['../de/d8a/md_docs_2overworld__testing__guide.html',1,'yaze Overworld Testing Guide']]]
 ];
