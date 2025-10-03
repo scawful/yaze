@@ -246,6 +246,23 @@ absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
         response_json["reasoning"].is_string()) {
       agent_response.reasoning = response_json["reasoning"].get<std::string>();
     }
+    if (response_json.contains("tool_calls") &&
+        response_json["tool_calls"].is_array()) {
+      for (const auto& call : response_json["tool_calls"]) {
+        if (call.contains("tool_name") && call["tool_name"].is_string()) {
+          ToolCall tool_call;
+          tool_call.tool_name = call["tool_name"].get<std::string>();
+          if (call.contains("args") && call["args"].is_object()) {
+            for (auto& [key, value] : call["args"].items()) {
+              if (value.is_string()) {
+                tool_call.args[key] = value.get<std::string>();
+              }
+            }
+          }
+          agent_response.tool_calls.push_back(tool_call);
+        }
+      }
+    }
     if (response_json.contains("commands") &&
         response_json["commands"].is_array()) {
       for (const auto& cmd : response_json["commands"]) {

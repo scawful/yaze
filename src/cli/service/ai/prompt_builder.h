@@ -23,6 +23,7 @@ struct FewShotExample {
   std::string text_response;
   std::vector<std::string> expected_commands;
   std::string explanation;  // Why these commands work
+  std::vector<ToolCall> tool_calls;
 };
 
 // ROM context information to inject into prompts

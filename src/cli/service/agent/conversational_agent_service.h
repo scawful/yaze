@@ -6,6 +6,7 @@
 
 #include "absl/status/statusor.h"
 #include "cli/service/ai/ai_service.h"
+#include "cli/service/agent/tool_dispatcher.h"
 
 namespace yaze {
 namespace cli {
@@ -31,6 +32,7 @@ class ConversationalAgentService {
  private:
   std::vector<ChatMessage> history_;
   std::unique_ptr<AIService> ai_service_;
+  ToolDispatcher tool_dispatcher_;
 };
 
 }  // namespace agent

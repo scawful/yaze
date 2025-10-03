@@ -285,6 +285,7 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/src/cli/service/planning/tile16_proposal_generator.cc
     ${CMAKE_SOURCE_DIR}/src/cli/service/resources/resource_context_builder.cc
     ${CMAKE_SOURCE_DIR}/src/cli/service/resources/resource_catalog.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/agent/tool_dispatcher.cc
   )
 
   # Link gRPC libraries

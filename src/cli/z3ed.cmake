@@ -71,6 +71,8 @@ add_executable(
   cli/service/agent/conversational_agent_service.cc
   cli/service/ai/service_factory.h
   cli/service/ai/service_factory.cc
+  cli/service/agent/tool_dispatcher.h
+  cli/service/agent/tool_dispatcher.cc
   app/rom.cc
   app/core/project.cc
   app/core/asar_wrapper.cc
