@@ -3,6 +3,7 @@
 
 #include "cli/service/gui_automation_client.h"
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
 
@@ -132,6 +133,53 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Ping(
                                    response.timestamp_ms());
   result.execution_time = std::chrono::milliseconds(0);
   result.test_id.clear();
+  return result;
+#else
+  return absl::UnimplementedError("gRPC not available");
+#endif
+}
+
+absl::StatusOr<ReplayTestResult> GuiAutomationClient::ReplayTest(
+    const std::string& script_path, bool ci_mode,
+    const std::map<std::string, std::string>& parameter_overrides) {
+#ifdef YAZE_WITH_GRPC
+  if (!stub_) {
+    return absl::FailedPreconditionError("Not connected. Call Connect() first.");
+  }
+
+  yaze::test::ReplayTestRequest request;
+  request.set_script_path(script_path);
+  request.set_ci_mode(ci_mode);
+  for (const auto& [key, value] : parameter_overrides) {
+    (*request.mutable_parameter_overrides())[key] = value;
+  }
+
+  yaze::test::ReplayTestResponse response;
+  grpc::ClientContext context;
+
+  grpc::Status status = stub_->ReplayTest(&context, request, &response);
+  if (!status.ok()) {
+    return absl::InternalError(
+        absl::StrCat("ReplayTest RPC failed: ", status.error_message()));
+  }
+
+  ReplayTestResult result;
+  result.success = response.success();
+  result.message = response.message();
+  result.replay_session_id = response.replay_session_id();
+  result.steps_executed = response.steps_executed();
+  result.logs.assign(response.logs().begin(), response.logs().end());
+  result.assertions.reserve(response.assertions_size());
+  for (const auto& assertion_proto : response.assertions()) {
+    AssertionOutcome assertion;
+    assertion.description = assertion_proto.description();
+    assertion.passed = assertion_proto.passed();
+    assertion.expected_value = assertion_proto.expected_value();
+    assertion.actual_value = assertion_proto.actual_value();
+    assertion.error_message = assertion_proto.error_message();
+    result.assertions.push_back(std::move(assertion));
+  }
+
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");

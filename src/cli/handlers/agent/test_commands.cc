@@ -1,7 +1,12 @@
 #include "cli/handlers/agent/commands.h"
 
 #include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <map>
+#include <set>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -9,11 +14,18 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/ascii.h"
+#include "absl/strings/cord.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
+#include "absl/strings/str_split.h"
+#include "absl/strings/strip.h"
 #include "absl/time/time.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/service/gui_automation_client.h"
+#include "cli/service/test_suite.h"
+#include "cli/service/test_suite_loader.h"
+#include "cli/service/test_suite_reporter.h"
 #include "cli/service/test_workflow_generator.h"
 #include "util/macro.h"
 
@@ -22,6 +34,124 @@ namespace cli {
 namespace agent {
 
 namespace {
+
+constexpr char kExitCodePayloadKey[] = "yaze.cli.exit_code";
+
+void AttachExitCode(absl::Status* status, int exit_code) {
+  if (!status || status->ok()) {
+    return;
+  }
+  status->SetPayload(kExitCodePayloadKey,
+                     absl::Cord(std::to_string(exit_code)));
+}
+
+std::string OutcomeToLabel(TestCaseOutcome outcome) {
+  switch (outcome) {
+    case TestCaseOutcome::kPassed:
+      return "PASS";
+    case TestCaseOutcome::kFailed:
+      return "FAIL";
+    case TestCaseOutcome::kError:
+      return "ERROR";
+    case TestCaseOutcome::kSkipped:
+      return "SKIP";
+  }
+  return "UNKNOWN";
+}
+
+std::string BuildWidgetCatalogJson(const DiscoverWidgetsResult& catalog) {
+  std::ostringstream oss;
+  oss << "{\n";
+  oss << "  \"generated_at_ms\": ";
+  if (catalog.generated_at.has_value()) {
+    oss << absl::ToUnixMillis(catalog.generated_at.value());
+  } else {
+    oss << "null";
+  }
+  oss << ",\n";
+  oss << "  \"total_widgets\": " << catalog.total_widgets << ",\n";
+  oss << "  \"windows\": [\n";
+  for (size_t w = 0; w < catalog.windows.size(); ++w) {
+    const auto& window = catalog.windows[w];
+    oss << "    {\n";
+    oss << "      \"name\": \"" << JsonEscape(window.name) << "\",\n";
+    oss << "      \"visible\": " << (window.visible ? "true" : "false")
+        << ",\n";
+    oss << "      \"widgets\": [\n";
+    for (size_t i = 0; i < window.widgets.size(); ++i) {
+      const auto& widget = window.widgets[i];
+      oss << "        {\n";
+      oss << "          \"path\": \"" << JsonEscape(widget.path) << "\",\n";
+      oss << "          \"label\": \"" << JsonEscape(widget.label)
+          << "\",\n";
+      oss << "          \"type\": \"" << JsonEscape(widget.type) << "\",\n";
+      oss << "          \"description\": \""
+          << JsonEscape(widget.description) << "\",\n";
+      oss << "          \"suggested_action\": \""
+          << JsonEscape(widget.suggested_action) << "\",\n";
+      oss << "          \"visible\": "
+          << (widget.visible ? "true" : "false") << ",\n";
+      oss << "          \"enabled\": "
+          << (widget.enabled ? "true" : "false") << ",\n";
+      oss << "          \"widget_id\": " << widget.widget_id << ",\n";
+      oss << "          \"last_seen_frame\": " << widget.last_seen_frame
+          << ",\n";
+      oss << "          \"last_seen_at_ms\": ";
+      if (widget.last_seen_at.has_value()) {
+        oss << absl::ToUnixMillis(widget.last_seen_at.value());
+      } else {
+        oss << "null";
+      }
+      oss << ",\n";
+      oss << "          \"stale\": "
+          << (widget.stale ? "true" : "false") << ",\n";
+      oss << "          \"bounds\": ";
+      if (widget.has_bounds) {
+        oss << "{\"min\": [" << widget.bounds.min_x << ", "
+            << widget.bounds.min_y << "], \"max\": [" << widget.bounds.max_x
+            << ", " << widget.bounds.max_y << "]}";
+      } else {
+        oss << "null";
+      }
+      oss << "\n        }";
+      if (i + 1 < window.widgets.size()) {
+        oss << ',';
+      }
+      oss << "\n";
+    }
+    oss << "      ]\n";
+    oss << "    }";
+    if (w + 1 < catalog.windows.size()) {
+      oss << ',';
+    }
+    oss << "\n";
+  }
+  oss << "  ]\n";
+  oss << "}\n";
+  return oss.str();
+}
+
+absl::Status WriteWidgetCatalog(const DiscoverWidgetsResult& catalog,
+                                const std::string& output_path) {
+  std::filesystem::path path(output_path);
+  if (path.has_parent_path()) {
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+      return absl::InternalError(
+          absl::StrCat("Failed to create directories for widget catalog: ",
+                       ec.message()));
+    }
+  }
+  std::ofstream out(path);
+  if (!out.is_open()) {
+    return absl::InternalError(
+        absl::StrCat("Unable to open widget catalog path '", output_path,
+                      "'"));
+  }
+  out << BuildWidgetCatalogJson(catalog);
+  return absl::OkStatus();
+}
 
 absl::Status HandleTestRunCommand(const std::vector<std::string>& arg_vec) {
   std::string prompt;
