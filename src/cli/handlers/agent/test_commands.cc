@@ -1,14 +1,20 @@
 #include "cli/handlers/agent/commands.h"
 
+#include <algorithm>
 #include <chrono>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
 #include <thread>
+#include <unordered_set>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -17,11 +23,13 @@
 #include "absl/strings/cord.h"
 #include "absl/strings/match.h"
 #include "absl/strings/numbers.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/strip.h"
+#include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/service/gui_automation_client.h"
@@ -582,6 +590,568 @@ absl::Status HandleTestRunCommand(const std::vector<std::string>& arg_vec) {
             step.test_id.empty()
                 ? "null"
                 : absl::StrCat("\"", JsonEscape(step.test_id), "\"");
+
+    struct SuiteRunOptions {
+      std::string suite_path;
+      std::string host = "localhost";
+      int port = 50052;
+      bool ci_mode = false;
+      bool stop_on_failure = false;
+      std::string output_format = "text";
+      std::vector<std::string> group_filters;
+      std::vector<std::string> tag_filters;
+      std::map<std::string, std::string> parameter_overrides;
+      std::optional<int> retry_override;
+      std::string junit_output_path;
+    };
+
+    void AppendCsvList(absl::string_view csv,
+                       std::vector<std::string>* output) {
+      for (absl::string_view part : absl::StrSplit(csv, ',', absl::SkipEmpty())) {
+        std::string value = std::string(absl::StripAsciiWhitespace(part));
+        if (!value.empty()) {
+          output->push_back(value);
+        }
+      }
+    }
+
+    absl::StatusOr<SuiteRunOptions> ParseSuiteRunArgs(
+        const std::vector<std::string>& args) {
+      SuiteRunOptions options;
+
+      auto parse_int = [](absl::string_view value,
+                          const char* flag) -> absl::StatusOr<int> {
+        int result = 0;
+        if (!absl::SimpleAtoi(value, &result)) {
+          return absl::InvalidArgumentError(
+              absl::StrCat(flag, " requires an integer value"));
+        }
+        if (result <= 0 || result > 65535) {
+          return absl::InvalidArgumentError(
+              absl::StrCat(flag, " must be between 1 and 65535"));
+        }
+        return result;
+      };
+
+      for (size_t i = 0; i < args.size(); ++i) {
+        const std::string& token = args[i];
+
+        if (token == "--ci-mode" || token == "--ci") {
+          options.ci_mode = true;
+          options.stop_on_failure = true;
+          continue;
+        }
+        if (token == "--stop-on-failure") {
+          options.stop_on_failure = true;
+          continue;
+        }
+
+        if ((token == "--host" || token == "-H") && i + 1 < args.size()) {
+          options.host = args[++i];
+          continue;
+        }
+        if (absl::StartsWith(token, "--host=")) {
+          options.host = token.substr(7);
+          continue;
+        }
+
+        if ((token == "--port" || token == "-p") && i + 1 < args.size()) {
+          ASSIGN_OR_RETURN(options.port, parse_int(args[++i], "--port"));
+          continue;
+        }
+        if (absl::StartsWith(token, "--port=")) {
+          ASSIGN_OR_RETURN(options.port,
+                           parse_int(token.substr(7), "--port"));
+          continue;
+        }
+
+        if ((token == "--format" || token == "--output") &&
+            i + 1 < args.size()) {
+          options.output_format = absl::AsciiStrToLower(args[++i]);
+          continue;
+        }
+        if (absl::StartsWith(token, "--format=") ||
+            absl::StartsWith(token, "--output=")) {
+          options.output_format = absl::AsciiStrToLower(
+              token.substr(token.find('=') + 1));
+          continue;
+        }
+
+        if ((token == "--group" || token == "-g") && i + 1 < args.size()) {
+          AppendCsvList(args[++i], &options.group_filters);
+          continue;
+        }
+        if (absl::StartsWith(token, "--group=")) {
+          AppendCsvList(token.substr(8), &options.group_filters);
+          continue;
+        }
+
+        if ((token == "--tag" || token == "-t") && i + 1 < args.size()) {
+          AppendCsvList(args[++i], &options.tag_filters);
+          continue;
+        }
+        if (absl::StartsWith(token, "--tag=")) {
+          AppendCsvList(token.substr(6), &options.tag_filters);
+          continue;
+        }
+
+        if (token == "--param" && i + 1 < args.size()) {
+          std::string pair = args[++i];
+          auto eq = pair.find('=');
+          if (eq == std::string::npos) {
+            return absl::InvalidArgumentError(
+                "--param expects KEY=VALUE format");
+          }
+          options.parameter_overrides[pair.substr(0, eq)] = pair.substr(eq + 1);
+          continue;
+        }
+        if (absl::StartsWith(token, "--param=")) {
+          std::string pair = token.substr(8);
+          auto eq = pair.find('=');
+          if (eq == std::string::npos) {
+            return absl::InvalidArgumentError(
+                "--param expects KEY=VALUE format");
+          }
+          options.parameter_overrides[pair.substr(0, eq)] = pair.substr(eq + 1);
+          continue;
+        }
+
+        if ((token == "--retries" || token == "--retry") &&
+            i + 1 < args.size()) {
+          int value = 0;
+          if (!absl::SimpleAtoi(args[++i], &value) || value < 0) {
+            return absl::InvalidArgumentError(
+                "--retries expects a non-negative integer");
+          }
+          options.retry_override = value;
+          continue;
+        }
+        if (absl::StartsWith(token, "--retries=") ||
+            absl::StartsWith(token, "--retry=")) {
+          std::string value = token.substr(token.find('=') + 1);
+          int retries = 0;
+          if (!absl::SimpleAtoi(value, &retries) || retries < 0) {
+            return absl::InvalidArgumentError(
+                "--retries expects a non-negative integer");
+          }
+          options.retry_override = retries;
+          continue;
+        }
+
+        if ((token == "--junit" || token == "--junit-output") &&
+            i + 1 < args.size()) {
+          options.junit_output_path = args[++i];
+          continue;
+        }
+        if (absl::StartsWith(token, "--junit=") ||
+            absl::StartsWith(token, "--junit-output=")) {
+          options.junit_output_path = token.substr(token.find('=') + 1);
+          continue;
+        }
+
+        if (token == "--suite" && i + 1 < args.size()) {
+          options.suite_path = args[++i];
+          continue;
+        }
+        if (absl::StartsWith(token, "--suite=")) {
+          options.suite_path = token.substr(8);
+          continue;
+        }
+
+        if (!absl::StartsWith(token, "--") && options.suite_path.empty()) {
+          options.suite_path = token;
+          continue;
+        }
+
+        if (!absl::StartsWith(token, "--")) {
+          return absl::InvalidArgumentError(
+              absl::StrCat("Unexpected argument: ", token));
+        }
+
+        return absl::InvalidArgumentError(
+            absl::StrCat("Unknown flag for agent test suite run: ", token));
+      }
+
+      if (options.suite_path.empty()) {
+        return absl::InvalidArgumentError(
+            "Usage: agent test suite run <suite.yaml> [--group <name>] [--tag "
+            "<tag>] [--ci-mode] [--format text|json] [--junit <path>]"
+            " [--param KEY=VALUE] [--retries N]");
+      }
+
+      options.output_format = absl::AsciiStrToLower(options.output_format);
+      if (options.output_format != "text" && options.output_format != "json") {
+        return absl::InvalidArgumentError(
+            "--format must be either 'text' or 'json'");
+      }
+
+      return options;
+    }
+
+    bool MatchesFilter(const std::vector<std::string>& filters,
+                       absl::string_view value) {
+      if (filters.empty()) {
+        return true;
+      }
+      for (const auto& filter : filters) {
+        if (absl::EqualsIgnoreCase(filter, value)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    bool ShouldRunGroup(const TestGroupDefinition& group,
+                        const SuiteRunOptions& options) {
+      return MatchesFilter(options.group_filters, group.name);
+    }
+
+    bool ShouldRunTest(const TestCaseDefinition& test,
+                       const SuiteRunOptions& options) {
+      if (options.tag_filters.empty()) {
+        return true;
+      }
+      for (const auto& tag : test.tags) {
+        for (const auto& filter : options.tag_filters) {
+          if (absl::EqualsIgnoreCase(filter, tag)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    std::map<std::string, std::string> MergeParameters(
+        const TestCaseDefinition& test, const SuiteRunOptions& options) {
+      std::map<std::string, std::string> merged = test.parameters;
+      for (const auto& [key, value] : options.parameter_overrides) {
+        merged[key] = value;
+      }
+      return merged;
+    }
+
+    int DetermineMaxAttempts(const TestSuiteDefinition& suite,
+                             const SuiteRunOptions& options) {
+      int retries = suite.config.retry_on_failure;
+      if (options.retry_override.has_value()) {
+        retries = options.retry_override.value();
+      }
+      if (retries < 0) {
+        retries = 0;
+      }
+      return retries + 1;
+    }
+
+    void AddResult(TestSuiteRunSummary* summary, TestCaseRunResult result) {
+      switch (result.outcome) {
+        case TestCaseOutcome::kPassed:
+          summary->passed++;
+          break;
+        case TestCaseOutcome::kFailed:
+          summary->failed++;
+          break;
+        case TestCaseOutcome::kError:
+          summary->errors++;
+          break;
+        case TestCaseOutcome::kSkipped:
+          summary->skipped++;
+          break;
+      }
+      summary->results.push_back(std::move(result));
+    }
+
+    TestCaseRunResult ExecuteTestCase(
+        GuiAutomationClient* client, const TestSuiteDefinition& suite,
+        const TestGroupDefinition& group, const TestCaseDefinition& test,
+        const SuiteRunOptions& options, int max_attempts) {
+      TestCaseRunResult result;
+      result.test = &test;
+      result.group = &group;
+      result.outcome = TestCaseOutcome::kError;
+      result.start_time = absl::Now();
+
+      std::map<std::string, std::string> parameters = MergeParameters(test, options);
+
+      for (int attempt = 1; attempt <= max_attempts; ++attempt) {
+        ++result.attempts;
+        result.retries = attempt - 1;
+
+        absl::StatusOr<ReplayTestResult> replay =
+            client->ReplayTest(test.script_path, options.ci_mode, parameters);
+
+        if (!replay.ok()) {
+          result.outcome = TestCaseOutcome::kError;
+          result.message = replay.status().message();
+          break;
+        }
+
+        result.replay_session_id = replay->replay_session_id;
+        result.assertions = replay->assertions;
+        result.logs = replay->logs;
+        result.message = replay->message;
+
+        if (replay->success) {
+          result.outcome = TestCaseOutcome::kPassed;
+          break;
+        }
+
+        result.outcome = TestCaseOutcome::kFailed;
+        if (attempt < max_attempts) {
+          continue;
+        }
+        break;
+      }
+
+      result.duration = absl::Now() - result.start_time;
+      if (result.outcome == TestCaseOutcome::kPassed && result.message.empty()) {
+        result.message = "Test passed";
+      }
+      return result;
+    }
+
+    std::string JoinStrings(const std::vector<std::string>& values,
+                            absl::string_view delimiter) {
+      if (values.empty()) {
+        return "";
+      }
+      return absl::StrJoin(values, delimiter);
+    }
+
+    absl::StatusOr<TestSuiteRunSummary> ExecuteTestSuite(
+        GuiAutomationClient* client, const TestSuiteDefinition& suite,
+        const SuiteRunOptions& options) {
+      TestSuiteRunSummary summary;
+      summary.suite = &suite;
+      summary.started_at = absl::Now();
+
+      int max_attempts = DetermineMaxAttempts(suite, options);
+      std::unordered_map<std::string, bool> group_success;
+      bool interrupted = false;
+
+      for (const auto& group : suite.groups) {
+        bool group_selected = ShouldRunGroup(group, options);
+        if (!group_selected) {
+          group_success[group.name] = false;
+          continue;
+        }
+
+        bool dependencies_met = true;
+        std::vector<std::string> unmet_dependencies;
+        for (const std::string& dependency : group.depends_on) {
+          auto it = group_success.find(dependency);
+          if (it == group_success.end() || !it->second) {
+            dependencies_met = false;
+            unmet_dependencies.push_back(dependency);
+          }
+        }
+
+        if (!dependencies_met) {
+          for (const auto& test : group.tests) {
+            if (!ShouldRunTest(test, options)) {
+              continue;
+            }
+            TestCaseRunResult skipped;
+            skipped.test = &test;
+            skipped.group = &group;
+            skipped.outcome = TestCaseOutcome::kSkipped;
+            skipped.message =
+                absl::StrCat("Skipped because dependencies not satisfied: ",
+                              JoinStrings(unmet_dependencies, ", "));
+            AddResult(&summary, std::move(skipped));
+          }
+          group_success[group.name] = false;
+          continue;
+        }
+
+        bool group_passed = true;
+
+        for (const auto& test : group.tests) {
+          if (!ShouldRunTest(test, options)) {
+            TestCaseRunResult skipped;
+            skipped.test = &test;
+            skipped.group = &group;
+            skipped.outcome = TestCaseOutcome::kSkipped;
+            skipped.message = "Skipped by CLI filter";
+            AddResult(&summary, std::move(skipped));
+            continue;
+          }
+
+          if (interrupted) {
+            TestCaseRunResult skipped;
+            skipped.test = &test;
+            skipped.group = &group;
+            skipped.outcome = TestCaseOutcome::kSkipped;
+            skipped.message =
+                "Skipped because stop-on-failure condition was triggered";
+            AddResult(&summary, std::move(skipped));
+            continue;
+          }
+
+          TestCaseRunResult result =
+              ExecuteTestCase(client, suite, group, test, options, max_attempts);
+          AddResult(&summary, std::move(result));
+
+          const auto& stored = summary.results.back();
+          if (stored.outcome == TestCaseOutcome::kFailed ||
+              stored.outcome == TestCaseOutcome::kError) {
+            group_passed = false;
+            if (options.stop_on_failure) {
+              interrupted = true;
+            }
+          }
+        }
+
+        group_success[group.name] = group_passed;
+      }
+
+      summary.total_duration = absl::Now() - summary.started_at;
+      if (summary.results.empty()) {
+        return absl::InvalidArgumentError(
+            "No tests were executed. Adjust filters or suite definition.");
+      }
+
+      return summary;
+    }
+
+    std::string SanitizeFileComponent(absl::string_view input) {
+      std::string sanitized;
+      sanitized.reserve(input.size());
+      for (char c : input) {
+        if (std::isalnum(static_cast<unsigned char>(c))) {
+          sanitized.push_back(c);
+        } else if (c == '-' || c == '_') {
+          sanitized.push_back(c);
+        } else if (c == ' ') {
+          sanitized.push_back('_');
+        }
+      }
+      if (sanitized.empty()) {
+        sanitized = "suite";
+      }
+      return sanitized;
+    }
+
+    std::string DefaultJUnitOutputPath(const TestSuiteDefinition& suite) {
+      std::string name = suite.name.empty() ? "suite" : suite.name;
+      std::string sanitized = SanitizeFileComponent(name);
+      return absl::StrCat("test-results/junit/", sanitized, ".xml");
+    }
+
+    std::string FormatRfc3339(absl::Time time) {
+      if (time == absl::InfinitePast()) {
+        return "";
+      }
+      return absl::FormatTime("%Y-%m-%dT%H:%M:%SZ", time, absl::UTCTimeZone());
+    }
+
+    std::string BuildSuiteJsonSummary(const TestSuiteRunSummary& summary,
+                                      const SuiteRunOptions& options,
+                                      absl::string_view junit_path) {
+      std::ostringstream oss;
+      std::string suite_name =
+          summary.suite ? summary.suite->name : "YAZE GUI Test Suite";
+
+      oss << "{\n";
+      oss << "  \"suite_name\": \"" << JsonEscape(suite_name) << "\",\n";
+      oss << "  \"suite_file\": \"" << JsonEscape(options.suite_path)
+          << "\",\n";
+      oss << "  \"host\": \"" << JsonEscape(options.host) << "\",\n";
+      oss << "  \"port\": " << options.port << ",\n";
+      oss << "  \"ci_mode\": " << (options.ci_mode ? "true" : "false")
+          << ",\n";
+      oss << "  \"started_at\": \""
+          << JsonEscape(FormatRfc3339(summary.started_at)) << "\",\n";
+      oss << "  \"duration_seconds\": "
+          << absl::StrFormat("%.3f",
+                             absl::ToDoubleSeconds(summary.total_duration))
+          << ",\n";
+      oss << "  \"totals\": {\n";
+      oss << "    \"executed\": " << summary.results.size() << ",\n";
+      oss << "    \"passed\": " << summary.passed << ",\n";
+      oss << "    \"failed\": " << summary.failed << ",\n";
+      oss << "    \"errors\": " << summary.errors << ",\n";
+      oss << "    \"skipped\": " << summary.skipped << "\n";
+      oss << "  },\n";
+
+      oss << "  \"parameters\": {\n";
+      size_t param_index = 0;
+      for (const auto& [key, value] : options.parameter_overrides) {
+        oss << "    \"" << JsonEscape(key) << "\": \""
+            << JsonEscape(value) << "\"";
+        if (++param_index < options.parameter_overrides.size()) {
+          oss << ",";
+        }
+        oss << "\n";
+      }
+      oss << "  },\n";
+
+      oss << "  \"groups\": [\n";
+      for (size_t i = 0; i < summary.results.size(); ++i) {
+        const auto& result = summary.results[i];
+        const std::string group_name =
+            result.group ? result.group->name : (result.test ? result.test->group_name : "");
+        const std::string test_name =
+            result.test ? result.test->name : "Test";
+        oss << "    {\n";
+        oss << "      \"group\": \"" << JsonEscape(group_name) << "\",\n";
+        oss << "      \"test\": \"" << JsonEscape(test_name) << "\",\n";
+        oss << "      \"outcome\": \""
+            << JsonEscape(OutcomeToLabel(result.outcome)) << "\",\n";
+        oss << "      \"duration_seconds\": "
+            << absl::StrFormat("%.3f", absl::ToDoubleSeconds(result.duration))
+            << ",\n";
+        oss << "      \"attempts\": " << result.attempts << ",\n";
+        oss << "      \"message\": \"" << JsonEscape(result.message)
+            << "\",\n";
+        if (result.replay_session_id.empty()) {
+          oss << "      \"replay_session_id\": null,\n";
+        } else {
+          oss << "      \"replay_session_id\": \""
+              << JsonEscape(result.replay_session_id) << "\",\n";
+        }
+        oss << "      \"assertions\": [\n";
+        for (size_t j = 0; j < result.assertions.size(); ++j) {
+          const auto& assertion = result.assertions[j];
+          oss << "        {\"description\": \""
+              << JsonEscape(assertion.description) << "\", \"passed\": "
+              << (assertion.passed ? "true" : "false");
+          if (!assertion.error_message.empty()) {
+            oss << ", \"error\": \""
+                << JsonEscape(assertion.error_message) << "\"";
+          }
+          oss << "}";
+          if (j + 1 < result.assertions.size()) {
+            oss << ",";
+          }
+          oss << "\n";
+        }
+        oss << "      ],\n";
+        oss << "      \"logs\": [\n";
+        for (size_t j = 0; j < result.logs.size(); ++j) {
+          oss << "        \"" << JsonEscape(result.logs[j]) << "\"";
+          if (j + 1 < result.logs.size()) {
+            oss << ",";
+          }
+          oss << "\n";
+        }
+        oss << "      ]\n";
+        oss << "    }";
+        if (i + 1 < summary.results.size()) {
+          oss << ",";
+        }
+        oss << "\n";
+      }
+      oss << "  ],\n";
+
+      if (junit_path.empty()) {
+        oss << "  \"junit_report\": null\n";
+      } else {
+        oss << "  \"junit_report\": \"" << JsonEscape(junit_path)
+            << "\"\n";
+      }
+      oss << "}\n";
+      return oss.str();
+    }
         std::cout << "    {\n";
         std::cout << "      \"index\": " << (i + 1) << ",\n";
         std::cout << "      \"description\": \"" << JsonEscape(step.description)
@@ -1276,6 +1846,151 @@ absl::Status HandleTestResultsCommand(const std::vector<std::string>& arg_vec) {
 #endif
 }
 
+absl::Status HandleTestSuiteRunCommand(const std::vector<std::string>& arg_vec) {
+#ifndef YAZE_WITH_GRPC
+  return absl::UnimplementedError(
+      "GUI automation requires YAZE_WITH_GRPC=ON at build time.\n"
+      "Rebuild with: cmake -B build -DYAZE_WITH_GRPC=ON");
+#else
+  ASSIGN_OR_RETURN(SuiteRunOptions options, ParseSuiteRunArgs(arg_vec));
+  auto suite_or = LoadTestSuiteFromFile(options.suite_path);
+  if (!suite_or.ok()) {
+    absl::Status status = suite_or.status();
+    AttachExitCode(&status, 2);
+    return status;
+  }
+  TestSuiteDefinition suite = std::move(suite_or.value());
+
+  if (options.junit_output_path.empty() && options.ci_mode) {
+    options.junit_output_path = DefaultJUnitOutputPath(suite);
+  }
+
+  GuiAutomationClient client(HarnessAddress(options.host, options.port));
+  RETURN_IF_ERROR(client.Connect());
+
+  auto summary_or = ExecuteTestSuite(&client, suite, options);
+  if (!summary_or.ok()) {
+    absl::Status status = summary_or.status();
+    AttachExitCode(&status, 2);
+    return status;
+  }
+  TestSuiteRunSummary summary = std::move(summary_or.value());
+
+  std::string junit_note;
+  if (!options.junit_output_path.empty()) {
+    absl::Status write_status =
+        WriteJUnitReport(summary, options.junit_output_path);
+    if (!write_status.ok()) {
+      std::cerr << "Failed to write JUnit report: "
+                << write_status.message() << std::endl;
+    } else {
+      junit_note = options.junit_output_path;
+    }
+  }
+
+  if (options.output_format == "json") {
+    std::cout << BuildSuiteJsonSummary(summary, options, junit_note)
+              << std::endl;
+  } else {
+    std::cout << BuildTextSummary(summary);
+    if (!junit_note.empty()) {
+      std::cout << "\nJUnit report: " << junit_note << "\n";
+    }
+  }
+
+  int exit_code = 0;
+  if (summary.errors > 0) {
+    exit_code = 2;
+  } else if (summary.failed > 0) {
+    exit_code = 1;
+  }
+
+  if (exit_code != 0) {
+    absl::Status status =
+        (summary.errors > 0)
+            ? absl::InternalError("Suite run encountered errors")
+            : absl::UnknownError("Suite run reported failing tests");
+    AttachExitCode(&status, exit_code);
+    return status;
+  }
+
+  return absl::OkStatus();
+#endif
+}
+
+absl::Status HandleTestSuiteValidateCommand(
+    const std::vector<std::string>& arg_vec) {
+  std::string suite_path;
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--suite" && i + 1 < arg_vec.size()) {
+      suite_path = arg_vec[++i];
+      continue;
+    }
+    if (absl::StartsWith(token, "--suite=")) {
+      suite_path = token.substr(8);
+      continue;
+    }
+    if (!absl::StartsWith(token, "--") && suite_path.empty()) {
+      suite_path = token;
+      continue;
+    }
+    return absl::InvalidArgumentError(
+        absl::StrCat("Unknown or misplaced argument: ", token));
+  }
+
+  if (suite_path.empty()) {
+    return absl::InvalidArgumentError(
+        "Usage: agent test suite validate <suite.yaml>");
+  }
+
+  auto suite_or = LoadTestSuiteFromFile(suite_path);
+  if (!suite_or.ok()) {
+    absl::Status status = suite_or.status();
+    AttachExitCode(&status, 2);
+    return status;
+  }
+  TestSuiteDefinition suite = std::move(suite_or.value());
+
+  int total_tests = 0;
+  for (const auto& group : suite.groups) {
+    total_tests += static_cast<int>(group.tests.size());
+  }
+
+  std::cout << "Suite validation succeeded\n";
+  std::cout << "  File: " << suite_path << "\n";
+  std::cout << "  Name: "
+            << (suite.name.empty() ? "<unnamed>" : suite.name) << "\n";
+  std::cout << "  Groups: " << suite.groups.size() << "\n";
+  std::cout << "  Tests: " << total_tests << "\n";
+
+  return absl::OkStatus();
+}
+
+absl::Status HandleTestSuiteCommand(const std::vector<std::string>& arg_vec) {
+  if (arg_vec.empty()) {
+    return absl::InvalidArgumentError(
+        "Usage: agent test suite <run|validate> [options]");
+  }
+
+  const std::string& action = arg_vec[0];
+  std::vector<std::string> tail(arg_vec.begin() + 1, arg_vec.end());
+
+  if (action == "run") {
+    return HandleTestSuiteRunCommand(tail);
+  }
+  if (action == "validate") {
+    return HandleTestSuiteValidateCommand(tail);
+  }
+  if (action == "create") {
+    return absl::UnimplementedError(
+        "agent test suite create is not implemented yet");
+  }
+
+  return absl::InvalidArgumentError(
+      absl::StrCat("Unknown test suite action: ", action));
+}
+
 }  // namespace
 
 absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
@@ -1285,6 +2000,9 @@ absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
 
     if (subcommand == "replay") {
       return HandleTestReplayCommand(tail);
+    }
+    if (subcommand == "suite") {
+      return HandleTestSuiteCommand(tail);
     }
     if (subcommand == "status") {
       return HandleTestStatusCommand(tail);
