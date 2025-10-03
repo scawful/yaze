@@ -163,7 +163,7 @@ cat /tmp/yaze_widgets.yaml
 **Goal**: Enable test harness to click widgets by hierarchical ID
 
 **Files to Edit**:
-1. `src/app/core/imgui_test_harness_service.cc`
+1. `src/app/core/service/imgui_test_harness_service.cc`
 2. `src/app/core/proto/imgui_test_harness.proto` (optional - add DiscoverWidgets RPC)
 
 **Implementation**:
@@ -263,7 +263,7 @@ grpcurl -plaintext \
 
 ### High Priority
 1. `src/app/editor/editor_manager.cc` - Add widget export at shutdown
-2. `src/app/core/imgui_test_harness_service.cc` - Registry lookup in Click RPC
+2. `src/app/core/service/imgui_test_harness_service.cc` - Registry lookup in Click RPC
 
 ### Medium Priority
 3. `src/app/core/proto/imgui_test_harness.proto` - Add DiscoverWidgets RPC
@@ -348,7 +348,7 @@ cmake --build build -j8
 **Code References**:
 - `src/app/gui/widget_id_registry.{h,cc}` - Registry implementation
 - `src/app/editor/overworld/overworld_editor.cc` - Usage example
-- `src/app/core/imgui_test_harness_service.cc` - Test harness
+- `src/app/core/service/imgui_test_harness_service.cc` - Test harness
 
 ---
 

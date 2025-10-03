@@ -1,5 +1,26 @@
 # IT-05: Test Introspection API – Implementation Guide
 
+**Status (Oct 2, 2025)**: ✅ **COMPLETE - Production Ready**
+
+## Progress Snapshot
+
+- ✅ Proto definitions and service stubs added for `GetTestStatus`, `ListTests`, `GetTestResults`.
+- ✅ `TestManager` now records execution lifecycle, aggregates, logs, and metrics with thread-safe history trimming.
+- ✅ `ImGuiTestHarnessServiceImpl` implements the three introspection RPC handlers, including pagination and status conversion helpers.
+- ✅ CLI wiring complete: `GuiAutomationClient` exposes all introspection methods.
+- ✅ User-facing commands: `z3ed agent test {status,list,results}` fully functional with YAML/JSON output.
+- ✅ End-to-end validation script (`scripts/test_introspection_e2e.sh`) validates complete workflow.
+
+**E2E Test Results** (Oct 2, 2025):
+```bash
+✓ GetTestStatus RPC - Query test execution status
+✓ ListTests RPC - Enumerate available tests
+✓ GetTestResults RPC - Retrieve detailed results (YAML + JSON)
+✓ Follow mode - Poll status until completion
+✓ Category filtering - Filter tests by category
+✓ Pagination - Limit number of results
+```st Introspection API – Implementation Guide
+
 **Status (Oct 2, 2025)**: 🟡 *Server-side RPCs complete; CLI + E2E pending*
 
 ## Progress Snapshot
@@ -438,14 +459,15 @@ kill $YAZE_PID
 
 ## Success Criteria
 
-- [x] All 3 new RPCs respond correctly
-- [x] Test IDs returned in Click/Type/Wait/Assert responses
-- [ ] Status polling works with `--follow` flag (CLI pending)
-- [x] Test history persists across multiple test runs
-- [ ] CLI commands output clean YAML/JSON
-- [x] No memory leaks in test history tracking (bounded deque + pruning)
-- [x] Thread-safe access to test history (mutex-protected)
-- [ ] Documentation updated in `E6-z3ed-reference.md`
+- [x] All 3 new RPCs respond correctly ✅
+- [x] Test IDs returned in Click/Type/Wait/Assert responses ✅
+- [x] Status polling works with `--follow` flag ✅
+- [x] Test history persists across multiple test runs ✅
+- [x] CLI commands output clean YAML/JSON ✅
+- [x] No memory leaks in test history tracking (bounded deque + pruning) ✅
+- [x] Thread-safe access to test history (mutex-protected) ✅
+- [x] Documentation updated in `E6-z3ed-reference.md` ✅
+- [x] E2E test script validates complete workflow ✅
 
 ## Migration Guide
 
