@@ -21,7 +21,10 @@ namespace cli {
 GeminiAIService::GeminiAIService(const GeminiConfig& config) 
     : config_(config) {
   // Load command documentation into prompt builder
-  prompt_builder_.LoadResourceCatalogue("");  // TODO: Pass actual yaml path when available
+  if (auto status = prompt_builder_.LoadResourceCatalogue(""); !status.ok()) {
+    std::cerr << "⚠️  Failed to load agent prompt catalogue: "
+              << status.message() << std::endl;
+  }
   
   if (config_.system_instruction.empty()) {
     // Use enhanced prompting by default
@@ -37,6 +40,10 @@ std::string GeminiAIService::BuildSystemInstruction() {
   // Fallback prompt if enhanced prompting is disabled
   // Use PromptBuilder's basic system instruction
   return prompt_builder_.BuildSystemInstruction();
+}
+
+void GeminiAIService::SetRomContext(Rom* rom) {
+  prompt_builder_.SetRom(rom);
 }
 
 absl::Status GeminiAIService::CheckAvailability() {

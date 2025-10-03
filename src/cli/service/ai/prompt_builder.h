@@ -1,11 +1,13 @@
 #ifndef YAZE_CLI_SERVICE_PROMPT_BUILDER_H_
 #define YAZE_CLI_SERVICE_PROMPT_BUILDER_H_
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "nlohmann/json_fwd.hpp"
 #include "cli/service/ai/common.h"
 #include "cli/service/resources/resource_context_builder.h"
 #include "app/rom.h"
@@ -24,6 +26,20 @@ struct FewShotExample {
   std::vector<std::string> expected_commands;
   std::string explanation;  // Why these commands work
   std::vector<ToolCall> tool_calls;
+};
+
+struct ToolArgument {
+  std::string name;
+  std::string description;
+  bool required = false;
+  std::string example;
+};
+
+struct ToolSpecification {
+  std::string name;
+  std::string description;
+  std::vector<ToolArgument> arguments;
+  std::string usage_notes;
 };
 
 // ROM context information to inject into prompts
@@ -65,22 +81,34 @@ class PromptBuilder {
   // Get few-shot examples for specific category
   std::vector<FewShotExample> GetExamplesForCategory(
       const std::string& category);
+  std::string LookupTileId(const std::string& alias) const;
+  const std::map<std::string, std::string>& tile_reference() const {
+    return tile_reference_;
+  }
   
   // Set verbosity level (0=minimal, 1=standard, 2=verbose)
   void SetVerbosity(int level) { verbosity_ = level; }
   
  private:
-  std::string BuildCommandReference();
-  std::string BuildFewShotExamplesSection();
+  std::string BuildCommandReference() const;
+  std::string BuildFewShotExamplesSection() const;
+  std::string BuildToolReference() const;
   std::string BuildContextSection(const RomContext& context);
-  std::string BuildConstraintsSection();
-  
-  void LoadDefaultExamples();
+  std::string BuildConstraintsSection() const;
+  std::string BuildTileReferenceSection() const;
+  absl::StatusOr<std::string> ResolveCataloguePath(const std::string& yaml_path) const;
+  void ClearCatalogData();
+  absl::Status ParseCommands(const nlohmann::json& commands);
+  absl::Status ParseTools(const nlohmann::json& tools);
+  absl::Status ParseExamples(const nlohmann::json& examples);
+  void ParseTileReference(const nlohmann::json& tile_reference);
   
   Rom* rom_ = nullptr;
   std::unique_ptr<ResourceContextBuilder> resource_context_builder_;
   std::map<std::string, std::string> command_docs_;  // Command name -> docs
   std::vector<FewShotExample> examples_;
+  std::vector<ToolSpecification> tool_specs_;
+  std::map<std::string, std::string> tile_reference_;
   int verbosity_ = 1;
   bool catalogue_loaded_ = false;
 };

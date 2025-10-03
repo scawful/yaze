@@ -1,190 +1,365 @@
 #include "cli/service/ai/prompt_builder.h"
 #include "cli/service/agent/conversational_agent_service.h"
 
+#include <cstdlib>
+#include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
+#include "nlohmann/json.hpp"
+#include "yaml-cpp/yaml.h"
 
 namespace yaze {
 namespace cli {
 
-PromptBuilder::PromptBuilder() {
-  LoadDefaultExamples();
+namespace {
+
+namespace fs = std::filesystem;
+
+nlohmann::json YamlToJson(const YAML::Node& node) {
+  if (!node) {
+    return nlohmann::json();
+  }
+
+  switch (node.Type()) {
+    case YAML::NodeType::Scalar:
+      return node.as<std::string>("");
+    case YAML::NodeType::Sequence: {
+      nlohmann::json array = nlohmann::json::array();
+      for (const auto& item : node) {
+        array.push_back(YamlToJson(item));
+      }
+      return array;
+    }
+    case YAML::NodeType::Map: {
+      nlohmann::json object = nlohmann::json::object();
+      for (const auto& kv : node) {
+        object[kv.first.as<std::string>()] = YamlToJson(kv.second);
+      }
+      return object;
+    }
+    default:
+      return nlohmann::json();
+  }
 }
 
-void PromptBuilder::LoadDefaultExamples() {
-  // ==========================================================================
-  // OVERWORLD TILE16 EDITING - Primary Focus
-  // ==========================================================================
-  
-  // Single tile placement
-  examples_.push_back({
-      "Place a tree at position 10, 20 on the Light World map",
-      "Okay, I can place that tree for you. Here is the command:",
-      {"overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E"},
-      "Single tile16 placement. Tree tile ID is 0x02E in vanilla ALTTP"});
-  
-  // Area/region editing
-  examples_.push_back({
-      "Create a 3x3 water pond at coordinates 15, 10",
-      "Creating a 3x3 pond requires nine `set-tile` commands. Here they are:",
-      {"overworld set-tile --map 0 --x 15 --y 10 --tile 0x14C",
-       "overworld set-tile --map 0 --x 16 --y 10 --tile 0x14D",
-       "overworld set-tile --map 0 --x 17 --y 10 --tile 0x14C",
-       "overworld set-tile --map 0 --x 15 --y 11 --tile 0x14D",
-       "overworld set-tile --map 0 --x 16 --y 11 --tile 0x14D",
-       "overworld set-tile --map 0 --x 17 --y 11 --tile 0x14D",
-       "overworld set-tile --map 0 --x 15 --y 12 --tile 0x14E",
-       "overworld set-tile --map 0 --x 16 --y 12 --tile 0x14E",
-       "overworld set-tile --map 0 --x 17 --y 12 --tile 0x14E"},
-      "Water areas use different edge tiles: 0x14C (top), 0x14D (middle), "
-      "0x14E (bottom)"});
-  
-  // Path/line creation
-  examples_.push_back(
-      {"Add a dirt path from position 5,5 to 5,15",
-       "I will generate a `set-tile` command for each point along the path.",
-       {"overworld set-tile --map 0 --x 5 --y 5 --tile 0x022",
-        "overworld set-tile --map 0 --x 5 --y 6 --tile 0x022",
-        "overworld set-tile --map 0 --x 5 --y 7 --tile 0x022",
-        "overworld set-tile --map 0 --x 5 --y 8 --tile 0x022",
-        "overworld set-tile --map 0 --x 5 --y 9 --tile 0x022",
-        "overworld set-tile --map 0 --x 5 --y 10 --tile 0x022",
-        "overworld set-tile --map 0 --x 5 --y 11 --tile 0x022",
-        "overworld set-tile --map 0 --x 5 --y 12 --tile 0x022",
-        "overworld set-tile --map 0 --x 5 --y 13 --tile 0x022",
-        "overworld set-tile --map 0 --x 5 --y 14 --tile 0x022",
-        "overworld set-tile --map 0 --x 5 --y 15 --tile 0x022"},
-       "Linear paths are created by placing tiles sequentially. Dirt tile is "
-       "0x022"});
+std::vector<fs::path> BuildCatalogueSearchPaths(const std::string& explicit_path) {
+  std::vector<fs::path> paths;
+  if (!explicit_path.empty()) {
+    paths.emplace_back(explicit_path);
+  }
 
-  // Forest/tree grouping
-  examples_.push_back(
-      {"Plant a row of trees horizontally at y=8 from x=20 to x=25",
-       "Here are the commands to plant that row of trees:",
-       {"overworld set-tile --map 0 --x 20 --y 8 --tile 0x02E",
-        "overworld set-tile --map 0 --x 21 --y 8 --tile 0x02E",
-        "overworld set-tile --map 0 --x 22 --y 8 --tile 0x02E",
-        "overworld set-tile --map 0 --x 23 --y 8 --tile 0x02E",
-        "overworld set-tile --map 0 --x 24 --y 8 --tile 0x02E",
-        "overworld set-tile --map 0 --x 25 --y 8 --tile 0x02E"},
-       "Tree rows create natural barriers and visual boundaries"});
+  if (const char* env_path = std::getenv("YAZE_AGENT_CATALOGUE")) {
+    if (*env_path != '\0') {
+      paths.emplace_back(env_path);
+    }
+  }
 
-  // ==========================================================================
-  // DUNGEON EDITING - Label-Aware Operations
-  // ==========================================================================
+  const std::vector<std::string> defaults = {
+      "assets/agent/prompt_catalogue.yaml",
+      "../assets/agent/prompt_catalogue.yaml",
+      "../../assets/agent/prompt_catalogue.yaml",
+      "assets/z3ed/prompt_catalogue.yaml",
+      "../assets/z3ed/prompt_catalogue.yaml",
+  };
 
-  // Sprite placement (label-aware)
-  examples_.push_back(
-      {"Add 3 soldiers to the Eastern Palace entrance room",
-       "I've identified the dungeon and sprite IDs from your project's "
-       "labels. Here are the commands:",
-       {"dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 5 --y "
-        "3",
-        "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 10 "
-        "--y 3",
-        "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 7 --y "
-        "8"},
-       "Dungeon ID 0x02 is Eastern Palace. Sprite 0x41 is soldier. Spread "
-       "placement for balance"});
+  for (const auto& candidate : defaults) {
+    paths.emplace_back(candidate);
+  }
 
-  // Object placement
-  examples_.push_back(
-      {"Place a chest in the Hyrule Castle treasure room",
-       "Certainly. I will place a chest containing a small key in the center of "
-       "the room.",
-       {"dungeon add-chest --dungeon 0x00 --room 0x60 --x 7 --y 5 --item 0x12 "
-        "--big false"},
-       "Dungeon 0x00 is Hyrule Castle. Item 0x12 is a small key. Position "
-       "centered in room"});
+  return paths;
+}
 
-  // ==========================================================================
-  // COMMON TILE16 REFERENCE (for AI knowledge)
-  // ==========================================================================
-  // Grass: 0x020
-  // Dirt: 0x022
-  // Tree: 0x02E
-  // Water (top): 0x14C
-  // Water (middle): 0x14D
-  // Water (bottom): 0x14E
-  // Bush: 0x003
-  // Rock: 0x004
-  // Flower: 0x021
-  // Sand: 0x023
-  // Deep Water: 0x14F
-  // Shallow Water: 0x150
-  
-  // Validation example (still useful)
-  examples_.push_back(
-      {"Check if my overworld changes are valid",
-       "Yes, I can validate the ROM for you.",
-       {"rom validate"},
-       "Validation ensures ROM integrity after tile modifications"});
+}  // namespace
 
-  // ==========================================================================
-  // Q&A / Tool Use
-  // ==========================================================================
-  examples_.push_back(
-      {"What dungeons are in this project?",
-       "I can list the dungeons for you. Let me check the resource labels.",
-       {},
-       "The user is asking a question. I need to use the `resource-list` tool "
-       "to find the answer.",
-       {{"resource-list", {{"type", "dungeon"}}}}});
+PromptBuilder::PromptBuilder() = default;
+
+void PromptBuilder::ClearCatalogData() {
+  command_docs_.clear();
+  examples_.clear();
+  tool_specs_.clear();
+  tile_reference_.clear();
+  catalogue_loaded_ = false;
+}
+
+absl::StatusOr<std::string> PromptBuilder::ResolveCataloguePath(
+    const std::string& yaml_path) const {
+  const auto search_paths = BuildCatalogueSearchPaths(yaml_path);
+  for (const auto& candidate : search_paths) {
+    fs::path resolved = candidate;
+    if (resolved.is_relative()) {
+      resolved = fs::absolute(resolved);
+    }
+    if (fs::exists(resolved)) {
+      return resolved.string();
+    }
+  }
+
+  return absl::NotFoundError(
+      absl::StrCat("Prompt catalogue not found. Checked paths: ",
+                   absl::StrJoin(search_paths, ", ",
+                                 [](std::string* out, const fs::path& path) {
+                                   absl::StrAppend(out, path.string());
+                                 })));
 }
 
 absl::Status PromptBuilder::LoadResourceCatalogue(const std::string& yaml_path) {
-  // TODO: Parse z3ed-resources.yaml when available
-  // For now, use hardcoded command reference
-  
-  command_docs_["palette export"] = 
-      "Export palette data to JSON file\n"
-      "  --group <group>  Palette group (overworld, dungeon, sprite)\n"
-      "  --id <id>        Palette ID (0-based index)\n"
-      "  --to <file>      Output JSON file path";
-  
-  command_docs_["palette import"] = 
-      "Import palette data from JSON file\n"
-      "  --group <group>  Palette group (overworld, dungeon, sprite)\n"
-      "  --id <id>        Palette ID (0-based index)\n"
-      "  --from <file>    Input JSON file path";
-  
-  command_docs_["palette set-color"] = 
-      "Modify a color in palette JSON file\n"
-      "  --file <file>    Palette JSON file to modify\n"
-      "  --index <index>  Color index (0-15 per palette)\n"
-      "  --color <hex>    New color in hex (0xRRGGBB format)";
-  
-  command_docs_["overworld set-tile"] = 
-      "Place a tile in the overworld\n"
-      "  --map <id>       Map ID (0-based)\n"
-      "  --x <x>          X coordinate (0-63)\n"
-      "  --y <y>          Y coordinate (0-63)\n"
-      "  --tile <hex>     Tile ID in hex (e.g., 0x02E for tree)";
-  
-  command_docs_["sprite set-position"] = 
-      "Move a sprite to new position\n"
-      "  --id <id>        Sprite ID\n"
-      "  --x <x>          X coordinate\n"
-      "  --y <y>          Y coordinate";
-  
-  command_docs_["dungeon set-room-tile"] = 
-      "Place a tile in dungeon room\n"
-      "  --room <id>      Room ID\n"
-      "  --x <x>          X coordinate\n"
-      "  --y <y>          Y coordinate\n"
-      "  --tile <hex>     Tile ID";
-  
-  command_docs_["rom validate"] = 
-      "Validate ROM integrity and structure";
-  
+  auto resolved_or = ResolveCataloguePath(yaml_path);
+  if (!resolved_or.ok()) {
+    ClearCatalogData();
+    return resolved_or.status();
+  }
+
+  const std::string& resolved_path = resolved_or.value();
+
+  YAML::Node root;
+  try {
+    root = YAML::LoadFile(resolved_path);
+  } catch (const YAML::BadFile& e) {
+    ClearCatalogData();
+    return absl::NotFoundError(
+        absl::StrCat("Unable to open prompt catalogue at ", resolved_path,
+                     ": ", e.what()));
+  } catch (const YAML::ParserException& e) {
+    ClearCatalogData();
+    return absl::InvalidArgumentError(
+        absl::StrCat("Failed to parse prompt catalogue at ", resolved_path,
+                     ": ", e.what()));
+  }
+
+  nlohmann::json catalogue = YamlToJson(root);
+  ClearCatalogData();
+
+  if (catalogue.contains("commands")) {
+    if (auto status = ParseCommands(catalogue["commands"]); !status.ok()) {
+      return status;
+    }
+  }
+
+  if (catalogue.contains("tools")) {
+    if (auto status = ParseTools(catalogue["tools"]); !status.ok()) {
+      return status;
+    }
+  }
+
+  if (catalogue.contains("examples")) {
+    if (auto status = ParseExamples(catalogue["examples"]); !status.ok()) {
+      return status;
+    }
+  }
+
+  if (catalogue.contains("tile16_reference")) {
+    ParseTileReference(catalogue["tile16_reference"]);
+  }
+
   catalogue_loaded_ = true;
   return absl::OkStatus();
 }
 
-std::string PromptBuilder::BuildCommandReference() {
+absl::Status PromptBuilder::ParseCommands(const nlohmann::json& commands) {
+  if (!commands.is_object()) {
+    return absl::InvalidArgumentError(
+        "commands section must be an object mapping command names to docs");
+  }
+
+  for (const auto& [name, value] : commands.items()) {
+    if (!value.is_string()) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Command entry for ", name, " must be a string"));
+    }
+    command_docs_[name] = value.get<std::string>();
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status PromptBuilder::ParseTools(const nlohmann::json& tools) {
+  if (!tools.is_array()) {
+    return absl::InvalidArgumentError("tools section must be an array");
+  }
+
+  for (const auto& tool_json : tools) {
+    if (!tool_json.is_object()) {
+      return absl::InvalidArgumentError(
+          "Each tool entry must be an object with name/description");
+    }
+
+    ToolSpecification spec;
+    if (tool_json.contains("name") && tool_json["name"].is_string()) {
+      spec.name = tool_json["name"].get<std::string>();
+    } else {
+      return absl::InvalidArgumentError("Tool entry missing name");
+    }
+
+    if (tool_json.contains("description") && tool_json["description"].is_string()) {
+      spec.description = tool_json["description"].get<std::string>();
+    }
+
+    if (tool_json.contains("usage_notes") && tool_json["usage_notes"].is_string()) {
+      spec.usage_notes = tool_json["usage_notes"].get<std::string>();
+    }
+
+    if (tool_json.contains("arguments")) {
+      const auto& args = tool_json["arguments"];
+      if (!args.is_array()) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Tool arguments for ", spec.name, " must be an array"));
+      }
+      for (const auto& arg_json : args) {
+        if (!arg_json.is_object()) {
+          return absl::InvalidArgumentError(
+              absl::StrCat("Argument entries for ", spec.name,
+                           " must be objects"));
+        }
+        ToolArgument arg;
+        if (arg_json.contains("name") && arg_json["name"].is_string()) {
+          arg.name = arg_json["name"].get<std::string>();
+        } else {
+          return absl::InvalidArgumentError(
+              absl::StrCat("Argument entry for ", spec.name,
+                           " is missing a name"));
+        }
+        if (arg_json.contains("description") && arg_json["description"].is_string()) {
+          arg.description = arg_json["description"].get<std::string>();
+        }
+        if (arg_json.contains("required")) {
+          if (!arg_json["required"].is_boolean()) {
+            return absl::InvalidArgumentError(
+                absl::StrCat("Argument 'required' flag for ", spec.name,
+                             "::", arg.name, " must be boolean"));
+          }
+          arg.required = arg_json["required"].get<bool>();
+        }
+        if (arg_json.contains("example") && arg_json["example"].is_string()) {
+          arg.example = arg_json["example"].get<std::string>();
+        }
+        spec.arguments.push_back(std::move(arg));
+      }
+    }
+
+    tool_specs_.push_back(std::move(spec));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status PromptBuilder::ParseExamples(const nlohmann::json& examples) {
+  if (!examples.is_array()) {
+    return absl::InvalidArgumentError("examples section must be an array");
+  }
+
+  for (const auto& example_json : examples) {
+    if (!example_json.is_object()) {
+      return absl::InvalidArgumentError("Each example entry must be an object");
+    }
+
+    FewShotExample example;
+    if (example_json.contains("user_prompt") &&
+        example_json["user_prompt"].is_string()) {
+      example.user_prompt = example_json["user_prompt"].get<std::string>();
+    } else {
+      return absl::InvalidArgumentError("Example missing user_prompt");
+    }
+
+    if (example_json.contains("text_response") &&
+        example_json["text_response"].is_string()) {
+      example.text_response = example_json["text_response"].get<std::string>();
+    }
+
+    if (example_json.contains("reasoning") &&
+        example_json["reasoning"].is_string()) {
+      example.explanation = example_json["reasoning"].get<std::string>();
+    }
+
+    if (example_json.contains("commands")) {
+      const auto& commands = example_json["commands"];
+      if (!commands.is_array()) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Example commands for ", example.user_prompt,
+                         " must be an array"));
+      }
+      for (const auto& cmd : commands) {
+        if (!cmd.is_string()) {
+          return absl::InvalidArgumentError(
+              absl::StrCat("Command entries for ", example.user_prompt,
+                           " must be strings"));
+        }
+        example.expected_commands.push_back(cmd.get<std::string>());
+      }
+    }
+
+    if (example_json.contains("tool_calls")) {
+      const auto& calls = example_json["tool_calls"];
+      if (!calls.is_array()) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Tool calls for ", example.user_prompt,
+                         " must be an array"));
+      }
+      for (const auto& call_json : calls) {
+        if (!call_json.is_object()) {
+          return absl::InvalidArgumentError(
+              absl::StrCat("Tool call entries for ", example.user_prompt,
+                           " must be objects"));
+        }
+        ToolCall call;
+        if (call_json.contains("tool_name") && call_json["tool_name"].is_string()) {
+          call.tool_name = call_json["tool_name"].get<std::string>();
+        } else {
+          return absl::InvalidArgumentError(
+              absl::StrCat("Tool call missing tool_name in example: ",
+                           example.user_prompt));
+        }
+        if (call_json.contains("args")) {
+          const auto& args = call_json["args"];
+          if (!args.is_object()) {
+            return absl::InvalidArgumentError(
+                absl::StrCat("Tool call args for ", example.user_prompt,
+                             " must be an object"));
+          }
+          for (const auto& [key, value] : args.items()) {
+            if (!value.is_string()) {
+              return absl::InvalidArgumentError(
+                  absl::StrCat("Tool call arg value for ", example.user_prompt,
+                               " must be a string"));
+            }
+            call.args[key] = value.get<std::string>();
+          }
+        }
+        example.tool_calls.push_back(std::move(call));
+      }
+    }
+
+    example.explanation = example_json.value("explanation", example.explanation);
+    examples_.push_back(std::move(example));
+  }
+
+  return absl::OkStatus();
+}
+
+void PromptBuilder::ParseTileReference(const nlohmann::json& tile_reference) {
+  if (!tile_reference.is_object()) {
+    return;
+  }
+
+  for (const auto& [alias, value] : tile_reference.items()) {
+    if (value.is_string()) {
+      tile_reference_[alias] = value.get<std::string>();
+    }
+  }
+}
+
+std::string PromptBuilder::LookupTileId(const std::string& alias) const {
+  auto it = tile_reference_.find(alias);
+  if (it != tile_reference_.end()) {
+    return it->second;
+  }
+  return "";
+}
+
+std::string PromptBuilder::BuildCommandReference() const {
   std::ostringstream oss;
   
   oss << "# Available z3ed Commands\n\n";
@@ -197,82 +372,131 @@ std::string PromptBuilder::BuildCommandReference() {
   return oss.str();
 }
 
-std::string PromptBuilder::BuildFewShotExamplesSection() {
-  std::ostringstream oss;
-  
-  oss << "# Example Command Sequences\n\n";
-  oss << "Here are proven examples of how to accomplish common tasks:\n\n";
-  
-  for (const auto& example : examples_) {
-    oss << "**User Request:** \"" << example.user_prompt << "\"\n";
-    oss << "**Commands:**\n";
-    oss << "```json\n{";
-    oss << "  \"text_response\": \"" << example.text_response << "\",\n";
-    oss << "  \"tool_calls\": [";
-    std::vector<std::string> tool_calls;
-    for (const auto& call : example.tool_calls) {
-      std::vector<std::string> args;
-      for (const auto& [key, value] : call.args) {
-        args.push_back("\"" + key + "\": \"" + value + "\"");
-      }
-      tool_calls.push_back("{\"tool_name\": \"" + call.tool_name +
-                           "\", \"args\": {" + absl::StrJoin(args, ", ") + "}}");
-    }
-    oss << absl::StrJoin(tool_calls, ", ");
-    oss << "],\n";
-    oss << "  \"commands\": [";
-
-    std::vector<std::string> quoted_cmds;
-    for (const auto& cmd : example.expected_commands) {
-      quoted_cmds.push_back("\"" + cmd + "\"");
-    }
-    oss << absl::StrJoin(quoted_cmds, ", ");
-
-    oss << "],\n";
-    oss << "  \"reasoning\": \"" << example.explanation << "\"\n";
-    oss << "}\n```\n\n";
+std::string PromptBuilder::BuildToolReference() const {
+  if (tool_specs_.empty()) {
+    return "";
   }
-  
+
+  std::ostringstream oss;
+  oss << "# Available Agent Tools\n\n";
+
+  for (const auto& spec : tool_specs_) {
+    oss << "## " << spec.name << "\n";
+    if (!spec.description.empty()) {
+      oss << spec.description << "\n\n";
+    }
+
+    if (!spec.arguments.empty()) {
+      oss << "| Argument | Required | Description | Example |\n";
+      oss << "| --- | --- | --- | --- |\n";
+      for (const auto& arg : spec.arguments) {
+        oss << "| `" << arg.name << "` | " << (arg.required ? "yes" : "no")
+            << " | " << arg.description << " | "
+            << (arg.example.empty() ? "" : "`" + arg.example + "`")
+            << " |\n";
+      }
+      oss << "\n";
+    }
+
+    if (!spec.usage_notes.empty()) {
+      oss << "_Usage:_ " << spec.usage_notes << "\n\n";
+    }
+  }
+
   return oss.str();
 }
 
-std::string PromptBuilder::BuildConstraintsSection() {
-  return R"(
+std::string PromptBuilder::BuildFewShotExamplesSection() const {
+  std::ostringstream oss;
+
+  oss << "# Example Command Sequences\n\n";
+  oss << "Here are proven examples of how to accomplish common tasks:\n\n";
+
+  for (const auto& example : examples_) {
+    oss << "**User Request:** \"" << example.user_prompt << "\"\n";
+    oss << "**Structured Response:**\n";
+
+    nlohmann::json example_json = nlohmann::json::object();
+    if (!example.text_response.empty()) {
+      example_json["text_response"] = example.text_response;
+    }
+    if (!example.expected_commands.empty()) {
+      example_json["commands"] = example.expected_commands;
+    }
+    if (!example.explanation.empty()) {
+      example_json["reasoning"] = example.explanation;
+    }
+    if (!example.tool_calls.empty()) {
+      nlohmann::json calls = nlohmann::json::array();
+      for (const auto& call : example.tool_calls) {
+        nlohmann::json call_json;
+        call_json["tool_name"] = call.tool_name;
+        nlohmann::json args = nlohmann::json::object();
+        for (const auto& [key, value] : call.args) {
+          args[key] = value;
+        }
+        call_json["args"] = std::move(args);
+        calls.push_back(std::move(call_json));
+      }
+      example_json["tool_calls"] = std::move(calls);
+    }
+
+    oss << "```json\n" << example_json.dump(2) << "\n```\n\n";
+  }
+
+  return oss.str();
+}
+
+std::string PromptBuilder::BuildConstraintsSection() const {
+  std::ostringstream oss;
+  oss << R"(
 # Critical Constraints
 
 1. **Output Format:** You MUST respond with ONLY a JSON object with the following structure:
-   {
-     "text_response": "Your natural language reply to the user.",
-     "tool_calls": [{ "tool_name": "tool_name", "args": { "arg1": "value1" } }],
-     "commands": ["command1", "command2"],
-     "reasoning": "Your thought process."
-   }
-   - `text_response` is for conversational replies.
-   - `tool_calls` is for asking questions about the ROM. Use the available tools.
-   - `commands` is for generating commands to modify the ROM.
-   - All fields are optional.
+  {
+    "text_response": "Your natural language reply to the user.",
+    "tool_calls": [{ "tool_name": "tool_name", "args": { "arg1": "value1" } }],
+    "commands": ["command1", "command2"],
+    "reasoning": "Your thought process."
+  }
+  - `text_response` is for conversational replies.
+  - `tool_calls` is for asking questions about the ROM. Use the available tools.
+  - `commands` is for generating commands to modify the ROM.
+  - All fields are optional.
 
 2. **Command Syntax:** Follow the exact syntax shown in examples
-   - Use correct flag names (--group, --id, --to, --from, etc.)
-   - Use hex format for colors (0xRRGGBB) and tile IDs (0xNNN)
-   - Coordinates are 0-based indices
+  - Use correct flag names (--group, --id, --to, --from, etc.)
+  - Use hex format for colors (0xRRGGBB) and tile IDs (0xNNN)
+  - Coordinates are 0-based indices
 
 3. **Common Patterns:**
-   - Palette modifications: export → set-color → import
-   - Multiple tile placement: multiple overworld set-tile commands
-   - Validation: single rom validate command
+  - Palette modifications: export → set-color → import
+  - Multiple tile placement: multiple overworld set-tile commands
+  - Validation: single rom validate command
 
-4. **Tile IDs Reference (ALTTP):**
-   - Tree: 0x02E
-   - House (2x2): 0x0C0, 0x0C1, 0x0D0, 0x0D1
-   - Water: 0x038
-   - Grass: 0x000
-
-5. **Error Prevention:**
-   - Always export before modifying palettes
-   - Use temporary file names (temp_*.json) for intermediate files
-   - Validate coordinates are within bounds
+4. **Error Prevention:**
+  - Always export before modifying palettes
+  - Use temporary file names (temp_*.json) for intermediate files
+  - Validate coordinates are within bounds
 )";
+
+  if (!tile_reference_.empty()) {
+   oss << "\n" << BuildTileReferenceSection();
+  }
+
+  return oss.str();
+}
+
+std::string PromptBuilder::BuildTileReferenceSection() const {
+  std::ostringstream oss;
+  oss << "# Tile16 Reference (ALTTP)\n\n";
+
+  for (const auto& [alias, value] : tile_reference_) {
+    oss << "- " << alias << ": " << value << "\n";
+  }
+
+  oss << "\n";
+  return oss.str();
 }
 
 std::string PromptBuilder::BuildContextSection(const RomContext& context) {
@@ -322,7 +546,12 @@ std::string PromptBuilder::BuildSystemInstruction() {
       << "the user's request.\n\n";
   
   if (catalogue_loaded_) {
-    oss << BuildCommandReference();
+    if (!command_docs_.empty()) {
+      oss << BuildCommandReference();
+    }
+    if (!tool_specs_.empty()) {
+      oss << BuildToolReference();
+    }
   }
   
   oss << BuildConstraintsSection();
