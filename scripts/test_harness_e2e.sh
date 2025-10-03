@@ -112,7 +112,7 @@ run_test "Ping (Health Check)" "Ping" '{"message":"test"}'
 
 # 2. Click - Menu Item (Open Overworld Editor)
 # Note: Menu items in YAZE use format "menuitem:<Icon> Name"
-run_test "Click (Open Overworld Editor)" "Click" '{"target":"menuitem: Overworld Editor","type":"LEFT"}'
+run_test "Click (Open Overworld Editor)" "Click" '{"target":"menuitem: Overworld Editor","type":"CLICK_TYPE_LEFT"}'
 
 # 3. Wait - Window Visible (Overworld Editor should open)
 run_test "Wait (Overworld Editor Window)" "Wait" '{"condition":"window_visible:Overworld","timeout_ms":15000,"poll_interval_ms":100}'
@@ -121,7 +121,7 @@ run_test "Wait (Overworld Editor Window)" "Wait" '{"condition":"window_visible:O
 run_test "Assert (Overworld Editor Visible)" "Assert" '{"condition":"visible:Overworld"}'
 
 # 5. Click - Another menu item (Dungeon Editor)
-run_test "Click (Open Dungeon Editor)" "Click" '{"target":"menuitem: Dungeon Editor","type":"LEFT"}'
+run_test "Click (Open Dungeon Editor)" "Click" '{"target":"menuitem: Dungeon Editor","type":"CLICK_TYPE_LEFT"}'
 
 # 6. Screenshot - Not Implemented (stub)
 echo -e "${YELLOW}Test 6: Screenshot (Not Implemented - Stub)${NC}"

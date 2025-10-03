@@ -14,7 +14,12 @@
 #include "app/core/platform/file_dialog.h"
 #include "app/gfx/arena.h"
 #include "app/gui/icons.h"
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui.h"
+#include "imgui_internal.h"
+#else
+#include "imgui.h"
+#endif
 #include "util/log.h"
 
 // Forward declaration to avoid circular dependency
@@ -1479,55 +1484,55 @@ void TestManager::MarkHarnessTestCompleted(
     const std::vector<std::string>& assertion_failures,
     const std::vector<std::string>& logs,
     const std::map<std::string, int32_t>& metrics) {
-  absl::MutexLock lock(&harness_history_mutex_);
+  bool capture_failure_context =
+      status == HarnessTestStatus::kFailed ||
+      status == HarnessTestStatus::kTimeout;
 
-  auto it = harness_history_.find(test_id);
-  if (it == harness_history_.end()) {
-    return;
+  {
+    absl::MutexLock lock(&harness_history_mutex_);
+
+    auto it = harness_history_.find(test_id);
+    if (it == harness_history_.end()) {
+      return;
+    }
+
+    HarnessTestExecution& execution = it->second;
+    execution.status = status;
+    if (execution.started_at == absl::InfinitePast()) {
+      execution.started_at = execution.queued_at;
+    }
+    execution.completed_at = absl::Now();
+    execution.duration = execution.completed_at - execution.started_at;
+    execution.error_message = error_message;
+    if (!assertion_failures.empty()) {
+      execution.assertion_failures = assertion_failures;
+    }
+    if (!logs.empty()) {
+      execution.logs.insert(execution.logs.end(), logs.begin(), logs.end());
+    }
+    if (!metrics.empty()) {
+      execution.metrics.insert(metrics.begin(), metrics.end());
+    }
+
+    HarnessAggregate& aggregate = harness_aggregates_[execution.name];
+    if (aggregate.category.empty()) {
+      aggregate.category = execution.category;
+    }
+    aggregate.total_runs += 1;
+    if (status == HarnessTestStatus::kPassed) {
+      aggregate.pass_count += 1;
+    } else if (status == HarnessTestStatus::kFailed ||
+               status == HarnessTestStatus::kTimeout) {
+      aggregate.fail_count += 1;
+    }
+    aggregate.total_duration += execution.duration;
+    aggregate.last_run = execution.completed_at;
+    aggregate.latest_execution = execution;
   }
 
-  HarnessTestExecution& execution = it->second;
-  execution.status = status;
-  if (execution.started_at == absl::InfinitePast()) {
-    execution.started_at = execution.queued_at;
-  }
-  execution.completed_at = absl::Now();
-  execution.duration = execution.completed_at - execution.started_at;
-  execution.error_message = error_message;
-  if (!assertion_failures.empty()) {
-    execution.assertion_failures = assertion_failures;
-  }
-  if (!logs.empty()) {
-    execution.logs.insert(execution.logs.end(), logs.begin(), logs.end());
-  }
-  if (!metrics.empty()) {
-    execution.metrics.insert(metrics.begin(), metrics.end());
-  }
-
-  // IT-08b: Auto-capture failure context for failed/timeout tests
-  if (status == HarnessTestStatus::kFailed ||
-      status == HarnessTestStatus::kTimeout) {
-    // Release lock before calling CaptureFailureContext to avoid deadlock
-    // TODO: FIXME
-    // lock.Release();
+  if (capture_failure_context) {
     CaptureFailureContext(test_id);
-    // lock.Acquire();
   }
-
-  HarnessAggregate& aggregate = harness_aggregates_[execution.name];
-  if (aggregate.category.empty()) {
-    aggregate.category = execution.category;
-  }
-  aggregate.total_runs += 1;
-  if (status == HarnessTestStatus::kPassed) {
-    aggregate.pass_count += 1;
-  } else if (status == HarnessTestStatus::kFailed ||
-             status == HarnessTestStatus::kTimeout) {
-    aggregate.fail_count += 1;
-  }
-  aggregate.total_duration += execution.duration;
-  aggregate.last_run = execution.completed_at;
-  aggregate.latest_execution = execution;
 }
 
 void TestManager::AppendHarnessTestLog(const std::string& test_id,
@@ -1642,29 +1647,53 @@ void TestManager::CaptureFailureContext(const std::string& test_id) {
   HarnessTestExecution& execution = it->second;
 
   // 1. Capture execution context (frame count, active window, etc.)
-  if (ImGui::GetCurrentContext() != nullptr) {
-    // TODO: FIXME
-    // ImGuiWindow* current_window = ImGui::GetCurrentWindow();
-    // const char* window_name = current_window ? current_window->Name : "none";
-    // ImGuiID active_id = ImGui::GetActiveID();
+  ImGuiContext* ctx = ImGui::GetCurrentContext();
+  if (ctx != nullptr) {
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+  ImGuiWindow* current_window = ctx->CurrentWindow;
+  ImGuiWindow* nav_window = ctx->NavWindow;
+  ImGuiWindow* hovered_window = ctx->HoveredWindow;
 
-    // execution.failure_context =
-    //     absl::StrFormat("Frame: %d, Active Window: %s, Focused Widget: 0x%08X",
-    //                     ImGui::GetFrameCount(), window_name, active_id);
+  const char* current_name =
+    (current_window && current_window->Name) ? current_window->Name : "none";
+  const char* nav_name =
+    (nav_window && nav_window->Name) ? nav_window->Name : "none";
+  const char* hovered_name =
+    (hovered_window && hovered_window->Name) ? hovered_window->Name : "none";
+
+  ImGuiID active_id = ImGui::GetActiveID();
+  ImGuiID hovered_id = ImGui::GetHoveredID();
+  execution.failure_context =
+    absl::StrFormat(
+      "frame=%d current_window=%s nav_window=%s hovered_window=%s active_id=0x%08X hovered_id=0x%08X",
+      ImGui::GetFrameCount(), current_name, nav_name, hovered_name,
+      active_id, hovered_id);
+#else
+  execution.failure_context =
+    absl::StrFormat("frame=%d", ImGui::GetFrameCount());
+#endif
   } else {
-    execution.failure_context = "ImGui context not available";
+  execution.failure_context = "ImGui context not available";
   }
 
   // 2. Screenshot capture would happen here via gRPC call
   // Note: Screenshot RPC implementation is in ImGuiTestHarnessServiceImpl
   // The screenshot_path will be set by the RPC handler when it completes
   // For now, we just set a placeholder path to indicate where it should be saved
-  execution.screenshot_path =
-      absl::StrFormat("/tmp/yaze_test_%s_failure.bmp", test_id);
+  if (execution.screenshot_path.empty()) {
+    execution.screenshot_path =
+        absl::StrFormat("/tmp/yaze_test_%s_failure.bmp", test_id);
+    execution.screenshot_size_bytes = 0;
+  }
 
   // 3. Widget state capture (IT-08c)
-  // TODO: FINISHME
-  // execution.widget_state = core::CaptureWidgetState();
+  execution.widget_state = core::CaptureWidgetState();
+
+  // Keep aggregate cache in sync with the latest execution snapshot.
+  auto aggregate_it = harness_aggregates_.find(execution.name);
+  if (aggregate_it != harness_aggregates_.end()) {
+    aggregate_it->second.latest_execution = execution;
+  }
 
   util::logf("[TestManager] Captured failure context for test %s: %s",
              test_id.c_str(), execution.failure_context.c_str());
