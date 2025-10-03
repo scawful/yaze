@@ -38,7 +38,7 @@
 │  ├─ agent describe [--resource <name>]                  │
 │  ├─ rom info/validate/diff/generate-golden             │
 │  ├─ palette export/import/list                          │
-│  ├─ overworld get-tile/set-tile                         │
+│  ├─ overworld get-tile/find-tile/set-tile               │
 │  └─ dungeon list-rooms/add-object                       │
 └────────────────────┬────────────────────────────────────┘
                      │
@@ -629,12 +629,24 @@ Example:
   z3ed overworld get-tile --map=0 --x=100 --y=50
 ```
 
+#### `overworld find-tile` - Locate tile instances across maps
+```bash
+z3ed overworld find-tile --tile <id> [--map <map_id>] [--world light|dark|special] [--format json|text]
+
+Examples:
+  # Scan entire overworld for tile 0x02E and emit JSON
+  z3ed overworld find-tile --tile 0x02E --format json
+
+  # Limit search to Light World map 0x05
+  z3ed overworld find-tile --tile 0x02E --map 0x05
+```
+
 #### `overworld set-tile` - Set tile at coordinates
 ```bash
-z3ed overworld set-tile --map <id> --x <x> --y <y> --tile-id <id>
+z3ed overworld set-tile --map <id> --x <x> --y <y> --tile <id>
 
 Example:
-  z3ed overworld set-tile --map=0 --x=100 --y=50 --tile-id=0x1234
+  z3ed overworld set-tile --map=0 --x=100 --y=50 --tile=0x1234
 ```
 
 ### Dungeon Commands

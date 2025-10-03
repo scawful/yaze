@@ -194,6 +194,15 @@ z3ed agent diff --latest
 z3ed agent accept --latest
 ```
 
+### Locate Existing Tiles
+```bash
+# Find every instance of tile 0x02E across the overworld
+z3ed overworld find-tile --tile 0x02E --format json
+
+# Narrow search to Light World map 0x05
+z3ed overworld find-tile --tile 0x02E --map 0x05
+```
+
 ### Label-Aware Dungeon Edit
 ```bash
 # AI uses ResourceLabels from your project

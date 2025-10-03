@@ -201,6 +201,15 @@ void ModernCLI::SetupCommands() {
         }
     };
 
+  commands_["overworld find-tile"] = {
+    .name = "overworld find-tile",
+    .description = "Search overworld maps for a tile ID",
+    .usage = "z3ed overworld find-tile --tile <tile_id> [--map <map_id>] [--world light|dark|special] [--format json|text]",
+    .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+      return HandleOverworldFindTileCommand(args);
+    }
+  };
+
     commands_["overworld set-tile"] = {
         .name = "overworld set-tile",
         .description = "Set a tile in the overworld",
@@ -432,6 +441,11 @@ absl::Status ModernCLI::HandleRomValidateCommand(const std::vector<std::string>&
 absl::Status ModernCLI::HandleOverworldGetTileCommand(const std::vector<std::string>& args) {
     OverworldGetTile handler;
     return handler.Run(args);
+}
+
+absl::Status ModernCLI::HandleOverworldFindTileCommand(const std::vector<std::string>& args) {
+  OverworldFindTile handler;
+  return handler.Run(args);
 }
 
 absl::Status ModernCLI::HandleOverworldSetTileCommand(const std::vector<std::string>& args) {
