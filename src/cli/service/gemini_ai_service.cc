@@ -76,7 +76,7 @@ absl::Status GeminiAIService::CheckAvailability() {
   if (res->status == 404) {
     return absl::NotFoundError(
         absl::StrCat("❌ Model '", config_.model, "' not found\n",
-                     "   Try: gemini-1.5-flash or gemini-1.5-pro"));
+                     "   Try: gemini-2.5-flash or gemini-1.5-pro"));
   }
   
   if (res->status != 200) {

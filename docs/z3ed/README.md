@@ -31,9 +31,6 @@ Start here to understand the architecture, learn how to use the commands, and se
 3.  **[E6-z3ed-implementation-plan.md](E6-z3ed-implementation-plan.md)** - **Roadmap & Status**
     *   The project's task backlog, roadmap, progress tracking, and a list of known issues. Check this document for current priorities and to see what's next.
 
-4.  **[IMPLEMENTATION_CONTINUATION.md](IMPLEMENTATION_CONTINUATION.md)** - **Current Phase & Next Steps** ⭐
-    *   Detailed continuation plan for test harness enhancements (IT-05 to IT-09). Start here to resume implementation with clear task breakdowns and success criteria.
-
 ## Quick Start
 
 ### Build z3ed

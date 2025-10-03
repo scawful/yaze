@@ -75,7 +75,7 @@
   - [x] Update constructor signature
 - [x] Update `src/cli/service/gemini_ai_service.cc`
   - [x] Fix system instruction format (separate field in v1beta API)
-  - [x] Update to use `gemini-1.5-flash` model
+  - [x] Update to use `gemini-2.5-flash` model
   - [x] Add generation config (temperature, maxOutputTokens)
   - [x] Add `responseMimeType: application/json` for structured output
   - [x] Implement markdown code block stripping
@@ -137,32 +137,52 @@
 
 ---
 
-## Phase 4: Enhanced Prompt Engineering (3-4 hours)
+## Phase 4: Enhanced Prompt Engineering (3-4 hours) ✅ COMPLETE
 
 ### Implementation Tasks
 
 #### 4.1 Create PromptBuilder Utility
-- [ ] Create `src/cli/service/prompt_builder.h`
-- [ ] Create `src/cli/service/prompt_builder.cc`
-  - [ ] Implement `LoadResourceCatalogue()` (read z3ed-resources.yaml)
-  - [ ] Implement `BuildSystemPrompt()` with full command docs
-  - [ ] Implement `BuildFewShotExamples()` with proven examples
-  - [ ] Implement `BuildContextPrompt()` with ROM state
+- [x] Create `src/cli/service/prompt_builder.h`
+- [x] Create `src/cli/service/prompt_builder.cc`
+  - [x] Implement `LoadResourceCatalogue()` (with hardcoded docs for now)
+  - [x] Implement `BuildSystemPrompt()` with full command docs
+  - [x] Implement `BuildFewShotExamplesSection()` with proven examples
+  - [x] Implement `BuildContextPrompt()` with ROM state foundation
+  - [x] Add default few-shot examples (6+ examples)
+  - [x] Add command documentation (palette, overworld, sprite, dungeon, rom)
+  - [x] Add tile ID reference (tree, house, water, grass)
+  - [x] Add constraints section (output format, syntax rules)
 
 #### 4.2 Integrate into Services
-- [ ] Update OllamaAIService to use PromptBuilder
-- [ ] Update GeminiAIService to use PromptBuilder
-- [ ] Update ClaudeAIService to use PromptBuilder
+- [x] Update OllamaAIService to use PromptBuilder
+  - [x] Add PromptBuilder include
+  - [x] Add use_enhanced_prompting flag (default: true)
+  - [x] Use BuildSystemInstructionWithExamples()
+- [x] Update GeminiAIService to use PromptBuilder
+  - [x] Add PromptBuilder include
+  - [x] Add use_enhanced_prompting flag (default: true)
+  - [x] Use BuildSystemInstructionWithExamples()
+- [ ] Update ClaudeAIService to use PromptBuilder (pending Phase 3)
 
 #### 4.3 Testing
-- [ ] Test with complex prompts
-- [ ] Measure accuracy improvement
-- [ ] Document which models perform best
+- [x] Create test script (test_enhanced_prompting.sh)
+- [ ] Test with complex prompts (pending real API validation)
+- [ ] Measure accuracy improvement (pending validation)
+- [ ] Document which models perform best (pending validation)
 
 ### Success Criteria
-- [ ] System prompts include full resource catalogue
-- [ ] Few-shot examples improve accuracy >90%
-- [ ] Context injection provides relevant ROM info
+- [x] PromptBuilder utility class implemented
+- [x] Few-shot examples included (6+ examples)
+- [x] Command documentation complete
+- [x] Tile ID reference included
+- [x] Integrated into Ollama & Gemini
+- [x] Enabled by default
+- [ ] System prompts include full resource catalogue (pending yaml loading)
+- [ ] Few-shot examples improve accuracy >90% (pending validation)
+- [ ] Context injection provides relevant ROM info (foundation in place)
+
+**Status:** ✅ Complete (implementation) - See [PHASE4-COMPLETE.md](PHASE4-COMPLETE.md)  
+**Pending:** Real API validation to measure accuracy improvement
 
 ---
 
@@ -197,7 +217,7 @@
 |----------|-------|-------------|-------------------|--------|
 | Ollama | qwen2.5-coder:7b | "Validate ROM" | `["rom validate --rom zelda3.sfc"]` | ⬜ |
 | Ollama | codellama:13b | "Export first palette" | `["palette export ..."]` | ⬜ |
-| Gemini | gemini-1.5-flash | "Make soldiers red" | `["palette export ...", "palette set-color ...", ...]` | ⬜ |
+| Gemini | gemini-2.5-flash | "Make soldiers red" | `["palette export ...", "palette set-color ...", ...]` | ⬜ |
 | Claude | claude-3.5-sonnet | "Change tile at (10,20)" | `["overworld set-tile ..."]` | ⬜ |
 
 ---

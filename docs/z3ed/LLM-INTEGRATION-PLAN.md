@@ -497,7 +497,7 @@ absl::StatusOr<std::vector<std::string>> GeminiAIService::GetCommands(
   };
   
   std::string endpoint = absl::StrFormat(
-      "/v1beta/models/gemini-1.5-flash:generateContent?key=%s", api_key_);
+      "/v1beta/models/gemini-2.5-flash:generateContent?key=%s", api_key_);
 
   auto res = cli.Post(endpoint, headers, request_body.dump(), "application/json");
 
@@ -1013,7 +1013,7 @@ echo "✅ All available AI services tested successfully"
 | qwen2.5-coder:7b | Ollama | 7B | Fast | High | **Recommended**: Best balance |
 | codellama:13b | Ollama | 13B | Medium | Higher | Complex tasks |
 | llama3:70b | Ollama | 70B | Slow | Highest | Maximum accuracy |
-| gemini-1.5-flash | Gemini | N/A | Fast | High | Remote option, low cost |
+| gemini-2.5-flash | Gemini | N/A | Fast | High | Remote option, low cost |
 | claude-3.5-sonnet | Claude | N/A | Medium | Highest | Premium remote option |
 
 ## Appendix B: Example Prompts
