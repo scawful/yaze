@@ -20,9 +20,10 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 - **Test Harness Enhancements (IT-05 to IT-09)**: Expanding from basic automation to comprehensive testing platform with a renewed emphasis on system-wide error reporting
 
 **📋 Next Phases**:
-- **Priority 1**: Test Introspection API (IT-05) - Enable test status querying and result polling
+- **Priority 1**: LLM Integration (Ollama + Gemini + Claude) - Make AI agent system production-ready (see [LLM-INTEGRATION-PLAN.md](LLM-INTEGRATION-PLAN.md))
 - **Priority 2**: Widget Discovery API (IT-06) - AI agents enumerate available GUI interactions
-- **Priority 3**: Enhanced Error Reporting (IT-08+) - Holistic improvements spanning z3ed, ImGuiTestHarness, EditorManager, and core application services
+- **Priority 3**: Windows Cross-Platform Testing - Validate on Windows with vcpkg
+- **Deprioritized**: Collaborative Editing (IT-10) - Postponed in favor of practical LLM integration
 
 **Recent Accomplishments** (Updated: October 2025):
 - **✅ IT-08 Enhanced Error Reporting Complete**: Full diagnostic capture operational
@@ -404,8 +405,76 @@ jobs:
 
 ---
 
-#### IT-10: Collaborative Editing & Multiplayer Sessions (12-15 hours)
-**Implementation Tasks**:
+#### IT-10: Collaborative Editing & Multiplayer Sessions ⏸️ DEPRIORITIZED
+
+**Status**: Postponed in favor of LLM integration work  
+**Rationale**: While collaborative editing is an interesting feature, practical LLM integration provides more immediate value for the agentic workflow system. The core infrastructure is complete, and enabling real AI agents to interact with z3ed is the critical next step.
+
+**Future Consideration**: IT-10 may be revisited after LLM integration is production-ready and validated by users. The collaborative editing design is preserved in the documentation for future reference.
+
+**See**: [LLM-INTEGRATION-PLAN.md](LLM-INTEGRATION-PLAN.md) for the new priority work.
+
+---
+
+### Priority 2: LLM Integration (Ollama + Gemini + Claude) 🤖 NEW PRIORITY
+
+**Goal**: Enable practical AI-driven ROM modifications with local and remote LLM providers  
+**Time Estimate**: 12-15 hours total  
+**Status**: Ready to Implement
+
+**Why This is Critical**: The z3ed infrastructure is complete (CLI, proposals, sandbox, GUI automation), but currently uses `MockAIService` with hardcoded commands. Real LLM integration unlocks the full potential of the agentic workflow system.
+
+**📋 Complete Documentation**:
+- **[LLM-INTEGRATION-PLAN.md](LLM-INTEGRATION-PLAN.md)** - Detailed technical implementation guide (60+ pages)
+- **[LLM-IMPLEMENTATION-CHECKLIST.md](LLM-IMPLEMENTATION-CHECKLIST.md)** - Step-by-step task list with checkboxes
+- **[LLM-INTEGRATION-SUMMARY.md](LLM-INTEGRATION-SUMMARY.md)** - Executive summary and getting started
+
+**Implementation Phases**:
+
+#### Phase 1: Ollama Local Integration (4-6 hours) 🎯 START HERE
+- Create `OllamaAIService` class with health checks and model management
+- Wire into agent commands with provider selection mechanism
+- Add CMake configuration for httplib support
+- End-to-end testing with `qwen2.5-coder:7b` model
+
+**Key Benefits**: Local, free, private, no rate limits
+
+#### Phase 2: Gemini Fixes (2-3 hours)
+- Fix existing `GeminiAIService` implementation
+- Improve prompting with resource catalogue
+- Add markdown code block stripping for reliable parsing
+
+#### Phase 3: Claude Integration (2-3 hours)
+- Create `ClaudeAIService` class
+- Implement Messages API integration
+- Same interface as other services for easy swapping
+
+#### Phase 4: Enhanced Prompt Engineering (3-4 hours)
+- Create `PromptBuilder` utility class
+- Load resource catalogue (`z3ed-resources.yaml`) into system prompts
+- Add few-shot examples for improved accuracy (>90%)
+- Inject ROM context (current state, loaded editors)
+
+**Quick Start After Implementation**:
+```bash
+# Install Ollama
+brew install ollama
+ollama serve &
+ollama pull qwen2.5-coder:7b
+
+# Configure z3ed
+export YAZE_AI_PROVIDER=ollama
+
+# Use natural language
+z3ed agent run --prompt "Make all soldier armor red" --rom zelda3.sfc --sandbox
+z3ed agent diff  # Review changes
+```
+
+**Testing Script**: `./scripts/quickstart_ollama.sh` (automated setup validation)
+
+---
+
+### Priority 3: Windows Cross-Platform Testing 🪟
 1. **Collaboration Server**:
    - WebSocket server for real-time client communication
    - Session management (create, join, authentication)

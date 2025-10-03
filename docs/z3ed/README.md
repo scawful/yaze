@@ -12,7 +12,7 @@
 
 **🤖 Why This Matters**: These enhancements are **critical for AI agent autonomy**. Without them, AI agents can't verify their changes worked (no test polling), discover UI elements dynamically (hardcoded names), learn from demonstrations (no recording), or debug failures (no screenshots). The test harness evolution enables **fully autonomous agents** that can execute → verify → self-correct without human intervention.
 
-**📋 Implementation Status**: Core infrastructure complete (Phases 1-6, AW-01 to AW-04, IT-01 to IT-04). Currently in **Test Harness Enhancement Phase** (IT-05 to IT-09). See [IMPLEMENTATION_CONTINUATION.md](IMPLEMENTATION_CONTINUATION.md) for the detailed roadmap and LLM integration plans (Ollama, Gemini, Claude).
+**📋 Implementation Status**: Core infrastructure complete (Phases 1-6, AW-01 to AW-04, IT-01 to IT-09). Currently focusing on **LLM Integration** to enable practical AI-driven workflows. See [LLM-INTEGRATION-PLAN.md](LLM-INTEGRATION-PLAN.md) for the detailed roadmap (Ollama, Gemini, Claude).
 
 This directory contains the primary documentation for the `z3ed` system.
 
@@ -81,6 +81,14 @@ See the **[Technical Reference](E6-z3ed-reference.md)** for a full command list.
 
 ## Recent Enhancements
 
+**LLM Integration Priority Shift (Oct 3, 2025)** 🤖
+- 📋 Deprioritized IT-10 (Collaborative Editing) in favor of practical LLM integration
+- 📄 Created comprehensive implementation plan for Ollama, Gemini, and Claude integration
+- ✅ New documentation: [LLM-INTEGRATION-PLAN.md](LLM-INTEGRATION-PLAN.md), [LLM-IMPLEMENTATION-CHECKLIST.md](LLM-IMPLEMENTATION-CHECKLIST.md), [LLM-INTEGRATION-SUMMARY.md](LLM-INTEGRATION-SUMMARY.md)
+- 🚀 Ready to enable real AI-driven ROM modifications with natural language prompts
+- **Estimated effort**: 12-15 hours across 4 phases
+- **Why now**: All infrastructure complete (CLI, proposals, sandbox, GUI automation) - only LLM connection missing
+
 **Recent Progress (Oct 3, 2025)**
 - ✅ IT-09 CLI Test Suite Tooling Complete: run/validate/create commands + JUnit output
   - Full suite runner with group/tag filters, parametrization, retries, and CI-friendly exit codes
@@ -124,11 +132,12 @@ See **[E6-z3ed-cli-design.md § 9](E6-z3ed-cli-design.md#9-test-harness-evolutio
 **📖 Getting Started**:
 - **New to z3ed?** Start with this [README.md](README.md) then [E6-z3ed-cli-design.md](E6-z3ed-cli-design.md)
 - **Want to use z3ed?** See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for all commands
+- **Setting up AI agents?** See [LLM-INTEGRATION-PLAN.md](LLM-INTEGRATION-PLAN.md) for Ollama/Gemini/Claude setup
 
 **🔧 Implementation Guides**:
+- [LLM-IMPLEMENTATION-CHECKLIST.md](LLM-IMPLEMENTATION-CHECKLIST.md) - Step-by-step LLM integration tasks ⭐ START HERE
 - [IT-05-IMPLEMENTATION-GUIDE.md](IT-05-IMPLEMENTATION-GUIDE.md) - Test Introspection API (complete ✅)
-- [IT-08-IMPLEMENTATION-GUIDE.md](IT-08-IMPLEMENTATION-GUIDE.md) - Enhanced Error Reporting (in progress 🔄)
-- [IMPLEMENTATION_CONTINUATION.md](IMPLEMENTATION_CONTINUATION.md) - Detailed continuation plan for current phase
+- [IT-08-IMPLEMENTATION-GUIDE.md](IT-08-IMPLEMENTATION-GUIDE.md) - Enhanced Error Reporting (complete ✅)
 
 **📚 Reference**:
 - [E6-z3ed-reference.md](E6-z3ed-reference.md) - Technical reference and API docs
