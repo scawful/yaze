@@ -10,8 +10,8 @@
 #include "absl/strings/strip.h"
 
 #ifdef YAZE_WITH_JSON
-#include "incl/httplib.h"
-#include "third_party/json/src/json.hpp"
+#include "httplib.h"
+#include "nlohmann/json.hpp"
 #endif
 
 namespace yaze {

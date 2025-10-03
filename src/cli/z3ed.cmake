@@ -44,6 +44,7 @@ add_executable(
   cli/handlers/agent.cc
   cli/handlers/agent/common.cc
   cli/handlers/agent/general_commands.cc
+  cli/handlers/agent/test_common.cc
   cli/handlers/agent/test_commands.cc
   cli/handlers/agent/gui_commands.cc
   cli/service/ai_service.cc
@@ -75,10 +76,11 @@ add_executable(
 
 option(YAZE_WITH_JSON "Build with JSON support" OFF)
 if(YAZE_WITH_JSON)
-  add_subdirectory(../../third_party/json)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/json ${CMAKE_BINARY_DIR}/third_party/json)
   target_compile_definitions(z3ed PRIVATE YAZE_WITH_JSON)
   target_link_libraries(z3ed PRIVATE nlohmann_json::nlohmann_json)
-  list(APPEND Z3ED_SRC_FILES cli/gemini_ai_service.cc)
+  list(APPEND Z3ED_SRC_FILES cli/service/gemini_ai_service.cc)
+  list(APPEND Z3ED_SRC_FILES cli/service/prompt_builder.cc)
 endif()
 
 target_include_directories(
@@ -91,6 +93,7 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}/incl/
   ${CMAKE_SOURCE_DIR}/src/
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+  ${CMAKE_SOURCE_DIR}/third_party/httplib
   ${PNG_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
