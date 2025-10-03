@@ -6,6 +6,9 @@
 #include "cli/service/ai/common.h"
 
 namespace yaze {
+
+class Rom;
+
 namespace cli {
 namespace agent {
 
@@ -15,6 +18,11 @@ class ToolDispatcher {
 
   // Execute a tool call and return the result as a string.
   absl::StatusOr<std::string> Dispatch(const ToolCall& tool_call);
+   // Provide a ROM context for tool calls that require ROM access.
+   void SetRomContext(Rom* rom) { rom_context_ = rom; }
+
+ private:
+   Rom* rom_context_ = nullptr;
 };
 
 }  // namespace agent

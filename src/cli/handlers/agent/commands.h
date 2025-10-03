@@ -25,9 +25,12 @@ absl::Status HandleListCommand();
 absl::Status HandleCommitCommand(Rom& rom);
 absl::Status HandleRevertCommand(Rom& rom);
 absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec);
-absl::Status HandleResourceListCommand(const std::vector<std::string>& arg_vec);
+absl::Status HandleResourceListCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
 absl::Status HandleDungeonListSpritesCommand(
-    const std::vector<std::string>& arg_vec);
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
 absl::Status HandleChatCommand();
 
 }  // namespace agent

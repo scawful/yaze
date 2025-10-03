@@ -6,6 +6,7 @@
 #include "ftxui/component/component_base.hpp"
 #include "ftxui/component/screen_interactive.hpp"
 #include "ftxui/dom/elements.hpp"
+#include "ftxui/dom/table.hpp"
 
 namespace yaze {
 namespace cli {
@@ -26,10 +27,42 @@ void ChatTUI::Run() {
 
   auto renderer = Renderer(layout, [this] {
     std::vector<Element> messages;
-    for (const auto& msg : agent_service_.GetHistory()) {
-      std::string prefix =
-          msg.sender == agent::ChatMessage::Sender::kUser ? "You: " : "Agent: ";
-      messages.push_back(text(prefix + msg.message));
+    messages.reserve(agent_service_.GetHistory().size());
+
+    const auto& history = agent_service_.GetHistory();
+    for (const auto& msg : history) {
+      Element header = text(msg.sender == agent::ChatMessage::Sender::kUser
+                                ? "You"
+                                : "Agent") |
+                       bold |
+                       color(msg.sender == agent::ChatMessage::Sender::kUser
+                                 ? Color::Yellow
+                                 : Color::Green);
+
+      Element body;
+      if (msg.table_data.has_value()) {
+        std::vector<std::vector<std::string>> table_rows;
+        table_rows.reserve(msg.table_data->rows.size() + 1);
+        table_rows.push_back(msg.table_data->headers);
+        for (const auto& row : msg.table_data->rows) {
+          table_rows.push_back(row);
+        }
+
+        Table table(table_rows);
+        table.SelectAll().Border(LIGHT);
+        table.SelectAll().SeparatorVertical(LIGHT);
+        table.SelectAll().SeparatorHorizontal(LIGHT);
+        if (!table_rows.empty()) {
+          table.SelectRow(0).Decorate(bold);
+        }
+        body = table.Render();
+      } else if (msg.json_pretty.has_value()) {
+        body = paragraph(msg.json_pretty.value());
+      } else {
+        body = paragraph(msg.message);
+      }
+
+      messages.push_back(vbox({header, hbox({text("  "), body}), separator()}));
     }
 
     return vbox({

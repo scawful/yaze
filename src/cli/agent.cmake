@@ -31,6 +31,7 @@ target_include_directories(yaze_agent
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/incl
     ${CMAKE_SOURCE_DIR}/third_party/httplib
+    ${CMAKE_SOURCE_DIR}/third_party/json/include
     ${CMAKE_SOURCE_DIR}/src/lib
 )
 
