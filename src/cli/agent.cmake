@@ -1,3 +1,69 @@
+include(FetchContent)
+
+function(_yaze_ensure_yaml_cpp _out_target)
+  if(TARGET yaml-cpp::yaml-cpp)
+    set(${_out_target} yaml-cpp::yaml-cpp PARENT_SCOPE)
+    return()
+  endif()
+
+  if(TARGET yaml-cpp)
+    set(${_out_target} yaml-cpp PARENT_SCOPE)
+    return()
+  endif()
+
+  find_package(yaml-cpp CONFIG QUIET)
+
+  if(TARGET yaml-cpp::yaml-cpp)
+    set(${_out_target} yaml-cpp::yaml-cpp PARENT_SCOPE)
+    return()
+  elseif(TARGET yaml-cpp)
+    set(${_out_target} yaml-cpp PARENT_SCOPE)
+    return()
+  endif()
+
+  message(STATUS "yaml-cpp not found via package config, fetching from source")
+
+  FetchContent_Declare(yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG 0.8.0
+  )
+
+  FetchContent_GetProperties(yaml-cpp)
+  if(NOT yaml-cpp_POPULATED)
+    FetchContent_Populate(yaml-cpp)
+
+    set(_yaml_cpp_cmakelists "${yaml-cpp_SOURCE_DIR}/CMakeLists.txt")
+    if(EXISTS "${_yaml_cpp_cmakelists}")
+      file(READ "${_yaml_cpp_cmakelists}" _yaml_cpp_cmake_contents)
+      if(_yaml_cpp_cmake_contents MATCHES "cmake_minimum_required\\(VERSION 3\\.4\\)")
+        string(REPLACE "cmake_minimum_required(VERSION 3.4)"
+                       "cmake_minimum_required(VERSION 3.5)"
+                       _yaml_cpp_cmake_contents "${_yaml_cpp_cmake_contents}")
+        file(WRITE "${_yaml_cpp_cmakelists}" "${_yaml_cpp_cmake_contents}")
+      endif()
+    endif()
+
+  set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "Disable yaml-cpp tests" FORCE)
+  set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "Disable yaml-cpp contrib" FORCE)
+  set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "Disable yaml-cpp tools" FORCE)
+  set(YAML_CPP_INSTALL OFF CACHE BOOL "Disable yaml-cpp install" FORCE)
+  set(YAML_CPP_FORMAT_SOURCE OFF CACHE BOOL "Disable yaml-cpp format target" FORCE)
+
+  add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR} EXCLUDE_FROM_ALL)
+
+    if(NOT TARGET yaml-cpp)
+      message(FATAL_ERROR "yaml-cpp target was not created after fetching")
+    endif()
+
+    # Ensure the fetched target exposes its public headers
+    target_include_directories(yaml-cpp PUBLIC ${yaml-cpp_SOURCE_DIR}/include)
+  endif()
+
+  set(${_out_target} yaml-cpp PARENT_SCOPE)
+endfunction()
+
+_yaze_ensure_yaml_cpp(YAZE_YAML_CPP_TARGET)
+
 set(YAZE_AGENT_SOURCES
   cli/handlers/agent/tool_commands.cc
   cli/service/agent/conversational_agent_service.cc
@@ -20,12 +86,13 @@ endif()
 
 add_library(yaze_agent STATIC ${YAZE_AGENT_SOURCES})
 
-target_link_libraries(yaze_agent
-  PUBLIC
-    yaze_common
-    ${ABSL_TARGETS}
-    yaml-cpp
+set(_yaze_agent_link_targets
+  yaze_common
+  ${ABSL_TARGETS}
+  ${YAZE_YAML_CPP_TARGET}
 )
+
+target_link_libraries(yaze_agent PUBLIC ${_yaze_agent_link_targets})
 
 target_include_directories(yaze_agent
   PUBLIC
@@ -35,6 +102,13 @@ target_include_directories(yaze_agent
     ${CMAKE_SOURCE_DIR}/third_party/json/include
     ${CMAKE_SOURCE_DIR}/src/lib
 )
+
+if(YAZE_YAML_CPP_TARGET)
+  get_target_property(_yaze_yaml_include_dirs ${YAZE_YAML_CPP_TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+  if(_yaze_yaml_include_dirs)
+    target_include_directories(yaze_agent PUBLIC ${_yaze_yaml_include_dirs})
+  endif()
+endif()
 
 if(SDL2_INCLUDE_DIR)
   target_include_directories(yaze_agent PUBLIC ${SDL2_INCLUDE_DIR})

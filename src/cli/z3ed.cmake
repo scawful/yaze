@@ -118,15 +118,31 @@ target_include_directories(
   ${PROJECT_BINARY_DIR}
 )
 
-target_link_libraries(
-  z3ed PRIVATE
-  yaze_core
-  ftxui::component
-  ftxui::screen
-  ftxui::dom
-  absl::flags
-  absl::flags_parse
-)
+if(YAZE_USE_MODULAR_BUILD)
+  target_link_libraries(
+    z3ed PRIVATE
+    yaze_util
+    yaze_gfx
+    yaze_zelda3
+    yaze_core_lib
+    yaze_agent
+    ftxui::component
+    ftxui::screen
+    ftxui::dom
+    absl::flags
+    absl::flags_parse
+  )
+else()
+  target_link_libraries(
+    z3ed PRIVATE
+    yaze_core
+    ftxui::component
+    ftxui::screen
+    ftxui::dom
+    absl::flags
+    absl::flags_parse
+  )
+endif()
 
 # ============================================================================
 # Optional gRPC Support for CLI Agent Test Command

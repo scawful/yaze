@@ -164,6 +164,7 @@ jobs:
           -DCMAKE_C_COMPILER=${{ matrix.cc }} \
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
           -DCMAKE_POLICY_VERSION_MINIMUM=3.16 \
+          -DYAZE_USE_MODULAR_BUILD=ON \
           -DYAZE_MINIMAL_BUILD=ON \
           -DYAZE_ENABLE_ROM_TESTS=OFF \
           -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
@@ -175,7 +176,7 @@ jobs:
       if: runner.os == 'Windows'
       shell: cmd
       run: |
-        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_POLICY_VERSION_MINIMUM=3.16 -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_ROM_TESTS=OFF -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF -DYAZE_ENABLE_UI_TESTS=OFF -Wno-dev -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_generator_platform }}
+        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_POLICY_VERSION_MINIMUM=3.16 -DYAZE_USE_MODULAR_BUILD=ON -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_ROM_TESTS=OFF -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF -DYAZE_ENABLE_UI_TESTS=OFF -Wno-dev -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_generator_platform }}
 
     # Build
     - name: Build
@@ -353,6 +354,7 @@ jobs:
           -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
           -DCMAKE_C_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
           -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address" \
+          -DYAZE_USE_MODULAR_BUILD=ON \
           -DYAZE_MINIMAL_BUILD=ON \
           -DYAZE_ENABLE_ROM_TESTS=OFF \
           -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
@@ -397,6 +399,7 @@ jobs:
       run: |
         cmake -B ${{ github.workspace }}/build \
           -DCMAKE_BUILD_TYPE=Debug \
+          -DYAZE_USE_MODULAR_BUILD=ON \
           -DCMAKE_CXX_FLAGS="--coverage" \
           -DCMAKE_C_FLAGS="--coverage" \
           -DCMAKE_EXE_LINKER_FLAGS="--coverage" \

@@ -54,6 +54,7 @@ option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" OFF)
 option(YAZE_ENABLE_EXPERIMENTAL_TESTS "Enable experimental/unstable tests" ON)
 option(YAZE_ENABLE_UI_TESTS "Enable ImGui Test Engine UI testing" ON)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
+option(YAZE_USE_MODULAR_BUILD "Use modularized library build system for faster builds" OFF)
 
 # Optional JSON support (required for Gemini and structured agent responses)
 option(YAZE_WITH_JSON "Enable JSON support for AI integrations" OFF)

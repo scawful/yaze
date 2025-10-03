@@ -87,6 +87,32 @@ if(YAZE_BUILD_APP OR YAZE_BUILD_Z3ED)
   include(cli/agent.cmake)
 endif()
 
+if(YAZE_USE_MODULAR_BUILD)
+  message(STATUS "Using modular build system")
+
+  if(YAZE_BUILD_LIB OR YAZE_BUILD_APP OR YAZE_BUILD_Z3ED)
+    include(app/gfx/gfx.cmake)
+    include(app/gui/gui.cmake)
+    include(app/zelda3/zelda3.cmake)
+    include(app/core/core.cmake)
+    include(app/editor/editor.cmake)
+
+    include(util/util.cmake)
+    include(app/gfx/gfx_library.cmake)
+    include(app/gui/gui_library.cmake)
+    include(app/zelda3/zelda3_library.cmake)
+
+    if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC)
+      include(app/emu/emu_library.cmake)
+    endif()
+
+    include(app/core/core_library.cmake)
+    include(app/editor/editor_library.cmake)
+  endif()
+else()
+  message(STATUS "Using traditional monolithic build system")
+endif()
+
 if (YAZE_BUILD_APP)
   include(app/app.cmake)
 endif()
@@ -165,29 +191,116 @@ endif()
 
 # Yaze Core Library (for testing and C API)
 if (YAZE_BUILD_LIB)
-  # Create core library for testing (includes editor and zelda3 components needed by tests)
-  set(YAZE_CORE_SOURCES
-    app/rom.cc
-    ${YAZE_APP_CORE_SRC}
-    ${YAZE_APP_GFX_SRC} 
-    ${YAZE_APP_EDITOR_SRC}
-    ${YAZE_APP_ZELDA3_SRC}
-    ${YAZE_APP_EMU_SRC}
-    ${YAZE_GUI_SRC}
-    ${YAZE_UTIL_SRC}
-    # cli/service/gui_automation_client.cc # Moved to yaze_c
-    cli/service/testing/test_workflow_generator.cc
-  )
-  
-  # Create full library for C API
+  # Sources shared by the C API library
   set(YAZE_C_SOURCES
     ./yaze.cc
     cli/service/gui/gui_automation_client.cc
   )
-  
-  # Create the core library (static for testing)
-  add_library(yaze_core STATIC ${YAZE_CORE_SOURCES})
-  
+
+  if(YAZE_USE_MODULAR_BUILD)
+    # Aggregate modular libraries into an interface target for backward compatibility
+    if(NOT TARGET yaze_core)
+      add_library(yaze_core INTERFACE)
+    endif()
+
+    target_include_directories(
+      yaze_core INTERFACE
+      ${CMAKE_SOURCE_DIR}/src/lib/
+      ${CMAKE_SOURCE_DIR}/src/app/
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
+      ${CMAKE_SOURCE_DIR}/incl/
+      ${CMAKE_SOURCE_DIR}/src/
+      ${CMAKE_SOURCE_DIR}/src/lib/imgui
+      ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+      ${SDL2_INCLUDE_DIR}
+      ${PROJECT_BINARY_DIR}
+    )
+
+    target_link_libraries(
+      yaze_core INTERFACE
+      yaze_util
+      yaze_gfx
+      yaze_gui
+      yaze_zelda3
+      yaze_core_lib
+      yaze_editor
+      ImGui
+    )
+
+    if(TARGET yaze_agent)
+      target_link_libraries(yaze_core INTERFACE yaze_agent)
+    endif()
+
+    if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC AND TARGET yaze_emulator)
+      target_link_libraries(yaze_core INTERFACE yaze_emulator)
+    endif()
+
+    if(YAZE_ENABLE_UI_TESTS AND TARGET ImGuiTestEngine)
+      target_link_libraries(yaze_core INTERFACE ImGuiTestEngine)
+    endif()
+
+    if(YAZE_WITH_GRPC)
+      target_link_libraries(yaze_core INTERFACE
+        grpc++
+        grpc++_reflection
+        libprotobuf)
+    endif()
+  else()
+    # Create core library for testing (includes editor and zelda3 components needed by tests)
+    set(YAZE_CORE_SOURCES
+      app/rom.cc
+      ${YAZE_APP_CORE_SRC}
+      ${YAZE_APP_GFX_SRC} 
+      ${YAZE_APP_EDITOR_SRC}
+      ${YAZE_APP_ZELDA3_SRC}
+      ${YAZE_APP_EMU_SRC}
+      ${YAZE_GUI_SRC}
+      ${YAZE_UTIL_SRC}
+      # cli/service/gui_automation_client.cc # Moved to yaze_c
+      cli/service/testing/test_workflow_generator.cc
+    )
+
+    add_library(yaze_core STATIC ${YAZE_CORE_SOURCES})
+
+    target_include_directories(
+      yaze_core PUBLIC
+      ${CMAKE_SOURCE_DIR}/src/lib/
+      ${CMAKE_SOURCE_DIR}/src/app/
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
+      ${CMAKE_SOURCE_DIR}/incl/
+      ${CMAKE_SOURCE_DIR}/src/
+      ${CMAKE_SOURCE_DIR}/src/lib/imgui
+      ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+      ${SDL2_INCLUDE_DIR}
+      ${PROJECT_BINARY_DIR}
+      ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
+    target_link_libraries(
+      yaze_core PUBLIC
+      asar-static
+      yaze_agent
+      ${ABSL_TARGETS}
+      ${SDL_TARGETS}
+      ${CMAKE_DL_LIBS}
+      ImGui
+    )
+
+    if(YAZE_WITH_GRPC)
+      target_add_protobuf(yaze_core 
+        ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+
+      target_link_libraries(yaze_core PRIVATE
+        grpc++
+        grpc++_reflection
+        libprotobuf)
+    endif()
+  endif()
+
   # Create the full C API library (static for CI, shared for release)
   if(YAZE_MINIMAL_BUILD)
     add_library(yaze_c STATIC ${YAZE_C_SOURCES})
@@ -195,44 +308,6 @@ if (YAZE_BUILD_LIB)
     add_library(yaze_c SHARED ${YAZE_C_SOURCES})
   endif()
 
-  # Configure core library (for testing)
-  target_include_directories(
-    yaze_core PUBLIC
-    ${CMAKE_SOURCE_DIR}/src/lib/
-    ${CMAKE_SOURCE_DIR}/src/app/
-    ${CMAKE_SOURCE_DIR}/src/lib/asar/src
-    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
-    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
-    ${CMAKE_SOURCE_DIR}/incl/
-    ${CMAKE_SOURCE_DIR}/src/
-    ${CMAKE_SOURCE_DIR}/src/lib/imgui
-    ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
-    ${SDL2_INCLUDE_DIR}
-    ${PROJECT_BINARY_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}
-  )
-
-  target_link_libraries(
-    yaze_core PUBLIC
-    asar-static
-    yaze_agent
-    ${ABSL_TARGETS}
-    ${SDL_TARGETS}
-    ${CMAKE_DL_LIBS}
-    ImGui
-  )
-
-  if(YAZE_WITH_GRPC)
-    target_add_protobuf(yaze_core 
-      ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
-
-    target_link_libraries(yaze_core PRIVATE
-      grpc++
-      grpc++_reflection
-      libprotobuf)
-  endif()
-
-  # Configure full C API library
   target_include_directories(
     yaze_c PUBLIC
     ${CMAKE_SOURCE_DIR}/src/lib/
@@ -246,19 +321,41 @@ if (YAZE_BUILD_LIB)
     ${SDL2_INCLUDE_DIR}
     ${PROJECT_BINARY_DIR}
   )
-  
-  # Conditionally add PNG include dirs if available
+
   if(PNG_FOUND)
     target_include_directories(yaze_c PUBLIC ${PNG_INCLUDE_DIRS})
-    target_include_directories(yaze_core PUBLIC ${PNG_INCLUDE_DIRS})
+    if(NOT YAZE_USE_MODULAR_BUILD)
+      target_include_directories(yaze_core PUBLIC ${PNG_INCLUDE_DIRS})
+    endif()
   endif()
 
-  target_link_libraries(
-    yaze_c PRIVATE
-    yaze_core
-    ImGui
-  )
-  
+  if(YAZE_USE_MODULAR_BUILD)
+    target_link_libraries(
+      yaze_c PRIVATE
+      yaze_util
+      yaze_gfx
+      yaze_gui
+      yaze_zelda3
+      yaze_core_lib
+      yaze_editor
+      ImGui
+    )
+
+    if(TARGET yaze_agent)
+      target_link_libraries(yaze_c PRIVATE yaze_agent)
+    endif()
+
+    if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC AND TARGET yaze_emulator)
+      target_link_libraries(yaze_c PRIVATE yaze_emulator)
+    endif()
+  else()
+    target_link_libraries(
+      yaze_c PRIVATE
+      yaze_core
+      ImGui
+    )
+  endif()
+
   if(YAZE_WITH_GRPC)
     target_add_protobuf(yaze_c 
       ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
@@ -269,18 +366,18 @@ if (YAZE_BUILD_LIB)
       libprotobuf)
   endif()
 
-  # Conditionally link ImGui Test Engine and set definitions
   if(YAZE_ENABLE_UI_TESTS AND TARGET ImGuiTestEngine)
     target_link_libraries(yaze_c PRIVATE ImGuiTestEngine)
     target_compile_definitions(yaze_c PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
   else()
     target_compile_definitions(yaze_c PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
   endif()
-  
-  # Conditionally link PNG if available
+
   if(PNG_FOUND)
     target_link_libraries(yaze_c PRIVATE ${PNG_LIBRARIES})
-    target_link_libraries(yaze_core PRIVATE ${PNG_LIBRARIES})
+    if(NOT YAZE_USE_MODULAR_BUILD)
+      target_link_libraries(yaze_core PRIVATE ${PNG_LIBRARIES})
+    endif()
   endif()
 
   if (YAZE_INSTALL_LIB)

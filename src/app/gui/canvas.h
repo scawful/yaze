@@ -1,7 +1,7 @@
 #ifndef YAZE_GUI_CANVAS_H
 #define YAZE_GUI_CANVAS_H
 
-#include "gfx/tilemap.h"
+#include "app/gfx/tilemap.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include <cstdint>
