@@ -25,6 +25,11 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 - **Priority 3**: Enhanced Error Reporting (IT-08+) - Holistic improvements spanning z3ed, ImGuiTestHarness, EditorManager, and core application services
 
 **Recent Accomplishments** (Updated: October 2025):
+- **✅ IT-08b Auto-Capture Complete**: Failure diagnostics now captured automatically
+  - Execution context (frame count, active window, focused widget) captured on failure
+  - Screenshot path placeholder set for future RPC integration
+  - Proto schema updated with failure diagnostic fields
+  - GetTestResults RPC returns comprehensive failure information
 - **✅ IT-08a Screenshot RPC Complete**: SDL-based screenshot capture operational
   - Captures 1536x864 BMP files via SDL_RenderReadPixels
   - Successfully tested via gRPC (5.3MB output files)
@@ -241,14 +246,14 @@ message WidgetInfo {
 **Outcome**: Recording/replay is production-ready; focus shifts to surfacing rich failure diagnostics (IT-08).
 
 #### IT-08: Enhanced Error Reporting (5-7 hours) 🔄 ACTIVE
-**Status**: IT-08a Complete ✅ | IT-08b In Progress 🔄
+**Status**: IT-08a Complete ✅ | IT-08b Complete ✅ | IT-08c In Progress 🔄
 **Objective**: Deliver a unified, high-signal error reporting pipeline spanning ImGuiTestHarness, z3ed CLI, EditorManager, and core application services.
 
 **Implementation Tracks**:
 1. **Harness-Level Diagnostics**
   - ✅ IT-08a: Screenshot RPC implemented (SDL-based, BMP format, 1536x864)
-  - 📋 IT-08b: Auto-capture screenshots on test failure
-  - 📋 IT-08c: Widget tree dumps and recent ImGui events on failure
+  - ✅ IT-08b: Auto-capture screenshots and context on test failure
+  - � IT-08c: Widget tree dumps and recent ImGui events on failure (NEXT)
   - Serialize results to both structured JSON (for automation) and human-friendly HTML bundles
   - Persist artifacts under `test-results/<test_id>/` with timestamped directories
 
@@ -522,10 +527,10 @@ z3ed collab replay session_2025_10_02.yaml --speed 2x
 | IT-05 | Add test introspection RPCs (GetTestStatus, ListTests, GetResults) | ImGuiTest Bridge | Code | ✅ Done | IT-01 - Enable clients to poll test results and query execution state (Oct 2, 2025) |
 | IT-06 | Implement widget discovery API for AI agents | ImGuiTest Bridge | Code | 📋 Planned | IT-01 - DiscoverWidgets RPC to enumerate windows, buttons, inputs |
 | IT-07 | Add test recording/replay for regression testing | ImGuiTest Bridge | Code | ✅ Done | IT-05 - RecordSession/ReplaySession RPCs with JSON test scripts |
-| IT-08 | Enhance error reporting with screenshots and state dumps | ImGuiTest Bridge | Code | 🔄 Active | IT-01 - Capture widget state on failure for debugging |
+| IT-08 | Enhance error reporting with screenshots and state dumps | ImGuiTest Bridge | Code | 🔄 Active | IT-01 - Capture widget state on failure for debugging (67% complete: IT-08a ✅, IT-08b ✅, IT-08c 🔄) |
 | IT-08a | Screenshot RPC implementation (SDL capture) | ImGuiTest Bridge | Code | ✅ Done | IT-01 - Screenshot capture complete (Oct 2, 2025) |
-| IT-08b | Auto-capture screenshots on test failure | ImGuiTest Bridge | Code | 🔄 Active | IT-08a - Integrate with TestManager |
-| IT-08c | Widget state dumps and execution context | ImGuiTest Bridge | Code | 📋 Planned | IT-08b - Enhanced failure diagnostics |
+| IT-08b | Auto-capture screenshots on test failure | ImGuiTest Bridge | Code | ✅ Done | IT-08a - Integrated with TestManager (Oct 2, 2025) |
+| IT-08c | Widget state dumps and execution context | ImGuiTest Bridge | Code | � Active | IT-08b - Enhanced failure diagnostics (NEXT PRIORITY) |
 | IT-09 | Create standardized test suite format for CI integration | ImGuiTest Bridge | Infra | 📋 Planned | IT-07 - JSON/YAML test suite format compatible with CI/CD pipelines |
 | IT-10 | Collaborative editing & multiplayer sessions with shared AI | Collaboration | Feature | 📋 Planned | IT-05, IT-08 - Real-time multi-user editing with live cursors, shared proposals (12-15 hours) |
 | VP-01 | Expand CLI unit tests for new commands and sandbox flow. | Verification Pipeline | Test | 📋 Planned | RC/AW tasks |
@@ -537,9 +542,9 @@ z3ed collab replay session_2025_10_02.yaml --speed 2x
 _Status Legend: 🔄 Active · 📋 Planned · ✅ Done_
 
 **Progress Summary**:
-- ✅ Completed: 11 tasks (46%)
+- ✅ Completed: 12 tasks (50%)
 - 🔄 Active: 1 task (4%)
-- 📋 Planned: 12 tasks (50%)
+- 📋 Planned: 11 tasks (46%)
 - **Total**: 24 tasks (6 test harness enhancements + 1 collaborative feature)
 
 ## 3. Immediate Next Steps (Week of Oct 1-7, 2025)

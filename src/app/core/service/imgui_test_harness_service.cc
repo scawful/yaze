@@ -1443,6 +1443,18 @@ absl::Status ImGuiTestHarnessServiceImpl::GetTestResults(
   for (const auto& [key, value] : execution.metrics) {
     (*metrics_map)[key] = value;
   }
+  
+  // IT-08b: Include failure diagnostics if available
+  if (!execution.screenshot_path.empty()) {
+    response->set_screenshot_path(execution.screenshot_path);
+    response->set_screenshot_size_bytes(execution.screenshot_size_bytes);
+  }
+  if (!execution.failure_context.empty()) {
+    response->set_failure_context(execution.failure_context);
+  }
+  if (!execution.widget_state.empty()) {
+    response->set_widget_state(execution.widget_state);
+  }
 
   return absl::OkStatus();
 }

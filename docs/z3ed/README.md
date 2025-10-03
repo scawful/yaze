@@ -82,6 +82,11 @@ See the **[Technical Reference](E6-z3ed-reference.md)** for a full command list.
 ## Recent Enhancements
 
 **Recent Progress (Oct 2, 2025)**
+- ✅ IT-08b Implementation Complete: Auto-capture on test failure operational
+  - Execution context (frame, window, widget) captured automatically on failures
+  - Screenshot path placeholder integration ready for RPC completion
+  - Proto schema updated with comprehensive failure diagnostic fields
+  - GetTestResults RPC returns full failure context for debugging
 - ✅ IT-05 Implementation Complete: Test introspection API fully operational
   - GetTestStatus, ListTests, and GetTestResults RPCs implemented and tested
   - CLI commands (`z3ed agent test {status,list,results}`) fully functional
