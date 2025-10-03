@@ -463,6 +463,11 @@ absl::StatusOr<TestResultDetails> GuiAutomationClient::GetTestResults(
     result.metrics.emplace(metric.first, metric.second);
   }
 
+  result.screenshot_path = response.screenshot_path();
+  result.screenshot_size_bytes = response.screenshot_size_bytes();
+  result.failure_context = response.failure_context();
+  result.widget_state = response.widget_state();
+
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");

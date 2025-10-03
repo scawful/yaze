@@ -264,6 +264,8 @@ if(YAZE_WITH_GRPC)
   target_sources(yaze PRIVATE
     ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.cc
     ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.h
+    ${CMAKE_SOURCE_DIR}/src/app/core/service/screenshot_utils.cc
+    ${CMAKE_SOURCE_DIR}/src/app/core/service/screenshot_utils.h
     ${CMAKE_SOURCE_DIR}/src/app/core/service/widget_discovery_service.cc
     ${CMAKE_SOURCE_DIR}/src/app/core/service/widget_discovery_service.h
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.cc

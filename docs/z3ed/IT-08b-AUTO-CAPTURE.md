@@ -122,128 +122,117 @@ void TestManager::MarkHarnessTestCompleted(const std::string& test_id,
   history.execution_time_ms = absl::ToInt64Milliseconds(
       history.end_time - history.start_time);
   
-  // Auto-capture diagnostics on failure
-  if (status == ImGuiTestStatus_Error || status == ImGuiTestStatus_Warning) {
-    CaptureFailureContext(test_id);
-  }
-  
-  // Notify waiting threads
-  cv_.notify_all();
-}
-```
+  # IT-08b: Auto-Capture on Test Failure
 
-### Step 4: Update GetTestResults RPC (30 minutes)
+  **Status**: ✅ Complete  
+  **Completed**: October 2, 2025  
+  **Owner**: Harness Platform Team  
+  **Depends On**: IT-08a (Screenshot RPC), IT-05 (execution history store)
 
-**File**: `src/app/core/proto/imgui_test_harness.proto`
+  ---
 
-Add fields to response:
+  ## Summary
 
-```proto
-message GetTestResultsResponse {
-  string test_id = 1;
-  TestStatus status = 2;
-  int64 execution_time_ms = 3;
-  repeated string logs = 4;
-  map<string, string> metrics = 5;
-  
-  // IT-08b: Failure diagnostics
-  string screenshot_path = 6;
-  int64 screenshot_size_bytes = 7;
-  string failure_context = 8;
-  
-  // IT-08c: Widget state (future)
-  string widget_state = 9;
-}
-```
+  Harness failures now emit rich diagnostics automatically. Whenever a GUI test
+  transitions into `FAILED` or `TIMEOUT` we capture:
 
-**File**: `src/app/core/service/imgui_test_harness_service.cc`
+  - A full-frame SDL screenshot written to a stable per-test artifact folder
+  - ImGui execution context (frame number, active/nav/hovered windows & IDs)
+  - Serialized widget hierarchy snapshot (`CaptureWidgetState`) for IT-08c
+  - Append-only log entries surfaced through `GetTestResults`
 
-Update implementation:
+  All artifacts are exposed through both the gRPC API and the `z3ed agent test
+  results` command (JSON/YAML), enabling AI agents and humans to retrieve the same
+  diagnostics without extra RPC calls.
 
-```cpp
-absl::Status ImGuiTestHarnessServiceImpl::GetTestResults(
-    const GetTestResultsRequest* request,
-    GetTestResultsResponse* response) {
-  
-  const std::string& test_id = request->test_id();
-  auto history = test_manager_->GetTestHistory(test_id);
-  
-  if (!history.has_value()) {
-    return absl::NotFoundError(
-        absl::StrFormat("Test not found: %s", test_id));
-  }
-  
-  const auto& h = history.value();
-  
-  // Basic info
-  response->set_test_id(h.test_id);
-  response->set_status(ConvertImGuiTestStatusToProto(h.status));
-  response->set_execution_time_ms(h.execution_time_ms);
-  
-  // Logs and metrics
-  for (const auto& log : h.logs) {
-    response->add_logs(log);
-  }
-  for (const auto& [key, value] : h.metrics) {
-    (*response->mutable_metrics())[key] = value;
-  }
-  
-  // IT-08b: Failure diagnostics
-  if (!h.screenshot_path.empty()) {
-    response->set_screenshot_path(h.screenshot_path);
-    response->set_screenshot_size_bytes(h.screenshot_size_bytes);
-  }
-  if (!h.failure_context.empty()) {
-    response->set_failure_context(h.failure_context);
-  }
-  
-  // IT-08c: Widget state (future)
-  if (!h.widget_state.empty()) {
-    response->set_widget_state(h.widget_state);
-  }
-  
-  return absl::OkStatus();
-}
-```
+  ---
 
----
+  ## What Shipped
 
-## Testing
+  ### Shared Screenshot Helper
+  - New helper (`screenshot_utils.{h,cc}`) centralizes SDL capture logic.
+  - Generates deterministic default paths under
+    `${TMPDIR}/yaze/test-results/<test_id>/failure_<timestamp>.bmp`.
+  - Reused by the manual `Screenshot` RPC to avoid duplicate code.
 
-### Build and Start Test Harness
+  ### TestManager Auto-Capture Pipeline
+  - `CaptureFailureContext` now:
+    - Computes ImGui context metadata even when the test finishes on a worker
+      thread.
+    - Allocates artifact folders per test ID and requests a screenshot via the
+      shared helper (guarded when gRPC is disabled).
+    - Persists screenshot path, byte size, failure context, and widget state back
+      into `HarnessTestExecution` while keeping aggregate caches in sync.
+    - Emits structured harness logs for success/failure of the auto-capture.
 
-```bash
-# 1. Rebuild with changes
-cmake --build build-grpc-test --target yaze -j$(sysctl -n hw.ncpu)
+  ### CLI & Client Updates
+  - `GuiAutomationClient::GetTestResults` propagates new proto fields:
+    `screenshot_path`, `screenshot_size_bytes`, `failure_context`, `widget_state`.
+  - `z3ed agent test results` shows diagnostics in both human (YAML) and machine
+    (JSON) modes, including `null` markers when artifacts are unavailable.
+  - JSON output is now agent-ready: screenshot path + size enable downstream
+    fetchers, failure context aids chain-of-thought prompts, widget state allows
+    LLMs to reason about UI layout when debugging.
 
-# 2. Start test harness
-./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \
-  --enable_test_harness \
-  --test_harness_port=50052 \
-  --rom_file=assets/zelda3.sfc &
-```
+  ### Build Integration
+  - gRPC build stanza now compiles the new helper files so both harness server and
+    in-process capture use the same implementation.
 
-### Trigger Test Failure
+  ---
 
-```bash
-# 3. Trigger a failing test (nonexistent widget)
-grpcurl -plaintext \
-  -import-path src/app/core/proto \
-  -proto imgui_test_harness.proto \
-  -d '{"target":"nonexistent_widget","type":"LEFT"}' \
-  127.0.0.1:50052 yaze.test.ImGuiTestHarness/Click
+  ## Developer Notes
 
-# Response should indicate failure
-```
+  | Concern | Resolution |
+  |---------|------------|
+  | Deadlocks while capturing | Screenshot helper runs outside `harness_history_mutex_`; mutex is reacquired only for bookkeeping. |
+  | Non-gRPC builds | Auto-capture logs a descriptive "unavailable" message and skips the SDL call, keeping deterministic behaviour when harness is stubbed. |
+  | Artifact collisions | Paths are timestamped and namespaced per test ID; directories are created idempotently with error-code handling. |
+  | Large widget dumps | Stored as JSON strings; CLI wraps them with quoting so they can be piped to `jq`/`yq` safely. |
 
-### Verify Screenshot Captured
+  ---
 
-```bash
-# 4. Check for auto-captured screenshot
-ls -lh /tmp/yaze_test_*_failure.bmp
+  ## Usage
 
-# Expected: BMP file created (5.3MB)
-```
+  1. Trigger a harness failure (e.g. click a nonexistent widget):
+     ```bash
+     z3ed agent test --prompt "Click widget:nonexistent"
+     ```
+  2. Fetch diagnostics:
+     ```bash
+     z3ed agent test results --test-id grpc_click_deadbeef --include-logs --format json
+     ```
+  3. Inspect artifacts:
+     ```bash
+     open "$(jq -r '.screenshot_path' results.json)"
+     ```
+
+  Example YAML excerpt:
+
+  ```yaml
+  screenshot_path: "/var/folders/.../yaze/test-results/grpc_click_deadbeef/failure_1727890045123.bmp"
+  screenshot_size_bytes: 5308538
+  failure_context: "frame=1287 current_window=MainWindow nav_window=Agent hovered_window=Agent active_id=0x00000000 hovered_id=0x00000000"
+  widget_state: '{"active_window":"MainWindow","visible_windows":["MainWindow","Agent"],"focused_widget":null}'
+  ```
+
+  ---
+
+  ## Validation
+
+  - Manual harness failure emits screenshot + widget dump under `/tmp`.
+  - `GetTestResults` returns the new fields (verified via `grpcurl`).
+  - CLI JSON/YAML output includes diagnostics with correct escaping.
+  - Non-gRPC build path compiles (guarded sections).
+
+  ---
+
+  ## Follow-Up
+
+  - IT-08c leverages the persisted widget JSON to produce HTML bundles.
+  - IT-08d will standardize error envelopes across CLI/services using these
+    diagnostics.
+  - Investigate persisting artifacts under configurable directories
+    (`--artifact-dir`) for CI separation.
 
 ### Query Test Results
 

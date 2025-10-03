@@ -58,182 +58,72 @@ absl::Status ImGuiTestHarnessServiceImpl::Screenshot(
   if (!backend_data || !backend_data->Renderer) {
     response->set_success(false);
     response->set_message("SDL renderer not available");
-    return absl::FailedPreconditionError("No SDL renderer available");
-  }
-  
-  SDL_Renderer* renderer = backend_data->Renderer;
-  
-  // 2. Get renderer output size
-  int width, height;
-  SDL_GetRendererOutputSize(renderer, &width, &height);
-  
-  // 3. Create surface to hold screenshot
-  SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32,
-                                              0x00FF0000, 0x0000FF00,
-                                              0x000000FF, 0xFF000000);
-  
-  // 4. Read pixels from renderer (ARGB8888 format)
-  SDL_RenderReadPixels(renderer, nullptr, SDL_PIXELFORMAT_ARGB8888,
-                      surface->pixels, surface->pitch);
-  
-  // 5. Determine output path (custom or auto-generated)
-  std::string output_path = request->output_path();
-  if (output_path.empty()) {
-    output_path = absl::StrFormat("/tmp/yaze_screenshot_%lld.bmp",
-                                  absl::ToUnixMillis(absl::Now()));
-  }
-  
-  // 6. Save to BMP file
-  SDL_SaveBMP(surface, output_path.c_str());
-  
-  // 7. Get file size and clean up
-  std::ifstream file(output_path, std::ios::binary | std::ios::ate);
-  int64_t file_size = file.tellg();
-  
-  SDL_FreeSurface(surface);
-  
-  // 8. Return success response
-  response->set_success(true);
-  response->set_message(absl::StrFormat("Screenshot saved to %s (%dx%d)",
-                                        output_path, width, height));
-  response->set_file_path(output_path);
-  response->set_file_size_bytes(file_size);
-  
-  return absl::OkStatus();
-}
-```
-
-### Testing Results
-
-**Test Command**:
-```bash
-grpcurl -plaintext \
-  -import-path /Users/scawful/Code/yaze/src/app/core/proto \
-  -proto imgui_test_harness.proto \
-  -d '{"output_path": "/tmp/test_screenshot.bmp"}' \
-  localhost:50052 yaze.test.ImGuiTestHarness/Screenshot
-```
-
-**Response**:
-```json
-{
-  "success": true,
-  "message": "Screenshot saved to /tmp/test_screenshot.bmp (1536x864)",
-  "filePath": "/tmp/test_screenshot.bmp",
-  "fileSizeBytes": "5308538"
-}
-```
-
-**File Verification**:
-```bash
-$ ls -lh /tmp/test_screenshot.bmp
--rw-r--r--  1 scawful  wheel   5.1M Oct  2 20:16 /tmp/test_screenshot.bmp
-
-$ file /tmp/test_screenshot.bmp
-/tmp/test_screenshot.bmp: PC bitmap, Windows 95/NT4 and newer format, 1536 x 864 x 32, cbSize 5308538, bits offset 122
-```
-
-✅ **Result**: Screenshot successfully captured, saved, and validated!
-
----
-
-## Design Decisions
-
-### Why BMP Format?
-
-**Chosen**: SDL's built-in `SDL_SaveBMP` function  
-**Rationale**:
-- ✅ Zero external dependencies (no need for libpng, stb_image_write, etc.)
-- ✅ Guaranteed to work on all platforms where SDL works
-- ✅ Simple, reliable, and fast
-- ✅ Adequate for debugging/error reporting (file size not critical)
-- ⚠️ Larger file sizes (5.3MB vs ~500KB for PNG), but acceptable for temporary debug files
-
-**Future Consideration**: If disk space becomes an issue, can add PNG encoding using stb_image_write (single-header library, easy to integrate)
-
-### SDL Backend Integration
-
-**Challenge**: How to access the SDL_Renderer from ImGui?  
-**Solution**: 
-- ImGui's `BackendRendererUserData` points to an `ImGui_ImplSDLRenderer2_Data` struct
-- This struct contains the `Renderer` pointer as its first member
-- Cast `BackendRendererUserData` to access the renderer safely
-
-**Why Not Store Renderer Globally?**
-- Multiple ImGui contexts could use different renderers
-- Backend data pattern follows ImGui's architecture conventions
-- More maintainable and future-proof
-
----
-
-## Integration with Test System
-
-### Current Usage (Manual RPC)
-
-AI agents or CLI tools can manually capture screenshots:
-
-```bash
-# Capture screenshot after opening editor
-z3ed agent test --prompt "Open Overworld Editor"
-grpcurl ... yaze.test.ImGuiTestHarness/Screenshot
-```
-
-### Next Step: Auto-Capture on Failure
-
-The screenshot RPC is now ready to be integrated with TestManager to automatically capture context when tests fail:
-
-**Planned Implementation** (IT-08 Phase 2):
-```cpp
-// In TestManager::MarkHarnessTestCompleted()
-if (test_result == IMGUI_TEST_STATUS_FAILED || 
-    test_result == IMGUI_TEST_STATUS_TIMEOUT) {
-  
-  // Auto-capture screenshot
-  ScreenshotRequest req;
-  req.set_output_path(absl::StrFormat("/tmp/test_%s_failure.bmp", test_id));
-  
-  ScreenshotResponse resp;
-  harness_service_->Screenshot(&req, &resp);
-  
-  test_history_[test_id].screenshot_path = resp.file_path();
-  
-  // Also capture widget state (IT-08 Phase 3)
-  test_history_[test_id].widget_state = CaptureWidgetState();
-}
-```
-
----
-
----
-
 ## IT-08b: Auto-Capture on Test Failure ✅ COMPLETE
 
-**Date Completed**: October 2, 2025  
-**Time**: 1.5 hours
+    ## IT-08b: Auto-Capture on Test Failure ✅ COMPLETE
 
-### Implementation Summary
+    **Date Completed**: October 2, 2025  
+    **Artifacts**: `CaptureFailureContext`, `screenshot_utils.{h,cc}`, CLI introspection updates
 
-Successfully implemented automatic screenshot and context capture when tests fail or timeout.
+    ### Highlights
 
-### What Was Built
+    - **Shared SDL helper**: New `CaptureHarnessScreenshot()` centralizes renderer
+      capture and writes BMP files into `${TMPDIR}/yaze/test-results/<test_id>/`.
+    - **TestManager integration**: Failure context now records ImGui window/nav
+      state, widget hierarchy (`CaptureWidgetState`), and screenshot metadata while
+      keeping `HarnessTestExecution` aggregates in sync.
+    - **Graceful fallbacks**: When `YAZE_WITH_GRPC` is disabled we emit a harness
+      log noting that screenshot capture is unavailable.
+    - **End-user surfacing**: `GuiAutomationClient::GetTestResults` and
+      `z3ed agent test results` expose `screenshot_path`, `screenshot_size_bytes`,
+      `failure_context`, and `widget_state` in both YAML and JSON modes.
 
-1. **TestManager Integration**:
-   - Added failure diagnostic fields to `HarnessTestExecution` struct
-   - Modified `MarkHarnessTestCompleted()` to auto-trigger capture on failure/timeout
-   - Implemented `CaptureFailureContext()` method with execution context capture
+    ### Key Touch Points
 
-2. **Failure Context Capture**:
-   - Frame count at failure time
-   - Active window name
-   - Focused widget ID
-   - Screenshot path placeholder for future RPC integration
+    | File | Purpose |
+    |------|---------|
+    | `src/app/core/service/screenshot_utils.{h,cc}` | SDL renderer capture reused by RPC + auto-capture |
+    | `src/app/test/test_manager.cc` | Auto-capture pipeline with per-test artifact directories |
+    | `src/app/core/service/imgui_test_harness_service.cc` | Screenshot RPC delegates to shared helper |
+    | `src/cli/service/gui_automation_client.*` | Propagates new proto fields to CLI |
+    | `src/cli/handlers/agent/test_commands.cc` | Presents diagnostics to users/agents |
 
-3. **Proto Schema Updates**:
-   - Added `screenshot_path`, `screenshot_size_bytes`, `failure_context`, `widget_state` to `GetTestResultsResponse`
+    ### Validation Checklist
 
-4. **gRPC Service Integration**:
-   - Updated `GetTestResults` RPC to include failure diagnostics in response
+    ```bash
+    # Build (needs YAZE_WITH_GRPC=ON)
+    cmake --build build-grpc-test --target yaze -j$(sysctl -n hw.ncpu)
 
+    # Start harness
+    ./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \
+      --enable_test_harness --test_harness_port=50052 \
+      --rom_file=assets/zelda3.sfc &
+
+    # Queue a failing automation step
+    grpcurl -plaintext \
+      -import-path src/app/core/proto \
+      -proto imgui_test_harness.proto \
+      -d '{"target":"button:DoesNotExist","type":"LEFT"}' \
+      localhost:50052 yaze.test.ImGuiTestHarness/Click
+
+    # Fetch diagnostics
+    z3ed agent test results --test-id <captured_id> --include-logs --format yaml
+
+    # Inspect artifact directory
+    ls ${TMPDIR}/yaze/test-results/<captured_id>/
+    ```
+
+    You should see a `.bmp` failure screenshot, widget JSON in the CLI output, and
+    logs noting the auto-capture event. When the helper fails (e.g., renderer not
+    ready) the harness log and CLI output record the failure reason.
+
+    ### Next Steps
+
+    - Wire the same helper into HTML bundle generation (IT-08c follow-up).
+    - Add configurable artifact root (`--error-artifact-dir`) for CI separation.
+    - Consider PNG encoding via `stb_image_write` if file size becomes an issue.
+
+    ---
 ### Technical Implementation
 
 **Location**: `/Users/scawful/Code/yaze/src/app/test/test_manager.{h,cc}`
@@ -323,7 +213,7 @@ grpcurl -plaintext \
   "category": "grpc",
   "executedAtMs": "1696357200000",
   "durationMs": 150,
-  "screenshotPath": "/tmp/yaze_test_grpc_click_12345678_failure.bmp",
+  "screenshotPath": "/tmp/yaze/test-results/grpc_click_12345678/failure_1696357200000.bmp",
   "failureContext": "Frame: 1234, Active Window: Main Window, Focused Widget: 0x00000000"
 }
 ```
@@ -336,12 +226,12 @@ grpcurl -plaintext \
 - ✅ No deadlocks (mutex released before calling CaptureFailureContext)
 - ✅ Proto schema updated with new fields
 
-### Next Steps
+### Retro Notes
 
-The screenshot path is currently a placeholder. Future integration will:
-1. Call the Screenshot RPC from within CaptureFailureContext
-2. Wait for screenshot completion and store the actual file size
-3. Integrate with IT-08c for widget state dumps
+- Placeholder screenshot paths have been replaced by the shared helper that
+  writes into `${TMPDIR}/yaze/test-results/<test_id>/` and records byte sizes.
+- Widget state capture (IT-08c) is now invoked directly from
+  `CaptureFailureContext`, removing the TODOs from the original plan.
 
 ---
 

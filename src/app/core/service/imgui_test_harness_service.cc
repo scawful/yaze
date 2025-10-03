@@ -24,6 +24,7 @@
 #include "absl/time/time.h"
 #include "app/core/proto/imgui_test_harness.grpc.pb.h"
 #include "app/core/proto/imgui_test_harness.pb.h"
+#include "app/core/service/screenshot_utils.h"
 #include "app/core/testing/test_script_parser.h"
 #include "app/test/test_manager.h"
 #include "yaze.h"  // For YAZE_VERSION_STRING
@@ -1187,82 +1188,30 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   return finalize(absl::OkStatus());
 }
 
-// Helper struct matching imgui_impl_sdlrenderer2.cpp backend data
-struct ImGui_ImplSDLRenderer2_Data {
-  SDL_Renderer* Renderer;
-};
-
 absl::Status ImGuiTestHarnessServiceImpl::Screenshot(
     const ScreenshotRequest* request, ScreenshotResponse* response) {
-  // Get the SDL renderer from ImGui backend
-  ImGuiIO& io = ImGui::GetIO();
-  auto* backend_data = static_cast<ImGui_ImplSDLRenderer2_Data*>(io.BackendRendererUserData);
-  
-  if (!backend_data || !backend_data->Renderer) {
+  if (!response) {
+    return absl::InvalidArgumentError("response cannot be null");
+  }
+
+  const std::string requested_path =
+      request ? request->output_path() : std::string();
+  absl::StatusOr<ScreenshotArtifact> artifact_or =
+      CaptureHarnessScreenshot(requested_path);
+  if (!artifact_or.ok()) {
     response->set_success(false);
-    response->set_message("SDL renderer not available");
-    return absl::FailedPreconditionError("No SDL renderer available");
+    response->set_message(std::string(artifact_or.status().message()));
+    return artifact_or.status();
   }
-  
-  SDL_Renderer* renderer = backend_data->Renderer;
-  
-  // Get renderer output size
-  int width, height;
-  if (SDL_GetRendererOutputSize(renderer, &width, &height) != 0) {
-    response->set_success(false);
-    response->set_message(absl::StrFormat("Failed to get renderer size: %s", SDL_GetError()));
-    return absl::InternalError("Failed to get renderer output size");
-  }
-  
-  // Create surface to hold screenshot
-  SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32,
-                                              0x00FF0000, 0x0000FF00,
-                                              0x000000FF, 0xFF000000);
-  if (!surface) {
-    response->set_success(false);
-    response->set_message(absl::StrFormat("Failed to create surface: %s", SDL_GetError()));
-    return absl::InternalError("Failed to create SDL surface");
-  }
-  
-  // Read pixels from renderer
-  if (SDL_RenderReadPixels(renderer, nullptr, SDL_PIXELFORMAT_ARGB8888,
-                          surface->pixels, surface->pitch) != 0) {
-    SDL_FreeSurface(surface);
-    response->set_success(false);
-    response->set_message(absl::StrFormat("Failed to read pixels: %s", SDL_GetError()));
-    return absl::InternalError("Failed to read renderer pixels");
-  }
-  
-  // Determine output path
-  std::string output_path = request->output_path();
-  if (output_path.empty()) {
-    // Default: /tmp/yaze_screenshot_<timestamp>.bmp
-    output_path = absl::StrFormat("/tmp/yaze_screenshot_%lld.bmp",
-                                  absl::ToUnixMillis(absl::Now()));
-  }
-  
-  // Save to BMP file (SDL built-in, no external deps needed)
-  if (SDL_SaveBMP(surface, output_path.c_str()) != 0) {
-    SDL_FreeSurface(surface);
-    response->set_success(false);
-    response->set_message(absl::StrFormat("Failed to save BMP: %s", SDL_GetError()));
-    return absl::InternalError("Failed to save screenshot");
-  }
-  
-  // Get file size
-  std::ifstream file(output_path, std::ios::binary | std::ios::ate);
-  int64_t file_size = file.tellg();
-  file.close();
-  
-  // Clean up and return success
-  SDL_FreeSurface(surface);
-  
+
+  const ScreenshotArtifact& artifact = *artifact_or;
   response->set_success(true);
   response->set_message(absl::StrFormat("Screenshot saved to %s (%dx%d)",
-                                        output_path, width, height));
-  response->set_file_path(output_path);
-  response->set_file_size_bytes(file_size);
-  
+                                        artifact.file_path, artifact.width,
+                                        artifact.height));
+  response->set_file_path(artifact.file_path);
+  response->set_file_size_bytes(artifact.file_size_bytes);
+
   return absl::OkStatus();
 }
 
