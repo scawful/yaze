@@ -24,7 +24,7 @@ This vision will be realized through a shared interface available in both the `z
 - **Components**:
     - `ConversationalAgentService`: The main class for managing the chat session.
     - Integration with existing `AIService` implementations (Ollama, Gemini).
-- **Status**: Not started.
+- **Status**: In progress — baseline service exists with chat history, tool loop handling, and structured response parsing. Next up: wiring in live ROM context and richer session state.
 
 ### 2. Read-Only "Tools" for the Agent
 - **Description**: To enable the agent to answer questions, we need to expand `z3ed` with a suite of read-only commands that the LLM can call. This is aligned with the "tool use" or "function calling" capabilities of modern LLMs.
@@ -37,14 +37,14 @@ This vision will be realized through a shared interface available in both the `z
     - `overworld set-area --map <id> --x <x> --y <y> --width <w> --height <h> --tile <id>`
     - `overworld replace-tile --map <id> --from <old_id> --to <new_id>`
     - `overworld blend-tiles --map <id> --pattern <name> --density <percent>`
-- **Status**: Some commands exist (`overworld get-tile`), but the suite needs to be expanded.
+- **Status**: Foundational commands (`resource-list`, `dungeon-list-sprites`) are live with JSON output. Focus is shifting to high-value Overworld and dialogue inspection tools.
 
 ### 3. TUI and GUI Chat Interfaces
 - **Description**: User-facing components for interacting with the `ConversationalAgentService`.
 - **Components**:
     - **TUI**: A new full-screen component in `z3ed` using FTXUI, providing a rich chat experience in the terminal.
     - **GUI**: A new ImGui widget that can be docked into the main `yaze` application window.
-- **Status**: Not started.
+- **Status**: In progress — CLI/TUI and GUI chat widgets exist, now rendering tables/JSON with readable formatting. Need to improve input ergonomics and synchronized history navigation.
 
 ### 4. Integration with the Proposal Workflow
 - **Description**: The final step is to connect the conversation to the action. When a user's prompt implies a desire to modify the ROM (e.g., "Okay, now add two more soldiers"), the `ConversationalAgentService` will trigger the existing `Tile16ProposalGenerator` (and future proposal generators for other resource types) to create a proposal.
@@ -60,26 +60,26 @@ This vision will be realized through a shared interface available in both the `z
 ## Consolidated Next Steps
 
 ### Immediate Priorities (Next Session)
-1.  **Implement Read-Only Agent Tools**:
-    - Add `resource list` command.
-    - Add `dungeon list-sprites` command.
-    - Ensure all new commands have JSON output options for machine readability.
-2.  **Stub out `ConversationalAgentService`**:
-    - Create the basic class structure.
-    - Implement simple chat history management.
-3.  **Update `README.md` and Consolidate Docs**:
-    - Update the main `README.md` to reflect this new roadmap.
-    - Remove `IMPLEMENTATION-SESSION-OCT3-CONTINUED.md`.
-    - Merge any other scattered planning documents into this roadmap.
+1.  **Share ROM Context with the Agent**:
+    - Inject the active GUI/TUI ROM instance into `ConversationalAgentService`.
+    - Ensure tool calls succeed without requiring `--rom` flags when running inside the editor.
+2.  **Expand Overworld Tool Coverage**:
+    - Add read-only commands for tile searches, area summaries, and teleport destinations.
+    - Guarantee each tool returns both JSON and human-readable summaries for the chat renderers.
+3.  **Document & Test the New Tooling**:
+    - Update the main `README.md` and relevant docs to cover the new chat formatting.
+    - Add regression tests (unit or golden JSON fixtures) for the new Overworld tools.
 
 ### Short-Term Goals (This Week)
-1.  **Build TUI Chat Interface**:
-    - Create the FTXUI component.
-    - Connect it to the `ConversationalAgentService`.
-    - Implement basic input/output.
+1.  **Polish the TUI Chat Experience**:
+    - Tighten keyboard shortcuts, scrolling, and copy-to-clipboard behaviour.
+    - Align log file output with on-screen formatting for easier debugging.
 2.  **Integrate Tool Use with LLM**:
     - Modify the `AIService` to support function calling/tool use.
     - Teach the agent to call the new read-only commands to answer questions.
+3.  **Land Overworld Tooling**:
+    - Ship at least two Overworld inspection commands with comprehensive tests.
+    - Record example transcripts demonstrating tool usage in both TUI and GUI.
 
 ### Long-Term Vision (Next Week and Beyond)
 1.  **Build GUI Chat Widget**:
@@ -109,11 +109,12 @@ We have made significant progress in laying the foundation for the conversationa
 - **Initial Agent "Tools"**: `resource-list` and `dungeon-list-sprites` commands are implemented.
 - **Tool Use Foundation**: The `ToolDispatcher` is implemented, and the AI services are aware of the new tool call format.
  - **Tool Loop Improvements**: Conversational flow now handles multi-step tool calls with default JSON output, allowing results to feed back into the chat without recursion.
+- **Structured Tool Output Rendering**: Both the TUI and GUI chat widgets now display tables and JSON payloads with friendly formatting, drastically improving readability.
 
 ### ✅ Build Configuration Issue Resolved
 The linker error is fixed. Both the CLI and GUI targets now link against `yaze_agent`, so the shared agent handlers (`HandleResourceListCommand`, `HandleDungeonListSpritesCommand`, etc.) compile once and are available to `ToolDispatcher` everywhere.
 
 ### 🚀 Next Steps
 1.  **Share ROM Context with the Agent**: Inject the active GUI ROM into `ConversationalAgentService` so tool calls work even when `--rom` flags are unavailable. Analyze the `src/app/rom.cc` and `src/app/rom.h` and `src/app/editor/editor_manager.cc` files for guidance on accessing the current project/ROM.
-2.  **Surface Tool Output in the UI**: Present JSON/table responses in the chat widgets with formatting instead of raw text dumps.
-3.  **Expand Tool Coverage**: Analyze the yaze source code to identify Overworld features which can be implemented as tool calls and would be useful. Dungeon editing does not render in the GUI yet, so we will hold off on dungeon tools for now. Check `src/app/editor/overworld/` for the GUI interface, `src/app/zelda3/overworld/` for the core logic. We could also explore dialogue editing help as tool calls by looking at `src/app/editor/message/` since the MessageEditor is functional in the GUI.
+2.  **Expand Tool Coverage**: Target Overworld navigation helpers (`overworld find-tile`, `overworld list-warps`, region summaries) and dialogue inspectors. Prioritize commands that unblock common level-design questions and emit concise table/JSON payloads.
+3.  **Publish Usage Examples**: Capture transcripts and screenshots that highlight structured chat output, then weave them into the docs so contributors can see the intended UX.

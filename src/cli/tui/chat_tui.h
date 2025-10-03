@@ -6,13 +6,17 @@
 #include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {
+
+class Rom;
+
 namespace cli {
 namespace tui {
 
 class ChatTUI {
  public:
-  ChatTUI();
+  explicit ChatTUI(Rom* rom_context = nullptr);
   void Run();
+  void SetRomContext(Rom* rom_context);
 
  private:
   void Render();
@@ -21,6 +25,7 @@ class ChatTUI {
   ftxui::ScreenInteractive screen_ = ftxui::ScreenInteractive::Fullscreen();
   std::string input_message_;
   agent::ConversationalAgentService agent_service_;
+  Rom* rom_context_ = nullptr;
 };
 
 }  // namespace tui
