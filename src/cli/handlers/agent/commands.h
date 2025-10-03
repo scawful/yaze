@@ -31,7 +31,7 @@ absl::Status HandleResourceListCommand(
 absl::Status HandleDungeonListSpritesCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
-absl::Status HandleChatCommand();
+absl::Status HandleChatCommand(Rom& rom);
 
 }  // namespace agent
 }  // namespace cli

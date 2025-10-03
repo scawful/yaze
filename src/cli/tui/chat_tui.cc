@@ -14,7 +14,16 @@ namespace tui {
 
 using namespace ftxui;
 
-ChatTUI::ChatTUI() = default;
+ChatTUI::ChatTUI(Rom* rom_context) : rom_context_(rom_context) {
+  if (rom_context_ != nullptr) {
+    agent_service_.SetRomContext(rom_context_);
+  }
+}
+
+void ChatTUI::SetRomContext(Rom* rom_context) {
+  rom_context_ = rom_context;
+  agent_service_.SetRomContext(rom_context_);
+}
 
 void ChatTUI::Run() {
   auto input = Input(&input_message_, "Enter your message...");

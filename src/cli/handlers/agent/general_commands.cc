@@ -16,6 +16,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
+#include "absl/strings/string_view.h"
 #include "app/zelda3/dungeon/room.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/modern_cli.h"
@@ -47,6 +48,29 @@ struct DescribeOptions {
   std::string version = "0.1.0";
   std::optional<std::string> last_updated;
 };
+
+absl::Status EnsureRomLoaded(Rom& rom, absl::string_view command_hint) {
+  if (rom.is_loaded()) {
+    return absl::OkStatus();
+  }
+
+  std::string rom_path = absl::GetFlag(FLAGS_rom);
+  if (rom_path.empty()) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat(
+            "No ROM loaded. Pass --rom=<path> when running %s.\n"
+            "Example: z3ed %s --rom=zelda3.sfc",
+            command_hint, command_hint));
+  }
+
+  auto status = rom.LoadFromFile(rom_path);
+  if (!status.ok()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Failed to load ROM from '%s': %s", rom_path, status.message()));
+  }
+
+  return absl::OkStatus();
+}
 
 absl::StatusOr<DescribeOptions> ParseDescribeArgs(
     const std::vector<std::string>& args) {
@@ -114,21 +138,7 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   }
   std::string prompt = arg_vec[1];
 
-  if (!rom.is_loaded()) {
-    std::string rom_path = absl::GetFlag(FLAGS_rom);
-    if (rom_path.empty()) {
-      return absl::FailedPreconditionError(
-          "No ROM loaded. Use --rom=<path> to specify ROM file.\n"
-          "Example: z3ed agent run --rom=zelda3.sfc --prompt \"Your prompt "
-          "here\"");
-    }
-
-    auto status = rom.LoadFromFile(rom_path);
-    if (!status.ok()) {
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Failed to load ROM from '%s': %s", rom_path, status.message()));
-    }
-  }
+  RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent run --prompt \"<prompt>\""));
 
   // 1. Create a sandbox ROM to apply changes to
   auto sandbox_or =
@@ -470,8 +480,10 @@ absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec) {
   return absl::OkStatus();
 }
 
-absl::Status HandleChatCommand() {
-  tui::ChatTUI chat_tui;
+absl::Status HandleChatCommand(Rom& rom) {
+  RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent chat"));
+
+  tui::ChatTUI chat_tui(&rom);
   chat_tui.Run();
   return absl::OkStatus();
 }
@@ -497,11 +509,7 @@ absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,
   auto proposal = proposal_or.value();
 
   // 2. Ensure the main ROM is loaded.
-  if (!rom.is_loaded()) {
-    return absl::FailedPreconditionError(
-        "No ROM loaded. Use --rom=<path> to specify the ROM to apply changes "
-        "to.");
-  }
+  RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent accept --proposal-id <id>"));
 
   // 3. Apply the proposal to the main ROM.
   auto apply_status = generator.ApplyProposal(proposal, &rom);
