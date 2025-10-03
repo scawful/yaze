@@ -15,47 +15,72 @@ ConversationalAgentService::ConversationalAgentService() {
 
 absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
     const std::string& message) {
-  // 1. Add user message to history.
-  history_.push_back({ChatMessage::Sender::kUser, message, absl::Now()});
-
-  // 2. Get response from the AI service using the full history.
-  auto response_or = ai_service_->GenerateResponse(history_);
-  if (!response_or.ok()) {
-    return absl::InternalError(absl::StrCat("Failed to get AI response: ",
-                                           response_or.status().message()));
+  if (message.empty() && history_.empty()) {
+    return absl::InvalidArgumentError(
+        "Conversation must start with a non-empty message.");
   }
 
-  const auto& agent_response = response_or.value();
-
-  // For now, combine text and commands for display.
-  // In the future, the TUI/GUI will handle these differently.
-  std::string response_text = agent_response.text_response;
-  if (!agent_response.commands.empty()) {
-    response_text += "\n\nCommands:\n" + absl::StrJoin(agent_response.commands, "\n");
+  if (!message.empty()) {
+    history_.push_back({ChatMessage::Sender::kUser, message, absl::Now()});
   }
 
-  // If the agent requested a tool call, dispatch it.
-  if (!agent_response.tool_calls.empty()) {
-    for (const auto& tool_call : agent_response.tool_calls) {
-      auto tool_result_or = tool_dispatcher_.Dispatch(tool_call);
-      if (tool_result_or.ok()) {
-        // Add the tool result to the history and send back to the AI.
-        history_.push_back({ChatMessage::Sender::kAgent, tool_result_or.value(), absl::Now()});
-        return SendMessage(""); // Re-prompt the AI with the new context.
-      } else {
-        // Handle tool execution error.
-        return absl::InternalError(absl::StrCat("Tool execution failed: ", tool_result_or.status().message()));
+  constexpr int kMaxToolIterations = 4;
+  for (int iteration = 0; iteration < kMaxToolIterations; ++iteration) {
+    auto response_or = ai_service_->GenerateResponse(history_);
+    if (!response_or.ok()) {
+      return absl::InternalError(absl::StrCat(
+          "Failed to get AI response: ", response_or.status().message()));
+    }
+
+    const auto& agent_response = response_or.value();
+
+    if (!agent_response.tool_calls.empty()) {
+      bool executed_tool = false;
+      for (const auto& tool_call : agent_response.tool_calls) {
+        auto tool_result_or = tool_dispatcher_.Dispatch(tool_call);
+        if (!tool_result_or.ok()) {
+          return absl::InternalError(absl::StrCat(
+              "Tool execution failed: ", tool_result_or.status().message()));
+        }
+
+        const std::string& tool_output = tool_result_or.value();
+        if (!tool_output.empty()) {
+          history_.push_back(
+              {ChatMessage::Sender::kAgent, tool_output, absl::Now()});
+        }
+        executed_tool = true;
+      }
+
+      if (executed_tool) {
+        // Re-query the AI with updated context.
+        continue;
       }
     }
+
+    std::string response_text = agent_response.text_response;
+    if (!agent_response.reasoning.empty()) {
+      if (!response_text.empty()) {
+        response_text.append("\n\n");
+      }
+      response_text.append("Reasoning: ");
+      response_text.append(agent_response.reasoning);
+    }
+    if (!agent_response.commands.empty()) {
+      if (!response_text.empty()) {
+        response_text.append("\n\n");
+      }
+      response_text.append("Commands:\n");
+      response_text.append(absl::StrJoin(agent_response.commands, "\n"));
+    }
+
+    ChatMessage chat_response = {ChatMessage::Sender::kAgent, response_text,
+                                 absl::Now()};
+    history_.push_back(chat_response);
+    return chat_response;
   }
 
-  ChatMessage chat_response = {ChatMessage::Sender::kAgent, response_text,
-                               absl::Now()};
-
-  // 3. Add agent response to history.
-  history_.push_back(chat_response);
-
-  return chat_response;
+  return absl::InternalError(
+      "Agent did not produce a response after executing tools.");
 }
 
 const std::vector<ChatMessage>& ConversationalAgentService::GetHistory() const {

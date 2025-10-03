@@ -207,6 +207,52 @@ Examples:
 - `dungeon` - Dungeon editing
 - `agent` - Agent commands
 
+#### `agent resource-list` - Enumerate labeled resources for the AI
+```bash
+z3ed agent resource-list --type <resource> [--format <table|json>]
+
+Options:
+  --type <resource>   Required label family (dungeon, overworld, sprite, palette, etc.)
+  --format <mode>     Output format, defaults to `table`. Use `json` for LLM tooling.
+
+Examples:
+  # Show dungeon labels in a table
+  z3ed agent resource-list --type dungeon
+
+  # Emit JSON for the conversation agent to consume
+  z3ed agent resource-list --type overworld --format json
+```
+
+**Notes**:
+- When the conversation agent invokes this tool, JSON output is requested automatically.
+- Labels are loaded from `ResourceContextBuilder`, so the command reflects project-specific metadata.
+
+#### `agent dungeon-list-sprites` - Inspect sprites in a dungeon room
+```bash
+z3ed agent dungeon-list-sprites --room <hex_id> [--format <table|json>]
+
+Options:
+  --room <hex_id>   Dungeon room ID (hexadecimal). Accepts `0x` prefixes or decimal.
+  --format <mode>   Output format, defaults to `table`.
+
+Examples:
+  z3ed agent dungeon-list-sprites --room 0x012
+  z3ed agent dungeon-list-sprites --room 18 --format json
+```
+
+**Output**:
+- Table view prints sprite id/x/y in hex+decimal for quick inspection.
+- JSON view is tailored for the LLM toolchain and is returned automatically during tool calls.
+
+#### `agent chat` - Interactive terminal chat (TUI prototype)
+```bash
+z3ed agent chat
+```
+
+- Opens an FTXUI-based interface with scrolling history and input box.
+- Uses the shared `ConversationalAgentService`, so the same backend powers the GUI widget.
+- Useful for manual testing of tool dispatching and new prompting strategies.
+
 #### `agent test` - Automated GUI testing (IT-02)
 ```bash
 z3ed agent test --prompt "<test_description>" [--host <hostname>] [--port <port>]

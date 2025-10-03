@@ -12,8 +12,8 @@ namespace agent {
 namespace {
 
 constexpr absl::string_view kUsage =
-    "Usage: agent <run|plan|diff|accept|test|gui|learn|list|commit|revert|describe> "
-    "[options]";
+  "Usage: agent <run|plan|diff|accept|test|gui|learn|list|commit|revert|describe|resource-list|dungeon-list-sprites|chat> "
+  "[options]";
 
 }  // namespace
 }  // namespace agent
