@@ -100,30 +100,30 @@ $(document).ready(function(){initNavTree('df/d93/cli_2handlers_2overworld_8cc.ht
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">overworld.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d3/dfa/z3ed_8h_source.html">cli/z3ed.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d9c/overworld_8h_source.html">app/zelda3/overworld/overworld.h</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cctype&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;stdexcept&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;string_view&gt;</code><br />
+<code>#include &lt;unordered_map&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/flags/flag.h&quot;</code><br />
 <code>#include &quot;absl/flags/declare.h&quot;</code><br />
-</div><div class="textblock"><div class="dynheader">
-Include dependency graph for overworld.cc:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d1/d5f/cli_2handlers_2overworld_8cc__incl.png" border="0" usemap="#asrc_2cli_2handlers_2overworld_8cc" alt=""/></div>
-<map name="asrc_2cli_2handlers_2overworld_8cc" id="asrc_2cli_2handlers_2overworld_8cc">
-<area shape="rect" title=" " alt="" coords="158,5,344,31"/>
-<area shape="rect" href="../../d3/dfa/z3ed_8h.html" title=" " alt="" coords="5,87,81,112"/>
-<area shape="poly" title=" " alt="" coords="220,34,93,81,89,83,88,78,91,77,218,29"/>
-<area shape="rect" href="../../d7/d9c/overworld_8h.html" title=" " alt="" coords="105,79,248,120"/>
-<area shape="poly" title=" " alt="" coords="242,33,207,69,203,66,238,30"/>
-<area shape="rect" title=" " alt="" coords="272,87,382,112"/>
-<area shape="poly" title=" " alt="" coords="264,30,307,73,303,77,261,33"/>
-<area shape="rect" title=" " alt="" coords="406,87,539,112"/>
-<area shape="poly" title=" " alt="" coords="286,29,425,78,423,83,284,34"/>
-</map>
-</div>
+<code>#include &quot;absl/status/statusor.h&quot;</code><br />
+<code>#include &quot;absl/strings/ascii.h&quot;</code><br />
+<code>#include &quot;absl/strings/match.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_join.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 </div>
 <p><a href="../../df/d93/cli_2handlers_2overworld_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -135,11 +135,26 @@ Namespaces</h2></td></tr>
 <tr class="memitem:dd/d63/namespaceyaze_1_1cli" id="r_dd/d63/namespaceyaze_1_1cli"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html">yaze::cli</a></td></tr>
 <tr class="memdesc:dd/d63/namespaceyaze_1_1cli"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for the command line interface. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03" id="r_d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html">yaze::cli::anonymous_namespace{overworld.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aa9c3df97146a4533c1c78f5ac7c9e36e" id="r_aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d93/cli_2handlers_2overworld_8cc.html#aa9c3df97146a4533c1c78f5ac7c9e36e">ABSL_DECLARE_FLAG</a> (std::string, rom)</td></tr>
 <tr class="separator:aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82b12914c3c5457cbf601dd52a458f55" id="r_a82b12914c3c5457cbf601dd52a458f55"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a82b12914c3c5457cbf601dd52a458f55">yaze::cli::anonymous_namespace{overworld.cc}::ParseNumeric</a> (const std::string &amp;value, int base=0)</td></tr>
+<tr class="separator:a82b12914c3c5457cbf601dd52a458f55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab47915be99cce7255d62b7ccd623df0c" id="r_ab47915be99cce7255d62b7ccd623df0c"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#ab47915be99cce7255d62b7ccd623df0c">yaze::cli::anonymous_namespace{overworld.cc}::WorldFromString</a> (const std::string &amp;value)</td></tr>
+<tr class="separator:ab47915be99cce7255d62b7ccd623df0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f0f084ea319997126b57917e32d7298" id="r_a2f0f084ea319997126b57917e32d7298"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a2f0f084ea319997126b57917e32d7298">yaze::cli::anonymous_namespace{overworld.cc}::WorldFromMapId</a> (int map_id)</td></tr>
+<tr class="separator:a2f0f084ea319997126b57917e32d7298"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6653dd0494617c7b636abc296bbefffa" id="r_a6653dd0494617c7b636abc296bbefffa"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a6653dd0494617c7b636abc296bbefffa">yaze::cli::anonymous_namespace{overworld.cc}::WorldName</a> (int world)</td></tr>
+<tr class="separator:a6653dd0494617c7b636abc296bbefffa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a2e83a1746497c566f03baff74f6904cc" id="r_a2e83a1746497c566f03baff74f6904cc"><td class="memItemLeft" align="right" valign="top">constexpr absl::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a2e83a1746497c566f03baff74f6904cc">yaze::cli::anonymous_namespace{overworld.cc}::kFindTileUsage</a></td></tr>
+<tr class="separator:a2e83a1746497c566f03baff74f6904cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="aa9c3df97146a4533c1c78f5ac7c9e36e" name="aa9c3df97146a4533c1c78f5ac7c9e36e"></a>

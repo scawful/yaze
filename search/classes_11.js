@@ -54,9 +54,11 @@ var searchData=
   ['tmw_51',['TMW',['../d5/dd1/structyaze_1_1emu_1_1TMW.html',1,'yaze::emu']]],
   ['toast_52',['Toast',['../d2/d11/structyaze_1_1editor_1_1Toast.html',1,'yaze::editor']]],
   ['toastmanager_53',['ToastManager',['../d7/d92/classyaze_1_1editor_1_1ToastManager.html',1,'yaze::editor']]],
-  ['tracker_54',['Tracker',['../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::zelda3::music']]],
-  ['transaction_55',['Transaction',['../df/d26/classyaze_1_1Transaction.html',1,'yaze']]],
-  ['ts_56',['TS',['../da/db1/structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
-  ['tsw_57',['TSW',['../d2/de5/structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]],
-  ['tuicomponent_58',['TuiComponent',['../dc/d6b/classyaze_1_1cli_1_1TuiComponent.html',1,'yaze::cli']]]
+  ['toolcall_54',['ToolCall',['../df/d6e/structyaze_1_1cli_1_1ToolCall.html',1,'yaze::cli']]],
+  ['tooldispatcher_55',['ToolDispatcher',['../d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html',1,'yaze::cli::agent']]],
+  ['tracker_56',['Tracker',['../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::zelda3::music']]],
+  ['transaction_57',['Transaction',['../df/d26/classyaze_1_1Transaction.html',1,'yaze']]],
+  ['ts_58',['TS',['../da/db1/structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
+  ['tsw_59',['TSW',['../d2/de5/structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]],
+  ['tuicomponent_60',['TuiComponent',['../dc/d6b/classyaze_1_1cli_1_1TuiComponent.html',1,'yaze::cli']]]
 ];

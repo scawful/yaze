@@ -1,0 +1,9 @@
+<map id="yaze::cli::agent::ConversationalAgentService::SendMessage" name="yaze::cli::agent::ConversationalAgentService::SendMessage">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,202,79"/>
+<area shape="rect" id="Node000002" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#ab83c62c24e7c9c186dc5010c11140cab" title=" " alt="" coords="250,39,447,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,56,234,56,234,62,202,62"/>
+<area shape="rect" id="Node000003" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a112a9239569f967959da09a6e624d046" title=" " alt="" coords="495,5,689,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="447,43,479,38,480,44,448,48"/>
+<area shape="rect" id="Node000051" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab9bca766e994d7cd3f8328569233fd5e" title=" " alt="" coords="514,71,671,111"/>
+<area shape="poly" id="edge3_Node000002_Node000051" title=" " alt="" coords="448,69,498,76,498,81,447,75"/>
+</map>

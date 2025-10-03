@@ -1,12 +1,13 @@
 <map id="src/app/editor/system/toast_manager.h" name="src/app/editor/system/toast_manager.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="75,5,221,46"/>
-<area shape="rect" id="Node000002" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="80,94,216,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,62,150,94,145,94,145,62"/>
-<area shape="rect" id="Node000003" href="$da/d0c/controller_8cc.html" title=" " alt="" coords="5,271,173,297"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="94,146,73,163,58,184,53,207,59,230,70,252,82,270,77,273,65,255,54,232,48,207,53,182,70,159,90,141"/>
-<area shape="rect" id="Node000004" href="$d2/dd9/controller_8h.html" title=" " alt="" coords="68,190,228,216"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="150,150,150,190,145,190,145,150"/>
-<area shape="rect" id="Node000015" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="252,183,388,223"/>
-<area shape="poly" id="edge5_Node000002_Node000015" title=" " alt="" coords="201,140,282,180,280,185,199,144"/>
-<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="132,230,100,272,96,269,127,227"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="52,5,199,46"/>
+<area shape="rect" id="Node000002" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="5,183,142,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,61,101,95,80,183,75,182,96,93,109,60"/>
+<area shape="rect" id="Node000003" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="111,94,247,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="148,58,169,92,165,95,143,61"/>
+<area shape="poly" id="edge6_Node000003_Node000002" title=" " alt="" coords="145,147,99,184,96,180,142,143"/>
+<area shape="rect" id="Node000004" href="$da/d0c/controller_8cc.html" title=" " alt="" coords="154,271,321,297"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="187,150,195,185,207,222,232,270,227,272,202,224,190,187,182,151"/>
+<area shape="rect" id="Node000005" href="$d2/dd9/controller_8h.html" title=" " alt="" coords="216,190,376,216"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="219,142,281,188,278,192,216,146"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="280,230,249,272,244,269,276,227"/>
 </map>

@@ -22,6 +22,7 @@ var z3ed_8h =
     [ "yaze::cli::Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
     [ "yaze::cli::OverworldGetTile", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile.html", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile" ],
     [ "yaze::cli::OverworldSetTile", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile.html", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile" ],
+    [ "yaze::cli::OverworldFindTile", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile.html", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile" ],
     [ "yaze::cli::SpriteCreate", "da/d30/classyaze_1_1cli_1_1SpriteCreate.html", "da/d30/classyaze_1_1cli_1_1SpriteCreate" ],
     [ "yaze::cli::Open", "de/d8f/classyaze_1_1cli_1_1Open.html", "de/d8f/classyaze_1_1cli_1_1Open" ],
     [ "yaze::cli::Backup", "d5/d4f/classyaze_1_1cli_1_1Backup.html", "d5/d4f/classyaze_1_1cli_1_1Backup" ],

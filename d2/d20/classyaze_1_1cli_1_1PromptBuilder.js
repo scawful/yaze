@@ -6,6 +6,7 @@ var classyaze_1_1cli_1_1PromptBuilder =
     [ "BuildSystemInstruction", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ac1332dae27f0b86a89cda12abd56f972", null ],
     [ "BuildSystemInstructionWithExamples", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a7850a60cd6750e09e6f6e3d4a294dc10", null ],
     [ "BuildContextualPrompt", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a193d8ad27f0794531bab45456e831c2b", null ],
+    [ "BuildPromptFromHistory", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a7f2e59acbfb7ed55552dcbd105a6fe5b", null ],
     [ "AddFewShotExample", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a572af19e63ef326e27d91a5a4ae270e7", null ],
     [ "GetExamplesForCategory", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#afae25fafa274d6293c6d83de572dee72", null ],
     [ "SetVerbosity", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#aa6bbd493dacd6952289a9819fb45e0dd", null ],

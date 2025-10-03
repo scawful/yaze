@@ -1,9 +1,11 @@
 <map id="yaze::cli::agent::HandlePlanCommand" name="yaze::cli::agent::HandlePlanCommand">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,157,79"/>
-<area shape="rect" id="Node000002" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a1a4e916775b3ba423218c40352b7f9a9" title="Generate a tile16 proposal from an AI&#45;generated command list." alt="" coords="205,39,438,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,56,189,56,189,62,157,62"/>
-<area shape="rect" id="Node000003" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a0b9a0a2e16d712fd72e6cdec5236d6da" title="Generate a unique proposal ID." alt="" coords="496,5,695,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="438,42,480,37,481,42,439,47"/>
-<area shape="rect" id="Node000004" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#ad67772c00cabd6ffd0d9c8df5924a366" title="Parse a single &quot;overworld set&#45;tile&quot; command into a Tile16Change." alt="" coords="486,71,704,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="439,70,471,74,470,79,438,75"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,157,68"/>
+<area shape="rect" id="Node000002" href="$dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a" title=" " alt="" coords="238,5,405,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,36,222,28,222,33,157,41"/>
+<area shape="rect" id="Node000003" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a1a4e916775b3ba423218c40352b7f9a9" title="Generate a tile16 proposal from an AI&#45;generated command list." alt="" coords="205,55,438,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,54,190,57,189,63,157,59"/>
+<area shape="rect" id="Node000004" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a0b9a0a2e16d712fd72e6cdec5236d6da" title="Generate a unique proposal ID." alt="" coords="496,22,695,63"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="438,59,480,53,481,59,439,64"/>
+<area shape="rect" id="Node000005" href="$d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#ad67772c00cabd6ffd0d9c8df5924a366" title="Parse a single &quot;overworld set&#45;tile&quot; command into a Tile16Change." alt="" coords="486,87,704,128"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="439,87,471,90,470,96,438,92"/>
 </map>

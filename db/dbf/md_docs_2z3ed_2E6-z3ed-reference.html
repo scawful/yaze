@@ -101,11 +101,11 @@ $(document).ready(function(){initNavTree('db/dbf/md_docs_2z3ed_2E6-z3ed-referenc
   <div class="headertitle"><div class="title">z3ed CLI Technical Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1277"></a> <b>Version</b>: 0.1.0-alpha <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md1281"></a> <b>Version</b>: 0.1.0-alpha <br  />
  <b>Last Updated</b>: [Current Date] <br  />
  <b>Status</b>: Production Ready (macOS), Windows Testing Pending</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1279"></a>
+<h1><a class="anchor" id="autotoc_md1283"></a>
 Table of Contents</h1>
 <ol type="1">
 <li>Architecture Overview</li>
@@ -118,9 +118,9 @@ Table of Contents</h1>
 <li>Platform Notes</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1281"></a>
+<h1><a class="anchor" id="autotoc_md1285"></a>
 Architecture Overview</h1>
-<h2><a class="anchor" id="autotoc_md1282"></a>
+<h2><a class="anchor" id="autotoc_md1286"></a>
 System Components</h2>
 <div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────┐</div>
 <div class="line">│ AI Agent Layer (LLM)                                     │</div>
@@ -136,7 +136,7 @@ System Components</h2>
 <div class="line">│  ├─ agent describe [--resource &lt;name&gt;]                  │</div>
 <div class="line">│  ├─ rom info/validate/diff/generate-golden             │</div>
 <div class="line">│  ├─ palette export/import/list                          │</div>
-<div class="line">│  ├─ overworld get-tile/set-tile                         │</div>
+<div class="line">│  ├─ overworld get-tile/find-tile/set-tile               │</div>
 <div class="line">│  └─ dungeon list-rooms/add-object                       │</div>
 <div class="line">└────────────────────┬────────────────────────────────────┘</div>
 <div class="line">                     │</div>
@@ -179,7 +179,7 @@ System Components</h2>
 <div class="line">│      ├─ Palette Editor                                  │</div>
 <div class="line">│      └─ Graphics Editor                                 │</div>
 <div class="line">└─────────────────────────────────────────────────────────┘</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1283"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1287"></a>
 Data Flow: Proposal Lifecycle</h2>
 <div class="fragment"><div class="line">User: z3ed agent run &quot;Make soldiers red&quot; --sandbox</div>
 <div class="line">         │</div>
@@ -218,11 +218,11 @@ Data Flow: Proposal Lifecycle</h2>
 <div class="line">│                        │   4. User saves ROM</div>
 <div class="line">└────────────────────────┘</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1285"></a>
+<h1><a class="anchor" id="autotoc_md1289"></a>
 Command Reference</h1>
-<h2><a class="anchor" id="autotoc_md1286"></a>
+<h2><a class="anchor" id="autotoc_md1290"></a>
 Agent Commands</h2>
-<h3><a class="anchor" id="autotoc_md1287"></a>
+<h3><a class="anchor" id="autotoc_md1291"></a>
 &lt;tt&gt;agent run&lt;/tt&gt; - Execute AI-driven ROM modifications</h3>
 <div class="fragment"><div class="line">z3ed agent run --prompt &quot;&lt;description&gt;&quot; --rom &lt;file&gt; [--sandbox]</div>
 <div class="line"> </div>
@@ -240,7 +240,7 @@ Agent Commands</h2>
 <li>Command execution log</li>
 <li>Next steps guidance</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1288"></a>
+<h3><a class="anchor" id="autotoc_md1292"></a>
 &lt;tt&gt;agent list&lt;/tt&gt; - Show all proposals</h3>
 <div class="fragment"><div class="line">z3ed agent list</div>
 <div class="line"> </div>
@@ -255,7 +255,7 @@ Agent Commands</h2>
 <div class="line">  Bytes Changed: 128</div>
 <div class="line"> </div>
 <div class="line">Total: 1 proposal(s)</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1289"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1293"></a>
 &lt;tt&gt;agent diff&lt;/tt&gt; - Show proposal changes</h3>
 <div class="fragment"><div class="line">z3ed agent diff [--proposal-id &lt;id&gt;]</div>
 <div class="line"> </div>
@@ -270,7 +270,7 @@ Agent Commands</h2>
 <li>Diff content</li>
 <li>Next steps</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1290"></a>
+<h3><a class="anchor" id="autotoc_md1294"></a>
 &lt;tt&gt;agent describe&lt;/tt&gt; - Export machine-readable API specs</h3>
 <div class="fragment"><div class="line">z3ed agent describe [--format &lt;yaml|json&gt;] [--resource &lt;name&gt;] [--output &lt;file&gt;]</div>
 <div class="line"> </div>
@@ -291,7 +291,48 @@ Agent Commands</h2>
 <li><code>dungeon</code> - Dungeon editing</li>
 <li><code>agent</code> - Agent commands</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1291"></a>
+<h3><a class="anchor" id="autotoc_md1295"></a>
+&lt;tt&gt;agent resource-list&lt;/tt&gt; - Enumerate labeled resources for the AI</h3>
+<div class="fragment"><div class="line">z3ed agent resource-list --type &lt;resource&gt; [--format &lt;table|json&gt;]</div>
+<div class="line"> </div>
+<div class="line">Options:</div>
+<div class="line">  --type &lt;resource&gt;   Required label family (dungeon, overworld, sprite, palette, etc.)</div>
+<div class="line">  --format &lt;mode&gt;     Output format, defaults to `table`. Use `json` for LLM tooling.</div>
+<div class="line"> </div>
+<div class="line">Examples:</div>
+<div class="line">  # Show dungeon labels in a table</div>
+<div class="line">  z3ed agent resource-list --type dungeon</div>
+<div class="line"> </div>
+<div class="line">  # Emit JSON for the conversation agent to consume</div>
+<div class="line">  z3ed agent resource-list --type overworld --format json</div>
+</div><!-- fragment --><p><b>Notes</b>:</p><ul>
+<li>When the conversation agent invokes this tool, JSON output is requested automatically.</li>
+<li>Labels are loaded from <code>ResourceContextBuilder</code>, so the command reflects project-specific metadata.</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md1296"></a>
+&lt;tt&gt;agent dungeon-list-sprites&lt;/tt&gt; - Inspect sprites in a dungeon room</h3>
+<div class="fragment"><div class="line">z3ed agent dungeon-list-sprites --room &lt;hex_id&gt; [--format &lt;table|json&gt;]</div>
+<div class="line"> </div>
+<div class="line">Options:</div>
+<div class="line">  --room &lt;hex_id&gt;   Dungeon room ID (hexadecimal). Accepts `0x` prefixes or decimal.</div>
+<div class="line">  --format &lt;mode&gt;   Output format, defaults to `table`.</div>
+<div class="line"> </div>
+<div class="line">Examples:</div>
+<div class="line">  z3ed agent dungeon-list-sprites --room 0x012</div>
+<div class="line">  z3ed agent dungeon-list-sprites --room 18 --format json</div>
+</div><!-- fragment --><p><b>Output</b>:</p><ul>
+<li>Table view prints sprite id/x/y in hex+decimal for quick inspection.</li>
+<li>JSON view is tailored for the LLM toolchain and is returned automatically during tool calls.</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md1297"></a>
+&lt;tt&gt;agent chat&lt;/tt&gt; - Interactive terminal chat (TUI prototype)</h3>
+<div class="fragment"><div class="line">z3ed agent chat</div>
+</div><!-- fragment --><ul>
+<li>Opens an FTXUI-based interface with scrolling history and input box.</li>
+<li>Uses the shared <code>ConversationalAgentService</code>, so the same backend powers the GUI widget.</li>
+<li>Useful for manual testing of tool dispatching and new prompting strategies.</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md1298"></a>
 &lt;tt&gt;agent test&lt;/tt&gt; - Automated GUI testing (IT-02)</h3>
 <div class="fragment"><div class="line">z3ed agent test --prompt &quot;&lt;test_description&gt;&quot; [--host &lt;hostname&gt;] [--port &lt;port&gt;]</div>
 <div class="line"> </div>
@@ -322,9 +363,9 @@ Agent Commands</h2>
 <div class="line">cmake --build build-grpc-test --target z3ed -j$(sysctl -n hw.ncpu)</div>
 </div><!-- fragment --></li>
 </ol>
-<h3><a class="anchor" id="autotoc_md1292"></a>
+<h3><a class="anchor" id="autotoc_md1299"></a>
 &lt;tt&gt;agent gui&lt;/tt&gt; - GUI Introspection &amp; Control (IT-05/IT-06)</h3>
-<h4><a class="anchor" id="autotoc_md1293"></a>
+<h4><a class="anchor" id="autotoc_md1300"></a>
 &lt;tt&gt;agent gui discover&lt;/tt&gt; - Enumerate available widgets</h4>
 <div class="fragment"><div class="line">z3ed agent gui discover \</div>
 <div class="line">  [--host &lt;name&gt;] [--port &lt;port&gt;] \</div>
@@ -384,7 +425,7 @@ Agent Commands</h2>
 <li>Test scripts validate expected widgets are present</li>
 <li>Documentation generation for GUI features</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md1294"></a>
+<h4><a class="anchor" id="autotoc_md1301"></a>
 &lt;tt&gt;agent test status&lt;/tt&gt; - Query test execution state</h4>
 <div class="fragment"><div class="line">z3ed agent test status --test-id &lt;id&gt; [--follow]</div>
 <div class="line"> </div>
@@ -420,7 +461,7 @@ Agent Commands</h2>
 <div class="line">Completed At: 2025-10-02T18:24:55Z</div>
 <div class="line">Execution Time (ms): 612</div>
 <div class="line">Assertion Failures: 0</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1295"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1302"></a>
 &lt;tt&gt;agent test results&lt;/tt&gt; - Get detailed test results</h4>
 <div class="fragment"><div class="line">z3ed agent test results --test-id &lt;id&gt; [--format &lt;json|yaml&gt;] [--include-logs]</div>
 <div class="line"> </div>
@@ -462,7 +503,7 @@ Agent Commands</h2>
 <div class="line">    &quot;execution_frames&quot;: 2</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1296"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1303"></a>
 &lt;tt&gt;agent test list&lt;/tt&gt; - List all tests</h4>
 <div class="fragment"><div class="line">z3ed agent test list [--category &lt;name&gt;] [--status &lt;filter&gt;]</div>
 <div class="line"> </div>
@@ -492,9 +533,9 @@ Agent Commands</h2>
 <div class="line">  Average Duration (ms): 614</div>
 <div class="line"> </div>
 <div class="line">Displayed 2 test(s) (catalog size: 42).</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1297"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1304"></a>
 &lt;tt&gt;agent test record&lt;/tt&gt; - Record test sessions (IT-07)</h3>
-<h4><a class="anchor" id="autotoc_md1298"></a>
+<h4><a class="anchor" id="autotoc_md1305"></a>
 &lt;tt&gt;agent test record start&lt;/tt&gt; - Begin recording</h4>
 <div class="fragment"><div class="line">z3ed agent test record start --output &lt;file&gt; [--description &quot;...&quot;]</div>
 <div class="line"> </div>
@@ -505,7 +546,7 @@ Agent Commands</h2>
 <div class="line">Example:</div>
 <div class="line">  z3ed agent test record start --output tests/overworld_load.json \</div>
 <div class="line">    --description &quot;Test Overworld editor loading&quot;</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1299"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1306"></a>
 &lt;tt&gt;agent test record stop&lt;/tt&gt; - Finish recording</h4>
 <div class="fragment"><div class="line">z3ed agent test record stop [--validate]</div>
 <div class="line"> </div>
@@ -514,7 +555,7 @@ Agent Commands</h2>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed agent test record stop --validate</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1300"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1307"></a>
 &lt;tt&gt;agent test replay&lt;/tt&gt; - Execute recorded tests</h3>
 <div class="fragment"><div class="line">z3ed agent test replay &lt;test_script&gt; [--ci-mode] [--output-dir &lt;dir&gt;]</div>
 <div class="line"> </div>
@@ -528,7 +569,7 @@ Agent Commands</h2>
 <div class="line"> </div>
 <div class="line">  # Run test suite in CI</div>
 <div class="line">  z3ed agent test replay tests/suite.yaml --ci-mode</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1301"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1308"></a>
 &lt;tt&gt;agent test suite&lt;/tt&gt; - Manage test suites (IT-09)</h3>
 <div class="fragment"><div class="line">z3ed agent test suite &lt;action&gt; [options]</div>
 <div class="line"> </div>
@@ -551,86 +592,96 @@ Agent Commands</h2>
 <div class="line">  z3ed agent test suite run tests/smoke.yaml</div>
 <div class="line">  z3ed agent test suite validate tests/regression.yaml</div>
 <div class="line">  z3ed agent test suite create smoke</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1302"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1309"></a>
 ROM Commands</h2>
-<h3><a class="anchor" id="autotoc_md1303"></a>
+<h3><a class="anchor" id="autotoc_md1310"></a>
 &lt;tt&gt;rom info&lt;/tt&gt; - Display ROM metadata</h3>
 <div class="fragment"><div class="line">z3ed rom info --rom &lt;file&gt;</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed rom info --rom=zelda3.sfc</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1304"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1311"></a>
 &lt;tt&gt;rom validate&lt;/tt&gt; - Verify ROM integrity</h3>
 <div class="fragment"><div class="line">z3ed rom validate --rom &lt;file&gt;</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed rom validate --rom=zelda3.sfc</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1305"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1312"></a>
 &lt;tt&gt;rom diff&lt;/tt&gt; - Compare two ROMs</h3>
 <div class="fragment"><div class="line">z3ed rom diff --rom1 &lt;file1&gt; --rom2 &lt;file2&gt;</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed rom diff --rom1=zelda3.sfc --rom2=zelda3_modified.sfc</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1306"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1313"></a>
 &lt;tt&gt;rom generate-golden&lt;/tt&gt; - Create reference checksums</h3>
 <div class="fragment"><div class="line">z3ed rom generate-golden --rom &lt;file&gt; --output &lt;json_file&gt;</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed rom generate-golden --rom=zelda3.sfc --output=golden.json</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1307"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1314"></a>
 Palette Commands</h2>
-<h3><a class="anchor" id="autotoc_md1308"></a>
+<h3><a class="anchor" id="autotoc_md1315"></a>
 &lt;tt&gt;palette export&lt;/tt&gt; - Export palette to file</h3>
 <div class="fragment"><div class="line">z3ed palette export &lt;group_name&gt; &lt;palette_id&gt; &lt;output_file&gt;</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed palette export sprites_aux1 4 soldier.col</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1309"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1316"></a>
 &lt;tt&gt;palette import&lt;/tt&gt; - Import palette from file</h3>
 <div class="fragment"><div class="line">z3ed palette import &lt;group_name&gt; &lt;palette_id&gt; &lt;input_file&gt;</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed palette import sprites_aux1 4 soldier_red.col</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1310"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1317"></a>
 &lt;tt&gt;palette list&lt;/tt&gt; - Show available palettes</h3>
 <div class="fragment"><div class="line">z3ed palette list [--group &lt;name&gt;]</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed palette list --group sprites_aux1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1311"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1318"></a>
 Overworld Commands</h2>
-<h3><a class="anchor" id="autotoc_md1312"></a>
+<h3><a class="anchor" id="autotoc_md1319"></a>
 &lt;tt&gt;overworld get-tile&lt;/tt&gt; - Get tile at coordinates</h3>
 <div class="fragment"><div class="line">z3ed overworld get-tile --map &lt;id&gt; --x &lt;x&gt; --y &lt;y&gt;</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed overworld get-tile --map=0 --x=100 --y=50</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1313"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1320"></a>
+&lt;tt&gt;overworld find-tile&lt;/tt&gt; - Locate tile instances across maps</h3>
+<div class="fragment"><div class="line">z3ed overworld find-tile --tile &lt;id&gt; [--map &lt;map_id&gt;] [--world light|dark|special] [--format json|text]</div>
+<div class="line"> </div>
+<div class="line">Examples:</div>
+<div class="line">  # Scan entire overworld for tile 0x02E and emit JSON</div>
+<div class="line">  z3ed overworld find-tile --tile 0x02E --format json</div>
+<div class="line"> </div>
+<div class="line">  # Limit search to Light World map 0x05</div>
+<div class="line">  z3ed overworld find-tile --tile 0x02E --map 0x05</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1321"></a>
 &lt;tt&gt;overworld set-tile&lt;/tt&gt; - Set tile at coordinates</h3>
-<div class="fragment"><div class="line">z3ed overworld set-tile --map &lt;id&gt; --x &lt;x&gt; --y &lt;y&gt; --tile-id &lt;id&gt;</div>
+<div class="fragment"><div class="line">z3ed overworld set-tile --map &lt;id&gt; --x &lt;x&gt; --y &lt;y&gt; --tile &lt;id&gt;</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
-<div class="line">  z3ed overworld set-tile --map=0 --x=100 --y=50 --tile-id=0x1234</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1314"></a>
+<div class="line">  z3ed overworld set-tile --map=0 --x=100 --y=50 --tile=0x1234</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1322"></a>
 Dungeon Commands</h2>
-<h3><a class="anchor" id="autotoc_md1315"></a>
+<h3><a class="anchor" id="autotoc_md1323"></a>
 &lt;tt&gt;dungeon list-rooms&lt;/tt&gt; - List all dungeon rooms</h3>
 <div class="fragment"><div class="line">z3ed dungeon list-rooms --dungeon &lt;id&gt;</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed dungeon list-rooms --dungeon=0</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1316"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1324"></a>
 &lt;tt&gt;dungeon add-object&lt;/tt&gt; - Add object to room</h3>
 <div class="fragment"><div class="line">z3ed dungeon add-object --dungeon &lt;id&gt; --room &lt;id&gt; --object &lt;type&gt;</div>
 <div class="line"> </div>
 <div class="line">Example:</div>
 <div class="line">  z3ed dungeon add-object --dungeon=0 --room=5 --object=chest</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1318"></a>
+<h1><a class="anchor" id="autotoc_md1326"></a>
 Implementation Guide</h1>
-<h2><a class="anchor" id="autotoc_md1319"></a>
+<h2><a class="anchor" id="autotoc_md1327"></a>
 Building with gRPC Support</h2>
-<h3><a class="anchor" id="autotoc_md1320"></a>
+<h3><a class="anchor" id="autotoc_md1328"></a>
 macOS (Recommended)</h3>
 <div class="fragment"><div class="line"># Install dependencies (via vcpkg or system)</div>
 <div class="line"># vcpkg is handled automatically by CMake</div>
@@ -644,7 +695,7 @@ macOS (Recommended)</h3>
 <div class="line"> </div>
 <div class="line"># First build takes 15-20 minutes (gRPC compilation)</div>
 <div class="line"># Incremental builds: 5-10 seconds</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1321"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1329"></a>
 Windows (Experimental)</h3>
 <div class="fragment"><div class="line"># Install vcpkg (one-time setup)</div>
 <div class="line">git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg</div>
@@ -664,9 +715,9 @@ Windows (Experimental)</h3>
 <li>Use static linking to avoid DLL conflicts</li>
 <li>See <code><a class="el" href="../../d2/d14/02-build-instructions_8md.html">docs/02-build-instructions.md</a></code> for details</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1322"></a>
+<h2><a class="anchor" id="autotoc_md1330"></a>
 Starting Test Harness</h2>
-<h3><a class="anchor" id="autotoc_md1323"></a>
+<h3><a class="anchor" id="autotoc_md1331"></a>
 Basic Usage</h3>
 <div class="fragment"><div class="line"># Start YAZE with test harness enabled</div>
 <div class="line">./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \</div>
@@ -677,12 +728,12 @@ Basic Usage</h3>
 <div class="line"># Verify server is running</div>
 <div class="line">lsof -i :50052</div>
 <div class="line"># Should show yaze process listening</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1324"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1332"></a>
 Configuration Options</h3>
 <div class="fragment"><div class="line">--enable_test_harness       Enable gRPC test harness (default: false)</div>
 <div class="line">--test_harness_port=&lt;port&gt;  Port number (default: 50051)</div>
 <div class="line">--rom_file=&lt;file&gt;           ROM to load on startup (optional)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1325"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1333"></a>
 Testing RPCs with grpcurl</h2>
 <div class="fragment"><div class="line"># Install grpcurl</div>
 <div class="line">brew install grpcurl</div>
@@ -716,9 +767,9 @@ Testing RPCs with grpcurl</h2>
 <div class="line">  -d &#39;{&quot;condition&quot;:&quot;visible:Main Window&quot;}&#39; \</div>
 <div class="line">  127.0.0.1:50052 yaze.test.ImGuiTestHarness/Assert</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1327"></a>
+<h1><a class="anchor" id="autotoc_md1335"></a>
 Testing &amp; Validation</h1>
-<h2><a class="anchor" id="autotoc_md1328"></a>
+<h2><a class="anchor" id="autotoc_md1336"></a>
 Automated E2E Test Script</h2>
 <div class="fragment"><div class="line"># Run comprehensive test suite</div>
 <div class="line">./scripts/test_harness_e2e.sh</div>
@@ -730,28 +781,28 @@ Automated E2E Test Script</h2>
 <div class="line"># - Wait (condition polling)</div>
 <div class="line"># - Assert (state validation)</div>
 <div class="line"># - Screenshot (stub - returns not implemented)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1329"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1337"></a>
 Manual Testing Workflow</h2>
-<h3><a class="anchor" id="autotoc_md1330"></a>
+<h3><a class="anchor" id="autotoc_md1338"></a>
 1. Create Proposal</h3>
 <div class="fragment"><div class="line">./build/bin/z3ed agent run \</div>
 <div class="line">  --rom=assets/zelda3.sfc \</div>
 <div class="line">  --prompt &quot;Test proposal&quot; \</div>
 <div class="line">  --sandbox</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1331"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1339"></a>
 2. List Proposals</h3>
 <div class="fragment"><div class="line">./build/bin/z3ed agent list</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1332"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1340"></a>
 3. View Diff</h3>
 <div class="fragment"><div class="line">./build/bin/z3ed agent diff</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1333"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1341"></a>
 4. Review in GUI</h3>
 <div class="fragment"><div class="line"># Start YAZE</div>
 <div class="line">./build/bin/yaze.app/Contents/MacOS/yaze</div>
 <div class="line"> </div>
 <div class="line"># Navigate: Debug → Agent Proposals</div>
 <div class="line"># Select proposal → Review → Accept/Reject/Delete</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1334"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1342"></a>
 Performance Benchmarks</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -774,9 +825,9 @@ Performance Benchmarks</h2>
 <td class="markdownTableBodyNone">ROM Merge   </td><td class="markdownTableBodyNone">&lt; 100ms   </td><td class="markdownTableBodyNone">Memory copy   </td></tr>
 </table>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1336"></a>
+<h1><a class="anchor" id="autotoc_md1344"></a>
 Development Workflows</h1>
-<h2><a class="anchor" id="autotoc_md1337"></a>
+<h2><a class="anchor" id="autotoc_md1345"></a>
 Adding New Agent Commands</h2>
 <ol type="1">
 <li><b>Create Handler</b> (<code>src/cli/handlers/&lt;resource&gt;.cc</code>) <div class="fragment"><div class="line">absl::Status HandleNewCommand(<span class="keyword">const</span> CommandOptions&amp; options) {</div>
@@ -806,7 +857,7 @@ Adding New Agent Commands</h2>
 <li>Add to <code>docs/api/z3ed-resources.yaml</code> (regenerate via <code>agent describe</code>)</li>
 <li>Add examples to relevant guides</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1338"></a>
+<h2><a class="anchor" id="autotoc_md1346"></a>
 Adding New Test Harness RPCs</h2>
 <ol type="1">
 <li><b>Update Proto</b> (<code>src/app/core/proto/imgui_test_harness.proto</code>) <div class="fragment"><div class="line">service ImGuiTestHarness {</div>
@@ -840,7 +891,7 @@ Adding New Test Harness RPCs</h2>
 <div class="line">  127.0.0.1:50052 yaze.test.ImGuiTestHarness/NewOperation</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1339"></a>
+<h2><a class="anchor" id="autotoc_md1347"></a>
 Adding Test Workflow Patterns</h2>
 <ol type="1">
 <li><b>Add Pattern Matcher</b> (<code>src/cli/service/test_workflow_generator.cc</code>) <div class="fragment"><div class="line"><span class="keywordtype">bool</span> MatchesNewPattern(<span class="keyword">const</span> std::string&amp; prompt, YourParams* params) {</div>
@@ -878,11 +929,11 @@ Adding Test Workflow Patterns</h2>
 </div><!-- fragment --></li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1341"></a>
+<h1><a class="anchor" id="autotoc_md1349"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md1342"></a>
+<h2><a class="anchor" id="autotoc_md1350"></a>
 Common Issues</h2>
-<h3><a class="anchor" id="autotoc_md1343"></a>
+<h3><a class="anchor" id="autotoc_md1351"></a>
 Port Already in Use</h3>
 <p><b>Problem</b>: <code>Failed to start gRPC server: Address already in use</code></p>
 <p><b>Solutions</b>: </p><div class="fragment"><div class="line"># Find and kill existing instance</div>
@@ -891,7 +942,7 @@ Port Already in Use</h3>
 <div class="line"> </div>
 <div class="line"># Or use different port</div>
 <div class="line">./yaze --enable_test_harness --test_harness_port=50053</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1344"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1352"></a>
 Connection Refused</h3>
 <p><b>Problem</b>: <code>Error connecting to server: Connection refused</code></p>
 <p><b>Solutions</b>:</p><ol type="1">
@@ -899,7 +950,7 @@ Connection Refused</h3>
 <li>Check firewall settings</li>
 <li>Ensure correct port number</li>
 </ol>
-<h3><a class="anchor" id="autotoc_md1345"></a>
+<h3><a class="anchor" id="autotoc_md1353"></a>
 Widget Not Found</h3>
 <p><b>Problem</b>: &lsquo;Button 'XYZ&rsquo; not found`</p>
 <p><b>Solutions</b>:</p><ol type="1">
@@ -908,14 +959,14 @@ Widget Not Found</h3>
 <li>Wait for window to be visible first</li>
 <li>Use Assert to check widget exists</li>
 </ol>
-<h4><a class="anchor" id="autotoc_md1346"></a>
+<h4><a class="anchor" id="autotoc_md1354"></a>
 Widget Not Found or Stale State</h4>
 <p><b>Problem</b>: A <code>Wait</code> or <code>Assert</code> RPC fails with a "Widget Not Found" or "Window Not Found" error, even though a preceding <code>Click</code> action should have made it appear. This is a common issue in the e2e test script.</p>
 <p><b>Root Cause</b>: This is an <code><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a></code> frame timing issue. The <code>Click</code> RPC may return <em>before</em> the <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> frame containing the new window or widget has been rendered. The subsequent <code>Wait</code> or <code>Assert</code> call then executes on a stale frame, failing to find the element.</p>
 <p><b>Solution</b>:</p><ul>
 <li><b>In the Test Harness Code</b>: The RPC handler that performs the action (e.g., <code>Click</code>) must call <code>ctx-&gt;Yield()</code> on the <code>ImGuiTestContext</code> <em>after</em> performing the click. This pauses the RPC and allows the test engine to render the next frame, ensuring the UI state is up-to-date before the RPC returns and the next test step begins.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1347"></a>
+<h3><a class="anchor" id="autotoc_md1355"></a>
 Crashes in &lt;tt&gt;Wait&lt;/tt&gt; or &lt;tt&gt;Assert&lt;/tt&gt; RPCs</h3>
 <p><b>Problem</b>: The application crashes with a <code>SIGSEGV</code> (segmentation fault) when running <code>Wait</code> or <code>Assert</code> RPCs.</p>
 <p><b>Root Cause</b>: This is a thread-safety issue. The gRPC server runs its handlers on a separate thread pool from the main thread where the <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Test Engine runs. Sharing state (like the test context or condition parameters) directly between these threads without synchronization is unsafe.</p>
@@ -928,15 +979,15 @@ Crashes in &lt;tt&gt;Wait&lt;/tt&gt; or &lt;tt&gt;Assert&lt;/tt&gt; RPCs</h3>
 </ol>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1348"></a>
+<h2><a class="anchor" id="autotoc_md1356"></a>
 Build Errors - Boolean Flag</h2>
 <p><b>Problem</b>: <code>std::stringstream &gt;&gt; bool</code> doesn't parse "true"/"false"</p>
 <p><b>Solution</b>: Already fixed in <code><a class="el" href="../../d2/da4/flag_8h.html">src/util/flag.h</a></code> with template specialization</p>
-<h3><a class="anchor" id="autotoc_md1349"></a>
+<h3><a class="anchor" id="autotoc_md1357"></a>
 Build Errors - Incomplete Type</h3>
 <p><b>Problem</b>: &lsquo;error: delete called on 'grpc::Server&rsquo; that is incomplete`</p>
 <p><b>Solution</b>: Ensure destructor implementation is in <code>.cc</code> file, not header</p>
-<h2><a class="anchor" id="autotoc_md1350"></a>
+<h2><a class="anchor" id="autotoc_md1358"></a>
 Debug Mode</h2>
 <p>Enable verbose logging:</p>
 <div class="fragment"><div class="line"># In z3ed</div>
@@ -945,7 +996,7 @@ Debug Mode</h2>
 <div class="line"> </div>
 <div class="line"># In test harness</div>
 <div class="line">./yaze --enable_test_harness --log_level=debug</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1351"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1359"></a>
 Test Harness Diagnostics</h2>
 <div class="fragment"><div class="line"># Check server status</div>
 <div class="line">grpcurl -plaintext 127.0.0.1:50052 list</div>
@@ -956,9 +1007,9 @@ Test Harness Diagnostics</h2>
 <div class="line"># Describe service</div>
 <div class="line">grpcurl -plaintext 127.0.0.1:50052 describe yaze.test.ImGuiTestHarness</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1353"></a>
+<h1><a class="anchor" id="autotoc_md1361"></a>
 API Reference</h1>
-<h2><a class="anchor" id="autotoc_md1354"></a>
+<h2><a class="anchor" id="autotoc_md1362"></a>
 RPC Service Definition</h2>
 <div class="fragment"><div class="line">syntax = &quot;proto3&quot;;</div>
 <div class="line">package yaze.test;</div>
@@ -971,9 +1022,9 @@ RPC Service Definition</h2>
 <div class="line">  rpc Assert(AssertRequest) returns (AssertResponse);</div>
 <div class="line">  rpc Screenshot(ScreenshotRequest) returns (ScreenshotResponse);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1355"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1363"></a>
 Request/Response Schemas</h2>
-<h3><a class="anchor" id="autotoc_md1356"></a>
+<h3><a class="anchor" id="autotoc_md1364"></a>
 Ping</h3>
 <p><b>Request</b>: </p><div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;message&quot;: &quot;string&quot;</div>
@@ -983,7 +1034,7 @@ Ping</h3>
 <div class="line">  &quot;timestampMs&quot;: &quot;int64&quot;,</div>
 <div class="line">  &quot;yazeVersion&quot;: &quot;string&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1357"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1365"></a>
 Click</h3>
 <p><b>Request</b>: </p><div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;target&quot;: &quot;button:Name | menu:File→Open | tab:Editor&quot;,</div>
@@ -994,7 +1045,7 @@ Click</h3>
 <div class="line">  &quot;message&quot;: &quot;Clicked button &#39;Name&#39;&quot;,</div>
 <div class="line">  &quot;executionTimeMs&quot;: &quot;int32&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1358"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1366"></a>
 Type</h3>
 <p><b>Request</b>: </p><div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;target&quot;: &quot;input:FieldName&quot;,</div>
@@ -1005,7 +1056,7 @@ Type</h3>
 <div class="line">  &quot;success&quot;: true,</div>
 <div class="line">  &quot;message&quot;: &quot;Typed &#39;text&#39; into input &#39;FieldName&#39;&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1359"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1367"></a>
 Wait</h3>
 <p><b>Request</b>: </p><div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;condition&quot;: &quot;window_visible:WindowName | element_visible:Label | element_enabled:Label&quot;,</div>
@@ -1017,7 +1068,7 @@ Wait</h3>
 <div class="line">  &quot;message&quot;: &quot;Condition met after X ms&quot;,</div>
 <div class="line">  &quot;elapsedMs&quot;: &quot;int32&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1360"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1368"></a>
 Assert</h3>
 <p><b>Request</b>: </p><div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;condition&quot;: &quot;visible:Window | enabled:Button | exists:Element | text_contains:Input:ExpectedText&quot;</div>
@@ -1028,7 +1079,7 @@ Assert</h3>
 <div class="line">  &quot;actualValue&quot;: &quot;string&quot;,</div>
 <div class="line">  &quot;expectedValue&quot;: &quot;string&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1361"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1369"></a>
 Screenshot</h3>
 <p><b>Request</b>: </p><div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;region&quot;: &quot;full | window:Name&quot;,</div>
@@ -1040,7 +1091,7 @@ Screenshot</h3>
 <div class="line">  &quot;filePath&quot;: &quot;&quot;,</div>
 <div class="line">  &quot;fileSizeBytes&quot;: 0</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1362"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1370"></a>
 Resource Catalog Schema</h2>
 <p>See <code>docs/api/z3ed-resources.yaml</code> for complete machine-readable API specification.</p>
 <p><b>Example Resource</b>: </p><div class="fragment"><div class="line">resources:</div>
@@ -1064,9 +1115,9 @@ Resource Catalog Schema</h2>
 <div class="line">              - size: integer</div>
 <div class="line">              - checksum: string</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1364"></a>
+<h1><a class="anchor" id="autotoc_md1372"></a>
 Platform Notes</h1>
-<h2><a class="anchor" id="autotoc_md1365"></a>
+<h2><a class="anchor" id="autotoc_md1373"></a>
 macOS (ARM64) - Production Ready ✅</h2>
 <p><b>Status</b>: Fully tested and operational <br  />
  <b>Build Time</b>: 15-20 minutes (first build), 5-10 seconds (incremental) <br  />
@@ -1078,11 +1129,11 @@ macOS (ARM64) - Production Ready ✅</h2>
 <div class="line"># Build with vcpkg (automatic via CMake)</div>
 <div class="line">cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON</div>
 <div class="line">cmake --build build-grpc-test --target yaze -j$(sysctl -n hw.ncpu)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1366"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1374"></a>
 macOS (Intel) - Should Work ⚠️</h2>
 <p><b>Status</b>: Not explicitly tested, but should work <br  />
  <b>Expected Issues</b>: None (same toolchain as ARM64)</p>
-<h2><a class="anchor" id="autotoc_md1367"></a>
+<h2><a class="anchor" id="autotoc_md1375"></a>
 Linux - Should Work ⚠️</h2>
 <p><b>Status</b>: Not explicitly tested <br  />
  <b>Expected Issues</b>: None (gRPC has excellent Linux support)</p>
@@ -1092,7 +1143,7 @@ Linux - Should Work ⚠️</h2>
 <div class="line"># Build (same as macOS)</div>
 <div class="line">cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON</div>
 <div class="line">cmake --build build-grpc-test --target yaze -j$(nproc)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1368"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1376"></a>
 Windows - Experimental 🔬</h2>
 <p><b>Status</b>: Build system ready, test harness not validated <br  />
  <b>Known Limitations</b>:</p><ul>
@@ -1102,9 +1153,9 @@ Windows - Experimental 🔬</h2>
 </ul>
 <p><b>Recommended Approach</b>: Use Windows Subsystem for Linux (WSL2) for now</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1370"></a>
+<h1><a class="anchor" id="autotoc_md1378"></a>
 Appendix</h1>
-<h2><a class="anchor" id="autotoc_md1371"></a>
+<h2><a class="anchor" id="autotoc_md1379"></a>
 File Structure</h2>
 <div class="fragment"><div class="line">docs/z3ed/</div>
 <div class="line">├── E6-z3ed-cli-design.md             # Architecture &amp; design (source of truth)</div>
@@ -1116,7 +1167,7 @@ File Structure</h2>
 <div class="line">├── E2E_VALIDATION_GUIDE.md           # Complete validation checklist</div>
 <div class="line">├── PROJECT_STATUS_OCT2.md            # Current project status</div>
 <div class="line">└── archive/                          # Historical documentation</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1372"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1380"></a>
 Related Documentation</h2>
 <ul>
 <li><b>Build Instructions</b>: <code><a class="el" href="../../d2/d14/02-build-instructions_8md.html">docs/02-build-instructions.md</a></code></li>
@@ -1124,7 +1175,7 @@ Related Documentation</h2>
 <li><b>Testing Guide</b>: <code><a class="el" href="../../d6/d46/A1-testing-guide_8md.html">docs/A1-testing-guide.md</a></code></li>
 <li><b>Contributing</b>: <code><a class="el" href="../../dc/dd0/B1-contributing_8md.html">docs/B1-contributing.md</a></code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1373"></a>
+<h2><a class="anchor" id="autotoc_md1381"></a>
 Version History</h2>
 <ul>
 <li><b>0.1.0-alpha</b> (Oct 2, 2025) - Initial release<ul>
@@ -1136,13 +1187,13 @@ Version History</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1374"></a>
+<h2><a class="anchor" id="autotoc_md1382"></a>
 Contributors</h2>
 <ul>
 <li>@scawful (Project lead, implementation)</li>
 <li>GitHub Copilot (Development assistance, documentation)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1375"></a>
+<h2><a class="anchor" id="autotoc_md1383"></a>
 License</h2>
 <p>Same as YAZE - see <code>LICENSE</code> in repository root.</p>
 <hr  />

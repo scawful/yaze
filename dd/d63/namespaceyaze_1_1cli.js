@@ -1,7 +1,17 @@
 var namespaceyaze_1_1cli =
 [
     [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", "d8/dd3/namespaceyaze_1_1cli_1_1agent" ],
+    [ "anonymous_namespace{ai_service.cc}", "d7/d82/namespaceyaze_1_1cli_1_1anonymous__namespace_02ai__service_8cc_03.html", [
+      [ "ExtractRoomId", "d7/d82/namespaceyaze_1_1cli_1_1anonymous__namespace_02ai__service_8cc_03.html#a1709f7c7f2a529b4d939bc64d815d9e2", null ]
+    ] ],
     [ "anonymous_namespace{gui_automation_client.cc}", "d7/dbb/namespaceyaze_1_1cli_1_1anonymous__namespace_02gui__automation__client_8cc_03.html", null ],
+    [ "anonymous_namespace{overworld.cc}", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html", [
+      [ "ParseNumeric", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a82b12914c3c5457cbf601dd52a458f55", null ],
+      [ "WorldFromString", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#ab47915be99cce7255d62b7ccd623df0c", null ],
+      [ "WorldFromMapId", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a2f0f084ea319997126b57917e32d7298", null ],
+      [ "WorldName", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a6653dd0494617c7b636abc296bbefffa", null ],
+      [ "kFindTileUsage", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a2e83a1746497c566f03baff74f6904cc", null ]
+    ] ],
     [ "anonymous_namespace{proposal_registry.cc}", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html", [
       [ "DetermineDefaultRoot", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a935048446d732782954cb7db885d3e71", null ]
     ] ],
@@ -77,7 +87,9 @@ var namespaceyaze_1_1cli =
       [ "HexViewerComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec", null ],
       [ "MainMenuComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548", null ]
     ] ],
+    [ "tui", "da/d0b/namespaceyaze_1_1cli_1_1tui.html", "da/d0b/namespaceyaze_1_1cli_1_1tui" ],
     [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
+    [ "AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", "db/d5f/structyaze_1_1cli_1_1AgentResponse" ],
     [ "AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", "d2/d2a/classyaze_1_1cli_1_1AIService" ],
     [ "ApplyPatch", "dd/d64/classyaze_1_1cli_1_1ApplyPatch.html", "dd/d64/classyaze_1_1cli_1_1ApplyPatch" ],
     [ "AsarPatch", "d7/d3f/classyaze_1_1cli_1_1AsarPatch.html", "d7/d3f/classyaze_1_1cli_1_1AsarPatch" ],
@@ -112,6 +124,7 @@ var namespaceyaze_1_1cli =
     [ "OllamaAIService", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService" ],
     [ "OllamaConfig", "d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html", "d0/d3d/structyaze_1_1cli_1_1OllamaConfig" ],
     [ "Open", "de/d8f/classyaze_1_1cli_1_1Open.html", "de/d8f/classyaze_1_1cli_1_1Open" ],
+    [ "OverworldFindTile", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile.html", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile" ],
     [ "OverworldGetTile", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile.html", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile" ],
     [ "OverworldSetTile", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile.html", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile" ],
     [ "Palette", "d3/d6c/classyaze_1_1cli_1_1Palette.html", "d3/d6c/classyaze_1_1cli_1_1Palette" ],
@@ -156,6 +169,7 @@ var namespaceyaze_1_1cli =
     [ "Tile16Proposal", "d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html", "d8/d1c/structyaze_1_1cli_1_1Tile16Proposal" ],
     [ "Tile16ProposalGenerator", "d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html", "d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator" ],
     [ "Tile16Transfer", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer" ],
+    [ "ToolCall", "df/d6e/structyaze_1_1cli_1_1ToolCall.html", "df/d6e/structyaze_1_1cli_1_1ToolCall" ],
     [ "TuiComponent", "dc/d6b/classyaze_1_1cli_1_1TuiComponent.html", "dc/d6b/classyaze_1_1cli_1_1TuiComponent" ],
     [ "WidgetBoundingBox", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox.html", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox" ],
     [ "WidgetDescriptor", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor.html", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor" ],
@@ -232,6 +246,7 @@ var namespaceyaze_1_1cli =
       [ "kMainMenu", "dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a90bfbb340d0004281b380b5058c652fd", null ],
       [ "kError", "dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33ae3587c730cc1aa530fa4ddc9c4204e97", null ]
     ] ],
+    [ "CreateAIService", "dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a", null ],
     [ "ParseTestSuiteDefinition", "dd/d63/namespaceyaze_1_1cli.html#ab2e4e0fdaf85f4c7c05572fa6ed7be18", null ],
     [ "LoadTestSuiteFromFile", "dd/d63/namespaceyaze_1_1cli.html#a68b880dd4eae738940e4ac53f1dd64b9", null ],
     [ "BuildTextSummary", "dd/d63/namespaceyaze_1_1cli.html#ac18aa41e75a53a40f653cb06b285d72c", null ],

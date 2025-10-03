@@ -137,6 +137,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7850a60cd6750e09e6f6e3d4a294dc10"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a193d8ad27f0794531bab45456e831c2b" id="r_a193d8ad27f0794531bab45456e831c2b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a193d8ad27f0794531bab45456e831c2b">BuildContextualPrompt</a> (const std::string &amp;user_prompt, const <a class="el" href="../../d4/d2e/structyaze_1_1cli_1_1RomContext.html">RomContext</a> &amp;context)</td></tr>
 <tr class="separator:a193d8ad27f0794531bab45456e831c2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f2e59acbfb7ed55552dcbd105a6fe5b" id="r_a7f2e59acbfb7ed55552dcbd105a6fe5b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a7f2e59acbfb7ed55552dcbd105a6fe5b">BuildPromptFromHistory</a> (const std::vector&lt; <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">agent::ChatMessage</a> &gt; &amp;history)</td></tr>
+<tr class="separator:a7f2e59acbfb7ed55552dcbd105a6fe5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a572af19e63ef326e27d91a5a4ae270e7" id="r_a572af19e63ef326e27d91a5a4ae270e7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a572af19e63ef326e27d91a5a4ae270e7">AddFewShotExample</a> (const <a class="el" href="../../db/de0/structyaze_1_1cli_1_1FewShotExample.html">FewShotExample</a> &amp;example)</td></tr>
 <tr class="separator:a572af19e63ef326e27d91a5a4ae270e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afae25fafa274d6293c6d83de572dee72" id="r_afae25fafa274d6293c6d83de572dee72"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../db/de0/structyaze_1_1cli_1_1FewShotExample.html">FewShotExample</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#afae25fafa274d6293c6d83de572dee72">GetExamplesForCategory</a> (const std::string &amp;category)</td></tr>
@@ -174,7 +176,7 @@ Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00031">31</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00038">38</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a540d2e1a1ce02ba780d2250e91d4012d" name="a540d2e1a1ce02ba780d2250e91d4012d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a540d2e1a1ce02ba780d2250e91d4012d">&#9670;&#160;</a></span>PromptBuilder()</h2>
@@ -191,9 +193,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00012">12</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00013">13</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00016">LoadDefaultExamples()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00017">LoadDefaultExamples()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -232,9 +234,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00035">35</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00042">42</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00069">rom_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00080">rom_</a>.</p>
 
 </div>
 </div>
@@ -253,13 +255,13 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000087">Todo:</a></b></dt><dd>Parse z3ed-resources.yaml when available </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000086">Todo:</a></b></dt><dd>Parse z3ed-resources.yaml when available </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00130">130</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00138">138</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00074">catalogue_loaded_</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00071">command_docs_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00085">catalogue_loaded_</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00082">command_docs_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00020">yaze::cli::GeminiAIService::GeminiAIService()</a>, and <a class="el" href="../../d9/d17/ollama__ai__service_8cc_source.html#l00033">yaze::cli::OllamaAIService::OllamaAIService()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00021">yaze::cli::GeminiAIService::GeminiAIService()</a>, and <a class="el" href="../../d9/d17/ollama__ai__service_8cc_source.html#l00034">yaze::cli::OllamaAIService::OllamaAIService()</a>.</p>
 
 </div>
 </div>
@@ -278,11 +280,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00286">286</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00315">315</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00179">BuildCommandReference()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00216">BuildConstraintsSection()</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00074">catalogue_loaded_</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00187">BuildCommandReference()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00239">BuildConstraintsSection()</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00085">catalogue_loaded_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00035">yaze::cli::GeminiAIService::BuildSystemInstruction()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00309">BuildSystemInstructionWithExamples()</a>, and <a class="el" href="../../d9/d17/ollama__ai__service_8cc_source.html#l00047">yaze::cli::OllamaAIService::BuildSystemPrompt()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00036">yaze::cli::GeminiAIService::BuildSystemInstruction()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00338">BuildSystemInstructionWithExamples()</a>, and <a class="el" href="../../d9/d17/ollama__ai__service_8cc_source.html#l00048">yaze::cli::OllamaAIService::BuildSystemPrompt()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -313,11 +315,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00309">309</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00338">338</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00192">BuildFewShotExamplesSection()</a>, and <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00286">BuildSystemInstruction()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00200">BuildFewShotExamplesSection()</a>, and <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00315">BuildSystemInstruction()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00020">yaze::cli::GeminiAIService::GeminiAIService()</a>, and <a class="el" href="../../d9/d17/ollama__ai__service_8cc_source.html#l00033">yaze::cli::OllamaAIService::OllamaAIService()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00021">yaze::cli::GeminiAIService::GeminiAIService()</a>, and <a class="el" href="../../d9/d17/ollama__ai__service_8cc_source.html#l00034">yaze::cli::OllamaAIService::OllamaAIService()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -363,9 +365,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00319">319</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00348">348</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00249">BuildContextSection()</a>, <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00026">yaze::cli::RomContext::current_editor</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00025">yaze::cli::RomContext::rom_loaded</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00278">BuildContextSection()</a>, <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00033">yaze::cli::RomContext::current_editor</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00032">yaze::cli::RomContext::rom_loaded</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -378,6 +380,30 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="368,23,400,23,400,28,368,28"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="a7f2e59acbfb7ed55552dcbd105a6fe5b" name="a7f2e59acbfb7ed55552dcbd105a6fe5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f2e59acbfb7ed55552dcbd105a6fe5b">&#9670;&#160;</a></span>BuildPromptFromHistory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::cli::PromptBuilder::BuildPromptFromHistory </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">agent::ChatMessage</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>history</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00364">364</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">yaze::cli::agent::ChatMessage::kUser</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00097">yaze::cli::GeminiAIService::GenerateResponse()</a>, and <a class="el" href="../../d9/d17/ollama__ai__service_8cc_source.html#l00173">yaze::cli::OllamaAIService::GenerateResponse()</a>.</p>
 
 </div>
 </div>
@@ -397,9 +423,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00335">335</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00382">382</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00072">examples_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00083">examples_</a>.</p>
 
 </div>
 </div>
@@ -419,9 +445,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00339">339</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00386">386</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00072">examples_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00083">examples_</a>.</p>
 
 </div>
 </div>
@@ -449,9 +475,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00059">59</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00070">70</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00073">verbosity_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00084">verbosity_</a>.</p>
 
 </div>
 </div>
@@ -478,11 +504,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00179">179</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00187">187</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00071">command_docs_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00082">command_docs_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00286">BuildSystemInstruction()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00315">BuildSystemInstruction()</a>.</p>
 
 </div>
 </div>
@@ -509,11 +535,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00192">192</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00200">200</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00072">examples_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00083">examples_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00309">BuildSystemInstructionWithExamples()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00338">BuildSystemInstructionWithExamples()</a>.</p>
 
 </div>
 </div>
@@ -541,11 +567,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00249">249</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00278">278</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00026">yaze::cli::RomContext::current_editor</a>, <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00027">yaze::cli::RomContext::editor_state</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00070">resource_context_builder_</a>, <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00069">rom_</a>, <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00025">yaze::cli::RomContext::rom_loaded</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00024">yaze::cli::RomContext::rom_path</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00033">yaze::cli::RomContext::current_editor</a>, <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00034">yaze::cli::RomContext::editor_state</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00081">resource_context_builder_</a>, <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00080">rom_</a>, <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00032">yaze::cli::RomContext::rom_loaded</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00031">yaze::cli::RomContext::rom_path</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00319">BuildContextualPrompt()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00348">BuildContextualPrompt()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -582,9 +608,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00216">216</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00239">239</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00286">BuildSystemInstruction()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00315">BuildSystemInstruction()</a>.</p>
 
 </div>
 </div>
@@ -611,11 +637,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00016">16</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00017">17</a> of file <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html">prompt_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00072">examples_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00083">examples_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00012">PromptBuilder()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00013">PromptBuilder()</a>.</p>
 
 </div>
 </div>
@@ -640,9 +666,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00069">69</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00080">80</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00249">BuildContextSection()</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00035">SetRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00278">BuildContextSection()</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00042">SetRom()</a>.</p>
 
 </div>
 </div>
@@ -666,9 +692,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00070">70</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00081">81</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00249">BuildContextSection()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00278">BuildContextSection()</a>.</p>
 
 </div>
 </div>
@@ -692,9 +718,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00071">71</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00082">82</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00179">BuildCommandReference()</a>, and <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00130">LoadResourceCatalogue()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00187">BuildCommandReference()</a>, and <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00138">LoadResourceCatalogue()</a>.</p>
 
 </div>
 </div>
@@ -718,9 +744,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00072">72</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00083">83</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00335">AddFewShotExample()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00192">BuildFewShotExamplesSection()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00339">GetExamplesForCategory()</a>, and <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00016">LoadDefaultExamples()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00382">AddFewShotExample()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00200">BuildFewShotExamplesSection()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00386">GetExamplesForCategory()</a>, and <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00017">LoadDefaultExamples()</a>.</p>
 
 </div>
 </div>
@@ -744,9 +770,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00073">73</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00084">84</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00059">SetVerbosity()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00070">SetVerbosity()</a>.</p>
 
 </div>
 </div>
@@ -770,9 +796,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00074">74</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00085">85</a> of file <a class="el" href="../../df/d04/prompt__builder_8h_source.html">prompt_builder.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00286">BuildSystemInstruction()</a>, and <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00130">LoadResourceCatalogue()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00315">BuildSystemInstruction()</a>, and <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00138">LoadResourceCatalogue()</a>.</p>
 
 </div>
 </div>

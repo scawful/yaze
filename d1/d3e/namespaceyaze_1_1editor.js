@@ -23,6 +23,7 @@ var namespaceyaze_1_1editor =
     [ "palette_internal", "d9/d8b/namespaceyaze_1_1editor_1_1palette__internal.html", "d9/d8b/namespaceyaze_1_1editor_1_1palette__internal" ],
     [ "test", "d1/dac/namespaceyaze_1_1editor_1_1test.html", "d1/dac/namespaceyaze_1_1editor_1_1test" ],
     [ "zsprite", "d8/d17/namespaceyaze_1_1editor_1_1zsprite.html", "d8/d17/namespaceyaze_1_1editor_1_1zsprite" ],
+    [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget" ],
     [ "AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor" ],
     [ "CommandManager", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html", "d3/d8a/classyaze_1_1editor_1_1CommandManager" ],
     [ "DictionaryEntry", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry" ],

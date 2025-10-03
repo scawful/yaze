@@ -10,5 +10,8 @@ var commands_8h =
     [ "HandleListCommand", "d5/d90/commands_8h.html#aedb92c4f15ff24a3558fab3df8252ddb", null ],
     [ "HandleCommitCommand", "d5/d90/commands_8h.html#a748d73993407c29f729a58d7d109514b", null ],
     [ "HandleRevertCommand", "d5/d90/commands_8h.html#ac2a2ccb930ec7a842d23197aa6a43a51", null ],
-    [ "HandleDescribeCommand", "d5/d90/commands_8h.html#ab38d737f28d3d64b29b1accf378fa7bc", null ]
+    [ "HandleDescribeCommand", "d5/d90/commands_8h.html#acb618f817422ff44303453fcaadd3478", null ],
+    [ "HandleResourceListCommand", "d5/d90/commands_8h.html#ab9bca766e994d7cd3f8328569233fd5e", null ],
+    [ "HandleDungeonListSpritesCommand", "d5/d90/commands_8h.html#a112a9239569f967959da09a6e624d046", null ],
+    [ "HandleChatCommand", "d5/d90/commands_8h.html#ab15825a15d4286c361308b9cdd55cb43", null ]
 ];

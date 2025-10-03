@@ -1,0 +1,9 @@
+<map id="yaze::cli::tui::ChatTUI::Run" name="yaze::cli::tui::ChatTUI::Run">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,176,72"/>
+<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc" title=" " alt="" coords="224,5,420,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,44,208,39,209,45,177,49"/>
+<area shape="rect" id="Node000003" href="$d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a4a3d32670d995d957bd9f5d0a59a7ba7" title=" " alt="" coords="251,71,393,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,68,236,76,235,82,176,73"/>
+<area shape="rect" id="Node000004" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a10565bd80a2d2d479e8f10af89380bd6" title=" " alt="" coords="468,71,664,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="393,88,452,88,452,94,393,94"/>
+</map>

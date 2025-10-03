@@ -1,0 +1,11 @@
+<map id="src/cli/tui/chat_tui.h" name="src/cli/tui/chat_tui.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="246,5,381,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,87,211,112"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="283,34,155,83,153,78,281,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="235,79,392,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="316,31,316,64,311,64,311,31"/>
+<area shape="rect" id="Node000004" href="$d1/dad/conversational__agent__service_8h.html" title=" " alt="" coords="415,79,620,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="346,29,453,71,452,76,344,34"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="491,168,544,193"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="520,120,520,152,515,152,515,120"/>
+</map>

@@ -125,12 +125,14 @@ Inheritance diagram for yaze::cli::AIService:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a55b5fceb48e11c1ffc74820689e3cae0" id="r_a55b5fceb48e11c1ffc74820689e3cae0"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html#a55b5fceb48e11c1ffc74820689e3cae0">~AIService</a> ()=default</td></tr>
 <tr class="separator:a55b5fceb48e11c1ffc74820689e3cae0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f22901b1fb2e1f1e7b7c66ee86c18eb" id="r_a5f22901b1fb2e1f1e7b7c66ee86c18eb"><td class="memItemLeft" align="right" valign="top">virtual absl::StatusOr&lt; std::vector&lt; std::string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html#a5f22901b1fb2e1f1e7b7c66ee86c18eb">GetCommands</a> (const std::string &amp;prompt)=0</td></tr>
-<tr class="separator:a5f22901b1fb2e1f1e7b7c66ee86c18eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88f238990bad8b506519b3b556b9a952" id="r_a88f238990bad8b506519b3b556b9a952"><td class="memItemLeft" align="right" valign="top">virtual absl::StatusOr&lt; <a class="el" href="../../db/d5f/structyaze_1_1cli_1_1AgentResponse.html">AgentResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html#a88f238990bad8b506519b3b556b9a952">GenerateResponse</a> (const std::string &amp;prompt)=0</td></tr>
+<tr class="separator:a88f238990bad8b506519b3b556b9a952"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f7442759278c708114d6d188eba912b" id="r_a5f7442759278c708114d6d188eba912b"><td class="memItemLeft" align="right" valign="top">virtual absl::StatusOr&lt; <a class="el" href="../../db/d5f/structyaze_1_1cli_1_1AgentResponse.html">AgentResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html#a5f7442759278c708114d6d188eba912b">GenerateResponse</a> (const std::vector&lt; <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">agent::ChatMessage</a> &gt; &amp;history)=0</td></tr>
+<tr class="separator:a5f7442759278c708114d6d188eba912b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="../../d7/d52/ai__service_8h_source.html#l00012">12</a> of file <a class="el" href="../../d7/d52/ai__service_8h_source.html">ai_service.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d52/ai__service_8h_source.html#l00017">17</a> of file <a class="el" href="../../d7/d52/ai__service_8h_source.html">ai_service.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a55b5fceb48e11c1ffc74820689e3cae0" name="a55b5fceb48e11c1ffc74820689e3cae0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a55b5fceb48e11c1ffc74820689e3cae0">&#9670;&#160;</a></span>~AIService()</h2>
@@ -158,8 +160,8 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a5f22901b1fb2e1f1e7b7c66ee86c18eb" name="a5f22901b1fb2e1f1e7b7c66ee86c18eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f22901b1fb2e1f1e7b7c66ee86c18eb">&#9670;&#160;</a></span>GetCommands()</h2>
+<a id="a88f238990bad8b506519b3b556b9a952" name="a88f238990bad8b506519b3b556b9a952"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88f238990bad8b506519b3b556b9a952">&#9670;&#160;</a></span>GenerateResponse() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -168,7 +170,7 @@ Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual absl::StatusOr&lt; std::vector&lt; std::string &gt; &gt; yaze::cli::AIService::GetCommands </td>
+          <td class="memname">virtual absl::StatusOr&lt; <a class="el" href="../../db/d5f/structyaze_1_1cli_1_1AgentResponse.html">AgentResponse</a> &gt; yaze::cli::AIService::GenerateResponse </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
           <td class="paramname"><em>prompt</em></td><td>)</td>
@@ -182,7 +184,35 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implemented in <a class="el" href="../../df/d18/classyaze_1_1cli_1_1MockAIService.html#ac4c554f763599ecb4e6bf6fbca70851a">yaze::cli::MockAIService</a>, <a class="el" href="../../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a3a56f2dbd94268da6906b494c0914bca">yaze::cli::GeminiAIService</a>, and <a class="el" href="../../dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#ad2ae1595bd4640fd40390dc6edeaac4f">yaze::cli::OllamaAIService</a>.</p>
+<p>Implemented in <a class="el" href="../../df/d18/classyaze_1_1cli_1_1MockAIService.html#a7fb69e8c496c5d47420d5998ae37efba">yaze::cli::MockAIService</a>, <a class="el" href="../../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#af5648f2b661e7ea74a8a5c095ef31c49">yaze::cli::GeminiAIService</a>, and <a class="el" href="../../dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#a2d306efd663359585ba6716ae4a451f9">yaze::cli::OllamaAIService</a>.</p>
+
+</div>
+</div>
+<a id="a5f7442759278c708114d6d188eba912b" name="a5f7442759278c708114d6d188eba912b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f7442759278c708114d6d188eba912b">&#9670;&#160;</a></span>GenerateResponse() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual absl::StatusOr&lt; <a class="el" href="../../db/d5f/structyaze_1_1cli_1_1AgentResponse.html">AgentResponse</a> &gt; yaze::cli::AIService::GenerateResponse </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">agent::ChatMessage</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>history</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="../../df/d18/classyaze_1_1cli_1_1MockAIService.html#a8ed5bc62530167252e3150186d4da54a">yaze::cli::MockAIService</a>, <a class="el" href="../../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#afb6c6d1f4e4ae3228c651f32844c4c72">yaze::cli::GeminiAIService</a>, and <a class="el" href="../../dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#ad31ab679d23748b864b5d071d0761a6a">yaze::cli::OllamaAIService</a>.</p>
 
 </div>
 </div>

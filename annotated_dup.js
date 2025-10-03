@@ -8,9 +8,16 @@ var annotated_dup =
         [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", [
           [ "anonymous_namespace{general_commands.cc}", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html", [
             [ "DescribeOptions", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions" ]
-          ] ]
+          ] ],
+          [ "ChatMessage", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage" ],
+          [ "ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService" ],
+          [ "ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher" ]
+        ] ],
+        [ "tui", "da/d0b/namespaceyaze_1_1cli_1_1tui.html", [
+          [ "ChatTUI", "d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html", "d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI" ]
         ] ],
         [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
+        [ "AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", "db/d5f/structyaze_1_1cli_1_1AgentResponse" ],
         [ "AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", "d2/d2a/classyaze_1_1cli_1_1AIService" ],
         [ "ApplyPatch", "dd/d64/classyaze_1_1cli_1_1ApplyPatch.html", "dd/d64/classyaze_1_1cli_1_1ApplyPatch" ],
         [ "AsarPatch", "d7/d3f/classyaze_1_1cli_1_1AsarPatch.html", "d7/d3f/classyaze_1_1cli_1_1AsarPatch" ],
@@ -45,6 +52,7 @@ var annotated_dup =
         [ "OllamaAIService", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService" ],
         [ "OllamaConfig", "d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html", "d0/d3d/structyaze_1_1cli_1_1OllamaConfig" ],
         [ "Open", "de/d8f/classyaze_1_1cli_1_1Open.html", "de/d8f/classyaze_1_1cli_1_1Open" ],
+        [ "OverworldFindTile", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile.html", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile" ],
         [ "OverworldGetTile", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile.html", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile" ],
         [ "OverworldSetTile", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile.html", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile" ],
         [ "Palette", "d3/d6c/classyaze_1_1cli_1_1Palette.html", "d3/d6c/classyaze_1_1cli_1_1Palette" ],
@@ -89,6 +97,7 @@ var annotated_dup =
         [ "Tile16Proposal", "d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html", "d8/d1c/structyaze_1_1cli_1_1Tile16Proposal" ],
         [ "Tile16ProposalGenerator", "d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html", "d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator" ],
         [ "Tile16Transfer", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer" ],
+        [ "ToolCall", "df/d6e/structyaze_1_1cli_1_1ToolCall.html", "df/d6e/structyaze_1_1cli_1_1ToolCall" ],
         [ "TuiComponent", "dc/d6b/classyaze_1_1cli_1_1TuiComponent.html", "dc/d6b/classyaze_1_1cli_1_1TuiComponent" ],
         [ "WidgetBoundingBox", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox.html", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox" ],
         [ "WidgetDescriptor", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor.html", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor" ]
@@ -135,6 +144,7 @@ var annotated_dup =
           [ "UserRoutine", "da/d81/structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html", "da/d81/structyaze_1_1editor_1_1zsprite_1_1UserRoutine" ],
           [ "ZSprite", "df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html", "df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite" ]
         ] ],
+        [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget" ],
         [ "AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor" ],
         [ "CommandManager", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html", "d3/d8a/classyaze_1_1editor_1_1CommandManager" ],
         [ "DictionaryEntry", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry" ],

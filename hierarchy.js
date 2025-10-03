@@ -1,5 +1,7 @@
 var hierarchy =
 [
+    [ "yaze::editor::AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", null ],
+    [ "yaze::cli::AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", null ],
     [ "yaze::cli::AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", [
       [ "yaze::cli::GeminiAIService", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html", null ],
       [ "yaze::cli::MockAIService", "df/d18/classyaze_1_1cli_1_1MockAIService.html", null ],
@@ -79,6 +81,8 @@ var hierarchy =
     [ "yaze::gfx::CgxHeader", "d3/d93/structyaze_1_1gfx_1_1CgxHeader.html", null ],
     [ "yaze::cli::PolicyEvaluator::PolicyConfig::ChangeConstraint", "de/ddb/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ChangeConstraint.html", null ],
     [ "yaze::emu::CharacterLocation", "d7/d8d/structyaze_1_1emu_1_1CharacterLocation.html", null ],
+    [ "yaze::cli::agent::ChatMessage", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html", null ],
+    [ "yaze::cli::tui::ChatTUI", "d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html", null ],
     [ "chest", "d4/d5f/structchest.html", null ],
     [ "chest_data", "d7/d34/structchest__data.html", null ],
     [ "yaze::zelda3::DungeonEditorSystem::ChestData", "dc/d40/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ChestData.html", null ],
@@ -102,6 +106,7 @@ var hierarchy =
       [ "yaze::cli::GfxExport", "dd/d8b/classyaze_1_1cli_1_1GfxExport.html", null ],
       [ "yaze::cli::GfxImport", "d2/d55/classyaze_1_1cli_1_1GfxImport.html", null ],
       [ "yaze::cli::Open", "de/d8f/classyaze_1_1cli_1_1Open.html", null ],
+      [ "yaze::cli::OverworldFindTile", "d0/d1b/classyaze_1_1cli_1_1OverworldFindTile.html", null ],
       [ "yaze::cli::OverworldGetTile", "d7/d09/classyaze_1_1cli_1_1OverworldGetTile.html", null ],
       [ "yaze::cli::OverworldSetTile", "da/d7a/classyaze_1_1cli_1_1OverworldSetTile.html", null ],
       [ "yaze::cli::Palette", "d3/d6c/classyaze_1_1cli_1_1Palette.html", null ],
@@ -130,6 +135,7 @@ var hierarchy =
     [ "yaze::gui::canvas::CanvasContextMenu::ContextMenuItem", "d3/d94/structyaze_1_1gui_1_1canvas_1_1CanvasContextMenu_1_1ContextMenuItem.html", null ],
     [ "yaze::gui::Canvas::ContextMenuItem", "d3/df3/structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html", null ],
     [ "yaze::core::Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", null ],
+    [ "yaze::cli::agent::ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", null ],
     [ "TextEditor::Coordinates", "d0/d95/structTextEditor_1_1Coordinates.html", null ],
     [ "yaze::emu::CounterIrqNmiRegisters", "d2/d03/structyaze_1_1emu_1_1CounterIrqNmiRegisters.html", null ],
     [ "yaze::emu::Cpu", "dc/df4/classyaze_1_1emu_1_1Cpu.html", null ],
@@ -535,6 +541,8 @@ var hierarchy =
     [ "yaze::emu::TMW", "d5/dd1/structyaze_1_1emu_1_1TMW.html", null ],
     [ "yaze::editor::Toast", "d2/d11/structyaze_1_1editor_1_1Toast.html", null ],
     [ "yaze::editor::ToastManager", "d7/d92/classyaze_1_1editor_1_1ToastManager.html", null ],
+    [ "yaze::cli::ToolCall", "df/d6e/structyaze_1_1cli_1_1ToolCall.html", null ],
+    [ "yaze::cli::agent::ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", null ],
     [ "yaze::zelda3::music::Tracker", "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html", null ],
     [ "yaze::Transaction", "df/d26/classyaze_1_1Transaction.html", null ],
     [ "yaze::emu::TS", "da/db1/structyaze_1_1emu_1_1TS.html", null ],
