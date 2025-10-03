@@ -16,9 +16,11 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/cord.h"
 #include "absl/strings/match.h"
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/string_view.h"
 #include "absl/strings/strip.h"
 #include "absl/time/time.h"
 #include "cli/handlers/agent/common.h"
@@ -151,6 +153,292 @@ absl::Status WriteWidgetCatalog(const DiscoverWidgetsResult& catalog,
   }
   out << BuildWidgetCatalogJson(catalog);
   return absl::OkStatus();
+}
+
+struct ReplayCommandOptions {
+  std::string script_path;
+  std::string host = "localhost";
+  int port = 50052;
+  bool ci_mode = false;
+  std::string output_format = "text";
+  std::map<std::string, std::string> parameters;
+};
+
+absl::StatusOr<ReplayCommandOptions> ParseReplayArgs(
+    const std::vector<std::string>& args) {
+  ReplayCommandOptions options;
+
+  auto parse_int = [](absl::string_view value,
+                      const char* flag) -> absl::StatusOr<int> {
+    int result = 0;
+    if (!absl::SimpleAtoi(value, &result)) {
+      return absl::InvalidArgumentError(
+          absl::StrCat(flag, " requires an integer value"));
+    }
+    if (result <= 0 || result > 65535) {
+      return absl::InvalidArgumentError(
+          absl::StrCat(flag, " must be between 1 and 65535"));
+    }
+    return result;
+  };
+
+  for (size_t i = 0; i < args.size(); ++i) {
+    const std::string& token = args[i];
+
+    if (token == "--ci-mode" || token == "--ci") {
+      options.ci_mode = true;
+      continue;
+    }
+
+    if (token == "--host" && i + 1 < args.size()) {
+      options.host = args[++i];
+      continue;
+    }
+    if (absl::StartsWith(token, "--host=")) {
+      options.host = token.substr(7);
+      continue;
+    }
+
+    if (token == "--port" && i + 1 < args.size()) {
+      ASSIGN_OR_RETURN(options.port, parse_int(args[++i], "--port"));
+      continue;
+    }
+    if (absl::StartsWith(token, "--port=")) {
+      ASSIGN_OR_RETURN(options.port,
+                       parse_int(token.substr(7), "--port"));
+      continue;
+    }
+
+    if ((token == "--format" || token == "--output") &&
+        i + 1 < args.size()) {
+      options.output_format = absl::AsciiStrToLower(args[++i]);
+      continue;
+    }
+    if (absl::StartsWith(token, "--format=") ||
+        absl::StartsWith(token, "--output=")) {
+      options.output_format =
+          absl::AsciiStrToLower(token.substr(token.find('=') + 1));
+      continue;
+    }
+
+    if (token == "--param" && i + 1 < args.size()) {
+      std::string pair = args[++i];
+      auto eq = pair.find('=');
+      if (eq == std::string::npos) {
+        return absl::InvalidArgumentError(
+            "--param expects KEY=VALUE format");
+      }
+      options.parameters[pair.substr(0, eq)] = pair.substr(eq + 1);
+      continue;
+    }
+    if (absl::StartsWith(token, "--param=")) {
+      std::string pair = token.substr(8);
+      auto eq = pair.find('=');
+      if (eq == std::string::npos) {
+        return absl::InvalidArgumentError(
+            "--param expects KEY=VALUE format");
+      }
+      options.parameters[pair.substr(0, eq)] = pair.substr(eq + 1);
+      continue;
+    }
+
+    if (token == "--script" && i + 1 < args.size()) {
+      options.script_path = args[++i];
+      continue;
+    }
+    if (absl::StartsWith(token, "--script=")) {
+      options.script_path = token.substr(9);
+      continue;
+    }
+
+    if (absl::StartsWith(token, "--")) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Unknown flag for agent test replay: ", token));
+    }
+
+    if (options.script_path.empty()) {
+      options.script_path = token;
+      continue;
+    }
+
+    return absl::InvalidArgumentError(
+        absl::StrCat("Unexpected argument: ", token));
+  }
+
+  if (options.script_path.empty()) {
+    return absl::InvalidArgumentError(
+        "Usage: agent test replay <script.json> [--ci-mode] [--host <host>] "
+        "[--port <port>] [--format text|json] [--param KEY=VALUE]");
+  }
+
+  if (options.output_format != "text" && options.output_format != "json") {
+    return absl::InvalidArgumentError(
+        "--format must be either 'text' or 'json'");
+  }
+
+  return options;
+}
+
+void PrintReplayTextSummary(const ReplayCommandOptions& options,
+                            const ReplayTestResult& result) {
+  std::cout << "\n=== Replay Test ===\n";
+  std::cout << "Script: " << options.script_path << "\n";
+  std::cout << "Server: " << HarnessAddress(options.host, options.port)
+            << "\n";
+  if (!options.parameters.empty()) {
+    std::cout << "Parameters:\n";
+    for (const auto& [key, value] : options.parameters) {
+      std::cout << "  • " << key << "=" << value << "\n";
+    }
+  }
+  std::cout << "Steps Executed: " << result.steps_executed << "\n";
+  if (!result.replay_session_id.empty()) {
+    std::cout << "Replay Session: " << result.replay_session_id << "\n";
+  }
+  if (result.success) {
+    std::cout << "✅ Replay succeeded\n";
+  } else {
+    std::cout << "❌ Replay failed: " << result.message << "\n";
+  }
+  if (!result.assertions.empty()) {
+    std::cout << "Assertions (" << result.assertions.size() << "):\n";
+    for (const auto& assertion : result.assertions) {
+      std::cout << "  - " << assertion.description << ": "
+                << (assertion.passed ? "PASS" : "FAIL");
+      if (!assertion.error_message.empty()) {
+        std::cout << " (" << assertion.error_message << ")";
+      }
+      std::cout << "\n";
+    }
+  }
+  if (!result.logs.empty()) {
+    std::cout << "Logs:\n";
+    for (const auto& log : result.logs) {
+      std::cout << "  • " << log << "\n";
+    }
+  }
+}
+
+void PrintReplayJsonSummary(const ReplayCommandOptions& options,
+                            const ReplayTestResult& result) {
+  std::cout << "{\n";
+  std::cout << "  \"script_path\": \"" << JsonEscape(options.script_path)
+            << "\",\n";
+  std::cout << "  \"host\": \"" << JsonEscape(options.host) << "\",\n";
+  std::cout << "  \"port\": " << options.port << ",\n";
+  std::cout << "  \"ci_mode\": " << (options.ci_mode ? "true" : "false")
+            << ",\n";
+  std::cout << "  \"parameters\": {";
+  size_t param_index = 0;
+  for (const auto& [key, value] : options.parameters) {
+    if (param_index > 0) {
+      std::cout << ", ";
+    }
+    std::cout << "\"" << JsonEscape(key) << "\": \""
+              << JsonEscape(value) << "\"";
+    ++param_index;
+  }
+  std::cout << "},\n";
+  std::cout << "  \"success\": " << (result.success ? "true" : "false")
+            << ",\n";
+  std::cout << "  \"message\": \"" << JsonEscape(result.message)
+            << "\",\n";
+  std::cout << "  \"steps_executed\": " << result.steps_executed
+            << ",\n";
+  if (result.replay_session_id.empty()) {
+    std::cout << "  \"replay_session_id\": null,\n";
+  } else {
+    std::cout << "  \"replay_session_id\": \""
+              << JsonEscape(result.replay_session_id) << "\",\n";
+  }
+  std::cout << "  \"assertions\": [\n";
+  for (size_t i = 0; i < result.assertions.size(); ++i) {
+    const auto& assertion = result.assertions[i];
+    std::cout << "    {\"description\": \""
+              << JsonEscape(assertion.description) << "\", \"passed\": "
+              << (assertion.passed ? "true" : "false");
+    if (!assertion.error_message.empty()) {
+      std::cout << ", \"error\": \""
+                << JsonEscape(assertion.error_message) << "\"";
+    }
+    std::cout << "}";
+    if (i + 1 < result.assertions.size()) {
+      std::cout << ',';
+    }
+    std::cout << "\n";
+  }
+  std::cout << "  ],\n";
+  std::cout << "  \"logs\": [\n";
+  for (size_t i = 0; i < result.logs.size(); ++i) {
+    std::cout << "    \"" << JsonEscape(result.logs[i]) << "\"";
+    if (i + 1 < result.logs.size()) {
+      std::cout << ',';
+    }
+    std::cout << "\n";
+  }
+  std::cout << "  ]\n";
+  std::cout << "}\n";
+}
+
+absl::Status HandleTestReplayCommand(const std::vector<std::string>& arg_vec) {
+  ASSIGN_OR_RETURN(auto options, ParseReplayArgs(arg_vec));
+
+  bool text_output = options.output_format == "text";
+  bool json_output = options.output_format == "json";
+
+#ifndef YAZE_WITH_GRPC
+  std::string error =
+      "GUI automation requires YAZE_WITH_GRPC=ON at build time.\n"
+      "Rebuild with: cmake -B build -DYAZE_WITH_GRPC=ON";
+  ReplayTestResult result;
+  result.success = false;
+  result.message = error;
+  if (json_output) {
+    PrintReplayJsonSummary(options, result);
+  } else {
+    PrintReplayTextSummary(options, result);
+  }
+  absl::Status status = absl::UnimplementedError(error);
+  AttachExitCode(&status, 2);
+  return status;
+#else
+  GuiAutomationClient client(HarnessAddress(options.host, options.port));
+  auto connect_status = client.Connect();
+  if (!connect_status.ok()) {
+    std::string formatted_error = absl::StrFormat(
+        "Failed to connect to test harness at %s:%d -- %s", options.host,
+        options.port, connect_status.message());
+    ReplayTestResult result;
+    result.success = false;
+    result.message = formatted_error;
+    if (json_output) {
+      PrintReplayJsonSummary(options, result);
+    } else {
+      PrintReplayTextSummary(options, result);
+    }
+    absl::Status status = absl::UnavailableError(formatted_error);
+    AttachExitCode(&status, 2);
+    return status;
+  }
+
+  ASSIGN_OR_RETURN(ReplayTestResult result,
+                   client.ReplayTest(options.script_path, options.ci_mode,
+                                     options.parameters));
+
+  if (json_output) {
+    PrintReplayJsonSummary(options, result);
+  } else {
+    PrintReplayTextSummary(options, result);
+  }
+
+  if (!result.success) {
+    absl::Status status = absl::InternalError(result.message);
+    AttachExitCode(&status, options.ci_mode ? 2 : 1);
+    return status;
+  }
+
+  return absl::OkStatus();
+#endif
 }
 
 absl::Status HandleTestRunCommand(const std::vector<std::string>& arg_vec) {
@@ -995,6 +1283,9 @@ absl::Status HandleTestCommand(const std::vector<std::string>& arg_vec) {
     const std::string& subcommand = arg_vec[0];
     std::vector<std::string> tail(arg_vec.begin() + 1, arg_vec.end());
 
+    if (subcommand == "replay") {
+      return HandleTestReplayCommand(tail);
+    }
     if (subcommand == "status") {
       return HandleTestStatusCommand(tail);
     }
