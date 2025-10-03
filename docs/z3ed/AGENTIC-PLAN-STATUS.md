@@ -253,33 +253,31 @@ unset GEMINI_API_KEY
 
 ## 🚀 Next Steps
 
-### Immediate Actions (Today)
+### Immediate Actions (Next Session)
 
-1. **Test Ollama Integration** (30 min)
+1. **Integrate Tile16ProposalGenerator into Agent Commands** (2 hours)
+   - Modify `HandlePlanCommand()` to use generator
+   - Modify `HandleRunCommand()` to apply proposals  
+   - Add `HandleAcceptCommand()` for accepting proposals
+
+2. **Integrate ResourceContextBuilder into PromptBuilder** (1 hour)
+   - Update `BuildContextualPrompt()` to inject labels
+   - Test with actual labels file from user project
+
+3. **Test End-to-End Workflow** (1 hour)
    ```bash
    ollama serve
-   ollama pull qwen2.5-coder:7b
-   ./build-grpc-test/bin/z3ed agent plan --prompt "test"
+   ./build-grpc-test/bin/z3ed agent plan \
+     --prompt "Create a 3x3 water pond at 15, 10"
+   
+   # Verify proposal generation
+   # Verify tile16 changes are correct
    ```
 
-2. **Test Gemini Integration** (30 min)
-   ```bash
-   export GEMINI_API_KEY="your-key"
-   ./build-grpc-test/bin/z3ed agent plan --prompt "test"
-   ```
-
-3. **Run End-to-End Test** (1 hour)
-   ```bash
-   ./build-grpc-test/bin/z3ed agent run \
-     --prompt "Change palette 0 color 5 to red" \
-     --rom assets/zelda3.sfc \
-     --sandbox
-   ```
-
-4. **Document Results** (30 min)
-   - Create `TESTING-RESULTS.md` with actual outputs
-   - Update `GEMINI-TESTING-STATUS.md` with validation
-   - Mark Phase 2 & 4 as validated in checklists
+4. **Add Visual Diff Implementation** (2-3 hours)
+   - Render tile16 bitmaps from overworld
+   - Create side-by-side comparison images
+   - Highlight changed tiles
 
 ### Short-Term (This Week)
 
@@ -351,13 +349,17 @@ unset GEMINI_API_KEY
 
 ## 📝 Files Summary
 
-### Created/Modified in This Session
+### Created/Modified Recently
 - ✅ `src/cli/handlers/agent/test_common.{h,cc}` (NEW)
 - ✅ `src/cli/handlers/agent/test_commands.cc` (REBUILT)
 - ✅ `src/cli/z3ed.cmake` (UPDATED)
 - ✅ `src/cli/service/gemini_ai_service.cc` (FIXED includes)
-- ✅ `docs/z3ed/BUILD-FIX-COMPLETED.md` (NEW)
-- ✅ `docs/z3ed/AGENTIC-PLAN-STATUS.md` (NEW - this file)
+- ✅ `src/cli/service/tile16_proposal_generator.{h,cc}` (NEW - Oct 3) ✨
+- ✅ `src/cli/service/resource_context_builder.{h,cc}` (NEW - Oct 3) ✨
+- ✅ `src/app/zelda3/overworld/overworld.h` (UPDATED - SetTile method) ✨
+- ✅ `src/cli/handlers/overworld.cc` (UPDATED - SetTile implementation) ✨
+- ✅ `docs/z3ed/IMPLEMENTATION-SESSION-OCT3-CONTINUED.md` (NEW) ✨
+- ✅ `docs/z3ed/AGENTIC-PLAN-STATUS.md` (UPDATED - this file)
 
 ### Previously Implemented (Phase 1-4)
 - ✅ `src/cli/service/ollama_ai_service.{h,cc}`

@@ -62,6 +62,10 @@ add_executable(
   cli/service/test_suite_writer.cc
   cli/service/test_suite_writer.h
   cli/service/gemini_ai_service.cc
+  cli/service/tile16_proposal_generator.h
+  cli/service/tile16_proposal_generator.cc
+  cli/service/resource_context_builder.h
+  cli/service/resource_context_builder.cc
   app/rom.cc
   app/core/project.cc
   app/core/asar_wrapper.cc
@@ -84,26 +88,33 @@ if(YAZE_WITH_JSON)
 endif()
 
 # ============================================================================
-# SSL/HTTPS Support (Required for Gemini API and future collaborative features)
+# SSL/HTTPS Support (Optional - Required for Gemini API and collaborative features)
 # ============================================================================
-option(YAZE_WITH_SSL "Build with OpenSSL support for HTTPS" ON)
-if(YAZE_WITH_SSL OR YAZE_WITH_JSON)
-  # Find OpenSSL on the system
-  find_package(OpenSSL REQUIRED)
+# SSL is only enabled when building with gRPC+JSON (the full agent/testing suite)
+# This ensures Windows builds without these dependencies still work
+if(YAZE_WITH_GRPC AND YAZE_WITH_JSON)
+  find_package(OpenSSL)
   
-  # Define the SSL support macro for httplib
-  target_compile_definitions(z3ed PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
-  
-  # Link OpenSSL libraries
-  target_link_libraries(z3ed PRIVATE OpenSSL::SSL OpenSSL::Crypto)
-  
-  # On macOS, also enable Keychain cert support
-  if(APPLE)
-    target_compile_definitions(z3ed PRIVATE CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN)
-    target_link_libraries(z3ed PRIVATE "-framework CoreFoundation" "-framework Security")
+  if(OpenSSL_FOUND)
+    # Define the SSL support macro for httplib
+    target_compile_definitions(z3ed PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
+    
+    # Link OpenSSL libraries
+    target_link_libraries(z3ed PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    
+    # On macOS, also enable Keychain cert support
+    if(APPLE)
+      target_compile_definitions(z3ed PRIVATE CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN)
+      target_link_libraries(z3ed PRIVATE "-framework CoreFoundation" "-framework Security")
+    endif()
+    
+    message(STATUS "✓ SSL/HTTPS support enabled for z3ed (required for Gemini API)")
+  else()
+    message(WARNING "OpenSSL not found - Gemini API will not work (Ollama will still function)")
+    message(STATUS "  Install OpenSSL to enable Gemini: brew install openssl (macOS) or apt-get install libssl-dev (Linux)")
   endif()
-  
-  message(STATUS "✓ SSL/HTTPS support enabled for z3ed")
+else()
+  message(STATUS "Building z3ed without gRPC/JSON - AI agent features disabled")
 endif()
 
 target_include_directories(

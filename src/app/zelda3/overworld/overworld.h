@@ -287,6 +287,15 @@ class Overworld {
       return map_tiles_.special_world[y][x];
     }
   }
+  void SetTile(int x, int y, uint16_t tile_id) {
+    if (current_world_ == 0) {
+      map_tiles_.light_world[y][x] = tile_id;
+    } else if (current_world_ == 1) {
+      map_tiles_.dark_world[y][x] = tile_id;
+    } else {
+      map_tiles_.special_world[y][x] = tile_id;
+    }
+  }
   auto map_tiles() const { return map_tiles_; }
   auto mutable_map_tiles() { return &map_tiles_; }
   auto all_items() const { return all_items_; }
