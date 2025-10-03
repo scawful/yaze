@@ -1,5 +1,6 @@
 #include "cli/z3ed.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "cli/handlers/overworld_inspect.h"
 
 #include <algorithm>
 #include <cctype>
@@ -120,66 +121,6 @@ namespace {
 constexpr absl::string_view kFindTileUsage =
     "Usage: overworld find-tile --tile <tile_id> [--map <map_id>] [--world <light|dark|special|0|1|2>] [--format <json|text>]";
 
-absl::StatusOr<int> ParseNumeric(const std::string& value, int base = 0) {
-  try {
-    size_t processed = 0;
-    int result = std::stoi(value, &processed, base);
-    if (processed != value.size()) {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Invalid numeric value: ", value));
-    }
-    return result;
-  } catch (const std::exception&) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Invalid numeric value: ", value));
-  }
-}
-
-absl::StatusOr<int> WorldFromString(const std::string& value) {
-  std::string lower = absl::AsciiStrToLower(value);
-  if (lower == "0" || lower == "light") {
-    return 0;
-  }
-  if (lower == "1" || lower == "dark") {
-    return 1;
-  }
-  if (lower == "2" || lower == "special") {
-    return 2;
-  }
-  return absl::InvalidArgumentError(
-      absl::StrCat("Unknown world value: ", value));
-}
-
-absl::StatusOr<int> WorldFromMapId(int map_id) {
-  if (map_id < 0) {
-    return absl::InvalidArgumentError("Map ID must be non-negative");
-  }
-  if (map_id < 0x40) {
-    return 0;
-  }
-  if (map_id < 0x80) {
-    return 1;
-  }
-  if (map_id < 0xA0) {
-    return 2;
-  }
-  return absl::InvalidArgumentError(
-      absl::StrCat("Map ID out of range: 0x", absl::StrFormat("%02X", map_id)));
-}
-
-std::string WorldName(int world) {
-  switch (world) {
-    case 0:
-      return "Light";
-    case 1:
-      return "Dark";
-    case 2:
-      return "Special";
-    default:
-      return absl::StrCat("Unknown(", world, ")");
-  }
-}
-
 }  // namespace
 
 absl::Status OverworldFindTile::Run(const std::vector<std::string>& arg_vec) {
@@ -226,7 +167,8 @@ absl::Status OverworldFindTile::Run(const std::vector<std::string>& arg_vec) {
         absl::StrCat("Missing required --tile argument\n", kFindTileUsage));
   }
 
-  ASSIGN_OR_RETURN(int tile_value, ParseNumeric(tile_it->second));
+  ASSIGN_OR_RETURN(int tile_value,
+                   overworld::ParseNumeric(tile_it->second));
   if (tile_value < 0 || tile_value > 0xFFFF) {
     return absl::InvalidArgumentError(
         absl::StrCat("Tile ID must be between 0x0000 and 0xFFFF (got ",
@@ -236,7 +178,8 @@ absl::Status OverworldFindTile::Run(const std::vector<std::string>& arg_vec) {
 
   std::optional<int> map_filter;
   if (auto map_it = options.find("map"); map_it != options.end()) {
-    ASSIGN_OR_RETURN(int map_value, ParseNumeric(map_it->second));
+  ASSIGN_OR_RETURN(int map_value,
+           overworld::ParseNumeric(map_it->second));
     if (map_value < 0 || map_value >= 0xA0) {
       return absl::InvalidArgumentError(
           absl::StrCat("Map ID out of range: ", map_it->second));
@@ -246,18 +189,22 @@ absl::Status OverworldFindTile::Run(const std::vector<std::string>& arg_vec) {
 
   std::optional<int> world_filter;
   if (auto world_it = options.find("world"); world_it != options.end()) {
-    ASSIGN_OR_RETURN(int parsed_world, WorldFromString(world_it->second));
+  ASSIGN_OR_RETURN(int parsed_world,
+           overworld::ParseWorldSpecifier(world_it->second));
     world_filter = parsed_world;
   }
 
   if (map_filter.has_value()) {
-    ASSIGN_OR_RETURN(int inferred_world, WorldFromMapId(*map_filter));
+  ASSIGN_OR_RETURN(int inferred_world,
+           overworld::InferWorldFromMapId(*map_filter));
     if (world_filter.has_value() && inferred_world != *world_filter) {
       return absl::InvalidArgumentError(
           absl::StrCat("Map 0x",
                        absl::StrFormat("%02X", *map_filter),
-                       " belongs to the ", WorldName(inferred_world),
-                       " World but --world requested ", WorldName(*world_filter)));
+                       " belongs to the ",
+                       overworld::WorldName(inferred_world),
+                       " World but --world requested ",
+                       overworld::WorldName(*world_filter)));
     }
     if (!world_filter.has_value()) {
       world_filter = inferred_world;
@@ -378,7 +325,8 @@ absl::Status OverworldFindTile::Run(const std::vector<std::string>& arg_vec) {
           "    {\"map\": \"0x%02X\", \"world\": \"%s\", "
           "\"local\": {\"x\": %d, \"y\": %d}, "
           "\"global\": {\"x\": %d, \"y\": %d}}%s\n",
-          match.map_id, WorldName(match.world), match.local_x, match.local_y,
+          match.map_id, overworld::WorldName(match.world), match.local_x,
+          match.local_y,
           match.global_x, match.global_y,
           (i + 1 == matches.size()) ? "" : ",");
     }
@@ -395,8 +343,405 @@ absl::Status OverworldFindTile::Run(const std::vector<std::string>& arg_vec) {
     for (const auto& match : matches) {
       std::cout << absl::StrFormat(
           "  • Map 0x%02X (%s World) local(%2d,%2d) global(%3d,%3d)\n",
-          match.map_id, WorldName(match.world), match.local_x, match.local_y,
+          match.map_id, overworld::WorldName(match.world), match.local_x,
+          match.local_y,
           match.global_x, match.global_y);
+    }
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status OverworldDescribeMap::Run(
+    const std::vector<std::string>& arg_vec) {
+  constexpr absl::string_view kUsage =
+      "Usage: overworld describe-map --map <map_id> [--format <json|text>]";
+
+  std::unordered_map<std::string, std::string> options;
+  std::vector<std::string> positional;
+  options.reserve(arg_vec.size());
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (absl::StartsWith(token, "--")) {
+      std::string key;
+      std::string value;
+      auto eq_pos = token.find('=');
+      if (eq_pos != std::string::npos) {
+        key = token.substr(2, eq_pos - 2);
+        value = token.substr(eq_pos + 1);
+      } else {
+        key = token.substr(2);
+        if (i + 1 >= arg_vec.size()) {
+          return absl::InvalidArgumentError(
+              absl::StrCat("Missing value for --", key, "\n", kUsage));
+        }
+        value = arg_vec[++i];
+      }
+      if (value.empty()) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Missing value for --", key, "\n", kUsage));
+      }
+      options[key] = value;
+    } else {
+      positional.push_back(token);
+    }
+  }
+
+  if (!positional.empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Unexpected positional arguments: ",
+                     absl::StrJoin(positional, ", "), "\n", kUsage));
+  }
+
+  auto map_it = options.find("map");
+  if (map_it == options.end()) {
+    return absl::InvalidArgumentError(std::string(kUsage));
+  }
+
+  ASSIGN_OR_RETURN(int map_value,
+                   overworld::ParseNumeric(map_it->second));
+  if (map_value < 0 || map_value >= zelda3::kNumOverworldMaps) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Map ID out of range: ", map_it->second));
+  }
+
+  std::string format = "text";
+  if (auto it = options.find("format"); it != options.end()) {
+    format = absl::AsciiStrToLower(it->second);
+    if (format != "text" && format != "json") {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Unsupported format: ", it->second));
+    }
+  }
+
+  std::string rom_file = absl::GetFlag(FLAGS_rom);
+  if (auto it = options.find("rom"); it != options.end()) {
+    rom_file = it->second;
+  }
+
+  if (rom_file.empty()) {
+    return absl::InvalidArgumentError(
+        "ROM file must be provided via --rom flag.");
+  }
+
+  auto load_status = rom_.LoadFromFile(rom_file);
+  if (!load_status.ok()) {
+    return load_status;
+  }
+  if (!rom_.is_loaded()) {
+    return absl::AbortedError("Failed to load ROM.");
+  }
+
+  zelda3::Overworld overworld_rom(&rom_);
+  auto ow_status = overworld_rom.Load(&rom_);
+  if (!ow_status.ok()) {
+    return ow_status;
+  }
+
+  ASSIGN_OR_RETURN(auto summary,
+                   overworld::BuildMapSummary(overworld_rom, map_value));
+
+  auto join_hex = [](const std::vector<uint8_t>& values) {
+    std::vector<std::string> parts;
+    parts.reserve(values.size());
+    for (uint8_t v : values) {
+      parts.push_back(absl::StrFormat("0x%02X", v));
+    }
+    return absl::StrJoin(parts, ", ");
+  };
+
+  auto join_hex_json = [](const std::vector<uint8_t>& values) {
+    std::vector<std::string> parts;
+    parts.reserve(values.size());
+    for (uint8_t v : values) {
+      parts.push_back(absl::StrFormat("\"0x%02X\"", v));
+    }
+    return absl::StrCat("[", absl::StrJoin(parts, ", "), "]");
+  };
+
+  if (format == "json") {
+    std::cout << "{\n";
+    std::cout << absl::StrFormat("  \"map\": \"0x%02X\",\n", summary.map_id);
+    std::cout << absl::StrFormat("  \"world\": \"%s\",\n",
+                                 overworld::WorldName(summary.world));
+    std::cout << absl::StrFormat(
+        "  \"grid\": {\"x\": %d, \"y\": %d, \"index\": %d},\n",
+        summary.map_x, summary.map_y, summary.local_index);
+    std::cout << absl::StrFormat(
+        "  \"size\": {\"label\": \"%s\", \"is_large\": %s, \"parent\": \"0x%02X\", \"quadrant\": %d},\n",
+        summary.area_size, summary.is_large_map ? "true" : "false",
+        summary.parent_map, summary.large_quadrant);
+    std::cout << absl::StrFormat(
+        "  \"message\": \"0x%04X\",\n", summary.message_id);
+    std::cout << absl::StrFormat(
+        "  \"area_graphics\": \"0x%02X\",\n", summary.area_graphics);
+    std::cout << absl::StrFormat(
+        "  \"area_palette\": \"0x%02X\",\n", summary.area_palette);
+    std::cout << absl::StrFormat(
+        "  \"main_palette\": \"0x%02X\",\n", summary.main_palette);
+    std::cout << absl::StrFormat(
+        "  \"animated_gfx\": \"0x%02X\",\n", summary.animated_gfx);
+    std::cout << absl::StrFormat(
+        "  \"subscreen_overlay\": \"0x%04X\",\n",
+        summary.subscreen_overlay);
+    std::cout << absl::StrFormat(
+        "  \"area_specific_bg_color\": \"0x%04X\",\n",
+        summary.area_specific_bg_color);
+    std::cout << absl::StrFormat(
+        "  \"sprite_graphics\": %s,\n", join_hex_json(summary.sprite_graphics));
+    std::cout << absl::StrFormat(
+        "  \"sprite_palettes\": %s,\n", join_hex_json(summary.sprite_palettes));
+    std::cout << absl::StrFormat(
+        "  \"area_music\": %s,\n", join_hex_json(summary.area_music));
+    std::cout << absl::StrFormat(
+        "  \"static_graphics\": %s,\n",
+        join_hex_json(summary.static_graphics));
+    std::cout << absl::StrFormat(
+        "  \"overlay\": {\"enabled\": %s, \"id\": \"0x%04X\"}\n",
+        summary.has_overlay ? "true" : "false", summary.overlay_id);
+    std::cout << "}\n";
+  } else {
+    std::cout << absl::StrFormat("🗺️ Map 0x%02X (%s World)\n", summary.map_id,
+                                 overworld::WorldName(summary.world));
+    std::cout << absl::StrFormat("  Grid: (%d, %d) local-index %d\n",
+                                 summary.map_x, summary.map_y,
+                                 summary.local_index);
+    std::cout << absl::StrFormat(
+        "  Size: %s%s | Parent: 0x%02X | Quadrant: %d\n",
+        summary.area_size, summary.is_large_map ? " (large)" : "",
+        summary.parent_map, summary.large_quadrant);
+    std::cout << absl::StrFormat(
+        "  Message: 0x%04X | Area GFX: 0x%02X | Area Palette: 0x%02X\n",
+        summary.message_id, summary.area_graphics, summary.area_palette);
+    std::cout << absl::StrFormat(
+        "  Main Palette: 0x%02X | Animated GFX: 0x%02X | Overlay: %s (0x%04X)\n",
+        summary.main_palette, summary.animated_gfx,
+        summary.has_overlay ? "yes" : "no", summary.overlay_id);
+    std::cout << absl::StrFormat(
+        "  Subscreen Overlay: 0x%04X | BG Color: 0x%04X\n",
+        summary.subscreen_overlay, summary.area_specific_bg_color);
+    std::cout << absl::StrFormat("  Sprite GFX: [%s]\n",
+                                 join_hex(summary.sprite_graphics));
+    std::cout << absl::StrFormat("  Sprite Palettes: [%s]\n",
+                                 join_hex(summary.sprite_palettes));
+    std::cout << absl::StrFormat("  Area Music: [%s]\n",
+                                 join_hex(summary.area_music));
+    std::cout << absl::StrFormat("  Static GFX: [%s]\n",
+                                 join_hex(summary.static_graphics));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status OverworldListWarps::Run(
+    const std::vector<std::string>& arg_vec) {
+  constexpr absl::string_view kUsage =
+      "Usage: overworld list-warps [--map <map_id>] [--world <light|dark|special>] "
+      "[--type <entrance|hole|exit|all>] [--format <json|text>]";
+
+  std::unordered_map<std::string, std::string> options;
+  std::vector<std::string> positional;
+  options.reserve(arg_vec.size());
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (absl::StartsWith(token, "--")) {
+      std::string key;
+      std::string value;
+      auto eq_pos = token.find('=');
+      if (eq_pos != std::string::npos) {
+        key = token.substr(2, eq_pos - 2);
+        value = token.substr(eq_pos + 1);
+      } else {
+        key = token.substr(2);
+        if (i + 1 >= arg_vec.size()) {
+          return absl::InvalidArgumentError(
+              absl::StrCat("Missing value for --", key, "\n", kUsage));
+        }
+        value = arg_vec[++i];
+      }
+      if (value.empty()) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Missing value for --", key, "\n", kUsage));
+      }
+      options[key] = value;
+    } else {
+      positional.push_back(token);
+    }
+  }
+
+  if (!positional.empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Unexpected positional arguments: ",
+                     absl::StrJoin(positional, ", "), "\n", kUsage));
+  }
+
+  std::optional<int> map_filter;
+  if (auto it = options.find("map"); it != options.end()) {
+    ASSIGN_OR_RETURN(int map_value,
+                     overworld::ParseNumeric(it->second));
+    if (map_value < 0 || map_value >= zelda3::kNumOverworldMaps) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Map ID out of range: ", it->second));
+    }
+    map_filter = map_value;
+  }
+
+  std::optional<int> world_filter;
+  if (auto it = options.find("world"); it != options.end()) {
+    ASSIGN_OR_RETURN(int parsed_world,
+                     overworld::ParseWorldSpecifier(it->second));
+    world_filter = parsed_world;
+  }
+
+  std::optional<overworld::WarpType> type_filter;
+  if (auto it = options.find("type"); it != options.end()) {
+    std::string lower = absl::AsciiStrToLower(it->second);
+    if (lower == "entrance" || lower == "entrances") {
+      type_filter = overworld::WarpType::kEntrance;
+    } else if (lower == "hole" || lower == "holes") {
+      type_filter = overworld::WarpType::kHole;
+    } else if (lower == "exit" || lower == "exits") {
+      type_filter = overworld::WarpType::kExit;
+    } else if (lower == "all" || lower.empty()) {
+      type_filter.reset();
+    } else {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Unknown warp type: ", it->second));
+    }
+  }
+
+  if (map_filter.has_value()) {
+    ASSIGN_OR_RETURN(int inferred_world,
+                     overworld::InferWorldFromMapId(*map_filter));
+    if (world_filter.has_value() && inferred_world != *world_filter) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Map 0x",
+                       absl::StrFormat("%02X", *map_filter),
+                       " belongs to the ",
+                       overworld::WorldName(inferred_world),
+                       " World but --world requested ",
+                       overworld::WorldName(*world_filter)));
+    }
+    if (!world_filter.has_value()) {
+      world_filter = inferred_world;
+    }
+  }
+
+  std::string format = "text";
+  if (auto it = options.find("format"); it != options.end()) {
+    format = absl::AsciiStrToLower(it->second);
+    if (format != "text" && format != "json") {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Unsupported format: ", it->second));
+    }
+  }
+
+  std::string rom_file = absl::GetFlag(FLAGS_rom);
+  if (auto it = options.find("rom"); it != options.end()) {
+    rom_file = it->second;
+  }
+
+  if (rom_file.empty()) {
+    return absl::InvalidArgumentError(
+        "ROM file must be provided via --rom flag.");
+  }
+
+  auto load_status = rom_.LoadFromFile(rom_file);
+  if (!load_status.ok()) {
+    return load_status;
+  }
+  if (!rom_.is_loaded()) {
+    return absl::AbortedError("Failed to load ROM.");
+  }
+
+  zelda3::Overworld overworld_rom(&rom_);
+  auto ow_status = overworld_rom.Load(&rom_);
+  if (!ow_status.ok()) {
+    return ow_status;
+  }
+
+  overworld::WarpQuery query;
+  query.map_id = map_filter;
+  query.world = world_filter;
+  query.type = type_filter;
+
+  ASSIGN_OR_RETURN(auto entries,
+                   overworld::CollectWarpEntries(overworld_rom, query));
+
+  if (format == "json") {
+    std::cout << "{\n";
+    std::cout << absl::StrFormat("  \"count\": %zu,\n", entries.size());
+    std::cout << "  \"entries\": [\n";
+    for (size_t i = 0; i < entries.size(); ++i) {
+      const auto& entry = entries[i];
+      std::cout << "    {\n";
+      std::cout << absl::StrFormat(
+          "      \"type\": \"%s\",\n",
+          overworld::WarpTypeName(entry.type));
+      std::cout << absl::StrFormat(
+          "      \"map\": \"0x%02X\",\n", entry.map_id);
+      std::cout << absl::StrFormat(
+          "      \"world\": \"%s\",\n",
+          overworld::WorldName(entry.world));
+      std::cout << absl::StrFormat(
+          "      \"grid\": {\"x\": %d, \"y\": %d, \"index\": %d},\n",
+          entry.map_x, entry.map_y, entry.local_index);
+      std::cout << absl::StrFormat(
+          "      \"tile16\": {\"x\": %d, \"y\": %d},\n",
+          entry.tile16_x, entry.tile16_y);
+      std::cout << absl::StrFormat(
+          "      \"pixel\": {\"x\": %d, \"y\": %d},\n",
+          entry.pixel_x, entry.pixel_y);
+      std::cout << absl::StrFormat(
+          "      \"map_pos\": \"0x%04X\",\n", entry.map_pos);
+      std::cout << absl::StrFormat(
+          "      \"deleted\": %s,\n", entry.deleted ? "true" : "false");
+      std::cout << absl::StrFormat(
+          "      \"is_hole\": %s",
+          entry.is_hole ? "true" : "false");
+      if (entry.entrance_id.has_value()) {
+        std::cout << absl::StrFormat(
+            ",\n      \"entrance_id\": \"0x%02X\"",
+            *entry.entrance_id);
+      }
+      if (entry.entrance_name.has_value()) {
+        std::cout << absl::StrFormat(
+            ",\n      \"entrance_name\": \"%s\"",
+            *entry.entrance_name);
+      }
+      std::cout << "\n    }" << (i + 1 == entries.size() ? "" : ",") << "\n";
+    }
+    std::cout << "  ]\n";
+    std::cout << "}\n";
+  } else {
+    if (entries.empty()) {
+      std::cout << "No overworld warps match the specified filters." << std::endl;
+      return absl::OkStatus();
+    }
+
+    std::cout << absl::StrFormat("🌐 Overworld warps (%zu)\n", entries.size());
+    for (const auto& entry : entries) {
+      std::string line = absl::StrFormat(
+          "  • %-9s map 0x%02X (%s World) tile16(%02d,%02d) pixel(%4d,%4d)",
+          overworld::WarpTypeName(entry.type), entry.map_id,
+          overworld::WorldName(entry.world), entry.tile16_x, entry.tile16_y,
+          entry.pixel_x, entry.pixel_y);
+      if (entry.entrance_id.has_value()) {
+        line = absl::StrCat(line,
+                             absl::StrFormat(" id=0x%02X", *entry.entrance_id));
+      }
+      if (entry.entrance_name.has_value()) {
+        line = absl::StrCat(line, " (", *entry.entrance_name, ")");
+      }
+      if (entry.deleted) {
+        line = absl::StrCat(line, " [deleted]");
+      }
+      if (entry.is_hole && entry.type != overworld::WarpType::kHole) {
+        line = absl::StrCat(line, " [hole]");
+      }
+      std::cout << line << std::endl;
     }
   }
 

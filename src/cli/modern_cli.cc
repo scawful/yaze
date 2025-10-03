@@ -210,6 +210,24 @@ void ModernCLI::SetupCommands() {
     }
   };
 
+    commands_["overworld describe-map"] = {
+      .name = "overworld describe-map",
+      .description = "Summarize metadata for an overworld map",
+      .usage = "z3ed overworld describe-map --map <map_id> [--format json|text]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleOverworldDescribeMapCommand(args);
+      }
+    };
+
+    commands_["overworld list-warps"] = {
+      .name = "overworld list-warps",
+      .description = "List overworld entrances and holes with coordinates",
+      .usage = "z3ed overworld list-warps [--map <map_id>] [--world light|dark|special] [--type entrance|hole|exit|all] [--format json|text]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleOverworldListWarpsCommand(args);
+      }
+    };
+
     commands_["overworld set-tile"] = {
         .name = "overworld set-tile",
         .description = "Set a tile in the overworld",
@@ -445,6 +463,16 @@ absl::Status ModernCLI::HandleOverworldGetTileCommand(const std::vector<std::str
 
 absl::Status ModernCLI::HandleOverworldFindTileCommand(const std::vector<std::string>& args) {
   OverworldFindTile handler;
+  return handler.Run(args);
+}
+
+absl::Status ModernCLI::HandleOverworldDescribeMapCommand(const std::vector<std::string>& args) {
+  OverworldDescribeMap handler;
+  return handler.Run(args);
+}
+
+absl::Status ModernCLI::HandleOverworldListWarpsCommand(const std::vector<std::string>& args) {
+  OverworldListWarps handler;
   return handler.Run(args);
 }
 

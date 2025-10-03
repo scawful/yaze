@@ -31,6 +31,12 @@ absl::Status HandleResourceListCommand(
 absl::Status HandleDungeonListSpritesCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
+absl::Status HandleOverworldDescribeMapCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleOverworldListWarpsCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
 absl::Status HandleChatCommand(Rom& rom);
 
 }  // namespace agent
