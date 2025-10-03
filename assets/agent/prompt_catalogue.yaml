@@ -1,0 +1,192 @@
+commands:
+  palette export: |-
+    Export palette data to JSON file
+      --group <group>  Palette group (overworld, dungeon, sprite)
+      --id <id>        Palette ID (0-based index)
+      --to <file>      Output JSON file path
+  palette import: |-
+    Import palette data from JSON file
+      --group <group>  Palette group (overworld, dungeon, sprite)
+      --id <id>        Palette ID (0-based index)
+      --from <file>    Input JSON file path
+  palette set-color: |-
+    Modify a color in palette JSON file
+      --file <file>    Palette JSON file to modify
+      --index <index>  Color index (0-15 per palette)
+      --color <hex>    New color in hex (0xRRGGBB format)
+  overworld set-tile: |-
+    Place a tile in the overworld
+      --map <id>       Map ID (0-based)
+      --x <x>          X coordinate (0-63)
+      --y <y>          Y coordinate (0-63)
+      --tile <hex>     Tile ID in hex (e.g., 0x02E for tree)
+  sprite set-position: |-
+    Move a sprite to a new position
+      --id <id>        Sprite ID
+      --x <x>          X coordinate
+      --y <y>          Y coordinate
+  dungeon set-room-tile: |-
+    Place a tile in a dungeon room
+      --room <id>      Room ID
+      --x <x>          X coordinate
+      --y <y>          Y coordinate
+      --tile <hex>     Tile ID
+  rom validate: "Validate ROM integrity and structure"
+
+tools:
+  - name: resource-list
+    description: "List project-defined resource labels for the requested category."
+    usage_notes: "Use this whenever you need to reference project-specific labels or IDs from the ROM."
+    arguments:
+      - name: type
+        description: "Resource category (dungeon, sprite, overworld, entrance, room, etc.)."
+        required: true
+        example: dungeon
+      - name: format
+        description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: dungeon-list-sprites
+    description: "Inspect sprite placements for a specific dungeon room."
+    usage_notes: "Returns sprite IDs, positions, and metadata for the requested room."
+    arguments:
+      - name: room
+        description: "Room label or numeric ID (supports hex like 0x123)."
+        required: true
+        example: hyrule_castle_throne
+      - name: dungeon
+        description: "Optional dungeon ID when room names are ambiguous."
+        required: false
+        example: 0x00
+      - name: format
+        description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: overworld-find-tile
+    description: "Search all overworld maps for occurrences of a specific tile16 ID."
+    usage_notes: "Ideal for tile lookup questions. Includes coordinates for each match."
+    arguments:
+      - name: tile
+        description: "Tile16 ID to search for (accepts hex or decimal)."
+        required: true
+        example: 0x02E
+      - name: map
+        description: "Optional map ID filter (0=Light World, 1=Dark World, etc.)."
+        required: false
+        example: 0
+      - name: format
+        description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: overworld-describe-map
+    description: "Summarize metadata for an overworld map, including regions and labels."
+    usage_notes: "Use this before proposing edits to understand map properties and labels."
+    arguments:
+      - name: map
+        description: "Map ID or label to describe."
+        required: true
+        example: 0
+      - name: format
+        description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: overworld-list-warps
+    description: "List warp entrances and exits for overworld maps, including destinations."
+    usage_notes: "Helpful for navigation questions and verifying warp destinations."
+    arguments:
+      - name: map
+        description: "Optional map filter. Defaults to all maps when omitted."
+        required: false
+        example: 1
+      - name: format
+        description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+
+tile16_reference:
+  grass: 0x020
+  dirt: 0x022
+  tree: 0x02E
+  bush: 0x003
+  rock: 0x004
+  flower: 0x021
+  sand: 0x023
+  water_top: 0x14C
+  water_middle: 0x14D
+  water_bottom: 0x14E
+  deep_water: 0x14F
+  shallow_water: 0x150
+  water_single: 0x038
+  house_00: 0x0C0
+  house_01: 0x0C1
+  house_10: 0x0D0
+  house_11: 0x0D1
+
+examples:
+  - user_prompt: "Place a tree at position 10, 20 on the Light World map"
+    text_response: "Okay, I can place that tree for you. Here is the command:"
+    reasoning: "Single tile16 placement. Tree tile ID is 0x02E in vanilla ALTTP"
+    commands:
+      - "overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E"
+  - user_prompt: "Create a 3x3 water pond at coordinates 15, 10"
+    text_response: "Creating a 3x3 pond requires nine `set-tile` commands. Here they are:"
+    reasoning: "Water areas use different edge tiles: 0x14C (top), 0x14D (middle), 0x14E (bottom)"
+    commands:
+      - "overworld set-tile --map 0 --x 15 --y 10 --tile 0x14C"
+      - "overworld set-tile --map 0 --x 16 --y 10 --tile 0x14D"
+      - "overworld set-tile --map 0 --x 17 --y 10 --tile 0x14C"
+      - "overworld set-tile --map 0 --x 15 --y 11 --tile 0x14D"
+      - "overworld set-tile --map 0 --x 16 --y 11 --tile 0x14D"
+      - "overworld set-tile --map 0 --x 17 --y 11 --tile 0x14D"
+      - "overworld set-tile --map 0 --x 15 --y 12 --tile 0x14E"
+      - "overworld set-tile --map 0 --x 16 --y 12 --tile 0x14E"
+      - "overworld set-tile --map 0 --x 17 --y 12 --tile 0x14E"
+  - user_prompt: "Add a dirt path from position 5,5 to 5,15"
+    text_response: "I will generate a `set-tile` command for each point along the path."
+    reasoning: "Linear paths are created by placing tiles sequentially. Dirt tile is 0x022"
+    commands:
+      - "overworld set-tile --map 0 --x 5 --y 5 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 6 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 7 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 8 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 9 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 10 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 11 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 12 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 13 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 14 --tile 0x022"
+      - "overworld set-tile --map 0 --x 5 --y 15 --tile 0x022"
+  - user_prompt: "Plant a row of trees horizontally at y=8 from x=20 to x=25"
+    text_response: "Here are the commands to plant that row of trees:"
+    reasoning: "Tree rows create natural barriers and visual boundaries"
+    commands:
+      - "overworld set-tile --map 0 --x 20 --y 8 --tile 0x02E"
+      - "overworld set-tile --map 0 --x 21 --y 8 --tile 0x02E"
+      - "overworld set-tile --map 0 --x 22 --y 8 --tile 0x02E"
+      - "overworld set-tile --map 0 --x 23 --y 8 --tile 0x02E"
+      - "overworld set-tile --map 0 --x 24 --y 8 --tile 0x02E"
+      - "overworld set-tile --map 0 --x 25 --y 8 --tile 0x02E"
+  - user_prompt: "Add 3 soldiers to the Eastern Palace entrance room"
+    text_response: "I've identified the dungeon and sprite IDs from your project's labels. Here are the commands:"
+    reasoning: "Dungeon ID 0x02 is Eastern Palace. Sprite 0x41 is soldier. Spread placement for balance"
+    commands:
+      - "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 5 --y 3"
+      - "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 10 --y 3"
+      - "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 7 --y 8"
+  - user_prompt: "Place a chest in the Hyrule Castle treasure room"
+    text_response: "Certainly. I will place a chest containing a small key in the center of the room."
+    reasoning: "Dungeon 0x00 is Hyrule Castle. Item 0x12 is a small key. Position centered in room"
+    commands:
+      - "dungeon add-chest --dungeon 0x00 --room 0x60 --x 7 --y 5 --item 0x12 --big false"
+  - user_prompt: "Check if my overworld changes are valid"
+    text_response: "Yes, I can validate the ROM for you."
+    reasoning: "Validation ensures ROM integrity after tile modifications"
+    commands:
+      - "rom validate"
+  - user_prompt: "What dungeons are in this project?"
+    text_response: "I can list the dungeons for you. Let me check the resource labels."
+    reasoning: "The user is asking a question. I need to use the `resource-list` tool to find the answer."
+    tool_calls:
+      - tool_name: resource-list
+        args:
+          type: dungeon

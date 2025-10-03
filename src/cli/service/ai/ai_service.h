@@ -9,6 +9,8 @@
 #include "cli/service/ai/common.h"
 
 namespace yaze {
+class Rom;
+
 namespace cli {
 namespace agent {
 struct ChatMessage;
@@ -17,6 +19,10 @@ struct ChatMessage;
 class AIService {
  public:
   virtual ~AIService() = default;
+
+    // Provide the AI service with the active ROM so prompts can include
+    // project-specific context.
+    virtual void SetRomContext(Rom* rom) { (void)rom; }
 
   // Generate a response from a single prompt.
   virtual absl::StatusOr<AgentResponse> GenerateResponse(
@@ -30,6 +36,7 @@ class AIService {
 // Mock implementation for testing
 class MockAIService : public AIService {
  public:
+    void SetRomContext(Rom* rom) override { (void)rom; }
   absl::StatusOr<AgentResponse> GenerateResponse(
       const std::string& prompt) override;
   absl::StatusOr<AgentResponse> GenerateResponse(

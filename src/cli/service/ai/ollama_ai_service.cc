@@ -1,6 +1,7 @@
 #include "cli/service/ai/ollama_ai_service.h"
 
 #include <cstdlib>
+#include <iostream>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
@@ -33,7 +34,10 @@ namespace cli {
 
 OllamaAIService::OllamaAIService(const OllamaConfig& config) : config_(config) {
   // Load command documentation into prompt builder
-  prompt_builder_.LoadResourceCatalogue("");  // TODO: Pass actual yaml path when available
+  if (auto status = prompt_builder_.LoadResourceCatalogue(""); !status.ok()) {
+    std::cerr << "⚠️  Failed to load agent prompt catalogue: "
+              << status.message() << std::endl;
+  }
   
   if (config_.system_prompt.empty()) {
     // Use enhanced prompting by default
@@ -49,6 +53,10 @@ std::string OllamaAIService::BuildSystemPrompt() {
   // Fallback prompt if enhanced prompting is disabled
   // Use PromptBuilder's basic system instruction
   return prompt_builder_.BuildSystemInstruction();
+}
+
+void OllamaAIService::SetRomContext(Rom* rom) {
+  prompt_builder_.SetRom(rom);
 }
 
 absl::Status OllamaAIService::CheckAvailability() {

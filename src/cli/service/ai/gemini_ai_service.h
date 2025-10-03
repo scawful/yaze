@@ -27,6 +27,7 @@ struct GeminiConfig {
 class GeminiAIService : public AIService {
  public:
   explicit GeminiAIService(const GeminiConfig& config);
+  void SetRomContext(Rom* rom) override;
   
   // Primary interface
   absl::StatusOr<AgentResponse> GenerateResponse(

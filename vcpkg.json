@@ -7,7 +7,8 @@
       "name": "sdl2",
       "platform": "!uwp",
       "features": ["vulkan"]
-    }
+    },
+    "yaml-cpp"
   ],
   "builtin-baseline": "4bee3f5aae7aefbc129ca81c33d6a062b02fcf3b",
   "overrides": [],

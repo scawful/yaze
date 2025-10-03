@@ -25,6 +25,8 @@ struct OllamaConfig {
 class OllamaAIService : public AIService {
  public:
   explicit OllamaAIService(const OllamaConfig& config);
+
+  void SetRomContext(Rom* rom) override;
   
   // Generate z3ed commands from natural language prompt
   absl::StatusOr<AgentResponse> GenerateResponse(

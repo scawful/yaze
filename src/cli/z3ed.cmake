@@ -11,6 +11,39 @@ if(NOT ftxui_POPULATED)
   add_subdirectory(${ftxui_SOURCE_DIR} ${ftxui_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
+find_package(yaml-cpp CONFIG)
+if(NOT yaml-cpp_FOUND)
+  message(STATUS "yaml-cpp not found via package config, fetching from source")
+  FetchContent_Declare(yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG 0.8.0
+  )
+  FetchContent_GetProperties(yaml-cpp)
+  if(NOT yaml-cpp_POPULATED)
+    FetchContent_Populate(yaml-cpp)
+
+    # Ensure compatibility with newer CMake versions by adjusting minimum requirement
+    set(_yaml_cpp_cmakelists "${yaml-cpp_SOURCE_DIR}/CMakeLists.txt")
+    if(EXISTS "${_yaml_cpp_cmakelists}")
+      file(READ "${_yaml_cpp_cmakelists}" _yaml_cpp_cmake_contents)
+      if(_yaml_cpp_cmake_contents MATCHES "cmake_minimum_required\\(VERSION 3\\.4\\)")
+        string(REPLACE "cmake_minimum_required(VERSION 3.4)"
+                       "cmake_minimum_required(VERSION 3.5)"
+                       _yaml_cpp_cmake_contents "${_yaml_cpp_cmake_contents}")
+        file(WRITE "${_yaml_cpp_cmakelists}" "${_yaml_cpp_cmake_contents}")
+      endif()
+    endif()
+
+    set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "Disable yaml-cpp tests" FORCE)
+    set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "Disable yaml-cpp contrib" FORCE)
+    set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "Disable yaml-cpp tools" FORCE)
+    set(YAML_CPP_INSTALL OFF CACHE BOOL "Disable yaml-cpp install" FORCE)
+    set(YAML_CPP_FORMAT_SOURCE OFF CACHE BOOL "Disable yaml-cpp format target" FORCE)
+
+    add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR} EXCLUDE_FROM_ALL)
+  endif()
+endif()
+
 # Platform-specific file dialog sources
 if(APPLE)
   set(FILE_DIALOG_SRC 
@@ -128,6 +161,7 @@ target_link_libraries(
   z3ed PUBLIC
   asar-static
   yaze_agent
+  yaml-cpp
   ftxui::component
   ftxui::screen
   ftxui::dom

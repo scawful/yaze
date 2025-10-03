@@ -24,6 +24,7 @@ target_link_libraries(yaze_agent
   PUBLIC
     yaze_common
     ${ABSL_TARGETS}
+    yaml-cpp
 )
 
 target_include_directories(yaze_agent
