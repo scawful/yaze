@@ -125,6 +125,15 @@ struct TestResultDetails {
   std::string widget_state;
 };
 
+struct ReplayTestResult {
+  bool success = false;
+  std::string message;
+  std::string replay_session_id;
+  int steps_executed = 0;
+  std::vector<AssertionOutcome> assertions;
+  std::vector<std::string> logs;
+};
+
 enum class WidgetTypeFilter {
   kUnspecified,
   kAll,
@@ -289,6 +298,10 @@ class GuiAutomationClient {
 
   absl::StatusOr<DiscoverWidgetsResult> DiscoverWidgets(
       const DiscoverWidgetsQuery& query);
+
+  absl::StatusOr<ReplayTestResult> ReplayTest(
+    const std::string& script_path, bool ci_mode,
+    const std::map<std::string, std::string>& parameter_overrides = {});
 
   /**
    * @brief Check if client is connected
