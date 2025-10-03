@@ -51,6 +51,11 @@ add_executable(
   cli/service/resource_catalog.cc
   cli/service/rom_sandbox_manager.cc
   cli/service/policy_evaluator.cc
+  cli/service/test_suite.h
+  cli/service/test_suite_loader.cc
+  cli/service/test_suite_loader.h
+  cli/service/test_suite_reporter.cc
+  cli/service/test_suite_reporter.h
   cli/service/gemini_ai_service.cc
   app/rom.cc
   app/core/project.cc
