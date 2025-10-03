@@ -44,6 +44,7 @@ if (APPLE)
     MACOSX_BUNDLE_COPYRIGHT "Copyright © 2024 scawful. All rights reserved."
   )
 else()
+  # Windows/Linux builds
   add_executable(
     yaze
     app/main.cc
@@ -137,10 +138,24 @@ target_compile_definitions(yaze PRIVATE YAZE_ENABLE_POLICY_FRAMEWORK=1)
 # Increase stack size on Windows to prevent stack overflow during asset loading
 # Windows default is 1MB, macOS/Linux is typically 8MB
 # LoadAssets() loads 223 graphics sheets and initializes multiple editors
-if(MSVC)
-  target_link_options(yaze PRIVATE /STACK:8388608)  # 8MB stack
-elseif(MINGW)
-  target_link_options(yaze PRIVATE -Wl,--stack,8388608)
+if(WIN32)
+  if(MSVC)
+    # Set Windows subsystem to WINDOWS (GUI app, no console)
+    # But keep main() as entry point (SDL_MAIN_HANDLED is set globally)
+    target_link_options(yaze PRIVATE 
+      /STACK:8388608          # 8MB stack
+      /SUBSYSTEM:WINDOWS      # Windows GUI subsystem
+      /ENTRY:mainCRTStartup   # Use main() instead of WinMain()
+    )
+    message(STATUS "Configuring yaze as Windows GUI application with main() entry point")
+  elseif(MINGW OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(yaze PRIVATE 
+      -Wl,--stack,8388608     # 8MB stack
+      -Wl,--subsystem,windows # Windows GUI subsystem
+      -Wl,-emain              # Use main() as entry point
+    )
+    message(STATUS "Configuring yaze as Windows GUI application with main() entry point (MinGW)")
+  endif()
 endif()
 
 # Conditionally link ImGui Test Engine
