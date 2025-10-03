@@ -6,15 +6,21 @@
 #include <map>
 
 #include "absl/status/statusor.h"
+#include "cli/service/ai/common.h"
 #include "cli/service/resources/resource_context_builder.h"
 #include "app/rom.h"
 
 namespace yaze {
 namespace cli {
 
+namespace agent {
+struct ChatMessage;
+}
+
 // Few-shot example for prompt engineering
 struct FewShotExample {
   std::string user_prompt;
+  std::string text_response;
   std::vector<std::string> expected_commands;
   std::string explanation;  // Why these commands work
 };
@@ -47,6 +53,10 @@ class PromptBuilder {
   std::string BuildContextualPrompt(
       const std::string& user_prompt,
       const RomContext& context);
+      
+  // Build a full prompt from a conversation history
+  std::string BuildPromptFromHistory(
+      const std::vector<agent::ChatMessage>& history);
   
   // Add custom few-shot examples
   void AddFewShotExample(const FewShotExample& example);

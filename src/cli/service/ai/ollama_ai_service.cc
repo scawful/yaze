@@ -4,6 +4,7 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "cli/service/agent/conversational_agent_service.h"
 
 // Check if we have httplib available (from vcpkg or bundled)
 #if __has_include("httplib.h")
@@ -164,24 +165,34 @@ absl::StatusOr<std::string> OllamaAIService::ParseOllamaResponse(
 #endif
 }
 
-absl::StatusOr<std::vector<std::string>> OllamaAIService::GetCommands(
+absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
     const std::string& prompt) {
+  return GenerateResponse({{{agent::ChatMessage::Sender::kUser, prompt, absl::Now()}}});
+}
+
+absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
+    const std::vector<agent::ChatMessage>& history) {
 #if !YAZE_HAS_HTTPLIB || !YAZE_HAS_JSON
   return absl::UnimplementedError(
       "Ollama service requires httplib and JSON support. "
       "Install vcpkg dependencies or use bundled libraries.");
 #else
-  
+  // TODO: Implement history-aware prompting.
+  if (history.empty()) {
+    return absl::InvalidArgumentError("History cannot be empty.");
+  }
+  std::string prompt = prompt_builder_.BuildPromptFromHistory(history);
+
   // Build request payload
   nlohmann::json request_body = {
-    {"model", config_.model},
-    {"prompt", config_.system_prompt + "\n\nUSER REQUEST: " + prompt},
-    {"stream", false},
-    {"options", {
-      {"temperature", config_.temperature},
-      {"num_predict", config_.max_tokens}
-    }},
-    {"format", "json"}  // Force JSON output
+      {"model", config_.model},
+      {"system", config_.system_prompt},
+      {"prompt", prompt},
+      {"stream", false},
+      {"options",
+       {{"temperature", config_.temperature},
+        {"num_predict", config_.max_tokens}}},
+      {"format", "json"}  // Force JSON output
   };
   
   try {
@@ -203,58 +214,52 @@ absl::StatusOr<std::vector<std::string>> OllamaAIService::GetCommands(
     }
     
     // Parse response to extract generated text
-    auto generated_text_or = ParseOllamaResponse(res->body);
-    if (!generated_text_or.ok()) {
-      return generated_text_or.status();
-    }
-    std::string generated_text = generated_text_or.value();
-    
-    // Parse the command array from generated text
-    nlohmann::json commands_json;
+    nlohmann::json response_json;
     try {
-      commands_json = nlohmann::json::parse(generated_text);
+      response_json = nlohmann::json::parse(res->body);
     } catch (const nlohmann::json::exception& e) {
-      // Sometimes the LLM includes extra text - try to extract JSON array
-      size_t start = generated_text.find('[');
-      size_t end = generated_text.rfind(']');
+      // Sometimes the LLM includes extra text - try to extract JSON object
+      size_t start = res->body.find('{');
+      size_t end = res->body.rfind('}');
       
       if (start != std::string::npos && end != std::string::npos && end > start) {
-        std::string json_only = generated_text.substr(start, end - start + 1);
+        std::string json_only = res->body.substr(start, end - start + 1);
         try {
-          commands_json = nlohmann::json::parse(json_only);
+          response_json = nlohmann::json::parse(json_only);
         } catch (const nlohmann::json::exception&) {
           return absl::InvalidArgumentError(
-              "LLM did not return valid JSON. Response:\n" + generated_text);
+              "LLM did not return valid JSON. Response:\n" + res->body);
         }
       } else {
         return absl::InvalidArgumentError(
-            "LLM did not return a JSON array. Response:\n" + generated_text);
+            "LLM did not return a JSON object. Response:\n" + res->body);
       }
     }
     
-    if (!commands_json.is_array()) {
-      return absl::InvalidArgumentError(
-          "LLM did not return a JSON array. Response:\n" + generated_text);
+    AgentResponse agent_response;
+    if (response_json.contains("text_response") &&
+        response_json["text_response"].is_string()) {
+      agent_response.text_response =
+          response_json["text_response"].get<std::string>();
     }
-    
-    std::vector<std::string> commands;
-    for (const auto& cmd : commands_json) {
-      if (cmd.is_string()) {
-        commands.push_back(cmd.get<std::string>());
+    if (response_json.contains("reasoning") &&
+        response_json["reasoning"].is_string()) {
+      agent_response.reasoning = response_json["reasoning"].get<std::string>();
+    }
+    if (response_json.contains("commands") &&
+        response_json["commands"].is_array()) {
+      for (const auto& cmd : response_json["commands"]) {
+        if (cmd.is_string()) {
+          agent_response.commands.push_back(cmd.get<std::string>());
+        }
       }
     }
-    
-    if (commands.empty()) {
-      return absl::InvalidArgumentError(
-          "LLM returned empty command list. Prompt may be unclear.\n"
-          "Try rephrasing your request to be more specific.");
-    }
-    
-    return commands;
-    
+
+    return agent_response;
+
   } catch (const std::exception& e) {
-    return absl::InternalError(absl::StrCat(
-        "Ollama request failed: ", e.what()));
+    return absl::InternalError(
+        absl::StrCat("Ollama request failed: ", e.what()));
   }
 #endif
 }

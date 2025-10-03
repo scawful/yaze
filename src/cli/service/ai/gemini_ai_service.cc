@@ -1,4 +1,5 @@
 #include "cli/service/ai/gemini_ai_service.h"
+#include "cli/service/agent/conversational_agent_service.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -88,12 +89,24 @@ absl::Status GeminiAIService::CheckAvailability() {
 #endif
 }
 
-absl::StatusOr<std::vector<std::string>> GeminiAIService::GetCommands(
+absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     const std::string& prompt) {
+  return GenerateResponse({{{agent::ChatMessage::Sender::kUser, prompt, absl::Now()}}});
+}
+
+absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
+    const std::vector<agent::ChatMessage>& history) {
 #ifndef YAZE_WITH_JSON
   return absl::UnimplementedError(
       "Gemini AI service requires JSON support. Build with -DYAZE_WITH_JSON=ON");
 #else
+  // TODO: Implement history-aware prompting.
+  if (history.empty()) {
+    return absl::InvalidArgumentError("History cannot be empty.");
+  }
+  
+  std::string prompt = prompt_builder_.BuildPromptFromHistory(history);
+
   // Validate configuration
   if (auto status = CheckAvailability(); !status.ok()) {
     return status;
@@ -142,10 +155,10 @@ absl::StatusOr<std::vector<std::string>> GeminiAIService::GetCommands(
 #endif
 }
 
-absl::StatusOr<std::vector<std::string>> GeminiAIService::ParseGeminiResponse(
+absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
     const std::string& response_body) {
 #ifdef YAZE_WITH_JSON
-  std::vector<std::string> commands;
+  AgentResponse agent_response;
   
   try {
     nlohmann::json response_json = nlohmann::json::parse(response_body);
@@ -181,24 +194,33 @@ absl::StatusOr<std::vector<std::string>> GeminiAIService::ParseGeminiResponse(
         }
         text_content = std::string(absl::StripAsciiWhitespace(text_content));
         
-        // Parse as JSON array
+        // Parse as JSON object
         try {
-          nlohmann::json commands_array = nlohmann::json::parse(text_content);
-          
-          if (commands_array.is_array()) {
-            for (const auto& cmd : commands_array) {
+          nlohmann::json response_json = nlohmann::json::parse(text_content);
+          if (response_json.contains("text_response") &&
+              response_json["text_response"].is_string()) {
+            agent_response.text_response =
+                response_json["text_response"].get<std::string>();
+          }
+          if (response_json.contains("reasoning") &&
+              response_json["reasoning"].is_string()) {
+            agent_response.reasoning =
+                response_json["reasoning"].get<std::string>();
+          }
+          if (response_json.contains("commands") &&
+              response_json["commands"].is_array()) {
+            for (const auto& cmd : response_json["commands"]) {
               if (cmd.is_string()) {
                 std::string command = cmd.get<std::string>();
-                // Remove "z3ed " prefix if LLM included it
                 if (absl::StartsWith(command, "z3ed ")) {
                   command = command.substr(5);
                 }
-                commands.push_back(command);
+                agent_response.commands.push_back(command);
               }
             }
           }
         } catch (const nlohmann::json::exception& inner_e) {
-          // Fallback: Try to extract commands line by line
+          // If parsing the full object fails, fallback to just commands
           std::vector<std::string> lines = absl::StrSplit(text_content, '\n');
           for (const auto& line : lines) {
             std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
@@ -211,7 +233,7 @@ absl::StatusOr<std::vector<std::string>> GeminiAIService::ParseGeminiResponse(
               if (absl::StartsWith(trimmed, "z3ed ")) {
                 trimmed = trimmed.substr(5);
               }
-              commands.push_back(trimmed);
+              agent_response.commands.push_back(trimmed);
             }
           }
         }
@@ -222,13 +244,13 @@ absl::StatusOr<std::vector<std::string>> GeminiAIService::ParseGeminiResponse(
         absl::StrCat("❌ Failed to parse Gemini response: ", e.what()));
   }
   
-  if (commands.empty()) {
+  if (agent_response.commands.empty()) {
     return absl::InternalError(
         "❌ No valid commands extracted from Gemini response\n"
         "   Raw response: " + response_body);
   }
   
-  return commands;
+  return agent_response;
 #else
   return absl::UnimplementedError("JSON support required");
 #endif

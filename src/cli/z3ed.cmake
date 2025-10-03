@@ -38,6 +38,7 @@ add_executable(
   cli/tui/asar_patch.cc
   cli/tui/palette_editor.cc
   cli/tui/command_palette.cc
+  cli/tui/chat_tui.cc
   cli/modern_cli.cc
   cli/handlers/command_palette.cc
   cli/handlers/project.cc
@@ -66,6 +67,10 @@ add_executable(
   cli/service/planning/tile16_proposal_generator.cc
   cli/service/resources/resource_context_builder.h
   cli/service/resources/resource_context_builder.cc
+  cli/service/agent/conversational_agent_service.h
+  cli/service/agent/conversational_agent_service.cc
+  cli/service/ai/service_factory.h
+  cli/service/ai/service_factory.cc
   app/rom.cc
   app/core/project.cc
   app/core/asar_wrapper.cc
