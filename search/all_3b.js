@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['🔄_0',['🔄',['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1430',1,'In Progress 🔄'],['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md791',1,'Phase 2: Integrate Components 🔄']]],
-  ['🔄_20in_20progress_1',['🔄 in progress',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md787',1,'🔄 In Progress'],['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html#autotoc_md1397',1,'IT-08b: Auto-Capture on Test Failure 🔄 IN PROGRESS']]]
+  ['📝_20files_20changed_20summary_0',['📝 Files Changed Summary',['../d9/df7/md_docs_2z3ed_2LLM-PROGRESS-UPDATE.html#autotoc_md1723',1,'']]],
+  ['📝_20notes_1',['📝 Notes',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md382',1,'']]]
 ];

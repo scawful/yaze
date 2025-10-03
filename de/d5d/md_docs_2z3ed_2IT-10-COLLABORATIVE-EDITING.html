@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('de/d5d/md_docs_2z3ed_2IT-10-COLLABORAT
   <div class="headertitle"><div class="title">IT-10: Collaborative Editing &amp; Multiplayer Sessions</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1460"></a> <b>Priority</b>: P2 (High value, non-blocking) <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md1468"></a> <b>Priority</b>: P2 (High value, non-blocking) <br  />
  <b>Status</b>: 📋 Planned <br  />
  <b>Estimated Effort</b>: 12-15 hours <br  />
  <b>Dependencies</b>: IT-05 (Test Introspection), IT-08 (Screenshot Capture) <br  />
  <b>Target</b>: Enable real-time collaborative ROM editing with AI assistance</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1462"></a>
+<h1><a class="anchor" id="autotoc_md1470"></a>
 Vision</h1>
 <p>Enable multiple users to connect to the same YAZE session, see each other's edits in real-time, and collaborate with AI agents together. Think "Google Docs for ROM hacking" where users can:</p>
 <ul>
@@ -118,9 +118,9 @@ Vision</h1>
 <li><b>Review changes together</b> with live cursors and annotations</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1464"></a>
+<h1><a class="anchor" id="autotoc_md1472"></a>
 User Stories</h1>
-<h2><a class="anchor" id="autotoc_md1465"></a>
+<h2><a class="anchor" id="autotoc_md1473"></a>
 US-1: Session Host &amp; Join</h2>
 <p><b>As a ROM hacker</b>, I want to host a collaborative editing session so my teammates can join and work together.</p>
 <div class="fragment"><div class="line"># Host creates a session</div>
@@ -144,7 +144,7 @@ US-1: Session Host &amp; Join</h2>
 <li>Maximum 8 concurrent users per session</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1467"></a>
+<h2><a class="anchor" id="autotoc_md1475"></a>
 US-2: Real-Time Edit Synchronization</h2>
 <p><b>As a collaborator</b>, I want to see other users' edits in real-time so we stay synchronized.</p>
 <p><b>Scenario</b>: Alice edits a tile in Overworld Editor </p><div class="fragment"><div class="line">Alice&#39;s GUI:</div>
@@ -160,7 +160,7 @@ US-2: Real-Time Edit Synchronization</h2>
 <li>Cursor positions visible for all users</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1469"></a>
+<h2><a class="anchor" id="autotoc_md1477"></a>
 US-3: Shared AI Agent</h2>
 <p><b>As a team lead</b>, I want to use AI agents with my team so we can all benefit from automation.</p>
 <div class="fragment"><div class="line"># Alice (host) runs an AI agent test</div>
@@ -194,7 +194,7 @@ US-3: Shared AI Agent</h2>
 <li>Failed operations rollback for all users</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1471"></a>
+<h2><a class="anchor" id="autotoc_md1479"></a>
 US-4: Live Cursors &amp; Annotations</h2>
 <p><b>As a collaborator</b>, I want to see where other users are working so we don't conflict.</p>
 <p><b>Visual Indicators</b>: </p><div class="fragment"><div class="line">┌─────────────────────────────────────────────┐</div>
@@ -216,7 +216,7 @@ US-4: Live Cursors &amp; Annotations</h2>
 <li>Annotation tools (pins, comments, highlights)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1473"></a>
+<h2><a class="anchor" id="autotoc_md1481"></a>
 US-5: Session Recording &amp; Replay</h2>
 <p><b>As a project manager</b>, I want to record collaborative sessions so we can review work later.</p>
 <div class="fragment"><div class="line"># Host enables session recording</div>
@@ -244,11 +244,11 @@ US-5: Session Recording &amp; Replay</h2>
 <li>Audit log for compliance/review</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1475"></a>
+<h1><a class="anchor" id="autotoc_md1483"></a>
 Architecture</h1>
-<h2><a class="anchor" id="autotoc_md1476"></a>
+<h2><a class="anchor" id="autotoc_md1484"></a>
 Components</h2>
-<h3><a class="anchor" id="autotoc_md1477"></a>
+<h3><a class="anchor" id="autotoc_md1485"></a>
 1. Collaboration Server (New)</h3>
 <p><b>Location</b>: <code>src/app/core/collab/collab_server.{h,cc}</code></p>
 <p><b>Responsibilities</b>:</p><ul>
@@ -288,7 +288,7 @@ Components</h2>
 <div class="line">  SessionState session_state_;</div>
 <div class="line">};</div>
 </div><!-- fragment --><hr  />
-<h3><a class="anchor" id="autotoc_md1479"></a>
+<h3><a class="anchor" id="autotoc_md1487"></a>
 2. Collaboration Client (New)</h3>
 <p><b>Location</b>: <code>src/app/core/collab/collab_client.{h,cc}</code></p>
 <p><b>Responsibilities</b>:</p><ul>
@@ -321,7 +321,7 @@ Components</h2>
 <div class="line">  SessionInfo session_info_;</div>
 <div class="line">};</div>
 </div><!-- fragment --><hr  />
-<h3><a class="anchor" id="autotoc_md1481"></a>
+<h3><a class="anchor" id="autotoc_md1489"></a>
 3. Edit Event Protocol (New)</h3>
 <p><b>Location</b>: <code>src/app/core/proto/collab_events.proto</code></p>
 <p><b>Message Definitions</b>: </p><div class="fragment"><div class="line">syntax = &quot;proto3&quot;;</div>
@@ -420,7 +420,7 @@ Components</h2>
 <div class="line">  string active_editor = 6;</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h3><a class="anchor" id="autotoc_md1483"></a>
+<h3><a class="anchor" id="autotoc_md1491"></a>
 4. Conflict Resolution System</h3>
 <p><b>Challenge</b>: Multiple users edit the same tile/sprite simultaneously</p>
 <p><b>Solution</b>: Operational Transformation (OT) with timestamps</p>
@@ -446,7 +446,7 @@ Components</h2>
 <li><b>Undo/Redo</b>: Undo takes precedence (explicit user intent)</li>
 </ol>
 <hr  />
-<h3><a class="anchor" id="autotoc_md1485"></a>
+<h3><a class="anchor" id="autotoc_md1493"></a>
 5. GUI Integration</h3>
 <p><b>Status Bar Indicator</b>: </p><div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────────┐</div>
 <div class="line">│ File  Edit  View  Tools  Help          👥 3 users connected │</div>
@@ -488,9 +488,9 @@ Components</h2>
 <div class="line">  }</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1487"></a>
+<h1><a class="anchor" id="autotoc_md1495"></a>
 CLI Commands</h1>
-<h2><a class="anchor" id="autotoc_md1488"></a>
+<h2><a class="anchor" id="autotoc_md1496"></a>
 Session Management</h2>
 <div class="fragment"><div class="line"># Host a session</div>
 <div class="line">z3ed collab host [options]</div>
@@ -514,7 +514,7 @@ Session Management</h2>
 <div class="line"> </div>
 <div class="line"># Kick user (host only)</div>
 <div class="line">z3ed collab kick &lt;user-id&gt;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1489"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1497"></a>
 Session Replay</h2>
 <div class="fragment"><div class="line"># Replay recorded session</div>
 <div class="line">z3ed collab replay &lt;file&gt; [options]</div>
@@ -529,9 +529,9 @@ Session Replay</h2>
 <div class="line">  --include-chat          Include chat messages</div>
 <div class="line">  --include-proposals     Include AI proposals</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1491"></a>
+<h1><a class="anchor" id="autotoc_md1499"></a>
 Implementation Plan</h1>
-<h2><a class="anchor" id="autotoc_md1492"></a>
+<h2><a class="anchor" id="autotoc_md1500"></a>
 Phase 1: Core Networking (4-5 hours)</h2>
 <p><b>Tasks</b>:</p><ol type="1">
 <li>Set up WebSocket server (using <code>libwebsockets</code> or <code>Boost.Beast</code>)</li>
@@ -552,7 +552,7 @@ Phase 1: Core Networking (4-5 hours)</h2>
 <li>Client B receives edit event</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1494"></a>
+<h2><a class="anchor" id="autotoc_md1502"></a>
 Phase 2: Edit Synchronization (3-4 hours)</h2>
 <p><b>Tasks</b>:</p><ol type="1">
 <li>Hook into editor event system (Overworld, Dungeon, Tile16, Palette)</li>
@@ -572,7 +572,7 @@ Phase 2: Edit Synchronization (3-4 hours)</h2>
 <li>Simultaneous edits resolve correctly (no data corruption)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1496"></a>
+<h2><a class="anchor" id="autotoc_md1504"></a>
 Phase 3: GUI Integration (2-3 hours)</h2>
 <p><b>Tasks</b>:</p><ol type="1">
 <li>Add status bar indicator (connected users count)</li>
@@ -592,7 +592,7 @@ Phase 3: GUI Integration (2-3 hours)</h2>
 <li>User can see what editor others are using</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1498"></a>
+<h2><a class="anchor" id="autotoc_md1506"></a>
 Phase 4: AI Agent Sharing (2-3 hours)</h2>
 <p><b>Tasks</b>:</p><ol type="1">
 <li>Broadcast AI proposals to all session members</li>
@@ -612,7 +612,7 @@ Phase 4: AI Agent Sharing (2-3 hours)</h2>
 <li>Proposal execution synchronized (all users see same result)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1500"></a>
+<h2><a class="anchor" id="autotoc_md1508"></a>
 Phase 5: Session Recording &amp; Replay (1-2 hours)</h2>
 <p><b>Tasks</b>:</p><ol type="1">
 <li>Implement session recorder (capture all events to file)</li>
@@ -631,9 +631,9 @@ Phase 5: Session Recording &amp; Replay (1-2 hours)</h2>
 <li>Seek/speed control works correctly</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1502"></a>
+<h1><a class="anchor" id="autotoc_md1510"></a>
 Security &amp; Safety Considerations</h1>
-<h2><a class="anchor" id="autotoc_md1503"></a>
+<h2><a class="anchor" id="autotoc_md1511"></a>
 Authentication</h2>
 <p><b>Password Protection</b>:</p><ul>
 <li>Session host sets optional password</li>
@@ -646,7 +646,7 @@ Authentication</h2>
 <li>Revocation list for kicked users</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1505"></a>
+<h2><a class="anchor" id="autotoc_md1513"></a>
 Authorization</h2>
 <p><b>Access Levels</b>:</p><ol type="1">
 <li><b>Host</b>: Full control (read-write, kick users, end session)</li>
@@ -668,7 +668,7 @@ Authorization</h2>
 <div class="line">  <span class="keywordtype">void</span> SetAccessLevel(<span class="keyword">const</span> std::string&amp; user_id, AccessLevel level);</div>
 <div class="line">};</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md1507"></a>
+<h2><a class="anchor" id="autotoc_md1515"></a>
 Data Integrity</h2>
 <p><b>ROM Checksum Verification</b>:</p><ul>
 <li>Host broadcasts ROM checksum (SHA256) on session start</li>
@@ -681,7 +681,7 @@ Data Integrity</h2>
 <li>Clients trust server's validation (reduces client-side checks)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1509"></a>
+<h2><a class="anchor" id="autotoc_md1517"></a>
 Network Security</h2>
 <p><b>Encryption</b> (Optional, for public internet sessions):</p><ul>
 <li>Use WSS (WebSocket Secure) with TLS/SSL</li>
@@ -694,9 +694,9 @@ Network Security</h2>
 <li>Prevents spam/DOS attacks</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1511"></a>
+<h1><a class="anchor" id="autotoc_md1519"></a>
 Testing Strategy</h1>
-<h2><a class="anchor" id="autotoc_md1512"></a>
+<h2><a class="anchor" id="autotoc_md1520"></a>
 Unit Tests</h2>
 <p><b>Conflict Resolution</b>: </p><div class="fragment"><div class="line">TEST(ConflictResolverTest, LastWriteWins) {</div>
 <div class="line">  ConflictResolver resolver;</div>
@@ -721,7 +721,7 @@ Unit Tests</h2>
 <div class="line">  <span class="comment">// Both edits should be applied (different layers)</span></div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md1514"></a>
+<h2><a class="anchor" id="autotoc_md1522"></a>
 Integration Tests</h2>
 <p><b>Session Connection</b>: </p><div class="fragment"><div class="line">TEST(CollabServerTest, ClientConnection) {</div>
 <div class="line">  CollabServer server;</div>
@@ -753,7 +753,7 @@ Integration Tests</h2>
 <div class="line">  EXPECT_TRUE(client2.HasReceivedEdit(edit.event_id()));</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md1516"></a>
+<h2><a class="anchor" id="autotoc_md1524"></a>
 E2E Tests</h2>
 <p><b>Collaborative Workflow</b>: </p><div class="fragment"><div class="line">#!/bin/bash</div>
 <div class="line"># tests/e2e/test_collab_workflow.sh</div>
@@ -798,9 +798,9 @@ E2E Tests</h2>
 <div class="line"># Cleanup</div>
 <div class="line">kill $HOST_PID $CLIENT1_PID $CLIENT2_PID</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1518"></a>
+<h1><a class="anchor" id="autotoc_md1526"></a>
 Performance Considerations</h1>
-<h2><a class="anchor" id="autotoc_md1519"></a>
+<h2><a class="anchor" id="autotoc_md1527"></a>
 Bandwidth Usage</h2>
 <p><b>Typical Edit Event Size</b>:</p><ul>
 <li>TileEdit: ~50 bytes (protobuf encoded)</li>
@@ -818,7 +818,7 @@ Bandwidth Usage</h2>
 <li>Message prioritization (edits &gt; cursors &gt; chat)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1521"></a>
+<h2><a class="anchor" id="autotoc_md1529"></a>
 Latency Targets</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -839,9 +839,9 @@ Latency Targets</h2>
 <li>Predictive rendering (interpolate remote cursors)</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1523"></a>
+<h1><a class="anchor" id="autotoc_md1531"></a>
 Future Enhancements</h1>
-<h2><a class="anchor" id="autotoc_md1524"></a>
+<h2><a class="anchor" id="autotoc_md1532"></a>
 Voice Chat Integration</h2>
 <p><b>Idea</b>: Embed WebRTC voice chat for real-time communication</p>
 <div class="fragment"><div class="line">z3ed collab host --voice --voice-codec opus</div>
@@ -851,7 +851,7 @@ Voice Chat Integration</h2>
 <li>Optional (users can disable if not needed)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1526"></a>
+<h2><a class="anchor" id="autotoc_md1534"></a>
 Persistent Sessions</h2>
 <p><b>Idea</b>: Sessions persist across host disconnects (using Redis)</p>
 <p><b>Architecture</b>: </p><div class="fragment"><div class="line">┌──────────┐     ┌───────────┐     ┌──────────┐</div>
@@ -867,7 +867,7 @@ Persistent Sessions</h2>
 <li>Session state preserved (users, edits, proposals)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1528"></a>
+<h2><a class="anchor" id="autotoc_md1536"></a>
 Cloud-Hosted Sessions</h2>
 <p><b>Idea</b>: Deploy collab server to cloud for public access</p>
 <div class="fragment"><div class="line"># Deploy to AWS/GCP/Azure</div>
@@ -881,7 +881,7 @@ Cloud-Hosted Sessions</h2>
 <li>Centralized session management</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1530"></a>
+<h2><a class="anchor" id="autotoc_md1538"></a>
 Integration with Version Control</h2>
 <p><b>Idea</b>: Auto-commit edits to Git during collaborative sessions</p>
 <div class="fragment"><div class="line">z3ed collab host --git-auto-commit --git-interval 5m</div>
@@ -891,16 +891,16 @@ Integration with Version Control</h2>
 <li>Creates audit trail for rollback/review</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1532"></a>
+<h1><a class="anchor" id="autotoc_md1540"></a>
 Success Metrics</h1>
-<h2><a class="anchor" id="autotoc_md1533"></a>
+<h2><a class="anchor" id="autotoc_md1541"></a>
 Adoption Metrics</h2>
 <ul>
 <li><b>Active Sessions</b>: 50+ concurrent sessions within 3 months</li>
 <li><b>User Retention</b>: 60% of users who try collab use it again</li>
 <li><b>Session Duration</b>: Average 30+ minutes per session</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1534"></a>
+<h2><a class="anchor" id="autotoc_md1542"></a>
 Technical Metrics</h2>
 <ul>
 <li><b>Edit Latency</b>: &lt;100ms p99 (99th percentile)</li>
@@ -908,7 +908,7 @@ Technical Metrics</h2>
 <li><b>Conflict Rate</b>: &lt;1% of edits result in conflicts</li>
 <li><b>Bandwidth</b>: &lt;5 KB/sec per client average</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1535"></a>
+<h2><a class="anchor" id="autotoc_md1543"></a>
 User Satisfaction</h2>
 <ul>
 <li>**NPS Score**: 40+ (Net Promoter Score)</li>
@@ -916,9 +916,9 @@ User Satisfaction</h2>
 <li>**Support Tickets**: &lt;10 per month related to collab features</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1537"></a>
+<h1><a class="anchor" id="autotoc_md1545"></a>
 Risks &amp; Mitigation</h1>
-<h2><a class="anchor" id="autotoc_md1538"></a>
+<h2><a class="anchor" id="autotoc_md1546"></a>
 Risk 1: Network Latency</h2>
 <p><b>Impact</b>: High latency (&gt;200ms) degrades user experience</p>
 <p><b>Mitigation</b>:</p><ul>
@@ -927,7 +927,7 @@ Risk 1: Network Latency</h2>
 <li>Suggest LAN-only for high-latency users</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1540"></a>
+<h2><a class="anchor" id="autotoc_md1548"></a>
 Risk 2: Data Corruption</h2>
 <p><b>Impact</b>: Conflicting edits corrupt ROM data</p>
 <p><b>Mitigation</b>:</p><ul>
@@ -937,7 +937,7 @@ Risk 2: Data Corruption</h2>
 <li>Auto-save backups every 5 minutes (local + server)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1542"></a>
+<h2><a class="anchor" id="autotoc_md1550"></a>
 Risk 3: Security Vulnerabilities</h2>
 <p><b>Impact</b>: Malicious users could inject invalid edits or DOS the server</p>
 <p><b>Mitigation</b>:</p><ul>
@@ -947,7 +947,7 @@ Risk 3: Security Vulnerabilities</h2>
 <li>Audit logging (all events logged for forensics)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1544"></a>
+<h2><a class="anchor" id="autotoc_md1552"></a>
 Risk 4: Scalability</h2>
 <p><b>Impact</b>: Server struggles with 8+ concurrent users</p>
 <p><b>Mitigation</b>:</p><ul>
@@ -957,7 +957,7 @@ Risk 4: Scalability</h2>
 <li>Hard cap at 8 users per session (prevents overload)</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1546"></a>
+<h1><a class="anchor" id="autotoc_md1554"></a>
 Summary</h1>
 <p>IT-10 brings <b>real-time collaborative editing</b> to YAZE, enabling teams to work together on ROM hacks with AI assistance. Key features:</p>
 <p>✅ <b>Session Hosting</b>: Host collaborative sessions with password protection <br  />

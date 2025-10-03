@@ -2,6 +2,7 @@ var general__commands_8cc =
 [
     [ "yaze::cli::agent::anonymous_namespace{general_commands.cc}::DescribeOptions", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions" ],
     [ "ABSL_DECLARE_FLAG", "d9/d8d/general__commands_8cc.html#aa9c3df97146a4533c1c78f5ac7c9e36e", null ],
+    [ "CreateAIService", "d9/d8d/general__commands_8cc.html#a3b384fcc92873946c5a14e930978d3f7", null ],
     [ "ParseDescribeArgs", "d9/d8d/general__commands_8cc.html#ad45792c6e00bfd5e60f63ecf17dc70e4", null ],
     [ "HandleRunCommand", "d9/d8d/general__commands_8cc.html#a4c88dbe6c96f20bba8fd432738e1a528", null ],
     [ "HandlePlanCommand", "d9/d8d/general__commands_8cc.html#af164e32341de8c5ac58d6836bb3bc483", null ],

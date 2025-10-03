@@ -1,17 +1,8 @@
 var searchData=
 [
-  ['implementation_0',['implementation',['../d7/d30/md_docs_2analysis_2dungeon__parallel__optimization__summary.html',1,'DungeonEditor Parallel Optimization Implementation'],['../d6/df4/md_docs_2gfx__optimizations__complete.html',1,'YAZE Graphics System Optimizations - Complete Implementation']]],
-  ['implementation_20analysis_1',['ZScream C# vs YAZE C++ Overworld Implementation Analysis',['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'']]],
-  ['implementation_20guide_2',['implementation guide',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html',1,'IT-05: Test Introspection API – Implementation Guide'],['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html',1,'IT-08: Enhanced Error Reporting Implementation Guide'],['../d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html',1,'IT-08b: Auto-Capture on Test Failure - Implementation Guide']]],
-  ['implementation_20summary_3',['yaze Graphics System Optimizations - Implementation Summary',['../d3/d7b/md_docs_2gfx__optimizations__implemented.html',1,'']]],
-  ['implementation_20yaze_20graphics_20optimizations_4',['Atlas Rendering Implementation - YAZE Graphics Optimizations',['../db/d26/md_docs_2atlas__rendering__implementation.html',1,'']]],
-  ['improvements_5',['improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'Platform Compatibility Improvements'],['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'Stability, Testability &amp; Release Workflow Improvements']]],
-  ['improvements_20summary_6',['YAZE Graphics System Improvements Summary',['../d9/df4/md_docs_2gfx__improvements__summary.html',1,'']]],
-  ['instructions_7',['Build Instructions',['../d9/d41/md_docs_202-build-instructions.html',1,'']]],
-  ['integration_8',['Asar 65816 Assembler Integration',['../d2/dd3/md_docs_203-asar-integration.html',1,'']]],
-  ['introspection_20api_20–_20implementation_20guide_9',['IT-05: Test Introspection API – Implementation Guide',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html',1,'']]],
-  ['it_2005_3a_20test_20introspection_20api_20–_20implementation_20guide_10',['IT-05: Test Introspection API – Implementation Guide',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html',1,'']]],
-  ['it_2008_3a_20enhanced_20error_20reporting_20implementation_20guide_11',['IT-08: Enhanced Error Reporting Implementation Guide',['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html',1,'']]],
-  ['it_2008b_3a_20auto_20capture_20on_20test_20failure_20implementation_20guide_12',['IT-08b: Auto-Capture on Test Failure - Implementation Guide',['../d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html',1,'']]],
-  ['it_2010_3a_20collaborative_20editing_20multiplayer_20sessions_13',['IT-10: Collaborative Editing &amp; Multiplayer Sessions',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html',1,'']]]
+  ['failure_20implementation_20guide_0',['IT-08b: Auto-Capture on Test Failure - Implementation Guide',['../d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html',1,'']]],
+  ['final_20summary_1',['YAZE Graphics Optimizations Project - Final Summary',['../d8/dfb/md_docs_2gfx__optimizations__project__summary.html',1,'']]],
+  ['for_20yaze_2',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
+  ['for_20z3ed_20agent_20system_3',['LLM Integration Plan for z3ed Agent System',['../de/da5/md_docs_2z3ed_2LLM-INTEGRATION-PLAN.html',1,'']]],
+  ['future_20work_4',['Canvas Refactoring - Current Status &amp; Future Work',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html',1,'']]]
 ];

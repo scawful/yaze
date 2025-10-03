@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d3/d63/md_docs_2z3ed_2README.html','..
   <div class="headertitle"><div class="title">z3ed: AI-Powered CLI for YAZE</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1603"></a> <b>Status</b>: Active Development | Test Harness Enhancement Phase</p>
-<h1><a class="anchor" id="autotoc_md1604"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1885"></a> <b>Status</b>: Active Development | Test Harness Enhancement Phase</p>
+<h1><a class="anchor" id="autotoc_md1886"></a>
 Overview</h1>
 <p><code>z3ed</code> is a command-line interface for YAZE that enables AI-driven ROM modifications through a proposal-based workflow. It provides both human-accessible commands for developers and machine-readable APIs for LLM integration, forming the backbone of an agentic development ecosystem.</p>
 <p><b>Recent Focus</b>: Evolving the ImGuiTestHarness from basic GUI automation into a comprehensive testing platform that serves dual purposes:</p><ol type="1">
@@ -110,10 +110,10 @@ Overview</h1>
 <li><b>Traditional GUI Testing</b>: Test recording/replay, CI/CD integration, and regression testing</li>
 </ol>
 <p><b>🤖 Why This Matters</b>: These enhancements are <b>critical for AI agent autonomy</b>. Without them, AI agents can't verify their changes worked (no test polling), discover UI elements dynamically (hardcoded names), learn from demonstrations (no recording), or debug failures (no screenshots). The test harness evolution enables <b>fully autonomous agents</b> that can execute → verify → self-correct without human intervention.</p>
-<p><b>📋 Implementation Status</b>: Core infrastructure complete (Phases 1-6, AW-01 to AW-04, IT-01 to IT-04). Currently in <b>Test Harness Enhancement Phase</b> (IT-05 to IT-09). See IMPLEMENTATION_CONTINUATION.md for the detailed roadmap and LLM integration plans (Ollama, Gemini, Claude).</p>
+<p><b>📋 Implementation Status</b>: Core infrastructure complete (Phases 1-6, AW-01 to AW-04, IT-01 to IT-09). Currently focusing on <b>LLM Integration</b> to enable practical AI-driven workflows. See <a class="el" href="../../de/da5/md_docs_2z3ed_2LLM-INTEGRATION-PLAN.html">LLM-INTEGRATION-PLAN.md</a> for the detailed roadmap (Ollama, Gemini, Claude).</p>
 <p>This directory contains the primary documentation for the <code>z3ed</code> system.</p>
 <p><b>📋 Documentation Status</b>: Consolidated (Oct 2, 2025) - 10 core files, 6,547 lines</p>
-<h1><a class="anchor" id="autotoc_md1605"></a>
+<h1><a class="anchor" id="autotoc_md1887"></a>
 Core Documentation</h1>
 <p>Start here to understand the architecture, learn how to use the commands, and see the current development status.</p>
 <ol type="1">
@@ -129,14 +129,10 @@ Core Documentation</h1>
 <li>The project's task backlog, roadmap, progress tracking, and a list of known issues. Check this document for current priorities and to see what's next.</li>
 </ul>
 </li>
-<li><b>IMPLEMENTATION_CONTINUATION.md</b> - <b>Current Phase &amp; Next Steps</b> ⭐<ul>
-<li>Detailed continuation plan for test harness enhancements (IT-05 to IT-09). Start here to resume implementation with clear task breakdowns and success criteria.</li>
-</ul>
-</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1606"></a>
+<h1><a class="anchor" id="autotoc_md1888"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md1607"></a>
+<h2><a class="anchor" id="autotoc_md1889"></a>
 Build z3ed</h2>
 <div class="fragment"><div class="line"># Basic build (without GUI automation support)</div>
 <div class="line">cmake --build build --target z3ed</div>
@@ -144,7 +140,7 @@ Build z3ed</h2>
 <div class="line"># Build with gRPC support (for GUI automation)</div>
 <div class="line">cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON</div>
 <div class="line">cmake --build build-grpc-test --target z3ed</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1608"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1890"></a>
 Common Commands</h2>
 <div class="fragment"><div class="line"># Create an agent proposal in a safe sandbox</div>
 <div class="line">z3ed agent run --prompt &quot;Make all soldier armor red&quot; --rom=zelda3.sfc --sandbox</div>
@@ -172,8 +168,16 @@ Common Commands</h2>
 <div class="line"># Query test execution status</div>
 <div class="line">z3ed agent test status --test-id grpc_click_12345678 --follow</div>
 </div><!-- fragment --><p>See the <b><a class="el" href="../../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html">Technical Reference</a></b> for a full command list.</p>
-<h1><a class="anchor" id="autotoc_md1609"></a>
+<h1><a class="anchor" id="autotoc_md1891"></a>
 Recent Enhancements</h1>
+<p><b>LLM Integration Priority Shift (Oct 3, 2025)</b> 🤖</p><ul>
+<li>📋 Deprioritized IT-10 (Collaborative Editing) in favor of practical LLM integration</li>
+<li>📄 Created comprehensive implementation plan for Ollama, Gemini, and Claude integration</li>
+<li>✅ New documentation: <a class="el" href="../../de/da5/md_docs_2z3ed_2LLM-INTEGRATION-PLAN.html">LLM-INTEGRATION-PLAN.md</a>, <a class="el" href="../../d2/d74/md_docs_2z3ed_2LLM-IMPLEMENTATION-CHECKLIST.html">LLM-IMPLEMENTATION-CHECKLIST.md</a>, <a class="el" href="../../d5/d60/md_docs_2z3ed_2LLM-INTEGRATION-SUMMARY.html">LLM-INTEGRATION-SUMMARY.md</a></li>
+<li>🚀 Ready to enable real AI-driven ROM modifications with natural language prompts</li>
+<li><b>Estimated effort</b>: 12-15 hours across 4 phases</li>
+<li><b>Why now</b>: All infrastructure complete (CLI, proposals, sandbox, GUI automation) - only LLM connection missing</li>
+</ul>
 <p><b>Recent Progress (Oct 3, 2025)</b></p><ul>
 <li>✅ IT-09 CLI Test Suite Tooling Complete: run/validate/create commands + JUnit output<ul>
 <li>Full suite runner with group/tag filters, parametrization, retries, and CI-friendly exit codes</li>
@@ -218,16 +222,17 @@ Recent Enhancements</h1>
 <li><b>CI/CD Integration</b>: 📋 Standardized test suite format with JUnit XML output</li>
 </ul>
 <p>See <b><a href="../../E6-z3ed-cli-design.md#9-test-harness-evolution-from-automation-to-platform">E6-z3ed-cli-design.md § 9</a></b> for detailed architecture and implementation roadmap.</p>
-<h1><a class="anchor" id="autotoc_md1610"></a>
+<h1><a class="anchor" id="autotoc_md1892"></a>
 Quick Navigation</h1>
 <p><b>📖 Getting Started</b>:</p><ul>
 <li><b>New to z3ed?</b> Start with this <a class="el" href="../../d0/d30/md_README.html">README.md</a> then <a class="el" href="../../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html">E6-z3ed-cli-design.md</a></li>
 <li><b>Want to use z3ed?</b> See <a class="el" href="../../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html">QUICK_REFERENCE.md</a> for all commands</li>
+<li><b>Setting up AI agents?</b> See <a class="el" href="../../de/da5/md_docs_2z3ed_2LLM-INTEGRATION-PLAN.html">LLM-INTEGRATION-PLAN.md</a> for Ollama/Gemini/Claude setup</li>
 </ul>
 <p><b>🔧 Implementation Guides</b>:</p><ul>
+<li><a class="el" href="../../d2/d74/md_docs_2z3ed_2LLM-IMPLEMENTATION-CHECKLIST.html">LLM-IMPLEMENTATION-CHECKLIST.md</a> - Step-by-step LLM integration tasks ⭐ START HERE</li>
 <li><a class="el" href="../../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html">IT-05-IMPLEMENTATION-GUIDE.md</a> - Test Introspection API (complete ✅)</li>
-<li><a class="el" href="../../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html">IT-08-IMPLEMENTATION-GUIDE.md</a> - Enhanced Error Reporting (in progress 🔄)</li>
-<li>IMPLEMENTATION_CONTINUATION.md - Detailed continuation plan for current phase</li>
+<li><a class="el" href="../../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html">IT-08-IMPLEMENTATION-GUIDE.md</a> - Enhanced Error Reporting (complete ✅)</li>
 </ul>
 <p><b>📚 Reference</b>:</p><ul>
 <li><a class="el" href="../../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html">E6-z3ed-reference.md</a> - Technical reference and API docs</li>

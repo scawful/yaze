@@ -1,0 +1,9 @@
+<map id="yaze::cli::GeminiAIService::BuildSystemInstruction" name="yaze::cli::GeminiAIService::BuildSystemInstruction">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,176,79"/>
+<area shape="rect" id="Node000002" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ac1332dae27f0b86a89cda12abd56f972" title=" " alt="" coords="224,39,385,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,56,208,56,208,62,176,62"/>
+<area shape="rect" id="Node000003" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#aa9bfcbc5a46483426e4d792d7b0e1af2" title=" " alt="" coords="433,5,607,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="385,44,417,39,418,44,386,49"/>
+<area shape="rect" id="Node000004" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a2da095a88e6633015fa73785afdfe439" title=" " alt="" coords="437,71,603,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="386,68,422,74,421,79,385,74"/>
+</map>

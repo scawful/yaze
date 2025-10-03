@@ -101,12 +101,12 @@ $(document).ready(function(){initNavTree('dd/d83/md_docs_2z3ed_2QUICK__REFERENCE
   <div class="headertitle"><div class="title">z3ed Quick Reference Card</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1548"></a> <b>Last Updated</b>: October 2, 2025 <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md1830"></a> <b>Last Updated</b>: October 2, 2025 <br  />
  <b>For</b>: z3ed v0.1.0-alpha (macOS production-ready)</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1550"></a>
+<h1><a class="anchor" id="autotoc_md1832"></a>
 Build &amp; Setup</h1>
-<h2><a class="anchor" id="autotoc_md1551"></a>
+<h2><a class="anchor" id="autotoc_md1833"></a>
 Build with gRPC Support</h2>
 <div class="fragment"><div class="line"># Initial build (15-20 min)</div>
 <div class="line">cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON</div>
@@ -115,7 +115,7 @@ Build with gRPC Support</h2>
 <div class="line"> </div>
 <div class="line"># Incremental rebuild (5-10 sec)</div>
 <div class="line">cmake --build build-grpc-test --target z3ed</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1552"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1834"></a>
 Start Test Harness</h2>
 <div class="fragment"><div class="line"># Start YAZE with test harness</div>
 <div class="line">./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \</div>
@@ -129,18 +129,18 @@ Start Test Harness</h2>
 <div class="line"># Kill existing instance</div>
 <div class="line">killall yaze 2&gt;/dev/null</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1554"></a>
+<h1><a class="anchor" id="autotoc_md1836"></a>
 CLI Commands</h1>
-<h2><a class="anchor" id="autotoc_md1555"></a>
+<h2><a class="anchor" id="autotoc_md1837"></a>
 Agent Workflow</h2>
-<h3><a class="anchor" id="autotoc_md1556"></a>
+<h3><a class="anchor" id="autotoc_md1838"></a>
 Create Proposal</h3>
 <div class="fragment"><div class="line"># Run agent with sandbox (recommended)</div>
 <div class="line">z3ed agent run --prompt &quot;Make soldiers red&quot; --rom=zelda3.sfc --sandbox</div>
 <div class="line"> </div>
 <div class="line"># Run without sandbox (modifies ROM directly)</div>
 <div class="line">z3ed agent run --prompt &quot;...&quot; --rom=zelda3.sfc</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1557"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1839"></a>
 List Proposals</h3>
 <div class="fragment"><div class="line"># List all proposals</div>
 <div class="line">z3ed agent list</div>
@@ -152,21 +152,21 @@ List Proposals</h3>
 <div class="line"># - Prompt</div>
 <div class="line"># - Commands executed</div>
 <div class="line"># - Bytes changed</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1558"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1840"></a>
 View Diff</h3>
 <div class="fragment"><div class="line"># View latest pending proposal</div>
 <div class="line">z3ed agent diff</div>
 <div class="line"> </div>
 <div class="line"># View specific proposal</div>
 <div class="line">z3ed agent diff --proposal-id proposal-20251002T100000-1</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1559"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1841"></a>
 Review in GUI</h3>
 <div class="fragment"><div class="line"># Open YAZE</div>
 <div class="line">./build/bin/yaze.app/Contents/MacOS/yaze</div>
 <div class="line"> </div>
 <div class="line"># Navigate: Debug → Agent Proposals</div>
 <div class="line"># Select proposal → Review → Accept/Reject/Delete</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1560"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1842"></a>
 Export API Schema</h3>
 <div class="fragment"><div class="line"># Export all commands as YAML (for AI consumption)</div>
 <div class="line">z3ed agent describe --output docs/api/z3ed-resources.yaml</div>
@@ -176,9 +176,9 @@ Export API Schema</h3>
 <div class="line"> </div>
 <div class="line"># Export specific resource</div>
 <div class="line">z3ed agent describe --resource rom --format json</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1561"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1843"></a>
 Agent Testing (IT-02)</h2>
-<h3><a class="anchor" id="autotoc_md1562"></a>
+<h3><a class="anchor" id="autotoc_md1844"></a>
 Run Natural Language Test</h3>
 <div class="fragment"><div class="line"># Open editor and wait for window</div>
 <div class="line">z3ed agent test --prompt &quot;Open Overworld editor&quot;</div>
@@ -188,7 +188,7 @@ Run Natural Language Test</h3>
 <div class="line"> </div>
 <div class="line"># Click specific button</div>
 <div class="line">z3ed agent test --prompt &quot;Click Save button&quot;</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1563"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1845"></a>
 Test Introspection (IT-05) 🔜 PLANNED</h3>
 <div class="fragment"><div class="line"># Get test status</div>
 <div class="line">z3ed agent test status --test-id grpc_click_12345678</div>
@@ -201,7 +201,7 @@ Test Introspection (IT-05) 🔜 PLANNED</h3>
 <div class="line"> </div>
 <div class="line"># List all tests</div>
 <div class="line">z3ed agent test list --category grpc</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1564"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1846"></a>
 Widget Discovery (IT-06) � IN PROGRESS — telemetry available</h3>
 <div class="fragment"><div class="line"># Discover all widgets</div>
 <div class="line">z3ed agent gui discover</div>
@@ -211,7 +211,7 @@ Widget Discovery (IT-06) � IN PROGRESS — telemetry available</h3>
 <div class="line"> </div>
 <div class="line"># Get only buttons and include hidden/disabled widgets for AI diffing</div>
 <div class="line">z3ed agent gui discover --type button --include-invisible --include-disabled --format json</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1565"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1847"></a>
 Test Recording (IT-07) 🔜 PLANNED</h3>
 <div class="fragment"><div class="line"># Start recording</div>
 <div class="line">z3ed agent test record start --output tests/my_test.json</div>
@@ -226,7 +226,7 @@ Test Recording (IT-07) 🔜 PLANNED</h3>
 <div class="line"> </div>
 <div class="line"># Run test suite</div>
 <div class="line">z3ed agent test suite run tests/smoke.yaml --ci-mode</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1566"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1848"></a>
 ROM Commands</h2>
 <div class="fragment"><div class="line"># Display ROM metadata</div>
 <div class="line">z3ed rom info --rom=zelda3.sfc</div>
@@ -239,7 +239,7 @@ ROM Commands</h2>
 <div class="line"> </div>
 <div class="line"># Generate golden checksums</div>
 <div class="line">z3ed rom generate-golden --rom=zelda3.sfc --output=golden.json</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1567"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1849"></a>
 Palette Commands</h2>
 <div class="fragment"><div class="line"># Export palette</div>
 <div class="line">z3ed palette export sprites_aux1 4 soldier.col</div>
@@ -249,14 +249,14 @@ Palette Commands</h2>
 <div class="line"> </div>
 <div class="line"># List palettes</div>
 <div class="line">z3ed palette list --group sprites_aux1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1568"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1850"></a>
 Overworld Commands</h2>
 <div class="fragment"><div class="line"># Get tile at coordinates</div>
 <div class="line">z3ed overworld get-tile --map=0 --x=100 --y=50</div>
 <div class="line"> </div>
 <div class="line"># Set tile at coordinates</div>
 <div class="line">z3ed overworld set-tile --map=0 --x=100 --y=50 --tile-id=0x1234</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1569"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1851"></a>
 Dungeon Commands</h2>
 <div class="fragment"><div class="line"># List dungeon rooms</div>
 <div class="line">z3ed dungeon list-rooms --dungeon=0</div>
@@ -264,9 +264,9 @@ Dungeon Commands</h2>
 <div class="line"># Add object to room</div>
 <div class="line">z3ed dungeon add-object --dungeon=0 --room=5 --object=chest</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1571"></a>
+<h1><a class="anchor" id="autotoc_md1853"></a>
 gRPC Testing with grpcurl</h1>
-<h2><a class="anchor" id="autotoc_md1572"></a>
+<h2><a class="anchor" id="autotoc_md1854"></a>
 Setup</h2>
 <div class="fragment"><div class="line"># Install grpcurl</div>
 <div class="line">brew install grpcurl</div>
@@ -274,9 +274,9 @@ Setup</h2>
 <div class="line"># Set proto path</div>
 <div class="line">export PROTO_PATH=&quot;src/app/core/proto&quot;</div>
 <div class="line">export PROTO_FILE=&quot;imgui_test_harness.proto&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1573"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1855"></a>
 Core RPCs</h2>
-<h3><a class="anchor" id="autotoc_md1574"></a>
+<h3><a class="anchor" id="autotoc_md1856"></a>
 Ping (Health Check)</h3>
 <div class="fragment"><div class="line">grpcurl -plaintext -import-path $PROTO_PATH -proto $PROTO_FILE \</div>
 <div class="line">  -d &#39;{&quot;message&quot;:&quot;test&quot;}&#39; 127.0.0.1:50052 yaze.test.ImGuiTestHarness/Ping</div>
@@ -287,7 +287,7 @@ Ping (Health Check)</h3>
 <div class="line">#   &quot;timestampMs&quot;: &quot;1696271234567&quot;,</div>
 <div class="line">#   &quot;yazeVersion&quot;: &quot;0.3.2&quot;</div>
 <div class="line"># }</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1575"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1857"></a>
 Click</h3>
 <div class="fragment"><div class="line"># Click button</div>
 <div class="line">grpcurl -plaintext -import-path $PROTO_PATH -proto $PROTO_FILE \</div>
@@ -298,12 +298,12 @@ Click</h3>
 <div class="line">grpcurl -plaintext -import-path $PROTO_PATH -proto $PROTO_FILE \</div>
 <div class="line">  -d &#39;{&quot;target&quot;:&quot;menuitem: Overworld Editor&quot;,&quot;type&quot;:&quot;LEFT&quot;}&#39; \</div>
 <div class="line">  127.0.0.1:50052 yaze.test.ImGuiTestHarness/Click</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1576"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1858"></a>
 Type</h3>
 <div class="fragment"><div class="line">grpcurl -plaintext -import-path $PROTO_PATH -proto $PROTO_FILE \</div>
 <div class="line">  -d &#39;{&quot;target&quot;:&quot;input:Search&quot;,&quot;text&quot;:&quot;tile16&quot;,&quot;clear_first&quot;:true}&#39; \</div>
 <div class="line">  127.0.0.1:50052 yaze.test.ImGuiTestHarness/Type</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1577"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1859"></a>
 Wait</h3>
 <div class="fragment"><div class="line"># Wait for window to be visible</div>
 <div class="line">grpcurl -plaintext -import-path $PROTO_PATH -proto $PROTO_FILE \</div>
@@ -314,7 +314,7 @@ Wait</h3>
 <div class="line">grpcurl -plaintext -import-path $PROTO_PATH -proto $PROTO_FILE \</div>
 <div class="line">  -d &#39;{&quot;condition&quot;:&quot;element_enabled:button:Save&quot;,&quot;timeout_ms&quot;:3000}&#39; \</div>
 <div class="line">  127.0.0.1:50052 yaze.test.ImGuiTestHarness/Wait</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1578"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1860"></a>
 Assert</h3>
 <div class="fragment"><div class="line"># Assert window visible</div>
 <div class="line">grpcurl -plaintext -import-path $PROTO_PATH -proto $PROTO_FILE \</div>
@@ -325,7 +325,7 @@ Assert</h3>
 <div class="line">grpcurl -plaintext -import-path $PROTO_PATH -proto $PROTO_FILE \</div>
 <div class="line">  -d &#39;{&quot;condition&quot;:&quot;enabled:button:Save&quot;}&#39; \</div>
 <div class="line">  127.0.0.1:50052 yaze.test.ImGuiTestHarness/Assert</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1579"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1861"></a>
 Screenshot (Stub)</h3>
 <div class="fragment"><div class="line">grpcurl -plaintext -import-path $PROTO_PATH -proto $PROTO_FILE \</div>
 <div class="line">  -d &#39;{&quot;window_title&quot;:&quot;Overworld&quot;,&quot;output_path&quot;:&quot;/tmp/test.png&quot;,&quot;format&quot;:&quot;PNG&quot;}&#39; \</div>
@@ -333,9 +333,9 @@ Screenshot (Stub)</h3>
 <div class="line"> </div>
 <div class="line"># Response: {&quot;success&quot;:false,&quot;message&quot;:&quot;Screenshot not yet implemented&quot;}</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1581"></a>
+<h1><a class="anchor" id="autotoc_md1863"></a>
 E2E Testing</h1>
-<h2><a class="anchor" id="autotoc_md1582"></a>
+<h2><a class="anchor" id="autotoc_md1864"></a>
 Run Full Test Suite</h2>
 <div class="fragment"><div class="line"># Run all E2E tests</div>
 <div class="line">./scripts/test_harness_e2e.sh</div>
@@ -347,7 +347,7 @@ Run Full Test Suite</h2>
 <div class="line"># ✓ Assert (Overworld Editor Visible)</div>
 <div class="line"># ✓ Click (Open Dungeon Editor)</div>
 <div class="line"># Tests Passed: 5</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1583"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1865"></a>
 Manual Workflow Test</h2>
 <div class="fragment"><div class="line"># 1. Start YAZE</div>
 <div class="line">./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \</div>
@@ -370,9 +370,9 @@ Manual Workflow Test</h2>
 <div class="line"># 6. Cleanup</div>
 <div class="line">killall yaze</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1585"></a>
+<h1><a class="anchor" id="autotoc_md1867"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md1586"></a>
+<h2><a class="anchor" id="autotoc_md1868"></a>
 Port Already in Use</h2>
 <div class="fragment"><div class="line"># Find process</div>
 <div class="line">lsof -i :50052</div>
@@ -382,7 +382,7 @@ Port Already in Use</h2>
 <div class="line"> </div>
 <div class="line"># Or use different port</div>
 <div class="line">./yaze --enable_test_harness --test_harness_port=50053</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1587"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1869"></a>
 Connection Refused</h2>
 <div class="fragment"><div class="line"># Check if server is running</div>
 <div class="line">lsof -i :50052</div>
@@ -392,7 +392,7 @@ Connection Refused</h2>
 <div class="line"> </div>
 <div class="line"># Check logs</div>
 <div class="line">./yaze --enable_test_harness --log_level=debug</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1588"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1870"></a>
 Widget Not Found</h2>
 <div class="fragment"><div class="line"># Problem: &quot;Button &#39;XYZ&#39; not found&quot;</div>
 <div class="line"> </div>
@@ -406,7 +406,7 @@ Widget Not Found</h2>
 <div class="line"> </div>
 <div class="line"># 4. Use widget discovery (IT-06 telemetry)</div>
 <div class="line">z3ed agent gui discover --window &quot;WindowName&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1589"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1871"></a>
 Build Errors</h2>
 <div class="fragment"><div class="line"># Clean build</div>
 <div class="line">rm -rf build-grpc-test</div>
@@ -419,9 +419,9 @@ Build Errors</h2>
 <div class="line"># Verify proto generation</div>
 <div class="line">ls build-grpc-test/_deps/grpc-src/</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1591"></a>
+<h1><a class="anchor" id="autotoc_md1873"></a>
 File Locations</h1>
-<h2><a class="anchor" id="autotoc_md1592"></a>
+<h2><a class="anchor" id="autotoc_md1874"></a>
 Core Files</h2>
 <div class="fragment"><div class="line">src/app/core/</div>
 <div class="line">  ├── proto/imgui_test_harness.proto         # gRPC service definition</div>
@@ -445,7 +445,7 @@ Core Files</h2>
 <div class="line">  ├── E6-z3ed-reference.md                   # Technical reference</div>
 <div class="line">  ├── IMPLEMENTATION_CONTINUATION.md         # Next steps</div>
 <div class="line">  └── IT-05-IMPLEMENTATION-GUIDE.md          # Introspection API guide</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1593"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1875"></a>
 Build Artifacts</h2>
 <div class="fragment"><div class="line">build-grpc-test/</div>
 <div class="line">  ├── bin/</div>
@@ -464,7 +464,7 @@ Build Artifacts</h2>
 <div class="line">      └── &lt;timestamp&gt;-&lt;seq&gt;/</div>
 <div class="line">          └── zelda3.sfc</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1595"></a>
+<h1><a class="anchor" id="autotoc_md1877"></a>
 Environment Variables</h1>
 <div class="fragment"><div class="line"># Optional: Set default ROM path</div>
 <div class="line">export YAZE_ROM_PATH=~/roms/zelda3.sfc</div>
@@ -478,7 +478,7 @@ Environment Variables</h1>
 <div class="line"># Optional: Set proposal directory</div>
 <div class="line">export YAZE_PROPOSAL_DIR=/custom/path/proposals</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md1597"></a>
+<h1><a class="anchor" id="autotoc_md1879"></a>
 Platform Support</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -493,7 +493,7 @@ Platform Support</h1>
 <td class="markdownTableBodyNone">Windows   </td><td class="markdownTableBodyNone">🔬 Experimental   </td><td class="markdownTableBodyNone">Build system ready, needs validation   </td></tr>
 </table>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1599"></a>
+<h1><a class="anchor" id="autotoc_md1881"></a>
 Next Steps</h1>
 <p><b>Current Phase</b>: Test Harness Enhancements (IT-05 to IT-09)</p>
 <p><b>Immediate Priority</b>: IT-05 (Test Introspection API)</p>
@@ -502,7 +502,7 @@ Next Steps</h1>
 <li><a class="el" href="../../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html">IT-05-IMPLEMENTATION-GUIDE.md</a> - Step-by-step guide</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1601"></a>
+<h1><a class="anchor" id="autotoc_md1883"></a>
 Resources</h1>
 <ul>
 <li><b>GitHub</b>: <a href="https://github.com/scawful/yaze">https://github.com/scawful/yaze</a></li>

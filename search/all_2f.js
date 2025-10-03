@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🍎_20macos_20arm64_20presets_20recommended_20for_20apple_20silicon_0',['🍎 macOS ARM64 Presets (Recommended for Apple Silicon)',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md371',1,'']]]
+  ['�_20in_20progress_20—_20telemetry_20available_0',['Widget Discovery (IT-06) � IN PROGRESS — telemetry available',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html#autotoc_md1846',1,'']]]
 ];

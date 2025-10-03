@@ -4,7 +4,7 @@ var searchData=
   ['january_202025_1',['10.1. Recent Refactoring Improvements (January 2025)',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1183',1,'']]],
   ['jml_2',['JML',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a0d7557981c654477aa034e1e44344974',1,'yaze::emu::Cpu']]],
   ['jmp_3',['jmp',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a0f9709ced56bfe1de31e62d2580f2fce',1,'yaze::emu::Spc700::JMP()'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#ae6fa6c1c9b120d33deb5d3d027a43fbc',1,'yaze::emu::Cpu::JMP()']]],
-  ['join_4',['US-1: Session Host &amp; Join',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1465',1,'']]],
+  ['join_4',['US-1: Session Host &amp; Join',['../de/d5d/md_docs_2z3ed_2IT-10-COLLABORATIVE-EDITING.html#autotoc_md1473',1,'']]],
   ['joinlogs_5',['JoinLogs',['../d2/d06/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__reporter_8cc_03.html#ac155686362623ac3289716380a134680',1,'yaze::cli::anonymous_namespace{test_suite_reporter.cc}']]],
   ['joinquotedlist_6',['JoinQuotedList',['../db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#a5b82b32512688509ce17f30191bcaf42',1,'yaze::cli::anonymous_namespace{test_suite_writer.cc}']]],
   ['joypaddata_7',['joypadData',['../d3/d00/structyaze_1_1emu_1_1JoypadRegisters.html#a11184805d9757bc1d776d5d56302b03f',1,'yaze::emu::JoypadRegisters']]],
@@ -13,10 +13,12 @@ var searchData=
   ['jp_5fconf_5fconfig_10',['jp_conf_config',['../d6/d2f/structyaze_1_1core_1_1FontConfig.html#a08be7958e34ba664879229db15a29d31',1,'yaze::core::FontConfig']]],
   ['jsl_11',['JSL',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aeb2f8f2dbdca99dc8e45058571cabdb8',1,'yaze::emu::Cpu']]],
   ['json_20dependency_12',['8.7. Optional JSON Dependency',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1172',1,'']]],
-  ['jsonescape_13',['JsonEscape',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa9e3ca343f9a5ffeab7bc30f20aff921',1,'yaze::cli::agent']]],
-  ['jsr_14',['JSR',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::emu::Cpu']]],
-  ['july_202024_15',['0.2.0 (July 2024)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md510',1,'']]],
-  ['jump_5fto_5ftab_16',['jump_to_tab',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9',1,'yaze::editor::OverworldEditor']]],
-  ['jump_5fto_5ftab_5f_17',['jump_to_tab_',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor']]],
-  ['jumptofunction_18',['JumpToFunction',['../d3/d60/classyaze_1_1zelda3_1_1SpriteInstruction.html#a2435f9ddc0c2c05006e60f9a7408ecf4',1,'yaze::zelda3::SpriteInstruction']]]
+  ['json_20parsing_13',['4. ✅ Enhanced JSON Parsing',['../d0/d18/md_docs_2z3ed_2PHASE2-COMPLETE.html#autotoc_md1771',1,'']]],
+  ['jsonescape_14',['JsonEscape',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa9e3ca343f9a5ffeab7bc30f20aff921',1,'yaze::cli::agent']]],
+  ['jsr_15',['JSR',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::emu::Cpu']]],
+  ['july_202024_16',['0.2.0 (July 2024)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md510',1,'']]],
+  ['jump_20to_20phase_204_20enhanced_20prompting_17',['Option C: Jump to Phase 4 (Enhanced Prompting)',['../d9/df7/md_docs_2z3ed_2LLM-PROGRESS-UPDATE.html#autotoc_md1719',1,'']]],
+  ['jump_5fto_5ftab_18',['jump_to_tab',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9',1,'yaze::editor::OverworldEditor']]],
+  ['jump_5fto_5ftab_5f_19',['jump_to_tab_',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor']]],
+  ['jumptofunction_20',['JumpToFunction',['../d3/d60/classyaze_1_1zelda3_1_1SpriteInstruction.html#a2435f9ddc0c2c05006e60f9a7408ecf4',1,'yaze::zelda3::SpriteInstruction']]]
 ];

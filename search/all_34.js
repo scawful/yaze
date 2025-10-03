@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['📈_20strong_20performance_20impact_20analysis_20strong_0',['📈 &lt;strong&gt;Performance Impact Analysis&lt;/strong&gt;',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html#autotoc_md224',1,'']]]
+  ['🏗️_20architecture_20summary_0',['🏗️ Architecture Summary',['../d9/df7/md_docs_2z3ed_2LLM-PROGRESS-UPDATE.html#autotoc_md1706',1,'']]]
 ];

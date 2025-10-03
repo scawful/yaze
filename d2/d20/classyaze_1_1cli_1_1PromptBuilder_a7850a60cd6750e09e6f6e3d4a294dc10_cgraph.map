@@ -1,0 +1,11 @@
+<map id="yaze::cli::PromptBuilder::BuildSystemInstructionWithExamples" name="yaze::cli::PromptBuilder::BuildSystemInstructionWithExamples">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,249,79"/>
+<area shape="rect" id="Node000002" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a5cfb6bb6351a9dd73523ad485b8771b8" title=" " alt="" coords="297,5,505,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="249,41,281,38,282,43,250,47"/>
+<area shape="rect" id="Node000003" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ac1332dae27f0b86a89cda12abd56f972" title=" " alt="" coords="320,71,482,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="250,71,305,77,305,82,249,76"/>
+<area shape="rect" id="Node000004" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#aa9bfcbc5a46483426e4d792d7b0e1af2" title=" " alt="" coords="553,37,727,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="481,77,537,69,538,75,482,82"/>
+<area shape="rect" id="Node000005" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a2da095a88e6633015fa73785afdfe439" title=" " alt="" coords="557,103,723,143"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="482,99,542,107,541,112,481,104"/>
+</map>

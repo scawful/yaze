@@ -101,11 +101,11 @@ $(document).ready(function(){initNavTree('d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTA
   <div class="headertitle"><div class="title">IT-08: Enhanced Error Reporting Implementation Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1377"></a> <b>Status</b>: IT-08a Complete ✅ | IT-08b Complete ✅ | IT-08c Complete ✅ <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md1385"></a> <b>Status</b>: IT-08a Complete ✅ | IT-08b Complete ✅ | IT-08c Complete ✅ <br  />
  <b>Date</b>: October 2, 2025 <br  />
  <b>Overall Progress</b>: 100% Complete (3 of 3 phases)</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1379"></a>
+<h1><a class="anchor" id="autotoc_md1387"></a>
 Phase Overview</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -125,13 +125,13 @@ Phase Overview</h1>
  <b>Time Spent</b>: 3.75 hours <br  />
  <b>Time Remaining</b>: 0 hours (Core phases complete)</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1381"></a>
+<h1><a class="anchor" id="autotoc_md1389"></a>
 IT-08a: Screenshot RPC ✅ COMPLETE</h1>
 <p><b>Date Completed</b>: October 2, 2025 <br  />
  <b>Time</b>: 1.5 hours</p>
-<h2><a class="anchor" id="autotoc_md1382"></a>
+<h2><a class="anchor" id="autotoc_md1390"></a>
 Implementation Summary</h2>
-<h2><a class="anchor" id="autotoc_md1383"></a>
+<h2><a class="anchor" id="autotoc_md1391"></a>
 What Was Built</h2>
 <p>Implemented the <code>Screenshot</code> RPC in the ImGuiTestHarness service with the following capabilities:</p>
 <ol type="1">
@@ -141,7 +141,7 @@ What Was Built</h2>
 <li><b>Flexible Paths</b>: Supports custom output paths or auto-generates timestamped filenames (<code>/tmp/yaze_screenshot_&lt;timestamp&gt;.bmp</code>)</li>
 <li><b>Response Metadata</b>: Returns file path, file size (bytes), and image dimensions</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1384"></a>
+<h2><a class="anchor" id="autotoc_md1392"></a>
 Technical Implementation</h2>
 <p><b>Location</b>: <code>/Users/scawful/Code/yaze/src/app/core/service/imgui_test_harness_service.cc</code></p>
 <div class="fragment"><div class="line"><span class="comment">// Helper struct matching imgui_impl_sdlrenderer2.cpp backend data</span></div>
@@ -192,23 +192,23 @@ Technical Implementation</h2>
 <div class="ttc" id="anamespaceImGui_html"><div class="ttname"><a href="../../df/de4/namespaceImGui.html">ImGui</a></div><div class="ttdef"><b>Definition</b> <a href="../../de/d4c/input_8cc_source.html#l00020">input.cc:20</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 </div><!-- fragment --><p> bash </p>
-<h1><a class="anchor" id="autotoc_md1385"></a>
+<h1><a class="anchor" id="autotoc_md1393"></a>
 Build (needs YAZE_WITH_GRPC=ON)</h1>
 <p>cmake &ndash;build build-grpc-test &ndash;target yaze -j$(sysctl -n hw.ncpu)</p>
-<h1><a class="anchor" id="autotoc_md1386"></a>
+<h1><a class="anchor" id="autotoc_md1394"></a>
 Start harness</h1>
 <p>./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \ &ndash;enable_test_harness &ndash;test_harness_port=50052 \ &ndash;rom_file=assets/zelda3.sfc &amp;</p>
-<h1><a class="anchor" id="autotoc_md1387"></a>
+<h1><a class="anchor" id="autotoc_md1395"></a>
 Queue a failing automation step</h1>
 <p>grpcurl -plaintext \ -import-path src/app/core/proto \ -proto imgui_test_harness.proto \ -d '{"target":"button:DoesNotExist","type":"LEFT"}' \ localhost:50052 yaze.test.ImGuiTestHarness/Click</p>
-<h1><a class="anchor" id="autotoc_md1388"></a>
+<h1><a class="anchor" id="autotoc_md1396"></a>
 Fetch diagnostics</h1>
 <p>z3ed agent test results &ndash;test-id &lt;captured_id&gt; &ndash;include-logs &ndash;format yaml</p>
-<h1><a class="anchor" id="autotoc_md1389"></a>
+<h1><a class="anchor" id="autotoc_md1397"></a>
 Inspect artifact directory</h1>
 <p>ls ${TMPDIR}/yaze/test-results/&lt;captured_id&gt;/ ```</p>
 <p>You should see a <code>.bmp</code> failure screenshot, widget JSON in the CLI output, and logs noting the auto-capture event. When the helper fails (e.g., renderer not ready) the harness log and CLI output record the failure reason.</p>
-<h3><a class="anchor" id="autotoc_md1390"></a>
+<h3><a class="anchor" id="autotoc_md1398"></a>
 Next Steps</h3>
 <ul>
 <li>Wire the same helper into HTML bundle generation (IT-08c follow-up).</li>
@@ -216,7 +216,7 @@ Next Steps</h3>
 <li>Consider PNG encoding via <code>stb_image_write</code> if file size becomes an issue.</li>
 </ul>
 <hr  />
- <h3><a class="anchor" id="autotoc_md1392"></a>
+ <h3><a class="anchor" id="autotoc_md1400"></a>
 Technical Implementation</h3>
 <p><b>Location</b>: <code>/Users/scawful/Code/yaze/src/app/test/test_manager.{h,cc}</code></p>
 <p><b>Key Changes</b>:</p>
@@ -264,7 +264,7 @@ Technical Implementation</h3>
 <div class="line">  execution.screenshot_path = absl::StrFormat(</div>
 <div class="line">      <span class="stringliteral">&quot;/tmp/yaze_test_%s_failure.bmp&quot;</span>, test_id);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1393"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1401"></a>
 Testing</h3>
 <p>The implementation will be validated when tests fail:</p>
 <div class="fragment"><div class="line"># 1. Build with changes</div>
@@ -297,7 +297,7 @@ Testing</h3>
 <div class="line">  &quot;screenshotPath&quot;: &quot;/tmp/yaze/test-results/grpc_click_12345678/failure_1696357200000.bmp&quot;,</div>
 <div class="line">  &quot;failureContext&quot;: &quot;Frame: 1234, Active Window: Main Window, Focused Widget: 0x00000000&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1394"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1402"></a>
 Success Criteria</h3>
 <ul>
 <li>✅ Failure context captured automatically on test failures</li>
@@ -306,21 +306,21 @@ Success Criteria</h3>
 <li>✅ No deadlocks (mutex released before calling CaptureFailureContext)</li>
 <li>✅ Proto schema updated with new fields</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1395"></a>
+<h3><a class="anchor" id="autotoc_md1403"></a>
 Retro Notes</h3>
 <ul>
 <li>Placeholder screenshot paths have been replaced by the shared helper that writes into <code>${TMPDIR}/yaze/test-results/&lt;test_id&gt;/</code> and records byte sizes.</li>
 <li>Widget state capture (IT-08c) is now invoked directly from <code>CaptureFailureContext</code>, removing the TODOs from the original plan.</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1397"></a>
+<h2><a class="anchor" id="autotoc_md1405"></a>
 IT-08b: Auto-Capture on Test Failure 🔄 IN PROGRESS</h2>
 <p><b>Goal</b>: Automatically capture screenshots and context when tests fail <br  />
  <b>Time Estimate</b>: 1-1.5 hours <br  />
  <b>Status</b>: Ready to implement</p>
-<h3><a class="anchor" id="autotoc_md1398"></a>
+<h3><a class="anchor" id="autotoc_md1406"></a>
 Implementation Plan</h3>
-<h4><a class="anchor" id="autotoc_md1399"></a>
+<h4><a class="anchor" id="autotoc_md1407"></a>
 Step 1: Modify TestManager (30 minutes)</h4>
 <p><b>File</b>: <code>src/app/core/test_manager.cc</code></p>
 <p>Add screenshot capture in <code>MarkHarnessTestCompleted()</code>:</p>
@@ -368,7 +368,7 @@ Step 1: Modify TestManager (30 minutes)</h4>
 <div class="line">      ImGui::GetCurrentWindow() ? ImGui::GetCurrentWindow()-&gt;Name : <span class="stringliteral">&quot;none&quot;</span>,</div>
 <div class="line">      <a class="code hl_namespace" href="../../df/de4/namespaceImGui.html">ImGui</a>::GetActiveID());</div>
 <div class="line">}</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1400"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1408"></a>
 Step 2: Update TestHistory Structure (15 minutes)</h4>
 <p><b>File</b>: <code>src/app/core/test_manager.h</code></p>
 <p>Add failure context fields:</p>
@@ -388,7 +388,7 @@ Step 2: Update TestHistory Structure (15 minutes)</h4>
 <div class="line">  std::string failure_context;</div>
 <div class="line">  std::string widget_state;  <span class="comment">// IT-08c</span></div>
 <div class="line">};</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1401"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1409"></a>
 Step 3: Update GetTestResults RPC (30 minutes)</h4>
 <p><b>File</b>: <code><a class="el" href="../../dd/d7f/imgui__test__harness__service_8cc.html">src/app/core/service/imgui_test_harness_service.cc</a></code></p>
 <p>Include screenshot path in results:</p>
@@ -412,7 +412,7 @@ Step 3: Update GetTestResults RPC (30 minutes)</h4>
 <div class="line">  </div>
 <div class="line">  <span class="keywordflow">return</span> absl::OkStatus();</div>
 <div class="line">}</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1402"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1410"></a>
 Step 4: Update Proto Schema (15 minutes)</h4>
 <p><b>File</b>: <code>src/app/core/proto/imgui_test_harness.proto</code></p>
 <p>Add fields to GetTestResultsResponse:</p>
@@ -429,7 +429,7 @@ Step 4: Update Proto Schema (15 minutes)</h4>
 <div class="line">  string failure_context = 8;</div>
 <div class="line">  string widget_state = 9;  // IT-08c</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1403"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1411"></a>
 Testing</h3>
 <div class="fragment"><div class="line"># 1. Build with changes</div>
 <div class="line">cmake --build build-grpc-test --target yaze -j8</div>
@@ -457,7 +457,7 @@ Testing</h3>
 <div class="line">  127.0.0.1:50052 yaze.test.ImGuiTestHarness/GetTestResults</div>
 <div class="line"> </div>
 <div class="line"># Expected: screenshot_path and failure_context populated</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1404"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1412"></a>
 Success Criteria</h3>
 <ul>
 <li>✅ Screenshots auto-captured on test failure</li>
@@ -467,14 +467,14 @@ Success Criteria</h3>
 <li>✅ Screenshots cleaned up after test completion (optional)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1406"></a>
+<h2><a class="anchor" id="autotoc_md1414"></a>
 IT-08c: Widget State Dumps ✅ COMPLETE</h2>
 <p><b>Date Completed</b>: October 2, 2025 <br  />
  <b>Time</b>: 45 minutes</p>
-<h3><a class="anchor" id="autotoc_md1407"></a>
+<h3><a class="anchor" id="autotoc_md1415"></a>
 Implementation Summary</h3>
 <p>Successfully implemented comprehensive widget state capture for test failure diagnostics.</p>
-<h3><a class="anchor" id="autotoc_md1408"></a>
+<h3><a class="anchor" id="autotoc_md1416"></a>
 What Was Built</h3>
 <ol type="1">
 <li><b>Widget State Capture Utility</b> (<code><a class="el" href="../../d0/da3/widget__state__capture_8h.html">widget_state_capture.h</a>/cc</code>):<ul>
@@ -506,7 +506,7 @@ What Was Built</h3>
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md1409"></a>
+<h3><a class="anchor" id="autotoc_md1417"></a>
 Technical Implementation</h3>
 <p><b>Location</b>: <code>/Users/scawful/Code/yaze/src/app/core/widget_state_capture.{h,cc}</code></p>
 <p><b>Key Features</b>:</p>
@@ -539,7 +539,7 @@ Technical Implementation</h3>
 <div class="line">  util::logf(<span class="stringliteral">&quot;[TestManager] Widget state: %s&quot;</span>, </div>
 <div class="line">             execution.widget_state.c_str());</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1410"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1418"></a>
 Output Example</h3>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;frame_count&quot;: 1234,</div>
@@ -567,7 +567,7 @@ Output Example</h3>
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1411"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1419"></a>
 Testing</h3>
 <p>Widget state capture will be automatically triggered on test failures:</p>
 <div class="fragment"><div class="line"># 1. Build with new code</div>
@@ -591,7 +591,7 @@ Testing</h3>
 <div class="line">  -proto imgui_test_harness.proto \</div>
 <div class="line">  -d &#39;{&quot;test_id&quot;:&quot;&lt;test_id&gt;&quot;,&quot;include_logs&quot;:true}&#39; \</div>
 <div class="line">  127.0.0.1:50052 yaze.test.ImGuiTestHarness/GetTestResults</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1412"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1420"></a>
 Success Criteria</h3>
 <ul>
 <li>✅ Widget state capture utility implemented</li>
@@ -601,7 +601,7 @@ Success Criteria</h3>
 <li>✅ Comprehensive state information captured</li>
 <li>✅ Proto schema already supports widget_state field</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1413"></a>
+<h3><a class="anchor" id="autotoc_md1421"></a>
 Benefits for Debugging</h3>
 <p>The widget state dump provides critical context for debugging test failures:</p><ul>
 <li><b>UI State</b>: Know exactly which windows/widgets were visible</li>
@@ -611,14 +611,14 @@ Benefits for Debugging</h3>
 <li><b>Frame Timing</b>: Frame count and rate for timing issues</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1415"></a>
+<h2><a class="anchor" id="autotoc_md1423"></a>
 IT-08c: Widget State Dumps 📋 PLANNED</h2>
 <p><b>Goal</b>: Capture UI hierarchy and state on test failures <br  />
  <b>Time Estimate</b>: 30-45 minutes <br  />
  <b>Status</b>: Specification phase</p>
-<h3><a class="anchor" id="autotoc_md1416"></a>
+<h3><a class="anchor" id="autotoc_md1424"></a>
 Implementation Plan</h3>
-<h4><a class="anchor" id="autotoc_md1417"></a>
+<h4><a class="anchor" id="autotoc_md1425"></a>
 Step 1: Create Widget State Capture Utility (30 minutes)</h4>
 <p><b>File</b>: <code><a class="el" href="../../d0/da3/widget__state__capture_8h.html">src/app/core/widget_state_capture.h</a></code> (new file)</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#ifndef YAZE_CORE_WIDGET_STATE_CAPTURE_H</span></div>
@@ -706,7 +706,7 @@ Step 1: Create Widget State Capture Utility (30 minutes)</h4>
 <div class="line">}  <span class="comment">// namespace core</span></div>
 <div class="line">}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="awidget__state__capture_8h_html"><div class="ttname"><a href="../../d0/da3/widget__state__capture_8h.html">widget_state_capture.h</a></div></div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1418"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md1426"></a>
 Step 2: Integrate with TestManager (15 minutes)</h4>
 <p>Update <code>CaptureFailureContext()</code> in <code><a class="el" href="../../d1/d2e/test__manager_8cc.html">test_manager.cc</a></code>:</p>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> TestManager::CaptureFailureContext(<span class="keyword">const</span> std::string&amp; test_id) {</div>
@@ -721,7 +721,7 @@ Step 2: Integrate with TestManager (15 minutes)</h4>
 <div class="line">  <span class="comment">// 3. Execution context</span></div>
 <div class="line">  <span class="comment">// ... existing code ...</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1419"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1427"></a>
 Output Example</h3>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;focused_window&quot;: &quot;Overworld Editor&quot;,</div>
@@ -736,12 +736,12 @@ Output Example</h3>
 <div class="line">  &quot;active_popup&quot;: &quot;&quot;</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md1421"></a>
+<h2><a class="anchor" id="autotoc_md1429"></a>
 IT-08d: Error Envelope Standardization 📋 PLANNED</h2>
 <p><b>Goal</b>: Unified error format across z3ed, TestManager, EditorManager <br  />
  <b>Time Estimate</b>: 1-2 hours <br  />
  <b>Status</b>: Design phase</p>
-<h3><a class="anchor" id="autotoc_md1422"></a>
+<h3><a class="anchor" id="autotoc_md1430"></a>
 Proposed Error Envelope</h3>
 <div class="fragment"><div class="line"><span class="comment">// Shared error structure</span></div>
 <div class="line"><span class="keyword">struct </span>ErrorContext {</div>
@@ -752,7 +752,7 @@ Proposed Error Envelope</h3>
 <div class="line">  std::vector&lt;std::string&gt; artifact_paths;  <span class="comment">// Screenshots, logs, etc.</span></div>
 <div class="line">  std::string actionable_hint;  <span class="comment">// User-facing suggestion</span></div>
 <div class="line">};</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1423"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1431"></a>
 Integration Points</h3>
 <ol type="1">
 <li><b>TestManager</b>: Wrap failures in ErrorContext</li>
@@ -761,12 +761,12 @@ Integration Points</h3>
 <li><b>ProposalDrawer</b>: Display ErrorContext in GUI modal</li>
 </ol>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1425"></a>
+<h2><a class="anchor" id="autotoc_md1433"></a>
 IT-08e: CLI Error Improvements 📋 PLANNED</h2>
 <p><b>Goal</b>: Rich error output in z3ed CLI <br  />
  <b>Time Estimate</b>: 1 hour <br  />
  <b>Status</b>: Design phase</p>
-<h3><a class="anchor" id="autotoc_md1426"></a>
+<h3><a class="anchor" id="autotoc_md1434"></a>
 Enhanced CLI Output</h3>
 <div class="fragment"><div class="line">$ z3ed agent test --prompt &quot;Open Overworld editor&quot;</div>
 <div class="line"> </div>
@@ -791,27 +791,27 @@ Enhanced CLI Output</h3>
 <div class="line">   → Verify Overworld editor button is visible</div>
 <div class="line">   → Use &#39;z3ed agent gui discover&#39; to list available widgets</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md1428"></a>
+<h2><a class="anchor" id="autotoc_md1436"></a>
 Progress Tracking</h2>
-<h3><a class="anchor" id="autotoc_md1429"></a>
+<h3><a class="anchor" id="autotoc_md1437"></a>
 Completed ✅</h3>
 <ul>
 <li>IT-08a: Screenshot RPC (1.5 hours)</li>
 <li>IT-08b: Auto-capture on failure (1.5 hours)</li>
 <li>IT-08c: Widget state dumps (45 minutes)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1430"></a>
+<h3><a class="anchor" id="autotoc_md1438"></a>
 In Progress 🔄</h3>
 <ul>
 <li>None - Core error reporting complete</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1431"></a>
+<h3><a class="anchor" id="autotoc_md1439"></a>
 Planned 📋</h3>
 <ul>
 <li>IT-08d: Error envelope standardization (optional enhancement)</li>
 <li>IT-08e: CLI error improvements (optional enhancement)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1432"></a>
+<h3><a class="anchor" id="autotoc_md1440"></a>
 Time Investment</h3>
 <ul>
 <li><b>Spent</b>: 3.75 hours (IT-08a + IT-08b + IT-08c)</li>
@@ -819,7 +819,7 @@ Time Investment</h3>
 <li><b>Total</b>: 3.75 hours vs 5-7 hours estimated (under budget ✅)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1434"></a>
+<h2><a class="anchor" id="autotoc_md1442"></a>
 Next Steps</h2>
 <p><b>IT-08 Core Complete</b> ✅</p>
 <p>All three core phases of IT-08 (Enhanced Error Reporting) are now complete:</p><ol type="1">
@@ -834,7 +834,7 @@ Next Steps</h2>
 </ul>
 <p><b>Recommended Next Priority</b>: IT-09 (CI/CD Integration) or IT-06 (Widget Discovery API)</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md1436"></a>
+<h2><a class="anchor" id="autotoc_md1444"></a>
 References</h2>
 <ul>
 <li><b>Implementation Plan</b>: <a class="el" href="../../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html">E6-z3ed-implementation-plan.md</a></li>

@@ -1,11 +1,15 @@
 var searchData=
 [
-  ['technical_20reference_0',['z3ed CLI Technical Reference',['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html',1,'']]],
-  ['test_20failure_20implementation_20guide_1',['IT-08b: Auto-Capture on Test Failure - Implementation Guide',['../d2/d98/md_docs_2z3ed_2IT-08b-AUTO-CAPTURE.html',1,'']]],
-  ['test_20introspection_20api_20–_20implementation_20guide_2',['IT-05: Test Introspection API – Implementation Guide',['../d5/d3d/md_docs_2z3ed_2IT-05-IMPLEMENTATION-GUIDE.html',1,'']]],
-  ['test_20suite_3',['yaze Test Suite',['../d0/d46/md_test_2README.html',1,'']]],
-  ['testability_20release_20workflow_20improvements_4',['Stability, Testability &amp; Release Workflow Improvements',['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'']]],
-  ['testing_20guide_5',['testing guide',['../d6/d10/md_docs_2A1-testing-guide.html',1,'Testing Guide'],['../de/d8a/md_docs_2overworld__testing__guide.html',1,'yaze Overworld Testing Guide']]],
-  ['tile16_20editor_20palette_20system_6',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]],
-  ['todo_20list_7',['Todo List',['../dd/da0/todo.html',1,'']]]
+  ['recommendations_0',['YAZE Graphics System Optimization Recommendations',['../de/def/md_docs_2gfx__optimization__recommendations.html',1,'']]],
+  ['refactoring_20current_20status_20future_20work_1',['Canvas Refactoring - Current Status &amp; Future Work',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html',1,'']]],
+  ['refactoring_20plan_2',['DungeonEditor Refactoring Plan',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html',1,'']]],
+  ['reference_3',['reference',['../dd/d96/md_docs_204-api-reference.html',1,'API Reference'],['../db/dbf/md_docs_2z3ed_2E6-z3ed-reference.html',1,'z3ed CLI Technical Reference']]],
+  ['reference_20card_4',['z3ed Quick Reference Card',['../dd/d83/md_docs_2z3ed_2QUICK__REFERENCE.html',1,'']]],
+  ['release_20workflow_20improvements_5',['Stability, Testability &amp; Release Workflow Improvements',['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'']]],
+  ['release_20workflows_20documentation_6',['Release Workflows Documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'']]],
+  ['renderer_20class_20performance_20analysis_20and_20optimization_7',['Renderer Class Performance Analysis and Optimization',['../dd/d7c/md_docs_2analysis_2renderer__optimization__analysis.html',1,'']]],
+  ['rendering_20implementation_20yaze_20graphics_20optimizations_8',['Atlas Rendering Implementation - YAZE Graphics Optimizations',['../db/d26/md_docs_2atlas__rendering__implementation.html',1,'']]],
+  ['reporting_20implementation_20guide_9',['IT-08: Enhanced Error Reporting Implementation Guide',['../d4/db6/md_docs_2z3ed_2IT-08-IMPLEMENTATION-GUIDE.html',1,'']]],
+  ['results_10',['Phase 2 Validation Results',['../da/df3/md_docs_2z3ed_2PHASE2-VALIDATION-RESULTS.html',1,'']]],
+  ['roadmap_11',['Roadmap',['../d6/db4/md_docs_2D1-roadmap.html',1,'']]]
 ];

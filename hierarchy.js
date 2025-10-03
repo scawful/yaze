@@ -2,7 +2,8 @@ var hierarchy =
 [
     [ "yaze::cli::AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", [
       [ "yaze::cli::GeminiAIService", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html", null ],
-      [ "yaze::cli::MockAIService", "df/d18/classyaze_1_1cli_1_1MockAIService.html", null ]
+      [ "yaze::cli::MockAIService", "df/d18/classyaze_1_1cli_1_1MockAIService.html", null ],
+      [ "yaze::cli::OllamaAIService", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html", null ]
     ] ],
     [ "yaze::editor::zsprite::AnimationGroup", "dc/d2c/structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html", null ],
     [ "AppDelegate", "d3/d3e/classAppDelegate.html", null ],
@@ -192,6 +193,7 @@ var hierarchy =
     [ "yaze::editor::ExampleTreeNode", "d8/d9f/structyaze_1_1editor_1_1ExampleTreeNode.html", null ],
     [ "yaze::editor::ExtensionManager", "d8/d45/classyaze_1_1editor_1_1ExtensionManager.html", null ],
     [ "yaze::core::FeatureFlags", "d8/d3f/classyaze_1_1core_1_1FeatureFlags.html", null ],
+    [ "yaze::cli::FewShotExample", "db/de0/structyaze_1_1cli_1_1FewShotExample.html", null ],
     [ "yaze::core::FileDialogWrapper", "d5/d6c/classyaze_1_1core_1_1FileDialogWrapper.html", null ],
     [ "yaze::util::FlagParser", "d1/d71/classyaze_1_1util_1_1FlagParser.html", null ],
     [ "yaze::util::FlagRegistry", "d5/d1f/classyaze_1_1util_1_1FlagRegistry.html", null ],
@@ -208,6 +210,7 @@ var hierarchy =
       [ "yaze::zelda3::OverworldItem", "d1/d26/classyaze_1_1zelda3_1_1OverworldItem.html", null ],
       [ "yaze::zelda3::Sprite", "d6/db1/classyaze_1_1zelda3_1_1Sprite.html", null ]
     ] ],
+    [ "yaze::cli::GeminiConfig", "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html", null ],
     [ "yaze::gfx::GfxContext", "d5/d28/classyaze_1_1gfx_1_1GfxContext.html", [
       [ "yaze::editor::OverworldEditor", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html", null ],
       [ "yaze::editor::Tile16Editor", "db/d82/classyaze_1_1editor_1_1Tile16Editor.html", null ],
@@ -307,6 +310,7 @@ var hierarchy =
     [ "yaze::zelda3::ObjectSizeInfo", "da/d08/structyaze_1_1zelda3_1_1ObjectSizeInfo.html", null ],
     [ "yaze::zelda3::ObjectSubtypeInfo", "de/d8f/structyaze_1_1zelda3_1_1ObjectSubtypeInfo.html", null ],
     [ "yaze::emu::OBJSEL", "d7/df6/structyaze_1_1emu_1_1OBJSEL.html", null ],
+    [ "yaze::cli::OllamaConfig", "d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html", null ],
     [ "yaze::Transaction::Operation", "db/de8/structyaze_1_1Transaction_1_1Operation.html", null ],
     [ "yaze::emu::OPHCT", "d2/d4f/structyaze_1_1emu_1_1OPHCT.html", null ],
     [ "yaze::gfx::OptimizationResult", "d6/d5e/structyaze_1_1gfx_1_1OptimizationResult.html", null ],
@@ -347,6 +351,7 @@ var hierarchy =
     [ "yaze::core::ProjectManager", "d9/d7f/classyaze_1_1core_1_1ProjectManager.html", null ],
     [ "yaze::core::ProjectMetadata", "d8/d0c/structyaze_1_1core_1_1ProjectMetadata.html", null ],
     [ "yaze::core::ProjectManager::ProjectTemplate", "d1/d47/structyaze_1_1core_1_1ProjectManager_1_1ProjectTemplate.html", null ],
+    [ "yaze::cli::PromptBuilder", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html", null ],
     [ "yaze::editor::ProposalDrawer", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html", null ],
     [ "yaze::cli::ProposalRegistry::ProposalMetadata", "d5/da1/structyaze_1_1cli_1_1ProposalRegistry_1_1ProposalMetadata.html", null ],
     [ "yaze::cli::ProposalRegistry", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html", null ],
@@ -371,6 +376,7 @@ var hierarchy =
       [ "yaze::test::MockRom", "df/df5/classyaze_1_1test_1_1MockRom.html", null ],
       [ "yaze::zelda3::MockRom", "d4/df3/classyaze_1_1zelda3_1_1MockRom.html", null ]
     ] ],
+    [ "yaze::cli::RomContext", "d4/d2e/structyaze_1_1cli_1_1RomContext.html", null ],
     [ "yaze::RomLoadOptions", "db/d22/structyaze_1_1RomLoadOptions.html", null ],
     [ "ROMPatchUtility", "db/d1c/classROMPatchUtility.html", null ],
     [ "yaze::cli::RomSandboxManager", "d5/dbc/classyaze_1_1cli_1_1RomSandboxManager.html", null ],

@@ -66,7 +66,7 @@ var searchData=
   ['animation_5fspeed_63',['animation_speed',['../d1/d46/structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html#a2b037a7b41734a909398057fcffe1fe2',1,'yaze::gui::BackgroundRenderer::GridSettings::animation_speed'],['../d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a3988da8b56d22e9865ac5db53fe6e063',1,'yaze::gui::EnhancedTheme::animation_speed']]],
   ['animation_5ftime_5f_64',['animation_time_',['../d5/dc2/classyaze_1_1gui_1_1BackgroundRenderer.html#a75395c79978cbf81fcdcb72cc52d11f9',1,'yaze::gui::BackgroundRenderer']]],
   ['animations_65',['animations',['../df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#ac8145742c90eb85db39776669e99664a',1,'yaze::editor::zsprite::ZSprite']]],
-  ['api_5fkey_5f_66',['api_key_',['../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a2391b0499d08a8290bdde89ef49415ca',1,'yaze::cli::GeminiAIService']]],
+  ['api_5fkey_66',['api_key',['../dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a7a362e9af36f9d703c3a5802f0a139ea',1,'yaze::cli::GeminiConfig']]],
   ['api_5fversion_67',['api_version',['../da/d74/structyaze__extension.html#a93cdd908fb3c54b68fa54307fcf3a090',1,'yaze_extension']]],
   ['apu_5f_68',['apu_',['../d3/d15/classyaze_1_1emu_1_1Snes.html#ab53673caf48dd8b875592f956500f887',1,'yaze::emu::Snes']]],
   ['apu_5fcatchup_5fcycles_5f_69',['apu_catchup_cycles_',['../d3/d15/classyaze_1_1emu_1_1Snes.html#afd49c5dc2866651cf48b8b164c9a4d8f',1,'yaze::emu::Snes']]],
