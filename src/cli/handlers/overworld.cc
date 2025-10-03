@@ -23,13 +23,19 @@ absl::Status OverworldGetTile::Run(const std::vector<std::string>& arg_vec) {
       return absl::InvalidArgumentError("ROM file must be provided via --rom flag.");
   }
 
-  rom_.LoadFromFile(rom_file);
+  auto load_status = rom_.LoadFromFile(rom_file);
+  if (!load_status.ok()) {
+    return load_status;
+  }
   if (!rom_.is_loaded()) {
       return absl::AbortedError("Failed to load ROM.");
   }
 
   zelda3::Overworld overworld(&rom_);
-  overworld.Load(&rom_);
+  auto ow_status = overworld.Load(&rom_);
+  if (!ow_status.ok()) {
+    return ow_status;
+  }
 
   uint16_t tile = overworld.GetTile(x, y);
 
@@ -54,21 +60,40 @@ absl::Status OverworldSetTile::Run(const std::vector<std::string>& arg_vec) {
       return absl::InvalidArgumentError("ROM file must be provided via --rom flag.");
   }
 
-  rom_.LoadFromFile(rom_file);
+  auto load_status = rom_.LoadFromFile(rom_file);
+  if (!load_status.ok()) {
+    return load_status;
+  }
   if (!rom_.is_loaded()) {
       return absl::AbortedError("Failed to load ROM.");
   }
 
   zelda3::Overworld overworld(&rom_);
-  overworld.Load(&rom_);
+  auto status = overworld.Load(&rom_);
+  if (!status.ok()) {
+    return status;
+  }
 
-  // TODO: Implement the actual set_tile method in Overworld class
-  // overworld.SetTile(x, y, tile_id);
+  // Set the world based on map_id
+  if (map_id < 0x40) {
+    overworld.set_current_world(0);  // Light World
+  } else if (map_id < 0x80) {
+    overworld.set_current_world(1);  // Dark World
+  } else {
+    overworld.set_current_world(2);  // Special World
+  }
 
-  // rom_.SaveToFile({.filename = rom_file});
+  // Set the tile
+  overworld.SetTile(x, y, static_cast<uint16_t>(tile_id));
 
-  std::cout << "Set tile at (" << x << ", " << y << ") on map " << map_id << " to: 0x" << std::hex << tile_id << std::endl;
-  std::cout << "(Not actually implemented yet)" << std::endl;
+  // Save the ROM
+  auto save_status = rom_.SaveToFile({.filename = rom_file});
+  if (!save_status.ok()) {
+    return save_status;
+  }
+
+  std::cout << "✅ Set tile at (" << x << ", " << y << ") on map " << map_id 
+            << " to: 0x" << std::hex << tile_id << std::dec << std::endl;
 
   return absl::OkStatus();
 }
