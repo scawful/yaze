@@ -43,6 +43,7 @@ std::unique_ptr<AIService> CreateAIService() {
   const char* provider_env = std::getenv("YAZE_AI_PROVIDER");
   const char* gemini_key = std::getenv("GEMINI_API_KEY");
   const char* ollama_model = std::getenv("OLLAMA_MODEL");
+  const char* gemini_model = std::getenv("GEMINI_MODEL");
   
   // Explicit provider selection
   if (provider_env && std::string(provider_env) == "ollama") {
@@ -68,8 +69,24 @@ std::unique_ptr<AIService> CreateAIService() {
   
   // Gemini if API key provided
   if (gemini_key && std::strlen(gemini_key) > 0) {
-    std::cout << "🤖 Using Gemini AI (remote)" << std::endl;
-    return std::make_unique<GeminiAIService>(gemini_key);
+    GeminiConfig config(gemini_key);
+    
+    // Allow model override via env
+    if (gemini_model && std::strlen(gemini_model) > 0) {
+      config.model = gemini_model;
+    }
+    
+    auto service = std::make_unique<GeminiAIService>(config);
+    
+    // Health check
+    if (auto status = service->CheckAvailability(); !status.ok()) {
+      std::cerr << "⚠️  Gemini unavailable: " << status.message() << std::endl;
+      std::cerr << "   Falling back to MockAIService" << std::endl;
+      return std::make_unique<MockAIService>();
+    }
+    
+    std::cout << "🤖 Using Gemini AI with model: " << config.model << std::endl;
+    return service;
   }
   
   // Default: Mock service for testing
