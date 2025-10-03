@@ -121,24 +121,14 @@ target_include_directories(
 if(YAZE_USE_MODULAR_BUILD)
   target_link_libraries(
     z3ed PRIVATE
-    yaze_util
-    yaze_gfx
-    yaze_zelda3
-    yaze_core_lib
-    yaze_agent
+    yaze_core
     ftxui::component
-    ftxui::screen
-    ftxui::dom
-    absl::flags
-    absl::flags_parse
   )
 else()
   target_link_libraries(
     z3ed PRIVATE
     yaze_core
     ftxui::component
-    ftxui::screen
-    ftxui::dom
     absl::flags
     absl::flags_parse
   )
