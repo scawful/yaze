@@ -221,6 +221,12 @@ message GetTestResultsResponse {
   repeated AssertionResult assertions = 6;
   repeated string logs = 7;  // If include_logs=true
   map<string, int32> metrics = 8;  // e.g., "frame_count": 123
+  
+  // IT-08b: Failure diagnostics
+  string screenshot_path = 9;           // Path to failure screenshot (if captured)
+  int64 screenshot_size_bytes = 10;     // Size of screenshot file
+  string failure_context = 11;          // Execution context at failure time
+  string widget_state = 12;             // Widget state dump (IT-08c - future)
 }
 
 message AssertionResult {

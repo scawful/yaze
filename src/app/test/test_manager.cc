@@ -1367,6 +1367,15 @@ void TestManager::MarkHarnessTestCompleted(
     execution.metrics.insert(metrics.begin(), metrics.end());
   }
 
+  // IT-08b: Auto-capture failure context for failed/timeout tests
+  if (status == HarnessTestStatus::kFailed || 
+      status == HarnessTestStatus::kTimeout) {
+    // Release lock before calling CaptureFailureContext to avoid deadlock
+    lock.Release();
+    CaptureFailureContext(test_id);
+    lock.Acquire();
+  }
+
   HarnessAggregate& aggregate = harness_aggregates_[execution.name];
   if (aggregate.category.empty()) {
     aggregate.category = execution.category;
@@ -1479,6 +1488,48 @@ void TestManager::TrimHarnessHistoryLocked() {
     }
     harness_history_order_.pop_front();
   }
+}
+
+void TestManager::CaptureFailureContext(const std::string& test_id) {
+  // IT-08b: Capture failure diagnostics
+  // Note: This method is called with the harness_history_mutex_ unlocked
+  // to avoid deadlock when Screenshot RPC calls back into TestManager
+  
+  absl::MutexLock lock(&harness_history_mutex_);
+  auto it = harness_history_.find(test_id);
+  if (it == harness_history_.end()) {
+    return;
+  }
+  
+  HarnessTestExecution& execution = it->second;
+  
+  // 1. Capture execution context (frame count, active window, etc.)
+  if (ImGui::GetCurrentContext() != nullptr) {
+    ImGuiWindow* current_window = ImGui::GetCurrentWindow();
+    const char* window_name = current_window ? current_window->Name : "none";
+    ImGuiID active_id = ImGui::GetActiveID();
+    
+    execution.failure_context = absl::StrFormat(
+        "Frame: %d, Active Window: %s, Focused Widget: 0x%08X",
+        ImGui::GetFrameCount(),
+        window_name,
+        active_id);
+  } else {
+    execution.failure_context = "ImGui context not available";
+  }
+  
+  // 2. Screenshot capture would happen here via gRPC call
+  // Note: Screenshot RPC implementation is in ImGuiTestHarnessServiceImpl
+  // The screenshot_path will be set by the RPC handler when it completes
+  // For now, we just set a placeholder path to indicate where it should be saved
+  execution.screenshot_path = absl::StrFormat("/tmp/yaze_test_%s_failure.bmp", test_id);
+  
+  // 3. Widget state capture (IT-08c - future implementation)
+  // execution.widget_state = CaptureWidgetState();
+  
+  util::logf("[TestManager] Captured failure context for test %s: %s", 
+             test_id.c_str(), 
+             execution.failure_context.c_str());
 }
 
 }  // namespace test

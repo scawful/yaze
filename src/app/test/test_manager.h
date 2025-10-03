@@ -140,6 +140,12 @@ struct HarnessTestExecution {
   std::vector<std::string> assertion_failures;
   std::vector<std::string> logs;
   std::map<std::string, int32_t> metrics;
+  
+  // IT-08b: Failure diagnostics
+  std::string screenshot_path;
+  int64_t screenshot_size_bytes = 0;
+  std::string failure_context;
+  std::string widget_state;  // IT-08c (future)
 };
 
 struct HarnessTestSummary {
@@ -269,6 +275,10 @@ class TestManager {
       ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
   std::vector<HarnessTestSummary> ListHarnessTestSummaries(
       const std::string& category_filter = "") const
+      ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
+  
+  // IT-08b: Capture failure diagnostics
+  void CaptureFailureContext(const std::string& test_id)
       ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
 
  private:
