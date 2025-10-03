@@ -38,6 +38,8 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(
     status = HandleResourceListCommand(args, rom_context_);
   } else if (tool_call.tool_name == "dungeon-list-sprites") {
     status = HandleDungeonListSpritesCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "overworld-find-tile") {
+    status = HandleOverworldFindTileCommand(args, rom_context_);
   } else if (tool_call.tool_name == "overworld-describe-map") {
     status = HandleOverworldDescribeMapCommand(args, rom_context_);
   } else if (tool_call.tool_name == "overworld-list-warps") {

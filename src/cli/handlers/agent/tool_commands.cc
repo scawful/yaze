@@ -209,6 +209,174 @@ absl::Status HandleDungeonListSpritesCommand(
   return absl::OkStatus();
 }
 
+absl::Status HandleOverworldFindTileCommand(
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
+  std::optional<std::string> tile_value;
+  std::optional<std::string> map_value;
+  std::optional<std::string> world_value;
+  std::string format = "json";
+  std::optional<std::string> rom_override;
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--tile") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--tile requires a value.");
+      }
+      tile_value = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--tile=")) {
+      tile_value = token.substr(7);
+    } else if (token == "--map") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--map requires a value.");
+      }
+      map_value = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--map=")) {
+      map_value = token.substr(6);
+    } else if (token == "--world") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--world requires a value.");
+      }
+      world_value = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--world=")) {
+      world_value = token.substr(8);
+    } else if (token == "--format") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--format requires a value.");
+      }
+      format = absl::AsciiStrToLower(arg_vec[++i]);
+    } else if (absl::StartsWith(token, "--format=")) {
+      format = absl::AsciiStrToLower(token.substr(9));
+    } else if (token == "--rom") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--rom requires a value.");
+      }
+      rom_override = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--rom=")) {
+      rom_override = token.substr(6);
+    }
+  }
+
+  if (!tile_value.has_value()) {
+    return absl::InvalidArgumentError(
+        "Usage: agent overworld-find-tile --tile <id> [--map <id>] [--world <light|dark|special>] [--format <json|text>]");
+  }
+
+  ASSIGN_OR_RETURN(int tile_numeric,
+                   overworld::ParseNumeric(*tile_value));
+  if (tile_numeric < 0 || tile_numeric > 0xFFFF) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Tile ID must be between 0x0000 and 0xFFFF (got ",
+                      *tile_value, ")"));
+  }
+
+  std::optional<int> map_filter;
+  if (map_value.has_value()) {
+    ASSIGN_OR_RETURN(int parsed_map,
+                     overworld::ParseNumeric(*map_value));
+    if (parsed_map < 0 || parsed_map >= zelda3::kNumOverworldMaps) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Map ID out of range: ", *map_value));
+    }
+    map_filter = parsed_map;
+  }
+
+  std::optional<int> world_filter;
+  if (world_value.has_value()) {
+    ASSIGN_OR_RETURN(int parsed_world,
+                     overworld::ParseWorldSpecifier(*world_value));
+    world_filter = parsed_world;
+  }
+
+  if (map_filter.has_value()) {
+    ASSIGN_OR_RETURN(int inferred_world,
+                     overworld::InferWorldFromMapId(*map_filter));
+    if (world_filter.has_value() && inferred_world != *world_filter) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Map 0x",
+                       absl::StrFormat("%02X", *map_filter),
+                       " belongs to the ",
+                       overworld::WorldName(inferred_world),
+                       " World but --world requested ",
+                       overworld::WorldName(*world_filter)));
+    }
+    if (!world_filter.has_value()) {
+      world_filter = inferred_world;
+    }
+  }
+
+  if (format != "json" && format != "text") {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Unsupported format: ", format));
+  }
+
+  Rom rom_storage;
+  Rom* rom = nullptr;
+  if (rom_context != nullptr && rom_context->is_loaded() && !rom_override.has_value()) {
+    rom = rom_context;
+  } else {
+    ASSIGN_OR_RETURN(auto rom_or,
+                     LoadRomFromPathOrFlag(rom_override));
+    rom_storage = std::move(rom_or);
+    rom = &rom_storage;
+  }
+
+  zelda3::Overworld overworld_data(rom);
+  auto load_status = overworld_data.Load(rom);
+  if (!load_status.ok()) {
+    return load_status;
+  }
+
+  overworld::TileSearchOptions search_options;
+  search_options.map_id = map_filter;
+  search_options.world = world_filter;
+
+  ASSIGN_OR_RETURN(auto matches,
+                   overworld::FindTileMatches(overworld_data,
+                                              static_cast<uint16_t>(tile_numeric),
+                                              search_options));
+
+  if (format == "json") {
+    std::cout << "{\n";
+    std::cout << absl::StrFormat(
+        "  \"tile\": \"0x%04X\",\n", tile_numeric);
+    std::cout << absl::StrFormat(
+        "  \"match_count\": %zu,\n", matches.size());
+    std::cout << "  \"matches\": [\n";
+    for (size_t i = 0; i < matches.size(); ++i) {
+      const auto& match = matches[i];
+      std::cout << absl::StrFormat(
+          "    {\"map\": \"0x%02X\", \"world\": \"%s\", "
+          "\"local\": {\"x\": %d, \"y\": %d}, "
+          "\"global\": {\"x\": %d, \"y\": %d}}%s\n",
+          match.map_id, overworld::WorldName(match.world), match.local_x,
+          match.local_y,
+          match.global_x, match.global_y,
+          (i + 1 == matches.size()) ? "" : ",");
+    }
+    std::cout << "  ]\n";
+    std::cout << "}\n";
+  } else {
+    std::cout << absl::StrFormat(
+        "🔎 Tile 0x%04X → %zu match(es)\n",
+        tile_numeric, matches.size());
+    if (matches.empty()) {
+      std::cout << "  No matches found." << std::endl;
+      return absl::OkStatus();
+    }
+
+    for (const auto& match : matches) {
+      std::cout << absl::StrFormat(
+          "  • Map 0x%02X (%s World) local(%2d,%2d) global(%3d,%3d)\n",
+          match.map_id, overworld::WorldName(match.world), match.local_x,
+          match.local_y,
+          match.global_x, match.global_y);
+    }
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status HandleOverworldDescribeMapCommand(
   const std::vector<std::string>& arg_vec, Rom* rom_context) {
   std::optional<std::string> map_value;

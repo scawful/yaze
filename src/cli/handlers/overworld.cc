@@ -244,73 +244,13 @@ absl::Status OverworldFindTile::Run(const std::vector<std::string>& arg_vec) {
     return ow_status;
   }
 
-  struct TileMatch {
-    int map_id;
-    int world;
-    int local_x;
-    int local_y;
-    int global_x;
-    int global_y;
-  };
+  overworld::TileSearchOptions search_options;
+  search_options.map_id = map_filter;
+  search_options.world = world_filter;
 
-  std::vector<int> worlds_to_search;
-  if (world_filter.has_value()) {
-    worlds_to_search.push_back(*world_filter);
-  } else {
-    worlds_to_search = {0, 1, 2};
-  }
-
-  std::vector<TileMatch> matches;
-
-  for (int world : worlds_to_search) {
-    int world_start = 0;
-    int world_maps = 0;
-    switch (world) {
-      case 0:
-        world_start = 0x00;
-        world_maps = 0x40;
-        break;
-      case 1:
-        world_start = 0x40;
-        world_maps = 0x40;
-        break;
-      case 2:
-        world_start = 0x80;
-        world_maps = 0x20;
-        break;
-      default:
-        return absl::InvalidArgumentError(
-            absl::StrCat("Unknown world index: ", world));
-    }
-
-    overworld.set_current_world(world);
-
-    for (int local_map = 0; local_map < world_maps; ++local_map) {
-      int map_id = world_start + local_map;
-      if (map_filter.has_value() && map_id != *map_filter) {
-        continue;
-      }
-
-      int map_x_index = local_map % 8;
-      int map_y_index = local_map / 8;
-
-      int global_x_start = map_x_index * 32;
-      int global_y_start = map_y_index * 32;
-
-      for (int local_y = 0; local_y < 32; ++local_y) {
-        for (int local_x = 0; local_x < 32; ++local_x) {
-          int global_x = global_x_start + local_x;
-          int global_y = global_y_start + local_y;
-
-          uint16_t tile = overworld.GetTile(global_x, global_y);
-          if (tile == tile_id) {
-            matches.push_back({map_id, world, local_x, local_y, global_x,
-                              global_y});
-          }
-        }
-      }
-    }
-  }
+  ASSIGN_OR_RETURN(auto matches,
+                   overworld::FindTileMatches(overworld, tile_id,
+                                              search_options));
 
   if (format == "json") {
     std::cout << "{\n";

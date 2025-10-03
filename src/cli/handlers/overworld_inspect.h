@@ -81,6 +81,20 @@ struct WarpQuery {
   std::optional<WarpType> type;
 };
 
+struct TileMatch {
+  int map_id;
+  int world;
+  int local_x;
+  int local_y;
+  int global_x;
+  int global_y;
+};
+
+struct TileSearchOptions {
+  std::optional<int> map_id;
+  std::optional<int> world;
+};
+
 absl::StatusOr<int> ParseNumeric(std::string_view value, int base = 0);
 absl::StatusOr<int> ParseWorldSpecifier(std::string_view value);
 absl::StatusOr<int> InferWorldFromMapId(int map_id);
@@ -92,6 +106,10 @@ absl::StatusOr<MapSummary> BuildMapSummary(zelda3::Overworld& overworld,
 
 absl::StatusOr<std::vector<WarpEntry>> CollectWarpEntries(
   const zelda3::Overworld& overworld, const WarpQuery& query);
+
+absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
+    zelda3::Overworld& overworld, uint16_t tile_id,
+    const TileSearchOptions& options = {});
 
 }  // namespace overworld
 }  // namespace cli

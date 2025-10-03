@@ -54,6 +54,9 @@ z3ed agent resource-list --type dungeon --format json
 
 # Dump sprite placements for a dungeon room
 z3ed agent dungeon-list-sprites --room 0x012
+
+# Search overworld maps for a tile ID using shared agent tooling
+z3ed agent overworld-find-tile --tile 0x02E --map 0x05
 ```
 
 ### GUI Testing Commands
@@ -201,6 +204,9 @@ z3ed overworld find-tile --tile 0x02E --format json
 
 # Narrow search to Light World map 0x05
 z3ed overworld find-tile --tile 0x02E --map 0x05
+
+# Ask the agent to perform the same lookup (returns JSON by default)
+z3ed agent overworld-find-tile --tile 0x02E --map 0x05
 ```
 
 ### Label-Aware Dungeon Edit
