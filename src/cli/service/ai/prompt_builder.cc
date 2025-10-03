@@ -1,4 +1,5 @@
 #include "cli/service/ai/prompt_builder.h"
+#include "cli/service/agent/conversational_agent_service.h"
 
 #include <fstream>
 #include <sstream>
@@ -21,86 +22,84 @@ void PromptBuilder::LoadDefaultExamples() {
   // Single tile placement
   examples_.push_back({
       "Place a tree at position 10, 20 on the Light World map",
-      {
-          "overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E"
-      },
-      "Single tile16 placement. Tree tile ID is 0x02E in vanilla ALTTP"
-  });
+      "Okay, I can place that tree for you. Here is the command:",
+      {"overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E"},
+      "Single tile16 placement. Tree tile ID is 0x02E in vanilla ALTTP"});
   
   // Area/region editing
   examples_.push_back({
       "Create a 3x3 water pond at coordinates 15, 10",
-      {
-          "overworld set-tile --map 0 --x 15 --y 10 --tile 0x14C",
-          "overworld set-tile --map 0 --x 16 --y 10 --tile 0x14D",
-          "overworld set-tile --map 0 --x 17 --y 10 --tile 0x14C",
-          "overworld set-tile --map 0 --x 15 --y 11 --tile 0x14D",
-          "overworld set-tile --map 0 --x 16 --y 11 --tile 0x14D",
-          "overworld set-tile --map 0 --x 17 --y 11 --tile 0x14D",
-          "overworld set-tile --map 0 --x 15 --y 12 --tile 0x14E",
-          "overworld set-tile --map 0 --x 16 --y 12 --tile 0x14E",
-          "overworld set-tile --map 0 --x 17 --y 12 --tile 0x14E"
-      },
-      "Water areas use different edge tiles: 0x14C (top), 0x14D (middle), 0x14E (bottom)"
-  });
+      "Creating a 3x3 pond requires nine `set-tile` commands. Here they are:",
+      {"overworld set-tile --map 0 --x 15 --y 10 --tile 0x14C",
+       "overworld set-tile --map 0 --x 16 --y 10 --tile 0x14D",
+       "overworld set-tile --map 0 --x 17 --y 10 --tile 0x14C",
+       "overworld set-tile --map 0 --x 15 --y 11 --tile 0x14D",
+       "overworld set-tile --map 0 --x 16 --y 11 --tile 0x14D",
+       "overworld set-tile --map 0 --x 17 --y 11 --tile 0x14D",
+       "overworld set-tile --map 0 --x 15 --y 12 --tile 0x14E",
+       "overworld set-tile --map 0 --x 16 --y 12 --tile 0x14E",
+       "overworld set-tile --map 0 --x 17 --y 12 --tile 0x14E"},
+      "Water areas use different edge tiles: 0x14C (top), 0x14D (middle), "
+      "0x14E (bottom)"});
   
   // Path/line creation
-  examples_.push_back({
-      "Add a dirt path from position 5,5 to 5,15",
-      {
-          "overworld set-tile --map 0 --x 5 --y 5 --tile 0x022",
-          "overworld set-tile --map 0 --x 5 --y 6 --tile 0x022",
-          "overworld set-tile --map 0 --x 5 --y 7 --tile 0x022",
-          "overworld set-tile --map 0 --x 5 --y 8 --tile 0x022",
-          "overworld set-tile --map 0 --x 5 --y 9 --tile 0x022",
-          "overworld set-tile --map 0 --x 5 --y 10 --tile 0x022",
-          "overworld set-tile --map 0 --x 5 --y 11 --tile 0x022",
-          "overworld set-tile --map 0 --x 5 --y 12 --tile 0x022",
-          "overworld set-tile --map 0 --x 5 --y 13 --tile 0x022",
-          "overworld set-tile --map 0 --x 5 --y 14 --tile 0x022",
-          "overworld set-tile --map 0 --x 5 --y 15 --tile 0x022"
-      },
-      "Linear paths are created by placing tiles sequentially. Dirt tile is 0x022"
-  });
-  
+  examples_.push_back(
+      {"Add a dirt path from position 5,5 to 5,15",
+       "I will generate a `set-tile` command for each point along the path.",
+       {"overworld set-tile --map 0 --x 5 --y 5 --tile 0x022",
+        "overworld set-tile --map 0 --x 5 --y 6 --tile 0x022",
+        "overworld set-tile --map 0 --x 5 --y 7 --tile 0x022",
+        "overworld set-tile --map 0 --x 5 --y 8 --tile 0x022",
+        "overworld set-tile --map 0 --x 5 --y 9 --tile 0x022",
+        "overworld set-tile --map 0 --x 5 --y 10 --tile 0x022",
+        "overworld set-tile --map 0 --x 5 --y 11 --tile 0x022",
+        "overworld set-tile --map 0 --x 5 --y 12 --tile 0x022",
+        "overworld set-tile --map 0 --x 5 --y 13 --tile 0x022",
+        "overworld set-tile --map 0 --x 5 --y 14 --tile 0x022",
+        "overworld set-tile --map 0 --x 5 --y 15 --tile 0x022"},
+       "Linear paths are created by placing tiles sequentially. Dirt tile is "
+       "0x022"});
+
   // Forest/tree grouping
-  examples_.push_back({
-      "Plant a row of trees horizontally at y=8 from x=20 to x=25",
-      {
-          "overworld set-tile --map 0 --x 20 --y 8 --tile 0x02E",
-          "overworld set-tile --map 0 --x 21 --y 8 --tile 0x02E",
-          "overworld set-tile --map 0 --x 22 --y 8 --tile 0x02E",
-          "overworld set-tile --map 0 --x 23 --y 8 --tile 0x02E",
-          "overworld set-tile --map 0 --x 24 --y 8 --tile 0x02E",
-          "overworld set-tile --map 0 --x 25 --y 8 --tile 0x02E"
-      },
-      "Tree rows create natural barriers and visual boundaries"
-  });
-  
+  examples_.push_back(
+      {"Plant a row of trees horizontally at y=8 from x=20 to x=25",
+       "Here are the commands to plant that row of trees:",
+       {"overworld set-tile --map 0 --x 20 --y 8 --tile 0x02E",
+        "overworld set-tile --map 0 --x 21 --y 8 --tile 0x02E",
+        "overworld set-tile --map 0 --x 22 --y 8 --tile 0x02E",
+        "overworld set-tile --map 0 --x 23 --y 8 --tile 0x02E",
+        "overworld set-tile --map 0 --x 24 --y 8 --tile 0x02E",
+        "overworld set-tile --map 0 --x 25 --y 8 --tile 0x02E"},
+       "Tree rows create natural barriers and visual boundaries"});
+
   // ==========================================================================
   // DUNGEON EDITING - Label-Aware Operations
   // ==========================================================================
-  
+
   // Sprite placement (label-aware)
-  examples_.push_back({
-      "Add 3 soldiers to the Eastern Palace entrance room",
-      {
-          "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 5 --y 3",
-          "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 10 --y 3",
-          "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 7 --y 8"
-      },
-      "Dungeon ID 0x02 is Eastern Palace. Sprite 0x41 is soldier. Spread placement for balance"
-  });
-  
+  examples_.push_back(
+      {"Add 3 soldiers to the Eastern Palace entrance room",
+       "I've identified the dungeon and sprite IDs from your project's "
+       "labels. Here are the commands:",
+       {"dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 5 --y "
+        "3",
+        "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 10 "
+        "--y 3",
+        "dungeon add-sprite --dungeon 0x02 --room 0x00 --sprite 0x41 --x 7 --y "
+        "8"},
+       "Dungeon ID 0x02 is Eastern Palace. Sprite 0x41 is soldier. Spread "
+       "placement for balance"});
+
   // Object placement
-  examples_.push_back({
-      "Place a chest in the Hyrule Castle treasure room",
-      {
-          "dungeon add-chest --dungeon 0x00 --room 0x60 --x 7 --y 5 --item 0x12 --big false"
-      },
-      "Dungeon 0x00 is Hyrule Castle. Item 0x12 is a small key. Position centered in room"
-  });
-  
+  examples_.push_back(
+      {"Place a chest in the Hyrule Castle treasure room",
+       "Certainly. I will place a chest containing a small key in the center of "
+       "the room.",
+       {"dungeon add-chest --dungeon 0x00 --room 0x60 --x 7 --y 5 --item 0x12 "
+        "--big false"},
+       "Dungeon 0x00 is Hyrule Castle. Item 0x12 is a small key. Position "
+       "centered in room"});
+
   // ==========================================================================
   // COMMON TILE16 REFERENCE (for AI knowledge)
   // ==========================================================================
@@ -118,13 +117,11 @@ void PromptBuilder::LoadDefaultExamples() {
   // Shallow Water: 0x150
   
   // Validation example (still useful)
-  examples_.push_back({
-      "Check if my overworld changes are valid",
-      {
-          "rom validate"
-      },
-      "Validation ensures ROM integrity after tile modifications"
-  });
+  examples_.push_back(
+      {"Check if my overworld changes are valid",
+       "Yes, I can validate the ROM for you.",
+       {"rom validate"},
+       "Validation ensures ROM integrity after tile modifications"});
 }
 
 absl::Status PromptBuilder::LoadResourceCatalogue(const std::string& yaml_path) {
@@ -198,16 +195,19 @@ std::string PromptBuilder::BuildFewShotExamplesSection() {
   for (const auto& example : examples_) {
     oss << "**User Request:** \"" << example.user_prompt << "\"\n";
     oss << "**Commands:**\n";
-    oss << "```json\n[";
-    
+    oss << "```json\n{";
+    oss << "  \"text_response\": \"" << example.text_response << "\",\n";
+    oss << "  \"commands\": [";
+
     std::vector<std::string> quoted_cmds;
     for (const auto& cmd : example.expected_commands) {
       quoted_cmds.push_back("\"" + cmd + "\"");
     }
     oss << absl::StrJoin(quoted_cmds, ", ");
-    
-    oss << "]\n```\n";
-    oss << "*Explanation:* " << example.explanation << "\n\n";
+
+    oss << "],\n";
+    oss << "  \"reasoning\": \"" << example.explanation << "\"\n";
+    oss << "}\n```\n\n";
   }
   
   return oss.str();
@@ -217,11 +217,15 @@ std::string PromptBuilder::BuildConstraintsSection() {
   return R"(
 # Critical Constraints
 
-1. **Output Format:** You MUST respond with ONLY a JSON array of strings
-   - Each string is a complete z3ed command
-   - NO explanatory text before or after
-   - NO markdown code blocks (```json)
-   - NO "z3ed" prefix in commands
+1. **Output Format:** You MUST respond with ONLY a JSON object with the following structure:
+   {
+     "text_response": "Your natural language reply to the user.",
+     "commands": ["command1", "command2"],
+     "reasoning": "Your thought process."
+   }
+   - `text_response` is for conversational replies.
+   - `commands` is for executable z3ed commands. It can be an empty array.
+   - NO explanatory text before or after the JSON object.
 
 2. **Command Syntax:** Follow the exact syntax shown in examples
    - Use correct flag names (--group, --id, --to, --from, etc.)
@@ -329,6 +333,24 @@ std::string PromptBuilder::BuildContextualPrompt(
   oss << "**User Request:** " << user_prompt << "\n\n";
   oss << "Generate the appropriate z3ed commands as a JSON array.";
   
+  return oss.str();
+}
+
+std::string PromptBuilder::BuildPromptFromHistory(
+    const std::vector<agent::ChatMessage>& history) {
+  std::ostringstream oss;
+  oss << "This is a conversation between a user and an expert ROM hacking "
+         "assistant.\n\n";
+
+  for (const auto& msg : history) {
+    if (msg.sender == agent::ChatMessage::Sender::kUser) {
+      oss << "User: " << msg.message << "\n";
+    } else {
+      oss << "Agent: " << msg.message << "\n";
+    }
+  }
+  oss << "\nBased on this conversation, provide a response in the required JSON "
+         "format.";
   return oss.str();
 }
 

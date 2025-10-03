@@ -21,6 +21,9 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/proposal_drawer.h"
+#ifdef YAZE_WITH_GRPC
+#include "app/editor/system/agent_chat_widget.h"
+#endif
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/emu/emulator.h"
@@ -174,10 +177,16 @@ class EditorManager {
   // Testing interface
   bool show_test_dashboard_ = false;
   bool show_performance_dashboard_ = false;
-  
+
   // Agent proposal drawer
   ProposalDrawer proposal_drawer_;
   bool show_proposal_drawer_ = false;
+
+#ifdef YAZE_WITH_GRPC
+  // Agent chat widget
+  AgentChatWidget agent_chat_widget_;
+  bool show_agent_chat_widget_ = false;
+#endif
 
   std::string version_ = "";
   std::string settings_filename_ = "settings.ini";

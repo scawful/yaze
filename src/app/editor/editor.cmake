@@ -37,3 +37,7 @@ set(
   app/test/unit_test_suite.h
   app/editor/system/proposal_drawer.cc
 )
+
+if(YAZE_WITH_GRPC)
+  list(APPEND YAZE_APP_EDITOR_SRC app/editor/system/agent_chat_widget.cc)
+endif()

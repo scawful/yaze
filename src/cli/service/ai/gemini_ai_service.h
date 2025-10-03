@@ -29,15 +29,17 @@ class GeminiAIService : public AIService {
   explicit GeminiAIService(const GeminiConfig& config);
   
   // Primary interface
-  absl::StatusOr<std::vector<std::string>> GetCommands(
+  absl::StatusOr<AgentResponse> GenerateResponse(
       const std::string& prompt) override;
+  absl::StatusOr<AgentResponse> GenerateResponse(
+      const std::vector<agent::ChatMessage>& history) override;
   
   // Health check
   absl::Status CheckAvailability();
 
  private:
   std::string BuildSystemInstruction();
-  absl::StatusOr<std::vector<std::string>> ParseGeminiResponse(
+  absl::StatusOr<AgentResponse> ParseGeminiResponse(
       const std::string& response_body);
   
   GeminiConfig config_;

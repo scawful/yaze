@@ -8,7 +8,6 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "app/core/features.h"
-#include "app/gfx/performance_profiler.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
@@ -21,6 +20,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/arena.h"
+#include "app/gfx/performance_profiler.h"
 #include "app/gui/background_renderer.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -38,11 +38,16 @@
 #ifdef YAZE_ENABLE_GTEST
 #include "app/test/unit_test_suite.h"
 #endif
+#include "app/editor/system/settings_editor.h"
+#include "app/editor/system/toast_manager.h"
+#include "app/emu/emulator.h"
+#include "app/gfx/performance_dashboard.h"
 #include "editor/editor.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "yaze_config.h"
 
 namespace yaze {
 namespace editor {
@@ -706,6 +711,10 @@ void EditorManager::Initialize(const std::string& filename) {
            // Agent Proposals
            {absl::StrCat(ICON_MD_PREVIEW, " Agent Proposals"), "",
             [&]() { proposal_drawer_.Toggle(); }},
+#ifdef YAZE_WITH_GRPC
+           {absl::StrCat(ICON_MD_CHAT, " Agent Chat"), "",
+            [&]() { show_agent_chat_widget_ = !show_agent_chat_widget_; }},
+#endif
            
            {gui::kSeparator, "", nullptr, []() { return true; }},
            
@@ -915,6 +924,19 @@ absl::Status EditorManager::Update() {
       }
     }
   }
+
+  if (show_performance_dashboard_) {
+    gfx::PerformanceDashboard::Get().Render();
+  }
+  if (show_proposal_drawer_) {
+    proposal_drawer_.Draw();
+  }
+#ifdef YAZE_WITH_GRPC
+  if (show_agent_chat_widget_) {
+    agent_chat_widget_.Draw();
+  }
+#endif
+
   return absl::OkStatus();
 }
 

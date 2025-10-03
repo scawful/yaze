@@ -28,6 +28,7 @@ absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec);
 absl::Status HandleResourceListCommand(const std::vector<std::string>& arg_vec);
 absl::Status HandleDungeonListSpritesCommand(
     const std::vector<std::string>& arg_vec);
+absl::Status HandleChatCommand();
 
 }  // namespace agent
 }  // namespace cli

@@ -65,6 +65,9 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   if (subcommand == "dungeon-list-sprites") {
     return agent::HandleDungeonListSpritesCommand(subcommand_args);
   }
+  if (subcommand == "chat") {
+    return agent::HandleChatCommand();
+  }
 
   return absl::InvalidArgumentError(std::string(agent::kUsage));
 }

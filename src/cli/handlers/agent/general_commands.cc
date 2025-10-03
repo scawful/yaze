@@ -22,11 +22,13 @@
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
+#include "cli/service/ai/service_factory.h"
 #include "cli/service/planning/proposal_registry.h"
 #include "cli/service/planning/tile16_proposal_generator.h"
 #include "cli/service/resources/resource_catalog.h"
 #include "cli/service/resources/resource_context_builder.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
+#include "cli/tui/chat_tui.h"
 #include "cli/z3ed.h"
 #include "util/macro.h"
 
@@ -37,67 +39,6 @@ namespace cli {
 namespace agent {
 
 namespace {
-
-// Helper: Select AI service based on environment variables
-std::unique_ptr<AIService> CreateAIService() {
-  // Priority: Ollama (local) > Gemini (remote) > Mock (testing)
-
-  const char* provider_env = std::getenv("YAZE_AI_PROVIDER");
-  const char* gemini_key = std::getenv("GEMINI_API_KEY");
-  const char* ollama_model = std::getenv("OLLAMA_MODEL");
-  const char* gemini_model = std::getenv("GEMINI_MODEL");
-
-  // Explicit provider selection
-  if (provider_env && std::string(provider_env) == "ollama") {
-    OllamaConfig config;
-
-    // Allow model override via env
-    if (ollama_model && std::strlen(ollama_model) > 0) {
-      config.model = ollama_model;
-    }
-
-    auto service = std::make_unique<OllamaAIService>(config);
-
-    // Health check
-    if (auto status = service->CheckAvailability(); !status.ok()) {
-      std::cerr << "⚠️  Ollama unavailable: " << status.message() << std::endl;
-      std::cerr << "   Falling back to MockAIService" << std::endl;
-      return std::make_unique<MockAIService>();
-    }
-
-    std::cout << "🤖 Using Ollama AI with model: " << config.model << std::endl;
-    return service;
-  }
-
-  // Gemini if API key provided
-  if (gemini_key && std::strlen(gemini_key) > 0) {
-    GeminiConfig config(gemini_key);
-
-    // Allow model override via env
-    if (gemini_model && std::strlen(gemini_model) > 0) {
-      config.model = gemini_model;
-    }
-
-    auto service = std::make_unique<GeminiAIService>(config);
-
-    // Health check
-    if (auto status = service->CheckAvailability(); !status.ok()) {
-      std::cerr << "⚠️  Gemini unavailable: " << status.message() << std::endl;
-      std::cerr << "   Falling back to MockAIService" << std::endl;
-      return std::make_unique<MockAIService>();
-    }
-
-    std::cout << "🤖 Using Gemini AI with model: " << config.model << std::endl;
-    return service;
-  }
-
-  // Default: Mock service for testing
-  std::cout << "🤖 Using MockAIService (no LLM configured)" << std::endl;
-  std::cout
-      << "   Tip: Set YAZE_AI_PROVIDER=ollama or GEMINI_API_KEY to enable LLM"
-      << std::endl;
-  return std::make_unique<MockAIService>();
-}
 
 struct DescribeOptions {
   std::optional<std::string> resource;
@@ -199,11 +140,11 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
 
   // 2. Get commands from the AI service
   auto ai_service = CreateAIService();  // Use service factory
-  auto commands_or = ai_service->GetCommands(prompt);
-  if (!commands_or.ok()) {
-    return commands_or.status();
+  auto response_or = ai_service->GenerateResponse(prompt);
+  if (!response_or.ok()) {
+    return response_or.status();
   }
-  std::vector<std::string> commands = commands_or.value();
+  std::vector<std::string> commands = response_or.value().commands;
 
   // 3. Generate a structured proposal from the commands
   Tile16ProposalGenerator generator;
@@ -268,11 +209,11 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& arg_vec) {
   std::string prompt = arg_vec[1];
 
   auto ai_service = CreateAIService();  // Use service factory
-  auto commands_or = ai_service->GetCommands(prompt);
-  if (!commands_or.ok()) {
-    return commands_or.status();
+  auto response_or = ai_service->GenerateResponse(prompt);
+  if (!response_or.ok()) {
+    return response_or.status();
   }
-  std::vector<std::string> commands = commands_or.value();
+  std::vector<std::string> commands = response_or.value().commands;
 
   // Create a proposal from the commands
   Tile16ProposalGenerator generator;
@@ -680,6 +621,12 @@ absl::Status HandleDungeonListSpritesCommand(
     }
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status HandleChatCommand() {
+  tui::ChatTUI chat_tui;
+  chat_tui.Run();
   return absl::OkStatus();
 }
 

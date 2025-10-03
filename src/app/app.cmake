@@ -93,6 +93,7 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}/incl/
   ${CMAKE_SOURCE_DIR}/src/
   ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+  ${CMAKE_SOURCE_DIR}/third_party/httplib
   ${SDL2_INCLUDE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${PROJECT_BINARY_DIR}
@@ -273,6 +274,19 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.cc
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.h)
   
+  # Add AI agent sources
+  target_sources(yaze PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/cli/service/agent/conversational_agent_service.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/ai/service_factory.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/ai/ai_service.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/ai/ollama_ai_service.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/ai/gemini_ai_service.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/ai/prompt_builder.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/planning/tile16_proposal_generator.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/resources/resource_context_builder.cc
+    ${CMAKE_SOURCE_DIR}/src/cli/service/resources/resource_catalog.cc
+  )
+
   # Link gRPC libraries
   target_link_libraries(yaze PRIVATE
     grpc++
@@ -280,4 +294,5 @@ if(YAZE_WITH_GRPC)
     libprotobuf)
   
   message(STATUS "✓ gRPC ImGuiTestHarness integrated")
+  message(STATUS "✓ AI Agent services integrated into yaze GUI")
 endif()

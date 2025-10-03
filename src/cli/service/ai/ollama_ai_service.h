@@ -27,8 +27,10 @@ class OllamaAIService : public AIService {
   explicit OllamaAIService(const OllamaConfig& config);
   
   // Generate z3ed commands from natural language prompt
-  absl::StatusOr<std::vector<std::string>> GetCommands(
+  absl::StatusOr<AgentResponse> GenerateResponse(
       const std::string& prompt) override;
+  absl::StatusOr<AgentResponse> GenerateResponse(
+      const std::vector<agent::ChatMessage>& history) override;
   
   // Health check: verify Ollama server is running and model is available
   absl::Status CheckAvailability();
