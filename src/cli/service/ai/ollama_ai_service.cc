@@ -102,7 +102,7 @@ absl::Status OllamaAIService::CheckAvailability() {
 }
 
 absl::StatusOr<std::vector<std::string>> OllamaAIService::ListAvailableModels() {
-#if !YAZE_HAS_HTTPLIB || !YAZE_HAS_JSON
+#ifndef YAZE_WITH_JSON
   return absl::UnimplementedError("Requires httplib and JSON support");
 #else
   try {
@@ -163,7 +163,7 @@ absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
 
 absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
     const std::vector<agent::ChatMessage>& history) {
-#if !YAZE_HAS_HTTPLIB || !YAZE_HAS_JSON
+#ifndef YAZE_WITH_JSON
   return absl::UnimplementedError(
       "Ollama service requires httplib and JSON support. "
       "Install vcpkg dependencies or use bundled libraries.");
@@ -204,26 +204,44 @@ absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
           res->status, res->body));
     }
     
-    // Parse response to extract generated text
+    // Parse Ollama's wrapper JSON
+    nlohmann::json ollama_wrapper;
+    try {
+      ollama_wrapper = nlohmann::json::parse(res->body);
+    } catch (const nlohmann::json::exception& e) {
+      return absl::InternalError(absl::StrFormat(
+          "Failed to parse Ollama response: %s\nBody: %s", 
+          e.what(), res->body));
+    }
+    
+    // Extract the LLM's response from Ollama's "response" field
+    if (!ollama_wrapper.contains("response") || !ollama_wrapper["response"].is_string()) {
+      return absl::InvalidArgumentError(
+          "Ollama response missing 'response' field");
+    }
+    
+    std::string llm_output = ollama_wrapper["response"].get<std::string>();
+    
+    // Parse the LLM's JSON response (the agent structure)
     nlohmann::json response_json;
     try {
-      response_json = nlohmann::json::parse(res->body);
+      response_json = nlohmann::json::parse(llm_output);
     } catch (const nlohmann::json::exception& e) {
       // Sometimes the LLM includes extra text - try to extract JSON object
-      size_t start = res->body.find('{');
-      size_t end = res->body.rfind('}');
+      size_t start = llm_output.find('{');
+      size_t end = llm_output.rfind('}');
       
       if (start != std::string::npos && end != std::string::npos && end > start) {
-        std::string json_only = res->body.substr(start, end - start + 1);
+        std::string json_only = llm_output.substr(start, end - start + 1);
         try {
           response_json = nlohmann::json::parse(json_only);
         } catch (const nlohmann::json::exception&) {
           return absl::InvalidArgumentError(
-              "LLM did not return valid JSON. Response:\n" + res->body);
+              "LLM did not return valid JSON. Response:\n" + llm_output);
         }
       } else {
         return absl::InvalidArgumentError(
-            "LLM did not return a JSON object. Response:\n" + res->body);
+            "LLM did not return a JSON object. Response:\n" + llm_output);
       }
     }
     
