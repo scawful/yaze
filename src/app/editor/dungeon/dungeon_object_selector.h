@@ -38,8 +38,8 @@ class DungeonObjectSelector {
   void set_dungeon_editor_system(std::unique_ptr<zelda3::DungeonEditorSystem>* system) { 
     dungeon_editor_system_ = system; 
   }
-  void set_object_editor(std::shared_ptr<zelda3::DungeonObjectEditor>* editor) { 
-    object_editor_ = editor; 
+  void set_object_editor(std::unique_ptr<zelda3::DungeonObjectEditor>* editor) { 
+    object_editor_ = editor ? editor->get() : nullptr;
   }
 
   // Room data access
@@ -93,7 +93,7 @@ class DungeonObjectSelector {
   
   // Editor systems
   std::unique_ptr<zelda3::DungeonEditorSystem>* dungeon_editor_system_ = nullptr;
-  std::shared_ptr<zelda3::DungeonObjectEditor>* object_editor_ = nullptr;
+  zelda3::DungeonObjectEditor* object_editor_ = nullptr;
   
   // Room data
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
