@@ -11,7 +11,7 @@ This document is the **source of truth** for the z3ed CLI architecture, design, 
 
 ### Core Capabilities
 
-1.  **Conversational Agent**: Chat with an AI (Ollama or Gemini) to explore ROM contents and plan changes using natural language.
+1.  **Conversational Agent**: Chat with an AI (Ollama or Gemini) to explore ROM contents and plan changes using natural language—available from the CLI, terminal UI, and now directly within the YAZE editor.
 2.  **GUI Test Automation**: A gRPC-based test harness allows for widget discovery, test recording/replay, and introspection for debugging and AI-driven validation.
 3.  **Proposal System**: A safe, sandboxed editing workflow where all changes are tracked as "proposals" that require human review and acceptance.
 4.  **Resource-Oriented CLI**: A clean `z3ed <resource> <action>` command structure that is both human-readable and machine-parsable.
@@ -150,8 +150,8 @@ Full-screen interactive terminal with table rendering, syntax highlighting, and 
 ### Simple Chat (`agent simple-chat`)
 Lightweight, scriptable text-based REPL that supports single messages, interactive sessions, piped input, and batch files.
 
-### GUI Chat Widget (In Progress)
-An ImGui widget in the main YAZE editor that will provide the same functionality with a graphical interface.
+### GUI Chat Widget (Editor Integration Preview)
+Accessible from **Debug → Agent Chat** inside YAZE. Provides the same conversation loop as the CLI, including streaming history, JSON/table inspection, and ROM-aware tool dispatch. Current limitations: no proposal preview shortcuts yet, and the window state resets on restart.
 
 ## 7. AI Provider Configuration
 
@@ -170,13 +170,13 @@ Z3ED supports multiple AI providers. Configuration is resolved with command-line
 
 -   **Core Infrastructure**: Resource-oriented CLI, proposal workflow, sandbox manager, and resource catalog are all production-ready.
 -   **AI Backends**: Both Ollama (local) and Gemini (cloud) are operational.
--   **Conversational Agent**: The agent service, tool dispatcher (with 5 read-only tools), and TUI/simple chat interfaces are complete.
+-   **Conversational Agent**: The agent service, tool dispatcher (with 5 read-only tools), TUI/simple chat interfaces, and initial ImGui editor chat widget are complete.
 -   **GUI Test Harness**: A comprehensive GUI testing platform with introspection, widget discovery, recording/replay, and CI integration support.
 
 ### 🚧 Active & Next Steps
 
 1.  **Live LLM Testing (1-2h)**: Verify function calling with real models (Ollama/Gemini).
-2.  **GUI Chat Integration (6-8h)**: Wire the `AgentChatWidget` into the main YAZE editor.
+2.  **GUI Chat Enhancements (4-6h)**: Persist chat state, surface proposal shortcuts, and add toast notifications when new proposals arrive from chats.
 3.  **Expand Tool Coverage (8-10h)**: Add new read-only tools for inspecting dialogue, sprites, and regions.
 4.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
 
