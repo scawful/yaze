@@ -65,22 +65,22 @@ You must follow this exact two-step process to avoid errors.
 ```json
 [
   {
-    "name": "resource_list",
-    "description": "List all labeled resources of a specific type (dungeons, sprites, palettes)",
+    "name": "resource-list",
+    "description": "List all labeled resources of a specific type (rooms, entrances, sprites, overlords, items)",
     "parameters": {
       "type": "object",
       "properties": {
         "type": {
           "type": "string",
           "description": "Resource type to list",
-          "enum": ["dungeon", "sprite", "palette", "all"]
+          "enum": ["room", "entrance", "sprite", "overlord", "item"]
         }
       },
       "required": ["type"]
     }
   },
   {
-    "name": "dungeon_list_sprites",
+    "name": "dungeon-list-sprites",
     "description": "List all sprites in a specific dungeon room",
     "parameters": {
       "type": "object",
@@ -94,7 +94,7 @@ You must follow this exact two-step process to avoid errors.
     }
   },
   {
-    "name": "overworld_find_tile",
+    "name": "overworld-find-tile",
     "description": "Find all occurrences of a specific tile16 ID on overworld maps",
     "parameters": {
       "type": "object",
@@ -112,7 +112,7 @@ You must follow this exact two-step process to avoid errors.
     }
   },
   {
-    "name": "overworld_describe_map",
+    "name": "overworld-describe-map",
     "description": "Get summary information about an overworld map",
     "parameters": {
       "type": "object",
@@ -126,7 +126,7 @@ You must follow this exact two-step process to avoid errors.
     }
   },
   {
-    "name": "overworld_list_warps",
+    "name": "overworld-list-warps",
     "description": "List warp/entrance/exit points on the overworld",
     "parameters": {
       "type": "object",
