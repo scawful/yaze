@@ -128,19 +128,37 @@ Here are some example prompts you can try with either Ollama or Gemini:
 2. **[E6-z3ed-cli-design.md](E6-z3ed-cli-design.md)** - Detailed architecture and design philosophy.
 3. **[E6-z3ed-reference.md](E6-z3ed-reference.md)** - Complete command reference and API documentation.
 
-## Current Status (October 2025)
+## Current Status (October 3, 2025)
 
 The project is currently focused on implementing a conversational AI agent. See [AGENT-ROADMAP.md](AGENT-ROADMAP.md) for a detailed breakdown of what's complete, in progress, and planned.
 
-### 🔄 In Progress
-- **Conversational Agent**: Building a chat-like interface for the TUI and GUI.
-- **Agent "Tools"**: Adding more read-only commands for the agent to inspect the ROM.
-- **ResourceLabels Integration**: Integrating user-defined names for AI context.
+### ✅ Completed
+- **Conversational Agent Service**: ✅ Multi-step tool execution loop operational
+- **TUI Chat Interface**: ✅ Production-ready with table/JSON rendering (`z3ed agent chat`)
+- **Tool Dispatcher**: ✅ 5 read-only tools for ROM introspection
+  - `resource-list`: Labeled resource enumeration
+  - `dungeon-list-sprites`: Sprite inspection in dungeon rooms
+  - `overworld-find-tile`: Tile16 search across overworld maps
+  - `overworld-describe-map`: Comprehensive map metadata
+  - `overworld-list-warps`: Entrance/exit/hole enumeration
+- **AI Service Backends**: ✅ Ollama (local) and Gemini (cloud) operational
+- **Enhanced Prompting**: ✅ Resource catalogue loading with system instruction generation
 
-### 📋 Planned
-- **GUI Chat Widget**: A shared chat interface for the main `yaze` application.
-- **Dungeon Editing Support**: Object/sprite placement via AI.
-- **Visual Diff Generation**: Before/after screenshots for proposals.
+### 🔄 In Progress (Priority Order)
+1. **LLM Function Calling**: Partially implemented - needs tool schema injection into prompts
+2. **GUI Chat Widget**: Not yet started - TUI exists, GUI integration pending
+3. **Tool Coverage Expansion**: 5 tools working, 8+ planned (dialogue, sprites, regions)
+
+### 📋 Next Steps (See AGENT-ROADMAP.md for details)
+1. **Complete LLM Function Calling** (4-6h): Add tool definitions to system prompts
+2. **Implement GUI Chat Widget** (6-8h): Create ImGui widget matching TUI experience
+3. **Expand Tool Coverage** (8-10h): Add dialogue search, sprite info, region queries
+4. **Performance Optimizations** (4-6h): Response caching, token tracking, streaming
+
+### 📋 Future Plans
+- **Dungeon Editing Support**: Object/sprite placement via AI (after tool foundation complete)
+- **Visual Diff Generation**: Before/after screenshots for proposals
+- **Multi-Modal Agent**: Image generation for dungeon room maps
 
 ## AI Editing Focus Areas
 

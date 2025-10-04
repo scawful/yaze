@@ -143,19 +143,24 @@ The generative workflow has been refined to incorporate more detailed planning a
 - **`rom generate-golden`**: Implemented.
 - **Project Scaffolding**: Implemented.
 
-### Phase 4: Agentic Framework & Generative AI (In Progress)
+### Phase 4: Agentic Framework & Generative AI (✅ Foundation Complete, 🚧 LLM Integration In Progress)
 - **`z3ed agent` command**: ✅ Implemented with `run`, `plan`, `diff`, `test`, `commit`, `revert`, `describe`, `learn`, and `list` subcommands.
 - **Resource Catalog System**: ✅ Complete - comprehensive schema for all CLI commands with effects and returns metadata.
 - **Agent Describe Command**: ✅ Fully operational - exports command catalog in JSON/YAML formats for AI consumption.
 - **Agent List Command**: ✅ Complete - enumerates all proposals with status and metadata.
 - **Agent Diff Enhancement**: ✅ Complete - reads proposals from registry, supports `--proposal-id` flag, displays execution logs and metadata.
 - **Machine-Readable API**: ✅ `docs/api/z3ed-resources.yaml` generated and maintained for automation.
-- **AI Model Interaction**: In progress, with `MockAIService` and `GeminiAIService` (conditional) implemented.
-- **Execution Loop (MCP)**: In progress, with command parsing and execution logic.
-- **Leveraging `ImGuiTestEngine`**: In progress, with `agent test` subcommand for GUI verification.
+- **Conversational Agent Service**: ✅ Complete - multi-step tool execution loop with history management.
+- **Tool Dispatcher**: ✅ Complete - 5 read-only tools for ROM introspection (`resource-list`, `dungeon-list-sprites`, `overworld-find-tile`, `overworld-describe-map`, `overworld-list-warps`).
+- **TUI Chat Interface**: ✅ Complete - production-ready with table/JSON rendering (`z3ed agent chat`).
+- **AI Service Backends**: ✅ Operational - Ollama (local) and Gemini (cloud) with enhanced prompting.
+- **LLM Function Calling**: 🚧 In Progress - ToolDispatcher exists, needs tool schema injection into prompts and response parsing.
+- **GUI Chat Widget**: 📋 Planned - TUI implementation complete, ImGui widget pending.
+- **Execution Loop (MCP)**: ✅ Complete - command parsing and execution logic operational.
+- **Leveraging `ImGuiTestEngine`**: ✅ Complete - `agent test` subcommand for GUI verification (see IT-01/02).
 - **Sandbox ROM Management**: ✅ Complete - `RomSandboxManager` operational with full lifecycle management.
 - **Proposal Tracking**: ✅ Complete - `ProposalRegistry` implemented with metadata, diffs, logs, and lifecycle management.
-- **Granular Data Commands**: Partially complete - rom, palette, overworld, dungeon commands operational.
+- **Granular Data Commands**: ✅ Complete - rom, palette, overworld, dungeon commands operational.
 - **SpriteBuilder CLI**: Deprioritized.
 
 ### Phase 5: Code Structure & UX Improvements (Completed)
