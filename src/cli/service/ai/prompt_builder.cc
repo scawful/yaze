@@ -7,6 +7,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "nlohmann/json.hpp"
@@ -19,14 +20,31 @@ namespace {
 
 namespace fs = std::filesystem;
 
+bool IsYamlBool(const std::string& value) {
+  const std::string lower = absl::AsciiStrToLower(value);
+  return lower == "true" || lower == "false" || lower == "yes" ||
+         lower == "no" || lower == "on" || lower == "off";
+}
+
 nlohmann::json YamlToJson(const YAML::Node& node) {
   if (!node) {
     return nlohmann::json();
   }
 
   switch (node.Type()) {
-    case YAML::NodeType::Scalar:
-      return node.as<std::string>("");
+    case YAML::NodeType::Scalar: {
+      const std::string scalar = node.as<std::string>("");
+
+      if (IsYamlBool(scalar)) {
+        return node.as<bool>();
+      }
+
+      if (scalar == "~" || absl::AsciiStrToLower(scalar) == "null") {
+        return nlohmann::json();
+      }
+
+      return scalar;
+    }
     case YAML::NodeType::Sequence: {
       nlohmann::json array = nlohmann::json::array();
       for (const auto& item : node) {

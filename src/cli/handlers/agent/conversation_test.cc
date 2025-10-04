@@ -1,5 +1,8 @@
 #include "cli/handlers/agent/commands.h"
+#include "app/rom.h"
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -11,11 +14,34 @@
 #include "cli/service/agent/conversational_agent_service.h"
 #include "nlohmann/json.hpp"
 
+ABSL_DECLARE_FLAG(std::string, rom);
+
 namespace yaze {
 namespace cli {
 namespace agent {
 
 namespace {
+
+absl::Status LoadRomForAgent(Rom& rom) {
+  if (rom.is_loaded()) {
+    return ::absl::OkStatus();
+  }
+
+  std::string rom_path = ::absl::GetFlag(FLAGS_rom);
+  if (rom_path.empty()) {
+    return ::absl::InvalidArgumentError(
+        "No ROM loaded. Pass --rom=<path> to z3ed agent test-conversation.");
+  }
+
+  auto status = rom.LoadFromFile(rom_path);
+  if (!status.ok()) {
+    return ::absl::FailedPreconditionError(
+        ::absl::StrCat("Failed to load ROM from '", rom_path,
+                     "': ", status.message()));
+  }
+
+  return ::absl::OkStatus();
+}
 
 struct ConversationTestCase {
   std::string name;
@@ -85,9 +111,13 @@ void PrintUserPrompt(const std::string& prompt) {
   std::cout << "👤 User: " << prompt << "\n\n";
 }
 
-void PrintAgentResponse(const ChatMessage& response) {
+void PrintAgentResponse(const ChatMessage& response, bool verbose) {
   std::cout << "🤖 Agent: " << response.message << "\n\n";
-  
+
+  if (verbose && response.json_pretty.has_value()) {
+    std::cout << "🧾 JSON Output:\n" << *response.json_pretty << "\n\n";
+  }
+
   if (response.table_data.has_value()) {
     std::cout << "📊 Table Output:\n";
     const auto& table = response.table_data.value();
@@ -122,16 +152,29 @@ void PrintAgentResponse(const ChatMessage& response) {
       std::cout << "\n";
     }
     
-    if (table.rows.size() > max_rows) {
+    if (!verbose && table.rows.size() > max_rows) {
       std::cout << "  ... (" << (table.rows.size() - max_rows) 
                 << " more rows)\n";
+    }
+
+    if (verbose && table.rows.size() > max_rows) {
+      for (size_t i = max_rows; i < table.rows.size(); ++i) {
+        std::cout << "  ";
+        for (size_t j = 0; j < table.rows[i].size(); ++j) {
+          std::cout << table.rows[i][j];
+          if (j < table.rows[i].size() - 1) {
+            std::cout << " | ";
+          }
+        }
+        std::cout << "\n";
+      }
     }
     std::cout << "\n";
   }
 }
 
 bool ValidateResponse(const ChatMessage& response,
-                     const ConversationTestCase& test_case) {
+                      const ConversationTestCase& test_case) {
   bool passed = true;
   
   // Check for expected keywords
@@ -162,10 +205,13 @@ bool ValidateResponse(const ChatMessage& response,
 }
 
 absl::Status RunTestCase(const ConversationTestCase& test_case,
-                        ConversationalAgentService& service) {
+                         ConversationalAgentService& service,
+                         bool verbose) {
   PrintTestHeader(test_case);
   
   bool all_passed = true;
+
+  service.ResetConversation();
   
   for (const auto& prompt : test_case.user_prompts) {
     PrintUserPrompt(prompt);
@@ -178,20 +224,33 @@ absl::Status RunTestCase(const ConversationTestCase& test_case,
     }
     
     const auto& response = response_or.value();
-    PrintAgentResponse(response);
+    PrintAgentResponse(response, verbose);
     
     if (!ValidateResponse(response, test_case)) {
       all_passed = false;
     }
   }
   
+  if (verbose) {
+    const auto& history = service.GetHistory();
+    std::cout << "🗂  Conversation Summary (" << history.size()
+              << " message" << (history.size() == 1 ? "" : "s") << ")\n";
+    for (const auto& message : history) {
+      const char* sender =
+          message.sender == ChatMessage::Sender::kUser ? "User" : "Agent";
+      std::cout << "  [" << sender << "] " << message.message << "\n";
+    }
+    std::cout << "\n";
+  }
+
   if (all_passed) {
     std::cout << "✅ Test PASSED: " << test_case.name << "\n";
-  } else {
-    std::cout << "⚠️  Test completed with warnings: " << test_case.name << "\n";
+    return absl::OkStatus();
   }
-  
-  return absl::OkStatus();
+
+  std::cout << "⚠️  Test completed with warnings: " << test_case.name << "\n";
+  return absl::InternalError(
+      absl::StrCat("Conversation test failed validation: ", test_case.name));
 }
 
 absl::Status LoadTestCasesFromFile(const std::string& file_path,
@@ -299,7 +358,7 @@ absl::Status HandleTestConversationCommand(
   int failed = 0;
   
   for (const auto& test_case : test_cases) {
-    auto status = RunTestCase(test_case, service);
+    auto status = RunTestCase(test_case, service, verbose);
     if (status.ok()) {
       ++passed;
     } else {
@@ -323,7 +382,12 @@ absl::Status HandleTestConversationCommand(
     std::cout << "\n⚠️  Some tests failed\n";
   }
   
-  return absl::OkStatus();
+  if (failed == 0) {
+    return absl::OkStatus();
+  }
+
+  return absl::InternalError(
+      absl::StrCat(failed, " conversation test(s) reported failures"));
 }
 
 }  // namespace agent

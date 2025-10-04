@@ -60,12 +60,13 @@ void ModernCLI::SetupCommands() {
     commands_["agent"] = {
       .name = "agent",
       .description = "Interact with the AI agent",
-      .usage = "z3ed agent <run|plan|diff|test|gui|list|learn|commit|revert|describe> [options]\n"
+  .usage = "z3ed agent <run|plan|diff|test|test-conversation|gui|list|learn|commit|revert|describe> [options]\n"
                "  test run:     --prompt \"<description>\" [--host <host>] [--port <port>] [--timeout <sec>]\n"
                "  test status:  status --test-id <id> [--follow] [--host <host>] [--port <port>]\n"
                "  test list:    list [--category <name>] [--status <state>] [--limit <n>] [--host <host>] [--port <port>]\n"
                "  test results: results --test-id <id> [--include-logs] [--format yaml|json] [--host <host>] [--port <port>]\n"
                "  test suite:   suite <run|validate|create> [options]\n"
+       "  test-conversation: [--file <json>] [--verbose] [--rom <path>]\n"
                "  gui discover: discover [--window <name>] [--type <widget>] [--path-prefix <path>]\n"
                "                 [--include-invisible] [--include-disabled] [--format table|json] [--limit <n>]\n"
                "  describe options: [--resource <name>] [--format json|yaml] [--output <path>]\n"

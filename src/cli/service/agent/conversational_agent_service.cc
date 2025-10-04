@@ -157,6 +157,10 @@ void ConversationalAgentService::SetRomContext(Rom* rom) {
   }
 }
 
+void ConversationalAgentService::ResetConversation() {
+  history_.clear();
+}
+
 absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
     const std::string& message) {
   if (message.empty() && history_.empty()) {
