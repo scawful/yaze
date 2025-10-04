@@ -68,6 +68,7 @@
       "name": "macos-dev-z3ed-ai",
       "displayName": "macOS debug z3ed agent (ARM64)",
       "description": "macOS ARM64 development build with ROM testing",
+      "binaryDir": "${sourceDir}/build_test",
       "inherits": "macos-debug",
       "cacheVariables": {
         "YAZE_ENABLE_ROM_TESTS": "ON",
@@ -365,7 +366,12 @@
     {
       "name": "macos-dev",
       "configurePreset": "macos-dev",
-      "displayName": "macOS Development Build (ARM64)"
+      "displayName": "macOS debug ARM64"
+    },
+    {
+      "name": "macos-dev-z3ed-ai",
+      "configurePreset": "macos-dev-z3ed-ai",
+      "displayName": "macOS debug arm64 z3ed-ai"
     },
     {
       "name": "ci",

@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 
+#include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/match.h"
@@ -14,7 +15,7 @@
 #include "yaze_config.h"
 
 ABSL_FLAG(bool, tui, false, "Launch Text User Interface");
-ABSL_FLAG(std::string, rom, "", "Path to the ROM file");
+ABSL_DECLARE_FLAG(std::string, rom);
 
 namespace {
 

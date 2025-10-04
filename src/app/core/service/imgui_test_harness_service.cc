@@ -52,43 +52,6 @@ void KeepDynamicTestData(const std::shared_ptr<DynamicTestData>& data) {
   }
 }
 
-::yaze::test::GetTestStatusResponse_Status ConvertHarnessStatus(
-    ::yaze::test::HarnessTestStatus status) {
-  switch (status) {
-    case ::yaze::test::HarnessTestStatus::kQueued:
-      return ::yaze::test::GetTestStatusResponse::STATUS_QUEUED;
-    case ::yaze::test::HarnessTestStatus::kRunning:
-      return ::yaze::test::GetTestStatusResponse::STATUS_RUNNING;
-    case ::yaze::test::HarnessTestStatus::kPassed:
-      return ::yaze::test::GetTestStatusResponse::STATUS_PASSED;
-    case ::yaze::test::HarnessTestStatus::kFailed:
-      return ::yaze::test::GetTestStatusResponse::STATUS_FAILED;
-    case ::yaze::test::HarnessTestStatus::kTimeout:
-      return ::yaze::test::GetTestStatusResponse::STATUS_TIMEOUT;
-    case ::yaze::test::HarnessTestStatus::kUnspecified:
-    default:
-      return ::yaze::test::GetTestStatusResponse::STATUS_UNSPECIFIED;
-  }
-}
-
-int64_t ToUnixMillisSafe(absl::Time timestamp) {
-  if (timestamp == absl::InfinitePast()) {
-    return 0;
-  }
-  return absl::ToUnixMillis(timestamp);
-}
-
-int32_t ClampDurationToInt32(absl::Duration duration) {
-  int64_t millis = absl::ToInt64Milliseconds(duration);
-  if (millis > std::numeric_limits<int32_t>::max()) {
-    return std::numeric_limits<int32_t>::max();
-  }
-  if (millis < std::numeric_limits<int32_t>::min()) {
-    return std::numeric_limits<int32_t>::min();
-  }
-  return static_cast<int32_t>(millis);
-}
-
 void RunDynamicTest(ImGuiTestContext* ctx) {
   auto* data = (DynamicTestData*)ctx->Test->UserData;
   if (data && data->test_func) {
@@ -126,6 +89,47 @@ struct RPCState {
 
 }  // namespace
 #endif
+
+namespace {
+
+::yaze::test::GetTestStatusResponse_Status ConvertHarnessStatus(
+    ::yaze::test::HarnessTestStatus status) {
+  switch (status) {
+    case ::yaze::test::HarnessTestStatus::kQueued:
+      return ::yaze::test::GetTestStatusResponse::STATUS_QUEUED;
+    case ::yaze::test::HarnessTestStatus::kRunning:
+      return ::yaze::test::GetTestStatusResponse::STATUS_RUNNING;
+    case ::yaze::test::HarnessTestStatus::kPassed:
+      return ::yaze::test::GetTestStatusResponse::STATUS_PASSED;
+    case ::yaze::test::HarnessTestStatus::kFailed:
+      return ::yaze::test::GetTestStatusResponse::STATUS_FAILED;
+    case ::yaze::test::HarnessTestStatus::kTimeout:
+      return ::yaze::test::GetTestStatusResponse::STATUS_TIMEOUT;
+    case ::yaze::test::HarnessTestStatus::kUnspecified:
+    default:
+      return ::yaze::test::GetTestStatusResponse::STATUS_UNSPECIFIED;
+  }
+}
+
+int64_t ToUnixMillisSafe(absl::Time timestamp) {
+  if (timestamp == absl::InfinitePast()) {
+    return 0;
+  }
+  return absl::ToUnixMillis(timestamp);
+}
+
+int32_t ClampDurationToInt32(absl::Duration duration) {
+  int64_t millis = absl::ToInt64Milliseconds(duration);
+  if (millis > std::numeric_limits<int32_t>::max()) {
+    return std::numeric_limits<int32_t>::max();
+  }
+  if (millis < std::numeric_limits<int32_t>::min()) {
+    return std::numeric_limits<int32_t>::min();
+  }
+  return static_cast<int32_t>(millis);
+}
+
+}  // namespace
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/server_builder.h>
