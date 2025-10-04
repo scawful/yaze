@@ -71,29 +71,28 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
   // Gemini provider
 #ifdef YAZE_WITH_JSON
   if (config.provider == "gemini") {
-    std::cerr << "🔧 Creating Gemini service..." << std::endl;
-    
     if (config.gemini_api_key.empty()) {
       std::cerr << "⚠️  Gemini API key not provided" << std::endl;
-      std::cerr << "   Use --gemini_api_key=<key> or set GEMINI_API_KEY environment variable" << std::endl;
+      std::cerr << "   Use --gemini_api_key=<key> or GEMINI_API_KEY environment variable" << std::endl;
       std::cerr << "   Falling back to MockAIService" << std::endl;
       return std::make_unique<MockAIService>();
     }
     
-    std::cerr << "🔧 Building Gemini config..." << std::endl;
     GeminiConfig gemini_config(config.gemini_api_key);
     if (!config.model.empty()) {
       gemini_config.model = config.model;
     }
     gemini_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
     gemini_config.use_function_calling = absl::GetFlag(FLAGS_use_function_calling);
-    std::cerr << "🔧 Model: " << gemini_config.model << std::endl;
-    std::cerr << "🔧 Prompt version: " << gemini_config.prompt_version << std::endl;
+    gemini_config.verbose = config.verbose;
+    
+    std::cerr << "🤖 AI Provider: gemini" << std::endl;
+    std::cerr << "   Model: " << gemini_config.model << std::endl;
+    if (config.verbose) {
+      std::cerr << "   Prompt: " << gemini_config.prompt_version << std::endl;
+    }
 
-    std::cerr << "🔧 Creating Gemini service instance..." << std::endl;
     auto service = std::make_unique<GeminiAIService>(gemini_config);
-
-    std::cerr << "🔧 Skipping availability check (causes segfault with SSL)" << std::endl;
     // Health check - DISABLED due to SSL issues
     // if (auto status = service->CheckAvailability(); !status.ok()) {
     //   std::cerr << "⚠️  Gemini unavailable: " << status.message() << std::endl;
@@ -102,7 +101,9 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
     // }
 
     std::cout << "   Using model: " << gemini_config.model << std::endl;
-    std::cerr << "🔧 Gemini service ready" << std::endl;
+    if (config.verbose) {
+      std::cerr << "[DEBUG] Gemini service ready" << std::endl;
+    }
     return service;
   }
 #else

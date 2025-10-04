@@ -14,6 +14,7 @@ struct AIServiceConfig {
   std::string model;              // Provider-specific model name
   std::string gemini_api_key;     // For Gemini
   std::string ollama_host = "http://localhost:11434";  // For Ollama
+  bool verbose = false;           // Enable debug logging
 };
 
 // Create AI service using command-line flags
