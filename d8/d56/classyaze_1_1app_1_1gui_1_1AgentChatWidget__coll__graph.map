@@ -1,0 +1,11 @@
+<map id="yaze::app::gui::AgentChatWidget" name="yaze::app::gui::AgentChatWidget">
+<area shape="rect" id="Node000001" title="ImGui widget for conversational AI agent interaction." alt="" coords="181,213,345,253"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="150,117,230,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,153,251,211,247,214,205,156"/>
+<area shape="rect" id="Node000003" href="$d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,177,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="99,60,111,83,132,101,155,114,153,118,129,105,107,87,95,62"/>
+<area shape="rect" id="Node000004" href="$d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="201,13,378,39"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="283,54,262,87,241,105,218,118,216,114,238,100,258,83,278,51"/>
+<area shape="rect" id="Node000006" href="$d2/dda/structyaze_1_1app_1_1gui_1_1AgentChatWidget_1_1Colors.html" title=" " alt="" coords="254,109,419,150"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="315,164,279,214,275,211,311,161"/>
+</map>

@@ -27,10 +27,11 @@ var searchData=
   ['used_5fregions_24',['used_regions',['../d0/d6d/structyaze_1_1gfx_1_1AtlasRenderer_1_1Atlas.html#ae6e28abc35253b28f97d257f329f9404',1,'yaze::gfx::AtlasRenderer::Atlas']]],
   ['usegain_25',['useGain',['../d5/da0/structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705',1,'yaze::emu::DspChannel']]],
   ['usenoise_26',['useNoise',['../d5/da0/structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74',1,'yaze::emu::DspChannel']]],
-  ['user_5fprompt_27',['user_prompt',['../db/de0/structyaze_1_1cli_1_1FewShotExample.html#a03a898b48a352d68d9f1a83c9defa8a6',1,'yaze::cli::FewShotExample']]],
-  ['user_5fprompts_28',['user_prompts',['../da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#a7a0d3b521eb16d1d2cc6083868cfc859',1,'yaze::cli::agent::anonymous_namespace{conversation_test.cc}::ConversationTestCase']]],
-  ['user_5froutines_29',['user_routines',['../de/d9d/structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7',1,'yaze::editor::zsprite::SubEditor']]],
-  ['userroutines_30',['userRoutines',['../df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]],
-  ['utilization_5fpercent_31',['utilization_percent',['../d2/dea/structyaze_1_1gfx_1_1AtlasStats.html#a72ed54998cffb34b260f6385d9c831fc',1,'yaze::gfx::AtlasStats']]],
-  ['uv_5frect_32',['uv_rect',['../d9/d8e/structyaze_1_1gfx_1_1AtlasRenderer_1_1AtlasEntry.html#a461b305f2423fed93f3862e44ea961f8',1,'yaze::gfx::AtlasRenderer::AtlasEntry']]]
+  ['user_5fbubble_27',['user_bubble',['../d2/dda/structyaze_1_1app_1_1gui_1_1AgentChatWidget_1_1Colors.html#a651a15e602e9396504a8073b316b43f1',1,'yaze::app::gui::AgentChatWidget::Colors']]],
+  ['user_5fprompt_28',['user_prompt',['../db/de0/structyaze_1_1cli_1_1FewShotExample.html#a03a898b48a352d68d9f1a83c9defa8a6',1,'yaze::cli::FewShotExample']]],
+  ['user_5fprompts_29',['user_prompts',['../da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#a7a0d3b521eb16d1d2cc6083868cfc859',1,'yaze::cli::agent::anonymous_namespace{conversation_test.cc}::ConversationTestCase']]],
+  ['user_5froutines_30',['user_routines',['../de/d9d/structyaze_1_1editor_1_1zsprite_1_1SubEditor.html#adac6b0ec7050337b2951c14dff0b45c7',1,'yaze::editor::zsprite::SubEditor']]],
+  ['userroutines_31',['userRoutines',['../df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a0fe51a591960bea89589f318b8a4ebe2',1,'yaze::editor::zsprite::ZSprite']]],
+  ['utilization_5fpercent_32',['utilization_percent',['../d2/dea/structyaze_1_1gfx_1_1AtlasStats.html#a72ed54998cffb34b260f6385d9c831fc',1,'yaze::gfx::AtlasStats']]],
+  ['uv_5frect_33',['uv_rect',['../d9/d8e/structyaze_1_1gfx_1_1AtlasRenderer_1_1AtlasEntry.html#a461b305f2423fed93f3862e44ea961f8',1,'yaze::gfx::AtlasRenderer::AtlasEntry']]]
 ];

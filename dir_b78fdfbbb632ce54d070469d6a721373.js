@@ -10,5 +10,6 @@ var dir_b78fdfbbb632ce54d070469d6a721373 =
     [ "tui.cc", "d4/d8e/tui_8cc.html", "d4/d8e/tui_8cc" ],
     [ "tui.h", "de/dab/tui_8h.html", "de/dab/tui_8h" ],
     [ "z3ed.cc", "d7/d6a/z3ed_8cc.html", "d7/d6a/z3ed_8cc" ],
-    [ "z3ed.h", "d3/dfa/z3ed_8h.html", "d3/dfa/z3ed_8h" ]
+    [ "z3ed.h", "d3/dfa/z3ed_8h.html", "d3/dfa/z3ed_8h" ],
+    [ "z3ed_ascii_logo.h", "d1/d06/z3ed__ascii__logo_8h.html", "d1/d06/z3ed__ascii__logo_8h" ]
 ];

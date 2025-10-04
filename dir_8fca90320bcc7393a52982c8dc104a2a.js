@@ -2,6 +2,7 @@ var dir_8fca90320bcc7393a52982c8dc104a2a =
 [
     [ "canvas", "dir_2e70ebb92041ee9a8b6891199983e337.html", "dir_2e70ebb92041ee9a8b6891199983e337" ],
     [ "modules", "dir_5135344c6c8014219232547b6844b904.html", "dir_5135344c6c8014219232547b6844b904" ],
+    [ "widgets", "dir_6d885699addaf9c45f1674a8d2e992c3.html", "dir_6d885699addaf9c45f1674a8d2e992c3" ],
     [ "background_renderer.cc", "de/dea/background__renderer_8cc.html", "de/dea/background__renderer_8cc" ],
     [ "background_renderer.h", "d6/d91/background__renderer_8h.html", "d6/d91/background__renderer_8h" ],
     [ "bpp_format_ui.cc", "db/d3e/bpp__format__ui_8cc.html", null ],

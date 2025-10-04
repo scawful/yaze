@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['yaze_0',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
+  ['yaze_0',['yaze',['../df/d42/md_docs_2dungeon__editing__implementation__plan.html',1,'Dungeon Editing Implementation Plan for Yaze'],['../d3/d63/md_docs_2z3ed_2README.html',1,'z3ed: AI-Powered CLI for YAZE']]],
   ['yaze_20build_20environment_20verification_20scripts_1',['YAZE Build Environment Verification Scripts',['../dc/db4/md_scripts_2README__VERIFICATION.html',1,'']]],
   ['yaze_20build_20scripts_2',['yaze Build Scripts',['../de/d82/md_scripts_2README.html',1,'']]],
   ['yaze_20c_20overworld_20implementation_20analysis_3',['ZScream C# vs YAZE C++ Overworld Implementation Analysis',['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html',1,'']]],

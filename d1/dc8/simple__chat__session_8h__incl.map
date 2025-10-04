@@ -1,0 +1,13 @@
+<map id="src/cli/service/agent/simple_chat_session.h" name="src/cli/service/agent/simple_chat_session.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="144,5,301,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="45,183,99,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,33,108,40,73,51,40,70,14,95,8,114,14,134,28,153,46,171,42,174,24,157,9,136,3,114,10,93,37,65,71,47,107,34,143,27"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="153,183,210,208"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="303,41,349,57,388,77,402,90,410,104,410,119,402,136,390,147,373,156,327,171,226,191,225,186,326,166,371,151,387,142,398,133,405,118,405,105,398,93,385,81,347,62,301,47"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="252,102,388,127"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="246,45,297,89,293,93,243,49"/>
+<area shape="rect" id="Node000005" href="$d1/dad/conversational__agent__service_8h.html" title=" " alt="" coords="24,94,229,135"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="203,49,161,85,158,81,199,45"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="115,137,91,171,87,168,111,134"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="142,134,166,168,162,171,138,137"/>
+</map>

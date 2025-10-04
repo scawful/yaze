@@ -13,5 +13,6 @@ var general__commands_8cc =
     [ "HandleRevertCommand", "d9/d8d/general__commands_8cc.html#ac2a2ccb930ec7a842d23197aa6a43a51", null ],
     [ "HandleDescribeCommand", "d9/d8d/general__commands_8cc.html#acb618f817422ff44303453fcaadd3478", null ],
     [ "HandleChatCommand", "d9/d8d/general__commands_8cc.html#ab9c0a392ce6c066aca8d36eac12dc2b9", null ],
+    [ "HandleSimpleChatCommand", "d9/d8d/general__commands_8cc.html#a60dbfaaa638acb999d0765614e9c983a", null ],
     [ "HandleAcceptCommand", "d9/d8d/general__commands_8cc.html#a2ff357fa1f94a07051d15276d26264b3", null ]
 ];

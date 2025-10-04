@@ -99,5 +99,6 @@ var searchData=
   ['full_5fgraphic_96',['full_graphic',['../da/dbf/structyaze_1_1emu_1_1VideoPortControl.html#a0dd5f71b096b82780b19a002a6ef4c48',1,'yaze::emu::VideoPortControl']]],
   ['full_5fpalette_5f_97',['full_palette_',['../d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#a92881a7497f26c4a0974b528182cf01c',1,'yaze::editor::DungeonEditor']]],
   ['full_5fpath_98',['full_path',['../d3/db7/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetInfo.html#a32dfc62bc9d1c7ba505fa2d54559f402',1,'yaze::gui::WidgetIdRegistry::WidgetInfo']]],
-  ['functions_99',['functions',['../d4/d57/classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
+  ['function_5fcalling_5fenabled_5f_99',['function_calling_enabled_',['../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a7b557fda177df27c4b3902cd9c0fd830',1,'yaze::cli::GeminiAIService']]],
+  ['functions_100',['functions',['../d4/d57/classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
 ];

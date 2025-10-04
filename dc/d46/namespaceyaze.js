@@ -5,6 +5,7 @@ var namespaceyaze =
       [ "kBaseRomSize", "d4/dbf/namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#aedd16f67611c771b9f9640f5dbf8e405", null ],
       [ "kHeaderSize", "d4/dbf/namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#abad830783ccf3b4922d02f277b9152f0", null ]
     ] ],
+    [ "app", "d9/d75/namespaceyaze_1_1app.html", "d9/d75/namespaceyaze_1_1app" ],
     [ "cli", "dd/d63/namespaceyaze_1_1cli.html", "dd/d63/namespaceyaze_1_1cli" ],
     [ "core", "db/d33/namespaceyaze_1_1core.html", "db/d33/namespaceyaze_1_1core" ],
     [ "editor", "d1/d3e/namespaceyaze_1_1editor.html", "d1/d3e/namespaceyaze_1_1editor" ],

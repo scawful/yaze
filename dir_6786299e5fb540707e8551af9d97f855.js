@@ -1,7 +1,7 @@
 var dir_6786299e5fb540707e8551af9d97f855 =
 [
-    [ "agent_chat_widget.cc", "db/d94/agent__chat__widget_8cc.html", "db/d94/agent__chat__widget_8cc" ],
-    [ "agent_chat_widget.h", "d8/dbe/agent__chat__widget_8h.html", "d8/dbe/agent__chat__widget_8h" ],
+    [ "agent_chat_widget.cc", "dd/dde/editor_2system_2agent__chat__widget_8cc.html", "dd/dde/editor_2system_2agent__chat__widget_8cc" ],
+    [ "agent_chat_widget.h", "dc/d5e/editor_2system_2agent__chat__widget_8h.html", "dc/d5e/editor_2system_2agent__chat__widget_8h" ],
     [ "command_manager.cc", "d3/d69/command__manager_8cc.html", null ],
     [ "command_manager.h", "df/d56/command__manager_8h.html", "df/d56/command__manager_8h" ],
     [ "extension_manager.cc", "d1/d95/extension__manager_8cc.html", null ],

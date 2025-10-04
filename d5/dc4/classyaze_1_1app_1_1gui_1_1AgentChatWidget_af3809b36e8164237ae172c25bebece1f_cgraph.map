@@ -1,0 +1,7 @@
+<map id="yaze::app::gui::AgentChatWidget::RenderChatHistory" name="yaze::app::gui::AgentChatWidget::RenderChatHistory">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,182,46"/>
+<area shape="rect" id="Node000002" href="$d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html#afbd033057256e8a4630ae8e06138dd57" title=" " alt="" coords="230,5,431,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,23,214,23,214,28,182,28"/>
+<area shape="rect" id="Node000003" href="$d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html#a5086746385a104c42d2bf4d2023b7020" title=" " alt="" coords="479,5,646,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="431,23,463,23,463,28,431,28"/>
+</map>

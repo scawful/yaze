@@ -127,6 +127,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html">ConversationalAgentService</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html">SimpleChatSession</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple text-based chat session for AI agent interaction.  <a href="../../db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html">ToolDispatcher</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -166,6 +169,8 @@ Functions</h2></td></tr>
 <tr class="separator:af2e9836c9423d36a3b1c2bab9e8dcbcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9c0a392ce6c066aca8d36eac12dc2b9" id="r_ab9c0a392ce6c066aca8d36eac12dc2b9"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab9c0a392ce6c066aca8d36eac12dc2b9">HandleChatCommand</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
 <tr class="separator:ab9c0a392ce6c066aca8d36eac12dc2b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60dbfaaa638acb999d0765614e9c983a" id="r_a60dbfaaa638acb999d0765614e9c983a"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a60dbfaaa638acb999d0765614e9c983a">HandleSimpleChatCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
+<tr class="separator:a60dbfaaa638acb999d0765614e9c983a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a815e0cf4982c5a6618608dfd1198645b" id="r_a815e0cf4982c5a6618608dfd1198645b"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a815e0cf4982c5a6618608dfd1198645b">HandleTestConversationCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
 <tr class="separator:a815e0cf4982c5a6618608dfd1198645b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63bb222c347948e80015db67a5e2731f" id="r_a63bb222c347948e80015db67a5e2731f"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a63bb222c347948e80015db67a5e2731f">HarnessAddress</a> (const std::string &amp;host, int port)</td></tr>
@@ -234,7 +239,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00136">136</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00137">137</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00348">yaze::cli::Tile16ProposalGenerator::ApplyProposal()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00026">yaze::cli::AgentResponse::commands</a>, <a class="el" href="../../d8/d98/service__factory_8cc_source.html#l00016">yaze::cli::CreateAIService()</a>, <a class="el" href="../../dc/d3a/rom__sandbox__manager_8cc_source.html#l00079">yaze::cli::RomSandboxManager::CreateSandbox()</a>, <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00305">yaze::cli::Tile16ProposalGenerator::GenerateFromCommands()</a>, <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00073">yaze::cli::ProposalRegistry::Instance()</a>, <a class="el" href="../../dc/d3a/rom__sandbox__manager_8cc_source.html#l00040">yaze::cli::RomSandboxManager::Instance()</a>, <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00270">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00029">yaze::cli::AgentResponse::reasoning</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00398">yaze::cli::Tile16ProposalGenerator::SaveProposal()</a>, <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00481">yaze::Rom::SaveToFile()</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00020">yaze::cli::AgentResponse::text_response</a>, and <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00023">yaze::cli::AgentResponse::tool_calls</a>.</p>
 
@@ -260,7 +265,7 @@ Functions</h2></td></tr>
 <dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000070">Todo:</a></b></dt><dd>Save the proposal to disk using <a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html">ProposalRegistry</a> </dd></dl>
 <dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000070">Todo:</a></b></dt><dd>Save the proposal to disk using <a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html">ProposalRegistry</a> </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00290">290</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00291">291</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d8/d98/service__factory_8cc_source.html#l00016">yaze::cli::CreateAIService()</a>, and <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00305">yaze::cli::Tile16ProposalGenerator::GenerateFromCommands()</a>.</p>
 
@@ -310,7 +315,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00320">320</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00321">321</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../dc/d3a/rom__sandbox__manager_8cc_source.html#l00136">yaze::cli::RomSandboxManager::ActiveSandbox()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00202">yaze::Rom::filename()</a>, <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00073">yaze::cli::ProposalRegistry::Instance()</a>, <a class="el" href="../../dc/d3a/rom__sandbox__manager_8cc_source.html#l00040">yaze::cli::RomSandboxManager::Instance()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ffa23a4a0f8680dc3e9598c45931493e1d5">yaze::cli::ProposalRegistry::kAccepted</a>, <a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ffaa09be96128822643f3487a1415eb861c">yaze::cli::ProposalRegistry::kPending</a>, <a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ffacea229a90d55b36e1f03b3d47e62552e">yaze::cli::ProposalRegistry::kRejected</a>, and <a class="el" href="../../d4/d1a/cli_2handlers_2rom_8cc_source.html#l00073">yaze::cli::RomDiff::Run()</a>.</p>
 
@@ -344,7 +349,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00574">574</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00601">601</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00049">yaze::RomLoadOptions::CliDefaults()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00097">yaze::Rom::Expand()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00202">yaze::Rom::filename()</a>, <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00073">yaze::cli::ProposalRegistry::Instance()</a>, <a class="el" href="../../dc/d3a/rom__sandbox__manager_8cc_source.html#l00040">yaze::cli::RomSandboxManager::Instance()</a>, <a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ffa23a4a0f8680dc3e9598c45931493e1d5">yaze::cli::ProposalRegistry::kAccepted</a>, <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00270">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../dc/d3a/rom__sandbox__manager_8cc_source.html#l00169">yaze::cli::RomSandboxManager::RemoveSandbox()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00481">yaze::Rom::SaveToFile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00196">yaze::Rom::size()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00201">yaze::Rom::vector()</a>, and <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00722">yaze::Rom::WriteVector()</a>.</p>
 
@@ -411,7 +416,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00437">437</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00438">438</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00021">yaze::cli::Agent::Run()</a>.</p>
 
@@ -432,7 +437,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00442">442</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00443">443</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00073">yaze::cli::ProposalRegistry::Instance()</a>, <a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ffa23a4a0f8680dc3e9598c45931493e1d5">yaze::cli::ProposalRegistry::kAccepted</a>, <a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ffaa09be96128822643f3487a1415eb861c">yaze::cli::ProposalRegistry::kPending</a>, and <a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ffacea229a90d55b36e1f03b3d47e62552e">yaze::cli::ProposalRegistry::kRejected</a>.</p>
 
@@ -468,7 +473,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00483">483</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00484">484</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, and <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00481">yaze::Rom::SaveToFile()</a>.</p>
 
@@ -508,7 +513,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00496">496</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00497">497</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00202">yaze::Rom::filename()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, and <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00270">yaze::Rom::LoadFromFile()</a>.</p>
 
@@ -550,7 +555,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00509">509</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00510">510</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, and <a class="el" href="../../d6/d24/resource__catalog_8cc_source.html#l00292">yaze::cli::ResourceCatalog::Instance()</a>.</p>
 
@@ -787,7 +792,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00566">566</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00567">567</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, and <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00028">yaze::cli::tui::ChatTUI::Run()</a>.</p>
 
@@ -804,6 +809,57 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="375,44,407,39,408,45,376,49"/>
 <area shape="rect" href="../../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a4a3d32670d995d957bd9f5d0a59a7ba7" title=" " alt="" coords="451,71,592,111"/>
 <area shape="poly" title=" " alt="" coords="376,68,435,76,434,82,375,73"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a60dbfaaa638acb999d0765614e9c983a" name="a60dbfaaa638acb999d0765614e9c983a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a60dbfaaa638acb999d0765614e9c983a">&#9670;&#160;</a></span>HandleSimpleChatCommand()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::cli::agent::HandleSimpleChatCommand </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>arg_vec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;&#160;</td>
+          <td class="paramname"><em>rom</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00575">575</a> of file <a class="el" href="../../d9/d8d/general__commands_8cc_source.html">general_commands.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00125">yaze::cli::agent::SimpleChatSession::RunBatch()</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00092">yaze::cli::agent::SimpleChatSession::RunInteractive()</a>, and <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00016">yaze::cli::agent::SimpleChatSession::SetRomContext()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d2/d0e/agent_8cc_source.html#l00021">yaze::cli::Agent::Run()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/dd3/namespaceyaze_1_1cli_1_1agent_a60dbfaaa638acb999d0765614e9c983a_cgraph.png" border="0" usemap="#ad8/dd3/namespaceyaze_1_1cli_1_1agent_a60dbfaaa638acb999d0765614e9c983a_cgraph" alt=""/></div>
+<map name="ad8/dd3/namespaceyaze_1_1cli_1_1agent_a60dbfaaa638acb999d0765614e9c983a_cgraph" id="ad8/dd3/namespaceyaze_1_1cli_1_1agent_a60dbfaaa638acb999d0765614e9c983a_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,157,111"/>
+<area shape="rect" href="../../db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a81a741f5fb7bf07f04fd4e2f8e460c65" title=" " alt="" coords="222,5,380,46"/>
+<area shape="poly" title=" " alt="" coords="151,68,215,48,216,54,152,73"/>
+<area shape="rect" href="../../db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#ae901112af83140b660356e0775648f4a" title=" " alt="" coords="208,71,394,111"/>
+<area shape="poly" title=" " alt="" coords="157,88,193,88,193,94,157,94"/>
+<area shape="rect" href="../../db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a1778f6e6bc1501e0fcb9981511f38121" title=" " alt="" coords="205,136,397,177"/>
+<area shape="poly" title=" " alt="" coords="152,109,216,128,215,134,151,114"/>
+<area shape="rect" href="../../db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#aab5189016f89bfc5638e9df279344073" title=" " alt="" coords="445,39,626,79"/>
+<area shape="poly" title=" " alt="" coords="380,34,430,41,429,47,380,39"/>
+<area shape="poly" title=" " alt="" coords="394,76,429,71,430,76,394,81"/>
 </map>
 </div>
 

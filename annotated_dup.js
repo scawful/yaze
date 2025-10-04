@@ -4,6 +4,11 @@ var annotated_dup =
       [ "ParsedGlobals", "da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals.html", "da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals" ]
     ] ],
     [ "yaze", "dc/d46/namespaceyaze.html", [
+      [ "app", "d9/d75/namespaceyaze_1_1app.html", [
+        [ "gui", "dc/dc3/namespaceyaze_1_1app_1_1gui.html", [
+          [ "AgentChatWidget", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget" ]
+        ] ]
+      ] ],
       [ "cli", "dd/d63/namespaceyaze_1_1cli.html", [
         [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", [
           [ "anonymous_namespace{conversation_test.cc}", "d0/d0b/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03.html", [
@@ -14,6 +19,7 @@ var annotated_dup =
           ] ],
           [ "ChatMessage", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage" ],
           [ "ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService" ],
+          [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession" ],
           [ "ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher" ]
         ] ],
         [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", [

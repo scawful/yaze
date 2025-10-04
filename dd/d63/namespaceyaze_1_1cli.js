@@ -271,5 +271,9 @@ var namespaceyaze_1_1cli =
     [ "BuildTestSuiteYaml", "dd/d63/namespaceyaze_1_1cli.html#a6662f52ece9ce40a05959c72d5211891", null ],
     [ "WriteTestSuiteToFile", "dd/d63/namespaceyaze_1_1cli.html#ae51ea7d6bd3d5879beeb3775efdba4c0", null ],
     [ "ShowMain", "dd/d63/namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3", null ],
-    [ "kMainMenuEntries", "dd/d63/namespaceyaze_1_1cli.html#a4faed45116bb119fd88fb89b6eaab816", null ]
+    [ "GetColoredLogo", "dd/d63/namespaceyaze_1_1cli.html#adc29fb4ca4077f5e031b48b69220b97d", null ],
+    [ "kMainMenuEntries", "dd/d63/namespaceyaze_1_1cli.html#a4faed45116bb119fd88fb89b6eaab816", null ],
+    [ "kZ3edLogo", "dd/d63/namespaceyaze_1_1cli.html#a075502bcda5104033eeb213e772317ae", null ],
+    [ "kZ3edLogoCompact", "dd/d63/namespaceyaze_1_1cli.html#ab9420b276f246762e5cfbe584b520664", null ],
+    [ "kZ3edLogoMinimal", "dd/d63/namespaceyaze_1_1cli.html#abefacc035c802bdbd487e8a643a30b99", null ]
 ];

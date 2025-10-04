@@ -232,7 +232,7 @@ var searchData=
   ['koverlaycodestart_229',['kOverlayCodeStart',['../d5/d1f/namespaceyaze_1_1zelda3.html#aec1c843e2624aab04c4d0e8862e57e2c',1,'yaze::zelda3']]],
   ['koverlaydata1_230',['kOverlayData1',['../d5/d1f/namespaceyaze_1_1zelda3.html#a30b0da3271c29667ba078467a4fe2d96',1,'yaze::zelda3']]],
   ['koverlaydata2_231',['kOverlayData2',['../d5/d1f/namespaceyaze_1_1zelda3.html#ab33a9a911050afbf0cbd14aa12a8e9cd',1,'yaze::zelda3']]],
-  ['koverlaypointers_232',['koverlaypointers',['../d5/d1f/namespaceyaze_1_1zelda3.html#ae143a1d3b5a437f3288c0305afb927e1',1,'yaze::zelda3::kOverlayPointers'],['../de/d0d/structzelda3__version__pointers.html#a288ded26268001e059a20aaf8db5185d',1,'zelda3_version_pointers::kOverlayPointers']]],
+  ['koverlaypointers_232',['koverlaypointers',['../de/d0d/structzelda3__version__pointers.html#a288ded26268001e059a20aaf8db5185d',1,'zelda3_version_pointers::kOverlayPointers'],['../d5/d1f/namespaceyaze_1_1zelda3.html#ae143a1d3b5a437f3288c0305afb927e1',1,'yaze::zelda3::kOverlayPointers']]],
   ['koverlaypointersbank_233',['koverlaypointersbank',['../de/d0d/structzelda3__version__pointers.html#adebad858d45ab6fbb065f45631107035',1,'zelda3_version_pointers::kOverlayPointersBank'],['../d5/d1f/namespaceyaze_1_1zelda3.html#a683777016b10ae5998e7c5f9fe946769',1,'yaze::zelda3::kOverlayPointersBank']]],
   ['koverworldbombdooritemlocationsnew_234',['kOverworldBombDoorItemLocationsNew',['../d5/d1f/namespaceyaze_1_1zelda3.html#ac401d7c6822f926faa417937770d08fa',1,'yaze::zelda3']]],
   ['koverworldcompressedmappos_235',['kOverworldCompressedMapPos',['../d5/d1f/namespaceyaze_1_1zelda3.html#ac3dd7a2e2b816a0b4d976eda125c4f44',1,'yaze::zelda3']]],
@@ -291,8 +291,8 @@ var searchData=
   ['koverworldscreentilemapchangebyscreen3expanded_288',['kOverworldScreenTileMapChangeByScreen3Expanded',['../d5/d1f/namespaceyaze_1_1zelda3.html#aadcd3b43be9f68654fff223d71cd417d',1,'yaze::zelda3']]],
   ['koverworldscreentilemapchangebyscreen4_289',['kOverworldScreenTileMapChangeByScreen4',['../d5/d1f/namespaceyaze_1_1zelda3.html#a2f77918eb0bd6d717f81627d310af3a3',1,'yaze::zelda3']]],
   ['koverworldscreentilemapchangebyscreen4expanded_290',['kOverworldScreenTileMapChangeByScreen4Expanded',['../d5/d1f/namespaceyaze_1_1zelda3.html#ac63474ace456822b355d4a5a577ad1a5',1,'yaze::zelda3']]],
-  ['koverworldspecialgfxgroup_291',['koverworldspecialgfxgroup',['../d5/d1f/namespaceyaze_1_1zelda3.html#af5e428ab7a25bd7026cc338f5bb0d5d4',1,'yaze::zelda3::kOverworldSpecialGFXGroup'],['../d5/d1f/namespaceyaze_1_1zelda3.html#af7e9f634f1aea0c0521ef89a78baa8d6',1,'yaze::zelda3::kOverworldSpecialGfxGroup']]],
-  ['koverworldspecialpalgroup_292',['koverworldspecialpalgroup',['../d5/d1f/namespaceyaze_1_1zelda3.html#a8d8abcf0a97b106bb9c436d9fc584070',1,'yaze::zelda3::kOverworldSpecialPALGroup'],['../d5/d1f/namespaceyaze_1_1zelda3.html#a6ba229cf50f70b0903defb08d5291416',1,'yaze::zelda3::kOverworldSpecialPalGroup']]],
+  ['koverworldspecialgfxgroup_291',['koverworldspecialgfxgroup',['../d5/d1f/namespaceyaze_1_1zelda3.html#af7e9f634f1aea0c0521ef89a78baa8d6',1,'yaze::zelda3::kOverworldSpecialGfxGroup'],['../d5/d1f/namespaceyaze_1_1zelda3.html#af5e428ab7a25bd7026cc338f5bb0d5d4',1,'yaze::zelda3::kOverworldSpecialGFXGroup']]],
+  ['koverworldspecialpalgroup_292',['koverworldspecialpalgroup',['../d5/d1f/namespaceyaze_1_1zelda3.html#a6ba229cf50f70b0903defb08d5291416',1,'yaze::zelda3::kOverworldSpecialPalGroup'],['../d5/d1f/namespaceyaze_1_1zelda3.html#a8d8abcf0a97b106bb9c436d9fc584070',1,'yaze::zelda3::kOverworldSpecialPALGroup']]],
   ['koverworldspecialspritegfxgroup_293',['kOverworldSpecialSpriteGFXGroup',['../d5/d1f/namespaceyaze_1_1zelda3.html#accf290a6933195fe6e3d681d5f5d3f05',1,'yaze::zelda3']]],
   ['koverworldspecialspritegfxgroupexpandedtemp_294',['kOverworldSpecialSpriteGfxGroupExpandedTemp',['../d5/d1f/namespaceyaze_1_1zelda3.html#a58bc97b8a19819801c1713ab73c2c4b9',1,'yaze::zelda3']]],
   ['koverworldspecialspritepalette_295',['kOverworldSpecialSpritePalette',['../d5/d1f/namespaceyaze_1_1zelda3.html#ab8686033171940dd39f6dd114d7c4247',1,'yaze::zelda3']]],
@@ -448,5 +448,8 @@ var searchData=
   ['kwidtharraysize_445',['kWidthArraySize',['../d1/d3e/namespaceyaze_1_1editor.html#ab8dad615541a554df4446d604e0bc187',1,'yaze::editor']]],
   ['kworldlist_446',['kWorldList',['../d1/d3e/namespaceyaze_1_1editor.html#a509c76430fe7bd64995ca4c2a0004443',1,'yaze::editor']]],
   ['kworldnames_447',['kWorldNames',['../d1/d3e/namespaceyaze_1_1editor.html#a6af7fe91707f8dcdb2a4d47a5a87b73f',1,'yaze::editor']]],
-  ['kzeropos_448',['kZeroPos',['../d3/dbf/namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e',1,'yaze::gui']]]
+  ['kz3edlogo_448',['kZ3edLogo',['../dd/d63/namespaceyaze_1_1cli.html#a075502bcda5104033eeb213e772317ae',1,'yaze::cli']]],
+  ['kz3edlogocompact_449',['kZ3edLogoCompact',['../dd/d63/namespaceyaze_1_1cli.html#ab9420b276f246762e5cfbe584b520664',1,'yaze::cli']]],
+  ['kz3edlogominimal_450',['kZ3edLogoMinimal',['../dd/d63/namespaceyaze_1_1cli.html#abefacc035c802bdbd487e8a643a30b99',1,'yaze::cli']]],
+  ['kzeropos_451',['kZeroPos',['../d3/dbf/namespaceyaze_1_1gui.html#ab500bfa55478470e1f7cd45806c3728e',1,'yaze::gui']]]
 ];

@@ -1,5 +1,6 @@
 var hierarchy =
 [
+    [ "yaze::app::gui::AgentChatWidget", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html", null ],
     [ "yaze::editor::AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", null ],
     [ "yaze::cli::AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", null ],
     [ "yaze::cli::AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", [
@@ -90,6 +91,7 @@ var hierarchy =
     [ "yaze::emu::Color", "d8/d72/structyaze_1_1emu_1_1Color.html", null ],
     [ "yaze::gui::Color", "d4/dca/structyaze_1_1gui_1_1Color.html", null ],
     [ "yaze::gui::canvas::ColorAnalysisOptions", "d8/de6/structyaze_1_1gui_1_1canvas_1_1ColorAnalysisOptions.html", null ],
+    [ "yaze::app::gui::AgentChatWidget::Colors", "d2/dda/structyaze_1_1app_1_1gui_1_1AgentChatWidget_1_1Colors.html", null ],
     [ "yaze::editor::CommandManager::CommandGroup", "d7/d2a/structyaze_1_1editor_1_1CommandManager_1_1CommandGroup.html", null ],
     [ "yaze::cli::CommandHandler", "dd/d80/classyaze_1_1cli_1_1CommandHandler.html", [
       [ "yaze::cli::Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", null ],
@@ -425,6 +427,7 @@ var hierarchy =
     [ "yaze::gfx::SheetOptimizationData", "d8/d7c/structyaze_1_1gfx_1_1SheetOptimizationData.html", null ],
     [ "yaze::editor::Shortcut", "d5/d87/structyaze_1_1editor_1_1Shortcut.html", null ],
     [ "yaze::editor::ShortcutManager", "d7/d84/classyaze_1_1editor_1_1ShortcutManager.html", null ],
+    [ "yaze::cli::agent::SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", null ],
     [ "yaze::emu::SLHV", "de/d3d/structyaze_1_1emu_1_1SLHV.html", null ],
     [ "yaze::emu::Snes", "d3/d15/classyaze_1_1emu_1_1Snes.html", null ],
     [ "snes_color", "df/d71/structsnes__color.html", null ],

@@ -1,0 +1,7 @@
+<map id="yaze::cli::agent::SimpleChatSession::SendAndWaitForResponse" name="yaze::cli::agent::SimpleChatSession::SendAndWaitForResponse">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,263,46"/>
+<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a10565bd80a2d2d479e8f10af89380bd6" title=" " alt="" coords="311,5,507,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="263,23,295,23,295,28,263,28"/>
+<area shape="rect" id="Node000003" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#ab83c62c24e7c9c186dc5010c11140cab" title=" " alt="" coords="555,5,752,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="508,23,540,23,540,28,508,28"/>
+</map>

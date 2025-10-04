@@ -1,7 +1,7 @@
 var searchData=
 [
   ['agent_0',['Agent',['../d9/dee/classyaze_1_1cli_1_1Agent.html',1,'yaze::cli']]],
-  ['agentchatwidget_1',['AgentChatWidget',['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html',1,'yaze::editor']]],
+  ['agentchatwidget_1',['agentchatwidget',['../d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html',1,'yaze::app::gui::AgentChatWidget'],['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html',1,'yaze::editor::AgentChatWidget']]],
   ['agentresponse_2',['AgentResponse',['../db/d5f/structyaze_1_1cli_1_1AgentResponse.html',1,'yaze::cli']]],
   ['aiservice_3',['AIService',['../d2/d2a/classyaze_1_1cli_1_1AIService.html',1,'yaze::cli']]],
   ['animationgroup_4',['AnimationGroup',['../dc/d2c/structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html',1,'yaze::editor::zsprite']]],
