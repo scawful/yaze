@@ -262,6 +262,10 @@ include(cmake/imgui.cmake)
 file(GLOB THEME_FILES "${CMAKE_SOURCE_DIR}/assets/themes/*.theme")
 file(COPY ${THEME_FILES} DESTINATION "${CMAKE_BINARY_DIR}/assets/themes/")
 
+# Copy agent resource files to build directory (for AI features)
+file(GLOB AGENT_FILES "${CMAKE_SOURCE_DIR}/assets/agent/*")
+file(COPY ${AGENT_FILES} DESTINATION "${CMAKE_BINARY_DIR}/assets/agent/")
+
 # IMPORTANT: Also ensure themes are included in macOS bundles
 # This is handled in src/CMakeLists.txt via YAZE_RESOURCE_FILES
 

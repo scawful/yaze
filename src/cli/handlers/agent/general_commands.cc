@@ -26,6 +26,7 @@
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/ai/service_factory.h"
+#include "cli/service/agent/simple_chat_session.h"
 #include "cli/service/planning/proposal_registry.h"
 #include "cli/service/planning/tile16_proposal_generator.h"
 #include "cli/service/resources/resource_catalog.h"
@@ -569,6 +570,32 @@ absl::Status HandleChatCommand(Rom& rom) {
   tui::ChatTUI chat_tui(&rom);
   chat_tui.Run();
   return absl::OkStatus();
+}
+
+absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
+                                     Rom& rom) {
+  RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent simple-chat"));
+  
+  // Parse flags
+  std::optional<std::string> batch_file;
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& arg = arg_vec[i];
+    if (absl::StartsWith(arg, "--file=")) {
+      batch_file = arg.substr(7);
+    } else if (arg == "--file" && i + 1 < arg_vec.size()) {
+      batch_file = arg_vec[i + 1];
+      ++i;
+    }
+  }
+  
+  SimpleChatSession session;
+  session.SetRomContext(&rom);
+  
+  if (batch_file.has_value()) {
+    return session.RunBatch(*batch_file);
+  } else {
+    return session.RunInteractive();
+  }
 }
 
 absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,

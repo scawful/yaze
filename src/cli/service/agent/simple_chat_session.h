@@ -1,0 +1,62 @@
+#ifndef YAZE_SRC_CLI_SERVICE_AGENT_SIMPLE_CHAT_SESSION_H_
+#define YAZE_SRC_CLI_SERVICE_AGENT_SIMPLE_CHAT_SESSION_H_
+
+#include <string>
+#include <vector>
+
+#include "absl/status/status.h"
+#include "cli/service/agent/conversational_agent_service.h"
+
+namespace yaze {
+
+class Rom;
+
+namespace cli {
+namespace agent {
+
+/**
+ * @class SimpleChatSession
+ * @brief Simple text-based chat session for AI agent interaction
+ * 
+ * Provides a basic REPL-style interface without FTXUI dependencies,
+ * suitable for automated testing and AI agent interactions.
+ */
+class SimpleChatSession {
+ public:
+  SimpleChatSession();
+  
+  // Set ROM context for tool execution
+  void SetRomContext(Rom* rom);
+  
+  // Send a single message and get response (blocking)
+  absl::Status SendAndWaitForResponse(const std::string& message, 
+                                      std::string* response_out = nullptr);
+  
+  // Run interactive REPL mode (reads from stdin)
+  absl::Status RunInteractive();
+  
+  // Run batch mode from file (one message per line)
+  absl::Status RunBatch(const std::string& input_file);
+  
+  // Get full conversation history
+  const std::vector<ChatMessage>& GetHistory() const {
+    return agent_service_.GetHistory();
+  }
+  
+  // Clear conversation history
+  void Reset() {
+    agent_service_.ResetConversation();
+  }
+
+ private:
+  void PrintMessage(const ChatMessage& msg, bool show_timestamp = false);
+  void PrintTable(const ChatMessage::TableData& table);
+  
+  ConversationalAgentService agent_service_;
+};
+
+}  // namespace agent
+}  // namespace cli
+}  // namespace yaze
+
+#endif  // YAZE_SRC_CLI_SERVICE_AGENT_SIMPLE_CHAT_SESSION_H_
