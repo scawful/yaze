@@ -101,6 +101,9 @@ struct YazeProject {
   WorkspaceSettings workspace_settings;
   std::unordered_map<std::string, std::unordered_map<std::string, std::string>> resource_labels;
   
+  // Embedded labels flag - when true, resource_labels contains all default Zelda3 labels
+  bool use_embedded_labels = true;
+  
   // Build and deployment
   std::string build_script;
   std::string output_folder;
@@ -126,6 +129,11 @@ struct YazeProject {
   absl::Status LoadAllSettings();
   absl::Status SaveAllSettings();
   absl::Status ResetToDefaults();
+  
+  // Labels management
+  absl::Status InitializeEmbeddedLabels();  // Load all default Zelda3 labels
+  std::string GetLabel(const std::string& resource_type, int id, 
+                       const std::string& default_value = "") const;
   
   // Validation and integrity
   absl::Status Validate() const;

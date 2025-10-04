@@ -63,24 +63,31 @@ absl::Status TryLoadProjectAndLabels(Rom& rom) {
   if (project_status.ok()) {
     std::cout << "📂 Loaded project: " << project.name << "\n";
     
-    // Load labels from project
+    // Initialize embedded labels (all default Zelda3 resource names)
+    auto labels_status = project.InitializeEmbeddedLabels();
+    if (labels_status.ok()) {
+      std::cout << "✅ Embedded labels initialized (all Zelda3 resources available)\n";
+    }
+    
+    // Load labels from project (either embedded or external)
     if (!project.labels_filename.empty()) {
       auto* label_mgr = rom.resource_label();
       if (label_mgr && label_mgr->LoadLabels(project.labels_filename)) {
-        std::cout << "🏷️  Loaded labels from: " << project.labels_filename << "\n";
+        std::cout << "🏷️  Loaded custom labels from: " << project.labels_filename << "\n";
       }
-    } else if (!project.resource_labels.empty()) {
-      // Use labels embedded in project
+    } else if (!project.resource_labels.empty() || project.use_embedded_labels) {
+      // Use labels embedded in project or default Zelda3 labels
       auto* label_mgr = rom.resource_label();
       if (label_mgr) {
         label_mgr->labels_ = project.resource_labels;
         label_mgr->labels_loaded_ = true;
-        std::cout << "🏷️  Loaded embedded labels from project\n";
+        std::cout << "🏷️  Using embedded Zelda3 labels (rooms, sprites, entrances, items, etc.)\n";
       }
     }
   } else {
-    // No project found - that's okay, continue with defaults
-    std::cout << "ℹ️  No project file found. Tools will use default labels.\n";
+    // No project found - use embedded defaults anyway
+    std::cout << "ℹ️  No project file found. Using embedded default Zelda3 labels.\n";
+    project.InitializeEmbeddedLabels();
   }
   
   return absl::OkStatus();
