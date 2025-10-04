@@ -29,6 +29,7 @@
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/room_object.h"
+#include "test_utils.h"
 
 namespace yaze {
 namespace test {
@@ -37,12 +38,13 @@ namespace test {
  * @class DungeonObjectRenderingE2ETests
  * @brief Comprehensive E2E test fixture for dungeon object rendering system
  */
-class DungeonObjectRenderingE2ETests : public ::testing::Test {
+class DungeonObjectRenderingE2ETests : public TestRomManager::BoundRomTest {
  protected:
   void SetUp() override {
+    BoundRomTest::SetUp();
+
     // Initialize test environment
-    rom_ = std::make_shared<Rom>();
-    ASSERT_TRUE(rom_->LoadFromFile("zelda3.sfc").ok());
+    rom_ = std::shared_ptr<Rom>(rom(), [](Rom*) {});
     
     dungeon_editor_ = std::make_unique<editor::DungeonEditor>();
     dungeon_editor_->SetRom(rom_);
@@ -69,6 +71,7 @@ class DungeonObjectRenderingE2ETests : public ::testing::Test {
     }
     dungeon_editor_.reset();
     rom_.reset();
+    BoundRomTest::TearDown();
   }
   
   void RegisterAllTests();

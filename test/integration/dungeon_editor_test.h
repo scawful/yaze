@@ -1,6 +1,8 @@
 #ifndef YAZE_TEST_INTEGRATION_DUNGEON_EDITOR_TEST_H
 #define YAZE_TEST_INTEGRATION_DUNGEON_EDITOR_TEST_H
 
+#include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -11,6 +13,8 @@
 
 namespace yaze {
 namespace test {
+
+class MockRom;
 
 /**
  * @brief Integration test framework for dungeon editor components
@@ -38,7 +42,7 @@ class DungeonEditorIntegrationTest : public ::testing::Test {
   std::vector<uint8_t> GenerateMockObjectData();
   std::vector<uint8_t> GenerateMockGraphicsData();
 
-  std::unique_ptr<Rom> mock_rom_;
+  std::unique_ptr<MockRom> mock_rom_;
   std::unique_ptr<editor::DungeonEditor> dungeon_editor_;
   
   // Test constants
@@ -55,18 +59,32 @@ class MockRom : public Rom {
   MockRom() = default;
 
   // Test data injection
-  void SetMockData(const std::vector<uint8_t>& data);
+  absl::Status SetMockData(const std::vector<uint8_t>& data);
+  absl::Status LoadAndOwnData(const std::vector<uint8_t>& data);
   void SetMockRoomData(int room_id, const std::vector<uint8_t>& data);
   void SetMockObjectData(int object_id, const std::vector<uint8_t>& data);
+  void SetMockGraphicsData(const std::vector<uint8_t>& data);
   
   // Validation helpers
   bool ValidateRoomData(int room_id) const;
   bool ValidateObjectData(int object_id) const;
 
  private:
-  std::vector<uint8_t> mock_data_;
+  void EnsureBufferCapacity(uint32_t size);
+  void InitializeMemoryLayout();
+
+  std::vector<uint8_t> backing_buffer_;
   std::map<int, std::vector<uint8_t>> mock_room_data_;
   std::map<int, std::vector<uint8_t>> mock_object_data_;
+  std::vector<uint8_t> mock_graphics_data_;
+
+  uint32_t room_header_table_pc_ = 0;
+  uint32_t room_header_data_base_pc_ = 0;
+  uint32_t room_object_table_pc_ = 0;
+  uint32_t room_object_data_base_pc_ = 0;
+
+  static constexpr uint32_t kRoomHeaderStride = 0x40;
+  static constexpr uint32_t kRoomObjectStride = 0x100;
 };
 
 }  // namespace test

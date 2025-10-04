@@ -42,8 +42,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       unit/zelda3/sprite_position_test.cc
       unit/zelda3/test_dungeon_objects.cc
       unit/zelda3/dungeon_component_unit_test.cc
-      zelda3/dungeon/room_object_encoding_test.cc
-      integration/zelda3/room_integration_test.cc
+      unit/zelda3/dungeon/room_object_encoding_test.cc
       zelda3/dungeon/room_manipulation_test.cc
 
       # CLI Services (for catalog serialization tests)
@@ -104,7 +103,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       unit/zelda3/sprite_position_test.cc
       unit/zelda3/test_dungeon_objects.cc
       unit/zelda3/dungeon_component_unit_test.cc
-      zelda3/dungeon/room_object_encoding_test.cc
+      unit/zelda3/dungeon/room_object_encoding_test.cc
       zelda3/dungeon/room_manipulation_test.cc
 
       # CLI Services (for catalog serialization tests)
@@ -328,8 +327,8 @@ source_group("Tests\\Unit" FILES
   unit/zelda3/sprite_position_test.cc
   unit/zelda3/test_dungeon_objects.cc
   unit/zelda3/dungeon_component_unit_test.cc
-  zelda3/dungeon/room_object_encoding_test.cc
-  zelda3/dungeon/room_manipulation_test.cc
+      unit/zelda3/dungeon/room_object_encoding_test.cc
+      zelda3/dungeon/room_manipulation_test.cc
   unit/zelda3/dungeon_object_renderer_mock_test.cc
   unit/zelda3/dungeon_object_rendering_tests.cc
   unit/zelda3/dungeon_room_test.cc

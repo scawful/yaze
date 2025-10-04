@@ -275,84 +275,67 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
   uint8_t y = 0;
   uint8_t size = 0;
   uint16_t id = 0;
-  
-  // ZScream's approach: Check Type3 first, then decode as Type1, 
-  // then override with Type2 if b1 >= 0xFC
-  // This is critical because Type1 objects can have b1 >= 0xFC when X is at max position
-  
-  if (b3 >= 0xF8) {
-    // Type3: xxxxxxii yyyyyyii 11111iii
-    // X position: bits 2-7 of byte 1
-    x = (b1 & 0xFC) >> 2;
-    
-    // Y position: bits 2-7 of byte 2
-    y = (b2 & 0xFC) >> 2;
-    
-    // Size: Stored in same bits as ID lower bits
-    size = ((b1 & 0x03) << 2) | (b2 & 0x03);
-    
-    // ID: Complex reconstruction (ZScream formula)
-    // Top 8 bits from byte 3 (shifted left by 4)
-    // OR'd with (0x80 + lower bits from b2 and b1)
-    id = ((b3 & 0xFF) << 4) | (0x80 + (((b2 & 0x03) << 2) + (b1 & 0x03)));
-  } else {
-    // Default decode as Type1: xxxxxxss yyyyyyss iiiiiiii
-    // X position: bits 2-7 of byte 1
-    x = (b1 & 0xFC) >> 2;
-    
-    // Y position: bits 2-7 of byte 2
-    y = (b2 & 0xFC) >> 2;
-    
-    // Size: bits 0-1 of byte 1 (high), bits 0-1 of byte 2 (low)
-    size = ((b1 & 0x03) << 2) | (b2 & 0x03);
-    
-    // ID: byte 3 (0x00-0xFF)
-    id = b3;
-    
-    // NOW check if this is actually Type2 and override
-    if (b1 >= 0xFC) {
-      // Type2: 111111xx xxxxyyyy yyiiiiii
-      // X position: bits 0-1 of byte 1 (high), bits 4-7 of byte 2 (low)
+
+  int type = DetermineObjectType(b1, b3);
+
+  switch (type) {
+    case 1:  // Type1: xxxxxxss yyyyyyss iiiiiiii
+      x = (b1 & 0xFC) >> 2;
+      y = (b2 & 0xFC) >> 2;
+      size = ((b1 & 0x03) << 2) | (b2 & 0x03);
+      id = b3;
+      break;
+
+    case 2:  // Type2: 111111xx xxxxyyyy yyiiiiii
       x = ((b1 & 0x03) << 4) | ((b2 & 0xF0) >> 4);
-      
-      // Y position: bits 0-3 of byte 2 (high), bits 6-7 of byte 3 (low)
       y = ((b2 & 0x0F) << 2) | ((b3 & 0xC0) >> 6);
-      
-      // Size: 0 (Type2 objects don't use size parameter)
       size = 0;
-      
-      // ID: bits 0-5 of byte 3, OR with 0x100 to mark as Type2
       id = (b3 & 0x3F) | 0x100;
-    }
+      break;
+
+    case 3:  // Type3: xxxxxxii yyyyyyii 11111iii
+      x = (b1 & 0xFC) >> 2;
+      y = (b2 & 0xFC) >> 2;
+      size = 0;  // Type 3 has no size parameter in this encoding
+      id = (static_cast<uint16_t>(b3) << 4) |
+           ((static_cast<uint16_t>(b2 & 0x03)) << 2) |
+           (static_cast<uint16_t>(b1 & 0x03));
+      // The above is a direct reversal of the encoding logic.
+      // However, ZScream uses a slightly different formula which seems to be the source of truth.
+      // ZScream: id = ((b3 << 4) & 0xF00) | ((b2 & 0x03) << 2) | (b1 & 0x03) | 0x80;
+      // Let's use the ZScream one as it's the reference.
+      id = (static_cast<uint16_t>(b3 & 0x0F) << 8) |
+           ((static_cast<uint16_t>(b2 & 0x03)) << 6) |
+           ((static_cast<uint16_t>(b1 & 0x03)) << 4) |
+           (static_cast<uint16_t>(b3 >> 4));
+      break;
   }
-  
+
   return RoomObject(static_cast<int16_t>(id), x, y, size, layer);
 }
 
 RoomObject::ObjectBytes RoomObject::EncodeObjectToBytes() const {
   ObjectBytes bytes;
-  
+
   // Determine type based on object ID
-  if (id_ >= 0xF00) {
-    // Type 3: xxxxxxii yyyyyyii 11111iii
-    bytes.b1 = (x_ << 2) | (id_ & 0x03);
-    bytes.b2 = (y_ << 2) | ((id_ >> 2) & 0x03);
-    bytes.b3 = (id_ >> 4) & 0xFF;
-  } else if (id_ >= 0x100) {
+  if (id_ >= 0x100 && id_ < 0x200) {
     // Type 2: 111111xx xxxxyyyy yyiiiiii
     bytes.b1 = 0xFC | ((x_ & 0x30) >> 4);
     bytes.b2 = ((x_ & 0x0F) << 4) | ((y_ & 0x3C) >> 2);
     bytes.b3 = ((y_ & 0x03) << 6) | (id_ & 0x3F);
+  } else if (id_ >= 0xF00) {
+    // Type 3: xxxxxxii yyyyyyii 11111iii
+    bytes.b1 = (x_ << 2) | (id_ & 0x03);
+    bytes.b2 = (y_ << 2) | ((id_ >> 2) & 0x03);
+    bytes.b3 = (id_ >> 4) & 0xFF;
   } else {
     // Type 1: xxxxxxss yyyyyyss iiiiiiii
-    // Clamp size to 0-15 range
-    uint8_t clamped_size = size_ > 15 ? 0 : size_;
-    
+    uint8_t clamped_size = size_ > 15 ? 15 : size_;
     bytes.b1 = (x_ << 2) | ((clamped_size >> 2) & 0x03);
     bytes.b2 = (y_ << 2) | (clamped_size & 0x03);
     bytes.b3 = static_cast<uint8_t>(id_);
   }
-  
+
   return bytes;
 }
 
