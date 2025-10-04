@@ -41,6 +41,8 @@ absl::Status HandleOverworldListWarpsCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
 absl::Status HandleChatCommand(Rom& rom);
+absl::Status HandleTestConversationCommand(
+	const std::vector<std::string>& arg_vec);
 
 }  // namespace agent
 }  // namespace cli

@@ -12,7 +12,7 @@ namespace agent {
 namespace {
 
 constexpr absl::string_view kUsage =
-  "Usage: agent <run|plan|diff|accept|test|gui|learn|list|commit|revert|describe|resource-list|dungeon-list-sprites|overworld-find-tile|overworld-describe-map|overworld-list-warps|chat> "
+  "Usage: agent <run|plan|diff|accept|test|test-conversation|gui|learn|list|commit|revert|describe|resource-list|dungeon-list-sprites|overworld-find-tile|overworld-describe-map|overworld-list-warps|chat> "
   "[options]";
 
 }  // namespace
@@ -40,6 +40,9 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   }
   if (subcommand == "test") {
     return agent::HandleTestCommand(subcommand_args);
+  }
+  if (subcommand == "test-conversation") {
+    return agent::HandleTestConversationCommand(subcommand_args);
   }
   if (subcommand == "gui") {
     return agent::HandleGuiCommand(subcommand_args);

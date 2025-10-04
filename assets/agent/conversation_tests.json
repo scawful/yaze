@@ -1,0 +1,85 @@
+[
+  {
+    "name": "basic_dungeon_query",
+    "description": "Test basic ROM introspection with resource-list tool",
+    "prompts": [
+      "What dungeons are defined in this ROM?"
+    ],
+    "expected_keywords": ["dungeon", "palace", "castle"],
+    "expect_tool_calls": true,
+    "expect_commands": false
+  },
+  {
+    "name": "tile_search",
+    "description": "Test overworld-find-tile tool",
+    "prompts": [
+      "Find all instances of tile 0x02E in the overworld"
+    ],
+    "expected_keywords": ["tile", "0x02E", "map", "coordinates"],
+    "expect_tool_calls": true,
+    "expect_commands": false
+  },
+  {
+    "name": "map_information",
+    "description": "Test overworld-describe-map tool",
+    "prompts": [
+      "Tell me about overworld map 0"
+    ],
+    "expected_keywords": ["map", "light world", "size", "area"],
+    "expect_tool_calls": true,
+    "expect_commands": false
+  },
+  {
+    "name": "warp_enumeration",
+    "description": "Test overworld-list-warps tool",
+    "prompts": [
+      "List all entrances on map 0"
+    ],
+    "expected_keywords": ["entrance", "warp", "position"],
+    "expect_tool_calls": true,
+    "expect_commands": false
+  },
+  {
+    "name": "multi_step_exploration",
+    "description": "Test conversational follow-up questions",
+    "prompts": [
+      "What dungeons exist in this ROM?",
+      "Tell me about the sprites in the first dungeon you mentioned"
+    ],
+    "expected_keywords": ["dungeon", "sprite"],
+    "expect_tool_calls": true,
+    "expect_commands": false
+  },
+  {
+    "name": "command_generation_tree",
+    "description": "Test command generation for placing a tree",
+    "prompts": [
+      "Place a tree at position 10, 10 on map 0"
+    ],
+    "expected_keywords": ["overworld", "set-tile", "tree", "0x02E"],
+    "expect_tool_calls": false,
+    "expect_commands": true
+  },
+  {
+    "name": "command_generation_water",
+    "description": "Test command generation for water tiles",
+    "prompts": [
+      "Create a 3x3 water pond at coordinates 20, 15 on map 0"
+    ],
+    "expected_keywords": ["overworld", "set-tile", "water"],
+    "expect_tool_calls": false,
+    "expect_commands": true
+  },
+  {
+    "name": "contextual_conversation",
+    "description": "Test that agent maintains context across messages",
+    "prompts": [
+      "What is map 0?",
+      "How many tiles does it have?",
+      "Find all trees on that map"
+    ],
+    "expected_keywords": ["map", "tile", "tree"],
+    "expect_tool_calls": true,
+    "expect_commands": false
+  }
+]

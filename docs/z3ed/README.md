@@ -75,6 +75,12 @@ z3ed agent test record stop
 
 # Replay recorded test
 z3ed agent test replay tests/my_test.json
+
+# Test conversational agent (batch mode, no TUI required)
+z3ed agent test-conversation
+
+# Test with custom conversation file
+z3ed agent test-conversation --file my_tests.json
 ```
 
 ## AI Service Setup
@@ -135,6 +141,7 @@ The project is currently focused on implementing a conversational AI agent. See 
 ### ✅ Completed
 - **Conversational Agent Service**: ✅ Multi-step tool execution loop operational
 - **TUI Chat Interface**: ✅ Production-ready with table/JSON rendering (`z3ed agent chat`)
+- **Batch Testing Mode**: ✅ New `test-conversation` command for automated testing without TUI
 - **Tool Dispatcher**: ✅ 5 read-only tools for ROM introspection
   - `resource-list`: Labeled resource enumeration
   - `dungeon-list-sprites`: Sprite inspection in dungeon rooms
@@ -144,9 +151,10 @@ The project is currently focused on implementing a conversational AI agent. See 
 - **AI Service Backends**: ✅ Ollama (local) and Gemini (cloud) operational
 - **Enhanced Prompting**: ✅ Resource catalogue loading with system instruction generation
 - **LLM Function Calling**: ✅ Complete - Tool schemas injected into system prompts, response parsing implemented
+- **ImGui Test Harness**: ✅ gRPC service for GUI automation integrated and verified
 
 ### 🔄 In Progress (Priority Order)
-1. **Live LLM Testing**: Verify function calling with Ollama/Gemini (1-2h)
+1. **Live LLM Testing**: Ready for execution with new batch testing mode (use `./scripts/test_agent_conversation_live.sh`)
 2. **GUI Chat Widget**: Not yet started - TUI exists, GUI integration pending (6-8h)
 3. **Tool Coverage Expansion**: 5 tools working, 8+ planned (dialogue, sprites, regions) (8-10h)
 
@@ -282,6 +290,24 @@ AI agent features require:
 - Reference tile16 IDs from documentation
 - Provide map context ("Light World", "map 0")
 - Check ResourceLabels are loaded for your project
+
+### Testing the conversational agent
+**Problem**: TUI chat requires interactive input  
+**Solution**: Use the new batch testing mode:
+```bash
+# Run with default test cases (no interaction required)
+z3ed agent test-conversation --rom zelda3.sfc
+
+# Or use the automated test script
+./scripts/test_agent_conversation_live.sh
+```
+
+### Verifying ImGui test harness
+**Problem**: Unsure if GUI automation is working  
+**Solution**: Run the verification script:
+```bash
+./scripts/test_imgui_harness.sh
+```
 
 #### Gemini-Specific Issues
 - **"Cannot reach Gemini API"**: Check your internet connection, API key, and that you've built with SSL support.
