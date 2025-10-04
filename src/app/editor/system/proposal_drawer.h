@@ -44,6 +44,7 @@ class ProposalDrawer {
   void Hide() { visible_ = false; }
   void Toggle() { visible_ = !visible_; }
   bool IsVisible() const { return visible_; }
+  void FocusProposal(const std::string& proposal_id);
 
  private:
   void DrawProposalList();

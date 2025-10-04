@@ -40,6 +40,9 @@ void ProposalDrawer::Draw() {
     if (needs_refresh_) {
       RefreshProposals();
       needs_refresh_ = false;
+      if (!selected_proposal_id_.empty() && !selected_proposal_) {
+        SelectProposal(selected_proposal_id_);
+      }
     }
 
     // Header with refresh button
@@ -439,6 +442,13 @@ void ProposalDrawer::DrawActionButtons() {
     confirm_proposal_id_ = p.id;
     show_confirm_dialog_ = true;
   }
+}
+
+void ProposalDrawer::FocusProposal(const std::string& proposal_id) {
+  visible_ = true;
+  selected_proposal_id_ = proposal_id;
+  selected_proposal_ = nullptr;
+  needs_refresh_ = true;
 }
 
 void ProposalDrawer::RefreshProposals() {
