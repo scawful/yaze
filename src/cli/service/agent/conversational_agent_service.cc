@@ -3,16 +3,25 @@
 #include <algorithm>
 #include <cctype>
 #include <iostream>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
+#include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/time/clock.h"
+#include "app/rom.h"
+#include "cli/service/agent/proposal_executor.h"
 #include "cli/service/ai/service_factory.h"
 #include "cli/util/terminal_colors.h"
 #include "nlohmann/json.hpp"
+
+ABSL_DECLARE_FLAG(std::string, ai_provider);
 
 namespace yaze {
 namespace cli {
@@ -300,6 +309,47 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
       continue;
     }
 
+    std::optional<ProposalCreationResult> proposal_result;
+    absl::Status proposal_status = absl::OkStatus();
+    bool attempted_proposal = false;
+
+    if (!agent_response.commands.empty()) {
+      attempted_proposal = true;
+
+      if (rom_context_ == nullptr) {
+        proposal_status = absl::FailedPreconditionError(
+            "No ROM context available for proposal creation");
+        util::PrintWarning(
+            "Cannot create proposal because no ROM context is active.");
+      } else if (!rom_context_->is_loaded()) {
+        proposal_status = absl::FailedPreconditionError(
+            "ROM context is not loaded");
+        util::PrintWarning(
+            "Cannot create proposal because the ROM context is not loaded.");
+      } else {
+        ProposalCreationRequest request;
+        request.prompt = message;
+        request.response = &agent_response;
+        request.rom = rom_context_;
+        request.sandbox_label = "agent-chat";
+        request.ai_provider = absl::GetFlag(FLAGS_ai_provider);
+
+        auto creation_or = CreateProposalFromAgentResponse(request);
+        if (!creation_or.ok()) {
+          proposal_status = creation_or.status();
+          util::PrintError(absl::StrCat(
+              "Failed to create proposal: ", proposal_status.message()));
+        } else {
+          proposal_result = std::move(creation_or.value());
+          if (config_.verbose) {
+            util::PrintSuccess(absl::StrCat(
+                "Created proposal ", proposal_result->metadata.id,
+                " with ", proposal_result->change_count, " change(s)."));
+          }
+        }
+      }
+    }
+
     std::string response_text = agent_response.text_response;
     if (!agent_response.reasoning.empty()) {
       if (!response_text.empty()) {
@@ -314,6 +364,30 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
       }
       response_text.append("Commands:\n");
       response_text.append(absl::StrJoin(agent_response.commands, "\n"));
+    }
+
+    if (proposal_result.has_value()) {
+      const auto& metadata = proposal_result->metadata;
+      if (!response_text.empty()) {
+        response_text.append("\n\n");
+      }
+      response_text.append(absl::StrFormat(
+          "✅ Proposal %s ready with %d change%s (%d command%s).\n"
+          "Review it in the Proposal drawer or run `z3ed agent diff --proposal-id %s`.\n"
+          "Sandbox ROM: %s\nProposal JSON: %s",
+          metadata.id, proposal_result->change_count,
+          proposal_result->change_count == 1 ? "" : "s",
+          proposal_result->executed_commands,
+          proposal_result->executed_commands == 1 ? "" : "s",
+          metadata.id, metadata.sandbox_rom_path.string(),
+          proposal_result->proposal_json_path.string()));
+    } else if (attempted_proposal && !proposal_status.ok()) {
+      if (!response_text.empty()) {
+        response_text.append("\n\n");
+      }
+      response_text.append(absl::StrCat(
+          "⚠️ Failed to prepare a proposal automatically: ",
+          proposal_status.message()));
     }
 
   ChatMessage chat_response =

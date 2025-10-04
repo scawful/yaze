@@ -28,6 +28,7 @@
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/ai/service_factory.h"
+#include "cli/service/agent/proposal_executor.h"
 #include "cli/service/agent/simple_chat_session.h"
 #include "cli/service/planning/proposal_registry.h"
 #include "cli/service/planning/tile16_proposal_generator.h"
@@ -39,6 +40,7 @@
 #include "util/macro.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
+ABSL_DECLARE_FLAG(std::string, ai_provider);
 
 namespace yaze {
 namespace cli {
@@ -186,143 +188,47 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
 
   RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent run --prompt \"<prompt>\""));
 
-  // 1. Create a sandbox ROM to apply changes to
-  auto sandbox_or =
-      RomSandboxManager::Instance().CreateSandbox(rom, "agent-run");
-  if (!sandbox_or.ok()) {
-    return sandbox_or.status();
-  }
-  auto sandbox = sandbox_or.value();
-
-  // 2. Get commands from the AI service
+  // Get commands from the AI service
   auto ai_service = CreateAIService();  // Use service factory
   auto response_or = ai_service->GenerateResponse(prompt);
   if (!response_or.ok()) {
     return response_or.status();
   }
   AgentResponse response = std::move(response_or.value());
-  const std::vector<std::string>& commands = response.commands;
-
-  // 3. Generate a structured proposal from the commands
-  Tile16ProposalGenerator generator;
-  auto proposal_or = generator.GenerateFromCommands(
-      prompt, commands, "ollama", &rom);  // Pass original ROM to get old tiles
-  if (!proposal_or.ok()) {
-    return proposal_or.status();
-  }
-  auto proposal = proposal_or.value();
-
-  // 4. Apply the proposal to the sandbox ROM for preview
-  Rom sandbox_rom;
-  auto load_status = sandbox_rom.LoadFromFile(sandbox.rom_path.string());
-  if (!load_status.ok()) {
-    return absl::InternalError(
-        absl::StrCat("Failed to load sandbox ROM: ", load_status.message()));
+  if (response.commands.empty()) {
+    return absl::FailedPreconditionError(
+        "Agent response did not include any executable commands.");
   }
 
-  auto apply_status = generator.ApplyProposal(proposal, &sandbox_rom);
-  if (!apply_status.ok()) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to apply proposal to sandbox ROM: ", apply_status.message()));
-  }
+  std::string provider = absl::GetFlag(FLAGS_ai_provider);
 
-  // 5. Save the sandbox ROM to persist the changes for diffing
-  auto save_status = sandbox_rom.SaveToFile({.save_new = false});
-  if (!save_status.ok()) {
-    return absl::InternalError(
-        absl::StrCat("Failed to save sandbox ROM: ", save_status.message()));
-  }
+  ProposalCreationRequest request;
+  request.prompt = prompt;
+  request.response = &response;
+  request.rom = &rom;
+  request.sandbox_label = "agent-run";
+  request.ai_provider = std::move(provider);
 
-  // 6. Persist the proposal metadata and artifacts.
-  auto& registry = ProposalRegistry::Instance();
+  ASSIGN_OR_RETURN(auto proposal_result,
+                   CreateProposalFromAgentResponse(request));
 
-  int executed_commands = 0;
-  for (const auto& command : commands) {
-    if (command.empty() || command[0] == '#') {
-      continue;
-    }
-    ++executed_commands;
-  }
-
-  std::string description = absl::StrFormat(
-      "Tile16 overworld edits (%d change%s)", proposal.changes.size(),
-      proposal.changes.size() == 1 ? "" : "s");
-
-  ASSIGN_OR_RETURN(
-      auto metadata,
-      registry.CreateProposal(sandbox.id, sandbox.rom_path, prompt, description));
-
-  proposal.id = metadata.id;
-
-  std::ostringstream diff_stream;
-  diff_stream << "Tile16 Proposal ID: " << metadata.id << "\n";
-  diff_stream << "Sandbox ID: " << sandbox.id << "\n";
-  diff_stream << "Sandbox ROM: " << sandbox.rom_path << "\n\n";
-  diff_stream << "Changes (" << proposal.changes.size() << "):\n";
-  for (const auto& change : proposal.changes) {
-    diff_stream << "  - " << change.ToString() << "\n";
-  }
-
-  RETURN_IF_ERROR(registry.RecordDiff(metadata.id, diff_stream.str()));
-
-  RETURN_IF_ERROR(registry.AppendLog(
-      metadata.id, absl::StrCat("Prompt: ", prompt)));
-
-  if (!response.text_response.empty()) {
-    RETURN_IF_ERROR(registry.AppendLog(
-        metadata.id, absl::StrCat("AI Response: ", response.text_response)));
-  }
-
-  if (!response.reasoning.empty()) {
-    RETURN_IF_ERROR(registry.AppendLog(
-        metadata.id, absl::StrCat("Reasoning: ", response.reasoning)));
-  }
-
-  if (!response.tool_calls.empty()) {
-    RETURN_IF_ERROR(registry.AppendLog(
-        metadata.id,
-        absl::StrCat("Tool Calls: ", response.tool_calls.size())));
-  }
-
-  for (const auto& command : commands) {
-    if (command.empty() || command[0] == '#') {
-      continue;
-    }
-    RETURN_IF_ERROR(registry.AppendLog(
-        metadata.id, absl::StrCat("Command: ", command)));
-  }
-
-  RETURN_IF_ERROR(registry.AppendLog(
-      metadata.id,
-      absl::StrCat("Sandbox ROM saved to ", sandbox.rom_path.string())));
-
-  RETURN_IF_ERROR(
-      registry.UpdateCommandStats(metadata.id, executed_commands));
-  RETURN_IF_ERROR(registry.AppendLog(
-    metadata.id,
-    absl::StrCat("Commands executed: ", executed_commands)));
-
+  const auto& metadata = proposal_result.metadata;
   std::filesystem::path proposal_dir = metadata.log_path.parent_path();
-  std::filesystem::path proposal_path = proposal_dir / "proposal.json";
-  auto save_proposal_status =
-      generator.SaveProposal(proposal, proposal_path.string());
-  if (!save_proposal_status.ok()) {
-    return absl::InternalError(absl::StrCat("Failed to save proposal file: ",
-                                            save_proposal_status.message()));
-  }
-
-  RETURN_IF_ERROR(registry.AppendLog(
-      metadata.id,
-      absl::StrCat("Saved proposal JSON to ", proposal_path.string())));
 
   std::cout
       << "✅ Agent successfully planned and executed changes in a sandbox."
       << std::endl;
   std::cout << "   Proposal ID: " << metadata.id << std::endl;
-  std::cout << "   Sandbox ROM: " << sandbox.rom_path << std::endl;
+  std::cout << "   Sandbox ROM: " << metadata.sandbox_rom_path << std::endl;
   std::cout << "   Proposal dir: " << proposal_dir << std::endl;
   std::cout << "   Diff file: " << metadata.diff_path << std::endl;
   std::cout << "   Log file: " << metadata.log_path << std::endl;
+  std::cout << "   Proposal JSON: " << proposal_result.proposal_json_path
+            << std::endl;
+  std::cout << "   Commands executed: "
+            << proposal_result.executed_commands << std::endl;
+  std::cout << "   Tile16 changes: " << proposal_result.change_count
+            << std::endl;
   std::cout << "\nTo review the changes, run:\n";
   std::cout << "  z3ed agent diff --proposal-id " << metadata.id << std::endl;
   std::cout << "\nTo accept the changes, run:\n";
