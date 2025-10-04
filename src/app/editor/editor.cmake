@@ -2,6 +2,7 @@ set(
   YAZE_APP_EDITOR_SRC
   app/editor/editor_manager.cc
   app/editor/dungeon/dungeon_editor.cc
+  app/editor/dungeon/dungeon_editor_v2.cc
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
   app/editor/dungeon/dungeon_object_selector.cc
@@ -31,6 +32,7 @@ set(
   app/editor/system/extension_manager.cc
   app/editor/system/shortcut_manager.cc
   app/editor/system/popup_manager.cc
+  app/editor/system/agent_chat_history_codec.cc
   app/test/test_manager.cc
   app/test/integrated_test_suite.h
   app/test/rom_dependent_test_suite.h
