@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "app/core/features.h"
@@ -226,6 +227,41 @@ void EditorManager::Initialize(const std::string& filename) {
 #ifdef YAZE_WITH_GRPC
   agent_chat_widget_.SetToastManager(&toast_manager_);
   agent_chat_widget_.SetProposalDrawer(&proposal_drawer_);
+  AgentChatWidget::CollaborationCallbacks collab_callbacks;
+  collab_callbacks.host_session =
+      [this](const std::string& session_name)
+          -> absl::StatusOr<AgentChatWidget::CollaborationCallbacks::SessionContext> {
+        ASSIGN_OR_RETURN(auto session,
+                         collaboration_coordinator_.HostSession(session_name));
+        AgentChatWidget::CollaborationCallbacks::SessionContext context;
+        context.session_id = session.session_id;
+        context.session_name = session.session_name;
+        context.participants = session.participants;
+        return context;
+      };
+  collab_callbacks.join_session =
+      [this](const std::string& session_code)
+          -> absl::StatusOr<AgentChatWidget::CollaborationCallbacks::SessionContext> {
+        ASSIGN_OR_RETURN(auto session,
+                         collaboration_coordinator_.JoinSession(session_code));
+        AgentChatWidget::CollaborationCallbacks::SessionContext context;
+        context.session_id = session.session_id;
+        context.session_name = session.session_name;
+        context.participants = session.participants;
+        return context;
+      };
+  collab_callbacks.leave_session =
+      [this]() { return collaboration_coordinator_.LeaveSession(); };
+  collab_callbacks.refresh_session =
+      [this]() -> absl::StatusOr<AgentChatWidget::CollaborationCallbacks::SessionContext> {
+        ASSIGN_OR_RETURN(auto session, collaboration_coordinator_.RefreshSession());
+        AgentChatWidget::CollaborationCallbacks::SessionContext context;
+        context.session_id = session.session_id;
+        context.session_name = session.session_name;
+        context.participants = session.participants;
+        return context;
+      };
+  agent_chat_widget_.SetCollaborationCallbacks(collab_callbacks);
 #endif
 
   // Load critical user settings first

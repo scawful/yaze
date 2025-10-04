@@ -194,6 +194,8 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     const auto& collab_json = json["collaboration"];
     snapshot.collaboration.active = collab_json.value("active", false);
     snapshot.collaboration.session_id = collab_json.value("session_id", "");
+    snapshot.collaboration.session_name =
+        collab_json.value("session_name", "");
     snapshot.collaboration.participants.clear();
     if (collab_json.contains("participants") &&
         collab_json["participants"].is_array()) {
@@ -207,6 +209,11 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     if (collab_json.contains("last_synced")) {
       snapshot.collaboration.last_synced =
           ParseTimestamp(collab_json["last_synced"]);
+    }
+    if (snapshot.collaboration.session_name.empty() &&
+        !snapshot.collaboration.session_id.empty()) {
+      snapshot.collaboration.session_name =
+          snapshot.collaboration.session_id;
     }
   }
 
@@ -241,7 +248,7 @@ absl::Status AgentChatHistoryCodec::Save(
     const std::filesystem::path& path, const Snapshot& snapshot) {
 #if defined(YAZE_WITH_JSON)
   Json json;
-  json["version"] = 2;
+  json["version"] = 3;
   json["messages"] = Json::array();
 
   for (const auto& message : snapshot.history) {
@@ -284,6 +291,7 @@ absl::Status AgentChatHistoryCodec::Save(
   Json collab_json;
   collab_json["active"] = snapshot.collaboration.active;
   collab_json["session_id"] = snapshot.collaboration.session_id;
+  collab_json["session_name"] = snapshot.collaboration.session_name;
   collab_json["participants"] = snapshot.collaboration.participants;
   if (snapshot.collaboration.last_synced != absl::InfinitePast()) {
     collab_json["last_synced"] = absl::FormatTime(

@@ -30,10 +30,16 @@ class AgentChatWidget {
   void SetRomContext(Rom* rom);
 
   struct CollaborationCallbacks {
-    std::function<absl::Status(const std::string&)> host_session;
-    std::function<absl::Status(const std::string&)> join_session;
+    struct SessionContext {
+      std::string session_id;
+      std::string session_name;
+      std::vector<std::string> participants;
+    };
+
+    std::function<absl::StatusOr<SessionContext>(const std::string&)> host_session;
+    std::function<absl::StatusOr<SessionContext>(const std::string&)> join_session;
     std::function<absl::Status()> leave_session;
-    std::function<absl::StatusOr<std::vector<std::string>>()> refresh_participants;
+    std::function<absl::StatusOr<SessionContext>()> refresh_session;
   };
 
   struct MultimodalCallbacks {
@@ -61,6 +67,7 @@ class AgentChatWidget {
   struct CollaborationState {
     bool active = false;
     std::string session_id;
+    std::string session_name;
     std::vector<std::string> participants;
     absl::Time last_synced = absl::InfinitePast();
   };
@@ -86,7 +93,10 @@ class AgentChatWidget {
                              int new_total_proposals);
   void RenderCollaborationPanel();
   void RenderMultimodalPanel();
-  void RefreshParticipants();
+  void RefreshCollaboration();
+  void ApplyCollaborationSession(
+      const CollaborationCallbacks::SessionContext& context,
+      bool update_action_timestamp);
   void MarkHistoryDirty();
 
   cli::agent::ConversationalAgentService agent_service_;

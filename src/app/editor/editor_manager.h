@@ -22,6 +22,7 @@
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #ifdef YAZE_WITH_GRPC
+#include "app/editor/system/agent_collaboration_coordinator.h"
 #include "app/editor/system/agent_chat_widget.h"
 #endif
 #include "app/editor/system/settings_editor.h"
@@ -184,6 +185,7 @@ class EditorManager {
 
 #ifdef YAZE_WITH_GRPC
   // Agent chat widget
+  AgentCollaborationCoordinator collaboration_coordinator_;
   AgentChatWidget agent_chat_widget_;
 #endif
 

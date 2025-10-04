@@ -1,21 +1,33 @@
-# Testing system components for YAZE
+# ==============================================================================
+# Yaze Test Support Library
+# ==============================================================================
+# This library contains the core test manager and infrastructure for running
+# tests within the application.
+#
+# It is intended to be linked by test executables, not by the main
+# application itself.
+#
+# Dependencies: All major yaze libraries.
+# ==============================================================================
 
-set(YAZE_TEST_CORE_SOURCES
-  app/test/test_manager.cc
-  app/test/test_manager.h
-  app/test/unit_test_suite.h
-  app/test/integrated_test_suite.h
-  app/test/rom_dependent_test_suite.h
-  app/test/e2e_test_suite.h
-  app/test/zscustomoverworld_test_suite.h
+add_library(yaze_test_support STATIC app/test/test_manager.cc)
+
+target_include_directories(yaze_test_support PUBLIC
+  ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/incl
+  ${PROJECT_BINARY_DIR}
 )
 
-# Add test sources to the main app target if testing is enabled
-if(BUILD_TESTING)
-  list(APPEND YAZE_APP_SRC ${YAZE_TEST_CORE_SOURCES})
-endif()
+# The test support library needs to link against all the major app libraries
+# to be able to test them.
+target_link_libraries(yaze_test_support PUBLIC
+  yaze_editor
+  yaze_core_lib
+  yaze_gui
+  yaze_zelda3
+  yaze_gfx
+  yaze_util
+  yaze_common
+)
 
-# Set up test-specific compiler flags and definitions
-if(BUILD_TESTING)
-  target_compile_definitions(yaze_lib PRIVATE YAZE_ENABLE_TESTING=1)
-endif()
+message(STATUS "✓ yaze_test_support library configured")
