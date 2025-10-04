@@ -80,6 +80,8 @@ class AgentChatWidget {
 
   void EnsureHistoryLoaded();
   void PersistHistory();
+  void SwitchToSharedHistory(const std::string& session_id);
+  void SwitchToLocalHistory();
   void RenderHistory();
   void RenderMessage(const cli::agent::ChatMessage& msg, int index);
   void RenderProposalQuickActions(const cli::agent::ChatMessage& msg,

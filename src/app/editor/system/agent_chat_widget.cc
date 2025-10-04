@@ -40,12 +40,19 @@ std::filesystem::path ExpandUserPath(std::string path) {
   return std::filesystem::path(path);
 }
 
-std::filesystem::path ResolveHistoryPath() {
+std::filesystem::path ResolveHistoryPath(const std::string& session_id = "") {
   std::filesystem::path base = ExpandUserPath(yaze::core::GetConfigDirectory());
   if (base.empty()) {
     base = ExpandUserPath(".yaze");
   }
   auto directory = base / "agent";
+  
+  // If in a collaborative session, use shared history
+  if (!session_id.empty()) {
+    directory = directory / "sessions";
+    return directory / (session_id + "_history.json");
+  }
+  
   return directory / "chat_history.json";
 }
 
@@ -799,6 +806,46 @@ void AgentChatWidget::MarkHistoryDirty() {
   if (last_persist_time_ == absl::InfinitePast() ||
       now - last_persist_time_ > absl::Seconds(2)) {
     PersistHistory();
+  }
+}
+
+void AgentChatWidget::SwitchToSharedHistory(const std::string& session_id) {
+  // Save current local history before switching
+  if (history_loaded_ && history_dirty_) {
+    PersistHistory();
+  }
+
+  // Switch to shared history path
+  history_path_ = ResolveHistoryPath(session_id);
+  history_loaded_ = false;
+  
+  // Load shared history
+  EnsureHistoryLoaded();
+  
+  if (toast_manager_) {
+    toast_manager_->Show(
+        absl::StrFormat("Switched to shared chat history for session %s",
+                        session_id),
+        ToastType::kInfo, 3.0f);
+  }
+}
+
+void AgentChatWidget::SwitchToLocalHistory() {
+  // Save shared history before switching
+  if (history_loaded_ && history_dirty_) {
+    PersistHistory();
+  }
+
+  // Switch back to local history
+  history_path_ = ResolveHistoryPath("");
+  history_loaded_ = false;
+  
+  // Load local history
+  EnsureHistoryLoaded();
+  
+  if (toast_manager_) {
+    toast_manager_->Show("Switched to local chat history",
+                         ToastType::kInfo, 3.0f);
   }
 }
 

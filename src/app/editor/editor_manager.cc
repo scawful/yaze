@@ -46,6 +46,10 @@
 #include "app/emu/emulator.h"
 #include "app/gfx/performance_dashboard.h"
 #include "editor/editor.h"
+#ifdef YAZE_WITH_GRPC
+#include "app/core/service/screenshot_utils.h"
+#include "cli/service/ai/gemini_ai_service.h"
+#endif
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/log.h"
@@ -239,6 +243,10 @@ void EditorManager::Initialize(const std::string& filename) {
         context.session_id = session.session_id;
         context.session_name = session.session_name;
         context.participants = session.participants;
+        
+        // Switch to shared chat history for this session
+        agent_chat_widget_.SwitchToSharedHistory(session.session_id);
+        
         return context;
       };
   collab_callbacks.join_session =
@@ -250,10 +258,21 @@ void EditorManager::Initialize(const std::string& filename) {
         context.session_id = session.session_id;
         context.session_name = session.session_name;
         context.participants = session.participants;
+        
+        // Switch to shared chat history for this session
+        agent_chat_widget_.SwitchToSharedHistory(session.session_id);
+        
         return context;
       };
   collab_callbacks.leave_session =
-      [this]() { return collaboration_coordinator_.LeaveSession(); };
+      [this]() { 
+        absl::Status status = collaboration_coordinator_.LeaveSession();
+        if (status.ok()) {
+          // Switch back to local chat history
+          agent_chat_widget_.SwitchToLocalHistory();
+        }
+        return status;
+      };
   collab_callbacks.refresh_session =
       [this]() -> absl::StatusOr<AgentChatWidget::CollaborationCallbacks::SessionContext> {
         ASSIGN_OR_RETURN(auto session, collaboration_coordinator_.RefreshSession());
@@ -264,6 +283,53 @@ void EditorManager::Initialize(const std::string& filename) {
         return context;
       };
   agent_chat_widget_.SetCollaborationCallbacks(collab_callbacks);
+
+  // Set up multimodal (vision) callbacks for Gemini
+  AgentChatWidget::MultimodalCallbacks multimodal_callbacks;
+  multimodal_callbacks.capture_snapshot =
+      [](std::filesystem::path* output_path) -> absl::Status {
+    auto result = yaze::test::CaptureHarnessScreenshot("");
+    if (!result.ok()) {
+      return result.status();
+    }
+    *output_path = result->file_path;
+    return absl::OkStatus();
+  };
+  multimodal_callbacks.send_to_gemini =
+      [this](const std::filesystem::path& image_path,
+             const std::string& prompt) -> absl::Status {
+    // Get Gemini API key from environment
+    const char* api_key = std::getenv("GEMINI_API_KEY");
+    if (!api_key || std::strlen(api_key) == 0) {
+      return absl::FailedPreconditionError(
+          "GEMINI_API_KEY environment variable not set");
+    }
+
+    // Create Gemini service
+    cli::GeminiConfig config;
+    config.api_key = api_key;
+    config.model = "gemini-2.0-flash-exp";  // Use vision-capable model
+    config.verbose = false;
+    
+    cli::GeminiAIService gemini_service(config);
+    
+    // Generate multimodal response
+    auto response =
+        gemini_service.GenerateMultimodalResponse(image_path.string(), prompt);
+    if (!response.ok()) {
+      return response.status();
+    }
+
+    // Add the response to chat history
+    cli::agent::ChatMessage agent_msg;
+    agent_msg.sender = cli::agent::ChatMessage::Sender::kAgent;
+    agent_msg.message = response->text_response;
+    agent_msg.timestamp = absl::Now();
+    agent_chat_widget_.SetRomContext(current_rom_);
+
+    return absl::OkStatus();
+  };
+  agent_chat_widget_.SetMultimodalCallbacks(multimodal_callbacks);
 #endif
 
   // Load critical user settings first
