@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🐛_20known_20issues_0',['🐛 Known Issues',['../da/d40/md_docs_2ollama__integration__status.html#autotoc_md800',1,'']]]
+  ['📸_20screenshots_0',['📸 Screenshots',['../d0/d30/md_README.html#autotoc_md666',1,'']]]
 ];

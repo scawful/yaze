@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('dc/d82/md_docs_2E3-dungeon-editor-desi
   <div class="headertitle"><div class="title">Dungeon Editor Design Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md477"></a> </p>
-<h1><a class="anchor" id="autotoc_md478"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md417"></a> </p>
+<h1><a class="anchor" id="autotoc_md418"></a>
 Overview</h1>
 <p>This document provides a comprehensive guide for future developers working on the Zelda 3 Dungeon Editor system. The dungeon editor has been refactored into a modular, component-based architecture that separates concerns and improves maintainability.</p>
-<h1><a class="anchor" id="autotoc_md479"></a>
+<h1><a class="anchor" id="autotoc_md419"></a>
 Architecture Overview</h1>
-<h2><a class="anchor" id="autotoc_md480"></a>
+<h2><a class="anchor" id="autotoc_md420"></a>
 Core Components</h2>
 <p>The dungeon editor system consists of several key components:</p>
 <ol type="1">
@@ -118,7 +118,7 @@ Core Components</h2>
 <li><b>ObjectRenderer</b> - Core rendering engine for dungeon objects</li>
 <li><b>DungeonEditorSystem</b> - High-level system for managing dungeon editing operations</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md481"></a>
+<h2><a class="anchor" id="autotoc_md421"></a>
 File Structure</h2>
 <div class="fragment"><div class="line">src/app/editor/dungeon/</div>
 <div class="line">├── dungeon_editor.h/cc              # Main editor orchestrator</div>
@@ -133,9 +133,9 @@ File Structure</h2>
 <div class="line">├── room.h/cc                        # Room data structures</div>
 <div class="line">├── room_object.h/cc                 # Object data structures</div>
 <div class="line">└── room_entrance.h/cc               # Entrance data structures</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md482"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md422"></a>
 Component Responsibilities</h1>
-<h2><a class="anchor" id="autotoc_md483"></a>
+<h2><a class="anchor" id="autotoc_md423"></a>
 DungeonEditor (Main Orchestrator)</h2>
 <p><b>Responsibilities:</b></p><ul>
 <li>Manages overall editor state and ROM data</li>
@@ -148,7 +148,7 @@ DungeonEditor (Main Orchestrator)</h2>
 <li><code>Load()</code> - Initialize editor with ROM data</li>
 <li><code>set_rom()</code> - Update ROM reference across components</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md484"></a>
+<h2><a class="anchor" id="autotoc_md424"></a>
 DungeonRoomSelector</h2>
 <p><b>Responsibilities:</b></p><ul>
 <li>Room selection and navigation</li>
@@ -162,7 +162,7 @@ DungeonRoomSelector</h2>
 <li><code>DrawEntranceSelector()</code> - Entrance editing interface</li>
 <li><code>set_rom()</code>, <code>set_rooms()</code>, <code>set_entrances()</code> - Data access methods</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md485"></a>
+<h2><a class="anchor" id="autotoc_md425"></a>
 DungeonCanvasViewer</h2>
 <p><b>Responsibilities:</b></p><ul>
 <li>Main canvas rendering and display</li>
@@ -178,7 +178,7 @@ DungeonCanvasViewer</h2>
 <li><code>RoomToCanvasCoordinates()</code> - Coordinate conversion</li>
 <li><code>RenderRoomBackgroundLayers()</code> - Background rendering</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md486"></a>
+<h2><a class="anchor" id="autotoc_md426"></a>
 DungeonObjectSelector</h2>
 <p><b>Responsibilities:</b></p><ul>
 <li>Object selection and preview</li>
@@ -194,9 +194,9 @@ DungeonObjectSelector</h2>
 <li><code>DrawCompactSpriteEditor()</code> - Sprite editing controls</li>
 <li>Similar methods for Items, Entrances, Doors, Chests, Properties</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md487"></a>
+<h1><a class="anchor" id="autotoc_md427"></a>
 Data Flow</h1>
-<h2><a class="anchor" id="autotoc_md488"></a>
+<h2><a class="anchor" id="autotoc_md428"></a>
 Initialization Flow</h2>
 <ol type="1">
 <li><b>ROM Loading</b>: <code>DungeonEditor::Load()</code> is called with ROM data</li>
@@ -204,7 +204,7 @@ Initialization Flow</h2>
 <li><b>Graphics Initialization</b>: Room graphics are loaded and cached</li>
 <li><b>UI State Setup</b>: Active rooms, palettes, and editor modes are initialized</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md489"></a>
+<h2><a class="anchor" id="autotoc_md429"></a>
 Runtime Data Flow</h2>
 <ol type="1">
 <li><b>User Interaction</b>: User selects rooms, objects, or editing modes</li>
@@ -212,7 +212,7 @@ Runtime Data Flow</h2>
 <li><b>Data Propagation</b>: Changes are communicated between components</li>
 <li><b>Rendering</b>: All components re-render with updated data</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md490"></a>
+<h2><a class="anchor" id="autotoc_md430"></a>
 Key Data Structures</h2>
 <div class="fragment"><div class="line"><span class="comment">// Main editor state</span></div>
 <div class="line">std::array&lt;zelda3::Room, 0x128&gt; rooms_;</div>
@@ -224,16 +224,16 @@ Key Data Structures</h2>
 <div class="line">DungeonRoomSelector room_selector_;</div>
 <div class="line">DungeonCanvasViewer canvas_viewer_;</div>
 <div class="line">DungeonObjectSelector object_selector_;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md491"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md431"></a>
 Integration Patterns</h1>
-<h2><a class="anchor" id="autotoc_md492"></a>
+<h2><a class="anchor" id="autotoc_md432"></a>
 Component Communication</h2>
 <p>Components communicate through:</p><ol type="1">
 <li><b>Direct method calls</b> - Parent calls child methods</li>
 <li><b>Data sharing</b> - Shared pointers to common data structures</li>
 <li><b>Event propagation</b> - State changes trigger updates</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md493"></a>
+<h2><a class="anchor" id="autotoc_md433"></a>
 ROM Data Management</h2>
 <div class="fragment"><div class="line"><span class="comment">// ROM propagation pattern</span></div>
 <div class="line"><span class="keywordtype">void</span> DungeonEditor::set_rom(Rom* rom) {</div>
@@ -242,16 +242,16 @@ ROM Data Management</h2>
 <div class="line">    canvas_viewer_.SetRom(rom);</div>
 <div class="line">    object_selector_.SetRom(rom);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md494"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md434"></a>
 State Synchronization</h2>
 <p>Components maintain their own state but receive updates from the main editor:</p><ul>
 <li>Room selection state is managed by <code>DungeonRoomSelector</code></li>
 <li>Canvas rendering state is managed by <code>DungeonCanvasViewer</code></li>
 <li>Object editing state is managed by <code>DungeonObjectSelector</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md495"></a>
+<h1><a class="anchor" id="autotoc_md435"></a>
 UI Layout Architecture</h1>
-<h2><a class="anchor" id="autotoc_md496"></a>
+<h2><a class="anchor" id="autotoc_md436"></a>
 3-Column Layout</h2>
 <p>The main editor uses a 3-column <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> table layout:</p>
 <div class="fragment"><div class="line"><span class="keywordflow">if</span> (BeginTable(<span class="stringliteral">&quot;#DungeonEditTable&quot;</span>, 3, kDungeonTableFlags, ImVec2(0, 0))) {</div>
@@ -271,64 +271,64 @@ UI Layout Architecture</h1>
 <div class="line">    TableNextColumn();</div>
 <div class="line">    object_selector_.Draw();</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md497"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md437"></a>
 Component Internal Layout</h2>
 <p>Each component manages its own internal layout:</p><ul>
 <li><b>DungeonRoomSelector</b>: Tabbed interface (Rooms | Entrances)</li>
 <li><b>DungeonCanvasViewer</b>: Canvas with controls and debug popup</li>
 <li><b>DungeonObjectSelector</b>: Tabbed interface (Graphics | Editor)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md498"></a>
+<h1><a class="anchor" id="autotoc_md438"></a>
 Coordinate System</h1>
-<h2><a class="anchor" id="autotoc_md499"></a>
+<h2><a class="anchor" id="autotoc_md439"></a>
 Room Coordinates vs Canvas Coordinates</h2>
 <ul>
 <li><b>Room Coordinates</b>: 16x16 tile units (0-15 for a standard room)</li>
 <li><b>Canvas Coordinates</b>: Pixel coordinates for rendering</li>
 <li><b>Conversion</b>: <code>RoomToCanvasCoordinates(x, y) = (x * 16, y * 16)</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md500"></a>
+<h2><a class="anchor" id="autotoc_md440"></a>
 Bounds Checking</h2>
 <p>All rendering operations include bounds checking: </p><div class="fragment"><div class="line"><span class="keywordtype">bool</span> IsWithinCanvasBounds(<span class="keywordtype">int</span> canvas_x, <span class="keywordtype">int</span> canvas_y, <span class="keywordtype">int</span> margin = 32) <span class="keyword">const</span>;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md501"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md441"></a>
 Error Handling &amp; Validation</h1>
-<h2><a class="anchor" id="autotoc_md502"></a>
+<h2><a class="anchor" id="autotoc_md442"></a>
 ROM Validation</h2>
 <p>All components validate ROM state before operations: </p><div class="fragment"><div class="line"><span class="keywordflow">if</span> (!rom_ || !rom_-&gt;is_loaded()) {</div>
 <div class="line">    ImGui::Text(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
 <div class="line">    <span class="keywordflow">return</span>;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md503"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md443"></a>
 Bounds Validation</h2>
 <p>Graphics operations include bounds checking: </p><div class="fragment"><div class="line"><span class="keywordflow">if</span> (room_id &lt; 0 || room_id &gt;= rooms_-&gt;size()) {</div>
 <div class="line">    <span class="keywordflow">return</span>; <span class="comment">// Skip invalid operations</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md504"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md444"></a>
 Performance Considerations</h1>
-<h2><a class="anchor" id="autotoc_md505"></a>
+<h2><a class="anchor" id="autotoc_md445"></a>
 Caching Strategy</h2>
 <ul>
 <li><b>Object Render Cache</b>: Cached rendered bitmaps to avoid re-rendering</li>
 <li><b>Graphics Cache</b>: Cached graphics sheets for frequently accessed data</li>
 <li><b>Memory Pool</b>: Efficient memory allocation for temporary objects</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md506"></a>
+<h2><a class="anchor" id="autotoc_md446"></a>
 Rendering Optimization</h2>
 <ul>
 <li><b>Viewport Culling</b>: Objects outside visible area are not rendered</li>
 <li><b>Lazy Loading</b>: Graphics are loaded only when needed</li>
 <li><b>Selective Updates</b>: Only changed components re-render</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md507"></a>
+<h1><a class="anchor" id="autotoc_md447"></a>
 Testing Strategy</h1>
-<h2><a class="anchor" id="autotoc_md508"></a>
+<h2><a class="anchor" id="autotoc_md448"></a>
 Integration Tests</h2>
 <p>The system includes comprehensive integration tests:</p><ul>
 <li><code><a class="el" href="../../d1/d36/dungeon__object__renderer__integration__test_8cc.html">dungeon_object_renderer_integration_test.cc</a></code> - Core rendering tests</li>
 <li><code><a class="el" href="../../d4/d38/dungeon__editor__system__integration__test_8cc.html">dungeon_editor_system_integration_test.cc</a></code> - System integration tests</li>
 <li><code><a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc.html">dungeon_object_renderer_mock_test.cc</a></code> - Mock ROM testing</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md509"></a>
+<h2><a class="anchor" id="autotoc_md449"></a>
 Test Categories</h2>
 <ol type="1">
 <li><b>Real ROM Tests</b>: Tests with actual Zelda 3 ROM data</li>
@@ -336,9 +336,9 @@ Test Categories</h2>
 <li><b>Performance Tests</b>: Rendering performance benchmarks</li>
 <li><b>Error Handling Tests</b>: Validation and error recovery</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md510"></a>
+<h1><a class="anchor" id="autotoc_md450"></a>
 Future Development Guidelines</h1>
-<h2><a class="anchor" id="autotoc_md511"></a>
+<h2><a class="anchor" id="autotoc_md451"></a>
 Adding New Features</h2>
 <ol type="1">
 <li><b>Identify Component</b>: Determine which component should handle the feature</li>
@@ -347,7 +347,7 @@ Adding New Features</h2>
 <li><b>Update Integration</b>: Modify main editor to use new functionality</li>
 <li><b>Add Tests</b>: Create tests for new functionality</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md512"></a>
+<h2><a class="anchor" id="autotoc_md452"></a>
 Component Extension Patterns</h2>
 <div class="fragment"><div class="line"><span class="comment">// Adding new data access method</span></div>
 <div class="line"><span class="keywordtype">void</span> Component::SetNewData(<span class="keyword">const</span> NewDataType&amp; data) { </div>
@@ -364,7 +364,7 @@ Component Extension Patterns</h2>
 <div class="line">    <span class="comment">// Existing code</span></div>
 <div class="line">    DrawNewFeature();</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md513"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md453"></a>
 Data Flow Extension</h2>
 <p>When adding new data types:</p><ol type="1">
 <li>Add to main editor state</li>
@@ -372,7 +372,7 @@ Data Flow Extension</h2>
 <li>Update initialization in <code>Load()</code> method</li>
 <li>Add to <code>set_rom()</code> propagation if ROM-dependent</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md514"></a>
+<h2><a class="anchor" id="autotoc_md454"></a>
 UI Layout Extension</h2>
 <p>For new UI elements:</p><ol type="1">
 <li>Determine placement (new tab, new panel, etc.)</li>
@@ -380,35 +380,35 @@ UI Layout Extension</h2>
 <li>Maintain consistent spacing and styling</li>
 <li>Add to appropriate component's Draw method</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md515"></a>
+<h1><a class="anchor" id="autotoc_md455"></a>
 Common Pitfalls &amp; Solutions</h1>
-<h2><a class="anchor" id="autotoc_md516"></a>
+<h2><a class="anchor" id="autotoc_md456"></a>
 Memory Management</h2>
 <ul>
 <li><b>Issue</b>: Dangling pointers to ROM data</li>
 <li><b>Solution</b>: Always validate ROM state before use</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md517"></a>
+<h2><a class="anchor" id="autotoc_md457"></a>
 Coordinate System</h2>
 <ul>
 <li><b>Issue</b>: Objects rendering at wrong positions</li>
 <li><b>Solution</b>: Use coordinate conversion helper methods</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md518"></a>
+<h2><a class="anchor" id="autotoc_md458"></a>
 State Synchronization</h2>
 <ul>
 <li><b>Issue</b>: Components showing stale data</li>
 <li><b>Solution</b>: Ensure data propagation in setter methods</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md519"></a>
+<h2><a class="anchor" id="autotoc_md459"></a>
 Performance Issues</h2>
 <ul>
 <li><b>Issue</b>: Slow rendering with many objects</li>
 <li><b>Solution</b>: Implement viewport culling and caching</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md520"></a>
+<h1><a class="anchor" id="autotoc_md460"></a>
 Debugging Tools</h1>
-<h2><a class="anchor" id="autotoc_md521"></a>
+<h2><a class="anchor" id="autotoc_md461"></a>
 Debug Popup</h2>
 <p>The canvas viewer includes a comprehensive debug popup with:</p><ul>
 <li>Object statistics and metadata</li>
@@ -416,16 +416,16 @@ Debug Popup</h2>
 <li>Performance metrics</li>
 <li>Object type breakdowns</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md522"></a>
+<h2><a class="anchor" id="autotoc_md462"></a>
 Logging</h2>
 <p>Key operations include logging for debugging: </p><div class="fragment"><div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Loading room graphics for room &quot;</span> &lt;&lt; room_id &lt;&lt; std::endl;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md523"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md463"></a>
 Build Integration</h1>
-<h2><a class="anchor" id="autotoc_md524"></a>
+<h2><a class="anchor" id="autotoc_md464"></a>
 CMake Configuration</h2>
 <p>New components are automatically included via: </p><div class="fragment"><div class="line"># In CMakeLists.txt</div>
 <div class="line">file(GLOB YAZE_SRC_FILES &quot;src/app/editor/dungeon/*.cc&quot;)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md525"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md465"></a>
 Dependencies</h2>
 <p>Key dependencies:</p><ul>
 <li><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> for UI rendering</li>
@@ -433,7 +433,7 @@ Dependencies</h2>
 <li>zelda3 library for ROM data structures</li>
 <li>absl for status handling</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md526"></a>
+<h1><a class="anchor" id="autotoc_md466"></a>
 Conclusion</h1>
 <p>This modular architecture provides a solid foundation for future dungeon editor development. The separation of concerns makes the codebase maintainable, testable, and extensible. Future developers should follow the established patterns and extend components rather than modifying the main orchestrator class.</p>
 <p>For questions or clarifications, refer to the existing integration tests and component implementations as examples of proper usage patterns. </p>

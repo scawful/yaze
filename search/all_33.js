@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['💡_20recommendations_0',['💡 Recommendations',['../da/d40/md_docs_2ollama__integration__status.html#autotoc_md801',1,'']]]
+  ['🔍_20troubleshooting_0',['🔍 Troubleshooting',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md158',1,'']]]
 ];

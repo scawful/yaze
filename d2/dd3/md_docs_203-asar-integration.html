@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('d2/dd3/md_docs_203-asar-integration.ht
   <div class="headertitle"><div class="title">Asar 65816 Assembler Integration</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md75"></a> Complete cross-platform ROM patching with assembly code support, symbol extraction, and validation.</p>
-<h1><a class="anchor" id="autotoc_md76"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md70"></a> Complete cross-platform ROM patching with assembly code support, symbol extraction, and validation.</p>
+<h1><a class="anchor" id="autotoc_md71"></a>
 Quick Examples</h1>
-<h2><a class="anchor" id="autotoc_md77"></a>
+<h2><a class="anchor" id="autotoc_md72"></a>
 Command Line</h2>
 <div class="fragment"><div class="line"># Apply assembly patch to ROM</div>
 <div class="line">z3ed asar my_patch.asm --rom=zelda3.sfc</div>
@@ -114,7 +114,7 @@ Command Line</h2>
 <div class="line"> </div>
 <div class="line"># Validate assembly syntax</div>
 <div class="line">z3ed validate my_patch.asm</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md78"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md73"></a>
 C++ API</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../de/d62/asar__wrapper_8h.html">app/core/asar_wrapper.h</a>&quot;</span></div>
 <div class="line"> </div>
@@ -132,9 +132,9 @@ C++ API</h2>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html">yaze::core::AsarWrapper</a></div><div class="ttdoc">Modern C++ wrapper for Asar 65816 assembler integration.</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00048">asar_wrapper.h:48</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a9696c9ed3e363b0a989213d0d0862010"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9696c9ed3e363b0a989213d0d0862010">yaze::core::AsarWrapper::Initialize</a></div><div class="ttdeci">absl::Status Initialize()</div><div class="ttdoc">Initialize the Asar library.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00025">asar_wrapper.cc:25</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a970cffb421b3db4f9697edbfa5027828"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">yaze::core::AsarWrapper::ApplyPatch</a></div><div class="ttdeci">absl::StatusOr&lt; AsarPatchResult &gt; ApplyPatch(const std::string &amp;patch_path, std::vector&lt; uint8_t &gt; &amp;rom_data, const std::vector&lt; std::string &gt; &amp;include_paths={})</div><div class="ttdoc">Apply an assembly patch to a ROM.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00068">asar_wrapper.cc:68</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md79"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md74"></a>
 Assembly Patch Examples</h1>
-<h2><a class="anchor" id="autotoc_md80"></a>
+<h2><a class="anchor" id="autotoc_md75"></a>
 Basic Hook</h2>
 <div class="fragment"><div class="line">org $008000</div>
 <div class="line">custom_hook:</div>
@@ -150,7 +150,7 @@ Basic Hook</h2>
 <div class="line">custom_data:</div>
 <div class="line">    db &quot;YAZE&quot;, $00</div>
 <div class="line">    dw $1234, $5678</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md81"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md76"></a>
 Advanced Features</h2>
 <div class="fragment"><div class="line">!player_health = $7EF36C</div>
 <div class="line">!custom_ram = $7E2000</div>
@@ -169,9 +169,9 @@ Advanced Features</h2>
 <div class="line">    </div>
 <div class="line">    %save_context()</div>
 <div class="line">    rtl</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md82"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md77"></a>
 API Reference</h1>
-<h2><a class="anchor" id="autotoc_md83"></a>
+<h2><a class="anchor" id="autotoc_md78"></a>
 AsarWrapper Class</h2>
 <div class="fragment"><div class="line"><span class="keyword">class </span>AsarWrapper {</div>
 <div class="line"><span class="keyword">public</span>:</div>
@@ -183,7 +183,7 @@ AsarWrapper Class</h2>
 <div class="line">        <span class="keyword">const</span> std::string&amp; asm_path);</div>
 <div class="line">    absl::Status ValidateAssembly(<span class="keyword">const</span> std::string&amp; asm_path);</div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md84"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md79"></a>
 Data Structures</h2>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>AsarSymbol {</div>
 <div class="line">    std::string name;           <span class="comment">// Symbol name</span></div>
@@ -199,9 +199,9 @@ Data Structures</h2>
 <div class="line">    std::vector&lt;AsarSymbol&gt; symbols;     <span class="comment">// Extracted symbols</span></div>
 <div class="line">    uint32_t rom_size;         <span class="comment">// Final ROM size</span></div>
 <div class="line">};</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md85"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md80"></a>
 Testing</h1>
-<h2><a class="anchor" id="autotoc_md86"></a>
+<h2><a class="anchor" id="autotoc_md81"></a>
 ROM-Dependent Tests</h2>
 <div class="fragment"><div class="line"><a class="code hl_define" href="../../df/dfd/test__utils_8h.html#acde8466936427e1b1ba331bccb124a9e">YAZE_ROM_TEST</a>(AsarIntegration, RealRomPatching) {</div>
 <div class="line">    <span class="keyword">auto</span> rom_data = TestRomManager::LoadTestRom();</div>
@@ -213,7 +213,7 @@ ROM-Dependent Tests</h2>
 <div class="line">}</div>
 <div class="ttc" id="atest__utils_8h_html_acde8466936427e1b1ba331bccb124a9e"><div class="ttname"><a href="../../df/dfd/test__utils_8h.html#acde8466936427e1b1ba331bccb124a9e">YAZE_ROM_TEST</a></div><div class="ttdeci">#define YAZE_ROM_TEST(test_case_name, test_name)</div><div class="ttdoc">Test macro for ROM-dependent tests.</div><div class="ttdef"><b>Definition</b> <a href="../../df/dfd/test__utils_8h_source.html#l00169">test_utils.h:169</a></div></div>
 </div><!-- fragment --><p>ROM tests are automatically skipped in CI with <code>--label-exclude ROM_DEPENDENT</code>.</p>
-<h1><a class="anchor" id="autotoc_md87"></a>
+<h1><a class="anchor" id="autotoc_md82"></a>
 Error Handling</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -227,7 +227,7 @@ Error Handling</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>Buffer too small</code>   </td><td class="markdownTableBodyNone">ROM needs expansion   </td><td class="markdownTableBodyNone">Check if ROM needs to be larger   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md88"></a>
+<h1><a class="anchor" id="autotoc_md83"></a>
 Development Workflow</h1>
 <ol type="1">
 <li><b>Write assembly patch</b></li>

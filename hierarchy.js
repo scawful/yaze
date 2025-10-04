@@ -393,7 +393,6 @@ var hierarchy =
     [ "yaze::cli::PolicyEvaluator::PolicyConfig::ReviewRequirement", "de/d07/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ReviewRequirement.html", null ],
     [ "yaze::Rom", "d6/d30/classyaze_1_1Rom.html", [
       [ "yaze::test::MockRom", "df/df5/classyaze_1_1test_1_1MockRom.html", null ],
-      [ "yaze::test::MockRom", "df/df5/classyaze_1_1test_1_1MockRom.html", null ],
       [ "yaze::zelda3::MockRom", "d4/df3/classyaze_1_1zelda3_1_1MockRom.html", null ]
     ] ],
     [ "yaze::cli::RomContext", "d4/d2e/structyaze_1_1cli_1_1RomContext.html", null ],

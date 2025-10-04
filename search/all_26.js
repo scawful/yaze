@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['→_20dungeonobjectinteraction_0',['→ DungeonObjectInteraction',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md544',1,'']]],
-  ['→_20dungeonrenderer_1',['→ DungeonRenderer',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md545',1,'']]],
-  ['→_20dungeonroomloader_2',['→ DungeonRoomLoader',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md546',1,'']]],
-  ['→_20dungeontoolset_3',['→ DungeonToolset',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md543',1,'']]],
-  ['→_20dungeonusagetracker_4',['→ DungeonUsageTracker',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md547',1,'']]]
+  ['⚠️_0',['Active Issues ⚠️',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html#autotoc_md494',1,'']]],
+  ['⚠️_20rectangle_20selection_20wrapping_1',['⚠️ Rectangle Selection Wrapping',['../d2/db2/md_docs_2CANVAS__GUIDE.html#autotoc_md351',1,'']]],
+  ['⚠️_20strong_20key_20differences_20found_20strong_2',['⚠️ &lt;strong&gt;Key Differences Found&lt;/strong&gt;',['../d9/d48/md_docs_2analysis_2overworld__implementation__analysis.html#autotoc_md134',1,'']]]
 ];

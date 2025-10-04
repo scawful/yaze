@@ -100,27 +100,24 @@ $(document).ready(function(){initNavTree('df/df5/classyaze_1_1test_1_1MockRom.ht
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
-<a href="#pri-static-attribs">Static Private Attributes</a> &#124;
 <a href="../../d4/df0/classyaze_1_1test_1_1MockRom-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::test::MockRom Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>Mock ROM class for testing without real ROM files.  
+<p>Enhanced ROM for testing that behaves like a real ROM but with test data.  
  <a href="../../df/df5/classyaze_1_1test_1_1MockRom.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="../../de/dd9/mock__rom_8h_source.html">mock_rom.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for yaze::test::MockRom:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../dd/d07/classyaze_1_1test_1_1MockRom__inherit__graph.png" border="0" usemap="#ayaze_1_1test_1_1MockRom_inherit__map" alt="Inheritance graph"/></div>
 <map name="ayaze_1_1test_1_1MockRom_inherit__map" id="ayaze_1_1test_1_1MockRom_inherit__map">
-<area shape="rect" title="Mock ROM class for testing without real ROM files." alt="" coords="5,79,146,105"/>
+<area shape="rect" title="Enhanced ROM for testing that behaves like a real ROM but with test data." alt="" coords="5,79,146,105"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="35,5,116,31"/>
-<area shape="poly" title=" " alt="" coords="69,46,71,78,66,79,64,46"/>
-<area shape="poly" title=" " alt="" coords="87,46,85,79,80,78,82,46"/>
+<area shape="poly" title=" " alt="" coords="78,46,78,79,73,79,73,46"/>
 </map>
 <center><span class="legend">[<a target="top" href="../../graph_legend.html">legend</a>]</span></center></div>
 <div class="dynheader">
@@ -128,10 +125,9 @@ Collaboration diagram for yaze::test::MockRom:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d4/ddd/classyaze_1_1test_1_1MockRom__coll__graph.png" border="0" usemap="#ayaze_1_1test_1_1MockRom_coll__map" alt="Collaboration graph"/></div>
 <map name="ayaze_1_1test_1_1MockRom_coll__map" id="ayaze_1_1test_1_1MockRom_coll__map">
-<area shape="rect" title="Mock ROM class for testing without real ROM files." alt="" coords="120,184,260,210"/>
+<area shape="rect" title="Enhanced ROM for testing that behaves like a real ROM but with test data." alt="" coords="120,184,260,210"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="150,109,230,135"/>
-<area shape="poly" title=" " alt="" coords="184,150,185,184,180,184,178,150"/>
-<area shape="poly" title=" " alt="" coords="201,150,199,184,194,184,196,150"/>
+<area shape="poly" title=" " alt="" coords="192,150,192,184,187,184,187,150"/>
 <area shape="rect" href="../../d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,177,46"/>
 <area shape="poly" title=" " alt="" coords="99,60,111,83,129,98,150,108,148,113,126,102,107,87,94,62"/>
 <area shape="rect" href="../../d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html" title="Represents a mapping of palette groups." alt="" coords="201,13,378,39"/>
@@ -141,22 +137,6 @@ Collaboration diagram for yaze::test::MockRom:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a57485138053ad3a0ceef916149a4e71f" id="r_a57485138053ad3a0ceef916149a4e71f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a57485138053ad3a0ceef916149a4e71f">MockRom</a> ()=<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">default</a></td></tr>
-<tr class="separator:a57485138053ad3a0ceef916149a4e71f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa38ac52fcc1c1d6cac2216f6a9042d40" id="r_aa38ac52fcc1c1d6cac2216f6a9042d40"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#aa38ac52fcc1c1d6cac2216f6a9042d40">SetMockData</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &amp;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>)</td></tr>
-<tr class="separator:aa38ac52fcc1c1d6cac2216f6a9042d40"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a72e13b963b82806d197d22857eca88" id="r_a6a72e13b963b82806d197d22857eca88"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a6a72e13b963b82806d197d22857eca88">LoadAndOwnData</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &amp;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>)</td></tr>
-<tr class="separator:a6a72e13b963b82806d197d22857eca88"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab881bdc57ddcadb830af7ac6778bff44" id="r_ab881bdc57ddcadb830af7ac6778bff44"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#ab881bdc57ddcadb830af7ac6778bff44">SetMockRoomData</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a> room_id, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &amp;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>)</td></tr>
-<tr class="separator:ab881bdc57ddcadb830af7ac6778bff44"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af02aea19eb297c73b39985c54e7f84c8" id="r_af02aea19eb297c73b39985c54e7f84c8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#af02aea19eb297c73b39985c54e7f84c8">SetMockObjectData</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a> object_id, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &amp;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>)</td></tr>
-<tr class="separator:af02aea19eb297c73b39985c54e7f84c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afb81f562b0d38a6b3ce4e6743bcbd210" id="r_afb81f562b0d38a6b3ce4e6743bcbd210"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#afb81f562b0d38a6b3ce4e6743bcbd210">SetMockGraphicsData</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &amp;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">data</a>)</td></tr>
-<tr class="separator:afb81f562b0d38a6b3ce4e6743bcbd210"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae53313b1ec38c3dd60c3b5970cb5f70c" id="r_ae53313b1ec38c3dd60c3b5970cb5f70c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#ae53313b1ec38c3dd60c3b5970cb5f70c">ValidateRoomData</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a> room_id) <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a></td></tr>
-<tr class="separator:ae53313b1ec38c3dd60c3b5970cb5f70c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a451f286739a6a3afadd0e72d05fa90e2" id="r_a451f286739a6a3afadd0e72d05fa90e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a451f286739a6a3afadd0e72d05fa90e2">ValidateObjectData</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a> object_id) <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a></td></tr>
-<tr class="separator:a451f286739a6a3afadd0e72d05fa90e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57485138053ad3a0ceef916149a4e71f" id="r_a57485138053ad3a0ceef916149a4e71f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a57485138053ad3a0ceef916149a4e71f">MockRom</a> ()=<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">default</a></td></tr>
 <tr class="separator:a57485138053ad3a0ceef916149a4e71f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aac51106064ce1699fecbe8e3f6fe0e62" id="r_aac51106064ce1699fecbe8e3f6fe0e62"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#aac51106064ce1699fecbe8e3f6fe0e62">MOCK_METHOD</a> (absl::Status, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a8b05e9e0a0266a95d15ec694e6b6d4e6">WriteHelper</a>,(<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> <a class="el" href="../../d6/dea/structyaze_1_1Rom_1_1WriteAction.html">WriteAction</a> &amp;),(<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">override</a>))</td></tr>
@@ -292,44 +272,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a97d2783a3b91dd4acb21af5547a4ecfa inherit pub_methods_classyaze_1_1Rom" id="r_a97d2783a3b91dd4acb21af5547a4ecfa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/d0d/structzelda3__version__pointers.html">zelda3_version_pointers</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a97d2783a3b91dd4acb21af5547a4ecfa">version_constants</a> () <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a></td></tr>
 <tr class="separator:a97d2783a3b91dd4acb21af5547a4ecfa inherit pub_methods_classyaze_1_1Rom"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
-Private Member Functions</h2></td></tr>
-<tr class="memitem:a8fe3d42b7b599262040ee2dc3b2b0df5" id="r_a8fe3d42b7b599262040ee2dc3b2b0df5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a8fe3d42b7b599262040ee2dc3b2b0df5">EnsureBufferCapacity</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a> <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">size</a>)</td></tr>
-<tr class="separator:a8fe3d42b7b599262040ee2dc3b2b0df5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afa4e059b298599082474bee03bd6b889" id="r_afa4e059b298599082474bee03bd6b889"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#afa4e059b298599082474bee03bd6b889">InitializeMemoryLayout</a> ()</td></tr>
-<tr class="separator:afa4e059b298599082474bee03bd6b889"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a02716aaed5aa7fdf4cde337175492a96" id="r_a02716aaed5aa7fdf4cde337175492a96"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a02716aaed5aa7fdf4cde337175492a96">backing_buffer_</a></td></tr>
-<tr class="separator:a02716aaed5aa7fdf4cde337175492a96"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a66dde31cd841b3ffbf5ff2c6be16db07" id="r_a66dde31cd841b3ffbf5ff2c6be16db07"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a>, std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a66dde31cd841b3ffbf5ff2c6be16db07">mock_room_data_</a></td></tr>
-<tr class="separator:a66dde31cd841b3ffbf5ff2c6be16db07"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad468a16dc1d991f2d3814880cdb867d8" id="r_ad468a16dc1d991f2d3814880cdb867d8"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a>, std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#ad468a16dc1d991f2d3814880cdb867d8">mock_object_data_</a></td></tr>
-<tr class="separator:ad468a16dc1d991f2d3814880cdb867d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af2540b3efad0ee19051f041bf94dc9c2" id="r_af2540b3efad0ee19051f041bf94dc9c2"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#af2540b3efad0ee19051f041bf94dc9c2">mock_graphics_data_</a></td></tr>
-<tr class="separator:af2540b3efad0ee19051f041bf94dc9c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a906dad65f130ad1ec00a3fa37ecd5d83" id="r_a906dad65f130ad1ec00a3fa37ecd5d83"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a906dad65f130ad1ec00a3fa37ecd5d83">room_header_table_pc_</a> = 0</td></tr>
-<tr class="separator:a906dad65f130ad1ec00a3fa37ecd5d83"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a09009af7aae063dff38747c11d820a0a" id="r_a09009af7aae063dff38747c11d820a0a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a09009af7aae063dff38747c11d820a0a">room_header_data_base_pc_</a> = 0</td></tr>
-<tr class="separator:a09009af7aae063dff38747c11d820a0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7bfb3f3e78ca0562b435fc45af6ecde5" id="r_a7bfb3f3e78ca0562b435fc45af6ecde5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a7bfb3f3e78ca0562b435fc45af6ecde5">room_object_table_pc_</a> = 0</td></tr>
-<tr class="separator:a7bfb3f3e78ca0562b435fc45af6ecde5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a829c5dea86369b50e63fee27b806301f" id="r_a829c5dea86369b50e63fee27b806301f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a829c5dea86369b50e63fee27b806301f">room_object_data_base_pc_</a> = 0</td></tr>
-<tr class="separator:a829c5dea86369b50e63fee27b806301f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25d2fc1232977befeec5a215384749e6" id="r_a25d2fc1232977befeec5a215384749e6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a25d2fc1232977befeec5a215384749e6">test_data_loaded_</a> = <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">false</a></td></tr>
 <tr class="separator:a25d2fc1232977befeec5a215384749e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a090de4443a88d74c25cbb6708a7f0601" id="r_a090de4443a88d74c25cbb6708a7f0601"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a>, std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a090de4443a88d74c25cbb6708a7f0601">object_data_</a></td></tr>
 <tr class="separator:a090de4443a88d74c25cbb6708a7f0601"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a016a95cca484c088f2d8c13a51fd2a21" id="r_a016a95cca484c088f2d8c13a51fd2a21"><td class="memItemLeft" align="right" valign="top">std::map&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a>, std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#a016a95cca484c088f2d8c13a51fd2a21">room_data_</a></td></tr>
 <tr class="separator:a016a95cca484c088f2d8c13a51fd2a21"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-attribs" name="pri-static-attribs"></a>
-Static Private Attributes</h2></td></tr>
-<tr class="memitem:afac785aefdc822fc69739056f6e5668a" id="r_afac785aefdc822fc69739056f6e5668a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">static</a> <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">constexpr</a> <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#afac785aefdc822fc69739056f6e5668a">kRoomHeaderStride</a> = 0x40</td></tr>
-<tr class="separator:afac785aefdc822fc69739056f6e5668a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc321cac4f78838697cf08a096295ec3" id="r_afc321cac4f78838697cf08a096295ec3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">static</a> <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">constexpr</a> <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/df5/classyaze_1_1test_1_1MockRom.html#afc321cac4f78838697cf08a096295ec3">kRoomObjectStride</a> = 0x100</td></tr>
-<tr class="separator:afc321cac4f78838697cf08a096295ec3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -344,39 +294,13 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:a68851333f172b0958ea6a27e46534260 inherit pub_attribs_classyaze_1_1Rom"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Mock ROM class for testing without real ROM files. </p>
-<p>Enhanced ROM for testing that behaves like a real ROM but with test data.</p>
+<div class="textblock"><p>Enhanced ROM for testing that behaves like a real ROM but with test data. </p>
 <p>This class extends <a class="el" href="../../d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data.">Rom</a> to provide testing utilities while maintaining all the real ROM functionality. Instead of mocking methods, it loads real test data into the ROM. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00057">57</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../de/dd9/mock__rom_8h_source.html#l00021">21</a> of file <a class="el" href="../../de/dd9/mock__rom_8h_source.html">mock_rom.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a57485138053ad3a0ceef916149a4e71f" name="a57485138053ad3a0ceef916149a4e71f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57485138053ad3a0ceef916149a4e71f">&#9670;&#160;</a></span>MockRom() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">yaze::test::MockRom::MockRom </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">default</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a57485138053ad3a0ceef916149a4e71f" name="a57485138053ad3a0ceef916149a4e71f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57485138053ad3a0ceef916149a4e71f">&#9670;&#160;</a></span>MockRom() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a57485138053ad3a0ceef916149a4e71f">&#9670;&#160;</a></span>MockRom()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -401,280 +325,6 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa38ac52fcc1c1d6cac2216f6a9042d40" name="aa38ac52fcc1c1d6cac2216f6a9042d40"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa38ac52fcc1c1d6cac2216f6a9042d40">&#9670;&#160;</a></span>SetMockData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::Status yaze::test::MockRom::SetMockData </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>data</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00193">193</a> of file <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html">dungeon_editor_test.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00076">backing_buffer_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00194">yaze::Rom::ClearDirty()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::data()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00097">yaze::Rom::Expand()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00198">yaze::Rom::mutable_data()</a>.</p>
-
-</div>
-</div>
-<a id="a6a72e13b963b82806d197d22857eca88" name="a6a72e13b963b82806d197d22857eca88"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6a72e13b963b82806d197d22857eca88">&#9670;&#160;</a></span>LoadAndOwnData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">absl::Status yaze::test::MockRom::LoadAndOwnData </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>data</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00204">204</a> of file <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html">dungeon_editor_test.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00076">backing_buffer_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00194">yaze::Rom::ClearDirty()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::data()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00097">yaze::Rom::Expand()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00198">yaze::Rom::mutable_data()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00206">yaze::Rom::mutable_graphics_buffer()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00208">yaze::Rom::mutable_palette_group()</a>, <a class="el" href="../../d8/ddb/snes__palette_8h_source.html#l00148">yaze::gfx::SnesPalette::Resize()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00203">yaze::Rom::set_filename()</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00201">yaze::Rom::vector()</a>.</p>
-
-</div>
-</div>
-<a id="ab881bdc57ddcadb830af7ac6778bff44" name="ab881bdc57ddcadb830af7ac6778bff44"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab881bdc57ddcadb830af7ac6778bff44">&#9670;&#160;</a></span>SetMockRoomData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">void</a> yaze::test::MockRom::SetMockRoomData </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a>&#160;</td>
-          <td class="paramname"><em>room_id</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>data</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00231">231</a> of file <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html">dungeon_editor_test.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00076">backing_buffer_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::data()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00284">EnsureBufferCapacity()</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00086">kRoomHeaderStride</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00077">mock_room_data_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00198">yaze::Rom::mutable_data()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00017">yaze::PcToSnes()</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00082">room_header_data_base_pc_</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00081">room_header_table_pc_</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00201">yaze::Rom::vector()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00060">yaze::test::DungeonEditorIntegrationTest::LoadTestRoomData()</a>.</p>
-
-</div>
-</div>
-<a id="af02aea19eb297c73b39985c54e7f84c8" name="af02aea19eb297c73b39985c54e7f84c8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af02aea19eb297c73b39985c54e7f84c8">&#9670;&#160;</a></span>SetMockObjectData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">void</a> yaze::test::MockRom::SetMockObjectData </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a>&#160;</td>
-          <td class="paramname"><em>object_id</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>data</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00253">253</a> of file <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html">dungeon_editor_test.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00076">backing_buffer_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::data()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00284">EnsureBufferCapacity()</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00087">kRoomObjectStride</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00078">mock_object_data_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00198">yaze::Rom::mutable_data()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00017">yaze::PcToSnes()</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00084">room_object_data_base_pc_</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00083">room_object_table_pc_</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00201">yaze::Rom::vector()</a>.</p>
-
-</div>
-</div>
-<a id="afb81f562b0d38a6b3ce4e6743bcbd210" name="afb81f562b0d38a6b3ce4e6743bcbd210"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afb81f562b0d38a6b3ce4e6743bcbd210">&#9670;&#160;</a></span>SetMockGraphicsData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">void</a> yaze::test::MockRom::SetMockGraphicsData </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">const</a> std::vector&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>data</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00277">277</a> of file <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html">dungeon_editor_test.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::data()</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00079">mock_graphics_data_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00206">yaze::Rom::mutable_graphics_buffer()</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00201">yaze::Rom::vector()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../df/df5/classyaze_1_1test_1_1MockRom_afb81f562b0d38a6b3ce4e6743bcbd210_cgraph.png" border="0" usemap="#adf/df5/classyaze_1_1test_1_1MockRom_afb81f562b0d38a6b3ce4e6743bcbd210_cgraph" alt=""/></div>
-<map name="adf/df5/classyaze_1_1test_1_1MockRom_afb81f562b0d38a6b3ce4e6743bcbd210_cgraph" id="adf/df5/classyaze_1_1test_1_1MockRom_afb81f562b0d38a6b3ce4e6743bcbd210_cgraph">
-<area shape="rect" title=" " alt="" coords="5,55,164,96"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="222,5,334,31"/>
-<area shape="poly" title=" " alt="" coords="154,52,217,33,218,39,156,57"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a13a1dcdedd508ace2a5c6c998573736e" title=" " alt="" coords="212,55,344,96"/>
-<area shape="poly" title=" " alt="" coords="164,73,197,73,197,78,164,78"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="217,120,339,146"/>
-<area shape="poly" title=" " alt="" coords="156,94,218,112,217,118,154,99"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="ae53313b1ec38c3dd60c3b5970cb5f70c" name="ae53313b1ec38c3dd60c3b5970cb5f70c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae53313b1ec38c3dd60c3b5970cb5f70c">&#9670;&#160;</a></span>ValidateRoomData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">bool</a> yaze::test::MockRom::ValidateRoomData </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a>&#160;</td>
-          <td class="paramname"><em>room_id</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00363">363</a> of file <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html">dungeon_editor_test.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00077">mock_room_data_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00388">yaze::test::TEST_F()</a>.</p>
-
-</div>
-</div>
-<a id="a451f286739a6a3afadd0e72d05fa90e2" name="a451f286739a6a3afadd0e72d05fa90e2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a451f286739a6a3afadd0e72d05fa90e2">&#9670;&#160;</a></span>ValidateObjectData()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">bool</a> yaze::test::MockRom::ValidateObjectData </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a>&#160;</td>
-          <td class="paramname"><em>object_id</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00367">367</a> of file <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html">dungeon_editor_test.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00078">mock_object_data_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00388">yaze::test::TEST_F()</a>.</p>
-
-</div>
-</div>
-<a id="a8fe3d42b7b599262040ee2dc3b2b0df5" name="a8fe3d42b7b599262040ee2dc3b2b0df5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8fe3d42b7b599262040ee2dc3b2b0df5">&#9670;&#160;</a></span>EnsureBufferCapacity()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">void</a> yaze::test::MockRom::EnsureBufferCapacity </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a>&#160;</td>
-          <td class="paramname"><em>size</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00284">284</a> of file <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html">dungeon_editor_test.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00076">backing_buffer_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00097">yaze::Rom::Expand()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00198">yaze::Rom::mutable_data()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00196">yaze::Rom::size()</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00201">yaze::Rom::vector()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00253">SetMockObjectData()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00231">SetMockRoomData()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../df/df5/classyaze_1_1test_1_1MockRom_a8fe3d42b7b599262040ee2dc3b2b0df5_cgraph.png" border="0" usemap="#adf/df5/classyaze_1_1test_1_1MockRom_a8fe3d42b7b599262040ee2dc3b2b0df5_cgraph" alt=""/></div>
-<map name="adf/df5/classyaze_1_1test_1_1MockRom_a8fe3d42b7b599262040ee2dc3b2b0df5_cgraph" id="adf/df5/classyaze_1_1test_1_1MockRom_a8fe3d42b7b599262040ee2dc3b2b0df5_cgraph">
-<area shape="rect" title=" " alt="" coords="5,74,157,115"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a784e5cc628d64f3d058b8fdd74c26047" title=" " alt="" coords="223,5,351,31"/>
-<area shape="poly" title=" " alt="" coords="137,71,234,34,236,39,139,76"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="417,31,526,56"/>
-<area shape="poly" title=" " alt="" coords="157,82,401,50,402,55,157,87"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6" title=" " alt="" coords="205,107,369,132"/>
-<area shape="poly" title=" " alt="" coords="157,101,189,105,189,110,157,106"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="226,156,348,182"/>
-<area shape="poly" title=" " alt="" coords="131,113,206,142,224,148,222,153,204,147,129,118"/>
-<area shape="poly" title=" " alt="" coords="352,24,402,31,402,37,351,30"/>
-</map>
-</div>
-
-</div>
-</div>
-<a id="afa4e059b298599082474bee03bd6b889" name="afa4e059b298599082474bee03bd6b889"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afa4e059b298599082474bee03bd6b889">&#9670;&#160;</a></span>InitializeMemoryLayout()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">void</a> yaze::test::MockRom::InitializeMemoryLayout </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">295</a> of file <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html">dungeon_editor_test.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00076">backing_buffer_</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00284">EnsureBufferCapacity()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00041">yaze::zelda3::kRoomHeaderPointer</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00042">yaze::zelda3::kRoomHeaderPointerBank</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00086">kRoomHeaderStride</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00087">kRoomObjectStride</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00078">mock_object_data_</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00077">mock_room_data_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00198">yaze::Rom::mutable_data()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00017">yaze::PcToSnes()</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00082">room_header_data_base_pc_</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00081">room_header_table_pc_</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00084">room_object_data_base_pc_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00035">yaze::zelda3::room_object_pointer</a>, <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00083">room_object_table_pc_</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00201">yaze::Rom::vector()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00204">LoadAndOwnData()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00193">SetMockData()</a>.</p>
-
-</div>
-</div>
 <a id="aac51106064ce1699fecbe8e3f6fe0e62" name="aac51106064ce1699fecbe8e3f6fe0e62"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aac51106064ce1699fecbe8e3f6fe0e62">&#9670;&#160;</a></span>MOCK_METHOD()</h2>
 
@@ -1068,266 +718,6 @@ Here is the call graph for this function:</div>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a02716aaed5aa7fdf4cde337175492a96" name="a02716aaed5aa7fdf4cde337175492a96"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a02716aaed5aa7fdf4cde337175492a96">&#9670;&#160;</a></span>backing_buffer_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a>&gt; yaze::test::MockRom::backing_buffer_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00076">76</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00284">EnsureBufferCapacity()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00204">LoadAndOwnData()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00193">SetMockData()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00253">SetMockObjectData()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00231">SetMockRoomData()</a>.</p>
-
-</div>
-</div>
-<a id="a66dde31cd841b3ffbf5ff2c6be16db07" name="a66dde31cd841b3ffbf5ff2c6be16db07"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a66dde31cd841b3ffbf5ff2c6be16db07">&#9670;&#160;</a></span>mock_room_data_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::map&lt;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a>, std::vector&lt;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a>&gt; &gt; yaze::test::MockRom::mock_room_data_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00077">77</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00231">SetMockRoomData()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00363">ValidateRoomData()</a>.</p>
-
-</div>
-</div>
-<a id="ad468a16dc1d991f2d3814880cdb867d8" name="ad468a16dc1d991f2d3814880cdb867d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad468a16dc1d991f2d3814880cdb867d8">&#9670;&#160;</a></span>mock_object_data_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::map&lt;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">int</a>, std::vector&lt;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a>&gt; &gt; yaze::test::MockRom::mock_object_data_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00078">78</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00253">SetMockObjectData()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00367">ValidateObjectData()</a>.</p>
-
-</div>
-</div>
-<a id="af2540b3efad0ee19051f041bf94dc9c2" name="af2540b3efad0ee19051f041bf94dc9c2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af2540b3efad0ee19051f041bf94dc9c2">&#9670;&#160;</a></span>mock_graphics_data_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint8_t</a>&gt; yaze::test::MockRom::mock_graphics_data_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00079">79</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00277">SetMockGraphicsData()</a>.</p>
-
-</div>
-</div>
-<a id="a906dad65f130ad1ec00a3fa37ecd5d83" name="a906dad65f130ad1ec00a3fa37ecd5d83"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a906dad65f130ad1ec00a3fa37ecd5d83">&#9670;&#160;</a></span>room_header_table_pc_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a> yaze::test::MockRom::room_header_table_pc_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00081">81</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00231">SetMockRoomData()</a>.</p>
-
-</div>
-</div>
-<a id="a09009af7aae063dff38747c11d820a0a" name="a09009af7aae063dff38747c11d820a0a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a09009af7aae063dff38747c11d820a0a">&#9670;&#160;</a></span>room_header_data_base_pc_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a> yaze::test::MockRom::room_header_data_base_pc_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00082">82</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00231">SetMockRoomData()</a>.</p>
-
-</div>
-</div>
-<a id="a7bfb3f3e78ca0562b435fc45af6ecde5" name="a7bfb3f3e78ca0562b435fc45af6ecde5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7bfb3f3e78ca0562b435fc45af6ecde5">&#9670;&#160;</a></span>room_object_table_pc_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a> yaze::test::MockRom::room_object_table_pc_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00083">83</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00253">SetMockObjectData()</a>.</p>
-
-</div>
-</div>
-<a id="a829c5dea86369b50e63fee27b806301f" name="a829c5dea86369b50e63fee27b806301f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a829c5dea86369b50e63fee27b806301f">&#9670;&#160;</a></span>room_object_data_base_pc_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a> yaze::test::MockRom::room_object_data_base_pc_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00084">84</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00253">SetMockObjectData()</a>.</p>
-
-</div>
-</div>
-<a id="afac785aefdc822fc69739056f6e5668a" name="afac785aefdc822fc69739056f6e5668a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afac785aefdc822fc69739056f6e5668a">&#9670;&#160;</a></span>kRoomHeaderStride</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">constexpr</a> <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a> yaze::test::MockRom::kRoomHeaderStride = 0x40</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00086">86</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00231">SetMockRoomData()</a>.</p>
-
-</div>
-</div>
-<a id="afc321cac4f78838697cf08a096295ec3" name="afc321cac4f78838697cf08a096295ec3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc321cac4f78838697cf08a096295ec3">&#9670;&#160;</a></span>kRoomObjectStride</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">constexpr</a> <a class="el" href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">uint32_t</a> yaze::test::MockRom::kRoomObjectStride = 0x100</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html#l00087">87</a> of file <a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00295">InitializeMemoryLayout()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00253">SetMockObjectData()</a>.</p>
-
-</div>
-</div>
 <a id="a25d2fc1232977befeec5a215384749e6" name="a25d2fc1232977befeec5a215384749e6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a25d2fc1232977befeec5a215384749e6">&#9670;&#160;</a></span>test_data_loaded_</h2>
 
@@ -1406,10 +796,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following files:<ul>
-<li>test/integration/<a class="el" href="../../d8/d90/dungeon__editor__test_8h_source.html">dungeon_editor_test.h</a></li>
+<hr/>The documentation for this class was generated from the following file:<ul>
 <li>test/mocks/<a class="el" href="../../de/dd9/mock__rom_8h_source.html">mock_rom.h</a></li>
-<li>test/integration/<a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html">dungeon_editor_test.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

@@ -556,151 +556,35 @@ Supported Architectures</h2>
 <li>x64 (64-bit)</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md65"></a>
-Troubleshooting</h1>
+Contributing</h1>
 <h2><a class="anchor" id="autotoc_md66"></a>
-Build Environment Issues</h2>
-<p><b>CMake Configuration Fails:</b> </p><div class="fragment"><div class="line"># Run verification script to diagnose</div>
-<div class="line">./scripts/verify-build-environment.sh --verbose</div>
-<div class="line"> </div>
-<div class="line"># Common fixes</div>
-<div class="line">git submodule update --init --recursive</div>
-<div class="line">./scripts/verify-build-environment.sh --clean --fix</div>
-</div><!-- fragment --><p><b>Git Submodules Missing or Out of Sync:</b> </p><div class="fragment"><div class="line"># Sync and update all submodules</div>
-<div class="line">git submodule sync --recursive</div>
-<div class="line">git submodule update --init --recursive</div>
-<div class="line"> </div>
-<div class="line"># Verify submodules are present</div>
-<div class="line">./scripts/verify-build-environment.sh</div>
-</div><!-- fragment --><p><b>Old CMake Cache Causing Issues:</b> </p><div class="fragment"><div class="line"># Clean cache with verification script</div>
-<div class="line">./scripts/verify-build-environment.sh --clean</div>
-<div class="line"> </div>
-<div class="line"># Or manually</div>
-<div class="line">rm -rf build build_test build-grpc-test</div>
-<div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md67"></a>
-Dependency Conflicts</h2>
-<p><b>gRPC Conflicts with System Packages:</b> The project automatically isolates gRPC (when enabled) from system packages:</p><ul>
-<li><code>CMAKE_DISABLE_FIND_PACKAGE_Protobuf=TRUE</code></li>
-<li><code>CMAKE_DISABLE_FIND_PACKAGE_absl=TRUE</code></li>
-<li>gRPC builds its own protobuf and abseil</li>
+Code Style</h2>
+<ul>
+<li><b>C++23</b>: Use modern language features</li>
+<li><b>Google C++ Style</b>: Follow Google C++ style guide</li>
+<li><b>Naming</b>: Use descriptive names, avoid abbreviations</li>
 </ul>
-<p><b>If you see protobuf/abseil version conflicts:</b> </p><div class="fragment"><div class="line"># Verify isolation is configured</div>
-<div class="line">grep CMAKE_DISABLE_FIND_PACKAGE cmake/grpc.cmake</div>
-<div class="line"> </div>
-<div class="line"># Clean and reconfigure</div>
-<div class="line">./scripts/verify-build-environment.sh --clean --fix</div>
-</div><!-- fragment --><p><b>httplib or nlohmann/json Missing:</b> These are header-only libraries in git submodules: </p><div class="fragment"><div class="line"># Update submodules</div>
-<div class="line">git submodule update --init third_party/json third_party/httplib</div>
-<div class="line"> </div>
-<div class="line"># Verify</div>
-<div class="line">ls -la third_party/json/include/</div>
-<div class="line">ls -la third_party/httplib/httplib.h</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md68"></a>
-Windows CMake Issues</h2>
-<p><b>CMake Not Found:</b> </p><div class="fragment"><div class="line"># Run the setup script</div>
-<div class="line">.\scripts\setup-windows-dev.ps1</div>
-<div class="line"> </div>
-<div class="line"># Or install manually via Chocolatey</div>
-<div class="line">choco install cmake</div>
-</div><!-- fragment --><p><b>Submodule Compatibility Errors:</b> </p><div class="fragment"><div class="line"># Test CMake configuration</div>
-<div class="line">.\scripts\test-cmake-config.ps1</div>
-<div class="line"> </div>
-<div class="line"># Clean build with compatibility flags</div>
-<div class="line">Remove-Item -Recurse -Force build</div>
-<div class="line">cmake -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_WARN_DEPRECATED=OFF</div>
-</div><!-- fragment --><p><b>Visual Studio CMake Issues:</b> </p><div class="fragment"><div class="line"># Clean CMake cache</div>
-<div class="line">Remove-Item -Recurse -Force build</div>
-<div class="line"> </div>
-<div class="line"># Rebuild CMake configuration</div>
-<div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
-<div class="line">cmake --build build --config Debug</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md69"></a>
-vcpkg Issues</h2>
-<p><b>Dependencies Not Installing:</b> </p><div class="fragment"><div class="line"># Check vcpkg installation</div>
-<div class="line">vcpkg version</div>
-<div class="line"> </div>
-<div class="line"># Reinstall dependencies</div>
-<div class="line">vcpkg install --triplet x64-windows sdl2</div>
-<div class="line"> </div>
-<div class="line"># Check installed packages</div>
-<div class="line">vcpkg list</div>
-</div><!-- fragment --><p><b>Network/Download Failures:</b></p><ul>
-<li>The CI/CD workflows automatically fall back to minimal builds</li>
-<li>For local development, ensure stable internet connection</li>
-<li>If vcpkg consistently fails, use minimal build mode: <div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
-</div><!-- fragment --></li>
+<h2><a class="anchor" id="autotoc_md67"></a>
+Error Handling</h2>
+<ul>
+<li><b>Use absl::Status</b> for error handling</li>
+<li><b>Use absl::StatusOr</b> for operations that return values</li>
 </ul>
-<p><b>Visual Studio Integration:</b> </p><div class="fragment"><div class="line"># Re-integrate vcpkg</div>
-<div class="line">cd C:\vcpkg</div>
-<div class="line">.\vcpkg.exe integrate install</div>
-</div><!-- fragment --><p><b>Dependencies Not Found:</b> </p><div class="fragment"><div class="line"># Ensure vcpkg is properly set up (if using vcpkg)</div>
-<div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
+<h2><a class="anchor" id="autotoc_md68"></a>
+Pull Request Process</h2>
+<ol type="1">
+<li><b>Run tests</b>: Ensure all stable tests pass (<code>ctest --preset stable</code>)</li>
+<li><b>Check formatting</b>: Use <code>clang-format</code></li>
+<li><b>Update documentation</b>: If your changes affect behavior or APIs</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md69"></a>
+Commit Messages</h2>
+<div class="fragment"><div class="line">type(scope): brief description</div>
 <div class="line"> </div>
-<div class="line"># Or use bundled dependencies (default)</div>
-<div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md70"></a>
-Test Issues</h2>
-<p><b>Test Discovery Failures:</b> </p><div class="fragment"><div class="line"># Use CI test executable for minimal builds</div>
-<div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
-<div class="line">cmake --build build</div>
+<div class="line">Detailed explanation of changes.</div>
 <div class="line"> </div>
-<div class="line"># Check test executable</div>
-<div class="line">./build/test/yaze_test --help</div>
-</div><!-- fragment --><p><b>ROM Test Failures:</b> </p><div class="fragment"><div class="line"># Ensure ROM file exists</div>
-<div class="line">ls -la zelda3.sfc</div>
-<div class="line"> </div>
-<div class="line"># Run with explicit ROM path</div>
-<div class="line">./build/test/yaze_test --e2e --rom-path zelda3.sfc</div>
-</div><!-- fragment --><p><b>SDL Initialization Errors:</b></p><ul>
-<li>These are expected in CI builds</li>
-<li>Use minimal build configuration for CI compatibility</li>
-<li>For local development, ensure SDL2 is properly installed</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md71"></a>
-Architecture Errors (macOS)</h2>
-<div class="fragment"><div class="line"># Clean and use ARM64-only preset</div>
-<div class="line">rm -rf build</div>
-<div class="line">cmake --preset debug  # Uses arm64 only</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md72"></a>
-Missing Headers (Language Server)</h2>
-<div class="fragment"><div class="line"># Regenerate compile commands</div>
-<div class="line">cmake --preset debug</div>
-<div class="line">cp build/compile_commands.json .</div>
-<div class="line"># Restart VS Code</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md73"></a>
-CI Build Failures</h2>
-<p>Use minimal build configuration that matches CI: </p><div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_UI_TESTS=OFF</div>
-<div class="line">cmake --build build</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md74"></a>
-Common Error Solutions</h2>
-<p>**"CMake Deprecation Warning" from submodules:**</p><ul>
-<li>This is automatically handled by the project's CMake configuration</li>
-<li>If you see these warnings, they can be safely ignored</li>
-</ul>
-<p>**"pthread_create not found" on Windows:**</p><ul>
-<li>The project automatically sets <code>THREADS_PREFER_PTHREAD_FLAG=OFF</code></li>
-<li>This is normal for Windows builds</li>
-</ul>
-<p>**"Abseil C++ std propagation" warnings:**</p><ul>
-<li>Automatically handled with <code>ABSL_PROPAGATE_CXX_STD=ON</code></li>
-<li>Ensures proper C++ standard handling</li>
-</ul>
-<p><b>Visual Studio "file not found" errors:</b></p><ul>
-<li>Close and reopen the folder in Visual Studio</li>
-<li>Delete the <code>build/</code> directory and let Visual Studio regenerate CMake cache</li>
-<li>Ensure all git submodules are initialized: <code>git submodule update --init --recursive</code></li>
-</ul>
-<p><b>CI/CD Build Failures:</b></p><ul>
-<li>Check if vcpkg download failed (network issues)</li>
-<li>The workflows automatically fall back to minimal builds</li>
-<li>For persistent issues, check the workflow logs for specific error messages</li>
-</ul>
-<p><b>Test Executable Issues:</b></p><ul>
-<li>Ensure the correct test executable is being used (CI vs development)</li>
-<li>Check that test filters are properly configured</li>
-<li>Verify that ROM-dependent tests are excluded in CI builds </li>
-</ul>
-</div></div><!-- contents -->
+<div class="line">Fixes #issue_number</div>
+</div><!-- fragment --> </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->

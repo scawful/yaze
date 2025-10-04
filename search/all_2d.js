@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['�_20in_20progress_20priority_20order_0',['� In Progress (Priority Order)',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md906',1,'']]]
+  ['🐛_20known_20issues_0',['🐛 Known Issues',['../da/d40/md_docs_2ollama__integration__status.html#autotoc_md571',1,'']]]
 ];

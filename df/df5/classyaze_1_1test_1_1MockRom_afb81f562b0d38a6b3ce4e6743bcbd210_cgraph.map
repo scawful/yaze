@@ -1,9 +1,0 @@
-<map id="yaze::test::MockRom::SetMockGraphicsData" name="yaze::test::MockRom::SetMockGraphicsData">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,164,96"/>
-<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="222,5,334,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,52,217,33,218,39,156,57"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a13a1dcdedd508ace2a5c6c998573736e" title=" " alt="" coords="212,55,344,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,73,197,73,197,78,164,78"/>
-<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="217,120,339,146"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="156,94,218,112,217,118,154,99"/>
-</map>

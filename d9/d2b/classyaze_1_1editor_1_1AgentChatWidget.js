@@ -4,6 +4,7 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "Draw", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a1f4b3a0399ce8362afae0f8dfa84b1f5", null ],
     [ "SetRomContext", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a907aa6670f36fdad4b02cb5773fb4385", null ],
     [ "active", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ad82388f90c95cd4b3ce19deec372b8b3", null ],
+    [ "is_active", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ac0597eb049f9a4870109aebde7590ac5", null ],
     [ "set_active", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a5d2be5bd0d6d1483e16d10b391a0f8c9", null ],
     [ "agent_service_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a89a217078fca0cdaa24bb971b860ef4e", null ],
     [ "input_buffer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ae7b62bd0d119cdc555ebfdec0888b6e8", null ],

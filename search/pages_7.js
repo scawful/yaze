@@ -1,7 +1,5 @@
 var searchData=
 [
   ['getting_20started_0',['Getting Started',['../d0/d63/md_docs_201-getting-started.html',1,'']]],
-  ['graphics_20system_20optimization_20recommendations_1',['YAZE Graphics System Optimization Recommendations',['../de/def/md_docs_2gfx__optimization__recommendations.html',1,'']]],
-  ['graphics_20system_20optimizations_2',['YAZE Graphics System Optimizations',['../d6/df4/md_docs_2gfx__optimizations__complete.html',1,'']]],
-  ['guide_3',['guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'Asm Style Guide'],['../d7/d51/md_docs_2B3-build-presets.html',1,'Build Presets Guide'],['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'Canvas System - Comprehensive Guide'],['../d8/d20/md_docs_2imgui__widget__testing__guide.html',1,'ImGui Widget Testing Guide'],['../dc/d12/md_docs_2F1-overworld-loading.html',1,'Overworld Loading Guide'],['../d6/d10/md_docs_2A1-testing-guide.html',1,'Testing Guide'],['../d5/dde/md_docs_2dungeon__editor__master__guide.html',1,'Yaze Dungeon Editor: Master Guide'],['../de/d8a/md_docs_2overworld__testing__guide.html',1,'yaze Overworld Testing Guide'],['../d3/d04/md_docs_2z3ed_2developer__guide.html',1,'z3ed Developer Guide']]]
+  ['guide_1',['guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'Asm Style Guide'],['../d7/d51/md_docs_2B3-build-presets.html',1,'Build Presets Guide'],['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'Canvas System - Comprehensive Guide'],['../dc/d12/md_docs_2F1-overworld-loading.html',1,'Overworld Loading Guide'],['../d6/d10/md_docs_2A1-testing-guide.html',1,'Testing Guide'],['../d5/dde/md_docs_2dungeon__editor__master__guide.html',1,'Yaze Dungeon Editor: Master Guide'],['../de/d8a/md_docs_2overworld__testing__guide.html',1,'yaze Overworld Testing Guide']]]
 ];
