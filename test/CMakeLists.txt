@@ -53,6 +53,8 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       integration/asar_rom_test.cc
       integration/dungeon_editor_test.cc
       integration/dungeon_editor_test.h
+      integration/dungeon_editor_v2_test.cc
+      integration/dungeon_editor_v2_test.h
       integration/editor/tile16_editor_test.cc
       integration/editor/editor_integration_test.cc
       integration/editor/editor_integration_test.h
@@ -114,6 +116,8 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       integration/asar_rom_test.cc
       integration/dungeon_editor_test.cc
       integration/dungeon_editor_test.h
+      integration/dungeon_editor_v2_test.cc
+      integration/dungeon_editor_v2_test.h
       integration/editor/tile16_editor_test.cc
       integration/editor/editor_integration_test.cc
       integration/editor/editor_integration_test.h
@@ -340,6 +344,8 @@ source_group("Tests\\Integration" FILES
   integration/asar_rom_test.cc
   integration/dungeon_editor_test.cc
   integration/dungeon_editor_test.h
+  integration/dungeon_editor_v2_test.cc
+  integration/dungeon_editor_v2_test.h
   integration/editor/tile16_editor_test.cc
   integration/editor/editor_integration_test.cc
   integration/editor/editor_integration_test.h
