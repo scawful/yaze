@@ -1,0 +1,380 @@
+#include "app/editor/system/network_collaboration_coordinator.h"
+
+#ifdef YAZE_WITH_GRPC
+
+#include <iostream>
+#include <sstream>
+
+#include "absl/strings/str_format.h"
+#include "absl/strings/str_split.h"
+
+#ifdef YAZE_WITH_JSON
+#include "httplib.h"
+#include "nlohmann/json.hpp"
+using Json = nlohmann::json;
+#endif
+
+namespace yaze {
+namespace editor {
+
+#ifdef YAZE_WITH_JSON
+
+namespace detail {
+
+// Stub WebSocket client implementation
+// TODO: Integrate proper WebSocket library (websocketpp, ixwebsocket, or libwebsockets)
+// This is a placeholder to allow compilation
+class WebSocketClient {
+ public:
+  explicit WebSocketClient(const std::string& host, int port)
+      : host_(host), port_(port) {
+    std::cerr << "⚠️  WebSocket client stub - not yet implemented" << std::endl;
+    std::cerr << "   To use network collaboration, integrate a WebSocket library" << std::endl;
+  }
+
+  bool Connect(const std::string& path) {
+    (void)path;  // Suppress unused parameter warning
+    std::cerr << "WebSocket Connect stub called for " << host_ << ":" << port_ << std::endl;
+    // Return false for now - real implementation needed
+    return false;
+  }
+
+  void Close() {
+    // Stub
+  }
+
+  bool Send(const std::string& message) {
+    (void)message;  // Suppress unused parameter warning
+    if (!connected_) return false;
+    // Stub - real implementation needed
+    return false;
+  }
+
+  std::string Receive() {
+    if (!connected_) return "";
+    // Stub - real implementation needed
+    return "";
+  }
+
+  bool IsConnected() const { return connected_; }
+
+ private:
+  std::string host_;
+  int port_;
+  bool connected_ = false;
+};
+
+}  // namespace detail
+
+NetworkCollaborationCoordinator::NetworkCollaborationCoordinator(
+    const std::string& server_url)
+    : server_url_(server_url) {
+  // Parse server URL
+  // Expected format: ws://hostname:port or wss://hostname:port
+  if (server_url_.find("ws://") == 0) {
+    // Extract hostname and port
+    // For now, use default localhost:8765
+    ConnectWebSocket();
+  }
+}
+
+NetworkCollaborationCoordinator::~NetworkCollaborationCoordinator() {
+  should_stop_ = true;
+  if (receive_thread_ && receive_thread_->joinable()) {
+    receive_thread_->join();
+  }
+  DisconnectWebSocket();
+}
+
+void NetworkCollaborationCoordinator::ConnectWebSocket() {
+  // Parse URL (simple implementation - assumes ws://host:port format)
+  std::string host = "localhost";
+  int port = 8765;
+  
+  // Extract from server_url_ if needed
+  if (server_url_.find("ws://") == 0) {
+    std::string url_part = server_url_.substr(5);  // Skip "ws://"
+    std::vector<std::string> parts = absl::StrSplit(url_part, ':');
+    if (!parts.empty()) {
+      host = parts[0];
+    }
+    if (parts.size() > 1) {
+      port = std::stoi(parts[1]);
+    }
+  }
+
+  ws_client_ = std::make_unique<detail::WebSocketClient>(host, port);
+  
+  if (ws_client_->Connect("/")) {
+    connected_ = true;
+    
+    // Start receive thread
+    should_stop_ = false;
+    receive_thread_ = std::make_unique<std::thread>(
+        &NetworkCollaborationCoordinator::WebSocketReceiveLoop, this);
+  }
+}
+
+void NetworkCollaborationCoordinator::DisconnectWebSocket() {
+  if (ws_client_) {
+    ws_client_->Close();
+    ws_client_.reset();
+  }
+  connected_ = false;
+}
+
+absl::StatusOr<NetworkCollaborationCoordinator::SessionInfo>
+NetworkCollaborationCoordinator::HostSession(const std::string& session_name,
+                                             const std::string& username) {
+  if (!connected_) {
+    return absl::FailedPreconditionError("Not connected to collaboration server");
+  }
+
+  username_ = username;
+
+  // Build host_session message
+  Json message = {
+      {"type", "host_session"},
+      {"payload", {
+          {"session_name", session_name},
+          {"username", username}
+      }}
+  };
+
+  SendWebSocketMessage("host_session", message["payload"].dump());
+
+  // TODO: Wait for session_hosted response and parse it
+  // For now, return a placeholder
+  SessionInfo info;
+  info.session_name = session_name;
+  info.session_code = "PENDING";  // Will be updated from server response
+  info.participants = {username};
+  
+  in_session_ = true;
+  session_name_ = session_name;
+
+  return info;
+}
+
+absl::StatusOr<NetworkCollaborationCoordinator::SessionInfo>
+NetworkCollaborationCoordinator::JoinSession(const std::string& session_code,
+                                             const std::string& username) {
+  if (!connected_) {
+    return absl::FailedPreconditionError("Not connected to collaboration server");
+  }
+
+  username_ = username;
+  session_code_ = session_code;
+
+  // Build join_session message
+  Json message = {
+      {"type", "join_session"},
+      {"payload", {
+          {"session_code", session_code},
+          {"username", username}
+      }}
+  };
+
+  SendWebSocketMessage("join_session", message["payload"].dump());
+
+  // TODO: Wait for session_joined response and parse it
+  SessionInfo info;
+  info.session_code = session_code;
+  
+  in_session_ = true;
+
+  return info;
+}
+
+absl::Status NetworkCollaborationCoordinator::LeaveSession() {
+  if (!in_session_) {
+    return absl::FailedPreconditionError("Not in a session");
+  }
+
+  Json message = {{"type", "leave_session"}};
+  SendWebSocketMessage("leave_session", "{}");
+
+  in_session_ = false;
+  session_id_.clear();
+  session_code_.clear();
+  session_name_.clear();
+
+  return absl::OkStatus();
+}
+
+absl::Status NetworkCollaborationCoordinator::SendMessage(
+    const std::string& sender, const std::string& message) {
+  if (!in_session_) {
+    return absl::FailedPreconditionError("Not in a session");
+  }
+
+  Json msg = {
+      {"type", "chat_message"},
+      {"payload", {
+          {"sender", sender},
+          {"message", message}
+      }}
+  };
+
+  SendWebSocketMessage("chat_message", msg["payload"].dump());
+  return absl::OkStatus();
+}
+
+bool NetworkCollaborationCoordinator::IsConnected() const {
+  return connected_;
+}
+
+void NetworkCollaborationCoordinator::SetMessageCallback(MessageCallback callback) {
+  absl::MutexLock lock(&mutex_);
+  message_callback_ = std::move(callback);
+}
+
+void NetworkCollaborationCoordinator::SetParticipantCallback(
+    ParticipantCallback callback) {
+  absl::MutexLock lock(&mutex_);
+  participant_callback_ = std::move(callback);
+}
+
+void NetworkCollaborationCoordinator::SetErrorCallback(ErrorCallback callback) {
+  absl::MutexLock lock(&mutex_);
+  error_callback_ = std::move(callback);
+}
+
+void NetworkCollaborationCoordinator::SendWebSocketMessage(
+    const std::string& type, const std::string& payload_json) {
+  if (!ws_client_ || !connected_) {
+    return;
+  }
+
+  Json message = {
+      {"type", type},
+      {"payload", Json::parse(payload_json)}
+  };
+
+  ws_client_->Send(message.dump());
+}
+
+void NetworkCollaborationCoordinator::HandleWebSocketMessage(
+    const std::string& message_str) {
+  try {
+    Json message = Json::parse(message_str);
+    std::string type = message["type"];
+
+    if (type == "session_hosted") {
+      Json payload = message["payload"];
+      session_id_ = payload["session_id"];
+      session_code_ = payload["session_code"];
+      session_name_ = payload["session_name"];
+      
+      if (payload.contains("participants")) {
+        absl::MutexLock lock(&mutex_);
+        if (participant_callback_) {
+          std::vector<std::string> participants = payload["participants"];
+          participant_callback_(participants);
+        }
+      }
+    } else if (type == "session_joined") {
+      Json payload = message["payload"];
+      session_id_ = payload["session_id"];
+      session_code_ = payload["session_code"];
+      session_name_ = payload["session_name"];
+      
+      if (payload.contains("participants")) {
+        absl::MutexLock lock(&mutex_);
+        if (participant_callback_) {
+          std::vector<std::string> participants = payload["participants"];
+          participant_callback_(participants);
+        }
+      }
+    } else if (type == "chat_message") {
+      Json payload = message["payload"];
+      ChatMessage msg;
+      msg.sender = payload["sender"];
+      msg.message = payload["message"];
+      msg.timestamp = payload["timestamp"];
+      
+      absl::MutexLock lock(&mutex_);
+      if (message_callback_) {
+        message_callback_(msg);
+      }
+    } else if (type == "participant_joined" || type == "participant_left") {
+      Json payload = message["payload"];
+      if (payload.contains("participants")) {
+        absl::MutexLock lock(&mutex_);
+        if (participant_callback_) {
+          std::vector<std::string> participants = payload["participants"];
+          participant_callback_(participants);
+        }
+      }
+    } else if (type == "error") {
+      Json payload = message["payload"];
+      std::string error = payload["error"];
+      
+      absl::MutexLock lock(&mutex_);
+      if (error_callback_) {
+        error_callback_(error);
+      }
+    }
+  } catch (const std::exception& e) {
+    std::cerr << "Error parsing WebSocket message: " << e.what() << std::endl;
+  }
+}
+
+void NetworkCollaborationCoordinator::WebSocketReceiveLoop() {
+  while (!should_stop_ && connected_) {
+    if (!ws_client_) break;
+    
+    std::string message = ws_client_->Receive();
+    if (!message.empty()) {
+      HandleWebSocketMessage(message);
+    }
+    
+    // Small sleep to avoid busy-waiting
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+}
+
+#else  // !YAZE_WITH_JSON
+
+// Stub implementations when JSON is not available
+NetworkCollaborationCoordinator::NetworkCollaborationCoordinator(
+    const std::string& server_url) : server_url_(server_url) {}
+
+NetworkCollaborationCoordinator::~NetworkCollaborationCoordinator() = default;
+
+absl::StatusOr<NetworkCollaborationCoordinator::SessionInfo>
+NetworkCollaborationCoordinator::HostSession(const std::string&, const std::string&) {
+  return absl::UnimplementedError("Network collaboration requires JSON support");
+}
+
+absl::StatusOr<NetworkCollaborationCoordinator::SessionInfo>
+NetworkCollaborationCoordinator::JoinSession(const std::string&, const std::string&) {
+  return absl::UnimplementedError("Network collaboration requires JSON support");
+}
+
+absl::Status NetworkCollaborationCoordinator::LeaveSession() {
+  return absl::UnimplementedError("Network collaboration requires JSON support");
+}
+
+absl::Status NetworkCollaborationCoordinator::SendMessage(
+    const std::string&, const std::string&) {
+  return absl::UnimplementedError("Network collaboration requires JSON support");
+}
+
+bool NetworkCollaborationCoordinator::IsConnected() const { return false; }
+
+void NetworkCollaborationCoordinator::SetMessageCallback(MessageCallback) {}
+void NetworkCollaborationCoordinator::SetParticipantCallback(ParticipantCallback) {}
+void NetworkCollaborationCoordinator::SetErrorCallback(ErrorCallback) {}
+void NetworkCollaborationCoordinator::ConnectWebSocket() {}
+void NetworkCollaborationCoordinator::DisconnectWebSocket() {}
+void NetworkCollaborationCoordinator::SendWebSocketMessage(const std::string&, const std::string&) {}
+void NetworkCollaborationCoordinator::HandleWebSocketMessage(const std::string&) {}
+void NetworkCollaborationCoordinator::WebSocketReceiveLoop() {}
+
+#endif  // YAZE_WITH_JSON
+
+}  // namespace editor
+}  // namespace yaze
+
+#endif  // YAZE_WITH_GRPC
