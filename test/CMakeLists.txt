@@ -267,7 +267,7 @@ endif()
         target_link_libraries(yaze_test yaze_agent)
       endif()
 
-      if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC AND TARGET yaze_emulator)
+      if(YAZE_BUILD_EMU AND TARGET yaze_emulator)
         target_link_libraries(yaze_test yaze_emulator)
       endif()
     else()

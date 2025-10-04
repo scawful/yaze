@@ -1,8 +1,10 @@
 #include "cli/handlers/agent/commands.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -154,7 +156,8 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   if (!response_or.ok()) {
     return response_or.status();
   }
-  std::vector<std::string> commands = response_or.value().commands;
+  AgentResponse response = std::move(response_or.value());
+  const std::vector<std::string>& commands = response.commands;
 
   // 3. Generate a structured proposal from the commands
   Tile16ProposalGenerator generator;
@@ -186,11 +189,77 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
         absl::StrCat("Failed to save sandbox ROM: ", save_status.message()));
   }
 
-  // 6. Save the proposal metadata for later use (accept/reject)
-  // For now, we'll just use the proposal generator's save function.
-  // A better approach would be to integrate with ProposalRegistry.
-  auto proposal_path =
-      RomSandboxManager::Instance().RootDirectory() / (proposal.id + ".json");
+  // 6. Persist the proposal metadata and artifacts.
+  auto& registry = ProposalRegistry::Instance();
+
+  int executed_commands = 0;
+  for (const auto& command : commands) {
+    if (command.empty() || command[0] == '#') {
+      continue;
+    }
+    ++executed_commands;
+  }
+
+  std::string description = absl::StrFormat(
+      "Tile16 overworld edits (%d change%s)", proposal.changes.size(),
+      proposal.changes.size() == 1 ? "" : "s");
+
+  ASSIGN_OR_RETURN(
+      auto metadata,
+      registry.CreateProposal(sandbox.id, sandbox.rom_path, prompt, description));
+
+  proposal.id = metadata.id;
+
+  std::ostringstream diff_stream;
+  diff_stream << "Tile16 Proposal ID: " << metadata.id << "\n";
+  diff_stream << "Sandbox ID: " << sandbox.id << "\n";
+  diff_stream << "Sandbox ROM: " << sandbox.rom_path << "\n\n";
+  diff_stream << "Changes (" << proposal.changes.size() << "):\n";
+  for (const auto& change : proposal.changes) {
+    diff_stream << "  - " << change.ToString() << "\n";
+  }
+
+  RETURN_IF_ERROR(registry.RecordDiff(metadata.id, diff_stream.str()));
+
+  RETURN_IF_ERROR(registry.AppendLog(
+      metadata.id, absl::StrCat("Prompt: ", prompt)));
+
+  if (!response.text_response.empty()) {
+    RETURN_IF_ERROR(registry.AppendLog(
+        metadata.id, absl::StrCat("AI Response: ", response.text_response)));
+  }
+
+  if (!response.reasoning.empty()) {
+    RETURN_IF_ERROR(registry.AppendLog(
+        metadata.id, absl::StrCat("Reasoning: ", response.reasoning)));
+  }
+
+  if (!response.tool_calls.empty()) {
+    RETURN_IF_ERROR(registry.AppendLog(
+        metadata.id,
+        absl::StrCat("Tool Calls: ", response.tool_calls.size())));
+  }
+
+  for (const auto& command : commands) {
+    if (command.empty() || command[0] == '#') {
+      continue;
+    }
+    RETURN_IF_ERROR(registry.AppendLog(
+        metadata.id, absl::StrCat("Command: ", command)));
+  }
+
+  RETURN_IF_ERROR(registry.AppendLog(
+      metadata.id,
+      absl::StrCat("Sandbox ROM saved to ", sandbox.rom_path.string())));
+
+  RETURN_IF_ERROR(
+      registry.UpdateCommandStats(metadata.id, executed_commands));
+  RETURN_IF_ERROR(registry.AppendLog(
+    metadata.id,
+    absl::StrCat("Commands executed: ", executed_commands)));
+
+  std::filesystem::path proposal_dir = metadata.log_path.parent_path();
+  std::filesystem::path proposal_path = proposal_dir / "proposal.json";
   auto save_proposal_status =
       generator.SaveProposal(proposal, proposal_path.string());
   if (!save_proposal_status.ok()) {
@@ -198,16 +267,22 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
                                             save_proposal_status.message()));
   }
 
+  RETURN_IF_ERROR(registry.AppendLog(
+      metadata.id,
+      absl::StrCat("Saved proposal JSON to ", proposal_path.string())));
+
   std::cout
       << "✅ Agent successfully planned and executed changes in a sandbox."
       << std::endl;
-  std::cout << "   Proposal ID: " << proposal.id << std::endl;
+  std::cout << "   Proposal ID: " << metadata.id << std::endl;
   std::cout << "   Sandbox ROM: " << sandbox.rom_path << std::endl;
-  std::cout << "   Proposal file: " << proposal_path << std::endl;
+  std::cout << "   Proposal dir: " << proposal_dir << std::endl;
+  std::cout << "   Diff file: " << metadata.diff_path << std::endl;
+  std::cout << "   Log file: " << metadata.log_path << std::endl;
   std::cout << "\nTo review the changes, run:\n";
-  std::cout << "  z3ed agent diff --proposal-id " << proposal.id << std::endl;
+  std::cout << "  z3ed agent diff --proposal-id " << metadata.id << std::endl;
   std::cout << "\nTo accept the changes, run:\n";
-  std::cout << "  z3ed agent accept --proposal-id " << proposal.id << std::endl;
+  std::cout << "  z3ed agent accept --proposal-id " << metadata.id << std::endl;
 
   return absl::OkStatus();
 }
@@ -286,6 +361,14 @@ absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
     std::cout << "Created: " << absl::FormatTime(proposal.created_at) << "\n";
     std::cout << "Commands Executed: " << proposal.commands_executed << "\n";
     std::cout << "Bytes Changed: " << proposal.bytes_changed << "\n\n";
+
+    if (!proposal.sandbox_rom_path.empty()) {
+      std::cout << "Sandbox ROM: " << proposal.sandbox_rom_path << "\n";
+    }
+    std::cout << "Proposal directory: "
+              << proposal.log_path.parent_path() << "\n";
+    std::cout << "Diff file: " << proposal.diff_path << "\n";
+    std::cout << "Log file: " << proposal.log_path << "\n\n";
 
     if (std::filesystem::exists(proposal.diff_path)) {
       std::cout << "--- Diff Content ---\n";
@@ -490,45 +573,90 @@ absl::Status HandleChatCommand(Rom& rom) {
 
 absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,
                                  Rom& rom) {
-  if (arg_vec.empty() || arg_vec[0] != "--proposal-id") {
+  std::optional<std::string> proposal_id;
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (absl::StartsWith(token, "--proposal-id=")) {
+      proposal_id = token.substr(14);
+      break;
+    }
+    if (token == "--proposal-id" && i + 1 < arg_vec.size()) {
+      proposal_id = arg_vec[i + 1];
+      break;
+    }
+  }
+
+  if (!proposal_id.has_value() || proposal_id->empty()) {
     return absl::InvalidArgumentError(
         "Usage: agent accept --proposal-id <proposal_id>");
   }
-  std::string proposal_id = arg_vec[1];
 
-  // 1. Load the proposal from disk.
-  Tile16ProposalGenerator generator;
-  auto proposal_path =
-      RomSandboxManager::Instance().RootDirectory() / (proposal_id + ".json");
-  auto proposal_or = generator.LoadProposal(proposal_path.string());
-  if (!proposal_or.ok()) {
-    return absl::InternalError(
-        absl::StrCat("Failed to load proposal file '", proposal_path.string(),
-                     "': ", proposal_or.status().message()));
+  auto& registry = ProposalRegistry::Instance();
+  ASSIGN_OR_RETURN(auto metadata, registry.GetProposal(*proposal_id));
+
+  if (metadata.status == ProposalRegistry::ProposalStatus::kAccepted) {
+    std::cout << "Proposal '" << *proposal_id << "' is already accepted."
+              << std::endl;
+    return absl::OkStatus();
   }
-  auto proposal = proposal_or.value();
 
-  // 2. Ensure the main ROM is loaded.
-  RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent accept --proposal-id <id>"));
+  if (metadata.sandbox_rom_path.empty()) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Proposal '", *proposal_id,
+        "' is missing sandbox ROM metadata. Cannot accept."));
+  }
 
-  // 3. Apply the proposal to the main ROM.
-  auto apply_status = generator.ApplyProposal(proposal, &rom);
-  if (!apply_status.ok()) {
+  if (!std::filesystem::exists(metadata.sandbox_rom_path)) {
+    return absl::NotFoundError(absl::StrCat(
+        "Sandbox ROM not found at ", metadata.sandbox_rom_path.string()));
+  }
+
+  RETURN_IF_ERROR(
+      EnsureRomLoaded(rom, "agent accept --proposal-id <proposal_id>"));
+
+  Rom sandbox_rom;
+  auto sandbox_load_status = sandbox_rom.LoadFromFile(
+      metadata.sandbox_rom_path.string(), RomLoadOptions::CliDefaults());
+  if (!sandbox_load_status.ok()) {
     return absl::InternalError(absl::StrCat(
-        "Failed to apply proposal to main ROM: ", apply_status.message()));
+        "Failed to load sandbox ROM: ", sandbox_load_status.message()));
   }
 
-  // 4. Save the changes to the main ROM file.
+  if (rom.size() != sandbox_rom.size()) {
+    rom.Expand(static_cast<int>(sandbox_rom.size()));
+  }
+
+  auto copy_status = rom.WriteVector(0, sandbox_rom.vector());
+  if (!copy_status.ok()) {
+    return absl::InternalError(absl::StrCat(
+        "Failed to copy sandbox ROM data: ", copy_status.message()));
+  }
+
   auto save_status = rom.SaveToFile({.save_new = false});
   if (!save_status.ok()) {
     return absl::InternalError(absl::StrCat(
         "Failed to save changes to main ROM: ", save_status.message()));
   }
 
-  std::cout << "✅ Proposal '" << proposal_id << "' accepted and applied to '"
-            << rom.filename() << "'." << std::endl;
+  RETURN_IF_ERROR(registry.UpdateStatus(
+      *proposal_id, ProposalRegistry::ProposalStatus::kAccepted));
+  RETURN_IF_ERROR(registry.AppendLog(
+      *proposal_id,
+      absl::StrCat("Proposal accepted and applied to ", rom.filename())));
 
-  // TODO: Clean up sandbox and proposal files.
+  if (!metadata.sandbox_id.empty()) {
+    auto remove_status =
+        RomSandboxManager::Instance().RemoveSandbox(metadata.sandbox_id);
+    if (!remove_status.ok()) {
+      std::cerr << "Warning: Failed to remove sandbox '" << metadata.sandbox_id
+                << "': " << remove_status.message() << "\n";
+    }
+  }
+
+  std::cout << "✅ Proposal '" << *proposal_id << "' accepted and applied to '"
+            << rom.filename() << "'." << std::endl;
+  std::cout << "   Source sandbox ROM: " << metadata.sandbox_rom_path
+            << std::endl;
 
   return absl::OkStatus();
 }

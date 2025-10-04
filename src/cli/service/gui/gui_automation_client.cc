@@ -186,6 +186,74 @@ absl::StatusOr<ReplayTestResult> GuiAutomationClient::ReplayTest(
 #endif
 }
 
+absl::StatusOr<StartRecordingResult> GuiAutomationClient::StartRecording(
+    const std::string& output_path, const std::string& session_name,
+    const std::string& description) {
+#ifdef YAZE_WITH_GRPC
+  if (!stub_) {
+    return absl::FailedPreconditionError("Not connected. Call Connect() first.");
+  }
+
+  yaze::test::StartRecordingRequest request;
+  request.set_output_path(output_path);
+  request.set_session_name(session_name);
+  request.set_description(description);
+
+  yaze::test::StartRecordingResponse response;
+  grpc::ClientContext context;
+  grpc::Status status = stub_->StartRecording(&context, request, &response);
+
+  if (!status.ok()) {
+    return absl::InternalError(
+        absl::StrCat("StartRecording RPC failed: ", status.error_message()));
+  }
+
+  StartRecordingResult result;
+  result.success = response.success();
+  result.message = response.message();
+  result.recording_id = response.recording_id();
+  result.started_at = OptionalTimeFromMillis(response.started_at_ms());
+  return result;
+#else
+  return absl::UnimplementedError("gRPC not available");
+#endif
+}
+
+absl::StatusOr<StopRecordingResult> GuiAutomationClient::StopRecording(
+    const std::string& recording_id, bool discard) {
+#ifdef YAZE_WITH_GRPC
+  if (!stub_) {
+    return absl::FailedPreconditionError("Not connected. Call Connect() first.");
+  }
+  if (recording_id.empty()) {
+    return absl::InvalidArgumentError("recording_id must not be empty");
+  }
+
+  yaze::test::StopRecordingRequest request;
+  request.set_recording_id(recording_id);
+  request.set_discard(discard);
+
+  yaze::test::StopRecordingResponse response;
+  grpc::ClientContext context;
+  grpc::Status status = stub_->StopRecording(&context, request, &response);
+
+  if (!status.ok()) {
+    return absl::InternalError(
+        absl::StrCat("StopRecording RPC failed: ", status.error_message()));
+  }
+
+  StopRecordingResult result;
+  result.success = response.success();
+  result.message = response.message();
+  result.output_path = response.output_path();
+  result.step_count = response.step_count();
+  result.duration = std::chrono::milliseconds(response.duration_ms());
+  return result;
+#else
+  return absl::UnimplementedError("gRPC not available");
+#endif
+}
+
 absl::StatusOr<AutomationResult> GuiAutomationClient::Click(
     const std::string& target, ClickType type) {
 #ifdef YAZE_WITH_GRPC

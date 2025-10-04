@@ -1,12 +1,21 @@
 #include "cli/handlers/agent/commands.h"
 
+#include <filesystem>
+#include <fstream>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
+#include "absl/time/time.h"
 #include "cli/handlers/agent/common.h"
+#include "nlohmann/json.hpp"
+#include "util/macro.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "cli/service/gui/gui_automation_client.h"
@@ -18,6 +27,100 @@ namespace cli {
 namespace agent {
 
 #ifdef YAZE_WITH_GRPC
+
+namespace {
+
+struct RecordingState {
+  std::string recording_id;
+  std::string host = "localhost";
+  int port = 50052;
+  std::string output_path;
+};
+
+std::filesystem::path RecordingStateFilePath() {
+  std::error_code ec;
+  std::filesystem::path base =
+      std::filesystem::temp_directory_path(ec);
+  if (ec) {
+    base = std::filesystem::current_path();
+  }
+  return base / "yaze" / "agent" / "recording_state.json";
+}
+
+absl::Status SaveRecordingState(const RecordingState& state) {
+  auto path = RecordingStateFilePath();
+  std::error_code ec;
+  std::filesystem::create_directories(path.parent_path(), ec);
+  nlohmann::json json;
+  json["recording_id"] = state.recording_id;
+  json["host"] = state.host;
+  json["port"] = state.port;
+  json["output_path"] = state.output_path;
+
+  std::ofstream out(path, std::ios::out | std::ios::trunc);
+  if (!out.is_open()) {
+    return absl::InternalError(absl::StrCat("Failed to write recording state to ",
+                                            path.string()));
+  }
+  out << json.dump(2);
+  if (!out.good()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to flush recording state to ", path.string()));
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<RecordingState> LoadRecordingState() {
+  auto path = RecordingStateFilePath();
+  std::ifstream in(path);
+  if (!in.is_open()) {
+    return absl::NotFoundError("No active recording session found. Run 'z3ed agent test record start' first.");
+  }
+
+  nlohmann::json json;
+  try {
+    in >> json;
+  } catch (const nlohmann::json::parse_error& error) {
+    return absl::InternalError(
+        absl::StrCat("Failed to parse recording state at ", path.string(),
+                     ": ", error.what()));
+  }
+
+  RecordingState state;
+  state.recording_id = json.value("recording_id", "");
+  state.host = json.value("host", "localhost");
+  state.port = json.value("port", 50052);
+  state.output_path = json.value("output_path", "");
+
+  if (state.recording_id.empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Recording state at ", path.string(),
+                     " is missing a recording_id"));
+  }
+
+  return state;
+}
+
+absl::Status ClearRecordingState() {
+  auto path = RecordingStateFilePath();
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+  if (ec && ec != std::errc::no_such_file_or_directory) {
+    return absl::InternalError(absl::StrCat("Failed to clear recording state: ",
+                                            ec.message()));
+  }
+  return absl::OkStatus();
+}
+
+std::string DefaultRecordingOutputPath() {
+  absl::Time now = absl::Now();
+  return absl::StrCat("tests/gui/recording-",
+                      absl::FormatTime("%Y%m%dT%H%M%S", now,
+                                       absl::LocalTimeZone()),
+                      ".json");
+}
+
+}  // namespace
 
 // Forward declarations for subcommand handlers
 absl::Status HandleTestRunCommand(const std::vector<std::string>& args);
@@ -307,7 +410,10 @@ absl::Status HandleTestResultsCommand(const std::vector<std::string>& args) {
 absl::Status HandleTestRecordCommand(const std::vector<std::string>& args) {
   if (args.empty()) {
     return absl::InvalidArgumentError(
-        "Usage: agent test record <start|stop> [--output <file>]");
+        "Usage: agent test record <start|stop> [options]\n"
+        "  start [--output <file>] [--description <text>] [--session <id>]\n"
+        "        [--host <host>] [--port <port>]\n"
+        "  stop [--validate] [--discard] [--host <host>] [--port <port>]");
   }
 
   std::string action = args[0];
@@ -315,10 +421,167 @@ absl::Status HandleTestRecordCommand(const std::vector<std::string>& args) {
     return absl::InvalidArgumentError("Record action must be 'start' or 'stop'");
   }
 
-  // TODO: Implement recording functionality
-  return absl::UnimplementedError(
-      "Test recording is not yet implemented.\n"
-      "This feature will allow capturing GUI interactions for replay.");
+  if (action == "start") {
+    std::string host = "localhost";
+    int port = 50052;
+    std::string description;
+    std::string session_name;
+    std::string output_path;
+
+    for (size_t i = 1; i < args.size(); ++i) {
+      const std::string& token = args[i];
+      if (token == "--output" && i + 1 < args.size()) {
+        output_path = args[++i];
+      } else if (token == "--description" && i + 1 < args.size()) {
+        description = args[++i];
+      } else if (token == "--session" && i + 1 < args.size()) {
+        session_name = args[++i];
+      } else if (token == "--host" && i + 1 < args.size()) {
+        host = args[++i];
+      } else if (token == "--port" && i + 1 < args.size()) {
+        std::string port_value = args[++i];
+        int parsed_port = 0;
+        if (!absl::SimpleAtoi(port_value, &parsed_port)) {
+          return absl::InvalidArgumentError(
+              absl::StrCat("Invalid --port value: ", port_value));
+        }
+        port = parsed_port;
+      }
+    }
+
+    if (output_path.empty()) {
+      output_path = DefaultRecordingOutputPath();
+    }
+
+    std::filesystem::path absolute_output =
+        std::filesystem::absolute(output_path);
+    std::error_code ec;
+    std::filesystem::create_directories(absolute_output.parent_path(), ec);
+
+    GuiAutomationClient client(absl::StrCat(host, ":", port));
+    RETURN_IF_ERROR(client.Connect());
+
+    if (session_name.empty()) {
+      session_name = std::filesystem::path(output_path).stem().string();
+    }
+
+    ASSIGN_OR_RETURN(auto start_result,
+                     client.StartRecording(absolute_output.string(),
+                                            session_name, description));
+    if (!start_result.success) {
+      return absl::InternalError(
+          absl::StrCat("Harness rejected start-recording request: ",
+                       start_result.message));
+    }
+
+    RecordingState state;
+    state.recording_id = start_result.recording_id;
+    state.host = host;
+    state.port = port;
+    state.output_path = absolute_output.string();
+    RETURN_IF_ERROR(SaveRecordingState(state));
+
+    std::cout << "\n=== Recording Session Started ===\n";
+    std::cout << "Recording ID: " << start_result.recording_id << "\n";
+    std::cout << "Server: " << host << ":" << port << "\n";
+    std::cout << "Output: " << absolute_output << "\n";
+    if (!description.empty()) {
+      std::cout << "Description: " << description << "\n";
+    }
+    if (start_result.started_at.has_value()) {
+      std::cout << "Started: "
+                << absl::FormatTime("%Y-%m-%d %H:%M:%S",
+                                   *start_result.started_at,
+                                   absl::LocalTimeZone())
+                << "\n";
+    }
+    std::cout << "\nPress Ctrl+C to abort the recording session.\n";
+
+    return absl::OkStatus();
+  }
+
+  // Stop
+  bool validate = false;
+  bool discard = false;
+  std::optional<std::string> host_override;
+  std::optional<int> port_override;
+
+  for (size_t i = 1; i < args.size(); ++i) {
+    const std::string& token = args[i];
+    if (token == "--validate") {
+      validate = true;
+    } else if (token == "--discard") {
+      discard = true;
+    } else if (token == "--host" && i + 1 < args.size()) {
+      host_override = args[++i];
+    } else if (token == "--port" && i + 1 < args.size()) {
+      std::string port_value = args[++i];
+      int parsed_port = 0;
+      if (!absl::SimpleAtoi(port_value, &parsed_port)) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Invalid --port value: ", port_value));
+      }
+      port_override = parsed_port;
+    }
+  }
+
+  if (discard && validate) {
+    return absl::InvalidArgumentError(
+        "Cannot use --validate and --discard together");
+  }
+
+  ASSIGN_OR_RETURN(auto state, LoadRecordingState());
+  if (host_override.has_value()) {
+    state.host = *host_override;
+  }
+  if (port_override.has_value()) {
+    state.port = *port_override;
+  }
+
+  GuiAutomationClient client(absl::StrCat(state.host, ":", state.port));
+  RETURN_IF_ERROR(client.Connect());
+
+  ASSIGN_OR_RETURN(auto stop_result,
+                   client.StopRecording(state.recording_id, discard));
+  if (!stop_result.success) {
+    return absl::InternalError(
+        absl::StrCat("Stop recording failed: ", stop_result.message));
+  }
+  RETURN_IF_ERROR(ClearRecordingState());
+
+  std::cout << "\n=== Recording Session Completed ===\n";
+  std::cout << "Recording ID: " << state.recording_id << "\n";
+  std::cout << "Server: " << state.host << ":" << state.port << "\n";
+  std::cout << "Steps captured: " << stop_result.step_count << "\n";
+  std::cout << "Duration: " << stop_result.duration.count() << " ms\n";
+  if (!stop_result.message.empty()) {
+    std::cout << "Message: " << stop_result.message << "\n";
+  }
+  if (!discard && !stop_result.output_path.empty()) {
+    std::cout << "Output saved to: " << stop_result.output_path << "\n";
+  }
+
+  if (discard) {
+    std::cout << "Recording discarded; no script file was produced." << std::endl;
+    return absl::OkStatus();
+  }
+
+  if (!validate || stop_result.output_path.empty()) {
+    std::cout << std::endl;
+    return absl::OkStatus();
+  }
+
+  std::cout << "\nReplaying recorded script to validate...\n";
+  ASSIGN_OR_RETURN(auto replay_result,
+                   client.ReplayTest(stop_result.output_path, false, {}));
+  if (!replay_result.success) {
+    return absl::InternalError(
+        absl::StrCat("Replay failed: ", replay_result.message));
+  }
+
+  std::cout << "Replay succeeded. Steps executed: "
+            << replay_result.steps_executed << "\n";
+  return absl::OkStatus();
 }
 
 #endif  // YAZE_WITH_GRPC

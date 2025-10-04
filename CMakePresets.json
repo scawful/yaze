@@ -75,7 +75,8 @@
         "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc",
         "YAZE_WITH_JSON": "ON",
         "YAZE_WITH_GRPC": "ON",
-        "YAZE_BUILD_Z3ED": "ON"
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_EMU": "ON"
       }
     },
     {

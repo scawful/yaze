@@ -1,12 +1,15 @@
 #include "cli/service/planning/tile16_proposal_generator.h"
 
-#include <sstream>
 #include <fstream>
+#include <sstream>
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/numbers.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "nlohmann/json.hpp"
+#include "util/macro.h"
 
 namespace yaze {
 namespace cli {
@@ -54,9 +57,175 @@ std::string Tile16Proposal::ToJson() const {
   return json.str();
 }
 
-absl::StatusOr<Tile16Proposal> Tile16Proposal::FromJson(const std::string& /* json */) {
-  // TODO: Implement JSON parsing using nlohmann/json when available
-  return absl::UnimplementedError("JSON parsing not yet implemented");
+namespace {
+
+absl::StatusOr<uint16_t> ParseTileValue(const nlohmann::json& json,
+                                        const char* field) {
+  if (!json.contains(field)) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Missing field '", field, "' in proposal change"));
+  }
+
+  if (json[field].is_number_integer()) {
+    int value = json[field].get<int>();
+    if (value < 0 || value > 0xFFFF) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Tile value for '", field,
+                       "' out of range: ", value));
+    }
+    return static_cast<uint16_t>(value);
+  }
+
+  if (json[field].is_string()) {
+    std::string value = json[field].get<std::string>();
+    if (value.empty()) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Tile value for '", field, "' is empty"));
+    }
+
+    // Support hex strings in 0xFFFF format or plain decimal strings
+    if (absl::StartsWith(value, "0x") || absl::StartsWith(value, "0X")) {
+      if (value.size() <= 2) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Invalid hex tile value for '", field,
+                         "': ", json[field].get<std::string>()));
+      }
+      value = value.substr(2);
+      unsigned int parsed = 0;
+      if (!absl::SimpleHexAtoi(value, &parsed) || parsed > 0xFFFF) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Invalid hex tile value for '", field,
+                         "': ", json[field].get<std::string>()));
+      }
+      return static_cast<uint16_t>(parsed);
+    }
+
+    unsigned int parsed = 0;
+    if (!absl::SimpleAtoi(value, &parsed) || parsed > 0xFFFF) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Invalid tile value for '", field,
+                       "': ", json[field].get<std::string>()));
+    }
+    return static_cast<uint16_t>(parsed);
+  }
+
+  return absl::InvalidArgumentError(
+      absl::StrCat("Unsupported JSON type for tile field '", field, "'"));
+}
+
+Tile16Proposal::Status ParseStatus(absl::string_view status_text) {
+  if (absl::StartsWith(status_text, "accept")) {
+    return Tile16Proposal::Status::ACCEPTED;
+  }
+  if (absl::StartsWith(status_text, "reject")) {
+    return Tile16Proposal::Status::REJECTED;
+  }
+  if (absl::StartsWith(status_text, "apply")) {
+    return Tile16Proposal::Status::APPLIED;
+  }
+  return Tile16Proposal::Status::PENDING;
+}
+
+}  // namespace
+
+absl::StatusOr<Tile16Proposal> Tile16Proposal::FromJson(
+    const std::string& json_text) {
+  nlohmann::json json;
+  try {
+    json = nlohmann::json::parse(json_text);
+  } catch (const nlohmann::json::parse_error& error) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Failed to parse proposal JSON: ", error.what()));
+  }
+
+  Tile16Proposal proposal;
+
+  if (!json.contains("id") || !json["id"].is_string()) {
+    return absl::InvalidArgumentError(
+        "Proposal JSON must include string field 'id'");
+  }
+  proposal.id = json["id"].get<std::string>();
+
+  if (!json.contains("prompt") || !json["prompt"].is_string()) {
+    return absl::InvalidArgumentError(
+        "Proposal JSON must include string field 'prompt'");
+  }
+  proposal.prompt = json["prompt"].get<std::string>();
+
+  if (json.contains("ai_service") && json["ai_service"].is_string()) {
+    proposal.ai_service = json["ai_service"].get<std::string>();
+  }
+
+  if (json.contains("reasoning") && json["reasoning"].is_string()) {
+    proposal.reasoning = json["reasoning"].get<std::string>();
+  }
+
+  if (json.contains("status")) {
+    if (!json["status"].is_string()) {
+      return absl::InvalidArgumentError(
+          "Proposal 'status' must be a string value");
+    }
+    proposal.status = ParseStatus(json["status"].get<std::string>());
+  } else {
+    proposal.status = Status::PENDING;
+  }
+
+  if (json.contains("changes")) {
+    if (!json["changes"].is_array()) {
+      return absl::InvalidArgumentError(
+          "Proposal 'changes' field must be an array");
+    }
+
+    for (const auto& change_json : json["changes"]) {
+      if (!change_json.is_object()) {
+        return absl::InvalidArgumentError(
+            "Each change entry must be a JSON object");
+      }
+
+      Tile16Change change;
+      if (!change_json.contains("map_id") ||
+          !change_json["map_id"].is_number_integer()) {
+        return absl::InvalidArgumentError(
+            "Tile change missing integer field 'map_id'");
+      }
+      change.map_id = change_json["map_id"].get<int>();
+
+      if (!change_json.contains("x") ||
+          !change_json["x"].is_number_integer()) {
+        return absl::InvalidArgumentError(
+            "Tile change missing integer field 'x'");
+      }
+      change.x = change_json["x"].get<int>();
+
+      if (!change_json.contains("y") ||
+          !change_json["y"].is_number_integer()) {
+        return absl::InvalidArgumentError(
+            "Tile change missing integer field 'y'");
+      }
+      change.y = change_json["y"].get<int>();
+
+      ASSIGN_OR_RETURN(change.old_tile,
+                       ParseTileValue(change_json, "old_tile"));
+      ASSIGN_OR_RETURN(change.new_tile,
+                       ParseTileValue(change_json, "new_tile"));
+
+      proposal.changes.push_back(change);
+    }
+  }
+
+  if (proposal.changes.empty()) {
+    return absl::InvalidArgumentError(
+        "Proposal JSON did not include any tile16 changes");
+  }
+
+  proposal.created_at = std::chrono::system_clock::now();
+  if (json.contains("created_at_ms") && json["created_at_ms"].is_number()) {
+    auto millis = json["created_at_ms"].get<int64_t>();
+    proposal.created_at = std::chrono::system_clock::time_point(
+        std::chrono::milliseconds(millis));
+  }
+
+  return proposal;
 }
 
 std::string Tile16ProposalGenerator::GenerateProposalId() const {
