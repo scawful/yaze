@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: docs/z3ed/AGENT-ROADMAP.md File Reference</title>
+<title>yaze: ZScream vs. yaze Overworld Implementation Analysis</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -72,7 +72,7 @@ var searchBox = new SearchBox("searchBox", "../../search/",'.html');
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
-$(document).ready(function(){initNavTree('de/de4/AGENT-ROADMAP_8md.html','../../'); initResizable(); });
+$(document).ready(function(){initNavTree('d9/d48/md_docs_2analysis_2overworld__implementation__analysis.html','../../'); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -97,16 +97,54 @@ $(document).ready(function(){initNavTree('de/de4/AGENT-ROADMAP_8md.html','../../
 </div>
 </div>
 
-<div class="header">
-  <div class="headertitle"><div class="title">docs/z3ed/AGENT-ROADMAP.md File Reference</div></div>
+<div><div class="header">
+  <div class="headertitle"><div class="title">ZScream vs. yaze Overworld Implementation Analysis</div></div>
 </div><!--header-->
 <div class="contents">
-</div><!-- contents -->
+<div class="textblock"><p><a class="anchor" id="autotoc_md140"></a> </p>
+<h1><a class="anchor" id="autotoc_md141"></a>
+Executive Summary</h1>
+<p>After conducting a thorough line-by-line analysis of both ZScream (C#) and yaze (C++) overworld implementations, we confirm that the yaze implementation is functionally equivalent and, in some areas, more robust.</p>
+<h1><a class="anchor" id="autotoc_md142"></a>
+Key Findings</h1>
+<h2><a class="anchor" id="autotoc_md143"></a>
+✅ &lt;strong&gt;Confirmed Correct Implementations&lt;/strong&gt;</h2>
+<h3><a class="anchor" id="autotoc_md144"></a>
+1. &lt;strong&gt;Tile32 &amp; Tile16 Expansion Detection&lt;/strong&gt;</h3>
+<p>Both implementations correctly detect expanded map data. yaze's approach is more robust as it checks for both the expansion flag and the ZSCustomOverworld ASM version, while ZScream primarily checks for one or the other.</p>
+<h3><a class="anchor" id="autotoc_md145"></a>
+2. &lt;strong&gt;Entrance &amp; Hole Coordinate Calculation&lt;/strong&gt;</h3>
+<p>The logic for calculating the x,y world coordinates for entrances and holes (including the <code>+ 0x400</code> offset for holes) is identical in both implementations, ensuring perfect compatibility.</p>
+<h3><a class="anchor" id="autotoc_md146"></a>
+3. &lt;strong&gt;Data Loading (Exits, Items, Sprites)&lt;/strong&gt;</h3>
+<ul>
+<li><b>Exits</b>: Data is loaded from the same ROM addresses with equivalent byte ordering.</li>
+<li><b>Items</b>: Both correctly detect the ASM version to decide whether to load items from the original or expanded address pointers.</li>
+<li><b>Sprites</b>: Both correctly handle the three separate game states (rain, pre-Agahnim, post-Agahnim) when loading sprites.</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md147"></a>
+4. &lt;strong&gt;Map Decompression &amp; Sizing&lt;/strong&gt;</h3>
+<ul>
+<li>Both use equivalent decompression algorithms (<code>HyruleMagicDecompress</code> in yaze vs. <code>ALTTPDecompressOverworld</code> in ZScream).</li>
+<li>The logic for assigning map sizes (Small, Large, Wide) based on the ROM's size byte is identical.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md148"></a>
+⚠️ &lt;strong&gt;Key Differences Found&lt;/strong&gt;</h2>
+<ul>
+<li><b>Entrance Expansion</b>: yaze has more robust detection for expanded entrance data, which ZScream appears to lack.</li>
+<li><b>Error Handling</b>: yaze uses <code>absl::Status</code> for comprehensive error handling, whereas ZScream uses more basic checks.</li>
+<li><b>Threading</b>: Both use multithreading for performance, with yaze using <code>std::async</code> and ZScream using background threads.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md149"></a>
+🎯 &lt;strong&gt;Conclusion&lt;/strong&gt;</h2>
+<p>The analysis confirms that the yaze C++ overworld implementation correctly and successfully mirrors the ZScream C# logic across all critical functionality. Our integration tests and golden data extraction system provide comprehensive validation of this functional equivalence.</p>
+<p><b>Final Assessment: The yaze overworld implementation is correct, robust, and maintains full compatibility with ZScream's overworld editing capabilities, while offering some improvements in expansion detection and error handling.</b> </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../de/de4/AGENT-ROADMAP_8md.html">AGENT-ROADMAP.md</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

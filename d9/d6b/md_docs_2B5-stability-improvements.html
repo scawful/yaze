@@ -101,12 +101,12 @@ $(document).ready(function(){initNavTree('d9/d6b/md_docs_2B5-stability-improveme
   <div class="headertitle"><div class="title">Stability, Testability &amp; Release Workflow Improvements</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md328"></a> This document outlines recent improvements to YAZE's stability, testability, and release workflows, along with recommendations for future optimizations.</p>
-<h1><a class="anchor" id="autotoc_md329"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md284"></a> This document outlines recent improvements to YAZE's stability, testability, and release workflows, along with recommendations for future optimizations.</p>
+<h1><a class="anchor" id="autotoc_md285"></a>
 Recent Improvements (v0.3.2)</h1>
-<h2><a class="anchor" id="autotoc_md330"></a>
+<h2><a class="anchor" id="autotoc_md286"></a>
 Windows Platform Stability</h2>
-<h3><a class="anchor" id="autotoc_md331"></a>
+<h3><a class="anchor" id="autotoc_md287"></a>
 Stack Size Optimization</h3>
 <p><b>Problem:</b> Windows default stack size (1MB) was insufficient for <code>EditorManager::LoadAssets()</code> which loads 223 graphics sheets and initializes multiple editors.</p>
 <p><b>Solution:</b> Increased stack size to 8MB to match Unix-like systems.</p>
@@ -121,7 +121,7 @@ Stack Size Optimization</h3>
 <li>✅ Consistent behavior across all platforms</li>
 <li>✅ Handles deep call chains from editor initialization</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md332"></a>
+<h3><a class="anchor" id="autotoc_md288"></a>
 Development Utility Isolation</h3>
 <p><b>Problem:</b> Development-only utilities (<code>extract_vanilla_values</code>, <code>rom_patch_utility</code>) were being built in CI/release workflows, causing linker errors.</p>
 <p><b>Solution:</b> Isolated development utilities from CI/release builds using environment detection.</p>
@@ -135,9 +135,9 @@ Development Utility Isolation</h3>
 <li>✅ Proper library linkage for development tools</li>
 <li>✅ Faster CI/CD pipelines</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md333"></a>
+<h2><a class="anchor" id="autotoc_md289"></a>
 Graphics System Stability</h2>
-<h3><a class="anchor" id="autotoc_md334"></a>
+<h3><a class="anchor" id="autotoc_md290"></a>
 Segmentation Fault Resolution</h3>
 <p><b>Problem:</b> Tile cache system using <code>std::move()</code> operations invalidated Bitmap surface pointers, causing crashes.</p>
 <p><b>Solution:</b> Disabled move semantics in tile cache and implemented direct SDL texture updates.</p>
@@ -151,7 +151,7 @@ Segmentation Fault Resolution</h3>
 <li>✅ Stable graphics rendering pipeline</li>
 <li>✅ Reliable texture management</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md335"></a>
+<h3><a class="anchor" id="autotoc_md291"></a>
 Comprehensive Bounds Checking</h3>
 <p><b>Problem:</b> Out-of-bounds access to tile and palette data caused crashes and corruption.</p>
 <p><b>Solution:</b> Added extensive bounds checking throughout graphics pipeline.</p>
@@ -166,9 +166,9 @@ Comprehensive Bounds Checking</h3>
 <li>✅ Better error reporting</li>
 <li>✅ Safer memory access patterns</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md336"></a>
+<h2><a class="anchor" id="autotoc_md292"></a>
 Build System Improvements</h2>
-<h3><a class="anchor" id="autotoc_md337"></a>
+<h3><a class="anchor" id="autotoc_md293"></a>
 Modern Windows Workflow</h3>
 <p><b>Previous Approach:</b> Generate Visual Studio solution files using Python script.</p>
 <p><b>New Approach:</b> Use Visual Studio's native CMake support.</p>
@@ -186,7 +186,7 @@ Modern Windows Workflow</h3>
 <div class="line"># New workflow  </div>
 <div class="line"># File → Open → Folder → yaze</div>
 <div class="line"># Visual Studio detects CMakeLists.txt automatically</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md338"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md294"></a>
 Enhanced CI/CD Reliability</h3>
 <p><b>Improvements:</b></p><ul>
 <li>Automatic vcpkg fallback mechanisms</li>
@@ -194,11 +194,11 @@ Enhanced CI/CD Reliability</h3>
 <li>Consistent test execution across platforms</li>
 <li>Better error reporting and debugging</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md339"></a>
+<h1><a class="anchor" id="autotoc_md295"></a>
 Recommended Optimizations</h1>
-<h2><a class="anchor" id="autotoc_md340"></a>
+<h2><a class="anchor" id="autotoc_md296"></a>
 High Priority</h2>
-<h3><a class="anchor" id="autotoc_md341"></a>
+<h3><a class="anchor" id="autotoc_md297"></a>
 1. Lazy Graphics Loading</h3>
 <p><b>Current:</b> All 223 graphics sheets loaded on ROM open.</p>
 <p><b>Proposed:</b> Load graphics sheets on-demand when editors access them.</p>
@@ -224,7 +224,7 @@ High Priority</h2>
 </li>
 <li>🟢 Risk: Low (backward compatible)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md342"></a>
+<h3><a class="anchor" id="autotoc_md298"></a>
 2. Heap-Based Large Allocations</h3>
 <p><b>Current:</b> Large arrays and vectors allocated on stack during asset loading.</p>
 <p><b>Proposed:</b> Move large data structures to heap allocation.</p>
@@ -244,7 +244,7 @@ High Priority</h2>
 <li>🟢 Performance Gain: Medium</li>
 <li>🟢 Risk: Very Low</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md343"></a>
+<h3><a class="anchor" id="autotoc_md299"></a>
 3. Streaming ROM Assets</h3>
 <p><b>Current:</b> Load entire ROM and all assets into memory.</p>
 <p><b>Proposed:</b> Stream assets from ROM file as needed.</p>
@@ -264,9 +264,9 @@ High Priority</h2>
 <li>🟢 Performance Gain: Very High</li>
 <li>🟡 Risk: Medium (requires testing)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md344"></a>
+<h2><a class="anchor" id="autotoc_md300"></a>
 Medium Priority</h2>
-<h3><a class="anchor" id="autotoc_md345"></a>
+<h3><a class="anchor" id="autotoc_md301"></a>
 4. Enhanced Test Isolation</h3>
 <p><b>Current:</b> Some tests share global state through Arena singleton.</p>
 <p><b>Proposed:</b> Better test isolation with mock singletons.</p>
@@ -290,7 +290,7 @@ Medium Priority</h2>
 <li>🟢 Performance Gain: Medium (parallel tests)</li>
 <li>🟢 Risk: Low</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md346"></a>
+<h3><a class="anchor" id="autotoc_md302"></a>
 5. Dependency Caching Optimization</h3>
 <p><b>Current:</b> CI builds re-download and build some dependencies.</p>
 <p><b>Proposed:</b> Enhanced caching strategies for vcpkg and build artifacts.</p>
@@ -313,7 +313,7 @@ Medium Priority</h2>
 <li>🟢 Performance Gain: High (CI only)</li>
 <li>🟢 Risk: Very Low</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md347"></a>
+<h3><a class="anchor" id="autotoc_md303"></a>
 6. Memory Pool for Graphics</h3>
 <p><b>Current:</b> Individual allocation for each Bitmap and texture.</p>
 <p><b>Proposed:</b> Memory pool for graphics objects.</p>
@@ -333,9 +333,9 @@ Medium Priority</h2>
 <li>🟡 Performance Gain: Medium</li>
 <li>🟡 Risk: Medium (requires careful design)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md348"></a>
+<h2><a class="anchor" id="autotoc_md304"></a>
 Low Priority</h2>
-<h3><a class="anchor" id="autotoc_md349"></a>
+<h3><a class="anchor" id="autotoc_md305"></a>
 7. Build Time Optimization</h3>
 <p><b>Current:</b> Full rebuild takes 10-15 minutes.</p>
 <p><b>Proposed:</b> Optimize compilation units and dependencies.</p>
@@ -350,7 +350,7 @@ Low Priority</h2>
 <li>🟢 Performance Gain: Medium (developer experience)</li>
 <li>🟢 Risk: Low</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md350"></a>
+<h3><a class="anchor" id="autotoc_md306"></a>
 8. Release Workflow Simplification</h3>
 <p><b>Current:</b> Three separate release workflows (simplified, standard, complex).</p>
 <p><b>Proposed:</b> Single unified workflow with conditional features.</p>
@@ -373,9 +373,9 @@ Low Priority</h2>
 <li>🟢 Performance Gain: None (maintenance benefit)</li>
 <li>🟢 Risk: Very Low</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md351"></a>
+<h1><a class="anchor" id="autotoc_md307"></a>
 Testing Improvements</h1>
-<h2><a class="anchor" id="autotoc_md352"></a>
+<h2><a class="anchor" id="autotoc_md308"></a>
 Current State</h2>
 <ul>
 <li>✅ Comprehensive unit test coverage (46+ tests)</li>
@@ -384,9 +384,9 @@ Current State</h2>
 <li>✅ CI-safe test configuration</li>
 <li>✅ Platform-specific test handling</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md353"></a>
+<h2><a class="anchor" id="autotoc_md309"></a>
 Recommendations</h2>
-<h3><a class="anchor" id="autotoc_md354"></a>
+<h3><a class="anchor" id="autotoc_md310"></a>
 1. Visual Regression Testing</h3>
 <p><b>Goal:</b> Catch graphics rendering regressions automatically.</p>
 <p><b>Approach:</b></p><ul>
@@ -395,7 +395,7 @@ Recommendations</h2>
 <li>Flag visual differences for review</li>
 </ul>
 <p><b>Tools:</b> <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Test Engine (already integrated)</p>
-<h3><a class="anchor" id="autotoc_md355"></a>
+<h3><a class="anchor" id="autotoc_md311"></a>
 2. Performance Benchmarks</h3>
 <p><b>Goal:</b> Track performance regressions in CI.</p>
 <p><b>Metrics:</b></p><ul>
@@ -405,7 +405,7 @@ Recommendations</h2>
 <li>Memory usage</li>
 </ul>
 <p><b>Implementation:</b> Google Benchmark (already a dependency)</p>
-<h3><a class="anchor" id="autotoc_md356"></a>
+<h3><a class="anchor" id="autotoc_md312"></a>
 3. Fuzz Testing</h3>
 <p><b>Goal:</b> Find edge cases and crashes through random input.</p>
 <p><b>Areas:</b></p><ul>
@@ -415,9 +415,9 @@ Recommendations</h2>
 <li>Tile data processing</li>
 </ul>
 <p><b>Tools:</b> LibFuzzer or AFL</p>
-<h1><a class="anchor" id="autotoc_md357"></a>
+<h1><a class="anchor" id="autotoc_md313"></a>
 Metrics &amp; Monitoring</h1>
-<h2><a class="anchor" id="autotoc_md358"></a>
+<h2><a class="anchor" id="autotoc_md314"></a>
 Current Measurements</h2>
 <ul>
 <li>Build time: ~10-15 minutes (full rebuild)</li>
@@ -425,7 +425,7 @@ Current Measurements</h2>
 <li>Memory usage: ~500MB-1GB typical</li>
 <li>Test execution: ~30 seconds (CI), ~2 minutes (full)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md359"></a>
+<h2><a class="anchor" id="autotoc_md315"></a>
 Target Improvements</h2>
 <ul>
 <li>Build time: &lt;5 minutes (incremental), &lt;10 minutes (full)</li>
@@ -433,9 +433,9 @@ Target Improvements</h2>
 <li>Memory usage: &lt;300MB (with streaming)</li>
 <li>Test execution: &lt;15 seconds (CI), &lt;1 minute (full)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md360"></a>
+<h1><a class="anchor" id="autotoc_md316"></a>
 Action Items</h1>
-<h2><a class="anchor" id="autotoc_md361"></a>
+<h2><a class="anchor" id="autotoc_md317"></a>
 Immediate (v0.3.2)</h2>
 <ul>
 <li>[x] Fix Windows stack overflow</li>
@@ -444,7 +444,7 @@ Immediate (v0.3.2)</h2>
 <li>[x] Update build documentation</li>
 <li>[ ] Complete tile16 palette display fixes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md362"></a>
+<h2><a class="anchor" id="autotoc_md318"></a>
 Short Term (v0.3.3)</h2>
 <ul>
 <li>[ ] Implement lazy graphics loading</li>
@@ -452,7 +452,7 @@ Short Term (v0.3.3)</h2>
 <li>[ ] Enhanced CI caching</li>
 <li>[ ] Performance benchmarks</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md363"></a>
+<h2><a class="anchor" id="autotoc_md319"></a>
 Medium Term (v0.4.0)</h2>
 <ul>
 <li>[ ] Streaming ROM assets</li>
@@ -460,7 +460,7 @@ Medium Term (v0.4.0)</h2>
 <li>[ ] Visual regression tests</li>
 <li>[ ] Enhanced test isolation</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md364"></a>
+<h2><a class="anchor" id="autotoc_md320"></a>
 Long Term (v0.5.0+)</h2>
 <ul>
 <li>[ ] Fuzz testing integration</li>
@@ -468,7 +468,7 @@ Long Term (v0.5.0+)</h2>
 <li>[ ] Release workflow unification</li>
 <li>[ ] Advanced memory profiling</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md365"></a>
+<h1><a class="anchor" id="autotoc_md321"></a>
 Conclusion</h1>
 <p>The v0.3.2 release focuses on stability and reliability improvements, particularly for the Windows platform. The recommended optimizations provide a clear roadmap for future performance and maintainability improvements while maintaining backward compatibility and code quality.</p>
 <p>For questions or suggestions, please open an issue or discussion on the GitHub repository. </p>

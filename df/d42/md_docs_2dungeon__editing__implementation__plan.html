@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('df/d42/md_docs_2dungeon__editing__impl
   <div class="headertitle"><div class="title">Dungeon Editing Implementation Plan for Yaze</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md533"></a> <b>Status</b>: Planning Phase <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md429"></a> <b>Status</b>: Planning Phase <br  />
  <b>Goal</b>: Implement fully functional dungeon room editing based on ZScream's proven approach <br  />
  <b>Created</b>: October 4, 2025</p>
-<h1><a class="anchor" id="autotoc_md534"></a>
+<h1><a class="anchor" id="autotoc_md430"></a>
 Executive Summary</h1>
 <p>The dungeon object system in yaze currently does not work properly. ZScream's dungeon editing is fully functional and provides a proven reference implementation. This document outlines a comprehensive plan to implement working dungeon editing in yaze by analyzing ZScream's approach and adapting it to yaze's C++ architecture.</p>
-<h1><a class="anchor" id="autotoc_md535"></a>
+<h1><a class="anchor" id="autotoc_md431"></a>
 Table of Contents</h1>
 <ol type="1">
 <li>Current State Analysis</li>
@@ -119,9 +119,9 @@ Table of Contents</h1>
 <li>References</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md537"></a>
+<h1><a class="anchor" id="autotoc_md433"></a>
 Current State Analysis</h1>
-<h2><a class="anchor" id="autotoc_md538"></a>
+<h2><a class="anchor" id="autotoc_md434"></a>
 What Works in Yaze</h2>
 <ul>
 <li>✅ Room header loading (basic properties: blockset, palette, spriteset)</li>
@@ -132,7 +132,7 @@ What Works in Yaze</h2>
 <li>✅ Sprite loading (separate from objects)</li>
 <li>✅ UI framework with canvas, selectors, and viewers</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md539"></a>
+<h2><a class="anchor" id="autotoc_md435"></a>
 What Doesn't Work</h2>
 <ul>
 <li>❌ <b>Object Parsing</b>: Objects are loaded but not properly decoded</li>
@@ -146,7 +146,7 @@ What Doesn't Work</h2>
 <li>❌ <b>Tile Loading</b>: Objects don't load their tile data correctly</li>
 <li>❌ <b>Collision/Properties</b>: Object-specific properties not tracked</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md540"></a>
+<h2><a class="anchor" id="autotoc_md436"></a>
 Key Problems Identified</h2>
 <ol type="1">
 <li><b>Object Data Format</b>: The 3-byte object encoding/decoding is incomplete</li>
@@ -156,9 +156,9 @@ Key Problems Identified</h2>
 <li><b>Save System</b>: No encoding of edited objects back to ROM format</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md542"></a>
+<h1><a class="anchor" id="autotoc_md438"></a>
 ZScream's Working Approach</h1>
-<h2><a class="anchor" id="autotoc_md543"></a>
+<h2><a class="anchor" id="autotoc_md439"></a>
 Room Data Structure (ZScream)</h2>
 <div class="fragment"><div class="line"><span class="keyword">public</span> <span class="keyword">class </span>Room</div>
 <div class="line">{</div>
@@ -185,7 +185,7 @@ Room Data Structure (ZScream)</h2>
 <div class="line">    <span class="keyword">public</span> List&lt;Chest&gt; chest_list;          <span class="comment">// Chests in room</span></div>
 <div class="line">    <span class="keyword">public</span> <span class="keywordtype">byte</span>[] blocks;                    <span class="comment">// 16 GFX blocks for room</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md544"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md440"></a>
 Object Data Structure (ZScream)</h2>
 <div class="fragment"><div class="line"><span class="keyword">public</span> <span class="keyword">class </span>Room_Object</div>
 <div class="line">{</div>
@@ -207,10 +207,10 @@ Object Data Structure (ZScream)</h2>
 <div class="line">    <span class="keyword">public</span> DungeonLimits LimitClass; <span class="comment">// Object limits tracking</span></div>
 <div class="line">    <span class="keyword">public</span> <span class="keywordtype">int</span> uniqueID;          <span class="comment">// Unique ID for undo/redo</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md545"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md441"></a>
 Object Encoding Format (Critical!)</h2>
 <p>ZScream uses <b>three different encoding formats</b> based on object ID range:</p>
-<h3><a class="anchor" id="autotoc_md546"></a>
+<h3><a class="anchor" id="autotoc_md442"></a>
 Type 1 Objects (ID 0x000-0x0FF) - Standard Objects</h3>
 <p><b>Encoding</b>: <code>xxxxxxss yyyyyyss iiiiiiii</code></p>
 <div class="fragment"><div class="line">Byte 1: (X &lt;&lt; 2) | ((Size &gt;&gt; 2) &amp; 0x03)</div>
@@ -220,7 +220,7 @@ Type 1 Objects (ID 0x000-0x0FF) - Standard Objects</h3>
 <div class="line">Y = (Byte2 &amp; 0xFC) &gt;&gt; 2          // Bits 2-7 = Y position</div>
 <div class="line">Size = ((Byte1 &amp; 0x03) &lt;&lt; 2) | (Byte2 &amp; 0x03)  // Size 0-15</div>
 <div class="line">ID = Byte3                        // Object ID</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md547"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md443"></a>
 Type 2 Objects (ID 0x100-0x1FF) - Special Objects</h3>
 <p><b>Encoding</b>: <code>111111xx xxxxyyyy yyiiiiii</code></p>
 <div class="fragment"><div class="line">Byte 1: 0xFC | ((X &amp; 0x30) &gt;&gt; 4)        // 0xFC-0xFF</div>
@@ -230,7 +230,7 @@ Type 2 Objects (ID 0x100-0x1FF) - Special Objects</h3>
 <div class="line">Y = ((Byte2 &amp; 0x0F) &lt;&lt; 2) | ((Byte3 &amp; 0xC0) &gt;&gt; 6)  // Y position</div>
 <div class="line">ID = (Byte3 &amp; 0x3F) | 0x100                         // Object ID</div>
 <div class="line">Size = 0  // No size parameter</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md548"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md444"></a>
 Type 3 Objects (ID 0xF00-0xFFF) - Extended Objects</h3>
 <p><b>Encoding</b>: <code>xxxxxxii yyyyyyii 11111iii</code></p>
 <div class="fragment"><div class="line">Byte 1: (X &lt;&lt; 2) | (ID &amp; 0x03)</div>
@@ -239,7 +239,7 @@ Type 3 Objects (ID 0xF00-0xFFF) - Extended Objects</h3>
 </div><!-- fragment --><p><b>Decoding</b>: </p><div class="fragment"><div class="line">X = (Byte1 &amp; 0xFC) &gt;&gt; 2</div>
 <div class="line">Y = (Byte2 &amp; 0xFC) &gt;&gt; 2</div>
 <div class="line">ID = ((Byte3 &lt;&lt; 4) &amp; 0xF00) | ((Byte2 &amp; 0x03) &lt;&lt; 2) | (Byte1 &amp; 0x03) | 0x80</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md549"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md445"></a>
 Layer and Door Markers</h2>
 <p>Objects are organized in <b>layers</b> separated by special markers:</p>
 <div class="fragment"><div class="line">[Floor/Layout byte]</div>
@@ -253,7 +253,7 @@ Layer and Door Markers</h2>
 <div class="line">0xF0 0xFF  &lt;- Door Section Marker</div>
 <div class="line">&lt;Door Objects (2 bytes each)&gt;</div>
 <div class="line">0xFF 0xFF  &lt;- End of Room</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md550"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md446"></a>
 Object Loading Process (ZScream)</h2>
 <div class="fragment"><div class="line"><span class="comment">// 1. Get room object pointer (3 bytes)</span></div>
 <div class="line"><span class="keywordtype">int</span> object_pointer = ROM at (room_object_pointer + room_id * 3)</div>
@@ -305,7 +305,7 @@ Object Loading Process (ZScream)</h2>
 <div class="line">    }</div>
 <div class="line">}</div>
 <div class="ttc" id="aroom__integration__test_8cc_html_a61a9e6bd5f106106e0aa16d549b241c8"><div class="ttname"><a href="../../d8/d2e/room__integration__test_8cc.html#a61a9e6bd5f106106e0aa16d549b241c8">SnesToPc</a></div><div class="ttdeci">int SnesToPc(int addr)</div><div class="ttdef"><b>Definition</b> <a href="../../d8/d2e/room__integration__test_8cc_source.html#l00012">room_integration_test.cc:12</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md551"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md447"></a>
 Object Saving Process (ZScream)</h2>
 <div class="fragment"><div class="line"><span class="keyword">public</span> <span class="keywordtype">byte</span>[] getTilesBytes()</div>
 <div class="line">{</div>
@@ -352,7 +352,7 @@ Object Saving Process (ZScream)</h2>
 <div class="line">    </div>
 <div class="line">    <span class="keywordflow">return</span> objectsBytes.ToArray();</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md552"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md448"></a>
 Object Tile Loading (ZScream)</h2>
 <p>Each object references tile data from ROM tables:</p>
 <div class="fragment"><div class="line"><span class="comment">// Get tile pointer from subtype table</span></div>
@@ -367,7 +367,7 @@ Object Tile Loading (ZScream)</h2>
 <div class="line">    Tile tile = <span class="keyword">new</span> Tile(tile_id, tile_prop);</div>
 <div class="line">    <span class="keywordtype">object</span>.tiles.Add(tile);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md553"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md449"></a>
 Object Drawing (ZScream)</h2>
 <div class="fragment"><div class="line"><span class="keyword">public</span> <span class="keywordtype">void</span> Draw()</div>
 <div class="line">{</div>
@@ -395,9 +395,9 @@ Object Drawing (ZScream)</h2>
 <div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md555"></a>
+<h1><a class="anchor" id="autotoc_md451"></a>
 ROM Data Structure Reference</h1>
-<h2><a class="anchor" id="autotoc_md556"></a>
+<h2><a class="anchor" id="autotoc_md452"></a>
 Key ROM Addresses (from ALTTP Disassembly)</h2>
 <div class="fragment"><div class="line"># Room Headers</div>
 <div class="line">room_object_pointer         = 0x874C   # Long pointer to room object data</div>
@@ -439,7 +439,7 @@ Key ROM Addresses (from ALTTP Disassembly)</h2>
 <div class="line">kRoomObjectSubtype2         = 0x83F0   # Type 2 table</div>
 <div class="line">kRoomObjectSubtype3         = 0x84F0   # Type 3 table</div>
 <div class="line">kRoomObjectTileAddress      = 0x1B52   # Base tile address</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md557"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md453"></a>
 Room Header Format (14 bytes)</h2>
 <div class="fragment"><div class="line">Offset | Bits      | Description</div>
 <div class="line">-------|-----------|------------------------------------------</div>
@@ -461,7 +461,7 @@ Room Header Format (14 bytes)</h2>
 <div class="line">11     | 0-7       | Staircase 2 room</div>
 <div class="line">12     | 0-7       | Staircase 3 room</div>
 <div class="line">13     | 0-7       | Staircase 4 room</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md558"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md454"></a>
 Object Data Format</h2>
 <div class="fragment"><div class="line">[Floor/Layout - 2 bytes]</div>
 <div class="line">  Byte 0: floor1 (bits 0-3), floor2 (bits 4-7)</div>
@@ -490,7 +490,7 @@ Object Data Format</h2>
 <div class="line"> </div>
 <div class="line">[End Marker]</div>
 <div class="line">  0xFF 0xFF</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md559"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md455"></a>
 Tile Data Format</h2>
 <div class="fragment"><div class="line">Each Tile16 (metatile) consists of 4 Tile8s (8x8 tiles):</div>
 <div class="line">  Word 0: Top-left tile</div>
@@ -505,11 +505,11 @@ Tile Data Format</h2>
 <div class="line">  Bits 12-14: Palette (0-7)</div>
 <div class="line">  Bit 15:     Priority</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md561"></a>
+<h1><a class="anchor" id="autotoc_md457"></a>
 Implementation Tasks</h1>
-<h2><a class="anchor" id="autotoc_md562"></a>
+<h2><a class="anchor" id="autotoc_md458"></a>
 Phase 1: Core Object System (HIGH PRIORITY)</h2>
-<h3><a class="anchor" id="autotoc_md563"></a>
+<h3><a class="anchor" id="autotoc_md459"></a>
 Task 1.1: Object Encoding/Decoding ✅ CRITICAL</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d5/da0/room__object_8cc.html">src/app/zelda3/dungeon/room_object.cc</a></code>, <code><a class="el" href="../../d0/dff/room__object_8h.html">room_object.h</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -537,7 +537,7 @@ Task 1.1: Object Encoding/Decoding ✅ CRITICAL</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Determine object type from bytes</span></div>
 <div class="line"><span class="keyword">static</span> <span class="keywordtype">int</span> DetermineObjectType(uint8_t b1, uint8_t b3);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md564"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md460"></a>
 Task 1.2: Enhanced Object Parsing ✅ CRITICAL</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d5/d1b/room_8cc.html">src/app/zelda3/dungeon/room.cc</a></code>, <code><a class="el" href="../../d9/dc0/room_8h.html">room.h</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -560,7 +560,7 @@ Task 1.2: Enhanced Object Parsing ✅ CRITICAL</h3>
 <div class="line"><span class="comment">// Enhanced parsing with layer separation</span></div>
 <div class="line">absl::Status ParseLayeredObjects(<span class="keywordtype">int</span> objects_location, </div>
 <div class="line">                                  LayeredObjects&amp; out_objects);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md565"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md461"></a>
 Task 1.3: Object Tile Loading ✅ CRITICAL</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d5/da0/room__object_8cc.html">src/app/zelda3/dungeon/room_object.cc</a></code>, <code><a class="el" href="../../d5/da7/object__parser_8cc.html">object_parser.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -580,7 +580,7 @@ Task 1.3: Object Tile Loading ✅ CRITICAL</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Load tile data from ROM</span></div>
 <div class="line">absl::StatusOr&lt;std::vector&lt;gfx::Tile16&gt;&gt; LoadTileData(<span class="keywordtype">int</span> tile_ptr);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md566"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md462"></a>
 Task 1.4: Object Drawing System ⚠️ HIGH PRIORITY</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d5/dc5/object__renderer_8cc.html">src/app/zelda3/dungeon/object_renderer.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -605,9 +605,9 @@ Task 1.4: Object Drawing System ⚠️ HIGH PRIORITY</h3>
 <div class="line"><span class="keywordtype">void</span> DrawTileToBuffer(<span class="keyword">const</span> gfx::Tile16&amp; tile, <span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y,</div>
 <div class="line">                      std::vector&lt;uint8_t&gt;&amp; buffer);</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md568"></a>
+<h2><a class="anchor" id="autotoc_md464"></a>
 Phase 2: Editor UI Integration (MEDIUM PRIORITY)</h2>
-<h3><a class="anchor" id="autotoc_md569"></a>
+<h3><a class="anchor" id="autotoc_md465"></a>
 Task 2.1: Object Placement System</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc.html">src/app/editor/dungeon/dungeon_object_interaction.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -618,7 +618,7 @@ Task 2.1: Object Placement System</h3>
 </ul>
 <p><b>Dependencies</b>: Phase 1 complete</p>
 <p><b>Estimated Time</b>: 4-5 hours</p>
-<h3><a class="anchor" id="autotoc_md570"></a>
+<h3><a class="anchor" id="autotoc_md466"></a>
 Task 2.2: Object Selection System</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc.html">src/app/editor/dungeon/dungeon_object_interaction.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -629,7 +629,7 @@ Task 2.2: Object Selection System</h3>
 </ul>
 <p><b>Dependencies</b>: Task 2.1</p>
 <p><b>Estimated Time</b>: 3-4 hours</p>
-<h3><a class="anchor" id="autotoc_md571"></a>
+<h3><a class="anchor" id="autotoc_md467"></a>
 Task 2.3: Object Properties Editor</h3>
 <p><b>Files</b>: <code><a class="el" href="../../dc/dcc/dungeon__object__selector_8cc.html">src/app/editor/dungeon/dungeon_object_selector.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -640,7 +640,7 @@ Task 2.3: Object Properties Editor</h3>
 </ul>
 <p><b>Dependencies</b>: Task 2.2</p>
 <p><b>Estimated Time</b>: 3-4 hours</p>
-<h3><a class="anchor" id="autotoc_md572"></a>
+<h3><a class="anchor" id="autotoc_md468"></a>
 Task 2.4: Layer Management UI</h3>
 <p><b>Files</b>: <code><a class="el" href="../../da/d46/dungeon__editor_8cc.html">src/app/editor/dungeon/dungeon_editor.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -652,9 +652,9 @@ Task 2.4: Layer Management UI</h3>
 <p><b>Dependencies</b>: Task 2.1</p>
 <p><b>Estimated Time</b>: 2-3 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md574"></a>
+<h2><a class="anchor" id="autotoc_md470"></a>
 Phase 3: Save System (HIGH PRIORITY)</h2>
-<h3><a class="anchor" id="autotoc_md575"></a>
+<h3><a class="anchor" id="autotoc_md471"></a>
 Task 3.1: Room Object Encoding ✅ CRITICAL</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d5/d1b/room_8cc.html">src/app/zelda3/dungeon/room.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -681,7 +681,7 @@ Task 3.1: Room Object Encoding ✅ CRITICAL</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Encode door section</span></div>
 <div class="line">std::vector&lt;uint8_t&gt; EncodeDoors(<span class="keyword">const</span> std::vector&lt;DoorObject&gt;&amp; doors);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md576"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md472"></a>
 Task 3.2: ROM Writing System</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d4/d79/app_2rom_8cc.html">src/app/rom.cc</a></code>, <code><a class="el" href="../../d5/d1b/room_8cc.html">src/app/zelda3/dungeon/room.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -692,7 +692,7 @@ Task 3.2: ROM Writing System</h3>
 </ul>
 <p><b>Dependencies</b>: Task 3.1</p>
 <p><b>Estimated Time</b>: 5-6 hours</p>
-<h3><a class="anchor" id="autotoc_md577"></a>
+<h3><a class="anchor" id="autotoc_md473"></a>
 Task 3.3: Save Validation</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d5/d1b/room_8cc.html">src/app/zelda3/dungeon/room.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -704,9 +704,9 @@ Task 3.3: Save Validation</h3>
 <p><b>Dependencies</b>: Task 3.2</p>
 <p><b>Estimated Time</b>: 3-4 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md579"></a>
+<h2><a class="anchor" id="autotoc_md475"></a>
 Phase 4: Advanced Features (LOW PRIORITY)</h2>
-<h3><a class="anchor" id="autotoc_md580"></a>
+<h3><a class="anchor" id="autotoc_md476"></a>
 Task 4.1: Undo/Redo System</h3>
 <p><b>Files</b>: <code><a class="el" href="../../da/d13/dungeon__editor__system_8cc.html">src/app/zelda3/dungeon/dungeon_editor_system.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -717,7 +717,7 @@ Task 4.1: Undo/Redo System</h3>
 </ul>
 <p><b>Dependencies</b>: Phase 2, Phase 3</p>
 <p><b>Estimated Time</b>: 5-6 hours</p>
-<h3><a class="anchor" id="autotoc_md581"></a>
+<h3><a class="anchor" id="autotoc_md477"></a>
 Task 4.2: Copy/Paste Objects</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc.html">src/app/editor/dungeon/dungeon_object_interaction.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -728,7 +728,7 @@ Task 4.2: Copy/Paste Objects</h3>
 </ul>
 <p><b>Dependencies</b>: Task 2.2</p>
 <p><b>Estimated Time</b>: 2-3 hours</p>
-<h3><a class="anchor" id="autotoc_md582"></a>
+<h3><a class="anchor" id="autotoc_md478"></a>
 Task 4.3: Object Library/Templates</h3>
 <p><b>Files</b>: <code><a class="el" href="../../dc/dcc/dungeon__object__selector_8cc.html">src/app/editor/dungeon/dungeon_object_selector.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -739,7 +739,7 @@ Task 4.3: Object Library/Templates</h3>
 </ul>
 <p><b>Dependencies</b>: Phase 2</p>
 <p><b>Estimated Time</b>: 4-5 hours</p>
-<h3><a class="anchor" id="autotoc_md583"></a>
+<h3><a class="anchor" id="autotoc_md479"></a>
 Task 4.4: Room Import/Export</h3>
 <p><b>Files</b>: <code><a class="el" href="../../d5/d1b/room_8cc.html">src/app/zelda3/dungeon/room.cc</a></code></p>
 <p><b>Objectives</b>:</p><ul>
@@ -751,9 +751,9 @@ Task 4.4: Room Import/Export</h3>
 <p><b>Dependencies</b>: Phase 3</p>
 <p><b>Estimated Time</b>: 5-6 hours</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md585"></a>
+<h1><a class="anchor" id="autotoc_md481"></a>
 Technical Architecture</h1>
-<h2><a class="anchor" id="autotoc_md586"></a>
+<h2><a class="anchor" id="autotoc_md482"></a>
 Class Hierarchy</h2>
 <div class="fragment"><div class="line">Rom</div>
 <div class="line">├── Room (296 rooms)</div>
@@ -775,7 +775,7 @@ Class Hierarchy</h2>
 <div class="line">    ├── DungeonCanvasViewer (display)</div>
 <div class="line">    ├── DungeonObjectSelector (object palette)</div>
 <div class="line">    └── DungeonObjectInteraction (mouse/keyboard)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md587"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md483"></a>
 Data Flow</h2>
 <div class="fragment"><div class="line">ROM File</div>
 <div class="line">    ↓</div>
@@ -808,9 +808,9 @@ Data Flow</h2>
 <div class="line">[WriteToRom]</div>
 <div class="line">    ↓</div>
 <div class="line">ROM File Updated</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md588"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md484"></a>
 Key Algorithms</h2>
-<h3><a class="anchor" id="autotoc_md589"></a>
+<h3><a class="anchor" id="autotoc_md485"></a>
 Object Type Detection</h3>
 <div class="fragment"><div class="line"><span class="keywordtype">int</span> DetermineObjectType(uint8_t b1, uint8_t b3) {</div>
 <div class="line">  <span class="comment">// Type 3: b3 &gt;= 0xF8 or b1 &gt;= 0xFC with b3 &gt;= 0xF0</span></div>
@@ -822,7 +822,7 @@ Object Type Detection</h3>
 <div class="line">  <span class="comment">// Type 1: default</span></div>
 <div class="line">  <span class="keywordflow">return</span> 1;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md590"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md486"></a>
 Object Decoding</h3>
 <div class="fragment"><div class="line">RoomObject DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3, uint8_t layer) {</div>
 <div class="line">  <span class="keywordtype">int</span> type = DetermineObjectType(b1, b3);</div>
@@ -855,7 +855,7 @@ Object Decoding</h3>
 <div class="line">  </div>
 <div class="line">  <span class="keywordflow">return</span> RoomObject(<span class="keywordtype">id</span>, x, y, size, layer);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md591"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md487"></a>
 Object Encoding</h3>
 <div class="fragment"><div class="line">ObjectBytes EncodeObjectToBytes(<span class="keyword">const</span> RoomObject&amp; obj) {</div>
 <div class="line">  ObjectBytes bytes;</div>
@@ -879,11 +879,11 @@ Object Encoding</h3>
 <div class="line">  <span class="keywordflow">return</span> bytes;</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md593"></a>
+<h1><a class="anchor" id="autotoc_md489"></a>
 Testing Strategy</h1>
-<h2><a class="anchor" id="autotoc_md594"></a>
+<h2><a class="anchor" id="autotoc_md490"></a>
 Unit Tests</h2>
-<h3><a class="anchor" id="autotoc_md595"></a>
+<h3><a class="anchor" id="autotoc_md491"></a>
 Encoding/Decoding Tests</h3>
 <div class="fragment"><div class="line">TEST(RoomObjectTest, EncodeDecodeType1) {</div>
 <div class="line">  <span class="comment">// Create Type1 object</span></div>
@@ -926,7 +926,7 @@ Encoding/Decoding Tests</h3>
 <div class="line">  EXPECT_EQ(decoded.y_, obj.y_);</div>
 <div class="line">}</div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03_html_a8a4b8ed88b34f98740dd871905b3e979"><div class="ttname"><a href="../../d8/d01/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog__test_8cc_03.html#a8a4b8ed88b34f98740dd871905b3e979">yaze::cli::anonymous_namespace{resource_catalog_test.cc}::TEST</a></div><div class="ttdeci">TEST(ResourceCatalogTest, SerializeResourceIncludesReturnsArray)</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d72/resource__catalog__test_8cc_source.html#l00012">resource_catalog_test.cc:12</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md596"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md492"></a>
 Room Parsing Tests</h3>
 <div class="fragment"><div class="line">TEST(RoomTest, ParseObjectsWithLayers) {</div>
 <div class="line">  <span class="comment">// Create test data with 3 layers</span></div>
@@ -947,9 +947,9 @@ Room Parsing Tests</h3>
 <div class="line">  EXPECT_TRUE(status.ok());</div>
 <div class="line">  EXPECT_EQ(room.GetTileObjects().size(), 2);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md597"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md493"></a>
 Integration Tests</h2>
-<h3><a class="anchor" id="autotoc_md598"></a>
+<h3><a class="anchor" id="autotoc_md494"></a>
 Round-Trip Tests</h3>
 <div class="fragment"><div class="line">TEST(IntegrationTest, LoadSaveLoadRoom) {</div>
 <div class="line">  Rom rom(<span class="stringliteral">&quot;test_rom.sfc&quot;</span>);</div>
@@ -977,9 +977,9 @@ Round-Trip Tests</h3>
 <div class="line">    EXPECT_EQ(room2.GetTileObject(i).y_, room1.GetTileObject(i).y_);</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md599"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md495"></a>
 Manual Testing</h2>
-<h3><a class="anchor" id="autotoc_md600"></a>
+<h3><a class="anchor" id="autotoc_md496"></a>
 Test Cases</h3>
 <ol type="1">
 <li><b>Basic Object Loading</b><ul>
@@ -1017,9 +1017,9 @@ Test Cases</h3>
 </li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md602"></a>
+<h1><a class="anchor" id="autotoc_md498"></a>
 References</h1>
-<h2><a class="anchor" id="autotoc_md603"></a>
+<h2><a class="anchor" id="autotoc_md499"></a>
 Documentation</h2>
 <ul>
 <li><b>ZScream Source Code</b>: <code>/Users/scawful/Code/ZScreamDungeon/ZeldaFullEditor/Rooms/</code></li>
@@ -1027,9 +1027,9 @@ Documentation</h2>
 <li><b>ALTTP Disassembly</b>: <code>/Users/scawful/Code/yaze/assets/asm/usdasm/</code></li>
 <li><b>This Document</b>: <code>/Users/scawful/Code/yaze/docs/dungeon_editing_implementation_plan.md</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md604"></a>
+<h2><a class="anchor" id="autotoc_md500"></a>
 Key Files</h2>
-<h3><a class="anchor" id="autotoc_md605"></a>
+<h3><a class="anchor" id="autotoc_md501"></a>
 ZScream (Reference)</h3>
 <ul>
 <li><code>Room.cs</code> - Main room class with object loading/saving</li>
@@ -1037,7 +1037,7 @@ ZScream (Reference)</h3>
 <li><code>DungeonObjectData.cs</code> - Object tile data tables</li>
 <li><code>GFX.cs</code> - Graphics management</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md606"></a>
+<h3><a class="anchor" id="autotoc_md502"></a>
 Yaze (Implementation)</h3>
 <ul>
 <li><code><a class="el" href="../../d9/dc0/room_8h.html">src/app/zelda3/dungeon/room.h</a>/cc</code> - Room class</li>
@@ -1047,7 +1047,7 @@ Yaze (Implementation)</h3>
 <li><code><a class="el" href="../../d6/df5/dungeon__editor_8h.html">src/app/editor/dungeon/dungeon_editor.h</a>/cc</code> - Main editor</li>
 <li><code><a class="el" href="../../d4/ded/dungeon__object__interaction_8h.html">src/app/editor/dungeon/dungeon_object_interaction.h</a>/cc</code> - Object interaction</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md607"></a>
+<h2><a class="anchor" id="autotoc_md503"></a>
 External Resources</h2>
 <ul>
 <li><b>ALTTP Hacking Resources</b>: <a href="https://github.com/spannerisms/z3doc">https://github.com/spannerisms/z3doc</a></li>
@@ -1055,9 +1055,9 @@ External Resources</h2>
 <li><b>Disassembly</b>: <a href="https://github.com/camthesaxman/zelda3">https://github.com/camthesaxman/zelda3</a></li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md609"></a>
+<h1><a class="anchor" id="autotoc_md505"></a>
 Appendix: Object ID Reference</h1>
-<h2><a class="anchor" id="autotoc_md610"></a>
+<h2><a class="anchor" id="autotoc_md506"></a>
 Type 1 Objects (0x00-0xFF)</h2>
 <p>Common objects with size parameter:</p><ul>
 <li>0x00-0x09: Walls (ceiling, top, bottom)</li>
@@ -1072,7 +1072,7 @@ Type 1 Objects (0x00-0xFF)</h2>
 <li>0x3F-0x45: Water edges</li>
 <li>0x50-0x5F: Dungeon-specific decorations</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md611"></a>
+<h2><a class="anchor" id="autotoc_md507"></a>
 Type 2 Objects (0x100-0x1FF)</h2>
 <p>Special fixed-size objects:</p><ul>
 <li>0x100-0x10F: Corners (concave, convex)</li>
@@ -1081,7 +1081,7 @@ Type 2 Objects (0x100-0x1FF)</h2>
 <li>0x130-0x13F: Functional objects (blocks, stairs, chests)</li>
 <li>0x140-0x14F: Interactive objects (switches, torches)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md612"></a>
+<h2><a class="anchor" id="autotoc_md508"></a>
 Type 3 Objects (0xF00-0xFFF)</h2>
 <p>Extended special objects:</p><ul>
 <li>0xF99: Small chest</li>
@@ -1091,9 +1091,9 @@ Type 3 Objects (0xF00-0xFFF)</h2>
 <li>0xFA0-0xFAF: Interactive elements</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md614"></a>
+<h1><a class="anchor" id="autotoc_md510"></a>
 Status Tracking</h1>
-<h2><a class="anchor" id="autotoc_md615"></a>
+<h2><a class="anchor" id="autotoc_md511"></a>
 Current Progress</h2>
 <ul>
 <li>[x] Document created</li>
@@ -1108,7 +1108,7 @@ Current Progress</h2>
 <li>[ ] Phase 3: Save System</li>
 <li>[ ] Phase 4: Advanced Features</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md616"></a>
+<h2><a class="anchor" id="autotoc_md512"></a>
 Next Steps</h2>
 <ol type="1">
 <li><b>Start with Task 1.1</b> - Implement object encoding/decoding</li>
@@ -1116,7 +1116,7 @@ Next Steps</h2>
 <li><b>Verify with ZScream</b> - Compare results with known working implementation</li>
 <li><b>Proceed to Task 1.2</b> - Once encoding/decoding is solid</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md617"></a>
+<h2><a class="anchor" id="autotoc_md513"></a>
 Timeline Estimate</h2>
 <ul>
 <li><b>Phase 1</b>: 16-20 hours (CRITICAL - Must be done first)</li>

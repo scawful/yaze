@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['⭐_20primary_20focus_0',['Overworld Tile16 Editing ⭐ PRIMARY FOCUS',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md1467',1,'']]]
+  ['🍎_20macos_20arm64_20presets_20recommended_20for_20apple_20silicon_0',['🍎 macOS ARM64 Presets (Recommended for Apple Silicon)',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md208',1,'']]]
 ];

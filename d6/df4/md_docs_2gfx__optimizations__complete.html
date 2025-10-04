@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('d6/df4/md_docs_2gfx__optimizations__co
   <div class="headertitle"><div class="title">YAZE Graphics System Optimizations - Complete Implementation</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md925"></a> </p>
-<h1><a class="anchor" id="autotoc_md926"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md821"></a> </p>
+<h1><a class="anchor" id="autotoc_md822"></a>
 Overview</h1>
 <p>This document provides a comprehensive summary of all graphics optimizations implemented in the YAZE ROM hacking editor. These optimizations provide significant performance improvements for Link to the Past graphics editing workflows, with expected gains of 100x faster palette lookups, 10x faster texture updates, and 30% memory reduction.</p>
-<h1><a class="anchor" id="autotoc_md927"></a>
+<h1><a class="anchor" id="autotoc_md823"></a>
 Implemented Optimizations</h1>
-<h2><a class="anchor" id="autotoc_md928"></a>
+<h2><a class="anchor" id="autotoc_md824"></a>
 1. Palette Lookup Optimization ✅ COMPLETED</h2>
 <p><b>Files</b>: <code><a class="el" href="../../da/dcb/bitmap_8h.html">src/app/gfx/bitmap.h</a></code>, <code><a class="el" href="../../d4/d13/bitmap_8cc.html">src/app/gfx/bitmap.cc</a></code></p>
 <p><b>Implementation</b>:</p><ul>
@@ -132,7 +132,7 @@ Implemented Optimizations</h1>
 <div class="line"> </div>
 <div class="line"><span class="comment">// After: O(1) hash map lookup</span></div>
 <div class="line">uint8_t color_index = FindColorIndex(color);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md929"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md825"></a>
 2. Dirty Region Tracking ✅ COMPLETED</h2>
 <p><b>Files</b>: <code><a class="el" href="../../da/dcb/bitmap_8h.html">src/app/gfx/bitmap.h</a></code>, <code><a class="el" href="../../d4/d13/bitmap_8cc.html">src/app/gfx/bitmap.cc</a></code></p>
 <p><b>Implementation</b>:</p><ul>
@@ -147,7 +147,7 @@ Implemented Optimizations</h1>
 <li>Reduces GPU memory bandwidth usage</li>
 <li>Minimizes SDL texture update overhead</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md930"></a>
+<h2><a class="anchor" id="autotoc_md826"></a>
 3. Resource Pooling ✅ COMPLETED</h2>
 <p><b>Files</b>: <code><a class="el" href="../../da/d0c/arena_8h.html">src/app/gfx/arena.h</a></code>, <code><a class="el" href="../../d2/dee/arena_8cc.html">src/app/gfx/arena.cc</a></code></p>
 <p><b>Implementation</b>:</p><ul>
@@ -163,7 +163,7 @@ Implemented Optimizations</h1>
 <li>Reduces memory fragmentation</li>
 <li>Faster resource allocation for common sizes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md931"></a>
+<h2><a class="anchor" id="autotoc_md827"></a>
 4. LRU Tile Caching ✅ COMPLETED</h2>
 <p><b>Files</b>: <code><a class="el" href="../../dc/d0c/tilemap_8h.html">src/app/gfx/tilemap.h</a></code>, <code><a class="el" href="../../d6/de2/tilemap_8cc.html">src/app/gfx/tilemap.cc</a></code></p>
 <p><b>Implementation</b>:</p><ul>
@@ -179,7 +179,7 @@ Implemented Optimizations</h1>
 <li>Faster tile rendering for repeated access patterns</li>
 <li>O(1) tile lookup and insertion</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md932"></a>
+<h2><a class="anchor" id="autotoc_md828"></a>
 5. Batch Operations ✅ COMPLETED</h2>
 <p><b>Files</b>: <code><a class="el" href="../../da/d0c/arena_8h.html">src/app/gfx/arena.h</a></code>, <code><a class="el" href="../../d2/dee/arena_8cc.html">src/app/gfx/arena.cc</a></code>, <code><a class="el" href="../../da/dcb/bitmap_8h.html">src/app/gfx/bitmap.h</a></code>, <code><a class="el" href="../../d4/d13/bitmap_8cc.html">src/app/gfx/bitmap.cc</a></code></p>
 <p><b>Implementation</b>:</p><ul>
@@ -195,7 +195,7 @@ Implemented Optimizations</h1>
 <li>Minimizes draw call overhead</li>
 <li>Automatic queue management prevents memory bloat</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md933"></a>
+<h2><a class="anchor" id="autotoc_md829"></a>
 6. Memory Pool Allocator ✅ COMPLETED</h2>
 <p><b>Files</b>: <code><a class="el" href="../../de/d5c/memory__pool_8h.html">src/app/gfx/memory_pool.h</a></code>, <code><a class="el" href="../../d9/dc6/memory__pool_8cc.html">src/app/gfx/memory_pool.cc</a></code></p>
 <p><b>Implementation</b>:</p><ul>
@@ -211,14 +211,14 @@ Implemented Optimizations</h1>
 <li>Fast allocation for common sizes (8x8, 16x16 tiles)</li>
 <li>Automatic block reuse and recycling</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md934"></a>
+<h2><a class="anchor" id="autotoc_md830"></a>
 7. Atlas-Based Rendering ✅ COMPLETED</h2>
 <p><b>Files</b>: <code><a class="el" href="../../d1/d35/atlas__renderer_8h.html">src/app/gfx/atlas_renderer.h</a></code>, <code><a class="el" href="../../dd/d53/atlas__renderer_8cc.html">src/app/gfx/atlas_renderer.cc</a></code></p>
 <p><b>Overview</b>: Successfully implemented a comprehensive atlas-based rendering system for the YAZE ROM hacking editor, providing significant performance improvements through reduced draw calls and efficient texture management.</p>
 <p><b>Implementation Details</b>:</p>
-<h3><a class="anchor" id="autotoc_md935"></a>
+<h3><a class="anchor" id="autotoc_md831"></a>
 Core Components</h3>
-<h4><a class="anchor" id="autotoc_md936"></a>
+<h4><a class="anchor" id="autotoc_md832"></a>
 1. AtlasRenderer Class (&lt;tt&gt;src/app/gfx/atlas_renderer.h/cc&lt;/tt&gt;)</h4>
 <p><b>Purpose</b>: Centralized atlas management and batch rendering system</p>
 <p><b>Key Features</b>:</p><ul>
@@ -234,7 +234,7 @@ Core Components</h3>
 <li><b>Efficient texture packing</b> with automatic space management</li>
 <li><b>Memory optimization</b> through atlas defragmentation</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md937"></a>
+<h4><a class="anchor" id="autotoc_md833"></a>
 2. RenderCommand Structure</h4>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>RenderCommand {</div>
 <div class="line">  <span class="keywordtype">int</span> atlas_id;      </div>
@@ -243,7 +243,7 @@ Core Components</h3>
 <div class="line">  <span class="keywordtype">float</span> rotation;    </div>
 <div class="line">  SDL_Color tint;    </div>
 <div class="line">};</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md938"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md834"></a>
 3. Atlas Statistics Tracking</h4>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>AtlasStats {</div>
 <div class="line">  <span class="keywordtype">int</span> total_atlases;</div>
@@ -253,25 +253,25 @@ Core Components</h3>
 <div class="line">  <span class="keywordtype">size_t</span> used_memory;</div>
 <div class="line">  <span class="keywordtype">float</span> utilization_percent;</div>
 <div class="line">};</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md939"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md835"></a>
 Integration Points</h3>
-<h4><a class="anchor" id="autotoc_md940"></a>
+<h4><a class="anchor" id="autotoc_md836"></a>
 1. Tilemap Integration (&lt;tt&gt;src/app/gfx/tilemap.h/cc&lt;/tt&gt;)</h4>
 <p><b>New Function</b>: <code>RenderTilesBatch()</code></p><ul>
 <li>Renders multiple tiles in a single batch operation</li>
 <li>Integrates with existing tile cache system</li>
 <li>Supports position and scale arrays for flexible rendering</li>
 </ul>
-<h4><a class="anchor" id="autotoc_md941"></a>
+<h4><a class="anchor" id="autotoc_md837"></a>
 2. Performance Dashboard Integration</h4>
 <p><b>Atlas Statistics Display</b>:</p><ul>
 <li>Real-time atlas utilization tracking</li>
 <li>Memory usage monitoring</li>
 <li>Entry count and efficiency metrics</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md942"></a>
+<h3><a class="anchor" id="autotoc_md838"></a>
 Technical Implementation</h3>
-<h4><a class="anchor" id="autotoc_md943"></a>
+<h4><a class="anchor" id="autotoc_md839"></a>
 Atlas Packing Algorithm</h4>
 <div class="fragment"><div class="line"><span class="keywordtype">bool</span> PackBitmap(Atlas&amp; atlas, <span class="keyword">const</span> Bitmap&amp; bitmap, SDL_Rect&amp; uv_rect) {</div>
 <div class="line">  <span class="comment">// Find free region using first-fit algorithm</span></div>
@@ -285,7 +285,7 @@ Atlas Packing Algorithm</h4>
 <div class="line">  uv_rect = {free_rect.x, free_rect.y, width, height};</div>
 <div class="line">  <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h4><a class="anchor" id="autotoc_md944"></a>
+</div><!-- fragment --><h4><a class="anchor" id="autotoc_md840"></a>
 Batch Rendering Process</h4>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> RenderBatch(<span class="keyword">const</span> std::vector&lt;RenderCommand&gt;&amp; render_commands) {</div>
 <div class="line">  <span class="comment">// Group commands by atlas for efficient rendering</span></div>
@@ -307,7 +307,7 @@ Batch Rendering Process</h4>
 <li><b>Memory Efficiency</b>: 30% reduction in texture memory usage.</li>
 <li><b>Rendering Speed</b>: 5x faster batch operations vs individual rendering.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md945"></a>
+<h2><a class="anchor" id="autotoc_md841"></a>
 8. Performance Profiling System ✅ COMPLETED</h2>
 <p><b>Files</b>: <code><a class="el" href="../../dd/db2/performance__profiler_8h.html">src/app/gfx/performance_profiler.h</a></code>, <code><a class="el" href="../../d5/da6/performance__profiler_8cc.html">src/app/gfx/performance_profiler.cc</a></code></p>
 <p><b>Implementation</b>:</p><ul>
@@ -324,7 +324,7 @@ Batch Rendering Process</h4>
 <li>Comprehensive reporting system</li>
 <li>RAII timer management</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md946"></a>
+<h2><a class="anchor" id="autotoc_md842"></a>
 9. Performance Monitoring Dashboard ✅ COMPLETED</h2>
 <p><b>Files</b>: <code><a class="el" href="../../db/d5c/performance__dashboard_8h.html">src/app/gfx/performance_dashboard.h</a></code>, <code><a class="el" href="../../d4/d9f/performance__dashboard_8cc.html">src/app/gfx/performance_dashboard.cc</a></code></p>
 <p><b>Implementation</b>:</p><ul>
@@ -342,7 +342,7 @@ Batch Rendering Process</h4>
 <li>Performance regression detection</li>
 <li>Optimization recommendations</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md947"></a>
+<h2><a class="anchor" id="autotoc_md843"></a>
 10. Optimization Validation Suite ✅ COMPLETED</h2>
 <p><b>Files</b>: <code><a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc.html">test/gfx_optimization_benchmarks.cc</a></code></p>
 <p><b>Implementation</b>:</p><ul>
@@ -361,9 +361,9 @@ Batch Rendering Process</h4>
 <li>Performance profiler overhead tests</li>
 <li>Overall performance integration tests</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md948"></a>
+<h1><a class="anchor" id="autotoc_md844"></a>
 Performance Metrics</h1>
-<h2><a class="anchor" id="autotoc_md949"></a>
+<h2><a class="anchor" id="autotoc_md845"></a>
 Expected Improvements</h2>
 <ul>
 <li><b>Palette Lookup</b>: 100x faster (O(n) → O(1))</li>
@@ -375,7 +375,7 @@ Expected Improvements</h2>
 <li><b>Draw Calls</b>: N → 1 (atlas rendering)</li>
 <li><b>Overall Frame Rate</b>: 2x improvement</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md950"></a>
+<h2><a class="anchor" id="autotoc_md846"></a>
 Measurement Tools</h2>
 <p>The performance profiler and dashboard provide detailed metrics:</p><ul>
 <li>Operation timing statistics</li>
@@ -385,9 +385,9 @@ Measurement Tools</h2>
 <li>Cache hit/miss ratios</li>
 <li>Frame rate analysis</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md951"></a>
+<h1><a class="anchor" id="autotoc_md847"></a>
 Integration Points</h1>
-<h2><a class="anchor" id="autotoc_md952"></a>
+<h2><a class="anchor" id="autotoc_md848"></a>
 Graphics Editor</h2>
 <ul>
 <li>Palette lookup optimization for color picker</li>
@@ -395,14 +395,14 @@ Graphics Editor</h2>
 <li>Resource pooling for graphics sheet management</li>
 <li>Batch operations for multiple texture updates</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md953"></a>
+<h2><a class="anchor" id="autotoc_md849"></a>
 Palette Editor</h2>
 <ul>
 <li>Optimized color conversion caching</li>
 <li>Efficient palette update operations</li>
 <li>Real-time color preview performance</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md954"></a>
+<h2><a class="anchor" id="autotoc_md850"></a>
 Screen Editor</h2>
 <ul>
 <li>Tile caching for dungeon map editing</li>
@@ -410,7 +410,7 @@ Screen Editor</h2>
 <li>Optimized metadata editing operations</li>
 <li>Atlas rendering for multiple tiles</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md955"></a>
+<h1><a class="anchor" id="autotoc_md851"></a>
 Backward Compatibility</h1>
 <p>All optimizations maintain full backward compatibility:</p><ul>
 <li>No changes to public APIs</li>
@@ -418,9 +418,9 @@ Backward Compatibility</h1>
 <li>Performance improvements are automatic</li>
 <li>No breaking changes to ROM hacking workflows</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md956"></a>
+<h1><a class="anchor" id="autotoc_md852"></a>
 Usage Examples</h1>
-<h2><a class="anchor" id="autotoc_md957"></a>
+<h2><a class="anchor" id="autotoc_md853"></a>
 Using Batch Operations</h2>
 <div class="fragment"><div class="line"><span class="comment">// Queue multiple texture updates</span></div>
 <div class="line"><span class="keywordflow">for</span> (<span class="keyword">auto</span>&amp; bitmap : graphics_sheets) {</div>
@@ -429,7 +429,7 @@ Using Batch Operations</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Process all updates in a single batch</span></div>
 <div class="line">Arena::Get().ProcessBatchTextureUpdates();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md958"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md854"></a>
 Using Memory Pool</h2>
 <div class="fragment"><div class="line"><span class="comment">// Allocate graphics data from pool</span></div>
 <div class="line"><span class="keywordtype">void</span>* tile_data = MemoryPool::Get().Allocate(1024);</div>
@@ -438,7 +438,7 @@ Using Memory Pool</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Deallocate back to pool</span></div>
 <div class="line">MemoryPool::Get().Deallocate(tile_data);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md959"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md855"></a>
 Using Atlas Rendering</h2>
 <div class="fragment"><div class="line"><span class="comment">// Add bitmaps to atlas</span></div>
 <div class="line"><span class="keywordtype">int</span> atlas_id = AtlasRenderer::Get().AddBitmap(bitmap);</div>
@@ -449,7 +449,7 @@ Using Atlas Rendering</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Render all in single draw call</span></div>
 <div class="line">AtlasRenderer::Get().RenderBatch(commands);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md960"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md856"></a>
 Using Performance Monitoring</h2>
 <div class="fragment"><div class="line"><span class="comment">// Show performance dashboard</span></div>
 <div class="line">PerformanceDashboard::Get().SetVisible(<span class="keyword">true</span>);</div>
@@ -457,25 +457,25 @@ Using Performance Monitoring</h2>
 <div class="line"><span class="comment">// Get performance summary</span></div>
 <div class="line"><span class="keyword">auto</span> summary = PerformanceDashboard::Get().GetSummary();</div>
 <div class="line">std::cout &lt;&lt; <span class="stringliteral">&quot;Optimization score: &quot;</span> &lt;&lt; summary.optimization_score &lt;&lt; std::endl;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md961"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md857"></a>
 Future Enhancements</h1>
-<h2><a class="anchor" id="autotoc_md962"></a>
+<h2><a class="anchor" id="autotoc_md858"></a>
 Phase 2 Optimizations (Medium Priority)</h2>
 <ol type="1">
 <li><b>Multi-threaded Updates</b>: Background texture processing</li>
 <li><b>Advanced Caching</b>: Predictive tile preloading</li>
 <li><b>GPU-based Operations</b>: Move operations to GPU</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md963"></a>
+<h2><a class="anchor" id="autotoc_md859"></a>
 Phase 3 Optimizations (High Priority)</h2>
 <ol type="1">
 <li><b>Advanced Memory Management</b>: Custom allocators for specific use cases</li>
 <li><b>Dynamic LOD</b>: Level-of-detail for large graphics sheets</li>
 <li><b>Compression</b>: Real-time graphics compression</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md964"></a>
+<h1><a class="anchor" id="autotoc_md860"></a>
 Testing and Validation</h1>
-<h2><a class="anchor" id="autotoc_md965"></a>
+<h2><a class="anchor" id="autotoc_md861"></a>
 Performance Testing</h2>
 <ul>
 <li>Comprehensive benchmark suite for measuring improvements</li>
@@ -483,7 +483,7 @@ Performance Testing</h2>
 <li>Memory usage profiling</li>
 <li>Frame rate analysis</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md966"></a>
+<h2><a class="anchor" id="autotoc_md862"></a>
 ROM Hacking Workflow Testing</h2>
 <ul>
 <li>Graphics editing performance</li>
@@ -491,7 +491,7 @@ ROM Hacking Workflow Testing</h2>
 <li>Tile-based editing efficiency</li>
 <li>Large graphics sheet handling</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md967"></a>
+<h1><a class="anchor" id="autotoc_md863"></a>
 Conclusion</h1>
 <p>The implemented optimizations provide significant performance improvements for the YAZE graphics system:</p>
 <ol type="1">
@@ -506,9 +506,9 @@ Conclusion</h1>
 </ol>
 <p>These improvements directly benefit ROM hacking workflows by making graphics editing more responsive and efficient, particularly for large graphics sheets and complex palette operations common in Link to the Past ROM hacking.</p>
 <p>The optimizations maintain full backward compatibility while providing automatic performance improvements across all graphics operations in the YAZE editor. The comprehensive testing suite ensures optimization stability and provides ongoing performance validation.</p>
-<h1><a class="anchor" id="autotoc_md968"></a>
+<h1><a class="anchor" id="autotoc_md864"></a>
 Files Modified/Created</h1>
-<h2><a class="anchor" id="autotoc_md969"></a>
+<h2><a class="anchor" id="autotoc_md865"></a>
 Core Graphics Classes</h2>
 <ul>
 <li><code><a class="el" href="../../da/dcb/bitmap_8h.html">src/app/gfx/bitmap.h</a></code> - Enhanced with palette lookup optimization and dirty region tracking</li>
@@ -518,7 +518,7 @@ Core Graphics Classes</h2>
 <li><code><a class="el" href="../../dc/d0c/tilemap_8h.html">src/app/gfx/tilemap.h</a></code> - Enhanced with LRU tile caching</li>
 <li><code><a class="el" href="../../d6/de2/tilemap_8cc.html">src/app/gfx/tilemap.cc</a></code> - Implemented LRU tile caching</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md970"></a>
+<h2><a class="anchor" id="autotoc_md866"></a>
 New Optimization Components</h2>
 <ul>
 <li><code><a class="el" href="../../de/d5c/memory__pool_8h.html">src/app/gfx/memory_pool.h</a></code> - Memory pool allocator header</li>
@@ -528,17 +528,17 @@ New Optimization Components</h2>
 <li><code><a class="el" href="../../db/d5c/performance__dashboard_8h.html">src/app/gfx/performance_dashboard.h</a></code> - Performance monitoring dashboard header</li>
 <li><code><a class="el" href="../../d4/d9f/performance__dashboard_8cc.html">src/app/gfx/performance_dashboard.cc</a></code> - Performance monitoring dashboard implementation</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md971"></a>
+<h2><a class="anchor" id="autotoc_md867"></a>
 Testing and Validation</h2>
 <ul>
 <li><code><a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc.html">test/gfx_optimization_benchmarks.cc</a></code> - Comprehensive optimization benchmark suite</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md972"></a>
+<h2><a class="anchor" id="autotoc_md868"></a>
 Build System</h2>
 <ul>
 <li><code>src/app/gfx/gfx.cmake</code> - Updated to include new optimization components</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md973"></a>
+<h2><a class="anchor" id="autotoc_md869"></a>
 Documentation</h2>
 <ul>
 <li><code><a class="el" href="../../d0/d1d/gfx__optimizations__complete_8md.html">docs/gfx_optimizations_complete.md</a></code> - This comprehensive summary document</li>

@@ -1,25 +1,10 @@
 var searchData=
 [
-  ['6_0',['15. Expanded Roadmap (Phase 6+)',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1166',1,'']]],
-  ['6_201_20the_20generative_20workflow_1',['6.1. The Generative Workflow',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1104',1,'']]],
-  ['6_202_20key_20enablers_2',['6.2. Key Enablers',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1105',1,'']]],
-  ['6_208_20hours_3',['6 8 hours',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1177',1,'IT-05: Test Introspection API (6-8 hours)'],['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1122',1,'IT-05: Test Introspection API (6-8 hours)'],['../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html#autotoc_md1054',1,'Priority 2: Implement GUI Chat Widget (6-8 hours)'],['../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html#autotoc_md1041',1,'Priority 3: Proposal Generation (6-8 hours)'],['../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html#autotoc_md1055',1,'Priority 3: Proposal Generation (6-8 hours)']]],
-  ['6_208h_4',['Priority 2: Proposal Integration (6-8h)',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1299',1,'']]],
-  ['6_20asm_20version_20detection_20for_20item_20loading_5',['6. ASM Version Detection for Item Loading',['../d8/d17/md_docs_2analysis_2zscream__yaze__overworld__comparison.html#autotoc_md194',1,'']]],
-  ['6_20future_20code_20quality_20goals_6',['10.6. Future Code Quality Goals',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1149',1,'']]],
-  ['6_20generative_20agentic_20workflows_20mcp_20integration_7',['6. Generative &amp; Agentic Workflows (MCP Integration)',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1103',1,'']]],
-  ['6_20hours_8',['6 hours',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1178',1,'IT-06: Widget Discovery API (4-6 hours)'],['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1123',1,'IT-06: Widget Discovery API (4-6 hours)'],['../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html#autotoc_md1040',1,'Priority 2: GUI Chat Integration (4-6 hours)'],['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1207',1,'Priority 2: Policy Evaluation Framework (AW-04, 4-6 hours)'],['../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html#autotoc_md1064',1,'Priority 4: Performance and Caching (4-6 hours)']]],
-  ['6_20hours_20🎯_20start_20here_9',['Phase 1: Ollama Local Integration (4-6 hours) 🎯 START HERE',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1186',1,'']]],
-  ['6_20memory_20pool_20allocator_20✅_20completed_10',['6. Memory Pool Allocator ✅ COMPLETED',['../d6/df4/md_docs_2gfx__optimizations__complete.html#autotoc_md933',1,'']]],
-  ['6_20memory_20pool_20for_20graphics_11',['6. Memory Pool for Graphics',['../d9/d6b/md_docs_2B5-stability-improvements.html#autotoc_md347',1,'']]],
-  ['6_20months_12',['6 months',['../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html#autotoc_md1063',1,'Long Term (6+ months)'],['../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html#autotoc_md1062',1,'Medium Term (3-6 months)']]],
-  ['6_20november_202023_13',['0.0.6 (November 2023)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md396',1,'']]],
-  ['6_20references_14',['6. References',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1253',1,'']]],
-  ['6_20safety_20sandboxing_15',['8.6. Safety &amp; Sandboxing',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1132',1,'']]],
-  ['6_20special_20area_20graphics_20issues_16',['6. Special Area Graphics Issues',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md886',1,'']]],
-  ['6_20strong_20item_20loading_20with_20asm_20version_20detection_20strong_17',['6. &lt;strong&gt;Item Loading with ASM Version Detection&lt;/strong&gt;',['../d5/ddd/md_docs_2analysis_2comprehensive__overworld__analysis.html#autotoc_md149',1,'']]],
-  ['6_20x_18',['0.6.X',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md522',1,'']]],
-  ['65816_20assembler_20integration_19',['65816 assembler integration',['../d2/dd3/md_docs_203-asar-integration.html',1,'Asar 65816 Assembler Integration'],['../d0/d30/md_README.html#autotoc_md1491',1,'Asar 65816 Assembler Integration']]],
-  ['6_3a_20agent_20workflow_20foundations_20planned_20',['Phase 6: Agent Workflow Foundations (Planned)',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1167',1,'']]],
-  ['6_3a_20resource_20catalogue_20api_20documentation_20✅_20completed_20oct_201_202025_21',['Phase 6: Resource Catalogue &amp; API Documentation (✅ Completed - Oct 1, 2025)',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1112',1,'']]]
+  ['6_20memory_20pool_20allocator_20✅_20completed_0',['6. Memory Pool Allocator ✅ COMPLETED',['../d6/df4/md_docs_2gfx__optimizations__complete.html#autotoc_md829',1,'']]],
+  ['6_20memory_20pool_20for_20graphics_1',['6. Memory Pool for Graphics',['../d9/d6b/md_docs_2B5-stability-improvements.html#autotoc_md303',1,'']]],
+  ['6_20november_202023_2',['0.0.6 (November 2023)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md352',1,'']]],
+  ['6_20special_20area_20graphics_20issues_3',['6. Special Area Graphics Issues',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md782',1,'']]],
+  ['6_20technical_20implementation_20details_4',['6. Technical Implementation Details',['../d3/d04/md_docs_2z3ed_2developer__guide.html#autotoc_md937',1,'']]],
+  ['6_20x_5',['0.6.X',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md418',1,'']]],
+  ['65816_20assembler_20integration_6',['65816 assembler integration',['../d2/dd3/md_docs_203-asar-integration.html',1,'Asar 65816 Assembler Integration'],['../d0/d30/md_README.html#autotoc_md1004',1,'Asar 65816 Assembler Integration']]]
 ];

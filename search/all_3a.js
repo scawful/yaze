@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['🔄_0',['Phase 2: Integrate Components 🔄',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md758',1,'']]],
-  ['🔄_20in_20progress_1',['🔄 In Progress',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md754',1,'']]]
+  ['🛠️_20ide_20integration_0',['🛠️ IDE Integration',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md214',1,'']]],
+  ['🛠️_20technical_20improvements_1',['🛠️ Technical Improvements',['../d0/d30/md_README.html#autotoc_md1007',1,'']]]
 ];

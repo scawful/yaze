@@ -394,67 +394,72 @@ $(document).ready(function(){initNavTree('d3/d5c/conversational__agent__service_
 <div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>          }</div>
 <div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>          </div>
 <div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>          <span class="comment">// Add tool result with a clear marker for the LLM</span></div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>          std::string marked_output = <span class="stringliteral">&quot;[TOOL RESULT] &quot;</span> + tool_output;</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>          <a class="code hl_variable" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a9f6b83547ef6e9be24597a6d4657a452">history_</a>.push_back(</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>              CreateMessage(<a class="code hl_enumvalue" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">ChatMessage::Sender::kUser</a>, marked_output));</div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>        }</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>        executed_tool = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>      }</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span> </div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>      <span class="keywordflow">if</span> (executed_tool) {</div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        <span class="comment">// Now we&#39;re waiting for the LLM to provide a text response</span></div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        waiting_for_text_response = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>        <span class="comment">// Re-query the AI with updated context.</span></div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>      }</div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>    }</div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span> </div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>    <span class="comment">// Check if we received a text response after tool execution</span></div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>    <span class="keywordflow">if</span> (waiting_for_text_response &amp;&amp; agent_response.text_response.empty() &amp;&amp; </div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>        agent_response.commands.empty()) {</div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>      <a class="code hl_function" href="../../d1/d87/namespaceyaze_1_1cli_1_1util.html#a4de0572fd23c06ac8ccd4622c2718385">util::PrintWarning</a>(</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>          absl::StrCat(<span class="stringliteral">&quot;LLM did not provide text_response after receiving tool results (Iteration: &quot;</span>,</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>                      iteration + 1, <span class="stringliteral">&quot;/&quot;</span>, max_iterations, <span class="stringliteral">&quot;)&quot;</span>));</div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>      <span class="comment">// Continue to give it another chance</span></div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>    }</div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span> </div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>    std::string response_text = agent_response.text_response;</div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    <span class="keywordflow">if</span> (!agent_response.reasoning.empty()) {</div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>      <span class="keywordflow">if</span> (!response_text.empty()) {</div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>        response_text.append(<span class="stringliteral">&quot;\n\n&quot;</span>);</div>
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>      }</div>
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>      response_text.append(<span class="stringliteral">&quot;Reasoning: &quot;</span>);</div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>      response_text.append(agent_response.reasoning);</div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>    }</div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>    <span class="keywordflow">if</span> (!agent_response.commands.empty()) {</div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>      <span class="keywordflow">if</span> (!response_text.empty()) {</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>        response_text.append(<span class="stringliteral">&quot;\n\n&quot;</span>);</div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>      }</div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>      response_text.append(<span class="stringliteral">&quot;Commands:\n&quot;</span>);</div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>      response_text.append(absl::StrJoin(agent_response.commands, <span class="stringliteral">&quot;\n&quot;</span>));</div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>    }</div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span> </div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>  <a class="code hl_struct" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">ChatMessage</a> chat_response =</div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>    CreateMessage(<a class="code hl_enumvalue" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2af76ed811b18a86459694dacf3347d438">ChatMessage::Sender::kAgent</a>, response_text);</div>
-<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>    <a class="code hl_variable" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a9f6b83547ef6e9be24597a6d4657a452">history_</a>.push_back(chat_response);</div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>    <span class="keywordflow">return</span> chat_response;</div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>  }</div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span> </div>
-<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>  <span class="keywordflow">return</span> absl::InternalError(</div>
-<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>      <span class="stringliteral">&quot;Agent did not produce a response after executing tools.&quot;</span>);</div>
-<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>}</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>          <span class="comment">// Format as plain text to avoid confusing the LLM with nested JSON</span></div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>          std::string marked_output = absl::StrCat(</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>              <span class="stringliteral">&quot;[TOOL RESULT for &quot;</span>, tool_call.tool_name, <span class="stringliteral">&quot;]\n&quot;</span>,</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>              <span class="stringliteral">&quot;The tool returned the following data:\n&quot;</span>,</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>              tool_output, <span class="stringliteral">&quot;\n\n&quot;</span>,</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>              <span class="stringliteral">&quot;Please provide a text_response field in your JSON to summarize this information for the user.&quot;</span>);</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>          <a class="code hl_variable" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a9f6b83547ef6e9be24597a6d4657a452">history_</a>.push_back(</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>              CreateMessage(<a class="code hl_enumvalue" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">ChatMessage::Sender::kUser</a>, marked_output));</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>        }</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        executed_tool = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>      }</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span> </div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>      <span class="keywordflow">if</span> (executed_tool) {</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>        <span class="comment">// Now we&#39;re waiting for the LLM to provide a text response</span></div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>        waiting_for_text_response = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>        <span class="comment">// Re-query the AI with updated context.</span></div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>        <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>      }</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    }</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span> </div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>    <span class="comment">// Check if we received a text response after tool execution</span></div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>    <span class="keywordflow">if</span> (waiting_for_text_response &amp;&amp; agent_response.text_response.empty() &amp;&amp; </div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>        agent_response.commands.empty()) {</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>      <a class="code hl_function" href="../../d1/d87/namespaceyaze_1_1cli_1_1util.html#a4de0572fd23c06ac8ccd4622c2718385">util::PrintWarning</a>(</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>          absl::StrCat(<span class="stringliteral">&quot;LLM did not provide text_response after receiving tool results (Iteration: &quot;</span>,</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>                      iteration + 1, <span class="stringliteral">&quot;/&quot;</span>, max_iterations, <span class="stringliteral">&quot;)&quot;</span>));</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>      <span class="comment">// Continue to give it another chance</span></div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>    }</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span> </div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>    std::string response_text = agent_response.text_response;</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>    <span class="keywordflow">if</span> (!agent_response.reasoning.empty()) {</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>      <span class="keywordflow">if</span> (!response_text.empty()) {</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>        response_text.append(<span class="stringliteral">&quot;\n\n&quot;</span>);</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>      }</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>      response_text.append(<span class="stringliteral">&quot;Reasoning: &quot;</span>);</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>      response_text.append(agent_response.reasoning);</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>    }</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>    <span class="keywordflow">if</span> (!agent_response.commands.empty()) {</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>      <span class="keywordflow">if</span> (!response_text.empty()) {</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>        response_text.append(<span class="stringliteral">&quot;\n\n&quot;</span>);</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>      }</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>      response_text.append(<span class="stringliteral">&quot;Commands:\n&quot;</span>);</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>      response_text.append(absl::StrJoin(agent_response.commands, <span class="stringliteral">&quot;\n&quot;</span>));</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>    }</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span> </div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>  <a class="code hl_struct" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">ChatMessage</a> chat_response =</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>    CreateMessage(<a class="code hl_enumvalue" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2af76ed811b18a86459694dacf3347d438">ChatMessage::Sender::kAgent</a>, response_text);</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>    <a class="code hl_variable" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a9f6b83547ef6e9be24597a6d4657a452">history_</a>.push_back(chat_response);</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>    <span class="keywordflow">return</span> chat_response;</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>  }</div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span> </div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>  <span class="keywordflow">return</span> absl::InternalError(</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>      <span class="stringliteral">&quot;Agent did not produce a response after executing tools.&quot;</span>);</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>}</div>
 </div>
-<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span> </div>
-<div class="foldopen" id="foldopen00324" data-start="{" data-end="}">
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno"><a class="line" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc">  324</a></span><span class="keyword">const</span> std::vector&lt;ChatMessage&gt;&amp; <a class="code hl_function" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc">ConversationalAgentService::GetHistory</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a9f6b83547ef6e9be24597a6d4657a452">history_</a>;</div>
-<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>}</div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span> </div>
+<div class="foldopen" id="foldopen00329" data-start="{" data-end="}">
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno"><a class="line" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc">  329</a></span><span class="keyword">const</span> std::vector&lt;ChatMessage&gt;&amp; <a class="code hl_function" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc">ConversationalAgentService::GetHistory</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a9f6b83547ef6e9be24597a6d4657a452">history_</a>;</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>}</div>
 </div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span> </div>
-<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>}  <span class="comment">// namespace agent</span></div>
-<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>}  <span class="comment">// namespace cli</span></div>
-<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span> </div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>}  <span class="comment">// namespace agent</span></div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>}  <span class="comment">// namespace cli</span></div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html">yaze::Rom</a></div><div class="ttdoc">The Rom class is used to load, save, and modify Rom data.</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00071">rom.h:71</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1ConversationalAgentService_html_a001207da2a1eb46250725f248c62d5fd"><div class="ttname"><a href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a001207da2a1eb46250725f248c62d5fd">yaze::cli::agent::ConversationalAgentService::ai_service_</a></div><div class="ttdeci">std::unique_ptr&lt; AIService &gt; ai_service_</div><div class="ttdef"><b>Definition</b> <a href="../../d1/dad/conversational__agent__service_8h_source.html#l00062">conversational_agent_service.h:62</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1ConversationalAgentService_html_a0b0f6c53b9e6077f014fd7fe33f7dbbf"><div class="ttname"><a href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a0b0f6c53b9e6077f014fd7fe33f7dbbf">yaze::cli::agent::ConversationalAgentService::ResetConversation</a></div><div class="ttdeci">void ResetConversation()</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00167">conversational_agent_service.cc:167</a></div></div>
@@ -464,7 +469,7 @@ $(document).ready(function(){initNavTree('d3/d5c/conversational__agent__service_
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1ConversationalAgentService_html_a8b8251e24f236f499e0823e936cd4858"><div class="ttname"><a href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a8b8251e24f236f499e0823e936cd4858">yaze::cli::agent::ConversationalAgentService::tool_dispatcher_</a></div><div class="ttdeci">ToolDispatcher tool_dispatcher_</div><div class="ttdef"><b>Definition</b> <a href="../../d1/dad/conversational__agent__service_8h_source.html#l00063">conversational_agent_service.h:63</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1ConversationalAgentService_html_a9eee5d7be12d042e9d18e3671047f4f4"><div class="ttname"><a href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a9eee5d7be12d042e9d18e3671047f4f4">yaze::cli::agent::ConversationalAgentService::rom_context_</a></div><div class="ttdeci">Rom * rom_context_</div><div class="ttdef"><b>Definition</b> <a href="../../d1/dad/conversational__agent__service_8h_source.html#l00064">conversational_agent_service.h:64</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1ConversationalAgentService_html_a9f6b83547ef6e9be24597a6d4657a452"><div class="ttname"><a href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a9f6b83547ef6e9be24597a6d4657a452">yaze::cli::agent::ConversationalAgentService::history_</a></div><div class="ttdeci">std::vector&lt; ChatMessage &gt; history_</div><div class="ttdef"><b>Definition</b> <a href="../../d1/dad/conversational__agent__service_8h_source.html#l00061">conversational_agent_service.h:61</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1ConversationalAgentService_html_ab55e86d1ba2febc9f75ead191a3385fc"><div class="ttname"><a href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc">yaze::cli::agent::ConversationalAgentService::GetHistory</a></div><div class="ttdeci">const std::vector&lt; ChatMessage &gt; &amp; GetHistory() const</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00324">conversational_agent_service.cc:324</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1ConversationalAgentService_html_ab55e86d1ba2febc9f75ead191a3385fc"><div class="ttname"><a href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc">yaze::cli::agent::ConversationalAgentService::GetHistory</a></div><div class="ttdeci">const std::vector&lt; ChatMessage &gt; &amp; GetHistory() const</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00329">conversational_agent_service.cc:329</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1ConversationalAgentService_html_ac8f38143c051e913374ad6f43ce97e46"><div class="ttname"><a href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ac8f38143c051e913374ad6f43ce97e46">yaze::cli::agent::ConversationalAgentService::config_</a></div><div class="ttdeci">AgentConfig config_</div><div class="ttdef"><b>Definition</b> <a href="../../d1/dad/conversational__agent__service_8h_source.html#l00065">conversational_agent_service.h:65</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1ToolDispatcher_html_a7336c2490b452be24f27b97525d2f8db"><div class="ttname"><a href="../../d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#a7336c2490b452be24f27b97525d2f8db">yaze::cli::agent::ToolDispatcher::SetRomContext</a></div><div class="ttdeci">void SetRomContext(Rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d12/tool__dispatcher_8h_source.html#l00022">tool_dispatcher.h:22</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1ToolDispatcher_html_ab83c62c24e7c9c186dc5010c11140cab"><div class="ttname"><a href="../../d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#ab83c62c24e7c9c186dc5010c11140cab">yaze::cli::agent::ToolDispatcher::Dispatch</a></div><div class="ttdeci">absl::StatusOr&lt; std::string &gt; Dispatch(const ToolCall &amp;tool_call)</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d79/tool__dispatcher_8cc_source.html#l00014">tool_dispatcher.cc:14</a></div></div>

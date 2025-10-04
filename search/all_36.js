@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['📖_20documentation_0',['📖 Documentation',['../d6/d7e/md_docs_2CANVAS__REFACTORING__STATUS.html#autotoc_md506',1,'']]]
+  ['🔧_20why_20this_20fixes_20architecture_20errors_0',['🔧 Why This Fixes Architecture Errors',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md211',1,'']]]
 ];
