@@ -106,3 +106,29 @@ cmake --build build --config Debug
 - **`extract_changelog.py`** - Extract changelog for releases
 - **`quality_check.sh`** - Code quality checks (Linux/macOS)
 - **`create-macos-bundle.sh`** - Create macOS application bundle for releases
+
+## Build Environment Verification
+
+This directory also contains build environment verification scripts.
+
+### `verify-build-environment.ps1` / `.sh`
+
+A comprehensive script that checks:
+
+- ✅ **CMake Installation** - Version 3.16+ required
+- ✅ **Git Installation** - With submodule support
+- ✅ **C++ Compiler** - GCC 13+, Clang 16+, or MSVC 2019+
+- ✅ **Platform Tools** - Xcode (macOS), Visual Studio (Windows), build-essential (Linux)
+- ✅ **Git Submodules** - All dependencies synchronized
+
+### Usage
+
+**Windows (PowerShell):**
+```powershell
+.\scripts\verify-build-environment.ps1
+```
+
+**macOS/Linux:**
+```bash
+./scripts/verify-build-environment.sh
+```
