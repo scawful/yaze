@@ -1,7 +1,7 @@
 # z3ed Developer Guide
 
 **Version**: 0.1.0-alpha  
-**Last Updated**: October 3, 2025
+**Last Updated**: October 4, 2025
 
 ## 1. Overview
 
@@ -93,7 +93,7 @@ The `z3ed` CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop,
 
 ## 5. Roadmap & Implementation Status
 
-**Last Updated**: October 3, 2025
+**Last Updated**: October 4, 2025
 
 ### ✅ Completed
 
@@ -121,16 +121,49 @@ cmake -B build -DZ3ED_AI=ON
 cmake --build build --target z3ed
 ```
 
-### AI Service Configuration
+--- 
 
-AI providers can be configured via command-line flags, which override environment variables.
+## 7. AI Provider Configuration
 
--   `--ai_provider=<mock|ollama|gemini>`
--   `--ai_model=<model_name>`
--   `--gemini_api_key=<key>`
--   `--ollama_host=<url>`
+Z3ED supports multiple AI providers for conversational agent features. You can configure the AI service using command-line flags, making it easy to switch between providers without modifying environment variables.
 
-### Test Harness (gRPC)
+### Supported Providers
+
+-   **Mock (Default)**: For testing and development. Returns placeholder responses. Use `--ai_provider=mock`.
+-   **Ollama (Local)**: For local LLM inference. Requires an Ollama server and a downloaded model. Use `--ai_provider=ollama`.
+-   **Gemini (Cloud)**: Google's cloud-based AI. Requires a Gemini API key. Use `--ai_provider=gemini`.
+
+### Core Flags
+
+-   `--ai_provider=<provider>`: Selects the AI provider (`mock`, `ollama`, `gemini`).
+-   `--ai_model=<model>`: Specifies the model name (e.g., `qwen2.5-coder:7b`, `gemini-1.5-flash`).
+-   `--gemini_api_key=<key>`: Your Gemini API key.
+-   `--ollama_host=<url>`: The URL for your Ollama server (default: `http://localhost:11434`).
+
+Configuration is resolved with flags taking precedence over environment variables, which take precedence over defaults.
+
+--- 
+
+## 8. Agent Chat Input Methods
+
+The `z3ed agent simple-chat` command supports multiple input methods for flexibility.
+
+1.  **Single Message Mode**: `z3ed agent simple-chat "<message>" --rom=<path>`
+    *   **Use Case**: Quick, one-off scripted queries.
+
+2.  **Interactive Mode**: `z3ed agent simple-chat --rom=<path>`
+    *   **Use Case**: Multi-turn conversations and interactive exploration.
+    *   **Commands**: `quit`, `exit`, `reset`.
+
+3.  **Piped Input Mode**: `echo "<message>" | z3ed agent simple-chat --rom=<path>`
+    *   **Use Case**: Integrating with shell scripts and Unix pipelines.
+
+4.  **Batch File Mode**: `z3ed agent simple-chat --file=<input.txt> --rom=<path>`
+    *   **Use Case**: Running documented test suites and performing repeatable validation.
+
+--- 
+
+## 9. Test Harness (gRPC)
 
 The test harness is a gRPC server embedded in the YAZE application, enabling remote control for automated testing. It exposes RPCs for actions like `Click`, `Type`, and `Wait`, as well as advanced introspection and test management.
 
