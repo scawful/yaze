@@ -183,6 +183,8 @@ cmake --build build --target z3ed
 cmake -B build -DZ3ED_AI=ON
 cmake --build build --target z3ed
 
+# use macos-dev-z3ed-ai cmake preset
+
 # Full build with AI agent AND testing suite
 cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON
 cmake --build build --target z3ed
@@ -297,13 +299,6 @@ Here are some example prompts you can try with either Ollama or Gemini:
 
 ## Core Documentation
 
-### Essential Reads
-1. **[BUILD_QUICK_REFERENCE.md](BUILD_QUICK_REFERENCE.md)** - **NEW!** Fast build guide with Z3ED_AI flag examples
-2. **[AGENT-ROADMAP.md](AGENT-ROADMAP.md)** - The primary source of truth for the AI agent's strategic vision, architecture, and next steps
-3. **[Z3ED_AI_FLAG_MIGRATION.md](Z3ED_AI_FLAG_MIGRATION.md)** - **NEW!** Complete guide to Z3ED_AI flag and crash fixes
-4. **[E6-z3ed-cli-design.md](E6-z3ed-cli-design.md)** - Detailed architecture and design philosophy
-5. **[E6-z3ed-reference.md](E6-z3ed-reference.md)** - Complete command reference and API documentation
-
 ## Current Status (October 3, 2025)
 
 ### ✅ Production Ready
@@ -329,9 +324,6 @@ Here are some example prompts you can try with either Ollama or Gemini:
 1. **Live LLM Testing** (1-2h): Verify function calling with real models
 2. **GUI Chat Widget** (6-8h): ImGui integration (TUI exists as reference)
 3. **Tool Coverage Expansion** (8-10h): Dialogue, sprites, regions
-
-### 📋 Next Steps
-See [AGENT-ROADMAP.md](AGENT-ROADMAP.md) for detailed technical roadmap.
 
 ## AI Editing Focus Areas
 
