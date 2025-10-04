@@ -12,6 +12,7 @@
 
 #include "absl/strings/str_format.h"
 #include "imgui_test_engine/imgui_te_context.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace test {
@@ -21,6 +22,8 @@ namespace test {
  */
 class TestRomManager {
  public:
+  class BoundRomTest;
+
   /**
    * @brief Check if ROM testing is enabled and ROM file exists
    * @return True if ROM tests can be run
@@ -126,6 +129,37 @@ class TestRomManager {
       GTEST_SKIP() << "ROM testing disabled or ROM file not found. "
                    << "Test: " << test_name << " requires: " << GetTestRomPath();
     }
+  }
+};
+
+class TestRomManager::BoundRomTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rom_instance_ = std::make_unique<Rom>();
+  }
+
+  void TearDown() override {
+    rom_instance_.reset();
+    rom_loaded_ = false;
+  }
+
+  Rom* rom() { EnsureRomLoaded(); return rom_instance_.get(); }
+  const Rom* rom() const { return rom_instance_.get(); }
+
+  std::string GetBoundRomPath() const { return TestRomManager::GetTestRomPath(); }
+
+ private:
+  std::unique_ptr<Rom> rom_instance_;
+  bool rom_loaded_ = false;
+
+  void EnsureRomLoaded() {
+    if (rom_loaded_) {
+      return;
+    }
+    const std::string rom_path = TestRomManager::GetTestRomPath();
+    ASSERT_TRUE(rom_instance_->LoadFromFile(rom_path).ok())
+        << "Failed to load test ROM from " << rom_path;
+    rom_loaded_ = true;
   }
 };
 

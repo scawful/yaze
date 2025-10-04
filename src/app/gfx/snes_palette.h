@@ -144,6 +144,9 @@ class SnesPalette {
   size_t size() const { return size_; }
   bool empty() const { return size_ == 0; }
 
+  // Resize
+  void Resize(size_t size) { size_ = size; }
+
   auto begin() { return colors_.begin(); }
   auto end() { return colors_.begin() + size_; }
   auto begin() const { return colors_.begin(); }
@@ -218,6 +221,7 @@ struct PaletteGroup {
   }
 
   void clear() { palettes.clear(); }
+  void resize(size_t new_size) { palettes.resize(new_size); }
   auto name() const { return name_; }
   auto size() const { return palettes.size(); }
   auto palette(int i) const { return palettes[i]; }

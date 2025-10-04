@@ -4,11 +4,14 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/snes.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace test {
+
+using namespace yaze::zelda3;
 
 void DungeonEditorIntegrationTest::SetUp() {
   ASSERT_TRUE(CreateMockRom().ok());
@@ -51,9 +54,7 @@ absl::Status DungeonEditorIntegrationTest::CreateMockRom() {
   mock_data[0x874D] = 0x00; // Object pointer mid
   mock_data[0x874E] = 0x00; // Object pointer high
   
-  static_cast<MockRom*>(mock_rom_.get())->SetMockData(mock_data);
-  
-  return absl::OkStatus();
+  return mock_rom_->LoadAndOwnData(mock_data);
 }
 
 absl::Status DungeonEditorIntegrationTest::LoadTestRoomData() {
@@ -62,8 +63,10 @@ absl::Status DungeonEditorIntegrationTest::LoadTestRoomData() {
   auto object_data = GenerateMockObjectData();
   auto graphics_data = GenerateMockGraphicsData();
   
-  static_cast<MockRom*>(mock_rom_.get())->SetMockRoomData(kTestRoomId, room_header);
-  static_cast<MockRom*>(mock_rom_.get())->SetMockObjectData(kTestObjectId, object_data);
+  auto mock_rom = static_cast<MockRom*>(mock_rom_.get());
+  mock_rom->SetMockRoomData(kTestRoomId, room_header);
+  mock_rom->SetMockObjectData(kTestObjectId, object_data);
+  mock_rom->SetMockGraphicsData(graphics_data);
   
   return absl::OkStatus();
 }
@@ -187,16 +190,174 @@ std::vector<uint8_t> DungeonEditorIntegrationTest::GenerateMockGraphicsData() {
   return data;
 }
 
-void MockRom::SetMockData(const std::vector<uint8_t>& data) {
-  mock_data_ = data;
+absl::Status MockRom::SetMockData(const std::vector<uint8_t>& data) {
+  backing_buffer_.assign(data.begin(), data.end());
+  Expand(static_cast<int>(backing_buffer_.size()));
+  if (!backing_buffer_.empty()) {
+    std::memcpy(mutable_data(), backing_buffer_.data(), backing_buffer_.size());
+  }
+  ClearDirty();
+  InitializeMemoryLayout();
+  return absl::OkStatus();
+}
+
+absl::Status MockRom::LoadAndOwnData(const std::vector<uint8_t>& data) {
+  backing_buffer_.assign(data.begin(), data.end());
+  Expand(static_cast<int>(backing_buffer_.size()));
+  if (!backing_buffer_.empty()) {
+    std::memcpy(mutable_data(), backing_buffer_.data(), backing_buffer_.size());
+  }
+  ClearDirty();
+
+  // Minimal metadata setup via public API
+  set_filename("mock_rom.sfc");
+  auto& palette_groups = *mutable_palette_group();
+  palette_groups.clear();
+
+  if (palette_groups.dungeon_main.size() == 0) {
+    gfx::SnesPalette default_palette;
+    default_palette.Resize(16);
+    palette_groups.dungeon_main.AddPalette(default_palette);
+  }
+
+  // Ensure graphics buffer is sized
+  auto* gfx_buffer = mutable_graphics_buffer();
+  gfx_buffer->assign(backing_buffer_.begin(), backing_buffer_.end());
+
+  InitializeMemoryLayout();
+  return absl::OkStatus();
 }
 
 void MockRom::SetMockRoomData(int room_id, const std::vector<uint8_t>& data) {
   mock_room_data_[room_id] = data;
+
+  if (room_header_table_pc_ == 0 || room_header_data_base_pc_ == 0) {
+    return;
+  }
+
+  uint32_t header_offset = room_header_data_base_pc_ + kRoomHeaderStride * static_cast<uint32_t>(room_id);
+  EnsureBufferCapacity(header_offset + static_cast<uint32_t>(data.size()));
+
+  std::memcpy(backing_buffer_.data() + header_offset, data.data(), data.size());
+  std::memcpy(mutable_data() + header_offset, data.data(), data.size());
+
+  uint32_t snes_offset = PcToSnes(header_offset);
+  uint32_t pointer_entry = room_header_table_pc_ + static_cast<uint32_t>(room_id) * 2;
+  EnsureBufferCapacity(pointer_entry + 2);
+  backing_buffer_[pointer_entry] = static_cast<uint8_t>(snes_offset & 0xFF);
+  backing_buffer_[pointer_entry + 1] = static_cast<uint8_t>((snes_offset >> 8) & 0xFF);
+  mutable_data()[pointer_entry] = backing_buffer_[pointer_entry];
+  mutable_data()[pointer_entry + 1] = backing_buffer_[pointer_entry + 1];
 }
 
 void MockRom::SetMockObjectData(int object_id, const std::vector<uint8_t>& data) {
   mock_object_data_[object_id] = data;
+
+  if (room_object_table_pc_ == 0 || room_object_data_base_pc_ == 0) {
+    return;
+  }
+
+  uint32_t object_offset = room_object_data_base_pc_ + kRoomObjectStride * static_cast<uint32_t>(object_id);
+  EnsureBufferCapacity(object_offset + static_cast<uint32_t>(data.size()));
+
+  std::memcpy(backing_buffer_.data() + object_offset, data.data(), data.size());
+  std::memcpy(mutable_data() + object_offset, data.data(), data.size());
+
+  uint32_t snes_offset = PcToSnes(object_offset);
+  uint32_t entry = room_object_table_pc_ + static_cast<uint32_t>(object_id) * 3;
+  EnsureBufferCapacity(entry + 3);
+  backing_buffer_[entry] = static_cast<uint8_t>(snes_offset & 0xFF);
+  backing_buffer_[entry + 1] = static_cast<uint8_t>((snes_offset >> 8) & 0xFF);
+  backing_buffer_[entry + 2] = static_cast<uint8_t>((snes_offset >> 16) & 0xFF);
+  mutable_data()[entry] = backing_buffer_[entry];
+  mutable_data()[entry + 1] = backing_buffer_[entry + 1];
+  mutable_data()[entry + 2] = backing_buffer_[entry + 2];
+}
+
+void MockRom::SetMockGraphicsData(const std::vector<uint8_t>& data) {
+  mock_graphics_data_ = data;
+  if (auto* gfx_buffer = mutable_graphics_buffer(); gfx_buffer != nullptr) {
+    gfx_buffer->assign(data.begin(), data.end());
+  }
+}
+
+void MockRom::EnsureBufferCapacity(uint32_t size) {
+  if (size <= backing_buffer_.size()) {
+    return;
+  }
+
+  auto old_size = backing_buffer_.size();
+  backing_buffer_.resize(size, 0);
+  Expand(static_cast<int>(size));
+  std::memcpy(mutable_data(), backing_buffer_.data(), old_size);
+}
+
+void MockRom::InitializeMemoryLayout() {
+  if (backing_buffer_.empty()) {
+    return;
+  }
+
+  room_header_table_pc_ = SnesToPc(0x040000);
+  room_header_data_base_pc_ = SnesToPc(0x040000 + 0x1000);
+  room_object_table_pc_ = SnesToPc(0x050000);
+  room_object_data_base_pc_ = SnesToPc(0x050000 + 0x2000);
+
+  EnsureBufferCapacity(room_header_table_pc_ + 2);
+  EnsureBufferCapacity(room_object_table_pc_ + 3);
+
+  uint32_t header_table_snes = PcToSnes(room_header_table_pc_);
+  EnsureBufferCapacity(kRoomHeaderPointer + 3);
+  backing_buffer_[kRoomHeaderPointer] = static_cast<uint8_t>(header_table_snes & 0xFF);
+  backing_buffer_[kRoomHeaderPointer + 1] = static_cast<uint8_t>((header_table_snes >> 8) & 0xFF);
+  backing_buffer_[kRoomHeaderPointer + 2] = static_cast<uint8_t>((header_table_snes >> 16) & 0xFF);
+  mutable_data()[kRoomHeaderPointer] = backing_buffer_[kRoomHeaderPointer];
+  mutable_data()[kRoomHeaderPointer + 1] = backing_buffer_[kRoomHeaderPointer + 1];
+  mutable_data()[kRoomHeaderPointer + 2] = backing_buffer_[kRoomHeaderPointer + 2];
+
+  EnsureBufferCapacity(kRoomHeaderPointerBank + 1);
+  backing_buffer_[kRoomHeaderPointerBank] = static_cast<uint8_t>((header_table_snes >> 16) & 0xFF);
+  mutable_data()[kRoomHeaderPointerBank] = backing_buffer_[kRoomHeaderPointerBank];
+
+  uint32_t object_table_snes = PcToSnes(room_object_table_pc_);
+  EnsureBufferCapacity(room_object_pointer + 3);
+  backing_buffer_[room_object_pointer] = static_cast<uint8_t>(object_table_snes & 0xFF);
+  backing_buffer_[room_object_pointer + 1] = static_cast<uint8_t>((object_table_snes >> 8) & 0xFF);
+  backing_buffer_[room_object_pointer + 2] = static_cast<uint8_t>((object_table_snes >> 16) & 0xFF);
+  mutable_data()[room_object_pointer] = backing_buffer_[room_object_pointer];
+  mutable_data()[room_object_pointer + 1] = backing_buffer_[room_object_pointer + 1];
+  mutable_data()[room_object_pointer + 2] = backing_buffer_[room_object_pointer + 2];
+
+  for (const auto& [room_id, bytes] : mock_room_data_) {
+    uint32_t offset = room_header_data_base_pc_ + kRoomHeaderStride * static_cast<uint32_t>(room_id);
+    EnsureBufferCapacity(offset + static_cast<uint32_t>(bytes.size()));
+    std::memcpy(backing_buffer_.data() + offset, bytes.data(), bytes.size());
+    std::memcpy(mutable_data() + offset, bytes.data(), bytes.size());
+
+    uint32_t snes = PcToSnes(offset);
+    uint32_t entry = room_header_table_pc_ + static_cast<uint32_t>(room_id) * 2;
+    EnsureBufferCapacity(entry + 2);
+    backing_buffer_[entry] = static_cast<uint8_t>(snes & 0xFF);
+    backing_buffer_[entry + 1] = static_cast<uint8_t>((snes >> 8) & 0xFF);
+    mutable_data()[entry] = backing_buffer_[entry];
+    mutable_data()[entry + 1] = backing_buffer_[entry + 1];
+  }
+
+  for (const auto& [object_id, bytes] : mock_object_data_) {
+    uint32_t offset = room_object_data_base_pc_ + kRoomObjectStride * static_cast<uint32_t>(object_id);
+    EnsureBufferCapacity(offset + static_cast<uint32_t>(bytes.size()));
+    std::memcpy(backing_buffer_.data() + offset, bytes.data(), bytes.size());
+    std::memcpy(mutable_data() + offset, bytes.data(), bytes.size());
+
+    uint32_t snes = PcToSnes(offset);
+    uint32_t entry = room_object_table_pc_ + static_cast<uint32_t>(object_id) * 3;
+    EnsureBufferCapacity(entry + 3);
+    backing_buffer_[entry] = static_cast<uint8_t>(snes & 0xFF);
+    backing_buffer_[entry + 1] = static_cast<uint8_t>((snes >> 8) & 0xFF);
+    backing_buffer_[entry + 2] = static_cast<uint8_t>((snes >> 16) & 0xFF);
+    mutable_data()[entry] = backing_buffer_[entry];
+    mutable_data()[entry + 1] = backing_buffer_[entry + 1];
+    mutable_data()[entry + 2] = backing_buffer_[entry + 2];
+  }
 }
 
 bool MockRom::ValidateRoomData(int room_id) const {
