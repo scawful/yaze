@@ -67,6 +67,7 @@ _yaze_ensure_yaml_cpp(YAZE_YAML_CPP_TARGET)
 set(YAZE_AGENT_SOURCES
   cli/handlers/agent/tool_commands.cc
   cli/service/agent/conversational_agent_service.cc
+  cli/service/agent/simple_chat_session.cc
   cli/service/agent/tool_dispatcher.cc
   cli/service/ai/ai_service.cc
   cli/service/ai/ollama_ai_service.cc
