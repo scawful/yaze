@@ -162,7 +162,45 @@ Z3ED supports multiple AI providers. Configuration is resolved with command-line
 -   `--gemini_api_key=<key>`: Your Gemini API key.
 -   `--ollama_host=<url>`: The URL for your Ollama server (default: `http://localhost:11434`).
 
-## 8. Roadmap & Implementation Status
+## 8. CLI Output & Help System
+
+The `z3ed` CLI features a modernized output system designed to be clean for users and informative for developers.
+
+### Verbose Logging
+
+By default, `z3ed` provides clean, user-facing output. For detailed debugging, including API calls and internal state, use the `--verbose` flag.
+
+**Default (Clean):**
+```bash
+🤖 AI Provider: gemini
+   Model: gemini-2.5-flash
+⠋ Thinking...
+🔧 Calling tool: resource-list (type=room)
+✓ Tool executed successfully
+```
+
+**Verbose Mode:**
+```bash
+# z3ed agent simple-chat "What is room 5?" --verbose
+🤖 AI Provider: gemini
+   Model: gemini-2.5-flash
+[DEBUG] Initializing Gemini service...
+[DEBUG] Function calling: disabled
+[DEBUG] Using curl for HTTPS request...
+⠋ Thinking...
+[DEBUG] Parsing response...
+🔧 Calling tool: resource-list (type=room)
+✓ Tool executed successfully
+```
+
+### Hierarchical Help System
+
+The help system is organized by category for easy navigation.
+
+-   **Main Help**: `z3ed --help` or `z3ed -h` shows a high-level overview of command categories.
+-   **Category Help**: `z3ed help <category>` provides detailed information for a specific group of commands (e.g., `agent`, `patch`, `rom`).
+
+## 9. Roadmap & Implementation Status
 
 **Last Updated**: October 4, 2025
 
