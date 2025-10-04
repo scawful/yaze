@@ -1,0 +1,8 @@
+# Test conversation with z3ed agent
+
+Hello! What is your purpose?
+Can you explain what tools you have access to?
+What kind of ROM modifications can you help with?
+What is room 5?
+What is sprite 9?
+List all rooms
