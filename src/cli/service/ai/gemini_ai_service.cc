@@ -43,7 +43,7 @@ namespace yaze {
 namespace cli {
 
 GeminiAIService::GeminiAIService(const GeminiConfig& config)
-    : config_(config), function_calling_enabled_(config.use_function_calling) {
+    : function_calling_enabled_(config.use_function_calling), config_(config) {
   if (config_.verbose) {
     std::cerr << "[DEBUG] Initializing Gemini service..." << std::endl;
     std::cerr << "[DEBUG] Function calling: " << (function_calling_enabled_ ? "enabled" : "disabled") << std::endl;
@@ -530,6 +530,183 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
   }
   
   return agent_response;
+#endif
+}
+
+absl::StatusOr<std::string> GeminiAIService::EncodeImageToBase64(
+    const std::string& image_path) const {
+#ifndef YAZE_WITH_JSON
+  (void)image_path;  // Suppress unused parameter warning
+  return absl::UnimplementedError(
+      "Gemini AI service requires JSON support. Build with -DYAZE_WITH_JSON=ON");
+#else
+  std::ifstream file(image_path, std::ios::binary);
+  if (!file.is_open()) {
+    return absl::NotFoundError(
+        absl::StrCat("Failed to open image file: ", image_path));
+  }
+
+  // Read file into buffer
+  file.seekg(0, std::ios::end);
+  size_t size = file.tellg();
+  file.seekg(0, std::ios::beg);
+  
+  std::vector<unsigned char> buffer(size);
+  if (!file.read(reinterpret_cast<char*>(buffer.data()), size)) {
+    return absl::InternalError("Failed to read image file");
+  }
+
+  // Base64 encode
+  static const char* base64_chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  
+  std::string encoded;
+  encoded.reserve(((size + 2) / 3) * 4);
+  
+  int i = 0;
+  int j = 0;
+  unsigned char char_array_3[3];
+  unsigned char char_array_4[4];
+  
+  for (size_t idx = 0; idx < size; idx++) {
+    char_array_3[i++] = buffer[idx];
+    if (i == 3) {
+      char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+      char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+      char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+      char_array_4[3] = char_array_3[2] & 0x3f;
+      
+      for (i = 0; i < 4; i++)
+        encoded += base64_chars[char_array_4[i]];
+      i = 0;
+    }
+  }
+  
+  if (i) {
+    for (j = i; j < 3; j++)
+      char_array_3[j] = '\0';
+    
+    char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+    char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+    char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+    
+    for (j = 0; j < i + 1; j++)
+      encoded += base64_chars[char_array_4[j]];
+    
+    while (i++ < 3)
+      encoded += '=';
+  }
+  
+  return encoded;
+#endif
+}
+
+absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
+    const std::string& image_path, const std::string& prompt) {
+#ifndef YAZE_WITH_JSON
+  (void)image_path;  // Suppress unused parameter warnings
+  (void)prompt;
+  return absl::UnimplementedError(
+      "Gemini AI service requires JSON support. Build with -DYAZE_WITH_JSON=ON");
+#else
+  if (config_.api_key.empty()) {
+    return absl::FailedPreconditionError("Gemini API key not configured");
+  }
+
+  // Determine MIME type from file extension
+  std::string mime_type = "image/png";
+  if (image_path.ends_with(".jpg") || image_path.ends_with(".jpeg")) {
+    mime_type = "image/jpeg";
+  } else if (image_path.ends_with(".bmp")) {
+    mime_type = "image/bmp";
+  } else if (image_path.ends_with(".webp")) {
+    mime_type = "image/webp";
+  }
+
+  // Encode image to base64
+  auto encoded_or = EncodeImageToBase64(image_path);
+  if (!encoded_or.ok()) {
+    return encoded_or.status();
+  }
+  std::string encoded_image = std::move(encoded_or.value());
+
+  try {
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] Preparing multimodal request with image" << std::endl;
+    }
+
+    // Build multimodal request with image and text
+    nlohmann::json request_body = {
+        {"contents", {{
+            {"parts", {
+                {
+                    {"inline_data", {
+                        {"mime_type", mime_type},
+                        {"data", encoded_image}
+                    }}
+                },
+                {{"text", prompt}}
+            }}
+        }}},
+        {"generationConfig", {
+            {"temperature", config_.temperature},
+            {"maxOutputTokens", config_.max_output_tokens}
+        }}
+    };
+
+    // Write request body to temp file
+    std::string temp_file = "/tmp/gemini_multimodal_request.json";
+    std::ofstream out(temp_file);
+    out << request_body.dump();
+    out.close();
+
+    // Use curl to make the request
+    std::string endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + 
+                          config_.model + ":generateContent";
+    std::string curl_cmd = "curl -s -X POST '" + endpoint + "' "
+                          "-H 'Content-Type: application/json' "
+                          "-H 'x-goog-api-key: " + config_.api_key + "' "
+                          "-d @" + temp_file + " 2>&1";
+    
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] Executing multimodal API request..." << std::endl;
+    }
+    
+    FILE* pipe = popen(curl_cmd.c_str(), "r");
+    if (!pipe) {
+      return absl::InternalError("Failed to execute curl command");
+    }
+    
+    std::string response_str;
+    char buffer[4096];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+      response_str += buffer;
+    }
+    
+    int status = pclose(pipe);
+    std::remove(temp_file.c_str());
+    
+    if (status != 0) {
+      return absl::InternalError(absl::StrCat("Curl failed with status ", status));
+    }
+    
+    if (response_str.empty()) {
+      return absl::InternalError("Empty response from Gemini API");
+    }
+    
+    if (config_.verbose) {
+      std::cout << "\n" << "\033[35m" << "🔍 Raw Gemini Multimodal Response:" << "\033[0m" << "\n"
+                << "\033[2m" << response_str.substr(0, 500) << "\033[0m" << "\n\n";
+    }
+    
+    return ParseGeminiResponse(response_str);
+  
+  } catch (const std::exception& e) {
+    if (config_.verbose) {
+      std::cerr << "[ERROR] Exception: " << e.what() << std::endl;
+    }
+    return absl::InternalError(absl::StrCat("Exception during multimodal generation: ", e.what()));
+  }
 #endif
 }
 

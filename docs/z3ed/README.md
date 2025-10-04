@@ -150,8 +150,13 @@ Full-screen interactive terminal with table rendering, syntax highlighting, and 
 ### Simple Chat (`agent simple-chat`)
 Lightweight, scriptable text-based REPL that supports single messages, interactive sessions, piped input, and batch files.
 
-### GUI Chat Widget (Editor Integration Preview)
-Accessible from **Debug → Agent Chat** inside YAZE. Provides the same conversation loop as the CLI, including streaming history, JSON/table inspection, and ROM-aware tool dispatch. Current limitations: no proposal preview shortcuts yet, and the window state resets on restart.
+### GUI Chat Widget (Editor Integration)
+Accessible from **Debug → Agent Chat** inside YAZE. Provides the same conversation loop as the CLI, including streaming history, JSON/table inspection, and ROM-aware tool dispatch.
+
+**✨ New Features:**
+- **Persistent Chat History**: Chat conversations are automatically saved and restored
+- **Collaborative Sessions**: Multiple users can join the same session and share a chat history
+- **Multimodal Vision**: Capture screenshots of your ROM editor and ask Gemini to analyze them
 
 ## 7. AI Provider Configuration
 
@@ -200,7 +205,54 @@ The help system is organized by category for easy navigation.
 -   **Main Help**: `z3ed --help` or `z3ed -h` shows a high-level overview of command categories.
 -   **Category Help**: `z3ed help <category>` provides detailed information for a specific group of commands (e.g., `agent`, `patch`, `rom`).
 
-## 9. Roadmap & Implementation Status
+## 9. Collaborative Sessions & Multimodal Vision
+
+### Collaborative Sessions
+
+Z3ED supports lightweight collaborative sessions where multiple editors on the same machine can share a chat conversation.
+
+**How to Use:**
+1. Open YAZE and go to **Debug → Agent Chat**
+2. In the Agent Chat widget, expand the **"Collaboration (Preview)"** panel
+3. **Host a Session:**
+   - Enter a session name (e.g., "Evening ROM Hack")
+   - Click "Host Session"
+   - Share the generated 6-character code (e.g., `ABC123`) with collaborators
+4. **Join a Session:**
+   - Enter the session code provided by the host
+   - Click "Join Session"
+   - Your chat will now sync with others in the session
+
+**Features:**
+- Shared chat history stored in `~/.yaze/agent/sessions/<code>_history.json`
+- Automatic synchronization when sending/receiving messages
+- Participant list shows all connected users
+- When you leave a session, you return to your local chat history
+
+### Multimodal Vision (Gemini)
+
+Ask Gemini to analyze screenshots of your ROM editor to get visual feedback and suggestions.
+
+**Requirements:**
+- `GEMINI_API_KEY` environment variable set
+- YAZE built with `-DYAZE_WITH_GRPC=ON` and `-DZ3ED_AI=ON`
+
+**How to Use:**
+1. Open the Agent Chat widget (**Debug → Agent Chat**)
+2. Expand the **"Gemini Multimodal (Preview)"** panel
+3. Click **"Capture Map Snapshot"** to take a screenshot of the current view
+4. Enter a prompt in the text box (e.g., "What issues do you see with this overworld layout?")
+5. Click **"Send to Gemini"** to get visual analysis
+
+**Example Prompts:**
+- "Analyze the tile placement in this overworld screen"
+- "What's wrong with the palette colors in this screenshot?"
+- "Suggest improvements for this dungeon room layout"
+- "Does this screen follow good level design practices?"
+
+The AI response will appear in your chat history and can reference specific details from the screenshot.
+
+## 10. Roadmap & Implementation Status
 
 **Last Updated**: October 4, 2025
 
@@ -208,19 +260,19 @@ The help system is organized by category for easy navigation.
 
 -   **Core Infrastructure**: Resource-oriented CLI, proposal workflow, sandbox manager, and resource catalog are all production-ready.
 -   **AI Backends**: Both Ollama (local) and Gemini (cloud) are operational.
--   **Conversational Agent**: The agent service, tool dispatcher (with 5 read-only tools), TUI/simple chat interfaces, and initial ImGui editor chat widget are complete.
+-   **Conversational Agent**: The agent service, tool dispatcher (with 5 read-only tools), TUI/simple chat interfaces, and ImGui editor chat widget with persistent history.
 -   **GUI Test Harness**: A comprehensive GUI testing platform with introspection, widget discovery, recording/replay, and CI integration support.
+-   **Collaborative Sessions**: Local filesystem-based collaborative editing with shared chat history.
+-   **Multimodal Vision**: Gemini vision API integration for analyzing ROM editor screenshots.
 
 ### 🚧 Active & Next Steps
 
 1.  **Live LLM Testing (1-2h)**: Verify function calling with real models (Ollama/Gemini).
-2.  **GUI Chat Enhancements (4-6h)**: Persist chat state, surface proposal shortcuts, and add toast notifications when new proposals arrive from chats.
-3.  **Expand Tool Coverage (8-10h)**: Add new read-only tools for inspecting dialogue, sprites, and regions.
-4.  **Collaborative Sessions**: Expand the infrastructure of `z3ed` and `yaze` to support collaborative sessions where users can edit the same game and query the AI model together.
-5.  **Multi-modal Gemini for image feedback**: Take screenshots of the map for Gemini to have more context to tool and function calls.
-6.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
+2.  **Expand Tool Coverage (8-10h)**: Add new read-only tools for inspecting dialogue, sprites, and regions.
+3.  **Network-Based Collaboration**: Upgrade the filesystem-based collaboration to support remote connections via WebSockets or gRPC.
+4.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
 
-## 9. Troubleshooting
+## 11. Troubleshooting
 
 -   **"Build with -DZ3ED_AI=ON" warning**: AI features are disabled. Rebuild with the flag to enable them.
 -   **"gRPC not available" error**: GUI testing is disabled. Rebuild with `-DYAZE_WITH_GRPC=ON`.

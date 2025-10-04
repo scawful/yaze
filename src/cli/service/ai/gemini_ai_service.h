@@ -45,11 +45,19 @@ class GeminiAIService : public AIService {
   void EnableFunctionCalling(bool enable = true);
   std::vector<std::string> GetAvailableTools() const;
 
+  // Multimodal support (vision + text)
+  absl::StatusOr<AgentResponse> GenerateMultimodalResponse(
+      const std::string& image_path, const std::string& prompt);
+
  private:
   std::string BuildSystemInstruction();
   std::string BuildFunctionCallSchemas();
   absl::StatusOr<AgentResponse> ParseGeminiResponse(
       const std::string& response_body);
+  
+  // Helper for encoding images as base64
+  absl::StatusOr<std::string> EncodeImageToBase64(
+      const std::string& image_path) const;
   
   bool function_calling_enabled_ = true;
   
