@@ -713,7 +713,10 @@ void EditorManager::Initialize(const std::string& filename) {
             [&]() { proposal_drawer_.Toggle(); }},
 #ifdef YAZE_WITH_GRPC
            {absl::StrCat(ICON_MD_CHAT, " Agent Chat"), "",
-            [&]() { show_agent_chat_widget_ = !show_agent_chat_widget_; }},
+            [this]() {
+              agent_chat_widget_.set_active(!agent_chat_widget_.is_active());
+            },
+            [this]() { return agent_chat_widget_.is_active(); }},
 #endif
            
            {gui::kSeparator, "", nullptr, []() { return true; }},
@@ -932,13 +935,11 @@ absl::Status EditorManager::Update() {
     proposal_drawer_.Draw();
   }
 #ifdef YAZE_WITH_GRPC
-  if (show_agent_chat_widget_) {
-    Rom* rom_context =
-        (current_rom_ != nullptr && current_rom_->is_loaded()) ? current_rom_
-                                                               : nullptr;
-    agent_chat_widget_.SetRomContext(rom_context);
-    agent_chat_widget_.Draw();
-  }
+  Rom* rom_context =
+      (current_rom_ != nullptr && current_rom_->is_loaded()) ? current_rom_
+                                                             : nullptr;
+  agent_chat_widget_.SetRomContext(rom_context);
+  agent_chat_widget_.Draw();
 #endif
 
   return absl::OkStatus();
