@@ -35,6 +35,15 @@ set(YAZE_VERSION_MAJOR 0)
 set(YAZE_VERSION_MINOR 3)
 set(YAZE_VERSION_PATCH 2)
 
+# Add an option to enable Unity builds for faster compilation
+option(YAZE_UNITY_BUILD "Enable Unity (Jumbo) builds" OFF)
+
+if(YAZE_UNITY_BUILD)
+  message(STATUS "Unity builds enabled")
+  set(CMAKE_UNITY_BUILD ON)
+  set(CMAKE_UNITY_BUILD_BATCH_SIZE 8)
+endif()
+
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/src/yaze_config.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/yaze_config.h

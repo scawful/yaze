@@ -80,39 +80,326 @@ if(YAZE_BUILD_APP OR YAZE_BUILD_Z3ED)
   include(cli/agent.cmake)
 endif()
 
-if(YAZE_USE_MODULAR_BUILD)
   message(STATUS "Using modular build system")
 
   if(YAZE_BUILD_LIB OR YAZE_BUILD_APP OR YAZE_BUILD_Z3ED)
-    include(app/gfx/gfx.cmake)
-    include(app/gui/gui.cmake)
-    include(app/zelda3/zelda3.cmake)
-    include(app/core/core.cmake)
-    include(app/editor/editor.cmake)
-
     include(util/util.cmake)
+    include(app/core/core_library.cmake)
     include(app/gfx/gfx_library.cmake)
     include(app/gui/gui_library.cmake)
     include(app/zelda3/zelda3_library.cmake)
+    include(app/editor/editor_library.cmake)
 
     if(YAZE_BUILD_EMU)
       include(app/emu/emu_library.cmake)
     endif()
-
-    include(app/core/core_library.cmake)
-    include(app/editor/editor_library.cmake)
   endif()
-else()
-  message(STATUS "Using traditional monolithic build system")
-endif()
 
 if (YAZE_BUILD_APP)
-  include(app/app.cmake)
+  if (APPLE)
+    add_executable(
+      yaze
+      MACOSX_BUNDLE
+      app/main.cc
+      # Bundled Resources
+      ${YAZE_RESOURCE_FILES}
+    )
+
+    set(ICON_FILE "${CMAKE_SOURCE_DIR}/assets/yaze.icns")
+    target_sources(yaze PRIVATE ${ICON_FILE})
+    set_source_files_properties(${ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
+    set_target_properties(yaze PROPERTIES
+      MACOSX_BUNDLE_ICON_FILE "yaze.icns"
+      MACOSX_BUNDLE_BUNDLE_NAME "Yaze"
+      MACOSX_BUNDLE_EXECUTABLE_NAME "yaze"
+      MACOSX_BUNDLE_GUI_IDENTIFIER "com.scawful.yaze"
+      MACOSX_BUNDLE_INFO_STRING "Yet Another Zelda3 Editor"
+      MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
+      MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+      MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+      MACOSX_BUNDLE_COPYRIGHT "Copyright © 2024 scawful. All rights reserved."
+    )
+  else()
+    add_executable(
+      yaze
+      app/main.cc
+    )
+
+    if(WIN32 OR UNIX)
+      target_sources(yaze PRIVATE ${YAZE_RESOURCE_FILES})
+
+      if(WIN32)
+        foreach(ASSET_FILE ${YAZE_RESOURCE_FILES})
+          file(RELATIVE_PATH ASSET_REL_PATH "${CMAKE_SOURCE_DIR}/assets" ${ASSET_FILE})
+          get_filename_component(ASSET_DIR ${ASSET_REL_PATH} DIRECTORY)
+
+          set_source_files_properties(${ASSET_FILE}
+            PROPERTIES
+            VS_DEPLOYMENT_CONTENT 1
+            VS_DEPLOYMENT_LOCATION "assets/${ASSET_DIR}"
+          )
+        endforeach()
+      endif()
+    endif()
+  endif()
+
+  target_include_directories(
+    yaze PUBLIC
+    ${CMAKE_SOURCE_DIR}/src/lib/
+    ${CMAKE_SOURCE_DIR}/src/app/
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
+    ${CMAKE_SOURCE_DIR}/incl/
+    ${CMAKE_SOURCE_DIR}/src/
+    ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+    ${CMAKE_SOURCE_DIR}/third_party/httplib
+    ${SDL2_INCLUDE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${PROJECT_BINARY_DIR}
+  )
+
+  target_sources(yaze PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/yaze_config.h)
+
+  set_source_files_properties(
+    ${CMAKE_CURRENT_BINARY_DIR}/yaze_config.h
+    PROPERTIES GENERATED TRUE
+  )
+
+  source_group(TREE ${CMAKE_CURRENT_BINARY_DIR}
+               FILES ${CMAKE_CURRENT_BINARY_DIR}/yaze_config.h)
+
+  if(PNG_FOUND)
+    target_include_directories(yaze PUBLIC ${PNG_INCLUDE_DIRS})
+  endif()
+
+  if(YAZE_HAS_NFD)
+    target_link_libraries(yaze PRIVATE nfd)
+    target_compile_definitions(yaze PRIVATE YAZE_ENABLE_NFD=1)
+  else()
+    target_compile_definitions(yaze PRIVATE YAZE_ENABLE_NFD=0)
+  endif()
+
+  if(YAZE_USE_MODULAR_BUILD)
+    set(_yaze_modular_links yaze_editor)
+
+    if(TARGET yaze_agent)
+      list(APPEND _yaze_modular_links yaze_agent)
+    endif()
+
+    if(YAZE_BUILD_EMU AND TARGET yaze_emulator)
+      list(APPEND _yaze_modular_links yaze_emulator)
+    endif()
+
+    target_link_libraries(yaze PRIVATE ${_yaze_modular_links})
+  else()
+    target_link_libraries(yaze PRIVATE yaze_core)
+  endif()
+
+  target_compile_definitions(yaze PRIVATE YAZE_ENABLE_POLICY_FRAMEWORK=1)
+
+  if(WIN32)
+    if(MSVC)
+      target_link_options(yaze PRIVATE
+        /STACK:8388608
+        /SUBSYSTEM:WINDOWS
+        /ENTRY:mainCRTStartup
+      )
+      message(STATUS "Configuring yaze as Windows GUI application with main() entry point")
+    elseif(MINGW OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      target_link_options(yaze PRIVATE
+        -Wl,--stack,8388608
+        -Wl,--subsystem,windows
+        -Wl,-emain
+      )
+      message(STATUS "Configuring yaze as Windows GUI application with main() entry point (MinGW)")
+    endif()
+  endif()
+
+  if(YAZE_ENABLE_UI_TESTS)
+    if(TARGET ImGuiTestEngine)
+      target_include_directories(yaze PUBLIC ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine)
+      target_link_libraries(yaze PUBLIC ImGuiTestEngine)
+      target_compile_definitions(yaze PRIVATE
+        YAZE_ENABLE_IMGUI_TEST_ENGINE=1
+        ${IMGUI_TEST_ENGINE_DEFINITIONS})
+    else()
+      target_compile_definitions(yaze PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
+    endif()
+  else()
+    target_compile_definitions(yaze PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
+  endif()
+
+  if(YAZE_BUILD_TESTS AND TARGET gtest)
+    target_link_libraries(yaze PRIVATE gtest)
+    target_compile_definitions(yaze PRIVATE YAZE_ENABLE_GTEST=1)
+    target_compile_definitions(yaze PRIVATE YAZE_ENABLE_TESTING=1)
+  else()
+    target_compile_definitions(yaze PRIVATE YAZE_ENABLE_GTEST=0)
+    target_compile_definitions(yaze PRIVATE YAZE_ENABLE_TESTING=0)
+  endif()
+
+  if(PNG_FOUND)
+    target_link_libraries(yaze PUBLIC ${PNG_LIBRARIES})
+  endif()
+
+  if (APPLE)
+    target_link_libraries(yaze PUBLIC ${COCOA_LIBRARY})
+  endif()
+
+  if(NOT APPLE)
+    add_custom_command(TARGET yaze POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+      $<TARGET_FILE_DIR:yaze>/assets/font
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${CMAKE_SOURCE_DIR}/assets/font
+      $<TARGET_FILE_DIR:yaze>/assets/font
+      COMMENT "Copying font assets"
+    )
+
+    add_custom_command(TARGET yaze POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+      $<TARGET_FILE_DIR:yaze>/assets/themes
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${CMAKE_SOURCE_DIR}/assets/themes
+      $<TARGET_FILE_DIR:yaze>/assets/themes
+      COMMENT "Copying theme assets"
+    )
+
+    if(EXISTS ${CMAKE_SOURCE_DIR}/assets/layouts)
+      add_custom_command(TARGET yaze POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+        $<TARGET_FILE_DIR:yaze>/assets/layouts
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets/layouts
+        $<TARGET_FILE_DIR:yaze>/assets/layouts
+        COMMENT "Copying layout assets"
+      )
+    endif()
+
+    if(EXISTS ${CMAKE_SOURCE_DIR}/assets/lib)
+      add_custom_command(TARGET yaze POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+        $<TARGET_FILE_DIR:yaze>/assets/lib
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets/lib
+        $<TARGET_FILE_DIR:yaze>/assets/lib
+        COMMENT "Copying library assets"
+      )
+    endif()
+  endif()
+
+  target_sources(yaze PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/app/core/widget_state_capture.cc
+    ${CMAKE_SOURCE_DIR}/src/app/core/widget_state_capture.h)
+
+  if(YAZE_WITH_GRPC)
+    message(STATUS "Adding gRPC ImGuiTestHarness to yaze target")
+
+    target_include_directories(yaze PRIVATE
+      ${CMAKE_SOURCE_DIR}/third_party/json/include)
+    target_compile_definitions(yaze PRIVATE YAZE_WITH_JSON)
+
+    if(NOT YAZE_USE_MODULAR_BUILD)
+      target_add_protobuf(yaze
+        ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+
+      target_sources(yaze PRIVATE
+        ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.cc
+        ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.h
+        ${CMAKE_SOURCE_DIR}/src/app/core/service/screenshot_utils.cc
+        ${CMAKE_SOURCE_DIR}/src/app/core/service/screenshot_utils.h
+        ${CMAKE_SOURCE_DIR}/src/app/core/service/widget_discovery_service.cc
+        ${CMAKE_SOURCE_DIR}/src/app/core/service/widget_discovery_service.h
+        ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.cc
+        ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.h
+        ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.cc
+        ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.h)
+    endif()
+
+    target_link_libraries(yaze PRIVATE
+      grpc++
+      grpc++_reflection
+      libprotobuf)
+
+    message(STATUS "✓ gRPC ImGuiTestHarness integrated")
+    message(STATUS "✓ AI Agent services integrated into yaze GUI")
+  endif()
 endif()
-# Conditionally build the emulator, but not when gRPC is enabled for app-only testing
-# Conditionally build the emulator, but not when gRPC is enabled for app-only testing
+
 if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC)
-  include(app/emu/emu.cmake)
+  if (NOT YAZE_MINIMAL_BUILD AND APPLE)
+    add_executable(
+      yaze_emu
+      MACOSX_BUNDLE
+      app/main.cc
+      app/rom.cc
+      app/core/platform/app_delegate.mm
+      ${YAZE_APP_EMU_SRC}
+      ${YAZE_APP_CORE_SRC}
+      ${YAZE_APP_EDITOR_SRC}
+      ${YAZE_APP_GFX_SRC}
+      ${YAZE_APP_ZELDA3_SRC}
+      ${YAZE_UTIL_SRC}
+      ${YAZE_GUI_SRC}
+      ${IMGUI_SRC}
+      cli/service/planning/proposal_registry.cc
+      cli/service/rom/rom_sandbox_manager.cc
+    )
+    target_link_libraries(yaze_emu PUBLIC ${COCOA_LIBRARY})
+  elseif(NOT YAZE_MINIMAL_BUILD)
+    add_executable(
+      yaze_emu
+      app/rom.cc
+      app/emu/emu.cc
+      ${YAZE_APP_EMU_SRC}
+      ${YAZE_APP_CORE_SRC}
+      ${YAZE_APP_EDITOR_SRC}
+      ${YAZE_APP_GFX_SRC}
+      ${YAZE_APP_ZELDA3_SRC}
+      ${YAZE_UTIL_SRC}
+      ${YAZE_GUI_SRC}
+      ${IMGUI_SRC}
+      cli/service/planning/proposal_registry.cc
+      cli/service/rom/rom_sandbox_manager.cc
+    )
+  endif()
+
+  if(NOT YAZE_MINIMAL_BUILD)
+    target_include_directories(
+      yaze_emu PUBLIC
+      ${CMAKE_SOURCE_DIR}/src/lib/
+      ${CMAKE_SOURCE_DIR}/src/app/
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
+      ${CMAKE_SOURCE_DIR}/incl/
+      ${CMAKE_SOURCE_DIR}/src/
+      ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+      ${PNG_INCLUDE_DIRS}
+      ${SDL2_INCLUDE_DIR}
+      ${CMAKE_CURRENT_BINARY_DIR}
+      ${PROJECT_BINARY_DIR}
+    )
+
+    target_link_libraries(
+      yaze_emu PUBLIC
+      ${ABSL_TARGETS}
+      ${SDL_TARGETS}
+      ${PNG_LIBRARIES}
+      ${CMAKE_DL_LIBS}
+      ImGui
+      asar-static
+    )
+
+    if(YAZE_ENABLE_UI_TESTS)
+      target_link_libraries(yaze_emu PUBLIC ImGuiTestEngine)
+      target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
+    else()
+      target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
+    endif()
+  endif()
 endif()
 if (YAZE_BUILD_Z3ED)
   include(cli/z3ed.cmake)

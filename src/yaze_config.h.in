@@ -2,3 +2,9 @@
 #define YAZE_VERSION_MAJOR @yaze_VERSION_MAJOR@
 #define YAZE_VERSION_MINOR @yaze_VERSION_MINOR@
 #define YAZE_VERSION_PATCH @yaze_VERSION_PATCH@
+
+#ifdef __cplusplus
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#endif

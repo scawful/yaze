@@ -1,3 +1,26 @@
+set(
+  YAZE_APP_ZELDA3_SRC
+  app/zelda3/hyrule_magic.cc
+  app/zelda3/zelda3_labels.cc
+  app/zelda3/overworld/overworld_map.cc
+  app/zelda3/overworld/overworld.cc
+  app/zelda3/screen/inventory.cc
+  app/zelda3/screen/title_screen.cc
+  app/zelda3/screen/dungeon_map.cc
+  app/zelda3/sprite/sprite.cc
+  app/zelda3/sprite/sprite_builder.cc
+  app/zelda3/music/tracker.cc
+  app/zelda3/dungeon/room.cc
+  app/zelda3/dungeon/room_object.cc
+  app/zelda3/dungeon/object_parser.cc
+  app/zelda3/dungeon/object_renderer.cc
+  app/zelda3/dungeon/room_layout.cc
+  app/zelda3/dungeon/room_diagnostic.cc
+  app/zelda3/dungeon/room_visual_diagnostic.cc
+  app/zelda3/dungeon/dungeon_editor_system.cc
+  app/zelda3/dungeon/dungeon_object_editor.cc
+)
+
 # ==============================================================================
 # Yaze Zelda3 Library
 # ==============================================================================
@@ -12,6 +35,15 @@
 # ==============================================================================
 
 add_library(yaze_zelda3 STATIC ${YAZE_APP_ZELDA3_SRC})
+
+target_precompile_headers(yaze_zelda3 PRIVATE
+  <array>
+  <memory>
+  <set>
+  <string>
+  <string_view>
+  <vector>
+)
 
 target_include_directories(yaze_zelda3 PUBLIC
   ${CMAKE_SOURCE_DIR}/src

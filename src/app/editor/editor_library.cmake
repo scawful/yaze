@@ -1,3 +1,48 @@
+set(
+  YAZE_APP_EDITOR_SRC
+  app/editor/editor_manager.cc
+  app/editor/dungeon/dungeon_editor.cc
+  app/editor/dungeon/dungeon_editor_v2.cc
+  app/editor/dungeon/dungeon_room_selector.cc
+  app/editor/dungeon/dungeon_canvas_viewer.cc
+  app/editor/dungeon/dungeon_object_selector.cc
+  app/editor/dungeon/dungeon_toolset.cc
+  app/editor/dungeon/dungeon_object_interaction.cc
+  app/editor/dungeon/dungeon_renderer.cc
+  app/editor/dungeon/dungeon_room_loader.cc
+  app/editor/dungeon/dungeon_usage_tracker.cc
+  app/editor/overworld/overworld_editor.cc
+  app/editor/overworld/overworld_editor_manager.cc
+  app/editor/overworld/scratch_space.cc
+  app/editor/sprite/sprite_editor.cc
+  app/editor/music/music_editor.cc
+  app/editor/message/message_editor.cc
+  app/editor/message/message_data.cc
+  app/editor/message/message_preview.cc
+  app/editor/code/assembly_editor.cc
+  app/editor/graphics/screen_editor.cc
+  app/editor/graphics/graphics_editor.cc
+  app/editor/graphics/palette_editor.cc
+  app/editor/overworld/tile16_editor.cc
+  app/editor/overworld/map_properties.cc
+  app/editor/graphics/gfx_group_editor.cc
+  app/editor/overworld/entity.cc
+  app/editor/system/settings_editor.cc
+  app/editor/system/command_manager.cc
+  app/editor/system/extension_manager.cc
+  app/editor/system/shortcut_manager.cc
+  app/editor/system/popup_manager.cc
+  app/editor/system/agent_chat_history_codec.cc
+  app/editor/system/proposal_drawer.cc
+)
+
+if(YAZE_WITH_GRPC)
+  list(APPEND YAZE_APP_EDITOR_SRC
+    app/editor/system/agent_chat_widget.cc
+    app/editor/system/agent_collaboration_coordinator.cc
+  )
+endif()
+
 # ==============================================================================
 # Yaze Editor Library
 # ==============================================================================
@@ -17,6 +62,15 @@
 # ==============================================================================
 
 add_library(yaze_editor STATIC ${YAZE_APP_EDITOR_SRC})
+
+target_precompile_headers(yaze_editor PRIVATE
+  <array>
+  <cstdint>
+  <memory>
+  <set>
+  <string>
+  <vector>
+)
 
 target_include_directories(yaze_editor PUBLIC
   ${CMAKE_SOURCE_DIR}/src

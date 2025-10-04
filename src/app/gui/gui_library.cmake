@@ -1,3 +1,27 @@
+set(
+  YAZE_GUI_SRC
+  app/gui/modules/asset_browser.cc
+  app/gui/modules/text_editor.cc
+  app/gui/widgets/agent_chat_widget.cc
+  app/gui/canvas.cc
+  app/gui/canvas_utils.cc
+  app/gui/enhanced_palette_editor.cc
+  app/gui/input.cc
+  app/gui/style.cc
+  app/gui/color.cc
+  app/gui/theme_manager.cc
+  app/gui/background_renderer.cc
+  app/gui/bpp_format_ui.cc
+  app/gui/widget_id_registry.cc
+  app/gui/widget_auto_register.cc
+  # Canvas system components
+  app/gui/canvas/canvas_modals.cc
+  app/gui/canvas/canvas_context_menu.cc
+  app/gui/canvas/canvas_usage_tracker.cc
+  app/gui/canvas/canvas_performance_integration.cc
+  app/gui/canvas/canvas_interaction_handler.cc
+)
+
 # ==============================================================================
 # Yaze GUI Library
 # ==============================================================================
@@ -13,6 +37,15 @@
 # ==============================================================================
 
 add_library(yaze_gui STATIC ${YAZE_GUI_SRC})
+
+target_precompile_headers(yaze_gui PRIVATE
+  <array>
+  <memory>
+  <set>
+  <string>
+  <string_view>
+  <vector>
+)
 
 target_include_directories(yaze_gui PUBLIC
   ${CMAKE_SOURCE_DIR}/src
