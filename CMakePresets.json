@@ -220,7 +220,7 @@
     {
       "name": "windows-debug",
       "displayName": "Windows Debug",
-      "description": "Windows-specific debug configuration with vcpkg",
+      "description": "Windows debug build (JSON enabled by default, AI features disabled)",
       "inherits": "debug",
       "condition": {
         "type": "equals",
@@ -285,6 +285,42 @@
         "YAZE_BUILD_TESTS": "ON",
         "YAZE_ENABLE_ROM_TESTS": "ON",
         "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
+      }
+    },
+    {
+      "name": "windows-ai-debug",
+      "displayName": "Windows AI Debug",
+      "description": "Windows debug build with AI agent features (JSON enabled)",
+      "inherits": "windows-debug",
+      "cacheVariables": {
+        "Z3ED_AI": "ON",
+        "YAZE_WITH_JSON": "ON",
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "windows-ai-release",
+      "displayName": "Windows AI Release",
+      "description": "Windows release build with AI agent features (JSON enabled)",
+      "inherits": "windows-release",
+      "cacheVariables": {
+        "Z3ED_AI": "ON",
+        "YAZE_WITH_JSON": "ON",
+        "YAZE_BUILD_Z3ED": "ON"
+      }
+    },
+    {
+      "name": "windows-collab-debug",
+      "displayName": "Windows Collaboration Debug",
+      "description": "Windows debug build with full collaboration support (JSON + gRPC)",
+      "inherits": "windows-debug",
+      "cacheVariables": {
+        "Z3ED_AI": "ON",
+        "YAZE_WITH_JSON": "ON",
+        "YAZE_WITH_GRPC": "ON",
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_TESTS": "ON"
       }
     },
     {
@@ -498,6 +534,27 @@
       "name": "windows-agent-test",
       "configurePreset": "windows-agent-test",
       "displayName": "Windows z3ed Agent Test Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "windows-ai-debug",
+      "configurePreset": "windows-ai-debug",
+      "displayName": "Windows AI Debug Build",
+      "configuration": "Debug",
+      "jobs": 12
+    },
+    {
+      "name": "windows-ai-release",
+      "configurePreset": "windows-ai-release",
+      "displayName": "Windows AI Release Build",
+      "configuration": "Release",
+      "jobs": 12
+    },
+    {
+      "name": "windows-collab-debug",
+      "configurePreset": "windows-collab-debug",
+      "displayName": "Windows Collaboration Debug Build",
       "configuration": "Debug",
       "jobs": 12
     }

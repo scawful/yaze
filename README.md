@@ -45,6 +45,12 @@ cd yaze
 # Build with CMake
 cmake --preset debug        # macOS
 cmake -B build && cmake --build build  # Linux/Windows
+
+# Windows-specific
+scripts\verify-build-environment.ps1   # Verify your setup
+cmake --preset windows-debug           # Basic build
+cmake --preset windows-ai-debug        # With AI features
+cmake --build build --config Debug     # Build
 ```
 
 ### Applications
