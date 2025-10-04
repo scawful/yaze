@@ -65,6 +65,7 @@ endfunction()
 _yaze_ensure_yaml_cpp(YAZE_YAML_CPP_TARGET)
 
 set(YAZE_AGENT_SOURCES
+  cli/service/agent/proposal_executor.cc
   cli/handlers/agent/tool_commands.cc
   cli/service/agent/conversational_agent_service.cc
   cli/service/agent/simple_chat_session.cc
