@@ -36,7 +36,15 @@ void BackgroundBuffer::ClearBuffer() { std::ranges::fill(buffer_, 0); }
 void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
                                 const uint8_t* tiledata, int indexoffset) {
   int tx = (tile.id_ / 16 * 512) + ((tile.id_ & 0xF) * 4);
-  uint8_t palnibble = (uint8_t)(tile.palette_ << 4);
+  
+  // Clamp palette to 0-5 (90 colors / 16 = 5.625, so max palette is 5)
+  // Palettes 6-7 would require colors 96-127, which don't exist in dungeon palettes
+  uint8_t clamped_palette = tile.palette_ & 0x07;  // Get palette 0-7
+  if (clamped_palette > 5) {
+    clamped_palette = clamped_palette % 6;  // Wrap palette 6->0, 7->1
+  }
+  
+  uint8_t palnibble = (uint8_t)(clamped_palette << 4);
   uint8_t r = tile.horizontal_mirror_ ? 1 : 0;
 
   for (int yl = 0; yl < 512; yl += 64) {

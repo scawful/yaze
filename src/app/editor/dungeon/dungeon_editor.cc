@@ -13,6 +13,7 @@
 #include "app/zelda3/dungeon/dungeon_editor_system.h"
 #include "app/zelda3/dungeon/dungeon_object_editor.h"
 #include "app/zelda3/dungeon/room.h"
+#include "app/zelda3/dungeon/room_visual_diagnostic.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -280,6 +281,36 @@ void DungeonEditor::DrawCanvasAndPropertiesPanel() {
     // Canvas tab - main editing view
     if (ImGui::BeginTabItem("Canvas")) {
       DrawDungeonTabView();
+      ImGui::EndTabItem();
+    }
+
+    // Visual Diagnostic tab - for debugging rendering
+    if (ImGui::BeginTabItem("Visual Diagnostic")) {
+      if (!active_rooms_.empty()) {
+        int room_id = active_rooms_[current_active_room_tab_];
+        auto& room = rooms_[room_id];
+        
+        // Show button to toggle diagnostic window
+        if (ImGui::Button("Open Diagnostic Window")) {
+          show_visual_diagnostic_ = true;
+        }
+        
+        // Render visual diagnostic
+        if (show_visual_diagnostic_) {
+          // Get the global graphics buffer for tile decoding
+          static std::vector<uint8_t> empty_gfx;
+          const auto& gfx_buffer = rom()->graphics_buffer();
+          
+          zelda3::dungeon::RoomVisualDiagnostic::DrawDiagnosticWindow(
+              &show_visual_diagnostic_,
+              gfx::Arena::Get().bg1(),
+              gfx::Arena::Get().bg2(),
+              current_palette_,
+              gfx_buffer.empty() ? empty_gfx : gfx_buffer);
+        }
+      } else {
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), "No room selected. Open a room to see diagnostics.");
+      }
       ImGui::EndTabItem();
     }
 
