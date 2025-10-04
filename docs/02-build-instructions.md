@@ -480,210 +480,31 @@ All Windows CI/CD builds include automatic fallback mechanisms:
 **Linux:**
 - x64 (64-bit)
 
-## Troubleshooting
+## Contributing
 
-### Build Environment Issues
+### Code Style
 
-**CMake Configuration Fails:**
-```bash
-# Run verification script to diagnose
-./scripts/verify-build-environment.sh --verbose
+- **C++23**: Use modern language features
+- **Google C++ Style**: Follow Google C++ style guide
+- **Naming**: Use descriptive names, avoid abbreviations
 
-# Common fixes
-git submodule update --init --recursive
-./scripts/verify-build-environment.sh --clean --fix
+### Error Handling
+
+- **Use absl::Status** for error handling
+- **Use absl::StatusOr** for operations that return values
+
+### Pull Request Process
+
+1. **Run tests**: Ensure all stable tests pass (`ctest --preset stable`)
+2. **Check formatting**: Use `clang-format`
+3. **Update documentation**: If your changes affect behavior or APIs
+
+### Commit Messages
+
 ```
+type(scope): brief description
 
-**Git Submodules Missing or Out of Sync:**
-```bash
-# Sync and update all submodules
-git submodule sync --recursive
-git submodule update --init --recursive
+Detailed explanation of changes.
 
-# Verify submodules are present
-./scripts/verify-build-environment.sh
+Fixes #issue_number
 ```
-
-**Old CMake Cache Causing Issues:**
-```bash
-# Clean cache with verification script
-./scripts/verify-build-environment.sh --clean
-
-# Or manually
-rm -rf build build_test build-grpc-test
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-```
-
-### Dependency Conflicts
-
-**gRPC Conflicts with System Packages:**
-The project automatically isolates gRPC (when enabled) from system packages:
-- `CMAKE_DISABLE_FIND_PACKAGE_Protobuf=TRUE`
-- `CMAKE_DISABLE_FIND_PACKAGE_absl=TRUE`
-- gRPC builds its own protobuf and abseil
-
-**If you see protobuf/abseil version conflicts:**
-```bash
-# Verify isolation is configured
-grep CMAKE_DISABLE_FIND_PACKAGE cmake/grpc.cmake
-
-# Clean and reconfigure
-./scripts/verify-build-environment.sh --clean --fix
-```
-
-**httplib or nlohmann/json Missing:**
-These are header-only libraries in git submodules:
-```bash
-# Update submodules
-git submodule update --init third_party/json third_party/httplib
-
-# Verify
-ls -la third_party/json/include/
-ls -la third_party/httplib/httplib.h
-```
-
-### Windows CMake Issues
-
-**CMake Not Found:**
-```powershell
-# Run the setup script
-.\scripts\setup-windows-dev.ps1
-
-# Or install manually via Chocolatey
-choco install cmake
-```
-
-**Submodule Compatibility Errors:**
-```powershell
-# Test CMake configuration
-.\scripts\test-cmake-config.ps1
-
-# Clean build with compatibility flags
-Remove-Item -Recurse -Force build
-cmake -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_WARN_DEPRECATED=OFF
-```
-
-**Visual Studio CMake Issues:**
-```powershell
-# Clean CMake cache
-Remove-Item -Recurse -Force build
-
-# Rebuild CMake configuration
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build --config Debug
-```
-
-### vcpkg Issues
-
-**Dependencies Not Installing:**
-```cmd
-# Check vcpkg installation
-vcpkg version
-
-# Reinstall dependencies
-vcpkg install --triplet x64-windows sdl2
-
-# Check installed packages
-vcpkg list
-```
-
-**Network/Download Failures:**
-- The CI/CD workflows automatically fall back to minimal builds
-- For local development, ensure stable internet connection
-- If vcpkg consistently fails, use minimal build mode:
-  ```bash
-  cmake -B build -DYAZE_MINIMAL_BUILD=ON
-  ```
-
-**Visual Studio Integration:**
-```cmd
-# Re-integrate vcpkg
-cd C:\vcpkg
-.\vcpkg.exe integrate install
-```
-
-**Dependencies Not Found:**
-```powershell
-# Ensure vcpkg is properly set up (if using vcpkg)
-.\scripts\setup-vcpkg-windows.ps1
-
-# Or use bundled dependencies (default)
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-```
-
-### Test Issues
-
-**Test Discovery Failures:**
-```bash
-# Use CI test executable for minimal builds
-cmake -B build -DYAZE_MINIMAL_BUILD=ON
-cmake --build build
-
-# Check test executable
-./build/test/yaze_test --help
-```
-
-**ROM Test Failures:**
-```bash
-# Ensure ROM file exists
-ls -la zelda3.sfc
-
-# Run with explicit ROM path
-./build/test/yaze_test --e2e --rom-path zelda3.sfc
-```
-
-**SDL Initialization Errors:**
-- These are expected in CI builds
-- Use minimal build configuration for CI compatibility
-- For local development, ensure SDL2 is properly installed
-
-### Architecture Errors (macOS)
-```bash
-# Clean and use ARM64-only preset
-rm -rf build
-cmake --preset debug  # Uses arm64 only
-```
-
-### Missing Headers (Language Server)
-```bash
-# Regenerate compile commands
-cmake --preset debug
-cp build/compile_commands.json .
-# Restart VS Code
-```
-
-### CI Build Failures
-Use minimal build configuration that matches CI:
-```bash
-cmake -B build -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_UI_TESTS=OFF
-cmake --build build
-```
-
-### Common Error Solutions
-
-**"CMake Deprecation Warning" from submodules:**
-- This is automatically handled by the project's CMake configuration
-- If you see these warnings, they can be safely ignored
-
-**"pthread_create not found" on Windows:**
-- The project automatically sets `THREADS_PREFER_PTHREAD_FLAG=OFF`
-- This is normal for Windows builds
-
-**"Abseil C++ std propagation" warnings:**
-- Automatically handled with `ABSL_PROPAGATE_CXX_STD=ON`
-- Ensures proper C++ standard handling
-
-**Visual Studio "file not found" errors:**
-- Close and reopen the folder in Visual Studio
-- Delete the `build/` directory and let Visual Studio regenerate CMake cache
-- Ensure all git submodules are initialized: `git submodule update --init --recursive`
-
-**CI/CD Build Failures:**
-- Check if vcpkg download failed (network issues)
-- The workflows automatically fall back to minimal builds
-- For persistent issues, check the workflow logs for specific error messages
-
-**Test Executable Issues:**
-- Ensure the correct test executable is being used (CI vs development)
-- Check that test filters are properly configured
-- Verify that ROM-dependent tests are excluded in CI builds

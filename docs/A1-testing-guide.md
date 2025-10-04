@@ -160,8 +160,6 @@ TEST(CpuTest, InstructionExecution) {
 
 ## E2E GUI Testing Framework
 
-### Overview
-
 An agent-friendly, end-to-end testing framework built on `ImGuiTestEngine` to automate UI interaction testing for the YAZE editor.
 
 ### Architecture
@@ -204,14 +202,6 @@ void RegisterCanvasSelectionTest() {
 }
 ```
 
-### Helper Functions
-
-**test/test_utils.h** provides high-level wrappers:
-- `LoadRomInTest(ctx, rom_path)` - Load ROM file in test context
-- `OpenEditorInTest(ctx, editor_name)` - Open specific editor
-- `VerifyTileData(ctx, expected)` - Assert tile data correctness
-- `WaitForRender(ctx)` - Wait for rendering to complete
-
 ### Running GUI Tests
 
 ```bash
@@ -224,47 +214,3 @@ z3ed test-gui --rom zelda3.sfc --test canvas_selection
 # Run in headless mode (CI)
 z3ed test-gui --rom zelda3.sfc --test all --headless
 ```
-
-### Test Categories for E2E
-
-- **Smoke Tests**: Basic functionality verification (window opens, ROM loads)
-- **Canvas Tests**: Drawing, selection, copy/paste operations
-- **Editor Tests**: Specific editor workflows (Overworld, Dungeon, Graphics)
-- **Integration Tests**: Multi-editor workflows and data persistence
-
-### Development Status
-
-- ✅ **Phase 1**: Core infrastructure & test execution flow
-- ✅ **Phase 2**: Agent-friendly test definition & interaction
-- ✅ **Phase 3**: Initial test case - Canvas rectangle selection
-- ✅ **Phase 4**: Build and verify infrastructure
-- ⏳ **Phase 5**: Expand test coverage and fix identified bugs
-- ⏳ **Phase 6**: CI/CD integration with headless mode
-
-### Best Practices
-
-1. **Keep tests deterministic** - Use fixed delays and wait for specific states
-2. **Use high-level helpers** - Abstract ImGuiTestEngine complexity
-3. **Test user workflows** - Focus on real user interactions, not internal state
-4. **Verify visually** - Check rendered output, not just data structures
-5. **Clean up state** - Reset between tests to prevent interference
-
-## Performance and Maintenance
-
-### Regular Review
-- **Monthly review** of experimental test failures
-- **Promote stable experimental tests** to stable category
-- **Deprecate obsolete tests** that no longer provide value
-- **Update test categorization** as features mature
-
-### Performance Monitoring
-- **Track test execution times** for CI efficiency
-- **Identify slow tests** for optimization or recategorization
-- **Monitor CI resource usage** and adjust parallelism
-- **Benchmark critical path tests** for performance regression
-
-### E2E Test Maintenance
-- **Update test helpers** as UI components change
-- **Maintain test ROM files** for consistent test data
-- **Review failed tests** for UI changes vs. actual bugs
-- **Expand coverage** for new features and bug fixes

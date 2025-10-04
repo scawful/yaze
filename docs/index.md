@@ -12,7 +12,6 @@ Yet Another Zelda3 Editor - A comprehensive ROM editor for The Legend of Zelda: 
 ## Development
 
 - [Testing Guide](A1-testing-guide.md) - Testing framework and best practices
-- [Contributing](B1-contributing.md) - Development guidelines and standards  
 - [Platform Compatibility](B2-platform-compatibility.md) - Cross-platform support details
 - [Build Presets](B3-build-presets.md) - CMake preset usage guide
 - [Release Workflows](B4-release-workflows.md) - GitHub Actions release pipeline documentation
@@ -24,10 +23,7 @@ Yet Another Zelda3 Editor - A comprehensive ROM editor for The Legend of Zelda: 
 - [Assembly Style Guide](E1-asm-style-guide.md) - 65816 assembly coding standards
 
 ### Editor Systems
-- [Dungeon Editor Guide](E2-dungeon-editor-guide.md) - Complete dungeon editing guide
-- [Dungeon Editor Design](E3-dungeon-editor-design.md) - Architecture and development guide
-- [Dungeon Editor Refactoring](E4-dungeon-editor-refactoring.md) - Component-based architecture plan
-- [Dungeon Object System](E5-dungeon-object-system.md) - Object management framework
+- [Dungeon Editor Guide](dungeon_editor_master_guide.md) - Complete dungeon editing guide
 
 ### Overworld System
 - [Overworld Loading](F1-overworld-loading.md) - ZSCustomOverworld v3 implementation
@@ -43,5 +39,3 @@ Yet Another Zelda3 Editor - A comprehensive ROM editor for The Legend of Zelda: 
 - **CMake Compatibility**: Automatic handling of submodule compatibility issues (abseil-cpp, SDL)
 
 ---
-
-*Last updated: December 2025 - Version 0.3.2*

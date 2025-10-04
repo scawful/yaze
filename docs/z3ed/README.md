@@ -1,27 +1,33 @@
 # z3ed: AI-Powered CLI for YAZE
 
-**Status**: Production Ready (AI Integration)  
-**Latest Update**: October 3, 2025
+**Version**: 0.1.0-alpha
+**Last Updated**: October 4, 2025
 
-## Overview
+## 1. Overview
 
-`z3ed` is a command-line interface for YAZE enabling AI-driven ROM modifications through a conversational interface. It provides natural language interaction for ROM inspection and editing with a safe proposal-based workflow.
+This document is the **source of truth** for the z3ed CLI architecture, design, and roadmap. It outlines the evolution of `z3ed` into a powerful, scriptable, and extensible tool for both manual and AI-driven ROM hacking.
 
-**Core Capabilities**:
-1. **Conversational Agent**: Chat with AI to explore ROM contents and plan changes
-2. **GUI Test Automation**: Widget discovery, recording/replay, introspection
-3. **Proposal System**: Sandbox editing with review workflow
-4. **Multiple AI Backends**: Ollama (local), Gemini (cloud)
+`z3ed` has successfully implemented its core infrastructure and is **production-ready on macOS**.
 
-## Quick Start
+### Core Capabilities
+
+1.  **Conversational Agent**: Chat with an AI (Ollama or Gemini) to explore ROM contents and plan changes using natural language.
+2.  **GUI Test Automation**: A gRPC-based test harness allows for widget discovery, test recording/replay, and introspection for debugging and AI-driven validation.
+3.  **Proposal System**: A safe, sandboxed editing workflow where all changes are tracked as "proposals" that require human review and acceptance.
+4.  **Resource-Oriented CLI**: A clean `z3ed <resource> <action>` command structure that is both human-readable and machine-parsable.
+
+## 2. Quick Start
 
 ### Build
+
+A single `Z3ED_AI=ON` CMake flag enables all AI features, including JSON, YAML, and httplib dependencies. This simplifies the build process.
+
 ```bash
-# Full AI features (RECOMMENDED)
+# Build with AI features (RECOMMENDED)
 cmake -B build -DZ3ED_AI=ON
 cmake --build build --target z3ed
 
-# With GUI automation
+# For GUI automation features, also include gRPC
 cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON
 cmake --build build --target z3ed
 ```
@@ -31,14 +37,14 @@ cmake --build build --target z3ed
 **Ollama (Recommended for Development)**:
 ```bash
 brew install ollama              # macOS
-ollama pull qwen2.5-coder:7b    # Pull model
+ollama pull qwen2.5-coder:7b    # Pull recommended model
 ollama serve                     # Start server
 ```
 
 **Gemini (Cloud API)**:
 ```bash
+# Get API key from https://aistudio.google.com/apikey
 export GEMINI_API_KEY="your-key-here"
-# Get key from https://aistudio.google.com/apikey
 ```
 
 ### Example Commands
@@ -53,18 +59,6 @@ z3ed agent simple-chat --rom zelda3.sfc
 
 # Batch mode
 z3ed agent simple-chat --file queries.txt --rom zelda3.sfc
-```
-
-**Direct Tool Usage**:
-```bash
-# List dungeons
-z3ed agent resource-list --type dungeon --format json
-
-# Find tiles
-z3ed agent overworld-find-tile --tile 0x02E --map 0x05
-
-# Inspect sprites
-z3ed agent dungeon-list-sprites --room 0x012
 ```
 
 **Proposal Workflow**:
@@ -82,392 +76,113 @@ z3ed agent diff --proposal-id <id>
 z3ed agent accept --proposal-id <id>
 ```
 
-## Chat Modes
+## 3. Architecture
 
-### 1. FTXUI Chat (`agent chat`)
-Full-screen interactive terminal with:
-- Table rendering for JSON results
-- Syntax highlighting
-- Scrollable history
-- Best for manual exploration
+The z3ed system is composed of several layers, from the high-level AI agent down to the YAZE GUI and test harness.
 
-### 2. Simple Chat (`agent simple-chat`)
-Text-based REPL without FTXUI:
-- Lightweight, no dependencies
-- Scriptable and automatable
-- Batch mode support
-- Better for AI agent testing
-- Commands: `quit`, `exit`, `reset`
+### System Components Diagram
 
-### 3. GUI Chat Widget (In Progress)
-ImGui widget in YAZE editor:
-- Same backend as CLI
-- Dockable interface
-- History persistence
-- Visual proposal review
-
-## Available Tools
-
-The agent can call these tools autonomously:
-
-| Tool | Purpose | Example |
-|------|---------|---------|
-| `resource-list` | List labeled resources | "What dungeons exist?" |
-| `resource-search` | Fuzzy search across labels | "Search for soldier labels" |
-| `dungeon-list-sprites` | Sprites in room | "Show soldiers in room 0x12" |
-| `dungeon-describe-room` | Room metadata summary | "Describe room 0x012" |
-| `overworld-find-tile` | Find tile locations | "Where is tile 0x2E used?" |
-| `overworld-describe-map` | Map metadata | "Describe map 0x05" |
-| `overworld-list-warps` | List entrances/exits | "Show all cave entrances" |
-
-
-### 🎯 Next Steps
-2. **GUI Integration** (4-6h): Wire chat widget into main app
-3. **Proposal Integration** (6-8h): Connect chat to ROM modification
-
-## Troubleshooting
-
-### Chat mode freezes
-**Solution**: Use `agent simple-chat` instead of `agent chat`
-
-## Example Workflows
-
-### Explore ROM
-```bash
-$ z3ed agent simple-chat --rom zelda3.sfc
-You: What dungeons are defined?
-Agent: <calls resource-list --type dungeon>
-  ID    Label                   
-  ----  ------------------------
-  0x00  eastern_palace          
-  0x01  desert_palace           
-  ...
-
-You: Show me sprites in the first dungeon room 0x012
-Agent: <calls dungeon-list-sprites --room 0x012>
-  ...
+```
+┌─────────────────────────────────────────────────────────┐
+│ AI Agent Layer (LLM: Ollama, Gemini)                    │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────┐
+│ z3ed CLI (Command-Line Interface)                       │
+│  ├─ agent run/plan/diff/test/list/describe              │
+│  └─ rom/palette/overworld/dungeon commands              │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────┐
+│ Service Layer (Singleton Services)                      │
+│  ├─ ProposalRegistry (Proposal Tracking)                │
+│  ├─ RomSandboxManager (Isolated ROM Copies)             │
+│  ├─ ResourceCatalog (Machine-Readable API Specs)        │
+│  └─ ConversationalAgentService (Chat & Tool Dispatch)   │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────┐
+│ ImGuiTestHarness (gRPC Server in YAZE)                  │
+│  ├─ Ping, Click, Type, Wait, Assert, Screenshot         │
+│  └─ Introspection & Discovery RPCs                      │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────▼────────────────────────────────────┐
+│ YAZE GUI (ImGui Application)                            │
+│  └─ ProposalDrawer & Editor Windows                     │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### Make Changes
-```bash
-$ z3ed agent run --prompt "Add a tree at position 10,10 on map 0" --sandbox
-Proposal created: abc123
+## 4. Agentic & Generative Workflow (MCP)
 
-$ z3ed agent diff --proposal-id abc123
-Commands:
-  overworld set-tile --map 0 --x 10 --y 10 --tile 0x02E
+The `z3ed` CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop, where the AI agent's "program" is a script of `z3ed` commands.
 
-$ z3ed agent accept --proposal-id abc123
-✅ Proposal accepted
-```
+1.  **Model (Planner)**: The agent receives a natural language prompt and leverages an LLM to create a plan, which is a sequence of `z3ed` commands.
+2.  **Code (Generation)**: The LLM returns the plan as a structured JSON object containing actions.
+3.  **Program (Execution)**: The `z3ed agent` parses the plan and executes each command sequentially in a sandboxed ROM environment.
+4.  **Verification (Tester)**: The `ImGuiTestHarness` is used to run automated GUI tests to verify that the changes were applied correctly.
 
-## Overview
+## 5. Command Reference
 
-`z3ed` is a command-line interface for YAZE that enables AI-driven ROM modifications through a proposal-based workflow. It provides both human-accessible commands for developers and machine-readable APIs for LLM integration.
+### Agent Commands
 
-**Core Capabilities**:
-1. **AI-Driven Editing**: Natural language prompts → ROM modifications (overworld tile16, dungeon objects, sprites, palettes)
-2. **GUI Test Automation**: Widget discovery, test recording/replay, introspection for debugging
-3. **Proposal System**: Safe sandbox editing with accept/reject workflow
-4. **Multiple AI Backends**: Ollama (local), Gemini (cloud), Claude (planned)
+-   `agent run --prompt "..."`: Executes an AI-driven ROM modification in a sandbox.
+-   `agent plan --prompt "..."`: Shows the sequence of commands the AI plans to execute.
+-   `agent list`: Shows all proposals and their status.
+-   `agent diff [--proposal-id <id>]`: Shows the changes, logs, and metadata for a proposal.
+-   `agent describe [--resource <name>]`: Exports machine-readable API specifications for AI consumption.
+-   `agent chat`: Opens an interactive terminal chat (TUI) with the AI agent.
+-   `agent simple-chat`: A lightweight, non-TUI chat mode for scripting and automation.
+-   `agent test ...`: Commands for running and managing automated GUI tests.
 
-## Quick Start
+### Resource Commands
 
-### Build Options
+-   `rom info|validate|diff`: Commands for ROM file inspection and comparison.
+-   `palette export|import|list`: Commands for palette manipulation.
+-   `overworld get-tile|find-tile|set-tile`: Commands for overworld editing.
+-   `dungeon list-sprites|list-rooms`: Commands for dungeon inspection.
 
-```bash
-# Basic z3ed (CLI only, no AI/testing features)
-cmake --build build --target z3ed
+## 6. Chat Modes
 
-# Full build with AI agent (RECOMMENDED - uses consolidated flag)
-cmake -B build -DZ3ED_AI=ON
-cmake --build build --target z3ed
+### FTXUI Chat (`agent chat`)
+Full-screen interactive terminal with table rendering, syntax highlighting, and scrollable history. Best for manual exploration.
 
-# use macos-dev-z3ed-ai cmake preset
+### Simple Chat (`agent simple-chat`)
+Lightweight, scriptable text-based REPL that supports single messages, interactive sessions, piped input, and batch files.
 
-# Full build with AI agent AND testing suite
-cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON
-cmake --build build --target z3ed
-```
+### GUI Chat Widget (In Progress)
+An ImGui widget in the main YAZE editor that will provide the same functionality with a graphical interface.
 
-**Build Flags Explained**:
-- `Z3ED_AI=ON` - **Master flag** for AI features (enables JSON, YAML, httplib for Ollama + Gemini)
-- `YAZE_WITH_GRPC=ON` - Optional GUI automation and test harness (also enables JSON)
-- `YAZE_WITH_JSON=ON` - Lower-level flag (auto-enabled by Z3ED_AI or GRPC)
+## 7. AI Provider Configuration
 
-**Dependencies for AI Features** (auto-managed by Z3ED_AI):
-- nlohmann/json (JSON parsing for AI responses)
-- yaml-cpp (Config file loading)
-- httplib (HTTP/HTTPS API calls)
-- OpenSSL (optional, for Gemini HTTPS - auto-detected on macOS/Linux)
+Z3ED supports multiple AI providers. Configuration is resolved with command-line flags taking precedence over environment variables.
 
-### AI Agent Commands
+-   `--ai_provider=<provider>`: Selects the AI provider (`mock`, `ollama`, `gemini`).
+-   `--ai_model=<model>`: Specifies the model name (e.g., `qwen2.5-coder:7b`, `gemini-1.5-flash`).
+-   `--gemini_api_key=<key>`: Your Gemini API key.
+-   `--ollama_host=<url>`: The URL for your Ollama server (default: `http://localhost:11434`).
 
-```bash
-# Generate commands from natural language prompt
-z3ed agent plan --prompt "Place a tree at position 10, 10 on map 0"
+## 8. Roadmap & Implementation Status
 
-# Execute in sandbox with auto-approval
-z3ed agent run --prompt "Create a 3x3 water pond at 15, 20" --rom zelda3.sfc --sandbox
+**Last Updated**: October 4, 2025
 
-# Chat with the agent in the terminal (FTXUI prototype)
-z3ed agent chat
+### ✅ Completed
 
-# List all proposals
-z3ed agent list
+-   **Core Infrastructure**: Resource-oriented CLI, proposal workflow, sandbox manager, and resource catalog are all production-ready.
+-   **AI Backends**: Both Ollama (local) and Gemini (cloud) are operational.
+-   **Conversational Agent**: The agent service, tool dispatcher (with 5 read-only tools), and TUI/simple chat interfaces are complete.
+-   **GUI Test Harness**: A comprehensive GUI testing platform with introspection, widget discovery, recording/replay, and CI integration support.
 
-# View proposal details
-z3ed agent diff --proposal <id>
+### 🚧 Active & Next Steps
 
-# Inspect project metadata for the LLM toolchain
-z3ed agent resource-list --type dungeon --format json
+1.  **Live LLM Testing (1-2h)**: Verify function calling with real models (Ollama/Gemini).
+2.  **GUI Chat Integration (6-8h)**: Wire the `AgentChatWidget` into the main YAZE editor.
+3.  **Expand Tool Coverage (8-10h)**: Add new read-only tools for inspecting dialogue, sprites, and regions.
+4.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
 
-# Dump sprite placements for a dungeon room
-z3ed agent dungeon-list-sprites --room 0x012
+## 9. Troubleshooting
 
-# Search overworld maps for a tile ID using shared agent tooling
-z3ed agent overworld-find-tile --tile 0x02E --map 0x05
-```
-
-### GUI Testing Commands
-
-```bash
-# Run automated test
-z3ed agent test --prompt "Open Overworld editor and verify it loads"
-
-# Query test status
-z3ed agent test status --test-id <id> --follow
-
-# Record manual workflow
-z3ed agent test record start --output tests/my_test.json
-# ... perform actions in GUI ...
-z3ed agent test record stop
-
-# Replay recorded test
-z3ed agent test replay tests/my_test.json
-
-# Test conversational agent (batch mode, no TUI required)
-z3ed agent test-conversation
-
-# Test with custom conversation file
-z3ed agent test-conversation --file my_tests.json
-```
-
-## AI Service Setup
-
-### Ollama (Local LLM - Recommended for Development)
-
-```bash
-# Install Ollama
-brew install ollama  # macOS
-# or download from https://ollama.com
-
-# Pull recommended model
-ollama pull qwen2.5-coder:7b
-
-# Start server
-ollama serve
-
-# z3ed will auto-detect Ollama at localhost:11434
-z3ed agent plan --prompt "test"
-```
-
-### Gemini (Google Cloud API)
-
-```bash
-# Get API key from https://aistudio.google.com/apikey
-export GEMINI_API_KEY="your-key-here"
-
-# z3ed will auto-select Gemini when key is set
-z3ed agent plan --prompt "test"
-```
-
-**Note**: Gemini requires OpenSSL (HTTPS). Build with `-DYAZE_WITH_GRPC=ON -DYAZE_WITH_JSON=ON` to enable SSL support. OpenSSL is auto-detected on macOS/Linux. Windows users can use Ollama instead.
-
-### Example Prompts
-Here are some example prompts you can try with either Ollama or Gemini:
-
-**Overworld Tile16 Editing**:
-- `"Place a tree at position 10, 20 on map 0"`
-- `"Create a 3x3 water pond at coordinates 15, 10"`
-- `"Add a dirt path from position 5,5 to 5,15"`
-- `"Plant a row of trees horizontally at y=8 from x=20 to x=25"`
-
-**Dungeon Editing (Label-Aware)**:
-- `"Add 3 soldiers to the Eastern Palace entrance room"`
-- `"Place a chest in Hyrule Castle treasure room"`
-
-## Core Documentation
-
-## Current Status (October 3, 2025)
-
-### ✅ Production Ready
-- **Build System**: ✅ Z3ED_AI flag consolidation complete
-  - Single flag for all AI features
-  - Graceful degradation when dependencies missing
-  - Clear error messages and build status
-  - Backward compatible with old flags
-- **AI Backends**: ✅ Both Ollama and Gemini operational
-  - Auto-detection based on environment
-  - Health checks and error handling
-  - Tested with real API calls
-- **Conversational Agent**: ✅ Multi-step tool execution loop
-  - Chat history management
-  - Tool result replay without recursion
-  - JSON/table rendering in TUI
-- **Tool Dispatcher**: ✅ 5 read-only tools operational
-  - Resource listing, sprite inspection, tile search
-  - Map descriptions, warp enumeration
-  - Machine-readable JSON output
-
-### � In Progress (Priority Order)
-1. **Live LLM Testing** (1-2h): Verify function calling with real models
-2. **GUI Chat Widget** (6-8h): ImGui integration (TUI exists as reference)
-3. **Tool Coverage Expansion** (8-10h): Dialogue, sprites, regions
-
-## AI Editing Focus Areas
-
-z3ed is optimized for practical ROM editing workflows:
-
-### Overworld Tile16 Editing ⭐ PRIMARY FOCUS
-**Why**: Simple data model (uint16 IDs), visual feedback, reversible, safe
-- Single tile placement (trees, rocks, bushes)
-- Area creation (water ponds, dirt patches)
-- Path creation (connecting points with tiles)
-- Pattern generation (tree rows, forests, boundaries)
-
-### Dungeon Editing
-- Sprite placement with label awareness ("eastern palace entrance")
-- Object placement (chests, doors, switches)
-- Entrance configuration
-- Room property editing
-
-### Palette Editing
-- Color modification by index
-- Sprite palette adjustments
-- Export/import workflows
-
-### Additional Capabilities
-- Sprite data editing
-- Compression/decompression
-- ROM validation
-- Patch application
-
-## Example Workflows
-
-### Basic Tile16 Edit
-```bash
-# AI generates command
-z3ed agent plan --prompt "Place a tree at 10, 10"
-# Output: overworld set-tile --map 0 --x 10 --y 10 --tile 0x02E
-
-# Execute manually
-z3ed overworld set-tile --map 0 --x 10 --y 10 --tile 0x02E
-
-# Or auto-execute with sandbox
-z3ed agent run --prompt "Place a tree at 10, 10" --rom zelda3.sfc --sandbox
-```
-
-### Complex Multi-Step Edit
-```bash
-# AI generates multiple commands
-z3ed agent plan --prompt "Create a 3x3 water pond at 15, 20"
-
-# Review proposal
-z3ed agent diff --latest
-
-# Accept and apply
-z3ed agent accept --latest
-```
-
-### Locate Existing Tiles
-```bash
-# Find every instance of tile 0x02E across the overworld
-z3ed overworld find-tile --tile 0x02E --format json
-
-# Narrow search to Light World map 0x05
-z3ed overworld find-tile --tile 0x02E --map 0x05
-
-# Ask the agent to perform the same lookup (returns JSON by default)
-z3ed agent overworld-find-tile --tile 0x02E --map 0x05
-```
-
-### Label-Aware Dungeon Edit
-```bash
-# AI uses ResourceLabels from your project
-z3ed agent plan --prompt "Add 3 soldiers to my custom fortress entrance"
-# AI explains: "Using label 'custom_fortress' for dungeon 0x04"
-```
-
-## Dependencies Guard
-
-AI agent features require:
-- `YAZE_WITH_GRPC=ON` - GUI automation and test harness
-- `YAZE_WITH_JSON=ON` - AI service communication
-- OpenSSL (optional) - Gemini HTTPS support (auto-detected)
-
-**Windows Compatibility**: Build without gRPC/JSON for basic z3ed functionality. Use Ollama (localhost) instead of Gemini for AI features without SSL dependency.
-
-## Recent Changes (Oct 3, 2025)
-
-### Z3ED_AI Build Flag (Major Improvement)
-- ✅ **Consolidated Build Flags**: New `-DZ3ED_AI=ON` replaces multiple flags
-  - Old: `-DYAZE_WITH_GRPC=ON -DYAZE_WITH_JSON=ON`
-  - New: `-DZ3ED_AI=ON` (simpler, clearer intent)
-- ✅ **Fixed Gemini Crash**: Graceful degradation when dependencies missing
-- ✅ **Better Error Messages**: Clear guidance on missing dependencies
-- ✅ **Production Ready**: Both backends tested and operational
-
-### Build System
-- ✅ Auto-manages dependencies (JSON, YAML, httplib, OpenSSL)
-- ✅ Backward compatible with old flags
-- ✅ Ready for build modularization (optional `libyaze_agent.a`)
-
-### Documentation
-- ✅ Updated build instructions with Z3ED_AI flag
-- ✅ Added migration guide: [Z3ED_AI_FLAG_MIGRATION.md](Z3ED_AI_FLAG_MIGRATION.md)
-- ✅ Clear troubleshooting section with common issues
-
-## Troubleshooting
-
-### "Build with -DZ3ED_AI=ON" warning
-**Impact**: AI agent features disabled (no Ollama or Gemini)  
-**Solution**: Rebuild with AI support:
-```bash
-cmake -B build -DZ3ED_AI=ON
-cmake --build build --target z3ed
-```
-
-### "gRPC not available" error
-**Impact**: GUI testing and automation disabled  
-**Solution**: Rebuild with `-DYAZE_WITH_GRPC=ON` (also requires Z3ED_AI)
-
-### AI generates invalid commands
-**Causes**: Vague prompt, unfamiliar tile IDs, missing context  
-**Solutions**:
-- Use specific coordinates and tile types
-- Reference tile16 IDs from documentation
-- Provide map context ("Light World", "map 0")
-- Check ResourceLabels are loaded for your project
-
-### Testing the conversational agent
-**Problem**: TUI chat requires interactive input  
-**Solution**: Use the new batch testing mode:
-```bash
-# Run with default test cases (no interaction required)
-z3ed agent test-conversation --rom zelda3.sfc
-
-# Or use the automated test script
-./scripts/test_agent_conversation_live.sh
-```
-
-### Verifying ImGui test harness
-**Problem**: Unsure if GUI automation is working  
-**Solution**: Run the verification script:
-```bash
-./scripts/test_imgui_harness.sh
-```
-
-#### Gemini-Specific Issues
-- **"Cannot reach Gemini API"**: Check your internet connection, API key, and that you've built with SSL support.
-- **"Invalid Gemini API key"**: Regenerate your key at `aistudio.google.com/apikey`.
+-   **"Build with -DZ3ED_AI=ON" warning**: AI features are disabled. Rebuild with the flag to enable them.
+-   **"gRPC not available" error**: GUI testing is disabled. Rebuild with `-DYAZE_WITH_GRPC=ON`.
+-   **AI generates invalid commands**: The prompt may be vague. Use specific coordinates, tile IDs, and map context.
+-   **Chat mode freezes**: Use `agent simple-chat` instead of the FTXUI-based `agent chat` for better stability, especially in scripts.
