@@ -94,6 +94,20 @@
       }
     },
     {
+      "name": "macos-dungeon-dev",
+      "displayName": "Dungeon Editor Dev (ARM64)",
+      "description": "macOS ARM64 build for dungeon editing implementation work",
+      "binaryDir": "${sourceDir}/build_rooms",
+      "inherits": "macos-debug",
+      "cacheVariables": {
+        "YAZE_BUILD_APP": "ON",
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "ON",
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
       "name": "ci",
       "displayName": "Continuous Integration",
       "description": "CI build without ROM-dependent tests",
@@ -403,6 +417,11 @@
       "name": "macos-agent-test",
       "configurePreset": "macos-agent-test",
       "displayName": "macOS z3ed Agent Test Build"
+    },
+    {
+      "name": "macos-dungeon-dev",
+      "configurePreset": "macos-dungeon-dev",
+      "displayName": "macOS Dungeon Editor Dev Build"
     },
     {
       "name": "fast",
