@@ -36,10 +36,10 @@ commands:
 tools:
   - name: resource-list
     description: "List project-defined resource labels for the requested category."
-  usage_notes: "Use this whenever you need to reference project-specific labels or IDs from the ROM. Valid categories: dungeon, room, entrance, overworld, sprite, palette, item, tile16, or all."
+    usage_notes: "Use this whenever you need to reference project-specific labels or IDs from the ROM. Valid categories: dungeon, room, entrance, overworld, sprite, palette, item, tile16, or all."
     arguments:
       - name: type
-  description: "Resource category. Valid values: dungeon, room, entrance, overworld, sprite, palette, item, tile16, all."
+        description: "Resource category. Valid values: dungeon, room, entrance, overworld, sprite, palette, item, tile16, all."
         required: true
         example: dungeon
       - name: format
@@ -48,14 +48,14 @@ tools:
         example: json
   - name: resource-search
     description: "Search resource labels by partial name or ID."
-  usage_notes: "Use to locate specific rooms, sprites, palettes, entrances, overworld maps, or tile16 entries based on fuzzy text."
+    usage_notes: "Use to locate specific rooms, sprites, palettes, entrances, overworld maps, or tile16 entries based on fuzzy text."
     arguments:
       - name: query
         description: "Search term to match against labels and IDs."
         required: true
         example: soldier
       - name: type
-  description: "Optional category filter (dungeon, room, entrance, overworld, sprite, palette, item, tile16, all)."
+        description: "Optional category filter (dungeon, room, entrance, overworld, sprite, palette, item, tile16, all)."
         required: false
         example: sprite
       - name: format
