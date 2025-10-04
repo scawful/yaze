@@ -178,7 +178,9 @@ Z3ED supports multiple AI providers. Configuration is resolved with command-line
 1.  **Live LLM Testing (1-2h)**: Verify function calling with real models (Ollama/Gemini).
 2.  **GUI Chat Enhancements (4-6h)**: Persist chat state, surface proposal shortcuts, and add toast notifications when new proposals arrive from chats.
 3.  **Expand Tool Coverage (8-10h)**: Add new read-only tools for inspecting dialogue, sprites, and regions.
-4.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
+4.  **Collaborative Sessions**: Expand the infrastructure of `z3ed` and `yaze` to support collaborative sessions where users can edit the same game and query the AI model together.
+5.  **Multi-modal Gemini for image feedback**: Take screenshots of the map for Gemini to have more context to tool and function calls.
+6.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
 
 ## 9. Troubleshooting
 

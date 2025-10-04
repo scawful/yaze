@@ -223,6 +223,11 @@ void EditorManager::Initialize(const std::string& filename) {
   // Set the popup manager in the context
   context_.popup_manager = popup_manager_.get();
 
+#ifdef YAZE_WITH_GRPC
+  agent_chat_widget_.SetToastManager(&toast_manager_);
+  agent_chat_widget_.SetProposalDrawer(&proposal_drawer_);
+#endif
+
   // Load critical user settings first
   LoadUserSettings();
 

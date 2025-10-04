@@ -445,9 +445,17 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
           "⚠️ Failed to prepare a proposal automatically: ",
           proposal_status.message()));
     }
-
-  ChatMessage chat_response =
-    CreateMessage(ChatMessage::Sender::kAgent, response_text);
+    ChatMessage chat_response =
+        CreateMessage(ChatMessage::Sender::kAgent, response_text);
+    if (proposal_result.has_value()) {
+      ChatMessage::ProposalSummary summary;
+      summary.id = proposal_result->metadata.id;
+      summary.change_count = proposal_result->change_count;
+      summary.executed_commands = proposal_result->executed_commands;
+      summary.sandbox_rom_path = proposal_result->metadata.sandbox_rom_path;
+      summary.proposal_json_path = proposal_result->proposal_json_path;
+      chat_response.proposal = summary;
+    }
     ++metrics_.agent_messages;
     ++metrics_.turns_completed;
     metrics_.total_latency += absl::Now() - turn_start;
@@ -463,6 +471,48 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
 
 const std::vector<ChatMessage>& ConversationalAgentService::GetHistory() const {
   return history_;
+}
+
+void ConversationalAgentService::ReplaceHistory(
+    std::vector<ChatMessage> history) {
+  history_ = std::move(history);
+  TrimHistoryIfNeeded();
+  RebuildMetricsFromHistory();
+}
+
+void ConversationalAgentService::RebuildMetricsFromHistory() {
+  metrics_ = InternalMetrics{};
+
+  ChatMessage::SessionMetrics snapshot{};
+  bool has_snapshot = false;
+
+  for (const auto& message : history_) {
+    if (message.sender == ChatMessage::Sender::kUser) {
+      ++metrics_.user_messages;
+    } else if (message.sender == ChatMessage::Sender::kAgent) {
+      ++metrics_.agent_messages;
+      ++metrics_.turns_completed;
+    }
+
+    if (message.proposal.has_value()) {
+      ++metrics_.proposals_created;
+    }
+
+    if (message.metrics.has_value()) {
+      snapshot = *message.metrics;
+      has_snapshot = true;
+    }
+  }
+
+  if (has_snapshot) {
+    metrics_.user_messages = snapshot.total_user_messages;
+    metrics_.agent_messages = snapshot.total_agent_messages;
+    metrics_.tool_calls = snapshot.total_tool_calls;
+    metrics_.commands_generated = snapshot.total_commands;
+    metrics_.proposals_created = snapshot.total_proposals;
+    metrics_.turns_completed = snapshot.turn_index;
+    metrics_.total_latency = absl::Seconds(snapshot.total_elapsed_seconds);
+  }
 }
 
 }  // namespace agent

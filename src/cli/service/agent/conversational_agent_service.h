@@ -1,6 +1,7 @@
 #ifndef YAZE_SRC_CLI_SERVICE_AGENT_CONVERSATIONAL_AGENT_SERVICE_H_
 #define YAZE_SRC_CLI_SERVICE_AGENT_CONVERSATIONAL_AGENT_SERVICE_H_
 
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <vector>
@@ -9,6 +10,7 @@
 #include "absl/time/time.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/agent/tool_dispatcher.h"
+#include "cli/service/agent/proposal_executor.h"
 
 namespace yaze {
 
@@ -22,6 +24,13 @@ struct ChatMessage {
   struct TableData {
     std::vector<std::string> headers;
     std::vector<std::vector<std::string>> rows;
+  };
+  struct ProposalSummary {
+    std::string id;
+    int change_count = 0;
+    int executed_commands = 0;
+    std::filesystem::path sandbox_rom_path;
+    std::filesystem::path proposal_json_path;
   };
   Sender sender;
   std::string message;
@@ -39,6 +48,7 @@ struct ChatMessage {
     double average_latency_seconds = 0.0;
   };
   std::optional<SessionMetrics> metrics;
+  std::optional<ProposalSummary> proposal;
 };
 
 enum class AgentOutputFormat {
@@ -81,6 +91,8 @@ class ConversationalAgentService {
 
   ChatMessage::SessionMetrics GetMetrics() const;
 
+  void ReplaceHistory(std::vector<ChatMessage> history);
+
  private:
   struct InternalMetrics {
     int user_messages = 0;
@@ -94,6 +106,7 @@ class ConversationalAgentService {
 
   void TrimHistoryIfNeeded();
   ChatMessage::SessionMetrics BuildMetricsSnapshot() const;
+  void RebuildMetricsFromHistory();
 
   std::vector<ChatMessage> history_;
   std::unique_ptr<AIService> ai_service_;
