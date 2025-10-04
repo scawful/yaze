@@ -312,6 +312,10 @@ class Room {
   void SetStair2Target(uint8_t target) { stair2_.target = target; }
   void SetStair3Target(uint8_t target) { stair3_.target = target; }
   void SetStair4Target(uint8_t target) { stair4_.target = target; }
+  
+  // Loaded state
+  bool IsLoaded() const { return is_loaded_; }
+  void SetLoaded(bool loaded) { is_loaded_ = loaded; }
 
   // Read-only accessors for metadata
   EffectKey effect() const { return effect_; }
@@ -350,7 +354,7 @@ class Room {
   std::array<uint8_t, 0x4000> current_gfx16_;
 
   bool is_light_;
-  bool is_loaded_;
+  bool is_loaded_ = false;
   bool is_dark_;
   bool is_floor_ = true;
 

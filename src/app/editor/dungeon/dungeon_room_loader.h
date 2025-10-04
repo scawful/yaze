@@ -23,6 +23,7 @@ class DungeonRoomLoader {
   explicit DungeonRoomLoader(Rom* rom) : rom_(rom) {}
   
   // Room loading
+  absl::Status LoadRoom(int room_id, zelda3::Room& room);
   absl::Status LoadAllRooms(std::array<zelda3::Room, 0x128>& rooms);
   absl::Status LoadRoomEntrances(std::array<zelda3::RoomEntrance, 0x8C>& entrances);
   
@@ -31,7 +32,7 @@ class DungeonRoomLoader {
   uint64_t GetTotalRoomSize() const { return total_room_size_; }
   
   // Room graphics
-  absl::Status LoadAndRenderRoomGraphics(int room_id, zelda3::Room& room);
+  absl::Status LoadAndRenderRoomGraphics(zelda3::Room& room);
   absl::Status ReloadAllRoomGraphics(std::array<zelda3::Room, 0x128>& rooms);
   
   // Data access

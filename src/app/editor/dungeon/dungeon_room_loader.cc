@@ -13,6 +13,20 @@
 
 namespace yaze::editor {
 
+absl::Status DungeonRoomLoader::LoadRoom(int room_id, zelda3::Room& room) {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  if (room_id < 0 || room_id >= 0x128) {
+    return absl::InvalidArgumentError("Invalid room ID");
+  }
+
+  room = zelda3::LoadRoomFromRom(rom_, room_id);
+  room.LoadObjects();
+
+  return absl::OkStatus();
+}
+
 absl::Status DungeonRoomLoader::LoadAllRooms(std::array<zelda3::Room, 0x128>& rooms) {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
@@ -26,7 +40,7 @@ absl::Status DungeonRoomLoader::LoadAllRooms(std::array<zelda3::Room, 0x128>& ro
                                        static_cast<int>(std::thread::hardware_concurrency()));
   const int rooms_per_thread = (kTotalRooms + max_concurrency - 1) / max_concurrency;
   
-  util::logf("Loading %d dungeon rooms using %d threads (%d rooms per thread)", 
+  LOG_INFO("Dungeon", "Loading %d dungeon rooms using %d threads (%d rooms per thread)", 
              kTotalRooms, max_concurrency, rooms_per_thread);
   
   // Thread-safe data structures for collecting results
@@ -164,7 +178,7 @@ void DungeonRoomLoader::LoadDungeonRoomSize() {
   }
 }
 
-absl::Status DungeonRoomLoader::LoadAndRenderRoomGraphics(int room_id, zelda3::Room& room) {
+absl::Status DungeonRoomLoader::LoadAndRenderRoomGraphics(zelda3::Room& room) {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -184,8 +198,8 @@ absl::Status DungeonRoomLoader::ReloadAllRoomGraphics(std::array<zelda3::Room, 0
   }
   
   // Reload graphics for all rooms
-  for (size_t i = 0; i < rooms.size(); ++i) {
-    auto status = LoadAndRenderRoomGraphics(static_cast<int>(i), rooms[i]);
+  for (auto& room : rooms) {
+    auto status = LoadAndRenderRoomGraphics(room);
     if (!status.ok()) {
       continue; // Log error but continue with other rooms
     }

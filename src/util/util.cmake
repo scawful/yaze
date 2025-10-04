@@ -14,6 +14,7 @@ set(YAZE_UTIL_SRC
   util/bps.cc
   util/flag.cc
   util/hex.cc
+  util/log.cc
 )
 
 add_library(yaze_util STATIC ${YAZE_UTIL_SRC})

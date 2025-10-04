@@ -8,12 +8,12 @@
 #include "app/gfx/atlas_renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/performance_profiler.h"
+#include "app/gui/canvas_utils.h"
 #include "app/gui/color.h"
 #include "app/gui/style.h"
-#include "app/gui/canvas_utils.h"
-#include "util/log.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
+#include "util/log.h"
 
 namespace yaze::gui {
 
@@ -62,19 +62,19 @@ void Canvas::InitializeDefaults() {
   config_.canvas_size = ImVec2(0, 0);
   config_.custom_canvas_size = false;
   config_.clamp_rect_to_local_maps = false;
-  
+
   // Initialize selection state
   selection_.Clear();
-  
+
   // Initialize palette editor
   palette_editor_ = std::make_unique<EnhancedPaletteEditor>();
-  
+
   // Initialize interaction handler
   interaction_handler_.Initialize(canvas_id_);
-  
+
   // Initialize enhanced components
   InitializeEnhancedComponents();
-  
+
   // Initialize legacy compatibility variables to match config
   enable_grid_ = config_.enable_grid;
   enable_hex_tile_labels_ = config_.enable_hex_labels;
@@ -91,12 +91,12 @@ void Canvas::InitializeDefaults() {
 void Canvas::Cleanup() {
   palette_editor_.reset();
   selection_.Clear();
-  
+
   // Stop performance monitoring before cleanup to prevent segfault
   if (performance_integration_) {
     performance_integration_->StopMonitoring();
   }
-  
+
   // Cleanup enhanced components
   modals_.reset();
   context_menu_.reset();
@@ -107,22 +107,24 @@ void Canvas::Cleanup() {
 void Canvas::InitializeEnhancedComponents() {
   // Initialize modals system
   modals_ = std::make_unique<canvas::CanvasModals>();
-  
+
   // Initialize context menu system
   context_menu_ = std::make_unique<canvas::CanvasContextMenu>();
   context_menu_->Initialize(canvas_id_);
-  
+
   // Initialize usage tracker
   usage_tracker_ = std::make_shared<canvas::CanvasUsageTracker>();
   usage_tracker_->Initialize(canvas_id_);
   canvas::CanvasUsageManager::Get().RegisterTracker(canvas_id_, usage_tracker_);
-  
+
   // Initialize performance integration
-  performance_integration_ = std::make_shared<canvas::CanvasPerformanceIntegration>();
+  performance_integration_ =
+      std::make_shared<canvas::CanvasPerformanceIntegration>();
   performance_integration_->Initialize(canvas_id_);
   performance_integration_->SetUsageTracker(usage_tracker_);
-  canvas::CanvasPerformanceManager::Get().RegisterIntegration(canvas_id_, performance_integration_);
-  
+  canvas::CanvasPerformanceManager::Get().RegisterIntegration(
+      canvas_id_, performance_integration_);
+
   // Start performance monitoring
   performance_integration_->StartMonitoring();
   usage_tracker_->StartSession();
@@ -144,12 +146,14 @@ canvas::CanvasUsage Canvas::GetUsageMode() const {
   return canvas::CanvasUsage::kUnknown;
 }
 
-void Canvas::RecordCanvasOperation(const std::string& operation_name, double time_ms) {
+void Canvas::RecordCanvasOperation(const std::string& operation_name,
+                                   double time_ms) {
   if (usage_tracker_) {
     usage_tracker_->RecordOperation(operation_name, time_ms);
   }
   if (performance_integration_) {
-    performance_integration_->RecordOperation(operation_name, time_ms, GetUsageMode());
+    performance_integration_->RecordOperation(operation_name, time_ms,
+                                              GetUsageMode());
   }
 }
 
@@ -166,7 +170,8 @@ void Canvas::ShowUsageReport() {
     if (modals_) {
       // Create a simple text display modal
       ImGui::OpenPopup("Canvas Usage Report");
-      if (ImGui::BeginPopupModal("Canvas Usage Report", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+      if (ImGui::BeginPopupModal("Canvas Usage Report", nullptr,
+                                 ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Text("Canvas Usage Report");
         ImGui::Separator();
         ImGui::TextWrapped("%s", report.c_str());
@@ -190,7 +195,8 @@ void Canvas::InitializePaletteEditor(Rom* rom) {
 void Canvas::ShowPaletteEditor() {
   if (palette_editor_ && bitmap_) {
     auto mutable_palette = bitmap_->mutable_palette();
-    palette_editor_->ShowPaletteEditor(*mutable_palette, "Canvas Palette Editor");
+    palette_editor_->ShowPaletteEditor(*mutable_palette,
+                                       "Canvas Palette Editor");
   }
 }
 
@@ -202,18 +208,21 @@ void Canvas::ShowColorAnalysis() {
 
 bool Canvas::ApplyROMPalette(int group_index, int palette_index) {
   if (palette_editor_ && bitmap_) {
-    return palette_editor_->ApplyROMPalette(bitmap_, group_index, palette_index);
+    return palette_editor_->ApplyROMPalette(bitmap_, group_index,
+                                            palette_index);
   }
   return false;
 }
 
 // Size reporting methods for table integration
 ImVec2 Canvas::GetMinimumSize() const {
-  return CanvasUtils::CalculateMinimumCanvasSize(config_.content_size, config_.global_scale);
+  return CanvasUtils::CalculateMinimumCanvasSize(config_.content_size,
+                                                 config_.global_scale);
 }
 
 ImVec2 Canvas::GetPreferredSize() const {
-  return CanvasUtils::CalculatePreferredCanvasSize(config_.content_size, config_.global_scale);
+  return CanvasUtils::CalculatePreferredCanvasSize(config_.content_size,
+                                                   config_.global_scale);
 }
 
 void Canvas::ReserveTableSpace(const std::string& label) {
@@ -226,19 +235,20 @@ bool Canvas::BeginTableCanvas(const std::string& label) {
     ImVec2 preferred_size = GetPreferredSize();
     CanvasUtils::SetNextCanvasSize(preferred_size, true);
   }
-  
+
   // Begin child window that properly reports size to tables
   std::string child_id = canvas_id_ + "_TableChild";
   ImVec2 child_size = config_.auto_resize ? ImVec2(0, 0) : config_.canvas_size;
-  
-  bool result = ImGui::BeginChild(child_id.c_str(), child_size, 
-                                 true, // Always show border for table integration
-                                 ImGuiWindowFlags_AlwaysVerticalScrollbar);
-  
+
+  bool result =
+      ImGui::BeginChild(child_id.c_str(), child_size,
+                        true,  // Always show border for table integration
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
   if (!label.empty()) {
     ImGui::Text("%s", label.c_str());
   }
-  
+
   return result;
 }
 
@@ -256,14 +266,15 @@ bool Canvas::WasClicked(ImGuiMouseButton button) const {
 }
 
 bool Canvas::WasDoubleClicked(ImGuiMouseButton button) const {
-  return ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(button) && HasValidSelection();
+  return ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(button) &&
+         HasValidSelection();
 }
 
 ImVec2 Canvas::GetLastClickPosition() const {
   if (HasValidSelection()) {
-    return points_[0]; // Return the first point of the selection
+    return points_[0];  // Return the first point of the selection
   }
-  return ImVec2(-1, -1); // Invalid position
+  return ImVec2(-1, -1);  // Invalid position
 }
 
 // ==================== Modern ImGui-Style Interface ====================
@@ -284,11 +295,11 @@ void Canvas::End() {
 
 // ==================== Legacy Interface ====================
 
-void Canvas::UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
-                                const std::function<void()> &event,
+void Canvas::UpdateColorPainter(gfx::Bitmap& bitmap, const ImVec4& color,
+                                const std::function<void()>& event,
                                 int tile_size, float scale) {
   config_.global_scale = scale;
-  global_scale_ = scale; // Legacy compatibility
+  global_scale_ = scale;  // Legacy compatibility
   DrawBackground();
   DrawContextMenu();
   DrawBitmap(bitmap, 2, scale);
@@ -301,7 +312,7 @@ void Canvas::UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
 
 void Canvas::UpdateInfoGrid(ImVec2 bg_size, float grid_size, int label_id) {
   config_.enable_custom_labels = true;
-  enable_custom_labels_ = true; // Legacy compatibility
+  enable_custom_labels_ = true;  // Legacy compatibility
   DrawBackground(bg_size);
   DrawInfoGrid(grid_size, 8, label_id);
   DrawOverlay();
@@ -310,24 +321,29 @@ void Canvas::UpdateInfoGrid(ImVec2 bg_size, float grid_size, int label_id) {
 void Canvas::DrawBackground(ImVec2 canvas_size) {
   draw_list_ = GetWindowDrawList();
   canvas_p0_ = GetCursorScreenPos();
-  
+
   // Calculate canvas size using utility function
   ImVec2 content_region = GetContentRegionAvail();
-  canvas_sz_ = CanvasUtils::CalculateCanvasSize(content_region, config_.canvas_size, config_.custom_canvas_size);
-  
+  canvas_sz_ = CanvasUtils::CalculateCanvasSize(
+      content_region, config_.canvas_size, config_.custom_canvas_size);
+
   if (canvas_size.x != 0) {
     canvas_sz_ = canvas_size;
     config_.canvas_size = canvas_size;
   }
-  
+
   // Calculate scaled canvas bounds
-  ImVec2 scaled_size = CanvasUtils::CalculateScaledCanvasSize(canvas_sz_, config_.global_scale);
-  
+  ImVec2 scaled_size =
+      CanvasUtils::CalculateScaledCanvasSize(canvas_sz_, config_.global_scale);
+
   // CRITICAL FIX: Ensure minimum size to prevent ImGui assertions
-  if (scaled_size.x <= 0.0f) scaled_size.x = 1.0f;
-  if (scaled_size.y <= 0.0f) scaled_size.y = 1.0f;
-  
-  canvas_p1_ = ImVec2(canvas_p0_.x + scaled_size.x, canvas_p0_.y + scaled_size.y);
+  if (scaled_size.x <= 0.0f)
+    scaled_size.x = 1.0f;
+  if (scaled_size.y <= 0.0f)
+    scaled_size.y = 1.0f;
+
+  canvas_p1_ =
+      ImVec2(canvas_p0_.x + scaled_size.x, canvas_p0_.y + scaled_size.y);
 
   // Draw border and background color
   draw_list_->AddRectFilled(canvas_p0_, canvas_p1_, kRectangleColor);
@@ -336,7 +352,7 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
   ImGui::InvisibleButton(canvas_id_.c_str(), scaled_size, kMouseFlags);
 
   if (config_.is_draggable && IsItemHovered()) {
-    const ImGuiIO &io = GetIO();
+    const ImGuiIO& io = GetIO();
     const bool is_active = IsItemActive();  // Held
     const ImVec2 origin(canvas_p0_.x + scrolling_.x,
                         canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
@@ -354,21 +370,20 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
 }
 
 void Canvas::DrawContextMenu() {
-  const ImGuiIO &io = GetIO();
+  const ImGuiIO& io = GetIO();
   const ImVec2 scaled_sz(canvas_sz_.x * global_scale_,
                          canvas_sz_.y * global_scale_);
   const ImVec2 origin(canvas_p0_.x + scrolling_.x,
                       canvas_p0_.y + scrolling_.y);  // Lock scrolled origin
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-  
+
   // Update canvas state for enhanced components
   if (usage_tracker_) {
-    usage_tracker_->UpdateCanvasState(canvas_sz_, config_.content_size, 
-                                     global_scale_, custom_step_, 
-                                     enable_grid_, enable_hex_tile_labels_, 
-                                     enable_custom_labels_);
+    usage_tracker_->UpdateCanvasState(
+        canvas_sz_, config_.content_size, global_scale_, custom_step_,
+        enable_grid_, enable_hex_tile_labels_, enable_custom_labels_);
   }
-  
+
   // Use enhanced context menu if available
   if (context_menu_) {
     canvas::CanvasConfig snapshot;
@@ -384,11 +399,10 @@ void Canvas::DrawContextMenu() {
     snapshot.auto_resize = config_.auto_resize;
     snapshot.scrolling = scrolling_;
 
-    context_menu_->SetCanvasState(canvas_sz_, config_.content_size,
-                                 global_scale_, custom_step_, enable_grid_,
-                                 enable_hex_tile_labels_, enable_custom_labels_,
-                                 enable_context_menu_, draggable_,
-                                 config_.auto_resize, scrolling_);
+    context_menu_->SetCanvasState(
+        canvas_sz_, config_.content_size, global_scale_, custom_step_,
+        enable_grid_, enable_hex_tile_labels_, enable_custom_labels_,
+        enable_context_menu_, draggable_, config_.auto_resize, scrolling_);
 
     context_menu_->Render(
         context_id_, mouse_pos, bitmap_,
@@ -445,19 +459,28 @@ void Canvas::DrawContextMenu() {
               if (modals_) {
                 canvas::CanvasConfig modal_config = updated_config;
                 modal_config.on_config_changed =
-                    [this](const canvas::CanvasConfig& cfg) { ApplyConfigSnapshot(cfg); };
+                    [this](const canvas::CanvasConfig& cfg) {
+                      ApplyConfigSnapshot(cfg);
+                    };
                 modal_config.on_scale_changed =
-                    [this](const canvas::CanvasConfig& cfg) { ApplyScaleSnapshot(cfg); };
-                modals_->ShowAdvancedProperties(canvas_id_, modal_config, bitmap_);
+                    [this](const canvas::CanvasConfig& cfg) {
+                      ApplyScaleSnapshot(cfg);
+                    };
+                modals_->ShowAdvancedProperties(canvas_id_, modal_config,
+                                                bitmap_);
               }
               break;
             case canvas::CanvasContextMenu::Command::kOpenScalingControls:
               if (modals_) {
                 canvas::CanvasConfig modal_config = updated_config;
                 modal_config.on_config_changed =
-                    [this](const canvas::CanvasConfig& cfg) { ApplyConfigSnapshot(cfg); };
+                    [this](const canvas::CanvasConfig& cfg) {
+                      ApplyConfigSnapshot(cfg);
+                    };
                 modal_config.on_scale_changed =
-                    [this](const canvas::CanvasConfig& cfg) { ApplyScaleSnapshot(cfg); };
+                    [this](const canvas::CanvasConfig& cfg) {
+                      ApplyScaleSnapshot(cfg);
+                    };
                 modals_->ShowScalingControls(canvas_id_, modal_config, bitmap_);
               }
               break;
@@ -477,7 +500,7 @@ void Canvas::DrawContextMenu() {
   static bool show_bitmap_data = false;
   if (show_bitmap_data && bitmap_ != nullptr) {
     static MemoryEditor mem_edit;
-    mem_edit.DrawWindow("Bitmap Data", (void *)bitmap_->data(), bitmap_->size(),
+    mem_edit.DrawWindow("Bitmap Data", (void*)bitmap_->data(), bitmap_->size(),
                         0);
   }
 
@@ -492,12 +515,12 @@ void Canvas::DrawContextMenu() {
     for (const auto& item : context_menu_items_) {
       DrawContextMenuItem(item);
     }
-    
+
     // Add separator if there are custom items
     if (!context_menu_items_.empty()) {
       ImGui::Separator();
     }
-    
+
     // Default canvas menu items
     if (MenuItem("Reset View", nullptr, false)) {
       ResetView();
@@ -551,67 +574,76 @@ void Canvas::DrawContextMenu() {
         }
         if (BeginMenu("ROM Palette Selection") && rom_) {
           Text("Select ROM Palette Group:");
-          
+
           // Enhanced ROM palette group selection
           if (palette_editor_) {
             // Use our enhanced palette editor's ROM selection
             if (MenuItem("Open Enhanced Palette Manager")) {
               palette_editor_->ShowROMPaletteManager();
             }
-            
+
             ImGui::Separator();
-            
+
             // Quick palette group selection
             const char* palette_groups[] = {
-              "Overworld Main", "Overworld Aux", "Overworld Animated", 
-              "Dungeon Main", "Global Sprites", "Armor", "Swords"
-            };
-            
-            if (ImGui::Combo("Quick Palette Group", (int*)&edit_palette_group_name_index_,
-                            palette_groups, IM_ARRAYSIZE(palette_groups))) {
+                "Overworld Main", "Overworld Aux",  "Overworld Animated",
+                "Dungeon Main",   "Global Sprites", "Armor",
+                "Swords"};
+
+            if (ImGui::Combo("Quick Palette Group",
+                             (int*)&edit_palette_group_name_index_,
+                             palette_groups, IM_ARRAYSIZE(palette_groups))) {
               // Group selection changed
             }
-            
+
             ImGui::SetNextItemWidth(100.f);
-            if (ImGui::SliderInt("Palette Index", (int*)&edit_palette_index_, 0, 7)) {
+            if (ImGui::SliderInt("Palette Index", (int*)&edit_palette_index_, 0,
+                                 7)) {
               // Palette index changed
             }
-            
+
             // Apply button with enhanced functionality
             if (ImGui::Button("Apply to Canvas") && bitmap_) {
-              if (palette_editor_->ApplyROMPalette(bitmap_, 
-                                                  edit_palette_group_name_index_, 
-                                                  edit_palette_index_)) {
-                util::logf("Applied ROM palette group %d, index %d via context menu",
-                          edit_palette_group_name_index_, edit_palette_index_);
+              if (palette_editor_->ApplyROMPalette(
+                      bitmap_, edit_palette_group_name_index_,
+                      edit_palette_index_)) {
+                // LOG_INFO(
+                //     "Applied ROM palette group %d, index %d via context menu",
+                //     edit_palette_group_name_index_, edit_palette_index_);
               }
             }
-            
+
             // Direct palette editing with SelectablePalettePipeline
             if (ImGui::TreeNode("Interactive Palette Editor")) {
               if (rom_ && bitmap_) {
                 ImGui::Text("Interactive ROM Palette Editing");
-                ImGui::Text("Selected Group: %s", palette_groups[edit_palette_group_name_index_]);
-                
+                ImGui::Text("Selected Group: %s",
+                            palette_groups[edit_palette_group_name_index_]);
+
                 // Get the enhanced palette editor's ROM palette if available
-                if (const auto* rom_palette = palette_editor_->GetSelectedROMPalette()) {
-                  auto editable_palette = const_cast<gfx::SnesPalette&>(*rom_palette);
-                  
-                  if (ImGui::BeginChild("SelectablePalette", ImVec2(0, 200), true)) {
+                if (const auto* rom_palette =
+                        palette_editor_->GetSelectedROMPalette()) {
+                  auto editable_palette =
+                      const_cast<gfx::SnesPalette&>(*rom_palette);
+
+                  if (ImGui::BeginChild("SelectablePalette", ImVec2(0, 200),
+                                        true)) {
                     // Use the existing SelectablePalettePipeline for interactive editing
-                    gui::SelectablePalettePipeline(edit_palette_sub_index_, 
-                                                  refresh_graphics_, editable_palette);
-                    
+                    gui::SelectablePalettePipeline(edit_palette_sub_index_,
+                                                   refresh_graphics_,
+                                                   editable_palette);
+
                     if (refresh_graphics_) {
-                      bitmap_->SetPaletteWithTransparent(editable_palette, edit_palette_sub_index_);
+                      bitmap_->SetPaletteWithTransparent(
+                          editable_palette, edit_palette_sub_index_);
                       Renderer::Get().UpdateBitmap(bitmap_);
                       refresh_graphics_ = false;
-                      util::logf("Applied interactive palette changes to canvas");
+                      // LOG_INFO is undefined or missing required arguments; removed or fix as needed.
                     }
+                    ImGui::Text(
+                        "Load ROM palettes first using Enhanced Palette "
+                        "Manager");
                   }
-                  ImGui::EndChild();
-                } else {
-                  ImGui::Text("Load ROM palettes first using Enhanced Palette Manager");
                 }
               }
               ImGui::TreePop();
@@ -620,7 +652,8 @@ void Canvas::DrawContextMenu() {
           EndMenu();
         }
         if (BeginMenu("View Palette")) {
-          (void)DisplayEditablePalette(*bitmap_->mutable_palette(), "Palette", true, 8);
+          (void)DisplayEditablePalette(*bitmap_->mutable_palette(), "Palette",
+                                       true, 8);
           EndMenu();
         }
         EndMenu();
@@ -645,8 +678,8 @@ void Canvas::DrawContextMenu() {
 
     ImGui::EndPopup();
   }
-  
-  // Draw enhanced property dialogs  
+
+  // Draw enhanced property dialogs
   ShowAdvancedCanvasProperties();
   ShowScalingControls();
 }
@@ -655,10 +688,12 @@ void Canvas::DrawContextMenuItem(const ContextMenuItem& item) {
   if (!item.enabled_condition()) {
     ImGui::BeginDisabled();
   }
-  
+
   if (item.subitems.empty()) {
     // Simple menu item
-    if (ImGui::MenuItem(item.label.c_str(), item.shortcut.empty() ? nullptr : item.shortcut.c_str())) {
+    if (ImGui::MenuItem(item.label.c_str(), item.shortcut.empty()
+                                                ? nullptr
+                                                : item.shortcut.c_str())) {
       item.callback();
     }
   } else {
@@ -670,7 +705,7 @@ void Canvas::DrawContextMenuItem(const ContextMenuItem& item) {
       ImGui::EndMenu();
     }
   }
-  
+
   if (!item.enabled_condition()) {
     ImGui::EndDisabled();
   }
@@ -685,25 +720,27 @@ void Canvas::ClearContextMenuItems() {
 }
 
 void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
-  if (!bitmap.is_active()) return;
-  
+  if (!bitmap.is_active())
+    return;
+
   ImVec2 available = ImGui::GetContentRegionAvail();
   float scale_x = available.x / bitmap.width();
   float scale_y = available.y / bitmap.height();
   config_.global_scale = std::min(scale_x, scale_y);
-  
+
   // Ensure minimum readable scale
-  if (config_.global_scale < 0.25f) config_.global_scale = 0.25f;
-  
-  global_scale_ = config_.global_scale; // Legacy compatibility
-  
+  if (config_.global_scale < 0.25f)
+    config_.global_scale = 0.25f;
+
+  global_scale_ = config_.global_scale;  // Legacy compatibility
+
   // Center the view
   scrolling_ = ImVec2(0, 0);
 }
 
 void Canvas::ResetView() {
   config_.global_scale = 1.0f;
-  global_scale_ = 1.0f; // Legacy compatibility
+  global_scale_ = 1.0f;  // Legacy compatibility
   scrolling_ = ImVec2(0, 0);
 }
 
@@ -718,7 +755,8 @@ void Canvas::ApplyConfigSnapshot(const canvas::CanvasConfig& snapshot) {
   config_.global_scale = snapshot.global_scale;
   config_.canvas_size = snapshot.canvas_size;
   config_.content_size = snapshot.content_size;
-  config_.custom_canvas_size = snapshot.canvas_size.x > 0 && snapshot.canvas_size.y > 0;
+  config_.custom_canvas_size =
+      snapshot.canvas_size.x > 0 && snapshot.canvas_size.y > 0;
 
   enable_grid_ = config_.enable_grid;
   enable_hex_tile_labels_ = config_.enable_hex_labels;
@@ -736,8 +774,8 @@ void Canvas::ApplyScaleSnapshot(const canvas::CanvasConfig& snapshot) {
   scrolling_ = snapshot.scrolling;
 }
 
-bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
-  const ImGuiIO &io = GetIO();
+bool Canvas::DrawTilePainter(const Bitmap& bitmap, int size, float scale) {
+  const ImGuiIO& io = GetIO();
   const bool is_hovered = IsItemHovered();
   is_hovered_ = is_hovered;
   // Lock scrolled origin
@@ -782,18 +820,18 @@ bool Canvas::DrawTilePainter(const Bitmap &bitmap, int size, float scale) {
   return false;
 }
 
-bool Canvas::DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile) {
-  const ImGuiIO &io = GetIO();
+bool Canvas::DrawTilemapPainter(gfx::Tilemap& tilemap, int current_tile) {
+  const ImGuiIO& io = GetIO();
   const bool is_hovered = IsItemHovered();
   is_hovered_ = is_hovered;
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-  
+
   // Safety check: ensure tilemap is properly initialized
   if (!tilemap.atlas.is_active() || tilemap.tile_size.x <= 0) {
     return false;
   }
-  
+
   const auto scaled_size = tilemap.tile_size.x * global_scale_;
 
   if (!is_hovered) {
@@ -820,17 +858,20 @@ bool Canvas::DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile) {
     if (tiles_per_row > 0) {
       int tile_x = (current_tile % tiles_per_row) * tilemap.tile_size.x;
       int tile_y = (current_tile / tiles_per_row) * tilemap.tile_size.y;
-      
+
       // Simple bounds check
-      if (tile_x >= 0 && tile_x < tilemap.atlas.width() && 
-          tile_y >= 0 && tile_y < tilemap.atlas.height()) {
-        
+      if (tile_x >= 0 && tile_x < tilemap.atlas.width() && tile_y >= 0 &&
+          tile_y < tilemap.atlas.height()) {
+
         // Draw directly from atlas texture
-        ImVec2 uv0 = ImVec2(static_cast<float>(tile_x) / tilemap.atlas.width(), 
-                           static_cast<float>(tile_y) / tilemap.atlas.height());
-        ImVec2 uv1 = ImVec2(static_cast<float>(tile_x + tilemap.tile_size.x) / tilemap.atlas.width(),
-                           static_cast<float>(tile_y + tilemap.tile_size.y) / tilemap.atlas.height());
-        
+        ImVec2 uv0 =
+            ImVec2(static_cast<float>(tile_x) / tilemap.atlas.width(),
+                   static_cast<float>(tile_y) / tilemap.atlas.height());
+        ImVec2 uv1 = ImVec2(static_cast<float>(tile_x + tilemap.tile_size.x) /
+                                tilemap.atlas.width(),
+                            static_cast<float>(tile_y + tilemap.tile_size.y) /
+                                tilemap.atlas.height());
+
         draw_list_->AddImage(
             (ImTextureID)(intptr_t)tilemap.atlas.texture(),
             ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
@@ -850,8 +891,8 @@ bool Canvas::DrawTilemapPainter(gfx::Tilemap &tilemap, int current_tile) {
   return false;
 }
 
-bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int tile_size) {
-  const ImGuiIO &io = GetIO();
+bool Canvas::DrawSolidTilePainter(const ImVec4& color, int tile_size) {
+  const ImGuiIO& io = GetIO();
   const bool is_hovered = IsItemHovered();
   is_hovered_ = is_hovered;
   // Lock scrolled origin
@@ -904,7 +945,7 @@ bool Canvas::DrawSolidTilePainter(const ImVec4 &color, int tile_size) {
   return false;
 }
 
-void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap *bitmap,
+void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap* bitmap,
                               ImVec4 color) {
   const ImVec2 position = drawn_tile_pos_;
   int tile_index_x = static_cast<int>(position.x / global_scale_) / tile_size;
@@ -926,7 +967,7 @@ void Canvas::DrawTileOnBitmap(int tile_size, gfx::Bitmap *bitmap,
 }
 
 bool Canvas::DrawTileSelector(int size, int size_y) {
-  const ImGuiIO &io = GetIO();
+  const ImGuiIO& io = GetIO();
   const bool is_hovered = IsItemHovered();
   is_hovered_ = is_hovered;
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
@@ -955,21 +996,21 @@ bool Canvas::DrawTileSelector(int size, int size_y) {
 
 void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   gfx::ScopedTimer timer("canvas_select_rect");
-  
-  const ImGuiIO &io = GetIO();
+
+  const ImGuiIO& io = GetIO();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
   static ImVec2 drag_start_pos;
   const float scaled_size = tile_size * scale;
   static bool dragging = false;
   constexpr int small_map_size = 0x200;
-  
+
   // Only handle mouse events if the canvas is hovered
   const bool is_hovered = IsItemHovered();
   if (!is_hovered) {
     return;
   }
-  
+
   // Calculate superX and superY accounting for world offset
   int superY, superX;
   if (current_map < 0x40) {
@@ -1028,12 +1069,15 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
     int end_y = std::floor(drag_end_pos.y / scaled_size) * tile16_size;
 
     // Swap the start and end positions if they are in the wrong order
-    if (start_x > end_x) std::swap(start_x, end_x);
-    if (start_y > end_y) std::swap(start_y, end_y);
+    if (start_x > end_x)
+      std::swap(start_x, end_x);
+    if (start_y > end_y)
+      std::swap(start_y, end_y);
 
     selected_tiles_.clear();
-    selected_tiles_.reserve(((end_x - start_x) / tile16_size + 1) * ((end_y - start_y) / tile16_size + 1));
-    
+    selected_tiles_.reserve(((end_x - start_x) / tile16_size + 1) *
+                            ((end_y - start_y) / tile16_size + 1));
+
     // Number of tiles per local map (since each tile is 16x16)
     constexpr int tiles_per_local_map = small_map_size / 16;
 
@@ -1063,15 +1107,15 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   }
 }
 
-void Canvas::DrawBitmap(Bitmap &bitmap, int border_offset, float scale) {
+void Canvas::DrawBitmap(Bitmap& bitmap, int border_offset, float scale) {
   if (!bitmap.is_active()) {
     return;
   }
   bitmap_ = &bitmap;
-  
+
   // Update content size for table integration
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
-  
+
   draw_list_->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
                        ImVec2(canvas_p0_.x, canvas_p0_.y),
                        ImVec2(canvas_p0_.x + (bitmap.width() * scale),
@@ -1079,42 +1123,41 @@ void Canvas::DrawBitmap(Bitmap &bitmap, int border_offset, float scale) {
   draw_list_->AddRect(canvas_p0_, canvas_p1_, kWhiteColor);
 }
 
-void Canvas::DrawBitmap(Bitmap &bitmap, int x_offset, int y_offset, float scale,
+void Canvas::DrawBitmap(Bitmap& bitmap, int x_offset, int y_offset, float scale,
                         int alpha) {
   if (!bitmap.is_active()) {
     return;
   }
   bitmap_ = &bitmap;
-  
+
   // Update content size for table integration
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
-  
+
   // Calculate the actual rendered size including scale and offsets
   ImVec2 rendered_size(bitmap.width() * scale, bitmap.height() * scale);
   ImVec2 total_size(x_offset + rendered_size.x, y_offset + rendered_size.y);
-  
+
   draw_list_->AddImage(
       (ImTextureID)(intptr_t)bitmap.texture(),
       ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
              canvas_p0_.y + y_offset + scrolling_.y),
-      ImVec2(
-          canvas_p0_.x + x_offset + scrolling_.x + rendered_size.x,
-          canvas_p0_.y + y_offset + scrolling_.y + rendered_size.y),
+      ImVec2(canvas_p0_.x + x_offset + scrolling_.x + rendered_size.x,
+             canvas_p0_.y + y_offset + scrolling_.y + rendered_size.y),
       ImVec2(0, 0), ImVec2(1, 1), IM_COL32(255, 255, 255, alpha));
-  
+
   // Note: Content size for child windows should be set before BeginChild, not here
 }
 
-void Canvas::DrawBitmap(Bitmap &bitmap, ImVec2 dest_pos, ImVec2 dest_size,
+void Canvas::DrawBitmap(Bitmap& bitmap, ImVec2 dest_pos, ImVec2 dest_size,
                         ImVec2 src_pos, ImVec2 src_size) {
   if (!bitmap.is_active()) {
     return;
   }
   bitmap_ = &bitmap;
-  
+
   // Update content size for table integration
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
-  
+
   draw_list_->AddImage(
       (ImTextureID)(intptr_t)bitmap.texture(),
       ImVec2(canvas_p0_.x + dest_pos.x, canvas_p0_.y + dest_pos.y),
@@ -1126,8 +1169,8 @@ void Canvas::DrawBitmap(Bitmap &bitmap, ImVec2 dest_pos, ImVec2 dest_size,
 }
 
 // TODO: Add parameters for sizing and positioning
-void Canvas::DrawBitmapTable(const BitmapTable &gfx_bin) {
-  for (const auto &[key, value] : gfx_bin) {
+void Canvas::DrawBitmapTable(const BitmapTable& gfx_bin) {
+  for (const auto& [key, value] : gfx_bin) {
     int offset = 0x40 * (key + 1);
     int top_left_y = canvas_p0_.y + 2;
     if (key >= 1) {
@@ -1140,20 +1183,22 @@ void Canvas::DrawBitmapTable(const BitmapTable &gfx_bin) {
 }
 
 void Canvas::DrawOutline(int x, int y, int w, int h) {
-  CanvasUtils::DrawCanvasOutline(draw_list_, canvas_p0_, scrolling_, x, y, w, h, IM_COL32(255, 255, 255, 200));
+  CanvasUtils::DrawCanvasOutline(draw_list_, canvas_p0_, scrolling_, x, y, w, h,
+                                 IM_COL32(255, 255, 255, 200));
 }
 
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color) {
-  CanvasUtils::DrawCanvasOutlineWithColor(draw_list_, canvas_p0_, scrolling_, x, y, w, h, color);
+  CanvasUtils::DrawCanvasOutlineWithColor(draw_list_, canvas_p0_, scrolling_, x,
+                                          y, w, h, color);
 }
 
 void Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color) {
-  CanvasUtils::DrawCanvasOutline(draw_list_, canvas_p0_, scrolling_, x, y, w, h, color);
+  CanvasUtils::DrawCanvasOutline(draw_list_, canvas_p0_, scrolling_, x, y, w, h,
+                                 color);
 }
 
-void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
-                             int tile_size, float scale,
-                             int local_map_size,
+void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
+                             int tile_size, float scale, int local_map_size,
                              ImVec2 total_map_size) {
   if (selected_points_.size() != 2) {
     // points_ should contain exactly two points
@@ -1165,13 +1210,14 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
   }
 
   // OPTIMIZATION: Use optimized rendering for large groups to improve performance
-  bool use_optimized_rendering = group.size() > 128; // Optimize for large selections
-  
+  bool use_optimized_rendering =
+      group.size() > 128;  // Optimize for large selections
+
   // Use provided map sizes for proper boundary handling
   const int small_map = local_map_size;
   const float large_map_width = total_map_size.x;
   const float large_map_height = total_map_size.y;
-  
+
   // Pre-calculate common values to avoid repeated computation
   const float tile_scale = tile_size * scale;
   const int atlas_tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
@@ -1190,8 +1236,10 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
   int end_tile_y =
       static_cast<int>(std::floor(rect_bottom_right.y / (tile_size * scale)));
 
-  if (start_tile_x > end_tile_x) std::swap(start_tile_x, end_tile_x);
-  if (start_tile_y > end_tile_y) std::swap(start_tile_y, end_tile_y);
+  if (start_tile_x > end_tile_x)
+    std::swap(start_tile_x, end_tile_x);
+  if (start_tile_y > end_tile_y)
+    std::swap(start_tile_y, end_tile_y);
 
   // Calculate the size of the rectangle in 16x16 grid form
   int rect_width = (end_tile_x - start_tile_x) * tile_size;
@@ -1207,7 +1255,7 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
       if (i >= static_cast<int>(group.size())) {
         break;
       }
-      
+
       int tile_id = group[i];
 
       // Check if tile_id is within the range of tile16_individual_
@@ -1218,37 +1266,44 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
         int tile_pos_y = (y + start_tile_y) * tile_size * scale;
 
         // OPTIMIZATION: Use pre-calculated values for better performance with large selections
-        if (tilemap.atlas.is_active() && tilemap.atlas.texture() && atlas_tiles_per_row > 0) {
-          int atlas_tile_x = (tile_id % atlas_tiles_per_row) * tilemap.tile_size.x;
-          int atlas_tile_y = (tile_id / atlas_tiles_per_row) * tilemap.tile_size.y;
-          
+        if (tilemap.atlas.is_active() && tilemap.atlas.texture() &&
+            atlas_tiles_per_row > 0) {
+          int atlas_tile_x =
+              (tile_id % atlas_tiles_per_row) * tilemap.tile_size.x;
+          int atlas_tile_y =
+              (tile_id / atlas_tiles_per_row) * tilemap.tile_size.y;
+
           // Simple bounds check
-          if (atlas_tile_x >= 0 && atlas_tile_x < tilemap.atlas.width() && 
+          if (atlas_tile_x >= 0 && atlas_tile_x < tilemap.atlas.width() &&
               atlas_tile_y >= 0 && atlas_tile_y < tilemap.atlas.height()) {
-            
+
             // Calculate UV coordinates once for efficiency
             const float atlas_width = static_cast<float>(tilemap.atlas.width());
-            const float atlas_height = static_cast<float>(tilemap.atlas.height());
-            ImVec2 uv0 = ImVec2(atlas_tile_x / atlas_width, atlas_tile_y / atlas_height);
-            ImVec2 uv1 = ImVec2((atlas_tile_x + tilemap.tile_size.x) / atlas_width,
-                               (atlas_tile_y + tilemap.tile_size.y) / atlas_height);
-            
+            const float atlas_height =
+                static_cast<float>(tilemap.atlas.height());
+            ImVec2 uv0 =
+                ImVec2(atlas_tile_x / atlas_width, atlas_tile_y / atlas_height);
+            ImVec2 uv1 =
+                ImVec2((atlas_tile_x + tilemap.tile_size.x) / atlas_width,
+                       (atlas_tile_y + tilemap.tile_size.y) / atlas_height);
+
             // Calculate screen positions
             float screen_x = canvas_p0_.x + scrolling_.x + tile_pos_x;
             float screen_y = canvas_p0_.y + scrolling_.y + tile_pos_y;
             float screen_w = tilemap.tile_size.x * scale;
             float screen_h = tilemap.tile_size.y * scale;
-            
+
             // Use higher alpha for large selections to make them more visible
-            uint32_t alpha_color = use_optimized_rendering ? 
-                IM_COL32(255, 255, 255, 200) : IM_COL32(255, 255, 255, 150);
-            
+            uint32_t alpha_color = use_optimized_rendering
+                                       ? IM_COL32(255, 255, 255, 200)
+                                       : IM_COL32(255, 255, 255, 150);
+
             // Draw from atlas texture with optimized parameters
             draw_list_->AddImage(
                 (ImTextureID)(intptr_t)tilemap.atlas.texture(),
                 ImVec2(screen_x, screen_y),
-                ImVec2(screen_x + screen_w, screen_y + screen_h),
-                uv0, uv1, alpha_color);
+                ImVec2(screen_x + screen_w, screen_y + screen_h), uv0, uv1,
+                alpha_color);
           }
         }
       }
@@ -1263,48 +1318,50 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
   // Performance optimization completed - tiles are now rendered with pre-calculated values
 
   // Reposition rectangle to follow mouse, but clamp to prevent wrapping across map boundaries
-  const ImGuiIO &io = GetIO();
+  const ImGuiIO& io = GetIO();
   const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
   const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-  
+
   // CRITICAL FIX: Clamp BEFORE grid alignment for smoother dragging behavior
   // This prevents the rectangle from even attempting to cross boundaries during drag
   ImVec2 clamped_mouse_pos = mouse_pos;
-  
+
   if (config_.clamp_rect_to_local_maps) {
     // Calculate which local map the mouse is in
     int mouse_local_map_x = static_cast<int>(mouse_pos.x) / small_map;
     int mouse_local_map_y = static_cast<int>(mouse_pos.y) / small_map;
-    
+
     // Calculate where the rectangle END would be if we place it at mouse position
     float potential_end_x = mouse_pos.x + rect_width;
     float potential_end_y = mouse_pos.y + rect_height;
-    
+
     // Check if this would cross local map boundary (512x512 blocks)
     int potential_end_map_x = static_cast<int>(potential_end_x) / small_map;
     int potential_end_map_y = static_cast<int>(potential_end_y) / small_map;
-    
+
     // Clamp mouse position to prevent crossing during drag
     if (potential_end_map_x != mouse_local_map_x) {
       // Would cross horizontal boundary - clamp mouse to safe zone
       float max_mouse_x = (mouse_local_map_x + 1) * small_map - rect_width;
       clamped_mouse_pos.x = std::min(mouse_pos.x, max_mouse_x);
     }
-    
+
     if (potential_end_map_y != mouse_local_map_y) {
       // Would cross vertical boundary - clamp mouse to safe zone
       float max_mouse_y = (mouse_local_map_y + 1) * small_map - rect_height;
       clamped_mouse_pos.y = std::min(mouse_pos.y, max_mouse_y);
     }
   }
-  
+
   // Now grid-align the clamped position
   auto new_start_pos = AlignPosToGrid(clamped_mouse_pos, tile_size * scale);
-  
+
   // Additional safety: clamp to overall map bounds
-  new_start_pos.x = std::clamp(new_start_pos.x, 0.0f, large_map_width - rect_width);
-  new_start_pos.y = std::clamp(new_start_pos.y, 0.0f, large_map_height - rect_height);
-  
+  new_start_pos.x =
+      std::clamp(new_start_pos.x, 0.0f, large_map_width - rect_width);
+  new_start_pos.y =
+      std::clamp(new_start_pos.y, 0.0f, large_map_height - rect_height);
+
   selected_points_.clear();
   selected_points_.push_back(new_start_pos);
   selected_points_.push_back(
@@ -1313,22 +1370,26 @@ void Canvas::DrawBitmapGroup(std::vector<int> &group, gfx::Tilemap &tilemap,
 }
 
 void Canvas::DrawRect(int x, int y, int w, int h, ImVec4 color) {
-  CanvasUtils::DrawCanvasRect(draw_list_, canvas_p0_, scrolling_, x, y, w, h, color, config_.global_scale);
+  CanvasUtils::DrawCanvasRect(draw_list_, canvas_p0_, scrolling_, x, y, w, h,
+                              color, config_.global_scale);
 }
 
 void Canvas::DrawText(std::string text, int x, int y) {
-  CanvasUtils::DrawCanvasText(draw_list_, canvas_p0_, scrolling_, text, x, y, config_.global_scale);
+  CanvasUtils::DrawCanvasText(draw_list_, canvas_p0_, scrolling_, text, x, y,
+                              config_.global_scale);
 }
 
 void Canvas::DrawGridLines(float grid_step) {
-  CanvasUtils::DrawCanvasGridLines(draw_list_, canvas_p0_, canvas_p1_, scrolling_, grid_step, config_.global_scale);
+  CanvasUtils::DrawCanvasGridLines(draw_list_, canvas_p0_, canvas_p1_,
+                                   scrolling_, grid_step, config_.global_scale);
 }
 
 void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
   // Draw grid + all lines in the canvas
   draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
   if (enable_grid_) {
-    if (custom_step_ != 0.f) grid_step = custom_step_;
+    if (custom_step_ != 0.f)
+      grid_step = custom_step_;
     grid_step *= global_scale_;  // Apply global scale to grid step
 
     DrawGridLines(grid_step);
@@ -1361,31 +1422,33 @@ void Canvas::DrawInfoGrid(float grid_step, int tile_id_offset, int label_id) {
 }
 
 void Canvas::DrawCustomHighlight(float grid_step) {
-  CanvasUtils::DrawCustomHighlight(draw_list_, canvas_p0_, scrolling_, highlight_tile_id, grid_step);
+  CanvasUtils::DrawCustomHighlight(draw_list_, canvas_p0_, scrolling_,
+                                   highlight_tile_id, grid_step);
 }
 
 void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
-  if (config_.grid_step != 0.f) grid_step = config_.grid_step;
-  
+  if (config_.grid_step != 0.f)
+    grid_step = config_.grid_step;
+
   // Create render context for utilities
   CanvasUtils::CanvasRenderContext ctx = {
-    .draw_list = draw_list_,
-    .canvas_p0 = canvas_p0_,
-    .canvas_p1 = canvas_p1_,
-    .scrolling = scrolling_,
-    .global_scale = config_.global_scale,
-    .enable_grid = config_.enable_grid,
-    .enable_hex_labels = config_.enable_hex_labels,
-    .grid_step = grid_step
-  };
-  
+      .draw_list = draw_list_,
+      .canvas_p0 = canvas_p0_,
+      .canvas_p1 = canvas_p1_,
+      .scrolling = scrolling_,
+      .global_scale = config_.global_scale,
+      .enable_grid = config_.enable_grid,
+      .enable_hex_labels = config_.enable_hex_labels,
+      .grid_step = grid_step};
+
   // Use high-level utility function
   CanvasUtils::DrawCanvasGrid(ctx, highlight_tile_id);
-  
+
   // Draw custom labels if enabled
   if (config_.enable_custom_labels) {
     draw_list_->PushClipRect(canvas_p0_, canvas_p1_, true);
-    CanvasUtils::DrawCanvasLabels(ctx, labels_, current_labels_, tile_id_offset);
+    CanvasUtils::DrawCanvasLabels(ctx, labels_, current_labels_,
+                                  tile_id_offset);
     draw_list_->PopClipRect();
   }
 }
@@ -1393,23 +1456,22 @@ void Canvas::DrawGrid(float grid_step, int tile_id_offset) {
 void Canvas::DrawOverlay() {
   // Create render context for utilities
   CanvasUtils::CanvasRenderContext ctx = {
-    .draw_list = draw_list_,
-    .canvas_p0 = canvas_p0_,
-    .canvas_p1 = canvas_p1_,
-    .scrolling = scrolling_,
-    .global_scale = config_.global_scale,
-    .enable_grid = config_.enable_grid,
-    .enable_hex_labels = config_.enable_hex_labels,
-    .grid_step = config_.grid_step
-  };
-  
+      .draw_list = draw_list_,
+      .canvas_p0 = canvas_p0_,
+      .canvas_p1 = canvas_p1_,
+      .scrolling = scrolling_,
+      .global_scale = config_.global_scale,
+      .enable_grid = config_.enable_grid,
+      .enable_hex_labels = config_.enable_hex_labels,
+      .grid_step = config_.grid_step};
+
   // Use high-level utility function with local points (synchronized from interaction handler)
   CanvasUtils::DrawCanvasOverlay(ctx, points_, selected_points_);
 }
 
 void Canvas::DrawLayeredElements() {
   // Based on ImGui demo, should be adapted to use for OAM
-  ImDrawList *draw_list = ImGui::GetWindowDrawList();
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
   {
     Text("Blue shape is drawn first: appears in back");
     Text("Red shape is drawn after: appears in front");
@@ -1448,9 +1510,9 @@ void Canvas::DrawLayeredElements() {
   }
 }
 
-void BeginCanvas(Canvas &canvas, ImVec2 child_size) {
+void BeginCanvas(Canvas& canvas, ImVec2 child_size) {
   gui::BeginPadding(1);
-  
+
   // Use improved canvas sizing for table integration
   ImVec2 effective_size = child_size;
   if (child_size.x == 0 && child_size.y == 0) {
@@ -1461,15 +1523,15 @@ void BeginCanvas(Canvas &canvas, ImVec2 child_size) {
       effective_size = canvas.GetCurrentSize();
     }
   }
-  
+
   ImGui::BeginChild(canvas.canvas_id().c_str(), effective_size, true,
-                   ImGuiWindowFlags_AlwaysVerticalScrollbar);
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
   canvas.DrawBackground();
   gui::EndPadding();
   canvas.DrawContextMenu();
 }
 
-void EndCanvas(Canvas &canvas) {
+void EndCanvas(Canvas& canvas) {
   canvas.DrawGrid();
   canvas.DrawOverlay();
   ImGui::EndChild();
@@ -1477,7 +1539,7 @@ void EndCanvas(Canvas &canvas) {
 
 void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
                                int num_sheets_to_load, int canvas_id,
-                               bool is_loaded, gfx::BitmapTable &graphics_bin) {
+                               bool is_loaded, gfx::BitmapTable& graphics_bin) {
   gui::Canvas canvas;
   if (ImGuiID child_id =
           ImGui::GetID((ImTextureID)(intptr_t)(intptr_t)canvas_id);
@@ -1486,7 +1548,7 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
     canvas.DrawBackground(ImVec2(width + 1, num_sheets_to_load * height + 1));
     canvas.DrawContextMenu();
     if (is_loaded) {
-      for (const auto &[key, value] : graphics_bin) {
+      for (const auto& [key, value] : graphics_bin) {
         int offset = height * (key + 1);
         int top_left_y = canvas.zero_point().y + 2;
         if (key >= 1) {
@@ -1506,10 +1568,10 @@ void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
   ImGui::EndChild();
 }
 
-void BitmapCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap, int width,
+void BitmapCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
                           int height, int tile_size, bool is_loaded,
                           bool scrollbar, int canvas_id) {
-  auto draw_canvas = [&](gui::Canvas &canvas, gfx::Bitmap &bitmap, int width,
+  auto draw_canvas = [&](gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
                          int height, int tile_size, bool is_loaded) {
     canvas.DrawBackground(ImVec2(width + 1, height + 1));
     canvas.DrawContextMenu();
@@ -1532,28 +1594,29 @@ void BitmapCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap, int width,
   }
 }
 
-void TableCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap, 
-                        const std::string& label, bool auto_resize) {
+void TableCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap,
+                         const std::string& label, bool auto_resize) {
   // Configure canvas for table integration
   canvas.SetAutoResize(auto_resize);
-  
+
   if (auto_resize && bitmap.is_active()) {
     // Auto-calculate size based on bitmap content
     ImVec2 content_size = ImVec2(bitmap.width(), bitmap.height());
-    ImVec2 preferred_size = CanvasUtils::CalculatePreferredCanvasSize(content_size, canvas.GetGlobalScale());
+    ImVec2 preferred_size = CanvasUtils::CalculatePreferredCanvasSize(
+        content_size, canvas.GetGlobalScale());
     canvas.SetCanvasSize(preferred_size);
   }
-  
+
   // Begin table-aware canvas
   if (canvas.BeginTableCanvas(label)) {
     // Draw the canvas content
     canvas.DrawBackground();
     canvas.DrawContextMenu();
-    
+
     if (bitmap.is_active()) {
       canvas.DrawBitmap(bitmap, 2, 2, canvas.GetGlobalScale());
     }
-    
+
     canvas.DrawGrid();
     canvas.DrawOverlay();
   }
@@ -1575,77 +1638,86 @@ void Canvas::ShowAdvancedCanvasProperties() {
     modal_config.is_draggable = draggable_;
     modal_config.auto_resize = config_.auto_resize;
     modal_config.scrolling = scrolling_;
-    modal_config.on_config_changed = [this](const canvas::CanvasConfig& updated_config) {
-      // Update legacy variables when config changes
-      enable_grid_ = updated_config.enable_grid;
-      enable_hex_tile_labels_ = updated_config.enable_hex_labels;
-      enable_custom_labels_ = updated_config.enable_custom_labels;
-    };
-    modal_config.on_scale_changed = [this](const canvas::CanvasConfig& updated_config) {
-      global_scale_ = updated_config.global_scale;
-      scrolling_ = updated_config.scrolling;
-    };
-    
+    modal_config.on_config_changed =
+        [this](const canvas::CanvasConfig& updated_config) {
+          // Update legacy variables when config changes
+          enable_grid_ = updated_config.enable_grid;
+          enable_hex_tile_labels_ = updated_config.enable_hex_labels;
+          enable_custom_labels_ = updated_config.enable_custom_labels;
+        };
+    modal_config.on_scale_changed =
+        [this](const canvas::CanvasConfig& updated_config) {
+          global_scale_ = updated_config.global_scale;
+          scrolling_ = updated_config.scrolling;
+        };
+
     modals_->ShowAdvancedProperties(canvas_id_, modal_config, bitmap_);
     return;
   }
-  
+
   // Fallback to legacy modal system
-  if (ImGui::BeginPopupModal("Advanced Canvas Properties", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal("Advanced Canvas Properties", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Advanced Canvas Configuration");
     ImGui::Separator();
-    
+
     // Canvas properties (read-only info)
     ImGui::Text("Canvas Properties");
     ImGui::Text("ID: %s", canvas_id_.c_str());
-    ImGui::Text("Canvas Size: %.0f x %.0f", config_.canvas_size.x, config_.canvas_size.y);
-    ImGui::Text("Content Size: %.0f x %.0f", config_.content_size.x, config_.content_size.y);
+    ImGui::Text("Canvas Size: %.0f x %.0f", config_.canvas_size.x,
+                config_.canvas_size.y);
+    ImGui::Text("Content Size: %.0f x %.0f", config_.content_size.x,
+                config_.content_size.y);
     ImGui::Text("Global Scale: %.3f", config_.global_scale);
     ImGui::Text("Grid Step: %.1f", config_.grid_step);
-    
+
     if (config_.content_size.x > 0 && config_.content_size.y > 0) {
       ImVec2 min_size = GetMinimumSize();
       ImVec2 preferred_size = GetPreferredSize();
       ImGui::Text("Minimum Size: %.0f x %.0f", min_size.x, min_size.y);
-      ImGui::Text("Preferred Size: %.0f x %.0f", preferred_size.x, preferred_size.y);
+      ImGui::Text("Preferred Size: %.0f x %.0f", preferred_size.x,
+                  preferred_size.y);
     }
-    
+
     // Editable properties using new config system
     ImGui::Separator();
     ImGui::Text("View Settings");
     if (ImGui::Checkbox("Enable Grid", &config_.enable_grid)) {
-      enable_grid_ = config_.enable_grid; // Legacy sync
+      enable_grid_ = config_.enable_grid;  // Legacy sync
     }
     if (ImGui::Checkbox("Enable Hex Labels", &config_.enable_hex_labels)) {
-      enable_hex_tile_labels_ = config_.enable_hex_labels; // Legacy sync
+      enable_hex_tile_labels_ = config_.enable_hex_labels;  // Legacy sync
     }
-    if (ImGui::Checkbox("Enable Custom Labels", &config_.enable_custom_labels)) {
-      enable_custom_labels_ = config_.enable_custom_labels; // Legacy sync
+    if (ImGui::Checkbox("Enable Custom Labels",
+                        &config_.enable_custom_labels)) {
+      enable_custom_labels_ = config_.enable_custom_labels;  // Legacy sync
     }
     if (ImGui::Checkbox("Enable Context Menu", &config_.enable_context_menu)) {
-      enable_context_menu_ = config_.enable_context_menu; // Legacy sync
+      enable_context_menu_ = config_.enable_context_menu;  // Legacy sync
     }
     if (ImGui::Checkbox("Draggable", &config_.is_draggable)) {
-      draggable_ = config_.is_draggable; // Legacy sync
+      draggable_ = config_.is_draggable;  // Legacy sync
     }
     if (ImGui::Checkbox("Auto Resize for Tables", &config_.auto_resize)) {
       // Auto resize setting changed
     }
-    
+
     // Grid controls
     ImGui::Separator();
     ImGui::Text("Grid Configuration");
-    if (ImGui::SliderFloat("Grid Step", &config_.grid_step, 1.0f, 128.0f, "%.1f")) {
-      custom_step_ = config_.grid_step; // Legacy sync
+    if (ImGui::SliderFloat("Grid Step", &config_.grid_step, 1.0f, 128.0f,
+                           "%.1f")) {
+      custom_step_ = config_.grid_step;  // Legacy sync
     }
-    
+
     // Scale controls
     ImGui::Separator();
     ImGui::Text("Scale Configuration");
-    if (ImGui::SliderFloat("Global Scale", &config_.global_scale, 0.1f, 10.0f, "%.2f")) {
-      global_scale_ = config_.global_scale; // Legacy sync
+    if (ImGui::SliderFloat("Global Scale", &config_.global_scale, 0.1f, 10.0f,
+                           "%.2f")) {
+      global_scale_ = config_.global_scale;  // Legacy sync
     }
-    
+
     // Scrolling controls
     ImGui::Separator();
     ImGui::Text("Scrolling Configuration");
@@ -1656,11 +1728,15 @@ void Canvas::ShowAdvancedCanvasProperties() {
     ImGui::SameLine();
     if (ImGui::Button("Center View")) {
       if (bitmap_) {
-        scrolling_ = ImVec2(-(bitmap_->width() * config_.global_scale - config_.canvas_size.x) / 2.0f,
-                           -(bitmap_->height() * config_.global_scale - config_.canvas_size.y) / 2.0f);
+        scrolling_ = ImVec2(
+            -(bitmap_->width() * config_.global_scale - config_.canvas_size.x) /
+                2.0f,
+            -(bitmap_->height() * config_.global_scale -
+              config_.canvas_size.y) /
+                2.0f);
       }
     }
-    
+
     if (ImGui::Button("Close")) {
       ImGui::CloseCurrentPopup();
     }
@@ -1685,35 +1761,39 @@ void Canvas::ShowScalingControls() {
     modal_config.is_draggable = draggable_;
     modal_config.auto_resize = config_.auto_resize;
     modal_config.scrolling = scrolling_;
-    modal_config.on_config_changed = [this](const canvas::CanvasConfig& updated_config) {
-      // Update legacy variables when config changes
-      enable_grid_ = updated_config.enable_grid;
-      enable_hex_tile_labels_ = updated_config.enable_hex_labels;
-      enable_custom_labels_ = updated_config.enable_custom_labels;
-      enable_context_menu_ = updated_config.enable_context_menu;
-    };
-    modal_config.on_scale_changed = [this](const canvas::CanvasConfig& updated_config) {
-      draggable_ = updated_config.is_draggable;
-      custom_step_ = updated_config.grid_step;
-      global_scale_ = updated_config.global_scale;
-      scrolling_ = updated_config.scrolling;
-    };
-    
+    modal_config.on_config_changed =
+        [this](const canvas::CanvasConfig& updated_config) {
+          // Update legacy variables when config changes
+          enable_grid_ = updated_config.enable_grid;
+          enable_hex_tile_labels_ = updated_config.enable_hex_labels;
+          enable_custom_labels_ = updated_config.enable_custom_labels;
+          enable_context_menu_ = updated_config.enable_context_menu;
+        };
+    modal_config.on_scale_changed =
+        [this](const canvas::CanvasConfig& updated_config) {
+          draggable_ = updated_config.is_draggable;
+          custom_step_ = updated_config.grid_step;
+          global_scale_ = updated_config.global_scale;
+          scrolling_ = updated_config.scrolling;
+        };
+
     modals_->ShowScalingControls(canvas_id_, modal_config);
     return;
   }
-  
+
   // Fallback to legacy modal system
-  if (ImGui::BeginPopupModal("Scaling Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal("Scaling Controls", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Canvas Scaling and Display Controls");
     ImGui::Separator();
-    
+
     // Global scale with new config system
     ImGui::Text("Global Scale: %.3f", config_.global_scale);
-    if (ImGui::SliderFloat("##GlobalScale", &config_.global_scale, 0.1f, 10.0f, "%.2f")) {
-      global_scale_ = config_.global_scale; // Legacy sync
+    if (ImGui::SliderFloat("##GlobalScale", &config_.global_scale, 0.1f, 10.0f,
+                           "%.2f")) {
+      global_scale_ = config_.global_scale;  // Legacy sync
     }
-    
+
     // Preset scale buttons
     ImGui::Text("Preset Scales:");
     if (ImGui::Button("0.25x")) {
@@ -1745,15 +1825,16 @@ void Canvas::ShowScalingControls() {
       config_.global_scale = 8.0f;
       global_scale_ = config_.global_scale;
     }
-    
+
     // Grid configuration
     ImGui::Separator();
     ImGui::Text("Grid Configuration");
     ImGui::Text("Grid Step: %.1f", config_.grid_step);
-    if (ImGui::SliderFloat("##GridStep", &config_.grid_step, 1.0f, 128.0f, "%.1f")) {
-      custom_step_ = config_.grid_step; // Legacy sync
+    if (ImGui::SliderFloat("##GridStep", &config_.grid_step, 1.0f, 128.0f,
+                           "%.1f")) {
+      custom_step_ = config_.grid_step;  // Legacy sync
     }
-    
+
     // Grid size presets
     ImGui::Text("Grid Presets:");
     if (ImGui::Button("8x8")) {
@@ -1775,21 +1856,23 @@ void Canvas::ShowScalingControls() {
       config_.grid_step = 64.0f;
       custom_step_ = config_.grid_step;
     }
-    
+
     // Canvas size info
     ImGui::Separator();
     ImGui::Text("Canvas Information");
-    ImGui::Text("Canvas Size: %.0f x %.0f", config_.canvas_size.x, config_.canvas_size.y);
-    ImGui::Text("Scaled Size: %.0f x %.0f", 
-               config_.canvas_size.x * config_.global_scale, 
-               config_.canvas_size.y * config_.global_scale);
+    ImGui::Text("Canvas Size: %.0f x %.0f", config_.canvas_size.x,
+                config_.canvas_size.y);
+    ImGui::Text("Scaled Size: %.0f x %.0f",
+                config_.canvas_size.x * config_.global_scale,
+                config_.canvas_size.y * config_.global_scale);
     if (bitmap_) {
       ImGui::Text("Bitmap Size: %d x %d", bitmap_->width(), bitmap_->height());
-      ImGui::Text("Effective Scale: %.3f x %.3f", 
-                 (config_.canvas_size.x * config_.global_scale) / bitmap_->width(),
-                 (config_.canvas_size.y * config_.global_scale) / bitmap_->height());
+      ImGui::Text(
+          "Effective Scale: %.3f x %.3f",
+          (config_.canvas_size.x * config_.global_scale) / bitmap_->width(),
+          (config_.canvas_size.y * config_.global_scale) / bitmap_->height());
     }
-    
+
     if (ImGui::Button("Close")) {
       ImGui::CloseCurrentPopup();
     }
@@ -1800,22 +1883,23 @@ void Canvas::ShowScalingControls() {
 // BPP format management methods
 void Canvas::ShowBppFormatSelector() {
   if (!bpp_format_ui_) {
-    bpp_format_ui_ = std::make_unique<gui::BppFormatUI>(canvas_id_ + "_bpp_format");
+    bpp_format_ui_ =
+        std::make_unique<gui::BppFormatUI>(canvas_id_ + "_bpp_format");
   }
-  
+
   if (bitmap_) {
-    bpp_format_ui_->RenderFormatSelector(bitmap_, bitmap_->palette(), 
-      [this](gfx::BppFormat format) {
-        ConvertBitmapFormat(format);
-      });
+    bpp_format_ui_->RenderFormatSelector(
+        bitmap_, bitmap_->palette(),
+        [this](gfx::BppFormat format) { ConvertBitmapFormat(format); });
   }
 }
 
 void Canvas::ShowBppAnalysis() {
   if (!bpp_format_ui_) {
-    bpp_format_ui_ = std::make_unique<gui::BppFormatUI>(canvas_id_ + "_bpp_format");
+    bpp_format_ui_ =
+        std::make_unique<gui::BppFormatUI>(canvas_id_ + "_bpp_format");
   }
-  
+
   if (bitmap_) {
     bpp_format_ui_->RenderAnalysisPanel(*bitmap_, bitmap_->palette());
   }
@@ -1823,39 +1907,42 @@ void Canvas::ShowBppAnalysis() {
 
 void Canvas::ShowBppConversionDialog() {
   if (!bpp_conversion_dialog_) {
-    bpp_conversion_dialog_ = std::make_unique<gui::BppConversionDialog>(canvas_id_ + "_bpp_conversion");
+    bpp_conversion_dialog_ = std::make_unique<gui::BppConversionDialog>(
+        canvas_id_ + "_bpp_conversion");
   }
-  
+
   if (bitmap_) {
-    bpp_conversion_dialog_->Show(*bitmap_, bitmap_->palette(),
-      [this](gfx::BppFormat format, bool preserve_palette) {
-        ConvertBitmapFormat(format);
-      });
+    bpp_conversion_dialog_->Show(
+        *bitmap_, bitmap_->palette(),
+        [this](gfx::BppFormat format, bool preserve_palette) {
+          ConvertBitmapFormat(format);
+        });
   }
-  
+
   bpp_conversion_dialog_->Render();
 }
 
 bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
-  if (!bitmap_) return false;
-  
+  if (!bitmap_)
+    return false;
+
   gfx::BppFormat current_format = GetCurrentBppFormat();
   if (current_format == target_format) {
-    return true; // No conversion needed
+    return true;  // No conversion needed
   }
-  
+
   try {
     // Convert the bitmap data
     auto converted_data = gfx::BppFormatManager::Get().ConvertFormat(
-      bitmap_->vector(), current_format, target_format, 
-      bitmap_->width(), bitmap_->height());
-    
+        bitmap_->vector(), current_format, target_format, bitmap_->width(),
+        bitmap_->height());
+
     // Update the bitmap with converted data
     bitmap_->set_data(converted_data);
-    
+
     // Update the renderer
     core::Renderer::Get().UpdateBitmap(bitmap_);
-    
+
     return true;
   } catch (const std::exception& e) {
     SDL_Log("Failed to convert bitmap format: %s", e.what());
@@ -1864,10 +1951,11 @@ bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
 }
 
 gfx::BppFormat Canvas::GetCurrentBppFormat() const {
-  if (!bitmap_) return gfx::BppFormat::kBpp8;
-  
+  if (!bitmap_)
+    return gfx::BppFormat::kBpp8;
+
   return gfx::BppFormatManager::Get().DetectFormat(
-    bitmap_->vector(), bitmap_->width(), bitmap_->height());
+      bitmap_->vector(), bitmap_->width(), bitmap_->height());
 }
 
 }  // namespace yaze::gui

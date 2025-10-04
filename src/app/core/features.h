@@ -3,8 +3,6 @@
 
 #include <string>
 
-#include "imgui/imgui.h"
-
 namespace yaze {
 namespace core {
 
@@ -114,63 +112,6 @@ class FeatureFlags {
     result += "kUseNativeFileDialog: " +
               std::to_string(get().kUseNativeFileDialog) + "\n";
     return result;
-  }
-};
-
-using ImGui::BeginMenu;
-using ImGui::Checkbox;
-using ImGui::EndMenu;
-using ImGui::MenuItem;
-using ImGui::Separator;
-
-struct FlagsMenu {
-  void DrawOverworldFlags() {
-    Checkbox("Enable Overworld Sprites",
-             &FeatureFlags::get().overworld.kDrawOverworldSprites);
-    Separator();
-    Checkbox("Save Overworld Maps",
-             &FeatureFlags::get().overworld.kSaveOverworldMaps);
-    Checkbox("Save Overworld Entrances",
-             &FeatureFlags::get().overworld.kSaveOverworldEntrances);
-    Checkbox("Save Overworld Exits",
-             &FeatureFlags::get().overworld.kSaveOverworldExits);
-    Checkbox("Save Overworld Items",
-             &FeatureFlags::get().overworld.kSaveOverworldItems);
-    Checkbox("Save Overworld Properties",
-             &FeatureFlags::get().overworld.kSaveOverworldProperties);
-    Checkbox("Enable Custom Overworld Features",
-             &FeatureFlags::get().overworld.kLoadCustomOverworld);
-    ImGui::SameLine();
-    if (ImGui::Button("?")) {
-      ImGui::OpenPopup("CustomOverworldHelp");
-    }
-    if (ImGui::BeginPopup("CustomOverworldHelp")) {
-      ImGui::Text("This flag enables ZSCustomOverworld features.");
-      ImGui::Text("If ZSCustomOverworld ASM is already applied to the ROM,");
-      ImGui::Text("features are auto-enabled regardless of this flag.");
-      ImGui::Text("For vanilla ROMs, enable this to use custom features.");
-      ImGui::EndPopup();
-    }
-    Checkbox("Apply ZSCustomOverworld ASM",
-             &FeatureFlags::get().overworld.kApplyZSCustomOverworldASM);
-  }
-
-  void DrawDungeonFlags() {
-    Checkbox("Save Dungeon Maps", &FeatureFlags::get().kSaveDungeonMaps);
-  }
-
-  void DrawResourceFlags() {
-    Checkbox("Save All Palettes", &FeatureFlags::get().kSaveAllPalettes);
-    Checkbox("Save Gfx Groups", &FeatureFlags::get().kSaveGfxGroups);
-    Checkbox("Save Graphics Sheets", &FeatureFlags::get().kSaveGraphicsSheet);
-  }
-
-  void DrawSystemFlags() {
-    Checkbox("Enable Console Logging", &FeatureFlags::get().kLogToConsole);
-    Checkbox("Enable Performance Monitoring", &FeatureFlags::get().kEnablePerformanceMonitoring);
-    Checkbox("Log Instructions to Emulator Debugger",
-             &FeatureFlags::get().kLogInstructions);
-    Checkbox("Use Native File Dialog (NFD)", &FeatureFlags::get().kUseNativeFileDialog);
   }
 };
 

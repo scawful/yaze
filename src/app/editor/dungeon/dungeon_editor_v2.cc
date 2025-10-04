@@ -4,6 +4,8 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/snes_palette.h"
+#include "app/zelda3/dungeon/room.h"
+#include "app/gui/icons.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -28,8 +30,8 @@ absl::Status DungeonEditorV2::Load() {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  // Load all rooms using the loader component
-  RETURN_IF_ERROR(room_loader_.LoadAllRooms(rooms_));
+  // Load all rooms using the loader component - DEFERRED for lazy loading
+  // RETURN_IF_ERROR(room_loader_.LoadAllRooms(rooms_));
   RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
 
   // Load palette group
@@ -106,7 +108,16 @@ void DungeonEditorV2::DrawLayout() {
         int room_id = active_rooms_[i];
         bool open = true;
 
-        if (BeginTabItem(absl::StrFormat("Room %03X", room_id).c_str(), &open)) {
+        std::string tab_name_str;
+        const char* tab_name;
+        if (room_id >= 0 && static_cast<size_t>(room_id) < std::size(zelda3::kRoomNames)) {
+          tab_name = zelda3::kRoomNames[room_id].data();
+        } else {
+          tab_name_str = absl::StrFormat("Room %03X", room_id);
+          tab_name = tab_name_str.c_str();
+        }
+
+        if (BeginTabItem(tab_name, &open)) {
           DrawRoomTab(room_id);
           EndTabItem();
         }
@@ -116,6 +127,12 @@ void DungeonEditorV2::DrawLayout() {
           i--;
         }
       }
+
+      // Add tab button
+      if (ImGui::TabItemButton(ICON_MD_ADD, ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
+        OnRoomSelected(room_selector_.current_room_id());
+      }
+      
       EndTabBar();
     }
 
@@ -133,11 +150,21 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     return;
   }
 
+  // Lazy load room data
+  if (!rooms_[room_id].IsLoaded()) {
+    auto status = room_loader_.LoadRoom(room_id, rooms_[room_id]);
+    if (!status.ok()) {
+      ImGui::TextColored(ImVec4(1, 0, 0, 1), "Failed to load room: %s",
+                       status.message().data());
+      return;
+    }
+  }
+
   // Quick controls
   ImGui::Text("Room %03X", room_id);
   ImGui::SameLine();
   if (ImGui::Button("Load Graphics")) {
-    (void)room_loader_.LoadAndRenderRoomGraphics(room_id, rooms_[room_id]);
+    (void)room_loader_.LoadAndRenderRoomGraphics(rooms_[room_id]);
   }
   ImGui::SameLine();
   if (ImGui::Button("Save")) {

@@ -371,7 +371,7 @@ void DungeonEditor::DrawCanvasAndPropertiesPanel() {
         gui::InputHexByte("Palette", &room.palette);
 
         if (ImGui::Button("Reload Room Graphics")) {
-          (void)LoadAndRenderRoomGraphics(current_room);
+          (void)LoadAndRenderRoomGraphics(room);
         }
       }
 
@@ -555,7 +555,7 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   SameLine();
 
   if (Button("Load Room Graphics")) {
-    (void)LoadAndRenderRoomGraphics(room_id);
+    (void)LoadAndRenderRoomGraphics(rooms_[room_id]);
   }
 
   ImGui::SameLine();
@@ -701,7 +701,7 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
   if (is_loaded_) {
     // Automatically load room graphics if not already loaded
     if (rooms_[room_id].blocks().empty()) {
-      (void)LoadAndRenderRoomGraphics(room_id);
+      (void)LoadAndRenderRoomGraphics(rooms_[room_id]);
     }
 
     // Load room objects if not already loaded
@@ -761,7 +761,7 @@ void DungeonEditor::UpdateObjectEditor() {
   
   // Load room graphics if not already loaded (this populates arena buffers)
   if (room.blocks().empty()) {
-    auto status = LoadAndRenderRoomGraphics(room_id);
+    auto status = LoadAndRenderRoomGraphics(room);
     if (!status.ok()) {
       // Log error but continue
       return;
@@ -829,18 +829,15 @@ void DungeonEditor::DrawObjectEditorPanels() {
 }
 
 // Legacy method implementations that delegate to components
-absl::Status DungeonEditor::LoadAndRenderRoomGraphics(int room_id) {
-  if (room_id < 0 || room_id >= rooms_.size()) {
-    return absl::InvalidArgumentError("Invalid room ID");
-  }
-  return room_loader_.LoadAndRenderRoomGraphics(room_id, rooms_[room_id]);
+absl::Status DungeonEditor::LoadAndRenderRoomGraphics(zelda3::Room& room) {
+  return room_loader_.LoadAndRenderRoomGraphics(room);
 }
 
 absl::Status DungeonEditor::ReloadAllRoomGraphics() {
   return room_loader_.ReloadAllRoomGraphics(rooms_);
 }
 
-absl::Status DungeonEditor::UpdateRoomBackgroundLayers(int room_id) {
+absl::Status DungeonEditor::UpdateRoomBackgroundLayers(int /*room_id*/) {
   // This method is deprecated - rendering is handled by DungeonRenderer component
   return absl::OkStatus();
 }

@@ -125,7 +125,7 @@ void ThemeManager::InitializeBuiltInThemes() {
   // Load all available theme files dynamically
   auto status = LoadAllAvailableThemes();
   if (!status.ok()) {
-    util::logf("Warning: Failed to load some theme files: %s", status.message().data());
+    LOG_ERROR("Theme Manager", "Failed to load some theme files");
   }
   
   // Ensure we have a valid current theme (Classic is already set above)
@@ -326,7 +326,7 @@ void ThemeManager::ApplyTheme(const std::string& theme_name) {
     // Fallback to YAZE Tre if theme not found
     auto fallback_status = LoadTheme("YAZE Tre");
     if (!fallback_status.ok()) {
-      util::logf("Failed to load fallback theme: %s", fallback_status.message().data());
+      LOG_ERROR("Theme Manager", "Failed to load fallback theme");
     }
   }
 }
@@ -426,7 +426,7 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
                                        name.c_str()).c_str(), ImVec2(-1, 40))) {
         auto status = LoadTheme(name); // Use LoadTheme instead of ApplyTheme to ensure correct tracking
         if (!status.ok()) {
-          util::logf("Failed to load theme %s: %s", name.c_str(), status.message().data());
+          LOG_ERROR("Theme Manager", "Failed to load theme %s", name.c_str());
         }
       }
       
@@ -460,7 +460,7 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
     if (ImGui::Button(absl::StrFormat("%s Refresh Themes", ICON_MD_REFRESH).c_str())) {
       auto status = RefreshAvailableThemes();
       if (!status.ok()) {
-        util::logf("Failed to refresh themes: %s", status.message().data());
+        LOG_ERROR("Theme Manager", "Failed to refresh themes");
       }
     }
     
@@ -1019,7 +1019,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
             if (!current_file_path.empty()) {
               auto status = SaveThemeToFile(current_theme_, current_file_path);
               if (!status.ok()) {
-                util::logf("Failed to save theme: %s", status.message().data());
+                LOG_ERROR("Theme Manager", "Failed to save theme");
               }
             } else {
               // No existing file, prompt for new location
@@ -1027,7 +1027,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
               if (!file_path.empty()) {
                 auto status = SaveThemeToFile(current_theme_, file_path);
                 if (!status.ok()) {
-                  util::logf("Failed to save theme: %s", status.message().data());
+                  LOG_ERROR("Theme Manager", "Failed to save theme");
                 }
               }
             }
@@ -1038,7 +1038,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
             if (!file_path.empty()) {
               auto status = SaveThemeToFile(current_theme_, file_path);
               if (!status.ok()) {
-                util::logf("Failed to save theme: %s", status.message().data());
+                LOG_ERROR("Theme Manager", "Failed to save theme");
               }
             }
           }
@@ -1831,7 +1831,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         ApplyTheme(edit_theme);
         theme_backup_made = false; // Reset backup state since theme is now applied
       } else {
-        util::logf("Failed to save over current theme: %s", status.message().data());
+        LOG_ERROR("Theme Manager", "Failed to save over current theme");
       }
     }
     
@@ -1873,7 +1873,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           themes_[edit_theme.name] = edit_theme;
           ApplyTheme(edit_theme);
         } else {
-          util::logf("Failed to save theme: %s", status.message().data());
+          LOG_ERROR("Theme Manager", "Failed to save theme");
         }
       }
     }
@@ -1981,7 +1981,7 @@ std::vector<std::string> ThemeManager::DiscoverAvailableThemeFiles() const {
       }
 #endif
     } catch (const std::exception& e) {
-      util::logf("Error scanning directory %s: %s", search_path.c_str(), e.what());
+      LOG_ERROR("Theme Manager", "Error scanning directory %s", search_path.c_str());
     }
   }
   
