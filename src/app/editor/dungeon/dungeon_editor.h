@@ -146,6 +146,7 @@ class DungeonEditor : public Editor {
   bool show_door_editor_ = false;
   bool show_chest_editor_ = false;
   bool show_properties_editor_ = false;
+  bool show_visual_diagnostic_ = false;
 
   uint16_t current_entrance_id_ = 0;
   uint16_t current_room_id_ = 0;

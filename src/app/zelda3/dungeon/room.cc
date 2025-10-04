@@ -310,11 +310,25 @@ void Room::RenderRoomGraphics() {
   std::printf("5. BG1 bitmap: active=%d, size=%dx%d, data_size=%zu\n",
              bg1_bmp.is_active(), bg1_bmp.width(), bg1_bmp.height(), bg1_bmp.vector().size());
 
-  // Get the palette for this room
-  auto bg1_palette =
-      rom()->mutable_palette_group()->get_group("dungeon_main")[0].palette(0);
+  // Get the palette for this room - just use the 90-color palette as-is
+  // The SNES will index into this palette correctly without needing expansion
+  auto& dungeon_pal_group = rom()->mutable_palette_group()->get_group("dungeon_main")[0];
+  int num_palettes = dungeon_pal_group.size();
+  int palette_id = palette;
   
-  std::printf("5a. Palette loaded: size=%zu colors\n", bg1_palette.size());
+  // Validate palette ID and fall back to palette 0 if invalid
+  if (palette_id < 0 || palette_id >= num_palettes) {
+    std::printf("WARNING: Room %d has invalid palette_id=%d (max=%d), falling back to palette 0\n", 
+                room_id_, palette_id, num_palettes - 1);
+    palette_id = 0;
+  }
+  
+  // Load the 90-color dungeon palette directly
+  // The palette contains colors for BG layers - sprite colors are handled separately
+  auto bg1_palette = dungeon_pal_group.palette(palette_id);
+  
+  std::printf("5a. Palette loaded: room palette_id=%d (requested=%d), size=%zu colors\n", 
+              palette_id, palette, bg1_palette.size());
 
   // CRITICAL: Apply palette to bitmaps BEFORE creating/updating textures
   bg1_bmp.SetPaletteWithTransparent(bg1_palette, 0);
