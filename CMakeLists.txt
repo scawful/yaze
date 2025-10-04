@@ -72,8 +72,9 @@ option(YAZE_USE_MODULAR_BUILD "Use modularized library build system for faster b
 # Enables: JSON parsing, YAML config, httplib for API calls, prompt builder
 option(Z3ED_AI "Enable z3ed AI agent features (Gemini/Ollama integration)" OFF)
 
-# YAZE_WITH_JSON: JSON support (auto-enabled by Z3ED_AI)
-option(YAZE_WITH_JSON "Enable JSON support for AI integrations" OFF)
+# YAZE_WITH_JSON: JSON support (bundled header-only library, minimal overhead)
+# Enabled by default to avoid Windows build issues with agent history codec
+option(YAZE_WITH_JSON "Enable JSON support for AI integrations" ON)
 
 # YAZE_WITH_GRPC: gRPC for GUI automation (auto-enables JSON)
 option(YAZE_WITH_GRPC "Enable gRPC-based ImGuiTestHarness for automated GUI testing (experimental)" OFF)
@@ -166,7 +167,30 @@ target_include_directories(yaze_common INTERFACE ${CMAKE_SOURCE_DIR}/third_party
 
 if(YAZE_WITH_JSON)
     set(JSON_BuildTests OFF CACHE INTERNAL "Disable nlohmann_json tests")
+    
+    # Verify JSON library exists
+    if(NOT EXISTS "${CMAKE_SOURCE_DIR}/third_party/json/CMakeLists.txt")
+        message(FATAL_ERROR 
+            "JSON library not found in third_party/json/\n"
+            "This is required when YAZE_WITH_JSON=ON.\n"
+            "Please ensure the repository is fully cloned with submodules."
+        )
+    endif()
+    
     add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/json ${CMAKE_BINARY_DIR}/third_party/json EXCLUDE_FROM_ALL)
+    
+    # Verify the target was created
+    if(NOT TARGET nlohmann_json::nlohmann_json)
+        message(FATAL_ERROR 
+            "Failed to create nlohmann_json::nlohmann_json target.\n"
+            "The JSON library subdirectory was added but the target is missing.\n"
+            "Please check third_party/json/CMakeLists.txt for errors."
+        )
+    endif()
+    
+    message(STATUS "✓ JSON support enabled (nlohmann/json)")
+    message(STATUS "  - Include directory: ${CMAKE_SOURCE_DIR}/third_party/json/include")
+    message(STATUS "  - Target available: nlohmann_json::nlohmann_json")
 endif()
 
 # Platform-specific configurations
@@ -180,10 +204,33 @@ elseif(YAZE_PLATFORM_WINDOWS)
     if(DEFINED CMAKE_TOOLCHAIN_FILE AND EXISTS "${CMAKE_TOOLCHAIN_FILE}")
         include(cmake/vcpkg.cmake)
         message(STATUS "Using vcpkg integration")
+        message(STATUS "  - Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
     else()
-        message(STATUS "vcpkg not available - using system packages")
+        message(STATUS "vcpkg not available - using system packages or bundled dependencies")
+        message(STATUS "  Tip: Set VCPKG_ROOT environment variable to enable vcpkg")
     endif()
     target_compile_definitions(yaze_common INTERFACE WINDOWS)
+    
+    # Windows-specific build guidance
+    message(STATUS "===========================================")
+    message(STATUS "Windows Build Configuration:")
+    message(STATUS "  - Generator: ${CMAKE_GENERATOR}")
+    message(STATUS "  - Architecture: ${CMAKE_GENERATOR_PLATFORM}")
+    message(STATUS "  - JSON Support: ${YAZE_WITH_JSON}")
+    message(STATUS "  - AI Features: ${Z3ED_AI}")
+    message(STATUS "  - gRPC Support: ${YAZE_WITH_GRPC}")
+    message(STATUS "===========================================")
+    
+    # Helpful messages about build configuration
+    if(NOT Z3ED_AI)
+        message(STATUS "Note: AI agent features disabled (JSON is enabled)")
+        message(STATUS "      To enable AI: cmake --preset windows-ai-debug")
+    endif()
+    
+    if(NOT YAZE_WITH_JSON)
+        message(STATUS "Warning: JSON disabled - some features may not compile")
+        message(STATUS "         Recommend keeping JSON enabled (it's header-only)")
+    endif()
     
     # Windows-specific architecture detection and configuration
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")

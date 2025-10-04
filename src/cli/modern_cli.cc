@@ -842,7 +842,7 @@ absl::Status ModernCLI::HandleCollabCommand(const std::vector<std::string>& args
     if (const char* yaze_root = std::getenv("YAZE_ROOT")) {
       server_dir = std::string(yaze_root);
     } else {
-      // Assume we're in build directory, server is ../yaze-collab-server
+      // Assume we're in build directory, server is ../yaze-server
       server_dir = "..";
     }
     
@@ -853,11 +853,11 @@ absl::Status ModernCLI::HandleCollabCommand(const std::vector<std::string>& args
     std::string command;
 #ifdef _WIN32
     // Windows: Use cmd.exe to run npm start
-    command = "cd /D \"" + server_dir + "\\..\\yaze-collab-server\" && set PORT=" + 
+    command = "cd /D \"" + server_dir + "\\..\\yaze-server\" && set PORT=" + 
               port + " && npm start";
 #else
     // Unix: Use bash script
-    command = "cd \"" + server_dir + "/../yaze-collab-server\" && PORT=" + 
+    command = "cd \"" + server_dir + "/../yaze-server\" && PORT=" + 
               port + " node server.js &";
 #endif
     
@@ -865,7 +865,7 @@ absl::Status ModernCLI::HandleCollabCommand(const std::vector<std::string>& args
     
     if (result != 0) {
       std::cout << "⚠️  Note: Server may not be installed. To install:\n";
-      std::cout << "   cd yaze-collab-server && npm install\n";
+      std::cout << "   cd yaze-server && npm install\n";
       return absl::InternalError("Failed to start collaboration server");
     }
     
