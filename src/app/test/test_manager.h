@@ -213,10 +213,10 @@ class TestManager {
 
   // ROM-dependent testing
   void SetCurrentRom(Rom* rom) {
-    util::logf("TestManager::SetCurrentRom called with ROM: %p", (void*)rom);
+    LOG_INFO("TestManager", "SetCurrentRom called with ROM: %p", (void*)rom);
     if (rom) {
-      util::logf("ROM title: '%s', loaded: %s", rom->title().c_str(),
-                 rom->is_loaded() ? "true" : "false");
+      LOG_INFO("TestManager", "ROM title: '%s', loaded: %s",
+               rom->title().c_str(), rom->is_loaded() ? "true" : "false");
     }
     current_rom_ = rom;
   }

@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_cat.h"
@@ -17,45 +18,6 @@
 
 namespace yaze {
 namespace util {
-
-// Static variables for library state
-static std::string g_log_file_path = "";
-
-
-// Set custom log file path
-inline void SetLogFile(const std::string& filepath) {
-  g_log_file_path = filepath;
-}
-
-template <typename... Args>
-static void logf(const absl::FormatSpec<Args...> &format, const Args &...args) {
-  std::string message = absl::StrFormat(format, args...);
-  auto timestamp = std::chrono::system_clock::now();
-
-  std::time_t now_tt = std::chrono::system_clock::to_time_t(timestamp);
-  std::tm tm = *std::localtime(&now_tt);
-  message = absl::StrCat("[", tm.tm_hour, ":", tm.tm_min, ":", tm.tm_sec, "] ",
-                         message, "\n");
-
-  if (core::FeatureFlags::get().kLogToConsole) {
-    std::cout << message;
-  }
-  
-  // Use the configurable log file path
-  static std::ofstream fout;
-  static std::string last_log_path = "";
-  
-  // Reopen file if path changed
-  if (g_log_file_path != last_log_path) {
-    fout.close();
-    fout.open(g_log_file_path, std::ios::out | std::ios::trunc);
-    last_log_path = g_log_file_path;
-  }
-  
-  fout << message;
-  fout.flush(); // Ensure immediate write for debugging
-}
-
 
 /**
  * @enum LogLevel
@@ -114,9 +76,6 @@ class LogManager {
   std::string log_file_path_;
 };
 
-// logf mapping
-#define logf LOG_INFO
-
 // --- Public Logging Macros ---
 // These macros provide a convenient and efficient API for logging.
 // The `do-while(0)` loop ensures they behave like a single statement.
@@ -139,6 +98,16 @@ class LogManager {
   LOG(yaze::util::LogLevel::ERROR, category, format, ##__VA_ARGS__)
 #define LOG_FATAL(category, format, ...)                                   \
   LOG(yaze::util::LogLevel::FATAL, category, format, ##__VA_ARGS__)
+
+template <typename... Args>
+inline void logf(const absl::FormatSpec<Args...>& format, Args&&... args) {
+  LogManager::instance().log(LogLevel::INFO, "General",
+                             absl::StrFormat(format, std::forward<Args>(args)...));
+}
+
+inline void logf(absl::string_view message) {
+  LogManager::instance().log(LogLevel::INFO, "General", message);
+}
 
 }  // namespace util
 }  // namespace yaze
