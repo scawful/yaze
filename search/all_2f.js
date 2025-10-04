@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['🎯_20next_20steps_0',['🎯 Next Steps',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md955',1,'']]],
-  ['🎯_20strong_20conclusion_20strong_1',['🎯 &lt;strong&gt;Conclusion&lt;/strong&gt;',['../d9/d48/md_docs_2analysis_2overworld__implementation__analysis.html#autotoc_md149',1,'']]]
+  ['🎉_20strong_20massive_20performance_20improvements_20achieved_20strong_0',['🎉 &lt;strong&gt;Massive Performance Improvements Achieved!&lt;/strong&gt;',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html#autotoc_md151',1,'']]]
 ];

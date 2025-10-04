@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['🔧_20why_20this_20fixes_20architecture_20errors_0',['🔧 Why This Fixes Architecture Errors',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md211',1,'']]]
+  ['📝_20notes_0',['📝 Notes',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md219',1,'']]],
+  ['📝_20related_20files_1',['📝 Related Files',['../da/d40/md_docs_2ollama__integration__status.html#autotoc_md965',1,'']]]
 ];

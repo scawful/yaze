@@ -7,5 +7,8 @@ var structyaze_1_1cli_1_1GeminiConfig =
     [ "temperature", "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#adb4d463580be06e3bf9bd9a4aeaeb886", null ],
     [ "max_output_tokens", "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a142234473ee64bf7a5b5a9e10816ed83", null ],
     [ "system_instruction", "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#abf3f49a990bd4479b358d15681bbe2b8", null ],
-    [ "use_enhanced_prompting", "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#ab9b6e4e086884aaf071f8cebcc51c833", null ]
+    [ "use_enhanced_prompting", "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#ab9b6e4e086884aaf071f8cebcc51c833", null ],
+    [ "use_function_calling", "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a1f628bd4ba748480667786f0849fc31f", null ],
+    [ "prompt_version", "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a3fabd23ee9039b82a0661b85c349e454", null ],
+    [ "verbose", "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a2e5db5d9a0d192230ffa087cf48d8a8e", null ]
 ];

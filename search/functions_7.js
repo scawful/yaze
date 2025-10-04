@@ -62,7 +62,7 @@ var searchData=
   ['handleromvalidatecommand_59',['HandleRomValidateCommand',['../df/db9/classyaze_1_1cli_1_1ModernCLI.html#a4af7a24df3bed4b87d79d721851d89c3',1,'yaze::cli::ModernCLI']]],
   ['handleruncommand_60',['HandleRunCommand',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a4c88dbe6c96f20bba8fd432738e1a528',1,'yaze::cli::agent']]],
   ['handlescrollwheel_61',['HandleScrollWheel',['../de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a0f55adf00f7e1e2304540b128229cb3d',1,'yaze::zelda3::DungeonObjectEditor']]],
-  ['handlesimplechatcommand_62',['HandleSimpleChatCommand',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a60dbfaaa638acb999d0765614e9c983a',1,'yaze::cli::agent']]],
+  ['handlesimplechatcommand_62',['HandleSimpleChatCommand',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa5dce5122f99bd7671e44280148683fb',1,'yaze::cli::agent']]],
   ['handlesizeedit_63',['HandleSizeEdit',['../de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#aa3d6b76892be45612eedbcdd37c9614a',1,'yaze::zelda3::DungeonObjectEditor']]],
   ['handlespecialobjects_64',['HandleSpecialObjects',['../d7/df6/classyaze_1_1zelda3_1_1Room.html#aeb075917ad09925b41b3460a3d5fc5c0',1,'yaze::zelda3::Room']]],
   ['handlespritecreatecommand_65',['HandleSpriteCreateCommand',['../df/db9/classyaze_1_1cli_1_1ModernCLI.html#acc43a4b1ee0b60ad35cf3461cb3929ed',1,'yaze::cli::ModernCLI']]],

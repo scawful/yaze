@@ -1,13 +1,10 @@
 var searchData=
 [
-  ['scripts_0',['scripts',['../dc/db4/md_scripts_2README__VERIFICATION.html',1,'YAZE Build Environment Verification Scripts'],['../de/d82/md_scripts_2README.html',1,'yaze Build Scripts']]],
-  ['stability_20testability_20release_20workflow_20improvements_1',['Stability, Testability &amp; Release Workflow Improvements',['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'']]],
-  ['started_2',['Getting Started',['../d0/d63/md_docs_201-getting-started.html',1,'']]],
-  ['style_20guide_3',['Asm Style Guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'']]],
-  ['suite_4',['yaze Test Suite',['../d0/d46/md_test_2README.html',1,'']]],
-  ['summary_5',['yaze Performance Optimization Summary',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html',1,'']]],
-  ['system_6',['system',['../da/d11/md_docs_2E5-dungeon-object-system.html',1,'Dungeon Object System'],['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'Tile16 Editor Palette System']]],
-  ['system_20comprehensive_20guide_7',['Canvas System - Comprehensive Guide',['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'']]],
-  ['system_20optimization_20recommendations_8',['YAZE Graphics System Optimization Recommendations',['../de/def/md_docs_2gfx__optimization__recommendations.html',1,'']]],
-  ['system_20optimizations_20complete_20implementation_9',['YAZE Graphics System Optimizations - Complete Implementation',['../d6/df4/md_docs_2gfx__optimizations__complete.html',1,'']]]
+  ['recommendations_0',['YAZE Graphics System Optimization Recommendations',['../de/def/md_docs_2gfx__optimization__recommendations.html',1,'']]],
+  ['refactoring_20plan_1',['DungeonEditor Refactoring Plan',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html',1,'']]],
+  ['reference_2',['API Reference',['../dd/d96/md_docs_204-api-reference.html',1,'']]],
+  ['release_20workflow_20improvements_3',['Stability, Testability &amp; Release Workflow Improvements',['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'']]],
+  ['release_20workflows_20documentation_4',['Release Workflows Documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'']]],
+  ['rendering_20pipeline_20analysis_5',['Dungeon Graphics Rendering Pipeline Analysis',['../d1/dbe/md_docs_2dungeon__graphics__pipeline__analysis.html',1,'']]],
+  ['roadmap_6',['Roadmap',['../d6/db4/md_docs_2D1-roadmap.html',1,'']]]
 ];

@@ -16,5 +16,6 @@ var searchData=
   ['bpp_5fformat_5fui_2ecc_13',['bpp_format_ui.cc',['../db/d3e/bpp__format__ui_8cc.html',1,'']]],
   ['bpp_5fformat_5fui_2eh_14',['bpp_format_ui.h',['../db/da7/bpp__format__ui_8h.html',1,'']]],
   ['bps_2ecc_15',['bps.cc',['../d3/d8f/bps_8cc.html',1,'']]],
-  ['bps_2eh_16',['bps.h',['../db/d90/bps_8h.html',1,'']]]
+  ['bps_2eh_16',['bps.h',['../db/d90/bps_8h.html',1,'']]],
+  ['build_5fmodularization_5fplan_2emd_17',['build_modularization_plan.md',['../d2/d64/build__modularization__plan_8md.html',1,'']]]
 ];

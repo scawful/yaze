@@ -41,7 +41,7 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "HandleOverworldDescribeMapCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#afa0f337ee6668976e1cb1434794efddd", null ],
     [ "HandleOverworldListWarpsCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#af2e9836c9423d36a3b1c2bab9e8dcbcc", null ],
     [ "HandleChatCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab9c0a392ce6c066aca8d36eac12dc2b9", null ],
-    [ "HandleSimpleChatCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a60dbfaaa638acb999d0765614e9c983a", null ],
+    [ "HandleSimpleChatCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa5dce5122f99bd7671e44280148683fb", null ],
     [ "HandleTestConversationCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a815e0cf4982c5a6618608dfd1198645b", null ],
     [ "HarnessAddress", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a63bb222c347948e80015db67a5e2731f", null ],
     [ "JsonEscape", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa9e3ca343f9a5ffeab7bc30f20aff921", null ],

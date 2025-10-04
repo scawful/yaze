@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('d3/d04/md_docs_2z3ed_2developer__guide
   <div class="headertitle"><div class="title">z3ed Developer Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md924"></a> <b>Version</b>: 0.1.0-alpha <br  />
- <b>Last Updated</b>: October 3, 2025</p>
-<h1><a class="anchor" id="autotoc_md925"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1015"></a> <b>Version</b>: 0.1.0-alpha <br  />
+ <b>Last Updated</b>: October 4, 2025</p>
+<h1><a class="anchor" id="autotoc_md1016"></a>
 1. Overview</h1>
 <p>This document is the <b>source of truth</b> for the z3ed CLI architecture, design, and roadmap. It outlines the evolution of <code>z3ed</code> into a powerful, scriptable, and extensible tool for both manual and AI-driven ROM hacking.</p>
 <p><code>z3ed</code> has successfully implemented its core infrastructure and is <b>production-ready on macOS</b>.</p>
-<h2><a class="anchor" id="autotoc_md926"></a>
+<h2><a class="anchor" id="autotoc_md1017"></a>
 Core Capabilities</h2>
 <ol type="1">
 <li><b>Conversational Agent</b>: Chat with an AI (Ollama or Gemini) to explore ROM contents and plan changes using natural language.</li>
@@ -115,10 +115,10 @@ Core Capabilities</h2>
 <li><b>Proposal System</b>: A safe, sandboxed editing workflow where all changes are tracked as "proposals" that require human review and acceptance.</li>
 <li><b>Resource-Oriented CLI</b>: A clean <code>z3ed &lt;resource&gt; &lt;action&gt;</code> command structure that is both human-readable and machine-parsable.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md927"></a>
+<h1><a class="anchor" id="autotoc_md1018"></a>
 2. Architecture</h1>
 <p>The z3ed system is composed of several layers, from the high-level AI agent down to the YAZE GUI and test harness.</p>
-<h2><a class="anchor" id="autotoc_md928"></a>
+<h2><a class="anchor" id="autotoc_md1019"></a>
 System Components Diagram</h2>
 <div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────┐</div>
 <div class="line">│ AI Agent Layer (LLM: Ollama, Gemini)                    │</div>
@@ -148,7 +148,7 @@ System Components Diagram</h2>
 <div class="line">│ YAZE GUI (ImGui Application)                            │</div>
 <div class="line">│  └─ ProposalDrawer &amp; Editor Windows                     │</div>
 <div class="line">└─────────────────────────────────────────────────────────┘</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md929"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1020"></a>
 Key Architectural Decisions</h2>
 <ul>
 <li><b>Resource-Oriented Command Structure</b>: <code>z3ed &lt;resource&gt; &lt;action&gt;</code> for clarity and extensibility.</li>
@@ -156,10 +156,10 @@ Key Architectural Decisions</h2>
 <li><b>Proposal-Based Workflow</b>: AI-generated changes are sandboxed as "proposals" requiring human review.</li>
 <li><b>gRPC Test Harness</b>: An embedded gRPC server in YAZE enables remote GUI automation.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md930"></a>
+<h1><a class="anchor" id="autotoc_md1021"></a>
 3. Command Reference</h1>
 <p>This section provides a reference for the core <code>z3ed</code> commands.</p>
-<h2><a class="anchor" id="autotoc_md931"></a>
+<h2><a class="anchor" id="autotoc_md1022"></a>
 Agent Commands</h2>
 <ul>
 <li><code>agent run --prompt "..."</code>: Executes an AI-driven ROM modification in a sandbox.</li>
@@ -171,7 +171,7 @@ Agent Commands</h2>
 <li><code>agent simple-chat</code>: A lightweight, non-TUI chat mode for scripting and automation.</li>
 <li><code>agent test ...</code>: Commands for running and managing automated GUI tests.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md932"></a>
+<h2><a class="anchor" id="autotoc_md1023"></a>
 Resource Commands</h2>
 <ul>
 <li><code>rom info|validate|diff</code>: Commands for ROM file inspection and comparison.</li>
@@ -179,7 +179,7 @@ Resource Commands</h2>
 <li><code>overworld get-tile|find-tile|set-tile</code>: Commands for overworld editing.</li>
 <li><code>dungeon list-sprites|list-rooms</code>: Commands for dungeon inspection.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md933"></a>
+<h1><a class="anchor" id="autotoc_md1024"></a>
 4. Agentic &amp; Generative Workflow (MCP)</h1>
 <p>The <code>z3ed</code> CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop, where the AI agent's "program" is a script of <code>z3ed</code> commands.</p>
 <ol type="1">
@@ -188,10 +188,10 @@ Resource Commands</h2>
 <li><b>Program (Execution)</b>: The <code>z3ed agent</code> parses the plan and executes each command sequentially in a sandboxed ROM environment.</li>
 <li><b>Verification (Tester)</b>: The <code>ImGuiTestHarness</code> is used to run automated GUI tests to verify that the changes were applied correctly.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md934"></a>
+<h1><a class="anchor" id="autotoc_md1025"></a>
 5. Roadmap &amp; Implementation Status</h1>
-<p><b>Last Updated</b>: October 3, 2025</p>
-<h2><a class="anchor" id="autotoc_md935"></a>
+<p><b>Last Updated</b>: October 4, 2025</p>
+<h2><a class="anchor" id="autotoc_md1026"></a>
 ✅ Completed</h2>
 <ul>
 <li><b>Core Infrastructure</b>: Resource-oriented CLI, proposal workflow, sandbox manager, and resource catalog are all production-ready.</li>
@@ -199,7 +199,7 @@ Resource Commands</h2>
 <li><b>Conversational Agent</b>: The agent service, tool dispatcher (with 5 read-only tools), and TUI/simple chat interfaces are complete.</li>
 <li><b>GUI Test Harness (IT-01 to IT-09)</b>: A comprehensive GUI testing platform with introspection, widget discovery, recording/replay, enhanced error reporting, and CI integration support.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md936"></a>
+<h2><a class="anchor" id="autotoc_md1027"></a>
 🚧 Active &amp; Next Steps</h2>
 <ol type="1">
 <li><b>Live LLM Testing (1-2h)</b>: Verify function calling with real models (Ollama/Gemini).</li>
@@ -207,24 +207,59 @@ Resource Commands</h2>
 <li><b>Expand Tool Coverage (8-10h)</b>: Add new read-only tools for inspecting dialogue, sprites, and regions.</li>
 <li><b>Windows Cross-Platform Testing (8-10h)</b>: Validate <code>z3ed</code> and the test harness on Windows.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md937"></a>
+<h1><a class="anchor" id="autotoc_md1028"></a>
 6. Technical Implementation Details</h1>
-<h2><a class="anchor" id="autotoc_md938"></a>
+<h2><a class="anchor" id="autotoc_md1029"></a>
 Build System</h2>
 <p>A single <code>Z3ED_AI=ON</code> CMake flag enables all AI features, including JSON, YAML, and httplib dependencies. This simplifies the build process and is designed for the upcoming build modularization.</p>
 <p><b>Build Command (with AI features):</b> </p><div class="fragment"><div class="line">cmake -B build -DZ3ED_AI=ON</div>
 <div class="line">cmake --build build --target z3ed</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md939"></a>
-AI Service Configuration</h2>
-<p>AI providers can be configured via command-line flags, which override environment variables.</p>
+</div><!-- fragment --><hr  />
+<h1><a class="anchor" id="autotoc_md1031"></a>
+7. AI Provider Configuration</h1>
+<p>Z3ED supports multiple AI providers for conversational agent features. You can configure the AI service using command-line flags, making it easy to switch between providers without modifying environment variables.</p>
+<h2><a class="anchor" id="autotoc_md1032"></a>
+Supported Providers</h2>
 <ul>
-<li><code>--ai_provider=&lt;mock|ollama|gemini&gt;</code></li>
-<li><code>--ai_model=&lt;model_name&gt;</code></li>
-<li><code>--gemini_api_key=&lt;key&gt;</code></li>
-<li><code>--ollama_host=&lt;url&gt;</code></li>
+<li><b>Mock (Default)</b>: For testing and development. Returns placeholder responses. Use <code>--ai_provider=mock</code>.</li>
+<li><b>Ollama (Local)</b>: For local LLM inference. Requires an Ollama server and a downloaded model. Use <code>--ai_provider=ollama</code>.</li>
+<li><b>Gemini (Cloud)</b>: Google's cloud-based AI. Requires a Gemini API key. Use <code>--ai_provider=gemini</code>.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md940"></a>
-Test Harness (gRPC)</h2>
+<h2><a class="anchor" id="autotoc_md1033"></a>
+Core Flags</h2>
+<ul>
+<li><code>--ai_provider=&lt;provider&gt;</code>: Selects the AI provider (<code>mock</code>, <code>ollama</code>, <code>gemini</code>).</li>
+<li><code>--ai_model=&lt;model&gt;</code>: Specifies the model name (e.g., <code>qwen2.5-coder:7b</code>, <code>gemini-1.5-flash</code>).</li>
+<li><code>--gemini_api_key=&lt;key&gt;</code>: Your Gemini API key.</li>
+<li><code>--ollama_host=&lt;url&gt;</code>: The URL for your Ollama server (default: <code><a href="http://localhost:11434">http://localhost:11434</a></code>).</li>
+</ul>
+<p>Configuration is resolved with flags taking precedence over environment variables, which take precedence over defaults.</p>
+<hr  />
+<h1><a class="anchor" id="autotoc_md1035"></a>
+8. Agent Chat Input Methods</h1>
+<p>The <code>z3ed agent simple-chat</code> command supports multiple input methods for flexibility.</p>
+<ol type="1">
+<li><b>Single Message Mode</b>: <code>z3ed agent simple-chat "&lt;message&gt;" --rom=&lt;path&gt;</code><ul>
+<li><b>Use Case</b>: Quick, one-off scripted queries.</li>
+</ul>
+</li>
+<li><b>Interactive Mode</b>: <code>z3ed agent simple-chat --rom=&lt;path&gt;</code><ul>
+<li><b>Use Case</b>: Multi-turn conversations and interactive exploration.</li>
+<li><b>Commands</b>: <code>quit</code>, <code>exit</code>, <code>reset</code>.</li>
+</ul>
+</li>
+<li><b>Piped Input Mode</b>: <code>echo "&lt;message&gt;" | z3ed agent simple-chat --rom=&lt;path&gt;</code><ul>
+<li><b>Use Case</b>: Integrating with shell scripts and Unix pipelines.</li>
+</ul>
+</li>
+<li><b>Batch File Mode</b>: <code>z3ed agent simple-chat --file=&lt;input.txt&gt; --rom=&lt;path&gt;</code><ul>
+<li><b>Use Case</b>: Running documented test suites and performing repeatable validation.</li>
+</ul>
+</li>
+</ol>
+<hr  />
+<h1><a class="anchor" id="autotoc_md1037"></a>
+9. Test Harness (gRPC)</h1>
 <p>The test harness is a gRPC server embedded in the YAZE application, enabling remote control for automated testing. It exposes RPCs for actions like <code>Click</code>, <code>Type</code>, and <code>Wait</code>, as well as advanced introspection and test management.</p>
 <p><b>Start Test Harness:</b> </p><div class="fragment"><div class="line">./build-grpc-test/bin/yaze.app/Contents/MacOS/yaze \</div>
 <div class="line">  --enable_test_harness \</div>

@@ -1,10 +1,11 @@
 var searchData=
 [
-  ['palette_20system_0',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]],
-  ['performance_20optimization_20summary_1',['yaze Performance Optimization Summary',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html',1,'']]],
-  ['plan_2',['plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'Dungeon Editor Design Plan'],['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html',1,'DungeonEditor Refactoring Plan']]],
-  ['plan_20for_20yaze_3',['Dungeon Editing Implementation Plan for Yaze',['../df/d42/md_docs_2dungeon__editing__implementation__plan.html',1,'']]],
-  ['platform_20compatibility_20improvements_4',['Platform Compatibility Improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'']]],
-  ['powered_20cli_20for_20yaze_5',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
-  ['presets_20guide_6',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]]
+  ['object_20system_0',['Dungeon Object System',['../da/d11/md_docs_2E5-dungeon-object-system.html',1,'']]],
+  ['ollama_20integration_20status_20updated_20ollama_20integration_20status_1',['Ollama Integration Status - Updated# Ollama Integration Status',['../da/d40/md_docs_2ollama__integration__status.html',1,'']]],
+  ['optimization_20recommendations_2',['YAZE Graphics System Optimization Recommendations',['../de/def/md_docs_2gfx__optimization__recommendations.html',1,'']]],
+  ['optimization_20summary_3',['yaze Performance Optimization Summary',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html',1,'']]],
+  ['optimizations_4',['YAZE Graphics System Optimizations',['../d6/df4/md_docs_2gfx__optimizations__complete.html',1,'']]],
+  ['overworld_20implementation_20analysis_5',['ZScream vs. yaze Overworld Implementation Analysis',['../d9/d48/md_docs_2analysis_2overworld__implementation__analysis.html',1,'']]],
+  ['overworld_20loading_20guide_6',['Overworld Loading Guide',['../dc/d12/md_docs_2F1-overworld-loading.html',1,'']]],
+  ['overworld_20testing_20guide_7',['yaze Overworld Testing Guide',['../de/d8a/md_docs_2overworld__testing__guide.html',1,'']]]
 ];
