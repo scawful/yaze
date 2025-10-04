@@ -7,26 +7,9 @@
 #include "absl/strings/str_format.h"
 #include "cli/service/agent/conversational_agent_service.h"
 
-// Check if we have httplib available (from vcpkg or bundled)
-#if __has_include("httplib.h")
-#define YAZE_HAS_HTTPLIB 1
+#ifdef YAZE_WITH_JSON
 #include "httplib.h"
-#elif __has_include("incl/httplib.h")
-#define YAZE_HAS_HTTPLIB 1
-#include "incl/httplib.h"
-#else
-#define YAZE_HAS_HTTPLIB 0
-#endif
-
-// Check if we have JSON library available
-#if __has_include("third_party/json/src/json.hpp")
-#define YAZE_HAS_JSON 1
-#include "third_party/json/src/json.hpp"
-#elif __has_include("json.hpp")
-#define YAZE_HAS_JSON 1
-#include "json.hpp"
-#else
-#define YAZE_HAS_JSON 0
+#include "nlohmann/json.hpp"
 #endif
 
 namespace yaze {
@@ -60,10 +43,10 @@ void OllamaAIService::SetRomContext(Rom* rom) {
 }
 
 absl::Status OllamaAIService::CheckAvailability() {
-#if !YAZE_HAS_HTTPLIB || !YAZE_HAS_JSON
+#ifndef YAZE_WITH_JSON
   return absl::UnimplementedError(
-      "Ollama service requires httplib and JSON support. "
-      "Install vcpkg dependencies or use bundled libraries.");
+      "Ollama service requires JSON support. "
+      "Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON");
 #else
   try {
     httplib::Client cli(config_.base_url);

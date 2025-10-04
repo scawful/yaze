@@ -56,11 +56,24 @@ option(YAZE_ENABLE_UI_TESTS "Enable ImGui Test Engine UI testing" ON)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
 option(YAZE_USE_MODULAR_BUILD "Use modularized library build system for faster builds" OFF)
 
-# Optional JSON support (required for Gemini and structured agent responses)
+# ============================================================================
+# AI Agent Build Flags (Consolidated)
+# ============================================================================
+# Z3ED_AI: Master flag for z3ed AI agent features (Ollama + Gemini support)
+# Enables: JSON parsing, YAML config, httplib for API calls, prompt builder
+option(Z3ED_AI "Enable z3ed AI agent features (Gemini/Ollama integration)" OFF)
+
+# YAZE_WITH_JSON: JSON support (auto-enabled by Z3ED_AI)
 option(YAZE_WITH_JSON "Enable JSON support for AI integrations" OFF)
 
-# Optional gRPC support for ImGuiTestHarness (z3ed agent mode)
+# YAZE_WITH_GRPC: gRPC for GUI automation (auto-enables JSON)
 option(YAZE_WITH_GRPC "Enable gRPC-based ImGuiTestHarness for automated GUI testing (experimental)" OFF)
+
+# Dependency resolution
+if(Z3ED_AI)
+    message(STATUS "Z3ED_AI enabled: Activating AI agent dependencies (JSON, YAML, httplib)")
+    set(YAZE_WITH_JSON ON CACHE BOOL "Enable JSON support" FORCE)
+endif()
 
 if(YAZE_WITH_GRPC AND NOT YAZE_WITH_JSON)
     message(STATUS "Enabling JSON support because gRPC is enabled")

@@ -125,6 +125,13 @@ absl::StatusOr<std::string> PromptBuilder::ResolveCataloguePath(
 }
 
 absl::Status PromptBuilder::LoadResourceCatalogue(const std::string& yaml_path) {
+#ifndef YAZE_WITH_JSON
+  // Gracefully degrade if JSON support not available
+  std::cerr << "⚠️  PromptBuilder requires JSON support for catalogue loading\n"
+            << "   Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON\n"
+            << "   AI features will use basic prompts without tool definitions\n";
+  return absl::OkStatus();  // Don't fail, just skip catalogue loading
+#else
   auto resolved_or = ResolveCataloguePath(yaml_path);
   if (!resolved_or.ok()) {
     ClearCatalogData();
@@ -175,6 +182,7 @@ absl::Status PromptBuilder::LoadResourceCatalogue(const std::string& yaml_path) 
 
   catalogue_loaded_ = true;
   return absl::OkStatus();
+#endif  // YAZE_WITH_JSON
 }
 
 absl::Status PromptBuilder::ParseCommands(const nlohmann::json& commands) {

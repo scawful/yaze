@@ -21,14 +21,24 @@
 # Basic z3ed (CLI only, no AI/testing features)
 cmake --build build --target z3ed
 
-# Full build with AI agent and testing suite
-cmake -B build-grpc-test -DYAZE_WITH_GRPC=ON -DYAZE_WITH_JSON=ON
-cmake --build build-grpc-test --target z3ed
+# Full build with AI agent (RECOMMENDED - uses consolidated flag)
+cmake -B build -DZ3ED_AI=ON
+cmake --build build --target z3ed
+
+# Full build with AI agent AND testing suite
+cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON
+cmake --build build --target z3ed
 ```
 
-**Dependencies for Full Build**:
-- gRPC (GUI automation)
-- nlohmann/json (AI service communication)
+**Build Flags Explained**:
+- `Z3ED_AI=ON` - **Master flag** for AI features (enables JSON, YAML, httplib for Ollama + Gemini)
+- `YAZE_WITH_GRPC=ON` - Optional GUI automation and test harness (also enables JSON)
+- `YAZE_WITH_JSON=ON` - Lower-level flag (auto-enabled by Z3ED_AI or GRPC)
+
+**Dependencies for AI Features** (auto-managed by Z3ED_AI):
+- nlohmann/json (JSON parsing for AI responses)
+- yaml-cpp (Config file loading)
+- httplib (HTTP/HTTPS API calls)
 - OpenSSL (optional, for Gemini HTTPS - auto-detected on macOS/Linux)
 
 ### AI Agent Commands
@@ -275,13 +285,21 @@ AI agent features require:
 ### "OpenSSL not found" warning
 **Impact**: Gemini API won't work (HTTPS required)  
 **Solutions**:
-- Use Ollama instead (no SSL needed, runs locally)
+- Use Ollama instead (no SSL needed, runs locally) - **RECOMMENDED**
 - Install OpenSSL: `brew install openssl` (macOS) or `apt-get install libssl-dev` (Linux)
-- Windows: Build without gRPC/JSON, use Ollama
+- Windows: Use Ollama (localhost) instead of Gemini
+
+### "Build with -DZ3ED_AI=ON" warning
+**Impact**: AI agent features disabled (no Ollama or Gemini)  
+**Solution**: Rebuild with AI support:
+```bash
+cmake -B build -DZ3ED_AI=ON
+cmake --build build --target z3ed
+```
 
 ### "gRPC not available" error
 **Impact**: GUI testing and automation disabled  
-**Solution**: Rebuild with `-DYAZE_WITH_GRPC=ON`
+**Solution**: Rebuild with `-DYAZE_WITH_GRPC=ON` (also requires Z3ED_AI)
 
 ### AI generates invalid commands
 **Causes**: Vague prompt, unfamiliar tile IDs, missing context  
