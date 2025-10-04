@@ -31,6 +31,7 @@ var namespaceyaze_1_1editor =
     [ "AgentChatHistoryCodec", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec" ],
     [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget" ],
     [ "AgentCollaborationCoordinator", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator" ],
+    [ "AgentEditor", "d6/d0d/classyaze_1_1editor_1_1AgentEditor.html", "d6/d0d/classyaze_1_1editor_1_1AgentEditor" ],
     [ "AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor" ],
     [ "CommandManager", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html", "d3/d8a/classyaze_1_1editor_1_1CommandManager" ],
     [ "DictionaryEntry", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry" ],

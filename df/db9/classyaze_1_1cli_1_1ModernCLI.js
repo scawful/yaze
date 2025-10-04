@@ -14,6 +14,7 @@ var classyaze_1_1cli_1_1ModernCLI =
     [ "HandleBpsPatchCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a5f7e4318495872ca7e4caeb76badc547", null ],
     [ "HandleExtractSymbolsCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#ab805ea4de16aac44190bff2c8efebdb0", null ],
     [ "HandleAgentCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#ad407b75d236b0703ad3c608407656b5c", null ],
+    [ "HandleCollabCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a23e969cba7a3322f507369cdd146aa32", null ],
     [ "HandleProjectBuildCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a6ffeae01a437d1b39d785288f4c89003", null ],
     [ "HandleProjectInitCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a1aac437b7f2dc32615a62490a404f62e", null ],
     [ "HandleRomInfoCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#aa4c93dc9816540185f71613042bbb7a8", null ],

@@ -1,18 +1,10 @@
 var dir_6786299e5fb540707e8551af9d97f855 =
 [
-    [ "agent_chat_history_codec.cc", "d7/d32/agent__chat__history__codec_8cc.html", null ],
-    [ "agent_chat_history_codec.h", "d3/d74/agent__chat__history__codec_8h.html", "d3/d74/agent__chat__history__codec_8h" ],
-    [ "agent_chat_widget.cc", "dd/dde/editor_2system_2agent__chat__widget_8cc.html", "dd/dde/editor_2system_2agent__chat__widget_8cc" ],
-    [ "agent_chat_widget.h", "dc/d5e/editor_2system_2agent__chat__widget_8h.html", "dc/d5e/editor_2system_2agent__chat__widget_8h" ],
-    [ "agent_collaboration_coordinator.cc", "d0/daa/agent__collaboration__coordinator_8cc.html", "d0/daa/agent__collaboration__coordinator_8cc" ],
-    [ "agent_collaboration_coordinator.h", "d2/d25/agent__collaboration__coordinator_8h.html", "d2/d25/agent__collaboration__coordinator_8h" ],
     [ "command_manager.cc", "d3/d69/command__manager_8cc.html", null ],
     [ "command_manager.h", "df/d56/command__manager_8h.html", "df/d56/command__manager_8h" ],
     [ "extension_manager.cc", "d1/d95/extension__manager_8cc.html", null ],
     [ "extension_manager.h", "d4/db5/extension__manager_8h.html", "d4/db5/extension__manager_8h" ],
     [ "history_manager.h", "d4/d82/history__manager_8h.html", "d4/d82/history__manager_8h" ],
-    [ "network_collaboration_coordinator.cc", "d2/d6a/network__collaboration__coordinator_8cc.html", null ],
-    [ "network_collaboration_coordinator.h", "db/ddb/network__collaboration__coordinator_8h.html", null ],
     [ "popup_manager.cc", "d8/de0/popup__manager_8cc.html", null ],
     [ "popup_manager.h", "dd/da4/popup__manager_8h.html", "dd/da4/popup__manager_8h" ],
     [ "proposal_drawer.cc", "d1/d96/proposal__drawer_8cc.html", null ],

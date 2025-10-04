@@ -275,30 +275,69 @@ Hierarchical Help System</h2>
 9. Collaborative Sessions &amp; Multimodal Vision</h1>
 <h2><a class="anchor" id="autotoc_md578"></a>
 Collaborative Sessions</h2>
-<p>Z3ED supports lightweight collaborative sessions where multiple editors on the same machine can share a chat conversation.</p>
+<p>Z3ED supports both local (filesystem-based) and network (WebSocket-based) collaborative sessions for sharing chat conversations and working together on ROM hacks.</p>
+<h3><a class="anchor" id="autotoc_md579"></a>
+Local Collaboration Mode</h3>
 <p><b>How to Use:</b></p><ol type="1">
 <li>Open YAZE and go to <b>Debug → Agent Chat</b></li>
-<li>In the Agent Chat widget, expand the **"Collaboration (Preview)"** panel</li>
+<li>In the Agent Chat widget, select **"Local"** mode</li>
 <li><b>Host a Session:</b><ul>
 <li>Enter a session name (e.g., "Evening ROM Hack")</li>
-<li>Click "Host Session"</li>
-<li>Share the generated 6-character code (e.g., <code>ABC123</code>) with collaborators</li>
+<li>Click "Host"</li>
+<li>Share the generated 6-character code (e.g., <code>ABC123</code>) with collaborators on the same machine</li>
 </ul>
 </li>
 <li><b>Join a Session:</b><ul>
 <li>Enter the session code provided by the host</li>
-<li>Click "Join Session"</li>
+<li>Click "Join"</li>
 <li>Your chat will now sync with others in the session</li>
 </ul>
 </li>
 </ol>
 <p><b>Features:</b></p><ul>
 <li>Shared chat history stored in <code>~/.yaze/agent/sessions/&lt;code&gt;_history.json</code></li>
-<li>Automatic synchronization when sending/receiving messages</li>
+<li>Automatic synchronization when sending/receiving messages (2-second polling)</li>
 <li>Participant list shows all connected users</li>
-<li>When you leave a session, you return to your local chat history</li>
+<li>Perfect for multiple YAZE instances on the same machine</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md579"></a>
+<h3><a class="anchor" id="autotoc_md580"></a>
+Network Collaboration Mode (NEW!)</h3>
+<p><b>Requirements:</b></p><ul>
+<li>Node.js installed on the server machine</li>
+<li><code>yaze-collab-server</code> repository cloned alongside <code>yaze</code></li>
+<li>Network connectivity between collaborators</li>
+</ul>
+<p><b>Setup:</b></p><ol type="1">
+<li><b>Start the Collaboration Server:</b> <div class="fragment"><div class="line"># From z3ed CLI:</div>
+<div class="line">z3ed collab start [--port=8765]</div>
+<div class="line"> </div>
+<div class="line"># Or manually:</div>
+<div class="line">cd yaze-collab-server</div>
+<div class="line">npm install</div>
+<div class="line">node server.js</div>
+</div><!-- fragment --></li>
+<li><b>Connect from YAZE:</b><ul>
+<li>Open YAZE and go to <b>Debug → Agent Chat</b></li>
+<li>Select **"Network"** mode</li>
+<li>Enter server URL (e.g., <code>ws://localhost:8765</code>)</li>
+<li>Click "Connect to Server"</li>
+</ul>
+</li>
+<li><b>Collaborate:</b><ul>
+<li>Host or join sessions just like local mode</li>
+<li>Collaborate with anyone who can reach your server</li>
+<li>Real-time message broadcasting via WebSockets</li>
+</ul>
+</li>
+</ol>
+<p><b>Features:</b></p><ul>
+<li>Real-time collaboration over the internet</li>
+<li>Session management with unique codes</li>
+<li>Participant tracking and notifications</li>
+<li>Persistent message history</li>
+<li>Perfect for remote pair programming</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md581"></a>
 Multimodal Vision (Gemini)</h2>
 <p>Ask Gemini to analyze screenshots of your ROM editor to get visual feedback and suggestions.</p>
 <p><b>Requirements:</b></p><ul>
@@ -319,10 +358,10 @@ Multimodal Vision (Gemini)</h2>
 <li>"Does this screen follow good level design practices?"</li>
 </ul>
 <p>The AI response will appear in your chat history and can reference specific details from the screenshot.</p>
-<h1><a class="anchor" id="autotoc_md580"></a>
+<h1><a class="anchor" id="autotoc_md582"></a>
 10. Roadmap &amp; Implementation Status</h1>
 <p><b>Last Updated</b>: October 4, 2025</p>
-<h2><a class="anchor" id="autotoc_md581"></a>
+<h2><a class="anchor" id="autotoc_md583"></a>
 ✅ Completed</h2>
 <ul>
 <li><b>Core Infrastructure</b>: Resource-oriented CLI, proposal workflow, sandbox manager, and resource catalog are all production-ready.</li>
@@ -332,7 +371,7 @@ Multimodal Vision (Gemini)</h2>
 <li><b>Collaborative Sessions</b>: Local filesystem-based collaborative editing with shared chat history.</li>
 <li><b>Multimodal Vision</b>: Gemini vision API integration for analyzing ROM editor screenshots.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md582"></a>
+<h2><a class="anchor" id="autotoc_md584"></a>
 🚧 Active &amp; Next Steps</h2>
 <ol type="1">
 <li><b>Live LLM Testing (1-2h)</b>: Verify function calling with real models (Ollama/Gemini).</li>
@@ -340,7 +379,7 @@ Multimodal Vision (Gemini)</h2>
 <li><b>Network-Based Collaboration</b>: Upgrade the filesystem-based collaboration to support remote connections via WebSockets or gRPC.</li>
 <li><b>Windows Cross-Platform Testing (8-10h)</b>: Validate <code>z3ed</code> and the test harness on Windows.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md583"></a>
+<h1><a class="anchor" id="autotoc_md585"></a>
 11. Troubleshooting</h1>
 <ul>
 <li>**"Build with -DZ3ED_AI=ON" warning**: AI features are disabled. Rebuild with the flag to enable them.</li>

@@ -1,12 +1,12 @@
 <map id="src/app/editor/system/toast_manager.h" name="src/app/editor/system/toast_manager.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="106,5,252,46"/>
-<area shape="rect" id="Node000002" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="5,183,142,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,58,117,75,101,95,91,117,84,141,77,183,72,182,78,139,86,115,97,93,113,71,133,54"/>
-<area shape="rect" id="Node000003" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="111,94,247,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,62,182,94,176,94,176,62"/>
-<area shape="rect" id="Node000019" href="$dd/dde/editor_2system_2agent__chat__widget_8cc.html" title=" " alt="" coords="271,94,423,135"/>
-<area shape="poly" id="edge5_Node000001_Node000019" title=" " alt="" coords="232,51,310,91,308,96,229,56"/>
-<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="145,147,99,184,96,180,142,143"/>
-<area shape="rect" id="Node000004" href="$da/d0c/controller_8cc.html" title=" " alt="" coords="166,190,333,216"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="206,145,242,188,238,192,202,148"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="228,5,374,46"/>
+<area shape="rect" id="Node000002" href="$d5/dde/editor_2agent_2agent__chat__widget_8cc.html" title=" " alt="" coords="5,94,157,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,54,132,96,130,91,236,49"/>
+<area shape="rect" id="Node000003" href="$d5/d8c/agent__editor_8cc.html" title=" " alt="" coords="181,94,317,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="284,61,263,95,258,92,279,58"/>
+<area shape="rect" id="Node000004" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="338,183,475,223"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="323,58,397,181,392,184,318,61"/>
+<area shape="rect" id="Node000005" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="392,94,528,135"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="352,51,425,91,423,96,349,56"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="442,149,421,184,416,181,437,147"/>
 </map>

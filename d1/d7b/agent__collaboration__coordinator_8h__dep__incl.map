@@ -1,5 +1,7 @@
-<map id="src/app/editor/system/agent_collaboration_coordinator.h" name="src/app/editor/system/agent_collaboration_coordinator.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,152,61"/>
-<area shape="rect" id="Node000002" href="$d0/daa/agent__collaboration__coordinator_8cc.html" title=" " alt="" coords="5,109,152,165"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,77,81,108,76,108,76,77"/>
+<map id="src/app/editor/agent/agent_collaboration_coordinator.h" name="src/app/editor/agent/agent_collaboration_coordinator.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="85,5,223,61"/>
+<area shape="rect" id="Node000002" href="$d0/daa/agent__collaboration__coordinator_8cc.html" title=" " alt="" coords="5,109,143,165"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,75,98,110,93,107,121,72"/>
+<area shape="rect" id="Node000003" href="$d5/d8c/agent__editor_8cc.html" title=" " alt="" coords="167,117,304,157"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,72,222,115,218,118,183,75"/>
 </map>

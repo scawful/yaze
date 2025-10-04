@@ -18,7 +18,7 @@ var searchData=
   ['selectionstate_15',['SelectionState',['../d6/dfb/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState.html',1,'yaze::zelda3::DungeonObjectEditor']]],
   ['sessioncontext_16',['SessionContext',['../d4/dd3/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks_1_1SessionContext.html',1,'yaze::editor::AgentChatWidget::CollaborationCallbacks']]],
   ['sessionfiledata_17',['SessionFileData',['../d0/d42/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionFileData.html',1,'yaze::editor::AgentCollaborationCoordinator']]],
-  ['sessioninfo_18',['SessionInfo',['../d2/df2/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionInfo.html',1,'yaze::editor::AgentCollaborationCoordinator']]],
+  ['sessioninfo_18',['sessioninfo',['../dc/d5b/structyaze_1_1editor_1_1AgentEditor_1_1SessionInfo.html',1,'yaze::editor::AgentEditor::SessionInfo'],['../d2/df2/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionInfo.html',1,'yaze::editor::AgentCollaborationCoordinator::SessionInfo']]],
   ['sessionmetrics_19',['SessionMetrics',['../d5/d86/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1SessionMetrics.html',1,'yaze::cli::agent::ChatMessage']]],
   ['setini_20',['SETINI',['../da/dd7/structyaze_1_1emu_1_1SETINI.html',1,'yaze::emu']]],
   ['settingseditor_21',['SettingsEditor',['../dd/d00/classyaze_1_1editor_1_1SettingsEditor.html',1,'yaze::editor']]],

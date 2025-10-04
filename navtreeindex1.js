@@ -248,6 +248,6 @@ var NAVTREEINDEX1 =
 "d0/d28/classTextEditor.html#afaa8970fac64b10c6a25b5fd4874bd29":[29,0,19,22],
 "d0/d28/classTextEditor.html#afcb5bc695b2ac9f05fa6f05a9753cc81":[29,0,19,60],
 "d0/d30/md_README.html":[21],
-"d0/d30/md_README.html#autotoc_md585":[21,0],
-"d0/d30/md_README.html#autotoc_md590":[21,1]
+"d0/d30/md_README.html#autotoc_md587":[21,0],
+"d0/d30/md_README.html#autotoc_md592":[21,1]
 };

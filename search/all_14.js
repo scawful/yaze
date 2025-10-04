@@ -7,7 +7,7 @@ var searchData=
   ['join_5fsession_4',['join_session',['../dd/d80/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks.html#abbe554989d0a15f7479668843754f315',1,'yaze::editor::AgentChatWidget::CollaborationCallbacks']]],
   ['joinlogs_5',['JoinLogs',['../d2/d06/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__reporter_8cc_03.html#ac155686362623ac3289716380a134680',1,'yaze::cli::anonymous_namespace{test_suite_reporter.cc}']]],
   ['joinquotedlist_6',['JoinQuotedList',['../db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#a5b82b32512688509ce17f30191bcaf42',1,'yaze::cli::anonymous_namespace{test_suite_writer.cc}']]],
-  ['joinsession_7',['JoinSession',['../d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a17ee6d5798bd8dba231cfce40495a518',1,'yaze::editor::AgentCollaborationCoordinator']]],
+  ['joinsession_7',['joinsession',['../d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a17ee6d5798bd8dba231cfce40495a518',1,'yaze::editor::AgentCollaborationCoordinator::JoinSession()'],['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a206b12848d450877b19f57aafa13f5db',1,'yaze::editor::AgentEditor::JoinSession()']]],
   ['joypaddata_8',['joypadData',['../d3/d00/structyaze_1_1emu_1_1JoypadRegisters.html#a11184805d9757bc1d776d5d56302b03f',1,'yaze::emu::JoypadRegisters']]],
   ['joypadregisters_9',['JoypadRegisters',['../d3/d00/structyaze_1_1emu_1_1JoypadRegisters.html',1,'yaze::emu']]],
   ['jp_10',['JP',['../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561',1,'zelda.h']]],

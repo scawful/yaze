@@ -4,7 +4,7 @@ var searchData=
   ['3_201_20september_202025_1',['0.3.1 (September 2025)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md268',1,'']]],
   ['3_202_2',['3 2',['../d9/d6b/md_docs_2B5-stability-improvements.html#autotoc_md236',1,'Immediate (v0.3.2)'],['../d9/d6b/md_docs_2B5-stability-improvements.html#autotoc_md204',1,'Recent Improvements (v0.3.2)']]],
   ['3_202_20december_202025_20in_20development_3',['0.3.2 (December 2025) - In Development',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md260',1,'']]],
-  ['3_202_20release_4',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md585',1,'']]],
+  ['3_202_20release_4',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md587',1,'']]],
   ['3_203_5',['Short Term (v0.3.3)',['../d9/d6b/md_docs_2B5-stability-improvements.html#autotoc_md237',1,'']]],
   ['3_20architecture_6',['3. Architecture',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md563',1,'']]],
   ['3_20end_20to_20end_20tests_7',['3. End-to-End Tests',['../de/d8a/md_docs_2overworld__testing__guide.html#autotoc_md527',1,'']]],
@@ -29,5 +29,5 @@ var searchData=
   ['3_3a_20graphics_20sheet_20display_26',['Workflow 3: Graphics Sheet Display',['../d2/db2/md_docs_2CANVAS__GUIDE.html#autotoc_md323',1,'']]],
   ['3_3a_20raii_20scopedcanvas_27',['Pattern 3: RAII ScopedCanvas',['../d2/db2/md_docs_2CANVAS__GUIDE.html#autotoc_md301',1,'']]],
   ['3_3a_20update_20yaze_20application_20linking_28',['Step 3: Update yaze Application Linking',['../d7/daf/md_docs_2build__modularization__plan.html#autotoc_md253',1,'']]],
-  ['3_3a_20with_20vcpkg_20optional_29',['Option 3: With vcpkg (Optional)',['../de/d82/md_scripts_2README.html#autotoc_md615',1,'']]]
+  ['3_3a_20with_20vcpkg_20optional_29',['Option 3: With vcpkg (Optional)',['../de/d82/md_scripts_2README.html#autotoc_md617',1,'']]]
 ];

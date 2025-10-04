@@ -4,6 +4,10 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "CollaborationState", "d7/dc8/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationState.html", "d7/dc8/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationState" ],
     [ "MultimodalCallbacks", "d5/dcf/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalCallbacks.html", "d5/dcf/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalCallbacks" ],
     [ "MultimodalState", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState" ],
+    [ "CollaborationMode", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ae5fe8223fb00b6329102b05c39bc9db6", [
+      [ "kLocal", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ae5fe8223fb00b6329102b05c39bc9db6afcf37e733f29d6aa14fb34fa737a809a", null ],
+      [ "kNetwork", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ae5fe8223fb00b6329102b05c39bc9db6a62f22144de8e8a0bac264d00f661d8ec", null ]
+    ] ],
     [ "CaptureMode", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a1cd4697023fffc700c9e2d75fd433b8d", [
       [ "kFullWindow", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a1cd4697023fffc700c9e2d75fd433b8dad898381929379a39b3a97bf35faf1276", null ],
       [ "kActiveEditor", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a1cd4697023fffc700c9e2d75fd433b8da5b0d5f450e5d74f208106d4cc3ad3ba7", null ],
@@ -60,6 +64,7 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "multimodal_callbacks_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a894d0db6f5f62f0e0cc1f450ef7717bb", null ],
     [ "session_name_buffer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ad8333752c139244ede79276d30c19f06", null ],
     [ "join_code_buffer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#acbb92cc63fc2bd3a9f9cf075472f3fef", null ],
+    [ "server_url_buffer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a185bb16899b47c16942d1f4a1186500f", null ],
     [ "multimodal_prompt_buffer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a2aee0edc0fcbf664fac87b272b3e8515", null ],
     [ "last_collaboration_action_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#af7fcbc5368917f309fa1f91ea4b7daad", null ],
     [ "last_shared_history_poll_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a728f97cf78005f9cf493d89223d13fed", null ],

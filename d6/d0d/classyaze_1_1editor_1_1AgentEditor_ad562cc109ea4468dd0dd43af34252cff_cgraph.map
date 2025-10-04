@@ -1,0 +1,7 @@
+<map id="yaze::editor::AgentEditor::ToggleChat" name="yaze::editor::AgentEditor::ToggleChat">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,164,79"/>
+<area shape="rect" id="Node000002" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3bcf6912b2633111805b5a387173b924" title=" " alt="" coords="212,5,370,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,44,196,38,197,44,164,49"/>
+<area shape="rect" id="Node000003" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a26c9ece837280a7cf5c79eb5e602f702" title=" " alt="" coords="212,71,370,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,69,197,74,196,79,164,74"/>
+</map>

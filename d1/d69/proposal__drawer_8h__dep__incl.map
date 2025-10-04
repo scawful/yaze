@@ -1,11 +1,11 @@
 <map id="src/app/editor/system/proposal_drawer.h" name="src/app/editor/system/proposal_drawer.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="184,5,330,46"/>
-<area shape="rect" id="Node000002" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="21,94,157,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,56,128,96,126,91,204,51"/>
-<area shape="rect" id="Node000019" href="$dd/dde/editor_2system_2agent__chat__widget_8cc.html" title=" " alt="" coords="181,94,333,135"/>
-<area shape="poly" id="edge3_Node000001_Node000019" title=" " alt="" coords="260,62,260,94,254,94,254,62"/>
-<area shape="rect" id="Node000020" href="$d1/d96/proposal__drawer_8cc.html" title=" " alt="" coords="357,94,504,135"/>
-<area shape="poly" id="edge4_Node000001_Node000020" title=" " alt="" coords="311,51,392,91,390,96,309,56"/>
-<area shape="rect" id="Node000003" href="$da/d0c/controller_8cc.html" title=" " alt="" coords="5,183,173,208"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="92,150,92,182,86,182,86,150"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="256,5,402,46"/>
+<area shape="rect" id="Node000002" href="$d5/dde/editor_2agent_2agent__chat__widget_8cc.html" title=" " alt="" coords="5,94,157,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="259,54,138,96,137,91,258,49"/>
+<area shape="rect" id="Node000003" href="$d5/d8c/agent__editor_8cc.html" title=" " alt="" coords="181,94,317,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="303,59,269,95,265,92,299,56"/>
+<area shape="rect" id="Node000004" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="341,94,477,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="359,56,393,92,389,95,355,59"/>
+<area shape="rect" id="Node000021" href="$d1/d96/proposal__drawer_8cc.html" title=" " alt="" coords="501,94,648,135"/>
+<area shape="poly" id="edge4_Node000001_Node000021" title=" " alt="" coords="400,49,519,91,518,96,398,54"/>
 </map>

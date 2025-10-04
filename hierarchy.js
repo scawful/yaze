@@ -5,6 +5,7 @@ var hierarchy =
     [ "yaze::editor::AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", null ],
     [ "yaze::editor::AgentCollaborationCoordinator", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html", null ],
     [ "yaze::cli::agent::AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", null ],
+    [ "yaze::editor::AgentEditor", "d6/d0d/classyaze_1_1editor_1_1AgentEditor.html", null ],
     [ "yaze::cli::AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", null ],
     [ "yaze::cli::AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", [
       [ "yaze::cli::GeminiAIService", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html", null ],
@@ -79,6 +80,7 @@ var hierarchy =
     [ "yaze::gui::canvas::CanvasUsageManager", "d4/da1/classyaze_1_1gui_1_1canvas_1_1CanvasUsageManager.html", null ],
     [ "yaze::gui::canvas::CanvasUsageStats", "d8/da5/structyaze_1_1gui_1_1canvas_1_1CanvasUsageStats.html", null ],
     [ "yaze::gui::canvas::CanvasUsageTracker", "d7/d4d/classyaze_1_1gui_1_1canvas_1_1CanvasUsageTracker.html", null ],
+    [ "yaze::editor::AgentEditor::CaptureConfig", "d1/d9a/structyaze_1_1editor_1_1AgentEditor_1_1CaptureConfig.html", null ],
     [ "yaze::emu::CGADD", "d0/d4e/structyaze_1_1emu_1_1CGADD.html", null ],
     [ "yaze::emu::CGADSUB", "d2/d1a/structyaze_1_1emu_1_1CGADSUB.html", null ],
     [ "yaze::emu::CGDATA", "de/da2/structyaze_1_1emu_1_1CGDATA.html", null ],
@@ -444,6 +446,7 @@ var hierarchy =
     [ "yaze::editor::AgentChatWidget::CollaborationCallbacks::SessionContext", "d4/dd3/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks_1_1SessionContext.html", null ],
     [ "yaze::editor::AgentCollaborationCoordinator::SessionFileData", "d0/d42/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionFileData.html", null ],
     [ "yaze::editor::AgentCollaborationCoordinator::SessionInfo", "d2/df2/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionInfo.html", null ],
+    [ "yaze::editor::AgentEditor::SessionInfo", "dc/d5b/structyaze_1_1editor_1_1AgentEditor_1_1SessionInfo.html", null ],
     [ "yaze::cli::agent::ChatMessage::SessionMetrics", "d5/d86/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1SessionMetrics.html", null ],
     [ "yaze::emu::SETINI", "da/dd7/structyaze_1_1emu_1_1SETINI.html", null ],
     [ "yaze::editor::EditorContext::SharedClipboard", "d7/d4a/structyaze_1_1editor_1_1EditorContext_1_1SharedClipboard.html", null ],
