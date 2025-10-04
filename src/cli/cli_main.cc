@@ -16,6 +16,10 @@
 
 ABSL_FLAG(bool, tui, false, "Launch Text User Interface");
 ABSL_DECLARE_FLAG(std::string, rom);
+ABSL_DECLARE_FLAG(std::string, ai_provider);
+ABSL_DECLARE_FLAG(std::string, ai_model);
+ABSL_DECLARE_FLAG(std::string, gemini_api_key);
+ABSL_DECLARE_FLAG(std::string, ollama_host);
 
 namespace {
 
@@ -73,6 +77,59 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
           return result;
         }
         absl::SetFlag(&FLAGS_rom, std::string(argv[++i]));
+        continue;
+      }
+
+      // AI provider flags
+      if (absl::StartsWith(token, "--ai_provider=")) {
+        absl::SetFlag(&FLAGS_ai_provider, std::string(token.substr(14)));
+        continue;
+      }
+      if (token == "--ai_provider") {
+        if (i + 1 >= argc) {
+          result.error = "--ai_provider flag requires a value";
+          return result;
+        }
+        absl::SetFlag(&FLAGS_ai_provider, std::string(argv[++i]));
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--ai_model=")) {
+        absl::SetFlag(&FLAGS_ai_model, std::string(token.substr(11)));
+        continue;
+      }
+      if (token == "--ai_model") {
+        if (i + 1 >= argc) {
+          result.error = "--ai_model flag requires a value";
+          return result;
+        }
+        absl::SetFlag(&FLAGS_ai_model, std::string(argv[++i]));
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--gemini_api_key=")) {
+        absl::SetFlag(&FLAGS_gemini_api_key, std::string(token.substr(17)));
+        continue;
+      }
+      if (token == "--gemini_api_key") {
+        if (i + 1 >= argc) {
+          result.error = "--gemini_api_key flag requires a value";
+          return result;
+        }
+        absl::SetFlag(&FLAGS_gemini_api_key, std::string(argv[++i]));
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--ollama_host=")) {
+        absl::SetFlag(&FLAGS_ollama_host, std::string(token.substr(14)));
+        continue;
+      }
+      if (token == "--ollama_host") {
+        if (i + 1 >= argc) {
+          result.error = "--ollama_host flag requires a value";
+          return result;
+        }
+        absl::SetFlag(&FLAGS_ollama_host, std::string(argv[++i]));
         continue;
       }
     }

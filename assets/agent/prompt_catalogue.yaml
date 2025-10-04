@@ -184,9 +184,20 @@ examples:
     commands:
       - "rom validate"
   - user_prompt: "What dungeons are in this project?"
-    text_response: "I can list the dungeons for you. Let me check the resource labels."
     reasoning: "The user is asking a question. I need to use the `resource-list` tool to find the answer."
     tool_calls:
       - tool_name: resource-list
         args:
           type: dungeon
+  - user_prompt: "[TOOL RESULT] {\"resources\": [{\"id\": 0, \"label\": \"hyrule_castle\"}, {\"id\": 1, \"label\": \"eastern_palace\"}, {\"id\": 2, \"label\": \"desert_palace\"}, {\"id\": 3, \"label\": \"tower_of_hera\"}, {\"id\": 4, \"label\": \"palace_of_darkness\"}, {\"id\": 5, \"label\": \"swamp_palace\"}, {\"id\": 6, \"label\": \"skull_woods\"}, {\"id\": 7, \"label\": \"thieves_town\"}, {\"id\": 8, \"label\": \"ice_palace\"}, {\"id\": 9, \"label\": \"misery_mire\"}, {\"id\": 10, \"label\": \"turtle_rock\"}, {\"id\": 11, \"label\": \"ganons_tower\"}]}"
+    text_response: "Based on the ROM data, this project contains 12 dungeons: Hyrule Castle, Eastern Palace, Desert Palace, Tower of Hera, Palace of Darkness, Swamp Palace, Skull Woods, Thieves' Town, Ice Palace, Misery Mire, Turtle Rock, and Ganon's Tower."
+    reasoning: "I received the tool results showing 12 dungeons. Now I provide a natural language summary of this information."
+  - user_prompt: "What sprites are in room 5?"
+    reasoning: "The user wants to know about sprites in a specific room. I should use the dungeon-list-sprites tool."
+    tool_calls:
+      - tool_name: dungeon-list-sprites
+        args:
+          room: "5"
+  - user_prompt: "[TOOL RESULT] {\"sprites\": [{\"id\": 0x41, \"name\": \"soldier\", \"x\": 5, \"y\": 3}, {\"id\": 0x41, \"name\": \"soldier\", \"x\": 10, \"y\": 3}]}"
+    text_response: "Room 5 contains 2 sprites: two soldiers positioned at coordinates (5, 3) and (10, 3). Both are sprite ID 0x41."
+    reasoning: "The tool returned sprite data for room 5. I've formatted this into a readable response for the user."

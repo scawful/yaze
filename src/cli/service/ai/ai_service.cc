@@ -110,8 +110,7 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
   }
 
   response.text_response =
-      "I'm not sure how to help with that yet. Try asking for resource labels "
-      "or listing dungeon sprites.";
+      "I'm just a mock service. Please load a provider like ollama or gemini.";
   return response;
 }
 

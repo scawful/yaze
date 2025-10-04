@@ -525,6 +525,62 @@ std::string PromptBuilder::BuildFewShotExamplesSection() const {
 }
 
 std::string PromptBuilder::BuildConstraintsSection() const {
+  // Try to load from file first
+  const std::vector<std::string> search_paths = {
+      "assets/agent/tool_calling_instructions.txt",
+      "../assets/agent/tool_calling_instructions.txt",
+      "../../assets/agent/tool_calling_instructions.txt",
+  };
+  
+  for (const auto& path : search_paths) {
+    std::ifstream file(path);
+    if (file.is_open()) {
+      std::string content((std::istreambuf_iterator<char>(file)),
+                          std::istreambuf_iterator<char>());
+      if (!content.empty()) {
+        std::ostringstream oss;
+        oss << content;
+        
+        // Add tool schemas if available
+        if (!tool_specs_.empty()) {
+          oss << "\n\n# Available Tools for ROM Inspection\n\n";
+          oss << "You have access to the following tools to answer questions:\n\n";
+          oss << "```json\n";
+          oss << BuildFunctionCallSchemas();
+          oss << "\n```\n\n";
+          oss << "**Tool Call Example (Initial Request):**\n";
+          oss << "```json\n";
+          oss << R"({
+  "tool_calls": [
+    {
+      "tool_name": "resource-list",
+      "args": {
+        "type": "dungeon"
+      }
+    }
+  ],
+  "reasoning": "I need to call the resource-list tool to get the dungeon information."
+})";
+          oss << "\n```\n\n";
+          oss << "**Tool Result Response (After Tool Executes):**\n";
+          oss << "```json\n";
+          oss << R"({
+  "text_response": "I found the following dungeons in the ROM: Hyrule Castle, Eastern Palace, Desert Palace, Tower of Hera, Palace of Darkness, Swamp Palace, Skull Woods, Thieves' Town, Ice Palace, Misery Mire, Turtle Rock, and Ganon's Tower.",
+  "reasoning": "The tool returned a list of 12 dungeons which I've formatted into a readable response."
+})";
+          oss << "\n```\n";
+        }
+
+        if (!tile_reference_.empty()) {
+          oss << "\n" << BuildTileReferenceSection();
+        }
+        
+        return oss.str();
+      }
+    }
+  }
+  
+  // Fallback to embedded version if file not found
   std::ostringstream oss;
   oss << R"(
 # Critical Constraints
@@ -541,23 +597,38 @@ std::string PromptBuilder::BuildConstraintsSection() const {
   - `commands` is for generating commands to modify the ROM.
   - All fields are optional, but you should always provide at least one.
 
-2. **Tool Usage:** When the user asks a question about the ROM state, use tool_calls instead of commands
+2. **Tool Calling Workflow (CRITICAL):**
+   WHEN YOU CALL A TOOL:
+   a) First response: Include tool_calls with the tool name and arguments
+   b) The tool will execute and you'll receive results in the next message
+   c) Second response: You MUST provide a text_response that answers the user's question using the tool results
+   d) DO NOT call the same tool again unless you need different parameters
+   e) DO NOT leave text_response empty after receiving tool results
+   
+   Example conversation flow:
+   User: "What dungeons are in this ROM?"
+   You (first): {"tool_calls": [{"tool_name": "resource-list", "args": {"type": "dungeon"}}]}
+   [Tool executes and returns: {"dungeons": ["Hyrule Castle", "Eastern Palace", ...]}]
+   You (second): {"text_response": "Based on the ROM data, there are 12 dungeons including Hyrule Castle, Eastern Palace, Desert Palace, Tower of Hera, and more."}
+
+3. **Tool Usage:** When the user asks a question about the ROM state, use tool_calls instead of commands
   - Tools are read-only and return information
   - Commands modify the ROM and should only be used when explicitly requested
   - You can call multiple tools in one response
   - Always use JSON format for tool results
+  - ALWAYS provide text_response after receiving tool results
 
-3. **Command Syntax:** Follow the exact syntax shown in examples
+4. **Command Syntax:** Follow the exact syntax shown in examples
   - Use correct flag names (--group, --id, --to, --from, etc.)
   - Use hex format for colors (0xRRGGBB) and tile IDs (0xNNN)
   - Coordinates are 0-based indices
 
-4. **Common Patterns:**
+5. **Common Patterns:**
   - Palette modifications: export → set-color → import
   - Multiple tile placement: multiple overworld set-tile commands
   - Validation: single rom validate command
 
-5. **Error Prevention:**
+6. **Error Prevention:**
   - Always export before modifying palettes
   - Use temporary file names (temp_*.json) for intermediate files
   - Validate coordinates are within bounds
@@ -569,10 +640,9 @@ std::string PromptBuilder::BuildConstraintsSection() const {
     oss << "```json\n";
     oss << BuildFunctionCallSchemas();
     oss << "\n```\n\n";
-    oss << "**Tool Call Example:**\n";
+    oss << "**Tool Call Example (Initial Request):**\n";
     oss << "```json\n";
     oss << R"({
-  "text_response": "Let me check the dungeons in this ROM.",
   "tool_calls": [
     {
       "tool_name": "resource-list",
@@ -580,7 +650,15 @@ std::string PromptBuilder::BuildConstraintsSection() const {
         "type": "dungeon"
       }
     }
-  ]
+  ],
+  "reasoning": "I need to call the resource-list tool to get the dungeon information."
+})";
+    oss << "\n```\n\n";
+    oss << "**Tool Result Response (After Tool Executes):**\n";
+    oss << "```json\n";
+    oss << R"({
+  "text_response": "I found the following dungeons in the ROM: Hyrule Castle, Eastern Palace, Desert Palace, Tower of Hera, Palace of Darkness, Swamp Palace, Skull Woods, Thieves' Town, Ice Palace, Misery Mire, Turtle Rock, and Ganon's Tower.",
+  "reasoning": "The tool returned a list of 12 dungeons which I've formatted into a readable response."
 })";
     oss << "\n```\n";
   }
@@ -642,6 +720,38 @@ std::string PromptBuilder::BuildContextSection(const RomContext& context) {
 }
 
 std::string PromptBuilder::BuildSystemInstruction() {
+  // Try to load from file first
+  const std::vector<std::string> search_paths = {
+      "assets/agent/system_prompt.txt",
+      "../assets/agent/system_prompt.txt",
+      "../../assets/agent/system_prompt.txt",
+  };
+  
+  for (const auto& path : search_paths) {
+    std::ifstream file(path);
+    if (file.is_open()) {
+      std::string content((std::istreambuf_iterator<char>(file)),
+                          std::istreambuf_iterator<char>());
+      if (!content.empty()) {
+        std::ostringstream oss;
+        oss << content;
+        
+        // Add command reference if available
+        if (catalogue_loaded_ && !command_docs_.empty()) {
+          oss << "\n\n" << BuildCommandReference();
+        }
+        
+        // Add tool reference if available
+        if (!tool_specs_.empty()) {
+          oss << "\n\n" << BuildToolReference();
+        }
+        
+        return oss.str();
+      }
+    }
+  }
+  
+  // Fallback to embedded version if file not found
   std::ostringstream oss;
   
   oss << "You are an expert ROM hacking assistant for The Legend of Zelda: "
