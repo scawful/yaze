@@ -29,6 +29,7 @@ var namespaceyaze_1_1editor =
     [ "DictionaryEntry", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry" ],
     [ "DungeonCanvasViewer", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer" ],
     [ "DungeonEditor", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html", "d8/d98/classyaze_1_1editor_1_1DungeonEditor" ],
+    [ "DungeonEditorV2", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2" ],
     [ "DungeonObjectInteraction", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction" ],
     [ "DungeonObjectSelector", "dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html", "dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector" ],
     [ "DungeonRenderer", "d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html", "d9/df1/classyaze_1_1editor_1_1DungeonRenderer" ],

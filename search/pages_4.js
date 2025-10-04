@@ -1,7 +1,9 @@
 var searchData=
 [
-  ['build_20instructions_0',['Build Instructions',['../d9/d41/md_docs_202-build-instructions.html',1,'']]],
-  ['build_20modularization_20plan_20for_20yaze_1',['Build Modularization Plan for Yaze',['../d7/daf/md_docs_2build__modularization__plan.html',1,'']]],
-  ['build_20presets_20guide_2',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]],
-  ['build_20scripts_3',['yaze Build Scripts',['../de/d82/md_scripts_2README.html',1,'']]]
+  ['canvas_20system_20comprehensive_20guide_0',['Canvas System - Comprehensive Guide',['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'']]],
+  ['changelog_1',['Changelog',['../d7/d6f/md_docs_2C1-changelog.html',1,'']]],
+  ['cli_20for_20yaze_2',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
+  ['compatibility_20improvements_3',['Platform Compatibility Improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'']]],
+  ['comprehensive_20guide_4',['Canvas System - Comprehensive Guide',['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'']]],
+  ['coverage_20report_5',['Dungeon Editor Test Coverage Report',['../dd/d40/md_docs_2DUNGEON__TEST__COVERAGE.html',1,'']]]
 ];

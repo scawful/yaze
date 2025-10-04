@@ -181,6 +181,7 @@ var hierarchy =
     [ "yaze::editor::Editor", "d3/d9f/classyaze_1_1editor_1_1Editor.html", [
       [ "yaze::editor::AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", null ],
       [ "yaze::editor::DungeonEditor", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html", null ],
+      [ "yaze::editor::DungeonEditorV2", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html", null ],
       [ "yaze::editor::GraphicsEditor", "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html", null ],
       [ "yaze::editor::MessageEditor", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html", null ],
       [ "yaze::editor::MusicEditor", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html", null ],
@@ -483,6 +484,7 @@ var hierarchy =
       [ "yaze::editor::test::Tile16EditorIntegrationTest", "d8/d78/classyaze_1_1editor_1_1test_1_1Tile16EditorIntegrationTest.html", null ],
       [ "yaze::gfx::GraphicsOptimizationBenchmarks", "de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html", null ],
       [ "yaze::test::DungeonEditorIntegrationTest", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html", null ],
+      [ "yaze::test::DungeonEditorV2IntegrationTest", "d3/d0a/classyaze_1_1test_1_1DungeonEditorV2IntegrationTest.html", null ],
       [ "yaze::test::DungeonRoomTest", "d6/d4f/classyaze_1_1test_1_1DungeonRoomTest.html", null ],
       [ "yaze::test::E2ERomDependentTest", "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html", null ],
       [ "yaze::test::MessageRomTest", "d2/df4/classyaze_1_1test_1_1MessageRomTest.html", null ],

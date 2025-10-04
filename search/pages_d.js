@@ -1,9 +1,10 @@
 var searchData=
 [
-  ['october_204_202025_0',['Dungeon Testing Results - October 4, 2025',['../df/dec/md_docs_2DUNGEON__TESTING__RESULTS.html',1,'']]],
-  ['ollama_20integration_20status_20updated_20ollama_20integration_20status_1',['Ollama Integration Status - Updated# Ollama Integration Status',['../da/d40/md_docs_2ollama__integration__status.html',1,'']]],
-  ['optimization_2',['Graphics System Performance &amp; Optimization',['../db/dc2/md_docs_2GRAPHICS__PERFORMANCE.html',1,'']]],
-  ['overworld_20implementation_20analysis_3',['ZScream vs. yaze Overworld Implementation Analysis',['../d9/d48/md_docs_2analysis_2overworld__implementation__analysis.html',1,'']]],
-  ['overworld_20loading_20guide_4',['Overworld Loading Guide',['../dc/d12/md_docs_2F1-overworld-loading.html',1,'']]],
-  ['overworld_20testing_20guide_5',['yaze Overworld Testing Guide',['../de/d8a/md_docs_2overworld__testing__guide.html',1,'']]]
+  ['palette_20system_0',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]],
+  ['performance_20optimization_1',['Graphics System Performance &amp; Optimization',['../db/dc2/md_docs_2GRAPHICS__PERFORMANCE.html',1,'']]],
+  ['plan_2',['Dungeon Editor Design Plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'']]],
+  ['plan_20for_20yaze_3',['Build Modularization Plan for Yaze',['../d7/daf/md_docs_2build__modularization__plan.html',1,'']]],
+  ['platform_20compatibility_20improvements_4',['Platform Compatibility Improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'']]],
+  ['powered_20cli_20for_20yaze_5',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
+  ['presets_20guide_6',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]]
 ];

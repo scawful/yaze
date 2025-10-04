@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('de/d8a/md_docs_2overworld__testing__gu
   <div class="headertitle"><div class="title">yaze Overworld Testing Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md651"></a> </p>
-<h1><a class="anchor" id="autotoc_md652"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md636"></a> </p>
+<h1><a class="anchor" id="autotoc_md637"></a>
 Overview</h1>
 <p>This guide provides comprehensive documentation for testing the YAZE overworld implementation, including unit tests, integration tests, end-to-end tests, and golden data validation. The testing framework ensures that the YAZE C++ implementation correctly mirrors the ZScream C# logic.</p>
-<h1><a class="anchor" id="autotoc_md653"></a>
+<h1><a class="anchor" id="autotoc_md638"></a>
 Test Architecture</h1>
-<h2><a class="anchor" id="autotoc_md654"></a>
+<h2><a class="anchor" id="autotoc_md639"></a>
 1. Golden Data System</h2>
 <p>The golden data system provides a "source of truth" for ROM validation:</p>
 <ul>
@@ -115,39 +115,39 @@ Test Architecture</h1>
 <li><b>Before/After Validation</b>: Compares ROM states before and after edits</li>
 <li><b>Reference Data</b>: Provides expected values for test validation</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md655"></a>
+<h2><a class="anchor" id="autotoc_md640"></a>
 2. Test Categories</h2>
-<h3><a class="anchor" id="autotoc_md656"></a>
+<h3><a class="anchor" id="autotoc_md641"></a>
 Unit Tests (&lt;tt&gt;test/unit/zelda3/&lt;/tt&gt;)</h3>
 <ul>
 <li>**<code><a class="el" href="../../d8/d9a/overworld__test_8cc.html">overworld_test.cc</a></code>**: Basic overworld functionality tests</li>
 <li>**<code><a class="el" href="../../dc/d65/overworld__integration__test_8cc.html">overworld_integration_test.cc</a></code>**: Comprehensive integration tests</li>
 <li>**<code><a class="el" href="../../de/d77/extract__vanilla__values_8cc.html">extract_vanilla_values.cc</a></code>**: ROM value extraction utility</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md657"></a>
+<h3><a class="anchor" id="autotoc_md642"></a>
 Integration Tests (&lt;tt&gt;test/e2e/&lt;/tt&gt;)</h3>
 <ul>
 <li>**<code><a class="el" href="../../d4/d38/overworld__e2e__test_8cc.html">overworld/overworld_e2e_test.cc</a></code>**: End-to-end workflow tests</li>
 <li>**<code><a class="el" href="../../d7/db2/zscustomoverworld__upgrade__test_8cc.html">zscustomoverworld/zscustomoverworld_upgrade_test.cc</a></code>**: ASM version upgrade tests</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md658"></a>
+<h3><a class="anchor" id="autotoc_md643"></a>
 Golden Data Tools</h3>
 <ul>
 <li>**<code><a class="el" href="../../de/d5d/overworld__golden__data__extractor_8cc.html">overworld_golden_data_extractor.cc</a></code>**: Comprehensive ROM data extraction</li>
 <li>**<code>run_overworld_tests.sh</code>**: Orchestrated test runner script</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md659"></a>
+<h1><a class="anchor" id="autotoc_md644"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md660"></a>
+<h2><a class="anchor" id="autotoc_md645"></a>
 Prerequisites</h2>
 <ol type="1">
 <li><b>Build YAZE</b>: Ensure the project is built with tests enabled</li>
 <li><b>ROM File</b>: Have a valid Zelda 3 ROM file (zelda3.sfc)</li>
 <li><b>Environment</b>: Set up test environment variables</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md661"></a>
+<h2><a class="anchor" id="autotoc_md646"></a>
 Running Tests</h2>
-<h3><a class="anchor" id="autotoc_md662"></a>
+<h3><a class="anchor" id="autotoc_md647"></a>
 Basic Test Run</h3>
 <div class="fragment"><div class="line"># Run all overworld tests with a ROM</div>
 <div class="line">./scripts/run_overworld_tests.sh zelda3.sfc</div>
@@ -157,7 +157,7 @@ Basic Test Run</h3>
 <div class="line"> </div>
 <div class="line"># Clean up test files after completion</div>
 <div class="line">./scripts/run_overworld_tests.sh zelda3.sfc --cleanup</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md663"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md648"></a>
 Selective Test Execution</h3>
 <div class="fragment"><div class="line"># Skip unit tests, run only integration and E2E</div>
 <div class="line">./scripts/run_overworld_tests.sh zelda3.sfc --skip-unit-tests</div>
@@ -168,9 +168,9 @@ Selective Test Execution</h3>
 <div class="line"># Run with custom ROM path</div>
 <div class="line">export YAZE_TEST_ROM_PATH=&quot;/path/to/custom/rom.sfc&quot;</div>
 <div class="line">./scripts/run_overworld_tests.sh /path/to/custom/rom.sfc</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md664"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md649"></a>
 Test Components</h1>
-<h2><a class="anchor" id="autotoc_md665"></a>
+<h2><a class="anchor" id="autotoc_md650"></a>
 1. Golden Data Extractor</h2>
 <p>The <code>overworld_golden_data_extractor</code> tool extracts comprehensive data from ROMs:</p>
 <div class="fragment"><div class="line"># Extract golden data from a ROM</div>
@@ -186,7 +186,7 @@ Test Components</h1>
 <li>Palette and music data</li>
 <li>Overlay data</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md666"></a>
+<h2><a class="anchor" id="autotoc_md651"></a>
 2. Integration Tests</h2>
 <p>The integration tests validate core overworld functionality:</p>
 <div class="fragment"><div class="line"><span class="comment">// Example: Test coordinate calculation accuracy</span></div>
@@ -214,7 +214,7 @@ Test Components</h1>
 <div class="line">    EXPECT_EQ(entrance.y(), expected_y);</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md667"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md652"></a>
 3. End-to-End Tests</h2>
 <p>E2E tests validate complete workflows:</p>
 <div class="fragment"><div class="line"><span class="comment">// Example: Test ASM version upgrade workflow</span></div>
@@ -242,9 +242,9 @@ Test Components</h1>
 <div class="line">  EXPECT_EQ(*asm_version, 0x03);</div>
 <div class="line">}</div>
 <div class="ttc" id="atesting_8h_html_abed59ac7e67905d886d98f1c063ac9e7"><div class="ttname"><a href="../../db/d56/testing_8h.html#abed59ac7e67905d886d98f1c063ac9e7">ASSERT_OK</a></div><div class="ttdeci">#define ASSERT_OK(expr)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d56/testing_8h_source.html#l00012">testing.h:12</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md668"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md653"></a>
 Test Validation Points</h1>
-<h2><a class="anchor" id="autotoc_md669"></a>
+<h2><a class="anchor" id="autotoc_md654"></a>
 1. ZScream Compatibility</h2>
 <p>Tests ensure YAZE behavior matches ZScream exactly:</p>
 <ul>
@@ -253,7 +253,7 @@ Test Validation Points</h1>
 <li><b>Data Structure Loading</b>: Same data organization and access patterns</li>
 <li><b>Expansion Detection</b>: Correct identification of expanded vs vanilla data</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md670"></a>
+<h2><a class="anchor" id="autotoc_md655"></a>
 2. ROM State Validation</h2>
 <p>Tests validate ROM integrity:</p>
 <ul>
@@ -262,7 +262,7 @@ Test Validation Points</h1>
 <li><b>Data Integrity</b>: Original data is preserved where expected</li>
 <li><b>Checksum Validation</b>: ROM remains valid after modifications</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md671"></a>
+<h2><a class="anchor" id="autotoc_md656"></a>
 3. Performance and Stability</h2>
 <p>Tests ensure robustness:</p>
 <ul>
@@ -271,9 +271,9 @@ Test Validation Points</h1>
 <li><b>Error Handling</b>: Graceful handling of invalid data</li>
 <li><b>Thread Safety</b>: Concurrent access patterns (if applicable)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md672"></a>
+<h1><a class="anchor" id="autotoc_md657"></a>
 Environment Variables</h1>
-<h2><a class="anchor" id="autotoc_md673"></a>
+<h2><a class="anchor" id="autotoc_md658"></a>
 Test Configuration</h2>
 <div class="fragment"><div class="line"># ROM path for testing</div>
 <div class="line">export YAZE_TEST_ROM_PATH=&quot;/path/to/rom.sfc&quot;</div>
@@ -283,7 +283,7 @@ Test Configuration</h2>
 <div class="line"> </div>
 <div class="line"># Test output verbosity</div>
 <div class="line">export GTEST_VERBOSE=1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md674"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md659"></a>
 Build Configuration</h2>
 <div class="fragment"><div class="line"># Enable tests in CMake</div>
 <div class="line">cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON ..</div>
@@ -291,9 +291,9 @@ Build Configuration</h2>
 <div class="line"># Build with specific test targets</div>
 <div class="line">cmake --build build --target overworld_golden_data_extractor</div>
 <div class="line">cmake --build build --target extract_vanilla_values</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md675"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md660"></a>
 Test Reports</h1>
-<h2><a class="anchor" id="autotoc_md676"></a>
+<h2><a class="anchor" id="autotoc_md661"></a>
 Generated Reports</h2>
 <p>The test runner generates comprehensive reports:</p>
 <div class="fragment"><div class="line"># yaze Overworld Test Report</div>
@@ -315,25 +315,25 @@ Generated Reports</h2>
 <div class="line"> </div>
 <div class="line">### ROM Header</div>
 <div class="line">[Hex dump of ROM header for validation]</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md677"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md662"></a>
 Report Location</h2>
 <p>Reports are saved to <code>test/reports/</code> with timestamps:</p><ul>
 <li><code>overworld_test_report_YYYYMMDD_HHMMSS.md</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md678"></a>
+<h1><a class="anchor" id="autotoc_md663"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md679"></a>
+<h2><a class="anchor" id="autotoc_md664"></a>
 Common Issues</h2>
-<h3><a class="anchor" id="autotoc_md680"></a>
+<h3><a class="anchor" id="autotoc_md665"></a>
 1. ROM Not Found</h3>
 <div class="fragment"><div class="line">Error: ROM file not found: zelda3.sfc</div>
 </div><!-- fragment --><p> <b>Solution</b>: Provide correct ROM path or set <code>YAZE_TEST_ROM_PATH</code></p>
-<h3><a class="anchor" id="autotoc_md681"></a>
+<h3><a class="anchor" id="autotoc_md666"></a>
 2. Build Failures</h3>
 <div class="fragment"><div class="line">Error: Failed to build golden data extractor</div>
 </div><!-- fragment --><p> <b>Solution</b>: Ensure project is built with tests enabled: </p><div class="fragment"><div class="line">cmake -DBUILD_TESTS=ON ..</div>
 <div class="line">cmake --build build</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md682"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md667"></a>
 3. Test Failures</h3>
 <div class="fragment"><div class="line">Error: Some tests failed. Check the results above.</div>
 </div><!-- fragment --><p> <b>Solution</b>:</p><ul>
@@ -341,7 +341,7 @@ Common Issues</h2>
 <li>Verify ROM file is valid Zelda 3 ROM</li>
 <li>Ensure test environment is properly configured</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md683"></a>
+<h2><a class="anchor" id="autotoc_md668"></a>
 Debug Mode</h2>
 <p>Run tests with maximum verbosity:</p>
 <div class="fragment"><div class="line"># Enable debug output</div>
@@ -350,32 +350,32 @@ Debug Mode</h2>
 <div class="line"> </div>
 <div class="line"># Run with verbose output</div>
 <div class="line">./scripts/run_overworld_tests.sh zelda3.sfc --generate-report</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md684"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md669"></a>
 Advanced Usage</h1>
-<h2><a class="anchor" id="autotoc_md685"></a>
+<h2><a class="anchor" id="autotoc_md670"></a>
 Custom Test Scenarios</h2>
-<h3><a class="anchor" id="autotoc_md686"></a>
+<h3><a class="anchor" id="autotoc_md671"></a>
 1. Testing Custom ROMs</h3>
 <div class="fragment"><div class="line"># Test with modified ROM</div>
 <div class="line">./scripts/run_overworld_tests.sh /path/to/modified_rom.sfc</div>
 <div class="line"> </div>
 <div class="line"># Extract golden data for comparison</div>
 <div class="line">./build/bin/overworld_golden_data_extractor /path/to/modified_rom.sfc modified_golden_data.h</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md687"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md672"></a>
 2. Regression Testing</h3>
 <div class="fragment"><div class="line"># Extract golden data from known good ROM</div>
 <div class="line">./build/bin/overworld_golden_data_extractor known_good_rom.sfc reference_golden_data.h</div>
 <div class="line"> </div>
 <div class="line"># Test modified ROM against reference</div>
 <div class="line">./scripts/run_overworld_tests.sh modified_rom.sfc --generate-report</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md688"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md673"></a>
 3. Performance Testing</h3>
 <div class="fragment"><div class="line"># Run performance-focused tests</div>
 <div class="line">export YAZE_PERFORMANCE_TESTS=1</div>
 <div class="line">./scripts/run_overworld_tests.sh zelda3.sfc</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md689"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md674"></a>
 Integration with CI/CD</h1>
-<h2><a class="anchor" id="autotoc_md690"></a>
+<h2><a class="anchor" id="autotoc_md675"></a>
 GitHub Actions Example</h2>
 <div class="fragment"><div class="line">name: Overworld Tests</div>
 <div class="line"> </div>
@@ -408,16 +408,16 @@ GitHub Actions Example</h2>
 <div class="line">      with:</div>
 <div class="line">        name: test-reports</div>
 <div class="line">        path: test/reports/</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md691"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md676"></a>
 Contributing</h1>
-<h2><a class="anchor" id="autotoc_md692"></a>
+<h2><a class="anchor" id="autotoc_md677"></a>
 Adding New Tests</h2>
 <ol type="1">
 <li><b>Unit Tests</b>: Add to <code><a class="el" href="../../d8/d9a/overworld__test_8cc.html">test/unit/zelda3/overworld_test.cc</a></code></li>
 <li><b>Integration Tests</b>: Add to <code>test/unit/zelda3/overworld_integration_test.cc</code></li>
 <li><b>E2E Tests</b>: Add to <code><a class="el" href="../../d4/d38/overworld__e2e__test_8cc.html">test/e2e/overworld/overworld_e2e_test.cc</a></code></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md693"></a>
+<h2><a class="anchor" id="autotoc_md678"></a>
 Test Guidelines</h2>
 <ul>
 <li><b>Naming</b>: Use descriptive test names that explain the scenario</li>
@@ -425,7 +425,7 @@ Test Guidelines</h2>
 <li><b>Isolation</b>: Each test should be independent and not rely on others</li>
 <li><b>Cleanup</b>: Ensure tests clean up resources and temporary files</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md694"></a>
+<h2><a class="anchor" id="autotoc_md679"></a>
 Example Test Structure</h2>
 <div class="fragment"><div class="line"><span class="comment">// Test descriptive name that explains the scenario</span></div>
 <div class="line">TEST_F(OverworldIntegrationTest, Tile32ExpansionDetectionWithV3ASM) {</div>
@@ -442,7 +442,7 @@ Example Test Structure</h2>
 <div class="line">  </div>
 <div class="line">  <span class="comment">// Cleanup: (handled by test framework)</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md695"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md680"></a>
 Conclusion</h1>
 <p>The YAZE overworld testing framework provides comprehensive validation of the C++ implementation against the ZScream C# reference. The golden data system ensures consistency, while the multi-layered test approach (unit, integration, E2E) provides confidence in the implementation's correctness and robustness.</p>
 <p>For questions or issues, refer to the test logs and generated reports, or consult the YAZE development team. </p>

@@ -1,0 +1,11 @@
+<map id="yaze::editor::DungeonEditorV2::DrawRoomTab" name="yaze::editor::DungeonEditorV2::DrawRoomTab">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,72,181,113"/>
+<area shape="rect" id="Node000002" href="$d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#ad5e66e0318966b1e82f9199ebe21c56b" title=" " alt="" coords="256,39,448,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,78,240,71,240,76,181,84"/>
+<area shape="rect" id="Node000116" href="$d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3" title=" " alt="" coords="229,104,475,145"/>
+<area shape="poly" id="edge4_Node000001_Node000116" title=" " alt="" coords="181,101,214,105,213,110,181,106"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ad8f81f1ad4537d5b9c094ed4bb66d304" title=" " alt="" coords="524,5,650,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="448,43,508,34,509,39,449,48"/>
+<area shape="rect" id="Node000007" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab" title=" " alt="" coords="523,71,650,111"/>
+<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="449,70,508,78,507,83,448,75"/>
+</map>

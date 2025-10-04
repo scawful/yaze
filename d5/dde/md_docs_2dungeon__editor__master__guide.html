@@ -101,9 +101,9 @@ $(document).ready(function(){initNavTree('d5/dde/md_docs_2dungeon__editor__maste
   <div class="headertitle"><div class="title">Yaze Dungeon Editor: Master Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md387"></a> <b>Last Updated</b>: October 4, 2025</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md372"></a> <b>Last Updated</b>: October 4, 2025</p>
 <p>This document provides a comprehensive overview of the Yaze Dungeon Editor, covering its architecture, ROM data structures, UI, and testing procedures. It consolidates information from previous guides and incorporates analysis from the game's disassembly.</p>
-<h1><a class="anchor" id="autotoc_md388"></a>
+<h1><a class="anchor" id="autotoc_md373"></a>
 1. Current Status &amp; Known Issues</h1>
 <p>A thorough review of the codebase and disassembly reveals two key facts:</p>
 <ol type="1">
@@ -115,7 +115,7 @@ $(document).ready(function(){initNavTree('d5/dde/md_docs_2dungeon__editor__maste
 </li>
 </ol>
 <p><b>Conclusion:</b> The immediate priority is <b>not</b> feature implementation, but <b>fixing the test suite</b> so the existing code can be validated.</p>
-<h2><a class="anchor" id="autotoc_md389"></a>
+<h2><a class="anchor" id="autotoc_md374"></a>
 Next Steps</h2>
 <ol type="1">
 <li><b>Fix Test Crashes (BLOCKER)</b>:<ul>
@@ -125,10 +125,10 @@ Next Steps</h2>
 </li>
 <li><b>Validate and Expand Test Coverage</b>: Once the suite is stable, write E2E smoke tests and expand coverage to all major user workflows.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md390"></a>
+<h1><a class="anchor" id="autotoc_md375"></a>
 2. Architecture</h1>
 <p>The dungeon editor is split into two main layers: the core logic that interacts with ROM data, and the UI layer that presents it to the user.</p>
-<h2><a class="anchor" id="autotoc_md391"></a>
+<h2><a class="anchor" id="autotoc_md376"></a>
 Core Components (Backend)</h2>
 <ul>
 <li>**<code>DungeonEditorSystem</code>**: The central coordinator for all dungeon editing operations, managing rooms, sprites, items, doors, and chests.</li>
@@ -137,7 +137,7 @@ Core Components (Backend)</h2>
 <li>**<code>ObjectParser</code>**: Parses object data directly from the ROM.</li>
 <li>**<code>ObjectRenderer</code>**: A high-performance system for rendering dungeon objects, featuring a graphics cache and memory pool management.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md392"></a>
+<h2><a class="anchor" id="autotoc_md377"></a>
 UI Components (Frontend)</h2>
 <ul>
 <li>**<code>DungeonEditor</code>**: The main ImGui-based editor window that orchestrates all UI components.</li>
@@ -145,10 +145,10 @@ UI Components (Frontend)</h2>
 <li>**<code>DungeonObjectSelector</code>**: The UI panel for browsing and selecting objects to place in the room.</li>
 <li><b>Other Panels</b>: Specialized panels for managing sprites, items, entrances, doors, chests, and room properties.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md393"></a>
+<h1><a class="anchor" id="autotoc_md378"></a>
 3. ROM Internals &amp; Data Structures</h1>
 <p>Understanding how dungeon data is stored in the ROM is critical for the editor's functionality. This information has been cross-referenced with the <code>usdasm</code> disassembly (<code>bank_01.asm</code> and <code>rooms.asm</code>).</p>
-<h2><a class="anchor" id="autotoc_md394"></a>
+<h2><a class="anchor" id="autotoc_md379"></a>
 Object Encoding</h2>
 <p>Dungeon objects are stored in one of three formats, depending on their ID. The encoding logic is implemented in <code><a class="el" href="../../d5/da0/room__object_8cc.html">src/app/zelda3/dungeon/room_object.cc</a></code>.</p>
 <ul>
@@ -171,7 +171,7 @@ Object Encoding</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md395"></a>
+<h2><a class="anchor" id="autotoc_md380"></a>
 Object Types &amp; Examples</h2>
 <ul>
 <li><b>Type 1 (IDs 0x00-0xFF)</b>: Basic environmental pieces.<ul>
@@ -187,7 +187,7 @@ Object Types &amp; Examples</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md396"></a>
+<h2><a class="anchor" id="autotoc_md381"></a>
 Core Data Tables in ROM</h2>
 <ul>
 <li>**<code>bank_01.asm</code>**: Contains the foundational logic for drawing dungeon objects.<ul>
@@ -200,16 +200,16 @@ Core Data Tables in ROM</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md397"></a>
+<h1><a class="anchor" id="autotoc_md382"></a>
 4. User Interface and Usage</h1>
-<h2><a class="anchor" id="autotoc_md398"></a>
+<h2><a class="anchor" id="autotoc_md383"></a>
 Coordinate System</h2>
 <p>The editor manages two coordinate systems:</p><ol type="1">
 <li><b>Room Coordinates</b>: 16x16 tile units, as used in the ROM.</li>
 <li><b>Canvas Coordinates</b>: Pixel coordinates for rendering.</li>
 </ol>
 <p>Conversion functions are provided to translate between them, and the canvas handles scrolling and bounds-checking automatically.</p>
-<h2><a class="anchor" id="autotoc_md399"></a>
+<h2><a class="anchor" id="autotoc_md384"></a>
 Usage Examples</h2>
 <div class="fragment"><div class="line"><span class="comment">// Load a room</span></div>
 <div class="line"><span class="keyword">auto</span> room_result = dungeon_editor_system_-&gt;GetRoom(0x0000);</div>
@@ -220,9 +220,9 @@ Usage Examples</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Render objects</span></div>
 <div class="line"><span class="keyword">auto</span> result = object_renderer_-&gt;RenderObjects(objects, palette);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md400"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md385"></a>
 5. Testing</h1>
-<h2><a class="anchor" id="autotoc_md401"></a>
+<h2><a class="anchor" id="autotoc_md386"></a>
 How to Run Tests</h2>
 <p>Because the test suite is currently broken, you must use filters to run the small subset of tests that are known to pass.</p>
 <p><b>1. Build the Tests</b> </p><div class="fragment"><div class="line"># Ensure you are in the project root: /Users/scawful/Code/yaze</div>
@@ -234,10 +234,10 @@ How to Run Tests</h2>
 <div class="line"> </div>
 <div class="line"># SIGBUS crash in integration tests</div>
 <div class="line">./build/bin/yaze_test --gtest_filter=&quot;DungeonEditorIntegrationTest.*&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md402"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md387"></a>
 6. Dungeon Object Reference Tables</h1>
 <p>The following tables were generated by parsing the <code>DrawObjects</code> tables in <code>bank_01.asm</code>.</p>
-<h2><a class="anchor" id="autotoc_md403"></a>
+<h2><a class="anchor" id="autotoc_md388"></a>
 Type 1 Object Reference Table</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -755,7 +755,7 @@ Type 1 Object Reference Table</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyLeft">0xFF   </td><td class="markdownTableBodyLeft">255   </td><td class="markdownTableBodyLeft">Nothing   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md404"></a>
+<h2><a class="anchor" id="autotoc_md389"></a>
 Type 2 Object Reference Table</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -889,7 +889,7 @@ Type 2 Object Reference Table</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyLeft">0x13F   </td><td class="markdownTableBodyLeft">319   </td><td class="markdownTableBodyLeft">Magic Bat Altar   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md405"></a>
+<h2><a class="anchor" id="autotoc_md390"></a>
 Type 3 Object Reference Table</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">

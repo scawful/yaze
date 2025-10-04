@@ -1,0 +1,11 @@
+<map id="test/integration/dungeon_editor_v2_test.cc" name="test/integration/dungeon_editor_v2_test.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="43,5,203,46"/>
+<area shape="rect" id="Node000002" href="$d8/d55/dungeon__editor__v2__test_8h.html" title=" " alt="" coords="56,94,190,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,47,126,78,120,78,120,47"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,190,73,216"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="106,137,63,181,59,177,102,133"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="96,190,150,216"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="126,135,126,175,120,175,120,135"/>
+<area shape="rect" id="Node000005" href="$d7/d77/dungeon__editor__v2_8h.html" title=" " alt="" coords="174,183,318,223"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="152,133,207,171,204,176,149,137"/>
+</map>

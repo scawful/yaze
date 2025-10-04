@@ -13,7 +13,7 @@ var searchData=
   ['onexit_10',['OnExit',['../d4/d84/classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07',1,'yaze::core::Controller']]],
   ['oninput_11',['OnInput',['../d4/d84/classyaze_1_1core_1_1Controller.html#a4da513a611336bcfc09e4c40119c362b',1,'yaze::core::Controller']]],
   ['onload_12',['OnLoad',['../d4/d84/classyaze_1_1core_1_1Controller.html#a01f86833b789e985cd84926b41081e84',1,'yaze::core::Controller']]],
-  ['onroomselected_13',['OnRoomSelected',['../d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#aab56c74a57fe0f7af1e6a5bc069d18d7',1,'yaze::editor::DungeonEditor']]],
+  ['onroomselected_13',['onroomselected',['../d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#aab56c74a57fe0f7af1e6a5bc069d18d7',1,'yaze::editor::DungeonEditor::OnRoomSelected()'],['../da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#af5b46bb90815fb2548d1f2e4344abe97',1,'yaze::editor::DungeonEditorV2::OnRoomSelected()']]],
   ['onsubmit_14',['OnSubmit',['../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a4a3d32670d995d957bd9f5d0a59a7ba7',1,'yaze::cli::tui::ChatTUI']]],
   ['open_15',['open',['../da/d5e/structyaze_1_1core_1_1YazeProject.html#a01c9181e16416e9999014de5ea21f9c4',1,'yaze::core::YazeProject::Open()'],['../d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html#ad3a813bbc42fde07bb47de610146ed9b',1,'yaze::gui::BppComparisonTool::Open()']]],
   ['open_5fbus_16',['open_bus',['../d2/d5e/classyaze_1_1emu_1_1Memory.html#ab6fa37e325f24ed2836db1ab28650f35',1,'yaze::emu::Memory::open_bus()'],['../de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#a0e1947d5642b0a24b83ec980238a6bc1',1,'yaze::emu::MemoryImpl::open_bus()']]],

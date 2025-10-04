@@ -1,10 +1,9 @@
 var searchData=
 [
-  ['palette_20system_0',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]],
-  ['performance_20optimization_1',['Graphics System Performance &amp; Optimization',['../db/dc2/md_docs_2GRAPHICS__PERFORMANCE.html',1,'']]],
-  ['plan_2',['Dungeon Editor Design Plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'']]],
-  ['plan_20for_20yaze_3',['Build Modularization Plan for Yaze',['../d7/daf/md_docs_2build__modularization__plan.html',1,'']]],
-  ['platform_20compatibility_20improvements_4',['Platform Compatibility Improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'']]],
-  ['powered_20cli_20for_20yaze_5',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
-  ['presets_20guide_6',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]]
+  ['reference_0',['API Reference',['../dd/d96/md_docs_204-api-reference.html',1,'']]],
+  ['release_20workflow_20improvements_1',['Stability, Testability &amp; Release Workflow Improvements',['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'']]],
+  ['release_20workflows_20documentation_2',['Release Workflows Documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'']]],
+  ['report_3',['Dungeon Editor Test Coverage Report',['../dd/d40/md_docs_2DUNGEON__TEST__COVERAGE.html',1,'']]],
+  ['results_20october_204_202025_4',['Dungeon Testing Results - October 4, 2025',['../df/dec/md_docs_2DUNGEON__TESTING__RESULTS.html',1,'']]],
+  ['roadmap_5',['Roadmap',['../d6/db4/md_docs_2D1-roadmap.html',1,'']]]
 ];

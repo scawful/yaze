@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['list_0',['list',['../da/d58/deprecated.html',1,'Deprecated List'],['../dd/da0/todo.html',1,'Todo List']]],
-  ['loading_20guide_1',['Overworld Loading Guide',['../dc/d12/md_docs_2F1-overworld-loading.html',1,'']]]
+  ['master_20guide_0',['Yaze Dungeon Editor: Master Guide',['../d5/dde/md_docs_2dungeon__editor__master__guide.html',1,'']]],
+  ['modularization_20plan_20for_20yaze_1',['Build Modularization Plan for Yaze',['../d7/daf/md_docs_2build__modularization__plan.html',1,'']]]
 ];

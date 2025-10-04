@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['vs_20yaze_20overworld_20implementation_20analysis_0',['ZScream vs. yaze Overworld Implementation Analysis',['../d9/d48/md_docs_2analysis_2overworld__implementation__analysis.html',1,'']]]
+  ['workflow_20improvements_0',['Stability, Testability &amp; Release Workflow Improvements',['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'']]],
+  ['workflows_20documentation_1',['Release Workflows Documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'']]]
 ];

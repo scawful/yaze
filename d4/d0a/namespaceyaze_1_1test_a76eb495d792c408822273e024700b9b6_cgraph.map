@@ -1,0 +1,12 @@
+<map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,135,96"/>
+<area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ae31f6ba608759e25634f60b1d3feb7fc" title=" " alt="" coords="183,63,358,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,80,167,80,167,86,135,86"/>
+<area shape="rect" id="Node000003" href="$d0/d27/namespaceyaze_1_1gfx.html#aeccc5ded5a311afcdf70cb43e466c220" title="Take a SNESPalette, divide it into palettes of 8 colors." alt="" coords="414,5,574,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="351,60,398,47,399,53,353,65"/>
+<area shape="rect" id="Node000007" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="630,100,772,125"/>
+<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="358,86,615,104,615,109,358,92"/>
+<area shape="rect" id="Node000008" href="$d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a34ff16de29d8f3a3b97fd52bd673c79e" title=" " alt="" coords="406,120,582,161"/>
+<area shape="poly" id="edge4_Node000002_Node000008" title=" " alt="" coords="353,101,398,113,397,118,351,106"/>
+<area shape="poly" id="edge5_Node000008_Node000007" title=" " alt="" coords="582,126,615,121,615,127,583,131"/>
+</map>

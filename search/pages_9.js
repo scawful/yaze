@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['getting_20started_0',['Getting Started',['../d0/d63/md_docs_201-getting-started.html',1,'']]],
-  ['graphics_20system_20performance_20optimization_1',['Graphics System Performance &amp; Optimization',['../db/dc2/md_docs_2GRAPHICS__PERFORMANCE.html',1,'']]],
-  ['guide_2',['guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'Asm Style Guide'],['../d7/d51/md_docs_2B3-build-presets.html',1,'Build Presets Guide'],['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'Canvas System - Comprehensive Guide'],['../dc/d12/md_docs_2F1-overworld-loading.html',1,'Overworld Loading Guide'],['../d6/d10/md_docs_2A1-testing-guide.html',1,'Testing Guide'],['../d5/dde/md_docs_2dungeon__editor__master__guide.html',1,'Yaze Dungeon Editor: Master Guide'],['../de/d8a/md_docs_2overworld__testing__guide.html',1,'yaze Overworld Testing Guide']]]
+  ['implementation_20analysis_0',['ZScream vs. yaze Overworld Implementation Analysis',['../d9/d48/md_docs_2analysis_2overworld__implementation__analysis.html',1,'']]],
+  ['improvements_1',['improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'Platform Compatibility Improvements'],['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'Stability, Testability &amp; Release Workflow Improvements']]],
+  ['instructions_2',['Build Instructions',['../d9/d41/md_docs_202-build-instructions.html',1,'']]],
+  ['integration_20status_20updated_20ollama_20integration_20status_3',['Ollama Integration Status - Updated# Ollama Integration Status',['../da/d40/md_docs_2ollama__integration__status.html',1,'']]]
 ];

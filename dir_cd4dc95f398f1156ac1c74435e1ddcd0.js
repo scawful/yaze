@@ -4,6 +4,8 @@ var dir_cd4dc95f398f1156ac1c74435e1ddcd0 =
     [ "dungeon_canvas_viewer.h", "d3/d38/dungeon__canvas__viewer_8h.html", "d3/d38/dungeon__canvas__viewer_8h" ],
     [ "dungeon_editor.cc", "da/d46/dungeon__editor_8cc.html", "da/d46/dungeon__editor_8cc" ],
     [ "dungeon_editor.h", "d6/df5/dungeon__editor_8h.html", "d6/df5/dungeon__editor_8h" ],
+    [ "dungeon_editor_v2.cc", "d0/d0d/dungeon__editor__v2_8cc.html", null ],
+    [ "dungeon_editor_v2.h", "d7/d77/dungeon__editor__v2_8h.html", "d7/d77/dungeon__editor__v2_8h" ],
     [ "dungeon_object_interaction.cc", "d8/d1f/dungeon__object__interaction_8cc.html", null ],
     [ "dungeon_object_interaction.h", "d4/ded/dungeon__object__interaction_8h.html", "d4/ded/dungeon__object__interaction_8h" ],
     [ "dungeon_object_selector.cc", "dc/dcc/dungeon__object__selector_8cc.html", null ],

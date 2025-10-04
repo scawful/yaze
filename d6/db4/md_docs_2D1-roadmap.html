@@ -101,85 +101,75 @@ $(document).ready(function(){initNavTree('d6/db4/md_docs_2D1-roadmap.html','../.
   <div class="headertitle"><div class="title">Roadmap</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md370"></a> </p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md359"></a> <b>Last Updated: October 4, 2025</b></p>
+<p>This document outlines the development roadmap for YAZE. The project has made significant strides in core features, AI integration, and testing infrastructure. The immediate focus is on stabilizing the test suite and completing key editor functionalities.</p>
+<h1><a class="anchor" id="autotoc_md360"></a>
+Current Focus: Stability &amp; Core Features</h1>
+<p>The highest priority is to fix the broken test suites to ensure the stability and correctness of the existing, largely complete, feature set. Alongside this, work will continue on completing the core AI and editor functionalities.</p>
+<hr  />
+<h1><a class="anchor" id="autotoc_md362"></a>
+0.4.X (Next Major Release) - Stability &amp; Core Tooling</h1>
+<h2><a class="anchor" id="autotoc_md363"></a>
+Priority 1: Testing &amp; Stability (BLOCKER)</h2>
+<ul>
+<li><b>Fix Dungeon Editor Test Suite</b>: Resolve the critical <code>SIGBUS</code> and <code>SIGSEGV</code> crashes that are blocking all integration tests for the dungeon system.</li>
+<li><b>Refactor Integration Tests</b>: Migrate tests from the unstable <code>MockRom</code> to use the <code>TestRomManager</code> with real ROM files, following the pattern set by the passing rendering tests.</li>
+<li><b>Expand E2E Coverage</b>: Create a comprehensive end-to-end smoke test for the Dungeon Editor and expand coverage for the Overworld editor.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md364"></a>
+Priority 2: &lt;tt&gt;z3ed&lt;/tt&gt; AI Agent</h2>
+<ul>
+<li><b>Complete Live LLM Testing</b>: Verify and harden the function-calling loop with live Ollama and Gemini models.</li>
+<li><b>Enhance GUI Chat Widget</b>: Implement state persistence and integrate proposal review shortcuts directly into the editor's chat window.</li>
+<li><b>Expand Agent Toolset</b>: Add new read-only tools for inspecting dialogue, sprite properties, and other game resources.</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md365"></a>
+Priority 3: Editor Features</h2>
+<ul>
+<li><b>Dungeon Editor</b>: Implement missing features identified from the ZScream comparison, such as custom collision and object limits tracking.</li>
+<li><b>Overworld Sprites</b>: Complete the sprite editing workflow, including adding, removing, and moving sprites on the canvas.</li>
+<li><b>Sprite Property Editor</b>: Create a UI to edit sprite attributes and behavior.</li>
+</ul>
+<hr  />
+<h1><a class="anchor" id="autotoc_md367"></a>
+0.5.X - Feature Expansion</h1>
+<ul>
+<li><b>Plugin Architecture</b>: Design and implement the initial framework for community-developed extensions and custom tools.</li>
+<li><b>Advanced Graphics Editing</b>:<ul>
+<li>Finalize the Tile16 Editor palette system, fixing all known color consistency bugs.</li>
+<li>Implement functionality to edit and re-import full graphics sheets.</li>
+</ul>
+</li>
+<li>**<code>z3ed</code> AI Agent Enhancements**:<ul>
+<li><b>Collaborative Sessions</b>: Investigate and implement infrastructure for multi-user collaborative editing and AI interaction.</li>
+<li><b>Multi-modal Input</b>: Integrate screenshot capabilities to send visual context to Gemini for more accurate, context-aware commands.</li>
+</ul>
+</li>
+</ul>
+<hr  />
+<h1><a class="anchor" id="autotoc_md369"></a>
+0.6.X - Polish &amp; Integration</h1>
+<ul>
+<li><b>Cross-Platform Stability</b>: Conduct full testing and bug fixing cycles for Windows and Linux to ensure a stable experience equivalent to macOS.</li>
+<li><b>Advanced Content Editors</b>:<ul>
+<li>Implement a user interface for the music editing system.</li>
+<li>Enhance the Hex Editor with better search and data interpretation features.</li>
+</ul>
+</li>
+<li><b>Documentation Overhaul</b>:<ul>
+<li>Implement a system to auto-generate C++ API documentation.</li>
+<li>Write a comprehensive user guide for ROM hackers, covering all major editor workflows.</li>
+</ul>
+</li>
+</ul>
+<hr  />
 <h1><a class="anchor" id="autotoc_md371"></a>
-0.4.X (Next Major Release)</h1>
-<h2><a class="anchor" id="autotoc_md372"></a>
-Core Features</h2>
+0.7.X and Beyond - Path to 1.0</h1>
 <ul>
-<li><b>Overworld Sprites</b>: Complete sprite editing with add/remove functionality</li>
-<li><b>Enhanced Dungeon Editing</b>: Advanced room object editing and manipulation</li>
-<li><b>Tile16 Editing</b>: Enhanced editor for creating and modifying tile16 data</li>
-<li><b>Plugin Architecture</b>: Framework for community extensions and custom tools</li>
-<li><b>Graphics Sheets</b>: Complete editing, saving, and re-importing of sheets</li>
-<li><b>Project Refactoring</b>: Clean up resource loading and memory usage</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md373"></a>
-Technical Improvements</h2>
-<ul>
-<li><b>Sprite Property Editor</b>: Add support for changing sprite behavior and attributes</li>
-<li><b>Custom Sprites</b>: Support creating and editing custom sprites</li>
-<li><b>Asar Patching</b>: Stabilize existing patching system for advanced modifications</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md374"></a>
-0.5.X</h1>
-<h2><a class="anchor" id="autotoc_md375"></a>
-Advanced Features</h2>
-<ul>
-<li><b>SCAD Format</b>: Polish and finalize the scad file integration</li>
-<li><b>Hex Editing Improvements</b>: Enhance user interface for direct ROM manipulation</li>
-<li><b>Music Editing</b>: Add an interface to edit and manage music data</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md376"></a>
-0.6.X</h1>
-<h2><a class="anchor" id="autotoc_md377"></a>
-Platform &amp; Integration</h2>
-<ul>
-<li><b>Cross-Platform Stability</b>: Test and refine builds across Windows, macOS, iOS, and Linux</li>
-<li><b>Plugin/Integration Framework</b>: Provide hooks or scripting for community add-ons</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md378"></a>
-0.7.X</h1>
-<h2><a class="anchor" id="autotoc_md379"></a>
-Performance &amp; Polish</h2>
-<ul>
-<li><b>Performance Optimizations</b>: Remove bottlenecks in rendering and data processing</li>
-<li><b>Documentation Overhaul</b>: Update manuals, guides, and in-app tooltips</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md380"></a>
-0.8.X</h1>
-<h2><a class="anchor" id="autotoc_md381"></a>
-Beta Preparation</h2>
-<ul>
-<li><b>Beta Release</b>: Code freeze on major features, focus on bug fixes and polish</li>
-<li><b>User Interface Refinements</b>: Improve UI consistency, iconography, and layout</li>
-<li><b>Internal Cleanup</b>: Remove deprecated code, finalize API calls</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md382"></a>
-1.0.0</h1>
-<h2><a class="anchor" id="autotoc_md383"></a>
-Stable Release</h2>
-<ul>
-<li><b>Stable Release</b>: Final, production-ready version</li>
-<li><b>Changelog</b>: Comprehensive summary of all changes since 0.0.0</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md384"></a>
-Current Focus Areas</h1>
-<h2><a class="anchor" id="autotoc_md385"></a>
-Immediate Priorities (v0.4.X)</h2>
-<ol type="1">
-<li><b>Dungeon Editor Refactoring</b>: Complete component-based architecture</li>
-<li><b>Sprite System</b>: Implement comprehensive sprite editing</li>
-<li><b>Graphics Pipeline</b>: Enhance graphics editing capabilities</li>
-<li><b>Plugin System</b>: Enable community extensions</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md386"></a>
-Long-term Vision</h2>
-<ul>
-<li><b>Community-Driven</b>: Robust plugin system for community contributions</li>
-<li><b>Cross-Platform Excellence</b>: Seamless experience across all platforms</li>
-<li><b>Performance</b>: Optimized for large ROMs and complex modifications</li>
-<li><b>Accessibility</b>: User-friendly interface for both beginners and experts </li>
+<li><b>Performance Optimization</b>: Implement high-priority items from the graphics performance plan, such as lazy loading of graphics and streaming assets from the ROM.</li>
+<li><b>UI/UX Refinements</b>: Improve UI consistency, iconography, and overall layout based on user feedback.</li>
+<li><b>Beta Release</b>: Code freeze on major features to focus on bug fixing and final polish.</li>
+<li><b>1.0 Stable Release</b>: Final, production-ready version with a comprehensive changelog. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
