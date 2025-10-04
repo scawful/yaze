@@ -7,17 +7,23 @@ A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM 
 
 ## Version 0.3.2 - Release
 
-#### Asar 65816 Assembler Integration
-- **Cross-platform ROM patching** with assembly code support
-- **Symbol extraction** with addresses and opcodes from assembly files
-- **Assembly validation** with comprehensive error reporting
-- **Modern C++ API** with safe memory management
+#### z3ed agent - AI-powered CLI assistant
+- **AI-assisted ROM hacking** with ollama and Gemini support
+- **Natural language commands** for editing and querying ROM data
+- **Tool calling** for structured data extraction and modification
+- **Interactive chat** with conversation history and context
 
 #### ZSCustomOverworld v3
 - **Enhanced overworld editing** capabilities
 - **Advanced map properties** and metadata support
 - **Custom graphics support** and tile management
 - **Improved compatibility** with existing projects
+
+#### Asar 65816 Assembler Integration
+- **Cross-platform ROM patching** with assembly code support
+- **Symbol extraction** with addresses and opcodes from assembly files
+- **Assembly validation** with comprehensive error reporting
+- **Modern C++ API** with safe memory management
 
 #### Advanced Features
 - **Theme Management**: Complete theme system with 5+ built-in themes and custom theme editor
@@ -27,13 +33,6 @@ A modern, cross-platform editor for The Legend of Zelda: A Link to the Past ROM 
 - **GUI Docking**: Flexible workspace management with customizable layouts
 - **Modern CLI**: Enhanced z3ed tool with interactive TUI and subcommands
 - **Cross-Platform**: Full support for Windows, macOS, and Linux
-
-### 🛠️ Technical Improvements
-- **Modern CMake 3.16+**: Target-based configuration and build system
-- **CMakePresets**: Development workflow presets for better productivity
-- **Cross-platform CI/CD**: Automated builds and testing for all platforms
-- **Professional packaging**: NSIS, DMG, and DEB/RPM installers
-- **Enhanced testing**: ROM-dependent test separation for CI compatibility
 
 ## Quick Start
 
