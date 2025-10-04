@@ -21,20 +21,41 @@ echo ""
 # Clear results file
 > "$RESULTS_FILE"
 
-# Check if z3ed exists
-if [ ! -f "$Z3ED" ]; then
-    echo -e "${RED}✗ z3ed not found at $Z3ED${NC}"
-    echo "  Try building with: cmake --build build_rooms"
-    exit 1
-fi
-echo -e "${GREEN}✓ z3ed found${NC}"
+# --- Pre-flight Checks ---
+print_header "Performing Pre-flight Checks"
 
-# Check if ROM exists
-if [ ! -f "$ROM" ]; then
-    echo -e "${RED}✗ ROM not found at $ROM${NC}"
+if [ -z "$1" ]; then
+  echo "❌ Error: No AI provider specified."
+  echo "Usage: $0 <ollama|gemini|mock>"
+  exit 1
+fi
+PROVIDER=$1
+echo "✅ Provider: $PROVIDER"
+
+# Check binaries and files
+for f in "$Z3ED_BIN" "$ROM_PATH" "$TEST_DIR/../prompt_catalogue.yaml" "$TEST_DIR/function_schemas.json"; do
+    if [ ! -f "$f" ]; then
+        echo -e "${RED}✗ Prerequisite file not found: $f${NC}"
+        exit 1
+    fi
+done
+echo "✅ Core binaries and files found."
+
+# Verify schemas
+if python3 -m json.tool "$TEST_DIR/function_schemas.json" > /dev/null 2>&1; then
+    echo "✅ Function schemas JSON is valid."
+else
+    echo "${RED}✗ Invalid JSON in function_schemas.json${NC}"
     exit 1
 fi
-echo -e "${GREEN}✓ ROM found${NC}"
+
+# Verify manual tool execution
+if "$Z3ED_BIN" agent overworld-find-tile --tile 0x02E --format json --rom "$ROM_PATH" > /dev/null 2>&1; then
+    echo "✅ Manual tool execution successful."
+else
+    echo "${RED}✗ Manual tool execution failed.${NC}"
+    exit 1
+fi
 
 # Test Ollama availability
 OLLAMA_AVAILABLE=false
@@ -44,7 +65,6 @@ if command -v ollama &> /dev/null && curl -s http://localhost:11434/api/tags > /
         echo -e "${GREEN}✓ Ollama available (qwen2.5-coder)${NC}"
     else
         echo -e "${YELLOW}⚠ Ollama available but qwen2.5-coder not found${NC}"
-        echo "  Install with: ollama pull qwen2.5-coder:7b"
     fi
 else
     echo -e "${YELLOW}⚠ Ollama not available${NC}"
@@ -57,15 +77,19 @@ if [ -n "$GEMINI_API_KEY" ]; then
     echo -e "${GREEN}✓ Gemini API key configured${NC}"
 else
     echo -e "${YELLOW}⚠ Gemini API key not set${NC}"
-    echo "  Set with: export GEMINI_API_KEY='your-key'"
 fi
 
-if [ "$OLLAMA_AVAILABLE" = false ] && [ "$GEMINI_AVAILABLE" = false ]; then
-    echo -e "${RED}✗ No AI providers available${NC}"
+if [ "$PROVIDER" == "ollama" ] && [ "$OLLAMA_AVAILABLE" = false ]; then
+    echo -e "${RED}✗ Exiting: Ollama provider requested but not available.${NC}"
     exit 1
 fi
 
-echo ""
+if [ "$PROVIDER" == "gemini" ] && [ "$GEMINI_AVAILABLE" = false ]; then
+    echo -e "${RED}✗ Exiting: Gemini provider requested but GEMINI_API_KEY is not set.${NC}"
+    exit 1
+fi
+
+# --- Run Test Suite ---
 
 # Test function
 run_test() {
