@@ -2,7 +2,7 @@
 #include "app/editor/system/settings_editor.h"
 
 #include "absl/status/status.h"
-#include "app/core/features.h"
+#include "app/gui/feature_flags_menu.h"
 #include "app/gfx/performance_profiler.h"
 #include "app/gui/style.h"
 #include "imgui/imgui.h"
@@ -10,11 +10,9 @@
 namespace yaze {
 namespace editor {
 
-using ImGui::BeginChild;
 using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
 using ImGui::BeginTable;
-using ImGui::EndChild;
 using ImGui::EndTabBar;
 using ImGui::EndTabItem;
 using ImGui::EndTable;
@@ -50,7 +48,7 @@ absl::Status SettingsEditor::Update() {
 }
 
 void SettingsEditor::DrawGeneralSettings() {
-  static core::FlagsMenu flags;
+  static gui::FlagsMenu flags;
 
   if (BeginTable("##SettingsTable", 4,
                  ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |

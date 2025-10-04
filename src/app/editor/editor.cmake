@@ -33,13 +33,12 @@ set(
   app/editor/system/shortcut_manager.cc
   app/editor/system/popup_manager.cc
   app/editor/system/agent_chat_history_codec.cc
-  app/test/test_manager.cc
-  app/test/integrated_test_suite.h
-  app/test/rom_dependent_test_suite.h
-  app/test/unit_test_suite.h
   app/editor/system/proposal_drawer.cc
 )
 
 if(YAZE_WITH_GRPC)
-  list(APPEND YAZE_APP_EDITOR_SRC app/editor/system/agent_chat_widget.cc)
+  list(APPEND YAZE_APP_EDITOR_SRC
+    app/editor/system/agent_chat_widget.cc
+    app/editor/system/agent_collaboration_coordinator.cc
+  )
 endif()

@@ -23,6 +23,7 @@ class AgentChatHistoryCodec {
   struct CollaborationState {
     bool active = false;
     std::string session_id;
+    std::string session_name;
     std::vector<std::string> participants;
     absl::Time last_synced = absl::InfinitePast();
   };

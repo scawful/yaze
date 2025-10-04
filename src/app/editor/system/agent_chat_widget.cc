@@ -3,11 +3,13 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -173,8 +175,13 @@ void AgentChatWidget::EnsureHistoryLoaded() {
 
   collaboration_state_.active = snapshot.collaboration.active;
   collaboration_state_.session_id = snapshot.collaboration.session_id;
+  collaboration_state_.session_name = snapshot.collaboration.session_name;
   collaboration_state_.participants = snapshot.collaboration.participants;
   collaboration_state_.last_synced = snapshot.collaboration.last_synced;
+  if (collaboration_state_.session_name.empty() &&
+      !collaboration_state_.session_id.empty()) {
+    collaboration_state_.session_name = collaboration_state_.session_id;
+  }
 
   multimodal_state_.last_capture_path =
       snapshot.multimodal.last_capture_path;
@@ -202,6 +209,7 @@ void AgentChatWidget::PersistHistory() {
   snapshot.history = agent_service_.GetHistory();
   snapshot.collaboration.active = collaboration_state_.active;
   snapshot.collaboration.session_id = collaboration_state_.session_id;
+  snapshot.collaboration.session_name = collaboration_state_.session_name;
   snapshot.collaboration.participants = collaboration_state_.participants;
   snapshot.collaboration.last_synced = collaboration_state_.last_synced;
   snapshot.multimodal.last_capture_path =
@@ -486,8 +494,21 @@ void AgentChatWidget::RenderCollaborationPanel() {
 
   const bool connected = collaboration_state_.active;
   ImGui::Text("Status: %s", connected ? "Connected" : "Not connected");
+  if (!collaboration_state_.session_name.empty()) {
+    ImGui::Text("Session Name: %s",
+                collaboration_state_.session_name.c_str());
+  }
   if (!collaboration_state_.session_id.empty()) {
-    ImGui::Text("Session ID: %s", collaboration_state_.session_id.c_str());
+    ImGui::Text("Session Code: %s",
+                collaboration_state_.session_id.c_str());
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Copy Code")) {
+      ImGui::SetClipboardText(collaboration_state_.session_id.c_str());
+      if (toast_manager_) {
+        toast_manager_->Show("Session code copied",
+                             ToastType::kInfo, 2.5f);
+      }
+    }
   }
   if (collaboration_state_.last_synced != absl::InfinitePast()) {
     ImGui::TextDisabled(
@@ -498,9 +519,10 @@ void AgentChatWidget::RenderCollaborationPanel() {
 
   ImGui::Separator();
 
-  bool can_host = static_cast<bool>(collaboration_callbacks_.host_session);
-  bool can_join = static_cast<bool>(collaboration_callbacks_.join_session);
-  bool can_leave = static_cast<bool>(collaboration_callbacks_.leave_session);
+  const bool can_host = static_cast<bool>(collaboration_callbacks_.host_session);
+  const bool can_join = static_cast<bool>(collaboration_callbacks_.join_session);
+  const bool can_leave = static_cast<bool>(collaboration_callbacks_.leave_session);
+  const bool can_refresh = static_cast<bool>(collaboration_callbacks_.refresh_session);
 
   ImGui::InputTextWithHint("##session_name", "Session name",
                            session_name_buffer_,
@@ -515,23 +537,23 @@ void AgentChatWidget::RenderCollaborationPanel() {
                              ToastType::kWarning, 3.0f);
       }
     } else {
-      absl::Status status =
-          collaboration_callbacks_.host_session(name);
-      if (status.ok()) {
-        collaboration_state_.active = true;
-        collaboration_state_.session_id = name;
-        collaboration_state_.participants.clear();
-        collaboration_state_.last_synced = absl::Now();
-        last_collaboration_action_ = absl::Now();
-        RefreshParticipants();
+      auto session_or = collaboration_callbacks_.host_session(name);
+      if (session_or.ok()) {
+        ApplyCollaborationSession(session_or.value(), /*update_action_timestamp=*/true);
+        std::snprintf(join_code_buffer_, sizeof(join_code_buffer_), "%s",
+                      collaboration_state_.session_id.c_str());
+        session_name_buffer_[0] = '\0';
         if (toast_manager_) {
-          toast_manager_->Show("Hosting collaborative session",
-                               ToastType::kSuccess, 3.5f);
+          toast_manager_->Show(
+              absl::StrFormat("Hosting session %s",
+                              collaboration_state_.session_id.c_str()),
+              ToastType::kSuccess, 3.5f);
         }
         MarkHistoryDirty();
       } else if (toast_manager_) {
         toast_manager_->Show(
-            absl::StrFormat("Failed to host: %s", status.message()),
+            absl::StrFormat("Failed to host: %s",
+                            session_or.status().message()),
             ToastType::kError, 5.0f);
       }
     }
@@ -556,23 +578,22 @@ void AgentChatWidget::RenderCollaborationPanel() {
                              ToastType::kWarning, 3.0f);
       }
     } else {
-      absl::Status status =
-          collaboration_callbacks_.join_session(code);
-      if (status.ok()) {
-        collaboration_state_.active = true;
-        collaboration_state_.session_id = code;
-        collaboration_state_.last_synced = absl::Now();
-        last_collaboration_action_ = absl::Now();
-        RefreshParticipants();
+      auto session_or = collaboration_callbacks_.join_session(code);
+      if (session_or.ok()) {
+        ApplyCollaborationSession(session_or.value(), /*update_action_timestamp=*/true);
+        std::snprintf(join_code_buffer_, sizeof(join_code_buffer_), "%s",
+                      collaboration_state_.session_id.c_str());
         if (toast_manager_) {
           toast_manager_->Show(
-              absl::StrFormat("Joined session %s", code.c_str()),
+              absl::StrFormat("Joined session %s",
+                              collaboration_state_.session_id.c_str()),
               ToastType::kSuccess, 3.5f);
         }
         MarkHistoryDirty();
       } else if (toast_manager_) {
         toast_manager_->Show(
-            absl::StrFormat("Failed to join: %s", status.message()),
+            absl::StrFormat("Failed to join: %s",
+                            session_or.status().message()),
             ToastType::kError, 5.0f);
       }
     }
@@ -592,6 +613,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
                                 : absl::OkStatus();
       if (status.ok()) {
         collaboration_state_ = CollaborationState{};
+        join_code_buffer_[0] = '\0';
         if (toast_manager_) {
           toast_manager_->Show("Left collaborative session",
                                ToastType::kInfo, 3.0f);
@@ -608,9 +630,14 @@ void AgentChatWidget::RenderCollaborationPanel() {
 
   if (connected) {
     ImGui::Separator();
+    if (!can_refresh) ImGui::BeginDisabled();
     if (ImGui::Button("Refresh Participants")) {
-      RefreshParticipants();
+      RefreshCollaboration();
     }
+    if (!can_refresh && ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Provide refresh_session callback to enable");
+    }
+    if (!can_refresh) ImGui::EndDisabled();
     if (collaboration_state_.participants.empty()) {
       ImGui::TextDisabled("Awaiting participant list...");
     } else {
@@ -727,24 +754,43 @@ void AgentChatWidget::RenderMultimodalPanel() {
   }
 }
 
-void AgentChatWidget::RefreshParticipants() {
-  if (!collaboration_callbacks_.refresh_participants) {
+void AgentChatWidget::RefreshCollaboration() {
+  if (!collaboration_callbacks_.refresh_session) {
     return;
   }
-  auto participants_or = collaboration_callbacks_.refresh_participants();
-  if (!participants_or.ok()) {
+  auto session_or = collaboration_callbacks_.refresh_session();
+  if (!session_or.ok()) {
+    if (session_or.status().code() == absl::StatusCode::kNotFound) {
+      collaboration_state_ = CollaborationState{};
+      join_code_buffer_[0] = '\0';
+      MarkHistoryDirty();
+    }
     if (toast_manager_) {
       toast_manager_->Show(
           absl::StrFormat("Failed to refresh participants: %s",
-                           participants_or.status().message()),
+                           session_or.status().message()),
           ToastType::kError, 5.0f);
     }
     return;
   }
 
-  collaboration_state_.participants = participants_or.value();
-  collaboration_state_.last_synced = absl::Now();
+  ApplyCollaborationSession(session_or.value(), /*update_action_timestamp=*/false);
   MarkHistoryDirty();
+}
+
+void AgentChatWidget::ApplyCollaborationSession(
+    const CollaborationCallbacks::SessionContext& context,
+    bool update_action_timestamp) {
+  collaboration_state_.active = true;
+  collaboration_state_.session_id = context.session_id;
+  collaboration_state_.session_name = context.session_name.empty()
+                                         ? context.session_id
+                                         : context.session_name;
+  collaboration_state_.participants = context.participants;
+  collaboration_state_.last_synced = absl::Now();
+  if (update_action_timestamp) {
+    last_collaboration_action_ = absl::Now();
+  }
 }
 
 void AgentChatWidget::MarkHistoryDirty() {
