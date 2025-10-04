@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('d7/d51/md_docs_2B3-build-presets.html'
   <div class="headertitle"><div class="title">Build Presets Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md370"></a> CMake presets for development workflow and architecture-specific builds.</p>
-<h1><a class="anchor" id="autotoc_md371"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md251"></a> CMake presets for development workflow and architecture-specific builds.</p>
+<h1><a class="anchor" id="autotoc_md252"></a>
 🍎 macOS ARM64 Presets (Recommended for Apple Silicon)</h1>
-<h2><a class="anchor" id="autotoc_md372"></a>
+<h2><a class="anchor" id="autotoc_md253"></a>
 For Development Work:</h2>
 <div class="fragment"><div class="line"># ARM64-only development build with ROM testing</div>
 <div class="line">cmake --preset macos-dev</div>
@@ -117,7 +117,7 @@ For Development Work:</h2>
 <div class="line"># ARM64-only release build</div>
 <div class="line">cmake --preset macos-release  </div>
 <div class="line">cmake --build --preset macos-release</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md373"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md254"></a>
 For Distribution:</h2>
 <div class="fragment"><div class="line"># Universal binary (ARM64 + x86_64) - use only when needed for distribution</div>
 <div class="line">cmake --preset macos-debug-universal</div>
@@ -125,7 +125,7 @@ For Distribution:</h2>
 <div class="line"> </div>
 <div class="line">cmake --preset macos-release-universal</div>
 <div class="line">cmake --build --preset macos-release-universal</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md374"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md255"></a>
 🔧 Why This Fixes Architecture Errors</h1>
 <p><b>Problem</b>: The original presets used <code>CMAKE_OSX_ARCHITECTURES: "x86_64;arm64"</code> which forced CMake to build universal binaries. This caused issues because:</p><ul>
 <li>Dependencies like Abseil tried to use x86 SSE instructions (<code>-msse4.1</code>)</li>
@@ -139,7 +139,7 @@ For Distribution:</h2>
 <li>✅ Uses ARM64 optimizations instead</li>
 <li>✅ Builds much faster (no cross-compilation)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md375"></a>
+<h1><a class="anchor" id="autotoc_md256"></a>
 📋 Available Presets</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -155,7 +155,7 @@ For Distribution:</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>macos-release-universal</code>   </td><td class="markdownTableBodyNone">Universal   </td><td class="markdownTableBodyNone">Distribution release   </td><td class="markdownTableBodyNone">❌ Disabled   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md376"></a>
+<h1><a class="anchor" id="autotoc_md257"></a>
 🚀 Quick Start</h1>
 <p>For most development work on Apple Silicon:</p>
 <div class="fragment"><div class="line"># Clean build</div>
@@ -169,27 +169,27 @@ For Distribution:</h2>
 <div class="line"> </div>
 <div class="line"># Run tests  </div>
 <div class="line">cmake --build --preset macos-dev --target test</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md377"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md258"></a>
 🛠️ IDE Integration</h1>
-<h2><a class="anchor" id="autotoc_md378"></a>
+<h2><a class="anchor" id="autotoc_md259"></a>
 VS Code with CMake Tools:</h2>
 <ol type="1">
 <li>Open Command Palette (<code>Cmd+Shift+P</code>)</li>
 <li>Run "CMake: Select Configure Preset"</li>
 <li>Choose <code>macos-dev</code> or <code>macos-debug</code></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md379"></a>
+<h2><a class="anchor" id="autotoc_md260"></a>
 CLion:</h2>
 <ol type="1">
 <li>Go to Settings → Build, Execution, Deployment → CMake</li>
 <li>Add new profile with preset <code>macos-dev</code></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md380"></a>
+<h2><a class="anchor" id="autotoc_md261"></a>
 Xcode:</h2>
 <div class="fragment"><div class="line"># Generate Xcode project</div>
 <div class="line">cmake --preset macos-debug -G Xcode</div>
 <div class="line">open build/yaze.xcodeproj</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md381"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md262"></a>
 🔍 Troubleshooting</h1>
 <p>If you still get architecture errors:</p><ol type="1">
 <li><b>Clean completely</b>: <code>rm -rf build</code></li>
@@ -199,7 +199,7 @@ Xcode:</h2>
 <div class="fragment"><div class="line"># Verify architecture setting</div>
 <div class="line">cmake --preset macos-debug</div>
 <div class="line">grep -A 5 -B 5 &quot;CMAKE_OSX_ARCHITECTURES&quot; build/CMakeCache.txt</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md382"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md263"></a>
 📝 Notes</h1>
 <ul>
 <li><b>ARM64 presets</b>: Fast builds, no architecture conflicts</li>

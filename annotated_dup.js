@@ -17,6 +17,7 @@ var annotated_dup =
           [ "anonymous_namespace{general_commands.cc}", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html", [
             [ "DescribeOptions", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions" ]
           ] ],
+          [ "AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig" ],
           [ "ChatMessage", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage" ],
           [ "ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService" ],
           [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession" ],
@@ -31,6 +32,9 @@ var annotated_dup =
         ] ],
         [ "tui", "da/d0b/namespaceyaze_1_1cli_1_1tui.html", [
           [ "ChatTUI", "d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html", "d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI" ]
+        ] ],
+        [ "util", "d1/d87/namespaceyaze_1_1cli_1_1util.html", [
+          [ "LoadingIndicator", "d8/d03/classyaze_1_1cli_1_1util_1_1LoadingIndicator.html", "d8/d03/classyaze_1_1cli_1_1util_1_1LoadingIndicator" ]
         ] ],
         [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
         [ "AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", "db/d5f/structyaze_1_1cli_1_1AgentResponse" ],
@@ -481,6 +485,9 @@ var annotated_dup =
       [ "zelda3", "d5/d1f/namespaceyaze_1_1zelda3.html", [
         [ "anonymous_namespace{room_object.cc}", "d5/da6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03.html", [
           [ "SubtypeTableInfo", "d2/d79/structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html", "d2/d79/structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo" ]
+        ] ],
+        [ "dungeon", "df/d3e/namespaceyaze_1_1zelda3_1_1dungeon.html", [
+          [ "RoomVisualDiagnostic", "d1/d91/classyaze_1_1zelda3_1_1dungeon_1_1RoomVisualDiagnostic.html", null ]
         ] ],
         [ "EntranceTypes", "dc/dcb/namespaceyaze_1_1zelda3_1_1EntranceTypes.html", [
           [ "EntranceInfo", "dc/dfb/structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html", "dc/dfb/structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo" ]

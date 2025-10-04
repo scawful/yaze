@@ -4,7 +4,7 @@ var searchData=
   ['addressing_2ecc_1',['addressing.cc',['../da/d53/cpu_2internal_2addressing_8cc.html',1,'(Global Namespace)'],['../df/da9/audio_2internal_2addressing_8cc.html',1,'(Global Namespace)']]],
   ['agent_2droadmap_2emd_2',['AGENT-ROADMAP.md',['../de/de4/AGENT-ROADMAP_8md.html',1,'']]],
   ['agent_2ecc_3',['agent.cc',['../d2/d0e/agent_8cc.html',1,'']]],
-  ['agent_5fchat_5fwidget_2ecc_4',['agent_chat_widget.cc',['../dd/dde/editor_2system_2agent__chat__widget_8cc.html',1,'(Global Namespace)'],['../d4/d0a/gui_2widgets_2agent__chat__widget_8cc.html',1,'(Global Namespace)']]],
+  ['agent_5fchat_5fwidget_2ecc_4',['agent_chat_widget.cc',['../d4/d0a/gui_2widgets_2agent__chat__widget_8cc.html',1,'(Global Namespace)'],['../dd/dde/editor_2system_2agent__chat__widget_8cc.html',1,'(Global Namespace)']]],
   ['agent_5fchat_5fwidget_2eh_5',['agent_chat_widget.h',['../d6/dae/gui_2widgets_2agent__chat__widget_8h.html',1,'(Global Namespace)'],['../dc/d5e/editor_2system_2agent__chat__widget_8h.html',1,'(Global Namespace)']]],
   ['ai_5fservice_2ecc_6',['ai_service.cc',['../d2/d3c/ai__service_8cc.html',1,'']]],
   ['ai_5fservice_2eh_7',['ai_service.h',['../d7/d52/ai__service_8h.html',1,'']]],
@@ -27,6 +27,5 @@ var searchData=
   ['asset_5fbrowser_2ecc_24',['asset_browser.cc',['../d4/d4a/asset__browser_8cc.html',1,'']]],
   ['asset_5fbrowser_2eh_25',['asset_browser.h',['../d0/d16/asset__browser_8h.html',1,'']]],
   ['atlas_5frenderer_2ecc_26',['atlas_renderer.cc',['../dd/d53/atlas__renderer_8cc.html',1,'']]],
-  ['atlas_5frenderer_2eh_27',['atlas_renderer.h',['../d1/d35/atlas__renderer_8h.html',1,'']]],
-  ['atlas_5frendering_5fimplementation_2emd_28',['atlas_rendering_implementation.md',['../dd/dc2/atlas__rendering__implementation_8md.html',1,'']]]
+  ['atlas_5frenderer_2eh_27',['atlas_renderer.h',['../d1/d35/atlas__renderer_8h.html',1,'']]]
 ];

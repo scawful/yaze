@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['🚀_20next_20steps_20priority_20order_0',['🚀 Next Steps (Priority Order)',['../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html#autotoc_md1241',1,'']]],
-  ['🚀_20quick_20start_1',['🚀 Quick Start',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md376',1,'']]],
-  ['🚀_20strong_20optimizations_20implemented_20strong_2',['🚀 &lt;strong&gt;Optimizations Implemented&lt;/strong&gt;',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html#autotoc_md204',1,'']]],
-  ['🚀_20strong_20parallelization_20strategy_20implemented_20strong_3',['🚀 &lt;strong&gt;Parallelization Strategy Implemented&lt;/strong&gt;',['../d7/d30/md_docs_2analysis_2dungeon__parallel__optimization__summary.html#autotoc_md162',1,'']]],
-  ['🚀_20strong_20result_3a_20lightning_20fast_20yaze_20strong_4',['🚀 &lt;strong&gt;Result: Lightning-Fast YAZE&lt;/strong&gt;',['../db/de6/md_docs_2analysis_2performance__optimization__summary.html#autotoc_md236',1,'']]]
+  ['🚧_0',['In Progress 🚧',['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1297',1,'']]],
+  ['🚧_20active_20work_1',['🚧 Active Work',['../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html#autotoc_md1031',1,'']]],
+  ['🚧_20in_20progress_2',['🚧 in progress',['../d6/db7/md_docs_2z3ed_2AGENT-ROADMAP.html#autotoc_md1051',1,'🚧 In Progress'],['../df/da9/md_docs_2z3ed_2E6-z3ed-implementation-plan.html#autotoc_md1322',1,'Phase 2: Integration 🚧 IN PROGRESS']]],
+  ['🚧_20llm_20integration_20in_20progress_3',['Phase 4: Agentic Framework &amp; Generative AI (✅ Foundation Complete, 🚧 LLM Integration In Progress)',['../d5/dc5/md_docs_2z3ed_2E6-z3ed-cli-design.html#autotoc_md1110',1,'']]]
 ];

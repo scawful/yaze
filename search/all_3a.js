@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['📸_20screenshots_0',['📸 Screenshots',['../d0/d30/md_README.html#autotoc_md1697',1,'']]]
+  ['🔄_0',['Phase 2: Integrate Components 🔄',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md758',1,'']]],
+  ['🔄_20in_20progress_1',['🔄 In Progress',['../d7/d72/md_docs_2E4-dungeon-editor-refactoring.html#autotoc_md754',1,'']]]
 ];

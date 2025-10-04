@@ -38,5 +38,6 @@ var searchData=
   ['roommanipulationtest_35',['RoomManipulationTest',['../d7/dc3/classyaze_1_1zelda3_1_1test_1_1RoomManipulationTest.html',1,'yaze::zelda3::test']]],
   ['roomobject_36',['RoomObject',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]],
   ['roomproperties_37',['RoomProperties',['../d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['roomsize_38',['RoomSize',['../d6/df8/structyaze_1_1zelda3_1_1RoomSize.html',1,'yaze::zelda3']]]
+  ['roomsize_38',['RoomSize',['../d6/df8/structyaze_1_1zelda3_1_1RoomSize.html',1,'yaze::zelda3']]],
+  ['roomvisualdiagnostic_39',['RoomVisualDiagnostic',['../d1/d91/classyaze_1_1zelda3_1_1dungeon_1_1RoomVisualDiagnostic.html',1,'yaze::zelda3::dungeon']]]
 ];

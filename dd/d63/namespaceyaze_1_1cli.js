@@ -98,6 +98,7 @@ var namespaceyaze_1_1cli =
     ] ],
     [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", "d5/d93/namespaceyaze_1_1cli_1_1overworld" ],
     [ "tui", "da/d0b/namespaceyaze_1_1cli_1_1tui.html", "da/d0b/namespaceyaze_1_1cli_1_1tui" ],
+    [ "util", "d1/d87/namespaceyaze_1_1cli_1_1util.html", "d1/d87/namespaceyaze_1_1cli_1_1util" ],
     [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
     [ "AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", "db/d5f/structyaze_1_1cli_1_1AgentResponse" ],
     [ "AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", "d2/d2a/classyaze_1_1cli_1_1AIService" ],

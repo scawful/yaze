@@ -2,6 +2,7 @@ var classyaze_1_1cli_1_1agent_1_1SimpleChatSession =
 [
     [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a3d6796ac1d1fc39856ac595f1f012a89", null ],
     [ "SetRomContext", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a1778f6e6bc1501e0fcb9981511f38121", null ],
+    [ "SetConfig", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a4e42904accbd3d958ab0da3c115eb0a5", null ],
     [ "SendAndWaitForResponse", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#afd1ff6e283662811433e88c5a353a880", null ],
     [ "RunInteractive", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#ae901112af83140b660356e0775648f4a", null ],
     [ "RunBatch", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a81a741f5fb7bf07f04fd4e2f8e460c65", null ],

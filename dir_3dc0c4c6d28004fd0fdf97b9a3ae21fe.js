@@ -16,5 +16,7 @@ var dir_3dc0c4c6d28004fd0fdf97b9a3ae21fe =
     [ "room_layout.cc", "da/d12/room__layout_8cc.html", null ],
     [ "room_layout.h", "da/d96/room__layout_8h.html", "da/d96/room__layout_8h" ],
     [ "room_object.cc", "d5/da0/room__object_8cc.html", "d5/da0/room__object_8cc" ],
-    [ "room_object.h", "d0/dff/room__object_8h.html", "d0/dff/room__object_8h" ]
+    [ "room_object.h", "d0/dff/room__object_8h.html", "d0/dff/room__object_8h" ],
+    [ "room_visual_diagnostic.cc", "dc/db8/room__visual__diagnostic_8cc.html", null ],
+    [ "room_visual_diagnostic.h", "d6/df9/room__visual__diagnostic_8h.html", "d6/df9/room__visual__diagnostic_8h" ]
 ];

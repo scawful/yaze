@@ -101,11 +101,11 @@ $(document).ready(function(){initNavTree('d8/d17/md_docs_2analysis_2zscream__yaz
   <div class="headertitle"><div class="title">ZScream C# vs YAZE C++ Overworld Implementation Analysis</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md263"></a> </p>
-<h1><a class="anchor" id="autotoc_md264"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md175"></a> </p>
+<h1><a class="anchor" id="autotoc_md176"></a>
 Overview</h1>
 <p>This document provides a comprehensive analysis of the overworld loading logic between ZScream (C#) and YAZE (C++) implementations, identifying key differences, similarities, and areas where the YAZE implementation correctly mirrors ZScream behavior.</p>
-<h1><a class="anchor" id="autotoc_md265"></a>
+<h1><a class="anchor" id="autotoc_md177"></a>
 Executive Summary</h1>
 <p>The YAZE C++ overworld implementation successfully mirrors the ZScream C# logic across all major functionality areas:</p>
 <p>✅ <b>Tile32/Tile16 Loading &amp; Expansion Detection</b> - Correctly implemented <br  />
@@ -116,11 +116,11 @@ Executive Summary</h1>
  ✅ <b>Map Size Assignment</b> - AreaSizeEnum logic is consistent <br  />
  ✅ <b>ZSCustomOverworld Integration</b> - Version detection and feature enablement works <br  />
 </p>
-<h1><a class="anchor" id="autotoc_md266"></a>
+<h1><a class="anchor" id="autotoc_md178"></a>
 Detailed Comparison</h1>
-<h2><a class="anchor" id="autotoc_md267"></a>
+<h2><a class="anchor" id="autotoc_md179"></a>
 1. Tile32 Loading and Expansion Detection</h2>
-<h3><a class="anchor" id="autotoc_md268"></a>
+<h3><a class="anchor" id="autotoc_md180"></a>
 ZScream C# Logic (&lt;tt&gt;Overworld.cs:706-756&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line"><span class="keyword">private</span> List&lt;Tile32&gt; AssembleMap32Tiles()</div>
 <div class="line">{</div>
@@ -139,7 +139,7 @@ ZScream C# Logic (&lt;tt&gt;Overworld.cs:706-756&lt;/tt&gt;)</h3>
 <div class="line">        <span class="comment">// Load from expanded addresses</span></div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md269"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md181"></a>
 yaze C++ Logic (&lt;tt&gt;overworld.cc:AssembleMap32Tiles&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line">absl::Status Overworld::AssembleMap32Tiles() {</div>
 <div class="line">  <a class="code hl_define" href="../../d4/d9e/macro_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>(<span class="keyword">auto</span> count, rom_-&gt;ReadLong(kMap32TilesCountAddr));</div>
@@ -154,9 +154,9 @@ yaze C++ Logic (&lt;tt&gt;overworld.cc:AssembleMap32Tiles&lt;/tt&gt;)</h3>
 <div class="line">}</div>
 <div class="ttc" id="amacro_8h_html_a9a548e9537ecb0675b887fec6654d2d3"><div class="ttname"><a href="../../d4/d9e/macro_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a></div><div class="ttdeci">#define ASSIGN_OR_RETURN(type_variable_name, expression)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d9e/macro_8h_source.html#l00061">macro.h:61</a></div></div>
 </div><!-- fragment --><p><b>✅ VERIFIED</b>: Logic is identical - both check the same count value and set expansion flags accordingly.</p>
-<h2><a class="anchor" id="autotoc_md270"></a>
+<h2><a class="anchor" id="autotoc_md182"></a>
 2. Tile16 Loading and Expansion Detection</h2>
-<h3><a class="anchor" id="autotoc_md271"></a>
+<h3><a class="anchor" id="autotoc_md183"></a>
 ZScream C# Logic (&lt;tt&gt;Overworld.cs:652-705&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line"><span class="keyword">private</span> List&lt;Tile16&gt; AssembleMap16Tiles()</div>
 <div class="line">{</div>
@@ -173,7 +173,7 @@ ZScream C# Logic (&lt;tt&gt;Overworld.cs:652-705&lt;/tt&gt;)</h3>
 <div class="line">        expandedTile16 = <span class="keyword">true</span>;</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md272"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md184"></a>
 yaze C++ Logic (&lt;tt&gt;overworld.cc:AssembleMap16Tiles&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line">absl::Status Overworld::AssembleMap16Tiles() {</div>
 <div class="line">  <a class="code hl_define" href="../../d4/d9e/macro_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>(<span class="keyword">auto</span> bank, rom_-&gt;ReadByte(kMap16TilesBankAddr));</div>
@@ -185,9 +185,9 @@ yaze C++ Logic (&lt;tt&gt;overworld.cc:AssembleMap16Tiles&lt;/tt&gt;)</h3>
 <div class="line">  }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>✅ VERIFIED</b>: Logic is identical - both check the same bank value to detect expansion.</p>
-<h2><a class="anchor" id="autotoc_md273"></a>
+<h2><a class="anchor" id="autotoc_md185"></a>
 3. Map Decompression</h2>
-<h3><a class="anchor" id="autotoc_md274"></a>
+<h3><a class="anchor" id="autotoc_md186"></a>
 ZScream C# Logic (&lt;tt&gt;Overworld.cs:767-904&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line"><span class="keyword">private</span> (ushort[,], ushort[,], ushort[,]) DecompressAllMapTiles()</div>
 <div class="line">{</div>
@@ -197,7 +197,7 @@ ZScream C# Logic (&lt;tt&gt;Overworld.cs:767-904&lt;/tt&gt;)</h3>
 <div class="line">    var sw = ALTTPDecompressOverworld(<span class="comment">/* SW parameters */</span>);</div>
 <div class="line">    <span class="keywordflow">return</span> (lw, dw, sw);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md275"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md187"></a>
 yaze C++ Logic (&lt;tt&gt;overworld.cc:DecompressAllMapTiles&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line">absl::StatusOr&lt;OverworldMapTiles&gt; Overworld::DecompressAllMapTiles() {</div>
 <div class="line">  <span class="comment">// Use HyruleMagicDecompress for each world</span></div>
@@ -207,9 +207,9 @@ yaze C++ Logic (&lt;tt&gt;overworld.cc:DecompressAllMapTiles&lt;/tt&gt;)</h3>
 <div class="line">  <span class="keywordflow">return</span> OverworldMapTiles{lw, dw, sw};</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>✅ VERIFIED</b>: Both use equivalent decompression algorithms with same parameters.</p>
-<h2><a class="anchor" id="autotoc_md276"></a>
+<h2><a class="anchor" id="autotoc_md188"></a>
 4. Entrance Coordinate Calculation</h2>
-<h3><a class="anchor" id="autotoc_md277"></a>
+<h3><a class="anchor" id="autotoc_md189"></a>
 ZScream C# Logic (&lt;tt&gt;Overworld.cs:974-1001&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line"><span class="keyword">private</span> EntranceOW[] LoadEntrances()</div>
 <div class="line">{</div>
@@ -228,7 +228,7 @@ ZScream C# Logic (&lt;tt&gt;Overworld.cs:974-1001&lt;/tt&gt;)</h3>
 <div class="line">        entrances[i] = <span class="keyword">new</span> EntranceOW(realX, realY, <span class="comment">/* other params */</span>);</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md278"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md190"></a>
 yaze C++ Logic (&lt;tt&gt;overworld.cc:LoadEntrances&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line">absl::Status Overworld::LoadEntrances() {</div>
 <div class="line">  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; kNumEntrances; i++) {</div>
@@ -246,9 +246,9 @@ yaze C++ Logic (&lt;tt&gt;overworld.cc:LoadEntrances&lt;/tt&gt;)</h3>
 <div class="line">  }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>✅ VERIFIED</b>: Coordinate calculation is byte-for-byte identical.</p>
-<h2><a class="anchor" id="autotoc_md279"></a>
+<h2><a class="anchor" id="autotoc_md191"></a>
 5. Hole Coordinate Calculation with 0x400 Offset</h2>
-<h3><a class="anchor" id="autotoc_md280"></a>
+<h3><a class="anchor" id="autotoc_md192"></a>
 ZScream C# Logic (&lt;tt&gt;Overworld.cs:1002-1025&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line"><span class="keyword">private</span> EntranceOW[] LoadHoles()</div>
 <div class="line">{</div>
@@ -267,7 +267,7 @@ ZScream C# Logic (&lt;tt&gt;Overworld.cs:1002-1025&lt;/tt&gt;)</h3>
 <div class="line">        holes[i] = <span class="keyword">new</span> EntranceOW(realX, realY, <span class="comment">/* other params */</span>, <span class="keyword">true</span>); <span class="comment">// is_hole = true</span></div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md281"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md193"></a>
 yaze C++ Logic (&lt;tt&gt;overworld.cc:LoadHoles&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line">absl::Status Overworld::LoadHoles() {</div>
 <div class="line">  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; kNumHoles; i++) {</div>
@@ -285,9 +285,9 @@ yaze C++ Logic (&lt;tt&gt;overworld.cc:LoadHoles&lt;/tt&gt;)</h3>
 <div class="line">  }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>✅ VERIFIED</b>: Hole coordinate calculation with 0x400 offset is identical.</p>
-<h2><a class="anchor" id="autotoc_md282"></a>
+<h2><a class="anchor" id="autotoc_md194"></a>
 6. ASM Version Detection for Item Loading</h2>
-<h3><a class="anchor" id="autotoc_md283"></a>
+<h3><a class="anchor" id="autotoc_md195"></a>
 ZScream C# Logic (&lt;tt&gt;Overworld.cs:1032-1094&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line"><span class="keyword">private</span> List&lt;RoomPotSaveEditor&gt; LoadItems()</div>
 <div class="line">{</div>
@@ -307,7 +307,7 @@ ZScream C# Logic (&lt;tt&gt;Overworld.cs:1032-1094&lt;/tt&gt;)</h3>
 <div class="line">    </div>
 <div class="line">    <span class="comment">// Load items based on version</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md284"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md196"></a>
 yaze C++ Logic (&lt;tt&gt;overworld.cc:LoadItems&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line">absl::Status Overworld::LoadItems() {</div>
 <div class="line">  <a class="code hl_define" href="../../d4/d9e/macro_8h.html#a9a548e9537ecb0675b887fec6654d2d3">ASSIGN_OR_RETURN</a>(<span class="keyword">auto</span> asm_version, rom_-&gt;ReadByte(kOverworldCustomASMAddr));</div>
@@ -322,9 +322,9 @@ yaze C++ Logic (&lt;tt&gt;overworld.cc:LoadItems&lt;/tt&gt;)</h3>
 <div class="line">  <span class="comment">// Load items based on version</span></div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>✅ VERIFIED</b>: ASM version detection logic is identical.</p>
-<h2><a class="anchor" id="autotoc_md285"></a>
+<h2><a class="anchor" id="autotoc_md197"></a>
 7. Game State Handling for Sprite Loading</h2>
-<h3><a class="anchor" id="autotoc_md286"></a>
+<h3><a class="anchor" id="autotoc_md198"></a>
 ZScream C# Logic (&lt;tt&gt;Overworld.cs:1276-1494&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line"><span class="keyword">private</span> List&lt;Sprite&gt;[] LoadSprites()</div>
 <div class="line">{</div>
@@ -344,7 +344,7 @@ ZScream C# Logic (&lt;tt&gt;Overworld.cs:1276-1494&lt;/tt&gt;)</h3>
 <div class="line">    </div>
 <div class="line">    <span class="keywordflow">return</span> sprites;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md287"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md199"></a>
 yaze C++ Logic (&lt;tt&gt;overworld.cc:LoadSprites&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line">absl::Status Overworld::LoadSprites() {</div>
 <div class="line">  <span class="comment">// Three game states: 0=rain, 1=pre-Agahnim, 2=post-Agahnim</span></div>
@@ -361,9 +361,9 @@ yaze C++ Logic (&lt;tt&gt;overworld.cc:LoadSprites&lt;/tt&gt;)</h3>
 <div class="line">}</div>
 <div class="ttc" id="amacro_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="../../d4/d9e/macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d9e/macro_8h_source.html#l00053">macro.h:53</a></div></div>
 </div><!-- fragment --><p><b>✅ VERIFIED</b>: Game state handling logic is identical.</p>
-<h2><a class="anchor" id="autotoc_md288"></a>
+<h2><a class="anchor" id="autotoc_md200"></a>
 8. Map Size Assignment Logic</h2>
-<h3><a class="anchor" id="autotoc_md289"></a>
+<h3><a class="anchor" id="autotoc_md201"></a>
 ZScream C# Logic (&lt;tt&gt;Overworld.cs:296-390&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line"><span class="keyword">public</span> OverworldMap[] AssignMapSizes(OverworldMap[] givenMaps)</div>
 <div class="line">{</div>
@@ -389,7 +389,7 @@ ZScream C# Logic (&lt;tt&gt;Overworld.cs:296-390&lt;/tt&gt;)</h3>
 <div class="line">    }</div>
 <div class="line">}</div>
 <div class="ttc" id="anamespaceyaze_1_1zelda3_html_a607408467c46951f2ab11ba3c694ca3d"><div class="ttname"><a href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3d">yaze::zelda3::AreaSizeEnum</a></div><div class="ttdeci">AreaSizeEnum</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d4f/overworld__map_8h_source.html#l00090">overworld_map.h:90</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md290"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md202"></a>
 yaze C++ Logic (&lt;tt&gt;overworld.cc:AssignMapSizes&lt;/tt&gt;)</h3>
 <div class="fragment"><div class="line">absl::Status Overworld::AssignMapSizes() {</div>
 <div class="line">  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; kNumOverworldMaps; i++) {</div>
@@ -405,9 +405,9 @@ yaze C++ Logic (&lt;tt&gt;overworld.cc:AssignMapSizes&lt;/tt&gt;)</h3>
 <div class="line">  }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>✅ VERIFIED</b>: Map size assignment logic is identical.</p>
-<h1><a class="anchor" id="autotoc_md291"></a>
+<h1><a class="anchor" id="autotoc_md203"></a>
 ZSCustomOverworld Integration</h1>
-<h2><a class="anchor" id="autotoc_md292"></a>
+<h2><a class="anchor" id="autotoc_md204"></a>
 Version Detection</h2>
 <p>Both implementations correctly detect ZSCustomOverworld versions by reading byte at address <code>0x140145</code>:</p>
 <ul>
@@ -415,7 +415,7 @@ Version Detection</h2>
 <li><code>0x02</code> = ZSCustomOverworld v2</li>
 <li><code>0x03</code> = ZSCustomOverworld v3</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md293"></a>
+<h2><a class="anchor" id="autotoc_md205"></a>
 Feature Enablement</h2>
 <p>Both implementations properly handle feature flags for v3:</p>
 <ul>
@@ -426,7 +426,7 @@ Feature Enablement</h2>
 <li>Custom tile GFX: <code>0x14014A</code></li>
 <li>Mosaic: <code>0x14014B</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md294"></a>
+<h1><a class="anchor" id="autotoc_md206"></a>
 Integration Test Coverage</h1>
 <p>The comprehensive integration test suite validates:</p>
 <ol type="1">
@@ -440,7 +440,7 @@ Integration Test Coverage</h1>
 <li><b>RomDependentTestSuite Compatibility</b> - Ensures integration with existing test infrastructure</li>
 <li><b>Comprehensive Data Integrity</b> - Validates all major data structures</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md295"></a>
+<h1><a class="anchor" id="autotoc_md207"></a>
 Conclusion</h1>
 <p>The YAZE C++ overworld implementation successfully mirrors the ZScream C# logic across all critical functionality areas. The integration tests provide comprehensive validation that both implementations produce identical results when processing the same ROM data.</p>
 <p>Key strengths of the YAZE implementation:</p><ul>

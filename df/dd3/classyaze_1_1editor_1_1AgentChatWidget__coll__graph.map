@@ -1,10 +1,12 @@
 <map id="yaze::editor::AgentChatWidget" name="yaze::editor::AgentChatWidget">
-<area shape="rect" id="Node000001" title=" " alt="" coords="7,286,200,312"/>
-<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html" title=" " alt="" coords="5,183,202,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,239,106,286,101,286,101,239"/>
-<area shape="rect" id="Node000003" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html" title=" " alt="" coords="148,94,345,120"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="217,131,135,184,132,180,214,126"/>
-<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="23,5,104,31"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="59,46,54,81,57,119,71,152,90,181,85,184,67,155,52,120,48,81,53,45"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="104,36,222,91,219,96,102,41"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="132,286,324,312"/>
+<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html" title=" " alt="" coords="130,183,326,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,239,231,286,226,286,226,239"/>
+<area shape="rect" id="Node000003" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html" title=" " alt="" coords="130,94,327,120"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="231,135,231,182,226,182,226,135"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,5,86,31"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="38,46,30,82,32,101,39,118,57,139,79,157,131,181,129,186,76,161,53,143,34,121,27,102,25,82,32,44"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="86,36,204,91,201,96,84,41"/>
+<area shape="rect" id="Node000008" href="$d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html" title=" " alt="" coords="351,94,532,120"/>
+<area shape="poly" id="edge5_Node000002_Node000008" title=" " alt="" coords="404,129,333,161,278,185,275,180,331,156,401,124"/>
 </map>

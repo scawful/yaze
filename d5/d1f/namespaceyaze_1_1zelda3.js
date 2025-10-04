@@ -44,6 +44,7 @@ var namespaceyaze_1_1zelda3 =
     [ "anonymous_namespace{zelda3_labels.cc}", "d8/dbe/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02zelda3__labels_8cc_03.html", [
       [ "ConvertArrayToVector", "d8/dbe/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02zelda3__labels_8cc_03.html#a52b1aec52fb6a9ad2dacd3110d2fb26d", null ]
     ] ],
+    [ "dungeon", "df/d3e/namespaceyaze_1_1zelda3_1_1dungeon.html", "df/d3e/namespaceyaze_1_1zelda3_1_1dungeon" ],
     [ "EntranceTypes", "dc/dcb/namespaceyaze_1_1zelda3_1_1EntranceTypes.html", "dc/dcb/namespaceyaze_1_1zelda3_1_1EntranceTypes" ],
     [ "ItemTypes", "da/d9f/namespaceyaze_1_1zelda3_1_1ItemTypes.html", "da/d9f/namespaceyaze_1_1zelda3_1_1ItemTypes" ],
     [ "music", "d7/d68/namespaceyaze_1_1zelda3_1_1music.html", "d7/d68/namespaceyaze_1_1zelda3_1_1music" ],

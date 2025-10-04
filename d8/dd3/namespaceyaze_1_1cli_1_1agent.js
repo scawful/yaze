@@ -19,6 +19,7 @@ var namespaceyaze_1_1cli_1_1agent =
       [ "LoadRomFromFlag", "d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#aacabbc0ab80e144c2a381ebad5dbf938", null ],
       [ "LoadRomFromPathOrFlag", "d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#abfae29bd727b8759e06d2e7a728e72a8", null ]
     ] ],
+    [ "AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig" ],
     [ "ChatMessage", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage" ],
     [ "ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService" ],
     [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession" ],

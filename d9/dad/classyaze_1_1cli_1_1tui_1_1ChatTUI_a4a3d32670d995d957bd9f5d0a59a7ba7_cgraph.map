@@ -1,7 +1,11 @@
 <map id="yaze::cli::tui::ChatTUI::OnSubmit" name="yaze::cli::tui::ChatTUI::OnSubmit">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,147,46"/>
-<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a10565bd80a2d2d479e8f10af89380bd6" title=" " alt="" coords="195,5,391,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,23,179,23,179,28,147,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,147,103"/>
+<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a10565bd80a2d2d479e8f10af89380bd6" title=" " alt="" coords="195,63,391,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,80,179,80,179,86,147,86"/>
 <area shape="rect" id="Node000003" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#ab83c62c24e7c9c186dc5010c11140cab" title=" " alt="" coords="439,5,636,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="392,23,424,23,424,28,392,28"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="382,59,432,48,434,53,383,65"/>
+<area shape="rect" id="Node000110" href="$d1/d87/namespaceyaze_1_1cli_1_1util.html#afae2846b87e03703b4a5167d51f742d2" title=" " alt="" coords="463,70,612,96"/>
+<area shape="poly" id="edge3_Node000002_Node000110" title=" " alt="" coords="392,80,448,80,448,86,392,86"/>
+<area shape="rect" id="Node000111" href="$d1/d87/namespaceyaze_1_1cli_1_1util.html#a91bf2e919ffe81049c21c27d7eede39b" title=" " alt="" coords="466,120,610,145"/>
+<area shape="poly" id="edge4_Node000002_Node000111" title=" " alt="" coords="392,100,456,113,455,119,391,105"/>
 </map>

@@ -2,6 +2,7 @@ var hierarchy =
 [
     [ "yaze::app::gui::AgentChatWidget", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html", null ],
     [ "yaze::editor::AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", null ],
+    [ "yaze::cli::agent::AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", null ],
     [ "yaze::cli::AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", null ],
     [ "yaze::cli::AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", [
       [ "yaze::cli::GeminiAIService", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html", null ],
@@ -266,6 +267,7 @@ var hierarchy =
     [ "yaze::gui::Layout", "d4/d44/structyaze_1_1gui_1_1Layout.html", null ],
     [ "yaze::editor::Tile16Editor::LayoutScratch", "d7/d4a/structyaze_1_1editor_1_1Tile16Editor_1_1LayoutScratch.html", null ],
     [ "yaze::cli::ListTestsResult", "d7/dce/structyaze_1_1cli_1_1ListTestsResult.html", null ],
+    [ "yaze::cli::util::LoadingIndicator", "d8/d03/classyaze_1_1cli_1_1util_1_1LoadingIndicator.html", null ],
     [ "yaze::emu::M7A", "d9/d5a/structyaze_1_1emu_1_1M7A.html", null ],
     [ "yaze::emu::M7B", "db/d53/structyaze_1_1emu_1_1M7B.html", null ],
     [ "yaze::emu::M7C", "d5/d84/structyaze_1_1emu_1_1M7C.html", null ],
@@ -407,6 +409,7 @@ var hierarchy =
     ] ],
     [ "yaze::zelda3::DungeonEditorSystem::RoomProperties", "d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html", null ],
     [ "yaze::zelda3::RoomSize", "d6/df8/structyaze_1_1zelda3_1_1RoomSize.html", null ],
+    [ "yaze::zelda3::dungeon::RoomVisualDiagnostic", "d1/d91/classyaze_1_1zelda3_1_1dungeon_1_1RoomVisualDiagnostic.html", null ],
     [ "std::runtime_error", null, [
       [ "yaze::gfx::BitmapError", "df/d71/classyaze_1_1gfx_1_1BitmapError.html", null ]
     ] ],
