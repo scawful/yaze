@@ -2,6 +2,7 @@
 
 #include <yaze.h>
 
+#include <cmath>
 #include <cstdint>
 #include <vector>
 
@@ -10,6 +11,7 @@
 #include "app/gfx/arena.h"
 #include "app/rom.h"
 #include "app/snes.h"
+#include "app/zelda3/dungeon/room_diagnostic.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
 #include "util/log.h"
@@ -308,26 +310,31 @@ void Room::RenderRoomGraphics() {
   std::printf("5. BG1 bitmap: active=%d, size=%dx%d, data_size=%zu\n",
              bg1_bmp.is_active(), bg1_bmp.width(), bg1_bmp.height(), bg1_bmp.vector().size());
 
+  // Get the palette for this room
   auto bg1_palette =
       rom()->mutable_palette_group()->get_group("dungeon_main")[0].palette(0);
+  
+  std::printf("5a. Palette loaded: size=%zu colors\n", bg1_palette.size());
 
-  if (!gfx::Arena::Get().bg1().bitmap().is_active()) {
-    std::printf("6a. Creating new bitmap textures\n");
-    core::Renderer::Get().CreateAndRenderBitmap(
-        0x200, 0x200, 0x200, gfx::Arena::Get().bg1().bitmap().vector(),
-        gfx::Arena::Get().bg1().bitmap(), bg1_palette);
-    core::Renderer::Get().CreateAndRenderBitmap(
-        0x200, 0x200, 0x200, gfx::Arena::Get().bg2().bitmap().vector(),
-        gfx::Arena::Get().bg2().bitmap(), bg1_palette);
-  } else {
-    std::printf("6b. Updating existing bitmap textures\n");
-    // Update the bitmap
-    core::Renderer::Get().UpdateBitmap(&gfx::Arena::Get().bg1().bitmap());
-    core::Renderer::Get().UpdateBitmap(&gfx::Arena::Get().bg2().bitmap());
-  }
+  // CRITICAL: Apply palette to bitmaps BEFORE creating/updating textures
+  bg1_bmp.SetPaletteWithTransparent(bg1_palette, 0);
+  bg2_bmp.SetPaletteWithTransparent(bg1_palette, 0);
+  std::printf("5b. Palette applied to bitmaps\n");
+
+  // ALWAYS recreate textures when palette changes (UpdateBitmap doesn't update palette!)
+  std::printf("6. Recreating bitmap textures with new palette\n");
+  core::Renderer::Get().CreateAndRenderBitmap(
+      0x200, 0x200, 0x200, gfx::Arena::Get().bg1().bitmap().vector(),
+      gfx::Arena::Get().bg1().bitmap(), bg1_palette);
+  core::Renderer::Get().CreateAndRenderBitmap(
+      0x200, 0x200, 0x200, gfx::Arena::Get().bg2().bitmap().vector(),
+      gfx::Arena::Get().bg2().bitmap(), bg1_palette);
   
   std::printf("7. BG1 has texture: %d\n", bg1_bmp.texture() != nullptr);
   std::printf("=== RenderRoomGraphics Complete ===\n\n");
+  
+  // Run comprehensive diagnostic
+  DiagnoseRoomRendering(*this, room_id_);
 }
 
 void Room::RenderObjectsToBackground() {
@@ -372,14 +379,33 @@ void Room::RenderObjectsToBackground() {
     bool is_bg2 = (obj.layer_ == RoomObject::LayerType::BG2);
     auto& target_buffer = is_bg2 ? bg2 : bg1;
     
+    // Calculate the width of the object in Tile16 units
+    // Most objects are arranged in a grid, typically 1-8 tiles wide
+    // We calculate width based on square root for square objects,
+    // or use a more flexible approach for rectangular objects
+    int tiles_wide = 1;
+    if (tiles.size() > 1) {
+      // Try to determine optimal layout based on tile count
+      // Common patterns: 1x1, 2x2, 4x1, 2x4, 4x4, 8x1, etc.
+      int sq = static_cast<int>(std::sqrt(tiles.size()));
+      if (sq * sq == static_cast<int>(tiles.size())) {
+        tiles_wide = sq;  // Perfect square (4, 9, 16, etc.)
+      } else if (tiles.size() <= 4) {
+        tiles_wide = tiles.size();  // Small objects laid out horizontally
+      } else {
+        // For larger objects, try common widths (4 or 8)
+        tiles_wide = (tiles.size() >= 8) ? 8 : 4;
+      }
+    }
+    
     // Draw each Tile16 from the object
     // Each Tile16 is a 16x16 tile made of 4 TileInfo (8x8) tiles
     for (size_t i = 0; i < tiles.size(); i++) {
       const auto& tile16 = tiles[i];
       
-      // Calculate tile16 position (in 16x16 units, so multiply by 2 for 8x8 units)
-      int base_x = obj_x + ((i % 4) * 2);  // Assume 4-tile16 width for now
-      int base_y = obj_y + ((i / 4) * 2);
+      // Calculate tile16 position based on calculated width (in 16x16 units, so multiply by 2 for 8x8 units)
+      int base_x = obj_x + ((i % tiles_wide) * 2);
+      int base_y = obj_y + ((i / tiles_wide) * 2);
       
       // Each Tile16 contains 4 TileInfo objects arranged as:
       // [0][1]  (top-left, top-right)
